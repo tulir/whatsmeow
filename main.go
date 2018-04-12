@@ -38,8 +38,8 @@ func NewWhatsAppConn() (*WhatsAppConn, error) {
 	}
 
 	clientIdB64 := base64.StdEncoding.EncodeToString(clientId)
+	fmt.Printf("%d === 16???", len([]byte(clientId)))
 	fmt.Printf("%d === 25???", len(clientIdB64))
-	fmt.Printf("%d === 16???", len([]byte(clientIdB64)))
 
 	nBig, err := rand.Int(rand.Reader, big.NewInt(8))
 	if err != nil {
