@@ -10,16 +10,24 @@ import (
 	"encoding/base64"
 	"net/http"
 	"io"
-
-	"github.com/gorilla/websocket"
-	"golang.org/x/crypto/curve25519"
-	grqcode "github.com/skip2/go-qrcode"
 	"log"
+	"strings"
+	"strconv"
+	"crypto/hmac"
+	"crypto/sha256"
+	"crypto/aes"
+	"crypto/cipher"
+
+	"golang.org/x/crypto/hkdf"
+	"golang.org/x/crypto/curve25519"
+	"github.com/gorilla/websocket"
+	grqcode "github.com/skip2/go-qrcode"
 )
 
 type WhatsAppConn struct {
 	conn     *websocket.Conn
 	clientId string
+	listener map[string]chan string
 }
 
 func NewWhatsAppConn() (*WhatsAppConn, error) {
@@ -30,6 +38,8 @@ func NewWhatsAppConn() (*WhatsAppConn, error) {
 	}
 
 	clientIdB64 := base64.StdEncoding.EncodeToString(clientId)
+	fmt.Printf("%d === 25???", len(clientIdB64))
+	fmt.Printf("%d === 16???", len([]byte(clientIdB64)))
 
 	nBig, err := rand.Int(rand.Reader, big.NewInt(8))
 	if err != nil {
@@ -50,31 +60,32 @@ func NewWhatsAppConn() (*WhatsAppConn, error) {
 		return nil, fmt.Errorf("ws dial error: %v", err)
 	}
 
-	wac := &WhatsAppConn{conn, clientIdB64}
+	wac := &WhatsAppConn{conn, clientIdB64, make(map[string]chan string)}
 
 	go wac.readPump()
 
 	return wac, nil
 }
 
-func (wac *WhatsAppConn) Write(data []interface{}) (int64, error) {
+func (wac *WhatsAppConn) Write(data []interface{}) (*string, error) {
 	d, err := json.Marshal(data)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	messageTag := time.Now().Unix()
+	messageTag := strconv.Itoa(int(time.Now().Unix()))
+	msg := fmt.Sprintf("%s,%v", messageTag, string(d))
 
-	msg := fmt.Sprintf("%d,%v", messageTag, string(d))
+	wac.listener[messageTag] = make(chan string)
 
 	err = wac.conn.WriteMessage(websocket.TextMessage, []byte(msg))
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
+	resp := <-wac.listener[messageTag]
 
-
-	return messageTag, nil
+	return &resp, nil
 }
 
 func (wac *WhatsAppConn) readPump() {
@@ -90,9 +101,16 @@ func (wac *WhatsAppConn) readPump() {
 			break
 		}
 
-		//TODO response
+		data := strings.SplitN(string(msg), ",", 2)
 
-		fmt.Printf("msg: %v\n", string(msg))
+		if wac.listener[data[0]] != nil {
+			wac.listener[data[0]] <- data[1]
+			delete(wac.listener, data[0])
+			fmt.Printf("[] received msg: %v\n", data[1])
+		} else {
+			// fmt.Printf("[] discarded msg: %v\n", string(msg))
+		}
+
 	}
 }
 
@@ -114,28 +132,130 @@ func generateCurve25519Key() (*[32]byte, *[32]byte, error) {
 	return &priv, &pub, nil
 }
 
-func (wac *WhatsAppConn) createQrCode(ref, pub string) {
+func generateCurve25519SharedSecret(priv, pub [32]byte) []byte {
+	secret := new([32]byte)
+
+	curve25519.ScalarMult(secret, &priv, &pub)
+
+	return secret[:]
+}
+
+func (wac *WhatsAppConn) createQrCode(ref, pub string) (*[]byte, error) {
 	qrData := fmt.Sprintf("%v,%v,%v", ref, pub, wac.clientId)
+	fmt.Printf("%v\n", qrData)
 	grqcode.WriteFile(qrData, grqcode.Medium, 256, "qr.png")
+
+	messageTag := "s1"
+	wac.listener[messageTag] = make(chan string)
+	r := <-wac.listener[messageTag]
+
+	var resp []interface{}
+	if err := json.Unmarshal([]byte(r), &resp); err != nil {
+		return nil, fmt.Errorf("error decoding qr code resp: %v", err)
+	}
+
+	s := resp[1].(map[string]interface{})["secret"].(string)
+	decodedSecret, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding secret: %v", err)
+	}
+
+	return &decodedSecret, nil
+}
+
+func decryptAes(key, decodedMsg []byte) (*[]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	if (len(decodedMsg) % aes.BlockSize) != 0 {
+		return nil, fmt.Errorf("blocksize must be multipe of decoded message length")
+	}
+
+	iv := decodedMsg[:aes.BlockSize]
+	msg := decodedMsg[aes.BlockSize:]
+
+	cfb := cipher.NewCFBDecrypter(block, iv)
+	cfb.XORKeyStream(msg, msg)
+
+	return &decodedMsg, nil
 }
 
 func main() {
 	wac, err := NewWhatsAppConn()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
+		fmt.Fprintf(os.Stderr, "error creating connection: %v\n", err)
 		return
 	}
-
-	_, pub, err := generateCurve25519Key()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		return
-	}
-
-	wac.createQrCode("1@8CYHF+kz6eV18RbVy5taLqEtEIXmg7T5sFSEZJ8BKpj0lnkC5zYHBuQP", base64.StdEncoding.EncodeToString(pub[:]))
 
 	login := []interface{}{"admin", "init", []int{0, 2, 8691}, []string{"Windows 10", "Chrome"}, wac.clientId, true}
-	wac.Write(login)
+	r, err := wac.Write(login)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error writing login: %v\n", err)
+		return
+	}
 
-	<-time.After(10000 * time.Millisecond)
+	resp := make(map[string]interface{})
+	if err = json.Unmarshal([]byte(*r), &resp); err != nil {
+		fmt.Fprintf(os.Stderr, "error decoding login resp: %v\n", err)
+		return
+	}
+
+	priv, pub, err := generateCurve25519Key()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error generating keys: %v\n", err)
+		return
+	}
+
+	secret, err := wac.createQrCode(resp["ref"].(string), base64.StdEncoding.EncodeToString(pub[:]))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error qr code login: %v\n", err)
+		return
+	}
+
+	var pubKey [32]byte
+	copy(pubKey[:32], (*secret)[:32])
+
+	sharedSecret := generateCurve25519SharedSecret(*priv, pubKey)
+
+	hash := sha256.New
+
+	nullKey := make([]byte, 32)
+	h := hmac.New(hash, nullKey)
+	h.Write(sharedSecret)
+
+	sharedSecretExtended := make([]byte, 80)
+	hkdfReader := hkdf.New(hash, sharedSecret, nil, nil)
+	_, err = io.ReadFull(hkdfReader, sharedSecretExtended)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "hkdf error: %v\n", err)
+		return
+	}
+
+	// doesn't work, check keys
+	checkSecret := make([]byte, 112)
+	copy(checkSecret[:32], (*secret)[:32])
+	copy(checkSecret[32:], (*secret)[64:])
+	h2 := hmac.New(hash, sharedSecretExtended[32:64])
+	h2.Write(checkSecret)
+	fmt.Printf("checkSecret: %v\n", checkSecret)
+	fmt.Printf("     Secret: %v\n", (*secret)[32:64])
+	//.
+
+	keysEncrypted := make([]byte, 96)
+	copy(keysEncrypted[:16], sharedSecretExtended[64:])
+	copy(keysEncrypted[16:], (*secret)[64:])
+
+	keysDecrypted, err := decryptAes(sharedSecretExtended[:32], keysEncrypted)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error decryptAes: %v\n", err)
+		return
+	}
+
+	fmt.Printf("64 == %d", len(*keysDecrypted))
+	fmt.Printf("encKey: %v\n", (*keysDecrypted)[:32])
+	fmt.Printf("macKey: %v\n", (*keysDecrypted)[32:64])
+
+	<-time.After(3600 * time.Second)
 }
