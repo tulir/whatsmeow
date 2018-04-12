@@ -15,8 +15,7 @@ import (
 	"strconv"
 	"crypto/hmac"
 	"crypto/sha256"
-	"crypto/aes"
-	"crypto/cipher"
+	 "go-whatsapp/aes"
 
 	"golang.org/x/crypto/hkdf"
 	"golang.org/x/crypto/curve25519"
@@ -28,7 +27,7 @@ type WhatsAppConn struct {
 	conn     *websocket.Conn
 	clientId string
 	listener map[string]chan string
-	encKey []byte
+	encKey   []byte
 }
 
 func NewWhatsAppConn() (*WhatsAppConn, error) {
@@ -109,7 +108,7 @@ func (wac *WhatsAppConn) readPump() {
 			delete(wac.listener, data[0])
 			fmt.Printf("[] received msg: %v\n\n", data[1])
 		} else if msgType == 2 && wac.encKey != nil {
-			d, err := decryptAes(wac.encKey, []byte(data[1])[32:])
+			d, err := aes.Decrypt(wac.encKey, string([]byte(data[1])[32:]))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "error decryptAes data: %v\n", err)
 				return
@@ -169,25 +168,6 @@ func (wac *WhatsAppConn) createQrCode(ref, pub string) (*[]byte, error) {
 	}
 
 	return &decodedSecret, nil
-}
-
-func decryptAes(key, decodedMsg []byte) (*[]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	if (len(decodedMsg) % aes.BlockSize) != 0 {
-		return nil, fmt.Errorf("blocksize must be multipe of decoded message length")
-	}
-
-	iv := decodedMsg[:aes.BlockSize]
-	msg := decodedMsg[aes.BlockSize:]
-
-	cfb := cipher.NewCFBDecrypter(block, iv)
-	cfb.XORKeyStream(msg, msg)
-
-	return &decodedMsg, nil
 }
 
 func main() {
@@ -255,17 +235,19 @@ func main() {
 	copy(keysEncrypted[:16], sharedSecretExtended[64:])
 	copy(keysEncrypted[16:], (*secret)[64:])
 
-	keysDecrypted, err := decryptAes(sharedSecretExtended[:32], keysEncrypted)
+	keysDecrypted, err := aes.Decrypt(sharedSecretExtended[:32], string(keysEncrypted))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error decryptAes: %v\n", err)
 		return
 	}
 
-	fmt.Printf("64 == %d", len(*keysDecrypted))
-	fmt.Printf("encKey: %v\n", (*keysDecrypted)[:32])
-	fmt.Printf("macKey: %v\n", (*keysDecrypted)[32:64])
+	keyDec := []byte(keysDecrypted)
 
-	wac.encKey = (*keysDecrypted)[:32]
+	fmt.Printf("64 == %d", len(keyDec))
+	fmt.Printf("encKey: %v\n", (keyDec)[:32])
+	fmt.Printf("macKey: %v\n", (keyDec)[32:64])
+
+	wac.encKey = (keyDec)[:32]
 
 	<-time.After(3600 * time.Second)
 }
