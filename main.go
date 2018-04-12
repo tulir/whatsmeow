@@ -28,6 +28,7 @@ type WhatsAppConn struct {
 	conn     *websocket.Conn
 	clientId string
 	listener map[string]chan string
+	encKey []byte
 }
 
 func NewWhatsAppConn() (*WhatsAppConn, error) {
@@ -60,7 +61,7 @@ func NewWhatsAppConn() (*WhatsAppConn, error) {
 		return nil, fmt.Errorf("ws dial error: %v", err)
 	}
 
-	wac := &WhatsAppConn{conn, clientIdB64, make(map[string]chan string)}
+	wac := &WhatsAppConn{conn, clientIdB64, make(map[string]chan string), nil}
 
 	go wac.readPump()
 
@@ -92,7 +93,7 @@ func (wac *WhatsAppConn) readPump() {
 	defer wac.conn.Close()
 
 	for {
-		_, msg, err := wac.conn.ReadMessage()
+		msgType, msg, err := wac.conn.ReadMessage()
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
@@ -106,9 +107,16 @@ func (wac *WhatsAppConn) readPump() {
 		if wac.listener[data[0]] != nil {
 			wac.listener[data[0]] <- data[1]
 			delete(wac.listener, data[0])
-			fmt.Printf("[] received msg: %v\n", data[1])
+			fmt.Printf("[] received msg: %v\n\n", data[1])
+		} else if msgType == 2 && wac.encKey != nil {
+			d, err := decryptAes(wac.encKey, []byte(data[1])[32:])
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "error decryptAes data: %v\n", err)
+				return
+			}
+			fmt.Printf("binary data: %s\n", d)
 		} else {
-			// fmt.Printf("[] discarded msg: %v\n", string(msg))
+			fmt.Printf("[] %v discarded msg: %v\n\n", msgType, string(msg))
 		}
 
 	}
@@ -256,6 +264,8 @@ func main() {
 	fmt.Printf("64 == %d", len(*keysDecrypted))
 	fmt.Printf("encKey: %v\n", (*keysDecrypted)[:32])
 	fmt.Printf("macKey: %v\n", (*keysDecrypted)[32:64])
+
+	wac.encKey = (*keysDecrypted)[:32]
 
 	<-time.After(3600 * time.Second)
 }
