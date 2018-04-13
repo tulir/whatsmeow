@@ -15,10 +15,10 @@ import (
 	"strconv"
 	"crypto/hmac"
 	"crypto/sha256"
-	 "go-whatsapp/aes"
+	"github.com/rhymen/go-whatsapp/aes"
+	"github.com/rhymen/go-whatsapp/ecdh"
 
 	"golang.org/x/crypto/hkdf"
-	"golang.org/x/crypto/curve25519"
 	"github.com/gorilla/websocket"
 	grqcode "github.com/skip2/go-qrcode"
 )
@@ -38,8 +38,6 @@ func NewWhatsAppConn() (*WhatsAppConn, error) {
 	}
 
 	clientIdB64 := base64.StdEncoding.EncodeToString(clientId)
-	fmt.Printf("%d === 16???", len([]byte(clientId)))
-	fmt.Printf("%d === 25???", len(clientIdB64))
 
 	nBig, err := rand.Int(rand.Reader, big.NewInt(8))
 	if err != nil {
@@ -67,27 +65,6 @@ func NewWhatsAppConn() (*WhatsAppConn, error) {
 	return wac, nil
 }
 
-func (wac *WhatsAppConn) Write(data []interface{}) (*string, error) {
-	d, err := json.Marshal(data)
-	if err != nil {
-		return nil, err
-	}
-
-	messageTag := strconv.Itoa(int(time.Now().Unix()))
-	msg := fmt.Sprintf("%s,%v", messageTag, string(d))
-
-	wac.listener[messageTag] = make(chan string)
-
-	err = wac.conn.WriteMessage(websocket.TextMessage, []byte(msg))
-	if err != nil {
-		return nil, err
-	}
-
-	resp := <-wac.listener[messageTag]
-
-	return &resp, nil
-}
-
 func (wac *WhatsAppConn) readPump() {
 	defer wac.conn.Close()
 
@@ -113,43 +90,37 @@ func (wac *WhatsAppConn) readPump() {
 				fmt.Fprintf(os.Stderr, "error decryptAes data: %v\n", err)
 				return
 			}
-			fmt.Printf("binary data: %s\n", d)
+			fmt.Printf("[] binary data: %s\n", d)
 		} else {
-			fmt.Printf("[] %v discarded msg: %v\n\n", msgType, string(msg))
+			fmt.Printf("[%v] discarded msg: %v\n\n", msgType, string(msg))
 		}
 
 	}
 }
 
-func generateCurve25519Key() (*[32]byte, *[32]byte, error) {
-	var pub, priv [32]byte
-	var err error
-
-	_, err = io.ReadFull(rand.Reader, priv[:])
+func (wac *WhatsAppConn) Write(data []interface{}) (*string, error) {
+	d, err := json.Marshal(data)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	priv[0] &= 248
-	priv[31] &= 127
-	priv[31] |= 64
+	messageTag := strconv.Itoa(int(time.Now().Unix()))
+	msg := fmt.Sprintf("%s,%v", messageTag, string(d))
 
-	curve25519.ScalarBaseMult(&pub, &priv)
+	wac.listener[messageTag] = make(chan string)
 
-	return &priv, &pub, nil
-}
+	err = wac.conn.WriteMessage(websocket.TextMessage, []byte(msg))
+	if err != nil {
+		return nil, err
+	}
 
-func generateCurve25519SharedSecret(priv, pub [32]byte) []byte {
-	secret := new([32]byte)
+	resp := <-wac.listener[messageTag]
 
-	curve25519.ScalarMult(secret, &priv, &pub)
-
-	return secret[:]
+	return &resp, nil
 }
 
 func (wac *WhatsAppConn) createQrCode(ref, pub string) (*[]byte, error) {
 	qrData := fmt.Sprintf("%v,%v,%v", ref, pub, wac.clientId)
-	fmt.Printf("%v\n", qrData)
 	grqcode.WriteFile(qrData, grqcode.Medium, 256, "qr.png")
 
 	messageTag := "s1"
@@ -190,7 +161,7 @@ func main() {
 		return
 	}
 
-	priv, pub, err := generateCurve25519Key()
+	priv, pub, err := ecdh.GenerateCurve25519Key()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error generating keys: %v\n", err)
 		return
@@ -205,7 +176,7 @@ func main() {
 	var pubKey [32]byte
 	copy(pubKey[:32], (*secret)[:32])
 
-	sharedSecret := generateCurve25519SharedSecret(*priv, pubKey)
+	sharedSecret := ecdh.GenerateCurve25519SharedSecret(*priv, pubKey)
 
 	hash := sha256.New
 
@@ -227,8 +198,6 @@ func main() {
 	copy(checkSecret[32:], (*secret)[64:])
 	h2 := hmac.New(hash, sharedSecretExtended[32:64])
 	h2.Write(checkSecret)
-	fmt.Printf("checkSecret: %v\n", checkSecret)
-	fmt.Printf("     Secret: %v\n", (*secret)[32:64])
 	//.
 
 	keysEncrypted := make([]byte, 96)
@@ -242,10 +211,6 @@ func main() {
 	}
 
 	keyDec := []byte(keysDecrypted)
-
-	fmt.Printf("64 == %d", len(keyDec))
-	fmt.Printf("encKey: %v\n", (keyDec)[:32])
-	fmt.Printf("macKey: %v\n", (keyDec)[32:64])
 
 	wac.encKey = (keyDec)[:32]
 
