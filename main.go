@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp"
+	"github.com/Rhymen/go-whatsapp/whatsapp"
 	"os"
 	"time"
 )

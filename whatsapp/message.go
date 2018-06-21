@@ -1,6 +1,6 @@
 package whatsapp
 
-import "git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp/binary/proto"
+import "github.com/Rhymen/go-whatsapp/whatsapp/binary/proto"
 
 type MessageInfo struct {
 	Id        string

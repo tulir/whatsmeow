@@ -1,8 +1,8 @@
 package parsing
 
 import (
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp/binary"
-	pb "git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp/binary/proto"
+	"github.com/Rhymen/go-whatsapp/whatsapp/binary"
+	pb "github.com/Rhymen/go-whatsapp/whatsapp/binary/proto"
 	"github.com/golang/protobuf/proto"
 )
 

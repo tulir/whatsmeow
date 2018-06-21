@@ -2,9 +2,9 @@ package composing
 
 import (
 	"fmt"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp/binary"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp/binary/parsing"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp/binary/proto"
+	"github.com/Rhymen/go-whatsapp/whatsapp/binary"
+	"github.com/Rhymen/go-whatsapp/whatsapp/binary/parsing"
+	"github.com/Rhymen/go-whatsapp/whatsapp/binary/proto"
 	"reflect"
 	"testing"
 )

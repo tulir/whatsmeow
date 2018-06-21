@@ -4,9 +4,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/crypto/cbc"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/crypto/hkdf"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp/binary"
+	"github.com/Rhymen/go-whatsapp/crypto/cbc"
+	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
+	"github.com/Rhymen/go-whatsapp/whatsapp/binary"
 	"io/ioutil"
 	"net/http"
 )

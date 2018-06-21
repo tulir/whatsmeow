@@ -4,7 +4,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/whatsapp/binary"
+	"github.com/Rhymen/go-whatsapp/whatsapp/binary"
 	"golang.org/x/crypto/hkdf"
 	"io"
 )
