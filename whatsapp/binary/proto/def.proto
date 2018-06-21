@@ -1,0 +1,417 @@
+syntax = "proto2";
+package proto;
+
+message FingerprintData {
+    optional string publicKey = 1;
+    optional string identifier = 2;
+}
+
+message CombinedFingerprint {
+    optional uint32 version = 1;
+    optional FingerprintData localFingerprint = 2;
+    optional FingerprintData remoteFingerprint = 3;
+}
+
+message MessageKey {
+    optional string remoteJid = 1;
+    optional bool fromMe = 2;
+    optional string id = 3;
+    optional string participant = 4;
+}
+
+message SenderKeyDistributionMessage {
+    optional string groupId = 1;
+    optional bytes axolotlSenderKeyDistributionMessage = 2;
+}
+
+message ImageMessage {
+    optional string url = 1;
+    optional string mimetype = 2;
+    optional string caption = 3;
+    optional bytes fileSha256 = 4;
+    optional uint64 fileLength = 5;
+    optional uint32 height = 6;
+    optional uint32 width = 7;
+    optional bytes mediaKey = 8;
+    optional bytes fileEncSha256 = 9;
+    repeated InteractiveAnnotation interactiveAnnotations = 10;
+    optional string directPath = 11;
+    optional bytes jpegThumbnail = 16;
+    optional ContextInfo contextInfo = 17;
+    optional bytes firstScanSidecar = 18;
+    optional uint32 firstScanLength = 19;
+}
+
+message ContactMessage {
+    optional string displayName = 1;
+    optional string vcard = 16;
+    optional ContextInfo contextInfo = 17;
+}
+
+message LocationMessage {
+    optional double degreesLatitude = 1;
+    optional double degreesLongitude = 2;
+    optional string name = 3;
+    optional string address = 4;
+    optional string url = 5;
+    optional bytes jpegThumbnail = 16;
+    optional ContextInfo contextInfo = 17;
+}
+
+message ExtendedTextMessage {
+    optional string text = 1;
+    optional string matchedText = 2;
+    optional string canonicalUrl = 4;
+    optional string description = 5;
+    optional string title = 6;
+    optional fixed32 textArgb = 7;
+    optional fixed32 backgroundArgb = 8;
+    enum FONTTYPE {
+        SANS_SERIF = 0;
+        SERIF = 1;
+        NORICAN_REGULAR = 2;
+        BRYNDAN_WRITE = 3;
+        BEBASNEUE_REGULAR = 4;
+        OSWALD_HEAVY = 5;
+    }
+    optional FONTTYPE font = 9;
+    optional bytes jpegThumbnail = 16;
+    optional ContextInfo contextInfo = 17;
+}
+
+message DocumentMessage {
+    optional string url = 1;
+    optional string mimetype = 2;
+    optional string title = 3;
+    optional bytes fileSha256 = 4;
+    optional uint64 fileLength = 5;
+    optional uint32 pageCount = 6;
+    optional bytes mediaKey = 7;
+    optional string fileName = 8;
+    optional bytes fileEncSha256 = 9;
+    optional string directPath = 10;
+    optional bytes jpegThumbnail = 16;
+    optional ContextInfo contextInfo = 17;
+}
+
+message AudioMessage {
+    optional string url = 1;
+    optional string mimetype = 2;
+    optional bytes fileSha256 = 3;
+    optional uint64 fileLength = 4;
+    optional uint32 seconds = 5;
+    optional bool ptt = 6;
+    optional bytes mediaKey = 7;
+    optional bytes fileEncSha256 = 8;
+    optional string directPath = 9;
+    optional ContextInfo contextInfo = 17;
+    optional bytes streamingSidecar = 18;
+}
+
+message VideoMessage {
+    optional string url = 1;
+    optional string mimetype = 2;
+    optional bytes fileSha256 = 3;
+    optional uint64 fileLength = 4;
+    optional uint32 seconds = 5;
+    optional bytes mediaKey = 6;
+    optional string caption = 7;
+    optional bool gifPlayback = 8;
+    optional uint32 height = 9;
+    optional uint32 width = 10;
+    optional bytes fileEncSha256 = 11;
+    repeated InteractiveAnnotation interactiveAnnotations = 12;
+    optional string directPath = 13;
+    optional bytes jpegThumbnail = 16;
+    optional ContextInfo contextInfo = 17;
+    optional bytes streamingSidecar = 18;
+    enum ATTRIBUTION {
+        NONE = 0;
+        GIPHY = 1;
+        TENOR = 2;
+    }
+    optional ATTRIBUTION gifAttribution = 19;
+}
+
+message Call {
+    optional bytes callKey = 1;
+}
+
+message Chat {
+    optional string displayName = 1;
+    optional string id = 2;
+}
+
+message ProtocolMessage {
+    optional MessageKey key = 1;
+    enum TYPE {
+        REVOKE = 0;
+    }
+    optional TYPE type = 2;
+}
+
+message ContactsArrayMessage {
+    optional string displayName = 1;
+    repeated ContactMessage contacts = 2;
+    optional ContextInfo contextInfo = 17;
+}
+
+message HSMCurrency {
+    optional string currencyCode = 1;
+    optional int64 amount1000 = 2;
+}
+
+message HSMDateTimeComponent {
+    enum DAYOFWEEKTYPE {
+        MONDAY = 1;
+        TUESDAY = 2;
+        WEDNESDAY = 3;
+        THURSDAY = 4;
+        FRIDAY = 5;
+        SATURDAY = 6;
+        SUNDAY = 7;
+    }
+    optional DAYOFWEEKTYPE dayOfWeek = 1;
+    optional uint32 year = 2;
+    optional uint32 month = 3;
+    optional uint32 dayOfMonth = 4;
+    optional uint32 hour = 5;
+    optional uint32 minute = 6;
+    enum CALENDARTYPE {
+        GREGORIAN = 1;
+        SOLAR_HIJRI = 2;
+    }
+    optional CALENDARTYPE calendar = 7;
+}
+
+message HSMDateTimeUnixEpoch {
+    optional int64 timestamp = 1;
+}
+
+message HSMDateTime {
+    oneof datetimeOneof {
+        HSMDateTimeComponent component = 1;
+        HSMDateTimeUnixEpoch unixEpoch = 2;
+    }
+}
+
+message HSMLocalizableParameter {
+    optional string default = 1;
+    oneof paramOneof {
+        HSMCurrency currency = 2;
+        HSMDateTime dateTime = 3;
+    }
+}
+
+message HighlyStructuredMessage {
+    optional string namespace = 1;
+    optional string elementName = 2;
+    repeated string params = 3;
+    optional string fallbackLg = 4;
+    optional string fallbackLc = 5;
+    repeated HSMLocalizableParameter localizableParams = 6;
+}
+
+message SendPaymentMessage {
+    optional Message noteMessage = 2;
+}
+
+message RequestPaymentMessage {
+    optional string currencyCodeIso4217 = 1;
+    optional uint64 amount1000 = 2;
+    optional string requestFrom = 3;
+    optional Message noteMessage = 4;
+}
+
+message LiveLocationMessage {
+    optional double degreesLatitude = 1;
+    optional double degreesLongitude = 2;
+    optional uint32 accuracyInMeters = 3;
+    optional float speedInMps = 4;
+    optional uint32 degreesClockwiseFromMagneticNorth = 5;
+    optional string caption = 6;
+    optional int64 sequenceNumber = 7;
+    optional bytes jpegThumbnail = 16;
+    optional ContextInfo contextInfo = 17;
+}
+
+message StickerMessage {
+    optional string url = 1;
+    optional bytes fileSha256 = 2;
+    optional bytes fileEncSha256 = 3;
+    optional bytes mediaKey = 4;
+    optional string mimetype = 5;
+    optional uint32 height = 6;
+    optional uint32 width = 7;
+    optional string directPath = 8;
+    optional uint64 fileLength = 9;
+    optional bytes pngThumbnail = 16;
+    optional ContextInfo contextInfo = 17;
+}
+
+message Message {
+    optional string conversation = 1;
+    optional SenderKeyDistributionMessage senderKeyDistributionMessage = 2;
+    optional ImageMessage imageMessage = 3;
+    optional ContactMessage contactMessage = 4;
+    optional LocationMessage locationMessage = 5;
+    optional ExtendedTextMessage extendedTextMessage = 6;
+    optional DocumentMessage documentMessage = 7;
+    optional AudioMessage audioMessage = 8;
+    optional VideoMessage videoMessage = 9;
+    optional Call call = 10;
+    optional Chat chat = 11;
+    optional ProtocolMessage protocolMessage = 12;
+    optional ContactsArrayMessage contactsArrayMessage = 13;
+    optional HighlyStructuredMessage highlyStructuredMessage = 14;
+    optional SenderKeyDistributionMessage fastRatchetKeySenderKeyDistributionMessage = 15;
+    optional SendPaymentMessage sendPaymentMessage = 16;
+    optional RequestPaymentMessage requestPaymentMessage = 17;
+    optional LiveLocationMessage liveLocationMessage = 18;
+    optional StickerMessage stickerMessage = 20;
+}
+
+message ContextInfo {
+    optional string stanzaId = 1;
+    optional string participant = 2;
+    repeated Message quotedMessage = 3;
+    optional string remoteJid = 4;
+    repeated string mentionedJid = 15;
+    optional string conversionSource = 18;
+    optional bytes conversionData = 19;
+    optional uint32 conversionDelaySeconds = 20;
+    optional bool isForwarded = 22;
+    reserved 16, 17;
+}
+
+message InteractiveAnnotation {
+    repeated Point polygonVertices = 1;
+    oneof action {
+        Location location = 2;
+    }
+}
+
+message Point {
+    optional double x = 3;
+    optional double y = 4;
+}
+
+message Location {
+    optional double degreesLatitude = 1;
+    optional double degreesLongitude = 2;
+    optional string name = 3;
+}
+
+message WebMessageInfo {
+    required MessageKey key = 1;
+    optional Message message = 2;
+    optional uint64 messageTimestamp = 3;
+    enum STATUS {
+        ERROR = 0;
+        PENDING = 1;
+        SERVER_ACK = 2;
+        DELIVERY_ACK = 3;
+        READ = 4;
+        PLAYED = 5;
+    }
+    optional STATUS status = 4 [default=PENDING];
+    optional string participant = 5;
+    optional bool ignore = 16;
+    optional bool starred = 17;
+    optional bool broadcast = 18;
+    optional string pushName = 19;
+    optional bytes mediaCiphertextSha256 = 20;
+    optional bool multicast = 21;
+    optional bool urlText = 22;
+    optional bool urlNumber = 23;
+    enum STUBTYPE {
+        UNKNOWN = 0;
+        REVOKE = 1;
+        CIPHERTEXT = 2;
+        FUTUREPROOF = 3;
+        NON_VERIFIED_TRANSITION = 4;
+        UNVERIFIED_TRANSITION = 5;
+        VERIFIED_TRANSITION = 6;
+        VERIFIED_LOW_UNKNOWN = 7;
+        VERIFIED_HIGH = 8;
+        VERIFIED_INITIAL_UNKNOWN = 9;
+        VERIFIED_INITIAL_LOW = 10;
+        VERIFIED_INITIAL_HIGH = 11;
+        VERIFIED_TRANSITION_ANY_TO_NONE = 12;
+        VERIFIED_TRANSITION_ANY_TO_HIGH = 13;
+        VERIFIED_TRANSITION_HIGH_TO_LOW = 14;
+        VERIFIED_TRANSITION_HIGH_TO_UNKNOWN = 15;
+        VERIFIED_TRANSITION_UNKNOWN_TO_LOW = 16;
+        VERIFIED_TRANSITION_LOW_TO_UNKNOWN = 17;
+        VERIFIED_TRANSITION_NONE_TO_LOW = 18;
+        VERIFIED_TRANSITION_NONE_TO_UNKNOWN = 19;
+        GROUP_CREATE = 20;
+        GROUP_CHANGE_SUBJECT = 21;
+        GROUP_CHANGE_ICON = 22;
+        GROUP_CHANGE_INVITE_LINK = 23;
+        GROUP_CHANGE_DESCRIPTION = 24;
+        GROUP_CHANGE_RESTRICT = 25;
+        GROUP_CHANGE_ANNOUNCE = 26;
+        GROUP_PARTICIPANT_ADD = 27;
+        GROUP_PARTICIPANT_REMOVE = 28;
+        GROUP_PARTICIPANT_PROMOTE = 29;
+        GROUP_PARTICIPANT_DEMOTE = 30;
+        GROUP_PARTICIPANT_INVITE = 31;
+        GROUP_PARTICIPANT_LEAVE = 32;
+        GROUP_PARTICIPANT_CHANGE_NUMBER = 33;
+        BROADCAST_CREATE = 34;
+        BROADCAST_ADD = 35;
+        BROADCAST_REMOVE = 36;
+        GENERIC_NOTIFICATION = 37;
+        E2E_IDENTITY_CHANGED = 38;
+        E2E_ENCRYPTED = 39;
+        CALL_MISSED_VOICE = 40;
+        CALL_MISSED_VIDEO = 41;
+        INDIVIDUAL_CHANGE_NUMBER = 42;
+        GROUP_DELETE = 43;
+    }
+    optional STUBTYPE messageStubType = 24;
+    optional bool clearMedia = 25;
+    repeated string messageStubParameters = 26;
+    optional uint32 duration = 27;
+    repeated string labels = 28;
+}
+
+message WebNotificationsInfo {
+    optional uint64 timestamp = 2;
+    optional uint32 unreadChats = 3;
+    optional uint32 notifyMessageCount = 4;
+    repeated Message notifyMessages = 5;
+}
+
+message NotificationMessageInfo {
+    optional MessageKey key = 1;
+    optional Message message = 2;
+    optional uint64 messageTimestamp = 3;
+    optional string participant = 4;
+}
+
+message TabletNotificationsInfo {
+    optional uint64 timestamp = 2;
+    optional uint32 unreadChats = 3;
+    optional uint32 notifyMessageCount = 4;
+    repeated Message notifyMessage = 5;
+}
+
+message WebFeatures {
+    enum FLAG {
+        NOT_IMPLEMENTED = 0;
+        IMPLEMENTED = 1;
+        OPTIONAL = 2;
+    }
+    optional FLAG labelsDisplay = 1;
+    optional FLAG voipIndividualOutgoing = 2;
+    optional FLAG groupsV3 = 3;
+    optional FLAG groupsV3Create = 4;
+    optional FLAG changeNumberV2 = 5;
+    optional FLAG queryStatusV3Thumbnail = 6;
+    optional FLAG liveLocations = 7;
+    optional FLAG queryVname = 8;
+    optional FLAG voipIndividualIncoming = 9;
+    optional FLAG quickRepliesQuery = 10;
+}

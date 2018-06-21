@@ -1,2 +1,5 @@
 .idea/
-qr.png
+tmp/
+decompiled/
+docs/
+savedSession.json
