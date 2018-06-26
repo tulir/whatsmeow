@@ -53,7 +53,7 @@ func (dp *dispatcher) dispatchProtoMessage(msg *proto.WebMessageInfo) {
 		dp.handle(getImageMessage(msg))
 
 	case msg.GetMessage().GetVideoMessage() != nil:
-		//dp.handle(getVideoMessage(msg))
+		dp.handle(getVideoMessage(msg))
 
 	case msg.GetMessage().GetConversation() != "":
 		dp.handle(getTextMessage(msg))

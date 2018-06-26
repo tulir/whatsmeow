@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/Rhymen/go-whatsapp/whatsapp"
@@ -29,21 +28,26 @@ func main() {
 		os.Exit(1)
 	}
 	writeStruct("./savedSession.json", sess)
+
+	<-time.After(3 * time.Second)
 	wac.AddHandler(h{})
+
+	//text := whatsapp.TextMessage{
+	//	Info: whatsapp.MessageInfo{
+	//		RemoteJid: "jid",
+	//	},
+	//	Text: "I am Goland.",
+	//}
+	//err = wac.Send(text)
+	//
+	//if err != nil {
+	//	fmt.Fprintf(os.Stderr, "%v", err)
+	//}
 
 	<-time.After(1 * time.Hour)
 }
 
 type h struct {
-}
-
-func (h) HandleImageMessage(message whatsapp.ImageMessage) {
-	data, err := message.Download()
-	if err != nil {
-		fmt.Printf("Image err: %v\n", err)
-		return
-	}
-	fmt.Printf("Got Image, len: %v\n", base64.StdEncoding.EncodeToString(data))
 }
 
 func (h) HandleError(err error) {
@@ -52,6 +56,10 @@ func (h) HandleError(err error) {
 
 func (h) HandleTextMessage(message whatsapp.TextMessage) {
 	fmt.Println(message)
+}
+
+func (h) HandleImageMessage(message whatsapp.ImageMessage) {
+	message.Download()
 }
 
 func writeStruct(filePath string, object interface{}) error {

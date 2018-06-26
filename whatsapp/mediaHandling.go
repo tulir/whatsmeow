@@ -11,11 +11,15 @@ import (
 	"net/http"
 )
 
-func (im *ImageMessage) Download() ([]byte, error) {
-	return download(im.url, im.mediaKey)
+func (m *ImageMessage) Download() ([]byte, error) {
+	fmt.Printf("A:%v\nD:%v\n", m.fileEncSha256, m.fileSha256)
+	return download(m.url, m.mediaKey, binary.IMAGE, m.fileLength)
+}
+func (m *VideoMessage) Download() ([]byte, error) {
+	return download(m.url, m.mediaKey, binary.VIDEO, m.fileLength)
 }
 
-func download(url string, mediaKey []byte) ([]byte, error) {
+func download(url string, mediaKey []byte, appInfo binary.AppInfo, fileLength int) ([]byte, error) {
 	if url == "" {
 		return nil, fmt.Errorf("no url present")
 	}
@@ -23,7 +27,7 @@ func download(url string, mediaKey []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	iv, cipherKey, macKey, _, err := getMediaKeys(mediaKey, binary.IMAGE)
+	iv, cipherKey, macKey, _, err := getMediaKeys(mediaKey, appInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -33,6 +37,9 @@ func download(url string, mediaKey []byte) ([]byte, error) {
 	data, err := cbc.Decrypt(cipherKey, iv, file)
 	if err != nil {
 		return nil, err
+	}
+	if len(data) != fileLength {
+		return nil, fmt.Errorf("file length does not match")
 	}
 	return data, nil
 }

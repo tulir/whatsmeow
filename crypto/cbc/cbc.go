@@ -1,5 +1,7 @@
 package cbc
 
+// https://gist.github.com/locked/b066aa1ddeb2b28e855e
+
 import (
 	"bytes"
 	"crypto/aes"
@@ -17,7 +19,7 @@ func Decrypt(key, iv, ciphertext []byte) ([]byte, error) {
 	}
 
 	if len(ciphertext) < aes.BlockSize {
-		return nil, fmt.Errorf("ciphertext too short")
+		return nil, fmt.Errorf("ciphertext is shorter then block size: %d / %d", len(ciphertext), aes.BlockSize)
 	}
 
 	if iv == nil {
@@ -35,7 +37,7 @@ func Encrypt(key, plaintext []byte) ([]byte, error) {
 	plaintext = pad(plaintext, aes.BlockSize)
 
 	if len(plaintext)%aes.BlockSize != 0 {
-		return nil, fmt.Errorf("plaintext is not a multiple of the block size")
+		return nil, fmt.Errorf("plaintext is not a multiple of the block size: %d / %d", len(plaintext), aes.BlockSize)
 	}
 
 	block, err := aes.NewCipher(key)
@@ -63,11 +65,11 @@ func pad(ciphertext []byte, blockSize int) []byte {
 
 func unpad(src []byte) ([]byte, error) {
 	length := len(src)
-	unpadding := int(src[length-1])
+	padLen := int(src[length-1])
 
-	if unpadding > length {
-		return nil, fmt.Errorf("unpad error. This could happen when incorrect encryption key is used")
+	if padLen > length {
+		return nil, fmt.Errorf("padding is greater then the length: %d / %d", padLen, length)
 	}
 
-	return src[:(length - unpadding)], nil
+	return src[:(length - padLen)], nil
 }

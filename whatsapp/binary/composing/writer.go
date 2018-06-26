@@ -109,7 +109,6 @@ func (w *binaryWriter) writeNode(n binary.Node) error {
 }
 
 func (w *binaryWriter) writeString(token string, i bool) error {
-	//TODO check why he checks for i here.
 	if !i && token == "c.us" {
 		if err := w.writeToken(binary.IndexOfToken("s.whatsapp.net")); err != nil {
 			return err
@@ -123,7 +122,6 @@ func (w *binaryWriter) writeString(token string, i bool) error {
 		if jidSepIndex < 1 {
 			w.writeStringRaw(token)
 		} else {
-			//TODO right side should be token[jidSepIndex+1:], but then it cant be parsed back. leads to @@ in jids
 			w.writeJid(token[:jidSepIndex], token[jidSepIndex+1:])
 		}
 	} else {
