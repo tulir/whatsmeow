@@ -26,6 +26,10 @@ func getMessageInfo(msg *proto.WebMessageInfo) MessageInfo {
 	}
 }
 
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
+
 func getInfoProto(info *MessageInfo) *proto.WebMessageInfo {
 	status := proto.WebMessageInfo_STATUS(1)
 	if info.Id == "" || len(info.Id) < 2 {
