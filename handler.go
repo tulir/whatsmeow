@@ -2,8 +2,8 @@ package whatsapp_connection
 
 import (
 	"fmt"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/binary"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/binary/proto"
+	"github.com/Rhymen/go-whatsapp/binary"
+	"github.com/Rhymen/go-whatsapp/binary/proto"
 	"os"
 )
 

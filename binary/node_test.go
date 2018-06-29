@@ -2,7 +2,7 @@ package binary
 
 import (
 	"fmt"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/conn/binaryinary/proto"
+	"github.com/Rhymen/go-whatsapp/conn/binaryinary/proto"
 	"reflect"
 	"testing"
 )

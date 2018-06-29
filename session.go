@@ -7,9 +7,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/crypto/cbc"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/crypto/curve25519"
-	"git.willing.nrw/WhatsPoll/whatsapp-connection/crypto/hkdf"
+	"github.com/Rhymen/go-whatsapp/crypto/cbc"
+	"github.com/Rhymen/go-whatsapp/crypto/curve25519"
+	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
 	"time"
 )
 
