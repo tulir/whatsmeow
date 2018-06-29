@@ -66,3 +66,29 @@ func (wac *conn) CreateGroup(subject string, participants []string) (<-chan stri
 	wac.msgCount++
 	return wac.writeBinary(n, GROUP, IGNORE, id)
 }
+
+func (wac *conn) UpdateGroupSubject(subject string, jid string) (<-chan string, error) {
+	ts := time.Now().Unix()
+	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
+
+	n := binary.Node{
+		Description: "action",
+		Attributes: map[string]string{
+			"type":  "set",
+			"epoch": strconv.Itoa(wac.msgCount),
+		},
+		Content: []interface{}{binary.Node{
+			Description: "group",
+			Attributes: map[string]string{
+				"author": wac.session.Wid,
+				"id": id,
+				"subject": subject,
+				"jid": jid,
+				"type": "subject",
+			},
+		}},
+	}
+
+	wac.msgCount++
+	return wac.writeBinary(n, GROUP, IGNORE, id)
+}
