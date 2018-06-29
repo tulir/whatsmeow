@@ -1,24 +1,25 @@
 package whatsapp_connection
 
+//TODO: filename? WhatsApp uses Store.Contacts for these functions
 //TODO: functions probably shouldn't return a string, maybe build a struct / return json
 //TODO: check for further queries
 func (wac *conn) GetProfilePicThumb(jid string) (<-chan string, error) {
-	return wac.query("ProfilePicThumb", jid)
+	data := []interface{}{"query", "ProfilePicThumb", jid}
+	return wac.write(data)
 }
 
 func (wac *conn) GetStatus(jid string) (<-chan string, error) {
-	return wac.query("Status", jid)
+	data := []interface{}{"query", "Status", jid}
+	return wac.write(data)
 }
 
 func (wac *conn) GetGroupMetaData(jid string) (<-chan string, error) {
-	return wac.query("GroupMetadata", jid)
+	data := []interface{}{"query", "GroupMetadata", jid}
+	return wac.write(data)
 }
 
-func (wac *conn) query(t string, jid string) (<-chan string, error) {
-	data := []interface{}{"query", t, jid}
-	ch, err := wac.write(data)
-	if err != nil {
-		return nil, err
-	}
-	return ch, nil
+func (wac *conn) SubscribePresence(jid string) (<-chan string, error) {
+	data := []interface{}{"action", "presence", "subscribe", jid}
+	return wac.write(data)
 }
+
