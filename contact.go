@@ -34,15 +34,7 @@ func (wac *conn) CreateGroup(subject string, participants []string) (<-chan stri
 	ts := time.Now().Unix()
 	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
-	p := make([]binary.Node, len(participants))
-	for i, participant := range participants {
-		p[i] = binary.Node{
-			Description: "participant",
-			Attributes: map[string]string{
-				"jid": participant,
-			},
-		}
-	}
+	p := buildParticipantNodes(participants)
 
 	//TODO: get proto or improve encoder to handle []interface{}
 	n := binary.Node{
@@ -91,4 +83,73 @@ func (wac *conn) UpdateGroupSubject(subject string, jid string) (<-chan string, 
 
 	wac.msgCount++
 	return wac.writeBinary(n, GROUP, IGNORE, id)
+}
+
+func (wac *conn) SetAdmin(jid string, participants []string) (<-chan string, error) {
+	ts := time.Now().Unix()
+	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
+
+	p := buildParticipantNodes(participants)
+
+	n := binary.Node{
+		Description: "action",
+		Attributes: map[string]string{
+			"type":  "set",
+			"epoch": strconv.Itoa(wac.msgCount),
+		},
+		Content: []interface{}{binary.Node{
+			Description: "group",
+			Attributes: map[string]string{
+				"author": wac.session.Wid,
+				"id": id,
+				"jid": jid,
+				"type": "promote",
+			},
+			Content: p,
+		}},
+	}
+
+	wac.msgCount++
+	return wac.writeBinary(n, GROUP, IGNORE, id)
+}
+
+func (wac *conn) RemoveAdmin(jid string, participants []string) (<-chan string, error) {
+	ts := time.Now().Unix()
+	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
+
+	p := buildParticipantNodes(participants)
+
+	n := binary.Node{
+		Description: "action",
+		Attributes: map[string]string{
+			"type":  "set",
+			"epoch": strconv.Itoa(wac.msgCount),
+		},
+		Content: []interface{}{binary.Node{
+			Description: "group",
+			Attributes: map[string]string{
+				"author": wac.session.Wid,
+				"id": id,
+				"jid": jid,
+				"type": "demote",
+			},
+			Content: p,
+		}},
+	}
+
+	wac.msgCount++
+	return wac.writeBinary(n, GROUP, IGNORE, id)
+}
+
+func buildParticipantNodes(participants []string) (binary.Node){
+	p := make([]binary.Node, len(participants))
+	for i, participant := range participants {
+		p[i] = binary.Node{
+			Description: "participant",
+			Attributes: map[string]string{
+				"jid": participant,
+			},
+		}
+	}
+	return p
 }
