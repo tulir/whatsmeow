@@ -73,7 +73,7 @@ text := whatsapp.TextMessage{
 
 err := wac.Send(text)
 ```
-All other relevant attributes (id, timestamp, fromMe, status) are set if they are missing in the struct, but can also be set manually. For the time being we only support text messages, but other types are planned for the near future.
+The message will be send over the websocket. The attributes seen above are the required ones. All other relevant attributes (id, timestamp, fromMe, status) are set if they are missing in the struct. For the time being we only support text messages, but other types are planned for the near future.
 
 ## Legal
 This code is in no way affiliated with, authorized, maintained, sponsored or endorsed by WhatsApp or any of its
