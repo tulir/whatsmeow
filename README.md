@@ -36,23 +36,23 @@ The restore function needs a valid session and returns the new session that was 
 ```go
 type myHandler struct{}
 
-func (h) HandleError(err error) {
+func (myHandler) HandleError(err error) {
 	fmt.Fprintf(os.Stderr, "%v", err)
 }
 
-func (h) HandleTextMessage(message whatsapp.TextMessage) {
+func (myHandler) HandleTextMessage(message whatsapp.TextMessage) {
 	fmt.Println(message)
 }
 
-func (h) HandleImageMessage(message whatsapp.ImageMessage) {
+func (myHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	fmt.Println(message)
 }
 
-func (h) HandleVideoMessage(message whatsapp.VideoMessage) {
+func (myHandler) HandleVideoMessage(message whatsapp.VideoMessage) {
 	fmt.Println(message)
 }
 
-func (h) HandleJsonMessage(message string) {
+func (myHandler) HandleJsonMessage(message string) {
 	fmt.Println(message)
 }
 
