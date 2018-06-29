@@ -24,6 +24,7 @@ const (
 func (wac *conn) Send(msg interface{}) error {
 	var err error
 	var ch <-chan string
+
 	switch m := msg.(type) {
 	case TextMessage:
 		ch, err = wac.sendProto(getTextProto(m))
@@ -33,6 +34,7 @@ func (wac *conn) Send(msg interface{}) error {
 	if err != nil {
 		return fmt.Errorf("error sending message:%v", err)
 	}
+
 	select {
 	case response := <-ch:
 		var resp map[string]interface{}
@@ -45,6 +47,7 @@ func (wac *conn) Send(msg interface{}) error {
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("sending message timed out")
 	}
+
 	return nil
 }
 

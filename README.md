@@ -7,12 +7,71 @@ go get github.com/rhymen/go-whatsapp
 ```
 
 ## Usage
-Creating a connection
+### Creating a connection
 ```go
 import (
     whatsapp "github.com/Rhymen/go-whatsapp"
 )
+
+wac, err := whatsapp.NewConn(20 * time.Second)
 ```
+The duration passed to the NewConn function is used to timeout login requests. If you have a bad internet connection use a higher timeout value. This function only creates a websocket connection, it does not handle authentication.
+
+### Login
+```go
+qrChan := make(chan string)
+go func() {
+    fmt.Printf("qr code: %v\n", <-qrChan)
+    //show qr code or save it somewhere to scan
+```
+The authentication process requires you to scan the qr code with the device you are using whatsapp on. The session struct that is returned can be saved and used to restore the login without scanning the qr code again. The qr code has a ttl of 20 seconds and the login function throws a timeout err if the time has passed.
+
+### Restore
+```go
+newSess, err := wac.RestoreSession(sess)
+```
+The restore function needs a valid session and returns the new session that was created.
+
+### Add message handlers
+```go
+type myHandler struct{}
+
+func (h) HandleError(err error) {
+	fmt.Fprintf(os.Stderr, "%v", err)
+}
+
+func (h) HandleTextMessage(message whatsapp.TextMessage) {
+	fmt.Println(message)
+}
+
+func (h) HandleImageMessage(message whatsapp.ImageMessage) {
+	fmt.Println(message)
+}
+
+func (h) HandleVideoMessage(message whatsapp.VideoMessage) {
+	fmt.Println(message)
+}
+
+func (h) HandleJsonMessage(message string) {
+	fmt.Println(message)
+}
+
+wac.AddHandler(myHandler{})
+```
+The message handlers are all optional, you don't need to implement anything but the error handler to implement the interface. The ImageMessage and VideoMessage provide a Download function to get the media data.
+
+### Sending text messages
+```go
+text := whatsapp.TextMessage{
+    Info: whatsapp.MessageInfo{
+        RemoteJid: "0123456789@s.whatsapp.net",
+    },
+    Text: "Hello Whatsapp",
+}
+
+err := wac.Send(text)
+```
+All other relevant attributes (id, timestamp, fromMe, status) are set if they are missing in the struct, but can also be set manually. For the time being we only support text messages, but other types are planned for the near future.
 
 ## Legal
 This code is in no way affiliated with, authorized, maintained, sponsored or endorsed by WhatsApp or any of its
