@@ -1,10 +1,8 @@
-package composing
+package binary
 
 import (
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/whatsapp/binary"
-	"github.com/Rhymen/go-whatsapp/whatsapp/binary/parsing"
-	"github.com/Rhymen/go-whatsapp/whatsapp/binary/proto"
+	"git.willing.nrw/WhatsPoll/whatsapp-connection/conn/binaryinary/proto"
 	"reflect"
 	"testing"
 )
@@ -34,7 +32,7 @@ func TestMarshal(t *testing.T) {
 		*msg.Key.Id = "48386F14A1D358101F4B695DEBEBCA83"
 	}
 
-	node := &binary.Node{
+	node := &Node{
 		Description: "action",
 		Attributes:  make(map[string]string),
 	}
@@ -50,7 +48,7 @@ func TestMarshal(t *testing.T) {
 		t.Fail()
 	}
 
-	ret, err := parsing.Unmarshal(b)
+	ret, err := Unmarshal(b)
 	if err != nil {
 		t.Errorf("%v", err)
 		t.Fail()

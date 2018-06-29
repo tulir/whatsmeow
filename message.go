@@ -1,12 +1,65 @@
-package whatsapp
+package whatsapp_connection
 
 import (
 	"encoding/hex"
-	"github.com/Rhymen/go-whatsapp/whatsapp/binary/proto"
+	"encoding/json"
+	"fmt"
+	"git.willing.nrw/WhatsPoll/whatsapp-connection/binary"
+	"git.willing.nrw/WhatsPoll/whatsapp-connection/binary/proto"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
+
+type messageType string
+
+const (
+	IMAGE    messageType = "WhatsApp Image Keys"
+	VIDEO    messageType = "WhatsApp Video Keys"
+	AUDIO    messageType = "WhatsApp Audio Keys"
+	DOCUMENT messageType = "WhatsApp Document Keys"
+)
+
+func (wac *conn) Send(msg interface{}) error {
+	var err error
+	var ch <-chan string
+	switch m := msg.(type) {
+	case TextMessage:
+		ch, err = wac.sendProto(getTextProto(m))
+	default:
+		return fmt.Errorf("cannot match type %T, use messagetypes declared in the package", msg)
+	}
+	if err != nil {
+		return fmt.Errorf("error sending message:%v", err)
+	}
+	select {
+	case response := <-ch:
+		var resp map[string]interface{}
+		if err = json.Unmarshal([]byte(response), &resp); err != nil {
+			return fmt.Errorf("error decoding sending response: %v\n", err)
+		}
+		if int(resp["status"].(float64)) != 200 {
+			return fmt.Errorf("message sending responded with %d", resp["status"])
+		}
+	case <-time.After(wac.msgTimeout):
+		return fmt.Errorf("sending message timed out")
+	}
+	return nil
+}
+
+func (wac *conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
+	n := binary.Node{
+		Description: "action",
+		Attributes: map[string]string{
+			"type":  "relay",
+			"epoch": strconv.Itoa(wac.msgCount),
+		},
+		Content: []interface{}{p},
+	}
+	wac.msgCount++
+	return wac.writeBinary(n, MESSAGE, IGNORE, p.Key.GetId())
+}
 
 type MessageInfo struct {
 	Id        string
@@ -64,6 +117,7 @@ func getTextMessage(msg *proto.WebMessageInfo) TextMessage {
 		Text: msg.GetMessage().GetConversation(),
 	}
 }
+
 func getTextProto(msg TextMessage) *proto.WebMessageInfo {
 	p := getInfoProto(&msg.Info)
 	p.Message = &proto.Message{
@@ -82,6 +136,11 @@ type ImageMessage struct {
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    int
+}
+
+func (m *ImageMessage) Download() ([]byte, error) {
+	fmt.Printf("A:%v\nD:%v\n", m.fileEncSha256, m.fileSha256)
+	return download(m.url, m.mediaKey, IMAGE, m.fileLength)
 }
 
 func getImageMessage(msg *proto.WebMessageInfo) ImageMessage {
@@ -109,6 +168,10 @@ type VideoMessage struct {
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    int
+}
+
+func (m *VideoMessage) Download() ([]byte, error) {
+	return download(m.url, m.mediaKey, VIDEO, m.fileLength)
 }
 
 func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {

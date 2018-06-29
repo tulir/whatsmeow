@@ -4,13 +4,12 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/whatsapp/binary"
 	"golang.org/x/crypto/hkdf"
 	"io"
 )
 
-func Expand(key []byte, length int, info binary.AppInfo) ([]byte, error) {
-	if info == binary.AppInfo("") {
+func Expand(key []byte, length int, info string) ([]byte, error) {
+	if info == "" {
 		keyBlock := hmac.New(sha256.New, key)
 		var out, last []byte
 

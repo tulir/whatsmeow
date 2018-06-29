@@ -1,34 +1,34 @@
-package composing
+package binary
 
 import (
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/whatsapp/binary"
+	"git.willing.nrw/WhatsPoll/whatsapp-connection/binary/token"
 	"math"
 	"strconv"
 	"strings"
 )
 
-type binaryWriter struct {
+type binaryEncoder struct {
 	data []byte
 }
 
-func NewBinaryWriter() *binaryWriter {
-	return &binaryWriter{make([]byte, 0)}
+func NewEncoder() *binaryEncoder {
+	return &binaryEncoder{make([]byte, 0)}
 }
 
-func (w *binaryWriter) getData() []byte {
+func (w *binaryEncoder) GetData() []byte {
 	return w.data
 }
 
-func (w *binaryWriter) pushByte(b byte) {
+func (w *binaryEncoder) pushByte(b byte) {
 	w.data = append(w.data, b)
 }
 
-func (w *binaryWriter) pushBytes(bytes []byte) {
+func (w *binaryEncoder) pushBytes(bytes []byte) {
 	w.data = append(w.data, bytes...)
 }
 
-func (w *binaryWriter) pushIntN(value, n int, littleEndian bool) {
+func (w *binaryEncoder) pushIntN(value, n int, littleEndian bool) {
 	for i := 0; i < n; i++ {
 		var curShift int
 		if littleEndian {
@@ -40,48 +40,48 @@ func (w *binaryWriter) pushIntN(value, n int, littleEndian bool) {
 	}
 }
 
-func (w *binaryWriter) pushInt20(value int) {
+func (w *binaryEncoder) pushInt20(value int) {
 	w.pushBytes([]byte{byte((value >> 16) & 0x0F), byte((value >> 8) & 0xFF), byte(value & 0xFF)})
 }
 
-func (w *binaryWriter) pushInt8(value int) {
+func (w *binaryEncoder) pushInt8(value int) {
 	w.pushIntN(value, 1, false)
 }
 
-func (w *binaryWriter) pushInt16(value int) {
+func (w *binaryEncoder) pushInt16(value int) {
 	w.pushIntN(value, 2, false)
 }
 
-func (w *binaryWriter) pushInt32(value int) {
+func (w *binaryEncoder) pushInt32(value int) {
 	w.pushIntN(value, 4, false)
 }
 
-func (w *binaryWriter) pushInt64(value int) {
+func (w *binaryEncoder) pushInt64(value int) {
 	w.pushIntN(value, 8, false)
 }
 
-func (w *binaryWriter) pushString(value string) {
+func (w *binaryEncoder) pushString(value string) {
 	w.pushBytes([]byte(value))
 }
 
-func (w *binaryWriter) writeByteLength(length int) error {
+func (w *binaryEncoder) writeByteLength(length int) error {
 	if length >= 4294967296 {
 		return fmt.Errorf("length is too large: %d", length)
 	} else if length >= (1 << 20) {
-		w.pushByte(binary.BINARY_32)
+		w.pushByte(token.BINARY_32)
 		w.pushInt32(length)
 	} else if length >= 256 {
-		w.pushByte(binary.BINARY_20)
+		w.pushByte(token.BINARY_20)
 		w.pushInt20(length)
 	} else {
-		w.pushByte(binary.BINARY_8)
+		w.pushByte(token.BINARY_8)
 		w.pushInt8(length)
 	}
 
 	return nil
 }
 
-func (w *binaryWriter) writeNode(n binary.Node) error {
+func (w *binaryEncoder) WriteNode(n Node) error {
 	numAttributes := 0
 	if n.Attributes != nil {
 		numAttributes = len(n.Attributes)
@@ -108,34 +108,34 @@ func (w *binaryWriter) writeNode(n binary.Node) error {
 	return nil
 }
 
-func (w *binaryWriter) writeString(token string, i bool) error {
-	if !i && token == "c.us" {
-		if err := w.writeToken(binary.IndexOfToken("s.whatsapp.net")); err != nil {
+func (w *binaryEncoder) writeString(tok string, i bool) error {
+	if !i && tok == "c.us" {
+		if err := w.writeToken(token.IndexOfSingleToken("s.whatsapp.net")); err != nil {
 			return err
 		}
 		return nil
 	}
 
-	tokenIndex := binary.IndexOfToken(token)
+	tokenIndex := token.IndexOfSingleToken(tok)
 	if tokenIndex == -1 {
-		jidSepIndex := strings.Index(token, "@")
+		jidSepIndex := strings.Index(tok, "@")
 		if jidSepIndex < 1 {
-			w.writeStringRaw(token)
+			w.writeStringRaw(tok)
 		} else {
-			w.writeJid(token[:jidSepIndex], token[jidSepIndex+1:])
+			w.writeJid(tok[:jidSepIndex], tok[jidSepIndex+1:])
 		}
 	} else {
-		if tokenIndex < binary.SINGLE_BYTE_MAX {
+		if tokenIndex < token.SINGLE_BYTE_MAX {
 			if err := w.writeToken(tokenIndex); err != nil {
 				return err
 			}
 		} else {
-			singleByteOverflow := tokenIndex - binary.SINGLE_BYTE_MAX
+			singleByteOverflow := tokenIndex - token.SINGLE_BYTE_MAX
 			dictionaryIndex := singleByteOverflow >> 8
 			if dictionaryIndex < 0 || dictionaryIndex > 3 {
-				return fmt.Errorf("double byte dictionary token out of range: %v", token)
+				return fmt.Errorf("double byte dictionary token out of range: %v", tok)
 			}
-			if err := w.writeToken(binary.DICTIONARY_0 + dictionaryIndex); err != nil {
+			if err := w.writeToken(token.DICTIONARY_0 + dictionaryIndex); err != nil {
 				return err
 			}
 			if err := w.writeToken(singleByteOverflow % 256); err != nil {
@@ -147,7 +147,7 @@ func (w *binaryWriter) writeString(token string, i bool) error {
 	return nil
 }
 
-func (w *binaryWriter) writeStringRaw(value string) error {
+func (w *binaryEncoder) writeStringRaw(value string) error {
 	if err := w.writeByteLength(len(value)); err != nil {
 		return err
 	}
@@ -157,15 +157,15 @@ func (w *binaryWriter) writeStringRaw(value string) error {
 	return nil
 }
 
-func (w *binaryWriter) writeJid(jidLeft, jidRight string) error {
-	w.pushByte(binary.JID_PAIR)
+func (w *binaryEncoder) writeJid(jidLeft, jidRight string) error {
+	w.pushByte(token.JID_PAIR)
 
 	if jidLeft != "" {
 		if err := w.writePackedBytes(jidLeft); err != nil {
 			return err
 		}
 	} else {
-		if err := w.writeToken(binary.LIST_EMPTY); err != nil {
+		if err := w.writeToken(token.LIST_EMPTY); err != nil {
 			return err
 		}
 	}
@@ -177,17 +177,17 @@ func (w *binaryWriter) writeJid(jidLeft, jidRight string) error {
 	return nil
 }
 
-func (w *binaryWriter) writeToken(token int) error {
-	if token < len(binary.SingleTokens) {
-		w.pushByte(byte(token))
-	} else if token <= 500 {
-		return fmt.Errorf("invalid token: %d", token)
+func (w *binaryEncoder) writeToken(tok int) error {
+	if tok < len(token.SingleByteTokens) {
+		w.pushByte(byte(tok))
+	} else if tok <= 500 {
+		return fmt.Errorf("invalid token: %d", tok)
 	}
 
 	return nil
 }
 
-func (w *binaryWriter) writeAttributes(attributes map[string]string) error {
+func (w *binaryEncoder) writeAttributes(attributes map[string]string) error {
 	if attributes == nil {
 		return nil
 	}
@@ -209,7 +209,7 @@ func (w *binaryWriter) writeAttributes(attributes map[string]string) error {
 	return nil
 }
 
-func (w *binaryWriter) writeChildren(children interface{}) error {
+func (w *binaryEncoder) writeChildren(children interface{}) error {
 	if children == nil {
 		return nil
 	}
@@ -225,10 +225,10 @@ func (w *binaryWriter) writeChildren(children interface{}) error {
 		}
 
 		w.pushBytes(childs)
-	case []binary.Node:
+	case []Node:
 		w.writeListStart(len(childs))
 		for _, n := range childs {
-			if err := w.writeNode(n); err != nil {
+			if err := w.WriteNode(n); err != nil {
 				return err
 			}
 		}
@@ -239,21 +239,21 @@ func (w *binaryWriter) writeChildren(children interface{}) error {
 	return nil
 }
 
-func (w *binaryWriter) writeListStart(listSize int) {
+func (w *binaryEncoder) writeListStart(listSize int) {
 	if listSize == 0 {
-		w.pushByte(byte(binary.LIST_EMPTY))
+		w.pushByte(byte(token.LIST_EMPTY))
 	} else if listSize < 256 {
-		w.pushByte(byte(binary.LIST_8))
+		w.pushByte(byte(token.LIST_8))
 		w.pushInt8(listSize)
 	} else {
-		w.pushByte(byte(binary.LIST_16))
+		w.pushByte(byte(token.LIST_16))
 		w.pushInt16(listSize)
 	}
 }
 
-func (w *binaryWriter) writePackedBytes(value string) error {
-	if err := w.writePackedBytesImpl(value, binary.NIBBLE_8); err != nil {
-		if err := w.writePackedBytesImpl(value, binary.HEX_8); err != nil {
+func (w *binaryEncoder) writePackedBytes(value string) error {
+	if err := w.writePackedBytesImpl(value, token.NIBBLE_8); err != nil {
+		if err := w.writePackedBytesImpl(value, token.HEX_8); err != nil {
 			return err
 		}
 	}
@@ -261,9 +261,9 @@ func (w *binaryWriter) writePackedBytes(value string) error {
 	return nil
 }
 
-func (w *binaryWriter) writePackedBytesImpl(value string, dataType int) error {
+func (w *binaryEncoder) writePackedBytesImpl(value string, dataType int) error {
 	numBytes := len(value)
-	if numBytes > binary.PACKED_MAX {
+	if numBytes > token.PACKED_MAX {
 		return fmt.Errorf("too many bytes to pack: %d", numBytes)
 	}
 
@@ -295,8 +295,8 @@ func (w *binaryWriter) writePackedBytesImpl(value string, dataType int) error {
 	return nil
 }
 
-func (w *binaryWriter) packBytePair(packType int, part1, part2 string) (int, error) {
-	if packType == binary.NIBBLE_8 {
+func (w *binaryEncoder) packBytePair(packType int, part1, part2 string) (int, error) {
+	if packType == token.NIBBLE_8 {
 		n1, err := packNibble(part1)
 		if err != nil {
 			return 0, err
@@ -308,7 +308,7 @@ func (w *binaryWriter) packBytePair(packType int, part1, part2 string) (int, err
 		}
 
 		return (n1 << 4) | n2, nil
-	} else if packType == binary.HEX_8 {
+	} else if packType == token.HEX_8 {
 		n1, err := packHex(part1)
 		if err != nil {
 			return 0, err

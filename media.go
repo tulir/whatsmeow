@@ -1,25 +1,16 @@
-package whatsapp
+package whatsapp_connection
 
 import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/crypto/cbc"
-	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
-	"github.com/Rhymen/go-whatsapp/whatsapp/binary"
+	"git.willing.nrw/WhatsPoll/whatsapp-connection/crypto/cbc"
+	"git.willing.nrw/WhatsPoll/whatsapp-connection/crypto/hkdf"
 	"io/ioutil"
 	"net/http"
 )
 
-func (m *ImageMessage) Download() ([]byte, error) {
-	fmt.Printf("A:%v\nD:%v\n", m.fileEncSha256, m.fileSha256)
-	return download(m.url, m.mediaKey, binary.IMAGE, m.fileLength)
-}
-func (m *VideoMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, binary.VIDEO, m.fileLength)
-}
-
-func download(url string, mediaKey []byte, appInfo binary.AppInfo, fileLength int) ([]byte, error) {
+func download(url string, mediaKey []byte, appInfo messageType, fileLength int) ([]byte, error) {
 	if url == "" {
 		return nil, fmt.Errorf("no url present")
 	}
@@ -59,8 +50,8 @@ func validateMedia(iv []byte, file []byte, macKey []byte, mac []byte) error {
 	return nil
 }
 
-func getMediaKeys(mediaKey []byte, appInfo binary.AppInfo) (iv, cipherKey, macKey, refKey []byte, err error) {
-	mediaKeyExpanded, err := hkdf.Expand(mediaKey, 112, appInfo)
+func getMediaKeys(mediaKey []byte, appInfo messageType) (iv, cipherKey, macKey, refKey []byte, err error) {
+	mediaKeyExpanded, err := hkdf.Expand(mediaKey, 112, string(appInfo))
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
