@@ -19,6 +19,7 @@ type Session struct {
 	ServerToken string
 	EncKey      []byte
 	MacKey      []byte
+	Wid			string
 }
 
 func (wac *conn) Login(qrChan chan<- string) (Session, error) {
@@ -78,6 +79,7 @@ func (wac *conn) Login(qrChan chan<- string) (Session, error) {
 	}
 	session.ClientToken = resp2[1].(map[string]interface{})["clientToken"].(string)
 	session.ServerToken = resp2[1].(map[string]interface{})["serverToken"].(string)
+	session.Wid = resp2[1].(map[string]interface{})["wid"].(string)
 	s := resp2[1].(map[string]interface{})["secret"].(string)
 	decodedSecret, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
@@ -224,6 +226,7 @@ func (wac *conn) RestoreSession(session Session) (Session, error) {
 	//set new tokens
 	session.ClientToken = connResp[1].(map[string]interface{})["clientToken"].(string)
 	session.ServerToken = connResp[1].(map[string]interface{})["serverToken"].(string)
+	session.Wid = connResp[1].(map[string]interface{})["wid"].(string)
 
 	return *wac.session, nil
 }
