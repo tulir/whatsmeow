@@ -77,3 +77,7 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	}
 	return data[:n-10], data[n-10 : n], nil
 }
+
+func upload(data []byte, appInfo messageType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+	return "", nil, nil, nil, 0, fmt.Errorf("not implemented")
+}
