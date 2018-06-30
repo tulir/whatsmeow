@@ -84,7 +84,7 @@ func (wac *conn) dispatch(msg interface{}) {
 			if con, ok := message.Content.([]interface{}); ok {
 				for a := range con {
 					if v, ok := con[a].(*proto.WebMessageInfo); ok {
-						wac.dispatchProtoMessage(v)
+						wac.handle(parseProtoMessage(v))
 					}
 				}
 			}
@@ -98,22 +98,4 @@ func (wac *conn) dispatch(msg interface{}) {
 	}
 }
 
-func (wac *conn) dispatchProtoMessage(msg *proto.WebMessageInfo) {
-	switch {
 
-	case msg.GetMessage().GetAudioMessage() != nil:
-		//dp.handle(getAudioMessage(msg))
-
-	case msg.GetMessage().GetImageMessage() != nil:
-		wac.handle(getImageMessage(msg))
-
-	case msg.GetMessage().GetVideoMessage() != nil:
-		wac.handle(getVideoMessage(msg))
-
-	case msg.GetMessage().GetConversation() != "":
-		wac.handle(getTextMessage(msg))
-
-	default:
-		//cannot match message
-	}
-}

@@ -167,31 +167,13 @@ func (wac *conn) readPump() {
 		if wac.listener[data[0]] != nil && len(data[1]) > 0 {
 			wac.listener[data[0]] <- data[1]
 			delete(wac.listener, data[0])
-			// fmt.Printf("[] received msg: %v\n\n", data[1])
 		} else if msgType == 2 && wac.session != nil && wac.session.EncKey != nil {
-			//message validation
-			h2 := hmac.New(sha256.New, wac.session.MacKey)
-			h2.Write([]byte(data[1][32:]))
-			if !hmac.Equal(h2.Sum(nil), []byte(data[1][:32])) {
-				wac.handle(fmt.Errorf("message received with invalid hmac"))
-				continue
-			}
-
-			// message decrypt
-			d, err := cbc.Decrypt(wac.session.EncKey, nil, []byte(data[1])[32:])
-			if err != nil {
-				wac.handle(fmt.Errorf("error decrypting message with AES: %v", err))
-				continue
-			}
-
-			// message unmarshal
-			message, err := binary.Unmarshal(d)
+			message, err := wac.decryptBinaryMessage([]byte(data[1][:32]))
 			if err != nil {
 				wac.handle(fmt.Errorf("error decoding binary: %v", err))
 				continue
 			}
 
-			// fmt.Printf("decoded %d binary message\n", message)
 			wac.dispatch(message)
 		} else {
 			if len(data[1]) > 0 {
@@ -200,4 +182,27 @@ func (wac *conn) readPump() {
 		}
 
 	}
+}
+
+func (wac *conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
+	//message validation
+	h2 := hmac.New(sha256.New, wac.session.MacKey)
+	h2.Write([]byte(msg[32:]))
+	if !hmac.Equal(h2.Sum(nil), msg[:32]) {
+		return nil, fmt.Errorf("message received with invalid hmac")
+	}
+
+	// message decrypt
+	d, err := cbc.Decrypt(wac.session.EncKey, nil, msg[32:])
+	if err != nil {
+		return nil, fmt.Errorf("error decrypting message with AES: %v", err)
+	}
+
+	// message unmarshal
+	message, err := binary.Unmarshal(d)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding binary: %v", err)
+	}
+
+	return message, nil
 }

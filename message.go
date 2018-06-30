@@ -191,3 +191,25 @@ func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {
 		fileLength:    int(vid.GetFileLength()),
 	}
 }
+
+func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
+	switch {
+
+	case msg.GetMessage().GetAudioMessage() != nil:
+		//dp.handle(getAudioMessage(msg))
+
+	case msg.GetMessage().GetImageMessage() != nil:
+		return getImageMessage(msg)
+
+	case msg.GetMessage().GetVideoMessage() != nil:
+		return getVideoMessage(msg)
+
+	case msg.GetMessage().GetConversation() != "":
+		return getTextMessage(msg)
+
+	default:
+		//cannot match message
+	}
+
+	return nil
+}

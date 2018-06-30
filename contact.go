@@ -54,6 +54,35 @@ func (wac *conn) RemoveMember(jid string, participants []string) (<-chan string,
 	return wac.setGroup("remove", jid, "", participants)
 }
 
+func (wac *conn) Search(search string, count, page int) (*binary.Node, error) {
+	ts := time.Now().Unix()
+	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
+
+	n := binary.Node{
+		Description: "query",
+		Attributes: map[string]string{
+			"type":  "search",
+			"epoch": strconv.Itoa(wac.msgCount),
+			"search": "search",
+			"count": strconv.Itoa(count),
+			"page": strconv.Itoa(page),
+		},
+	}
+
+	wac.msgCount++
+	ch, err := wac.writeBinary(n, GROUP, IGNORE, id)
+	if err != nil {
+		return nil, err
+	}
+
+	msg, err := wac.decryptBinaryMessage([]byte(<-ch))
+	if err != nil {
+		return nil, err
+	}
+
+	return msg, nil
+}
+
 func (wac *conn) setGroup(t, jid, subject string, participants []string) (<-chan string, error) {
 	ts := time.Now().Unix()
 	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
