@@ -55,18 +55,59 @@ func (wac *conn) RemoveMember(jid string, participants []string) (<-chan string,
 }
 
 func (wac *conn) Search(search string, count, page int) (*binary.Node, error) {
+	return wac.query("search", "", "", "", "", search, count, page)
+}
+
+func (wac *conn) LoadMessages(jid, messageId string, count int) (*binary.Node, error) {
+	return wac.query("message", jid, "", "before", "true", "", count, 0)
+}
+
+func (wac *conn) LoadMessagesBefore(jid, messageId string, count int) (*binary.Node, error) {
+	return wac.query("message", jid, messageId, "before", "true", "", count, 0)
+}
+
+func (wac *conn) LoadMessagesAfter(jid, messageId string, count int) (*binary.Node, error) {
+	return wac.query("message", jid, messageId, "after", "true", "", count, 0)
+}
+
+func (wac *conn) query(t, jid, messageId, kind, owner, search string, count, page int) (*binary.Node, error) {
 	ts := time.Now().Unix()
 	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
 	n := binary.Node{
 		Description: "query",
 		Attributes: map[string]string{
-			"type":  "search",
+			"type":  t,
 			"epoch": strconv.Itoa(wac.msgCount),
-			"search": "search",
-			"count": strconv.Itoa(count),
-			"page": strconv.Itoa(page),
 		},
+	}
+
+	if jid != "" {
+		n.Attributes["jid"] = jid
+	}
+
+	if messageId != "" {
+		n.Attributes["index"] = messageId
+	}
+
+	if kind != "" {
+		n.Attributes["kind"] = kind
+	}
+
+	if owner != "" {
+		n.Attributes["owner"] = owner
+	}
+
+	if search != "" {
+		n.Attributes["search"] = search
+	}
+
+	if count != 0 {
+		n.Attributes["count"] = strconv.Itoa(count)
+	}
+
+	if page != 0 {
+		n.Attributes["page"] = strconv.Itoa(page)
 	}
 
 	wac.msgCount++
@@ -80,6 +121,7 @@ func (wac *conn) Search(search string, count, page int) (*binary.Node, error) {
 		return nil, err
 	}
 
+	//TODO: use parseProtoMessage
 	return msg, nil
 }
 
