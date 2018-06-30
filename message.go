@@ -64,6 +64,10 @@ func (wac *conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
 	return wac.writeBinary(n, MESSAGE, IGNORE, p.Key.GetId())
 }
 
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
+
 type MessageInfo struct {
 	Id        string
 	RemoteJid string
@@ -80,10 +84,6 @@ func getMessageInfo(msg *proto.WebMessageInfo) MessageInfo {
 		Timestamp: msg.GetMessageTimestamp(),
 		PushName:  msg.GetPushName(),
 	}
-}
-
-func init() {
-	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func getInfoProto(info *MessageInfo) *proto.WebMessageInfo {
@@ -138,12 +138,7 @@ type ImageMessage struct {
 	ImageType     string
 	fileEncSha256 []byte
 	fileSha256    []byte
-	fileLength    int
-}
-
-func (m *ImageMessage) Download() ([]byte, error) {
-	fmt.Printf("A:%v\nD:%v\n", m.fileEncSha256, m.fileSha256)
-	return download(m.url, m.mediaKey, IMAGE, m.fileLength)
+	fileLength    uint64
 }
 
 func getImageMessage(msg *proto.WebMessageInfo) ImageMessage {
@@ -157,8 +152,34 @@ func getImageMessage(msg *proto.WebMessageInfo) ImageMessage {
 		ImageType:     image.GetMimetype(),
 		fileEncSha256: image.GetFileEncSha256(),
 		fileSha256:    image.GetFileSha256(),
-		fileLength:    int(image.GetFileLength()),
+		fileLength:    image.GetFileLength(),
 	}
+}
+
+func getImageProto(msg ImageMessage) *proto.WebMessageInfo {
+	p := getInfoProto(&msg.Info)
+	p.Message = &proto.Message{
+		ImageMessage: &proto.ImageMessage{
+			Caption:       &msg.Caption,
+			JpegThumbnail: msg.Thumbnail,
+			Url:           &msg.url,
+			MediaKey:      msg.mediaKey,
+			Mimetype:      &msg.ImageType,
+			FileEncSha256: msg.fileEncSha256,
+			FileSha256:    msg.fileSha256,
+			FileLength:    &msg.fileLength,
+		},
+	}
+	return p
+}
+
+func (m *ImageMessage) Download() ([]byte, error) {
+	fmt.Printf("A:%v\nD:%v\n", m.fileEncSha256, m.fileSha256)
+	return download(m.url, m.mediaKey, IMAGE, int(m.fileLength))
+}
+
+func (m *ImageMessage) Upload([]byte) error {
+	return fmt.Errorf("not implemented.")
 }
 
 type VideoMessage struct {
@@ -170,11 +191,7 @@ type VideoMessage struct {
 	Length        uint32
 	fileEncSha256 []byte
 	fileSha256    []byte
-	fileLength    int
-}
-
-func (m *VideoMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, VIDEO, m.fileLength)
+	fileLength    uint64
 }
 
 func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {
@@ -188,8 +205,131 @@ func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {
 		Length:        vid.GetSeconds(),
 		fileEncSha256: vid.GetFileEncSha256(),
 		fileSha256:    vid.GetFileSha256(),
-		fileLength:    int(vid.GetFileLength()),
+		fileLength:    vid.GetFileLength(),
 	}
+}
+
+func getVideoProto(msg VideoMessage) *proto.WebMessageInfo {
+	p := getInfoProto(&msg.Info)
+	p.Message = &proto.Message{
+		VideoMessage: &proto.VideoMessage{
+			Caption:       &msg.Caption,
+			JpegThumbnail: msg.Thumbnail,
+			Url:           &msg.url,
+			MediaKey:      msg.mediaKey,
+			Seconds:       &msg.Length,
+			FileEncSha256: msg.fileEncSha256,
+			FileSha256:    msg.fileSha256,
+			FileLength:    &msg.fileLength,
+		},
+	}
+	return p
+}
+
+func (m *VideoMessage) Download() ([]byte, error) {
+	return download(m.url, m.mediaKey, VIDEO, int(m.fileLength))
+}
+
+func (m *VideoMessage) Upload([]byte) error {
+	return fmt.Errorf("not implemented.")
+}
+
+type AudioMessage struct {
+	Info          MessageInfo
+	url           string
+	mediaKey      []byte
+	Length        uint32
+	fileEncSha256 []byte
+	fileSha256    []byte
+	fileLength    uint64
+}
+
+func getAudioMessage(msg *proto.WebMessageInfo) AudioMessage {
+	aud := msg.GetMessage().GetAudioMessage()
+	return AudioMessage{
+		Info:          getMessageInfo(msg),
+		url:           aud.GetUrl(),
+		mediaKey:      aud.GetMediaKey(),
+		Length:        aud.GetSeconds(),
+		fileEncSha256: aud.GetFileEncSha256(),
+		fileSha256:    aud.GetFileSha256(),
+		fileLength:    aud.GetFileLength(),
+	}
+}
+
+func getAudioProto(msg AudioMessage) *proto.WebMessageInfo {
+	p := getInfoProto(&msg.Info)
+	p.Message = &proto.Message{
+		AudioMessage: &proto.AudioMessage{
+			Url:           &msg.url,
+			MediaKey:      msg.mediaKey,
+			Seconds:       &msg.Length,
+			FileEncSha256: msg.fileEncSha256,
+			FileSha256:    msg.fileSha256,
+			FileLength:    &msg.fileLength,
+		},
+	}
+	return p
+}
+
+func (m *AudioMessage) Download() ([]byte, error) {
+	return download(m.url, m.mediaKey, AUDIO, int(m.fileLength))
+}
+
+func (m *AudioMessage) Upload([]byte) error {
+	return fmt.Errorf("not implemented.")
+}
+
+type DocumentMessage struct {
+	Info          MessageInfo
+	Thumbnail     []byte
+	url           string
+	mediaKey      []byte
+	fileEncSha256 []byte
+	fileSha256    []byte
+	fileLength    uint64
+	PageCount     uint32
+	Title         string
+}
+
+func getDocumentMessage(msg *proto.WebMessageInfo) DocumentMessage {
+	doc := msg.GetMessage().GetDocumentMessage()
+	return DocumentMessage{
+		Info:          getMessageInfo(msg),
+		Thumbnail:     doc.GetJpegThumbnail(),
+		url:           doc.GetUrl(),
+		mediaKey:      doc.GetMediaKey(),
+		fileEncSha256: doc.GetFileEncSha256(),
+		fileSha256:    doc.GetFileSha256(),
+		fileLength:    doc.GetFileLength(),
+		PageCount:     doc.GetPageCount(),
+		Title:         doc.GetTitle(),
+	}
+}
+
+func getDocumentProto(msg DocumentMessage) *proto.WebMessageInfo {
+	p := getInfoProto(&msg.Info)
+	p.Message = &proto.Message{
+		DocumentMessage: &proto.DocumentMessage{
+			JpegThumbnail: msg.Thumbnail,
+			Url:           &msg.url,
+			MediaKey:      msg.mediaKey,
+			FileEncSha256: msg.fileEncSha256,
+			FileSha256:    msg.fileSha256,
+			FileLength:    &msg.fileLength,
+			PageCount:     &msg.PageCount,
+			Title:         &msg.Title,
+		},
+	}
+	return p
+}
+
+func (m *DocumentMessage) Download() ([]byte, error) {
+	return download(m.url, m.mediaKey, DOCUMENT, int(m.fileLength))
+}
+
+func (m *DocumentMessage) Upload([]byte) error {
+	return fmt.Errorf("not implemented.")
 }
 
 func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
