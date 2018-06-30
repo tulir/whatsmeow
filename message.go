@@ -178,8 +178,13 @@ func (m *ImageMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, IMAGE, int(m.fileLength))
 }
 
-func (m *ImageMessage) Upload([]byte) error {
-	return fmt.Errorf("not implemented.")
+func (m *ImageMessage) Upload(data []byte) error {
+	var err error
+	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, IMAGE)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type VideoMessage struct {
@@ -230,8 +235,13 @@ func (m *VideoMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, VIDEO, int(m.fileLength))
 }
 
-func (m *VideoMessage) Upload([]byte) error {
-	return fmt.Errorf("not implemented.")
+func (m *VideoMessage) Upload(data []byte) error {
+	var err error
+	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, VIDEO)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type AudioMessage struct {
@@ -276,8 +286,13 @@ func (m *AudioMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, AUDIO, int(m.fileLength))
 }
 
-func (m *AudioMessage) Upload([]byte) error {
-	return fmt.Errorf("not implemented.")
+func (m *AudioMessage) Upload(data []byte) error {
+	var err error
+	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, AUDIO)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type DocumentMessage struct {
@@ -328,8 +343,13 @@ func (m *DocumentMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, DOCUMENT, int(m.fileLength))
 }
 
-func (m *DocumentMessage) Upload([]byte) error {
-	return fmt.Errorf("not implemented.")
+func (m *DocumentMessage) Upload(data []byte) error {
+	var err error
+	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, DOCUMENT)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
