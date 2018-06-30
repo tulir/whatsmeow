@@ -54,6 +54,10 @@ func (wac *conn) RemoveMember(jid string, participants []string) (<-chan string,
 	return wac.setGroup("remove", jid, "", participants)
 }
 
+func (wac *conn) LeaveGroup(jid string) (<-chan string, error) {
+	return wac.setGroup("leave", jid, "",  nil)
+}
+
 func (wac *conn) Search(search string, count, page int) (*binary.Node, error) {
 	return wac.query("search", "", "", "", "", search, count, page)
 }
