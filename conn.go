@@ -147,6 +147,7 @@ func (wac *conn) writeBinary(node binary.Node, metric Metric, flag Flag, tag str
 		return nil, err
 	}
 
+	wac.msgCount++
 	return ch, nil
 }
 

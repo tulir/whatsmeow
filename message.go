@@ -60,7 +60,6 @@ func (wac *conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
 		},
 		Content: []interface{}{p},
 	}
-	wac.msgCount++
 	return wac.writeBinary(n, MESSAGE, IGNORE, p.Key.GetId())
 }
 

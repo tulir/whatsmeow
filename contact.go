@@ -114,7 +114,6 @@ func (wac *conn) query(t, jid, messageId, kind, owner, search string, count, pag
 		n.Attributes["page"] = strconv.Itoa(page)
 	}
 
-	wac.msgCount++
 	ch, err := wac.writeBinary(n, GROUP, IGNORE, id)
 	if err != nil {
 		return nil, err
@@ -164,7 +163,6 @@ func (wac *conn) setGroup(t, jid, subject string, participants []string) (<-chan
 		Content: []interface{}{g},
 	}
 
-	wac.msgCount++
 	return wac.writeBinary(n, GROUP, IGNORE, id)
 }
 
