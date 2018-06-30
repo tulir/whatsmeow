@@ -74,6 +74,39 @@ func (wac *conn) LoadMessagesAfter(jid, messageId string, count int) (*binary.No
 	return wac.query("message", jid, messageId, "after", "true", "", count, 0)
 }
 
+func (wac *conn) Acknowledge(jid string) (<-chan string, error) {
+	ts := time.Now().Unix()
+	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
+
+	n := binary.Node{
+		Description: "action",
+		Attributes: map[string]string{
+			"type":  "set",
+			"epoch": strconv.Itoa(wac.msgCount),
+		},
+		Content: []interface{}{binary.Node{
+			Description: "presence",
+			Attributes: map[string]string{
+				"type": "available",
+			},
+		}},
+	}
+
+	return wac.writeBinary(n, GROUP, IGNORE, id)
+}
+
+func (wac *conn) Emoji() (*binary.Node, error) {
+	return wac.query("emoji", "", "", "", "", "",0,0)
+}
+
+func (wac *conn) Contacts() (*binary.Node, error) {
+	return wac.query("contacts", "", "", "", "", "",0,0)
+}
+
+func (wac *conn) Chats() (*binary.Node, error) {
+	return wac.query("chat", "", "", "", "", "",0,0)
+}
+
 func (wac *conn) query(t, jid, messageId, kind, owner, search string, count, page int) (*binary.Node, error) {
 	ts := time.Now().Unix()
 	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
