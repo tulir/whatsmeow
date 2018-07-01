@@ -134,7 +134,7 @@ type ImageMessage struct {
 	Thumbnail     []byte
 	url           string
 	mediaKey      []byte
-	ImageType     string
+	Type          string
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    uint64
@@ -148,7 +148,7 @@ func getImageMessage(msg *proto.WebMessageInfo) ImageMessage {
 		Thumbnail:     image.GetJpegThumbnail(),
 		url:           image.GetUrl(),
 		mediaKey:      image.GetMediaKey(),
-		ImageType:     image.GetMimetype(),
+		Type:          image.GetMimetype(),
 		fileEncSha256: image.GetFileEncSha256(),
 		fileSha256:    image.GetFileSha256(),
 		fileLength:    image.GetFileLength(),
@@ -163,7 +163,7 @@ func getImageProto(msg ImageMessage) *proto.WebMessageInfo {
 			JpegThumbnail: msg.Thumbnail,
 			Url:           &msg.url,
 			MediaKey:      msg.mediaKey,
-			Mimetype:      &msg.ImageType,
+			Mimetype:      &msg.Type,
 			FileEncSha256: msg.fileEncSha256,
 			FileSha256:    msg.fileSha256,
 			FileLength:    &msg.fileLength,
@@ -193,6 +193,7 @@ type VideoMessage struct {
 	url           string
 	mediaKey      []byte
 	Length        uint32
+	Type          string
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    uint64
@@ -207,6 +208,7 @@ func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {
 		url:           vid.GetUrl(),
 		mediaKey:      vid.GetMediaKey(),
 		Length:        vid.GetSeconds(),
+		Type:          vid.GetMimetype(),
 		fileEncSha256: vid.GetFileEncSha256(),
 		fileSha256:    vid.GetFileSha256(),
 		fileLength:    vid.GetFileLength(),
@@ -225,6 +227,7 @@ func getVideoProto(msg VideoMessage) *proto.WebMessageInfo {
 			FileEncSha256: msg.fileEncSha256,
 			FileSha256:    msg.fileSha256,
 			FileLength:    &msg.fileLength,
+			Mimetype:      &msg.Type,
 		},
 	}
 	return p
@@ -248,6 +251,7 @@ type AudioMessage struct {
 	url           string
 	mediaKey      []byte
 	Length        uint32
+	Type          string
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    uint64
@@ -260,6 +264,7 @@ func getAudioMessage(msg *proto.WebMessageInfo) AudioMessage {
 		url:           aud.GetUrl(),
 		mediaKey:      aud.GetMediaKey(),
 		Length:        aud.GetSeconds(),
+		Type:          aud.GetMimetype(),
 		fileEncSha256: aud.GetFileEncSha256(),
 		fileSha256:    aud.GetFileSha256(),
 		fileLength:    aud.GetFileLength(),
@@ -276,6 +281,7 @@ func getAudioProto(msg AudioMessage) *proto.WebMessageInfo {
 			FileEncSha256: msg.fileEncSha256,
 			FileSha256:    msg.fileSha256,
 			FileLength:    &msg.fileLength,
+			Mimetype:      &msg.Type,
 		},
 	}
 	return p
@@ -304,6 +310,7 @@ type DocumentMessage struct {
 	fileLength    uint64
 	PageCount     uint32
 	Title         string
+	Type          string
 }
 
 func getDocumentMessage(msg *proto.WebMessageInfo) DocumentMessage {
@@ -318,6 +325,7 @@ func getDocumentMessage(msg *proto.WebMessageInfo) DocumentMessage {
 		fileLength:    doc.GetFileLength(),
 		PageCount:     doc.GetPageCount(),
 		Title:         doc.GetTitle(),
+		Type:          doc.GetMimetype(),
 	}
 }
 
@@ -333,6 +341,7 @@ func getDocumentProto(msg DocumentMessage) *proto.WebMessageInfo {
 			FileLength:    &msg.fileLength,
 			PageCount:     &msg.PageCount,
 			Title:         &msg.Title,
+			Mimetype:      &msg.Type,
 		},
 	}
 	return p
