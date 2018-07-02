@@ -169,7 +169,7 @@ func (wac *conn) readPump() {
 			wac.listener[data[0]] <- data[1]
 			delete(wac.listener, data[0])
 		} else if msgType == 2 && wac.session != nil && wac.session.EncKey != nil {
-			message, err := wac.decryptBinaryMessage([]byte(data[1][:32]))
+			message, err := wac.decryptBinaryMessage([]byte(data[1]))
 			if err != nil {
 				wac.handle(fmt.Errorf("error decoding binary: %v", err))
 				continue
