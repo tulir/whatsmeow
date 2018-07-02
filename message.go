@@ -1,4 +1,4 @@
-package whatsapp_connection
+package whatsapp
 
 import (
 	"encoding/hex"
@@ -173,7 +173,6 @@ func getImageProto(msg ImageMessage) *proto.WebMessageInfo {
 }
 
 func (m *ImageMessage) Download() ([]byte, error) {
-	fmt.Printf("A:%v\nD:%v\n", m.fileEncSha256, m.fileSha256)
 	return download(m.url, m.mediaKey, IMAGE, int(m.fileLength))
 }
 

@@ -1,4 +1,4 @@
-package whatsapp_connection
+package whatsapp
 
 import (
 	"crypto/hmac"
@@ -19,7 +19,7 @@ type Session struct {
 	ServerToken string
 	EncKey      []byte
 	MacKey      []byte
-	Wid			string
+	Wid         string
 }
 
 func (wac *conn) Login(qrChan chan<- string) (Session, error) {

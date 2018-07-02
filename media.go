@@ -1,4 +1,4 @@
-package whatsapp_connection
+package whatsapp
 
 import (
 	"crypto/hmac"

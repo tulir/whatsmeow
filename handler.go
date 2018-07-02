@@ -1,4 +1,4 @@
-package whatsapp_connection
+package whatsapp
 
 import (
 	"fmt"
@@ -97,5 +97,3 @@ func (wac *conn) dispatch(msg interface{}) {
 		fmt.Fprintf(os.Stderr, "unknown type in dipatcher chan: %T", msg)
 	}
 }
-
-

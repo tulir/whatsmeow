@@ -1,10 +1,10 @@
-package whatsapp_connection
+package whatsapp
 
 import (
-	"strconv"
-	"github.com/Rhymen/go-whatsapp/binary"
-	"time"
 	"fmt"
+	"github.com/Rhymen/go-whatsapp/binary"
+	"strconv"
+	"time"
 )
 
 //TODO: filename? WhatsApp uses Store.Contacts for these functions
@@ -55,7 +55,7 @@ func (wac *conn) RemoveMember(jid string, participants []string) (<-chan string,
 }
 
 func (wac *conn) LeaveGroup(jid string) (<-chan string, error) {
-	return wac.setGroup("leave", jid, "",  nil)
+	return wac.setGroup("leave", jid, "", nil)
 }
 
 func (wac *conn) Search(search string, count, page int) (*binary.Node, error) {
@@ -96,15 +96,15 @@ func (wac *conn) Acknowledge(jid string) (<-chan string, error) {
 }
 
 func (wac *conn) Emoji() (*binary.Node, error) {
-	return wac.query("emoji", "", "", "", "", "",0,0)
+	return wac.query("emoji", "", "", "", "", "", 0, 0)
 }
 
 func (wac *conn) Contacts() (*binary.Node, error) {
-	return wac.query("contacts", "", "", "", "", "",0,0)
+	return wac.query("contacts", "", "", "", "", "", 0, 0)
 }
 
 func (wac *conn) Chats() (*binary.Node, error) {
-	return wac.query("chat", "", "", "", "", "",0,0)
+	return wac.query("chat", "", "", "", "", "", 0, 0)
 }
 
 func (wac *conn) query(t, jid, messageId, kind, owner, search string, count, page int) (*binary.Node, error) {
@@ -173,8 +173,8 @@ func (wac *conn) setGroup(t, jid, subject string, participants []string) (<-chan
 		Description: "group",
 		Attributes: map[string]string{
 			"author": wac.session.Wid,
-			"id": id,
-			"type": t,
+			"id":     id,
+			"type":   t,
 		},
 		Content: p,
 	}
@@ -199,7 +199,7 @@ func (wac *conn) setGroup(t, jid, subject string, participants []string) (<-chan
 	return wac.writeBinary(n, GROUP, IGNORE, id)
 }
 
-func buildParticipantNodes(participants []string) ([]binary.Node) {
+func buildParticipantNodes(participants []string) []binary.Node {
 	l := len(participants)
 	if participants == nil || l == 0 {
 		return nil
