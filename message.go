@@ -7,7 +7,6 @@ import (
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -31,15 +30,29 @@ func (wac *Conn) Send(msg interface{}) error {
 	case TextMessage:
 		ch, err = wac.sendProto(getTextProto(m))
 	case ImageMessage:
-		data, err := ioutil.ReadAll(m.Content)
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, image)
 		if err != nil {
-			return err
-		}
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(data, image)
-		if err != nil {
-			return nil
+			return fmt.Errorf("upload failed: %v", err)
 		}
 		ch, err = wac.sendProto(getImageProto(m))
+	case VideoMessage:
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, video)
+		if err != nil {
+			return fmt.Errorf("upload failed: %v", err)
+		}
+		ch, err = wac.sendProto(getVideoProto(m))
+	case DocumentMessage:
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, document)
+		if err != nil {
+			return fmt.Errorf("upload failed: %v", err)
+		}
+		ch, err = wac.sendProto(getDocumentProto(m))
+	case AudioMessage:
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, audio)
+		if err != nil {
+			return fmt.Errorf("upload failed: %v", err)
+		}
+		ch, err = wac.sendProto(getAudioProto(m))
 	default:
 		return fmt.Errorf("cannot match type %T, use messagetypes declared in the package", msg)
 	}
