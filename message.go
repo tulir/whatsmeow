@@ -356,7 +356,7 @@ func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 	switch {
 
 	case msg.GetMessage().GetAudioMessage() != nil:
-		//dp.handle(getAudioMessage(msg))
+		return getAudioMessage(msg)
 
 	case msg.GetMessage().GetImageMessage() != nil:
 		return getImageMessage(msg)
