@@ -1,13 +1,22 @@
 package whatsapp
 
 import (
+	"bytes"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"strings"
+	"time"
 )
 
 func download(url string, mediaKey []byte, appInfo messageType, fileLength int) ([]byte, error) {
@@ -78,6 +87,96 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
-func upload(data []byte, appInfo messageType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
-	return "", nil, nil, nil, 0, fmt.Errorf("not implemented")
+func (wac *conn) upload(data []byte, appInfo messageType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+	mediaKey = make([]byte, 32)
+	rand.Read(mediaKey)
+
+	iv, cipherKey, macKey, _, err := getMediaKeys(mediaKey, appInfo)
+	if err != nil {
+		return "", nil, nil, nil, 0, err
+	}
+
+	enc, err := cbc.Encrypt(cipherKey, iv, data)
+	if err != nil {
+		return "", nil, nil, nil, 0, err
+	}
+
+	fileLength = uint64(len(data))
+
+	h := hmac.New(sha256.New, macKey)
+	h.Write(append(iv, enc...))
+	mac := h.Sum(nil)[:10]
+
+	sha := sha256.New()
+	sha.Write(data)
+	fileSha256 = sha.Sum(nil)
+
+	sha.Reset()
+	sha.Write(append(enc, mac...))
+	fileEncSha256 = sha.Sum(nil)
+
+	uploadReq := []interface{}{"action", "encr_upload", "image", base64.StdEncoding.EncodeToString(fileEncSha256)}
+	ch, err := wac.write(uploadReq)
+	if err != nil {
+		return "", nil, nil, nil, 0, err
+	}
+
+	var resp map[string]interface{}
+	select {
+	case r := <-ch:
+		if err = json.Unmarshal([]byte(r), &resp); err != nil {
+			return "", nil, nil, nil, 0, fmt.Errorf("error decoding upload response: %v\n", err)
+		}
+	case <-time.After(wac.msgTimeout):
+		return "", nil, nil, nil, 0, fmt.Errorf("restore session init timed out")
+	}
+
+	if int(resp["status"].(float64)) != 200 {
+		return "", nil, nil, nil, 0, fmt.Errorf("upload responsed with %d", resp["status"])
+	}
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	hashWriter, err := w.CreateFormField("hash")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+	}
+	io.Copy(hashWriter, strings.NewReader(base64.StdEncoding.EncodeToString(fileEncSha256)))
+
+	fileWriter, err := w.CreateFormFile("file", "blob")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+	}
+	io.Copy(fileWriter, bytes.NewReader(append(enc, mac...)))
+	err = w.Close()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+	}
+
+	req, err := http.NewRequest("POST", resp["url"].(string), &b)
+	if err != nil {
+		return "", nil, nil, nil, 0, err
+	}
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.Header.Set("Origin", "https://web.whatsapp.com")
+	req.Header.Set("Referer", "https://web.whatsapp.com/")
+
+	req.URL.Query().Set("f", "j")
+
+	client := &http.Client{}
+	// Submit the request
+	res, err := client.Do(req)
+	if err != nil {
+		return "", nil, nil, nil, 0, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return "", nil, nil, nil, 0, fmt.Errorf("upload failed with status code %d", res.StatusCode)
+	}
+
+	var jsonRes map[string]string
+	json.NewDecoder(res.Body).Decode(&jsonRes)
+
+	return jsonRes["url"], mediaKey, fileEncSha256, fileSha256, fileLength, nil
 }

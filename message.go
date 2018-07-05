@@ -1,6 +1,7 @@
 package whatsapp
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -28,6 +29,8 @@ func (wac *conn) Send(msg interface{}) error {
 	switch m := msg.(type) {
 	case TextMessage:
 		ch, err = wac.sendProto(getTextProto(m))
+	case ImageMessage:
+		ch, err = wac.sendProto(getImageProto(m))
 	default:
 		return fmt.Errorf("cannot match type %T, use messagetypes declared in the package", msg)
 	}
@@ -173,12 +176,13 @@ func getImageProto(msg ImageMessage) *proto.WebMessageInfo {
 }
 
 func (m *ImageMessage) Download() ([]byte, error) {
+	fmt.Printf("fileEncSha256: %s\n", base64.StdEncoding.EncodeToString(m.fileEncSha256))
 	return download(m.url, m.mediaKey, IMAGE, int(m.fileLength))
 }
 
-func (m *ImageMessage) Upload(data []byte) error {
+func (m *ImageMessage) Upload(data []byte, wac *conn) error {
 	var err error
-	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, IMAGE)
+	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(data, IMAGE)
 	if err != nil {
 		return err
 	}
@@ -238,7 +242,7 @@ func (m *VideoMessage) Download() ([]byte, error) {
 
 func (m *VideoMessage) Upload(data []byte) error {
 	var err error
-	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, VIDEO)
+	//m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, VIDEO)
 	if err != nil {
 		return err
 	}
@@ -292,7 +296,7 @@ func (m *AudioMessage) Download() ([]byte, error) {
 
 func (m *AudioMessage) Upload(data []byte) error {
 	var err error
-	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, AUDIO)
+	//m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, AUDIO)
 	if err != nil {
 		return err
 	}
@@ -352,7 +356,7 @@ func (m *DocumentMessage) Download() ([]byte, error) {
 
 func (m *DocumentMessage) Upload(data []byte) error {
 	var err error
-	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, DOCUMENT)
+	//m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, DOCUMENT)
 	if err != nil {
 		return err
 	}
