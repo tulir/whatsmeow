@@ -43,6 +43,14 @@ type VideoMessageHandler interface {
 }
 
 /*
+The AudioMessageHandler interface needs to be implemented to receive audio messages dispatched by the dispatcher.
+*/
+type AudioMessageHandler interface {
+	Handler
+	HandleAudioMessage(message AudioMessage)
+}
+
+/*
 The JsonMessageHandler interface needs to be implemented to receive json messages dispatched by the dispatcher.
 These json messages contain status updates of every kind sent by WhatsAppWeb servers. WhatsAppWeb uses these messages
 to built a Store, which is used to save these "secondary" information. These messages may contain
@@ -101,7 +109,16 @@ func (wac *Conn) handle(message interface{}) {
 			}
 			go x.HandleVideoMessage(m)
 		}
+	case AudioMessage:
+		for _, h := range wac.handler {
+			x, ok := h.(AudioMessageHandler)
+			if !ok {
+				continue
+			}
+			go x.HandleAudioMessage(m)
+		}
 	}
+
 }
 
 func (wac *Conn) dispatch(msg interface{}) {
