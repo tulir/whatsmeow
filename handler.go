@@ -51,6 +51,14 @@ type AudioMessageHandler interface {
 }
 
 /*
+The DocumentMessageHandler interface needs to be implemented to receive document messages dispatched by the dispatcher.
+*/
+type DocumentMessageHandler interface {
+	Handler
+	HandleDocumentMessage(message DocumentMessage)
+}
+
+/*
 The JsonMessageHandler interface needs to be implemented to receive json messages dispatched by the dispatcher.
 These json messages contain status updates of every kind sent by WhatsAppWeb servers. WhatsAppWeb uses these messages
 to built a Store, which is used to save these "secondary" information. These messages may contain
@@ -116,6 +124,14 @@ func (wac *Conn) handle(message interface{}) {
 				continue
 			}
 			go x.HandleAudioMessage(m)
+		}
+	case DocumentMessage:
+		for _, h := range wac.handler {
+			x, ok := h.(DocumentMessageHandler)
+			if !ok {
+				continue
+			}
+			go x.HandleDocumentMessage(m)
 		}
 	}
 

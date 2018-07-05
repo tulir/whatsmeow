@@ -364,6 +364,9 @@ func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 	case msg.GetMessage().GetVideoMessage() != nil:
 		return getVideoMessage(msg)
 
+	case msg.GetMessage().GetDocumentMessage() != nil:
+		return getDocumentMessage(msg)
+
 	case msg.GetMessage().GetConversation() != "":
 		return getTextMessage(msg)
 
