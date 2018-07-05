@@ -87,7 +87,7 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
-func (wac *conn) upload(data []byte, appInfo messageType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+func (wac *Conn) upload(data []byte, appInfo messageType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
 	mediaKey = make([]byte, 32)
 	rand.Read(mediaKey)
 

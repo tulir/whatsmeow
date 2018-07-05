@@ -1,7 +1,6 @@
 package whatsapp
 
 import (
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -176,13 +175,12 @@ func getImageProto(msg ImageMessage) *proto.WebMessageInfo {
 }
 
 func (m *ImageMessage) Download() ([]byte, error) {
-	fmt.Printf("fileEncSha256: %s\n", base64.StdEncoding.EncodeToString(m.fileEncSha256))
-	return download(m.url, m.mediaKey, IMAGE, int(m.fileLength))
+	return download(m.url, m.mediaKey, image, int(m.fileLength))
 }
 
-func (m *ImageMessage) Upload(data []byte, wac *conn) error {
+func (m *ImageMessage) Upload(data []byte, wac *Conn) error {
 	var err error
-	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(data, IMAGE)
+	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(data, image)
 	if err != nil {
 		return err
 	}
