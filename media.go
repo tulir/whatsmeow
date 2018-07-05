@@ -87,7 +87,12 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
-func (wac *Conn) upload(data []byte, appInfo messageType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+func (wac *Conn) upload(reader io.Reader, appInfo messageType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return "", nil, nil, nil, 0, err
+	}
+
 	mediaKey = make([]byte, 32)
 	rand.Read(mediaKey)
 
@@ -115,7 +120,19 @@ func (wac *Conn) upload(data []byte, appInfo messageType) (url string, mediaKey 
 	sha.Write(append(enc, mac...))
 	fileEncSha256 = sha.Sum(nil)
 
-	uploadReq := []interface{}{"action", "encr_upload", "image", base64.StdEncoding.EncodeToString(fileEncSha256)}
+	var filetype string
+	switch appInfo {
+	case image:
+		filetype = "image"
+	case audio:
+		filetype = "audio"
+	case document:
+		filetype = "document"
+	case video:
+		filetype = "video"
+	}
+
+	uploadReq := []interface{}{"action", "encr_upload", filetype, base64.StdEncoding.EncodeToString(fileEncSha256)}
 	ch, err := wac.write(uploadReq)
 	if err != nil {
 		return "", nil, nil, nil, 0, err
