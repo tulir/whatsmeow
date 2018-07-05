@@ -33,7 +33,7 @@ func Decrypt(key, iv, ciphertext []byte) ([]byte, error) {
 	return unpad(ciphertext)
 }
 
-func Encrypt(key, plaintext []byte) ([]byte, error) {
+func Encrypt(key, iv, plaintext []byte) ([]byte, error) {
 	plaintext = pad(plaintext, aes.BlockSize)
 
 	if len(plaintext)%aes.BlockSize != 0 {
@@ -45,14 +45,22 @@ func Encrypt(key, plaintext []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
-	iv := ciphertext[:aes.BlockSize]
-	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		return nil, err
-	}
+	var ciphertext []byte
+	if iv == nil {
+		ciphertext = make([]byte, aes.BlockSize+len(plaintext))
+		iv := ciphertext[:aes.BlockSize]
+		if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+			return nil, err
+		}
 
-	cbc := cipher.NewCBCEncrypter(block, iv)
-	cbc.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
+		cbc := cipher.NewCBCEncrypter(block, iv)
+		cbc.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
+	} else {
+		ciphertext = make([]byte, len(plaintext))
+
+		cbc := cipher.NewCBCEncrypter(block, iv)
+		cbc.CryptBlocks(ciphertext, plaintext)
+	}
 
 	return ciphertext, nil
 }

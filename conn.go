@@ -126,7 +126,7 @@ func (wac *conn) writeBinary(node binary.Node, metric Metric, flag Flag, tag str
 		return nil, err
 	}
 
-	cipher, err := cbc.Encrypt(wac.session.EncKey, b)
+	cipher, err := cbc.Encrypt(wac.session.EncKey, nil, b)
 	if err != nil {
 		return nil, err
 	}
