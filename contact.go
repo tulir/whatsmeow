@@ -10,71 +10,71 @@ import (
 //TODO: filename? WhatsApp uses Store.Contacts for these functions
 //TODO: functions probably shouldn't return a string, maybe build a struct / return json
 //TODO: check for further queries
-func (wac *conn) GetProfilePicThumb(jid string) (<-chan string, error) {
+func (wac *Conn) GetProfilePicThumb(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "ProfilePicThumb", jid}
 	return wac.write(data)
 }
 
-func (wac *conn) GetStatus(jid string) (<-chan string, error) {
+func (wac *Conn) GetStatus(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "Status", jid}
 	return wac.write(data)
 }
 
-func (wac *conn) GetGroupMetaData(jid string) (<-chan string, error) {
+func (wac *Conn) GetGroupMetaData(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "GroupMetadata", jid}
 	return wac.write(data)
 }
 
-func (wac *conn) SubscribePresence(jid string) (<-chan string, error) {
+func (wac *Conn) SubscribePresence(jid string) (<-chan string, error) {
 	data := []interface{}{"action", "presence", "subscribe", jid}
 	return wac.write(data)
 }
 
-func (wac *conn) CreateGroup(subject string, participants []string) (<-chan string, error) {
+func (wac *Conn) CreateGroup(subject string, participants []string) (<-chan string, error) {
 	return wac.setGroup("create", "", subject, participants)
 }
 
-func (wac *conn) UpdateGroupSubject(subject string, jid string) (<-chan string, error) {
+func (wac *Conn) UpdateGroupSubject(subject string, jid string) (<-chan string, error) {
 	return wac.setGroup("subject", jid, subject, nil)
 }
 
-func (wac *conn) SetAdmin(jid string, participants []string) (<-chan string, error) {
+func (wac *Conn) SetAdmin(jid string, participants []string) (<-chan string, error) {
 	return wac.setGroup("promote", jid, "", participants)
 }
 
-func (wac *conn) RemoveAdmin(jid string, participants []string) (<-chan string, error) {
+func (wac *Conn) RemoveAdmin(jid string, participants []string) (<-chan string, error) {
 	return wac.setGroup("demote", jid, "", participants)
 }
 
-func (wac *conn) AddMember(jid string, participants []string) (<-chan string, error) {
+func (wac *Conn) AddMember(jid string, participants []string) (<-chan string, error) {
 	return wac.setGroup("add", jid, "", participants)
 }
 
-func (wac *conn) RemoveMember(jid string, participants []string) (<-chan string, error) {
+func (wac *Conn) RemoveMember(jid string, participants []string) (<-chan string, error) {
 	return wac.setGroup("remove", jid, "", participants)
 }
 
-func (wac *conn) LeaveGroup(jid string) (<-chan string, error) {
+func (wac *Conn) LeaveGroup(jid string) (<-chan string, error) {
 	return wac.setGroup("leave", jid, "", nil)
 }
 
-func (wac *conn) Search(search string, count, page int) (*binary.Node, error) {
+func (wac *Conn) Search(search string, count, page int) (*binary.Node, error) {
 	return wac.query("search", "", "", "", "", search, count, page)
 }
 
-func (wac *conn) LoadMessages(jid, messageId string, count int) (*binary.Node, error) {
+func (wac *Conn) LoadMessages(jid, messageId string, count int) (*binary.Node, error) {
 	return wac.query("message", jid, "", "before", "true", "", count, 0)
 }
 
-func (wac *conn) LoadMessagesBefore(jid, messageId string, count int) (*binary.Node, error) {
+func (wac *Conn) LoadMessagesBefore(jid, messageId string, count int) (*binary.Node, error) {
 	return wac.query("message", jid, messageId, "before", "true", "", count, 0)
 }
 
-func (wac *conn) LoadMessagesAfter(jid, messageId string, count int) (*binary.Node, error) {
+func (wac *Conn) LoadMessagesAfter(jid, messageId string, count int) (*binary.Node, error) {
 	return wac.query("message", jid, messageId, "after", "true", "", count, 0)
 }
 
-func (wac *conn) Acknowledge(jid string) (<-chan string, error) {
+func (wac *Conn) Acknowledge(jid string) (<-chan string, error) {
 	ts := time.Now().Unix()
 	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
@@ -92,22 +92,22 @@ func (wac *conn) Acknowledge(jid string) (<-chan string, error) {
 		}},
 	}
 
-	return wac.writeBinary(n, GROUP, IGNORE, id)
+	return wac.writeBinary(n, group, ignore, id)
 }
 
-func (wac *conn) Emoji() (*binary.Node, error) {
+func (wac *Conn) Emoji() (*binary.Node, error) {
 	return wac.query("emoji", "", "", "", "", "", 0, 0)
 }
 
-func (wac *conn) Contacts() (*binary.Node, error) {
+func (wac *Conn) Contacts() (*binary.Node, error) {
 	return wac.query("contacts", "", "", "", "", "", 0, 0)
 }
 
-func (wac *conn) Chats() (*binary.Node, error) {
+func (wac *Conn) Chats() (*binary.Node, error) {
 	return wac.query("chat", "", "", "", "", "", 0, 0)
 }
 
-func (wac *conn) query(t, jid, messageId, kind, owner, search string, count, page int) (*binary.Node, error) {
+func (wac *Conn) query(t, jid, messageId, kind, owner, search string, count, page int) (*binary.Node, error) {
 	ts := time.Now().Unix()
 	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
@@ -147,7 +147,7 @@ func (wac *conn) query(t, jid, messageId, kind, owner, search string, count, pag
 		n.Attributes["page"] = strconv.Itoa(page)
 	}
 
-	ch, err := wac.writeBinary(n, GROUP, IGNORE, id)
+	ch, err := wac.writeBinary(n, group, ignore, id)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (wac *conn) query(t, jid, messageId, kind, owner, search string, count, pag
 	return msg, nil
 }
 
-func (wac *conn) setGroup(t, jid, subject string, participants []string) (<-chan string, error) {
+func (wac *Conn) setGroup(t, jid, subject string, participants []string) (<-chan string, error) {
 	ts := time.Now().Unix()
 	id := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
@@ -196,7 +196,7 @@ func (wac *conn) setGroup(t, jid, subject string, participants []string) (<-chan
 		Content: []interface{}{g},
 	}
 
-	return wac.writeBinary(n, GROUP, IGNORE, id)
+	return wac.writeBinary(n, group, ignore, id)
 }
 
 func buildParticipantNodes(participants []string) []binary.Node {

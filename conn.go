@@ -1,3 +1,4 @@
+//Package whatsapp provides a developer API to interact with the WhatsAppWeb-Servers.
 package whatsapp
 
 import (
@@ -13,62 +14,66 @@ import (
 	"time"
 )
 
-type Metric byte
+type metric byte
 
 const (
-	DEBUG_LOG Metric = iota + 1
-	QUERY_RESUME
-	QUERY_RECEIPT
-	QUERY_MEDIA
-	QUERY_CHAT
-	QUERY_CONTACTS
-	QUERY_MESSAGES
-	PRESENCE
-	PRESENCE_SUBSCRIBE
-	GROUP
-	READ
-	CHAT
-	RECEIVED
-	PIC
-	STATUS
-	MESSAGE
-	QUERY_ACTIONS
-	BLOCK
-	QUERY_GROUP
-	QUERY_PREVIEW
-	QUERY_EMOJI
-	QUERY_MESSAGE_INFO
-	SPAM
-	QUERY_SEARCH
-	QUERY_IDENTITY
-	QUERY_URL
-	PROFILE
-	CONTACT
-	QUERY_VCARD
-	QUERY_STATUS
-	QUERY_STATUS_UPDATE
-	PRIVACY_STATUS
-	QUERY_LIVE_LOCATIONS
-	LIVE_LOCATION
-	QUERY_VNAME
-	QUERY_LABELS
-	CALL
-	QUERY_CALL
-	QUERY_QUICK_REPLIES
+	debugLog metric = iota + 1
+	queryResume
+	queryReceipt
+	queryMedia
+	queryChat
+	queryContacts
+	queryMessages
+	presence
+	presenceSubscribe
+	group
+	read
+	chat
+	received
+	pic
+	status
+	message
+	queryActions
+	block
+	queryGroup
+	queryPreview
+	queryEmoji
+	queryMessageInfo
+	spam
+	querySearch
+	queryIdentity
+	queryUrl
+	profile
+	contact
+	queryVcard
+	queryStatus
+	queryStatusUpdate
+	privacyStatus
+	queryLiveLocations
+	liveLocation
+	queryVname
+	queryLabels
+	call
+	queryCall
+	queryQuickReplies
 )
 
-type Flag byte
+type flag byte
 
 const (
-	IGNORE Flag = 1 << (7 - iota)
-	ACKREQUEST
-	AVAILABLE
-	NOTAVAILABLE
-	EXPIRES
-	SKIPOFFLINE
+	ignore flag = 1 << (7 - iota)
+	ackRequest
+	available
+	notAvailable
+	expires
+	skipOffline
 )
 
-type conn struct {
+/*
+Conn is created by NewConn. Interacting with the initialized Conn is the main way of interacting with our package.
+It holds all necessary information to make the package work internally.
+*/
+type Conn struct {
 	wsConn     *websocket.Conn
 	session    *Session
 	listener   map[string]chan string
@@ -77,10 +82,15 @@ type conn struct {
 	msgTimeout time.Duration
 }
 
-func NewConn(timeout time.Duration) (*conn, error) {
+/*
+Creates a new connection with a given timeout. The websocket connection to the WhatsAppWeb servers get´s established.
+The goroutine for handling incoming messages is started
+*/
+func NewConn(timeout time.Duration) (*Conn, error) {
 	dialer := &websocket.Dialer{
-		ReadBufferSize:  25 * 1024 * 1024,
-		WriteBufferSize: 10 * 1024 * 1024,
+		ReadBufferSize:   25 * 1024 * 1024,
+		WriteBufferSize:  10 * 1024 * 1024,
+		HandshakeTimeout: timeout,
 	}
 
 	headers := http.Header{"Origin": []string{"https://web.whatsapp.com"}}
@@ -89,14 +99,14 @@ func NewConn(timeout time.Duration) (*conn, error) {
 		return nil, fmt.Errorf("couldn't dial whatsapp web websocket: %v", err)
 	}
 
-	wac := &conn{wsConn, nil, make(map[string]chan string), make([]Handler, 0), 0, timeout}
+	wac := &Conn{wsConn, nil, make(map[string]chan string), make([]Handler, 0), 0, timeout}
 
 	go wac.readPump()
 
 	return wac, nil
 }
 
-func (wac *conn) write(data []interface{}) (<-chan string, error) {
+func (wac *Conn) write(data []interface{}) (<-chan string, error) {
 	d, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
@@ -117,7 +127,7 @@ func (wac *conn) write(data []interface{}) (<-chan string, error) {
 	return wac.listener[messageTag], nil
 }
 
-func (wac *conn) writeBinary(node binary.Node, metric Metric, flag Flag, tag string) (<-chan string, error) {
+func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, tag string) (<-chan string, error) {
 	if len(tag) < 2 {
 		return nil, fmt.Errorf("no tag specified or to short")
 	}
@@ -151,7 +161,7 @@ func (wac *conn) writeBinary(node binary.Node, metric Metric, flag Flag, tag str
 	return ch, nil
 }
 
-func (wac *conn) readPump() {
+func (wac *Conn) readPump() {
 	defer wac.wsConn.Close()
 
 	for {
@@ -185,7 +195,7 @@ func (wac *conn) readPump() {
 	}
 }
 
-func (wac *conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
+func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 	//message validation
 	h2 := hmac.New(sha256.New, wac.session.MacKey)
 	h2.Write([]byte(msg[32:]))

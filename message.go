@@ -16,13 +16,13 @@ import (
 type messageType string
 
 const (
-	IMAGE    messageType = "WhatsApp Image Keys"
-	VIDEO    messageType = "WhatsApp Video Keys"
-	AUDIO    messageType = "WhatsApp Audio Keys"
-	DOCUMENT messageType = "WhatsApp Document Keys"
+	image    messageType = "WhatsApp Image Keys"
+	video    messageType = "WhatsApp Video Keys"
+	audio    messageType = "WhatsApp Audio Keys"
+	document messageType = "WhatsApp Document Keys"
 )
 
-func (wac *conn) Send(msg interface{}) error {
+func (wac *Conn) Send(msg interface{}) error {
 	var err error
 	var ch <-chan string
 
@@ -54,7 +54,7 @@ func (wac *conn) Send(msg interface{}) error {
 	return nil
 }
 
-func (wac *conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
+func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
 	n := binary.Node{
 		Description: "action",
 		Attributes: map[string]string{
@@ -63,7 +63,7 @@ func (wac *conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
 		},
 		Content: []interface{}{p},
 	}
-	return wac.writeBinary(n, MESSAGE, IGNORE, p.Key.GetId())
+	return wac.writeBinary(n, message, ignore, p.Key.GetId())
 }
 
 func init() {
@@ -135,9 +135,9 @@ type ImageMessage struct {
 	Info          MessageInfo
 	Caption       string
 	Thumbnail     []byte
+	Type          string
 	url           string
 	mediaKey      []byte
-	Type          string
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    uint64
@@ -193,10 +193,10 @@ type VideoMessage struct {
 	Info          MessageInfo
 	Caption       string
 	Thumbnail     []byte
-	url           string
-	mediaKey      []byte
 	Length        uint32
 	Type          string
+	url           string
+	mediaKey      []byte
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    uint64
@@ -237,7 +237,7 @@ func getVideoProto(msg VideoMessage) *proto.WebMessageInfo {
 }
 
 func (m *VideoMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, VIDEO, int(m.fileLength))
+	return download(m.url, m.mediaKey, video, int(m.fileLength))
 }
 
 func (m *VideoMessage) Upload(data []byte) error {
@@ -251,10 +251,10 @@ func (m *VideoMessage) Upload(data []byte) error {
 
 type AudioMessage struct {
 	Info          MessageInfo
-	url           string
-	mediaKey      []byte
 	Length        uint32
 	Type          string
+	url           string
+	mediaKey      []byte
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    uint64
@@ -291,7 +291,7 @@ func getAudioProto(msg AudioMessage) *proto.WebMessageInfo {
 }
 
 func (m *AudioMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, AUDIO, int(m.fileLength))
+	return download(m.url, m.mediaKey, audio, int(m.fileLength))
 }
 
 func (m *AudioMessage) Upload(data []byte) error {
@@ -305,15 +305,15 @@ func (m *AudioMessage) Upload(data []byte) error {
 
 type DocumentMessage struct {
 	Info          MessageInfo
+	Title         string
+	PageCount     uint32
+	Type          string
 	Thumbnail     []byte
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
 	fileSha256    []byte
 	fileLength    uint64
-	PageCount     uint32
-	Title         string
-	Type          string
 }
 
 func getDocumentMessage(msg *proto.WebMessageInfo) DocumentMessage {
@@ -351,7 +351,7 @@ func getDocumentProto(msg DocumentMessage) *proto.WebMessageInfo {
 }
 
 func (m *DocumentMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, DOCUMENT, int(m.fileLength))
+	return download(m.url, m.mediaKey, document, int(m.fileLength))
 }
 
 func (m *DocumentMessage) Upload(data []byte) error {

@@ -22,7 +22,7 @@ type Session struct {
 	Wid         string
 }
 
-func (wac *conn) Login(qrChan chan<- string) (Session, error) {
+func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	session := Session{}
 
 	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil) {
@@ -128,14 +128,14 @@ func (wac *conn) Login(qrChan chan<- string) (Session, error) {
 	return session, nil
 }
 
-func (wac *conn) RestoreSession(session Session) (Session, error) {
+func (wac *Conn) RestoreSession(session Session) (Session, error) {
 	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil) {
 		return Session{}, fmt.Errorf("already logged in")
 	}
 
 	wac.session = &session
 
-	//listener for conn or challenge; s1 is not allowed to drop
+	//listener for Conn or challenge; s1 is not allowed to drop
 	wac.listener["s1"] = make(chan string, 1)
 
 	//admin init
@@ -231,7 +231,7 @@ func (wac *conn) RestoreSession(session Session) (Session, error) {
 	return *wac.session, nil
 }
 
-func (wac *conn) resolveChallenge(challenge string) error {
+func (wac *Conn) resolveChallenge(challenge string) error {
 	decoded, err := base64.StdEncoding.DecodeString(challenge)
 	if err != nil {
 		return err
@@ -262,7 +262,7 @@ func (wac *conn) resolveChallenge(challenge string) error {
 	return nil
 }
 
-func (wac *conn) Logout() error {
+func (wac *Conn) Logout() error {
 	login := []interface{}{"admin", "Conn", "disconnect"}
 	_, err := wac.write(login)
 	if err != nil {
