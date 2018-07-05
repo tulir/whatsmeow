@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
+	"io"
+	"io/ioutil"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -29,6 +31,14 @@ func (wac *Conn) Send(msg interface{}) error {
 	case TextMessage:
 		ch, err = wac.sendProto(getTextProto(m))
 	case ImageMessage:
+		data, err := ioutil.ReadAll(m.Content)
+		if err != nil {
+			return err
+		}
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(data, image)
+		if err != nil {
+			return nil
+		}
 		ch, err = wac.sendProto(getImageProto(m))
 	default:
 		return fmt.Errorf("cannot match type %T, use messagetypes declared in the package", msg)
@@ -135,6 +145,7 @@ type ImageMessage struct {
 	Caption       string
 	Thumbnail     []byte
 	Type          string
+	Content       io.Reader
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
@@ -178,21 +189,13 @@ func (m *ImageMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, image, int(m.fileLength))
 }
 
-func (m *ImageMessage) Upload(data []byte, wac *Conn) error {
-	var err error
-	m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(data, image)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 type VideoMessage struct {
 	Info          MessageInfo
 	Caption       string
 	Thumbnail     []byte
 	Length        uint32
 	Type          string
+	Content       io.Reader
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
@@ -238,19 +241,11 @@ func (m *VideoMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, video, int(m.fileLength))
 }
 
-func (m *VideoMessage) Upload(data []byte) error {
-	var err error
-	//m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, VIDEO)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 type AudioMessage struct {
 	Info          MessageInfo
 	Length        uint32
 	Type          string
+	Content       io.Reader
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
@@ -292,21 +287,13 @@ func (m *AudioMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, audio, int(m.fileLength))
 }
 
-func (m *AudioMessage) Upload(data []byte) error {
-	var err error
-	//m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, AUDIO)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 type DocumentMessage struct {
 	Info          MessageInfo
 	Title         string
 	PageCount     uint32
 	Type          string
 	Thumbnail     []byte
+	Content       io.Reader
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
@@ -350,15 +337,6 @@ func getDocumentProto(msg DocumentMessage) *proto.WebMessageInfo {
 
 func (m *DocumentMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, document, int(m.fileLength))
-}
-
-func (m *DocumentMessage) Upload(data []byte) error {
-	var err error
-	//m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = upload(data, DOCUMENT)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
