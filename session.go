@@ -13,6 +13,12 @@ import (
 	"time"
 )
 
+/*
+Session contains session individual information. To be able to resume the connection without scanning the qr code
+every time you should save the Session returned by Login and use RestoreSession the next time you want to login.
+Every successful created connection returns a new Session. The Session(ClientToken, ServerToken) is altered after
+every re-login and should be saved every time.
+*/
 type Session struct {
 	ClientId    string
 	ClientToken string
