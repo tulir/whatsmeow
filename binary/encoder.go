@@ -65,7 +65,7 @@ func (w *binaryEncoder) pushString(value string) {
 }
 
 func (w *binaryEncoder) writeByteLength(length int) error {
-	if length >= 4294967296 {
+	if length >= math.MaxInt32 {
 		return fmt.Errorf("length is too large: %d", length)
 	} else if length >= (1 << 20) {
 		w.pushByte(token.BINARY_32)
