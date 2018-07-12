@@ -28,6 +28,29 @@ type Session struct {
 	Wid         string
 }
 
+/*
+Login is the function that creates a new whatsapp session and logs you in. If you does not want to scan the qr code
+every time, you should save the returned session and use RestoreSession the next time. Login takes a writable channel
+as an parameter. This channel is used to push the data represented by the qr code back to the user. The received data
+should be displayed as an qr code in a way you prefer. To print a qr code to console you can use:
+github.com/Baozisoftware/qrcode-terminal-go Example login procedure:
+	wac, err := whatsapp.NewConn(5 * time.Second)
+	if err != nil {
+		panic(err)
+	}
+
+	qr := make(chan string)
+	go func() {
+		terminal := qrcodeTerminal.New()
+		terminal.Get(<-qr).Print()
+	}()
+
+	session, err := wac.Login(qr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error during login: %v\n", err)
+	}
+	fmt.Printf("login successful, session: %v\n", session)
+*/
 func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	session := Session{}
 
@@ -134,6 +157,12 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	return session, nil
 }
 
+/*
+RestoreSession is the function that restores a given session. It will try to reestablish the connection to the
+WhatsAppWeb servers with the provided session. If it succeeds it will return a new session. This new session has to be
+saved because the Client and Server-Token will change after every login. Logging in with old tokens is possible, but not
+suggested. If so, a challenge has to be resolved which is just another possible point of failure.
+*/
 func (wac *Conn) RestoreSession(session Session) (Session, error) {
 	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil) {
 		return Session{}, fmt.Errorf("already logged in")
@@ -268,6 +297,10 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 	return nil
 }
 
+/*
+Logout is the function to logout from a WhatsApp session. Logging out means invalidating the current session.
+The session can not be resumed and will disappear on your phone in the WhatsAppWeb client list.
+*/
 func (wac *Conn) Logout() error {
 	login := []interface{}{"admin", "Conn", "disconnect"}
 	_, err := wac.write(login)
