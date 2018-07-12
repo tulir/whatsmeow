@@ -92,6 +92,9 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+/*
+MessageInfo contains general message information. It is part of every of every message type.
+*/
 type MessageInfo struct {
 	Id        string
 	RemoteJid string
@@ -133,6 +136,9 @@ func getInfoProto(info *MessageInfo) *proto.WebMessageInfo {
 	}
 }
 
+/*
+TextMessage represents a text message.
+*/
 type TextMessage struct {
 	Info MessageInfo
 	Text string
@@ -153,6 +159,10 @@ func getTextProto(msg TextMessage) *proto.WebMessageInfo {
 	return p
 }
 
+/*
+ImageMessage represents a image message. Unexported fields are needed for media up/downloading and media validation.
+Provide a io.Reader as Content for message sending.
+*/
 type ImageMessage struct {
 	Info          MessageInfo
 	Caption       string
@@ -198,10 +208,17 @@ func getImageProto(msg ImageMessage) *proto.WebMessageInfo {
 	return p
 }
 
+/*
+Download is the function to retrieve media data. The media gets downloaded, validated and returned.
+*/
 func (m *ImageMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, image, int(m.fileLength))
 }
 
+/*
+VideoMessage represents a video message. Unexported fields are needed for media up/downloading and media validation.
+Provide a io.Reader as Content for message sending.
+*/
 type VideoMessage struct {
 	Info          MessageInfo
 	Caption       string
@@ -250,10 +267,17 @@ func getVideoProto(msg VideoMessage) *proto.WebMessageInfo {
 	return p
 }
 
+/*
+Download is the function to retrieve media data. The media gets downloaded, validated and returned.
+*/
 func (m *VideoMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, video, int(m.fileLength))
 }
 
+/*
+AudioMessage represents a audio message. Unexported fields are needed for media up/downloading and media validation.
+Provide a io.Reader as Content for message sending.
+*/
 type AudioMessage struct {
 	Info          MessageInfo
 	Length        uint32
@@ -296,10 +320,17 @@ func getAudioProto(msg AudioMessage) *proto.WebMessageInfo {
 	return p
 }
 
+/*
+Download is the function to retrieve media data. The media gets downloaded, validated and returned.
+*/
 func (m *AudioMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, audio, int(m.fileLength))
 }
 
+/*
+DocumentMessage represents a document message. Unexported fields are needed for media up/downloading and media
+validation. Provide a io.Reader as Content for message sending.
+*/
 type DocumentMessage struct {
 	Info          MessageInfo
 	Title         string
@@ -348,6 +379,9 @@ func getDocumentProto(msg DocumentMessage) *proto.WebMessageInfo {
 	return p
 }
 
+/*
+Download is the function to retrieve media data. The media gets downloaded, validated and returned.
+*/
 func (m *DocumentMessage) Download() ([]byte, error) {
 	return download(m.url, m.mediaKey, document, int(m.fileLength))
 }
