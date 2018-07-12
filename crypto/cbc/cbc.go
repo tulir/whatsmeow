@@ -1,7 +1,19 @@
+/*
+CBC describes a block cipher mode. In cryptography, a block cipher mode of operation is an algorithm that uses a
+block cipher to provide an information service such as confidentiality or authenticity. A block cipher by itself
+is only suitable for the secure cryptographic transformation (encryption or decryption) of one fixed-length group of
+bits called a block. A mode of operation describes how to repeatedly apply a cipher's single-block operation to
+securely transform amounts of data larger than a block.
+
+This package simplifies the usage of AES-256-CBC.
+*/
 package cbc
 
-// https://gist.github.com/locked/b066aa1ddeb2b28e855e
-
+/*
+Some code is provided by the GitHub user locked (github.com/locked):
+https://gist.github.com/locked/b066aa1ddeb2b28e855e
+Thanks!
+*/
 import (
 	"bytes"
 	"crypto/aes"
@@ -11,6 +23,9 @@ import (
 	"io"
 )
 
+/*
+Decrypt is a function that decrypts a given cipher text with a provided key and initialization vector(iv).
+*/
 func Decrypt(key, iv, ciphertext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 
@@ -33,6 +48,9 @@ func Decrypt(key, iv, ciphertext []byte) ([]byte, error) {
 	return unpad(ciphertext)
 }
 
+/*
+Encrypt is a function that encrypts plaintext with a given key and an optional initialization vector(iv).
+*/
 func Encrypt(key, iv, plaintext []byte) ([]byte, error) {
 	plaintext = pad(plaintext, aes.BlockSize)
 
