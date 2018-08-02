@@ -7,10 +7,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/Rhymen/go-whatsapp/crypto/curve25519"
 	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
-	"time"
 )
 
 /*
@@ -29,7 +30,7 @@ type Session struct {
 }
 
 /*
-Login is the function that creates a new whatsapp session and logs you in. If you does not want to scan the qr code
+Login is the function that creates a new whatsapp session and logs you in. If you do not want to scan the qr code
 every time, you should save the returned session and use RestoreSession the next time. Login takes a writable channel
 as an parameter. This channel is used to push the data represented by the qr code back to the user. The received data
 should be displayed as an qr code in a way you prefer. To print a qr code to console you can use:
@@ -66,7 +67,7 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 
 	session.ClientId = base64.StdEncoding.EncodeToString(clientId)
 	//oldVersion=8691
-	login := []interface{}{"admin", "init", []int{0, 2, 9229}, []string{"github.com/rhymen/go-whatsapp", "go-whatsapp"}, session.ClientId, true}
+	login := []interface{}{"admin", "init", []int{0, 3, 225}, []string{"github.com/rhymen/go-whatsapp", "go-whatsapp"}, session.ClientId, true}
 	loginChan, err := wac.write(login)
 	if err != nil {
 		return session, fmt.Errorf("error writing login: %v\n", err)
@@ -174,7 +175,7 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 	wac.listener["s1"] = make(chan string, 1)
 
 	//admin init
-	init := []interface{}{"admin", "init", []int{0, 2, 9229}, []string{"github.com/rhymen/go-whatsapp", "go-whatsapp"}, session.ClientId, true}
+	init := []interface{}{"admin", "init", []int{0, 3, 225}, []string{"github.com/rhymen/go-whatsapp", "go-whatsapp"}, session.ClientId, true}
 	initChan, err := wac.write(init)
 	if err != nil {
 		wac.session = nil
