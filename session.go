@@ -29,6 +29,56 @@ type Session struct {
 	Wid         string
 }
 
+type Info struct {
+	Battery int
+	Platform string
+	Connected bool
+	Pushname string
+	Wid string
+	Lc string
+	Phone *PhoneInfo
+	Plugged bool
+	Tos int
+	Lg string
+	Is24h bool
+}
+
+type PhoneInfo struct {
+	Mcc string
+	Mnc string
+	OsVersion string
+	DeviceManufacturer string
+	DeviceModel string
+	OsBuildNumber string
+	WaVersion string
+}
+
+func newInfoFromReq(info map[string]interface{}) *Info {
+	phoneInfo := info["phone"].(map[string]interface{})
+
+	return &Info{
+		int(info["battery"].(float64)),
+		info["platform"].(string),
+		info["connected"].(bool),
+		info["pushname"].(string),
+		info["wid"].(string),
+		info["lc"].(string),
+		&PhoneInfo{
+			phoneInfo["mcc"].(string),
+			phoneInfo["mnc"].(string),
+			phoneInfo["os_version"].(string),
+			phoneInfo["device_manufacturer"].(string),
+			phoneInfo["device_model"].(string),
+			phoneInfo["os_build_number"].(string),
+			phoneInfo["wa_version"].(string),
+		},
+		info["plugged"].(bool),
+		int(info["battery"].(float64)),
+		info["lg"].(string),
+		info["is24h"].(bool),
+	}
+}
+
 /*
 Login is the function that creates a new whatsapp session and logs you in. If you do not want to scan the qr code
 every time, you should save the returned session and use RestoreSession the next time. Login takes a writable channel
@@ -107,10 +157,15 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	case <-time.After(time.Duration(resp["ttl"].(float64)) * time.Millisecond):
 		return session, fmt.Errorf("qr code scan timed out")
 	}
-	session.ClientToken = resp2[1].(map[string]interface{})["clientToken"].(string)
-	session.ServerToken = resp2[1].(map[string]interface{})["serverToken"].(string)
-	session.Wid = resp2[1].(map[string]interface{})["wid"].(string)
-	s := resp2[1].(map[string]interface{})["secret"].(string)
+
+	info := resp2[1].(map[string]interface{})
+
+	wac.Info = newInfoFromReq(info)
+
+	session.ClientToken = info["clientToken"].(string)
+	session.ServerToken = info["serverToken"].(string)
+	session.Wid = info["wid"].(string)
+	s := info["secret"].(string)
 	decodedSecret, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		return session, fmt.Errorf("error decoding secret: %v", err)
@@ -259,10 +314,14 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 		return Session{}, fmt.Errorf("restore session login timed out")
 	}
 
+	info := connResp[1].(map[string]interface{})
+
+	wac.Info = newInfoFromReq(info)
+
 	//set new tokens
-	session.ClientToken = connResp[1].(map[string]interface{})["clientToken"].(string)
-	session.ServerToken = connResp[1].(map[string]interface{})["serverToken"].(string)
-	session.Wid = connResp[1].(map[string]interface{})["wid"].(string)
+	session.ClientToken = info["clientToken"].(string)
+	session.ServerToken = info["serverToken"].(string)
+	session.Wid = info["wid"].(string)
 
 	return *wac.session, nil
 }
