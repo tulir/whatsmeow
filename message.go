@@ -101,7 +101,17 @@ type MessageInfo struct {
 	FromMe    bool
 	Timestamp uint64
 	PushName  string
+	Status    int
 }
+
+const (
+	StatusError       = 0
+	StatusPending     = 1
+	StatusServerAck   = 2
+	StatusDeliveryAck = 3
+	StatusRead        = 4
+	StatusPlayed      = 5
+)
 
 func getMessageInfo(msg *proto.WebMessageInfo) MessageInfo {
 	return MessageInfo{
@@ -109,12 +119,12 @@ func getMessageInfo(msg *proto.WebMessageInfo) MessageInfo {
 		RemoteJid: msg.GetKey().GetRemoteJid(),
 		FromMe:    msg.GetKey().GetFromMe(),
 		Timestamp: msg.GetMessageTimestamp(),
+		Status:    int(msg.GetStatus()),
 		PushName:  msg.GetPushName(),
 	}
 }
 
 func getInfoProto(info *MessageInfo) *proto.WebMessageInfo {
-	status := proto.WebMessageInfo_STATUS(1)
 	if info.Id == "" || len(info.Id) < 2 {
 		b := make([]byte, 10)
 		rand.Read(b)
@@ -124,6 +134,8 @@ func getInfoProto(info *MessageInfo) *proto.WebMessageInfo {
 		info.Timestamp = uint64(time.Now().Unix())
 	}
 	info.FromMe = true
+
+	status := proto.WebMessageInfo_STATUS(info.Status)
 
 	return &proto.WebMessageInfo{
 		Key: &proto.MessageKey{
