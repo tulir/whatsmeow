@@ -85,6 +85,7 @@ type Conn struct {
 	msgCount      int
 	msgTimeout    time.Duration
 	Info          *Info
+	Store         *Store
 }
 
 type wsMsg struct {
@@ -119,6 +120,7 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 		0,
 		timeout,
 		nil,
+		newStore(),
 	}
 
 	go wac.readPump()

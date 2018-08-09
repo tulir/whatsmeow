@@ -152,6 +152,8 @@ func (wac *Conn) dispatch(msg interface{}) {
 					}
 				}
 			}
+		} else if message.Description == "response" && message.Attributes["type"] == "contacts" {
+			wac.updateContacts(message.Content)
 		}
 	case error:
 		wac.handle(message)
