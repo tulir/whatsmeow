@@ -84,7 +84,7 @@ type Conn struct {
 	handler       []Handler
 	msgCount      int
 	msgTimeout    time.Duration
-	Info			*Info
+	Info          *Info
 }
 
 type wsMsg struct {

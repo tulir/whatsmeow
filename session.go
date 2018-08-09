@@ -30,27 +30,27 @@ type Session struct {
 }
 
 type Info struct {
-	Battery int
-	Platform string
+	Battery   int
+	Platform  string
 	Connected bool
-	Pushname string
-	Wid string
-	Lc string
-	Phone *PhoneInfo
-	Plugged bool
-	Tos int
-	Lg string
-	Is24h bool
+	Pushname  string
+	Wid       string
+	Lc        string
+	Phone     *PhoneInfo
+	Plugged   bool
+	Tos       int
+	Lg        string
+	Is24h     bool
 }
 
 type PhoneInfo struct {
-	Mcc string
-	Mnc string
-	OsVersion string
+	Mcc                string
+	Mnc                string
+	OsVersion          string
 	DeviceManufacturer string
-	DeviceModel string
-	OsBuildNumber string
-	WaVersion string
+	DeviceModel        string
+	OsBuildNumber      string
+	WaVersion          string
 }
 
 func newInfoFromReq(info map[string]interface{}) *Info {
