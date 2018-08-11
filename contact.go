@@ -11,6 +11,7 @@ type Presence string
 
 const (
 	PresenceAvailable = "available"
+	PresenceUnavailable = "unavailable"
 	PresenceComposing = "composing"
 )
 
