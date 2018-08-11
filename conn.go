@@ -205,7 +205,7 @@ func (wac *Conn) readPump() {
 		listener, hasListener := wac.listener[data[0]]
 		wac.listenerMutex.RUnlock()
 
-		if hasListener {
+		if hasListener && len(data[1]) > 0 {
 			listener <- data[1]
 
 			wac.listenerMutex.Lock()
