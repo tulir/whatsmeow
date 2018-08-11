@@ -1,7 +1,6 @@
 package whatsapp
 
 import (
-	"fmt"
 	"github.com/Rhymen/go-whatsapp/binary"
 	"strings"
 )
@@ -34,8 +33,6 @@ func (wac *Conn) updateContacts(contacts interface{}) {
 		if !ok {
 			continue
 		}
-
-		fmt.Println(contactNode)
 
 		jid := strings.Replace(contactNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
 		wac.Store.Contacts[jid] = Contact{

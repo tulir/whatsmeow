@@ -32,32 +32,33 @@ func (wac *Conn) Send(msg interface{}) error {
 	case ImageMessage:
 		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, image)
 		if err != nil {
-			return fmt.Errorf("upload failed: %v", err)
+			return fmt.Errorf("image upload failed: %v", err)
 		}
 		ch, err = wac.sendProto(getImageProto(m))
 	case VideoMessage:
 		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, video)
 		if err != nil {
-			return fmt.Errorf("upload failed: %v", err)
+			return fmt.Errorf("video upload failed: %v", err)
 		}
 		ch, err = wac.sendProto(getVideoProto(m))
 	case DocumentMessage:
 		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, document)
 		if err != nil {
-			return fmt.Errorf("upload failed: %v", err)
+			return fmt.Errorf("document upload failed: %v", err)
 		}
 		ch, err = wac.sendProto(getDocumentProto(m))
 	case AudioMessage:
 		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, audio)
 		if err != nil {
-			return fmt.Errorf("upload failed: %v", err)
+			return fmt.Errorf("audio upload failed: %v", err)
 		}
 		ch, err = wac.sendProto(getAudioProto(m))
 	default:
-		return fmt.Errorf("cannot match type %T, use messagetypes declared in the package", msg)
+		return fmt.Errorf("cannot match type %T, use message types declared in the package", msg)
 	}
+
 	if err != nil {
-		return fmt.Errorf("error sending message:%v", err)
+		return fmt.Errorf("could not send proto: %v", err)
 	}
 
 	select {
