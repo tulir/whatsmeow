@@ -56,14 +56,14 @@ type PhoneInfo struct {
 func newInfoFromReq(info map[string]interface{}) *Info {
 	phoneInfo := info["phone"].(map[string]interface{})
 
-	return &Info{
-		int(info["battery"].(float64)),
-		info["platform"].(string),
-		info["connected"].(bool),
-		info["pushname"].(string),
-		info["wid"].(string),
-		info["lc"].(string),
-		&PhoneInfo{
+	ret := &Info{
+		Battery:   int(info["battery"].(float64)),
+		Platform:  info["platform"].(string),
+		Connected: info["connected"].(bool),
+		Pushname:  info["pushname"].(string),
+		Wid:       info["wid"].(string),
+		Lc:        info["lc"].(string),
+		Phone: &PhoneInfo{
 			phoneInfo["mcc"].(string),
 			phoneInfo["mnc"].(string),
 			phoneInfo["os_version"].(string),
@@ -72,11 +72,16 @@ func newInfoFromReq(info map[string]interface{}) *Info {
 			phoneInfo["os_build_number"].(string),
 			phoneInfo["wa_version"].(string),
 		},
-		info["plugged"].(bool),
-		int(info["battery"].(float64)),
-		info["lg"].(string),
-		info["is24h"].(bool),
+		Plugged: info["plugged"].(bool),
+		Lg:      info["lg"].(string),
+		Tos:     int(info["tos"].(float64)),
 	}
+
+	if is24h, ok := info["is24h"]; ok {
+		ret.Is24h = is24h.(bool)
+	}
+
+	return ret
 }
 
 /*

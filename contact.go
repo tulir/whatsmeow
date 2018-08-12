@@ -10,9 +10,9 @@ import (
 type Presence string
 
 const (
-	PresenceAvailable = "available"
+	PresenceAvailable   = "available"
 	PresenceUnavailable = "unavailable"
-	PresenceComposing = "composing"
+	PresenceComposing   = "composing"
 )
 
 //TODO: filename? WhatsApp uses Store.Contacts for these functions
