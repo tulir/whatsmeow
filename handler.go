@@ -138,7 +138,7 @@ func (wac *Conn) handle(message interface{}) {
 }
 
 func (wac *Conn) dispatch(msg interface{}) {
-	if msg == nil || len(wac.handler) == 0 {
+	if msg == nil {
 		return
 	}
 
