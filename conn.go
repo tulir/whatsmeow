@@ -9,8 +9,10 @@ import (
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/gorilla/websocket"
+	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -76,16 +78,17 @@ Conn is created by NewConn. Interacting with the initialized Conn is the main wa
 It holds all necessary information to make the package work internally.
 */
 type Conn struct {
-	wsConn        *websocket.Conn
-	session       *Session
-	listener      map[string]chan string
-	listenerMutex sync.RWMutex
-	writeChan     chan wsMsg
-	handler       []Handler
-	msgCount      int
-	msgTimeout    time.Duration
-	Info          *Info
-	Store         *Store
+	wsConn         *websocket.Conn
+	session        *Session
+	listener       map[string]chan string
+	listenerMutex  sync.RWMutex
+	writeChan      chan wsMsg
+	handler        []Handler
+	msgCount       int
+	msgTimeout     time.Duration
+	Info           *Info
+	Store          *Store
+	ServerLastSeen time.Time
 }
 
 type wsMsg struct {
@@ -111,20 +114,19 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 	}
 
 	wac := &Conn{
-		wsConn,
-		nil,
-		make(map[string]chan string),
-		sync.RWMutex{},
-		make(chan wsMsg),
-		make([]Handler, 0),
-		0,
-		timeout,
-		nil,
-		newStore(),
+		wsConn:        wsConn,
+		listener:      make(map[string]chan string),
+		listenerMutex: sync.RWMutex{},
+		writeChan:     make(chan wsMsg),
+		handler:       make([]Handler, 0),
+		msgCount:      0,
+		msgTimeout:    timeout,
+		Store:         newStore(),
 	}
 
 	go wac.readPump()
 	go wac.writePump()
+	go wac.keepAlive(20000, 90000)
 
 	return wac, nil
 }
@@ -201,6 +203,17 @@ func (wac *Conn) readPump() {
 
 		data := strings.SplitN(string(msg), ",", 2)
 
+		//Kepp-Alive Timestmap
+		if data[0][0] == '!' {
+			msecs, err := strconv.ParseInt(data[0][1:], 10, 64)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error converting time string to uint: %v\n", err)
+				continue
+			}
+			wac.ServerLastSeen = time.Unix(msecs/1000, (msecs%1000)*int64(time.Millisecond))
+			continue
+		}
+
 		wac.listenerMutex.RLock()
 		listener, hasListener := wac.listener[data[0]]
 		wac.listenerMutex.RUnlock()
@@ -233,6 +246,17 @@ func (wac *Conn) writePump() {
 		if err := wac.wsConn.WriteMessage(msg.messageType, msg.data); err != nil {
 			fmt.Fprintf(os.Stderr, "error writing to socket: %v", err)
 		}
+	}
+}
+
+func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
+	for {
+		wac.writeChan <- wsMsg{
+			messageType: websocket.TextMessage,
+			data:        []byte("?,,"),
+		}
+		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
+		<-time.After(time.Duration(interval) * time.Millisecond)
 	}
 }
 
