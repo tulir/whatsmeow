@@ -99,11 +99,14 @@ MessageInfo contains general message information. It is part of every of every m
 type MessageInfo struct {
 	Id              string
 	RemoteJid       string
+	SenderJid       string
 	FromMe          bool
 	Timestamp       uint64
 	PushName        string
 	Status          MessageStatus
 	QuotedMessageID string
+
+	Source *proto.WebMessageInfo
 }
 
 type MessageStatus int
@@ -121,10 +124,12 @@ func getMessageInfo(msg *proto.WebMessageInfo) MessageInfo {
 	return MessageInfo{
 		Id:        msg.GetKey().GetId(),
 		RemoteJid: msg.GetKey().GetRemoteJid(),
+		SenderJid: msg.GetKey().GetParticipant(),
 		FromMe:    msg.GetKey().GetFromMe(),
 		Timestamp: msg.GetMessageTimestamp(),
 		Status:    MessageStatus(msg.GetStatus()),
 		PushName:  msg.GetPushName(),
+		Source:    msg,
 	}
 }
 
