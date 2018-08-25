@@ -13,13 +13,13 @@ import (
 	"time"
 )
 
-type messageType string
+type MediaType string
 
 const (
-	image    messageType = "WhatsApp Image Keys"
-	video    messageType = "WhatsApp Video Keys"
-	audio    messageType = "WhatsApp Audio Keys"
-	document messageType = "WhatsApp Document Keys"
+	MediaImage    MediaType = "WhatsApp Image Keys"
+	MediaVideo    MediaType = "WhatsApp Video Keys"
+	MediaAudio    MediaType = "WhatsApp Audio Keys"
+	MediaDocument MediaType = "WhatsApp Document Keys"
 )
 
 func (wac *Conn) Send(msg interface{}) error {
@@ -27,28 +27,30 @@ func (wac *Conn) Send(msg interface{}) error {
 	var ch <-chan string
 
 	switch m := msg.(type) {
+	case *proto.WebMessageInfo:
+		ch, err = wac.sendProto(m)
 	case TextMessage:
 		ch, err = wac.sendProto(getTextProto(m))
 	case ImageMessage:
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, image)
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaImage)
 		if err != nil {
 			return fmt.Errorf("image upload failed: %v", err)
 		}
 		ch, err = wac.sendProto(getImageProto(m))
 	case VideoMessage:
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, video)
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaVideo)
 		if err != nil {
 			return fmt.Errorf("video upload failed: %v", err)
 		}
 		ch, err = wac.sendProto(getVideoProto(m))
 	case DocumentMessage:
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, document)
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaDocument)
 		if err != nil {
 			return fmt.Errorf("document upload failed: %v", err)
 		}
 		ch, err = wac.sendProto(getDocumentProto(m))
 	case AudioMessage:
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.upload(m.Content, audio)
+		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaAudio)
 		if err != nil {
 			return fmt.Errorf("audio upload failed: %v", err)
 		}
@@ -237,7 +239,7 @@ func getImageProto(msg ImageMessage) *proto.WebMessageInfo {
 Download is the function to retrieve media data. The media gets downloaded, validated and returned.
 */
 func (m *ImageMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, image, int(m.fileLength))
+	return Download(m.url, m.mediaKey, MediaImage, int(m.fileLength))
 }
 
 /*
@@ -296,7 +298,7 @@ func getVideoProto(msg VideoMessage) *proto.WebMessageInfo {
 Download is the function to retrieve media data. The media gets downloaded, validated and returned.
 */
 func (m *VideoMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, video, int(m.fileLength))
+	return Download(m.url, m.mediaKey, MediaVideo, int(m.fileLength))
 }
 
 /*
@@ -349,7 +351,7 @@ func getAudioProto(msg AudioMessage) *proto.WebMessageInfo {
 Download is the function to retrieve media data. The media gets downloaded, validated and returned.
 */
 func (m *AudioMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, audio, int(m.fileLength))
+	return Download(m.url, m.mediaKey, MediaAudio, int(m.fileLength))
 }
 
 /*
@@ -408,7 +410,7 @@ func getDocumentProto(msg DocumentMessage) *proto.WebMessageInfo {
 Download is the function to retrieve media data. The media gets downloaded, validated and returned.
 */
 func (m *DocumentMessage) Download() ([]byte, error) {
-	return download(m.url, m.mediaKey, document, int(m.fileLength))
+	return Download(m.url, m.mediaKey, MediaDocument, int(m.fileLength))
 }
 
 func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
