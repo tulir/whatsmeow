@@ -89,6 +89,9 @@ type Conn struct {
 	Info           *Info
 	Store          *Store
 	ServerLastSeen time.Time
+
+	longClientName  string
+	shortClientName string
 }
 
 type wsMsg struct {
@@ -122,6 +125,9 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 		msgCount:      0,
 		msgTimeout:    timeout,
 		Store:         newStore(),
+
+		longClientName:  "github.com/rhymen/go-whatsapp",
+		shortClientName: "go-whatsapp",
 	}
 
 	go wac.readPump()
