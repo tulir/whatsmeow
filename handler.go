@@ -72,7 +72,7 @@ type JsonMessageHandler interface {
 /**
 The RawMessageHandler interface needs to be implemented to receive raw messages dispatched by the dispatcher.
 Raw messages are the raw protobuf structs instead of the easy-to-use structs in TextMessageHandler, ImageMessageHandler, etc..
- */
+*/
 type RawMessageHandler interface {
 	Handler
 	HandleRawMessage(message *proto.WebMessageInfo)

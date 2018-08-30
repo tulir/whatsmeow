@@ -87,9 +87,9 @@ func newInfoFromReq(info map[string]interface{}) *Info {
 /*
 SetClientName sets the long and short client names that are sent to WhatsApp when logging in and displayed in the
 WhatsApp Web device list. As the values are only sent when logging in, changing them after logging in is not possible.
- */
+*/
 func (wac *Conn) SetClientName(long, short string) error {
-	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil)  {
+	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil) {
 		return fmt.Errorf("cannot change client name after logging in")
 	}
 	wac.longClientName, wac.shortClientName = long, short
