@@ -85,6 +85,18 @@ func newInfoFromReq(info map[string]interface{}) *Info {
 }
 
 /*
+SetClientName sets the long and short client names that are sent to WhatsApp when logging in and displayed in the
+WhatsApp Web device list. As the values are only sent when logging in, changing them after logging in is not possible.
+ */
+func (wac *Conn) SetClientName(long, short string) error {
+	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil)  {
+		return fmt.Errorf("cannot change client name after logging in")
+	}
+	wac.longClientName, wac.shortClientName = long, short
+	return nil
+}
+
+/*
 Login is the function that creates a new whatsapp session and logs you in. If you do not want to scan the qr code
 every time, you should save the returned session and use RestoreSession the next time. Login takes a writable channel
 as an parameter. This channel is used to push the data represented by the qr code back to the user. The received data
@@ -122,7 +134,7 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 
 	session.ClientId = base64.StdEncoding.EncodeToString(clientId)
 	//oldVersion=8691
-	login := []interface{}{"admin", "init", []int{0, 3, 225}, []string{"github.com/rhymen/go-whatsapp", "go-whatsapp"}, session.ClientId, true}
+	login := []interface{}{"admin", "init", []int{0, 3, 225}, []string{wac.longClientName, wac.shortClientName}, session.ClientId, true}
 	loginChan, err := wac.write(login)
 	if err != nil {
 		return session, fmt.Errorf("error writing login: %v\n", err)
@@ -235,7 +247,7 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 	wac.listener["s1"] = make(chan string, 1)
 
 	//admin init
-	init := []interface{}{"admin", "init", []int{0, 3, 225}, []string{"github.com/rhymen/go-whatsapp", "go-whatsapp"}, session.ClientId, true}
+	init := []interface{}{"admin", "init", []int{0, 3, 225}, []string{wac.longClientName, wac.shortClientName}, session.ClientId, true}
 	initChan, err := wac.write(init)
 	if err != nil {
 		wac.session = nil
