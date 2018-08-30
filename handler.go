@@ -96,51 +96,45 @@ func (wac *Conn) handle(message interface{}) {
 		}
 	case string:
 		for _, h := range wac.handler {
-			x, ok := h.(JsonMessageHandler)
-			if !ok {
-				continue
+			if x, ok := h.(JsonMessageHandler); ok {
+				go x.HandleJsonMessage(m)
 			}
-			go x.HandleJsonMessage(m)
 		}
 	case TextMessage:
 		for _, h := range wac.handler {
-			x, ok := h.(TextMessageHandler)
-			if !ok {
-				continue
+			if x, ok := h.(TextMessageHandler); ok {
+				go x.HandleTextMessage(m)
 			}
-			go x.HandleTextMessage(m)
 		}
 	case ImageMessage:
 		for _, h := range wac.handler {
-			x, ok := h.(ImageMessageHandler)
-			if !ok {
-				continue
+			if x, ok := h.(ImageMessageHandler); ok {
+				go x.HandleImageMessage(m)
 			}
-			go x.HandleImageMessage(m)
 		}
 	case VideoMessage:
 		for _, h := range wac.handler {
-			x, ok := h.(VideoMessageHandler)
-			if !ok {
-				continue
+			if x, ok := h.(VideoMessageHandler); ok {
+				go x.HandleVideoMessage(m)
 			}
-			go x.HandleVideoMessage(m)
 		}
 	case AudioMessage:
 		for _, h := range wac.handler {
-			x, ok := h.(AudioMessageHandler)
-			if !ok {
-				continue
+			if x, ok := h.(AudioMessageHandler); ok {
+				go x.HandleAudioMessage(m)
 			}
-			go x.HandleAudioMessage(m)
 		}
 	case DocumentMessage:
 		for _, h := range wac.handler {
-			x, ok := h.(DocumentMessageHandler)
-			if !ok {
-				continue
+			if x, ok := h.(DocumentMessageHandler); ok {
+				go x.HandleDocumentMessage(m)
 			}
-			go x.HandleDocumentMessage(m)
+		}
+	case *proto.WebMessageInfo:
+		for _, h := range wac.handler {
+			if x, ok := h.(RawMessageHandler); ok {
+				go x.HandleRawMessage(m)
+			}
 		}
 	}
 
@@ -157,13 +151,7 @@ func (wac *Conn) dispatch(msg interface{}) {
 			if con, ok := message.Content.([]interface{}); ok {
 				for a := range con {
 					if v, ok := con[a].(*proto.WebMessageInfo); ok {
-						for _, h := range wac.handler {
-							x, ok := h.(RawMessageHandler)
-							if !ok {
-								continue
-							}
-							go x.HandleRawMessage(v)
-						}
+						wac.handle(v)
 						wac.handle(parseProtoMessage(v))
 					}
 				}
