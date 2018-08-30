@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-func download(url string, mediaKey []byte, appInfo messageType, fileLength int) ([]byte, error) {
+func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) ([]byte, error) {
 	if url == "" {
 		return nil, fmt.Errorf("no url present")
 	}
@@ -59,7 +59,7 @@ func validateMedia(iv []byte, file []byte, macKey []byte, mac []byte) error {
 	return nil
 }
 
-func getMediaKeys(mediaKey []byte, appInfo messageType) (iv, cipherKey, macKey, refKey []byte, err error) {
+func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, refKey []byte, err error) {
 	mediaKeyExpanded, err := hkdf.Expand(mediaKey, 112, string(appInfo))
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -87,7 +87,7 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
-func (wac *Conn) upload(reader io.Reader, appInfo messageType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return "", nil, nil, nil, 0, err
@@ -122,13 +122,13 @@ func (wac *Conn) upload(reader io.Reader, appInfo messageType) (url string, medi
 
 	var filetype string
 	switch appInfo {
-	case image:
+	case MediaImage:
 		filetype = "image"
-	case audio:
+	case MediaAudio:
 		filetype = "audio"
-	case document:
+	case MediaDocument:
 		filetype = "document"
-	case video:
+	case MediaVideo:
 		filetype = "video"
 	}
 

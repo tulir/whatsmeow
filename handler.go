@@ -69,6 +69,15 @@ type JsonMessageHandler interface {
 	HandleJsonMessage(message string)
 }
 
+/**
+The RawMessageHandler interface needs to be implemented to receive raw messages dispatched by the dispatcher.
+Raw messages are the raw protobuf structs instead of the easy-to-use structs in TextMessageHandler, ImageMessageHandler, etc..
+ */
+type RawMessageHandler interface {
+	Handler
+	HandleRawMessage(message *proto.WebMessageInfo)
+}
+
 /*
 AddHandler adds an handler to the list of handler that receive dispatched messages.
 The provided handler must at least implement the Handler interface. Additionally implemented
@@ -148,6 +157,13 @@ func (wac *Conn) dispatch(msg interface{}) {
 			if con, ok := message.Content.([]interface{}); ok {
 				for a := range con {
 					if v, ok := con[a].(*proto.WebMessageInfo); ok {
+						for _, h := range wac.handler {
+							x, ok := h.(RawMessageHandler)
+							if !ok {
+								continue
+							}
+							go x.HandleRawMessage(v)
+						}
 						wac.handle(parseProtoMessage(v))
 					}
 				}
