@@ -109,7 +109,6 @@ The goroutine for handling incoming messages is started
 func NewConn(timeout time.Duration) (*Conn, error) {
 	wac := &Conn{
 		wsConn:        nil, // will be set in connect()
-		wsConnOK:      false,
 		wsConnMutex:   sync.RWMutex{},
 		listener:      make(map[string]chan string),
 		listenerMutex: sync.RWMutex{},
@@ -144,8 +143,8 @@ func (wac *Conn) isConnected() bool {
 		return true
 	}
 
-	// test connection by sending a ping. This might fail but we ignore that
-	wac.wsConn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second))
+	// just send a keepalive to test the connection
+	wac.sendKeepAlive()
 
 	// this method is expected to be called by loops. So we can just return false
 	return false
@@ -165,11 +164,6 @@ func (wac *Conn) connect() error {
 		return fmt.Errorf("couldn't dial whatsapp web websocket: %v", err)
 	}
 
-	wsConn.SetPongHandler(func(appData string) error {
-		wac.wsConnOK = true
-		return nil
-	})
-
 	wsConn.SetCloseHandler(func(code int, text string) error {
 		fmt.Fprintf(os.Stderr, "websocket connection closed(%d, %s)\n", code, text)
 
@@ -186,12 +180,14 @@ func (wac *Conn) connect() error {
 	})
 
 	wac.wsConn = wsConn
+	wac.wsConnOK = true
 	return nil
 }
 
 // reconnect should be run as go routine
 func (wac *Conn) reconnect() {
 	wac.wsConnMutex.Lock()
+	wac.wsConn.Close()
 	wac.wsConn = nil
 	wac.wsConnOK = false
 	wac.wsConnMutex.Unlock()
@@ -273,17 +269,17 @@ func (wac *Conn) readPump() {
 	defer wac.wsConn.Close()
 
 	for {
-		for !wac.isConnected() {
-			time.Sleep(1 * time.Second)
-		}
 		msgType, msg, err := wac.wsConn.ReadMessage()
 		if err != nil {
 			wac.wsConnOK = false
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				wac.handle(fmt.Errorf("unexpected websocket close: %v", err))
 			}
-			break
+			// sleep for a second and retry reading the next message
+			time.Sleep(time.Second)
+			continue
 		}
+		wac.wsConnOK = true
 
 		data := strings.SplitN(string(msg), ",", 2)
 
@@ -352,12 +348,18 @@ func (wac *Conn) writePump() {
 	}
 }
 
+func (wac *Conn) sendKeepAlive() {
+	// whatever issues might be there allow sending this message
+	wac.wsConnOK = true
+	wac.writeChan <- wsMsg{
+		messageType: websocket.TextMessage,
+		data:        []byte("?,,"),
+	}
+}
+
 func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 	for {
-		wac.writeChan <- wsMsg{
-			messageType: websocket.TextMessage,
-			data:        []byte("?,,"),
-		}
+		wac.sendKeepAlive()
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
 		<-time.After(time.Duration(interval) * time.Millisecond)
 	}
