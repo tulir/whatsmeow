@@ -80,6 +80,7 @@ It holds all necessary information to make the package work internally.
 */
 type Conn struct {
 	wsConn         *websocket.Conn
+	wsConnOK       bool
 	wsConnMutex    sync.RWMutex
 	session        *Session
 	listener       map[string]chan string
@@ -108,6 +109,7 @@ The goroutine for handling incoming messages is started
 func NewConn(timeout time.Duration) (*Conn, error) {
 	wac := &Conn{
 		wsConn:        nil, // will be set in connect()
+		wsConnOK:      false,
 		wsConnMutex:   sync.RWMutex{},
 		listener:      make(map[string]chan string),
 		listenerMutex: sync.RWMutex{},
@@ -135,7 +137,18 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 func (wac *Conn) isConnected() bool {
 	wac.wsConnMutex.RLock()
 	defer wac.wsConnMutex.RUnlock()
-	return wac.wsConn != nil
+	if wac.wsConn == nil {
+		return false
+	}
+	if wac.wsConnOK {
+		return true
+	}
+
+	// test connection by sending a ping. This might fail but we ignore that
+	wac.wsConn.WriteControl(websocket.PingMessage, []byte{}, time.Now().Add(time.Second))
+
+	// this method is expected to be called by loops. So we can just return false
+	return false
 }
 
 // connect should be guarded with wsConnMutex
@@ -151,6 +164,11 @@ func (wac *Conn) connect() error {
 	if err != nil {
 		return fmt.Errorf("couldn't dial whatsapp web websocket: %v", err)
 	}
+
+	wsConn.SetPongHandler(func(appData string) error {
+		wac.wsConnOK = true
+		return nil
+	})
 
 	wsConn.SetCloseHandler(func(code int, text string) error {
 		fmt.Fprintf(os.Stderr, "websocket connection closed(%d, %s)\n", code, text)
@@ -175,6 +193,7 @@ func (wac *Conn) connect() error {
 func (wac *Conn) reconnect() {
 	wac.wsConnMutex.Lock()
 	wac.wsConn = nil
+	wac.wsConnOK = false
 	wac.wsConnMutex.Unlock()
 
 	// wait up to 60 seconds and then reconnect. As writePump should send immediately, it might
@@ -259,6 +278,7 @@ func (wac *Conn) readPump() {
 		}
 		msgType, msg, err := wac.wsConn.ReadMessage()
 		if err != nil {
+			wac.wsConnOK = false
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				wac.handle(fmt.Errorf("unexpected websocket close: %v", err))
 			}
@@ -323,6 +343,7 @@ func (wac *Conn) writePump() {
 		}
 		if err := wac.wsConn.WriteMessage(msg.messageType, msg.data); err != nil {
 			fmt.Fprintf(os.Stderr, "error writing to socket: %v\n", err)
+			wac.wsConnOK = false
 			// add message to channel again to no loose it
 			go func() {
 				wac.writeChan <- msg
