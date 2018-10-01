@@ -103,6 +103,11 @@ func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) 
 	return wac.writeBinary(n, group, ignore, tag)
 }
 
+func (wac *Conn) Exist(jid string) (<-chan string, error) {
+	data := []interface{}{"query", "exist", jid}
+	return wac.write(data)
+}
+
 func (wac *Conn) Emoji() (*binary.Node, error) {
 	return wac.query("emoji", "", "", "", "", "", 0, 0)
 }
