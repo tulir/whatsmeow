@@ -13,6 +13,8 @@ const (
 	PresenceAvailable   = "available"
 	PresenceUnavailable = "unavailable"
 	PresenceComposing   = "composing"
+	PresenceRecording	= "recording"
+	PresencePaused	= "paused"
 )
 
 //TODO: filename? WhatsApp uses Store.Contacts for these functions
@@ -86,18 +88,28 @@ func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) 
 	ts := time.Now().Unix()
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
+	content := binary.Node{
+		Description: "presence",
+		Attributes: map[string]string{
+			"type": string(presence),
+		},
+	}
+	switch presence {
+	case PresenceComposing:
+		fallthrough
+	case PresenceRecording:
+		fallthrough
+	case PresencePaused:
+		content.Attributes["to"] = jid
+	}
+
 	n := binary.Node{
 		Description: "action",
 		Attributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
-		Content: []interface{}{binary.Node{
-			Description: "presence",
-			Attributes: map[string]string{
-				"type": string(presence),
-			},
-		}},
+		Content: []interface{}{content},
 	}
 
 	return wac.writeBinary(n, group, ignore, tag)
