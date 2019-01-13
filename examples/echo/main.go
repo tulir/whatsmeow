@@ -38,7 +38,7 @@ func (wh *waHandler) HandleTextMessage(message whatsapp.TextMessage) {
 		fmt.Fprintf(os.Stderr, "error sending message: %v\n", err)
 	}
 
-	fmt.Printf("echoed message '%v' to user %v", message.Text, message.Info.RemoteJid)
+	fmt.Printf("echoed message '%v' to user %v\n", message.Text, message.Info.RemoteJid)
 }
 
 func login(wac *whatsapp.Conn) error {
