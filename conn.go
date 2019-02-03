@@ -298,7 +298,9 @@ func (wac *Conn) readPump() {
 		listener, hasListener := wac.listener[data[0]]
 		wac.listenerMutex.RUnlock()
 
-		if hasListener && len(data[1]) > 0 {
+		if len(data[1]) == 0 {
+			continue
+		} else if hasListener {
 			listener <- data[1]
 
 			wac.listenerMutex.Lock()
@@ -313,9 +315,7 @@ func (wac *Conn) readPump() {
 
 			wac.dispatch(message)
 		} else {
-			if len(data[1]) > 0 {
-				wac.handle(string(data[1]))
-			}
+			wac.handle(string(data[1]))
 		}
 
 	}
