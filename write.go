@@ -8,6 +8,7 @@ import (
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 	"strconv"
 	"time"
 )
@@ -34,12 +35,12 @@ func (wac *Conn) writeJson(data []interface{}) (<-chan string, error) {
 
 func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, messageTag string) (<-chan string, error) {
 	if len(messageTag) < 2 {
-		return nil, fmt.Errorf("no messageTag specified or to short")
+		return nil, ErrMissingMessageTag
 	}
 
 	data, err := wac.encryptBinaryMessage(node)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "encryptBinaryMessage(node) failed")
 	}
 
 	bytes := []byte(messageTag + ",")
@@ -48,7 +49,7 @@ func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, message
 
 	ch, err := wac.write(websocket.BinaryMessage, messageTag, bytes)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to write message")
 	}
 
 	wac.msgCount++
@@ -59,19 +60,19 @@ func (wac *Conn) sendKeepAlive() error {
 	bytes := []byte("?,,")
 	respChan, err := wac.write(websocket.TextMessage, "!", bytes)
 	if err != nil {
-		return fmt.Errorf("error sending keepAlive: %v", err)
+		return errors.Wrap(err, "error sending keepAlive")
 	}
 
 	select {
 	case resp := <-respChan:
 		msecs, err := strconv.ParseInt(resp, 10, 64)
 		if err != nil {
-			return fmt.Errorf("Error converting time string to uint: %v\n", err)
+			return errors.Wrap(err, "Error converting time string to uint")
 		}
 		wac.ServerLastSeen = time.Unix(msecs/1000, (msecs%1000)*int64(time.Millisecond))
 
 	case <-time.After(wac.msgTimeout):
-		return fmt.Errorf("connection timed out")
+		return ErrConnectionTimeout
 	}
 
 	return nil
@@ -97,7 +98,7 @@ func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<
 			delete(wac.listener.m, answerMessageTag)
 			wac.listener.Unlock()
 		}
-		return nil, fmt.Errorf("error writing to socket: %v\n", err)
+		return nil, errors.Wrap(err, "error writing to websocket")
 	}
 	return ch, nil
 }
@@ -105,12 +106,12 @@ func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<
 func (wac *Conn) encryptBinaryMessage(node binary.Node) (data []byte, err error) {
 	b, err := binary.Marshal(node)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "binary node marshal failed")
 	}
 
 	cipher, err := cbc.Encrypt(wac.session.EncKey, nil, b)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "encrypt failed")
 	}
 
 	h := hmac.New(sha256.New, wac.session.MacKey)

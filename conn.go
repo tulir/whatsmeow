@@ -2,8 +2,7 @@
 package whatsapp
 
 import (
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 	"math/rand"
 	"net/http"
 	"sync"
@@ -141,7 +140,7 @@ func (wac *Conn) connect() (err error) {
 	headers := http.Header{"Origin": []string{"https://web.whatsapp.com"}}
 	wsConn, _, err := dialer.Dial("wss://w3.web.whatsapp.com/ws", headers)
 	if err != nil {
-		return fmt.Errorf("couldn't dial whatsapp web websocket: %v", err)
+		return errors.Wrap(err, "couldn't dial whatsapp web websocket")
 	}
 
 	wsConn.SetCloseHandler(func(code int, text string) error {
@@ -150,14 +149,7 @@ func (wac *Conn) connect() (err error) {
 		err := wsConn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
 
 		// our close handling
-		switch code {
-		case websocket.CloseNormalClosure:
-			wac.handle(errors.New("server closed connection, normal"))
-		case websocket.CloseGoingAway:
-			wac.handle(errors.New("server closed connection, going away"))
-		default:
-			wac.handle(fmt.Errorf("connection closed: %v, %v", code, text))
-		}
+		wac.handle(&ErrConnectionClosed{Code: code, Text: text})
 		return err
 	})
 
@@ -200,7 +192,7 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 	for {
 		err := wac.sendKeepAlive()
 		if err != nil {
-			wac.handle(fmt.Errorf("keepAlive failed: %v", err))
+			wac.handle(errors.Wrap(err, "keepAlive failed"))
 			//TODO: Consequences?
 		}
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs

@@ -3,10 +3,10 @@ package whatsapp
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"fmt"
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"strings"
@@ -28,18 +28,18 @@ func (wac *Conn) readPump() {
 		select {
 		case <-readerFound:
 			if readErr != nil {
-				wac.handle(readErr)
+				wac.handle(errors.Wrap(readErr, "could not retrieve next Reader"))
 				_, _ = wac.Disconnect()
 				return
 			}
 			msg, err := ioutil.ReadAll(reader)
 			if err != nil {
-				wac.handle(fmt.Errorf("error reading message: %v", err))
+				wac.handle(errors.Wrap(err, "error reading message from Reader"))
 				continue
 			}
 			err = wac.processReadData(msgType, msg)
 			if err != nil {
-				wac.handle(fmt.Errorf("error processing data: %v", err))
+				wac.handle(errors.Wrap(err, "error processing data"))
 			}
 		case <-wac.ws.close:
 			return
@@ -78,7 +78,7 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 	} else if msgType == websocket.BinaryMessage && wac.loggedIn {
 		message, err := wac.decryptBinaryMessage([]byte(data[1]))
 		if err != nil {
-			return fmt.Errorf("error decoding binary: %v", err)
+			return errors.Wrap(err, "error decoding binary")
 		}
 		wac.dispatch(message)
 	} else { //RAW json status updates
@@ -92,19 +92,19 @@ func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 	h2 := hmac.New(sha256.New, wac.session.MacKey)
 	h2.Write([]byte(msg[32:]))
 	if !hmac.Equal(h2.Sum(nil), msg[:32]) {
-		return nil, fmt.Errorf("message received with invalid hmac")
+		return nil, ErrInvalidHmac
 	}
 
 	// message decrypt
 	d, err := cbc.Decrypt(wac.session.EncKey, nil, msg[32:])
 	if err != nil {
-		return nil, fmt.Errorf("error decrypting message with AES: %v", err)
+		return nil, errors.Wrap(err, "decrypting message with AES-CBC failed")
 	}
 
 	// message unmarshal
 	message, err := binary.Unmarshal(d)
 	if err != nil {
-		return nil, fmt.Errorf("error decoding binary: %v", err)
+		return nil, errors.Wrap(err, "could not decode binary")
 	}
 
 	return message, nil
