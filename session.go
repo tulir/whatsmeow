@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -119,9 +120,18 @@ github.com/Baozisoftware/qrcode-terminal-go Example login procedure:
 	}
 	fmt.Printf("login successful, session: %v\n", session)
 */
-func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
+func (wac *Conn) Login(qrChan chan<- string) (Session, error) { //TODO: Guard with Mutex or atomic
 	session := Session{}
 
+	if wac.loggedIn {
+		return session, ErrAlreadyLoggedIn
+	}
+
+	if err := wac.connect(); err != nil && err != ErrAlreadyConnected {
+		return session, err
+	}
+
+	//logged in?!?
 	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil) {
 		return session, fmt.Errorf("already logged in")
 	}
@@ -226,57 +236,74 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	session.EncKey = keyDecrypted[:32]
 	session.MacKey = keyDecrypted[32:64]
 	wac.session = &session
+	wac.loggedIn = true
 
 	return session, nil
 }
 
+var ErrAlreadyLoggedIn = errors.New("already logged in")
+
+//TODO: GoDoc
 /*
+Basically the old RestoreSession functionality
+*/
+func (wac *Conn) RestoreWithSession(session Session) (Session, error) {
+	if wac.loggedIn {
+		return Session{}, ErrAlreadyLoggedIn
+	}
+	wac.session = &session
+	err := wac.Restore()
+	if err != nil {
+		wac.session = nil
+		return Session{}, err
+	}
+	return *wac.session, nil //TODO: add getSession
+}
+
+/*//TODO: GoDoc
 RestoreSession is the function that restores a given session. It will try to reestablish the connection to the
 WhatsAppWeb servers with the provided session. If it succeeds it will return a new session. This new session has to be
 saved because the Client and Server-Token will change after every login. Logging in with old tokens is possible, but not
 suggested. If so, a challenge has to be resolved which is just another possible point of failure.
 */
-func (wac *Conn) RestoreSession(session Session) (Session, error) {
-	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil) {
-		return Session{}, fmt.Errorf("already logged in")
+func (wac *Conn) Restore() error {
+	if wac.loggedIn {
+		return ErrAlreadyLoggedIn
 	}
 
-	wac.session = &session
+	if err := wac.connect(); err != nil && err != ErrAlreadyConnected {
+		return err
+	}
 
 	//listener for Conn or challenge; s1 is not allowed to drop
 	wac.listener["s1"] = make(chan string, 1)
 
 	//admin init
-	init := []interface{}{"admin", "init", []int{0, 3, 225}, []string{wac.longClientName, wac.shortClientName}, session.ClientId, true}
+	init := []interface{}{"admin", "init", []int{0, 3, 225}, []string{wac.longClientName, wac.shortClientName}, wac.session.ClientId, true}
 	initChan, err := wac.writeJson(init)
 	if err != nil {
-		wac.session = nil
-		return Session{}, fmt.Errorf("error writing admin init: %v\n", err)
+		return fmt.Errorf("error writing admin init: %v\n", err)
 	}
 
 	//admin login with takeover
-	login := []interface{}{"admin", "login", session.ClientToken, session.ServerToken, session.ClientId, "takeover"}
+	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientId, "takeover"}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
-		wac.session = nil
-		return Session{}, fmt.Errorf("error writing admin login: %v\n", err)
+		return fmt.Errorf("error writing admin login: %v\n", err)
 	}
 
 	select {
 	case r := <-initChan:
 		var resp map[string]interface{}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			wac.session = nil
-			return Session{}, fmt.Errorf("error decoding login connResp: %v\n", err)
+			return fmt.Errorf("error decoding login connResp: %v\n", err)
 		}
 
 		if int(resp["status"].(float64)) != 200 {
-			wac.session = nil
-			return Session{}, fmt.Errorf("init responded with %d", resp["status"])
+			return fmt.Errorf("init responded with %d", resp["status"])
 		}
 	case <-time.After(wac.msgTimeout):
-		wac.session = nil
-		return Session{}, fmt.Errorf("restore session init timed out")
+		return fmt.Errorf("restore session init timed out")
 	}
 
 	//wait for s1
@@ -284,12 +311,10 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 	select {
 	case r1 := <-wac.listener["s1"]:
 		if err := json.Unmarshal([]byte(r1), &connResp); err != nil {
-			wac.session = nil
-			return Session{}, fmt.Errorf("error decoding s1 message: %v\n", err)
+			return fmt.Errorf("error decoding s1 message: %v\n", err)
 		}
 	case <-time.After(wac.msgTimeout):
-		wac.session = nil
-		return Session{}, fmt.Errorf("restore session connection timed out")
+		return fmt.Errorf("restore session connection timed out")
 	}
 
 	//check if challenge is present
@@ -297,19 +322,16 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 		wac.listener["s2"] = make(chan string, 1)
 
 		if err := wac.resolveChallenge(connResp[1].(map[string]interface{})["challenge"].(string)); err != nil {
-			wac.session = nil
-			return Session{}, fmt.Errorf("error resolving challenge: %v\n", err)
+			return fmt.Errorf("error resolving challenge: %v\n", err)
 		}
 
 		select {
 		case r := <-wac.listener["s2"]:
 			if err := json.Unmarshal([]byte(r), &connResp); err != nil {
-				wac.session = nil
-				return Session{}, fmt.Errorf("error decoding s2 message: %v\n", err)
+				return fmt.Errorf("error decoding s2 message: %v\n", err)
 			}
 		case <-time.After(wac.msgTimeout):
-			wac.session = nil
-			return Session{}, fmt.Errorf("restore session challenge timed out")
+			return fmt.Errorf("restore session challenge timed out")
 		}
 	}
 
@@ -318,17 +340,14 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 	case r := <-loginChan:
 		var resp map[string]interface{}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			wac.session = nil
-			return Session{}, fmt.Errorf("error decoding login connResp: %v\n", err)
+			return fmt.Errorf("error decoding login connResp: %v\n", err)
 		}
 
 		if int(resp["status"].(float64)) != 200 {
-			wac.session = nil
-			return Session{}, fmt.Errorf("admin login responded with %d", resp["status"])
+			return fmt.Errorf("admin login responded with %d", resp["status"])
 		}
 	case <-time.After(wac.msgTimeout):
-		wac.session = nil
-		return Session{}, fmt.Errorf("restore session login timed out")
+		return fmt.Errorf("restore session login timed out")
 	}
 
 	info := connResp[1].(map[string]interface{})
@@ -336,11 +355,12 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 	wac.Info = newInfoFromReq(info)
 
 	//set new tokens
-	session.ClientToken = info["clientToken"].(string)
-	session.ServerToken = info["serverToken"].(string)
-	session.Wid = info["wid"].(string)
+	wac.session.ClientToken = info["clientToken"].(string)
+	wac.session.ServerToken = info["serverToken"].(string)
+	wac.session.Wid = info["wid"].(string)
+	wac.loggedIn = true
 
-	return *wac.session, nil
+	return nil
 }
 
 func (wac *Conn) resolveChallenge(challenge string) error {

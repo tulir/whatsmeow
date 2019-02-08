@@ -76,6 +76,7 @@ type Conn struct {
 
 	wsClose   chan struct{}
 	connected bool
+	loggedIn  bool
 	wg        sync.WaitGroup
 
 	wsWriteMutex   sync.RWMutex
@@ -120,10 +121,12 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 	return wac, wac.connect()
 }
 
+var ErrAlreadyConnected = errors.New("already connected")
+
 // connect should be guarded with wsWriteMutex
 func (wac *Conn) connect() (err error) {
 	if wac.connected {
-		return errors.New("already connected")
+		return ErrAlreadyConnected
 	}
 	wac.connected = true
 	defer func() { // set connected to false on error
