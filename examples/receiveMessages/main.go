@@ -44,22 +44,31 @@ func (*waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 
 func main() {
 	//create new WhatsApp connection
-	wac, err := whatsapp.NewConn(5 * time.Second)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error creating connection: %v\n", err)
-		return
-	}
+	wac := whatsapp.NewConn(5 * time.Second)
 
 	//Add handler
 	wac.AddHandler(&waHandler{})
 
-	err = login(wac)
-	if err != nil {
+	//Connect to WhatsApp servers
+	if err := wac.Connect(); err != nil {
+		fmt.Fprintf(os.Stderr, "error creating connection: %v\n", err)
+		return
+	}
+
+	//login or restore
+	if err := login(wac); err != nil {
 		fmt.Fprintf(os.Stderr, "error logging in: %v\n", err)
 		return
 	}
 
-	<-time.After(5 * time.Minute)
+	<-time.After(10 * time.Second)
+
+	//Disconnect safe
+	fmt.Println("Shutting down now.")
+	if err := wac.Disconnect(); err != nil {
+		fmt.Fprintf(os.Stderr, "error disconnecting: %v\n", err)
+		return
+	}
 }
 
 func login(wac *whatsapp.Conn) error {
