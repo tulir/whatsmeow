@@ -22,7 +22,7 @@ func (wac *Conn) readPump() {
 	for {
 		readerFound := make(chan struct{})
 		go func() {
-			msgType, reader, readErr = wac.wsConn.NextReader()
+			msgType, reader, readErr = wac.ws.conn.NextReader()
 			close(readerFound)
 		}()
 		select {
@@ -41,7 +41,7 @@ func (wac *Conn) readPump() {
 				continue
 			}
 			wac.processReadData(msgType, msg)
-		case <-wac.wsClose:
+		case <-wac.ws.close:
 			return
 		}
 	}
@@ -55,18 +55,20 @@ func (wac *Conn) processReadData(msgType int, msg []byte) {
 		data[0] = "!"
 	}
 
-	wac.listenerMutex.RLock()
-	listener, hasListener := wac.listener[data[0]]
-	wac.listenerMutex.RUnlock()
+	wac.listener.RLock()
+	listener, hasListener := wac.listener.m[data[0]]
+	wac.listener.RUnlock()
 
 	if len(data[1]) == 0 {
 		return
 	} else if hasListener {
+		// listener only exists for TextMessages
+		// And query messages out of contact.go
 		listener <- data[1]
 
-		wac.listenerMutex.Lock()
-		delete(wac.listener, data[0])
-		wac.listenerMutex.Unlock()
+		wac.listener.Lock()
+		delete(wac.listener.m, data[0])
+		wac.listener.Unlock()
 	} else if msgType == 2 && wac.session != nil && wac.session.EncKey != nil {
 		message, err := wac.decryptBinaryMessage([]byte(data[1]))
 		if err != nil {

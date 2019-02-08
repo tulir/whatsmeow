@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -170,14 +169,16 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) { //TODO: Guard wi
 	}
 
 	//listener for Login response
-	messageTag := "s1"
-	wac.listener[messageTag] = make(chan string, 1)
+	s1 := make(chan string, 1)
+	wac.listener.Lock()
+	wac.listener.m["s1"] = s1
+	wac.listener.Unlock()
 
 	qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientId)
 
 	var resp2 []interface{}
 	select {
-	case r1 := <-wac.listener[messageTag]:
+	case r1 := <-s1:
 		if err := json.Unmarshal([]byte(r1), &resp2); err != nil {
 			return session, fmt.Errorf("error decoding qr code resp: %v", err)
 		}
@@ -241,8 +242,6 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) { //TODO: Guard wi
 	return session, nil
 }
 
-var ErrAlreadyLoggedIn = errors.New("already logged in")
-
 //TODO: GoDoc
 /*
 Basically the old RestoreSession functionality
@@ -257,7 +256,7 @@ func (wac *Conn) RestoreWithSession(session Session) (Session, error) {
 		wac.session = nil
 		return Session{}, err
 	}
-	return *wac.session, nil //TODO: add getSession
+	return *wac.session, nil
 }
 
 /*//TODO: GoDoc
@@ -276,7 +275,10 @@ func (wac *Conn) Restore() error {
 	}
 
 	//listener for Conn or challenge; s1 is not allowed to drop
-	wac.listener["s1"] = make(chan string, 1)
+	s1 := make(chan string, 1)
+	wac.listener.Lock()
+	wac.listener.m["s1"] = s1
+	wac.listener.Unlock()
 
 	//admin init
 	init := []interface{}{"admin", "init", []int{0, 3, 225}, []string{wac.longClientName, wac.shortClientName}, wac.session.ClientId, true}
@@ -309,7 +311,7 @@ func (wac *Conn) Restore() error {
 	//wait for s1
 	var connResp []interface{}
 	select {
-	case r1 := <-wac.listener["s1"]:
+	case r1 := <-s1:
 		if err := json.Unmarshal([]byte(r1), &connResp); err != nil {
 			return fmt.Errorf("error decoding s1 message: %v\n", err)
 		}
@@ -319,14 +321,17 @@ func (wac *Conn) Restore() error {
 
 	//check if challenge is present
 	if len(connResp) == 2 && connResp[0] == "Cmd" && connResp[1].(map[string]interface{})["type"] == "challenge" {
-		wac.listener["s2"] = make(chan string, 1)
+		s2 := make(chan string, 1)
+		wac.listener.Lock()
+		wac.listener.m["s2"] = s2
+		wac.listener.Unlock()
 
 		if err := wac.resolveChallenge(connResp[1].(map[string]interface{})["challenge"].(string)); err != nil {
 			return fmt.Errorf("error resolving challenge: %v\n", err)
 		}
 
 		select {
-		case r := <-wac.listener["s2"]:
+		case r := <-s2:
 			if err := json.Unmarshal([]byte(r), &connResp); err != nil {
 				return fmt.Errorf("error decoding s2 message: %v\n", err)
 			}

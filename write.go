@@ -78,23 +78,24 @@ func (wac *Conn) sendKeepAlive() error {
 }
 
 func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<-chan string, error) {
-	wac.wsWriteMutex.Lock()
-	defer wac.wsWriteMutex.Unlock()
-
 	var ch chan string
 	if answerMessageTag != "" {
 		ch = make(chan string, 1)
 
-		wac.listenerMutex.Lock()
-		wac.listener[answerMessageTag] = ch
-		wac.listenerMutex.Unlock()
+		wac.listener.Lock()
+		wac.listener.m[answerMessageTag] = ch
+		wac.listener.Unlock()
 	}
 
-	if err := wac.wsConn.WriteMessage(messageType, data); err != nil {
+	wac.ws.Lock()
+	err := wac.ws.conn.WriteMessage(messageType, data)
+	wac.ws.Unlock()
+
+	if err != nil {
 		if answerMessageTag != "" {
-			wac.listenerMutex.Lock()
-			delete(wac.listener, answerMessageTag)
-			wac.listenerMutex.Unlock()
+			wac.listener.Lock()
+			delete(wac.listener.m, answerMessageTag)
+			wac.listener.Unlock()
 		}
 		return nil, fmt.Errorf("error writing to socket: %v\n", err)
 	}

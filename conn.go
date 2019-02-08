@@ -72,17 +72,14 @@ Conn is created by NewConn. Interacting with the initialized Conn is the main wa
 It holds all necessary information to make the package work internally.
 */
 type Conn struct {
-	wsConn *websocket.Conn
+	ws       *websocketWrapper
+	listener *listenerWrapper
 
-	wsClose   chan struct{}
 	connected bool
 	loggedIn  bool
-	wg        sync.WaitGroup
+	wg        *sync.WaitGroup
 
-	wsWriteMutex   sync.RWMutex
 	session        *Session
-	listener       map[string]chan string
-	listenerMutex  sync.RWMutex
 	handler        []Handler
 	msgCount       int
 	msgTimeout     time.Duration
@@ -94,9 +91,15 @@ type Conn struct {
 	shortClientName string
 }
 
-type wsMsg struct {
-	messageType int
-	data        []byte
+type websocketWrapper struct {
+	sync.Mutex
+	conn  *websocket.Conn
+	close chan struct{}
+}
+
+type listenerWrapper struct {
+	sync.RWMutex
+	m map[string]chan string
 }
 
 /*
@@ -105,23 +108,20 @@ The goroutine for handling incoming messages is started
 */
 func NewConn(timeout time.Duration) (*Conn, error) {
 	wac := &Conn{
-		wsConn:        nil, // will be set in connect()
-		wsClose:       nil, //will be set in connect()
-		wsWriteMutex:  sync.RWMutex{},
-		listener:      make(map[string]chan string),
-		listenerMutex: sync.RWMutex{},
-		handler:       make([]Handler, 0),
-		msgCount:      0,
-		msgTimeout:    timeout,
-		Store:         newStore(),
+		ws: &websocketWrapper{}, //will be filled inside connect()
+		listener: &listenerWrapper{
+			m: make(map[string]chan string),
+		},
+		handler:    make([]Handler, 0),
+		msgCount:   0,
+		msgTimeout: timeout,
+		Store:      newStore(),
 
 		longClientName:  "github.com/rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
 	}
 	return wac, wac.connect()
 }
-
-var ErrAlreadyConnected = errors.New("already connected")
 
 // connect should be guarded with wsWriteMutex
 func (wac *Conn) connect() (err error) {
@@ -164,12 +164,13 @@ func (wac *Conn) connect() (err error) {
 		return err
 	})
 
-	wac.wsClose = make(chan struct{})
+	wac.ws.close = make(chan struct{})
+	wac.wg = &sync.WaitGroup{}
 	wac.wg.Add(2)
 	go wac.readPump()
 	go wac.keepAlive(20000, 90000)
 
-	wac.wsConn = wsConn
+	wac.ws.conn = wsConn
 	return nil
 }
 
@@ -179,11 +180,11 @@ func (wac *Conn) Disconnect() error {
 	}
 	wac.connected = false
 
-	close(wac.wsClose) //signal close
-	wac.wg.Wait()      //wait for close
+	close(wac.ws.close) //signal close
+	wac.wg.Wait()       //wait for close
 
-	err := wac.wsConn.Close()
-	wac.wsConn = nil
+	err := wac.ws.conn.Close()
+	wac.ws = nil
 	wac.session = nil
 	return err
 }
@@ -200,7 +201,7 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
-		case <-wac.wsClose:
+		case <-wac.ws.close:
 			return
 		}
 	}
