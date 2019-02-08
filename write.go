@@ -8,6 +8,7 @@ import (
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/gorilla/websocket"
+	"strconv"
 	"time"
 )
 
@@ -56,8 +57,24 @@ func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, message
 
 func (wac *Conn) sendKeepAlive() error {
 	bytes := []byte("?,,")
-	_, err := wac.write(websocket.TextMessage, "", bytes)
-	return err
+	respChan, err := wac.write(websocket.TextMessage, "!", bytes)
+	if err != nil {
+		return fmt.Errorf("error sending keepAlive: %v", err)
+	}
+
+	select {
+	case resp := <-respChan:
+		msecs, err := strconv.ParseInt(resp, 10, 64)
+		if err != nil {
+			return fmt.Errorf("Error converting time string to uint: %v\n", err)
+		}
+		wac.ServerLastSeen = time.Unix(msecs/1000, (msecs%1000)*int64(time.Millisecond))
+
+	case <-time.After(wac.msgTimeout):
+		return fmt.Errorf("connection timed out")
+	}
+
+	return nil
 }
 
 func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<-chan string, error) {

@@ -9,10 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"io"
 	"io/ioutil"
-	"os"
-	"strconv"
 	"strings"
-	"time"
 )
 
 func (wac *Conn) readPump() {
@@ -38,31 +35,24 @@ func (wac *Conn) readPump() {
 				wac.handle(fmt.Errorf("error reading message: %v", readErr))
 				continue
 			}
-			wac.processRead(msgType, reader)
+			msg, err := ioutil.ReadAll(reader)
+			if err != nil {
+				wac.handle(fmt.Errorf("error reading message: %v", err))
+				continue
+			}
+			wac.processReadData(msgType, msg)
 		case <-wac.wsClose:
 			return
 		}
 	}
 }
 
-func (wac *Conn) processRead(msgType int, r io.Reader) {
-	msg, err := ioutil.ReadAll(r)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not read: %v", err)
-		return
-	}
-
+func (wac *Conn) processReadData(msgType int, msg []byte) {
 	data := strings.SplitN(string(msg), ",", 2)
 
-	//Kepp-Alive Timestmap
-	if data[0][0] == '!' {
-		msecs, err := strconv.ParseInt(data[0][1:], 10, 64)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error converting time string to uint: %v\n", err)
-			return
-		}
-		wac.ServerLastSeen = time.Unix(msecs/1000, (msecs%1000)*int64(time.Millisecond))
-		return
+	if data[0][0] == '!' { //Keep-Alive Timestamp
+		data = append(data, data[0][1:]) //data[1]
+		data[0] = "!"
 	}
 
 	wac.listenerMutex.RLock()
