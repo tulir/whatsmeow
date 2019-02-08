@@ -191,6 +191,7 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 		err := wac.sendKeepAlive()
 		if err != nil {
 			wac.handle(fmt.Errorf("keepAlive failed: %v", err))
+			//TODO: Consequences?
 		}
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
 		select {

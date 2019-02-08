@@ -18,8 +18,8 @@ const (
 )
 
 //TODO: filename? WhatsApp uses Store.Contacts for these functions
-//TODO: functions probably shouldn't return a string, maybe build a struct / return json
-//TODO: check for further queries
+// functions probably shouldn't return a string, maybe build a struct / return json
+// check for further queries
 func (wac *Conn) GetProfilePicThumb(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "ProfilePicThumb", jid}
 	return wac.writeJson(data)
