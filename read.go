@@ -38,14 +38,14 @@ func (wac *Conn) readPump() {
 				wac.handle(fmt.Errorf("error reading message: %v", readErr))
 				continue
 			}
-			wac.process(msgType, reader)
+			wac.processRead(msgType, reader)
 		case <-wac.wsClose:
 			return
 		}
 	}
 }
 
-func (wac *Conn) process(msgType int, r io.Reader) {
+func (wac *Conn) processRead(msgType int, r io.Reader) {
 	msg, err := ioutil.ReadAll(r)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Could not read: %v", err)

@@ -35,24 +35,15 @@ func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, message
 	if len(messageTag) < 2 {
 		return nil, fmt.Errorf("no messageTag specified or to short")
 	}
-	b, err := binary.Marshal(node)
+
+	data, err := wac.encryptBinaryMessage(node)
 	if err != nil {
 		return nil, err
 	}
-
-	cipher, err := cbc.Encrypt(wac.session.EncKey, nil, b)
-	if err != nil {
-		return nil, err
-	}
-
-	h := hmac.New(sha256.New, wac.session.MacKey)
-	h.Write(cipher)
-	hash := h.Sum(nil)
 
 	bytes := []byte(messageTag + ",")
 	bytes = append(bytes, byte(metric), byte(flag))
-	bytes = append(bytes, hash[:32]...)
-	bytes = append(bytes, cipher...)
+	bytes = append(bytes, data...)
 
 	ch, err := wac.write(websocket.BinaryMessage, messageTag, bytes)
 	if err != nil {
@@ -91,4 +82,25 @@ func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<
 		return nil, fmt.Errorf("error writing to socket: %v\n", err)
 	}
 	return ch, nil
+}
+
+func (wac *Conn) encryptBinaryMessage(node binary.Node) (data []byte, err error) {
+	b, err := binary.Marshal(node)
+	if err != nil {
+		return nil, err
+	}
+
+	cipher, err := cbc.Encrypt(wac.session.EncKey, nil, b)
+	if err != nil {
+		return nil, err
+	}
+
+	h := hmac.New(sha256.New, wac.session.MacKey)
+	h.Write(cipher)
+	hash := h.Sum(nil)
+
+	data = append(data, hash[:32]...)
+	data = append(data, cipher...)
+
+	return data, nil
 }
