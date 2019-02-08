@@ -108,10 +108,6 @@ The goroutine for handling incoming messages is started
 */
 func NewConn(timeout time.Duration) (*Conn, error) {
 	wac := &Conn{
-		ws: &websocketWrapper{}, //will be filled inside connect()
-		listener: &listenerWrapper{
-			m: make(map[string]chan string),
-		},
 		handler:    make([]Handler, 0),
 		msgCount:   0,
 		msgTimeout: timeout,
@@ -164,29 +160,37 @@ func (wac *Conn) connect() (err error) {
 		return err
 	})
 
-	wac.ws.close = make(chan struct{})
+	wac.ws = &websocketWrapper{
+		conn:  wsConn,
+		close: make(chan struct{}),
+	}
+
+	wac.listener = &listenerWrapper{
+		m: make(map[string]chan string),
+	}
+
 	wac.wg = &sync.WaitGroup{}
 	wac.wg.Add(2)
 	go wac.readPump()
 	go wac.keepAlive(20000, 90000)
 
-	wac.ws.conn = wsConn
+	wac.loggedIn = false
 	return nil
 }
 
-func (wac *Conn) Disconnect() error {
+func (wac *Conn) Disconnect() (Session, error) {
 	if !wac.connected {
-		return errors.New("not connected")
+		return Session{}, ErrNotConnected
 	}
 	wac.connected = false
+	wac.loggedIn = false
 
 	close(wac.ws.close) //signal close
 	wac.wg.Wait()       //wait for close
 
 	err := wac.ws.conn.Close()
 	wac.ws = nil
-	wac.session = nil
-	return err
+	return *wac.session, err
 }
 
 func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {

@@ -266,12 +266,16 @@ saved because the Client and Server-Token will change after every login. Logging
 suggested. If so, a challenge has to be resolved which is just another possible point of failure.
 */
 func (wac *Conn) Restore() error {
-	if wac.loggedIn {
-		return ErrAlreadyLoggedIn
+	if wac.session == nil {
+		return ErrInvalidSession
 	}
 
 	if err := wac.connect(); err != nil && err != ErrAlreadyConnected {
 		return err
+	}
+
+	if wac.loggedIn {
+		return ErrAlreadyLoggedIn
 	}
 
 	//listener for Conn or challenge; s1 is not allowed to drop

@@ -61,8 +61,24 @@ func main() {
 
 	//Disconnect safe
 	fmt.Println("Shutting down now.")
-	if err := wac.Disconnect(); err != nil {
+	_, err = wac.Disconnect()
+	if err != nil {
 		log.Fatalf("error disconnecting: %v\n", err)
+	}
+
+	err = wac.Restore()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	<-time.After(10 * time.Second)
+
+	fmt.Println("Shutting down now.")
+	session, err := wac.Disconnect()
+	if err != nil {
+		log.Fatalf("error disconnecting: %v\n", err)
+	}
+	if err := writeSession(session); err != nil {
+		log.Fatalf("error saving session: %v", err)
 	}
 }
 
