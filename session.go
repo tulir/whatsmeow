@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
@@ -119,8 +120,13 @@ github.com/Baozisoftware/qrcode-terminal-go Example login procedure:
 	}
 	fmt.Printf("login successful, session: %v\n", session)
 */
-func (wac *Conn) Login(qrChan chan<- string) (Session, error) { //TODO: Guard with Mutex or atomic
+func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	session := Session{}
+	//Makes sure that only a single Login or Restore can happen at the same time
+	if !atomic.CompareAndSwapUint32(&wac.sessionLock, 0, 1) {
+		return session, ErrLoginInProgress
+	}
+	defer atomic.StoreUint32(&wac.sessionLock, 0)
 
 	if wac.loggedIn {
 		return session, ErrAlreadyLoggedIn
@@ -246,13 +252,19 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) { //TODO: Guard wi
 /*
 Basically the old RestoreSession functionality
 */
-func (wac *Conn) RestoreWithSession(session Session) (Session, error) {
+func (wac *Conn) RestoreWithSession(session Session) (_ Session, err error) {
 	if wac.loggedIn {
 		return Session{}, ErrAlreadyLoggedIn
 	}
+	old := wac.session
+	defer func() {
+		if err != nil {
+			wac.session = old
+		}
+	}()
 	wac.session = &session
-	err := wac.Restore()
-	if err != nil {
+
+	if err = wac.Restore(); err != nil {
 		wac.session = nil
 		return Session{}, err
 	}
@@ -266,6 +278,12 @@ saved because the Client and Server-Token will change after every login. Logging
 suggested. If so, a challenge has to be resolved which is just another possible point of failure.
 */
 func (wac *Conn) Restore() error {
+	//Makes sure that only a single Login or Restore can happen at the same time
+	if !atomic.CompareAndSwapUint32(&wac.sessionLock, 0, 1) {
+		return ErrLoginInProgress
+	}
+	defer atomic.StoreUint32(&wac.sessionLock, 0)
+
 	if wac.session == nil {
 		return ErrInvalidSession
 	}

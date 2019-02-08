@@ -80,6 +80,7 @@ type Conn struct {
 	wg        *sync.WaitGroup
 
 	session        *Session
+	sessionLock    uint32
 	handler        []Handler
 	msgCount       int
 	msgTimeout     time.Duration
