@@ -28,26 +28,26 @@ func (wac *Conn) readPump() {
 		select {
 		case <-readerFound:
 			if readErr != nil {
-				if websocket.IsUnexpectedCloseError(readErr, websocket.CloseGoingAway) {
-					wac.handle(fmt.Errorf("unexpected websocket close: %v", readErr))
-					return
-				}
-				wac.handle(fmt.Errorf("error reading message: %v", readErr))
-				continue
+				wac.handle(readErr)
+				_, _ = wac.Disconnect()
+				return
 			}
 			msg, err := ioutil.ReadAll(reader)
 			if err != nil {
 				wac.handle(fmt.Errorf("error reading message: %v", err))
 				continue
 			}
-			wac.processReadData(msgType, msg)
+			err = wac.processReadData(msgType, msg)
+			if err != nil {
+				wac.handle(fmt.Errorf("error processing data: %v", err))
+			}
 		case <-wac.ws.close:
 			return
 		}
 	}
 }
 
-func (wac *Conn) processReadData(msgType int, msg []byte) {
+func (wac *Conn) processReadData(msgType int, msg []byte) error {
 	data := strings.SplitN(string(msg), ",", 2)
 
 	if data[0][0] == '!' { //Keep-Alive Timestamp
@@ -55,31 +55,36 @@ func (wac *Conn) processReadData(msgType int, msg []byte) {
 		data[0] = "!"
 	}
 
+	if len(data) != 2 || len(data[1]) == 0 {
+		return ErrInvalidWsData
+	}
+
 	wac.listener.RLock()
 	listener, hasListener := wac.listener.m[data[0]]
 	wac.listener.RUnlock()
 
-	if len(data[1]) == 0 {
-		return
-	} else if hasListener {
-		// listener only exists for TextMessages
-		// And query messages out of contact.go
+	if hasListener {
+		// listener only exists for TextMessages query messages out of contact.go
+		// If these binary query messages can be handled another way,
+		// then the TextMessages, which are all JSON encoded, can directly
+		// be unmarshalled. The listener chan could then be changed from type
+		// chan string to something like chan map[string]interface{}. The unmarshalling
+		// in several places, especially in session.go, would then be gone.
 		listener <- data[1]
 
 		wac.listener.Lock()
 		delete(wac.listener.m, data[0])
 		wac.listener.Unlock()
-	} else if msgType == 2 && wac.session != nil && wac.session.EncKey != nil {
+	} else if msgType == websocket.BinaryMessage && wac.loggedIn {
 		message, err := wac.decryptBinaryMessage([]byte(data[1]))
 		if err != nil {
-			wac.handle(fmt.Errorf("error decoding binary: %v", err))
-			return
+			return fmt.Errorf("error decoding binary: %v", err)
 		}
-
 		wac.dispatch(message)
-	} else {
+	} else { //RAW json status updates
 		wac.handle(string(data[1]))
 	}
+	return nil
 }
 
 func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {

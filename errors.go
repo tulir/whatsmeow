@@ -8,4 +8,5 @@ var (
 	ErrInvalidSession   = errors.New("invalid session")
 	ErrLoginInProgress  = errors.New("login or restore already running")
 	ErrNotConnected     = errors.New("not connected")
+	ErrInvalidWsData    = errors.New("received invalid data")
 )
