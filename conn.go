@@ -169,20 +169,21 @@ func (wac *Conn) Connect() error {
 		return fmt.Errorf("couldn't dial whatsapp web websocket: %v", err)
 	}
 
-	//TODO
 	wsConn.SetCloseHandler(func(code int, text string) error {
-		fmt.Fprintf(os.Stderr, "websocket connection closed(%d, %s)\n", code, text)
-
 		// from default CloseHandler
 		message := websocket.FormatCloseMessage(code, "")
-		wsConn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
+		err := wsConn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
 
 		// our close handling
-		if websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-			fmt.Println("Trigger reconnect")
-			go wac.reconnect()
+		switch code {
+		case websocket.CloseNormalClosure:
+			wac.handle(errors.New("server closed connection, normal"))
+		case websocket.CloseGoingAway:
+			wac.handle(errors.New("server closed connection, going away"))
+		default:
+			wac.handle(fmt.Errorf("connection closed: %v, %v", code, text))
 		}
-		return nil
+		return err
 	})
 
 	wac.wsClose = make(chan struct{})
