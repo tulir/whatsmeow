@@ -44,15 +44,13 @@ func (*waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 
 func main() {
 	//create new WhatsApp connection
-	wac := whatsapp.NewConn(5 * time.Second)
+	wac, err := whatsapp.NewConn(5 * time.Second)
+	if err != nil {
+		log.Fatalf("error creating connection: %v\n", err)
+	}
 
 	//Add handler
 	wac.AddHandler(&waHandler{})
-
-	//Connect to WhatsApp servers
-	if err := wac.Connect(); err != nil {
-		log.Fatalf("error creating connection: %v\n", err)
-	}
 
 	//login or restore
 	if err := login(wac); err != nil {

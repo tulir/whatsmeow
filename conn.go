@@ -102,7 +102,7 @@ type wsMsg struct {
 Creates a new connection with a given timeout. The websocket connection to the WhatsAppWeb servers get´s established.
 The goroutine for handling incoming messages is started
 */
-func NewConn(timeout time.Duration) *Conn {
+func NewConn(timeout time.Duration) (*Conn, error) {
 	wac := &Conn{
 		wsConn:        nil, // will be set in connect()
 		wsClose:       nil, //will be set in connect()
@@ -117,11 +117,11 @@ func NewConn(timeout time.Duration) *Conn {
 		longClientName:  "github.com/rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
 	}
-	return wac
+	return wac, wac.connect()
 }
 
 // connect should be guarded with wsWriteMutex
-func (wac *Conn) Connect() (err error) {
+func (wac *Conn) connect() (err error) {
 	if wac.connected {
 		return errors.New("already connected")
 	}
@@ -181,6 +181,7 @@ func (wac *Conn) Disconnect() error {
 
 	err := wac.wsConn.Close()
 	wac.wsConn = nil
+	wac.session = nil
 	return err
 }
 
