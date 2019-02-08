@@ -133,7 +133,7 @@ func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaK
 	}
 
 	uploadReq := []interface{}{"action", "encr_upload", filetype, base64.StdEncoding.EncodeToString(fileEncSha256)}
-	ch, err := wac.write(uploadReq)
+	ch, err := wac.writeJson(uploadReq)
 	if err != nil {
 		return "", nil, nil, nil, 0, err
 	}
