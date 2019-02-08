@@ -135,7 +135,7 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	session.ClientId = base64.StdEncoding.EncodeToString(clientId)
 	//oldVersion=8691
 	login := []interface{}{"admin", "init", []int{0, 3, 225}, []string{wac.longClientName, wac.shortClientName}, session.ClientId, true}
-	loginChan, err := wac.write(login)
+	loginChan, err := wac.writeJson(login)
 	if err != nil {
 		return session, fmt.Errorf("error writing login: %v\n", err)
 	}
@@ -248,7 +248,7 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 
 	//admin init
 	init := []interface{}{"admin", "init", []int{0, 3, 225}, []string{wac.longClientName, wac.shortClientName}, session.ClientId, true}
-	initChan, err := wac.write(init)
+	initChan, err := wac.writeJson(init)
 	if err != nil {
 		wac.session = nil
 		return Session{}, fmt.Errorf("error writing admin init: %v\n", err)
@@ -256,7 +256,7 @@ func (wac *Conn) RestoreSession(session Session) (Session, error) {
 
 	//admin login with takeover
 	login := []interface{}{"admin", "login", session.ClientToken, session.ServerToken, session.ClientId, "takeover"}
-	loginChan, err := wac.write(login)
+	loginChan, err := wac.writeJson(login)
 	if err != nil {
 		wac.session = nil
 		return Session{}, fmt.Errorf("error writing admin login: %v\n", err)
@@ -353,7 +353,7 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 	h2.Write([]byte(decoded))
 
 	ch := []interface{}{"admin", "challenge", base64.StdEncoding.EncodeToString(h2.Sum(nil)), wac.session.ServerToken, wac.session.ClientId}
-	challengeChan, err := wac.write(ch)
+	challengeChan, err := wac.writeJson(ch)
 	if err != nil {
 		return fmt.Errorf("error writing challenge: %v\n", err)
 	}
@@ -380,7 +380,7 @@ The session can not be resumed and will disappear on your phone in the WhatsAppW
 */
 func (wac *Conn) Logout() error {
 	login := []interface{}{"admin", "Conn", "disconnect"}
-	_, err := wac.write(login)
+	_, err := wac.writeJson(login)
 	if err != nil {
 		return fmt.Errorf("error writing logout: %v\n", err)
 	}

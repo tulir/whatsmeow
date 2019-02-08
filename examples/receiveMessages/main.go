@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
+	"log"
 	"os"
-	"strings"
 	"time"
 
 	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
@@ -15,7 +15,7 @@ type waHandler struct{}
 
 //HandleError needs to be implemented to be a valid WhatsApp handler
 func (*waHandler) HandleError(err error) {
-	fmt.Fprintf(os.Stderr, "error occoured: %v", err)
+	log.Printf("error occoured: %v\n", err)
 }
 
 //Optional to be implemented. Implement HandleXXXMessage for the types you need.
@@ -23,7 +23,7 @@ func (*waHandler) HandleTextMessage(message whatsapp.TextMessage) {
 	fmt.Printf("%v %v %v %v\n\t%v\n", message.Info.Timestamp, message.Info.Id, message.Info.RemoteJid, message.Info.QuotedMessageID, message.Text)
 }
 
-//Example for media handling. Video, Audio, Document are also possible in the same way
+/*//Example for media handling. Video, Audio, Document are also possible in the same way
 func (*waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	data, err := message.Download()
 	if err != nil {
@@ -39,8 +39,8 @@ func (*waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	if err != nil {
 		return
 	}
-	fmt.Printf("%v %v\n\timage reveived, saved at:%v\n", message.Info.Timestamp, message.Info.RemoteJid, filename)
-}
+	log.Printf("%v %v\n\timage reveived, saved at:%v\n", message.Info.Timestamp, message.Info.RemoteJid, filename)
+}*/
 
 func main() {
 	//create new WhatsApp connection
@@ -51,14 +51,12 @@ func main() {
 
 	//Connect to WhatsApp servers
 	if err := wac.Connect(); err != nil {
-		fmt.Fprintf(os.Stderr, "error creating connection: %v\n", err)
-		return
+		log.Fatalf("error creating connection: %v\n", err)
 	}
 
 	//login or restore
 	if err := login(wac); err != nil {
-		fmt.Fprintf(os.Stderr, "error logging in: %v\n", err)
-		return
+		log.Fatalf("error logging in: %v\n", err)
 	}
 
 	<-time.After(10 * time.Second)
@@ -66,8 +64,7 @@ func main() {
 	//Disconnect safe
 	fmt.Println("Shutting down now.")
 	if err := wac.Disconnect(); err != nil {
-		fmt.Fprintf(os.Stderr, "error disconnecting: %v\n", err)
-		return
+		log.Fatalf("error disconnecting: %v\n", err)
 	}
 }
 
