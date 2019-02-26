@@ -138,7 +138,7 @@ func (wac *Conn) connect() (err error) {
 	}
 
 	headers := http.Header{"Origin": []string{"https://web.whatsapp.com"}}
-	wsConn, _, err := dialer.Dial("wss://w3.web.whatsapp.com/ws", headers)
+	wsConn, _, err := dialer.Dial("wss://web.whatsapp.com/ws", headers)
 	if err != nil {
 		return errors.Wrap(err, "couldn't dial whatsapp web websocket")
 	}
