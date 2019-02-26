@@ -8,7 +8,7 @@ import (
 
 func (wac *Conn) GetGroupMetaData(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "GroupMetadata", jid}
-	return wac.write(data)
+	return wac.writeJson(data)
 }
 
 func (wac *Conn) CreateGroup(subject string, participants []string) (<-chan string, error) {
@@ -41,7 +41,7 @@ func (wac *Conn) LeaveGroup(jid string) (<-chan string, error) {
 
 func (wac *Conn) GroupInviteLink(jid string) (string, error) {
 	request := []interface{}{"query", "inviteCode", jid}
-	ch, err := wac.write(request)
+	ch, err := wac.writeJson(request)
 	if err != nil {
 		return "", err
 	}
