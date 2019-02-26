@@ -13,8 +13,8 @@ const (
 	PresenceAvailable   = "available"
 	PresenceUnavailable = "unavailable"
 	PresenceComposing   = "composing"
-	PresenceRecording	= "recording"
-	PresencePaused	= "paused"
+	PresenceRecording   = "recording"
+	PresencePaused      = "paused"
 )
 
 //TODO: filename? WhatsApp uses Store.Contacts for these functions
@@ -30,42 +30,9 @@ func (wac *Conn) GetStatus(jid string) (<-chan string, error) {
 	return wac.write(data)
 }
 
-func (wac *Conn) GetGroupMetaData(jid string) (<-chan string, error) {
-	data := []interface{}{"query", "GroupMetadata", jid}
-	return wac.write(data)
-}
-
 func (wac *Conn) SubscribePresence(jid string) (<-chan string, error) {
 	data := []interface{}{"action", "presence", "subscribe", jid}
 	return wac.write(data)
-}
-
-func (wac *Conn) CreateGroup(subject string, participants []string) (<-chan string, error) {
-	return wac.setGroup("create", "", subject, participants)
-}
-
-func (wac *Conn) UpdateGroupSubject(subject string, jid string) (<-chan string, error) {
-	return wac.setGroup("subject", jid, subject, nil)
-}
-
-func (wac *Conn) SetAdmin(jid string, participants []string) (<-chan string, error) {
-	return wac.setGroup("promote", jid, "", participants)
-}
-
-func (wac *Conn) RemoveAdmin(jid string, participants []string) (<-chan string, error) {
-	return wac.setGroup("demote", jid, "", participants)
-}
-
-func (wac *Conn) AddMember(jid string, participants []string) (<-chan string, error) {
-	return wac.setGroup("add", jid, "", participants)
-}
-
-func (wac *Conn) RemoveMember(jid string, participants []string) (<-chan string, error) {
-	return wac.setGroup("remove", jid, "", participants)
-}
-
-func (wac *Conn) LeaveGroup(jid string) (<-chan string, error) {
-	return wac.setGroup("leave", jid, "", nil)
 }
 
 func (wac *Conn) Search(search string, count, page int) (*binary.Node, error) {
