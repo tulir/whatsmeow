@@ -363,6 +363,7 @@ type DocumentMessage struct {
 	Title         string
 	PageCount     uint32
 	Type          string
+	FileName      string
 	Thumbnail     []byte
 	Content       io.Reader
 	url           string
@@ -376,15 +377,16 @@ func getDocumentMessage(msg *proto.WebMessageInfo) DocumentMessage {
 	doc := msg.GetMessage().GetDocumentMessage()
 	return DocumentMessage{
 		Info:          getMessageInfo(msg),
+		Title:         doc.GetTitle(),
+		PageCount:     doc.GetPageCount(),
+		Type:          doc.GetMimetype(),
+		FileName:      doc.GetFileName(),
 		Thumbnail:     doc.GetJpegThumbnail(),
 		url:           doc.GetUrl(),
 		mediaKey:      doc.GetMediaKey(),
 		fileEncSha256: doc.GetFileEncSha256(),
 		fileSha256:    doc.GetFileSha256(),
 		fileLength:    doc.GetFileLength(),
-		PageCount:     doc.GetPageCount(),
-		Title:         doc.GetTitle(),
-		Type:          doc.GetMimetype(),
 	}
 }
 
