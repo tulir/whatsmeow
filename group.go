@@ -63,3 +63,28 @@ func (wac *Conn) GroupInviteLink(jid string) (string, error) {
 
 	return response["code"].(string), nil
 }
+
+func (wac *Conn) GroupAcceptInviteCode(code string) (jid string, err error) {
+	request := []interface{}{"action", "invite", code}
+	ch, err := wac.write(request)
+	if err != nil {
+		return "", err
+	}
+
+	var response map[string]interface{}
+
+	select {
+	case r := <-ch:
+		if err := json.Unmarshal([]byte(r), &response); err != nil {
+			return "", fmt.Errorf("error decoding response message: %v\n", err)
+		}
+	case <-time.After(wac.msgTimeout):
+		return "", fmt.Errorf("request timed out")
+	}
+
+	if int(response["status"].(float64)) != 200 {
+		return "", fmt.Errorf("request responded with %d", response["status"])
+	}
+
+	return response["gid"].(string), nil
+}
