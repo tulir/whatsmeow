@@ -165,7 +165,7 @@ func (wac *Conn) connect() (err error) {
 	wac.wg = &sync.WaitGroup{}
 	wac.wg.Add(2)
 	go wac.readPump()
-	go wac.keepAlive(20000, 90000)
+	go wac.keepAlive(20000, 60000)
 
 	wac.loggedIn = false
 	return nil
