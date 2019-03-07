@@ -149,6 +149,7 @@ func (wac *Conn) connect() (err error) {
 		err := wsConn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
 
 		// our close handling
+		_, _ = wac.Disconnect()
 		wac.handle(&ErrConnectionClosed{Code: code, Text: text})
 		return err
 	})
