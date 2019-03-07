@@ -66,7 +66,7 @@ func (wac *Conn) GroupInviteLink(jid string) (string, error) {
 
 func (wac *Conn) GroupAcceptInviteCode(code string) (jid string, err error) {
 	request := []interface{}{"action", "invite", code}
-	ch, err := wac.write(request)
+	ch, err := wac.writeJson(request)
 	if err != nil {
 		return "", err
 	}
