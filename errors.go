@@ -15,6 +15,7 @@ var (
 	ErrConnectionTimeout = errors.New("connection timed out")
 	ErrMissingMessageTag = errors.New("no messageTag specified or to short")
 	ErrInvalidHmac       = errors.New("invalid hmac")
+	ErrConnectionFailed  = errors.New("connection to WhatsApp servers failed")
 )
 
 type ErrConnectionClosed struct {

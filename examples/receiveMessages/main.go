@@ -5,17 +5,32 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
 	"github.com/Rhymen/go-whatsapp"
 )
 
-type waHandler struct{}
+type waHandler struct {
+	c *whatsapp.Conn
+}
 
 //HandleError needs to be implemented to be a valid WhatsApp handler
-func (*waHandler) HandleError(err error) {
-	log.Printf("error occoured: %v\n", err)
+func (h *waHandler) HandleError(err error) {
+	if err == whatsapp.ErrConnectionFailed {
+		log.Println(err)
+		log.Println("Waiting 30sec...")
+		<-time.After(30 * time.Second)
+		log.Println("Reconnecting...")
+		err := h.c.Restore()
+		if err != nil {
+			log.Fatalf("Restore failed: %v", err)
+		}
+	} else {
+		log.Printf("error occoured: %v\n", err)
+	}
 }
 
 //Optional to be implemented. Implement HandleXXXMessage for the types you need.
@@ -50,14 +65,16 @@ func main() {
 	}
 
 	//Add handler
-	wac.AddHandler(&waHandler{})
+	wac.AddHandler(&waHandler{wac})
 
 	//login or restore
 	if err := login(wac); err != nil {
 		log.Fatalf("error logging in: %v\n", err)
 	}
 
-	<-time.After(40 * time.Second)
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	<-c
 
 	//Disconnect safe
 	fmt.Println("Shutting down now.")
