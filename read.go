@@ -28,7 +28,7 @@ func (wac *Conn) readPump() {
 		select {
 		case <-readerFound:
 			if readErr != nil {
-				wac.handle(ErrConnectionFailed)
+				wac.handle(&ErrConnectionFailed{Err: readErr})
 				_, _ = wac.Disconnect()
 				return
 			}

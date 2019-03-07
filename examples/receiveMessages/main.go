@@ -19,8 +19,9 @@ type waHandler struct {
 
 //HandleError needs to be implemented to be a valid WhatsApp handler
 func (h *waHandler) HandleError(err error) {
-	if err == whatsapp.ErrConnectionFailed {
-		log.Println(err)
+
+	if e, ok := err.(*whatsapp.ErrConnectionFailed); ok {
+		log.Printf("Connection failed, underlying error: %v", e.Err)
 		log.Println("Waiting 30sec...")
 		<-time.After(30 * time.Second)
 		log.Println("Reconnecting...")
