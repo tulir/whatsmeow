@@ -18,21 +18,21 @@ const (
 )
 
 //TODO: filename? WhatsApp uses Store.Contacts for these functions
-//TODO: functions probably shouldn't return a string, maybe build a struct / return json
-//TODO: check for further queries
+// functions probably shouldn't return a string, maybe build a struct / return json
+// check for further queries
 func (wac *Conn) GetProfilePicThumb(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "ProfilePicThumb", jid}
-	return wac.write(data)
+	return wac.writeJson(data)
 }
 
 func (wac *Conn) GetStatus(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "Status", jid}
-	return wac.write(data)
+	return wac.writeJson(data)
 }
 
 func (wac *Conn) SubscribePresence(jid string) (<-chan string, error) {
 	data := []interface{}{"action", "presence", "subscribe", jid}
-	return wac.write(data)
+	return wac.writeJson(data)
 }
 
 func (wac *Conn) Search(search string, count, page int) (*binary.Node, error) {
@@ -84,7 +84,7 @@ func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) 
 
 func (wac *Conn) Exist(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "exist", jid}
-	return wac.write(data)
+	return wac.writeJson(data)
 }
 
 func (wac *Conn) Emoji() (*binary.Node, error) {
