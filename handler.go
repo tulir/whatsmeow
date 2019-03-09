@@ -2,9 +2,10 @@ package whatsapp
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
-	"os"
 )
 
 /*
@@ -86,6 +87,19 @@ and they are called if so and needed.
 */
 func (wac *Conn) AddHandler(handler Handler) {
 	wac.handler = append(wac.handler, handler)
+}
+
+// RemoveHandler removes a handler from the list of handlers that receive dispatched messages.
+func (wac *Conn) RemoveHandler(handler Handler) {
+	i := -1
+	for k, v := range wac.handler {
+		if v == handler {
+			i = k
+		}
+	}
+	if i > -1 {
+		wac.handler = append(wac.handler[:i], wac.handler[i+1:]...)
+	}
 }
 
 func (wac *Conn) handle(message interface{}) {
