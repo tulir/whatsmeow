@@ -95,6 +95,7 @@ func (wac *Conn) RemoveHandler(handler Handler) {
 	for k, v := range wac.handler {
 		if v == handler {
 			i = k
+			break
 		}
 	}
 	if i > -1 {
