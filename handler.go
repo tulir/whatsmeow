@@ -105,6 +105,11 @@ func (wac *Conn) RemoveHandler(handler Handler) bool {
 	return false
 }
 
+// RemoveHandlers empties the list of handlers that receive dispatched messages.
+func (wac *Conn) RemoveHandlers() {
+	wac.handler = make([]Handler, 0)
+}
+
 func (wac *Conn) handle(message interface{}) {
 	switch m := message.(type) {
 	case error:
