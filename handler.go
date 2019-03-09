@@ -90,7 +90,7 @@ func (wac *Conn) AddHandler(handler Handler) {
 }
 
 // RemoveHandler removes a handler from the list of handlers that receive dispatched messages.
-func (wac *Conn) RemoveHandler(handler Handler) {
+func (wac *Conn) RemoveHandler(handler Handler) bool {
 	i := -1
 	for k, v := range wac.handler {
 		if v == handler {
@@ -100,7 +100,9 @@ func (wac *Conn) RemoveHandler(handler Handler) {
 	}
 	if i > -1 {
 		wac.handler = append(wac.handler[:i], wac.handler[i+1:]...)
+		return true
 	}
+	return false
 }
 
 func (wac *Conn) handle(message interface{}) {
