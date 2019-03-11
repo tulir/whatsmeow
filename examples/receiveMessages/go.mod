@@ -2,10 +2,9 @@ module github.com/Rhymen/go-whatsapp/examples/receiveMessages
 
 require (
 	github.com/Baozisoftware/qrcode-terminal-go v0.0.0-20170407111555-c0650d8dff0f
-	github.com/Rhymen/go-whatsapp master
-	github.com/mattn/go-colorable v0.1.0 // indirect
-	github.com/mattn/go-isatty v0.0.4 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/Rhymen/go-whatsapp v0.0.0
+	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9 // indirect
-	golang.org/x/sys v0.0.0-20190204203706-41f3e6584952 // indirect
 )
+
+replace github.com/Rhymen/go-whatsapp => ../../
