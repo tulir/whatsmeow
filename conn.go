@@ -7,9 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
 )
 
 type metric byte
