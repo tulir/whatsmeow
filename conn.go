@@ -2,11 +2,12 @@
 package whatsapp
 
 import (
-	"github.com/pkg/errors"
 	"math/rand"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/gorilla/websocket"
 )
@@ -184,6 +185,10 @@ func (wac *Conn) Disconnect() (Session, error) {
 
 	err := wac.ws.conn.Close()
 	wac.ws = nil
+
+	if wac.session == nil {
+		return Session{}, err
+	}
 	return *wac.session, err
 }
 
