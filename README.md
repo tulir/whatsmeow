@@ -3,7 +3,7 @@ Package rhymen/go-whatsapp implements the WhatsApp Web API to provide a clean in
 
 ## Installation
 ```sh
-go get github.com/rhymen/go-whatsapp
+go get github.com/Rhymen/go-whatsapp
 ```
 
 ## Usage
