@@ -338,7 +338,21 @@ func (wac *Conn) Restore() error {
 			return fmt.Errorf("error decoding s1 message: %v\n", err)
 		}
 	case <-time.After(wac.msgTimeout):
-		return fmt.Errorf("restore session connection timed out")
+	
+		//check for an error message
+		select {
+		case r := <-loginChan:
+			var resp map[string]interface{}
+			if err = json.Unmarshal([]byte(r), &resp); err != nil {
+				return fmt.Errorf("error decoding login connResp: %v\n", err)
+			}
+			if int(resp["status"].(float64)) != 200 {
+				return fmt.Errorf("admin login responded with %d", int(resp["status"].(float64)))
+			}
+		default:
+			// not even an error message – assume timeout
+			return fmt.Errorf("restore session connection timed out")
+		}
 	}
 
 	//check if challenge is present
