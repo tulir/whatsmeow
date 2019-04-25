@@ -17,7 +17,7 @@ import (
 
 /*
 Session contains session individual information. To be able to resume the connection without scanning the qr code
-every time you should save the Session returned by Login and use RestoreSession the next time you want to login.
+every time you should save the Session returned by Login and use RestoreWithSession the next time you want to login.
 Every successful created connection returns a new Session. The Session(ClientToken, ServerToken) is altered after
 every re-login and should be saved every time.
 */
@@ -99,7 +99,7 @@ func (wac *Conn) SetClientName(long, short string) error {
 
 /*
 Login is the function that creates a new whatsapp session and logs you in. If you do not want to scan the qr code
-every time, you should save the returned session and use RestoreSession the next time. Login takes a writable channel
+every time, you should save the returned session and use RestoreWithSession the next time. Login takes a writable channel
 as an parameter. This channel is used to push the data represented by the qr code back to the user. The received data
 should be displayed as an qr code in a way you prefer. To print a qr code to console you can use:
 github.com/Baozisoftware/qrcode-terminal-go Example login procedure:
@@ -272,7 +272,7 @@ func (wac *Conn) RestoreWithSession(session Session) (_ Session, err error) {
 }
 
 /*//TODO: GoDoc
-RestoreSession is the function that restores a given session. It will try to reestablish the connection to the
+RestoreWithSession is the function that restores a given session. It will try to reestablish the connection to the
 WhatsAppWeb servers with the provided session. If it succeeds it will return a new session. This new session has to be
 saved because the Client and Server-Token will change after every login. Logging in with old tokens is possible, but not
 suggested. If so, a challenge has to be resolved which is just another possible point of failure.
