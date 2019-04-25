@@ -30,7 +30,7 @@ The authentication process requires you to scan the qr code, that is send throug
 
 ### Restore
 ```go
-newSess, err := wac.RestoreSession(sess)
+newSess, err := wac.RestoreWithSession(sess)
 ```
 The restore function needs a valid session and returns the new session that was created.
 

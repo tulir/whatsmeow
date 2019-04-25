@@ -44,7 +44,7 @@ func (wh *waHandler) HandleTextMessage(message whatsapp.TextMessage) {
 func login(wac *whatsapp.Conn) error {
 	session, err := readSession()
 	if err == nil {
-		session, err = wac.RestoreSession(session)
+		session, err = wac.RestoreWithSession(session)
 		if err != nil {
 			return fmt.Errorf("restoring session failed: %v", err)
 		}
