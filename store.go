@@ -7,6 +7,7 @@ import (
 
 type Store struct {
 	Contacts map[string]Contact
+	Chats map[string]Chat
 }
 
 type Contact struct {
@@ -16,9 +17,19 @@ type Contact struct {
 	Short  string
 }
 
+type Chat struct {
+	Jid    string
+	Name  string	
+	Unread string
+	LastMessageTime string
+	IsMuted string
+	IsMarkedSpam  string
+}
+
 func newStore() *Store {
 	return &Store{
 		make(map[string]Contact),
+		make(map[string]Chat),
 	}
 }
 
@@ -40,6 +51,30 @@ func (wac *Conn) updateContacts(contacts interface{}) {
 			contactNode.Attributes["notify"],
 			contactNode.Attributes["name"],
 			contactNode.Attributes["short"],
+		}
+	}
+}
+
+func (wac *Conn) updateChats(chats interface{}) {
+	c, ok := chats.([]interface{})
+	if !ok {
+		return
+	}
+
+	for _, chat := range c {
+		chatNode, ok := chat.(binary.Node)
+		if !ok {
+			continue
+		}
+
+		jid := strings.Replace(chatNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
+		wac.Store.Chats[jid] = Chat{
+			jid,
+			chatNode.Attributes["name"],
+			chatNode.Attributes["count"],
+			chatNode.Attributes["t"],
+			chatNode.Attributes["mute"],
+			chatNode.Attributes["spam"],
 		}
 	}
 }
