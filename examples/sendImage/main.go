@@ -40,10 +40,12 @@ func main() {
 		Content: img,
 	}
 
-	err = wac.Send(msg)
+	msgId,err := wac.Send(msg)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error sending file: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "error sending message: %v", err)
+		os.Exit(1)		
+	} else {
+		fmt.Println("Message Sent -> ID : "+msgId)
 	}
 }
 
