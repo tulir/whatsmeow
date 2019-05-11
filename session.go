@@ -338,7 +338,7 @@ func (wac *Conn) Restore() error {
 			return fmt.Errorf("error decoding s1 message: %v\n", err)
 		}
 	case <-time.After(wac.msgTimeout):
-	
+
 		//check for an error message
 		select {
 		case r := <-loginChan:

@@ -1,5 +1,9 @@
 github.com/Baozisoftware/qrcode-terminal-go v0.0.0-20170407111555-c0650d8dff0f h1:2dk3eOnYllh+wUOuDhOoC2vUVoJF/5z478ryJ+wzEII=
 github.com/Baozisoftware/qrcode-terminal-go v0.0.0-20170407111555-c0650d8dff0f/go.mod h1:4a58ifQTEe2uwwsaqbh3i2un5/CBPg+At/qHpt18Tmk=
+github.com/Rhymen/go-whatsapp/examples/echo v0.0.0-20190325075644-cc2581bbf24d/go.mod h1:zgCiQtBtZ4P4gFWvwl9aashsdwOcbb/EHOGRmSzM8ME=
+github.com/Rhymen/go-whatsapp/examples/restoreSession v0.0.0-20190325075644-cc2581bbf24d/go.mod h1:5sCUSpG616ZoSJhlt9iBNI/KXBqrVLcNUJqg7J9+8pU=
+github.com/Rhymen/go-whatsapp/examples/sendImage v0.0.0-20190325075644-cc2581bbf24d/go.mod h1:RdiyhanVEGXTam+mZ3k6Y3VDCCvXYCwReOoxGozqhHw=
+github.com/Rhymen/go-whatsapp/examples/sendTextMessages v0.0.0-20190325075644-cc2581bbf24d/go.mod h1:suwzklatySS3Q0+NCxCDh5hYfgXdQUWU1DNcxwAxStM=
 github.com/golang/protobuf v1.3.0 h1:kbxbvI4Un1LUWKxufD+BiE6AEExYYgkQLQmLFqA1LFk=
 github.com/golang/protobuf v1.3.0/go.mod h1:Qd/q+1AKNOZr9uGQzbzCmRO6sUih6GTPZv6a1/R87v0=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=
