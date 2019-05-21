@@ -12,6 +12,7 @@ var (
 	ErrLoginInProgress   = errors.New("login or restore already running")
 	ErrNotConnected      = errors.New("not connected")
 	ErrInvalidWsData     = errors.New("received invalid data")
+	ErrInvalidWsState    = errors.New("can't handle binary data when not logged in")
 	ErrConnectionTimeout = errors.New("connection timed out")
 	ErrMissingMessageTag = errors.New("no messageTag specified or to short")
 	ErrInvalidHmac       = errors.New("invalid hmac")
