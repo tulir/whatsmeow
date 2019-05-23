@@ -95,6 +95,9 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 
 func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 	//message validation
+	if len(msg) < 32 {
+		return nil, ErrShortBinaryData
+	}
 	h2 := hmac.New(sha256.New, wac.session.MacKey)
 	h2.Write([]byte(msg[32:]))
 	if !hmac.Equal(h2.Sum(nil), msg[:32]) {
