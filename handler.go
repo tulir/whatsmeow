@@ -3,6 +3,7 @@ package whatsapp
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
@@ -77,6 +78,22 @@ Raw messages are the raw protobuf structs instead of the easy-to-use structs in 
 type RawMessageHandler interface {
 	Handler
 	HandleRawMessage(message *proto.WebMessageInfo)
+}
+
+/**
+The ContactListHandler interface needs to be implemented to applky custom actions to contact lists dispatched by the dispatcher.
+*/
+type ContactListHandler interface {
+	Handler
+	HandleContactList(contacts []Contact)
+}
+
+/**
+The ChatListHandler interface needs to be implemented to apply custom actions to chat lists dispatched by the dispatcher.
+*/
+type ChatListHandler interface {
+	Handler
+	HandleChatList(contacts []Chat)
 }
 
 /*
@@ -162,6 +179,62 @@ func (wac *Conn) handle(message interface{}) {
 
 }
 
+func (wac *Conn) handleContacts(contacts interface{}) {
+	var contactList []Contact
+	c, ok := contacts.([]interface{})
+	if !ok {
+		return
+	}
+	for _, contact := range c {
+		contactNode, ok := contact.(binary.Node)
+		if !ok {
+			continue
+		}
+
+		jid := strings.Replace(contactNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
+		contactList = append(contactList, Contact{
+			jid,
+			contactNode.Attributes["notify"],
+			contactNode.Attributes["name"],
+			contactNode.Attributes["short"],
+		})
+	}
+	for _, h := range wac.handler {
+		if x, ok := h.(ContactListHandler); ok {
+			go x.HandleContactList(contactList)
+		}
+	}
+}
+
+func (wac *Conn) handleChats(chats interface{}) {
+	var chatList []Chat
+	c, ok := chats.([]interface{})
+	if !ok {
+		return
+	}
+	for _, chat := range c {
+		chatNode, ok := chat.(binary.Node)
+		if !ok {
+			continue
+		}
+
+		jid := strings.Replace(chatNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
+		chatList = append(chatList, Chat{
+			jid,
+			chatNode.Attributes["name"],
+			chatNode.Attributes["count"],
+			chatNode.Attributes["t"],
+			chatNode.Attributes["mute"],
+			chatNode.Attributes["spam"],
+		})
+	}
+	for _, h := range wac.handler {
+		if x, ok := h.(ChatListHandler); ok {
+			go x.HandleChatList(chatList)
+		}
+	}
+}
+
 func (wac *Conn) dispatch(msg interface{}) {
 	if msg == nil {
 		return
@@ -180,8 +253,10 @@ func (wac *Conn) dispatch(msg interface{}) {
 			}
 		} else if message.Description == "response" && message.Attributes["type"] == "contacts" {
 			wac.updateContacts(message.Content)
+			wac.handleContacts(message.Content)
 		} else if message.Description == "response" && message.Attributes["type"] == "chat" {
 			wac.updateChats(message.Content)
+			wac.handleChats(message.Content)
 		}
 	case error:
 		wac.handle(message)
