@@ -1,9 +1,9 @@
 package whatsapp
 
 import (
-	"strings"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
@@ -179,12 +179,12 @@ func (wac *Conn) handle(message interface{}) {
 
 }
 
-func (wac *Conn) handleContacts(contacts interface{}){
+func (wac *Conn) handleContacts(contacts interface{}) {
 	var contactList []Contact
 	c, ok := contacts.([]interface{})
 	if !ok {
 		return
-	}	
+	}
 	for _, contact := range c {
 		contactNode, ok := contact.(binary.Node)
 		if !ok {
@@ -206,12 +206,12 @@ func (wac *Conn) handleContacts(contacts interface{}){
 	}
 }
 
-func (wac *Conn) handleChats(chats interface{}){
+func (wac *Conn) handleChats(chats interface{}) {
 	var chatList []Chat
 	c, ok := chats.([]interface{})
 	if !ok {
 		return
-	}	
+	}
 	for _, chat := range c {
 		chatNode, ok := chat.(binary.Node)
 		if !ok {
@@ -219,7 +219,7 @@ func (wac *Conn) handleChats(chats interface{}){
 		}
 
 		jid := strings.Replace(chatNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
-		chatList = append(chatList,Chat{
+		chatList = append(chatList, Chat{
 			jid,
 			chatNode.Attributes["name"],
 			chatNode.Attributes["count"],
