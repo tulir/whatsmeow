@@ -121,6 +121,14 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 	return wac, wac.connect()
 }
 
+func (wac *Conn) IsConnected() bool {
+	return wac.connected
+}
+
+func (wac *Conn) IsLoggedIn() bool {
+	return wac.loggedIn
+}
+
 // connect should be guarded with wsWriteMutex
 func (wac *Conn) connect() (err error) {
 	if wac.connected {
