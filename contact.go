@@ -39,16 +39,16 @@ func (wac *Conn) Search(search string, count, page int) (*binary.Node, error) {
 	return wac.query("search", "", "", "", "", search, count, page)
 }
 
-func (wac *Conn) LoadMessages(jid, messageId string, count int) (*binary.Node, error) {
+func (wac *Conn) LoadMessages(jid string, count int) (*binary.Node, error) {
 	return wac.query("message", jid, "", "before", "true", "", count, 0)
 }
 
-func (wac *Conn) LoadMessagesBefore(jid, messageId string, count int) (*binary.Node, error) {
-	return wac.query("message", jid, messageId, "before", "true", "", count, 0)
+func (wac *Conn) LoadMessagesBefore(jid, messageId string, fromMe bool, count int) (*binary.Node, error) {
+	return wac.query("message", jid, messageId, "before", strconv.FormatBool(fromMe), "", count, 0)
 }
 
-func (wac *Conn) LoadMessagesAfter(jid, messageId string, count int) (*binary.Node, error) {
-	return wac.query("message", jid, messageId, "after", "true", "", count, 0)
+func (wac *Conn) LoadMessagesAfter(jid, messageId string, fromMe bool, count int) (*binary.Node, error) {
+	return wac.query("message", jid, messageId, "after", strconv.FormatBool(fromMe), "", count, 0)
 }
 
 func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) {
