@@ -2,6 +2,7 @@ package whatsapp
 
 import (
 	"fmt"
+
 	"github.com/pkg/errors"
 )
 
@@ -17,6 +18,12 @@ var (
 	ErrConnectionTimeout = errors.New("connection timed out")
 	ErrMissingMessageTag = errors.New("no messageTag specified or to short")
 	ErrInvalidHmac       = errors.New("invalid hmac")
+
+	ErrBadRequest   = errors.New("400 (bad request)")
+	ErrUnpaired     = errors.New("401 (unpaired from phone)")
+	ErrAccessDenied = errors.New("403 (access denied)")
+	ErrLoggedIn     = errors.New("405 (already logged in)")
+	ErrReplaced     = errors.New("409 (logged in from another location)")
 )
 
 type ErrConnectionFailed struct {

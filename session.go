@@ -10,6 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/Rhymen/go-whatsapp/crypto/curve25519"
 	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
@@ -349,7 +351,7 @@ func (wac *Conn) Restore() error {
 				return fmt.Errorf("error decoding login connResp: %v\n", err)
 			}
 			if int(resp["status"].(float64)) != 200 {
-				return fmt.Errorf("admin login responded with %d", int(resp["status"].(float64)))
+				return errors.Wrap(wac.getAdminLoginResponseError(resp), "admin login errored")
 			}
 		default:
 			// not even an error message – assume timeout
@@ -387,7 +389,7 @@ func (wac *Conn) Restore() error {
 		}
 
 		if int(resp["status"].(float64)) != 200 {
-			return fmt.Errorf("admin login responded with %d", resp["status"])
+			return errors.Wrap(wac.getAdminLoginResponseError(resp), "admin login errored")
 		}
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("restore session login timed out")
@@ -404,6 +406,24 @@ func (wac *Conn) Restore() error {
 	wac.loggedIn = true
 
 	return nil
+}
+
+func (wac *Conn) getAdminLoginResponseError(resp map[string]interface{}) error {
+	status := int(resp["status"].(float64))
+	switch status {
+	case 400:
+		return ErrBadRequest
+	case 401:
+		return ErrUnpaired
+	case 403:
+		tos := int(resp["tos"].(float64))
+		return errors.WithMessagef(ErrAccessDenied, "tos: %d", tos)
+	case 405:
+		return ErrLoggedIn
+	case 409:
+		return ErrReplaced
+	}
+	return fmt.Errorf("%d (unknown error)", status)
 }
 
 func (wac *Conn) resolveChallenge(challenge string) error {
