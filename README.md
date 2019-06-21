@@ -54,13 +54,21 @@ func (myHandler) HandleVideoMessage(message whatsapp.VideoMessage) {
 	fmt.Println(message)
 }
 
+func (myHandler) HandleVideoMessage(message whatsapp.VideoMessage) {
+	fmt.Println(message)
+}
+
+func (myHandler) HandleAudioMessage(message whatsapp.AudioMessage){	
+	fmt.Println(message)
+}
+
 func (myHandler) HandleJsonMessage(message string) {
 	fmt.Println(message)
 }
 
 wac.AddHandler(myHandler{})
 ```
-The message handlers are all optional, you don't need to implement anything but the error handler to implement the interface. The ImageMessage and VideoMessage provide a Download function to get the media data.
+The message handlers are all optional, you don't need to implement anything but the error handler to implement the interface. The ImageMessage, VideoMessage, AudioMessage and AudioMessage provide a Download function to get the media data.
 
 ### Sending text messages
 ```go
