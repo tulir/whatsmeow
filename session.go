@@ -101,6 +101,14 @@ func (wac *Conn) SetClientName(long, short string) error {
 }
 
 /*
+SetClientVersion sets WhatsApp client version
+Default value is 0.3.3324
+*/ 
+func (wac *Conn) SetClientVersion(major int, minor int, patch int) {
+	waVersion = []int{major, minor, patch}
+}
+
+/*
 Login is the function that creates a new whatsapp session and logs you in. If you do not want to scan the qr code
 every time, you should save the returned session and use RestoreWithSession the next time. Login takes a writable channel
 as an parameter. This channel is used to push the data represented by the qr code back to the user. The received data
