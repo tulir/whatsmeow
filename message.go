@@ -269,6 +269,7 @@ type VideoMessage struct {
 	Length        uint32
 	Type          string
 	Content       io.Reader
+	GifPlayback	  bool
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
@@ -282,6 +283,7 @@ func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {
 		Info:          getMessageInfo(msg),
 		Caption:       vid.GetCaption(),
 		Thumbnail:     vid.GetJpegThumbnail(),
+		GifPlayback:   vid.GetGifPlayback(),
 		url:           vid.GetUrl(),
 		mediaKey:      vid.GetMediaKey(),
 		Length:        vid.GetSeconds(),
@@ -299,6 +301,7 @@ func getVideoProto(msg VideoMessage) *proto.WebMessageInfo {
 			Caption:       &msg.Caption,
 			JpegThumbnail: msg.Thumbnail,
 			Url:           &msg.url,
+			GifPlayback:   &msg.GifPlayback,
 			MediaKey:      msg.mediaKey,
 			Seconds:       &msg.Length,
 			FileEncSha256: msg.fileEncSha256,
