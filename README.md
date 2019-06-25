@@ -50,7 +50,7 @@ func (myHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	fmt.Println(message)
 }
 
-func (myHandler) HandleDocumentMessage(message whatsapp.VideoMessage) {
+func (myHandler) HandleDocumentMessage(message whatsapp.DocumentMessage) {
 	fmt.Println(message)
 }
 
