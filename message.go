@@ -431,7 +431,7 @@ func (m *DocumentMessage) Download() ([]byte, error) {
 	return Download(m.url, m.mediaKey, MediaDocument, int(m.fileLength))
 }
 
-func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
+func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 	switch {
 
 	case msg.GetMessage().GetAudioMessage() != nil:
