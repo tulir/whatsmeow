@@ -56,6 +56,9 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 	}
 
 	if len(data) != 2 || len(data[1]) == 0 {
+		wac.listener.Lock()
+		delete(wac.listener.m, data[0])
+		wac.listener.Unlock()
 		return ErrInvalidWsData
 	}
 
