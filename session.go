@@ -195,6 +195,8 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 	var resp2 []interface{}
 	select {
 	case r1 := <-s1:
+		wac.loginSessionLock.Lock()
+		defer wac.loginSessionLock.Unlock()
 		if err := json.Unmarshal([]byte(r1), &resp2); err != nil {
 			return session, fmt.Errorf("error decoding qr code resp: %v", err)
 		}

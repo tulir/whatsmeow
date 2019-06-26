@@ -20,6 +20,11 @@ type Handler interface {
 	HandleError(err error)
 }
 
+type SyncHandler interface {
+	Handler
+	ShouldCallSynchronously() bool
+}
+
 /*
 The TextMessageHandler interface needs to be implemented to receive text messages dispatched by the dispatcher.
 */
@@ -127,52 +132,89 @@ func (wac *Conn) RemoveHandlers() {
 	wac.handler = make([]Handler, 0)
 }
 
+func (wac *Conn) shouldCallSynchronously(handler Handler) bool {
+	sh, ok := handler.(SyncHandler)
+	return ok && sh.ShouldCallSynchronously()
+}
+
 func (wac *Conn) handle(message interface{}) {
 	switch m := message.(type) {
 	case error:
 		for _, h := range wac.handler {
-			go h.HandleError(m)
+			if wac.shouldCallSynchronously(h) {
+				h.HandleError(m)
+			} else {
+				go h.HandleError(m)
+			}
 		}
 	case string:
 		for _, h := range wac.handler {
 			if x, ok := h.(JsonMessageHandler); ok {
-				go x.HandleJsonMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleJsonMessage(m)
+				} else {
+					go x.HandleJsonMessage(m)
+				}
 			}
 		}
 	case TextMessage:
 		for _, h := range wac.handler {
 			if x, ok := h.(TextMessageHandler); ok {
-				go x.HandleTextMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleTextMessage(m)
+				} else {
+					go x.HandleTextMessage(m)
+				}
 			}
 		}
 	case ImageMessage:
 		for _, h := range wac.handler {
 			if x, ok := h.(ImageMessageHandler); ok {
-				go x.HandleImageMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleImageMessage(m)
+				} else {
+					go x.HandleImageMessage(m)
+				}
 			}
 		}
 	case VideoMessage:
 		for _, h := range wac.handler {
 			if x, ok := h.(VideoMessageHandler); ok {
-				go x.HandleVideoMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleVideoMessage(m)
+				} else {
+					go x.HandleVideoMessage(m)
+				}
 			}
 		}
 	case AudioMessage:
 		for _, h := range wac.handler {
 			if x, ok := h.(AudioMessageHandler); ok {
-				go x.HandleAudioMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleAudioMessage(m)
+				} else {
+					go x.HandleAudioMessage(m)
+				}
 			}
 		}
 	case DocumentMessage:
 		for _, h := range wac.handler {
 			if x, ok := h.(DocumentMessageHandler); ok {
-				go x.HandleDocumentMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleDocumentMessage(m)
+				} else {
+					go x.HandleDocumentMessage(m)
+				}
 			}
 		}
 	case *proto.WebMessageInfo:
 		for _, h := range wac.handler {
 			if x, ok := h.(RawMessageHandler); ok {
-				go x.HandleRawMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleRawMessage(m)
+				} else {
+					go x.HandleRawMessage(m)
+				}
 			}
 		}
 	}
@@ -247,7 +289,7 @@ func (wac *Conn) dispatch(msg interface{}) {
 				for a := range con {
 					if v, ok := con[a].(*proto.WebMessageInfo); ok {
 						wac.handle(v)
-						wac.handle(parseProtoMessage(v))
+						wac.handle(ParseProtoMessage(v))
 					}
 				}
 			}

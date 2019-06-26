@@ -89,6 +89,8 @@ type Conn struct {
 
 	longClientName  string
 	shortClientName string
+
+	loginSessionLock sync.RWMutex
 }
 
 type websocketWrapper struct {
