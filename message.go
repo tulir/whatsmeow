@@ -69,9 +69,13 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		msgInfo = getMessageInfo(msgProto)
 		ch, err = wac.sendProto(msgProto)
 	case LocationMessage:
-		ch, err = wac.sendProto(GetLocationProto(m))
+		msgProto = GetLocationProto(m)
+		msgInfo = getMessageInfo(msgProto)
+		ch, err = wac.sendProto(msgProto)
 	case LiveLocationMessage:
-		ch, err = wac.sendProto(GetLiveLocationProto(m))
+		msgProto = GetLiveLocationProto(m)
+		msgInfo = getMessageInfo(msgProto)
+		ch, err = wac.sendProto(msgProto)
 	default:
 		return "ERROR", fmt.Errorf("cannot match type %T, use message types declared in the package", msg)
 	}
