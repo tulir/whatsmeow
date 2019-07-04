@@ -230,13 +230,21 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 	case LocationMessage:
 		for _, h := range handlers {
 			if x, ok := h.(LocationMessageHandler); ok {
-				go x.HandleLocationMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleLocationMessage(m)
+				} else {
+					go x.HandleLocationMessage(m)
+				}
 			}
 		}
 	case LiveLocationMessage:
 		for _, h := range handlers {
 			if x, ok := h.(LiveLocationMessageHandler); ok {
-				go x.HandleLiveLocationMessage(m)
+				if wac.shouldCallSynchronously(h) {
+					x.HandleLiveLocationMessage(m)
+				} else {
+					go x.HandleLiveLocationMessage(m)
+				}
 			}
 		}
 	case *proto.WebMessageInfo:
