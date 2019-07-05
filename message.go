@@ -269,7 +269,7 @@ type VideoMessage struct {
 	Length        uint32
 	Type          string
 	Content       io.Reader
-	GifPlayback	  bool
+	GifPlayback   bool
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte

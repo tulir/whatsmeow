@@ -103,7 +103,7 @@ func (wac *Conn) SetClientName(long, short string) error {
 /*
 SetClientVersion sets WhatsApp client version
 Default value is 0.3.3324
-*/ 
+*/
 func (wac *Conn) SetClientVersion(major int, minor int, patch int) {
 	waVersion = []int{major, minor, patch}
 }
