@@ -20,6 +20,7 @@ var (
 	ErrInvalidHmac            = errors.New("invalid hmac")
 	ErrInvalidServerResponse  = errors.New("invalid response received from server")
 	ErrServerRespondedWith404 = errors.New("server responded with status 404")
+	ErrLoginTimedOut          = errors.New("login timed out")
 
 	ErrBadRequest   = errors.New("400 (bad request)")
 	ErrUnpaired     = errors.New("401 (unpaired from phone)")
