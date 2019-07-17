@@ -7,7 +7,7 @@ import (
 
 type Store struct {
 	Contacts map[string]Contact
-	Chats map[string]Chat
+	Chats    map[string]Chat
 }
 
 type Contact struct {
@@ -18,12 +18,12 @@ type Contact struct {
 }
 
 type Chat struct {
-	Jid    string
-	Name  string	
-	Unread string
+	Jid             string
+	Name            string
+	Unread          string
 	LastMessageTime string
-	IsMuted string
-	IsMarkedSpam  string
+	IsMuted         string
+	IsMarkedSpam    string
 }
 
 func newStore() *Store {
