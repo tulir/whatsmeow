@@ -3,6 +3,8 @@ package whatsapp
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/json"
+	"fmt"
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/gorilla/websocket"
@@ -75,7 +77,13 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		wac.listener.Lock()
 		delete(wac.listener.m, data[0])
 		wac.listener.Unlock()
-	} else if msgType == websocket.BinaryMessage && wac.loggedIn {
+	} else if msgType == websocket.BinaryMessage {
+		wac.loginSessionLock.RLock()
+		sess := wac.session
+		wac.loginSessionLock.RUnlock()
+		if sess == nil || sess.MacKey == nil || sess.EncKey == nil {
+			return ErrInvalidWsState
+		}
 		message, err := wac.decryptBinaryMessage([]byte(data[1]))
 		if err != nil {
 			return errors.Wrap(err, "error decoding binary")
@@ -90,6 +98,21 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 	//message validation
 	h2 := hmac.New(sha256.New, wac.session.MacKey)
+	if len(msg) < 33 {
+		var response struct {
+			Status int `json:"status"`
+		}
+		err := json.Unmarshal(msg, &response)
+		if err == nil {
+			if response.Status == 404 {
+				return nil, ErrServerRespondedWith404
+			}
+			return nil, errors.New(fmt.Sprintf("server responded with %d", response.Status))
+		} else {
+			return nil, ErrInvalidServerResponse
+		}
+
+	}
 	h2.Write([]byte(msg[32:]))
 	if !hmac.Equal(h2.Sum(nil), msg[:32]) {
 		return nil, ErrInvalidHmac

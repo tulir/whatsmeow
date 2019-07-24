@@ -68,6 +68,14 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		msgProto = getAudioProto(m)
 		msgInfo = getMessageInfo(msgProto)
 		ch, err = wac.sendProto(msgProto)
+	case LocationMessage:
+		msgProto = GetLocationProto(m)
+		msgInfo = getMessageInfo(msgProto)
+		ch, err = wac.sendProto(msgProto)
+	case LiveLocationMessage:
+		msgProto = GetLiveLocationProto(m)
+		msgInfo = getMessageInfo(msgProto)
+		ch, err = wac.sendProto(msgProto)
 	default:
 		return "ERROR", fmt.Errorf("cannot match type %T, use message types declared in the package", msg)
 	}
@@ -269,6 +277,7 @@ type VideoMessage struct {
 	Length        uint32
 	Type          string
 	Content       io.Reader
+	GifPlayback   bool
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
@@ -282,6 +291,7 @@ func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {
 		Info:          getMessageInfo(msg),
 		Caption:       vid.GetCaption(),
 		Thumbnail:     vid.GetJpegThumbnail(),
+		GifPlayback:   vid.GetGifPlayback(),
 		url:           vid.GetUrl(),
 		mediaKey:      vid.GetMediaKey(),
 		Length:        vid.GetSeconds(),
@@ -299,6 +309,7 @@ func getVideoProto(msg VideoMessage) *proto.WebMessageInfo {
 			Caption:       &msg.Caption,
 			JpegThumbnail: msg.Thumbnail,
 			Url:           &msg.url,
+			GifPlayback:   &msg.GifPlayback,
 			MediaKey:      msg.mediaKey,
 			Seconds:       &msg.Length,
 			FileEncSha256: msg.fileEncSha256,
@@ -431,7 +442,95 @@ func (m *DocumentMessage) Download() ([]byte, error) {
 	return Download(m.url, m.mediaKey, MediaDocument, int(m.fileLength))
 }
 
-func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
+/*
+LocationMessage represents a location message
+*/
+type LocationMessage struct {
+	Info             MessageInfo
+	DegreesLatitude  float64
+	DegreesLongitude float64
+	Name             string
+	Address          string
+	Url              string
+	JpegThumbnail    []byte
+}
+
+func GetLocationMessage(msg *proto.WebMessageInfo) LocationMessage {
+	loc := msg.GetMessage().GetLocationMessage()
+	return LocationMessage{
+		Info:             getMessageInfo(msg),
+		DegreesLatitude:  loc.GetDegreesLatitude(),
+		DegreesLongitude: loc.GetDegreesLongitude(),
+		Name:             loc.GetName(),
+		Address:          loc.GetAddress(),
+		Url:              loc.GetUrl(),
+		JpegThumbnail:    loc.GetJpegThumbnail(),
+	}
+}
+
+func GetLocationProto(msg LocationMessage) *proto.WebMessageInfo {
+	p := getInfoProto(&msg.Info)
+	p.Message = &proto.Message{
+		LocationMessage: &proto.LocationMessage{
+			DegreesLatitude:  &msg.DegreesLatitude,
+			DegreesLongitude: &msg.DegreesLongitude,
+			Name:             &msg.Name,
+			Address:          &msg.Address,
+			Url:              &msg.Url,
+			JpegThumbnail:    msg.JpegThumbnail,
+		},
+	}
+	return p
+}
+
+/*
+LiveLocationMessage represents a live location message
+*/
+type LiveLocationMessage struct {
+	Info                              MessageInfo
+	DegreesLatitude                   float64
+	DegreesLongitude                  float64
+	AccuracyInMeters                  uint32
+	SpeedInMps                        float32
+	DegreesClockwiseFromMagneticNorth uint32
+	Caption                           string
+	SequenceNumber                    int64
+	JpegThumbnail                     []byte
+}
+
+func GetLiveLocationMessage(msg *proto.WebMessageInfo) LiveLocationMessage {
+	loc := msg.GetMessage().GetLiveLocationMessage()
+	return LiveLocationMessage{
+		Info:                              getMessageInfo(msg),
+		DegreesLatitude:                   loc.GetDegreesLatitude(),
+		DegreesLongitude:                  loc.GetDegreesLongitude(),
+		AccuracyInMeters:                  loc.GetAccuracyInMeters(),
+		SpeedInMps:                        loc.GetSpeedInMps(),
+		DegreesClockwiseFromMagneticNorth: loc.GetDegreesClockwiseFromMagneticNorth(),
+		Caption:                           loc.GetCaption(),
+		SequenceNumber:                    loc.GetSequenceNumber(),
+		JpegThumbnail:                     loc.GetJpegThumbnail(),
+	}
+}
+
+func GetLiveLocationProto(msg LiveLocationMessage) *proto.WebMessageInfo {
+	p := getInfoProto(&msg.Info)
+	p.Message = &proto.Message{
+		LiveLocationMessage: &proto.LiveLocationMessage{
+			DegreesLatitude:                   &msg.DegreesLatitude,
+			DegreesLongitude:                  &msg.DegreesLongitude,
+			AccuracyInMeters:                  &msg.AccuracyInMeters,
+			SpeedInMps:                        &msg.SpeedInMps,
+			DegreesClockwiseFromMagneticNorth: &msg.DegreesClockwiseFromMagneticNorth,
+			Caption:                           &msg.Caption,
+			SequenceNumber:                    &msg.SequenceNumber,
+			JpegThumbnail:                     msg.JpegThumbnail,
+		},
+	}
+	return p
+}
+
+func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 	switch {
 
 	case msg.GetMessage().GetAudioMessage() != nil:
@@ -451,6 +550,12 @@ func parseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	case msg.GetMessage().GetExtendedTextMessage() != nil:
 		return getTextMessage(msg)
+
+	case msg.GetMessage().GetLocationMessage() != nil:
+		return GetLocationMessage(msg)
+
+	case msg.GetMessage().GetLiveLocationMessage() != nil:
+		return GetLiveLocationMessage(msg)
 
 	default:
 		//cannot match message
