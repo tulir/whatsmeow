@@ -283,7 +283,11 @@ func (wac *Conn) handleContacts(contacts interface{}) {
 	}
 	for _, h := range wac.handler {
 		if x, ok := h.(ContactListHandler); ok {
-			go x.HandleContactList(contactList)
+			if wac.shouldCallSynchronously(h) {
+				x.HandleContactList(contactList)
+			} else {
+				go x.HandleContactList(contactList)
+			}
 		}
 	}
 }
@@ -312,7 +316,11 @@ func (wac *Conn) handleChats(chats interface{}) {
 	}
 	for _, h := range wac.handler {
 		if x, ok := h.(ChatListHandler); ok {
-			go x.HandleChatList(chatList)
+			if wac.shouldCallSynchronously(h) {
+				x.HandleChatList(chatList)
+			} else {
+				go x.HandleChatList(chatList)
+			}
 		}
 	}
 }
