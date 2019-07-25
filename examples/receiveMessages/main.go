@@ -73,6 +73,13 @@ func main() {
 		log.Fatalf("error logging in: %v\n", err)
 	}
 
+	//verifies phone connectivity
+	pong, err := wac.AdminTest()
+
+	if !pong || err != nil {
+		log.Fatalf("error pinging in: %v\n", err)
+	}
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c
