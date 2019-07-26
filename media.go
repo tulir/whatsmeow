@@ -81,10 +81,11 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 		return nil, nil, fmt.Errorf("file to short")
 	}
 	data, err := ioutil.ReadAll(resp.Body)
-	n := len(data)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	n := len(data)
 	return data[:n-10], data[n-10 : n], nil
 }
 
