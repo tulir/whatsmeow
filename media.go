@@ -144,7 +144,7 @@ func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaK
 	select {
 	case r := <-ch:
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			return "", nil, nil, nil, 0, fmt.Errorf("error decoding upload response: %v\n", err)
+			return "", nil, nil, nil, 0, fmt.Errorf("error decoding upload response: %v", err)
 		}
 	case <-time.After(wac.msgTimeout):
 		return "", nil, nil, nil, 0, fmt.Errorf("restore session init timed out")
