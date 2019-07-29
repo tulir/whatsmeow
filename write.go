@@ -78,6 +78,36 @@ func (wac *Conn) sendKeepAlive() error {
 	return nil
 }
 
+/* 
+	When phone is unreachable, WhatsAppWeb sends ["admin","test"] time after time to try a successful contact.
+	Tested with Airplane mode and no connection at all.
+*/
+func (wac *Conn) sendAdminTest() (bool, error) {
+	data := []interface{}{"admin", "test"}
+	
+	r, err := wac.writeJson(data)
+	if err != nil {
+		return false, errors.Wrap(err, "error sending admin test")
+	}
+
+	var response []interface{}
+
+	select {
+	case resp := <-r:
+		if err := json.Unmarshal([]byte(resp), &response); err != nil {
+			return false, fmt.Errorf("error decoding response message: %v\n", err)
+		}
+	case <-time.After(wac.msgTimeout):
+		return false, ErrConnectionTimeout
+	}
+
+	if len(response) == 2 && response[0].(string) == "Pong" && response[1].(bool) == true {
+		return true, nil
+	} else{
+		return false, nil
+	}	
+}
+
 func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<-chan string, error) {
 	var ch chan string
 	if answerMessageTag != "" {
