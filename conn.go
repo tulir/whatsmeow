@@ -202,7 +202,7 @@ func (wac *Conn) AdminTest() (bool, error) {
 		return false, ErrInvalidSession
 	}
 
-	result, err := wac.sendAdminTest()			
+	result, err := wac.sendAdminTest()
 	return result, err
 }
 
