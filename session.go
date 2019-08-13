@@ -7,6 +7,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -89,6 +91,53 @@ func newInfoFromReq(info map[string]interface{}) *Info {
 }
 
 /*
+CheckCurrentServerVersion is based on the login method logic in order to establish the websocket connection and get
+the current version from the server with the `admin init` command. This can be very useful for automations in which
+you need to quickly perceive new versions (mostly patches) and update your application so it suddenly stops working.
+*/
+func CheckCurrentServerVersion() ([]int, error) {
+	wac, err := NewConn(5 * time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("fail to create connection")
+	}
+
+	clientId := make([]byte, 16)
+	if _, err = rand.Read(clientId); err != nil {
+		return nil, fmt.Errorf("error creating random ClientId: %v", err)
+	}
+
+	b64ClientId := base64.StdEncoding.EncodeToString(clientId)
+	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName}, b64ClientId, true}
+	loginChan, err := wac.writeJson(login)
+	if err != nil {
+		return nil, fmt.Errorf("error writing login", err)
+	}
+
+	// Retrieve an answer from the websocket
+	var r string
+	select {
+	case r = <-loginChan:
+	case <-time.After(wac.msgTimeout):
+		return nil, fmt.Errorf("login connection timed out")
+	}
+
+	var resp map[string]interface{}
+	if err = json.Unmarshal([]byte(r), &resp); err != nil {
+		return nil, fmt.Errorf("error decoding login", err)
+	}
+
+	// Take the curr property as X.Y.Z and split it into as int slice
+	curr := resp["curr"].(string)
+	currArray := strings.Split(curr, ".")
+	version := make([]int, len(currArray))
+	for i := range version {
+		version[i], _ = strconv.Atoi(currArray[i])
+	}
+
+	return version, nil
+}
+
+/*
 SetClientName sets the long and short client names that are sent to WhatsApp when logging in and displayed in the
 WhatsApp Web device list. As the values are only sent when logging in, changing them after logging in is not possible.
 */
@@ -106,6 +155,11 @@ Default value is 0.3.3324
 */
 func (wac *Conn) SetClientVersion(major int, minor int, patch int) {
 	waVersion = []int{major, minor, patch}
+}
+
+// GetClientVersion returns WhatsApp client version
+func (wac *Conn) GetClientVersion() []int {
+	return waVersion
 }
 
 /*
