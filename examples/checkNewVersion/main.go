@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/joaopaulosr95/go-whatsapp"
+	"github.com/Rhymen/go-whatsapp"
 )
 
 type requestBody struct {
