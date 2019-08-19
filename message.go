@@ -224,11 +224,17 @@ func getTextProto(msg TextMessage) *proto.WebMessageInfo {
 	p := getInfoProto(&msg.Info)
 	contextInfo := getContextInfoProto(&msg.Info)
 
-	p.Message = &proto.Message{
-		ExtendedTextMessage: &proto.ExtendedTextMessage{
-			Text:        &msg.Text,
-			ContextInfo: contextInfo,
-		},
+	if contextInfo == nil {
+		p.Message = &proto.Message{
+			Conversation: &msg.Text,
+		}
+	} else {
+		p.Message = &proto.Message{
+			ExtendedTextMessage: &proto.ExtendedTextMessage{
+				Text:        &msg.Text,
+				ContextInfo: contextInfo,
+			},
+		}
 	}
 
 	return p
