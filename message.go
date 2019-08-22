@@ -4,13 +4,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/binary"
-	"github.com/Rhymen/go-whatsapp/binary/proto"
 	"io"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Rhymen/go-whatsapp/binary"
+	"github.com/Rhymen/go-whatsapp/binary/proto"
 )
 
 type MediaType string
@@ -337,6 +338,7 @@ type AudioMessage struct {
 	Length        uint32
 	Type          string
 	Content       io.Reader
+	Ptt           bool
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
@@ -369,6 +371,7 @@ func getAudioProto(msg AudioMessage) *proto.WebMessageInfo {
 			FileSha256:    msg.fileSha256,
 			FileLength:    &msg.fileLength,
 			Mimetype:      &msg.Type,
+			Ptt:           &msg.Ptt,
 		},
 	}
 	return p
