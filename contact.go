@@ -92,11 +92,19 @@ func (wac *Conn) Emoji() (*binary.Node, error) {
 }
 
 func (wac *Conn) Contacts() (*binary.Node, error) {
-	return wac.query("contacts", "", "", "", "", "", 0, 0)
+	node, err := wac.query("contacts", "", "", "", "", "", 0, 0)
+	if node != nil && node.Description == "response" && node.Attributes["type"] == "contacts" {
+		wac.updateContacts(node.Content)
+	}
+	return node, err
 }
 
 func (wac *Conn) Chats() (*binary.Node, error) {
-	return wac.query("chat", "", "", "", "", "", 0, 0)
+	node, err := wac.query("chat", "", "", "", "", "", 0, 0)
+	if node != nil && node.Description == "response" && node.Attributes["type"] == "chat" {
+		wac.updateChats(node.Content)
+	}
+	return node, err
 }
 
 func (wac *Conn) Read(jid, id string) (<-chan string, error) {
