@@ -361,8 +361,8 @@ func (wac *Conn) Restore() error {
 			return fmt.Errorf("error decoding login connResp: %v\n", err)
 		}
 
-		if int(resp["status"].(float64)) != 200 {
-			return fmt.Errorf("init responded with %d", resp["status"])
+		if stat := int(resp["status"].(float64)); stat != 200 {
+			return fmt.Errorf("init responded with %d", stat)
 		}
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("restore session init timed out")
@@ -481,8 +481,8 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 		if err := json.Unmarshal([]byte(r), &resp); err != nil {
 			return fmt.Errorf("error decoding login resp: %v\n", err)
 		}
-		if int(resp["status"].(float64)) != 200 {
-			return fmt.Errorf("challenge responded with %d\n", resp["status"])
+		if stat := int(resp["status"].(float64)); stat != 200 {
+			return fmt.Errorf("challenge responded with %d\n", stat)
 		}
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("connection timed out")

@@ -90,12 +90,10 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		if err = json.Unmarshal([]byte(response), &resp); err != nil {
 			return "ERROR", fmt.Errorf("error decoding sending response: %v\n", err)
 		}
-		if int(resp["status"].(float64)) != 200 {
-			return "ERROR", fmt.Errorf("message sending responded with %d", resp["status"])
+		if stat := int(resp["status"].(float64)); stat != 200 {
+			return "ERROR", fmt.Errorf("message sending responded with %d", stat)
 		}
-		if int(resp["status"].(float64)) == 200 {
-			return msgInfo.Id, nil
-		}
+		return msgInfo.Id, nil
 	case <-time.After(wac.msgTimeout):
 		return "ERROR", fmt.Errorf("sending message timed out")
 	}

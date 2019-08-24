@@ -150,8 +150,8 @@ func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaK
 		return "", nil, nil, nil, 0, fmt.Errorf("restore session init timed out")
 	}
 
-	if int(resp["status"].(float64)) != 200 {
-		return "", nil, nil, nil, 0, fmt.Errorf("upload responsed with %d", resp["status"])
+	if stat := int(resp["status"].(float64)); stat != 200 {
+		return "", nil, nil, nil, 0, fmt.Errorf("upload responsed with %d", stat)
 	}
 
 	var b bytes.Buffer
