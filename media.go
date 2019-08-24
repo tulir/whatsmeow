@@ -8,8 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/crypto/cbc"
-	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -17,6 +15,9 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/Rhymen/go-whatsapp/crypto/cbc"
+	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
 )
 
 func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) ([]byte, error) {
@@ -73,17 +74,18 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 		return nil, nil, err
 	}
 	if resp.StatusCode != 200 {
-		return nil, nil, fmt.Errorf("download failed")
+		return nil, nil, fmt.Errorf("download failed with status code %d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	if resp.ContentLength <= 10 {
 		return nil, nil, fmt.Errorf("file to short")
 	}
 	data, err := ioutil.ReadAll(resp.Body)
-	n := len(data)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	n := len(data)
 	return data[:n-10], data[n-10 : n], nil
 }
 
@@ -142,7 +144,7 @@ func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaK
 	select {
 	case r := <-ch:
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			return "", nil, nil, nil, 0, fmt.Errorf("error decoding upload response: %v\n", err)
+			return "", nil, nil, nil, 0, fmt.Errorf("error decoding upload response: %v", err)
 		}
 	case <-time.After(wac.msgTimeout):
 		return "", nil, nil, nil, 0, fmt.Errorf("restore session init timed out")
