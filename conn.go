@@ -201,6 +201,10 @@ func (wac *Conn) Disconnect() (Session, error) {
 	return *wac.session, err
 }
 
+func (wac *Conn) IsLoginInProgress() bool {
+	return wac.sessionLock == 1
+}
+
 func (wac *Conn) AdminTest() (bool, error) {
 	if !wac.connected {
 		return false, ErrNotConnected
