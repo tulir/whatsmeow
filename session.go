@@ -443,7 +443,11 @@ func (wac *Conn) Restore() error {
 }
 
 func (wac *Conn) getAdminLoginResponseError(resp map[string]interface{}) error {
-	status := int(resp["status"].(float64))
+	statusFloat, ok := resp["status"].(float64)
+	if !ok {
+		return fmt.Errorf("%v (unknown error, no status)", resp)
+	}
+	status := int(statusFloat)
 	switch status {
 	case 400:
 		return ErrBadRequest
