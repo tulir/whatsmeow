@@ -40,11 +40,20 @@ func (*waHandler) HandleTextMessage(message whatsapp.TextMessage) {
 }
 
 /*//Example for media handling. Video, Audio, Document are also possible in the same way
-func (*waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
+func (h *waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	data, err := message.Download()
 	if err != nil {
-		return
+		if err != whatsapp.ErrMediaDownloadFailedWith410 && err != whatsapp.ErrMediaDownloadFailedWith410 {
+			return
+		}
+		if _, err = h.c.LoadMediaInfo(message.Info.SenderJid, message.Info.Id, strconv.FormatBool(message.Info.FromMe)); err == nil {
+			data, err = message.Download()
+			if err != nil {
+				return
+			}
+		}
 	}
+
 	filename := fmt.Sprintf("%v/%v.%v", os.TempDir(), message.Info.Id, strings.Split(message.Type, "/")[1])
 	file, err := os.Create(filename)
 	defer file.Close()
