@@ -617,6 +617,43 @@ func GetLiveLocationProto(msg LiveLocationMessage) *proto.WebMessageInfo {
 	return p
 }
 
+/*
+StickerMessage represents a sticker message.
+*/
+type StickerMessage struct {
+	Info MessageInfo
+
+	Thumbnail     []byte
+	Type          string
+	Content       io.Reader
+	url           string
+	mediaKey      []byte
+	fileEncSha256 []byte
+	fileSha256    []byte
+	fileLength    uint64
+}
+
+func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
+	sticker := msg.GetMessage().GetStickerMessage()
+
+	StickerMessage := StickerMessage{
+		Info:          getMessageInfo(msg),
+		Thumbnail:     sticker.GetPngThumbnail(),
+		url:           sticker.GetUrl(),
+		mediaKey:      sticker.GetMediaKey(),
+		Type:          sticker.GetMimetype(),
+		fileEncSha256: sticker.GetFileEncSha256(),
+		fileSha256:    sticker.GetFileSha256(),
+		fileLength:    sticker.GetFileLength(),
+	}
+
+	if contextInfo := sticker.GetContextInfo(); contextInfo != nil {
+		StickerMessage.Info.QuotedMessageID = contextInfo.GetStanzaId()
+	}
+
+	return StickerMessage
+}
+
 func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 	switch {
 
@@ -643,6 +680,9 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	case msg.GetMessage().GetLiveLocationMessage() != nil:
 		return GetLiveLocationMessage(msg)
+
+	case msg.GetMessage().GetStickerMessage() != nil:
+		return getStickerMessage(msg)
 
 	default:
 		//cannot match message
