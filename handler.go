@@ -82,6 +82,14 @@ type LocationMessageHandler interface {
 }
 
 /*
+The StickerMessageHandler interface needs to be implemented to receive location messages dispatched by the dispatcher.
+*/
+type StickerMessageHandler interface {
+	Handler
+	HandleStickerMessage(message StickerMessage)
+}
+
+/*
 The JsonMessageHandler interface needs to be implemented to receive json messages dispatched by the dispatcher.
 These json messages contain status updates of every kind sent by WhatsAppWeb servers. WhatsAppWeb uses these messages
 to built a Store, which is used to save these "secondary" information. These messages may contain
@@ -247,6 +255,18 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 				}
 			}
 		}
+
+	case StickerMessage:
+		for _, h := range handlers {
+			if x, ok := h.(StickerMessageHandler); ok {
+				if wac.shouldCallSynchronously(h) {
+					x.HandleStickerMessage(m)
+				} else {
+					go x.HandleStickerMessage(m)
+				}
+			}
+		}
+
 	case *proto.WebMessageInfo:
 		for _, h := range handlers {
 			if x, ok := h.(RawMessageHandler); ok {
