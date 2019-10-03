@@ -4,6 +4,7 @@ package whatsapp
 import (
 	"math/rand"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -91,6 +92,7 @@ type Conn struct {
 	shortClientName string
 
 	loginSessionLock sync.RWMutex
+	Proxy            func(*http.Request) (*url.URL, error)
 }
 
 type websocketWrapper struct {
@@ -121,6 +123,21 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 	return wac, wac.connect()
 }
 
+// NewConnWithProxy Create a new connect with a given timeout and a http proxy.
+func NewConnWithProxy(timeout time.Duration, proxy func(*http.Request) (*url.URL, error)) (*Conn, error) {
+	wac := &Conn{
+		handler:    make([]Handler, 0),
+		msgCount:   0,
+		msgTimeout: timeout,
+		Store:      newStore(),
+
+		longClientName:  "github.com/rhymen/go-whatsapp",
+		shortClientName: "go-whatsapp",
+		Proxy:           proxy,
+	}
+	return wac, wac.connect()
+}
+
 // connect should be guarded with wsWriteMutex
 func (wac *Conn) connect() (err error) {
 	if wac.connected {
@@ -137,6 +154,7 @@ func (wac *Conn) connect() (err error) {
 		ReadBufferSize:   25 * 1024 * 1024,
 		WriteBufferSize:  10 * 1024 * 1024,
 		HandshakeTimeout: wac.msgTimeout,
+		Proxy:            wac.Proxy,
 	}
 
 	headers := http.Header{"Origin": []string{"https://web.whatsapp.com"}}
