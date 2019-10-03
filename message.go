@@ -666,6 +666,33 @@ func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 	return StickerMessage
 }
 
+/*
+ContactMessage represents a contact message.
+*/
+type ContactMessage struct {
+	Info MessageInfo
+
+	DisplayName string
+	Vcard       string
+
+	ContextInfo ContextInfo
+}
+
+func getContactMessage(msg *proto.WebMessageInfo) ContactMessage {
+	contact := msg.GetMessage().GetContactMessage()
+
+	ContactMessage := ContactMessage{
+		Info: getMessageInfo(msg),
+
+		DisplayName: contact.GetDisplayName(),
+		Vcard:       contact.GetVcard(),
+
+		ContextInfo: getMessageContext(contact.GetContextInfo()),
+	}
+
+	return ContactMessage
+}
+
 func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	fmt.Println(msg)
@@ -698,6 +725,9 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	case msg.GetMessage().GetStickerMessage() != nil:
 		return getStickerMessage(msg)
+
+	case msg.GetMessage().GetContactMessage() != nil:
+		return getContactMessage(msg)
 
 	default:
 		//cannot match message
