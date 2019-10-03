@@ -307,6 +307,13 @@ func (m *ImageMessage) Download() ([]byte, error) {
 }
 
 /*
+Download is the function to retrieve Sticker media data. The media gets downloaded, validated and returned.
+*/
+func (m *StickerMessage) Download() ([]byte, error) {
+	return Download(m.url, m.mediaKey, MediaImage, int(m.fileLength))
+}
+
+/*
 VideoMessage represents a video message. Unexported fields are needed for media up/downloading and media validation.
 Provide a io.Reader as Content for message sending.
 */
