@@ -387,6 +387,7 @@ type AudioMessage struct {
 	Length        uint32
 	Type          string
 	Content       io.Reader
+	Ptt           bool
 	url           string
 	mediaKey      []byte
 	fileEncSha256 []byte
@@ -428,6 +429,7 @@ func getAudioProto(msg AudioMessage) *proto.WebMessageInfo {
 			FileLength:    &msg.fileLength,
 			Mimetype:      &msg.Type,
 			ContextInfo:   contextInfo,
+			Ptt:           &msg.Ptt,
 		},
 	}
 	return p
