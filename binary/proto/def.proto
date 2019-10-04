@@ -162,6 +162,7 @@ message ExtendedTextMessage {
     optional EXTENDED_TEXT_MESSAGE_PREVIEWTYPE previewType = 10;
     optional bytes jpegThumbnail = 16;
     optional ContextInfo contextInfo = 17;
+    optional bool doNotPlayInline = 18;
 }
 
 message DocumentMessage {
@@ -302,6 +303,7 @@ message HighlyStructuredMessage {
     repeated HSMLocalizableParameter localizableParams = 6;
     optional string deterministicLg = 7;
     optional string deterministicLc = 8;
+    optional TemplateMessage hydratedHsm = 9;
 }
 
 message SendPaymentMessage {
@@ -370,6 +372,7 @@ message HydratedFourRowTemplate {
     optional string hydratedContentText = 6;
     optional string hydratedFooterText = 7;
     repeated HydratedTemplateButton hydratedButtons = 8;
+    optional string templateId = 9;
     oneof title {
         DocumentMessage documentMessage = 1;
         string hydratedTitleText = 2;
@@ -381,6 +384,7 @@ message HydratedFourRowTemplate {
 
 message TemplateMessage {
     optional ContextInfo contextInfo = 3;
+    optional HydratedFourRowTemplate hydratedTemplate = 4;
     oneof format {
         FourRowTemplate fourRowTemplate = 1;
         HydratedFourRowTemplate hydratedFourRowTemplate = 2;
@@ -391,6 +395,7 @@ message TemplateButtonReplyMessage {
     optional string selectedId = 1;
     optional string selectedDisplayText = 2;
     optional ContextInfo contextInfo = 3;
+    optional uint32 selectedIndex = 4;
 }
 
 message ProductSnapshot {

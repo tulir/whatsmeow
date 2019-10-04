@@ -51,6 +51,10 @@ func (wac *Conn) LoadMessagesAfter(jid, messageId string, fromMe bool, count int
 	return wac.query("message", jid, messageId, "after", strconv.FormatBool(fromMe), "", count, 0)
 }
 
+func (wac *Conn) LoadMediaInfo(jid, messageId, owner string) (*binary.Node, error) {
+	return wac.query("media", jid, messageId, "", owner, "", 0, 0)
+}
+
 func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) {
 	ts := time.Now().Unix()
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
@@ -171,7 +175,12 @@ func (wac *Conn) query(t, jid, messageId, kind, owner, search string, count, pag
 		n.Attributes["page"] = strconv.Itoa(page)
 	}
 
-	ch, err := wac.writeBinary(n, group, ignore, tag)
+	metric := group
+	if t == "media" {
+		metric = queryMedia
+	}
+
+	ch, err := wac.writeBinary(n, metric, ignore, tag)
 	if err != nil {
 		return nil, err
 	}
