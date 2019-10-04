@@ -668,8 +668,6 @@ func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 
 func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
-	fmt.Println(msg)
-
 	switch {
 
 	case msg.GetMessage().GetAudioMessage() != nil:
