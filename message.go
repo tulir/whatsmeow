@@ -625,7 +625,6 @@ StickerMessage represents a sticker message.
 type StickerMessage struct {
 	Info MessageInfo
 
-	Thumbnail     []byte
 	Type          string
 	Content       io.Reader
 	url           string
@@ -640,7 +639,6 @@ func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 
 	StickerMessage := StickerMessage{
 		Info:          getMessageInfo(msg),
-		Thumbnail:     sticker.GetPngThumbnail(),
 		url:           sticker.GetUrl(),
 		mediaKey:      sticker.GetMediaKey(),
 		Type:          sticker.GetMimetype(),
