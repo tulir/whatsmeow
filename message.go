@@ -664,6 +664,10 @@ func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 	return StickerMessage
 }
 
+/*
+Download is the function to retrieve Sticker media data. The media gets downloaded, validated and returned.
+*/
+
 func (m *StickerMessage) Download() ([]byte, error) {
 	return Download(m.url, m.mediaKey, MediaImage, int(m.fileLength))
 }
