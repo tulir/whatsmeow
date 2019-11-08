@@ -29,16 +29,22 @@ func main() {
 	<-time.After(3 * time.Second)
 
 	previousMessage := "😘"
-	quotedMessage := &proto.Message{
+	quotedMessage := proto.Message{
 		Conversation: &previousMessage,
+	}
+
+	ContextInfo := whatsapp.ContextInfo{
+		QuotedMessage:   &quotedMessage,
+		QuotedMessageID: "",
+		Participant:     "", //Whot sent the original message
 	}
 
 	msg := whatsapp.TextMessage{
 		Info: whatsapp.MessageInfo{
-			RemoteJid:     "number@s.whatsapp.net",
-			QuotedMessage: *quotedMessage, //you also must send a valid QuotedMessageID
+			RemoteJid: "number@s.whatsapp.net",
 		},
-		Text: "Message sent by github.com/Rhymen/go-whatsapp",
+		ContextInfo: ContextInfo,
+		Text:        "Message sent by github.com/Rhymen/go-whatsapp",
 	}
 
 	msgId, err := wac.Send(msg)
