@@ -23,7 +23,7 @@ qrChan := make(chan string)
 go func() {
     fmt.Printf("qr code: %v\n", <-qrChan)
     //show qr code or save it somewhere to scan
-}
+}()
 sess, err := wac.Login(qrChan)
 ```
 The authentication process requires you to scan the qr code, that is send through the channel, with the device you are using whatsapp on. The session struct that is returned can be saved and used to restore the login without scanning the qr code again. The qr code has a ttl of 20 seconds and the login function throws a timeout err if the time has passed or any other request fails.
