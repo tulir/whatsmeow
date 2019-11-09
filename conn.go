@@ -93,6 +93,8 @@ type Conn struct {
 
 	loginSessionLock sync.RWMutex
 	Proxy            func(*http.Request) (*url.URL, error)
+
+	writerLock sync.RWMutex
 }
 
 type websocketWrapper struct {

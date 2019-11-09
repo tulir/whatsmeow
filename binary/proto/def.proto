@@ -120,6 +120,8 @@ message ImageMessage {
     optional uint32 experimentGroupId = 20;
     optional bytes scansSidecar = 21;
     repeated uint32 scanLengths = 22;
+    optional bytes midQualityFileSha256 = 23;
+    optional bytes midQualityFileEncSha256 = 24;
 }
 
 message ContactMessage {
@@ -351,7 +353,8 @@ message StickerMessage {
     optional string directPath = 8;
     optional uint64 fileLength = 9;
     optional int64 mediaKeyTimestamp = 10;
-    optional bytes pngThumbnail = 16;
+    optional uint32 firstFrameLength = 11;
+    optional bytes firstFrameSidecar = 12;
     optional ContextInfo contextInfo = 17;
 }
 
@@ -507,6 +510,9 @@ message WebFeatures {
     optional WEB_FEATURES_FLAG catalog = 27;
     optional WEB_FEATURES_FLAG starredStickers = 28;
     optional WEB_FEATURES_FLAG voipGroupCall = 29;
+    optional WEB_FEATURES_FLAG templateMessage = 30;
+    optional WEB_FEATURES_FLAG templateMessageInteractivity = 31;
+    optional WEB_FEATURES_FLAG ephemeralMessages = 32;
 }
 
 message TabletNotificationsInfo {
@@ -650,6 +656,7 @@ message WebMessageInfo {
         GROUP_CHANGE_NO_FREQUENTLY_FORWARDED = 69;
         GROUP_V4_ADD_INVITE_SENT = 70;
         GROUP_PARTICIPANT_ADD_REQUEST_JOIN = 71;
+        CHANGE_EPHEMERAL_SETTING = 72;
     }
     optional WEB_MESSAGE_INFO_STUBTYPE messageStubType = 24;
     optional bool clearMedia = 25;
@@ -659,5 +666,6 @@ message WebMessageInfo {
     optional PaymentInfo paymentInfo = 29;
     optional LiveLocationMessage finalLiveLocation = 30;
     optional PaymentInfo quotedPaymentInfo = 31;
+    optional uint64 ephemeralStartTimestamp = 32;
+    optional uint32 ephemeralDuration = 33;
 }
-
