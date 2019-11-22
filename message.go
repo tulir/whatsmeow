@@ -77,6 +77,10 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		msgProto = GetLiveLocationProto(m)
 		msgInfo = getMessageInfo(msgProto)
 		ch, err = wac.sendProto(msgProto)
+	case ContactMessage:
+		msgProto = getContactMessageProto(m)
+		msgInfo = getMessageInfo(msgProto)
+		ch, err = wac.sendProto(msgProto)
 	default:
 		return "ERROR", fmt.Errorf("cannot match type %T, use message types declared in the package", msg)
 	}
@@ -667,8 +671,51 @@ func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 /*
 Download is the function to retrieve Sticker media data. The media gets downloaded, validated and returned.
 */
+
 func (m *StickerMessage) Download() ([]byte, error) {
 	return Download(m.url, m.mediaKey, MediaImage, int(m.fileLength))
+}
+
+/*
+ContactMessage represents a contact message.
+*/
+type ContactMessage struct {
+	Info MessageInfo
+
+	DisplayName string
+	Vcard       string
+
+	ContextInfo ContextInfo
+}
+
+func getContactMessage(msg *proto.WebMessageInfo) ContactMessage {
+	contact := msg.GetMessage().GetContactMessage()
+
+	ContactMessage := ContactMessage{
+		Info: getMessageInfo(msg),
+
+		DisplayName: contact.GetDisplayName(),
+		Vcard:       contact.GetVcard(),
+
+		ContextInfo: getMessageContext(contact.GetContextInfo()),
+	}
+
+	return ContactMessage
+}
+
+func getContactMessageProto(msg ContactMessage) *proto.WebMessageInfo {
+	p := getInfoProto(&msg.Info)
+	contextInfo := getContextInfoProto(&msg.ContextInfo)
+
+	p.Message = &proto.Message{
+		ContactMessage: &proto.ContactMessage{
+			DisplayName: &msg.DisplayName,
+			Vcard:       &msg.Vcard,
+			ContextInfo: contextInfo,
+		},
+	}
+
+	return p
 }
 
 func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
@@ -701,6 +748,9 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	case msg.GetMessage().GetStickerMessage() != nil:
 		return getStickerMessage(msg)
+
+	case msg.GetMessage().GetContactMessage() != nil:
+		return getContactMessage(msg)
 
 	default:
 		//cannot match message
