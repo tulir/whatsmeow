@@ -82,7 +82,7 @@ type LocationMessageHandler interface {
 }
 
 /*
-The StickerMessageHandler interface needs to be implemented to receive location messages dispatched by the dispatcher.
+The StickerMessageHandler interface needs to be implemented to receive sticker messages dispatched by the dispatcher.
 */
 type StickerMessageHandler interface {
 	Handler
@@ -90,7 +90,7 @@ type StickerMessageHandler interface {
 }
 
 /*
-The ContactMessageHandler interface needs to be implemented to receive location messages dispatched by the dispatcher.
+The ContactMessageHandler interface needs to be implemented to receive contact messages dispatched by the dispatcher.
 */
 type ContactMessageHandler interface {
 	Handler
