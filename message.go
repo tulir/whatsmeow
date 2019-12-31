@@ -654,7 +654,7 @@ type StickerMessage struct {
 func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 	sticker := msg.GetMessage().GetStickerMessage()
 
-	StickerMessage := StickerMessage{
+	stickerMessage := StickerMessage{
 		Info:          getMessageInfo(msg),
 		url:           sticker.GetUrl(),
 		mediaKey:      sticker.GetMediaKey(),
@@ -665,7 +665,7 @@ func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 		ContextInfo:   getMessageContext(sticker.GetContextInfo()),
 	}
 
-	return StickerMessage
+	return stickerMessage
 }
 
 /*
@@ -691,7 +691,7 @@ type ContactMessage struct {
 func getContactMessage(msg *proto.WebMessageInfo) ContactMessage {
 	contact := msg.GetMessage().GetContactMessage()
 
-	ContactMessage := ContactMessage{
+	contactMessage := ContactMessage{
 		Info: getMessageInfo(msg),
 
 		DisplayName: contact.GetDisplayName(),
@@ -700,7 +700,7 @@ func getContactMessage(msg *proto.WebMessageInfo) ContactMessage {
 		ContextInfo: getMessageContext(contact.GetContextInfo()),
 	}
 
-	return ContactMessage
+	return contactMessage
 }
 
 func getContactMessageProto(msg ContactMessage) *proto.WebMessageInfo {
