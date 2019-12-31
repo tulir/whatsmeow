@@ -22,7 +22,7 @@ import (
 
 func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) ([]byte, error) {
 	if url == "" {
-		return nil, fmt.Errorf("no url present")
+		return nil, ErrNoURLPresent
 	}
 	file, mac, err := downloadMedia(url)
 	if err != nil {
@@ -40,7 +40,7 @@ func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) ([
 		return nil, err
 	}
 	if len(data) != fileLength {
-		return nil, fmt.Errorf("file length does not match")
+		return nil, ErrFileLengthMismatch
 	}
 	return data, nil
 }
@@ -52,10 +52,10 @@ func validateMedia(iv []byte, file []byte, macKey []byte, mac []byte) error {
 		return err
 	}
 	if n < 10 {
-		return fmt.Errorf("hash to short")
+		return ErrInvalidHashLength
 	}
 	if !hmac.Equal(h.Sum(nil)[:10], mac) {
-		return fmt.Errorf("invalid media hmac")
+		return ErrInvalidMediaHMAC
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	}
 	defer resp.Body.Close()
 	if resp.ContentLength <= 10 {
-		return nil, nil, fmt.Errorf("file to short")
+		return nil, nil, ErrTooShortFile
 	}
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

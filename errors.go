@@ -28,6 +28,12 @@ var (
 	ErrAccessDenied = errors.New("403 (access denied)")
 	ErrLoggedIn     = errors.New("405 (already logged in)")
 	ErrReplaced     = errors.New("409 (logged in from another location)")
+
+	ErrNoURLPresent       = errors.New("no url present")
+	ErrFileLengthMismatch = errors.New("file length does not match")
+	ErrInvalidHashLength  = errors.New("hash too short")
+	ErrTooShortFile       = errors.New("file too short")
+	ErrInvalidMediaHMAC   = errors.New("invalid media hmac")
 )
 
 type ErrConnectionFailed struct {
