@@ -82,11 +82,19 @@ type LocationMessageHandler interface {
 }
 
 /*
-The StickerMessageHandler interface needs to be implemented to receive location messages dispatched by the dispatcher.
+The StickerMessageHandler interface needs to be implemented to receive sticker messages dispatched by the dispatcher.
 */
 type StickerMessageHandler interface {
 	Handler
 	HandleStickerMessage(message StickerMessage)
+}
+
+/*
+The ContactMessageHandler interface needs to be implemented to receive contact messages dispatched by the dispatcher.
+*/
+type ContactMessageHandler interface {
+	Handler
+	HandleContactMessage(message ContactMessage)
 }
 
 /*
@@ -263,6 +271,17 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 					x.HandleStickerMessage(m)
 				} else {
 					go x.HandleStickerMessage(m)
+				}
+			}
+		}
+
+	case ContactMessage:
+		for _, h := range handlers {
+			if x, ok := h.(ContactMessageHandler); ok {
+				if wac.shouldCallSynchronously(h) {
+					x.HandleContactMessage(m)
+				} else {
+					go x.HandleContactMessage(m)
 				}
 			}
 		}
