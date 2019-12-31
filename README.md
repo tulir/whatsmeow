@@ -66,6 +66,10 @@ func (myHandler) HandleJsonMessage(message string) {
 	fmt.Println(message)
 }
 
+func (myHandler) HandleContactMessage(message whatsapp.ContactMessage) {
+	fmt.Println(message)
+}
+
 wac.AddHandler(myHandler{})
 ```
 The message handlers are all optional, you don't need to implement anything but the error handler to implement the interface. The ImageMessage, VideoMessage, AudioMessage and DocumentMessage provide a Download function to get the media data.
@@ -81,6 +85,21 @@ text := whatsapp.TextMessage{
 
 err := wac.Send(text)
 ```
+
+### Sending Contact Messages
+```go
+contactMessage := whatsapp.ContactMessage{
+			Info: whatsapp.MessageInfo{ 
+                RemoteJid: "0123456789@s.whatsapp.net", 
+                },
+			DisplayName: "Luke Skylwallker",
+			Vcard: "BEGIN:VCARD\nVERSION:3.0\nN:Skyllwalker;Luke;;\nFN:Luke Skywallker\nitem1.TEL;waid=0123456789:+1 23 456789789\nitem1.X-ABLabel:Mobile\nEND:VCARD",
+		}
+
+id, error := client.WaConn.Send(contactMessage)
+```
+
+
 The message will be send over the websocket. The attributes seen above are the required ones. All other relevant attributes (id, timestamp, fromMe, status) are set if they are missing in the struct. For the time being we only support text messages, but other types are planned for the near future.
 
 ## Legal
