@@ -110,7 +110,7 @@ func CheckCurrentServerVersion() ([]int, error) {
 	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName}, b64ClientId, true}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
-		return nil, fmt.Errorf("error writing login", err)
+		return nil, fmt.Errorf("error writing login: %s", err.Error())
 	}
 
 	// Retrieve an answer from the websocket
@@ -123,7 +123,7 @@ func CheckCurrentServerVersion() ([]int, error) {
 
 	var resp map[string]interface{}
 	if err = json.Unmarshal([]byte(r), &resp); err != nil {
-		return nil, fmt.Errorf("error decoding login", err)
+		return nil, fmt.Errorf("error decoding login: %s", err.Error())
 	}
 
 	// Take the curr property as X.Y.Z and split it into as int slice
