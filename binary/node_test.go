@@ -19,7 +19,7 @@ func TestMarshal(t *testing.T) {
 		}
 		*msg.Message.Conversation = "Testnachricht."
 
-		msg.Status = new(proto.WebMessageInfo_STATUS)
+		msg.Status = new(proto.WebMessageInfo_WEB_MESSAGE_INFO_STATUS)
 		*msg.Status = proto.WebMessageInfo_ERROR
 
 		msg.Key = &proto.MessageKey{

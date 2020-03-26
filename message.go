@@ -23,64 +23,53 @@ const (
 	MediaDocument MediaType = "WhatsApp Document Keys"
 )
 
-var msgInfo MessageInfo
-
 func (wac *Conn) Send(msg interface{}) (string, error) {
-	var err error
-	var ch <-chan string
 	var msgProto *proto.WebMessageInfo
 
 	switch m := msg.(type) {
 	case *proto.WebMessageInfo:
-		ch, err = wac.sendProto(m)
+		msgProto = m
 	case TextMessage:
 		msgProto = getTextProto(m)
-		msgInfo = getMessageInfo(msgProto)
-		ch, err = wac.sendProto(msgProto)
 	case ImageMessage:
+		var err error
 		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaImage)
 		if err != nil {
 			return "ERROR", fmt.Errorf("image upload failed: %v", err)
 		}
 		msgProto = getImageProto(m)
-		msgInfo = getMessageInfo(msgProto)
-		ch, err = wac.sendProto(msgProto)
 	case VideoMessage:
+		var err error
 		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaVideo)
 		if err != nil {
 			return "ERROR", fmt.Errorf("video upload failed: %v", err)
 		}
 		msgProto = getVideoProto(m)
-		msgInfo = getMessageInfo(msgProto)
-		ch, err = wac.sendProto(msgProto)
 	case DocumentMessage:
+		var err error
 		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaDocument)
 		if err != nil {
 			return "ERROR", fmt.Errorf("document upload failed: %v", err)
 		}
 		msgProto = getDocumentProto(m)
-		msgInfo = getMessageInfo(msgProto)
-		ch, err = wac.sendProto(msgProto)
 	case AudioMessage:
+		var err error
 		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaAudio)
 		if err != nil {
 			return "ERROR", fmt.Errorf("audio upload failed: %v", err)
 		}
 		msgProto = getAudioProto(m)
-		msgInfo = getMessageInfo(msgProto)
-		ch, err = wac.sendProto(msgProto)
 	case LocationMessage:
 		msgProto = GetLocationProto(m)
-		msgInfo = getMessageInfo(msgProto)
-		ch, err = wac.sendProto(msgProto)
 	case LiveLocationMessage:
 		msgProto = GetLiveLocationProto(m)
-		msgInfo = getMessageInfo(msgProto)
-		ch, err = wac.sendProto(msgProto)
+	case ContactMessage:
+		msgProto = getContactMessageProto(m)
 	default:
 		return "ERROR", fmt.Errorf("cannot match type %T, use message types declared in the package", msg)
 	}
 
+	ch, err := wac.sendProto(msgProto)
 	if err != nil {
 		return "ERROR", fmt.Errorf("could not send proto: %v", err)
 	}
@@ -91,10 +80,12 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		if err = json.Unmarshal([]byte(response), &resp); err != nil {
 			return "ERROR", fmt.Errorf("error decoding sending response: %v\n", err)
 		}
-		if stat := int(resp["status"].(float64)); stat != 200 {
-			return "ERROR", fmt.Errorf("message sending responded with %d", stat)
+		if int(resp["status"].(float64)) != 200 {
+			return "ERROR", fmt.Errorf("message sending responded with %d", resp["status"])
 		}
-		return msgInfo.Id, nil
+		if int(resp["status"].(float64)) == 200 {
+			return getMessageInfo(msgProto).Id, nil
+		}
 	case <-time.After(wac.msgTimeout):
 		return "ERROR", fmt.Errorf("sending message timed out")
 	}
@@ -648,7 +639,7 @@ type StickerMessage struct {
 func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 	sticker := msg.GetMessage().GetStickerMessage()
 
-	StickerMessage := StickerMessage{
+	stickerMessage := StickerMessage{
 		Info:          getMessageInfo(msg),
 		url:           sticker.GetUrl(),
 		mediaKey:      sticker.GetMediaKey(),
@@ -659,14 +650,57 @@ func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 		ContextInfo:   getMessageContext(sticker.GetContextInfo()),
 	}
 
-	return StickerMessage
+	return stickerMessage
 }
 
 /*
 Download is the function to retrieve Sticker media data. The media gets downloaded, validated and returned.
 */
+
 func (m *StickerMessage) Download() ([]byte, error) {
 	return Download(m.url, m.mediaKey, MediaImage, int(m.fileLength))
+}
+
+/*
+ContactMessage represents a contact message.
+*/
+type ContactMessage struct {
+	Info MessageInfo
+
+	DisplayName string
+	Vcard       string
+
+	ContextInfo ContextInfo
+}
+
+func getContactMessage(msg *proto.WebMessageInfo) ContactMessage {
+	contact := msg.GetMessage().GetContactMessage()
+
+	contactMessage := ContactMessage{
+		Info: getMessageInfo(msg),
+
+		DisplayName: contact.GetDisplayName(),
+		Vcard:       contact.GetVcard(),
+
+		ContextInfo: getMessageContext(contact.GetContextInfo()),
+	}
+
+	return contactMessage
+}
+
+func getContactMessageProto(msg ContactMessage) *proto.WebMessageInfo {
+	p := getInfoProto(&msg.Info)
+	contextInfo := getContextInfoProto(&msg.ContextInfo)
+
+	p.Message = &proto.Message{
+		ContactMessage: &proto.ContactMessage{
+			DisplayName: &msg.DisplayName,
+			Vcard:       &msg.Vcard,
+			ContextInfo: contextInfo,
+		},
+	}
+
+	return p
 }
 
 func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
@@ -699,6 +733,9 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	case msg.GetMessage().GetStickerMessage() != nil:
 		return getStickerMessage(msg)
+
+	case msg.GetMessage().GetContactMessage() != nil:
+		return getContactMessage(msg)
 
 	default:
 		//cannot match message
