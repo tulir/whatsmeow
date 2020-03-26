@@ -18,7 +18,7 @@ import (
 )
 
 //represents the WhatsAppWeb client version
-var waVersion = []int{0, 3, 3324}
+var waVersion = []int{0, 4, 1307}
 
 /*
 Session contains session individual information. To be able to resume the connection without scanning the qr code
@@ -151,7 +151,7 @@ func (wac *Conn) SetClientName(long, short string) error {
 
 /*
 SetClientVersion sets WhatsApp client version
-Default value is 0.3.3324
+Default value is 0.4.1307
 */
 func (wac *Conn) SetClientVersion(major int, minor int, patch int) {
 	waVersion = []int{major, minor, patch}
