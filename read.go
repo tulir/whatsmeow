@@ -15,7 +15,10 @@ import (
 )
 
 func (wac *Conn) readPump() {
-	defer wac.wg.Done()
+	defer func() {
+		wac.wg.Done()
+		_, _ = wac.Disconnect()
+	}()
 
 	var readErr error
 	var msgType int
@@ -31,7 +34,6 @@ func (wac *Conn) readPump() {
 		case <-readerFound:
 			if readErr != nil {
 				wac.handle(&ErrConnectionFailed{Err: readErr})
-				_, _ = wac.Disconnect()
 				return
 			}
 			msg, err := ioutil.ReadAll(reader)
