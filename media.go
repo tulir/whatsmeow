@@ -10,10 +10,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"mime/multipart"
 	"net/http"
-	"os"
-	"strings"
+	"net/url"
 	"time"
 
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
@@ -95,7 +93,43 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
-func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+type MediaConn struct {
+	Status    int `json:"status"`
+	MediaConn struct {
+		Auth  string `json:"auth"`
+		TTL   int    `json:"ttl"`
+		Hosts []struct {
+			Hostname string   `json:"hostname"`
+			IPs      []string `json:"ips"`
+		} `json:"hosts"`
+	} `json:"media_conn"`
+}
+
+func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
+	queryReq := []interface{}{"query", "mediaConn"}
+	ch, err := wac.writeJson(queryReq)
+	if err != nil {
+		return "", "", 0, err
+	}
+
+	var resp MediaConn
+	select {
+	case r := <-ch:
+		if err = json.Unmarshal([]byte(r), &resp); err != nil {
+			return "", "", 0, fmt.Errorf("error decoding query media conn response: %v", err)
+		}
+	case <-time.After(wac.msgTimeout):
+		return "", "", 0, fmt.Errorf("query media conn timed out")
+	}
+
+	if resp.Status != 200 {
+		return "", "", 0, fmt.Errorf("query media conn responded with %d", resp.Status)
+	}
+
+	return resp.MediaConn.Hosts[0].Hostname, resp.MediaConn.Auth, resp.MediaConn.TTL, nil
+}
+
+func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (downloadURL string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return "", nil, nil, nil, 0, err
@@ -128,66 +162,28 @@ func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaK
 	sha.Write(append(enc, mac...))
 	fileEncSha256 = sha.Sum(nil)
 
-	var filetype string
-	switch appInfo {
-	case MediaImage:
-		filetype = "image"
-	case MediaAudio:
-		filetype = "audio"
-	case MediaDocument:
-		filetype = "document"
-	case MediaVideo:
-		filetype = "video"
+	hostname, auth, _, err := wac.queryMediaConn()
+	token := base64.URLEncoding.EncodeToString(fileEncSha256)
+	q := url.Values{
+		"auth":  []string{auth},
+		"token": []string{token},
+	}
+	uploadURL := url.URL{
+		Scheme:   "https",
+		Host:     hostname,
+		Path:     fmt.Sprintf("/mms/image/%s", token),
+		RawQuery: q.Encode(),
 	}
 
-	uploadReq := []interface{}{"action", "encr_upload", filetype, base64.StdEncoding.EncodeToString(fileEncSha256)}
-	ch, err := wac.writeJson(uploadReq)
+	body := bytes.NewReader(append(enc, mac...))
+
+	req, err := http.NewRequest("POST", uploadURL.String(), body)
 	if err != nil {
 		return "", nil, nil, nil, 0, err
 	}
 
-	var resp map[string]interface{}
-	select {
-	case r := <-ch:
-		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			return "", nil, nil, nil, 0, fmt.Errorf("error decoding upload response: %v", err)
-		}
-	case <-time.After(wac.msgTimeout):
-		return "", nil, nil, nil, 0, fmt.Errorf("restore session init timed out")
-	}
-
-	if int(resp["status"].(float64)) != 200 {
-		return "", nil, nil, nil, 0, fmt.Errorf("upload responsed with %d", resp["status"])
-	}
-
-	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
-	hashWriter, err := w.CreateFormField("hash")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-	}
-	io.Copy(hashWriter, strings.NewReader(base64.StdEncoding.EncodeToString(fileEncSha256)))
-
-	fileWriter, err := w.CreateFormFile("file", "blob")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-	}
-	io.Copy(fileWriter, bytes.NewReader(append(enc, mac...)))
-	err = w.Close()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-	}
-
-	req, err := http.NewRequest("POST", resp["url"].(string), &b)
-	if err != nil {
-		return "", nil, nil, nil, 0, err
-	}
-
-	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("Origin", "https://web.whatsapp.com")
 	req.Header.Set("Referer", "https://web.whatsapp.com/")
-
-	req.URL.Query().Set("f", "j")
 
 	client := &http.Client{}
 	// Submit the request
