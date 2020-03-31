@@ -64,7 +64,7 @@ func (h *waHandler) HandleImageMessage(message whatsapp.ImageMessage) {
 	if err != nil {
 		return
 	}
-	log.Printf("%v %v\n\timage reveived, saved at:%v\n", message.Info.Timestamp, message.Info.RemoteJid, filename)
+	log.Printf("%v %v\n\timage received, saved at:%v\n", message.Info.Timestamp, message.Info.RemoteJid, filename)
 }*/
 
 func main() {
