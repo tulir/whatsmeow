@@ -202,18 +202,9 @@ func (wac *Conn) Disconnect() (Session, error) {
 	wac.loggedIn = false
 
 	close(wac.ws.close) //signal close
-	done := make(chan struct{})
-	go func() {
-		wac.wg.Wait()
-		close(done)
-	}()
-	var err error
-	select {
-	case <-done:
-	case <-time.After(wac.msgTimeout):
-		err = wac.ws.conn.Close()
-	}
-	<-done
+	wac.wg.Wait()       //wait for close
+
+	err := wac.ws.conn.Close()
 	wac.ws = nil
 
 	if wac.session == nil {
