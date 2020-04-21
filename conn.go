@@ -90,6 +90,7 @@ type Conn struct {
 
 	longClientName  string
 	shortClientName string
+	clientVersion   string
 
 	loginSessionLock sync.RWMutex
 	Proxy            func(*http.Request) (*url.URL, error)
