@@ -90,6 +90,7 @@ type Conn struct {
 
 	longClientName  string
 	shortClientName string
+	clientVersion   string
 
 	loginSessionLock sync.RWMutex
 	Proxy            func(*http.Request) (*url.URL, error)
@@ -121,6 +122,7 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 
 		longClientName:  "github.com/rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
+		clientVersion:   "0.1.0",
 	}
 	return wac, wac.connect()
 }
@@ -135,6 +137,7 @@ func NewConnWithProxy(timeout time.Duration, proxy func(*http.Request) (*url.URL
 
 		longClientName:  "github.com/rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
+		clientVersion:   "0.1.0",
 		Proxy:           proxy,
 	}
 	return wac, wac.connect()
