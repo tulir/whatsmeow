@@ -101,10 +101,7 @@ type MediaConn struct {
                 TTL int `json:"ttl"`                                            
                 Hosts []struct {                                                
                         Hostname string `json:"hostname"`                       
-                        IPs []struct {                                          
-                                IP4 string `json:"ip4"`                         
-                                IP6 string `json:"ip6"`                         
-                        }                                                       
+                        IPs []interface{}                                                       
                 } `json:"hosts"`                                                
         } `json:"media_conn"`                                                   
 }
