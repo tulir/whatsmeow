@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
 )
@@ -22,6 +24,25 @@ const (
 	MediaAudio    MediaType = "WhatsApp Audio Keys"
 	MediaDocument MediaType = "WhatsApp Document Keys"
 )
+
+func (wac *Conn) SendRaw(msg *proto.WebMessageInfo, output chan<- error) {
+	ch, err := wac.sendProto(msg)
+	if err != nil {
+		output <- errors.Wrap(err, "could not send proto")
+		return
+	}
+	response := <-ch
+	var resp struct {
+		Status int `json:"status"`
+	}
+	if err = json.Unmarshal([]byte(response), &resp); err != nil {
+		output <- errors.Wrap(err, "error decoding sending response")
+	} else if resp.Status != 200 {
+		output <- fmt.Errorf("message sending responded with %d", resp.Status)
+	} else {
+		output <- nil
+	}
+}
 
 func (wac *Conn) Send(msg interface{}) (string, error) {
 	var msgProto *proto.WebMessageInfo
