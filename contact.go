@@ -51,8 +51,8 @@ func (wac *Conn) LoadMessagesAfter(jid, messageId string, fromMe bool, count int
 	return wac.query("message", jid, messageId, "after", strconv.FormatBool(fromMe), "", count, 0)
 }
 
-func (wac *Conn) LoadMediaInfo(jid, messageId, owner string) (*binary.Node, error) {
-	return wac.query("media", jid, messageId, "", owner, "", 0, 0)
+func (wac *Conn) LoadMediaInfo(jid, messageId string, fromMe bool) (*binary.Node, error) {
+	return wac.query("media", jid, messageId, "", strconv.FormatBool(fromMe), "", 0, 0)
 }
 
 func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) {
