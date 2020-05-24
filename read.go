@@ -112,7 +112,7 @@ func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 			if response.Status == 404 {
 				return nil, ErrServerRespondedWith404
 			}
-			return nil, errors.New(fmt.Sprintf("server responded with %d", response.Status))
+			return nil, fmt.Errorf("server responded with %d", response.Status)
 		} else {
 			return nil, ErrInvalidServerResponse
 		}
