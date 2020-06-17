@@ -96,6 +96,7 @@ message ContextInfo {
     optional MessageKey placeholderKey = 24;
     optional uint32 expiration = 25;
     optional int64 ephemeralSettingTimestamp = 26;
+    optional bytes ephemeralSharedSecret = 27;
 }
 
 message SenderKeyDistributionMessage {
@@ -187,6 +188,7 @@ message DocumentMessage {
     optional bytes fileEncSha256 = 9;
     optional string directPath = 10;
     optional int64 mediaKeyTimestamp = 11;
+    optional bool contactVcard = 12;
     optional bytes jpegThumbnail = 16;
     optional ContextInfo contextInfo = 17;
 }
@@ -248,11 +250,15 @@ message ProtocolMessage {
         EPHEMERAL_SETTING = 3;
         EPHEMERAL_SYNC_RESPONSE = 4;
         HISTORY_SYNC_NOTIFICATION = 5;
+        APP_STATE_SYNC_KEY_SHARE = 6;
+        APP_STATE_SYNC_KEY_REQUEST = 7;
     }
     optional PROTOCOL_MESSAGE_TYPE type = 2;
     optional uint32 ephemeralExpiration = 4;
     optional int64 ephemeralSettingTimestamp = 5;
     optional HistorySyncNotification historySyncNotification = 6;
+    optional AppStateSyncKeyShare appStateSyncKeyShare = 7;
+    optional AppStateSyncKeyRequest appStateSyncKeyRequest = 8;
 }
 
 message HistorySyncNotification {
@@ -266,9 +272,34 @@ message HistorySyncNotification {
         INITIAL_STATUS_V3 = 1;
         FULL = 2;
         RECENT = 3;
+        RESEND = 4;
     }
     optional HISTORY_SYNC_NOTIFICATION_HISTORYSYNCTYPE syncType = 6;
     optional uint32 chunkOrder = 7;
+    optional string originalMessageId = 8;
+}
+
+message AppStateSyncKeyId {
+    optional bytes keyId = 1;
+}
+
+message AppStateSyncKeyData {
+    optional bytes keyData = 1;
+    optional bytes fingerprint = 2;
+    optional int64 timestamp = 3;
+}
+
+message Key {
+    optional AppStateSyncKeyId keyId = 1;
+    optional AppStateSyncKeyData keyData = 2;
+}
+
+message AppStateSyncKeyShare {
+    repeated Key keys = 1;
+}
+
+message AppStateSyncKeyRequest {
+    repeated AppStateSyncKeyId keyIds = 1;
 }
 
 message ContactsArrayMessage {
@@ -470,10 +501,7 @@ message GroupInviteMessage {
 message DeviceSentMessage {
     optional string destinationJid = 1;
     optional Message message = 2;
-}
-
-message DeviceSyncMessage {
-    optional bytes serializedXmlBytes = 1;
+    optional string phash = 3;
 }
 
 message Message {
@@ -503,7 +531,6 @@ message Message {
     optional TemplateButtonReplyMessage templateButtonReplyMessage = 29;
     optional ProductMessage productMessage = 30;
     optional DeviceSentMessage deviceSentMessage = 31;
-    optional DeviceSyncMessage deviceSyncMessage = 32;
 }
 
 message MessageKey {
@@ -552,6 +579,7 @@ message WebFeatures {
     optional WEB_FEATURES_FLAG ephemeralMessages = 32;
     optional WEB_FEATURES_FLAG e2ENotificationSync = 33;
     optional WEB_FEATURES_FLAG recentStickersV2 = 34;
+    optional WEB_FEATURES_FLAG syncdRelease1 = 35;
 }
 
 message TabletNotificationsInfo {
@@ -743,5 +771,6 @@ message WebMessageInfo {
     optional PaymentInfo quotedPaymentInfo = 31;
     optional uint64 ephemeralStartTimestamp = 32;
     optional uint32 ephemeralDuration = 33;
+    optional bool ephemeralOffToOn = 34;
 }
 
