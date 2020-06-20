@@ -133,6 +133,14 @@ type ChatListHandler interface {
 	HandleChatList(contacts []Chat)
 }
 
+/**
+The BatteryMessageHandler interface needs to be implemented to receive percentage the device connected dispatched by the dispatcher.
+*/
+type BatteryMessageHandler interface {
+	Handler
+	HandleBatteryMessage(battery BatteryMessage)
+}
+
 /*
 AddHandler adds an handler to the list of handler that receive dispatched messages.
 The provided handler must at least implement the Handler interface. Additionally implemented
@@ -285,6 +293,17 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 				}
 			}
 		}
+	
+	case BatteryMessage:
+		for _, h := range handlers {
+			if x, ok := h.(BatteryMessageHandler); ok {
+				if wac.shouldCallSynchronously(h) {
+					x.HandleBatteryMessage(m)
+				} else {
+					go x.HandleBatteryMessage(m)
+				}
+			}
+		}
 
 	case *proto.WebMessageInfo:
 		for _, h := range handlers {
@@ -378,6 +397,10 @@ func (wac *Conn) dispatch(msg interface{}) {
 						wac.handle(v)
 						wac.handle(ParseProtoMessage(v))
 					}
+				}
+			} else if con, ok := message.Content.([]binary.Node); ok {
+				for a := range con {
+					wac.handle(ParseNodeMessage(con[a]))
 				}
 			}
 		} else if message.Description == "response" && message.Attributes["type"] == "contacts" {
