@@ -83,9 +83,9 @@ func main() {
 	}
 
 	//verifies phone connectivity
-	pong, err := wac.AdminTest()
+	err = wac.AdminTest()
 
-	if !pong || err != nil {
+	if err != nil {
 		log.Fatalf("error pinging in: %v\n", err)
 	}
 

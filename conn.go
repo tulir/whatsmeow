@@ -228,17 +228,16 @@ func (wac *Conn) IsLoginInProgress() bool {
 	return wac.sessionLock == 1
 }
 
-func (wac *Conn) AdminTest() (bool, error) {
+func (wac *Conn) AdminTest() error {
 	if !wac.connected {
-		return false, ErrNotConnected
+		return ErrNotConnected
 	}
 
 	if !wac.loggedIn {
-		return false, ErrInvalidSession
+		return ErrInvalidSession
 	}
 
-	result, err := wac.sendAdminTest()
-	return result, err
+	return wac.sendAdminTest()
 }
 
 func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
