@@ -19,10 +19,6 @@ func (wh *waHandler) HandleError(err error) {
 	fmt.Fprintf(os.Stderr, "error caught in handler: %v\n", err)
 }
 
-func (wh *waHandler) HandleNewContact(contact whatsapp.Contact) {
-	fmt.Printf("Recebendo um novo contato: %v", contact)
-}
-
 // HandleTextMessage receives whatsapp text messages and checks if the message was send by the current
 // user, if it does not contain the keyword '@echo' or if it is from before the program start and then returns.
 // Otherwise the message is echoed back to the original author.
