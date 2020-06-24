@@ -75,7 +75,7 @@ func (myHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
 }
 
 func (myHandler) HandleNewContact(contact whatsapp.Contact) {
-	fmt.Println(message)
+	fmt.Println(contact)
 }
 
 wac.AddHandler(myHandler{})
