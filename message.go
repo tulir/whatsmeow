@@ -771,7 +771,7 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 func getNewContact(msg map[string]string) Contact {
 	contact := Contact{
 		Jid: msg["jid"],
-		Name: msg["notify"],
+		Notify: msg["notify"],
 	}
 
 	return contact
