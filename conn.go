@@ -215,7 +215,10 @@ func (wac *Conn) Disconnect() (Session, error) {
 	close(wac.ws.close) //signal close
 	wac.wg.Wait()       //wait for close
 
-	err := wac.ws.conn.Close()
+	var err error
+	if wac.ws != nil && wac.ws.conn != nil {
+		err = wac.ws.conn.Close()
+	}
 	wac.ws = nil
 
 	if wac.session == nil {
