@@ -105,14 +105,10 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		if status != 200 {
 			return "ERROR", fmt.Errorf("message sending responded with %d", status)
 		}
-		if status == 200 {
-			return getMessageInfo(msgProto).Id, nil
-		}
+		return getMessageInfo(msgProto).Id, nil
 	case <-time.After(wac.msgTimeout):
 		return "ERROR", fmt.Errorf("sending message timed out")
 	}
-
-	return "ERROR", nil
 }
 
 func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
