@@ -101,10 +101,11 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		if err = json.Unmarshal([]byte(response), &resp); err != nil {
 			return "ERROR", fmt.Errorf("error decoding sending response: %v\n", err)
 		}
-		if int(resp["status"].(float64)) != 200 {
-			return "ERROR", fmt.Errorf("message sending responded with %d", resp["status"])
+		status := int(resp["status"].(float64))
+		if status != 200 {
+			return "ERROR", fmt.Errorf("message sending responded with %d", status)
 		}
-		if int(resp["status"].(float64)) == 200 {
+		if status == 200 {
 			return getMessageInfo(msgProto).Id, nil
 		}
 	case <-time.After(wac.msgTimeout):

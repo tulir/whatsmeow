@@ -34,6 +34,9 @@ var (
 	ErrInvalidHashLength  = errors.New("hash too short")
 	ErrTooShortFile       = errors.New("file too short")
 	ErrInvalidMediaHMAC   = errors.New("invalid media hmac")
+
+	ErrCantGetInviteLink = errors.New("you don't have the permission to view the invite link")
+	ErrJoinUnauthorized = errors.New("you're not allowed to join that group")
 )
 
 type ErrConnectionFailed struct {

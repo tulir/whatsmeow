@@ -60,8 +60,11 @@ func (wac *Conn) GroupInviteLink(jid string) (string, error) {
 		return "", fmt.Errorf("request timed out")
 	}
 
-	if int(response["status"].(float64)) != 200 {
-		return "", fmt.Errorf("request responded with %d", response["status"])
+	status := int(response["status"].(float64))
+	if status == 401 {
+		return "", ErrCantGetInviteLink
+	} else if status != 200 {
+		return "", fmt.Errorf("request responded with %d", status)
 	}
 
 	return response["code"].(string), nil
@@ -85,8 +88,12 @@ func (wac *Conn) GroupAcceptInviteCode(code string) (jid string, err error) {
 		return "", fmt.Errorf("request timed out")
 	}
 
-	if int(response["status"].(float64)) != 200 {
-		return "", fmt.Errorf("request responded with %d", response["status"])
+	status := int(response["status"].(float64))
+
+	if status == 401 {
+		return "", ErrJoinUnauthorized
+	} else if status != 200 {
+		return "", fmt.Errorf("request responded with %d", status)
 	}
 
 	return response["gid"].(string), nil
