@@ -231,7 +231,12 @@ func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
 		return session, fmt.Errorf("error decoding login resp: %v\n", err)
 	}
 
-	ref := resp["ref"].(string)
+	var ref string
+	if rref, ok := resp["ref"].(string); ok {
+		ref = rref
+	} else {
+		return session, fmt.Errorf("error decoding login resp: invalid resp['ref']\n")
+	}
 
 	priv, pub, err := curve25519.GenerateKey()
 	if err != nil {
@@ -390,9 +395,11 @@ func (wac *Conn) Restore() error {
 		}
 
 		if int(resp["status"].(float64)) != 200 {
+			wac.timeTag = ""
 			return fmt.Errorf("init responded with %d", resp["status"])
 		}
 	case <-time.After(wac.msgTimeout):
+		wac.timeTag = ""
 		return fmt.Errorf("restore session init timed out")
 	}
 
@@ -401,10 +408,11 @@ func (wac *Conn) Restore() error {
 	select {
 	case r1 := <-s1:
 		if err := json.Unmarshal([]byte(r1), &connResp); err != nil {
+			wac.timeTag = ""
 			return fmt.Errorf("error decoding s1 message: %v\n", err)
 		}
 	case <-time.After(wac.msgTimeout):
-
+		wac.timeTag = ""
 		//check for an error message
 		select {
 		case r := <-loginChan:
@@ -429,15 +437,18 @@ func (wac *Conn) Restore() error {
 		wac.listener.Unlock()
 
 		if err := wac.resolveChallenge(connResp[1].(map[string]interface{})["challenge"].(string)); err != nil {
+			wac.timeTag = ""
 			return fmt.Errorf("error resolving challenge: %v\n", err)
 		}
 
 		select {
 		case r := <-s2:
 			if err := json.Unmarshal([]byte(r), &connResp); err != nil {
+				wac.timeTag = ""
 				return fmt.Errorf("error decoding s2 message: %v\n", err)
 			}
 		case <-time.After(wac.msgTimeout):
+			wac.timeTag = ""
 			return fmt.Errorf("restore session challenge timed out")
 		}
 	}
@@ -447,13 +458,16 @@ func (wac *Conn) Restore() error {
 	case r := <-loginChan:
 		var resp map[string]interface{}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
+			wac.timeTag = ""
 			return fmt.Errorf("error decoding login connResp: %v\n", err)
 		}
 
 		if int(resp["status"].(float64)) != 200 {
+			wac.timeTag = ""
 			return fmt.Errorf("admin login responded with %d", resp["status"])
 		}
 	case <-time.After(wac.msgTimeout):
+		wac.timeTag = ""
 		return fmt.Errorf("restore session login timed out")
 	}
 

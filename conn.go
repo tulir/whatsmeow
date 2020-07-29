@@ -88,6 +88,8 @@ type Conn struct {
 	Store          *Store
 	ServerLastSeen time.Time
 
+	timeTag string // last 3 digits obtained after a successful login takeover
+
 	longClientName  string
 	shortClientName string
 	clientVersion   string
