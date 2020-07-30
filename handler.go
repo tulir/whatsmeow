@@ -154,6 +154,11 @@ type ReadMessageHandler interface {
 	HandleReadMessage(read ReadMessage)
 }
 
+type ReceivedMessageHandler interface {
+	Handler
+	HandleReceivedMessage(received ReceivedMessage)
+}
+
 /**
 The NewContactHandler interface needs to be implemented to receive the contact's name for the first time.
 */
@@ -357,6 +362,17 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 					x.HandleReadMessage(m)
 				} else {
 					go x.HandleReadMessage(m)
+				}
+			}
+		}
+
+	case ReceivedMessage:
+		for _, h := range handlers {
+			if x, ok := h.(ReceivedMessageHandler); ok {
+				if wac.shouldCallSynchronously(h) {
+					x.HandleReceivedMessage(m)
+				} else {
+					go x.HandleReceivedMessage(m)
 				}
 			}
 		}

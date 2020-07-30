@@ -763,13 +763,12 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 	return nil
 }
 
-
 /*
 BatteryMessage represents a battery level and charging state.
 */
 type BatteryMessage struct {
-	Plugged bool
-	Powersave bool
+	Plugged    bool
+	Powersave  bool
 	Percentage int
 }
 
@@ -778,8 +777,8 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 	powersave, _ := strconv.ParseBool(msg["powersave"])
 	percentage, _ := strconv.Atoi(msg["value"])
 	batteryMessage := BatteryMessage{
-		Plugged: plugged,
-		Powersave: powersave,
+		Plugged:    plugged,
+		Powersave:  powersave,
 		Percentage: percentage,
 	}
 
@@ -788,7 +787,7 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 
 func getNewContact(msg map[string]string) Contact {
 	contact := Contact{
-		Jid: msg["jid"],
+		Jid:    msg["jid"],
 		Notify: msg["notify"],
 	}
 
@@ -806,6 +805,28 @@ func getReadMessage(msg map[string]string) ReadMessage {
 	}
 }
 
+// ReceivedMessage probably represents a message that the user read on the WhatsApp mobile app.
+type ReceivedMessage struct {
+	Index       string
+	Jid         string
+	Owner       bool
+	Participant string
+	Type        string
+}
+
+func getReceivedMessage(msg map[string]string) ReceivedMessage {
+	owner, _ := strconv.ParseBool(msg["owner"])
+	// This field might not exist
+	participant, _ := msg["participant"]
+	return ReceivedMessage{
+		Index:       msg["index"],
+		Jid:         msg["jid"],
+		Owner:       owner,
+		Participant: participant,
+		Type:        msg["type"],
+	}
+}
+
 func ParseNodeMessage(msg binary.Node) interface{} {
 	switch msg.Description {
 	case "battery":
@@ -814,6 +835,8 @@ func ParseNodeMessage(msg binary.Node) interface{} {
 		return getNewContact(msg.Attributes)
 	case "read":
 		return getReadMessage(msg.Attributes)
+	case "received":
+		return getReceivedMessage(msg.Attributes)
 	default:
 		return &msg
 	}
