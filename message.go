@@ -795,15 +795,26 @@ func getNewContact(msg map[string]string) Contact {
 	return contact
 }
 
+// ReadMessage represents a chat that the user read on the WhatsApp mobile app.
+type ReadMessage struct {
+	Jid string
+}
+
+func getReadMessage(msg map[string]string) ReadMessage {
+	return ReadMessage{
+		Jid: msg["jid"],
+	}
+}
+
 func ParseNodeMessage(msg binary.Node) interface{} {
 	switch msg.Description {
 	case "battery":
 		return getBatteryMessage(msg.Attributes)
 	case "user":
 		return getNewContact(msg.Attributes)
+	case "read":
+		return getReadMessage(msg.Attributes)
 	default:
-		//cannot match message
+		return &msg
 	}
-
-	return nil
 }
