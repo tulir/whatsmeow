@@ -198,15 +198,16 @@ type ContextInfo struct {
 	QuotedMessage   *proto.Message
 	Participant     string
 	IsForwarded     bool
+	MentionedJID    []string
 }
 
 func getMessageContext(msg *proto.ContextInfo) ContextInfo {
-
 	return ContextInfo{
 		QuotedMessageID: msg.GetStanzaId(), //StanzaId
 		QuotedMessage:   msg.GetQuotedMessage(),
 		Participant:     msg.GetParticipant(),
 		IsForwarded:     msg.GetIsForwarded(),
+		MentionedJID:    msg.GetMentionedJid(),
 	}
 }
 
