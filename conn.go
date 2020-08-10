@@ -248,3 +248,11 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 		}
 	}
 }
+
+func (wac *Conn) GetConnected() bool {
+	return  wac.connected
+}
+
+func (wac *Conn) GetLoggedIn() bool {
+	return  wac.loggedIn
+}
