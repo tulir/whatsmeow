@@ -18,7 +18,7 @@ import (
 )
 
 //represents the WhatsAppWeb client version
-var waVersion = var waVersion = []int{2, 2033, 7} //[]int{0, 4, 2080}
+var waVersion = []int{2, 2033, 7}
 
 /*
 Session contains session individual information. To be able to resume the connection without scanning the qr code
@@ -141,11 +141,11 @@ func CheckCurrentServerVersion() ([]int, error) {
 SetClientName sets the long and short client names that are sent to WhatsApp when logging in and displayed in the
 WhatsApp Web device list. As the values are only sent when logging in, changing them after logging in is not possible.
 */
-func (wac *Conn) SetClientName(long, short, version string) error {
+func (wac *Conn) SetClientName(long, short string) error {
 	if wac.session != nil && (wac.session.EncKey != nil || wac.session.MacKey != nil) {
 		return fmt.Errorf("cannot change client name after logging in")
 	}
-	wac.longClientName, wac.shortClientName, wac.clientVersion = long, short, version
+	wac.longClientName, wac.shortClientName = long, short
 	return nil
 }
 
