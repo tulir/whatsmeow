@@ -36,7 +36,9 @@ var (
 	ErrInvalidMediaHMAC   = errors.New("invalid media hmac")
 
 	ErrCantGetInviteLink = errors.New("you don't have the permission to view the invite link")
-	ErrJoinUnauthorized = errors.New("you're not allowed to join that group")
+	ErrJoinUnauthorized  = errors.New("you're not allowed to join that group")
+
+	ErrInvalidWebsocket = errors.New("invalid websocket")
 )
 
 type ErrConnectionFailed struct {

@@ -174,7 +174,6 @@ func (wac *Conn) adminInitRequest(clientId string) (string, time.Duration, error
 	}
 
 	var resp map[string]interface{}
-	fmt.Println(r)
 	if err = json.Unmarshal([]byte(r), &resp); err != nil {
 		return "", 0, fmt.Errorf("error decoding login resp: %v\n", err)
 	}
@@ -416,9 +415,11 @@ func (wac *Conn) Restore() error {
 		}
 
 		if stat := int(resp["status"].(float64)); stat != 200 {
+			wac.timeTag = ""
 			return fmt.Errorf("init responded with %d", stat)
 		}
 	case <-time.After(wac.msgTimeout):
+		wac.timeTag = ""
 		return fmt.Errorf("restore session init timed out")
 	}
 
@@ -427,10 +428,11 @@ func (wac *Conn) Restore() error {
 	select {
 	case r1 := <-s1:
 		if err := json.Unmarshal([]byte(r1), &connResp); err != nil {
+			wac.timeTag = ""
 			return fmt.Errorf("error decoding s1 message: %v\n", err)
 		}
 	case <-time.After(wac.msgTimeout):
-
+		wac.timeTag = ""
 		//check for an error message
 		select {
 		case r := <-loginChan:
@@ -455,15 +457,18 @@ func (wac *Conn) Restore() error {
 		wac.listener.Unlock()
 
 		if err := wac.resolveChallenge(connResp[1].(map[string]interface{})["challenge"].(string)); err != nil {
+			wac.timeTag = ""
 			return fmt.Errorf("error resolving challenge: %v\n", err)
 		}
 
 		select {
 		case r := <-s2:
 			if err := json.Unmarshal([]byte(r), &connResp); err != nil {
+				wac.timeTag = ""
 				return fmt.Errorf("error decoding s2 message: %v\n", err)
 			}
 		case <-time.After(wac.msgTimeout):
+			wac.timeTag = ""
 			return fmt.Errorf("restore session challenge timed out")
 		}
 	}
@@ -473,13 +478,16 @@ func (wac *Conn) Restore() error {
 	case r := <-loginChan:
 		var resp map[string]interface{}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
+			wac.timeTag = ""
 			return fmt.Errorf("error decoding login connResp: %v\n", err)
 		}
 
 		if int(resp["status"].(float64)) != 200 {
+			wac.timeTag = ""
 			return errors.Wrap(wac.getAdminLoginResponseError(resp), "admin login errored")
 		}
 	case <-time.After(wac.msgTimeout):
+		wac.timeTag = ""
 		return fmt.Errorf("restore session login timed out")
 	}
 
