@@ -81,6 +81,23 @@ message AdReplyInfo {
     optional string caption = 17;
 }
 
+message ExternalAdReplyInfo {
+    optional string title = 1;
+    optional string body = 2;
+    enum EXTERNAL_AD_REPLY_INFO_MEDIATYPE {
+        NONE = 0;
+        IMAGE = 1;
+        VIDEO = 2;
+    }
+    optional EXTERNAL_AD_REPLY_INFO_MEDIATYPE mediaType = 3;
+    optional string thumbnailUrl = 4;
+    optional string mediaUrl = 5;
+    optional bytes thumbnail = 6;
+    optional string sourceType = 7;
+    optional string sourceId = 8;
+    optional string sourceUrl = 9;
+}
+
 message ContextInfo {
     optional string stanzaId = 1;
     optional string participant = 2;
@@ -97,6 +114,7 @@ message ContextInfo {
     optional uint32 expiration = 25;
     optional int64 ephemeralSettingTimestamp = 26;
     optional bytes ephemeralSharedSecret = 27;
+    optional ExternalAdReplyInfo externalAdReply = 28;
 }
 
 message SenderKeyDistributionMessage {
@@ -126,6 +144,7 @@ message ImageMessage {
     repeated uint32 scanLengths = 22;
     optional bytes midQualityFileSha256 = 23;
     optional bytes midQualityFileEncSha256 = 24;
+    optional bool viewOnce = 25;
 }
 
 message ContactMessage {
@@ -232,6 +251,7 @@ message VideoMessage {
         TENOR = 2;
     }
     optional VIDEO_MESSAGE_ATTRIBUTION gifAttribution = 19;
+    optional bool viewOnce = 20;
 }
 
 message Call {
@@ -252,6 +272,7 @@ message ProtocolMessage {
         HISTORY_SYNC_NOTIFICATION = 5;
         APP_STATE_SYNC_KEY_SHARE = 6;
         APP_STATE_SYNC_KEY_REQUEST = 7;
+        MSG_FANOUT_BACKFILL_REQUEST = 8;
     }
     optional PROTOCOL_MESSAGE_TYPE type = 2;
     optional uint32 ephemeralExpiration = 4;
@@ -272,30 +293,35 @@ message HistorySyncNotification {
         INITIAL_STATUS_V3 = 1;
         FULL = 2;
         RECENT = 3;
-        RESEND = 4;
     }
     optional HISTORY_SYNC_NOTIFICATION_HISTORYSYNCTYPE syncType = 6;
     optional uint32 chunkOrder = 7;
     optional string originalMessageId = 8;
 }
 
-message AppStateSyncKeyId {
-    optional bytes keyId = 1;
-}
-
-message AppStateSyncKeyData {
-    optional bytes keyData = 1;
-    optional bytes fingerprint = 2;
-    optional int64 timestamp = 3;
-}
-
-message Key {
+message AppStateSyncKey {
     optional AppStateSyncKeyId keyId = 1;
     optional AppStateSyncKeyData keyData = 2;
 }
 
+message AppStateSyncKeyId {
+    optional bytes keyId = 1;
+}
+
+message AppStateSyncKeyFingerprint {
+    optional uint32 rawId = 1;
+    optional uint32 currentIndex = 2;
+    repeated uint32 deviceIndexes = 3 [packed=true];
+}
+
+message AppStateSyncKeyData {
+    optional bytes keyData = 1;
+    optional AppStateSyncKeyFingerprint fingerprint = 2;
+    optional int64 timestamp = 3;
+}
+
 message AppStateSyncKeyShare {
-    repeated Key keys = 1;
+    repeated AppStateSyncKey keys = 1;
 }
 
 message AppStateSyncKeyRequest {
@@ -504,6 +530,10 @@ message DeviceSentMessage {
     optional string phash = 3;
 }
 
+message FutureProofMessage {
+    optional Message message = 1;
+}
+
 message Message {
     optional string conversation = 1;
     optional SenderKeyDistributionMessage senderKeyDistributionMessage = 2;
@@ -531,6 +561,7 @@ message Message {
     optional TemplateButtonReplyMessage templateButtonReplyMessage = 29;
     optional ProductMessage productMessage = 30;
     optional DeviceSentMessage deviceSentMessage = 31;
+    optional FutureProofMessage viewOnceMessage = 33;
 }
 
 message MessageKey {
@@ -580,13 +611,7 @@ message WebFeatures {
     optional WEB_FEATURES_FLAG e2ENotificationSync = 33;
     optional WEB_FEATURES_FLAG recentStickersV2 = 34;
     optional WEB_FEATURES_FLAG syncdRelease1 = 35;
-}
-
-message TabletNotificationsInfo {
-    optional uint64 timestamp = 2;
-    optional uint32 unreadChats = 3;
-    optional uint32 notifyMessageCount = 4;
-    repeated NotificationMessageInfo notifyMessage = 5;
+    optional WEB_FEATURES_FLAG recentStickersV3 = 36;
 }
 
 message NotificationMessageInfo {
@@ -760,6 +785,7 @@ message WebMessageInfo {
         GROUP_V4_ADD_INVITE_SENT = 70;
         GROUP_PARTICIPANT_ADD_REQUEST_JOIN = 71;
         CHANGE_EPHEMERAL_SETTING = 72;
+        E2E_DEVICE_CHANGED = 73;
     }
     optional WEB_MESSAGE_INFO_STUBTYPE messageStubType = 24;
     optional bool clearMedia = 25;
@@ -772,5 +798,6 @@ message WebMessageInfo {
     optional uint64 ephemeralStartTimestamp = 32;
     optional uint32 ephemeralDuration = 33;
     optional bool ephemeralOffToOn = 34;
+    optional bool ephemeralOutOfSync = 35;
 }
 
