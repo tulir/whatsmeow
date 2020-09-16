@@ -129,7 +129,17 @@ func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
 		return "", "", 0, fmt.Errorf("query media conn responded with %d", resp.Status)
 	}
 
-	return resp.MediaConn.Hosts[0].Hostname, resp.MediaConn.Auth, resp.MediaConn.TTL, nil
+	var host string
+	for _, h := range resp.MediaConn.Hosts {
+		if h.Hostname!="" {
+			host = h.Hostname
+			break
+		}
+	}
+	if host == "" {
+		return "", "", 0, fmt.Errorf("query media conn responded with no host")
+	}
+	return host, resp.MediaConn.Auth, resp.MediaConn.TTL, nil
 }
 
 var mediaTypeMap = map[MediaType]string{
@@ -173,6 +183,10 @@ func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (downloadURL string
 	fileEncSha256 = sha.Sum(nil)
 
 	hostname, auth, _, err := wac.queryMediaConn()
+	if err != nil {
+		return "", nil, nil, nil, 0, err
+	}
+
 	token := base64.URLEncoding.EncodeToString(fileEncSha256)
 	q := url.Values{
 		"auth":  []string{auth},
