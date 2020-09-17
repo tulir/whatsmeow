@@ -141,6 +141,14 @@ type BatteryMessageHandler interface {
 	HandleBatteryMessage(battery BatteryMessage)
 }
 
+/**
+The NewContactHandler interface needs to be implemented to receive the contact's name for the first time.
+*/
+type NewContactHandler interface {
+	Handler
+	HandleNewContact(contact Contact)
+}
+
 /*
 AddHandler adds an handler to the list of handler that receive dispatched messages.
 The provided handler must at least implement the Handler interface. Additionally implemented
@@ -304,6 +312,17 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 				}
 			}
 		}
+	
+	case Contact:
+		for _, h := range handlers {
+			if x, ok := h.(NewContactHandler); ok {
+				if wac.shouldCallSynchronously(h) {
+					x.HandleNewContact(m)
+				} else {
+					go x.HandleNewContact(m)
+				}
+			}
+		}
 
 	case *proto.WebMessageInfo:
 		for _, h := range handlers {
@@ -396,6 +415,10 @@ func (wac *Conn) dispatch(msg interface{}) {
 					if v, ok := con[a].(*proto.WebMessageInfo); ok {
 						wac.handle(v)
 						wac.handle(ParseProtoMessage(v))
+					}
+
+					if v, ok := con[a].(binary.Node); ok {
+						wac.handle(ParseNodeMessage(v))
 					}
 				}
 			} else if con, ok := message.Content.([]binary.Node); ok {

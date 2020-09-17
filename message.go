@@ -867,11 +867,21 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 	return batteryMessage
 }
 
+func getNewContact(msg map[string]string) Contact {
+	contact := Contact{
+		Jid: msg["jid"],
+		Notify: msg["notify"],
+	}
+
+	return contact
+}
 
 func ParseNodeMessage(msg binary.Node) interface{} {
 	switch msg.Description {
 	case "battery":
 		return getBatteryMessage(msg.Attributes)
+	case "user":
+		return getNewContact(msg.Attributes)
 	default:
 		//cannot match message
 	}

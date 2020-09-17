@@ -74,6 +74,10 @@ func (myHandler) HandleBatteryMessage(msg whatsapp.BatteryMessage) {
 	fmt.Println(message)
 }
 
+func (myHandler) HandleNewContact(contact whatsapp.Contact) {
+	fmt.Println(contact)
+}
+
 wac.AddHandler(myHandler{})
 ```
 The message handlers are all optional, you don't need to implement anything but the error handler to implement the interface. The ImageMessage, VideoMessage, AudioMessage and DocumentMessage provide a Download function to get the media data.
