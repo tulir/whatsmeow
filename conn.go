@@ -2,6 +2,7 @@
 package whatsapp
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -9,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/pkg/errors"
 )
 
 type metric byte
@@ -175,7 +175,7 @@ func (wac *Conn) connect() (err error) {
 	headers := http.Header{"Origin": []string{"https://web.whatsapp.com"}}
 	wsConn, _, err := dialer.Dial("wss://web.whatsapp.com/ws", headers)
 	if err != nil {
-		return errors.Wrap(err, "couldn't dial whatsapp web websocket")
+		return fmt.Errorf("couldn't dial whatsapp web websocket: %w", err)
 	}
 
 	wsConn.SetCloseHandler(func(code int, text string) error {
@@ -251,7 +251,7 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 	for {
 		err := wac.sendKeepAlive()
 		if err != nil {
-			wac.handle(errors.Wrap(err, "keepAlive failed"))
+			wac.handle(fmt.Errorf("keepAlive failed: %w", err))
 			//TODO: Consequences?
 		}
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
@@ -264,9 +264,9 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 }
 
 func (wac *Conn) GetConnected() bool {
-	return  wac.connected
+	return wac.connected
 }
 
 func (wac *Conn) GetLoggedIn() bool {
-	return  wac.loggedIn
+	return wac.loggedIn
 }

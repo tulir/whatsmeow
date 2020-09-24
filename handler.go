@@ -5,8 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
 )
@@ -207,7 +205,7 @@ func (wac *Conn) handle(message interface{}) {
 	defer func() {
 		if errIfc := recover(); errIfc != nil {
 			if err, ok := errIfc.(error); ok {
-				wac.unsafeHandle(errors.Wrap(err, "panic in WhatsApp handler"))
+				wac.unsafeHandle(fmt.Errorf("panic in WhatsApp handler: %w", err))
 			} else {
 				wac.unsafeHandle(fmt.Errorf("panic in WhatsApp handler: %v", errIfc))
 			}

@@ -1,9 +1,8 @@
 package whatsapp
 
 import (
+	"errors"
 	"fmt"
-
-	"github.com/pkg/errors"
 )
 
 var (
