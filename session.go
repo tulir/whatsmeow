@@ -12,15 +12,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/Rhymen/go-whatsapp/crypto/curve25519"
 	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
 )
 
 //represents the WhatsAppWeb client version
-var waVersion = []int{2, 2035, 12}
+var waVersion = []int{2, 2039, 9}
 
 /*
 Session contains session individual information. To be able to resume the connection without scanning the qr code
@@ -262,7 +260,8 @@ func (wac *Conn) LoginWithRetry(qrChan chan<- string, maxRetries int) (Session, 
 	wac.loginSessionLock.Lock()
 	defer wac.loginSessionLock.Unlock()
 	var resp2 []interface{}
-	For: for {
+For:
+	for {
 		select {
 		case r1 := <-s1:
 			if err := json.Unmarshal([]byte(r1), &resp2); err != nil {
@@ -441,7 +440,7 @@ func (wac *Conn) Restore() error {
 				return fmt.Errorf("error decoding login connResp: %v\n", err)
 			}
 			if int(resp["status"].(float64)) != 200 {
-				return errors.Wrap(wac.getAdminLoginResponseError(resp), "admin login errored")
+				return fmt.Errorf("admin login errored: %w", wac.getAdminLoginResponseError(resp))
 			}
 		default:
 			// not even an error message – assume timeout
@@ -484,7 +483,7 @@ func (wac *Conn) Restore() error {
 
 		if int(resp["status"].(float64)) != 200 {
 			wac.timeTag = ""
-			return errors.Wrap(wac.getAdminLoginResponseError(resp), "admin login errored")
+			return fmt.Errorf("admin login errored: %w", wac.getAdminLoginResponseError(resp))
 		}
 	case <-time.After(wac.msgTimeout):
 		wac.timeTag = ""
@@ -517,7 +516,7 @@ func (wac *Conn) getAdminLoginResponseError(resp map[string]interface{}) error {
 		return ErrUnpaired
 	case 403:
 		tos := int(resp["tos"].(float64))
-		return errors.WithMessagef(ErrAccessDenied, "tos: %d", tos)
+		return fmt.Errorf("%w - tos: %d", ErrAccessDenied, tos)
 	case 405:
 		return ErrLoggedIn
 	case 409:
