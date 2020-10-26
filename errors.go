@@ -58,11 +58,20 @@ func (e *ErrConnectionClosed) Error() string {
 	return fmt.Sprintf("server closed connection,code: %d,text: %s", e.Code, e.Text)
 }
 
-type StatusResponse struct {
-	Status      int    `json:"status"`
-	RequestType string `json:"-"`
+type StatusResponseFields struct {
+	// The response status code. This is always expected to be present.
+	Status int `json:"status"`
+	// Some error messages include a "tos" value. If it's higher than 0, it
+	// might mean the user has been banned for breaking the terms of service.
+	TermsOfService int `json:"tos,omitempty"`
+	// This is a timestamp that's at least present in message send responses.
+	Timestamp int64 `json:"t,omitempty"`
+}
 
-	Extra map[string]interface{} `json:"-"`
+type StatusResponse struct {
+	StatusResponseFields
+	RequestType string                 `json:"-"`
+	Extra       map[string]interface{} `json:"-"`
 }
 
 func (sr *StatusResponse) UnmarshalJSON(data []byte) error {
@@ -70,8 +79,7 @@ func (sr *StatusResponse) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
-	sr.Status = int(sr.Extra["status"].(float64))
-	return nil
+	return json.Unmarshal(data, &sr.StatusResponseFields)
 }
 
 func (sr StatusResponse) Error() string {

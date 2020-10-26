@@ -505,8 +505,7 @@ func (wac *Conn) getAdminLoginResponseError(resp StatusResponse) error {
 	case 401:
 		return ErrUnpaired
 	case 403:
-		tos := int(resp.Extra["tos"].(float64))
-		return fmt.Errorf("%w - tos: %d", ErrAccessDenied, tos)
+		return fmt.Errorf("%w - tos: %d", ErrAccessDenied, resp.TermsOfService)
 	case 405:
 		return ErrLoggedIn
 	case 409:
