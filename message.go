@@ -30,13 +30,11 @@ func (wac *Conn) SendRaw(msg *proto.WebMessageInfo, output chan<- error) {
 		return
 	}
 	response := <-ch
-	var resp struct {
-		Status int `json:"status"`
-	}
+	resp := StatusResponse{RequestType: "message sending"}
 	if err = json.Unmarshal([]byte(response), &resp); err != nil {
 		output <- fmt.Errorf("error decoding sending response: %w", err)
 	} else if resp.Status != 200 {
-		output <- fmt.Errorf("message sending responded with %d", resp.Status)
+		output <- resp
 	} else {
 		output <- nil
 	}
@@ -95,13 +93,11 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 
 	select {
 	case response := <-ch:
-		var resp map[string]interface{}
+		resp := StatusResponse{RequestType: "message sending"}
 		if err = json.Unmarshal([]byte(response), &resp); err != nil {
 			return "ERROR", fmt.Errorf("error decoding sending response: %v\n", err)
-		}
-		status := int(resp["status"].(float64))
-		if status != 200 {
-			return "ERROR", fmt.Errorf("message sending responded with %d", status)
+		} else if resp.Status != 200 {
+			return "ERROR", resp
 		}
 		return getMessageInfo(msgProto).Id, nil
 	case <-time.After(wac.msgTimeout):
@@ -167,21 +163,16 @@ func (wac *Conn) DeleteMessage(remotejid, msgid string, fromMe bool) error {
 
 	select {
 	case response := <-ch:
-		var resp map[string]interface{}
+		resp := StatusResponse{RequestType: "message deletion"}
 		if err = json.Unmarshal([]byte(response), &resp); err != nil {
 			return fmt.Errorf("error decoding deletion response: %v", err)
+		} else if resp.Status != 200 {
+			return resp
 		}
-		if int(resp["status"].(float64)) != 200 {
-			return fmt.Errorf("message deletion responded with %v", resp["status"])
-		}
-		if int(resp["status"].(float64)) == 200 {
-			return nil
-		}
+		return nil
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("deleting message timed out")
 	}
-
-	return nil
 }
 
 func (wac *Conn) deleteChatProto(remotejid, msgid string, fromMe bool) (<-chan string, error) {

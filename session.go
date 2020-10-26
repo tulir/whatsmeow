@@ -408,14 +408,12 @@ func (wac *Conn) Restore() error {
 
 	select {
 	case r := <-initChan:
-		var resp map[string]interface{}
+		resp := StatusResponse{RequestType: "init"}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
 			return fmt.Errorf("error decoding login connResp: %v\n", err)
-		}
-
-		if stat := int(resp["status"].(float64)); stat != 200 {
+		} else if resp.Status != 200 {
 			wac.timeTag = ""
-			return fmt.Errorf("init responded with %d", stat)
+			return resp
 		}
 	case <-time.After(wac.msgTimeout):
 		wac.timeTag = ""
@@ -435,11 +433,10 @@ func (wac *Conn) Restore() error {
 		//check for an error message
 		select {
 		case r := <-loginChan:
-			var resp map[string]interface{}
+			resp := StatusResponse{RequestType: "admin login"}
 			if err = json.Unmarshal([]byte(r), &resp); err != nil {
 				return fmt.Errorf("error decoding login connResp: %v\n", err)
-			}
-			if int(resp["status"].(float64)) != 200 {
+			} else if resp.Status != 200 {
 				return fmt.Errorf("admin login errored: %w", wac.getAdminLoginResponseError(resp))
 			}
 		default:
@@ -475,13 +472,11 @@ func (wac *Conn) Restore() error {
 	//check for login 200 --> login success
 	select {
 	case r := <-loginChan:
-		var resp map[string]interface{}
+		resp := StatusResponse{RequestType: "admin login"}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
 			wac.timeTag = ""
 			return fmt.Errorf("error decoding login connResp: %v\n", err)
-		}
-
-		if int(resp["status"].(float64)) != 200 {
+		} else if resp.Status != 200 {
 			wac.timeTag = ""
 			return fmt.Errorf("admin login errored: %w", wac.getAdminLoginResponseError(resp))
 		}
@@ -503,19 +498,14 @@ func (wac *Conn) Restore() error {
 	return nil
 }
 
-func (wac *Conn) getAdminLoginResponseError(resp map[string]interface{}) error {
-	statusFloat, ok := resp["status"].(float64)
-	if !ok {
-		return fmt.Errorf("%v (unknown error, no status)", resp)
-	}
-	status := int(statusFloat)
-	switch status {
+func (wac *Conn) getAdminLoginResponseError(resp StatusResponse) error {
+	switch resp.Status {
 	case 400:
 		return ErrBadRequest
 	case 401:
 		return ErrUnpaired
 	case 403:
-		tos := int(resp["tos"].(float64))
+		tos := int(resp.Extra["tos"].(float64))
 		return fmt.Errorf("%w - tos: %d", ErrAccessDenied, tos)
 	case 405:
 		return ErrLoggedIn
@@ -542,12 +532,11 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 
 	select {
 	case r := <-challengeChan:
-		var resp map[string]interface{}
+		resp := StatusResponse{RequestType: "login challenge"}
 		if err := json.Unmarshal([]byte(r), &resp); err != nil {
 			return fmt.Errorf("error decoding login resp: %v\n", err)
-		}
-		if stat := int(resp["status"].(float64)); stat != 200 {
-			return fmt.Errorf("challenge responded with %d\n", stat)
+		} else if resp.Status != 200 {
+			return resp
 		}
 	case <-time.After(wac.msgTimeout):
 		return fmt.Errorf("connection timed out")

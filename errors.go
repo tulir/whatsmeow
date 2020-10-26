@@ -1,6 +1,7 @@
 package whatsapp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -55,4 +56,24 @@ type ErrConnectionClosed struct {
 
 func (e *ErrConnectionClosed) Error() string {
 	return fmt.Sprintf("server closed connection,code: %d,text: %s", e.Code, e.Text)
+}
+
+type StatusResponse struct {
+	Status      int    `json:"status"`
+	RequestType string `json:"-"`
+
+	Extra map[string]interface{} `json:"-"`
+}
+
+func (sr *StatusResponse) UnmarshalJSON(data []byte) error {
+	err := json.Unmarshal(data, &sr.Extra)
+	if err != nil {
+		return err
+	}
+	sr.Status = int(sr.Extra["status"].(float64))
+	return nil
+}
+
+func (sr StatusResponse) Error() string {
+	return fmt.Sprintf("%s responded with %d", sr.RequestType, sr.Status)
 }
