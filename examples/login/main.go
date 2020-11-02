@@ -23,6 +23,7 @@ func main() {
 	session, err := wac.Login(qr)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error during login: %v\n", err)
+		return
 	}
 	fmt.Printf("login successful, session: %v\n", session)
 }
