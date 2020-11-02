@@ -21,6 +21,7 @@ const (
 	MediaVideo    MediaType = "WhatsApp Video Keys"
 	MediaAudio    MediaType = "WhatsApp Audio Keys"
 	MediaDocument MediaType = "WhatsApp Document Keys"
+	MediaSticker  MediaType = "WhatsApp Sticker Keys"
 )
 
 func (wac *Conn) Send(msg interface{}) (string, error) {

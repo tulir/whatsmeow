@@ -116,31 +116,59 @@ Creates a new connection with a given timeout. The websocket connection to the W
 The goroutine for handling incoming messages is started
 */
 func NewConn(timeout time.Duration) (*Conn, error) {
-	wac := &Conn{
-		handler:    make([]Handler, 0),
-		msgCount:   0,
-		msgTimeout: timeout,
-		Store:      newStore(),
-
-		longClientName:  "github.com/rhymen/go-whatsapp",
-		shortClientName: "go-whatsapp",
-		clientVersion:   "0.1.0",
-	}
-	return wac, wac.connect()
+	return NewConnWithOptions(&Options{
+		Timeout: timeout,
+	})
 }
 
 // NewConnWithProxy Create a new connect with a given timeout and a http proxy.
 func NewConnWithProxy(timeout time.Duration, proxy func(*http.Request) (*url.URL, error)) (*Conn, error) {
+	return NewConnWithOptions(&Options{
+		Timeout: timeout,
+		Proxy: proxy,
+	})
+}
+
+// NewConnWithOptions Create a new connect with a given options.
+type Options struct {
+	Proxy            func(*http.Request) (*url.URL, error)
+	Timeout          time.Duration
+	Handler          []Handler
+	ShortClientName  string
+	LongClientName   string
+	ClientVersion    string
+	Store            *Store
+}
+func NewConnWithOptions(opt *Options) (*Conn, error) {
+	if opt == nil {
+		return nil, ErrOptionsNotProvided
+	}
 	wac := &Conn{
 		handler:    make([]Handler, 0),
 		msgCount:   0,
-		msgTimeout: timeout,
+		msgTimeout: opt.Timeout,
 		Store:      newStore(),
-
-		longClientName:  "github.com/rhymen/go-whatsapp",
+		longClientName:  "github.com/Rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
 		clientVersion:   "0.1.0",
-		Proxy:           proxy,
+	}
+	if opt.Handler != nil {
+		wac.handler = opt.Handler
+	}
+	if opt.Store != nil {
+		wac.Store = opt.Store
+	}
+	if opt.Proxy != nil {
+		wac.Proxy = opt.Proxy
+	}
+	if len(opt.ShortClientName) != 0 {
+		wac.shortClientName = opt.ShortClientName
+	}
+	if len(opt.LongClientName) != 0 {
+		wac.longClientName = opt.LongClientName
+	}
+	if len(opt.ClientVersion) != 0 {
+		wac.clientVersion = opt.ClientVersion
 	}
 	return wac, wac.connect()
 }
