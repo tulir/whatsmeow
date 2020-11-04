@@ -93,20 +93,20 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
-                                                                                
-type MediaConn struct {                                                         
-        Status int `json:"status"`                                              
-        MediaConn struct {                                                      
-                Auth string `json:"auth"`                                       
-                TTL int `json:"ttl"`                                            
-                Hosts []struct {                                                
-                        Hostname string `json:"hostname"`                       
-                        IPs []interface{}  `json:"ips"`                                              
-                } `json:"hosts"`                                                
-        } `json:"media_conn"`                                                   
+type MediaConn struct {
+	Status    int `json:"status"`
+	MediaConn struct {
+		Auth  string `json:"auth"`
+		TTL   int    `json:"ttl"`
+		Hosts []struct {
+			Hostname string `json:"hostname"`
+			IPs      []struct {
+				IP4 string `json:"ip4"`
+				IP6 string `json:"ip6"`
+			} `json:"ips"`
+		} `json:"hosts"`
+	} `json:"media_conn"`
 }
-
-
 
 func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
 	queryReq := []interface{}{"query", "mediaConn"}
@@ -131,7 +131,7 @@ func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
 
 	var host string
 	for _, h := range resp.MediaConn.Hosts {
-		if h.Hostname!="" {
+		if h.Hostname != "" {
 			host = h.Hostname
 			break
 		}
@@ -143,10 +143,10 @@ func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
 }
 
 var mediaTypeMap = map[MediaType]string{
-	MediaImage: "/mms/image",
-	MediaVideo: "/mms/video",
+	MediaImage:    "/mms/image",
+	MediaVideo:    "/mms/video",
 	MediaDocument: "/mms/document",
-	MediaAudio: "/mms/audio",
+	MediaAudio:    "/mms/audio",
 }
 
 func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (downloadURL string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
