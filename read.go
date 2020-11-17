@@ -62,8 +62,6 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		data[0] = "!"
 	}
 
-	fmt.Printf("len(data)= %d; len(data[1])= %d\n", len(data), len(data[1]))
-
 	if len(data) == 2 && len(data[1]) == 0 {
 		return nil
 	}
