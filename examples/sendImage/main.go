@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
-	"github.com/Baozisoftware/qrcode-terminal-go"
-	"github.com/Rhymen/go-whatsapp"
 	"os"
 	"time"
+
+	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
+	"github.com/Rhymen/go-whatsapp"
 )
 
 func main() {
@@ -40,12 +41,12 @@ func main() {
 		Content: img,
 	}
 
-	msgId,err := wac.Send(msg)
+	msgId, err := wac.Send(msg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error sending message: %v", err)
-		os.Exit(1)		
+		os.Exit(1)
 	} else {
-		fmt.Println("Message Sent -> ID : "+msgId)
+		fmt.Println("Message Sent -> ID : " + msgId)
 	}
 }
 

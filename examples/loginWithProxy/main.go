@@ -35,4 +35,3 @@ func main() {
 	}
 	fmt.Printf("login successful, session: %v\n", session)
 }
- 

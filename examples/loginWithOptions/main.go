@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/Baozisoftware/qrcode-terminal-go"
-	"github.com/Rhymen/go-whatsapp"
+	"net/http"
+	"net/url"
 	"os"
 	"time"
-	"net/url"
-	"net/http"
+
+	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
+	"github.com/Rhymen/go-whatsapp"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 	wac, err := whatsapp.NewConnWithOptions(&whatsapp.Options{
 		// timeout
 		Timeout: 20 * time.Second,
-		Proxy: proxy,
+		Proxy:   proxy,
 		// set custom client name
 		ShortClientName: "My-WhatsApp-Client",
 		LongClientName:  "My-WhatsApp-Clientttttttttttttt",
