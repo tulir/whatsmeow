@@ -62,6 +62,10 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		data[0] = "!"
 	}
 
+	if len(data) == 2 && len(data[1]) == 0 {
+		return nil
+	}
+
 	if len(data) != 2 || len(data[1]) == 0 {
 		return ErrInvalidWsData
 	}

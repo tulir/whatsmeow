@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/Baozisoftware/qrcode-terminal-go"
-	"github.com/Rhymen/go-whatsapp"
 	"os"
 	"time"
+
+	qrcodeTerminal "github.com/Baozisoftware/qrcode-terminal-go"
+	"github.com/Rhymen/go-whatsapp"
 )
 
 func main() {
@@ -23,6 +24,7 @@ func main() {
 	session, err := wac.Login(qr)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error during login: %v\n", err)
+		return
 	}
 	fmt.Printf("login successful, session: %v\n", session)
 }

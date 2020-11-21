@@ -238,7 +238,7 @@ func getMessageInfo(msg *proto.WebMessageInfo) MessageInfo {
 	return MessageInfo{
 		Id:        msg.GetKey().GetId(),
 		RemoteJid: msg.GetKey().GetRemoteJid(),
-		SenderJid: msg.GetKey().GetParticipant(),
+		SenderJid: msg.GetParticipant(),
 		FromMe:    msg.GetKey().GetFromMe(),
 		Timestamp: msg.GetMessageTimestamp(),
 		Status:    MessageStatus(msg.GetStatus()),
@@ -844,13 +844,12 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 	return nil
 }
 
-
 /*
 BatteryMessage represents a battery level and charging state.
 */
 type BatteryMessage struct {
-	Plugged bool
-	Powersave bool
+	Plugged    bool
+	Powersave  bool
 	Percentage int
 }
 
@@ -859,8 +858,8 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 	powersave, _ := strconv.ParseBool(msg["powersave"])
 	percentage, _ := strconv.Atoi(msg["value"])
 	batteryMessage := BatteryMessage{
-		Plugged: plugged,
-		Powersave: powersave,
+		Plugged:    plugged,
+		Powersave:  powersave,
 		Percentage: percentage,
 	}
 
@@ -869,7 +868,7 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 
 func getNewContact(msg map[string]string) Contact {
 	contact := Contact{
-		Jid: msg["jid"],
+		Jid:    msg["jid"],
 		Notify: msg["notify"],
 	}
 

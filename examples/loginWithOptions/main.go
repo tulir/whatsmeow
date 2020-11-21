@@ -12,12 +12,25 @@ import (
 )
 
 func main() {
-	proxy := http.ProxyURL(&url.URL{
-		Scheme: "socks5", // or http/https depending on your proxy
-		Host:   "127.0.0.1:1080",
-		Path:   "/",
+	// set proxy
+	// or you can use *url.URL directly like loginWithProxy example
+	purl, err := url.Parse("socks5://127.0.0.1/")
+	if err != nil {
+		panic(err)
+	}
+	proxy := http.ProxyURL(purl)
+
+	// or just left it empty
+	proxy = nil
+
+	wac, err := whatsapp.NewConnWithOptions(&whatsapp.Options{
+		// timeout
+		Timeout: 20 * time.Second,
+		Proxy:   proxy,
+		// set custom client name
+		ShortClientName: "My-WhatsApp-Client",
+		LongClientName:  "My-WhatsApp-Clientttttttttttttt",
 	})
-	wac, err := whatsapp.NewConnWithProxy(5*time.Second, proxy)
 	if err != nil {
 		panic(err)
 	}
