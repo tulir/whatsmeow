@@ -22,7 +22,7 @@ var (
 	ErrMediaDownloadFailedWith404 = errors.New("download failed with status code 404")
 	ErrMediaDownloadFailedWith410 = errors.New("download failed with status code 410")
 	ErrInvalidWebsocket           = errors.New("invalid websocket")
-
+	ErrMessageTypeNotImplemented  = errors.New("message type not implemented")
 	ErrOptionsNotProvided         = errors.New("new conn options not provided")
 )
 

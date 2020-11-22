@@ -838,10 +838,8 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	default:
 		//cannot match message
-
+		return ErrMessageTypeNotImplemented
 	}
-
-	return nil
 }
 
 /*
