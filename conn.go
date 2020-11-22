@@ -249,10 +249,26 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 	}
 }
 
-func (wac *Conn) GetConnected() bool {
-	return  wac.connected
+// IsConnected returns whether the server connection is established or not
+func (wac *Conn) IsConnected() bool {
+	return wac.connected
 }
 
+// GetConnected returns whether the server connection is established or not
+//
+// Deprecated: function name is not go idiomatic, use IsConnected instead
+func (wac *Conn) GetConnected() bool {
+	return wac.connected
+}
+
+//IsLoggedIn returns whether the you are logged in or not
+func (wac *Conn) IsLoggedIn() bool {
+	return wac.loggedIn
+}
+
+// GetLoggedIn returns whether the you are logged in or not
+//
+// Deprecated: function name is not go idiomatic, use IsLoggedIn instead.
 func (wac *Conn) GetLoggedIn() bool {
-	return  wac.loggedIn
+	return wac.loggedIn
 }
