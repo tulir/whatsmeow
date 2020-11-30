@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"strings"
 
 	"github.com/Rhymen/go-whatsapp/binary"
@@ -111,15 +112,15 @@ func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 		var response struct {
 			Status int `json:"status"`
 		}
-		err := json.Unmarshal(msg, &response)
-		if err == nil {
-			if response.Status == 404 {
+
+		if err := json.Unmarshal(msg, &response); err == nil {
+			if response.Status == http.StatusNotFound {
 				return nil, ErrServerRespondedWith404
 			}
 			return nil, errors.New(fmt.Sprintf("server responded with %d", response.Status))
-		} else {
-			return nil, ErrInvalidServerResponse
 		}
+
+		return nil, ErrInvalidServerResponse
 
 	}
 	h2.Write([]byte(msg[32:]))
