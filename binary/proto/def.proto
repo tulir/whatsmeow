@@ -69,7 +69,16 @@ message InteractiveAnnotation {
     }
 }
 
-message GlobalContextInfo {}
+message DeviceListMetadata {
+    optional bytes senderKeyHash = 1;
+    optional uint64 senderTimestamp = 2;
+    optional bytes recipientKeyHash = 8;
+    optional uint64 recipientTimestamp = 9;
+}
+
+message MessageContextInfo {
+    optional DeviceListMetadata deviceListMetadata = 1;
+}
 
 message AdReplyInfo {
     optional string advertiserName = 1;
@@ -147,6 +156,23 @@ message ImageMessage {
     optional bytes midQualityFileSha256 = 23;
     optional bytes midQualityFileEncSha256 = 24;
     optional bool viewOnce = 25;
+}
+
+message InvoiceMessage {
+    optional string note = 1;
+    optional string token = 2;
+    enum InvoiceMessageAttachmentType {
+        IMAGE = 0;
+        PDF = 1;
+    }
+    optional InvoiceMessageAttachmentType attachmentType = 3;
+    optional string attachmentMimetype = 4;
+    optional bytes attachmentMediaKey = 5;
+    optional int64 attachmentMediaKeyTimestamp = 6;
+    optional bytes attachmentFileSha256 = 7;
+    optional bytes attachmentFileEncSha256 = 8;
+    optional string attachmentDirectPath = 9;
+    optional bytes attachmentJpegThumbnail = 10;
 }
 
 message ContactMessage {
@@ -302,6 +328,7 @@ message HistorySyncNotification {
         INITIAL_STATUS_V3 = 1;
         FULL = 2;
         RECENT = 3;
+        PUSH_NAME = 4;
     }
     optional HistorySyncNotificationHistorySyncType syncType = 6;
     optional uint32 chunkOrder = 7;
@@ -417,6 +444,13 @@ message RequestPaymentMessage {
     optional uint64 amount1000 = 2;
     optional string requestFrom = 3;
     optional int64 expiryTimestamp = 5;
+    optional PaymentMoney amount = 6;
+}
+
+message PaymentMoney {
+    optional int64 value = 1;
+    optional uint32 offset = 2;
+    optional string currencyCode = 3;
 }
 
 message DeclinePaymentRequestMessage {
@@ -574,7 +608,7 @@ message SingleSelectReply {
 }
 
 message ListResponseMessage {
-    optional string selectedDisplayText = 1;
+    optional string title = 1;
     enum ListResponseMessageListType {
         UNKNOWN = 0;
         SINGLE_SELECT = 1;
@@ -582,6 +616,7 @@ message ListResponseMessage {
     optional ListResponseMessageListType listType = 2;
     optional SingleSelectReply singleSelectReply = 3;
     optional ContextInfo contextInfo = 4;
+    optional string description = 5;
 }
 
 message GroupInviteMessage {
@@ -611,6 +646,35 @@ message FutureProofMessage {
     optional Message message = 1;
 }
 
+message ButtonText {
+    optional string displayText = 1;
+}
+
+message Button {
+    optional string buttonId = 1;
+    optional ButtonText buttonText = 2;
+}
+
+message ButtonsMessage {
+    optional string contentText = 6;
+    optional string footerText = 7;
+    optional ContextInfo contextInfo = 8;
+    repeated Button buttons = 9;
+    oneof title {
+        string titleText = 1;
+        DocumentMessage documentMessage = 2;
+        ImageMessage imageMessage = 3;
+        VideoMessage videoMessage = 4;
+        LocationMessage locationMessage = 5;
+    }
+}
+
+message ButtonsResponseMessage {
+    optional string selectedButtonId = 1;
+    optional string selectedDisplayText = 2;
+    optional ContextInfo contextInfo = 3;
+}
+
 message Message {
     optional string conversation = 1;
     optional SenderKeyDistributionMessage senderKeyDistributionMessage = 2;
@@ -638,12 +702,15 @@ message Message {
     optional TemplateButtonReplyMessage templateButtonReplyMessage = 29;
     optional ProductMessage productMessage = 30;
     optional DeviceSentMessage deviceSentMessage = 31;
-    optional GlobalContextInfo globalContextInfo = 35;
+    optional MessageContextInfo messageContextInfo = 35;
     optional ListMessage listMessage = 36;
     optional FutureProofMessage viewOnceMessage = 37;
     optional OrderMessage orderMessage = 38;
     optional ListResponseMessage listResponseMessage = 39;
     optional FutureProofMessage ephemeralMessage = 40;
+    optional InvoiceMessage invoiceMessage = 41;
+    optional ButtonsMessage buttonsMessage = 42;
+    optional ButtonsResponseMessage buttonsResponseMessage = 43;
 }
 
 message MessageKey {
@@ -696,6 +763,10 @@ message WebFeatures {
     optional WebFeaturesFlag recentStickersV3 = 36;
     optional WebFeaturesFlag userNotice = 37;
     optional WebFeaturesFlag syncdRelease11 = 38;
+    optional WebFeaturesFlag support = 39;
+    optional WebFeaturesFlag groupUiiCleanup = 40;
+    optional WebFeaturesFlag groupDogfoodingInternalOnly = 41;
+    optional WebFeaturesFlag settingsSync = 42;
 }
 
 message NotificationMessageInfo {
@@ -871,49 +942,50 @@ message WebMessageInfo {
         CHANGE_EPHEMERAL_SETTING = 72;
         E2E_DEVICE_CHANGED = 73;
         VIEWED_ONCE = 74;
-        BLUE_MSG_BSP_FB_TO_BSP_PREMISE = 75;
-        BLUE_MSG_BSP_FB_TO_SELF_FB = 76;
-        BLUE_MSG_BSP_FB_TO_SELF_PREMISE = 77;
-        BLUE_MSG_BSP_FB_UNVERIFIED = 78;
-        BLUE_MSG_BSP_FB_UNVERIFIED_TO_SELF_PREMISE_VERIFIED = 79;
-        BLUE_MSG_BSP_FB_VERIFIED = 80;
-        BLUE_MSG_BSP_FB_VERIFIED_CONTACT_MISMATCH = 81;
+        E2E_ENCRYPTED_NOW = 75;
+        BLUE_MSG_BSP_FB_TO_BSP_PREMISE = 76;
+        BLUE_MSG_BSP_FB_TO_SELF_FB = 77;
+        BLUE_MSG_BSP_FB_TO_SELF_PREMISE = 78;
+        BLUE_MSG_BSP_FB_UNVERIFIED = 79;
+        BLUE_MSG_BSP_FB_UNVERIFIED_TO_SELF_PREMISE_VERIFIED = 80;
+        BLUE_MSG_BSP_FB_VERIFIED = 81;
         BLUE_MSG_BSP_FB_VERIFIED_TO_SELF_PREMISE_UNVERIFIED = 82;
         BLUE_MSG_BSP_PREMISE_TO_SELF_PREMISE = 83;
         BLUE_MSG_BSP_PREMISE_UNVERIFIED = 84;
         BLUE_MSG_BSP_PREMISE_UNVERIFIED_TO_SELF_PREMISE_VERIFIED = 85;
         BLUE_MSG_BSP_PREMISE_VERIFIED = 86;
-        BLUE_MSG_BSP_PREMISE_VERIFIED_CONTACT_MISMATCH = 87;
-        BLUE_MSG_BSP_PREMISE_VERIFIED_TO_SELF_PREMISE_UNVERIFIED = 88;
-        BLUE_MSG_CONSUMER_TO_BSP_FB_UNVERIFIED = 89;
-        BLUE_MSG_CONSUMER_TO_BSP_PREMISE_UNVERIFIED = 90;
-        BLUE_MSG_CONSUMER_TO_SELF_FB_UNVERIFIED = 91;
-        BLUE_MSG_CONSUMER_TO_SELF_PREMISE_UNVERIFIED = 92;
-        BLUE_MSG_SELF_FB_TO_BSP_PREMISE = 93;
-        BLUE_MSG_SELF_FB_TO_SELF_PREMISE = 94;
-        BLUE_MSG_SELF_FB_UNVERIFIED = 95;
-        BLUE_MSG_SELF_FB_UNVERIFIED_TO_SELF_PREMISE_VERIFIED = 96;
-        BLUE_MSG_SELF_FB_VERIFIED = 97;
-        BLUE_MSG_SELF_FB_VERIFIED_CONTACT_MISMATCH = 98;
-        BLUE_MSG_SELF_FB_VERIFIED_TO_SELF_PREMISE_UNVERIFIED = 99;
-        BLUE_MSG_SELF_PREMISE_TO_BSP_PREMISE = 100;
-        BLUE_MSG_SELF_PREMISE_UNVERIFIED = 101;
-        BLUE_MSG_SELF_PREMISE_VERIFIED = 102;
-        BLUE_MSG_TO_BSP_FB = 103;
-        BLUE_MSG_TO_CONSUMER = 104;
-        BLUE_MSG_TO_SELF_FB = 105;
-        BLUE_MSG_UNVERIFIED_TO_BSP_FB_VERIFIED = 106;
-        BLUE_MSG_UNVERIFIED_TO_BSP_FB_VERIFIED_CONTACT_MISMATCH = 107;
-        BLUE_MSG_UNVERIFIED_TO_BSP_PREMISE_VERIFIED = 108;
-        BLUE_MSG_UNVERIFIED_TO_BSP_PREMISE_VERIFIED_CONTACT_MISMATCH = 109;
-        BLUE_MSG_UNVERIFIED_TO_SELF_FB_VERIFIED = 110;
-        BLUE_MSG_UNVERIFIED_TO_SELF_FB_VERIFIED_CONTACT_MISMATCH = 111;
-        BLUE_MSG_UNVERIFIED_TO_VERIFIED = 112;
-        BLUE_MSG_VERIFIED_TO_BSP_FB_UNVERIFIED = 113;
-        BLUE_MSG_VERIFIED_TO_BSP_PREMISE_UNVERIFIED = 114;
-        BLUE_MSG_VERIFIED_TO_SELF_FB_UNVERIFIED = 115;
-        BLUE_MSG_VERIFIED_TO_UNVERIFIED = 116;
-        GOLD_MSG_NOT_E2E_TO_E2E = 117;
+        BLUE_MSG_BSP_PREMISE_VERIFIED_TO_SELF_PREMISE_UNVERIFIED = 87;
+        BLUE_MSG_CONSUMER_TO_BSP_FB_UNVERIFIED = 88;
+        BLUE_MSG_CONSUMER_TO_BSP_PREMISE_UNVERIFIED = 89;
+        BLUE_MSG_CONSUMER_TO_SELF_FB_UNVERIFIED = 90;
+        BLUE_MSG_CONSUMER_TO_SELF_PREMISE_UNVERIFIED = 91;
+        BLUE_MSG_SELF_FB_TO_BSP_PREMISE = 92;
+        BLUE_MSG_SELF_FB_TO_SELF_PREMISE = 93;
+        BLUE_MSG_SELF_FB_UNVERIFIED = 94;
+        BLUE_MSG_SELF_FB_UNVERIFIED_TO_SELF_PREMISE_VERIFIED = 95;
+        BLUE_MSG_SELF_FB_VERIFIED = 96;
+        BLUE_MSG_SELF_FB_VERIFIED_TO_SELF_PREMISE_UNVERIFIED = 97;
+        BLUE_MSG_SELF_PREMISE_TO_BSP_PREMISE = 98;
+        BLUE_MSG_SELF_PREMISE_UNVERIFIED = 99;
+        BLUE_MSG_SELF_PREMISE_VERIFIED = 100;
+        BLUE_MSG_TO_BSP_FB = 101;
+        BLUE_MSG_TO_CONSUMER = 102;
+        BLUE_MSG_TO_SELF_FB = 103;
+        BLUE_MSG_UNVERIFIED_TO_BSP_FB_VERIFIED = 104;
+        BLUE_MSG_UNVERIFIED_TO_BSP_PREMISE_VERIFIED = 105;
+        BLUE_MSG_UNVERIFIED_TO_SELF_FB_VERIFIED = 106;
+        BLUE_MSG_UNVERIFIED_TO_VERIFIED = 107;
+        BLUE_MSG_VERIFIED_TO_BSP_FB_UNVERIFIED = 108;
+        BLUE_MSG_VERIFIED_TO_BSP_PREMISE_UNVERIFIED = 109;
+        BLUE_MSG_VERIFIED_TO_SELF_FB_UNVERIFIED = 110;
+        BLUE_MSG_VERIFIED_TO_UNVERIFIED = 111;
+        BLUE_MSG_BSP_FB_UNVERIFIED_TO_BSP_PREMISE_VERIFIED = 112;
+        BLUE_MSG_BSP_FB_UNVERIFIED_TO_SELF_FB_VERIFIED = 113;
+        BLUE_MSG_BSP_FB_VERIFIED_TO_BSP_PREMISE_UNVERIFIED = 114;
+        BLUE_MSG_BSP_FB_VERIFIED_TO_SELF_FB_UNVERIFIED = 115;
+        BLUE_MSG_SELF_FB_UNVERIFIED_TO_BSP_PREMISE_VERIFIED = 116;
+        BLUE_MSG_SELF_FB_VERIFIED_TO_BSP_PREMISE_UNVERIFIED = 117;
+        E2E_IDENTITY_UNAVAILABLE = 118;
     }
     optional WebMessageInfoStubType messageStubType = 24;
     optional bool clearMedia = 25;
@@ -934,5 +1006,6 @@ message WebMessageInfo {
         BSP_AND_FB = 3;
     }
     optional WebMessageInfoBizPrivacyStatus bizPrivacyStatus = 36;
+    optional string verifiedBizName = 37;
 }
 
