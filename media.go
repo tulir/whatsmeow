@@ -74,6 +74,12 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, nil, ErrMediaDownloadFailedWith404
+		}
+		if resp.StatusCode == http.StatusGone {
+			return nil, nil, ErrMediaDownloadFailedWith410
+		}
 		return nil, nil, fmt.Errorf("download failed with status code %d", resp.StatusCode)
 	}
 	if resp.ContentLength <= 10 {
