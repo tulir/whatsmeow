@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/Rhymen/go-whatsapp"
 	"log"
 	"time"
+
+	"github.com/Rhymen/go-whatsapp"
 )
 
 // historyHandler for acquiring chat history

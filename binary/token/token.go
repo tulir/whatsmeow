@@ -26,8 +26,8 @@ var SingleByteTokens = [...]string{"", "", "", "200", "400", "404", "500", "501"
 	"unsubscribe", "disable", "vname", "old_jid", "new_jid", "announcement",
 	"locked", "prop", "label", "color", "call", "offer", "call-id",
 	"quick_reply", "sticker", "pay_t", "accept", "reject", "sticker_pack",
-	"invalid", "canceled", "missed", "connected", "result", "audio", "video",
-	"recent"}
+	"invalid", "canceled", "missed", "connected", "result", "audio",
+	"video", "recent"}
 
 var doubleByteTokens = [...]string{}
 

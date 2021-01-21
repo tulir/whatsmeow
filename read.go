@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"strings"
 
 	"github.com/gorilla/websocket"
@@ -62,6 +63,10 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		data[0] = "!"
 	}
 
+	if len(data) == 2 && len(data[1]) == 0 {
+		return nil
+	}
+
 	if len(data) != 2 || len(data[1]) == 0 {
 		return ErrInvalidWsData
 	}
@@ -107,15 +112,17 @@ func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 		var response struct {
 			Status int `json:"status"`
 		}
-		err := json.Unmarshal(msg, &response)
-		if err == nil {
-			if response.Status == 404 {
+
+		if err := json.Unmarshal(msg, &response); err == nil {
+			if response.Status == http.StatusNotFound {
 				return nil, ErrServerRespondedWith404
 			}
 			return nil, fmt.Errorf("server responded with %d", response.Status)
 		} else {
 			return nil, ErrInvalidServerResponse
 		}
+
+		return nil, ErrInvalidServerResponse
 
 	}
 	h2.Write([]byte(msg[32:]))

@@ -39,6 +39,9 @@ var (
 	ErrJoinUnauthorized  = errors.New("you're not allowed to join that group")
 
 	ErrInvalidWebsocket = errors.New("invalid websocket")
+
+	ErrMessageTypeNotImplemented = errors.New("message type not implemented")
+	ErrOptionsNotProvided        = errors.New("new conn options not provided")
 )
 
 type ErrConnectionFailed struct {
