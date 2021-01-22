@@ -22,6 +22,7 @@ var (
 	ErrMediaDownloadFailedWith404 = errors.New("download failed with status code 404")
 	ErrMediaDownloadFailedWith410 = errors.New("download failed with status code 410")
 	ErrLoginTimedOut              = errors.New("login timed out")
+	ErrQueryTimeout               = errors.New("query timed out")
 
 	ErrBadRequest   = errors.New("400 (bad request)")
 	ErrUnpaired     = errors.New("401 (unpaired from phone)")

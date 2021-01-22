@@ -185,13 +185,18 @@ func (wac *Conn) query(t, jid, messageId, kind, owner, search string, count, pag
 		return nil, err
 	}
 
-	msg, err := wac.decryptBinaryMessage([]byte(<-ch))
-	if err != nil {
-		return nil, err
-	}
+	select {
+	case response := <-ch:
+		msg, err := wac.decryptBinaryMessage([]byte(response))
+		if err != nil {
+			return nil, err
+		}
 
-	//TODO: use parseProtoMessage
-	return msg, nil
+		//TODO: use parseProtoMessage
+		return msg, nil
+	case <-time.After(3 * time.Minute):
+		return nil, ErrQueryTimeout
+	}
 }
 
 func (wac *Conn) setGroup(t, jid, subject string, participants []string) (<-chan string, error) {
