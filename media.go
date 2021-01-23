@@ -10,10 +10,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"mime/multipart"
+	"net"
 	"net/http"
-	"os"
-	"strings"
+	"net/url"
 	"time"
 
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
@@ -40,7 +39,7 @@ func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) ([
 		return nil, err
 	}
 	if len(data) != fileLength {
-		return nil, fmt.Errorf("file length does not match")
+		return nil, fmt.Errorf("file length does not match. Expected: %v, got: %v", fileLength, len(data))
 	}
 	return data, nil
 }
@@ -73,16 +72,10 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	if resp.StatusCode != 200 {
-		if resp.StatusCode == 404 {
-			return nil, nil, ErrMediaDownloadFailedWith404
-		}
-		if resp.StatusCode == 410 {
-			return nil, nil, ErrMediaDownloadFailedWith410
-		}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
 		return nil, nil, fmt.Errorf("download failed with status code %d", resp.StatusCode)
 	}
-	defer resp.Body.Close()
 	if resp.ContentLength <= 10 {
 		return nil, nil, fmt.Errorf("file to short")
 	}
@@ -95,7 +88,59 @@ func downloadMedia(url string) (file []byte, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
-func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+type MediaConn struct {
+	Status    int `json:"status"`
+	MediaConn struct {
+		Auth  string `json:"auth"`
+		TTL   int    `json:"ttl"`
+		Hosts []struct {
+			Hostname string `json:"hostname"`
+			IPs      []struct {
+				IP4 net.IP `json:"ip4"`
+				IP6 net.IP `json:"ip6"`
+			} `json:"ips"`
+		} `json:"hosts"`
+	} `json:"media_conn"`
+}
+
+func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
+	queryReq := []interface{}{"query", "mediaConn"}
+	ch, err := wac.writeJson(queryReq)
+	if err != nil {
+		return "", "", 0, err
+	}
+
+	var resp MediaConn
+	select {
+	case r := <-ch:
+		if err = json.Unmarshal([]byte(r), &resp); err != nil {
+			return "", "", 0, fmt.Errorf("error decoding query media conn response: %v", err)
+		}
+	case <-time.After(wac.msgTimeout):
+		return "", "", 0, fmt.Errorf("query media conn timed out")
+	}
+
+	if resp.Status != http.StatusOK {
+		return "", "", 0, fmt.Errorf("query media conn responded with %d", resp.Status)
+	}
+
+	for _, h := range resp.MediaConn.Hosts {
+		if h.Hostname != "" {
+			return h.Hostname, resp.MediaConn.Auth, resp.MediaConn.TTL, nil
+		}
+	}
+
+	return "", "", 0, fmt.Errorf("query media conn responded with no host")
+}
+
+var mediaTypeMap = map[MediaType]string{
+	MediaImage:    "/mms/image",
+	MediaVideo:    "/mms/video",
+	MediaDocument: "/mms/document",
+	MediaAudio:    "/mms/audio",
+}
+
+func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (downloadURL string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return "", nil, nil, nil, 0, err
@@ -128,66 +173,33 @@ func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaK
 	sha.Write(append(enc, mac...))
 	fileEncSha256 = sha.Sum(nil)
 
-	var filetype string
-	switch appInfo {
-	case MediaImage:
-		filetype = "image"
-	case MediaAudio:
-		filetype = "audio"
-	case MediaDocument:
-		filetype = "document"
-	case MediaVideo:
-		filetype = "video"
-	}
-
-	uploadReq := []interface{}{"action", "encr_upload", filetype, base64.StdEncoding.EncodeToString(fileEncSha256)}
-	ch, err := wac.writeJson(uploadReq)
+	hostname, auth, _, err := wac.queryMediaConn()
 	if err != nil {
 		return "", nil, nil, nil, 0, err
 	}
 
-	var resp map[string]interface{}
-	select {
-	case r := <-ch:
-		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			return "", nil, nil, nil, 0, fmt.Errorf("error decoding upload response: %v", err)
-		}
-	case <-time.After(wac.msgTimeout):
-		return "", nil, nil, nil, 0, fmt.Errorf("restore session init timed out")
+	token := base64.URLEncoding.EncodeToString(fileEncSha256)
+	q := url.Values{
+		"auth":  []string{auth},
+		"token": []string{token},
+	}
+	path := mediaTypeMap[appInfo]
+	uploadURL := url.URL{
+		Scheme:   "https",
+		Host:     hostname,
+		Path:     fmt.Sprintf("%s/%s", path, token),
+		RawQuery: q.Encode(),
 	}
 
-	if int(resp["status"].(float64)) != 200 {
-		return "", nil, nil, nil, 0, fmt.Errorf("upload responsed with %d", resp["status"])
-	}
+	body := bytes.NewReader(append(enc, mac...))
 
-	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
-	hashWriter, err := w.CreateFormField("hash")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-	}
-	io.Copy(hashWriter, strings.NewReader(base64.StdEncoding.EncodeToString(fileEncSha256)))
-
-	fileWriter, err := w.CreateFormFile("file", "blob")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-	}
-	io.Copy(fileWriter, bytes.NewReader(append(enc, mac...)))
-	err = w.Close()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-	}
-
-	req, err := http.NewRequest("POST", resp["url"].(string), &b)
+	req, err := http.NewRequest(http.MethodPost, uploadURL.String(), body)
 	if err != nil {
 		return "", nil, nil, nil, 0, err
 	}
 
-	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("Origin", "https://web.whatsapp.com")
 	req.Header.Set("Referer", "https://web.whatsapp.com/")
-
-	req.URL.Query().Set("f", "j")
 
 	client := &http.Client{}
 	// Submit the request
@@ -201,7 +213,9 @@ func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (url string, mediaK
 	}
 
 	var jsonRes map[string]string
-	json.NewDecoder(res.Body).Decode(&jsonRes)
+	if err := json.NewDecoder(res.Body).Decode(&jsonRes); err != nil {
+		return "", nil, nil, nil, 0, err
+	}
 
 	return jsonRes["url"], mediaKey, fileEncSha256, fileSha256, fileLength, nil
 }

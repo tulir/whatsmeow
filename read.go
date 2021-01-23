@@ -5,13 +5,15 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
-	"io"
-	"io/ioutil"
-	"strings"
 )
 
 func (wac *Conn) readPump() {
@@ -27,7 +29,9 @@ func (wac *Conn) readPump() {
 	for {
 		readerFound := make(chan struct{})
 		go func() {
-			msgType, reader, readErr = wac.ws.conn.NextReader()
+			if wac.ws != nil {
+				msgType, reader, readErr = wac.ws.conn.NextReader()
+			}
 			close(readerFound)
 		}()
 		select {
@@ -57,6 +61,10 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 	if data[0][0] == '!' { //Keep-Alive Timestamp
 		data = append(data, data[0][1:]) //data[1]
 		data[0] = "!"
+	}
+
+	if len(data) == 2 && len(data[1]) == 0 {
+		return nil
 	}
 
 	if len(data) != 2 || len(data[1]) == 0 {
@@ -104,15 +112,15 @@ func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 		var response struct {
 			Status int `json:"status"`
 		}
-		err := json.Unmarshal(msg, &response)
-		if err == nil {
-			if response.Status == 404 {
+
+		if err := json.Unmarshal(msg, &response); err == nil {
+			if response.Status == http.StatusNotFound {
 				return nil, ErrServerRespondedWith404
 			}
 			return nil, errors.New(fmt.Sprintf("server responded with %d", response.Status))
-		} else {
-			return nil, ErrInvalidServerResponse
 		}
+
+		return nil, ErrInvalidServerResponse
 
 	}
 	h2.Write([]byte(msg[32:]))

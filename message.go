@@ -81,7 +81,7 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 			return "ERROR", fmt.Errorf("error decoding sending response: %v\n", err)
 		}
 		if int(resp["status"].(float64)) != 200 {
-			return "ERROR", fmt.Errorf("message sending responded with %d", resp["status"])
+			return "ERROR", fmt.Errorf("message sending responded with %v", resp["status"])
 		}
 		if int(resp["status"].(float64)) == 200 {
 			return getMessageInfo(msgProto).Id, nil
@@ -103,6 +103,105 @@ func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
 		Content: []interface{}{p},
 	}
 	return wac.writeBinary(n, message, ignore, p.Key.GetId())
+}
+
+// RevokeMessage revokes a message (marks as "message removed") for everyone
+func (wac *Conn) RevokeMessage(remotejid, msgid string, fromme bool) (revokeid string, err error) {
+	// create a revocation ID (required)
+	rawrevocationID := make([]byte, 10)
+	rand.Read(rawrevocationID)
+	revocationID := strings.ToUpper(hex.EncodeToString(rawrevocationID))
+	//
+	ts := uint64(time.Now().Unix())
+	status := proto.WebMessageInfo_PENDING
+	mtype := proto.ProtocolMessage_REVOKE
+
+	revoker := &proto.WebMessageInfo{
+		Key: &proto.MessageKey{
+			FromMe:    &fromme,
+			Id:        &revocationID,
+			RemoteJid: &remotejid,
+		},
+		MessageTimestamp: &ts,
+		Message: &proto.Message{
+			ProtocolMessage: &proto.ProtocolMessage{
+				Type: &mtype,
+				Key: &proto.MessageKey{
+					FromMe:    &fromme,
+					Id:        &msgid,
+					RemoteJid: &remotejid,
+				},
+			},
+		},
+		Status: &status,
+	}
+	if _, err := wac.Send(revoker); err != nil {
+		return revocationID, err
+	}
+	return revocationID, nil
+}
+
+// DeleteMessage deletes a single message for the user (removes the msgbox). To
+// delete the message for everyone, use RevokeMessage
+func (wac *Conn) DeleteMessage(remotejid, msgid string, fromMe bool) error {
+	ch, err := wac.deleteChatProto(remotejid, msgid, fromMe)
+	if err != nil {
+		return fmt.Errorf("could not send proto: %v", err)
+	}
+
+	select {
+	case response := <-ch:
+		var resp map[string]interface{}
+		if err = json.Unmarshal([]byte(response), &resp); err != nil {
+			return fmt.Errorf("error decoding deletion response: %v", err)
+		}
+		if int(resp["status"].(float64)) != 200 {
+			return fmt.Errorf("message deletion responded with %v", resp["status"])
+		}
+		if int(resp["status"].(float64)) == 200 {
+			return nil
+		}
+	case <-time.After(wac.msgTimeout):
+		return fmt.Errorf("deleting message timed out")
+	}
+
+	return nil
+}
+
+func (wac *Conn) deleteChatProto(remotejid, msgid string, fromMe bool) (<-chan string, error) {
+	tag := fmt.Sprintf("%s.--%d", wac.timeTag, wac.msgCount)
+
+	owner := "true"
+	if !fromMe {
+		owner = "false"
+	}
+	n := binary.Node{
+		Description: "action",
+		Attributes: map[string]string{
+			"epoch": strconv.Itoa(wac.msgCount),
+			"type":  "set",
+		},
+		Content: []interface{}{
+			binary.Node{
+				Description: "chat",
+				Attributes: map[string]string{
+					"type":  "clear",
+					"jid":   remotejid,
+					"media": "true",
+				},
+				Content: []binary.Node{
+					{
+						Description: "item",
+						Attributes: map[string]string{
+							"owner": owner,
+							"index": msgid,
+						},
+					},
+				},
+			},
+		},
+	}
+	return wac.writeBinary(n, chat, expires|skipOffline, tag)
 }
 
 func init() {
@@ -139,7 +238,7 @@ func getMessageInfo(msg *proto.WebMessageInfo) MessageInfo {
 	return MessageInfo{
 		Id:        msg.GetKey().GetId(),
 		RemoteJid: msg.GetKey().GetRemoteJid(),
-		SenderJid: msg.GetKey().GetParticipant(),
+		SenderJid: msg.GetParticipant(),
 		FromMe:    msg.GetKey().GetFromMe(),
 		Timestamp: msg.GetMessageTimestamp(),
 		Status:    MessageStatus(msg.GetStatus()),
@@ -739,7 +838,49 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	default:
 		//cannot match message
+		return ErrMessageTypeNotImplemented
+	}
+}
 
+/*
+BatteryMessage represents a battery level and charging state.
+*/
+type BatteryMessage struct {
+	Plugged    bool
+	Powersave  bool
+	Percentage int
+}
+
+func getBatteryMessage(msg map[string]string) BatteryMessage {
+	plugged, _ := strconv.ParseBool(msg["live"])
+	powersave, _ := strconv.ParseBool(msg["powersave"])
+	percentage, _ := strconv.Atoi(msg["value"])
+	batteryMessage := BatteryMessage{
+		Plugged:    plugged,
+		Powersave:  powersave,
+		Percentage: percentage,
+	}
+
+	return batteryMessage
+}
+
+func getNewContact(msg map[string]string) Contact {
+	contact := Contact{
+		Jid:    msg["jid"],
+		Notify: msg["notify"],
+	}
+
+	return contact
+}
+
+func ParseNodeMessage(msg binary.Node) interface{} {
+	switch msg.Description {
+	case "battery":
+		return getBatteryMessage(msg.Attributes)
+	case "user":
+		return getNewContact(msg.Attributes)
+	default:
+		//cannot match message
 	}
 
 	return nil

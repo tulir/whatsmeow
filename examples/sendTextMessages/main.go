@@ -36,7 +36,7 @@ func main() {
 	ContextInfo := whatsapp.ContextInfo{
 		QuotedMessage:   &quotedMessage,
 		QuotedMessageID: "",
-		Participant:     "", //Whot sent the original message
+		Participant:     "", //Who sent the original message
 	}
 
 	msg := whatsapp.TextMessage{
