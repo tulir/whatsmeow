@@ -86,6 +86,7 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 
 		wac.listener.Lock()
 		delete(wac.listener.m, data[0])
+		close(listener)
 		wac.listener.Unlock()
 	} else if msgType == websocket.BinaryMessage {
 		wac.loginSessionLock.RLock()
