@@ -144,6 +144,7 @@ func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<
 			wac.listener.Lock()
 			delete(wac.listener.m, answerMessageTag)
 			wac.listener.Unlock()
+			close(ch)
 		}
 		return nil, errors.Wrap(err, "error writing to websocket")
 	}
