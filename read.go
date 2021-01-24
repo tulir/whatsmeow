@@ -83,13 +83,10 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		// chan string to something like chan map[string]interface{}. The unmarshalling
 		// in several places, especially in session.go, would then be gone.
 		listener <- data[1]
-		
-                close(listener)
-		
+		close(listener)
 		wac.listener.Lock()
 		delete(wac.listener.m, data[0])
 		wac.listener.Unlock()
-		
 	} else if msgType == websocket.BinaryMessage {
 		wac.loginSessionLock.RLock()
 		sess := wac.session
