@@ -21,6 +21,12 @@ func (wac *Conn) addListener(ch chan string, messageTag string) {
 	wac.listener.Unlock()
 }
 
+func (wac *Conn) removeListener(answerMessageTag string) {
+	wac.listener.Lock()
+	delete(wac.listener.m, answerMessageTag)
+	wac.listener.Unlock()
+}
+
 //writeJson enqueues a json message into the writeChan
 func (wac *Conn) writeJson(data []interface{}) (<-chan string, error) {
 
@@ -44,13 +50,14 @@ func (wac *Conn) writeJson(data []interface{}) (<-chan string, error) {
 		wac.timeTag = tss[len(tss)-3:]
 	}
 
+	wac.addListener(ch, messageTag)
+
 	err = wac.write(websocket.TextMessage, bytes)
 	if err != nil {
 		close(ch)
+		wac.removeListener(messageTag)
 		return ch, err
 	}
-
-	wac.addListener(ch, messageTag)
 
 	wac.msgCount++
 	return ch, nil
@@ -78,30 +85,31 @@ func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, message
 	bytes = append(bytes, byte(metric), byte(flag))
 	bytes = append(bytes, data...)
 
+	wac.addListener(ch, messageTag)
+
 	err = wac.write(websocket.BinaryMessage, bytes)
 	if err != nil {
 		close(ch)
+		wac.removeListener(messageTag)
 		return ch, errors.Wrap(err, "failed to write message")
 	}
 
-	// if not error add chan in listener
-	wac.addListener(ch, messageTag)
-
 	wac.msgCount++
-
 	return ch, nil
 }
 
 func (wac *Conn) sendKeepAlive() error {
 
+	respChan := make(chan string, 1)
+	wac.addListener(respChan, "!")
+
 	bytes := []byte("?,,")
 	err := wac.write(websocket.TextMessage, bytes)
 	if err != nil {
+		close(respChan)
+		wac.removeListener("!")
 		return errors.Wrap(err, "error sending keepAlive")
 	}
-
-	respChan := make(chan string, 1)
-	wac.addListener(respChan, "!")
 
 	select {
 	case resp := <-respChan:
