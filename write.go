@@ -123,31 +123,30 @@ func (wac *Conn) sendAdminTest() (bool, error) {
 }
 
 func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<-chan string, error) {
-	var ch chan string
-	if answerMessageTag != "" {
-		ch = make(chan string, 1)
 
-		wac.listener.Lock()
-		wac.listener.m[answerMessageTag] = ch
-		wac.listener.Unlock()
-	}
+	ch := make(chan string, 1)
 
 	if wac == nil || wac.ws == nil {
-		return nil, ErrInvalidWebsocket
+		close(ch)
+		return ch, ErrInvalidWebsocket
 	}
+
 	wac.ws.Lock()
 	err := wac.ws.conn.WriteMessage(messageType, data)
 	wac.ws.Unlock()
 
 	if err != nil {
-		if answerMessageTag != "" {
-			wac.listener.Lock()
-			delete(wac.listener.m, answerMessageTag)
-			wac.listener.Unlock()
-			close(ch)
-		}
-		return nil, errors.Wrap(err, "error writing to websocket")
+		close(ch)
+		return ch, errors.Wrap(err, "error writing to websocket")
 	}
+
+	// if not error add chan in listener
+	if answerMessageTag != "" {
+		wac.listener.Lock()
+		wac.listener.m[answerMessageTag] = ch
+		wac.listener.Unlock()
+	}
+
 	return ch, nil
 }
 
