@@ -15,15 +15,30 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (wac *Conn) addListener(ch chan string, messageTag string) {
+	wac.listener.Lock()
+	wac.listener.m[messageTag] = ch
+	wac.listener.Unlock()
+}
+
+func (wac *Conn) removeListener(answerMessageTag string) {
+	wac.listener.Lock()
+	delete(wac.listener.m, answerMessageTag)
+	wac.listener.Unlock()
+}
+
 //writeJson enqueues a json message into the writeChan
 func (wac *Conn) writeJson(data []interface{}) (<-chan string, error) {
+
+	ch := make(chan string, 1)
 
 	wac.writerLock.Lock()
 	defer wac.writerLock.Unlock()
 
 	d, err := json.Marshal(data)
 	if err != nil {
-		return nil, err
+		close(ch)
+		return ch, err
 	}
 
 	ts := time.Now().Unix()
@@ -35,9 +50,13 @@ func (wac *Conn) writeJson(data []interface{}) (<-chan string, error) {
 		wac.timeTag = tss[len(tss)-3:]
 	}
 
-	ch, err := wac.write(websocket.TextMessage, messageTag, bytes)
+	wac.addListener(ch, messageTag)
+
+	err = wac.write(websocket.TextMessage, bytes)
 	if err != nil {
-		return nil, err
+		close(ch)
+		wac.removeListener(messageTag)
+		return ch, err
 	}
 
 	wac.msgCount++
@@ -45,8 +64,12 @@ func (wac *Conn) writeJson(data []interface{}) (<-chan string, error) {
 }
 
 func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, messageTag string) (<-chan string, error) {
+
+	ch := make(chan string, 1)
+
 	if len(messageTag) < 2 {
-		return nil, ErrMissingMessageTag
+		close(ch)
+		return ch, ErrMissingMessageTag
 	}
 
 	wac.writerLock.Lock()
@@ -54,16 +77,21 @@ func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, message
 
 	data, err := wac.encryptBinaryMessage(node)
 	if err != nil {
-		return nil, errors.Wrap(err, "encryptBinaryMessage(node) failed")
+		close(ch)
+		return ch, errors.Wrap(err, "encryptBinaryMessage(node) failed")
 	}
 
 	bytes := []byte(messageTag + ",")
 	bytes = append(bytes, byte(metric), byte(flag))
 	bytes = append(bytes, data...)
 
-	ch, err := wac.write(websocket.BinaryMessage, messageTag, bytes)
+	wac.addListener(ch, messageTag)
+
+	err = wac.write(websocket.BinaryMessage, bytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to write message")
+		close(ch)
+		wac.removeListener(messageTag)
+		return ch, errors.Wrap(err, "failed to write message")
 	}
 
 	wac.msgCount++
@@ -71,9 +99,15 @@ func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, message
 }
 
 func (wac *Conn) sendKeepAlive() error {
+
+	respChan := make(chan string, 1)
+	wac.addListener(respChan, "!")
+
 	bytes := []byte("?,,")
-	respChan, err := wac.write(websocket.TextMessage, "!", bytes)
+	err := wac.write(websocket.TextMessage, bytes)
 	if err != nil {
+		close(respChan)
+		wac.removeListener("!")
 		return errors.Wrap(err, "error sending keepAlive")
 	}
 
@@ -122,32 +156,21 @@ func (wac *Conn) sendAdminTest() (bool, error) {
 	}
 }
 
-func (wac *Conn) write(messageType int, answerMessageTag string, data []byte) (<-chan string, error) {
-	var ch chan string
-	if answerMessageTag != "" {
-		ch = make(chan string, 1)
-
-		wac.listener.Lock()
-		wac.listener.m[answerMessageTag] = ch
-		wac.listener.Unlock()
-	}
+func (wac *Conn) write(messageType int, data []byte) error {
 
 	if wac == nil || wac.ws == nil {
-		return nil, ErrInvalidWebsocket
+		return ErrInvalidWebsocket
 	}
+
 	wac.ws.Lock()
 	err := wac.ws.conn.WriteMessage(messageType, data)
 	wac.ws.Unlock()
 
 	if err != nil {
-		if answerMessageTag != "" {
-			wac.listener.Lock()
-			delete(wac.listener.m, answerMessageTag)
-			wac.listener.Unlock()
-		}
-		return nil, errors.Wrap(err, "error writing to websocket")
+		return errors.Wrap(err, "error writing to websocket")
 	}
-	return ch, nil
+
+	return nil
 }
 
 func (wac *Conn) encryptBinaryMessage(node binary.Node) (data []byte, err error) {
