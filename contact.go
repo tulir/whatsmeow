@@ -2,9 +2,11 @@ package whatsapp
 
 import (
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/binary"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/Rhymen/go-whatsapp/binary"
 )
 
 type Presence string
@@ -240,4 +242,47 @@ func buildParticipantNodes(participants []string) []binary.Node {
 		}
 	}
 	return p
+}
+
+func (wac *Conn) BlockContact(jid string) (<-chan string, error) {
+	return wac.handleBlockContact("add", jid)
+}
+
+func (wac *Conn) UnblockContact(jid string) (<-chan string, error) {
+	return wac.handleBlockContact("remove", jid)
+}
+
+func (wac *Conn) handleBlockContact(action, jid string) (<-chan string, error) {
+	ts := time.Now().Unix()
+	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
+
+	netsplit := strings.Split(jid, "@")
+	cusjid := netsplit[0] + "@c.us"
+
+	n := binary.Node{
+		Description: "action",
+		Attributes: map[string]string{
+			"type":  "set",
+			"epoch": strconv.Itoa(wac.msgCount),
+		},
+		Content: []interface{}{
+			binary.Node{
+				Description: "block",
+				Attributes: map[string]string{
+					"type": action,
+				},
+				Content: []binary.Node{
+					{
+						Description: "user",
+						Attributes: map[string]string{
+							"jid": cusjid,
+						},
+						Content: nil,
+					},
+				},
+			},
+		},
+	}
+
+	return wac.writeBinary(n, contact, ignore, tag)
 }
