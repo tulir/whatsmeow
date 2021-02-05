@@ -103,14 +103,14 @@ func CheckCurrentServerVersion() ([]int, error) {
 
 	clientId := make([]byte, 16)
 	if _, err = rand.Read(clientId); err != nil {
-		return nil, fmt.Errorf("error creating random ClientId: %v", err)
+		return nil, fmt.Errorf("error creating random ClientId: %w", err)
 	}
 
 	b64ClientId := base64.StdEncoding.EncodeToString(clientId)
 	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, b64ClientId, true}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
-		return nil, fmt.Errorf("error writing login: %s", err.Error())
+		return nil, fmt.Errorf("error writing login: %w", err)
 	}
 
 	// Retrieve an answer from the websocket
@@ -123,7 +123,7 @@ func CheckCurrentServerVersion() ([]int, error) {
 
 	var resp map[string]interface{}
 	if err = json.Unmarshal([]byte(r), &resp); err != nil {
-		return nil, fmt.Errorf("error decoding login: %s", err.Error())
+		return nil, fmt.Errorf("error decoding login: %w", err)
 	}
 
 	// Take the curr property as X.Y.Z and split it into as int slice
@@ -161,7 +161,7 @@ func (wac *Conn) adminInitRequest(clientId string) (string, time.Duration, error
 	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, clientId, true}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
-		return "", 0, fmt.Errorf("error writing login: %v\n", err)
+		return "", 0, fmt.Errorf("error writing login: %w", err)
 	}
 
 	var r string
@@ -173,7 +173,7 @@ func (wac *Conn) adminInitRequest(clientId string) (string, time.Duration, error
 
 	var resp map[string]interface{}
 	if err = json.Unmarshal([]byte(r), &resp); err != nil {
-		return "", 0, fmt.Errorf("error decoding login resp: %v\n", err)
+		return "", 0, fmt.Errorf("error decoding login resp: %w", err)
 	}
 
 	return resp["ref"].(string), time.Duration(resp["ttl"].(float64)) * time.Millisecond, nil
@@ -235,14 +235,14 @@ func (wac *Conn) LoginWithRetry(qrChan chan<- string, maxRetries int) (Session, 
 	clientId := make([]byte, 16)
 	_, err := rand.Read(clientId)
 	if err != nil {
-		return session, fmt.Errorf("error creating random ClientId: %v", err)
+		return session, fmt.Errorf("error creating random ClientId: %w", err)
 	}
 
 	session.ClientId = base64.StdEncoding.EncodeToString(clientId)
 
 	priv, pub, err := curve25519.GenerateKey()
 	if err != nil {
-		return session, fmt.Errorf("error generating keys: %v\n", err)
+		return session, fmt.Errorf("error generating keys: %w", err)
 	}
 
 	//listener for Login response
@@ -292,7 +292,7 @@ For:
 	s := info["secret"].(string)
 	decodedSecret, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		return session, fmt.Errorf("error decoding secret: %v", err)
+		return session, fmt.Errorf("error decoding secret: %w", err)
 	}
 
 	var pubKey [32]byte
@@ -308,7 +308,7 @@ For:
 
 	sharedSecretExtended, err := hkdf.Expand(h.Sum(nil), 80, "")
 	if err != nil {
-		return session, fmt.Errorf("hkdf error: %v", err)
+		return session, fmt.Errorf("hkdf error: %w", err)
 	}
 
 	//login validation
@@ -327,7 +327,7 @@ For:
 
 	keyDecrypted, err := cbc.Decrypt(sharedSecretExtended[:32], nil, keysEncrypted)
 	if err != nil {
-		return session, fmt.Errorf("error decryptAes: %v", err)
+		return session, fmt.Errorf("error decryptAes: %w", err)
 	}
 
 	session.EncKey = keyDecrypted[:32]
@@ -396,21 +396,21 @@ func (wac *Conn) Restore() error {
 	init := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, wac.session.ClientId, true}
 	initChan, err := wac.writeJson(init)
 	if err != nil {
-		return fmt.Errorf("error writing admin init: %v\n", err)
+		return fmt.Errorf("error writing admin init: %w", err)
 	}
 
 	//admin login with takeover
 	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientId, "takeover"}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
-		return fmt.Errorf("error writing admin login: %v\n", err)
+		return fmt.Errorf("error writing admin login: %w", err)
 	}
 
 	select {
 	case r := <-initChan:
 		resp := StatusResponse{RequestType: "init"}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			return fmt.Errorf("error decoding login connResp: %v\n", err)
+			return fmt.Errorf("error decoding login connResp: %w", err)
 		} else if resp.Status != 200 {
 			wac.timeTag = ""
 			return resp
@@ -426,7 +426,7 @@ func (wac *Conn) Restore() error {
 	case r1 := <-s1:
 		if err := json.Unmarshal([]byte(r1), &connResp); err != nil {
 			wac.timeTag = ""
-			return fmt.Errorf("error decoding s1 message: %v\n", err)
+			return fmt.Errorf("error decoding s1 message: %w", err)
 		}
 	case <-time.After(wac.msgTimeout):
 		wac.timeTag = ""
@@ -435,13 +435,13 @@ func (wac *Conn) Restore() error {
 		case r := <-loginChan:
 			resp := StatusResponse{RequestType: "admin login"}
 			if err = json.Unmarshal([]byte(r), &resp); err != nil {
-				return fmt.Errorf("error decoding login connResp: %v\n", err)
+				return fmt.Errorf("error decoding login connResp: %w", err)
 			} else if resp.Status != 200 {
 				return fmt.Errorf("admin login errored: %w", wac.getAdminLoginResponseError(resp))
 			}
 		default:
 			// not even an error message – assume timeout
-			return fmt.Errorf("restore session connection timed out")
+			return ErrRestoreSessionTimeout
 		}
 	}
 
@@ -454,14 +454,14 @@ func (wac *Conn) Restore() error {
 
 		if err := wac.resolveChallenge(connResp[1].(map[string]interface{})["challenge"].(string)); err != nil {
 			wac.timeTag = ""
-			return fmt.Errorf("error resolving challenge: %v\n", err)
+			return fmt.Errorf("error resolving challenge: %w", err)
 		}
 
 		select {
 		case r := <-s2:
 			if err := json.Unmarshal([]byte(r), &connResp); err != nil {
 				wac.timeTag = ""
-				return fmt.Errorf("error decoding s2 message: %v\n", err)
+				return fmt.Errorf("error decoding s2 message: %w", err)
 			}
 		case <-time.After(wac.msgTimeout):
 			wac.timeTag = ""
@@ -475,7 +475,7 @@ func (wac *Conn) Restore() error {
 		resp := StatusResponse{RequestType: "admin login"}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
 			wac.timeTag = ""
-			return fmt.Errorf("error decoding login connResp: %v\n", err)
+			return fmt.Errorf("error decoding login connResp: %w", err)
 		} else if resp.Status != 200 {
 			wac.timeTag = ""
 			return fmt.Errorf("admin login errored: %w", wac.getAdminLoginResponseError(resp))
@@ -526,14 +526,14 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 	ch := []interface{}{"admin", "challenge", base64.StdEncoding.EncodeToString(h2.Sum(nil)), wac.session.ServerToken, wac.session.ClientId}
 	challengeChan, err := wac.writeJson(ch)
 	if err != nil {
-		return fmt.Errorf("error writing challenge: %v\n", err)
+		return fmt.Errorf("error writing challenge: %w", err)
 	}
 
 	select {
 	case r := <-challengeChan:
 		resp := StatusResponse{RequestType: "login challenge"}
 		if err := json.Unmarshal([]byte(r), &resp); err != nil {
-			return fmt.Errorf("error decoding login resp: %v\n", err)
+			return fmt.Errorf("error decoding login resp: %w", err)
 		} else if resp.Status != 200 {
 			return resp
 		}
@@ -552,7 +552,7 @@ func (wac *Conn) Logout() error {
 	login := []interface{}{"admin", "Conn", "disconnect"}
 	_, err := wac.writeJson(login)
 	if err != nil {
-		return fmt.Errorf("error writing logout: %v\n", err)
+		return fmt.Errorf("error writing logout: %w", err)
 	}
 
 	return nil
