@@ -577,6 +577,8 @@ message OrderMessage {
     optional string orderTitle = 7;
     optional string sellerJid = 8;
     optional string token = 9;
+    optional int64 totalAmount1000 = 10;
+    optional string totalCurrencyCode = 11;
     optional ContextInfo contextInfo = 17;
 }
 
@@ -842,6 +844,9 @@ message PaymentInfo {
         COLLECT_CANCELLING = 27;
     }
     optional PaymentInfoTxnStatus txnStatus = 10;
+    optional bool useNoviFiatFormat = 11;
+    optional PaymentMoney primaryAmount = 12;
+    optional PaymentMoney exchangeAmount = 13;
 }
 
 message WebMessageInfo {
