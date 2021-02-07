@@ -1,6 +1,7 @@
 package whatsapp
 
 import (
+	"context"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -208,10 +209,10 @@ github.com/Baozisoftware/qrcode-terminal-go Example login procedure:
 	fmt.Printf("login successful, session: %v\n", session)
 */
 func (wac *Conn) Login(qrChan chan<- string) (Session, error) {
-	return wac.LoginWithRetry(qrChan, 0)
+	return wac.LoginWithRetry(qrChan, nil,0)
 }
 
-func (wac *Conn) LoginWithRetry(qrChan chan<- string, maxRetries int) (Session, error) {
+func (wac *Conn) LoginWithRetry(qrChan chan<- string, ctx context.Context, maxRetries int) (Session, error) {
 	session := Session{}
 	//Makes sure that only a single Login or Restore can happen at the same time
 	if !atomic.CompareAndSwapUint32(&wac.sessionLock, 0, 1) {
@@ -259,6 +260,9 @@ func (wac *Conn) LoginWithRetry(qrChan chan<- string, maxRetries int) (Session, 
 
 	wac.loginSessionLock.Lock()
 	defer wac.loginSessionLock.Unlock()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	var resp2 []interface{}
 For:
 	for {
@@ -271,7 +275,6 @@ For:
 		case <-time.After(ttl):
 			maxRetries--
 			if maxRetries < 0 {
-				_, _ = wac.Disconnect()
 				return session, ErrLoginTimedOut
 			}
 			ref, ttl, err = wac.adminInitRequest(session.ClientId)
@@ -279,6 +282,8 @@ For:
 				return session, err
 			}
 			qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientId)
+		case <-ctx.Done():
+			return session, ErrLoginCancelled
 		}
 	}
 
