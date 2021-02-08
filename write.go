@@ -135,7 +135,7 @@ func (wac *Conn) sendAdminTest() error {
 		return fmt.Errorf("error sending admin test: %w", err)
 	}
 
-	var response []interface{}
+	var response interface{}
 	var resp string
 
 	select {
@@ -147,11 +147,12 @@ func (wac *Conn) sendAdminTest() error {
 		return ErrConnectionTimeout
 	}
 
-	if len(response) == 2 && response[0].(string) == "Pong" && response[1].(bool) == true {
-		return nil
-	} else {
-		return fmt.Errorf("unexpected ping response: %s", resp)
+	if respArr, ok := response.([]interface{}); ok {
+		if len(respArr) == 2 && respArr[0].(string) == "Pong" && respArr[1].(bool) == true {
+			return nil
+		}
 	}
+	return fmt.Errorf("unexpected ping response: %s", resp)
 }
 
 func (wac *Conn) write(messageType int, data []byte) error {
