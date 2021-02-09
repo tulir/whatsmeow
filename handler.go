@@ -97,6 +97,11 @@ type ContactMessageHandler interface {
 	HandleContactMessage(message ContactMessage)
 }
 
+type StubMessageHandler interface {
+	Handler
+	HandleStubMessage(message StubMessage)
+}
+
 /*
 The JsonMessageHandler interface needs to be implemented to receive json messages dispatched by the dispatcher.
 These json messages contain status updates of every kind sent by WhatsAppWeb servers. WhatsAppWeb uses these messages
@@ -330,7 +335,18 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 				}
 			}
 		}
-	
+
+	case StubMessage:
+		for _, h := range handlers {
+			if x, ok := h.(StubMessageHandler); ok {
+				if wac.shouldCallSynchronously(h) {
+					x.HandleStubMessage(m)
+				} else {
+					go x.HandleStubMessage(m)
+				}
+			}
+		}
+
 	case BatteryMessage:
 		for _, h := range handlers {
 			if x, ok := h.(BatteryMessageHandler); ok {
@@ -341,7 +357,7 @@ func (wac *Conn) handleWithCustomHandlers(message interface{}, handlers []Handle
 				}
 			}
 		}
-	
+
 	case Contact:
 		for _, h := range handlers {
 			if x, ok := h.(NewContactHandler); ok {

@@ -810,6 +810,25 @@ func getContactMessageProto(msg ContactMessage) *proto.WebMessageInfo {
 	return p
 }
 
+type StubMessage struct {
+	Info       MessageInfo
+	Type       proto.WebMessageInfo_WebMessageInfoStubType
+	Params     []string
+	FirstParam string
+}
+
+func getStubMessage(msg *proto.WebMessageInfo) StubMessage {
+	sm := StubMessage{
+		Info:   getMessageInfo(msg),
+		Type:   msg.GetMessageStubType(),
+		Params: msg.GetMessageStubParameters(),
+	}
+	if sm.Params != nil && len(sm.Params) > 0 {
+		sm.FirstParam = sm.Params[0]
+	}
+	return sm
+}
+
 func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	switch {
@@ -843,6 +862,9 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	case msg.GetMessage().GetContactMessage() != nil:
 		return getContactMessage(msg)
+
+	case msg.GetMessageStubType() != proto.WebMessageInfo_UNKNOWN:
+		return getStubMessage(msg)
 
 	default:
 		//cannot match message
