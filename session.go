@@ -180,6 +180,33 @@ func (wac *Conn) adminInitRequest(clientId string) (string, time.Duration, error
 	return resp["ref"].(string), time.Duration(resp["ttl"].(float64)) * time.Millisecond, nil
 }
 
+func (wac *Conn) adminRerefRequest() (string, time.Duration, error) {
+	reref := []interface{}{"admin", "Conn", "reref"}
+	rerefChan, err := wac.writeJson(reref)
+	if err != nil {
+		return "", 0, fmt.Errorf("error writing reref: %w", err)
+	}
+
+	var r string
+	select {
+	case r = <-rerefChan:
+	case <-time.After(wac.msgTimeout):
+		return "", 0, fmt.Errorf("reref connection timed out")
+	}
+
+	var resp map[string]interface{}
+	if err = json.Unmarshal([]byte(r), &resp); err != nil {
+		return "", 0, fmt.Errorf("error decoding reref resp: %w", err)
+	}
+
+	statusCode := int(resp["status"].(float64))
+	if statusCode != 200 {
+		return "", 0, fmt.Errorf("reref error status: %d", statusCode)
+	}
+
+	return resp["ref"].(string), time.Duration(resp["ttl"].(float64)) * time.Millisecond, nil
+}
+
 // GetClientVersion returns WhatsApp client version
 func (wac *Conn) GetClientVersion() []int {
 	return waVersion
@@ -264,6 +291,7 @@ func (wac *Conn) LoginWithRetry(qrChan chan<- string, ctx context.Context, maxRe
 		ctx = context.Background()
 	}
 	var resp2 []interface{}
+	maxRerefs := 6
 For:
 	for {
 		select {
@@ -274,12 +302,21 @@ For:
 			break For
 		case <-time.After(ttl):
 			maxRetries--
+			maxRerefs--
 			if maxRetries < 0 {
 				return session, ErrLoginTimedOut
 			}
-			ref, ttl, err = wac.adminInitRequest(session.ClientId)
-			if err != nil {
-				return session, err
+			if maxRerefs > 0 {
+				ref, ttl, err = wac.adminRerefRequest()
+				if err != nil {
+					return session, err
+				}
+			} else {
+				ref, ttl, err = wac.adminInitRequest(session.ClientId)
+				if err != nil {
+					return session, err
+				}
+				maxRerefs = 6
 			}
 			qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientId)
 		case <-ctx.Done():
@@ -408,7 +445,6 @@ func (wac *Conn) Restore(takeover bool) error {
 	if takeover {
 		restoreType = "takeover"
 	}
-	//admin login with takeover
 	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientId, restoreType}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
