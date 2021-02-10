@@ -359,7 +359,7 @@ func (wac *Conn) RestoreWithSession(session Session) (_ Session, err error) {
 	}()
 	wac.session = &session
 
-	if err = wac.Restore(); err != nil {
+	if err = wac.Restore(true); err != nil {
 		wac.session = nil
 		return Session{}, err
 	}
@@ -372,7 +372,7 @@ WhatsAppWeb servers with the provided session. If it succeeds it will return a n
 saved because the Client and Server-Token will change after every login. Logging in with old tokens is possible, but not
 suggested. If so, a challenge has to be resolved which is just another possible point of failure.
 */
-func (wac *Conn) Restore() error {
+func (wac *Conn) Restore(takeover bool) error {
 	//Makes sure that only a single Login or Restore can happen at the same time
 	if !atomic.CompareAndSwapUint32(&wac.sessionLock, 0, 1) {
 		return ErrLoginInProgress
@@ -404,8 +404,12 @@ func (wac *Conn) Restore() error {
 		return fmt.Errorf("error writing admin init: %w", err)
 	}
 
+	restoreType := "reconnect"
+	if takeover {
+		restoreType = "takeover"
+	}
 	//admin login with takeover
-	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientId, "takeover"}
+	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientId, restoreType}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
 		return fmt.Errorf("error writing admin login: %w", err)
