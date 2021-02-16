@@ -325,6 +325,10 @@ type TextMessage struct {
 	ContextInfo ContextInfo
 }
 
+func (m TextMessage) GetInfo() MessageInfo {
+	return m.Info
+}
+
 func getTextMessage(msg *proto.WebMessageInfo) TextMessage {
 	text := TextMessage{Info: getMessageInfo(msg)}
 	if m := msg.GetMessage().GetExtendedTextMessage(); m != nil {
@@ -375,6 +379,10 @@ type ImageMessage struct {
 	fileSha256    []byte
 	fileLength    uint64
 	ContextInfo   ContextInfo
+}
+
+func (m ImageMessage) GetInfo() MessageInfo {
+	return m.Info
 }
 
 func getImageMessage(msg *proto.WebMessageInfo) ImageMessage {
@@ -441,6 +449,10 @@ type VideoMessage struct {
 	fileSha256    []byte
 	fileLength    uint64
 	ContextInfo   ContextInfo
+}
+
+func (m VideoMessage) GetInfo() MessageInfo {
+	return m.Info
 }
 
 func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {
@@ -511,6 +523,10 @@ type AudioMessage struct {
 	ContextInfo   ContextInfo
 }
 
+func (m AudioMessage) GetInfo() MessageInfo {
+	return m.Info
+}
+
 func getAudioMessage(msg *proto.WebMessageInfo) AudioMessage {
 	aud := msg.GetMessage().GetAudioMessage()
 
@@ -575,6 +591,10 @@ type DocumentMessage struct {
 	ContextInfo   ContextInfo
 }
 
+func (m DocumentMessage) GetInfo() MessageInfo {
+	return m.Info
+}
+
 func getDocumentMessage(msg *proto.WebMessageInfo) DocumentMessage {
 	doc := msg.GetMessage().GetDocumentMessage()
 
@@ -637,6 +657,10 @@ type LocationMessage struct {
 	ContextInfo      ContextInfo
 }
 
+func (m LocationMessage) GetInfo() MessageInfo {
+	return m.Info
+}
+
 func GetLocationMessage(msg *proto.WebMessageInfo) LocationMessage {
 	loc := msg.GetMessage().GetLocationMessage()
 
@@ -686,6 +710,10 @@ type LiveLocationMessage struct {
 	SequenceNumber                    int64
 	JpegThumbnail                     []byte
 	ContextInfo                       ContextInfo
+}
+
+func (m LiveLocationMessage) GetInfo() MessageInfo {
+	return m.Info
 }
 
 func GetLiveLocationMessage(msg *proto.WebMessageInfo) LiveLocationMessage {
@@ -743,6 +771,10 @@ type StickerMessage struct {
 	ContextInfo ContextInfo
 }
 
+func (m StickerMessage) GetInfo() MessageInfo {
+	return m.Info
+}
+
 func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
 	sticker := msg.GetMessage().GetStickerMessage()
 
@@ -778,6 +810,10 @@ type ContactMessage struct {
 	Vcard       string
 
 	ContextInfo ContextInfo
+}
+
+func (m ContactMessage) GetInfo() MessageInfo {
+	return m.Info
 }
 
 func getContactMessage(msg *proto.WebMessageInfo) ContactMessage {
@@ -817,6 +853,10 @@ type StubMessage struct {
 	FirstParam string
 }
 
+func (m StubMessage) GetInfo() MessageInfo {
+	return m.Info
+}
+
 func getStubMessage(msg *proto.WebMessageInfo) StubMessage {
 	sm := StubMessage{
 		Info:   getMessageInfo(msg),
@@ -829,8 +869,24 @@ func getStubMessage(msg *proto.WebMessageInfo) StubMessage {
 	return sm
 }
 
-func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
+type MessageRevocation struct {
+	Id          string
+	RemoteJid   string
+	FromMe      bool
+	Participant string
+}
 
+func getMessageRevocation(msg *proto.WebMessageInfo) MessageRevocation {
+	key := msg.GetMessage().GetProtocolMessage().GetKey()
+	return MessageRevocation{
+		Id:          key.GetId(),
+		RemoteJid:   key.GetRemoteJid(),
+		FromMe:      key.GetFromMe(),
+		Participant: key.GetParticipant(),
+	}
+}
+
+func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 	switch {
 
 	case msg.GetMessage().GetAudioMessage() != nil:
@@ -862,6 +918,9 @@ func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
 
 	case msg.GetMessage().GetContactMessage() != nil:
 		return getContactMessage(msg)
+
+	case msg.GetMessage().GetProtocolMessage() != nil && msg.GetMessage().GetProtocolMessage().GetType() == proto.ProtocolMessage_REVOKE:
+		return getMessageRevocation(msg)
 
 	case msg.GetMessageStubType() != proto.WebMessageInfo_UNKNOWN:
 		return getStubMessage(msg)

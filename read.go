@@ -98,7 +98,8 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		}
 		wac.dispatch(message)
 	} else { //RAW json status updates
-		wac.handle(string(data[1]))
+		wac.handleJSONMessage(data[1])
+		wac.handle(json.RawMessage(data[1]))
 	}
 	return nil
 }
@@ -119,11 +120,8 @@ func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 		} else {
 			return nil, ErrInvalidServerResponse
 		}
-
-		return nil, ErrInvalidServerResponse
-
 	}
-	h2.Write([]byte(msg[32:]))
+	h2.Write(msg[32:])
 	if !hmac.Equal(h2.Sum(nil), msg[:32]) {
 		return nil, ErrInvalidHmac
 	}

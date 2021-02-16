@@ -1,7 +1,11 @@
 package whatsapp
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -19,12 +23,44 @@ const (
 	PresencePaused      Presence = "paused"
 )
 
-//TODO: filename? WhatsApp uses Store.Contacts for these functions
-// functions probably shouldn't return a string, maybe build a struct / return json
-// check for further queries
-func (wac *Conn) GetProfilePicThumb(jid string) (<-chan string, error) {
+type ProfilePicInfo struct {
+	URL string `json:"eurl"`
+	Tag string `json:"tag"`
+
+	Status int `json:"status"`
+}
+
+func (ppi *ProfilePicInfo) Download() (io.ReadCloser, error) {
+	resp, err := http.Get(ppi.URL)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
+}
+
+func (ppi *ProfilePicInfo) DownloadBytes() ([]byte, error) {
+	body, err := ppi.Download()
+	if err != nil {
+		return nil, err
+	}
+	defer body.Close()
+	data, err := ioutil.ReadAll(body)
+	return data, err
+}
+
+func (wac *Conn) GetProfilePicThumb(jid string) (*ProfilePicInfo, error) {
 	data := []interface{}{"query", "ProfilePicThumb", jid}
-	return wac.writeJson(data)
+	resp, err := wac.writeJson(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get avatar: %v", err)
+	}
+	content := <-resp
+	info := &ProfilePicInfo{}
+	err = json.Unmarshal([]byte(content), info)
+	if err != nil {
+		return info, fmt.Errorf("failed to unmarshal avatar info: %v", err)
+	}
+	return info, nil
 }
 
 func (wac *Conn) GetStatus(jid string) (<-chan string, error) {

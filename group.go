@@ -4,18 +4,107 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Rhymen/go-whatsapp/binary"
 )
 
-func (wac *Conn) GetGroupMetaData(jid string) (<-chan string, error) {
-	data := []interface{}{"query", "GroupMetadata", jid}
-	return wac.writeJson(data)
+const (
+	OldUserSuffix = "@c.us"
+	NewUserSuffix = "@s.whatsapp.net"
+)
+
+type GroupInfo struct {
+	JID      string `json:"jid"`
+	OwnerJID string `json:"owner"`
+
+	Name        string `json:"subject"`
+	NameSetTime int64  `json:"subjectTime"`
+	NameSetBy   string `json:"subjectOwner"`
+
+	Announce bool `json:"announce"` // Can only admins send messages?
+
+	Topic      string `json:"desc"`
+	TopicID    string `json:"descId"`
+	TopicSetAt int64  `json:"descTime"`
+	TopicSetBy string `json:"descOwner"`
+
+	GroupCreated int64 `json:"creation"`
+
+	Status int16 `json:"status"`
+
+	Participants []struct {
+		JID          string `json:"id"`
+		IsAdmin      bool   `json:"isAdmin"`
+		IsSuperAdmin bool   `json:"isSuperAdmin"`
+	} `json:"participants"`
 }
 
-func (wac *Conn) CreateGroup(subject string, participants []string) (<-chan string, error) {
-	return wac.setGroup("create", "", subject, participants)
+func (wac *Conn) GetGroupMetaData(jid string) (*GroupInfo, error) {
+	data := []interface{}{"query", "GroupMetadata", jid}
+	resp, err := wac.writeJson(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get group metadata: %v", err)
+	}
+	content := <-resp
+
+	info := &GroupInfo{}
+	err = json.Unmarshal([]byte(content), info)
+	if err != nil {
+		return info, fmt.Errorf("failed to unmarshal group metadata: %v", err)
+	}
+
+	for index, participant := range info.Participants {
+		info.Participants[index].JID = strings.Replace(participant.JID, OldUserSuffix, NewUserSuffix, 1)
+	}
+	info.NameSetBy = strings.Replace(info.NameSetBy, OldUserSuffix, NewUserSuffix, 1)
+	info.TopicSetBy = strings.Replace(info.TopicSetBy, OldUserSuffix, NewUserSuffix, 1)
+
+	return info, nil
+}
+
+type CreateGroupResponse struct {
+	Status       int `json:"status"`
+	GroupID      JID `json:"gid"`
+	Participants map[JID]struct {
+		Code string `json:"code"`
+	} `json:"participants"`
+
+	Source string `json:"-"`
+}
+
+type actualCreateGroupResponse struct {
+	Status       int `json:"status"`
+	GroupID      JID `json:"gid"`
+	Participants []map[JID]struct {
+		Code string `json:"code"`
+	} `json:"participants"`
+}
+
+func (wac *Conn) CreateGroup(subject string, participants []JID) (*CreateGroupResponse, error) {
+	respChan, err := wac.setGroup("create", "", subject, participants)
+	if err != nil {
+		return nil, err
+	}
+	var resp CreateGroupResponse
+	var actualResp actualCreateGroupResponse
+	resp.Source = <-respChan
+	err = json.Unmarshal([]byte(resp.Source), &actualResp)
+	if err != nil {
+		return nil, err
+	}
+	resp.Status = actualResp.Status
+	resp.GroupID = actualResp.GroupID
+	resp.Participants = make(map[JID]struct {
+		Code string `json:"code"`
+	})
+	for _, participantMap := range actualResp.Participants {
+		for jid, status := range participantMap {
+			resp.Participants[jid] = status
+		}
+	}
+	return &resp, nil
 }
 
 func (wac *Conn) UpdateGroupSubject(subject string, jid string) (<-chan string, error) {
@@ -99,33 +188,13 @@ func (wac *Conn) GroupAcceptInviteCode(code string) (jid string, err error) {
 	return response["gid"].(string), nil
 }
 
-type descriptionID struct {
-	DescID string `json:"descId"`
-}
-
-func (wac *Conn) getDescriptionID(jid string) (string, error) {
-	data, err := wac.GetGroupMetaData(jid)
-	if err != nil {
-		return "none", err
-	}
-	var oldData descriptionID
-	err = json.Unmarshal([]byte(<-data), &oldData)
-	if err != nil {
-		return "none", err
-	}
-	if oldData.DescID == "" {
-		return "none", nil
-	}
-	return oldData.DescID, nil
-}
-
 func (wac *Conn) UpdateGroupDescription(jid, description string) (<-chan string, error) {
-	prevID, err := wac.getDescriptionID(jid)
+	prevMeta, err := wac.GetGroupMetaData(jid)
 	if err != nil {
 		return nil, err
 	}
 	newData := map[string]string{
-		"prev": prevID,
+		"prev": prevMeta.TopicID,
 	}
 	var desc interface{} = description
 	if description == "" {

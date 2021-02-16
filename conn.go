@@ -125,29 +125,30 @@ func NewConn(timeout time.Duration) (*Conn, error) {
 func NewConnWithProxy(timeout time.Duration, proxy func(*http.Request) (*url.URL, error)) (*Conn, error) {
 	return NewConnWithOptions(&Options{
 		Timeout: timeout,
-		Proxy: proxy,
+		Proxy:   proxy,
 	})
 }
 
-// NewConnWithOptions Create a new connect with a given options.
 type Options struct {
-	Proxy            func(*http.Request) (*url.URL, error)
-	Timeout          time.Duration
-	Handler          []Handler
-	ShortClientName  string
-	LongClientName   string
-	ClientVersion    string
-	Store            *Store
+	Proxy           func(*http.Request) (*url.URL, error)
+	Timeout         time.Duration
+	Handler         []Handler
+	ShortClientName string
+	LongClientName  string
+	ClientVersion   string
+	Store           *Store
 }
+
+// NewConnWithOptions Create a new connect with a given options.
 func NewConnWithOptions(opt *Options) (*Conn, error) {
 	if opt == nil {
 		return nil, ErrOptionsNotProvided
 	}
 	wac := &Conn{
-		handler:    make([]Handler, 0),
-		msgCount:   0,
-		msgTimeout: opt.Timeout,
-		Store:      newStore(),
+		handler:         make([]Handler, 0),
+		msgCount:        0,
+		msgTimeout:      opt.Timeout,
+		Store:           newStore(),
 		longClientName:  "github.com/Rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
 		clientVersion:   "0.1.0",
