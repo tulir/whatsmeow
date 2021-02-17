@@ -1,6 +1,12 @@
 syntax = "proto2";
 package proto;
 
+message PaymentMoney {
+    optional int64 value = 1;
+    optional uint32 offset = 2;
+    optional string currencyCode = 3;
+}
+
 message HydratedQuickReplyButton {
     optional string displayText = 1;
     optional string id = 2;
@@ -156,6 +162,9 @@ message ImageMessage {
     optional bytes midQualityFileSha256 = 23;
     optional bytes midQualityFileEncSha256 = 24;
     optional bool viewOnce = 25;
+    optional string thumbnailDirectPath = 26;
+    optional bytes thumbnailSha256 = 27;
+    optional bytes thumbnailEncSha256 = 28;
 }
 
 message InvoiceMessage {
@@ -285,6 +294,9 @@ message VideoMessage {
     }
     optional VideoMessageAttribution gifAttribution = 19;
     optional bool viewOnce = 20;
+    optional string thumbnailDirectPath = 21;
+    optional bytes thumbnailSha256 = 22;
+    optional bytes thumbnailEncSha256 = 23;
 }
 
 message Call {
@@ -307,6 +319,7 @@ message ProtocolMessage {
         APP_STATE_SYNC_KEY_REQUEST = 7;
         MSG_FANOUT_BACKFILL_REQUEST = 8;
         INITIAL_SECURITY_NOTIFICATION_SETTING_SYNC = 9;
+        APP_STATE_FATAL_EXCEPTION_NOTIFICATION = 10;
     }
     optional ProtocolMessageType type = 2;
     optional uint32 ephemeralExpiration = 4;
@@ -315,6 +328,7 @@ message ProtocolMessage {
     optional AppStateSyncKeyShare appStateSyncKeyShare = 7;
     optional AppStateSyncKeyRequest appStateSyncKeyRequest = 8;
     optional InitialSecurityNotificationSettingSync initialSecurityNotificationSettingSync = 9;
+    optional AppStateFatalExceptionNotification appStateFatalExceptionNotification = 10;
 }
 
 message HistorySyncNotification {
@@ -362,6 +376,11 @@ message AppStateSyncKeyShare {
 
 message AppStateSyncKeyRequest {
     repeated AppStateSyncKeyId keyIds = 1;
+}
+
+message AppStateFatalExceptionNotification {
+    repeated string collectionNames = 1;
+    optional int64 timestamp = 2;
 }
 
 message InitialSecurityNotificationSettingSync {
@@ -445,12 +464,6 @@ message RequestPaymentMessage {
     optional string requestFrom = 3;
     optional int64 expiryTimestamp = 5;
     optional PaymentMoney amount = 6;
-}
-
-message PaymentMoney {
-    optional int64 value = 1;
-    optional uint32 offset = 2;
-    optional string currencyCode = 3;
 }
 
 message DeclinePaymentRequestMessage {
@@ -655,6 +668,11 @@ message ButtonText {
 message Button {
     optional string buttonId = 1;
     optional ButtonText buttonText = 2;
+    enum ButtonType {
+        UNKNOWN = 0;
+        RESPONSE = 1;
+    }
+    optional ButtonType type = 3;
 }
 
 message ButtonsMessage {
@@ -662,8 +680,18 @@ message ButtonsMessage {
     optional string footerText = 7;
     optional ContextInfo contextInfo = 8;
     repeated Button buttons = 9;
-    oneof title {
-        string titleText = 1;
+    enum ButtonsMessageHeaderType {
+        UNKNOWN = 0;
+        EMPTY = 1;
+        TEXT = 2;
+        DOCUMENT = 3;
+        IMAGE = 4;
+        VIDEO = 5;
+        LOCATION = 6;
+    }
+    optional ButtonsMessageHeaderType headerType = 10;
+    oneof header {
+        string text = 1;
         DocumentMessage documentMessage = 2;
         ImageMessage imageMessage = 3;
         VideoMessage videoMessage = 4;
@@ -673,8 +701,15 @@ message ButtonsMessage {
 
 message ButtonsResponseMessage {
     optional string selectedButtonId = 1;
-    optional string selectedDisplayText = 2;
     optional ContextInfo contextInfo = 3;
+    enum ButtonsResponseMessageType {
+        UNKNOWN = 0;
+        DISPLAY_TEXT = 1;
+    }
+    optional ButtonsResponseMessageType type = 4;
+    oneof response {
+        string selectedDisplayText = 2;
+    }
 }
 
 message Message {
