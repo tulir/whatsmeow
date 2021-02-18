@@ -3,13 +3,13 @@ package whatsapp
 
 import (
 	"fmt"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	log "maunium.net/go/maulogger/v2"
 )
 
 type metric byte
@@ -72,19 +72,19 @@ Conn is created by NewConn. Interacting with the initialized Conn is the main wa
 It holds all necessary information to make the package work internally.
 */
 type Conn struct {
+	log log.Logger
+
 	ws       *websocketWrapper
 	listener *listenerWrapper
 
 	connected bool
 	loggedIn  bool
-	wg        *sync.WaitGroup
 
 	session        *Session
 	sessionLock    uint32
 	handler        []Handler
 	msgCount       int
 	msgTimeout     time.Duration
-	Info           *Info
 	Store          *Store
 	ServerLastSeen time.Time
 
@@ -100,35 +100,6 @@ type Conn struct {
 	writerLock sync.RWMutex
 }
 
-type websocketWrapper struct {
-	sync.Mutex
-	conn  *websocket.Conn
-	close chan struct{}
-}
-
-type listenerWrapper struct {
-	sync.RWMutex
-	m map[string]chan string
-}
-
-/*
-Creates a new connection with a given timeout. The websocket connection to the WhatsAppWeb servers get´s established.
-The goroutine for handling incoming messages is started
-*/
-func NewConn(timeout time.Duration) (*Conn, error) {
-	return NewConnWithOptions(&Options{
-		Timeout: timeout,
-	})
-}
-
-// NewConnWithProxy Create a new connect with a given timeout and a http proxy.
-func NewConnWithProxy(timeout time.Duration, proxy func(*http.Request) (*url.URL, error)) (*Conn, error) {
-	return NewConnWithOptions(&Options{
-		Timeout: timeout,
-		Proxy:   proxy,
-	})
-}
-
 type Options struct {
 	Proxy           func(*http.Request) (*url.URL, error)
 	Timeout         time.Duration
@@ -137,14 +108,18 @@ type Options struct {
 	LongClientName  string
 	ClientVersion   string
 	Store           *Store
+	Log             log.Logger
 }
 
-// NewConnWithOptions Create a new connect with a given options.
-func NewConnWithOptions(opt *Options) (*Conn, error) {
+func NewConn(opt *Options) *Conn {
 	if opt == nil {
-		return nil, ErrOptionsNotProvided
+		panic(ErrOptionsNotProvided)
+	}
+	if opt.Log == nil {
+		opt.Log = log.DefaultLogger
 	}
 	wac := &Conn{
+		log:             opt.Log,
 		handler:         make([]Handler, 0),
 		msgCount:        0,
 		msgTimeout:      opt.Timeout,
@@ -171,10 +146,9 @@ func NewConnWithOptions(opt *Options) (*Conn, error) {
 	if len(opt.ClientVersion) != 0 {
 		wac.clientVersion = opt.ClientVersion
 	}
-	return wac, wac.connect()
+	return wac
 }
 
-// connect should be guarded with wsWriteMutex
 func (wac *Conn) connect() (err error) {
 	if wac.connected {
 		return ErrAlreadyConnected
@@ -194,6 +168,7 @@ func (wac *Conn) connect() (err error) {
 	}
 
 	headers := http.Header{"Origin": []string{"https://web.whatsapp.com"}}
+	wac.log.Debugln("Dialing wss://web.whatsapp.com/ws")
 	wsConn, _, err := dialer.Dial("wss://web.whatsapp.com/ws", headers)
 	if err != nil {
 		return fmt.Errorf("couldn't dial whatsapp web websocket: %w", err)
@@ -205,22 +180,15 @@ func (wac *Conn) connect() (err error) {
 		err := wsConn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
 
 		// our close handling
-		_, _ = wac.Disconnect()
+		_ = wac.Disconnect()
 		wac.handle(&ErrConnectionClosed{Code: code, Text: text})
 		return err
 	})
 
-	wac.ws = &websocketWrapper{
-		conn:  wsConn,
-		close: make(chan struct{}),
-	}
+	wac.ws = newWebsocketWrapper(wsConn)
+	wac.listener = newListenerWrapper()
 
-	wac.listener = &listenerWrapper{
-		m: make(map[string]chan string),
-	}
-
-	wac.wg = &sync.WaitGroup{}
-	wac.wg.Add(2)
+	wac.ws.Add(2)
 	go wac.readPump()
 	go wac.keepAlive(21000, 30000)
 
@@ -228,26 +196,27 @@ func (wac *Conn) connect() (err error) {
 	return nil
 }
 
-func (wac *Conn) Disconnect() (Session, error) {
+func (wac *Conn) Disconnect() error {
 	if !wac.connected {
-		return Session{}, ErrNotConnected
+		return ErrNotConnected
 	}
+	wac.log.Debugfln("Disconnecting websocket")
 	wac.connected = false
 	wac.loggedIn = false
 
-	close(wac.ws.close) //signal close
-	wac.wg.Wait()       //wait for close
+	ws := wac.ws
+
+	ws.cancel()
+	ws.Wait()
 
 	var err error
-	if wac.ws != nil && wac.ws.conn != nil {
-		err = wac.ws.conn.Close()
+	if ws.conn != nil {
+		err = ws.conn.Close()
 	}
 	wac.ws = nil
+	wac.log.Debugfln("Websocket disconnection complete")
 
-	if wac.session == nil {
-		return Session{}, err
-	}
-	return *wac.session, err
+	return err
 }
 
 func (wac *Conn) IsLoginInProgress() bool {
@@ -260,28 +229,10 @@ func (wac *Conn) AdminTest() error {
 	}
 
 	if !wac.loggedIn {
-		return ErrInvalidSession
+		return ErrNotLoggedIn
 	}
 
 	return wac.sendAdminTest()
-}
-
-func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
-	defer wac.wg.Done()
-
-	for {
-		err := wac.sendKeepAlive()
-		if err != nil {
-			wac.handle(fmt.Errorf("keepAlive failed: %w", err))
-			//TODO: Consequences?
-		}
-		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
-		select {
-		case <-time.After(time.Duration(interval) * time.Millisecond):
-		case <-wac.ws.close:
-			return
-		}
-	}
 }
 
 // IsConnected returns whether the server connection is established or not

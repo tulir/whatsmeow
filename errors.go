@@ -9,9 +9,11 @@ import (
 var (
 	ErrAlreadyConnected           = errors.New("already connected")
 	ErrAlreadyLoggedIn            = errors.New("already logged in")
+	ErrSessionExists              = errors.New("a session with keys is already present")
 	ErrInvalidSession             = errors.New("invalid session")
 	ErrLoginInProgress            = errors.New("login or restore already running")
 	ErrNotConnected               = errors.New("not connected")
+	ErrNotLoggedIn                = errors.New("not logged in")
 	ErrInvalidWsData              = errors.New("received invalid data")
 	ErrInvalidWsState             = errors.New("can't handle binary data when not logged in")
 	ErrConnectionTimeout          = errors.New("connection timed out")
@@ -23,8 +25,9 @@ var (
 	ErrMediaDownloadFailedWith410 = errors.New("download failed with status code 410")
 	ErrLoginTimedOut              = errors.New("login timed out")
 	ErrQueryTimeout               = errors.New("query timed out")
-	ErrRestoreSessionTimeout      = errors.New("restore session connection timed out")
+	ErrRestoreSessionInitTimeout  = errors.New("restore session init timed out")
 	ErrLoginCancelled             = errors.New("login cancelled")
+	ErrAbortLogin                 = errors.New("abort login")
 
 	ErrBadRequest   = errors.New("400 (bad request)")
 	ErrUnpaired     = errors.New("401 (unpaired from phone)")
@@ -42,6 +45,8 @@ var (
 	ErrJoinUnauthorized  = errors.New("you're not allowed to join that group")
 
 	ErrInvalidWebsocket = errors.New("invalid websocket")
+
+	ErrWebsocketClosedBeforeLogin = errors.New("connection closed before login finished")
 
 	ErrMessageTypeNotImplemented = errors.New("message type not implemented")
 	ErrOptionsNotProvided        = errors.New("new conn options not provided")

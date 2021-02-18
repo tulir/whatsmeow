@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/gorilla/websocket"
 
@@ -16,10 +17,40 @@ import (
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 )
 
+type listenerWrapper struct {
+	sync.RWMutex
+	waiters map[string]chan<- string
+}
+
+func newListenerWrapper() *listenerWrapper {
+	return &listenerWrapper{waiters: make(map[string]chan<- string)}
+}
+
+func (lw *listenerWrapper) add(ch chan string, messageTag string) {
+	lw.Lock()
+	lw.waiters[messageTag] = ch
+	lw.Unlock()
+}
+
+func (lw *listenerWrapper) remove(messageTag string) {
+	lw.Lock()
+	delete(lw.waiters, messageTag)
+	lw.Unlock()
+}
+
+func (lw *listenerWrapper) get(messageTag string) (chan<- string, bool) {
+	lw.RLock()
+	listener, hasListener := lw.waiters[messageTag]
+	lw.RUnlock()
+	return listener, hasListener
+}
+
 func (wac *Conn) readPump() {
+	ws := wac.ws
 	defer func() {
-		wac.wg.Done()
-		_, _ = wac.Disconnect()
+		wac.log.Debugln("Websocket read pump exiting")
+		ws.Done()
+		_ = wac.Disconnect()
 	}()
 
 	var readErr error
@@ -29,9 +60,7 @@ func (wac *Conn) readPump() {
 	for {
 		readerFound := make(chan struct{})
 		go func() {
-			if wac.ws != nil {
-				msgType, reader, readErr = wac.ws.conn.NextReader()
-			}
+			msgType, reader, readErr = ws.conn.NextReader()
 			close(readerFound)
 		}()
 		select {
@@ -42,14 +71,14 @@ func (wac *Conn) readPump() {
 			}
 			msg, err := ioutil.ReadAll(reader)
 			if err != nil {
-				wac.handle(fmt.Errorf("error reading message from Reader: %w", err))
+				wac.log.Errorln("Error reading message from websocket reader:", err)
 				continue
 			}
 			err = wac.processReadData(msgType, msg)
 			if err != nil {
-				wac.handle(fmt.Errorf("error processing data: %w", err))
+				wac.log.Errorln("Error processing data from websocket:", err)
 			}
-		case <-wac.ws.close:
+		case <-ws.ctx.Done():
 			return
 		}
 	}
@@ -71,9 +100,7 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		return ErrInvalidWsData
 	}
 
-	wac.listener.RLock()
-	listener, hasListener := wac.listener.m[data[0]]
-	wac.listener.RUnlock()
+	listener, hasListener := wac.listener.get(data[0])
 
 	if hasListener {
 		// listener only exists for TextMessages query messages out of contact.go
@@ -84,7 +111,7 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		// in several places, especially in session.go, would then be gone.
 		listener <- data[1]
 		close(listener)
-		wac.removeListener(data[0])
+		wac.listener.remove(data[0])
 	} else if msgType == websocket.BinaryMessage {
 		wac.loginSessionLock.RLock()
 		sess := wac.session

@@ -2,7 +2,6 @@ package whatsapp
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
@@ -110,6 +109,9 @@ type JSONMsgInfo struct {
 }
 
 type ConnInfo struct {
+	// This is the only field that's always present
+	PushName string `json:"pushname"`
+
 	ProtocolVersion []int `json:"protoVersion"`
 	BinaryVersion   int   `json:"binVersion"`
 	Phone           struct {
@@ -122,7 +124,29 @@ type ConnInfo struct {
 		OSBuildNumber      string `json:"os_build_number"`
 	} `json:"phone"`
 	Features map[string]interface{} `json:"features"`
-	PushName string                 `json:"pushname"`
+
+	// Fields below are only sent right after connection
+	Reference  string `json:"ref"`
+	WID        JID    `json:"wid"`
+	TOS        int    `json:"tos"`
+	Connected  bool   `json:"connected"`
+	IsResponse string `json:"isResponse"`
+
+	ServerToken  string `json:"serverToken"`
+	BrowserToken string `json:"browserToken"`
+	ClientToken  string `json:"clientToken"`
+
+	Locale   string `json:"locale"`
+	Language string `json:"language"`
+	Locales  string `json:"locales"`
+	Is24h    bool   `json:"is24h"`
+
+	Plugged  bool   `json:"plugged"`
+	Battery  int    `json:"battery"`
+	Platform string `json:"platform"`
+
+	// Only present right after initial login
+	Secret string `json:"secret"`
 }
 
 type CommandType string
@@ -130,11 +154,14 @@ type CommandType string
 const (
 	CommandPicture    CommandType = "picture"
 	CommandDisconnect CommandType = "disconnect"
+	CommandChallenge  CommandType = "challenge"
 )
 
 type JSONCommand struct {
 	Type CommandType `json:"type"`
 	JID  string      `json:"jid"`
+
+	Challenge string `json:"challenge"`
 
 	*ProfilePicInfo
 	Kind string `json:"kind"`
@@ -299,14 +326,14 @@ func (wac *Conn) handleJSONMessage(message string) {
 	msg := JSONMessage{}
 	err := json.Unmarshal([]byte(message), &msg)
 	if err != nil || len(msg) < 2 {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error:", err)
 		return
 	}
 
 	var msgType JSONMessageType
 	err = json.Unmarshal(msg[0], &msgType)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing message type: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing message type:", err)
 		return
 	}
 
@@ -334,7 +361,7 @@ func (wac *Conn) handleMessageStream(message []json.RawMessage) {
 	var event StreamEvent
 	err := json.Unmarshal(message[0], &event.Type)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing StreamEvent: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing StreamEvent:", err)
 		return
 	}
 
@@ -355,7 +382,7 @@ func (wac *Conn) handleMessageProps(message []byte) {
 	var event ProtocolProps
 	err := json.Unmarshal(message, &event)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing ProtocolProps: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing ProtocolProps:", err)
 		return
 	}
 	wac.handle(event)
@@ -365,7 +392,7 @@ func (wac *Conn) handleMessagePresence(message []byte) {
 	var event PresenceEvent
 	err := json.Unmarshal(message, &event)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing PresenceEvent: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing PresenceEvent:", err)
 		return
 	}
 	event.JID = strings.Replace(event.JID, OldUserSuffix, NewUserSuffix, 1)
@@ -381,7 +408,7 @@ func (wac *Conn) handleMessageMsgInfo(msgType JSONMessageType, message []byte) {
 	var event JSONMsgInfo
 	err := json.Unmarshal(message, &event)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing MsgInfo: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing JSONMsgInfo:", err)
 		return
 	}
 	event.MessageFromJID = strings.Replace(event.MessageFromJID, OldUserSuffix, NewUserSuffix, 1)
@@ -397,8 +424,13 @@ func (wac *Conn) handleMessageConn(message []byte) {
 	var event ConnInfo
 	err := json.Unmarshal(message, &event)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing ConnInfo: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing ConnInfo:", err)
 		return
+	}
+	if event.Connected {
+		wac.session.ClientToken = event.ClientToken
+		wac.session.ServerToken = event.ServerToken
+		wac.session.Wid = event.WID
 	}
 	wac.handle(event)
 }
@@ -407,11 +439,22 @@ func (wac *Conn) handleMessageCommand(message []byte) {
 	var event JSONCommand
 	err := json.Unmarshal(message, &event)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing JSONCommand: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing JSONCommand:", err)
 		return
 	}
 	event.Raw = message
-	event.JID = strings.Replace(event.JID, OldUserSuffix, NewUserSuffix, 1)
+	if len(event.JID) > 0 {
+		event.JID = strings.Replace(event.JID, OldUserSuffix, NewUserSuffix, 1)
+	}
+	if event.Type == CommandChallenge {
+		go func() {
+			// TODO if this returns an error, the session restore probably failed, so we need to tell it to stop waiting
+			err := wac.resolveChallenge(event.Challenge)
+			if err != nil {
+				wac.log.Errorln("Failed to resolve challenge:", err)
+			}
+		}()
+	}
 	wac.handle(event)
 }
 
@@ -419,7 +462,7 @@ func (wac *Conn) handleMessageChatUpdate(message []byte) {
 	var event ChatUpdate
 	err := json.Unmarshal(message, &event)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing ChatUpdate: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing ChatUpdate:", err)
 		return
 	}
 	event.JID = strings.Replace(event.JID, OldUserSuffix, NewUserSuffix, 1)
@@ -430,7 +473,7 @@ func (wac *Conn) handleMessageCall(message []byte) {
 	var event CallInfo
 	err := json.Unmarshal(message, &event)
 	if err != nil {
-		wac.handle(fmt.Errorf("WhatsApp JSON parse error parsing CallInfo: %w", err))
+		wac.log.Errorln("WhatsApp JSON parse error parsing CallInfo:", err)
 		return
 	}
 	event.From = strings.Replace(event.From, OldUserSuffix, NewUserSuffix, 1)

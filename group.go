@@ -16,32 +16,32 @@ const (
 )
 
 type GroupInfo struct {
-	JID      string `json:"jid"`
-	OwnerJID string `json:"owner"`
+	JID      JID `json:"jid"`
+	OwnerJID JID `json:"owner"`
 
 	Name        string `json:"subject"`
 	NameSetTime int64  `json:"subjectTime"`
-	NameSetBy   string `json:"subjectOwner"`
+	NameSetBy   JID    `json:"subjectOwner"`
 
 	Announce bool `json:"announce"` // Can only admins send messages?
 
 	Topic      string `json:"desc"`
 	TopicID    string `json:"descId"`
 	TopicSetAt int64  `json:"descTime"`
-	TopicSetBy string `json:"descOwner"`
+	TopicSetBy JID    `json:"descOwner"`
 
 	GroupCreated int64 `json:"creation"`
 
 	Status int16 `json:"status"`
 
 	Participants []struct {
-		JID          string `json:"id"`
-		IsAdmin      bool   `json:"isAdmin"`
-		IsSuperAdmin bool   `json:"isSuperAdmin"`
+		JID          JID  `json:"id"`
+		IsAdmin      bool `json:"isAdmin"`
+		IsSuperAdmin bool `json:"isSuperAdmin"`
 	} `json:"participants"`
 }
 
-func (wac *Conn) GetGroupMetaData(jid string) (*GroupInfo, error) {
+func (wac *Conn) GetGroupMetaData(jid JID) (*GroupInfo, error) {
 	data := []interface{}{"query", "GroupMetadata", jid}
 	resp, err := wac.writeJson(data)
 	if err != nil {
@@ -107,27 +107,27 @@ func (wac *Conn) CreateGroup(subject string, participants []JID) (*CreateGroupRe
 	return &resp, nil
 }
 
-func (wac *Conn) UpdateGroupSubject(subject string, jid string) (<-chan string, error) {
+func (wac *Conn) UpdateGroupSubject(subject string, jid JID) (<-chan string, error) {
 	return wac.setGroup("subject", jid, subject, nil)
 }
 
-func (wac *Conn) SetAdmin(jid string, participants []string) (<-chan string, error) {
+func (wac *Conn) SetAdmin(jid JID, participants []string) (<-chan string, error) {
 	return wac.setGroup("promote", jid, "", participants)
 }
 
-func (wac *Conn) RemoveAdmin(jid string, participants []string) (<-chan string, error) {
+func (wac *Conn) RemoveAdmin(jid JID, participants []string) (<-chan string, error) {
 	return wac.setGroup("demote", jid, "", participants)
 }
 
-func (wac *Conn) AddMember(jid string, participants []string) (<-chan string, error) {
+func (wac *Conn) AddMember(jid JID, participants []string) (<-chan string, error) {
 	return wac.setGroup("add", jid, "", participants)
 }
 
-func (wac *Conn) RemoveMember(jid string, participants []string) (<-chan string, error) {
+func (wac *Conn) RemoveMember(jid JID, participants []string) (<-chan string, error) {
 	return wac.setGroup("remove", jid, "", participants)
 }
 
-func (wac *Conn) LeaveGroup(jid string) (<-chan string, error) {
+func (wac *Conn) LeaveGroup(jid JID) (<-chan string, error) {
 	return wac.setGroup("leave", jid, "", nil)
 }
 
@@ -188,8 +188,8 @@ func (wac *Conn) GroupAcceptInviteCode(code string) (jid string, err error) {
 	return response["gid"].(string), nil
 }
 
-func (wac *Conn) UpdateGroupDescription(jid, description string) (<-chan string, error) {
-	prevMeta, err := wac.GetGroupMetaData(jid)
+func (wac *Conn) UpdateGroupDescription(ownJID, groupJID JID, description string) (<-chan string, error) {
+	prevMeta, err := wac.GetGroupMetaData(groupJID)
 	if err != nil {
 		return nil, err
 	}
@@ -215,9 +215,9 @@ func (wac *Conn) UpdateGroupDescription(jid, description string) (<-chan string,
 				Description: "group",
 				Attributes: map[string]string{
 					"id":     tag,
-					"jid":    jid,
+					"jid":    groupJID,
 					"type":   "description",
-					"author": wac.Info.Wid,
+					"author": ownJID,
 				},
 				Content: []binary.Node{
 					{

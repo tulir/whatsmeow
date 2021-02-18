@@ -237,7 +237,7 @@ func (wac *Conn) query(t, jid, messageId, kind, owner, search string, count, pag
 	}
 }
 
-func (wac *Conn) setGroup(t, jid, subject string, participants []string) (<-chan string, error) {
+func (wac *Conn) setGroup(t string, jid JID, subject string, participants []string) (<-chan string, error) {
 	ts := time.Now().Unix()
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 

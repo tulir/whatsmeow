@@ -8,7 +8,7 @@ import (
 )
 
 // Pictures must be JPG 640x640 and 96x96, respectively
-func (wac *Conn) UploadProfilePic(image, preview []byte) (<-chan string, error) {
+func (wac *Conn) UploadProfilePic(ownJID JID, image, preview []byte) (<-chan string, error) {
 	tag := fmt.Sprintf("%d.--%d", time.Now().Unix(), wac.msgCount*19)
 	n := binary.Node{
 		Description: "action",
@@ -21,7 +21,7 @@ func (wac *Conn) UploadProfilePic(image, preview []byte) (<-chan string, error) 
 				Description: "picture",
 				Attributes: map[string]string{
 					"id":   tag,
-					"jid":  wac.Info.Wid,
+					"jid":  ownJID,
 					"type": "set",
 				},
 				Content: []binary.Node{
