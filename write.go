@@ -52,17 +52,14 @@ func (wsw *websocketWrapper) write(messageType int, data []byte) error {
 	return nil
 }
 
-func (wac *Conn) writeJson(data []interface{}) (<-chan string, error) {
-	ch, _, err := wac.writeJsonRetry(data)
+func (wac *Conn) writeJSON(data []interface{}) (<-chan string, error) {
+	ch, _, err := wac.writeJSONRetry(data, false)
 	return ch, err
 }
 
-//writeJson enqueues a json message into the writeChan
-func (wac *Conn) writeJsonRetry(data []interface{}) (<-chan string, func() error, error) {
+//writeJSON enqueues a json message into the writeChan
+func (wac *Conn) writeJSONRetry(data []interface{}, isResendable bool) (<-chan string, ResendFunc, error) {
 	ch := make(chan string, 1)
-
-	wac.writerLock.Lock()
-	defer wac.writerLock.Unlock()
 
 	d, err := json.Marshal(data)
 	if err != nil {
@@ -79,38 +76,35 @@ func (wac *Conn) writeJsonRetry(data []interface{}) (<-chan string, func() error
 		wac.timeTag = tss[len(tss)-3:]
 	}
 
-	wac.listener.add(ch, messageTag)
+	resend := func() error {
+		return wac.ws.write(websocket.TextMessage, bytes)
+	}
 
-	err = wac.ws.write(websocket.TextMessage, bytes)
+	wac.listener.add(ch, resend, isResendable, messageTag)
+
+	err = resend()
 	if err != nil {
 		close(ch)
 		wac.listener.remove(messageTag)
 		return ch, nil, err
 	}
 
-	retry := func() error {
-		return wac.ws.write(websocket.TextMessage, bytes)
-	}
-
 	wac.msgCount++
-	return ch, retry, nil
+	return ch, resend, nil
 }
 
 func (wac *Conn) writeBinary(node binary.Node, metric metric, flag flag, messageTag string) (<-chan string, error) {
-	ch, _, err := wac.writeBinaryRetry(node, metric, flag, messageTag)
+	ch, _, err := wac.writeBinaryRetry(node, metric, flag, messageTag, false)
 	return ch, err
 }
 
-func (wac *Conn) writeBinaryRetry(node binary.Node, metric metric, flag flag, messageTag string) (<-chan string, func() error, error) {
+func (wac *Conn) writeBinaryRetry(node binary.Node, metric metric, flag flag, messageTag string, isResendable bool) (<-chan string, ResendFunc, error) {
 	ch := make(chan string, 1)
 
 	if len(messageTag) < 2 {
 		close(ch)
 		return ch, nil, ErrMissingMessageTag
 	}
-
-	wac.writerLock.Lock()
-	defer wac.writerLock.Unlock()
 
 	data, err := wac.encryptBinaryMessage(node)
 	if err != nil {
@@ -122,21 +116,21 @@ func (wac *Conn) writeBinaryRetry(node binary.Node, metric metric, flag flag, me
 	bytes = append(bytes, byte(metric), byte(flag))
 	bytes = append(bytes, data...)
 
-	wac.listener.add(ch, messageTag)
+	resend := func() error {
+		return wac.ws.write(websocket.BinaryMessage, bytes)
+	}
 
-	err = wac.ws.write(websocket.BinaryMessage, bytes)
+	wac.listener.add(ch, resend, isResendable, messageTag)
+
+	err = resend()
 	if err != nil {
 		close(ch)
 		wac.listener.remove(messageTag)
 		return ch, nil, fmt.Errorf("failed to write message: %w", err)
 	}
 
-	retry := func() error {
-		return wac.ws.write(websocket.BinaryMessage, bytes)
-	}
-
 	wac.msgCount++
-	return ch, retry, nil
+	return ch, resend, nil
 }
 
 func (wac *Conn) encryptBinaryMessage(node binary.Node) (data []byte, err error) {

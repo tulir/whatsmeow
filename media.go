@@ -111,7 +111,7 @@ type MediaConn struct {
 
 func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
 	queryReq := []interface{}{"query", "mediaConn"}
-	ch, err := wac.writeJson(queryReq)
+	ch, err := wac.writeJSON(queryReq)
 	if err != nil {
 		return "", "", 0, err
 	}
@@ -120,7 +120,7 @@ func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
 	select {
 	case r := <-ch:
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			return "", "", 0, fmt.Errorf("error decoding query media conn response: %v", err)
+			return "", "", 0, fmt.Errorf("error decoding query media conn response: %w", err)
 		}
 	case <-time.After(wac.msgTimeout):
 		return "", "", 0, fmt.Errorf("query media conn timed out")

@@ -24,17 +24,24 @@ const (
 )
 
 func (wac *Conn) SendRaw(msg *proto.WebMessageInfo, output chan<- error) {
-	ch, err := wac.sendProto(msg)
+	ch, resend, err := wac.sendProto(msg)
 	if err != nil {
 		output <- fmt.Errorf("could not send proto: %w", err)
 		return
 	}
 	var response string
-	select {
-	case <-time.After(wac.msgTimeout):
-		wac.ws.countTimeout()
-		response = <-ch
-	case response = <-ch:
+Loop:
+	for {
+		select {
+		case <-time.After(wac.msgTimeout):
+			wac.ws.countTimeout()
+			err = resend()
+			if err != nil {
+				wac.log.Warnln("Failed to retry sending message:", err)
+			}
+		case response = <-ch:
+			break Loop
+		}
 	}
 	resp := StatusResponse{RequestType: "message sending"}
 	if err = json.Unmarshal([]byte(response), &resp); err != nil {
@@ -46,73 +53,73 @@ func (wac *Conn) SendRaw(msg *proto.WebMessageInfo, output chan<- error) {
 	}
 }
 
-func (wac *Conn) Send(msg interface{}) (string, error) {
-	var msgProto *proto.WebMessageInfo
-
-	switch m := msg.(type) {
-	case *proto.WebMessageInfo:
-		msgProto = m
-	case TextMessage:
-		msgProto = getTextProto(m)
-	case ImageMessage:
-		var err error
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaImage)
-		if err != nil {
-			return "ERROR", fmt.Errorf("image upload failed: %v", err)
-		}
-		msgProto = getImageProto(m)
-	case VideoMessage:
-		var err error
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaVideo)
-		if err != nil {
-			return "ERROR", fmt.Errorf("video upload failed: %v", err)
-		}
-		msgProto = getVideoProto(m)
-	case DocumentMessage:
-		var err error
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaDocument)
-		if err != nil {
-			return "ERROR", fmt.Errorf("document upload failed: %v", err)
-		}
-		msgProto = getDocumentProto(m)
-	case AudioMessage:
-		var err error
-		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaAudio)
-		if err != nil {
-			return "ERROR", fmt.Errorf("audio upload failed: %v", err)
-		}
-		msgProto = getAudioProto(m)
-	case LocationMessage:
-		msgProto = GetLocationProto(m)
-	case LiveLocationMessage:
-		msgProto = GetLiveLocationProto(m)
-	case ContactMessage:
-		msgProto = getContactMessageProto(m)
-	default:
-		return "ERROR", fmt.Errorf("cannot match type %T, use message types declared in the package", msg)
-	}
-
-	ch, err := wac.sendProto(msgProto)
-	if err != nil {
-		return "ERROR", fmt.Errorf("could not send proto: %v", err)
-	}
-
-	select {
-	case response := <-ch:
-		resp := StatusResponse{RequestType: "message sending"}
-		if err = json.Unmarshal([]byte(response), &resp); err != nil {
-			return "ERROR", fmt.Errorf("error decoding sending response: %v\n", err)
-		} else if resp.Status != 200 {
-			return "ERROR", resp
-		}
-		return getMessageInfo(msgProto).Id, nil
-	case <-time.After(wac.msgTimeout):
-		wac.ws.countTimeout()
-		return "ERROR", fmt.Errorf("sending message timed out")
-	}
-}
-
-func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
+//func (wac *Conn) Send(msg interface{}) (string, error) {
+//	var msgProto *proto.WebMessageInfo
+//
+//	switch m := msg.(type) {
+//	case *proto.WebMessageInfo:
+//		msgProto = m
+//	case TextMessage:
+//		msgProto = getTextProto(m)
+//	case ImageMessage:
+//		var err error
+//		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaImage)
+//		if err != nil {
+//			return "ERROR", fmt.Errorf("image upload failed: %v", err)
+//		}
+//		msgProto = getImageProto(m)
+//	case VideoMessage:
+//		var err error
+//		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaVideo)
+//		if err != nil {
+//			return "ERROR", fmt.Errorf("video upload failed: %v", err)
+//		}
+//		msgProto = getVideoProto(m)
+//	case DocumentMessage:
+//		var err error
+//		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaDocument)
+//		if err != nil {
+//			return "ERROR", fmt.Errorf("document upload failed: %v", err)
+//		}
+//		msgProto = getDocumentProto(m)
+//	case AudioMessage:
+//		var err error
+//		m.url, m.mediaKey, m.fileEncSha256, m.fileSha256, m.fileLength, err = wac.Upload(m.Content, MediaAudio)
+//		if err != nil {
+//			return "ERROR", fmt.Errorf("audio upload failed: %v", err)
+//		}
+//		msgProto = getAudioProto(m)
+//	case LocationMessage:
+//		msgProto = GetLocationProto(m)
+//	case LiveLocationMessage:
+//		msgProto = GetLiveLocationProto(m)
+//	case ContactMessage:
+//		msgProto = getContactMessageProto(m)
+//	default:
+//		return "ERROR", fmt.Errorf("cannot match type %T, use message types declared in the package", msg)
+//	}
+//
+//	ch, _, err := wac.sendProto(msgProto)
+//	if err != nil {
+//		return "ERROR", fmt.Errorf("could not send proto: %v", err)
+//	}
+//
+//	select {
+//	case response := <-ch:
+//		resp := StatusResponse{RequestType: "message sending"}
+//		if err = json.Unmarshal([]byte(response), &resp); err != nil {
+//			return "ERROR", fmt.Errorf("error decoding sending response: %w", err)
+//		} else if resp.Status != 200 {
+//			return "ERROR", resp
+//		}
+//		return getMessageInfo(msgProto).Id, nil
+//	case <-time.After(wac.msgTimeout):
+//		wac.ws.countTimeout()
+//		return "ERROR", fmt.Errorf("sending message timed out")
+//	}
+//}
+//
+func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, ResendFunc, error) {
 	n := binary.Node{
 		Description: "action",
 		Attributes: map[string]string{
@@ -121,43 +128,43 @@ func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
 		},
 		Content: []interface{}{p},
 	}
-	return wac.writeBinary(n, message, ignore, p.Key.GetId())
+	return wac.writeBinaryRetry(n, message, ignore, p.Key.GetId(), true)
 }
-
-// RevokeMessage revokes a message (marks as "message removed") for everyone
-func (wac *Conn) RevokeMessage(chatJID JID, msgID MessageID, fromme bool) (MessageID, error) {
-	// create a revocation ID (required)
-	rawrevocationID := make([]byte, 10)
-	rand.Read(rawrevocationID)
-	revocationID := strings.ToUpper(hex.EncodeToString(rawrevocationID))
-	ts := uint64(time.Now().Unix())
-	status := proto.WebMessageInfo_PENDING
-	mtype := proto.ProtocolMessage_REVOKE
-
-	revoker := &proto.WebMessageInfo{
-		Key: &proto.MessageKey{
-			FromMe:    &fromme,
-			Id:        &revocationID,
-			RemoteJid: &chatJID,
-		},
-		MessageTimestamp: &ts,
-		Message: &proto.Message{
-			ProtocolMessage: &proto.ProtocolMessage{
-				Type: &mtype,
-				Key: &proto.MessageKey{
-					FromMe:    &fromme,
-					Id:        &msgID,
-					RemoteJid: &chatJID,
-				},
-			},
-		},
-		Status: &status,
-	}
-	if _, err := wac.Send(revoker); err != nil {
-		return revocationID, err
-	}
-	return revocationID, nil
-}
+//
+//// RevokeMessage revokes a message (marks as "message removed") for everyone
+//func (wac *Conn) RevokeMessage(chatJID JID, msgID MessageID, fromme bool) (MessageID, error) {
+//	// create a revocation ID (required)
+//	rawrevocationID := make([]byte, 10)
+//	rand.Read(rawrevocationID)
+//	revocationID := strings.ToUpper(hex.EncodeToString(rawrevocationID))
+//	ts := uint64(time.Now().Unix())
+//	status := proto.WebMessageInfo_PENDING
+//	mtype := proto.ProtocolMessage_REVOKE
+//
+//	revoker := &proto.WebMessageInfo{
+//		Key: &proto.MessageKey{
+//			FromMe:    &fromme,
+//			Id:        &revocationID,
+//			RemoteJid: &chatJID,
+//		},
+//		MessageTimestamp: &ts,
+//		Message: &proto.Message{
+//			ProtocolMessage: &proto.ProtocolMessage{
+//				Type: &mtype,
+//				Key: &proto.MessageKey{
+//					FromMe:    &fromme,
+//					Id:        &msgID,
+//					RemoteJid: &chatJID,
+//				},
+//			},
+//		},
+//		Status: &status,
+//	}
+//	if _, err := wac.Send(revoker); err != nil {
+//		return revocationID, err
+//	}
+//	return revocationID, nil
+//}
 
 // DeleteMessage deletes a single message for the user (removes the msgbox). To
 // delete the message for everyone, use RevokeMessage
@@ -171,7 +178,7 @@ func (wac *Conn) DeleteMessage(chatJID JID, msgID MessageID, fromMe bool) error 
 	case response := <-ch:
 		resp := StatusResponse{RequestType: "message deletion"}
 		if err = json.Unmarshal([]byte(response), &resp); err != nil {
-			return fmt.Errorf("error decoding deletion response: %v", err)
+			return fmt.Errorf("error decoding deletion response: %w", err)
 		} else if resp.Status != 200 {
 			return resp
 		}

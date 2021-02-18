@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -41,21 +42,20 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 func (wac *Conn) keepAliveAdminTest() {
 	err := wac.AdminTest()
 	if err != nil {
-		wac.log.Warnln("Keepalive admin test failed: %v", err)
+		wac.log.Warnln("Keepalive admin test failed:", err)
 	} else {
 		if wac.ws.pingInKeepalive <= 0 {
 			wac.log.Infoln("Keepalive admin test successful, not pinging anymore")
 		} else {
-			wac.ws.pingInKeepalive--
 			wac.log.Infofln("Keepalive admin test successful, stopping pings after %d more successes", wac.ws.pingInKeepalive)
+			wac.ws.pingInKeepalive--
 		}
-
 	}
 }
 
 func (wac *Conn) sendKeepAlive(ws *websocketWrapper) error {
 	respChan := make(chan string, 1)
-	wac.listener.add(respChan, "!")
+	wac.listener.add(respChan, nil, false,"!")
 
 	bytes := []byte("?,,")
 	err := ws.write(websocket.TextMessage, bytes)
@@ -84,37 +84,45 @@ func (wac *Conn) AdminTest() error {
 	if !wac.connected {
 		return ErrNotConnected
 	}
-
 	if !wac.loggedIn {
 		return ErrNotLoggedIn
 	}
-
 	return wac.sendAdminTest()
 }
 
-/*
-	When phone is unreachable, WhatsAppWeb sends ["admin","test"] time after time to try a successful contact.
-	Tested with Airplane mode and no connection at all.
-*/
-func (wac *Conn) sendAdminTest() error {
-	data := []interface{}{"admin", "test"}
+type adminTestWait struct {
+	sync.Mutex
+	input chan<- string
+	output []chan error
+	done   bool
+	result error
+}
 
-	wac.log.Debugln("Sending admin test request")
-	r, err := wac.writeJson(data)
-	if err != nil {
-		return fmt.Errorf("error sending admin test: %w", err)
+func newAdminTestWait() *adminTestWait {
+	input := make(chan string, 1)
+	atw := &adminTestWait{
+		output: make([]chan error, 0),
+		input: input,
 	}
+	go atw.wait(input)
+	return atw
+}
 
+func (atw *adminTestWait) wait(input <-chan string) {
+	atw.result = atw.handleResp(<-input)
+	atw.done = true
+	atw.Lock()
+	for _, ch := range atw.output {
+		ch <- atw.result
+	}
+	atw.output = nil
+	atw.Unlock()
+}
+
+func (atw *adminTestWait) handleResp(resp string) error {
 	var response interface{}
-	var resp string
-
-	select {
-	case resp = <-r:
-		if err = json.Unmarshal([]byte(resp), &response); err != nil {
-			return fmt.Errorf("error decoding response message: %v\n", err)
-		}
-	case <-time.After(wac.msgTimeout):
-		return ErrConnectionTimeout
+	if err := json.Unmarshal([]byte(resp), &response); err != nil {
+		return fmt.Errorf("error decoding response message: %w", err)
 	}
 
 	if respArr, ok := response.([]interface{}); ok {
@@ -123,4 +131,44 @@ func (wac *Conn) sendAdminTest() error {
 		}
 	}
 	return fmt.Errorf("unexpected ping response: %s", resp)
+}
+
+func (atw *adminTestWait) Listen() <-chan error {
+	atw.Lock()
+	ch := make(chan error, 1)
+	if atw.done {
+		ch <- atw.result
+	} else {
+		atw.output = append(atw.output, ch)
+	}
+	atw.Unlock()
+	return ch
+}
+
+const adminTest = `["admin","test"]`
+
+func (wac *Conn) sendAdminTest() error {
+	wac.atwLock.Lock()
+	if wac.atw == nil || wac.atw.done {
+		wac.atw = newAdminTestWait()
+	}
+	atw := wac.atw
+	wac.atwLock.Unlock()
+
+	messageTag := fmt.Sprintf("%d.--%d", time.Now().Unix(), wac.msgCount)
+	// TODO clean up listeners when there are multiple admin test?
+	wac.listener.add(atw.input, nil, false, messageTag)
+	wac.log.Debugln("Sending admin test request with tag", messageTag)
+	bytes := []byte(fmt.Sprintf("%s,%s", messageTag, adminTest))
+	err := wac.ws.write(websocket.TextMessage, bytes)
+	if err != nil {
+		return fmt.Errorf("error sending admin test: %w", err)
+	}
+
+	select {
+	case err = <- atw.Listen():
+		return err
+	case <-time.After(wac.msgTimeout):
+		return ErrConnectionTimeout
+	}
 }

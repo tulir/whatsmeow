@@ -50,7 +50,7 @@ func (ppi *ProfilePicInfo) DownloadBytes() ([]byte, error) {
 
 func (wac *Conn) GetProfilePicThumb(jid string) (*ProfilePicInfo, error) {
 	data := []interface{}{"query", "ProfilePicThumb", jid}
-	resp, err := wac.writeJson(data)
+	resp, err := wac.writeJSON(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get avatar: %v", err)
 	}
@@ -65,12 +65,12 @@ func (wac *Conn) GetProfilePicThumb(jid string) (*ProfilePicInfo, error) {
 
 func (wac *Conn) GetStatus(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "Status", jid}
-	return wac.writeJson(data)
+	return wac.writeJSON(data)
 }
 
 func (wac *Conn) SubscribePresence(jid string) (<-chan string, error) {
 	data := []interface{}{"action", "presence", "subscribe", jid}
-	return wac.writeJson(data)
+	return wac.writeJSON(data)
 }
 
 func (wac *Conn) Search(search string, count, page int) (*binary.Node, error) {
@@ -126,7 +126,7 @@ func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) 
 
 func (wac *Conn) Exist(jid string) (<-chan string, error) {
 	data := []interface{}{"query", "exist", jid}
-	return wac.writeJson(data)
+	return wac.writeJSON(data)
 }
 
 func (wac *Conn) Emoji() (*binary.Node, error) {

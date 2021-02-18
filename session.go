@@ -56,7 +56,7 @@ func (wac *Conn) SetClientVersion(major int, minor int, patch int) {
 
 func (wac *Conn) adminInitRequest(clientID string) (string, time.Duration, error) {
 	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, clientID, true}
-	loginChan, err := wac.writeJson(login)
+	loginChan, err := wac.writeJSON(login)
 	if err != nil {
 		return "", 0, fmt.Errorf("error writing login: %w", err)
 	}
@@ -78,7 +78,7 @@ func (wac *Conn) adminInitRequest(clientID string) (string, time.Duration, error
 
 func (wac *Conn) adminRerefRequest() (string, time.Duration, error) {
 	reref := []interface{}{"admin", "Conn", "reref"}
-	rerefChan, err := wac.writeJson(reref)
+	rerefChan, err := wac.writeJSON(reref)
 	if err != nil {
 		return "", 0, fmt.Errorf("error writing reref: %w", err)
 	}
@@ -144,7 +144,7 @@ func (wac *Conn) Login(qrChan chan<- string, ctx context.Context, maxRetries int
 
 	//listener for Login response
 	s1 := make(chan string, 1)
-	wac.listener.add(s1, "s1")
+	wac.listener.add(s1, nil, false, "s1")
 
 	ref, ttl, err := wac.adminInitRequest(session.ClientID)
 	if err != nil {
@@ -164,7 +164,7 @@ Loop:
 		select {
 		case r1 := <-s1:
 			if err := json.Unmarshal([]byte(r1), &resp); err != nil {
-				return session, "", fmt.Errorf("error decoding qr code resp: %v", err)
+				return session, "", fmt.Errorf("error decoding qr code resp: %w", err)
 			}
 			break Loop
 		case <-time.After(ttl):
@@ -280,7 +280,7 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 
 	//admin init
 	init := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, wac.session.ClientID, true}
-	initChan, err := wac.writeJson(init)
+	initChan, err := wac.writeJSON(init)
 	if err != nil {
 		return fmt.Errorf("error writing admin init: %w", err)
 	}
@@ -290,7 +290,7 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 		restoreType = "takeover"
 	}
 	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientID, restoreType}
-	loginChan, retry, err := wac.writeJsonRetry(login)
+	loginChan, retry, err := wac.writeJSONRetry(login, false)
 	if err != nil {
 		return fmt.Errorf("error writing admin login: %w", err)
 	}
@@ -373,7 +373,7 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 	h2.Write(decoded)
 
 	ch := []interface{}{"admin", "challenge", base64.StdEncoding.EncodeToString(h2.Sum(nil)), wac.session.ServerToken, wac.session.ClientID}
-	challengeChan, err := wac.writeJson(ch)
+	challengeChan, err := wac.writeJSON(ch)
 	if err != nil {
 		return fmt.Errorf("error writing challenge: %w", err)
 	}
@@ -399,7 +399,7 @@ The session can not be resumed and will disappear on your phone in the WhatsAppW
 */
 func (wac *Conn) Logout() error {
 	login := []interface{}{"admin", "Conn", "disconnect"}
-	_, err := wac.writeJson(login)
+	_, err := wac.writeJSON(login)
 	if err != nil {
 		return fmt.Errorf("error writing logout: %w", err)
 	}

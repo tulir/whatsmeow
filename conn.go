@@ -76,6 +76,8 @@ type Conn struct {
 
 	ws       *websocketWrapper
 	listener *listenerWrapper
+	atw      *adminTestWait
+	atwLock  sync.Mutex
 
 	connected bool
 	loggedIn  bool
@@ -96,8 +98,6 @@ type Conn struct {
 
 	loginSessionLock sync.RWMutex
 	Proxy            func(*http.Request) (*url.URL, error)
-
-	writerLock sync.RWMutex
 }
 
 type Options struct {
@@ -130,7 +130,7 @@ func NewConn(opt *Options) *Conn {
 		msgCount:        0,
 		msgTimeout:      opt.Timeout,
 		Store:           opt.Store,
-		Proxy: opt.Proxy,
+		Proxy:           opt.Proxy,
 		longClientName:  "github.com/Rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
 		clientVersion:   "0.1.0",
@@ -184,7 +184,18 @@ func (wac *Conn) connect() (err error) {
 	})
 
 	wac.ws = newWebsocketWrapper(wsConn)
-	wac.listener = newListenerWrapper()
+	if wac.listener == nil {
+		wac.listener = newListenerWrapper()
+	} else {
+		resends := wac.listener.onReconnect()
+		for i, id := range resends.ids {
+			wac.log.Debugln("Resending request", id)
+			err = resends.funcs[i]()
+			if err != nil {
+				wac.log.Warnfln("Failed to resend %s: %v", id, err)
+			}
+		}
+	}
 
 	wac.ws.Add(2)
 	go wac.readPump()

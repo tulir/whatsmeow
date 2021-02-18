@@ -38,7 +38,7 @@ type GroupInfo struct {
 
 func (wac *Conn) GetGroupMetaData(jid JID) (*GroupInfo, error) {
 	data := []interface{}{"query", "GroupMetadata", jid}
-	resp, err := wac.writeJson(data)
+	resp, err := wac.writeJSON(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get group metadata: %v", err)
 	}
@@ -128,7 +128,7 @@ func (wac *Conn) LeaveGroup(jid JID) (<-chan string, error) {
 
 func (wac *Conn) GroupInviteLink(jid string) (string, error) {
 	request := []interface{}{"query", "inviteCode", jid}
-	ch, err := wac.writeJson(request)
+	ch, err := wac.writeJSON(request)
 	if err != nil {
 		return "", err
 	}
@@ -138,7 +138,7 @@ func (wac *Conn) GroupInviteLink(jid string) (string, error) {
 	select {
 	case r := <-ch:
 		if err := json.Unmarshal([]byte(r), &response); err != nil {
-			return "", fmt.Errorf("error decoding response message: %v\n", err)
+			return "", fmt.Errorf("error decoding response message: %w", err)
 		}
 	case <-time.After(wac.msgTimeout):
 		return "", fmt.Errorf("request timed out")
@@ -156,7 +156,7 @@ func (wac *Conn) GroupInviteLink(jid string) (string, error) {
 
 func (wac *Conn) GroupAcceptInviteCode(code string) (jid string, err error) {
 	request := []interface{}{"action", "invite", code}
-	ch, err := wac.writeJson(request)
+	ch, err := wac.writeJSON(request)
 	if err != nil {
 		return "", err
 	}
@@ -166,7 +166,7 @@ func (wac *Conn) GroupAcceptInviteCode(code string) (jid string, err error) {
 	select {
 	case r := <-ch:
 		if err := json.Unmarshal([]byte(r), &response); err != nil {
-			return "", fmt.Errorf("error decoding response message: %v\n", err)
+			return "", fmt.Errorf("error decoding response message: %w", err)
 		}
 	case <-time.After(wac.msgTimeout):
 		return "", fmt.Errorf("request timed out")

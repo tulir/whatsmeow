@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 
@@ -17,18 +18,28 @@ import (
 	"github.com/Rhymen/go-whatsapp/crypto/cbc"
 )
 
+type ResendFunc func() error
+
+type inputWaiter struct {
+	ch     chan<- string
+	resend ResendFunc
+}
+
 type listenerWrapper struct {
 	sync.RWMutex
-	waiters map[string]chan<- string
+	waiters map[string]inputWaiter
 }
 
 func newListenerWrapper() *listenerWrapper {
-	return &listenerWrapper{waiters: make(map[string]chan<- string)}
+	return &listenerWrapper{waiters: make(map[string]inputWaiter)}
 }
 
-func (lw *listenerWrapper) add(ch chan string, messageTag string) {
+func (lw *listenerWrapper) add(ch chan<- string, resend func() error, isResendable bool, messageTag string) {
 	lw.Lock()
-	lw.waiters[messageTag] = ch
+	if !isResendable {
+		resend = nil
+	}
+	lw.waiters[messageTag] = inputWaiter{ch, resend}
 	lw.Unlock()
 }
 
@@ -42,7 +53,40 @@ func (lw *listenerWrapper) get(messageTag string) (chan<- string, bool) {
 	lw.RLock()
 	listener, hasListener := lw.waiters[messageTag]
 	lw.RUnlock()
-	return listener, hasListener
+	return listener.ch, hasListener
+}
+
+type resendableMessages struct {
+	ids   []string
+	funcs []ResendFunc
+}
+
+func (rsm *resendableMessages) Len() int {
+	return len(rsm.ids)
+}
+
+func (rsm *resendableMessages) Swap(i, j int) {
+	rsm.funcs[i], rsm.funcs[j] = rsm.funcs[j], rsm.funcs[i]
+	rsm.ids[i], rsm.ids[j] = rsm.ids[j], rsm.ids[i]
+}
+
+func (rsm *resendableMessages) Less(i, j int) bool {
+	return rsm.ids[i] < rsm.ids[j]
+}
+
+func (lw *listenerWrapper) onReconnect() (rsm resendableMessages) {
+	lw.Lock()
+	newWaiters := make(map[string]inputWaiter)
+	for msgID, waiter := range lw.waiters {
+		if waiter.resend != nil {
+			rsm.ids = append(rsm.ids, msgID)
+			rsm.funcs = append(rsm.funcs, waiter.resend)
+		}
+	}
+	lw.waiters = newWaiters
+	lw.Unlock()
+	sort.Sort(&rsm)
+	return rsm
 }
 
 func (wac *Conn) readPump() {
@@ -93,6 +137,7 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 	}
 
 	if len(data) == 2 && len(data[1]) == 0 {
+		// TODO use these request acknowledgements?
 		return nil
 	}
 
@@ -109,8 +154,12 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		// be unmarshalled. The listener chan could then be changed from type
 		// chan string to something like chan map[string]interface{}. The unmarshalling
 		// in several places, especially in session.go, would then be gone.
-		listener <- data[1]
-		close(listener)
+		select {
+		case listener <- data[1]:
+			close(listener)
+		default:
+			wac.log.Debugln("Channel for response to", data[0], "is no longer receiving")
+		}
 		wac.listener.remove(data[0])
 	} else if msgType == websocket.BinaryMessage {
 		wac.loginSessionLock.RLock()
