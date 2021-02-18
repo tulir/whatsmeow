@@ -118,12 +118,11 @@ func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, error) {
 }
 
 // RevokeMessage revokes a message (marks as "message removed") for everyone
-func (wac *Conn) RevokeMessage(remotejid, msgid string, fromme bool) (revokeid string, err error) {
+func (wac *Conn) RevokeMessage(chatJID JID, msgID MessageID, fromme bool) (MessageID, error) {
 	// create a revocation ID (required)
 	rawrevocationID := make([]byte, 10)
 	rand.Read(rawrevocationID)
 	revocationID := strings.ToUpper(hex.EncodeToString(rawrevocationID))
-	//
 	ts := uint64(time.Now().Unix())
 	status := proto.WebMessageInfo_PENDING
 	mtype := proto.ProtocolMessage_REVOKE
@@ -132,7 +131,7 @@ func (wac *Conn) RevokeMessage(remotejid, msgid string, fromme bool) (revokeid s
 		Key: &proto.MessageKey{
 			FromMe:    &fromme,
 			Id:        &revocationID,
-			RemoteJid: &remotejid,
+			RemoteJid: &chatJID,
 		},
 		MessageTimestamp: &ts,
 		Message: &proto.Message{
@@ -140,8 +139,8 @@ func (wac *Conn) RevokeMessage(remotejid, msgid string, fromme bool) (revokeid s
 				Type: &mtype,
 				Key: &proto.MessageKey{
 					FromMe:    &fromme,
-					Id:        &msgid,
-					RemoteJid: &remotejid,
+					Id:        &msgID,
+					RemoteJid: &chatJID,
 				},
 			},
 		},
@@ -155,8 +154,8 @@ func (wac *Conn) RevokeMessage(remotejid, msgid string, fromme bool) (revokeid s
 
 // DeleteMessage deletes a single message for the user (removes the msgbox). To
 // delete the message for everyone, use RevokeMessage
-func (wac *Conn) DeleteMessage(remotejid, msgid string, fromMe bool) error {
-	ch, err := wac.deleteChatProto(remotejid, msgid, fromMe)
+func (wac *Conn) DeleteMessage(chatJID JID, msgID MessageID, fromMe bool) error {
+	ch, err := wac.deleteChatProto(chatJID, msgID, fromMe)
 	if err != nil {
 		return fmt.Errorf("could not send proto: %v", err)
 	}
@@ -175,7 +174,7 @@ func (wac *Conn) DeleteMessage(remotejid, msgid string, fromMe bool) error {
 	}
 }
 
-func (wac *Conn) deleteChatProto(remotejid, msgid string, fromMe bool) (<-chan string, error) {
+func (wac *Conn) deleteChatProto(chatJID JID, msgID MessageID, fromMe bool) (<-chan string, error) {
 	tag := fmt.Sprintf("%s.--%d", wac.timeTag, wac.msgCount)
 
 	owner := "true"
@@ -193,7 +192,7 @@ func (wac *Conn) deleteChatProto(remotejid, msgid string, fromMe bool) (<-chan s
 				Description: "chat",
 				Attributes: map[string]string{
 					"type":  "clear",
-					"jid":   remotejid,
+					"jid":   chatJID,
 					"media": "true",
 				},
 				Content: []binary.Node{
@@ -201,7 +200,7 @@ func (wac *Conn) deleteChatProto(remotejid, msgid string, fromMe bool) (<-chan s
 						Description: "item",
 						Attributes: map[string]string{
 							"owner": owner,
-							"index": msgid,
+							"index": msgID,
 						},
 					},
 				},
@@ -955,7 +954,7 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 
 func getNewContact(msg map[string]string) Contact {
 	contact := Contact{
-		Jid:    msg["jid"],
+		JID:    msg["jid"],
 		Notify: msg["notify"],
 	}
 

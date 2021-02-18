@@ -118,24 +118,22 @@ func NewConn(opt *Options) *Conn {
 	if opt.Log == nil {
 		opt.Log = log.DefaultLogger
 	}
+	if opt.Handler == nil {
+		opt.Handler = make([]Handler, 0)
+	}
+	if opt.Store == nil {
+		opt.Store = newStore()
+	}
 	wac := &Conn{
 		log:             opt.Log,
-		handler:         make([]Handler, 0),
+		handler:         opt.Handler,
 		msgCount:        0,
 		msgTimeout:      opt.Timeout,
-		Store:           newStore(),
+		Store:           opt.Store,
+		Proxy: opt.Proxy,
 		longClientName:  "github.com/Rhymen/go-whatsapp",
 		shortClientName: "go-whatsapp",
 		clientVersion:   "0.1.0",
-	}
-	if opt.Handler != nil {
-		wac.handler = opt.Handler
-	}
-	if opt.Store != nil {
-		wac.Store = opt.Store
-	}
-	if opt.Proxy != nil {
-		wac.Proxy = opt.Proxy
 	}
 	if len(opt.ShortClientName) != 0 {
 		wac.shortClientName = opt.ShortClientName

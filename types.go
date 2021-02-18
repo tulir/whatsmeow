@@ -6,3 +6,7 @@ type JID = string
 // MessageID is the internal ID of a WhatsApp message.
 type MessageID = string
 
+const (
+	OldUserSuffix = "@c.us"
+	NewUserSuffix = "@s.whatsapp.net"
+)

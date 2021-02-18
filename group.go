@@ -10,11 +10,6 @@ import (
 	"github.com/Rhymen/go-whatsapp/binary"
 )
 
-const (
-	OldUserSuffix = "@c.us"
-	NewUserSuffix = "@s.whatsapp.net"
-)
-
 type GroupInfo struct {
 	JID      JID `json:"jid"`
 	OwnerJID JID `json:"owner"`

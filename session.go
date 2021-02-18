@@ -26,7 +26,7 @@ Every successful created connection returns a new Session. The Session(ClientTok
 every re-login and should be saved every time.
 */
 type Session struct {
-	ClientId    string
+	ClientID    string
 	ClientToken string
 	ServerToken string
 	EncKey      []byte
@@ -54,8 +54,8 @@ func (wac *Conn) SetClientVersion(major int, minor int, patch int) {
 	waVersion = []int{major, minor, patch}
 }
 
-func (wac *Conn) adminInitRequest(clientId string) (string, time.Duration, error) {
-	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, clientId, true}
+func (wac *Conn) adminInitRequest(clientID string) (string, time.Duration, error) {
+	login := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, clientID, true}
 	loginChan, err := wac.writeJson(login)
 	if err != nil {
 		return "", 0, fmt.Errorf("error writing login: %w", err)
@@ -132,10 +132,10 @@ func (wac *Conn) Login(qrChan chan<- string, ctx context.Context, maxRetries int
 	clientID := make([]byte, 16)
 	_, err := rand.Read(clientID)
 	if err != nil {
-		return session, "", fmt.Errorf("error creating random ClientId: %w", err)
+		return session, "", fmt.Errorf("error creating random ClientID: %w", err)
 	}
 
-	session.ClientId = base64.StdEncoding.EncodeToString(clientID)
+	session.ClientID = base64.StdEncoding.EncodeToString(clientID)
 
 	priv, pub, err := curve25519.GenerateKey()
 	if err != nil {
@@ -146,11 +146,11 @@ func (wac *Conn) Login(qrChan chan<- string, ctx context.Context, maxRetries int
 	s1 := make(chan string, 1)
 	wac.listener.add(s1, "s1")
 
-	ref, ttl, err := wac.adminInitRequest(session.ClientId)
+	ref, ttl, err := wac.adminInitRequest(session.ClientID)
 	if err != nil {
 		return session, "", err
 	}
-	qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientId)
+	qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientID)
 
 	wac.loginSessionLock.Lock()
 	defer wac.loginSessionLock.Unlock()
@@ -179,13 +179,13 @@ Loop:
 					return session, "", err
 				}
 			} else {
-				ref, ttl, err = wac.adminInitRequest(session.ClientId)
+				ref, ttl, err = wac.adminInitRequest(session.ClientID)
 				if err != nil {
 					return session, "", err
 				}
 				maxRerefs = 6
 			}
-			qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientId)
+			qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientID)
 		case <-ctx.Done():
 			return session, "", ErrLoginCancelled
 		}
@@ -279,7 +279,7 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 	}
 
 	//admin init
-	init := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, wac.session.ClientId, true}
+	init := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, wac.session.ClientID, true}
 	initChan, err := wac.writeJson(init)
 	if err != nil {
 		return fmt.Errorf("error writing admin init: %w", err)
@@ -289,7 +289,7 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 	if takeover {
 		restoreType = "takeover"
 	}
-	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientId, restoreType}
+	login := []interface{}{"admin", "login", wac.session.ClientToken, wac.session.ServerToken, wac.session.ClientID, restoreType}
 	loginChan, retry, err := wac.writeJsonRetry(login)
 	if err != nil {
 		return fmt.Errorf("error writing admin login: %w", err)
@@ -372,7 +372,7 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 	h2 := hmac.New(sha256.New, wac.session.MacKey)
 	h2.Write(decoded)
 
-	ch := []interface{}{"admin", "challenge", base64.StdEncoding.EncodeToString(h2.Sum(nil)), wac.session.ServerToken, wac.session.ClientId}
+	ch := []interface{}{"admin", "challenge", base64.StdEncoding.EncodeToString(h2.Sum(nil)), wac.session.ServerToken, wac.session.ClientID}
 	challengeChan, err := wac.writeJson(ch)
 	if err != nil {
 		return fmt.Errorf("error writing challenge: %w", err)

@@ -2,8 +2,6 @@ package whatsapp
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
 	"strings"
 
 	"github.com/Rhymen/go-whatsapp/binary"
@@ -54,12 +52,8 @@ func (wac *Conn) RemoveHandlers() {
 
 func (wac *Conn) handle(message interface{}) {
 	defer func() {
-		if errIfc := recover(); errIfc != nil {
-			if err, ok := errIfc.(error); ok {
-				wac.unsafeHandle(fmt.Errorf("panic in WhatsApp handler: %w", err))
-			} else {
-				wac.unsafeHandle(fmt.Errorf("panic in WhatsApp handler: %v", errIfc))
-			}
+		if err := recover(); err != nil {
+			wac.log.Errorln("Panic in WhatsApp handler: %v", err)
 		}
 	}()
 	wac.unsafeHandle(message)
@@ -167,6 +161,6 @@ func (wac *Conn) dispatch(msg interface{}) {
 		wac.handleJSONMessage(message)
 		wac.handle(json.RawMessage(message))
 	default:
-		fmt.Fprintf(os.Stderr, "unknown type in dipatcher chan: %T", msg)
+		wac.log.Warnln("Unknown type in dispatcher chan: %v", msg)
 	}
 }

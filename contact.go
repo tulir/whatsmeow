@@ -149,7 +149,7 @@ func (wac *Conn) Chats() (*binary.Node, error) {
 	return node, err
 }
 
-func (wac *Conn) Read(jid, id string) (<-chan string, error) {
+func (wac *Conn) Read(jid JID, id MessageID) (<-chan string, error) {
 	ts := time.Now().Unix()
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
@@ -173,7 +173,7 @@ func (wac *Conn) Read(jid, id string) (<-chan string, error) {
 	return wac.writeBinary(n, group, ignore, tag)
 }
 
-func (wac *Conn) query(t, jid, messageId, kind, owner, search string, count, page int) (*binary.Node, error) {
+func (wac *Conn) query(t string, jid JID, messageId MessageID, kind, owner, search string, count, page int) (*binary.Node, error) {
 	ts := time.Now().Unix()
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
@@ -275,7 +275,7 @@ func (wac *Conn) setGroup(t string, jid JID, subject string, participants []stri
 	return wac.writeBinary(n, group, ignore, tag)
 }
 
-func buildParticipantNodes(participants []string) []binary.Node {
+func buildParticipantNodes(participants []JID) []binary.Node {
 	l := len(participants)
 	if participants == nil || l == 0 {
 		return nil
@@ -293,15 +293,15 @@ func buildParticipantNodes(participants []string) []binary.Node {
 	return p
 }
 
-func (wac *Conn) BlockContact(jid string) (<-chan string, error) {
+func (wac *Conn) BlockContact(jid JID) (<-chan string, error) {
 	return wac.handleBlockContact("add", jid)
 }
 
-func (wac *Conn) UnblockContact(jid string) (<-chan string, error) {
+func (wac *Conn) UnblockContact(jid JID) (<-chan string, error) {
 	return wac.handleBlockContact("remove", jid)
 }
 
-func (wac *Conn) handleBlockContact(action, jid string) (<-chan string, error) {
+func (wac *Conn) handleBlockContact(action string, jid JID) (<-chan string, error) {
 	ts := time.Now().Unix()
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 

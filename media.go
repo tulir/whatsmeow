@@ -44,7 +44,7 @@ func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) ([
 	return data, nil
 }
 
-func validateMedia(iv []byte, file []byte, macKey []byte, mac []byte) error {
+func validateMedia(iv, file, macKey, mac []byte) error {
 	h := hmac.New(sha256.New, macKey)
 	n, err := h.Write(append(iv, file...))
 	if err != nil {
@@ -67,7 +67,7 @@ func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, re
 	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:], nil
 }
 
-func downloadMedia(url string) (file []byte, mac []byte, err error) {
+func downloadMedia(url string) (file, mac []byte, err error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, nil, err
@@ -146,7 +146,7 @@ var mediaTypeMap = map[MediaType]string{
 	MediaAudio:    "/mms/audio",
 }
 
-func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (downloadURL string, mediaKey []byte, fileEncSha256 []byte, fileSha256 []byte, fileLength uint64, err error) {
+func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (downloadURL string, mediaKey, fileEncSha256, fileSha256 []byte, fileLength uint64, err error) {
 	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return "", nil, nil, nil, 0, err

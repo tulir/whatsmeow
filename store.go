@@ -7,19 +7,19 @@ import (
 )
 
 type Store struct {
-	Contacts map[string]Contact
-	Chats    map[string]Chat
+	Contacts map[JID]Contact
+	Chats    map[JID]Chat
 }
 
 type Contact struct {
-	Jid    string
+	JID    JID
 	Notify string
 	Name   string
 	Short  string
 }
 
 type Chat struct {
-	Jid             string
+	JID             JID
 	Name            string
 	Unread          string
 	LastMessageTime string
