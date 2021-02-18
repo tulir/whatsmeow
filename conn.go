@@ -221,18 +221,6 @@ func (wac *Conn) IsLoginInProgress() bool {
 	return wac.sessionLock == 1
 }
 
-func (wac *Conn) AdminTest() error {
-	if !wac.connected {
-		return ErrNotConnected
-	}
-
-	if !wac.loggedIn {
-		return ErrNotLoggedIn
-	}
-
-	return wac.sendAdminTest()
-}
-
 // IsConnected returns whether the server connection is established or not
 func (wac *Conn) IsConnected() bool {
 	return wac.connected

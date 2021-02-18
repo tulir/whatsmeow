@@ -29,7 +29,13 @@ func (wac *Conn) SendRaw(msg *proto.WebMessageInfo, output chan<- error) {
 		output <- fmt.Errorf("could not send proto: %w", err)
 		return
 	}
-	response := <-ch
+	var response string
+	select {
+	case <-time.After(wac.msgTimeout):
+		wac.ws.countTimeout()
+		response = <-ch
+	case response = <-ch:
+	}
 	resp := StatusResponse{RequestType: "message sending"}
 	if err = json.Unmarshal([]byte(response), &resp); err != nil {
 		output <- fmt.Errorf("error decoding sending response: %w", err)
@@ -101,6 +107,7 @@ func (wac *Conn) Send(msg interface{}) (string, error) {
 		}
 		return getMessageInfo(msgProto).Id, nil
 	case <-time.After(wac.msgTimeout):
+		wac.ws.countTimeout()
 		return "ERROR", fmt.Errorf("sending message timed out")
 	}
 }
@@ -170,6 +177,7 @@ func (wac *Conn) DeleteMessage(chatJID JID, msgID MessageID, fromMe bool) error 
 		}
 		return nil
 	case <-time.After(wac.msgTimeout):
+		wac.ws.countTimeout()
 		return fmt.Errorf("deleting message timed out")
 	}
 }
