@@ -64,6 +64,7 @@ func (wac *Conn) adminInitRequest(clientID string) (string, time.Duration, error
 	var r string
 	select {
 	case r = <-loginChan:
+		wac.adminInited = true
 	case <-time.After(wac.msgTimeout):
 		return "", 0, fmt.Errorf("login connection timed out")
 	}
@@ -278,11 +279,15 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 		return ErrAlreadyLoggedIn
 	}
 
-	//admin init
-	init := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, wac.session.ClientID, true}
-	initChan, err := wac.writeJSON(init)
-	if err != nil {
-		return fmt.Errorf("error writing admin init: %w", err)
+	var initChan <-chan string
+	var err error
+	if !wac.adminInited {
+		//admin init
+		init := []interface{}{"admin", "init", waVersion, []string{wac.longClientName, wac.shortClientName, wac.clientVersion}, wac.session.ClientID, true}
+		initChan, err = wac.writeJSON(init)
+		if err != nil {
+			return fmt.Errorf("error writing admin init: %w", err)
+		}
 	}
 
 	restoreType := "reconnect"
@@ -295,20 +300,23 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 		return fmt.Errorf("error writing admin login: %w", err)
 	}
 
-	select {
-	case r := <-initChan:
-		resp := StatusResponse{RequestType: "init"}
-		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			return fmt.Errorf("error decoding login connResp: %w", err)
-		} else if resp.Status != 200 {
+	if !wac.adminInited {
+		select {
+		case r := <-initChan:
+			resp := StatusResponse{RequestType: "init"}
+			if err = json.Unmarshal([]byte(r), &resp); err != nil {
+				return fmt.Errorf("error decoding login connResp: %w", err)
+			} else if resp.Status != 200 {
+				wac.timeTag = ""
+				return resp
+			}
+			wac.adminInited = true
+		case <-time.After(wac.msgTimeout):
 			wac.timeTag = ""
-			return resp
+			return ErrRestoreSessionInitTimeout
+		case <-wac.ws.ctx.Done():
+			return ErrWebsocketClosedBeforeLogin
 		}
-	case <-time.After(wac.msgTimeout):
-		wac.timeTag = ""
-		return ErrRestoreSessionInitTimeout
-	case <-wac.ws.ctx.Done():
-		return ErrWebsocketClosedBeforeLogin
 	}
 
 	retryCounter := 0

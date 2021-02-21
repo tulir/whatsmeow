@@ -79,8 +79,9 @@ type Conn struct {
 	atw      *adminTestWait
 	atwLock  sync.Mutex
 
-	connected bool
-	loggedIn  bool
+	connected   bool
+	adminInited bool
+	loggedIn    bool
 
 	session        *Session
 	sessionLock    uint32
@@ -202,6 +203,7 @@ func (wac *Conn) connect() (err error) {
 	go wac.keepAlive(21000, 30000)
 
 	wac.loggedIn = false
+	wac.adminInited = false
 	return nil
 }
 
@@ -212,6 +214,7 @@ func (wac *Conn) Disconnect() error {
 	wac.log.Debugfln("Disconnecting websocket")
 	wac.connected = false
 	wac.loggedIn = false
+	wac.adminInited = false
 
 	ws := wac.ws
 
