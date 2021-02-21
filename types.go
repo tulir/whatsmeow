@@ -7,6 +7,8 @@ type JID = string
 type MessageID = string
 
 const (
-	OldUserSuffix = "@c.us"
-	NewUserSuffix = "@s.whatsapp.net"
+	OldUserSuffix   = "@c.us"
+	NewUserSuffix   = "@s.whatsapp.net"
+	GroupSuffix     = "@g.us"
+	BroadcastSuffix = "@broadcast"
 )

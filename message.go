@@ -971,6 +971,8 @@ func getNewContact(msg map[string]string) Contact {
 	contact := Contact{
 		JID:    msg["jid"],
 		Notify: msg["notify"],
+		Name:   msg["name"],
+		Short:  msg["short"],
 	}
 
 	return contact

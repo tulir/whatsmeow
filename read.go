@@ -194,7 +194,7 @@ func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 			}
 			return nil, fmt.Errorf("server responded with %d", response.Status)
 		} else {
-			return nil, ErrInvalidServerResponse
+			return nil, fmt.Errorf("%w: %s", ErrInvalidServerResponse, msg)
 		}
 	}
 	h2.Write(msg[32:])
