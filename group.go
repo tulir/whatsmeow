@@ -36,18 +36,46 @@ type GroupInfo struct {
 	} `json:"participants"`
 }
 
+type BroadcastListInfo struct {
+	Status int16 `json:"status"`
+
+	Name string `json:"name"`
+
+	Recipients []struct {
+		JID JID `json:"id"`
+	} `json:"recipients"`
+}
+
+func (wac *Conn) GetBroadcastMetadata(jid JID) (*BroadcastListInfo, error) {
+	data := []interface{}{"query", "contact", jid}
+	resp, err := wac.writeJSON(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get broadcast list metadata: %w", err)
+	}
+	content := <-resp
+	var info BroadcastListInfo
+	err = json.Unmarshal([]byte(content), &info)
+	if err != nil {
+		return &info, fmt.Errorf("failed to unmarshal group metadata: %w", err)
+	}
+	for index, recipient := range info.Recipients {
+		info.Recipients[index].JID = strings.Replace(recipient.JID, OldUserSuffix, NewUserSuffix, 1)
+	}
+	return &info, nil
+}
+
 func (wac *Conn) GetGroupMetaData(jid JID) (*GroupInfo, error) {
 	data := []interface{}{"query", "GroupMetadata", jid}
 	resp, err := wac.writeJSON(data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get group metadata: %v", err)
+		return nil, fmt.Errorf("failed to get group metadata: %w", err)
 	}
 	content := <-resp
 
-	info := &GroupInfo{}
-	err = json.Unmarshal([]byte(content), info)
+	var info GroupInfo
+	err = json.Unmarshal([]byte(content), &info)
 	if err != nil {
-		return info, fmt.Errorf("failed to unmarshal group metadata: %v", err)
+		return &info, fmt.Errorf("failed to unmarshal group metadata: %w", err)
 	}
 
 	for index, participant := range info.Participants {
@@ -56,7 +84,7 @@ func (wac *Conn) GetGroupMetaData(jid JID) (*GroupInfo, error) {
 	info.NameSetBy = strings.Replace(info.NameSetBy, OldUserSuffix, NewUserSuffix, 1)
 	info.TopicSetBy = strings.Replace(info.TopicSetBy, OldUserSuffix, NewUserSuffix, 1)
 
-	return info, nil
+	return &info, nil
 }
 
 type CreateGroupResponse struct {

@@ -164,6 +164,7 @@ func (wac *Conn) sendAdminTest() error {
 	if err != nil {
 		return fmt.Errorf("error sending admin test: %w", err)
 	}
+	wac.msgCount++
 
 	select {
 	case err = <- atw.Listen():
