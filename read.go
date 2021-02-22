@@ -89,12 +89,18 @@ func (lw *listenerWrapper) onReconnect() (rsm resendableMessages) {
 	return rsm
 }
 
-func (wac *Conn) readPump() {
-	ws := wac.ws
+func (wac *Conn) readPump(ws *websocketWrapper) {
+	wac.log.Debugfln("Websocket read pump starting %p", ws)
 	defer func() {
-		wac.log.Debugln("Websocket read pump exiting")
+		wac.log.Debugfln("Websocket read pump exiting %p", ws)
 		ws.Done()
-		_ = wac.Disconnect()
+		select {
+		case <-ws.ctx.Done():
+			wac.log.Debugln("Not disconnecting websocket as read pump was closed by disconnect")
+		default:
+			wac.log.Debugln("Disconnecting websocket due to read pump close")
+			_ = wac.Disconnect()
+		}
 	}()
 
 	var readErr error

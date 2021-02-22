@@ -174,20 +174,28 @@ func (wac *Conn) connect() (err error) {
 	}
 
 	wsConn.SetCloseHandler(func(code int, text string) error {
+		wac.log.Debugfln("Close handler called with %d/%s", code, text)
 		// from default CloseHandler
 		message := websocket.FormatCloseMessage(code, "")
 		err := wsConn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
 
 		// our close handling
-		_ = wac.Disconnect()
+		wac.log.Debugfln("Disconnecting local websocket in close handler")
+		disconnectErr := wac.Disconnect()
+		if disconnectErr != nil {
+			wac.log.Debugln("Disconnection returned error:", err)
+		}
+		wac.log.Debugfln("Sending connection close error to handler")
 		wac.handle(&ErrConnectionClosed{Code: code, Text: text})
 		return err
 	})
 
-	wac.ws = newWebsocketWrapper(wsConn)
+	ws := newWebsocketWrapper(wsConn)
+	wac.ws = ws
 	if wac.listener == nil {
 		wac.listener = newListenerWrapper()
 	} else {
+		// TODO this is probably the wrong place to resend stuff
 		resends := wac.listener.onReconnect()
 		for i, id := range resends.ids {
 			wac.log.Debugln("Resending request", id)
@@ -198,12 +206,13 @@ func (wac *Conn) connect() (err error) {
 		}
 	}
 
-	wac.ws.Add(2)
-	go wac.readPump()
-	go wac.keepAlive(21000, 30000)
+	ws.Add(2)
+	go wac.readPump(ws)
+	go wac.keepAlive(ws, 21000, 30000)
 
 	wac.loggedIn = false
 	wac.adminInited = false
+	wac.log.Debugln("Successfully connected to websocket")
 	return nil
 }
 
@@ -225,8 +234,12 @@ func (wac *Conn) Disconnect() error {
 	if ws.conn != nil {
 		err = ws.conn.Close()
 	}
-	wac.ws = nil
-	wac.log.Debugfln("Websocket disconnection complete")
+	if wac.ws == ws {
+		wac.ws = nil
+		wac.log.Debugfln("Websocket disconnection complete")
+	} else {
+		wac.log.Warnln("The current websocket isn't the one being disconnected?!")
+	}
 
 	return err
 }

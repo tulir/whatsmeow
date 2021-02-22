@@ -41,6 +41,9 @@ func newWebsocketWrapper(conn *websocket.Conn) *websocketWrapper {
 }
 
 func (wsw *websocketWrapper) write(messageType int, data []byte) error {
+	if wsw.conn == nil {
+		return ErrInvalidWebsocket
+	}
 	wsw.Lock()
 	err := wsw.conn.WriteMessage(messageType, data)
 	wsw.Unlock()

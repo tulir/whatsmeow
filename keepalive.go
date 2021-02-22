@@ -12,10 +12,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
-	ws := wac.ws
+func (wac *Conn) keepAlive(ws *websocketWrapper, minIntervalMs int, maxIntervalMs int) {
+	wac.log.Debugfln("Websocket keepalive loop starting %p", ws)
 	defer func() {
-		wac.log.Debugln("Websocket keepalive loop exiting")
+		wac.log.Debugfln("Websocket keepalive loop exiting %p", ws)
 		ws.Done()
 	}()
 	for {
@@ -24,7 +24,7 @@ func (wac *Conn) keepAlive(minIntervalMs int, maxIntervalMs int) {
 		}
 		err := wac.sendKeepAlive(ws)
 		if err != nil {
-			wac.log.Errorln("keepAlive failed:", err)
+			wac.log.Errorfln("Websocket keepalive for %p failed: %v", ws, err)
 			if errors.Is(err, ErrConnectionTimeout) {
 				continue
 			}
