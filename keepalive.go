@@ -157,6 +157,12 @@ func (atw *adminTestWait) Listen() <-chan error {
 	return ch
 }
 
+func (wac *Conn) CountTimeout() {
+	if wac.ws != nil {
+		wac.ws.countTimeout()
+	}
+}
+
 const adminTest = `["admin","test"]`
 
 func (wac *Conn) sendAdminTest() error {
