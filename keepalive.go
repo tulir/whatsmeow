@@ -20,7 +20,7 @@ func (wac *Conn) keepAlive(ws *websocketWrapper, minIntervalMs int, maxIntervalM
 	}()
 	for {
 		if ws.pingInKeepalive > 0 {
-			go wac.keepAliveAdminTest()
+			go wac.keepAliveAdminTest(ws)
 		}
 		err := wac.sendKeepAlive(ws)
 		if err != nil {
@@ -39,10 +39,17 @@ func (wac *Conn) keepAlive(ws *websocketWrapper, minIntervalMs int, maxIntervalM
 	}
 }
 
-func (wac *Conn) keepAliveAdminTest() {
+func (wac *Conn) keepAliveAdminTest(ws *websocketWrapper) {
+	if wac.ws != ws {
+		wac.log.Warnln("keepAliveAdminTest was called with wrong websocket wrapper (got %p, current is %p)", ws, wac.ws)
+		return
+	}
 	err := wac.AdminTest()
 	if err != nil {
 		wac.log.Warnln("Keepalive admin test failed:", err)
+		if errors.Is(err, ErrPingFalse) {
+			wac.dispatch(err)
+		}
 	} else {
 		if wac.ws.pingInKeepalive <= 0 {
 			wac.log.Infoln("Keepalive admin test successful, not pinging anymore")
@@ -128,9 +135,11 @@ func (atw *adminTestWait) handleResp(resp string) error {
 		return fmt.Errorf("error decoding response message: %w", err)
 	}
 
-	if respArr, ok := response.([]interface{}); ok {
-		if len(respArr) == 2 && respArr[0].(string) == "Pong" && respArr[1].(bool) == true {
+	if respArr, ok := response.([]interface{}); ok && len(respArr) == 2 && respArr[0].(string) == "Pong" {
+		if respArr[1].(bool) == true {
 			return nil
+		} else {
+			return ErrPingFalse
 		}
 	}
 	return fmt.Errorf("unexpected ping response: %s", resp)

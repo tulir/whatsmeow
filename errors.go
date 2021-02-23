@@ -28,6 +28,7 @@ var (
 	ErrRestoreSessionInitTimeout  = errors.New("restore session init timed out")
 	ErrLoginCancelled             = errors.New("login cancelled")
 	ErrAbortLogin                 = errors.New("abort login")
+	ErrPingFalse                  = errors.New("ping returned false")
 
 	ErrBadRequest   = errors.New("400 (bad request)")
 	ErrUnpaired     = errors.New("401 (unpaired from phone)")
