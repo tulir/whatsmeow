@@ -34,10 +34,13 @@ Loop:
 	for {
 		select {
 		case <-time.After(wac.msgTimeout):
-			wac.ws.countTimeout()
-			err = resend()
-			if err != nil {
-				wac.log.Warnln("Failed to retry sending message:", err)
+			if wac.ws != nil && wac.loggedIn {
+				wac.ws.countTimeout()
+				wac.log.Debugln("Trying to resend", msg.GetKey().GetId())
+				err = resend()
+				if err != nil {
+					wac.log.Warnln("Failed to retry sending message:", err)
+				}
 			}
 		case response = <-ch:
 			break Loop
