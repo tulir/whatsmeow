@@ -81,6 +81,7 @@ func (lw *listenerWrapper) onReconnect() (rsm resendableMessages) {
 		if waiter.resend != nil {
 			rsm.ids = append(rsm.ids, msgID)
 			rsm.funcs = append(rsm.funcs, waiter.resend)
+			newWaiters[msgID] = waiter
 		}
 	}
 	lw.waiters = newWaiters
