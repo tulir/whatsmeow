@@ -116,6 +116,7 @@ func (wac *Conn) readPump(ws *websocketWrapper) {
 		select {
 		case <-readerFound:
 			if readErr != nil {
+				wac.log.Errorln("Error getting next websocket reader:", readErr)
 				wac.handle(&ErrConnectionFailed{Err: readErr})
 				return
 			}

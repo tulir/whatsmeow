@@ -75,6 +75,9 @@ func (wac *Conn) sendKeepAlive(ws *websocketWrapper) error {
 
 	case <-time.After(wac.msgTimeout):
 		return ErrConnectionTimeout
+
+	case <-ws.ctx.Done():
+		return nil
 	}
 
 	return nil
