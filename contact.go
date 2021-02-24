@@ -232,7 +232,8 @@ func (wac *Conn) query(t string, jid JID, messageId MessageID, kind, owner, sear
 
 		//TODO: use parseProtoMessage
 		return msg, nil
-	case <-time.After(3 * time.Minute):
+	case <-time.After(2 * time.Minute):
+		wac.CountTimeout()
 		return nil, ErrQueryTimeout
 	}
 }
