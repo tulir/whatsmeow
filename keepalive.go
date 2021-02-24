@@ -67,8 +67,8 @@ func (wac *Conn) sendKeepAlive(ws *websocketWrapper) error {
 	bytes := []byte("?,,")
 	err := ws.write(websocket.TextMessage, bytes)
 	if err != nil {
+		wac.listener.pop("!")
 		close(respChan)
-		wac.listener.remove("!")
 		return fmt.Errorf("error sending keepAlive: %w", err)
 	}
 

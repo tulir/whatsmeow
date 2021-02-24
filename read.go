@@ -26,7 +26,7 @@ type inputWaiter struct {
 }
 
 type listenerWrapper struct {
-	sync.RWMutex
+	sync.Mutex
 	waiters map[string]inputWaiter
 }
 
@@ -43,16 +43,13 @@ func (lw *listenerWrapper) add(ch chan<- string, resend func() error, isResendab
 	lw.Unlock()
 }
 
-func (lw *listenerWrapper) remove(messageTag string) {
+func (lw *listenerWrapper) pop(messageTag string) (chan<- string, bool) {
 	lw.Lock()
-	delete(lw.waiters, messageTag)
-	lw.Unlock()
-}
-
-func (lw *listenerWrapper) get(messageTag string) (chan<- string, bool) {
-	lw.RLock()
 	listener, hasListener := lw.waiters[messageTag]
-	lw.RUnlock()
+	if hasListener {
+		delete(lw.waiters, messageTag)
+	}
+	lw.Unlock()
 	return listener.ch, hasListener
 }
 
@@ -153,22 +150,14 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		return ErrInvalidWsData
 	}
 
-	listener, hasListener := wac.listener.get(data[0])
-
+	listener, hasListener := wac.listener.pop(data[0])
 	if hasListener {
-		// listener only exists for TextMessages query messages out of contact.go
-		// If these binary query messages can be handled another way,
-		// then the TextMessages, which are all JSON encoded, can directly
-		// be unmarshalled. The listener chan could then be changed from type
-		// chan string to something like chan map[string]interface{}. The unmarshalling
-		// in several places, especially in session.go, would then be gone.
 		select {
 		case listener <- data[1]:
 			close(listener)
 		default:
 			wac.log.Debugln("Channel for response to", data[0], "is no longer receiving")
 		}
-		wac.listener.remove(data[0])
 	} else if msgType == websocket.BinaryMessage {
 		wac.loginSessionLock.RLock()
 		sess := wac.session

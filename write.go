@@ -87,8 +87,8 @@ func (wac *Conn) writeJSONRetry(data []interface{}, isResendable bool) (<-chan s
 
 	err = resend()
 	if err != nil {
+		wac.listener.pop(messageTag)
 		close(ch)
-		wac.listener.remove(messageTag)
 		return ch, nil, err
 	}
 
@@ -127,8 +127,8 @@ func (wac *Conn) writeBinaryRetry(node binary.Node, metric metric, flag flag, me
 
 	err = resend()
 	if err != nil {
+		wac.listener.pop(messageTag)
 		close(ch)
-		wac.listener.remove(messageTag)
 		return ch, nil, fmt.Errorf("failed to write message: %w", err)
 	}
 
