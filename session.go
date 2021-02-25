@@ -317,6 +317,15 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 		case <-wac.ws.ctx.Done():
 			return ErrWebsocketClosedBeforeLogin
 		}
+
+		resends := wac.listener.getResendables()
+		for _, waiter := range resends {
+			wac.log.Debugln("Resending request", waiter.tags[0])
+			err = waiter.resend()
+			if err != nil {
+				wac.log.Warnfln("Failed to resend %s: %v", waiter.tags[0], err)
+			}
+		}
 	}
 
 	retryCounter := 0

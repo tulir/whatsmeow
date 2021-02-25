@@ -195,15 +195,7 @@ func (wac *Conn) connect() (err error) {
 	if wac.listener == nil {
 		wac.listener = newListenerWrapper()
 	} else {
-		// TODO this is probably the wrong place to resend stuff
-		resends := wac.listener.onReconnect()
-		for i, id := range resends.ids {
-			wac.log.Debugln("Resending request", id)
-			err = resends.funcs[i]()
-			if err != nil {
-				wac.log.Warnfln("Failed to resend %s: %v", id, err)
-			}
-		}
+		wac.listener.onReconnect()
 	}
 
 	ws.Add(2)

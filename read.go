@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 
@@ -24,6 +25,9 @@ type inputWaiter struct {
 	ch     chan<- string
 	resend ResendFunc
 	tags   []string
+
+	addedAt     time.Time
+	needsResend bool
 }
 
 type listenerWrapper struct {
@@ -41,6 +45,9 @@ func (lw *listenerWrapper) addWaiter(iw *inputWaiter, messageTag string, addTagT
 	if addTagToList {
 		iw.tags = append(iw.tags, messageTag)
 	}
+	if iw.addedAt.IsZero() {
+		iw.addedAt = time.Now()
+	}
 	lw.Unlock()
 }
 
@@ -48,7 +55,7 @@ func (lw *listenerWrapper) add(ch chan<- string, resend func() error, isResendab
 	if !isResendable {
 		resend = nil
 	}
-	lw.addWaiter(&inputWaiter{ch, resend, []string{messageTag}}, messageTag, false)
+	lw.addWaiter(&inputWaiter{ch: ch, resend: resend, tags: []string{messageTag}}, messageTag, false)
 }
 
 func (lw *listenerWrapper) pop(messageTag string) (*inputWaiter, bool) {
@@ -65,31 +72,28 @@ func (lw *listenerWrapper) pop(messageTag string) (*inputWaiter, bool) {
 	return listener, hasListener
 }
 
-type resendableMessages struct {
-	ids   []string
-	funcs []ResendFunc
+type resendableMessages []*inputWaiter
+
+func (rsm resendableMessages) Len() int {
+	return len(rsm)
 }
 
-func (rsm *resendableMessages) Len() int {
-	return len(rsm.ids)
+func (rsm resendableMessages) Swap(i, j int) {
+	rsm[i], rsm[j] = rsm[j], rsm[i]
 }
 
-func (rsm *resendableMessages) Swap(i, j int) {
-	rsm.funcs[i], rsm.funcs[j] = rsm.funcs[j], rsm.funcs[i]
-	rsm.ids[i], rsm.ids[j] = rsm.ids[j], rsm.ids[i]
+func (rsm resendableMessages) Less(i, j int) bool {
+	return rsm[i].addedAt.Before(rsm[j].addedAt)
 }
 
-func (rsm *resendableMessages) Less(i, j int) bool {
-	return rsm.ids[i] < rsm.ids[j]
-}
-
-func (lw *listenerWrapper) onReconnect() (rsm resendableMessages) {
+func (lw *listenerWrapper) getResendables() (rsm resendableMessages) {
 	lw.Lock()
 	newWaiters := make(map[string]*inputWaiter)
 	for msgID, waiter := range lw.waiters {
 		if waiter.resend != nil {
-			rsm.ids = append(rsm.ids, msgID)
-			rsm.funcs = append(rsm.funcs, waiter.resend)
+			rsm = append(rsm, waiter)
+			newWaiters[msgID] = waiter
+		} else if !waiter.needsResend {
 			newWaiters[msgID] = waiter
 		}
 	}
@@ -97,6 +101,14 @@ func (lw *listenerWrapper) onReconnect() (rsm resendableMessages) {
 	lw.Unlock()
 	sort.Sort(&rsm)
 	return rsm
+}
+
+func (lw *listenerWrapper) onReconnect() {
+	lw.Lock()
+	for _, waiter := range lw.waiters {
+		waiter.needsResend = true
+	}
+	lw.Unlock()
 }
 
 func (wac *Conn) readPump(ws *websocketWrapper) {
