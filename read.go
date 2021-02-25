@@ -120,7 +120,7 @@ func (wac *Conn) readPump(ws *websocketWrapper) {
 		case <-readerFound:
 			if readErr != nil {
 				wac.log.Errorln("Error getting next websocket reader:", readErr)
-				wac.handle(&ErrConnectionFailed{Err: readErr})
+				go wac.handle(&ErrConnectionFailed{Err: readErr})
 				return
 			}
 			msg, err := ioutil.ReadAll(reader)
