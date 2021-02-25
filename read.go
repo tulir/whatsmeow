@@ -23,34 +23,46 @@ type ResendFunc func() error
 type inputWaiter struct {
 	ch     chan<- string
 	resend ResendFunc
+	tags   []string
 }
 
 type listenerWrapper struct {
 	sync.Mutex
-	waiters map[string]inputWaiter
+	waiters map[string]*inputWaiter
 }
 
 func newListenerWrapper() *listenerWrapper {
-	return &listenerWrapper{waiters: make(map[string]inputWaiter)}
+	return &listenerWrapper{waiters: make(map[string]*inputWaiter)}
+}
+
+func (lw *listenerWrapper) addWaiter(iw *inputWaiter, messageTag string, addTagToList bool) {
+	lw.Lock()
+	lw.waiters[messageTag] = iw
+	if addTagToList {
+		iw.tags = append(iw.tags, messageTag)
+	}
+	lw.Unlock()
 }
 
 func (lw *listenerWrapper) add(ch chan<- string, resend func() error, isResendable bool, messageTag string) {
-	lw.Lock()
 	if !isResendable {
 		resend = nil
 	}
-	lw.waiters[messageTag] = inputWaiter{ch, resend}
-	lw.Unlock()
+	lw.addWaiter(&inputWaiter{ch, resend, []string{messageTag}}, messageTag, false)
 }
 
-func (lw *listenerWrapper) pop(messageTag string) (chan<- string, bool) {
+func (lw *listenerWrapper) pop(messageTag string) (*inputWaiter, bool) {
 	lw.Lock()
 	listener, hasListener := lw.waiters[messageTag]
 	if hasListener {
-		delete(lw.waiters, messageTag)
+		for _, tag := range listener.tags {
+			if tagListener, ok := lw.waiters[tag]; ok && tagListener == listener {
+				delete(lw.waiters, tag)
+			}
+		}
 	}
 	lw.Unlock()
-	return listener.ch, hasListener
+	return listener, hasListener
 }
 
 type resendableMessages struct {
@@ -73,7 +85,7 @@ func (rsm *resendableMessages) Less(i, j int) bool {
 
 func (lw *listenerWrapper) onReconnect() (rsm resendableMessages) {
 	lw.Lock()
-	newWaiters := make(map[string]inputWaiter)
+	newWaiters := make(map[string]*inputWaiter)
 	for msgID, waiter := range lw.waiters {
 		if waiter.resend != nil {
 			rsm.ids = append(rsm.ids, msgID)
@@ -92,13 +104,6 @@ func (wac *Conn) readPump(ws *websocketWrapper) {
 	defer func() {
 		wac.log.Debugfln("Websocket read pump exiting %p", ws)
 		ws.Done()
-		select {
-		case <-ws.ctx.Done():
-			wac.log.Debugln("Not disconnecting websocket as read pump was closed by disconnect")
-		default:
-			wac.log.Debugln("Disconnecting websocket due to read pump close")
-			_ = wac.Disconnect()
-		}
 	}()
 
 	var readErr error
@@ -153,8 +158,8 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 	listener, hasListener := wac.listener.pop(data[0])
 	if hasListener {
 		select {
-		case listener <- data[1]:
-			close(listener)
+		case listener.ch <- data[1]:
+			close(listener.ch)
 		default:
 			wac.log.Debugln("Channel for response to", data[0], "is no longer receiving")
 		}

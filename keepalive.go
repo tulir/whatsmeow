@@ -27,8 +27,9 @@ func (wac *Conn) keepAlive(ws *websocketWrapper, minIntervalMs int, maxIntervalM
 			wac.log.Errorfln("Websocket keepalive for %p failed: %v", ws, err)
 			if errors.Is(err, ErrConnectionTimeout) {
 				continue
+			} else if errors.Is(err, websocket.ErrCloseSent) {
+				return
 			}
-			// TODO consequences?
 		}
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
 		select {
@@ -62,7 +63,7 @@ func (wac *Conn) keepAliveAdminTest(ws *websocketWrapper) {
 
 func (wac *Conn) sendKeepAlive(ws *websocketWrapper) error {
 	respChan := make(chan string, 1)
-	wac.listener.add(respChan, nil, false,"!")
+	wac.listener.add(respChan, nil, false, "!")
 
 	bytes := []byte("?,,")
 	err := ws.write(websocket.TextMessage, bytes)
@@ -102,7 +103,7 @@ func (wac *Conn) AdminTest() error {
 
 type adminTestWait struct {
 	sync.Mutex
-	input chan<- string
+	input  *inputWaiter
 	output []chan error
 	done   bool
 	result error
@@ -112,7 +113,7 @@ func newAdminTestWait() *adminTestWait {
 	input := make(chan string, 1)
 	atw := &adminTestWait{
 		output: make([]chan error, 0),
-		input: input,
+		input:  &inputWaiter{ch: input, resend: nil},
 	}
 	go atw.wait(input)
 	return atw
@@ -174,8 +175,7 @@ func (wac *Conn) sendAdminTest() error {
 	wac.atwLock.Unlock()
 
 	messageTag := fmt.Sprintf("%d.--%d", time.Now().Unix(), wac.msgCount)
-	// TODO clean up listeners when there are multiple admin test?
-	wac.listener.add(atw.input, nil, false, messageTag)
+	wac.listener.addWaiter(atw.input, messageTag, true)
 	wac.log.Debugln("Sending admin test request with tag", messageTag)
 	bytes := []byte(fmt.Sprintf("%s,%s", messageTag, adminTest))
 	err := wac.ws.write(websocket.TextMessage, bytes)
@@ -185,7 +185,7 @@ func (wac *Conn) sendAdminTest() error {
 	wac.msgCount++
 
 	select {
-	case err = <- atw.Listen():
+	case err = <-atw.Listen():
 		return err
 	case <-time.After(wac.msgTimeout):
 		return ErrConnectionTimeout
