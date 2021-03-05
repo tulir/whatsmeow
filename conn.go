@@ -85,6 +85,7 @@ type Conn struct {
 
 	session        *Session
 	sessionLock    uint32
+	sessionWait    sync.WaitGroup
 	handler        []Handler
 	msgCount       int
 	msgTimeout     time.Duration
@@ -238,6 +239,10 @@ func (wac *Conn) Disconnect() error {
 
 func (wac *Conn) IsLoginInProgress() bool {
 	return wac.sessionLock == 1
+}
+
+func (wac *Conn) WaitForLogin() {
+	wac.sessionWait.Wait()
 }
 
 // IsConnected returns whether the server connection is established or not

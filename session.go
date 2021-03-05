@@ -115,6 +115,8 @@ func (wac *Conn) Login(qrChan chan<- string, ctx context.Context, maxRetries int
 	if !atomic.CompareAndSwapUint32(&wac.sessionLock, 0, 1) {
 		return session, "", ErrLoginInProgress
 	}
+	wac.sessionWait.Add(1)
+	defer wac.sessionWait.Done()
 	defer atomic.StoreUint32(&wac.sessionLock, 0)
 
 	if wac.loggedIn {
@@ -265,6 +267,8 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 	if !atomic.CompareAndSwapUint32(&wac.sessionLock, 0, 1) {
 		return ErrLoginInProgress
 	}
+	wac.sessionWait.Add(1)
+	defer wac.sessionWait.Done()
 	defer atomic.StoreUint32(&wac.sessionLock, 0)
 
 	if wac.session == nil {
