@@ -100,6 +100,9 @@ type Conn struct {
 
 	loginSessionLock sync.RWMutex
 	Proxy            func(*http.Request) (*url.URL, error)
+
+	CountTimeoutHook func()
+	AdminTestHook    func(err error)
 }
 
 type Options struct {

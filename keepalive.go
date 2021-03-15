@@ -92,13 +92,21 @@ func (wac *Conn) sendKeepAlive(ws *websocketWrapper) error {
 }
 
 func (wac *Conn) AdminTest() error {
+	return wac.AdminTestWithSuppress(false)
+}
+
+func (wac *Conn) AdminTestWithSuppress(suppressHook bool) error {
 	if !wac.connected {
 		return ErrNotConnected
 	}
 	if !wac.loggedIn {
 		return ErrNotLoggedIn
 	}
-	return wac.sendAdminTest()
+	err := wac.sendAdminTest()
+	if !suppressHook && wac.AdminTestHook != nil {
+		wac.AdminTestHook(err)
+	}
+	return err
 }
 
 type adminTestWait struct {
@@ -161,6 +169,9 @@ func (atw *adminTestWait) Listen() <-chan error {
 func (wac *Conn) CountTimeout() {
 	if wac.ws != nil {
 		wac.ws.countTimeout()
+		if wac.CountTimeoutHook != nil {
+			wac.CountTimeoutHook()
+		}
 	}
 }
 

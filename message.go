@@ -35,7 +35,7 @@ Loop:
 		select {
 		case <-time.After(wac.msgTimeout):
 			if wac.ws != nil && wac.loggedIn {
-				wac.ws.countTimeout()
+				wac.CountTimeout()
 				wac.log.Debugln("Trying to resend", msg.GetKey().GetId())
 				err = resend()
 				if err != nil {
@@ -187,7 +187,7 @@ func (wac *Conn) DeleteMessage(chatJID JID, msgID MessageID, fromMe bool) error 
 		}
 		return nil
 	case <-time.After(wac.msgTimeout):
-		wac.ws.countTimeout()
+		wac.CountTimeout()
 		return fmt.Errorf("deleting message timed out")
 	}
 }
