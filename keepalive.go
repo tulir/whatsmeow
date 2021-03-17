@@ -199,6 +199,7 @@ func (wac *Conn) sendAdminTest() error {
 	case err = <-atw.Listen():
 		return err
 	case <-time.After(wac.msgTimeout):
+		wac.CountTimeout()
 		return ErrConnectionTimeout
 	}
 }
