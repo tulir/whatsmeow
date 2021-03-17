@@ -52,11 +52,11 @@ func (wac *Conn) keepAliveAdminTest(ws *websocketWrapper) {
 			wac.dispatch(err)
 		}
 	} else {
+		wac.ws.pingInKeepalive--
 		if wac.ws.pingInKeepalive <= 0 {
 			wac.log.Infoln("Keepalive admin test successful, not pinging anymore")
 		} else {
 			wac.log.Infofln("Keepalive admin test successful, stopping pings after %d more successes", wac.ws.pingInKeepalive)
-			wac.ws.pingInKeepalive--
 		}
 	}
 }
