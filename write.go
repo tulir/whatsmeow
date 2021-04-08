@@ -22,12 +22,20 @@ type websocketWrapper struct {
 	ctx    context.Context
 	cancel func()
 
-	pingInKeepalive int
+	pingInKeepalive       int
+	keepAliveShortCircuit chan struct{}
 }
 
 func (wsw *websocketWrapper) countTimeout() {
 	if wsw.pingInKeepalive < 10 {
 		wsw.pingInKeepalive++
+	}
+	if wsw.pingInKeepalive == 1 {
+		// For the first timeout, short-circuit the keepalive loop so a ping is sent immediately
+		select {
+		case wsw.keepAliveShortCircuit <- struct{}{}:
+		default:
+		}
 	}
 }
 
@@ -37,6 +45,8 @@ func newWebsocketWrapper(conn *websocket.Conn) *websocketWrapper {
 		conn:   conn,
 		ctx:    ctx,
 		cancel: cancel,
+
+		keepAliveShortCircuit: make(chan struct{}),
 	}
 }
 

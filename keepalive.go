@@ -34,6 +34,7 @@ func (wac *Conn) keepAlive(ws *websocketWrapper, minIntervalMs int, maxIntervalM
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
+		case <-ws.keepAliveShortCircuit:
 		case <-ws.ctx.Done():
 			return
 		}
