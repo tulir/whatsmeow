@@ -107,15 +107,8 @@ func (wac *Conn) handleChats(chats interface{}) {
 			continue
 		}
 
-		jid := strings.Replace(chatNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
-		chatList = append(chatList, Chat{
-			jid,
-			chatNode.Attributes["name"],
-			chatNode.Attributes["count"],
-			chatNode.Attributes["t"],
-			chatNode.Attributes["mute"],
-			chatNode.Attributes["spam"],
-		})
+		parsedChat := parseChat(chatNode.Attributes)
+		wac.Store.Chats[parsedChat.JID] = parsedChat
 	}
 	wac.unsafeHandle(chatList)
 }

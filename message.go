@@ -133,6 +133,7 @@ func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, ResendFunc, 
 	}
 	return wac.writeBinaryRetry(n, message, ignore, p.Key.GetId(), true)
 }
+
 //
 //// RevokeMessage revokes a message (marks as "message removed") for everyone
 //func (wac *Conn) RevokeMessage(chatJID JID, msgID MessageID, fromme bool) (MessageID, error) {
@@ -1024,6 +1025,41 @@ func ParseNodeMessage(msg binary.Node) interface{} {
 		return getReadMessage(msg.Attributes)
 	case "received":
 		return getReceivedMessage(msg.Attributes)
+	case "chat":
+		return getChatChange(msg)
+	default:
+		return &msg
+	}
+}
+
+type ArchiveMessage struct {
+	JID        string
+	IsArchived bool
+}
+
+type MuteMessage struct {
+	JID        string
+	MutedUntil int64
+}
+
+func getChatChange(msg binary.Node) interface{} {
+	jid := strings.Replace(msg.Attributes["jid"], OldUserSuffix, NewUserSuffix, 1)
+	changeType := msg.Attributes["type"]
+	switch changeType {
+	case "archive", "unarchive":
+		return ArchiveMessage{
+			JID:        jid,
+			IsArchived: changeType == "archive",
+		}
+	case "mute":
+		var mutedUntil int64
+		if mutedUntilStr, ok := msg.Attributes["mute"]; ok {
+			mutedUntil, _ = strconv.ParseInt(mutedUntilStr, 10, 64)
+		}
+		return MuteMessage{
+			JID:        jid,
+			MutedUntil: mutedUntil,
+		}
 	default:
 		return &msg
 	}

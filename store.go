@@ -1,6 +1,7 @@
 package whatsapp
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/Rhymen/go-whatsapp/binary"
@@ -21,10 +22,26 @@ type Contact struct {
 type Chat struct {
 	JID             JID
 	Name            string
-	Unread          string
-	LastMessageTime string
-	IsMuted         string
-	IsMarkedSpam    string
+	ModifyTag       string
+	UnreadCount     int
+	LastMessageTime int64
+	MutedUntil      int64
+	IsMarkedSpam    bool
+	IsArchived      bool
+	Source          map[string]string
+}
+
+func parseChat(attributes map[string]string) (out Chat) {
+	out.JID = strings.Replace(attributes["jid"], OldUserSuffix, NewUserSuffix, 1)
+	out.Name = attributes["name"]
+	out.ModifyTag = attributes["modify_tag"]
+	out.UnreadCount, _ = strconv.Atoi(attributes["count"])
+	out.LastMessageTime, _ = strconv.ParseInt(attributes["t"], 10, 64)
+	out.MutedUntil, _ = strconv.ParseInt(attributes["mute"], 10, 64)
+	out.IsMarkedSpam, _ = strconv.ParseBool(attributes["spam"])
+	out.IsArchived, _ = strconv.ParseBool(attributes["archive"])
+	out.Source = attributes
+	return
 }
 
 func newStore() *Store {
@@ -67,15 +84,7 @@ func (wac *Conn) updateChats(chats interface{}) {
 		if !ok {
 			continue
 		}
-
-		jid := strings.Replace(chatNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
-		wac.Store.Chats[jid] = Chat{
-			jid,
-			chatNode.Attributes["name"],
-			chatNode.Attributes["count"],
-			chatNode.Attributes["t"],
-			chatNode.Attributes["mute"],
-			chatNode.Attributes["spam"],
-		}
+		parsedChat := parseChat(chatNode.Attributes)
+		wac.Store.Chats[parsedChat.JID] = parsedChat
 	}
 }
