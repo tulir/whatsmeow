@@ -28,6 +28,7 @@ type Chat struct {
 	MutedUntil      int64
 	IsMarkedSpam    bool
 	IsArchived      bool
+	IsPinned        bool
 	Source          map[string]string
 }
 
@@ -40,6 +41,7 @@ func parseChat(attributes map[string]string) (out Chat) {
 	out.MutedUntil, _ = strconv.ParseInt(attributes["mute"], 10, 64)
 	out.IsMarkedSpam, _ = strconv.ParseBool(attributes["spam"])
 	out.IsArchived, _ = strconv.ParseBool(attributes["archive"])
+	_, out.IsPinned = attributes["pin"]
 	out.Source = attributes
 	return
 }

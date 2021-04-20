@@ -1037,6 +1037,11 @@ type ArchiveMessage struct {
 	IsArchived bool
 }
 
+type PinMessage struct {
+	JID      string
+	IsPinned bool
+}
+
 type MuteMessage struct {
 	JID        string
 	MutedUntil int64
@@ -1059,6 +1064,12 @@ func getChatChange(msg binary.Node) interface{} {
 		return MuteMessage{
 			JID:        jid,
 			MutedUntil: mutedUntil,
+		}
+	case "pin":
+		_, isPinned := msg.Attributes["pin"]
+		return PinMessage{
+			JID:      jid,
+			IsPinned: isPinned,
 		}
 	default:
 		return &msg
