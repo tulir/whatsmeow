@@ -186,10 +186,10 @@ func (wac *Conn) processReadData(msgType int, msg []byte) error {
 		if err != nil {
 			return fmt.Errorf("error decoding binary: %w", err)
 		}
-		wac.dispatch(message)
+		wac.dispatch(data[0], message)
 	} else { //RAW json status updates
 		wac.handleJSONMessage(data[1])
-		wac.handle(json.RawMessage(data[1]))
+		wac.handle(RawJSONMessage{json.RawMessage(data[1]), data[0]})
 	}
 	return nil
 }

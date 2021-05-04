@@ -50,7 +50,7 @@ func (wac *Conn) keepAliveAdminTest(ws *websocketWrapper) {
 	if err != nil {
 		wac.log.Warnln("Keepalive admin test failed:", err)
 		if errors.Is(err, ErrPingFalse) {
-			wac.dispatch(err)
+			wac.handle(err)
 		}
 	} else {
 		wac.ws.pingInKeepalive--

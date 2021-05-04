@@ -113,7 +113,7 @@ func (wac *Conn) handleChats(chats interface{}) {
 	wac.unsafeHandle(chatList)
 }
 
-func (wac *Conn) dispatch(msg interface{}) {
+func (wac *Conn) dispatch(tag string, msg interface{}) {
 	if msg == nil {
 		return
 	}
@@ -152,7 +152,7 @@ func (wac *Conn) dispatch(msg interface{}) {
 		wac.handle(message)
 	case string:
 		wac.handleJSONMessage(message)
-		wac.handle(json.RawMessage(message))
+		wac.handle(RawJSONMessage{json.RawMessage(message), tag})
 	default:
 		wac.log.Warnln("Unknown type in dispatcher chan: %v", msg)
 	}

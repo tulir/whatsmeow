@@ -7,5 +7,5 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9
 	google.golang.org/protobuf v1.24.0
-	maunium.net/go/maulogger/v2 v2.2.2
+	maunium.net/go/maulogger/v2 v2.2.4
 )

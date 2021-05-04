@@ -28,6 +28,11 @@ const (
 	StreamSleep  = "asleep"
 )
 
+type RawJSONMessage struct {
+	json.RawMessage
+	Tag string
+}
+
 type StreamEvent struct {
 	Type StreamType
 
