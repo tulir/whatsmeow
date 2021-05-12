@@ -109,7 +109,7 @@ func (wac *Conn) GetClientVersion() []int {
 	return waVersion
 }
 
-func (wac *Conn) Login(qrChan chan<- string, ctx context.Context, maxRetries int) (Session, JID, error) {
+func (wac *Conn) Login(qrChan chan<- string, ctx context.Context) (Session, JID, error) {
 	session := Session{}
 	//Makes sure that only a single Login or Restore can happen at the same time
 	if !atomic.CompareAndSwapUint32(&wac.sessionLock, 0, 1) {
@@ -161,7 +161,7 @@ func (wac *Conn) Login(qrChan chan<- string, ctx context.Context, maxRetries int
 		ctx = context.Background()
 	}
 	var resp []json.RawMessage
-	maxRerefs := 6
+	maxRetries := 6
 Loop:
 	for {
 		select {
@@ -172,21 +172,12 @@ Loop:
 			break Loop
 		case <-time.After(ttl):
 			maxRetries--
-			maxRerefs--
 			if maxRetries < 0 {
 				return session, "", ErrLoginTimedOut
 			}
-			if maxRerefs > 0 {
-				ref, ttl, err = wac.adminRerefRequest()
-				if err != nil {
-					return session, "", err
-				}
-			} else {
-				ref, ttl, err = wac.adminInitRequest(session.ClientID)
-				if err != nil {
-					return session, "", err
-				}
-				maxRerefs = 6
+			ref, ttl, err = wac.adminRerefRequest()
+			if err != nil {
+				return session, "", err
 			}
 			qrChan <- fmt.Sprintf("%v,%v,%v", ref, base64.StdEncoding.EncodeToString(pub[:]), session.ClientID)
 		case <-ctx.Done():
