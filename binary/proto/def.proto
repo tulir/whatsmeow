@@ -1,7 +1,7 @@
 syntax = "proto2";
 package proto;
 
-message PaymentMoney {
+message Money {
     optional int64 value = 1;
     optional uint32 offset = 2;
     optional string currencyCode = 3;
@@ -78,12 +78,15 @@ message InteractiveAnnotation {
 message DeviceListMetadata {
     optional bytes senderKeyHash = 1;
     optional uint64 senderTimestamp = 2;
+    repeated uint32 senderKeyIndexes = 3 [packed=true];
     optional bytes recipientKeyHash = 8;
     optional uint64 recipientTimestamp = 9;
+    repeated uint32 recipientKeyIndexes = 10 [packed=true];
 }
 
 message MessageContextInfo {
     optional DeviceListMetadata deviceListMetadata = 1;
+    optional int32 deviceListMetadataVersion = 2;
 }
 
 message AdReplyInfo {
@@ -132,6 +135,9 @@ message ContextInfo {
     optional int64 ephemeralSettingTimestamp = 26;
     optional bytes ephemeralSharedSecret = 27;
     optional ExternalAdReplyInfo externalAdReply = 28;
+    optional string entryPointConversionSource = 29;
+    optional string entryPointConversionApp = 30;
+    optional string entryPointConversionDelaySeconds = 31;
 }
 
 message SenderKeyDistributionMessage {
@@ -463,7 +469,7 @@ message RequestPaymentMessage {
     optional uint64 amount1000 = 2;
     optional string requestFrom = 3;
     optional int64 expiryTimestamp = 5;
-    optional PaymentMoney amount = 6;
+    optional Money amount = 6;
 }
 
 message DeclinePaymentRequestMessage {
@@ -472,6 +478,17 @@ message DeclinePaymentRequestMessage {
 
 message CancelPaymentRequestMessage {
     optional MessageKey key = 1;
+}
+
+message PaymentInviteMessage {
+    enum PaymentInviteMessageServiceType {
+        UNKNOWN = 0;
+        FBPAY = 1;
+        NOVI = 2;
+        UPI = 3;
+    }
+    optional PaymentInviteMessageServiceType serviceType = 1;
+    optional int64 expiryTimestamp = 2;
 }
 
 message LiveLocationMessage {
@@ -565,6 +582,7 @@ message ProductSnapshot {
     optional string url = 8;
     optional uint32 productImageCount = 9;
     optional string firstImageId = 11;
+    optional int64 salePriceAmount1000 = 12;
 }
 
 message ProductMessage {
@@ -606,6 +624,26 @@ message Section {
     repeated Row rows = 2;
 }
 
+message Product {
+    optional string productId = 1;
+}
+
+message ProductSection {
+    optional string title = 1;
+    repeated Product products = 2;
+}
+
+message ProductListHeaderImage {
+    optional string productId = 1;
+    optional bytes jpegThumbnail = 2;
+}
+
+message ProductListInfo {
+    repeated ProductSection productSections = 1;
+    optional ProductListHeaderImage headerImage = 2;
+    optional string businessOwnerJid = 3;
+}
+
 message ListMessage {
     optional string title = 1;
     optional string description = 2;
@@ -613,9 +651,13 @@ message ListMessage {
     enum ListMessageListType {
         UNKNOWN = 0;
         SINGLE_SELECT = 1;
+        PRODUCT_LIST = 2;
     }
     optional ListMessageListType listType = 4;
     repeated Section sections = 5;
+    optional ProductListInfo productListInfo = 6;
+    optional string footerText = 7;
+    optional ContextInfo contextInfo = 8;
 }
 
 message SingleSelectReply {
@@ -644,17 +686,10 @@ message GroupInviteMessage {
     optional ContextInfo contextInfo = 7;
 }
 
-message EphemeralSetting {
-    optional string chatJid = 1;
-    optional uint32 ephemeralExpiration = 2;
-    optional int64 ephemeralSettingTimestamp = 3;
-}
-
 message DeviceSentMessage {
     optional string destinationJid = 1;
     optional Message message = 2;
     optional string phash = 3;
-    repeated EphemeralSetting broadcastEphemeralSettings = 4;
 }
 
 message FutureProofMessage {
@@ -665,14 +700,21 @@ message ButtonText {
     optional string displayText = 1;
 }
 
+message NativeFlowInfo {
+    optional string name = 1;
+    optional string paramsJson = 2;
+}
+
 message Button {
     optional string buttonId = 1;
     optional ButtonText buttonText = 2;
     enum ButtonType {
         UNKNOWN = 0;
         RESPONSE = 1;
+        NATIVE_FLOW = 2;
     }
     optional ButtonType type = 3;
+    optional NativeFlowInfo nativeFlowInfo = 4;
 }
 
 message ButtonsMessage {
@@ -748,6 +790,7 @@ message Message {
     optional InvoiceMessage invoiceMessage = 41;
     optional ButtonsMessage buttonsMessage = 42;
     optional ButtonsResponseMessage buttonsResponseMessage = 43;
+    optional PaymentInviteMessage paymentInviteMessage = 44;
 }
 
 message MessageKey {
@@ -755,6 +798,16 @@ message MessageKey {
     optional bool fromMe = 2;
     optional string id = 3;
     optional string participant = 4;
+}
+
+message PhotoChange {
+    optional bytes oldPhoto = 1;
+    optional bytes newPhoto = 2;
+    optional uint32 newPhotoId = 3;
+}
+
+message MediaData {
+    optional string localPath = 1;
 }
 
 message WebFeatures {
@@ -796,14 +849,16 @@ message WebFeatures {
     optional WebFeaturesFlag ephemeralMessages = 32;
     optional WebFeaturesFlag e2ENotificationSync = 33;
     optional WebFeaturesFlag recentStickersV2 = 34;
-    optional WebFeaturesFlag syncdRelease1 = 35;
     optional WebFeaturesFlag recentStickersV3 = 36;
     optional WebFeaturesFlag userNotice = 37;
-    optional WebFeaturesFlag syncdRelease11 = 38;
     optional WebFeaturesFlag support = 39;
     optional WebFeaturesFlag groupUiiCleanup = 40;
     optional WebFeaturesFlag groupDogfoodingInternalOnly = 41;
     optional WebFeaturesFlag settingsSync = 42;
+    optional WebFeaturesFlag archiveV2 = 43;
+    optional WebFeaturesFlag ephemeralAllowGroupMembers = 44;
+    optional WebFeaturesFlag ephemeral24HDuration = 45;
+    optional WebFeaturesFlag mdForceUpgrade = 46;
 }
 
 message NotificationMessageInfo {
@@ -877,11 +932,12 @@ message PaymentInfo {
         COLLECT_EXPIRED = 25;
         COLLECT_CANCELED = 26;
         COLLECT_CANCELLING = 27;
+        IN_REVIEW = 28;
     }
     optional PaymentInfoTxnStatus txnStatus = 10;
     optional bool useNoviFiatFormat = 11;
-    optional PaymentMoney primaryAmount = 12;
-    optional PaymentMoney exchangeAmount = 13;
+    optional Money primaryAmount = 12;
+    optional Money exchangeAmount = 13;
 }
 
 message WebMessageInfo {
@@ -898,6 +954,7 @@ message WebMessageInfo {
     }
     optional WebMessageInfoStatus status = 4;
     optional string participant = 5;
+    optional uint64 messageC2STimestamp = 6;
     optional bool ignore = 16;
     optional bool starred = 17;
     optional bool broadcast = 18;
@@ -1026,6 +1083,13 @@ message WebMessageInfo {
         BLUE_MSG_SELF_FB_UNVERIFIED_TO_BSP_PREMISE_VERIFIED = 116;
         BLUE_MSG_SELF_FB_VERIFIED_TO_BSP_PREMISE_UNVERIFIED = 117;
         E2E_IDENTITY_UNAVAILABLE = 118;
+        GROUP_CREATING = 119;
+        GROUP_CREATE_FAILED = 120;
+        GROUP_BOUNCED = 121;
+        BLOCK_CONTACT = 122;
+        EPHEMERAL_SETTING_NOT_APPLIED = 123;
+        SYNC_FAILED = 124;
+        SYNCING = 125;
     }
     optional WebMessageInfoStubType messageStubType = 24;
     optional bool clearMedia = 25;
@@ -1047,5 +1111,6 @@ message WebMessageInfo {
     }
     optional WebMessageInfoBizPrivacyStatus bizPrivacyStatus = 36;
     optional string verifiedBizName = 37;
+    optional MediaData mediaData = 38;
+    optional PhotoChange photoChange = 39;
 }
-
