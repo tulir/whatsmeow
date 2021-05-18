@@ -3,6 +3,7 @@ package whatsapp
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Rhymen/go-whatsapp/binary"
 )
@@ -30,6 +31,7 @@ type Chat struct {
 	IsArchived      bool
 	IsPinned        bool
 	Source          map[string]string
+	ReceivedAt      time.Time
 }
 
 func parseChat(attributes map[string]string) (out Chat) {
@@ -47,6 +49,7 @@ func parseChat(attributes map[string]string) (out Chat) {
 	out.IsArchived, _ = strconv.ParseBool(attributes["archive"])
 	_, out.IsPinned = attributes["pin"]
 	out.Source = attributes
+	out.ReceivedAt = time.Now()
 	return
 }
 
