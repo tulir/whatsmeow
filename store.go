@@ -33,10 +33,14 @@ type Chat struct {
 }
 
 func parseChat(attributes map[string]string) (out Chat) {
+	var err error
 	out.JID = strings.Replace(attributes["jid"], OldUserSuffix, NewUserSuffix, 1)
 	out.Name = attributes["name"]
 	out.ModifyTag = attributes["modify_tag"]
-	out.UnreadCount, _ = strconv.Atoi(attributes["count"])
+	out.UnreadCount, err = strconv.Atoi(attributes["count"])
+	if err != nil {
+		out.UnreadCount = -1
+	}
 	out.LastMessageTime, _ = strconv.ParseInt(attributes["t"], 10, 64)
 	out.MutedUntil, _ = strconv.ParseInt(attributes["mute"], 10, 64)
 	out.IsMarkedSpam, _ = strconv.ParseBool(attributes["spam"])
