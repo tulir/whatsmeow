@@ -46,6 +46,7 @@ Loop:
 			break Loop
 		}
 	}
+	wac.log.Debugfln("Response to sending %s: %s", msg.GetKey().GetId(), response)
 	resp := StatusResponse{RequestType: "message sending"}
 	if err = json.Unmarshal([]byte(response), &resp); err != nil {
 		output <- fmt.Errorf("error decoding sending response: %w", err)
