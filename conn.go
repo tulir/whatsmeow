@@ -101,7 +101,7 @@ type Conn struct {
 	loginSessionLock sync.RWMutex
 	Proxy            func(*http.Request) (*url.URL, error)
 
-	CountTimeoutHook func()
+	CountTimeoutHook func(wsKeepaliveErrorCount int)
 	AdminTestHook    func(err error)
 }
 

@@ -29,6 +29,7 @@ var (
 	ErrLoginCancelled             = errors.New("login cancelled")
 	ErrAbortLogin                 = errors.New("abort login")
 	ErrPingFalse                  = errors.New("ping returned false")
+	ErrWebsocketKeepaliveFailed   = errors.New("websocket keepalive failed")
 
 	ErrBadRequest   = errors.New("400 (bad request)")
 	ErrUnpaired     = errors.New("401 (unpaired from phone)")

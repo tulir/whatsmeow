@@ -18,18 +18,27 @@ func (wac *Conn) keepAlive(ws *websocketWrapper, minIntervalMs int, maxIntervalM
 		wac.log.Debugfln("Websocket keepalive loop exiting %p", ws)
 		ws.Done()
 	}()
+	ws.keepAliveErrorCount = 0
 	for {
 		if ws.pingInKeepalive > 0 {
 			go wac.keepAliveAdminTest(ws)
 		}
 		err := wac.sendKeepAlive(ws)
 		if err != nil {
-			wac.log.Errorfln("Websocket keepalive for %p failed: %v", ws, err)
+			ws.keepAliveErrorCount += 1
+			wac.log.Errorfln("Websocket keepalive for %p failed (error #%d): %v", ws, ws.keepAliveErrorCount, err)
 			if errors.Is(err, ErrConnectionTimeout) {
+				if ws.keepAliveErrorCount > 4 {
+					wac.handle(ErrWebsocketKeepaliveFailed)
+					return
+				}
 				continue
 			} else if errors.Is(err, websocket.ErrCloseSent) {
 				return
 			}
+		} else if ws.keepAliveErrorCount > 0 {
+			wac.log.Debugln("Websocket keepalive for %p is working again after %d errors", ws, ws.keepAliveErrorCount)
+			ws.keepAliveErrorCount = 0
 		}
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
 		select {
@@ -171,7 +180,7 @@ func (wac *Conn) CountTimeout() {
 	if wac.ws != nil {
 		wac.ws.countTimeout()
 		if wac.CountTimeoutHook != nil {
-			wac.CountTimeoutHook()
+			wac.CountTimeoutHook(wac.ws.keepAliveErrorCount)
 		}
 	}
 }
@@ -201,6 +210,9 @@ func (wac *Conn) sendAdminTest() error {
 		return err
 	case <-time.After(wac.msgTimeout):
 		wac.CountTimeout()
+		if wac.ws.keepAliveErrorCount > 0 {
+			return ErrWebsocketKeepaliveFailed
+		}
 		return ErrConnectionTimeout
 	}
 }

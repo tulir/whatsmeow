@@ -23,6 +23,7 @@ type websocketWrapper struct {
 	cancel func()
 
 	pingInKeepalive       int
+	keepAliveErrorCount   int
 	keepAliveShortCircuit chan struct{}
 }
 
