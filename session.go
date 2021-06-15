@@ -71,7 +71,7 @@ func (wac *Conn) adminInitRequest(clientID string) (string, time.Duration, error
 
 	var resp map[string]interface{}
 	if err = json.Unmarshal([]byte(r), &resp); err != nil {
-		return "", 0, fmt.Errorf("error decoding login resp: %w", err)
+		return "", 0, fmt.Errorf("error decoding login resp %s: %w", r, err)
 	}
 
 	return resp["ref"].(string), time.Duration(resp["ttl"].(float64)) * time.Millisecond, nil
@@ -93,7 +93,7 @@ func (wac *Conn) adminRerefRequest() (string, time.Duration, error) {
 
 	var resp map[string]interface{}
 	if err = json.Unmarshal([]byte(r), &resp); err != nil {
-		return "", 0, fmt.Errorf("error decoding reref resp: %w", err)
+		return "", 0, fmt.Errorf("error decoding reref resp %s: %w", r, err)
 	}
 
 	statusCode := int(resp["status"].(float64))
@@ -167,7 +167,7 @@ Loop:
 		select {
 		case r1 := <-s1:
 			if err := json.Unmarshal([]byte(r1), &resp); err != nil {
-				return session, "", fmt.Errorf("error decoding qr code resp: %w", err)
+				return session, "", fmt.Errorf("error decoding qr code resp %s: %w", r1, err)
 			}
 			break Loop
 		case <-time.After(ttl):
@@ -300,7 +300,7 @@ func (wac *Conn) Restore(takeover bool, ctx context.Context) error {
 		case r := <-initChan:
 			resp := StatusResponse{RequestType: "init"}
 			if err = json.Unmarshal([]byte(r), &resp); err != nil {
-				return fmt.Errorf("error decoding login connResp: %w", err)
+				return fmt.Errorf("error decoding login connResp %s: %w", r, err)
 			} else if resp.Status != 200 {
 				wac.timeTag = ""
 				return resp
@@ -333,7 +333,7 @@ Loop:
 			resp := StatusResponse{RequestType: "admin login"}
 			if err = json.Unmarshal([]byte(r), &resp); err != nil {
 				wac.timeTag = ""
-				return fmt.Errorf("error decoding login connResp: %w", err)
+				return fmt.Errorf("error decoding login connResp %s: %w", r, err)
 			} else if resp.Status != 200 {
 				wac.timeTag = ""
 				return fmt.Errorf("admin login errored: %w", wac.getAdminLoginResponseError(resp))
@@ -394,7 +394,7 @@ func (wac *Conn) resolveChallenge(challenge string) error {
 	case r := <-challengeChan:
 		resp := StatusResponse{RequestType: "login challenge"}
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {
-			return fmt.Errorf("error decoding login resp: %w", err)
+			return fmt.Errorf("error decoding login resp %s: %w", r, err)
 		} else if resp.Status != 200 {
 			return resp
 		}
