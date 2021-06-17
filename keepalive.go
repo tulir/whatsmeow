@@ -29,7 +29,7 @@ func (wac *Conn) keepAlive(ws *websocketWrapper, minIntervalMs int, maxIntervalM
 			wac.log.Errorfln("Websocket keepalive for %p failed (error #%d): %v", ws, ws.keepAliveErrorCount, err)
 			if errors.Is(err, ErrConnectionTimeout) {
 				if ws.keepAliveErrorCount > 4 {
-					wac.handle(ErrWebsocketKeepaliveFailed)
+					go wac.handle(ErrWebsocketKeepaliveFailed)
 					return
 				}
 				continue
@@ -37,7 +37,7 @@ func (wac *Conn) keepAlive(ws *websocketWrapper, minIntervalMs int, maxIntervalM
 				return
 			}
 		} else if ws.keepAliveErrorCount > 0 {
-			wac.log.Debugln("Websocket keepalive for %p is working again after %d errors", ws, ws.keepAliveErrorCount)
+			wac.log.Debugfln("Websocket keepalive for %p is working again after %d errors", ws, ws.keepAliveErrorCount)
 			ws.keepAliveErrorCount = 0
 		}
 		interval := rand.Intn(maxIntervalMs-minIntervalMs) + minIntervalMs
