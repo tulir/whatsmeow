@@ -101,6 +101,7 @@ func (wac *Conn) handleChats(chats interface{}) {
 	if !ok {
 		return
 	}
+	wac.Store.ChatsLock.Lock()
 	for _, chat := range c {
 		chatNode, ok := chat.(binary.Node)
 		if !ok {
@@ -110,6 +111,7 @@ func (wac *Conn) handleChats(chats interface{}) {
 		parsedChat := parseChat(chatNode.Attributes)
 		wac.Store.Chats[parsedChat.JID] = parsedChat
 	}
+	wac.Store.ChatsLock.Unlock()
 	wac.unsafeHandle(chatList)
 }
 

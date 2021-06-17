@@ -3,14 +3,17 @@ package whatsapp
 import (
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Rhymen/go-whatsapp/binary"
 )
 
 type Store struct {
-	Contacts map[JID]Contact
-	Chats    map[JID]Chat
+	Contacts     map[JID]Contact
+	ContactsLock sync.RWMutex
+	Chats        map[JID]Chat
+	ChatsLock    sync.RWMutex
 }
 
 type Contact struct {
@@ -55,8 +58,8 @@ func parseChat(attributes map[string]string) (out Chat) {
 
 func newStore() *Store {
 	return &Store{
-		make(map[string]Contact),
-		make(map[string]Chat),
+		Contacts: make(map[string]Contact),
+		Chats:    make(map[string]Chat),
 	}
 }
 
@@ -66,6 +69,7 @@ func (wac *Conn) updateContacts(contacts interface{}) {
 		return
 	}
 
+	wac.Store.ContactsLock.Lock()
 	for _, contact := range c {
 		contactNode, ok := contact.(binary.Node)
 		if !ok {
@@ -80,6 +84,7 @@ func (wac *Conn) updateContacts(contacts interface{}) {
 			contactNode.Attributes["short"],
 		}
 	}
+	wac.Store.ContactsLock.Unlock()
 }
 
 func (wac *Conn) updateChats(chats interface{}) {
@@ -88,6 +93,7 @@ func (wac *Conn) updateChats(chats interface{}) {
 		return
 	}
 
+	wac.Store.ChatsLock.Lock()
 	for _, chat := range c {
 		chatNode, ok := chat.(binary.Node)
 		if !ok {
@@ -96,4 +102,5 @@ func (wac *Conn) updateChats(chats interface{}) {
 		parsedChat := parseChat(chatNode.Attributes)
 		wac.Store.Chats[parsedChat.JID] = parsedChat
 	}
+	wac.Store.ChatsLock.Unlock()
 }
