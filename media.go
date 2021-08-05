@@ -19,29 +19,28 @@ import (
 	"github.com/Rhymen/go-whatsapp/crypto/hkdf"
 )
 
-func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) ([]byte, error) {
+func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) (data []byte, err error) {
 	if url == "" {
-		return nil, ErrNoURLPresent
+		err =ErrNoURLPresent
+		return
 	}
-	file, mac, err := downloadMedia(url)
+	var file, mac []byte
+	file, mac, err = downloadMedia(url)
 	if err != nil {
-		return nil, err
+		return
 	}
-	iv, cipherKey, macKey, _, err := getMediaKeys(mediaKey, appInfo)
+	var iv, cipherKey, macKey []byte
+	iv, cipherKey, macKey, _, err = getMediaKeys(mediaKey, appInfo)
 	if err != nil {
-		return nil, err
+		return
 	}
-	if err = validateMedia(iv, file, macKey, mac); err != nil {
-		return nil, err
+	data, err = cbc.Decrypt(cipherKey, iv, file)
+	if err == nil && len(data) != fileLength {
+		err = fmt.Errorf("%w: expected %d, got %d", ErrFileLengthMismatch, fileLength, len(data))
+	} else if err == nil {
+		err = validateMedia(iv, file, macKey, mac)
 	}
-	data, err := cbc.Decrypt(cipherKey, iv, file)
-	if err != nil {
-		return nil, err
-	}
-	if len(data) != fileLength {
-		return nil, ErrFileLengthMismatch
-	}
-	return data, nil
+	return
 }
 
 func validateMedia(iv, file, macKey, mac []byte) error {
@@ -62,7 +61,7 @@ func validateMedia(iv, file, macKey, mac []byte) error {
 func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, refKey []byte, err error) {
 	mediaKeyExpanded, err := hkdf.Expand(mediaKey, 112, string(appInfo))
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, fmt.Errorf("failed to expand media key: %w", err)
 	}
 	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:], nil
 }
