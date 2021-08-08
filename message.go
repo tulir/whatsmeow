@@ -977,14 +977,13 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 }
 
 func getNewContact(msg map[string]string) Contact {
-	contact := Contact{
+	return Contact{
 		JID:    msg["jid"],
 		Notify: msg["notify"],
 		Name:   msg["name"],
 		Short:  msg["short"],
+		Source: msg,
 	}
-
-	return contact
 }
 
 // ReadMessage represents a chat that the user read on the WhatsApp mobile app.

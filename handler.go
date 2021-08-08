@@ -86,10 +86,11 @@ func (wac *Conn) handleContacts(contacts interface{}) {
 
 		jid := strings.Replace(contactNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
 		contactList = append(contactList, Contact{
-			jid,
-			contactNode.Attributes["notify"],
-			contactNode.Attributes["name"],
-			contactNode.Attributes["short"],
+			JID:    jid,
+			Notify: contactNode.Attributes["notify"],
+			Name:   contactNode.Attributes["name"],
+			Short:  contactNode.Attributes["short"],
+			Source: contactNode.Attributes,
 		})
 	}
 	wac.unsafeHandle(contactList)

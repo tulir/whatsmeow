@@ -21,6 +21,7 @@ type Contact struct {
 	Notify string
 	Name   string
 	Short  string
+	Source map[string]string
 }
 
 type Chat struct {
@@ -78,10 +79,11 @@ func (wac *Conn) updateContacts(contacts interface{}) {
 
 		jid := strings.Replace(contactNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
 		wac.Store.Contacts[jid] = Contact{
-			jid,
-			contactNode.Attributes["notify"],
-			contactNode.Attributes["name"],
-			contactNode.Attributes["short"],
+			JID:    jid,
+			Notify: contactNode.Attributes["notify"],
+			Name:   contactNode.Attributes["name"],
+			Short:  contactNode.Attributes["short"],
+			Source: contactNode.Attributes,
 		}
 	}
 	wac.Store.ContactsLock.Unlock()
