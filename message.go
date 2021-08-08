@@ -348,18 +348,19 @@ func (m TextMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func getTextMessage(msg *proto.WebMessageInfo) TextMessage {
-	text := TextMessage{Info: getMessageInfo(msg)}
-	if m := msg.GetMessage().GetExtendedTextMessage(); m != nil {
-		text.Text = m.GetText()
 
-		text.ContextInfo = getMessageContext(m.GetContextInfo())
-	} else {
-		text.Text = msg.GetMessage().GetConversation()
-
+func getExtendedTextMessage(m *proto.ExtendedTextMessage, msg *proto.WebMessageInfo) TextMessage {
+	return TextMessage{
+		Info: getMessageInfo(msg),
+		Text: m.GetText(),
+		ContextInfo: getMessageContext(m.GetContextInfo()),
 	}
-
-	return text
+}
+func getPlainTextMessage(conv string, msg *proto.WebMessageInfo) TextMessage {
+	return TextMessage{
+		Info: getMessageInfo(msg),
+		Text: conv,
+	}
 }
 
 func getTextProto(msg TextMessage) *proto.WebMessageInfo {
@@ -404,9 +405,7 @@ func (m ImageMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func getImageMessage(msg *proto.WebMessageInfo) ImageMessage {
-	image := msg.GetMessage().GetImageMessage()
-
+func getImageMessage(image *proto.ImageMessage, msg *proto.WebMessageInfo) ImageMessage {
 	imageMessage := ImageMessage{
 		Info:          getMessageInfo(msg),
 		Caption:       image.GetCaption(),
@@ -474,9 +473,7 @@ func (m VideoMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func getVideoMessage(msg *proto.WebMessageInfo) VideoMessage {
-	vid := msg.GetMessage().GetVideoMessage()
-
+func getVideoMessage(vid *proto.VideoMessage, msg *proto.WebMessageInfo) VideoMessage {
 	videoMessage := VideoMessage{
 		Info:          getMessageInfo(msg),
 		Caption:       vid.GetCaption(),
@@ -546,9 +543,7 @@ func (m AudioMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func getAudioMessage(msg *proto.WebMessageInfo) AudioMessage {
-	aud := msg.GetMessage().GetAudioMessage()
-
+func getAudioMessage(aud *proto.AudioMessage, msg *proto.WebMessageInfo) AudioMessage {
 	audioMessage := AudioMessage{
 		Info:          getMessageInfo(msg),
 		url:           aud.GetUrl(),
@@ -614,9 +609,7 @@ func (m DocumentMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func getDocumentMessage(msg *proto.WebMessageInfo) DocumentMessage {
-	doc := msg.GetMessage().GetDocumentMessage()
-
+func getDocumentMessage(doc *proto.DocumentMessage, msg *proto.WebMessageInfo) DocumentMessage {
 	documentMessage := DocumentMessage{
 		Info:          getMessageInfo(msg),
 		Title:         doc.GetTitle(),
@@ -680,9 +673,7 @@ func (m LocationMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func GetLocationMessage(msg *proto.WebMessageInfo) LocationMessage {
-	loc := msg.GetMessage().GetLocationMessage()
-
+func GetLocationMessage(loc *proto.LocationMessage, msg *proto.WebMessageInfo) LocationMessage {
 	locationMessage := LocationMessage{
 		Info:             getMessageInfo(msg),
 		DegreesLatitude:  loc.GetDegreesLatitude(),
@@ -735,9 +726,7 @@ func (m LiveLocationMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func GetLiveLocationMessage(msg *proto.WebMessageInfo) LiveLocationMessage {
-	loc := msg.GetMessage().GetLiveLocationMessage()
-
+func GetLiveLocationMessage(loc *proto.LiveLocationMessage, msg *proto.WebMessageInfo) LiveLocationMessage {
 	liveLocationMessage := LiveLocationMessage{
 		Info:                              getMessageInfo(msg),
 		DegreesLatitude:                   loc.GetDegreesLatitude(),
@@ -794,9 +783,7 @@ func (m StickerMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func getStickerMessage(msg *proto.WebMessageInfo) StickerMessage {
-	sticker := msg.GetMessage().GetStickerMessage()
-
+func getStickerMessage(sticker *proto.StickerMessage, msg *proto.WebMessageInfo) StickerMessage {
 	stickerMessage := StickerMessage{
 		Info:          getMessageInfo(msg),
 		url:           sticker.GetUrl(),
@@ -835,9 +822,7 @@ func (m ContactMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-func getContactMessage(msg *proto.WebMessageInfo) ContactMessage {
-	contact := msg.GetMessage().GetContactMessage()
-
+func getContactMessage(contact *proto.ContactMessage, msg *proto.WebMessageInfo) ContactMessage {
 	contactMessage := ContactMessage{
 		Info: getMessageInfo(msg),
 
@@ -905,38 +890,57 @@ func getMessageRevocation(msg *proto.WebMessageInfo) MessageRevocation {
 	}
 }
 
-func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
+func parseMessage(msg *proto.Message, info *proto.WebMessageInfo) interface{} {
 	switch {
 
-	case msg.GetMessage().GetAudioMessage() != nil:
-		return getAudioMessage(msg)
+	case msg.GetAudioMessage() != nil:
+		return getAudioMessage(msg.AudioMessage, info)
 
-	case msg.GetMessage().GetImageMessage() != nil:
-		return getImageMessage(msg)
+	case msg.GetImageMessage() != nil:
+		return getImageMessage(msg.ImageMessage, info)
 
-	case msg.GetMessage().GetVideoMessage() != nil:
-		return getVideoMessage(msg)
+	case msg.GetVideoMessage() != nil:
+		return getVideoMessage(msg.VideoMessage, info)
 
-	case msg.GetMessage().GetDocumentMessage() != nil:
-		return getDocumentMessage(msg)
+	case msg.GetDocumentMessage() != nil:
+		return getDocumentMessage(msg.DocumentMessage, info)
 
-	case msg.GetMessage().GetConversation() != "":
-		return getTextMessage(msg)
+	case msg.GetConversation() != "":
+		return getPlainTextMessage(msg.GetConversation(), info)
 
-	case msg.GetMessage().GetExtendedTextMessage() != nil:
-		return getTextMessage(msg)
+	case msg.GetExtendedTextMessage() != nil:
+		return getExtendedTextMessage(msg.GetExtendedTextMessage(), info)
 
-	case msg.GetMessage().GetLocationMessage() != nil:
-		return GetLocationMessage(msg)
+	case msg.GetLocationMessage() != nil:
+		return GetLocationMessage(msg.LocationMessage, info)
 
-	case msg.GetMessage().GetLiveLocationMessage() != nil:
-		return GetLiveLocationMessage(msg)
+	case msg.GetLiveLocationMessage() != nil:
+		return GetLiveLocationMessage(msg.LiveLocationMessage, info)
 
-	case msg.GetMessage().GetStickerMessage() != nil:
-		return getStickerMessage(msg)
+	case msg.GetStickerMessage() != nil:
+		return getStickerMessage(msg.StickerMessage, info)
 
-	case msg.GetMessage().GetContactMessage() != nil:
-		return getContactMessage(msg)
+	case msg.GetContactMessage() != nil:
+		return getContactMessage(msg.ContactMessage, info)
+
+	case msg.GetEphemeralMessage().GetMessage() != nil:
+		return parseMessage(msg.GetEphemeralMessage().GetMessage(), info)
+
+	case msg.GetViewOnceMessage().GetMessage() != nil:
+		return parseMessage(msg.GetViewOnceMessage().GetMessage(), info)
+
+	default:
+		return nil
+	}
+}
+
+func ParseProtoMessage(msg *proto.WebMessageInfo) interface{} {
+	output := parseMessage(msg.GetMessage(), msg)
+
+	switch {
+
+	case output != nil:
+		return output
 
 	case msg.GetMessage().GetProtocolMessage() != nil && msg.GetMessage().GetProtocolMessage().GetType() == proto.ProtocolMessage_REVOKE:
 		return getMessageRevocation(msg)
