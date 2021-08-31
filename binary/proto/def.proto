@@ -38,6 +38,7 @@ message UserAgent {
         MACOS = 24;
         OCULUS_MSG = 25;
         OCULUS_CALL = 26;
+        MILAN = 27;
     }
     optional UserAgentPlatform platform = 1;
     optional AppVersion appVersion = 2;
@@ -114,21 +115,11 @@ message CompanionRegData {
 message ClientPayload {
     optional uint64 username = 1;
     optional bool passive = 3;
-    enum ClientPayloadClientFeature {
-        NONE = 0;
-    }
-    repeated ClientPayloadClientFeature clientFeatures = 4;
     optional UserAgent userAgent = 5;
     optional WebInfo webInfo = 6;
     optional string pushName = 7;
     optional sfixed32 sessionId = 9;
     optional bool shortConnect = 10;
-    enum ClientPayloadIOSAppExtension {
-        SHARE_EXTENSION = 0;
-        SERVICE_EXTENSION = 1;
-        INTENTS_EXTENSION = 2;
-    }
-    optional ClientPayloadIOSAppExtension iosAppExtension = 30;
     enum ClientPayloadConnectType {
         CELLULAR_UNKNOWN = 0;
         WIFI_UNKNOWN = 1;
@@ -171,6 +162,14 @@ message ClientPayload {
     optional bytes fbUserAgent = 22;
     optional bool oc = 23;
     optional uint32 lc = 24;
+    enum ClientPayloadIOSAppExtension {
+        SHARE_EXTENSION = 0;
+        SERVICE_EXTENSION = 1;
+        INTENTS_EXTENSION = 2;
+    }
+    optional ClientPayloadIOSAppExtension iosAppExtension = 30;
+    optional uint64 fbAppId = 31;
+    optional string fbDeviceId = 32;
 }
 
 //message Details {
@@ -527,6 +526,16 @@ message MsgRowOpaqueData {
     optional MsgOpaqueData quotedMsg = 2;
 }
 
+message GroupParticipant {
+    required string userJid = 1;
+    enum GroupParticipantRank {
+        REGULAR = 0;
+        ADMIN = 1;
+        SUPERADMIN = 2;
+    }
+    optional GroupParticipantRank rank = 2;
+}
+
 message Pushname {
     optional string id = 1;
     optional string pushname = 2;
@@ -560,6 +569,10 @@ message Conversation {
     optional bool archived = 16;
     optional DisappearingMode disappearingMode = 17;
     optional uint32 unreadMentionCount = 18;
+    optional bool markedAsUnread = 19;
+    repeated GroupParticipant participant = 20;
+    optional bytes tcToken = 21;
+    optional uint64 tcTokenTimestamp = 22;
 }
 
 message HistorySync {
@@ -581,16 +594,6 @@ message HistorySync {
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
-}
-
-message QuickReplyButton {
-    optional HighlyStructuredMessage displayText = 1;
-    optional string id = 2;
-}
-
-message URLButton {
-    optional HighlyStructuredMessage displayText = 1;
-    optional HighlyStructuredMessage url = 2;
 }
 
 message CallButton {
@@ -835,6 +838,7 @@ message AudioMessage {
     optional int64 mediaKeyTimestamp = 10;
     optional ContextInfo contextInfo = 17;
     optional bytes streamingSidecar = 18;
+    optional bytes waveform = 19;
 }
 
 message VideoMessage {
@@ -1158,6 +1162,8 @@ message ProductMessage {
     optional ProductSnapshot product = 1;
     optional string businessOwnerJid = 2;
     optional CatalogSnapshot catalog = 4;
+    optional string body = 5;
+    optional string footer = 6;
     optional ContextInfo contextInfo = 17;
 }
 
@@ -1248,6 +1254,7 @@ message ListResponseMessage {
 message Header {
     optional string title = 1;
     optional string subtitle = 2;
+    optional bool hasMedia = 5;
     oneof media {
         DocumentMessage documentMessage = 3;
         ImageMessage imageMessage = 4;
@@ -1376,6 +1383,13 @@ message ButtonsResponseMessage {
     }
 }
 
+message ReactionMessage {
+    optional MessageKey key = 1;
+    optional string text = 2;
+    optional string groupingKey = 3;
+    optional int64 timestamp = 4;
+}
+
 message Message {
     optional string conversation = 1;
     optional SenderKeyDistributionMessage senderKeyDistributionMessage = 2;
@@ -1414,6 +1428,7 @@ message Message {
     optional ButtonsResponseMessage buttonsResponseMessage = 43;
     optional PaymentInviteMessage paymentInviteMessage = 44;
     optional InteractiveMessage interactiveMessage = 45;
+    optional ReactionMessage reactionMessage = 46;
 }
 
 message ActionLink {
@@ -1430,6 +1445,14 @@ message DisappearingMode {
     optional DisappearingModeInitiator initiator = 1;
 }
 
+message PBMediaData {
+    optional bytes mediaKey = 1;
+    optional int64 mediaKeyTimestamp = 2;
+    optional bytes fileSha256 = 3;
+    optional bytes fileEncSha256 = 4;
+    optional string directPath = 5;
+}
+
 message PaymentBackground {
     optional string id = 1;
     optional uint64 fileLength = 2;
@@ -1439,6 +1462,12 @@ message PaymentBackground {
     optional fixed32 placeholderArgb = 6;
     optional fixed32 textArgb = 7;
     optional fixed32 subtextArgb = 8;
+    optional PBMediaData mediaData = 9;
+    enum PaymentBackgroundType {
+        UNKNOWN = 0;
+        DEFAULT = 1;
+    }
+    optional PaymentBackgroundType type = 10;
 }
 
 message Money {
@@ -1469,6 +1498,16 @@ message HydratedTemplateButton {
         HydratedURLButton urlButton = 2;
         HydratedCallButton callButton = 3;
     }
+}
+
+message QuickReplyButton {
+    optional HighlyStructuredMessage displayText = 1;
+    optional string id = 2;
+}
+
+message URLButton {
+    optional HighlyStructuredMessage displayText = 1;
+    optional HighlyStructuredMessage url = 2;
 }
 
 //message AppVersion {
@@ -1536,6 +1575,14 @@ message MessageKey {
     optional bool fromMe = 2;
     optional string id = 3;
     optional string participant = 4;
+}
+
+message Reaction {
+    optional MessageKey key = 1;
+    optional string text = 2;
+    optional string groupingKey = 3;
+    optional int64 timestamp = 4;
+    optional bool revoked = 5;
 }
 
 message UserReceipt {
@@ -1607,6 +1654,7 @@ message WebFeatures {
     optional WebFeaturesFlag ephemeral24HDuration = 45;
     optional WebFeaturesFlag mdForceUpgrade = 46;
     optional WebFeaturesFlag disappearingMode = 47;
+    optional WebFeaturesFlag externalMdOptInAvailable = 48;
 }
 
 message NotificationMessageInfo {
@@ -1867,5 +1915,8 @@ message WebMessageInfo {
     optional MediaData mediaData = 38;
     optional PhotoChange photoChange = 39;
     repeated UserReceipt userReceipt = 40;
+    repeated Reaction reactions = 41;
+    optional MediaData quotedStickerData = 42;
+    optional bytes futureproofData = 43;
 }
 
