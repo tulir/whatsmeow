@@ -21,7 +21,13 @@ type Contact struct {
 	Notify string
 	Name   string
 	Short  string
-	Source map[string]string
+
+	IsEnterprise bool
+	IsVerified   bool
+	VName        string
+
+	Source     map[string]string
+	ReceivedAt time.Time
 }
 
 type Chat struct {
@@ -57,6 +63,19 @@ func parseChat(attributes map[string]string) (out Chat) {
 	return
 }
 
+func parseContact(attributes map[string]string) (out Contact) {
+	out.JID = strings.Replace(attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
+	out.Notify = attributes["notify"]
+	out.Name = attributes["name"]
+	out.Short = attributes["short"]
+	out.VName = attributes["vname"]
+	out.IsEnterprise, _ = strconv.ParseBool(attributes["enterprise"])
+	out.IsVerified, _ = strconv.ParseBool(attributes["verify"])
+	out.Source = attributes
+	out.ReceivedAt = time.Now()
+	return
+}
+
 func newStore() *Store {
 	return &Store{
 		Contacts: make(map[string]Contact),
@@ -77,14 +96,8 @@ func (wac *Conn) updateContacts(contacts interface{}) {
 			continue
 		}
 
-		jid := strings.Replace(contactNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
-		wac.Store.Contacts[jid] = Contact{
-			JID:    jid,
-			Notify: contactNode.Attributes["notify"],
-			Name:   contactNode.Attributes["name"],
-			Short:  contactNode.Attributes["short"],
-			Source: contactNode.Attributes,
-		}
+		parsedContact := parseContact(contactNode.Attributes)
+		wac.Store.Contacts[parsedContact.JID] = parsedContact
 	}
 	wac.Store.ContactsLock.Unlock()
 }

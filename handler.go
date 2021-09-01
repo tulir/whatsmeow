@@ -2,7 +2,6 @@ package whatsapp
 
 import (
 	"encoding/json"
-	"strings"
 
 	"github.com/Rhymen/go-whatsapp/binary"
 	"github.com/Rhymen/go-whatsapp/binary/proto"
@@ -84,14 +83,7 @@ func (wac *Conn) handleContacts(contacts interface{}) {
 			continue
 		}
 
-		jid := strings.Replace(contactNode.Attributes["jid"], "@c.us", "@s.whatsapp.net", 1)
-		contactList = append(contactList, Contact{
-			JID:    jid,
-			Notify: contactNode.Attributes["notify"],
-			Name:   contactNode.Attributes["name"],
-			Short:  contactNode.Attributes["short"],
-			Source: contactNode.Attributes,
-		})
+		contactList = append(contactList, parseContact(contactNode.Attributes))
 	}
 	wac.unsafeHandle(contactList)
 }

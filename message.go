@@ -976,16 +976,6 @@ func getBatteryMessage(msg map[string]string) BatteryMessage {
 	return batteryMessage
 }
 
-func getNewContact(msg map[string]string) Contact {
-	return Contact{
-		JID:    msg["jid"],
-		Notify: msg["notify"],
-		Name:   msg["name"],
-		Short:  msg["short"],
-		Source: msg,
-	}
-}
-
 // ReadMessage represents a chat that the user read on the WhatsApp mobile app.
 type ReadMessage struct {
 	Jid string
@@ -1024,7 +1014,7 @@ func ParseNodeMessage(msg binary.Node) interface{} {
 	case "battery":
 		return getBatteryMessage(msg.Attributes)
 	case "user":
-		return getNewContact(msg.Attributes)
+		return parseContact(msg.Attributes)
 	case "read":
 		return getReadMessage(msg.Attributes)
 	case "received":
