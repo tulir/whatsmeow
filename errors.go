@@ -30,6 +30,8 @@ var (
 	ErrAbortLogin                 = errors.New("abort login")
 	ErrPingFalse                  = errors.New("ping returned false")
 	ErrWebsocketKeepaliveFailed   = errors.New("websocket keepalive failed")
+	ErrUnexpectedLoginMsgType     = errors.New("unexpected message type after login")
+	ErrMultiDeviceNotSupported    = errors.New("phone has multi-device enabled, which is not yet supported")
 
 	ErrBadRequest   = errors.New("400 (bad request)")
 	ErrUnpaired     = errors.New("401 (unpaired from phone)")

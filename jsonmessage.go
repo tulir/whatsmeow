@@ -160,6 +160,8 @@ const (
 	CommandPicture    CommandType = "picture"
 	CommandDisconnect CommandType = "disconnect"
 	CommandChallenge  CommandType = "challenge"
+
+	CommandMultiDeviceUpgrade CommandType = "upgrade_md_prod"
 )
 
 type JSONCommand struct {
@@ -170,6 +172,8 @@ type JSONCommand struct {
 
 	*ProfilePicInfo
 	Kind string `json:"kind"`
+
+	Version string `json:"version"`
 
 	Raw json.RawMessage `json:"-"`
 }

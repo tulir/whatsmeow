@@ -190,10 +190,27 @@ Loop:
 	if err != nil {
 		return session, "", fmt.Errorf("error decoding qr code response type: %w", err)
 	}
+
+	switch msgType {
+	case MessageConn:
+		// All good
+	case MessageCmd:
+		var cmd JSONCommand
+		err = json.Unmarshal(resp[1], &cmd)
+		if err != nil {
+			return session, "", fmt.Errorf("error decoding login command response: %w (data: %s)", err, resp[1])
+		} else if cmd.Type == CommandMultiDeviceUpgrade {
+			return session, "", ErrMultiDeviceNotSupported
+		}
+		fallthrough
+	default:
+		return session, "", fmt.Errorf("%w: %s (data: %s)", ErrUnexpectedLoginMsgType, msgType, resp[1])
+	}
+
 	var info ConnInfo
 	err = json.Unmarshal(resp[1], &info)
 	if err != nil {
-		return session, "", fmt.Errorf("error decoding qr code response data: %w", err)
+		return session, "", fmt.Errorf("error decoding qr code response data: %w (data: %s)", err, resp[1])
 	}
 
 	session.ClientToken = info.ClientToken
