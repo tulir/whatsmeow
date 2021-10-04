@@ -169,16 +169,17 @@ message ClientPayload {
     }
     optional ClientPayloadIOSAppExtension iosAppExtension = 30;
     optional uint64 fbAppId = 31;
-    optional string fbDeviceId = 32;
+    optional bytes fbDeviceId = 32;
 }
 
-//message Details {
-//    optional uint32 serial = 1;
-//    optional string issuer = 2;
-//    optional uint64 expires = 3;
-//    optional string subject = 4;
-//    optional bytes key = 5;
-//}
+// Renamed from Details due to conflict
+message NoiseCertificateDetails {
+    optional uint32 serial = 1;
+    optional string issuer = 2;
+    optional uint64 expires = 3;
+    optional string subject = 4;
+    optional bytes key = 5;
+}
 
 message NoiseCertificate {
     optional bytes details = 1;
@@ -519,11 +520,17 @@ message MsgOpaqueData {
     optional string matchedText = 11;
     optional string title = 12;
     optional string description = 13;
+    optional bytes futureproofBuffer = 14;
 }
 
 message MsgRowOpaqueData {
     optional MsgOpaqueData currentMsg = 1;
     optional MsgOpaqueData quotedMsg = 2;
+}
+
+message WallpaperSettings {
+    optional string filename = 1;
+    optional uint32 opacity = 2;
 }
 
 message GroupParticipant {
@@ -573,6 +580,16 @@ message Conversation {
     repeated GroupParticipant participant = 20;
     optional bytes tcToken = 21;
     optional uint64 tcTokenTimestamp = 22;
+    optional bytes contactPrimaryIdentityKey = 23;
+    optional uint32 pinned = 24;
+    optional uint64 muteEndTime = 25;
+    optional WallpaperSettings wallpaper = 26;
+    enum MediaVisibility {
+        DEFAULT = 0;
+        OFF = 1;
+        ON = 2;
+    }
+    optional MediaVisibility mediaVisibility = 27;
 }
 
 message HistorySync {
@@ -594,11 +611,6 @@ message HistorySync {
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
-}
-
-message CallButton {
-    optional HighlyStructuredMessage displayText = 1;
-    optional HighlyStructuredMessage phoneNumber = 2;
 }
 
 message TemplateButton {
@@ -1156,6 +1168,7 @@ message ProductSnapshot {
     optional uint32 productImageCount = 9;
     optional string firstImageId = 11;
     optional int64 salePriceAmount1000 = 12;
+    optional string availability = 13;
 }
 
 message ProductMessage {
@@ -1254,10 +1267,11 @@ message ListResponseMessage {
 message Header {
     optional string title = 1;
     optional string subtitle = 2;
-    optional bool hasMedia = 5;
+    optional bool hasMediaAttachment = 5;
     oneof media {
         DocumentMessage documentMessage = 3;
         ImageMessage imageMessage = 4;
+        bytes jpegThumbnail = 6;
     }
 }
 
@@ -1269,23 +1283,16 @@ message Footer {
     optional string text = 1;
 }
 
-message ShopsMessage {
+message ShopMessage {
     optional string id = 1;
-    enum ShopsMessageSurface {
+    enum ShopMessageSurface {
         UNKNOWN_SURFACE = 0;
         FB = 1;
         IG = 2;
         WA = 3;
     }
-    optional ShopsMessageSurface surface = 2;
-    enum ShopsMessageType {
-        UNKNOWN_TYPE = 0;
-        PRODUCT = 1;
-        STOREFRONT = 2;
-        COLLECTION = 3;
-    }
-    optional ShopsMessageType type = 3;
-    optional int32 messageVersion = 4;
+    optional ShopMessageSurface surface = 2;
+    optional int32 messageVersion = 3;
 }
 
 message CollectionMessage {
@@ -1294,14 +1301,25 @@ message CollectionMessage {
     optional int32 messageVersion = 3;
 }
 
+message NativeFlowButton {
+    optional string name = 1;
+    optional string paramsJson = 2;
+}
+
+message NativeFlowMessage {
+    repeated NativeFlowButton buttons = 1;
+    optional int32 messageVersion = 2;
+}
+
 message InteractiveMessage {
     optional Header header = 1;
     optional Body body = 2;
     optional Footer footer = 3;
     optional ContextInfo contextInfo = 15;
     oneof interactiveMessage {
-        ShopsMessage shopsMessage = 4;
+        ShopMessage shopStorefrontMessage = 4;
         CollectionMessage collectionMessage = 5;
+        NativeFlowMessage nativeFlowMessage = 6;
     }
 }
 
@@ -1387,7 +1405,7 @@ message ReactionMessage {
     optional MessageKey key = 1;
     optional string text = 2;
     optional string groupingKey = 3;
-    optional int64 timestamp = 4;
+    optional int64 senderTimestampMs = 4;
 }
 
 message Message {
@@ -1445,6 +1463,7 @@ message DisappearingMode {
     optional DisappearingModeInitiator initiator = 1;
 }
 
+// Renamed from MediaData due to conflict
 message PBMediaData {
     optional bytes mediaKey = 1;
     optional int64 mediaKeyTimestamp = 2;
@@ -1508,6 +1527,11 @@ message QuickReplyButton {
 message URLButton {
     optional HighlyStructuredMessage displayText = 1;
     optional HighlyStructuredMessage url = 2;
+}
+
+message CallButton {
+    optional HighlyStructuredMessage displayText = 1;
+    optional HighlyStructuredMessage phoneNumber = 2;
 }
 
 //message AppVersion {
@@ -1581,7 +1605,7 @@ message Reaction {
     optional MessageKey key = 1;
     optional string text = 2;
     optional string groupingKey = 3;
-    optional int64 timestamp = 4;
+    optional int64 senderTimestampMs = 4;
     optional bool revoked = 5;
 }
 
@@ -1891,6 +1915,7 @@ message WebMessageInfo {
         BIZ_PRIVACY_MODE_TO_FB = 128;
         BIZ_PRIVACY_MODE_TO_BSP = 129;
         DISAPPEARING_MODE = 130;
+        E2E_DEVICE_FETCH_FAILED = 131;
     }
     optional WebMessageInfoStubType messageStubType = 24;
     optional bool clearMedia = 25;
@@ -1918,5 +1943,6 @@ message WebMessageInfo {
     repeated Reaction reactions = 41;
     optional MediaData quotedStickerData = 42;
     optional bytes futureproofData = 43;
+    optional string statusPsaCampaignId = 44;
 }
 

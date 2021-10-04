@@ -3,7 +3,7 @@ package binary
 import (
 	"fmt"
 	pb "github.com/Rhymen/go-whatsapp/binary/proto"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type Node struct {
