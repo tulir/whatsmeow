@@ -152,6 +152,15 @@ func NewConn(opt *Options) *Conn {
 	return wac
 }
 
+const (
+	// WebSocketOrigin is the Origin header for all WhatsApp websocket connections
+	WebSocketOrigin = "https://web.whatsapp.com"
+	// WebSocketURL is the websocket URL for the new multidevice protocol
+	WebSocketURL = "wss://web.whatsapp.com/ws/chat"
+	// WebSocketLegacyURL is the websocket URL for the legacy phone link protocol
+	WebSocketLegacyURL = "wss://web.whatsapp.com/ws"
+)
+
 func (wac *Conn) connect() (err error) {
 	if wac.connected {
 		return ErrAlreadyConnected
@@ -170,9 +179,9 @@ func (wac *Conn) connect() (err error) {
 		Proxy:            wac.Proxy,
 	}
 
-	headers := http.Header{"Origin": []string{"https://web.whatsapp.com"}}
-	wac.log.Debugln("Dialing wss://web.whatsapp.com/ws")
-	wsConn, _, err := dialer.Dial("wss://web.whatsapp.com/ws", headers)
+	headers := http.Header{"Origin": []string{WebSocketOrigin}}
+	wac.log.Debugln("Dialing " + WebSocketLegacyURL)
+	wsConn, _, err := dialer.Dial(WebSocketLegacyURL, headers)
 	if err != nil {
 		return fmt.Errorf("couldn't dial whatsapp web websocket: %w", err)
 	}
