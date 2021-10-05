@@ -2,9 +2,10 @@ package binary
 
 import (
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/binary/proto"
 	"reflect"
 	"testing"
+
+	"github.com/Rhymen/go-whatsapp/binary/proto"
 )
 
 func TestMarshal(t *testing.T) {
@@ -34,21 +35,21 @@ func TestMarshal(t *testing.T) {
 
 	node := &Node{
 		Description: "action",
-		Attributes:  make(map[string]string),
+		LegacyAttributes:  make(map[string]string),
 	}
-	node.Attributes["add"] = "before"
-	node.Attributes["last"] = "true"
+	node.LegacyAttributes["add"] = "before"
+	node.LegacyAttributes["last"] = "true"
 	content := make([]interface{}, 1)
 	content[0] = msg
 	node.Content = content
 
-	b, err := Marshal(*node)
+	b, err := Marshal(*node, false)
 	if err != nil {
 		t.Errorf("%v", err)
 		t.Fail()
 	}
 
-	ret, err := Unmarshal(b)
+	ret, err := Unmarshal(b, false)
 	if err != nil {
 		t.Errorf("%v", err)
 		t.Fail()

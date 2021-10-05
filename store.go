@@ -96,7 +96,7 @@ func (wac *Conn) updateContacts(contacts interface{}) {
 			continue
 		}
 
-		parsedContact := parseContact(contactNode.Attributes)
+		parsedContact := parseContact(contactNode.LegacyAttributes)
 		wac.Store.Contacts[parsedContact.JID] = parsedContact
 	}
 	wac.Store.ContactsLock.Unlock()
@@ -114,7 +114,7 @@ func (wac *Conn) updateChats(chats interface{}) {
 		if !ok {
 			continue
 		}
-		parsedChat := parseChat(chatNode.Attributes)
+		parsedChat := parseChat(chatNode.LegacyAttributes)
 		wac.Store.Chats[parsedChat.JID] = parsedChat
 	}
 	wac.Store.ChatsLock.Unlock()

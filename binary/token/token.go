@@ -2,80 +2,88 @@ package token
 
 import "fmt"
 
-var SingleByteTokens = [...]string{"", "", "", "200", "400", "404", "500", "501", "502", "action", "add",
-	"after", "archive", "author", "available", "battery", "before", "body",
-	"broadcast", "chat", "clear", "code", "composing", "contacts", "count",
-	"create", "debug", "delete", "demote", "duplicate", "encoding", "error",
-	"false", "filehash", "from", "g.us", "group", "groups_v2", "height", "id",
-	"image", "in", "index", "invis", "item", "jid", "kind", "last", "leave",
-	"live", "log", "media", "message", "mimetype", "missing", "modify", "name",
-	"notification", "notify", "out", "owner", "participant", "paused",
-	"picture", "played", "presence", "preview", "promote", "query", "raw",
-	"read", "receipt", "received", "recipient", "recording", "relay",
-	"remove", "response", "resume", "retry", "s.whatsapp.net", "seconds",
-	"set", "size", "status", "subject", "subscribe", "t", "text", "to", "true",
-	"type", "unarchive", "unavailable", "url", "user", "value", "web", "width",
-	"mute", "read_only", "admin", "creator", "short", "update", "powersave",
-	"checksum", "epoch", "block", "previous", "409", "replaced", "reason",
-	"spam", "modify_tag", "message_info", "delivery", "emoji", "title",
-	"description", "canonical-url", "matched-text", "star", "unstar",
-	"media_key", "filename", "identity", "unread", "page", "page_count",
-	"search", "media_message", "security", "call_log", "profile", "ciphertext",
-	"invite", "gif", "vcard", "frequent", "privacy", "blacklist", "whitelist",
-	"verify", "location", "document", "elapsed", "revoke_invite", "expiration",
-	"unsubscribe", "disable", "vname", "old_jid", "new_jid", "announcement",
-	"locked", "prop", "label", "color", "call", "offer", "call-id",
-	"quick_reply", "sticker", "pay_t", "accept", "reject", "sticker_pack",
-	"invalid", "canceled", "missed", "connected", "result", "audio",
-	"video", "recent"}
-
-var doubleByteTokens = [...]string{}
-
-func GetSingleToken(i int) (string, error) {
-	if i < 3 || i >= len(SingleByteTokens) {
+func getSingleTokenMD(i int) (string, error) {
+	if i < 3 || i >= len(mdSingleByteTokens) {
 		return "", fmt.Errorf("index out of single byte token bounds %d", i)
 	}
 
-	return SingleByteTokens[i], nil
+	return mdSingleByteTokens[i], nil
 }
-
-func GetDoubleToken(index1 int, index2 int) (string, error) {
-	n := 256*index1 + index2
-	if n < 0 || n >= len(doubleByteTokens) {
-		return "", fmt.Errorf("index out of double byte token bounds %d", n)
+func getSingleTokenWeb(i int) (string, error) {
+	if i < 3 || i >= len(webSingleByteTokens) {
+		return "", fmt.Errorf("index out of single byte token bounds %d", i)
 	}
 
-	return doubleByteTokens[n], nil
+	return webSingleByteTokens[i], nil
 }
 
-func IndexOfSingleToken(token string) int {
-	for i, t := range SingleByteTokens {
-		if t == token {
-			return i
-		}
+func GetSingleToken(i int, md bool) (string, error) {
+	if md {
+		return getSingleTokenMD(i)
+	} else {
+		return getSingleTokenWeb(i)
+	}
+}
+
+func getDoubleTokenMD(index1, index2 int) (string, error) {
+	if index1 < 0 || index1 >= len(mdDoubleByteTokens) {
+		return "", fmt.Errorf("index out of double byte token bounds %d", index1)
+	} else if index2 < 0 || index2 >= len(mdDoubleByteTokens[index1]) {
+		return "", fmt.Errorf("index out of double byte token index %d bounds %d", index1, index2)
 	}
 
-	return -1
+	return mdDoubleByteTokens[index1][index2], nil
+}
+
+func GetDoubleToken(index1, index2 int, md bool) (string, error) {
+	if md {
+		return getDoubleTokenMD(index1, index2)
+	} else {
+		return "", fmt.Errorf("web doesn't have double byte tokens")
+	}
+}
+
+func SingleTokenCount(md bool) int {
+	if md {
+		return len(mdSingleByteTokens)
+	} else {
+		return len(webSingleByteTokens)
+	}
+}
+
+func IndexOfSingleToken(token string, md bool) (val byte, ok bool) {
+	if md {
+		val, ok = mdSingleByteTokenIndex[token]
+	} else {
+		val, ok = webSingleByteTokenIndex[token]
+	}
+	return
+}
+
+func IndexOfDoubleByteToken(token string) (byte, byte, bool) {
+	val, ok := mdDoubleByteTokenIndex[token]
+	return val.dictionary, val.index, ok
 }
 
 const (
-	LIST_EMPTY   = 0
-	STREAM_END   = 2
-	DICTIONARY_0 = 236
-	DICTIONARY_1 = 237
-	DICTIONARY_2 = 238
-	DICTIONARY_3 = 239
-	LIST_8       = 248
-	LIST_16      = 249
-	JID_PAIR     = 250
-	HEX_8        = 251
-	BINARY_8     = 252
-	BINARY_20    = 253
-	BINARY_32    = 254
-	NIBBLE_8     = 255
+	ListEmpty   = 0
+	StreamEnd   = 2
+	Dictionary0 = 236
+	Dictionary1 = 237
+	Dictionary2 = 238
+	Dictionary3 = 239
+	ADJID       = 247
+	List8       = 248
+	List16      = 249
+	JIDPair     = 250
+	Hex8        = 251
+	Binary8     = 252
+	Binary20    = 253
+	Binary32    = 254
+	Nibble8     = 255
 )
 
 const (
-	PACKED_MAX      = 254
-	SINGLE_BYTE_MAX = 256
+	PackedMax     = 254
+	SingleByteMax = 256
 )

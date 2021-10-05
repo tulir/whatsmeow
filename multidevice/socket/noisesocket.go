@@ -14,7 +14,7 @@ import (
 
 type NoiseSocket struct {
 	fs           *FrameSocket
-	OnFrame    func([]byte)
+	OnFrame      func([]byte)
 	writeKey     cipher.AEAD
 	readKey      cipher.AEAD
 	writeCounter uint32

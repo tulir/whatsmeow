@@ -2,17 +2,50 @@ package binary
 
 import (
 	"fmt"
-	pb "github.com/Rhymen/go-whatsapp/binary/proto"
+	"strings"
+
 	"google.golang.org/protobuf/proto"
+
+	pb "github.com/Rhymen/go-whatsapp/binary/proto"
 )
 
 type Node struct {
 	Description string
-	Attributes  map[string]string
+	Attributes  map[string]interface{}
 	Content     interface{}
+
+	LegacyAttributes map[string]string
 }
 
-func Marshal(n Node) ([]byte, error) {
+func (n *Node) convertLegacyAttributes() {
+	n.Attributes = make(map[string]interface{}, len(n.LegacyAttributes))
+	for key, attr := range n.LegacyAttributes {
+		atIndex := strings.Index(attr, "@")
+		if atIndex < 1 {
+			n.Attributes[key] = attr
+		} else {
+			n.Attributes[key] = NewJID(attr[:atIndex], attr[atIndex+1:])
+		}
+	}
+	n.LegacyAttributes = nil
+}
+
+func (n *Node) addLegacyAttributes() {
+	n.LegacyAttributes = make(map[string]string, len(n.Attributes))
+	for key, rawAttr := range n.Attributes {
+		switch attr := rawAttr.(type) {
+		case string:
+			n.LegacyAttributes[key] = attr
+		case *FullJID:
+			n.LegacyAttributes[key] = attr.String()
+		}
+	}
+}
+
+func Marshal(n Node, md bool) ([]byte, error) {
+	if n.LegacyAttributes != nil {
+		n.convertLegacyAttributes()
+	}
 	if n.Attributes != nil && n.Content != nil {
 		a, err := marshalMessageArray(n.Content.([]interface{}))
 		if err != nil {
@@ -21,11 +54,8 @@ func Marshal(n Node) ([]byte, error) {
 		n.Content = a
 	}
 
-	w := NewEncoder()
-	if err := w.WriteNode(n); err != nil {
-		return nil, err
-	}
-
+	w := NewEncoder(md)
+	w.WriteNode(n)
 	return w.GetData(), nil
 }
 
@@ -38,7 +68,7 @@ func marshalMessageArray(messages []interface{}) ([]Node, error) {
 			if err != nil {
 				return nil, nil
 			}
-			ret[i] = Node{"message", nil, b}
+			ret[i] = Node{"message", nil, b, nil}
 		} else {
 			ret[i], ok = m.(Node)
 			if !ok {
@@ -58,14 +88,17 @@ func marshalWebMessageInfo(p *pb.WebMessageInfo) ([]byte, error) {
 	return b, nil
 }
 
-func Unmarshal(data []byte) (*Node, error) {
-	r := NewDecoder(data)
+func Unmarshal(data []byte, md bool) (*Node, error) {
+	r := NewDecoder(data, md)
 	n, err := r.ReadNode()
 	if err != nil {
 		return nil, err
 	}
 
-	if n != nil && n.Attributes != nil && n.Content != nil {
+	if !md {
+		n.addLegacyAttributes()
+	}
+	if !md && n != nil && n.Attributes != nil && n.Content != nil {
 		nContent, ok := n.Content.([]Node)
 		if ok {
 			n.Content, err = unmarshalMessageArray(nContent)

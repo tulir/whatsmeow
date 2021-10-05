@@ -148,7 +148,7 @@ func (wac *Conn) writeBinaryRetry(node binary.Node, metric metric, flag flag, me
 }
 
 func (wac *Conn) encryptBinaryMessage(node binary.Node) (data []byte, err error) {
-	b, err := binary.Marshal(node)
+	b, err := binary.Marshal(node, false)
 	if err != nil {
 		return nil, fmt.Errorf("binary node marshal failed: %w", err)
 	}

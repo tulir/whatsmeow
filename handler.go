@@ -83,7 +83,7 @@ func (wac *Conn) handleContacts(contacts interface{}) {
 			continue
 		}
 
-		contactList = append(contactList, parseContact(contactNode.Attributes))
+		contactList = append(contactList, parseContact(contactNode.LegacyAttributes))
 	}
 	wac.unsafeHandle(contactList)
 }
@@ -101,7 +101,7 @@ func (wac *Conn) handleChats(chats interface{}) {
 			continue
 		}
 
-		parsedChat := parseChat(chatNode.Attributes)
+		parsedChat := parseChat(chatNode.LegacyAttributes)
 		wac.Store.Chats[parsedChat.JID] = parsedChat
 	}
 	wac.Store.ChatsLock.Unlock()
@@ -134,10 +134,10 @@ func (wac *Conn) dispatch(tag string, msg interface{}) {
 			} else {
 				wac.handle(message)
 			}
-		} else if message.Description == "response" && message.Attributes["type"] == "contacts" {
+		} else if message.Description == "response" && message.LegacyAttributes["type"] == "contacts" {
 			wac.updateContacts(message.Content)
 			wac.handleContacts(message.Content)
-		} else if message.Description == "response" && message.Attributes["type"] == "chat" {
+		} else if message.Description == "response" && message.LegacyAttributes["type"] == "chat" {
 			wac.updateChats(message.Content)
 			wac.handleChats(message.Content)
 		} else {

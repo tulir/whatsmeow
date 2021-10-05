@@ -223,7 +223,7 @@ func (wac *Conn) decryptBinaryMessage(msg []byte) (*binary.Node, error) {
 	}
 
 	// message unmarshal
-	message, err := binary.Unmarshal(d)
+	message, err := binary.Unmarshal(d, false)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode binary: %w", err)
 	}

@@ -12,14 +12,14 @@ func (wac *Conn) UploadProfilePic(ownJID JID, image, preview []byte) (<-chan str
 	tag := fmt.Sprintf("%d.--%d", time.Now().Unix(), wac.msgCount*19)
 	n := binary.Node{
 		Description: "action",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
 		Content: []interface{}{
 			binary.Node{
 				Description: "picture",
-				Attributes: map[string]string{
+				LegacyAttributes: map[string]string{
 					"id":   tag,
 					"jid":  ownJID,
 					"type": "set",
@@ -27,12 +27,12 @@ func (wac *Conn) UploadProfilePic(ownJID JID, image, preview []byte) (<-chan str
 				Content: []binary.Node{
 					{
 						Description: "image",
-						Attributes:  nil,
+						LegacyAttributes:  nil,
 						Content:     image,
 					},
 					{
 						Description: "preview",
-						Attributes:  nil,
+						LegacyAttributes:  nil,
 						Content:     preview,
 					},
 				},

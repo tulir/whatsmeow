@@ -99,7 +99,7 @@ func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) 
 
 	content := binary.Node{
 		Description: "presence",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"type": string(presence),
 		},
 	}
@@ -109,12 +109,12 @@ func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) 
 	case PresenceRecording:
 		fallthrough
 	case PresencePaused:
-		content.Attributes["to"] = jid
+		content.LegacyAttributes["to"] = jid
 	}
 
 	n := binary.Node{
 		Description: "action",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
@@ -135,7 +135,7 @@ func (wac *Conn) Emoji() (*binary.Node, error) {
 
 func (wac *Conn) Contacts() (*binary.Node, error) {
 	node, err := wac.query("contacts", "", "", "", "", "", 0, 0)
-	if node != nil && node.Description == "response" && node.Attributes["type"] == "contacts" {
+	if node != nil && node.Description == "response" && node.LegacyAttributes["type"] == "contacts" {
 		wac.updateContacts(node.Content)
 	}
 	return node, err
@@ -143,7 +143,7 @@ func (wac *Conn) Contacts() (*binary.Node, error) {
 
 func (wac *Conn) Chats() (*binary.Node, error) {
 	node, err := wac.query("chat", "", "", "", "", "", 0, 0)
-	if node != nil && node.Description == "response" && node.Attributes["type"] == "chat" {
+	if node != nil && node.Description == "response" && node.LegacyAttributes["type"] == "chat" {
 		wac.updateChats(node.Content)
 	}
 	return node, err
@@ -155,13 +155,13 @@ func (wac *Conn) Read(jid JID, id MessageID) (<-chan string, error) {
 
 	n := binary.Node{
 		Description: "action",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
 		Content: []interface{}{binary.Node{
 			Description: "read",
-			Attributes: map[string]string{
+			LegacyAttributes: map[string]string{
 				"count": "1",
 				"index": id,
 				"jid":   jid,
@@ -179,38 +179,38 @@ func (wac *Conn) query(t string, jid JID, messageId MessageID, kind, owner, sear
 
 	n := binary.Node{
 		Description: "query",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"type":  t,
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
 	}
 
 	if jid != "" {
-		n.Attributes["jid"] = jid
+		n.LegacyAttributes["jid"] = jid
 	}
 
 	if messageId != "" {
-		n.Attributes["index"] = messageId
+		n.LegacyAttributes["index"] = messageId
 	}
 
 	if kind != "" {
-		n.Attributes["kind"] = kind
+		n.LegacyAttributes["kind"] = kind
 	}
 
 	if owner != "" {
-		n.Attributes["owner"] = owner
+		n.LegacyAttributes["owner"] = owner
 	}
 
 	if search != "" {
-		n.Attributes["search"] = search
+		n.LegacyAttributes["search"] = search
 	}
 
 	if count != 0 {
-		n.Attributes["count"] = strconv.Itoa(count)
+		n.LegacyAttributes["count"] = strconv.Itoa(count)
 	}
 
 	if page != 0 {
-		n.Attributes["page"] = strconv.Itoa(page)
+		n.LegacyAttributes["page"] = strconv.Itoa(page)
 	}
 
 	metric := group
@@ -248,7 +248,7 @@ func (wac *Conn) setGroup(t string, jid JID, subject string, participants []stri
 
 	g := binary.Node{
 		Description: "group",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"author": wac.session.Wid,
 			"id":     tag,
 			"type":   t,
@@ -257,16 +257,16 @@ func (wac *Conn) setGroup(t string, jid JID, subject string, participants []stri
 	}
 
 	if jid != "" {
-		g.Attributes["jid"] = jid
+		g.LegacyAttributes["jid"] = jid
 	}
 
 	if subject != "" {
-		g.Attributes["subject"] = subject
+		g.LegacyAttributes["subject"] = subject
 	}
 
 	n := binary.Node{
 		Description: "action",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
@@ -286,7 +286,7 @@ func buildParticipantNodes(participants []JID) []binary.Node {
 	for i, participant := range participants {
 		p[i] = binary.Node{
 			Description: "participant",
-			Attributes: map[string]string{
+			LegacyAttributes: map[string]string{
 				"jid": participant,
 			},
 		}
@@ -311,20 +311,20 @@ func (wac *Conn) handleBlockContact(action string, jid JID) (<-chan string, erro
 
 	n := binary.Node{
 		Description: "action",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
 		Content: []interface{}{
 			binary.Node{
 				Description: "block",
-				Attributes: map[string]string{
+				LegacyAttributes: map[string]string{
 					"type": action,
 				},
 				Content: []binary.Node{
 					{
 						Description: "user",
-						Attributes: map[string]string{
+						LegacyAttributes: map[string]string{
 							"jid": cusjid,
 						},
 						Content: nil,

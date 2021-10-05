@@ -126,7 +126,7 @@ Loop:
 func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, ResendFunc, error) {
 	n := binary.Node{
 		Description: "action",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"type":  "relay",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
@@ -203,14 +203,14 @@ func (wac *Conn) deleteChatProto(chatJID JID, msgID MessageID, fromMe bool) (<-c
 	}
 	n := binary.Node{
 		Description: "action",
-		Attributes: map[string]string{
+		LegacyAttributes: map[string]string{
 			"epoch": strconv.Itoa(wac.msgCount),
 			"type":  "set",
 		},
 		Content: []interface{}{
 			binary.Node{
 				Description: "chat",
-				Attributes: map[string]string{
+				LegacyAttributes: map[string]string{
 					"type":  "clear",
 					"jid":   chatJID,
 					"media": "true",
@@ -218,7 +218,7 @@ func (wac *Conn) deleteChatProto(chatJID JID, msgID MessageID, fromMe bool) (<-c
 				Content: []binary.Node{
 					{
 						Description: "item",
-						Attributes: map[string]string{
+						LegacyAttributes: map[string]string{
 							"owner": owner,
 							"index": msgID,
 						},
@@ -1012,13 +1012,13 @@ func getReceivedMessage(msg map[string]string) ReceivedMessage {
 func ParseNodeMessage(msg binary.Node) interface{} {
 	switch msg.Description {
 	case "battery":
-		return getBatteryMessage(msg.Attributes)
+		return getBatteryMessage(msg.LegacyAttributes)
 	case "user":
-		return parseContact(msg.Attributes)
+		return parseContact(msg.LegacyAttributes)
 	case "read":
-		return getReadMessage(msg.Attributes)
+		return getReadMessage(msg.LegacyAttributes)
 	case "received":
-		return getReceivedMessage(msg.Attributes)
+		return getReceivedMessage(msg.LegacyAttributes)
 	case "chat":
 		return getChatChange(msg)
 	default:
@@ -1042,8 +1042,8 @@ type MuteMessage struct {
 }
 
 func getChatChange(msg binary.Node) interface{} {
-	jid := strings.Replace(msg.Attributes["jid"], OldUserSuffix, NewUserSuffix, 1)
-	changeType := msg.Attributes["type"]
+	jid := strings.Replace(msg.LegacyAttributes["jid"], OldUserSuffix, NewUserSuffix, 1)
+	changeType := msg.LegacyAttributes["type"]
 	switch changeType {
 	case "archive", "unarchive":
 		return ArchiveMessage{
@@ -1052,7 +1052,7 @@ func getChatChange(msg binary.Node) interface{} {
 		}
 	case "mute":
 		var mutedUntil int64
-		if mutedUntilStr, ok := msg.Attributes["mute"]; ok {
+		if mutedUntilStr, ok := msg.LegacyAttributes["mute"]; ok {
 			mutedUntil, _ = strconv.ParseInt(mutedUntilStr, 10, 64)
 		}
 		return MuteMessage{
@@ -1060,7 +1060,7 @@ func getChatChange(msg binary.Node) interface{} {
 			MutedUntil: mutedUntil,
 		}
 	case "pin":
-		_, isPinned := msg.Attributes["pin"]
+		_, isPinned := msg.LegacyAttributes["pin"]
 		return PinMessage{
 			JID:      jid,
 			IsPinned: isPinned,

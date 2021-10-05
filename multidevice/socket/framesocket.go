@@ -41,7 +41,7 @@ type FrameSocket struct {
 	OnFrame      func([]byte)
 	WriteTimeout time.Duration
 
-	header []byte
+	Header []byte
 
 	incomingLength int
 	receivedLength int
@@ -53,7 +53,7 @@ func NewFrameSocket(log log.Logger, header []byte) *FrameSocket {
 	return &FrameSocket{
 		conn:   nil,
 		log:    log,
-		header: header,
+		Header: header,
 	}
 }
 
@@ -102,15 +102,15 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 		return fmt.Errorf("%w (got %d bytes, max %d bytes)", ErrFrameTooLarge, len(data), FrameMaxSize)
 	}
 
-	headerLength := len(fs.header)
+	headerLength := len(fs.Header)
 	// Whole frame is header + 3 bytes for length + data
 	wholeFrame := make([]byte, headerLength+FrameLengthSize+dataLength)
 
 	// Copy the header if it's there
-	if fs.header != nil {
-		copy(wholeFrame[:headerLength], fs.header)
+	if fs.Header != nil {
+		copy(wholeFrame[:headerLength], fs.Header)
 		// We only want to send the header once
-		fs.header = nil
+		fs.Header = nil
 	}
 
 	// Encode length of frame
@@ -157,7 +157,11 @@ func (fs *FrameSocket) frameComplete() {
 	fs.partialHeader = nil
 	fs.incomingLength = 0
 	fs.receivedLength = 0
-	fs.OnFrame(data)
+	if fs.OnFrame == nil {
+		fs.log.Warnln("No handler defined, dropping frame")
+	} else {
+		fs.OnFrame(data)
+	}
 }
 
 func (fs *FrameSocket) processData(msg []byte) {

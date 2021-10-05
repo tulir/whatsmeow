@@ -2,18 +2,20 @@ package binary
 
 import (
 	"fmt"
-	"github.com/Rhymen/go-whatsapp/binary/token"
 	"io"
-	"strconv"
+	"strings"
+
+	"github.com/Rhymen/go-whatsapp/binary/token"
 )
 
 type binaryDecoder struct {
 	data  []byte
 	index int
+	md    bool
 }
 
-func NewDecoder(data []byte) *binaryDecoder {
-	return &binaryDecoder{data, 0}
+func NewDecoder(data []byte, md bool) *binaryDecoder {
+	return &binaryDecoder{data, 0, md}
 }
 
 func (r *binaryDecoder) checkEOS(length int) error {
@@ -88,7 +90,7 @@ func (r *binaryDecoder) readPacked8(tag int) (string, error) {
 		return "", err
 	}
 
-	ret := ""
+	var build strings.Builder
 
 	for i := 0; i < int(startByte&127); i++ {
 		currByte, err := r.readByte()
@@ -106,173 +108,186 @@ func (r *binaryDecoder) readPacked8(tag int) (string, error) {
 			return "", err
 		}
 
-		ret += lower + upper
+		build.WriteByte(lower)
+		build.WriteByte(upper)
 	}
 
+	ret := build.String()
 	if startByte>>7 != 0 {
 		ret = ret[:len(ret)-1]
 	}
 	return ret, nil
 }
 
-func unpackByte(tag int, value byte) (string, error) {
+func unpackByte(tag int, value byte) (byte, error) {
 	switch tag {
-	case token.NIBBLE_8:
+	case token.Nibble8:
 		return unpackNibble(value)
-	case token.HEX_8:
+	case token.Hex8:
 		return unpackHex(value)
 	default:
-		return "", fmt.Errorf("unpackByte with unknown tag %d", tag)
+		return 0, fmt.Errorf("unpackByte with unknown tag %d", tag)
 	}
 }
 
-func unpackNibble(value byte) (string, error) {
+func unpackNibble(value byte) (byte, error) {
 	switch {
 	case value < 0 || value > 15:
-		return "", fmt.Errorf("unpackNibble with value %d", value)
+		return 0, fmt.Errorf("unpackNibble with value %d", value)
 	case value == 10:
-		return "-", nil
+		return '-', nil
 	case value == 11:
-		return ".", nil
+		return '.', nil
 	case value == 15:
-		return "\x00", nil
+		return '\x00', nil
 	default:
-		return strconv.Itoa(int(value)), nil
+		return '0' + value, nil
 	}
 }
 
-func unpackHex(value byte) (string, error) {
+func unpackHex(value byte) (byte, error) {
 	switch {
 	case value < 0 || value > 15:
-		return "", fmt.Errorf("unpackHex with value %d", value)
+		return 0, fmt.Errorf("unpackHex with value %d", value)
 	case value < 10:
-		return strconv.Itoa(int(value)), nil
+		return '0' + value, nil
+	case value == 15:
+		return '\x00', nil
 	default:
-		return string('A' + value - 10), nil
+		return 'A' + value - 10, nil
 	}
 }
 
 func (r *binaryDecoder) readListSize(tag int) (int, error) {
 	switch tag {
-	case token.LIST_EMPTY:
+	case token.ListEmpty:
 		return 0, nil
-	case token.LIST_8:
+	case token.List8:
 		return r.readInt8(false)
-	case token.LIST_16:
+	case token.List16:
 		return r.readInt16(false)
 	default:
 		return 0, fmt.Errorf("readListSize with unknown tag %d at position %d", tag, r.index)
 	}
 }
 
-func (r *binaryDecoder) readString(tag int) (string, error) {
-	switch {
-	case tag >= 3 && tag <= len(token.SingleByteTokens):
-		tok, err := token.GetSingleToken(tag)
+func (r *binaryDecoder) read(string bool) (interface{}, error) {
+	tagByte, err := r.readByte()
+	if err != nil {
+		return nil, err
+	}
+	tag := int(tagByte)
+	switch tag {
+	case token.ListEmpty:
+		return nil, nil
+	case token.StreamEnd:
+		return nil, ErrStreamEnd
+	case token.List8, token.List16:
+		return r.readList(tag)
+	case token.Binary8:
+		size, err := r.readInt8(false)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 
-		if tok == "s.whatsapp.net" {
-			tok = "c.us"
+		return r.readBytesOrString(size, string)
+	case token.Binary20:
+		size, err := r.readInt20()
+		if err != nil {
+			return nil, err
 		}
 
-		return tok, nil
-	case tag == token.DICTIONARY_0 || tag == token.DICTIONARY_1 || tag == token.DICTIONARY_2 || tag == token.DICTIONARY_3:
+		return r.readBytesOrString(size, string)
+	case token.Binary32:
+		size, err := r.readInt32(false)
+		if err != nil {
+			return nil, err
+		}
+
+		return r.readBytesOrString(size, string)
+	case token.Dictionary0, token.Dictionary1, token.Dictionary2, token.Dictionary3:
 		i, err := r.readInt8(false)
 		if err != nil {
 			return "", err
 		}
 
-		return token.GetDoubleToken(tag-token.DICTIONARY_0, i)
-	case tag == token.LIST_EMPTY:
-		return "", nil
-	case tag == token.BINARY_8:
-		length, err := r.readInt8(false)
-		if err != nil {
-			return "", err
-		}
-
-		return r.readStringFromChars(length)
-	case tag == token.BINARY_20:
-		length, err := r.readInt20()
-		if err != nil {
-			return "", err
-		}
-
-		return r.readStringFromChars(length)
-	case tag == token.BINARY_32:
-		length, err := r.readInt32(false)
-		if err != nil {
-			return "", err
-		}
-
-		return r.readStringFromChars(length)
-	case tag == token.JID_PAIR:
-		b, err := r.readByte()
-		if err != nil {
-			return "", err
-		}
-		i, err := r.readString(int(b))
-		if err != nil {
-			return "", err
-		}
-
-		b, err = r.readByte()
-		if err != nil {
-			return "", err
-		}
-		j, err := r.readString(int(b))
-		if err != nil {
-			return "", err
-		}
-
-		if i == "" || j == "" {
-			return "", fmt.Errorf("invalid jid pair: %s - %s", i, j)
-		}
-
-		return i + "@" + j, nil
-	case tag == token.NIBBLE_8 || tag == token.HEX_8:
+		return token.GetDoubleToken(tag-token.Dictionary0, i, r.md)
+	case token.JIDPair:
+		return r.readJIDPair()
+	case token.ADJID:
+		return r.readADJID()
+	case token.Nibble8, token.Hex8:
 		return r.readPacked8(tag)
 	default:
-		return "", fmt.Errorf("invalid string with tag %d", tag)
+		if tag >= 3 && tag <= token.SingleTokenCount(r.md) {
+			tok, err := token.GetSingleToken(tag, r.md)
+			if err != nil {
+				return "", err
+			}
+
+			if !r.md && tok == "s.whatsapp.net" {
+				tok = "c.us"
+			}
+
+			return tok, nil
+		}
+		return "", fmt.Errorf("%w %d at position %d", ErrInvalidToken, tag, r.index)
 	}
 }
 
-func (r *binaryDecoder) readStringFromChars(length int) (string, error) {
-	if err := r.checkEOS(length); err != nil {
-		return "", err
+func (r *binaryDecoder) readJIDPair() (*FullJID, error) {
+	user, err := r.read(true)
+	if err != nil {
+		return nil, err
+	}
+	server, err := r.read(true)
+	if err != nil {
+		return nil, err
+	} else if server == nil || (user == nil && !r.md) {
+		return nil, ErrInvalidJIDType
 	}
 
-	ret := r.data[r.index : r.index+length]
-	r.index += length
-
-	return string(ret), nil
+	if user == nil {
+		return NewJID("", server.(string)), nil
+	} else {
+		return NewJID(user.(string), server.(string)), nil
+	}
 }
 
-func (r *binaryDecoder) readAttributes(n int) (map[string]string, error) {
+func (r *binaryDecoder) readADJID() (*FullJID, error) {
+	agent, err := r.readByte()
+	if err != nil {
+		return nil, err
+	}
+	device, err := r.readByte()
+	if err != nil {
+		return nil, err
+	}
+	user, err := r.read(true)
+	if err != nil {
+		return nil, err
+	}
+	return NewADJID(user.(string), agent, device), nil
+}
+
+func (r *binaryDecoder) readAttributes(n int) (map[string]interface{}, error) {
 	if n == 0 {
 		return nil, nil
 	}
 
-	ret := make(map[string]string)
+	ret := make(map[string]interface{})
 	for i := 0; i < n; i++ {
-		idx, err := r.readInt8(false)
+		keyIfc, err := r.read(true)
 		if err != nil {
 			return nil, err
 		}
 
-		index, err := r.readString(idx)
-		if err != nil {
-			return nil, err
+		key, ok := keyIfc.(string)
+		if !ok {
+			return nil, fmt.Errorf("%[1]w at position %[3]d (%[2]T): %+[2]v", ErrNonStringKey, key, r.index)
 		}
 
-		idx, err = r.readInt8(false)
-		if err != nil {
-			return nil, err
-		}
-
-		ret[index], err = r.readString(idx)
+		ret[key], err = r.read(true)
 		if err != nil {
 			return nil, err
 		}
@@ -313,16 +328,13 @@ func (r *binaryDecoder) ReadNode() (*Node, error) {
 		return nil, err
 	}
 
-	descrTag, err := r.readInt8(false)
-	if descrTag == token.STREAM_END {
-		return nil, fmt.Errorf("unexpected stream end")
-	}
-	ret.Description, err = r.readString(descrTag)
+	rawDesc, err := r.read(true)
 	if err != nil {
 		return nil, err
 	}
+	ret.Description = rawDesc.(string)
 	if listSize == 0 || ret.Description == "" {
-		return nil, fmt.Errorf("invalid Node")
+		return nil, ErrInvalidNode
 	}
 
 	ret.Attributes, err = r.readAttributes((listSize - 1) >> 1)
@@ -334,55 +346,33 @@ func (r *binaryDecoder) ReadNode() (*Node, error) {
 		return ret, nil
 	}
 
-	tag, err := r.readInt8(false)
-	if err != nil {
-		return nil, err
-	}
-
-	switch tag {
-	case token.LIST_EMPTY, token.LIST_8, token.LIST_16:
-		ret.Content, err = r.readList(tag)
-	case token.BINARY_8:
-		size, err = r.readInt8(false)
-		if err != nil {
-			return nil, err
-		}
-
-		ret.Content, err = r.readBytes(size)
-	case token.BINARY_20:
-		size, err = r.readInt20()
-		if err != nil {
-			return nil, err
-		}
-
-		ret.Content, err = r.readBytes(size)
-	case token.BINARY_32:
-		size, err = r.readInt32(false)
-		if err != nil {
-			return nil, err
-		}
-
-		ret.Content, err = r.readBytes(size)
-	default:
-		ret.Content, err = r.readString(tag)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	return ret, nil
+	ret.Content, err = r.read(false)
+	return ret, err
 }
 
-func (r *binaryDecoder) readBytes(n int) ([]byte, error) {
-	ret := make([]byte, n)
-	var err error
-
-	for i := range ret {
-		ret[i], err = r.readByte()
-		if err != nil {
-			return nil, err
-		}
+func (r *binaryDecoder) readStringDirect(length int) (string, error) {
+	data, err := r.readRaw(length)
+	if err != nil {
+		return "", err
 	}
+	return string(data), nil
+}
+
+func (r *binaryDecoder) readBytesOrString(length int, string bool) (interface{}, error) {
+	if string {
+		return r.readStringDirect(length)
+	} else {
+		return r.readRaw(length)
+	}
+}
+
+func (r *binaryDecoder) readRaw(length int) ([]byte, error) {
+	if err := r.checkEOS(length); err != nil {
+		return nil, err
+	}
+
+	ret := r.data[r.index : r.index+length]
+	r.index += length
 
 	return ret, nil
 }
