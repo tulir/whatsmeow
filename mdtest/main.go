@@ -215,13 +215,13 @@ func (sess *Session) getClientPayload() *waProto.ClientPayload {
 	}
 }
 
-func (cli *Client) doHandshake(fs *socket.FrameSocket, ikp KeyPair) (*socket.NoiseSocket, error) {
+func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) (*socket.NoiseSocket, error) {
 	nh := socket.NewNoiseHandshake()
 	nh.Start(socket.NoiseStartPattern, socket.WAConnHeader)
-	nh.Authenticate((*ikp.Pub)[:])
+	nh.Authenticate((*ephemeralKP.Pub)[:])
 	data, err := proto.Marshal(&waProto.HandshakeMessage{
 		ClientHello: &waProto.ClientHello{
-			Ephemeral: (*ikp.Pub)[:],
+			Ephemeral: (*ephemeralKP.Pub)[:],
 		},
 	})
 	if err != nil {
@@ -237,14 +237,14 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ikp KeyPair) (*socket.Noi
 		return nil, fmt.Errorf("failed to unmarshal handshake response: %w", err)
 	}
 	serverEphemeral := handshakeResponse.GetServerHello().GetEphemeral()
-	serverStaticCiphertext := handshakeResponse.GetServerHello().GetEphemeral()
+	serverStaticCiphertext := handshakeResponse.GetServerHello().GetStatic()
 	certificateCiphertext := handshakeResponse.GetServerHello().GetPayload()
 	if serverEphemeral == nil || serverStaticCiphertext == nil || certificateCiphertext == nil {
 		return nil, fmt.Errorf("missing parts of handshake response")
 	}
 
 	nh.Authenticate(serverEphemeral)
-	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ikp.Priv, sliceToArray(serverEphemeral)))
+	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, sliceToArray(serverEphemeral)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to mix server ephemeral key in: %w", err)
 	}
@@ -253,7 +253,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ikp KeyPair) (*socket.Noi
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt server static ciphertext: %w", err)
 	}
-	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ikp.Priv, sliceToArray(staticDecrypted)))
+	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, sliceToArray(staticDecrypted)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to mix server static key in: %w", err)
 	}

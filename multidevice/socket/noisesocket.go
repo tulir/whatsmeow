@@ -38,13 +38,13 @@ func generateIV(count uint32) []byte {
 }
 
 func (ns *NoiseSocket) SendFrame(plaintext []byte) error {
-	count := atomic.AddUint32(&ns.writeCounter, 1)
+	count := atomic.AddUint32(&ns.writeCounter, 1) - 1
 	ciphertext := ns.writeKey.Seal(nil, generateIV(count), plaintext, nil)
 	return ns.fs.SendFrame(ciphertext)
 }
 
 func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {
-	count := atomic.AddUint32(&ns.writeCounter, 1)
+	count := atomic.AddUint32(&ns.writeCounter, 1) - 1
 	plaintext, err := ns.readKey.Open(nil, generateIV(count), ciphertext, nil)
 	if err != nil {
 		ns.fs.log.Warnln("Failed to decrypt frame:", err)

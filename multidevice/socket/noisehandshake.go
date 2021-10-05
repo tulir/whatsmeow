@@ -68,15 +68,15 @@ func (nh *NoiseHandshake) Authenticate(data []byte) {
 }
 
 func (nh *NoiseHandshake) Encrypt(plaintext []byte) []byte {
-	count := atomic.AddUint32(&nh.counter, 1)
-	ciphertext := nh.key.Seal(nil, generateIV(count), plaintext, nil)
+	count := atomic.AddUint32(&nh.counter, 1) - 1
+	ciphertext := nh.key.Seal(nil, generateIV(count), plaintext, nh.hash)
 	nh.Authenticate(ciphertext)
 	return ciphertext
 }
 
 func (nh *NoiseHandshake) Decrypt(ciphertext []byte) (plaintext []byte, err error) {
-	count := atomic.AddUint32(&nh.counter, 1)
-	plaintext, err = nh.key.Open(nil, generateIV(count), ciphertext, nil)
+	count := atomic.AddUint32(&nh.counter, 1) - 1
+	plaintext, err = nh.key.Open(nil, generateIV(count), ciphertext, nh.hash)
 	if err == nil {
 		nh.Authenticate(ciphertext)
 	}
