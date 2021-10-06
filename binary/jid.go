@@ -5,7 +5,15 @@ import (
 	"strings"
 )
 
-const DefaultUserServer = "s.whatsapp.net"
+const (
+	DefaultUserServer  = "s.whatsapp.net"
+	DefaultGroupServer = "g.us"
+)
+
+var (
+	GroupServerJID = NewJID("", DefaultGroupServer)
+	ServerJID      = NewJID("", DefaultUserServer)
+)
 
 type FullJID struct {
 	User   string
