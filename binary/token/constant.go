@@ -48,7 +48,7 @@ var mdDoubleByteTokenIndex map[string]doubleByteTokenIndex
 func init() {
 	webSingleByteTokenIndex = make(map[string]byte, len(webSingleByteTokens))
 	mdSingleByteTokenIndex = make(map[string]byte, len(mdSingleByteTokens))
-	mdDoubleByteTokenIndex = make(map[string]doubleByteTokenIndex, 256 * 3)
+	mdDoubleByteTokenIndex = make(map[string]doubleByteTokenIndex, 256*3)
 	for index, token := range webSingleByteTokens {
 		if token != "" {
 			webSingleByteTokenIndex[token] = byte(index)

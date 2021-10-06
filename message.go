@@ -348,11 +348,10 @@ func (m TextMessage) GetInfo() MessageInfo {
 	return m.Info
 }
 
-
 func getExtendedTextMessage(m *proto.ExtendedTextMessage, msg *proto.WebMessageInfo) TextMessage {
 	return TextMessage{
-		Info: getMessageInfo(msg),
-		Text: m.GetText(),
+		Info:        getMessageInfo(msg),
+		Text:        m.GetText(),
 		ContextInfo: getMessageContext(m.GetContextInfo()),
 	}
 }

@@ -21,7 +21,7 @@ import (
 
 func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) (data []byte, err error) {
 	if url == "" {
-		err =ErrNoURLPresent
+		err = ErrNoURLPresent
 		return
 	}
 	var file, mac []byte
