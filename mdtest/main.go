@@ -20,6 +20,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -109,6 +110,9 @@ type Client struct {
 	Log     log.Logger
 	socket  *socket.NoiseSocket
 
+	responseWaiters     map[string]chan<- *waBinary.Node
+	responseWaitersLock sync.Mutex
+
 	uniqueID  string
 	idCounter uint64
 }
@@ -117,9 +121,42 @@ func NewClient(log log.Logger) *Client {
 	randomBytes := make([]byte, 2)
 	_, _ = rand.Read(randomBytes)
 	return &Client{
-		Log:      log,
-		uniqueID: fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
+		Log:             log,
+		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
+		responseWaiters: make(map[string]chan<- *waBinary.Node),
 	}
+}
+
+func (cli *Client) waitResponse(reqID string) chan *waBinary.Node {
+	ch := make(chan *waBinary.Node, 1)
+	cli.responseWaitersLock.Lock()
+	cli.responseWaiters[reqID] = ch
+	cli.responseWaitersLock.Unlock()
+	return ch
+}
+
+func (cli *Client) cancelResponse(reqID string, ch chan *waBinary.Node) {
+	cli.responseWaitersLock.Lock()
+	close(ch)
+	delete(cli.responseWaiters, reqID)
+	cli.responseWaitersLock.Unlock()
+}
+
+func (cli *Client) receiveResponse(data *waBinary.Node) bool {
+	id, ok := data.Attrs["id"].(string)
+	if !ok || data.Tag != "iq" {
+		return false
+	}
+	cli.responseWaitersLock.Lock()
+	waiter, ok := cli.responseWaiters[id]
+	if !ok {
+		cli.responseWaitersLock.Unlock()
+		return false
+	}
+	delete(cli.responseWaiters, id)
+	cli.responseWaitersLock.Unlock()
+	waiter <- data
+	return true
 }
 
 // waVersion is the WhatsApp web client version
@@ -235,14 +272,14 @@ func (cli *Client) handleFrame(data []byte) {
 		cli.Log.Warnln("Received stream end frame")
 		return
 	}
-	decoder := waBinary.NewDecoder(decompressed, true)
-	node, err := decoder.ReadNode()
+	node, err := waBinary.Unmarshal(decompressed, true)
 	if err != nil {
 		cli.Log.Warnln("Failed to decode node in frame:", err)
 		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(decompressed))
 		return
 	}
 	cli.Log.Debugln("<--", node.XMLString())
+	cli.receiveResponse(node)
 }
 
 func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) error {
@@ -383,8 +420,9 @@ func (cli *Client) generateRequestID() string {
 }
 
 const (
-	KeepAliveIntervalMinMS = 20_000
-	KeepAliveIntervalMaxMS = 30_000
+	KeepAliveResponseDeadlineMS = 10_000
+	KeepAliveIntervalMinMS      = 20_000
+	KeepAliveIntervalMaxMS      = 30_000
 )
 
 func (cli *Client) keepAliveLoop(ctx context.Context) {
@@ -392,7 +430,7 @@ func (cli *Client) keepAliveLoop(ctx context.Context) {
 		interval := mathRand.Intn(KeepAliveIntervalMaxMS-KeepAliveIntervalMinMS) + KeepAliveIntervalMinMS
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
-			err := cli.sendNode(waBinary.Node{
+			respCh, err := cli.sendRequest(waBinary.Node{
 				Tag: "iq",
 				Attrs: map[string]interface{}{
 					"to":    waBinary.ServerJID,
@@ -404,11 +442,35 @@ func (cli *Client) keepAliveLoop(ctx context.Context) {
 			})
 			if err != nil {
 				cli.Log.Warnln("Failed to send keepalive:", err)
+				continue
+			}
+			select {
+			case <-respCh:
+				// All good
+			case <-time.After(KeepAliveResponseDeadlineMS * time.Millisecond):
+				cli.Log.Warnln("Keepalive timed out")
+			case <-ctx.Done():
+				return
 			}
 		case <-ctx.Done():
 			return
 		}
 	}
+}
+
+func (cli *Client) sendRequest(req waBinary.Node) (<-chan *waBinary.Node, error) {
+	reqID, ok := req.Attrs["id"].(string)
+	if !ok {
+		reqID = cli.generateRequestID()
+		req.Attrs["id"] = reqID
+	}
+	waiter := cli.waitResponse(reqID)
+	err := cli.sendNode(req)
+	if err != nil {
+		cli.cancelResponse(reqID, waiter)
+		return nil, err
+	}
+	return waiter, nil
 }
 
 func (cli *Client) sendNode(node waBinary.Node) error {
