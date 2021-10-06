@@ -1,3 +1,9 @@
+// Copyright (c) 2021 Tulir Asokan
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package main
 
 import (
@@ -96,7 +102,7 @@ func (kp *KeyPair) CreateSignedPreKey(keyID int) (*SignedKeyPair, error) {
 		return nil, err
 	}
 	pubKeyForSignature := make([]byte, 33)
-	pubKeyForSignature[0] = 5
+	pubKeyForSignature[0] = ecc.DjbType
 	copy(pubKeyForSignature[1:], (*keyPair.Pub)[:])
 
 	signature := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*keyPair.Priv), pubKeyForSignature)

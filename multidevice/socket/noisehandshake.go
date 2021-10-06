@@ -67,16 +67,19 @@ func (nh *NoiseHandshake) Authenticate(data []byte) {
 	nh.hash = sha256Slice(append(nh.hash, data...))
 }
 
+func (nh *NoiseHandshake) postIncrementCounter() uint32 {
+	count := atomic.AddUint32(&nh.counter, 1)
+	return count - 1
+}
+
 func (nh *NoiseHandshake) Encrypt(plaintext []byte) []byte {
-	count := atomic.AddUint32(&nh.counter, 1) - 1
-	ciphertext := nh.key.Seal(nil, generateIV(count), plaintext, nh.hash)
+	ciphertext := nh.key.Seal(nil, generateIV(nh.postIncrementCounter()), plaintext, nh.hash)
 	nh.Authenticate(ciphertext)
 	return ciphertext
 }
 
 func (nh *NoiseHandshake) Decrypt(ciphertext []byte) (plaintext []byte, err error) {
-	count := atomic.AddUint32(&nh.counter, 1) - 1
-	plaintext, err = nh.key.Open(nil, generateIV(count), ciphertext, nh.hash)
+	plaintext, err = nh.key.Open(nil, generateIV(nh.postIncrementCounter()), ciphertext, nh.hash)
 	if err == nil {
 		nh.Authenticate(ciphertext)
 	}
