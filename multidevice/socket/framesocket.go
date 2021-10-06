@@ -75,7 +75,8 @@ func (fs *FrameSocket) Connect() error {
 	if fs.conn != nil {
 		return ErrSocketAlreadyOpen
 	}
-	fs.ctx, fs.cancel = context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	fs.ctx, fs.cancel = ctx, cancel
 	dialer := websocket.Dialer{}
 
 	headers := http.Header{"Origin": []string{Origin}}
@@ -89,14 +90,14 @@ func (fs *FrameSocket) Connect() error {
 
 	fs.conn.SetCloseHandler(func(code int, text string) error {
 		fs.log.Debugfln("Close handler called with %d/%s", code, text)
-		fs.cancel()
+		cancel()
 		// from default CloseHandler
 		message := websocket.FormatCloseMessage(code, "")
 		_ = fs.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
 		return nil
 	})
 
-	go fs.readPump(fs.ctx)
+	go fs.readPump(ctx)
 	return nil
 }
 
@@ -229,6 +230,7 @@ func (fs *FrameSocket) readPump(ctx context.Context) {
 		case <-readerFound:
 			if readErr != nil {
 				fs.log.Errorln("Error getting next websocket reader:", readErr)
+				fs.Close()
 				return
 			} else if msgType != websocket.BinaryMessage {
 				fs.log.Warnfln("Got unexpected websocket message type %d", msgType)
