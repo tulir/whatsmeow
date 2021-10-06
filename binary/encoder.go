@@ -14,7 +14,11 @@ type binaryEncoder struct {
 }
 
 func NewEncoder(md bool) *binaryEncoder {
-	return &binaryEncoder{make([]byte, 0), md}
+	data := make([]byte, 0)
+	if md {
+		data = []byte{0}
+	}
+	return &binaryEncoder{data, md}
 }
 
 func (w *binaryEncoder) GetData() []byte {
@@ -80,7 +84,7 @@ func (w *binaryEncoder) writeByteLength(length int) {
 	}
 }
 
-const descriptionSize = 1
+const tagSize = 1
 
 func (w *binaryEncoder) WriteNode(n Node) {
 	if n.Tag == "0" {
@@ -94,10 +98,12 @@ func (w *binaryEncoder) WriteNode(n Node) {
 		hasContent = 1
 	}
 
-	w.writeListStart(2*len(n.Attrs) + descriptionSize + hasContent)
+	w.writeListStart(2*len(n.Attrs) + tagSize + hasContent)
 	w.writeString(n.Tag)
 	w.writeAttributes(n.Attrs)
-	w.write(n.Content)
+	if n.Content != nil {
+		w.write(n.Content)
+	}
 }
 
 func (w *binaryEncoder) write(data interface{}) {
@@ -221,7 +227,7 @@ func (w *binaryEncoder) writePackedBytes(value string, dataType int) {
 
 	w.pushByte(byte(dataType))
 
-	roundedLength := byte(math.Ceil(float64(len(value))/2.0))
+	roundedLength := byte(math.Ceil(float64(len(value)) / 2.0))
 	if len(value)%2 != 0 {
 		roundedLength |= 128
 	}
@@ -238,7 +244,7 @@ func (w *binaryEncoder) writePackedBytes(value string, dataType int) {
 	for i, l := 0, len(value)/2; i < l; i++ {
 		w.pushByte(w.packBytePair(packer, value[2*i], value[2*i+1]))
 	}
-	if len(value) % 2 != 0 {
+	if len(value)%2 != 0 {
 		w.pushByte(w.packBytePair(packer, value[len(value)-1], '\x00'))
 	}
 }

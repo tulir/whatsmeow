@@ -7,7 +7,9 @@
 package socket
 
 import (
+	"context"
 	"crypto/cipher"
+	"encoding/base64"
 	"encoding/binary"
 	"sync/atomic"
 )
@@ -37,14 +39,19 @@ func generateIV(count uint32) []byte {
 	return iv
 }
 
+func (ns *NoiseSocket) Context() context.Context {
+	return ns.fs.Context()
+}
+
 func (ns *NoiseSocket) SendFrame(plaintext []byte) error {
+	ns.fs.log.Debugln("Encrypting and sending frame:", base64.StdEncoding.EncodeToString(plaintext))
 	count := atomic.AddUint32(&ns.writeCounter, 1) - 1
 	ciphertext := ns.writeKey.Seal(nil, generateIV(count), plaintext, nil)
 	return ns.fs.SendFrame(ciphertext)
 }
 
 func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {
-	count := atomic.AddUint32(&ns.writeCounter, 1) - 1
+	count := atomic.AddUint32(&ns.readCounter, 1) - 1
 	plaintext, err := ns.readKey.Open(nil, generateIV(count), ciphertext, nil)
 	if err != nil {
 		ns.fs.log.Warnln("Failed to decrypt frame:", err)

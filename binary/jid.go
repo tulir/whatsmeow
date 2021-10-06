@@ -2,6 +2,7 @@ package binary
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -21,6 +22,11 @@ type FullJID struct {
 	Agent  uint8
 	Server string
 	AD     bool
+}
+
+func (jid *FullJID) UserInt() uint64 {
+	number, _ := strconv.ParseUint(jid.User, 10, 64)
+	return number
 }
 
 func NewADJID(user string, device, agent uint8) *FullJID {

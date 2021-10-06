@@ -24,8 +24,6 @@ type NoiseHandshake struct {
 	counter uint32
 }
 
-const NoiseStartPattern = "Noise_XX_25519_AESGCM_SHA256\x00\x00\x00\x00"
-
 func NewNoiseHandshake() *NoiseHandshake {
 	return &NoiseHandshake{}
 }

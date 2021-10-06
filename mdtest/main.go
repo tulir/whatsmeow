@@ -15,12 +15,14 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"math/big"
+	mathRand "math/rand"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"syscall"
+	"time"
 
 	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"google.golang.org/protobuf/proto"
@@ -40,9 +42,7 @@ func sliceToArray(data []byte) (out [32]byte) {
 func main() {
 	log.DefaultLogger.PrintLevel = 0
 
-	cli := Client{
-		Log: log.DefaultLogger,
-	}
+	cli := NewClient(log.DefaultLogger)
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)
@@ -54,28 +54,13 @@ func main() {
 	<-c
 }
 
-type WADeviceType int
-
-const (
-	WADeviceTypeJID WADeviceType = 0
-	WADeviceTypeAD  WADeviceType = 0
-)
-
-type WADeviceID struct {
-	Type   WADeviceType
-	User   uint64
-	Device int
-	Agent  int
-	Server string
-}
-
 type Session struct {
 	NoiseKey          *KeyPair
 	SignedIdentityKey *KeyPair
 	SignedPreKey      *SignedKeyPair
 	RegistrationID    uint32
 	AdvSecretKey      []byte
-	ID                *WADeviceID
+	ID                *waBinary.FullJID
 }
 
 type KeyPair struct {
@@ -123,6 +108,18 @@ type Client struct {
 	Session Session
 	Log     log.Logger
 	socket  *socket.NoiseSocket
+
+	uniqueID  string
+	idCounter uint64
+}
+
+func NewClient(log log.Logger) *Client {
+	randomBytes := make([]byte, 2)
+	_, _ = rand.Read(randomBytes)
+	return &Client{
+		Log:      log,
+		uniqueID: fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
+	}
 }
 
 // waVersion is the WhatsApp web client version
@@ -195,7 +192,7 @@ func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
 
 func (sess *Session) getLoginPayload() *waProto.ClientPayload {
 	payload := proto.Clone(BaseClientPayload).(*waProto.ClientPayload)
-	payload.Username = proto.Uint64(sess.ID.User)
+	payload.Username = proto.Uint64(sess.ID.UserInt())
 	payload.Device = proto.Uint32(uint32(sess.ID.Device))
 	payload.Passive = proto.Bool(true)
 	return payload
@@ -221,24 +218,31 @@ func (cli *Client) Connect() error {
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
 	cli.socket.OnFrame = cli.handleFrame
+	go cli.keepAliveLoop(cli.socket.Context())
 	return nil
 }
+
+const streamEnd = "\xf8\x01\x02"
 
 func (cli *Client) handleFrame(data []byte) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
 		cli.Log.Warnln("Failed to decompress frame:", err)
-		fmt.Println(hex.EncodeToString(data))
+		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(data))
+		return
+	}
+	if len(decompressed) == len(streamEnd) && string(decompressed) == streamEnd {
+		cli.Log.Warnln("Received stream end frame")
 		return
 	}
 	decoder := waBinary.NewDecoder(decompressed, true)
 	node, err := decoder.ReadNode()
 	if err != nil {
 		cli.Log.Warnln("Failed to decode node in frame:", err)
-		fmt.Println(hex.EncodeToString(decompressed))
+		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(decompressed))
 		return
 	}
-	fmt.Println(node.XMLString())
+	cli.Log.Debugln("<--", node.XMLString())
 }
 
 func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) error {
@@ -268,9 +272,6 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 	if serverEphemeral == nil || serverStaticCiphertext == nil || certificateCiphertext == nil {
 		return fmt.Errorf("missing parts of handshake response")
 	}
-	//fmt.Println("Server ephemeral:", base64.StdEncoding.EncodeToString(serverEphemeral))
-	//fmt.Println("Server static:", base64.StdEncoding.EncodeToString(serverStaticCiphertext))
-	//fmt.Println("Certificate:", base64.StdEncoding.EncodeToString(certificateCiphertext))
 
 	nh.Authenticate(serverEphemeral)
 	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, sliceToArray(serverEphemeral)))
@@ -337,11 +338,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 		}
 	}
 	if cli.Session.RegistrationID == 0 {
-		regID, err := rand.Int(rand.Reader, big.NewInt(2<<30-1))
-		if err != nil {
-			return fmt.Errorf("failed to generate registration ID: %w", err)
-		}
-		cli.Session.RegistrationID = uint32(regID.Int64())
+		cli.Session.RegistrationID = mathRand.Uint32()
 	}
 
 	clientFinishPayloadBytes, err := proto.Marshal(cli.Session.getClientPayload())
@@ -379,4 +376,47 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 	cli.socket = ns
 
 	return nil
+}
+
+func (cli *Client) generateRequestID() string {
+	return cli.uniqueID + strconv.FormatUint(atomic.AddUint64(&cli.idCounter, 1), 10)
+}
+
+const (
+	KeepAliveIntervalMinMS = 20_000
+	KeepAliveIntervalMaxMS = 30_000
+)
+
+func (cli *Client) keepAliveLoop(ctx context.Context) {
+	for {
+		interval := mathRand.Intn(KeepAliveIntervalMaxMS-KeepAliveIntervalMinMS) + KeepAliveIntervalMinMS
+		select {
+		case <-time.After(time.Duration(interval) * time.Millisecond):
+			err := cli.sendNode(waBinary.Node{
+				Tag: "iq",
+				Attrs: map[string]interface{}{
+					"to":    waBinary.ServerJID,
+					"type":  "get",
+					"xmlns": "w:p",
+					"id":    cli.generateRequestID(),
+				},
+				Content: []waBinary.Node{{Tag: "ping"}},
+			})
+			if err != nil {
+				cli.Log.Warnln("Failed to send keepalive:", err)
+			}
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (cli *Client) sendNode(node waBinary.Node) error {
+	payload, err := waBinary.Marshal(node, true)
+	if err != nil {
+		return fmt.Errorf("failed to marshal ping IQ: %w", err)
+	}
+
+	cli.Log.Debugln("-->", node.XMLString())
+	return cli.socket.SendFrame(payload)
 }

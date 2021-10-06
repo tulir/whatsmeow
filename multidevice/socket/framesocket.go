@@ -8,7 +8,6 @@ package socket
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,13 +27,9 @@ const (
 	LegacyURL = "wss://web.whatsapp.com/ws"
 )
 
-const WADictVersion = 2
-const WAMagicValue = 5
-
-var WAConnHeader = []byte{'W', 'A', WAMagicValue, WADictVersion}
-
 type FrameSocket struct {
 	conn   *websocket.Conn
+	ctx    context.Context
 	cancel func()
 	log    log.Logger
 
@@ -57,16 +52,30 @@ func NewFrameSocket(log log.Logger, header []byte) *FrameSocket {
 	}
 }
 
+func (fs *FrameSocket) Context() context.Context {
+	return fs.ctx
+}
+
 func (fs *FrameSocket) Close() {
+	if fs.conn == nil {
+		return
+	}
+
 	err := fs.conn.Close()
 	if err != nil {
 		fs.log.Errorln("Error closing websocket:", err)
 	}
+	fs.cancel()
+	fs.conn = nil
+	fs.ctx = nil
+	fs.cancel = nil
 }
 
 func (fs *FrameSocket) Connect() error {
-	var ctx context.Context
-	ctx, fs.cancel = context.WithCancel(context.Background())
+	if fs.conn != nil {
+		return ErrSocketAlreadyOpen
+	}
+	fs.ctx, fs.cancel = context.WithCancel(context.Background())
 	dialer := websocket.Dialer{}
 
 	headers := http.Header{"Origin": []string{Origin}}
@@ -87,16 +96,14 @@ func (fs *FrameSocket) Connect() error {
 		return nil
 	})
 
-	go fs.readPump(ctx)
+	go fs.readPump(fs.ctx)
 	return nil
 }
 
-const FrameMaxSize = 2 << 23
-const FrameLengthSize = 3
-
-var ErrFrameTooLarge = errors.New("frame too large")
-
 func (fs *FrameSocket) SendFrame(data []byte) error {
+	if fs.conn == nil {
+		return ErrSocketClosed
+	}
 	dataLength := len(data)
 	if dataLength >= FrameMaxSize {
 		return fmt.Errorf("%w (got %d bytes, max %d bytes)", ErrFrameTooLarge, len(data), FrameMaxSize)

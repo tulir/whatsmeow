@@ -46,7 +46,7 @@ func Marshal(n Node, md bool) ([]byte, error) {
 	if n.LegacyAttributes != nil {
 		n.convertLegacyAttributes()
 	}
-	if n.Attrs != nil && n.Content != nil {
+	if !md && n.Attrs != nil && n.Content != nil {
 		a, err := marshalMessageArray(n.Content.([]interface{}))
 		if err != nil {
 			return nil, err
