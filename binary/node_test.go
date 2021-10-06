@@ -63,7 +63,7 @@ func TestMarshal(t *testing.T) {
 		t.Fail()
 	}
 
-	if !reflect.DeepEqual(node.Attrs, ret.Attrs) {
+	if !reflect.DeepEqual(node.LegacyAttributes, ret.LegacyAttributes) {
 		t.Errorf("attributes changed")
 		t.Fail()
 	}
