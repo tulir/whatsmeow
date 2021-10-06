@@ -76,7 +76,12 @@ func (cli *Client) handleFrame(data []byte) {
 		return
 	}
 	cli.Log.Debugln("<--", node.XMLString())
-	cli.receiveResponse(node)
+	switch {
+	case cli.receiveResponse(node):
+	case cli.callHandlers(node):
+	default:
+		cli.Log.Debugln("Didn't handle WhatsApp node")
+	}
 }
 
 func (cli *Client) sendNode(node waBinary.Node) error {
@@ -87,4 +92,13 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 
 	cli.Log.Debugln("-->", node.XMLString())
 	return cli.socket.SendFrame(payload)
+}
+
+func (cli *Client) callHandlers(node *waBinary.Node) bool {
+	for _, handler := range eventHandlers {
+		if handler(cli, node) {
+			return true
+		}
+	}
+	return false
 }

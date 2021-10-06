@@ -17,6 +17,17 @@ type Node struct {
 	LegacyAttributes map[string]string
 }
 
+func (n *Node) GetChildren() []Node {
+	if n.Content == nil {
+		return nil
+	}
+	children, ok := n.Content.([]Node)
+	if !ok {
+		return nil
+	}
+	return children
+}
+
 func (n *Node) convertLegacyAttributes() {
 	n.Attrs = make(map[string]interface{}, len(n.LegacyAttributes))
 	for key, attr := range n.LegacyAttributes {
