@@ -235,7 +235,7 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 	}
 }
 
-func (r *binaryDecoder) readJIDPair() (*FullJID, error) {
+func (r *binaryDecoder) readJIDPair() (interface{}, error) {
 	user, err := r.read(true)
 	if err != nil {
 		return nil, err
@@ -254,7 +254,7 @@ func (r *binaryDecoder) readJIDPair() (*FullJID, error) {
 	}
 }
 
-func (r *binaryDecoder) readADJID() (*FullJID, error) {
+func (r *binaryDecoder) readADJID() (interface{}, error) {
 	agent, err := r.readByte()
 	if err != nil {
 		return nil, err

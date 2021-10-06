@@ -24,13 +24,13 @@ type FullJID struct {
 	AD     bool
 }
 
-func (jid *FullJID) UserInt() uint64 {
+func (jid FullJID) UserInt() uint64 {
 	number, _ := strconv.ParseUint(jid.User, 10, 64)
 	return number
 }
 
-func NewADJID(user string, device, agent uint8) *FullJID {
-	return &FullJID{
+func NewADJID(user string, device, agent uint8) FullJID {
+	return FullJID{
 		User:   user,
 		Device: device,
 		Agent:  agent,
@@ -39,19 +39,19 @@ func NewADJID(user string, device, agent uint8) *FullJID {
 	}
 }
 
-func ParseJID(jid string) *FullJID {
+func ParseJID(jid string) FullJID {
 	parts := strings.Split(jid, "@")
 	return NewJID(parts[0], parts[1])
 }
 
-func NewJID(user, server string) *FullJID {
-	return &FullJID{
+func NewJID(user, server string) FullJID {
+	return FullJID{
 		User:   user,
 		Server: server,
 	}
 }
 
-func (jid *FullJID) String() string {
+func (jid FullJID) String() string {
 	if jid.AD {
 		return fmt.Sprintf("%s#%d/%d@%s", jid.User, jid.Agent, jid.Device, jid.Server)
 	} else {
