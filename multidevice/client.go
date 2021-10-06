@@ -14,8 +14,8 @@ import (
 
 	log "maunium.net/go/maulogger/v2"
 
-	waBinary "github.com/Rhymen/go-whatsapp/binary"
-	"github.com/Rhymen/go-whatsapp/multidevice/socket"
+	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/multidevice/socket"
 )
 
 type Client struct {

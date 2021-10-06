@@ -11,7 +11,7 @@ import (
 	"math/rand"
 	"time"
 
-	waBinary "github.com/Rhymen/go-whatsapp/binary"
+	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
 const (

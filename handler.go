@@ -3,8 +3,8 @@ package whatsapp
 import (
 	"encoding/json"
 
-	"github.com/Rhymen/go-whatsapp/binary"
-	"github.com/Rhymen/go-whatsapp/binary/proto"
+	"go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/binary/proto"
 )
 
 /*

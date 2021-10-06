@@ -13,7 +13,7 @@ import (
 
 	log "maunium.net/go/maulogger/v2"
 
-	"github.com/Rhymen/go-whatsapp/multidevice"
+	"go.mau.fi/whatsmeow/multidevice"
 )
 
 func main() {

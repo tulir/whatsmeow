@@ -5,7 +5,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/Rhymen/go-whatsapp/binary/token"
+	"go.mau.fi/whatsmeow/binary/token"
 )
 
 type binaryEncoder struct {

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Rhymen/go-whatsapp/binary"
+	"go.mau.fi/whatsmeow/binary"
 )
 
 type Store struct {

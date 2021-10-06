@@ -136,7 +136,7 @@ func NewConn(opt *Options) *Conn {
 		msgTimeout:      opt.Timeout,
 		Store:           opt.Store,
 		Proxy:           opt.Proxy,
-		longClientName:  "github.com/Rhymen/go-whatsapp",
+		longClientName:  "go.mau.fi/whatsmeow",
 		shortClientName: "go-whatsapp",
 		clientVersion:   "0.1.0",
 	}

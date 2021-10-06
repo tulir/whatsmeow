@@ -7,7 +7,7 @@
 package multidevice
 
 import (
-	waBinary "github.com/Rhymen/go-whatsapp/binary"
+	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
 type EventHandler func(cli *Client, node *waBinary.Node) bool

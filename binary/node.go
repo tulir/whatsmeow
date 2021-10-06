@@ -6,7 +6,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	pb "github.com/Rhymen/go-whatsapp/binary/proto"
+	pb "go.mau.fi/whatsmeow/binary/proto"
 )
 
 type Node struct {

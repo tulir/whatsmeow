@@ -15,9 +15,9 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	waProto "github.com/Rhymen/go-whatsapp/binary/proto"
-	"github.com/Rhymen/go-whatsapp/crypto/curve25519"
-	"github.com/Rhymen/go-whatsapp/multidevice/socket"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/crypto/curve25519"
+	"go.mau.fi/whatsmeow/multidevice/socket"
 )
 
 func sliceToArray32(data []byte) (out [32]byte) {

@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"sync/atomic"
 
-	waBinary "github.com/Rhymen/go-whatsapp/binary"
+	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
 func (cli *Client) generateRequestID() string {

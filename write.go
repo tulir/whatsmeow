@@ -11,8 +11,8 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/Rhymen/go-whatsapp/binary"
-	"github.com/Rhymen/go-whatsapp/crypto/cbc"
+	"go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/crypto/cbc"
 )
 
 type websocketWrapper struct {

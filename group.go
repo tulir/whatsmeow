@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Rhymen/go-whatsapp/binary"
+	"go.mau.fi/whatsmeow/binary"
 )
 
 type GroupInfo struct {

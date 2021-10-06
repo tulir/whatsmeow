@@ -11,7 +11,7 @@ import (
 
 	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 
-	"github.com/Rhymen/go-whatsapp/crypto/curve25519"
+	"go.mau.fi/whatsmeow/crypto/curve25519"
 )
 
 type KeyPair struct {

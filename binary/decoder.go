@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/Rhymen/go-whatsapp/binary/token"
+	"go.mau.fi/whatsmeow/binary/token"
 )
 
 type binaryDecoder struct {

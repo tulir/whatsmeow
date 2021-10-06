@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Rhymen/go-whatsapp/binary/proto"
+	"go.mau.fi/whatsmeow/binary/proto"
 )
 
 func TestMarshal(t *testing.T) {
