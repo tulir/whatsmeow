@@ -83,7 +83,7 @@ func (w *binaryEncoder) writeByteLength(length int) {
 const descriptionSize = 1
 
 func (w *binaryEncoder) WriteNode(n Node) {
-	if n.Description == "0" {
+	if n.Tag == "0" {
 		w.pushByte(token.List8)
 		w.pushByte(token.ListEmpty)
 		return
@@ -94,9 +94,9 @@ func (w *binaryEncoder) WriteNode(n Node) {
 		hasContent = 1
 	}
 
-	w.writeListStart(2*len(n.Attributes) + descriptionSize + hasContent)
-	w.writeString(n.Description)
-	w.writeAttributes(n.Attributes)
+	w.writeListStart(2*len(n.Attrs) + descriptionSize + hasContent)
+	w.writeString(n.Tag)
+	w.writeAttributes(n.Attrs)
 	w.write(n.Content)
 }
 

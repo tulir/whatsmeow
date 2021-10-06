@@ -228,14 +228,14 @@ func (wac *Conn) UpdateGroupDescription(ownJID, groupJID JID, description string
 	}
 	tag := fmt.Sprintf("%d.--%d", time.Now().Unix(), wac.msgCount*19)
 	n := binary.Node{
-		Description: "action",
+		Tag: "action",
 		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
 		Content: []interface{}{
 			binary.Node{
-				Description: "group",
+				Tag: "group",
 				LegacyAttributes: map[string]string{
 					"id":     tag,
 					"jid":    groupJID,
@@ -244,9 +244,9 @@ func (wac *Conn) UpdateGroupDescription(ownJID, groupJID JID, description string
 				},
 				Content: []binary.Node{
 					{
-						Description: "description",
-						LegacyAttributes:  newData,
-						Content:     desc,
+						Tag:              "description",
+						LegacyAttributes: newData,
+						Content:          desc,
 					},
 				},
 			},

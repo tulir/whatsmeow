@@ -34,8 +34,8 @@ func TestMarshal(t *testing.T) {
 	}
 
 	node := &Node{
-		Description: "action",
-		LegacyAttributes:  make(map[string]string),
+		Tag:              "action",
+		LegacyAttributes: make(map[string]string),
 	}
 	node.LegacyAttributes["add"] = "before"
 	node.LegacyAttributes["last"] = "true"
@@ -58,12 +58,12 @@ func TestMarshal(t *testing.T) {
 	fmt.Printf("%v\n", node)
 	fmt.Printf("%v\n", ret)
 
-	if node.Description != ret.Description {
+	if node.Tag != ret.Tag {
 		t.Errorf("description changed")
 		t.Fail()
 	}
 
-	if !reflect.DeepEqual(node.Attributes, ret.Attributes) {
+	if !reflect.DeepEqual(node.Attrs, ret.Attrs) {
 		t.Errorf("attributes changed")
 		t.Fail()
 	}

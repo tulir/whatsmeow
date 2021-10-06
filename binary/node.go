@@ -10,29 +10,29 @@ import (
 )
 
 type Node struct {
-	Description string
-	Attributes  map[string]interface{}
-	Content     interface{}
+	Tag     string
+	Attrs   map[string]interface{}
+	Content interface{}
 
 	LegacyAttributes map[string]string
 }
 
 func (n *Node) convertLegacyAttributes() {
-	n.Attributes = make(map[string]interface{}, len(n.LegacyAttributes))
+	n.Attrs = make(map[string]interface{}, len(n.LegacyAttributes))
 	for key, attr := range n.LegacyAttributes {
 		atIndex := strings.Index(attr, "@")
 		if atIndex < 1 {
-			n.Attributes[key] = attr
+			n.Attrs[key] = attr
 		} else {
-			n.Attributes[key] = NewJID(attr[:atIndex], attr[atIndex+1:])
+			n.Attrs[key] = NewJID(attr[:atIndex], attr[atIndex+1:])
 		}
 	}
 	n.LegacyAttributes = nil
 }
 
 func (n *Node) addLegacyAttributes() {
-	n.LegacyAttributes = make(map[string]string, len(n.Attributes))
-	for key, rawAttr := range n.Attributes {
+	n.LegacyAttributes = make(map[string]string, len(n.Attrs))
+	for key, rawAttr := range n.Attrs {
 		switch attr := rawAttr.(type) {
 		case string:
 			n.LegacyAttributes[key] = attr
@@ -46,7 +46,7 @@ func Marshal(n Node, md bool) ([]byte, error) {
 	if n.LegacyAttributes != nil {
 		n.convertLegacyAttributes()
 	}
-	if n.Attributes != nil && n.Content != nil {
+	if n.Attrs != nil && n.Content != nil {
 		a, err := marshalMessageArray(n.Content.([]interface{}))
 		if err != nil {
 			return nil, err
@@ -98,7 +98,7 @@ func Unmarshal(data []byte, md bool) (*Node, error) {
 	if !md {
 		n.addLegacyAttributes()
 	}
-	if !md && n != nil && n.Attributes != nil && n.Content != nil {
+	if !md && n != nil && n.Attrs != nil && n.Content != nil {
 		nContent, ok := n.Content.([]Node)
 		if ok {
 			n.Content, err = unmarshalMessageArray(nContent)
@@ -115,7 +115,7 @@ func unmarshalMessageArray(messages []Node) ([]interface{}, error) {
 	ret := make([]interface{}, len(messages))
 
 	for i, msg := range messages {
-		if msg.Description == "message" {
+		if msg.Tag == "message" {
 			info, err := unmarshalWebMessageInfo(msg.Content.([]byte))
 			if err != nil {
 				return nil, err

@@ -98,7 +98,7 @@ func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) 
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
 	content := binary.Node{
-		Description: "presence",
+		Tag: "presence",
 		LegacyAttributes: map[string]string{
 			"type": string(presence),
 		},
@@ -113,7 +113,7 @@ func (wac *Conn) Presence(jid string, presence Presence) (<-chan string, error) 
 	}
 
 	n := binary.Node{
-		Description: "action",
+		Tag: "action",
 		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
@@ -135,7 +135,7 @@ func (wac *Conn) Emoji() (*binary.Node, error) {
 
 func (wac *Conn) Contacts() (*binary.Node, error) {
 	node, err := wac.query("contacts", "", "", "", "", "", 0, 0)
-	if node != nil && node.Description == "response" && node.LegacyAttributes["type"] == "contacts" {
+	if node != nil && node.Tag == "response" && node.LegacyAttributes["type"] == "contacts" {
 		wac.updateContacts(node.Content)
 	}
 	return node, err
@@ -143,7 +143,7 @@ func (wac *Conn) Contacts() (*binary.Node, error) {
 
 func (wac *Conn) Chats() (*binary.Node, error) {
 	node, err := wac.query("chat", "", "", "", "", "", 0, 0)
-	if node != nil && node.Description == "response" && node.LegacyAttributes["type"] == "chat" {
+	if node != nil && node.Tag == "response" && node.LegacyAttributes["type"] == "chat" {
 		wac.updateChats(node.Content)
 	}
 	return node, err
@@ -154,13 +154,13 @@ func (wac *Conn) Read(jid JID, id MessageID) (<-chan string, error) {
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
 	n := binary.Node{
-		Description: "action",
+		Tag: "action",
 		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
 		Content: []interface{}{binary.Node{
-			Description: "read",
+			Tag: "read",
 			LegacyAttributes: map[string]string{
 				"count": "1",
 				"index": id,
@@ -178,7 +178,7 @@ func (wac *Conn) query(t string, jid JID, messageId MessageID, kind, owner, sear
 	tag := fmt.Sprintf("%d.--%d", ts, wac.msgCount)
 
 	n := binary.Node{
-		Description: "query",
+		Tag: "query",
 		LegacyAttributes: map[string]string{
 			"type":  t,
 			"epoch": strconv.Itoa(wac.msgCount),
@@ -247,7 +247,7 @@ func (wac *Conn) setGroup(t string, jid JID, subject string, participants []stri
 	p := buildParticipantNodes(participants)
 
 	g := binary.Node{
-		Description: "group",
+		Tag: "group",
 		LegacyAttributes: map[string]string{
 			"author": wac.session.Wid,
 			"id":     tag,
@@ -265,7 +265,7 @@ func (wac *Conn) setGroup(t string, jid JID, subject string, participants []stri
 	}
 
 	n := binary.Node{
-		Description: "action",
+		Tag: "action",
 		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
@@ -285,7 +285,7 @@ func buildParticipantNodes(participants []JID) []binary.Node {
 	p := make([]binary.Node, len(participants))
 	for i, participant := range participants {
 		p[i] = binary.Node{
-			Description: "participant",
+			Tag: "participant",
 			LegacyAttributes: map[string]string{
 				"jid": participant,
 			},
@@ -310,20 +310,20 @@ func (wac *Conn) handleBlockContact(action string, jid JID) (<-chan string, erro
 	cusjid := netsplit[0] + "@c.us"
 
 	n := binary.Node{
-		Description: "action",
+		Tag: "action",
 		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
 		Content: []interface{}{
 			binary.Node{
-				Description: "block",
+				Tag: "block",
 				LegacyAttributes: map[string]string{
 					"type": action,
 				},
 				Content: []binary.Node{
 					{
-						Description: "user",
+						Tag: "user",
 						LegacyAttributes: map[string]string{
 							"jid": cusjid,
 						},

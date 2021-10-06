@@ -11,25 +11,25 @@ import (
 func (n *Node) XMLString() string {
 	content := n.contentString()
 	if len(content) == 0 {
-		return fmt.Sprintf("<%[1]s%[2]s/>", n.Description, n.attributeString())
+		return fmt.Sprintf("<%[1]s%[2]s/>", n.Tag, n.attributeString())
 	} else if len(content) == 1 {
-		return fmt.Sprintf("<%[1]s%[2]s>%[3]s</%[1]s>", n.Description, n.attributeString(), content[0])
+		return fmt.Sprintf("<%[1]s%[2]s>%[3]s</%[1]s>", n.Tag, n.attributeString(), content[0])
 	} else {
-		return fmt.Sprintf("<%[1]s%[2]s>\n%[3]s\n</%[1]s>", n.Description, n.attributeString(), strings.Join(content, "\n"))
+		return fmt.Sprintf("<%[1]s%[2]s>\n%[3]s\n</%[1]s>", n.Tag, n.attributeString(), strings.Join(content, "\n"))
 	}
 }
 
 func (n *Node) attributeString() string {
-	if len(n.Attributes) == 0 {
+	if len(n.Attrs) == 0 {
 		return ""
 	}
 	var builder strings.Builder
 	builder.WriteRune(' ')
 	count := 0
-	for key, value := range n.Attributes {
+	for key, value := range n.Attrs {
 		count += 1
 		_, _ = fmt.Fprintf(&builder, `%s="%s"`, key, value)
-		if count < len(n.Attributes) {
+		if count < len(n.Attrs) {
 			builder.WriteRune(' ')
 		}
 	}

@@ -125,7 +125,7 @@ Loop:
 //
 func (wac *Conn) sendProto(p *proto.WebMessageInfo) (<-chan string, ResendFunc, error) {
 	n := binary.Node{
-		Description: "action",
+		Tag: "action",
 		LegacyAttributes: map[string]string{
 			"type":  "relay",
 			"epoch": strconv.Itoa(wac.msgCount),
@@ -202,14 +202,14 @@ func (wac *Conn) deleteChatProto(chatJID JID, msgID MessageID, fromMe bool) (<-c
 		owner = "false"
 	}
 	n := binary.Node{
-		Description: "action",
+		Tag: "action",
 		LegacyAttributes: map[string]string{
 			"epoch": strconv.Itoa(wac.msgCount),
 			"type":  "set",
 		},
 		Content: []interface{}{
 			binary.Node{
-				Description: "chat",
+				Tag: "chat",
 				LegacyAttributes: map[string]string{
 					"type":  "clear",
 					"jid":   chatJID,
@@ -217,7 +217,7 @@ func (wac *Conn) deleteChatProto(chatJID JID, msgID MessageID, fromMe bool) (<-c
 				},
 				Content: []binary.Node{
 					{
-						Description: "item",
+						Tag: "item",
 						LegacyAttributes: map[string]string{
 							"owner": owner,
 							"index": msgID,
@@ -1010,7 +1010,7 @@ func getReceivedMessage(msg map[string]string) ReceivedMessage {
 }
 
 func ParseNodeMessage(msg binary.Node) interface{} {
-	switch msg.Description {
+	switch msg.Tag {
 	case "battery":
 		return getBatteryMessage(msg.LegacyAttributes)
 	case "user":

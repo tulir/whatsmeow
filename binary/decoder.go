@@ -332,12 +332,12 @@ func (r *binaryDecoder) ReadNode() (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret.Description = rawDesc.(string)
-	if listSize == 0 || ret.Description == "" {
+	ret.Tag = rawDesc.(string)
+	if listSize == 0 || ret.Tag == "" {
 		return nil, ErrInvalidNode
 	}
 
-	ret.Attributes, err = r.readAttributes((listSize - 1) >> 1)
+	ret.Attrs, err = r.readAttributes((listSize - 1) >> 1)
 	if err != nil {
 		return nil, err
 	}

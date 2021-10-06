@@ -11,14 +11,14 @@ import (
 func (wac *Conn) UploadProfilePic(ownJID JID, image, preview []byte) (<-chan string, error) {
 	tag := fmt.Sprintf("%d.--%d", time.Now().Unix(), wac.msgCount*19)
 	n := binary.Node{
-		Description: "action",
+		Tag: "action",
 		LegacyAttributes: map[string]string{
 			"type":  "set",
 			"epoch": strconv.Itoa(wac.msgCount),
 		},
 		Content: []interface{}{
 			binary.Node{
-				Description: "picture",
+				Tag: "picture",
 				LegacyAttributes: map[string]string{
 					"id":   tag,
 					"jid":  ownJID,
@@ -26,14 +26,14 @@ func (wac *Conn) UploadProfilePic(ownJID JID, image, preview []byte) (<-chan str
 				},
 				Content: []binary.Node{
 					{
-						Description: "image",
-						LegacyAttributes:  nil,
-						Content:     image,
+						Tag:              "image",
+						LegacyAttributes: nil,
+						Content:          image,
 					},
 					{
-						Description: "preview",
-						LegacyAttributes:  nil,
-						Content:     preview,
+						Tag:              "preview",
+						LegacyAttributes: nil,
+						Content:          preview,
 					},
 				},
 			},

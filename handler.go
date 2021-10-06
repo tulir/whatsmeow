@@ -115,7 +115,7 @@ func (wac *Conn) dispatch(tag string, msg interface{}) {
 
 	switch message := msg.(type) {
 	case *binary.Node:
-		if message.Description == "action" {
+		if message.Tag == "action" {
 			if con, ok := message.Content.([]interface{}); ok {
 				for a := range con {
 					if v, ok := con[a].(*proto.WebMessageInfo); ok {
@@ -134,10 +134,10 @@ func (wac *Conn) dispatch(tag string, msg interface{}) {
 			} else {
 				wac.handle(message)
 			}
-		} else if message.Description == "response" && message.LegacyAttributes["type"] == "contacts" {
+		} else if message.Tag == "response" && message.LegacyAttributes["type"] == "contacts" {
 			wac.updateContacts(message.Content)
 			wac.handleContacts(message.Content)
-		} else if message.Description == "response" && message.LegacyAttributes["type"] == "chat" {
+		} else if message.Tag == "response" && message.LegacyAttributes["type"] == "chat" {
 			wac.updateChats(message.Content)
 			wac.handleChats(message.Content)
 		} else {
