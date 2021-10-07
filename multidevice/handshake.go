@@ -20,11 +20,6 @@ import (
 	"go.mau.fi/whatsmeow/multidevice/socket"
 )
 
-func sliceToArray32(data []byte) (out [32]byte) {
-	copy(out[:], data[:32])
-	return
-}
-
 func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) error {
 	nh := socket.NewNoiseHandshake()
 	nh.Start(socket.NoiseStartPattern, fs.Header)
@@ -49,12 +44,13 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 	serverEphemeral := handshakeResponse.GetServerHello().GetEphemeral()
 	serverStaticCiphertext := handshakeResponse.GetServerHello().GetStatic()
 	certificateCiphertext := handshakeResponse.GetServerHello().GetPayload()
-	if serverEphemeral == nil || serverStaticCiphertext == nil || certificateCiphertext == nil {
+	if len(serverEphemeral) != 32 || serverStaticCiphertext == nil || certificateCiphertext == nil {
 		return fmt.Errorf("missing parts of handshake response")
 	}
+	serverEphemeralArr := *(*[32]byte)(serverEphemeral)
 
 	nh.Authenticate(serverEphemeral)
-	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, sliceToArray32(serverEphemeral)))
+	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, serverEphemeralArr))
 	if err != nil {
 		return fmt.Errorf("failed to mix server ephemeral key in: %w", err)
 	}
@@ -62,8 +58,10 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 	staticDecrypted, err := nh.Decrypt(serverStaticCiphertext)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt server static ciphertext: %w", err)
+	} else if len(staticDecrypted) != 32 {
+		return fmt.Errorf("unexpected length of server static plaintext %d (expected 32)", len(staticDecrypted))
 	}
-	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, sliceToArray32(staticDecrypted)))
+	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, *(*[32]byte)(staticDecrypted)))
 	if err != nil {
 		return fmt.Errorf("failed to mix server static key in: %w", err)
 	}
@@ -99,7 +97,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 	}
 
 	encryptedPubkey := nh.Encrypt(cli.Session.NoiseKey.Pub[:])
-	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*cli.Session.NoiseKey.Priv, sliceToArray32(serverEphemeral)))
+	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*cli.Session.NoiseKey.Priv, serverEphemeralArr))
 	if err != nil {
 		return fmt.Errorf("failed to mix noise private key in: %w", err)
 	}
@@ -118,7 +116,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 		}
 	}
 	if cli.Session.RegistrationID == 0 {
-		cli.Session.RegistrationID = mathRand.Uint32()
+		cli.Session.RegistrationID = uint16(mathRand.Uint32() & 0x3fff)
 	}
 
 	clientFinishPayloadBytes, err := proto.Marshal(cli.Session.getClientPayload())

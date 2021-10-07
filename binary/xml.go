@@ -28,7 +28,7 @@ func (n *Node) attributeString() string {
 	count := 0
 	for key, value := range n.Attrs {
 		count += 1
-		_, _ = fmt.Fprintf(&builder, `%s="%s"`, key, value)
+		_, _ = fmt.Fprintf(&builder, `%s="%v"`, key, value)
 		if count < len(n.Attrs) {
 			builder.WriteRune(' ')
 		}

@@ -42,6 +42,10 @@ func (ns *NoiseSocket) Context() context.Context {
 	return ns.fs.Context()
 }
 
+func (ns *NoiseSocket) Close() {
+	ns.fs.Close()
+}
+
 func (ns *NoiseSocket) SendFrame(plaintext []byte) error {
 	//ns.fs.log.Debugln("Encrypting and sending frame:", base64.StdEncoding.EncodeToString(plaintext))
 	count := atomic.AddUint32(&ns.writeCounter, 1) - 1

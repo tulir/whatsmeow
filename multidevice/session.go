@@ -8,7 +8,6 @@ package multidevice
 
 import (
 	"crypto/md5"
-	"encoding/base64"
 	"encoding/binary"
 	"strconv"
 	"strings"
@@ -23,8 +22,8 @@ import (
 // waVersion is the WhatsApp web client version
 var waVersion = []int{2, 2138, 10}
 
-// waVersionHashEncoded is the base64-encoded md5 hash of a dot-separated waVersion
-var waVersionHashEncoded string
+// waVersionHash is the md5 hash of a dot-separated waVersion
+var waVersionHash [16]byte
 
 func init() {
 	waVersionParts := make([]string, len(waVersion))
@@ -32,15 +31,14 @@ func init() {
 		waVersionParts[i] = strconv.Itoa(part)
 	}
 	waVersionString := strings.Join(waVersionParts, ".")
-	waVersionHash := md5.Sum([]byte(waVersionString))
-	waVersionHashEncoded = base64.StdEncoding.EncodeToString(waVersionHash[:])
+	waVersionHash = md5.Sum([]byte(waVersionString))
 }
 
 type Session struct {
 	NoiseKey          *KeyPair
 	SignedIdentityKey *KeyPair
 	SignedPreKey      *SignedKeyPair
-	RegistrationID    uint32
+	RegistrationID    uint16
 	AdvSecretKey      []byte
 	ID                *waBinary.FullJID
 }
@@ -55,10 +53,10 @@ var BaseClientPayload = &waProto.ClientPayload{
 		},
 		Mcc:                         proto.String("000"),
 		Mnc:                         proto.String("000"),
-		OsVersion:                   proto.String("0.1"),
+		OsVersion:                   proto.String("0.1.0"),
 		Manufacturer:                proto.String(""),
 		Device:                      proto.String("Desktop"),
-		OsBuildNumber:               proto.String("0.1"),
+		OsBuildNumber:               proto.String("0.1.0"),
 		LocaleLanguageIso6391:       proto.String("en"),
 		LocaleCountryIso31661Alpha2: proto.String("en"),
 	},
@@ -70,27 +68,31 @@ var BaseClientPayload = &waProto.ClientPayload{
 }
 
 var CompanionProps = &waProto.CompanionProps{
-	Os:              nil,
-	Version:         nil,
-	PlatformType:    nil,
-	RequireFullSync: nil,
+	Os: proto.String("whatsmeow"),
+	Version: &waProto.AppVersion{
+		Primary:   proto.Uint32(0),
+		Secondary: proto.Uint32(1),
+		Tertiary:  proto.Uint32(0),
+	},
+	PlatformType:    waProto.CompanionProps_FIREFOX.Enum(),
+	RequireFullSync: proto.Bool(false),
 }
 
 func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
 	payload := proto.Clone(BaseClientPayload).(*waProto.ClientPayload)
 	regID := make([]byte, 4)
-	binary.BigEndian.PutUint32(regID, sess.RegistrationID)
+	binary.BigEndian.PutUint32(regID, uint32(sess.RegistrationID))
 	preKeyID := make([]byte, 4)
 	binary.BigEndian.PutUint32(preKeyID, uint32(sess.SignedPreKey.KeyID))
 	companionProps, _ := proto.Marshal(CompanionProps)
 	payload.RegData = &waProto.CompanionRegData{
 		ERegid:         regID,
 		EKeytype:       []byte{ecc.DjbType},
-		EIdent:         sess.NoiseKey.Pub[:],
+		EIdent:         sess.SignedIdentityKey.Pub[:],
 		ESkeyId:        preKeyID[1:],
 		ESkeyVal:       sess.SignedPreKey.Pub[:],
 		ESkeySig:       sess.SignedPreKey.Signature,
-		BuildHash:      []byte(waVersionHashEncoded),
+		BuildHash:      waVersionHash[:],
 		CompanionProps: companionProps,
 	}
 	payload.Passive = proto.Bool(false)

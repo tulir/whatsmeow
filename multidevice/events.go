@@ -14,4 +14,5 @@ type nodeHandler func(cli *Client, node *waBinary.Node) bool
 
 var nodeHandlers = [...]nodeHandler{
 	handlePairDevice,
+	handlePairSuccess,
 }

@@ -118,7 +118,11 @@ func (w *binaryEncoder) write(data interface{}) {
 		w.writeString(typedData)
 	case int:
 		w.writeString(strconv.Itoa(typedData))
+	case int32:
+		w.writeString(strconv.FormatInt(int64(typedData), 10))
 	case uint:
+		w.writeString(strconv.FormatUint(uint64(typedData), 10))
+	case uint32:
 		w.writeString(strconv.FormatUint(uint64(typedData), 10))
 	case int64:
 		w.writeString(strconv.FormatInt(typedData, 10))

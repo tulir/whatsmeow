@@ -28,6 +28,16 @@ func (n *Node) GetChildren() []Node {
 	return children
 }
 
+func (n *Node) GetChildByTag(tag string) (val Node) {
+	for _, node := range n.GetChildren() {
+		if node.Tag == tag {
+			val = node
+			break
+		}
+	}
+	return
+}
+
 func (n *Node) convertLegacyAttributes() {
 	n.Attrs = make(map[string]interface{}, len(n.LegacyAttributes))
 	for key, attr := range n.LegacyAttributes {

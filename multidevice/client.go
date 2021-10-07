@@ -59,6 +59,13 @@ func (cli *Client) Connect() error {
 	return nil
 }
 
+func (cli *Client) Disconnect() {
+	if cli.socket != nil {
+		cli.socket.Close()
+		cli.socket = nil
+	}
+}
+
 func (cli *Client) AddEventHandler(handler func(interface{})) {
 	cli.eventHandlers = append(cli.eventHandlers, handler)
 }
@@ -82,7 +89,7 @@ func (cli *Client) handleFrame(data []byte) {
 		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(decompressed))
 		return
 	}
-	cli.Log.Debugln("<--", node.XMLString())
+	cli.Log.Debugln("RECEIVED:\n", node.XMLString())
 	switch {
 	case cli.receiveResponse(node):
 	case cli.dispatchNode(node):
@@ -97,7 +104,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 		return fmt.Errorf("failed to marshal ping IQ: %w", err)
 	}
 
-	cli.Log.Debugln("-->", node.XMLString())
+	cli.Log.Debugln("SENDING:\n", node.XMLString())
 	return cli.socket.SendFrame(payload)
 }
 

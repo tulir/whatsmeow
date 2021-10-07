@@ -33,6 +33,7 @@ func main() {
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c
+	cli.Disconnect()
 }
 
 func handler(rawEvt interface{}) {

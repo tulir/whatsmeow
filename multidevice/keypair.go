@@ -33,20 +33,24 @@ func (kp *KeyPair) CreateSignedPreKey(keyID int) (*SignedKeyPair, error) {
 	if keyID <= 0 {
 		return nil, fmt.Errorf("invalid prekey ID %d", keyID)
 	}
-	keyPair, err := NewKeyPair()
+	newKey, err := NewKeyPair()
 	if err != nil {
 		return nil, err
 	}
+	return &SignedKeyPair{
+		KeyPair:   *newKey,
+		KeyID:     keyID,
+		Signature: kp.Sign(newKey),
+	}, nil
+}
+
+func (kp *KeyPair) Sign(keyToSign *KeyPair) []byte {
 	pubKeyForSignature := make([]byte, 33)
 	pubKeyForSignature[0] = ecc.DjbType
-	copy(pubKeyForSignature[1:], keyPair.Pub[:])
+	copy(pubKeyForSignature[1:], keyToSign.Pub[:])
 
-	signature := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*keyPair.Priv), pubKeyForSignature)
-	return &SignedKeyPair{
-		KeyPair:   *keyPair,
-		KeyID:     keyID,
-		Signature: signature[:],
-	}, nil
+	signature := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*kp.Priv), pubKeyForSignature)
+	return signature[:]
 }
 
 type SignedKeyPair struct {
