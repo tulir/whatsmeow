@@ -137,7 +137,7 @@ func NewConn(opt *Options) *Conn {
 		Store:           opt.Store,
 		Proxy:           opt.Proxy,
 		longClientName:  "go.mau.fi/whatsmeow",
-		shortClientName: "go-whatsapp",
+		shortClientName: "whatsmeow",
 		clientVersion:   "0.1.0",
 	}
 	if len(opt.ShortClientName) != 0 {

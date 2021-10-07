@@ -31,9 +31,22 @@ func main() {
 	cli.AddEventHandler(handler)
 
 	c := make(chan os.Signal)
+	q := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	<-c
-	cli.Disconnect()
+	signal.Notify(q, syscall.SIGQUIT)
+	for {
+		select {
+		case <-c:
+			cli.Disconnect()
+			return
+		case <-q:
+			err = cli.Connect()
+			if err != nil {
+				log.Fatalln("Failed to connect:", err)
+				return
+			}
+		}
+	}
 }
 
 func handler(rawEvt interface{}) {
