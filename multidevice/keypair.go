@@ -39,7 +39,7 @@ func (kp *KeyPair) CreateSignedPreKey(keyID int) (*SignedKeyPair, error) {
 	}
 	pubKeyForSignature := make([]byte, 33)
 	pubKeyForSignature[0] = ecc.DjbType
-	copy(pubKeyForSignature[1:], (*keyPair.Pub)[:])
+	copy(pubKeyForSignature[1:], keyPair.Pub[:])
 
 	signature := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*keyPair.Priv), pubKeyForSignature)
 	return &SignedKeyPair{

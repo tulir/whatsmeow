@@ -10,28 +10,8 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
-type EventHandler func(cli *Client, node *waBinary.Node) bool
+type nodeHandler func(cli *Client, node *waBinary.Node) bool
 
-var eventHandlers = [...]EventHandler{
+var nodeHandlers = [...]nodeHandler{
 	handlePairDevice,
-}
-
-func handlePairDevice(cli *Client, node *waBinary.Node) bool {
-	if node.Tag != "iq" || len(node.GetChildren()) != 1 || node.GetChildren()[0].Tag != "pair-device" || node.Attrs["from"] != waBinary.ServerJID {
-		return false
-	}
-
-	err := cli.sendNode(waBinary.Node{
-		Tag: "iq",
-		Attrs: map[string]interface{}{
-			"to":   node.Attrs["from"],
-			"id":   node.Attrs["id"],
-			"type": "result",
-		},
-	})
-	if err != nil {
-		cli.Log.Warnln("Failed to send acknowledgement for pair-device request:", err)
-	}
-
-	return true
 }

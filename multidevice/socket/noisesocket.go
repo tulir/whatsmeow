@@ -9,7 +9,6 @@ package socket
 import (
 	"context"
 	"crypto/cipher"
-	"encoding/base64"
 	"encoding/binary"
 	"sync/atomic"
 )
@@ -44,7 +43,7 @@ func (ns *NoiseSocket) Context() context.Context {
 }
 
 func (ns *NoiseSocket) SendFrame(plaintext []byte) error {
-	ns.fs.log.Debugln("Encrypting and sending frame:", base64.StdEncoding.EncodeToString(plaintext))
+	//ns.fs.log.Debugln("Encrypting and sending frame:", base64.StdEncoding.EncodeToString(plaintext))
 	count := atomic.AddUint32(&ns.writeCounter, 1) - 1
 	ciphertext := ns.writeKey.Seal(nil, generateIV(count), plaintext, nil)
 	return ns.fs.SendFrame(ciphertext)

@@ -26,6 +26,8 @@ type Client struct {
 	responseWaiters     map[string]chan<- *waBinary.Node
 	responseWaitersLock sync.Mutex
 
+	eventHandlers []func(interface{})
+
 	uniqueID  string
 	idCounter uint64
 }
@@ -37,6 +39,7 @@ func NewClient(log log.Logger) *Client {
 		Log:             log,
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
+		eventHandlers:   make([]func(interface{}), 0),
 	}
 }
 
@@ -54,6 +57,10 @@ func (cli *Client) Connect() error {
 	cli.socket.OnFrame = cli.handleFrame
 	go cli.keepAliveLoop(cli.socket.Context())
 	return nil
+}
+
+func (cli *Client) AddEventHandler(handler func(interface{})) {
+	cli.eventHandlers = append(cli.eventHandlers, handler)
 }
 
 const streamEnd = "\xf8\x01\x02"
@@ -78,7 +85,7 @@ func (cli *Client) handleFrame(data []byte) {
 	cli.Log.Debugln("<--", node.XMLString())
 	switch {
 	case cli.receiveResponse(node):
-	case cli.callHandlers(node):
+	case cli.dispatchNode(node):
 	default:
 		cli.Log.Debugln("Didn't handle WhatsApp node")
 	}
@@ -94,11 +101,17 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 	return cli.socket.SendFrame(payload)
 }
 
-func (cli *Client) callHandlers(node *waBinary.Node) bool {
-	for _, handler := range eventHandlers {
+func (cli *Client) dispatchNode(node *waBinary.Node) bool {
+	for _, handler := range nodeHandlers {
 		if handler(cli, node) {
 			return true
 		}
 	}
 	return false
+}
+
+func (cli *Client) dispatchEvent(evt interface{}) {
+	for _, handler := range cli.eventHandlers {
+		handler(evt)
+	}
 }

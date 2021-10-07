@@ -28,10 +28,10 @@ func sliceToArray32(data []byte) (out [32]byte) {
 func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) error {
 	nh := socket.NewNoiseHandshake()
 	nh.Start(socket.NoiseStartPattern, fs.Header)
-	nh.Authenticate((*ephemeralKP.Pub)[:])
+	nh.Authenticate(ephemeralKP.Pub[:])
 	data, err := proto.Marshal(&waProto.HandshakeMessage{
 		ClientHello: &waProto.ClientHello{
-			Ephemeral: (*ephemeralKP.Pub)[:],
+			Ephemeral: ephemeralKP.Pub[:],
 		},
 	})
 	if err != nil {
@@ -98,7 +98,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 		}
 	}
 
-	encryptedPubkey := nh.Encrypt((*cli.Session.NoiseKey.Pub)[:])
+	encryptedPubkey := nh.Encrypt(cli.Session.NoiseKey.Pub[:])
 	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*cli.Session.NoiseKey.Priv, sliceToArray32(serverEphemeral)))
 	if err != nil {
 		return fmt.Errorf("failed to mix noise private key in: %w", err)

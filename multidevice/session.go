@@ -86,9 +86,9 @@ func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
 	payload.RegData = &waProto.CompanionRegData{
 		ERegid:         regID,
 		EKeytype:       []byte{ecc.DjbType},
-		EIdent:         (*sess.NoiseKey.Pub)[:],
+		EIdent:         sess.NoiseKey.Pub[:],
 		ESkeyId:        preKeyID[1:],
-		ESkeyVal:       (*sess.SignedPreKey.Pub)[:],
+		ESkeyVal:       sess.SignedPreKey.Pub[:],
 		ESkeySig:       sess.SignedPreKey.Signature,
 		BuildHash:      []byte(waVersionHashEncoded),
 		CompanionProps: companionProps,
