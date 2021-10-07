@@ -20,6 +20,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/multidevice/keys"
 )
 
 type QREvent struct {
@@ -139,7 +140,9 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return fmt.Errorf("failed to parse device identity details in pair success message: %w", err)
 	}
 
-	// TODO signal identity
+	mainDeviceJID := wid
+	mainDeviceJID.Device = 0
+	cli.Session.PutIdentity(&mainDeviceJID, *(*[32]byte)(deviceIdentity.AccountSignatureKey))
 
 	deviceIdentity.AccountSignatureKey = nil
 	selfSignedDeviceIdentity, err := proto.Marshal(&deviceIdentity)
@@ -169,6 +172,8 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return fmt.Errorf("failed to send pairing confirmation: %w", err)
 	}
 	cli.Session.ID = &wid
+	cli.Session.BusinessName = businessName
+	cli.Session.Platform = platform
 	return nil
 }
 
@@ -185,7 +190,7 @@ func concatBytes(data ...[]byte) []byte {
 	return output
 }
 
-func verifyDeviceIdentityAccountSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ikp *KeyPair) bool {
+func verifyDeviceIdentityAccountSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ikp *keys.KeyPair) bool {
 	if len(deviceIdentity.AccountSignatureKey) != 32 || len(deviceIdentity.AccountSignature) != 64 {
 		return false
 	}
@@ -197,7 +202,7 @@ func verifyDeviceIdentityAccountSignature(deviceIdentity *waProto.ADVSignedDevic
 	return ecc.VerifySignature(signatureKey, message, signature)
 }
 
-func generateDeviceSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ikp *KeyPair) *[64]byte {
+func generateDeviceSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ikp *keys.KeyPair) *[64]byte {
 	message := concatBytes([]byte{6, 1}, deviceIdentity.DeviceSignature, ikp.Pub[:], deviceIdentity.AccountSignatureKey)
 	sig := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*ikp.Priv), message)
 	return &sig

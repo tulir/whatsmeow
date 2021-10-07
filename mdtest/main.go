@@ -17,12 +17,14 @@ import (
 	log "maunium.net/go/maulogger/v2"
 
 	"go.mau.fi/whatsmeow/multidevice"
+	"go.mau.fi/whatsmeow/multidevice/session"
 )
 
 func main() {
 	log.DefaultLogger.PrintLevel = 0
 
-	cli := multidevice.NewClient(log.DefaultLogger)
+	sess := session.Session{}
+	cli := multidevice.NewClient(&sess, log.DefaultLogger)
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)

@@ -15,11 +15,13 @@ import (
 	log "maunium.net/go/maulogger/v2"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/multidevice/keys"
+	"go.mau.fi/whatsmeow/multidevice/session"
 	"go.mau.fi/whatsmeow/multidevice/socket"
 )
 
 type Client struct {
-	Session Session
+	Session *session.Session
 	Log     log.Logger
 	socket  *socket.NoiseSocket
 
@@ -32,10 +34,11 @@ type Client struct {
 	idCounter uint64
 }
 
-func NewClient(log log.Logger) *Client {
+func NewClient(sess *session.Session, log log.Logger) *Client {
 	randomBytes := make([]byte, 2)
 	_, _ = rand.Read(randomBytes)
 	return &Client{
+		Session:         sess,
 		Log:             log,
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
@@ -45,7 +48,7 @@ func NewClient(log log.Logger) *Client {
 
 func (cli *Client) Connect() error {
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader)
-	if ephemeralKP, err := NewKeyPair(); err != nil {
+	if ephemeralKP, err := keys.NewKeyPair(); err != nil {
 		return fmt.Errorf("failed to generate ephemeral keypair: %w", err)
 	} else if err = fs.Connect(); err != nil {
 		fs.Close()
@@ -89,7 +92,7 @@ func (cli *Client) handleFrame(data []byte) {
 		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(decompressed))
 		return
 	}
-	cli.Log.Debugln("RECEIVED:\n", node.XMLString())
+	cli.Log.Debugfln("RECEIVED:\n%s", node.XMLString())
 	switch {
 	case cli.receiveResponse(node):
 	case cli.dispatchNode(node):
@@ -104,7 +107,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 		return fmt.Errorf("failed to marshal ping IQ: %w", err)
 	}
 
-	cli.Log.Debugln("SENDING:\n", node.XMLString())
+	cli.Log.Debugfln("SENDING:\n%s", node.XMLString())
 	return cli.socket.SendFrame(payload)
 }
 

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package multidevice
+package session
 
 import (
 	"crypto/md5"
@@ -15,7 +15,6 @@ import (
 	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"google.golang.org/protobuf/proto"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
@@ -34,18 +33,10 @@ func init() {
 	waVersionHash = md5.Sum([]byte(waVersionString))
 }
 
-type Session struct {
-	NoiseKey          *KeyPair
-	SignedIdentityKey *KeyPair
-	SignedPreKey      *SignedKeyPair
-	RegistrationID    uint16
-	AdvSecretKey      []byte
-	ID                *waBinary.FullJID
-}
-
 var BaseClientPayload = &waProto.ClientPayload{
 	UserAgent: &waProto.UserAgent{
-		Platform: waProto.UserAgent_WEB.Enum(),
+		Platform:       waProto.UserAgent_WEB.Enum(),
+		ReleaseChannel: waProto.UserAgent_RELEASE.Enum(),
 		AppVersion: &waProto.AppVersion{
 			Primary:   proto.Uint32(uint32(waVersion[0])),
 			Secondary: proto.Uint32(uint32(waVersion[1])),
@@ -107,7 +98,7 @@ func (sess *Session) getLoginPayload() *waProto.ClientPayload {
 	return payload
 }
 
-func (sess *Session) getClientPayload() *waProto.ClientPayload {
+func (sess *Session) GetClientPayload() *waProto.ClientPayload {
 	if sess.ID != nil {
 		return sess.getLoginPayload()
 	} else {

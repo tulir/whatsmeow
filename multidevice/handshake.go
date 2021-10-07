@@ -17,10 +17,11 @@ import (
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/crypto/curve25519"
+	"go.mau.fi/whatsmeow/multidevice/keys"
 	"go.mau.fi/whatsmeow/multidevice/socket"
 )
 
-func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) error {
+func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair) error {
 	nh := socket.NewNoiseHandshake()
 	nh.Start(socket.NoiseStartPattern, fs.Header)
 	nh.Authenticate(ephemeralKP.Pub[:])
@@ -89,7 +90,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 	}
 
 	if cli.Session.NoiseKey == nil {
-		cli.Session.NoiseKey = &KeyPair{}
+		cli.Session.NoiseKey = &keys.KeyPair{}
 		cli.Session.NoiseKey.Priv, cli.Session.NoiseKey.Pub, err = curve25519.GenerateKey()
 		if err != nil {
 			return fmt.Errorf("failed to generate curve25519 keypair: %w", err)
@@ -103,7 +104,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 	}
 
 	if cli.Session.SignedIdentityKey == nil {
-		cli.Session.SignedIdentityKey = &KeyPair{}
+		cli.Session.SignedIdentityKey = &keys.KeyPair{}
 		cli.Session.SignedIdentityKey.Priv, cli.Session.SignedIdentityKey.Pub, err = curve25519.GenerateKey()
 		if err != nil {
 			return fmt.Errorf("failed to generate curve25519 keypair: %w", err)
@@ -119,7 +120,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP KeyPair) erro
 		cli.Session.RegistrationID = uint16(mathRand.Uint32() & 0x3fff)
 	}
 
-	clientFinishPayloadBytes, err := proto.Marshal(cli.Session.getClientPayload())
+	clientFinishPayloadBytes, err := proto.Marshal(cli.Session.GetClientPayload())
 	if err != nil {
 		return fmt.Errorf("failed to marshal client finish payload: %w", err)
 	}

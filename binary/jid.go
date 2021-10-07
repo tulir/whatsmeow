@@ -24,8 +24,8 @@ var (
 
 type FullJID struct {
 	User   string
-	Device uint8
 	Agent  uint8
+	Device uint8
 	Server string
 	AD     bool
 }
@@ -35,11 +35,11 @@ func (jid FullJID) UserInt() uint64 {
 	return number
 }
 
-func NewADJID(user string, device, agent uint8) FullJID {
+func NewADJID(user string, agent, device uint8) FullJID {
 	return FullJID{
 		User:   user,
-		Device: device,
 		Agent:  agent,
+		Device: device,
 		Server: DefaultUserServer,
 		AD:     true,
 	}
