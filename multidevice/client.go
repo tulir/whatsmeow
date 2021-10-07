@@ -28,6 +28,7 @@ type Client struct {
 	responseWaiters     map[string]chan<- *waBinary.Node
 	responseWaitersLock sync.Mutex
 
+	nodeHandlers  []nodeHandler
 	eventHandlers []func(interface{})
 
 	uniqueID  string
@@ -43,6 +44,12 @@ func NewClient(sess *session.Session, log log.Logger) *Client {
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
 		eventHandlers:   make([]func(interface{}), 0),
+		nodeHandlers: []nodeHandler{
+			handlePairDevice,
+			handlePairSuccess,
+			handleConnectSuccess,
+			handleStreamError,
+		},
 	}
 }
 
@@ -92,7 +99,7 @@ func (cli *Client) handleFrame(data []byte) {
 		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(decompressed))
 		return
 	}
-	cli.Log.Debugfln("RECEIVED:\n%s", node.XMLString())
+	cli.Log.Debugln("RECEIVED:", node.XMLString())
 	switch {
 	case cli.receiveResponse(node):
 	case cli.dispatchNode(node):
@@ -107,12 +114,12 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 		return fmt.Errorf("failed to marshal ping IQ: %w", err)
 	}
 
-	cli.Log.Debugfln("SENDING:\n%s", node.XMLString())
+	cli.Log.Debugln("SENDING:", node.XMLString())
 	return cli.socket.SendFrame(payload)
 }
 
 func (cli *Client) dispatchNode(node *waBinary.Node) bool {
-	for _, handler := range nodeHandlers {
+	for _, handler := range cli.nodeHandlers {
 		if handler(cli, node) {
 			return true
 		}

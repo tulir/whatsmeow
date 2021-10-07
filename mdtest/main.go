@@ -23,8 +23,8 @@ import (
 func main() {
 	log.DefaultLogger.PrintLevel = 0
 
-	sess := session.Session{}
-	cli := multidevice.NewClient(&sess, log.DefaultLogger)
+	sess := session.NewSession()
+	cli := multidevice.NewClient(sess, log.DefaultLogger)
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)
@@ -42,6 +42,7 @@ func main() {
 			cli.Disconnect()
 			return
 		case <-q:
+			cli.Disconnect()
 			err = cli.Connect()
 			if err != nil {
 				log.Fatalln("Failed to connect:", err)

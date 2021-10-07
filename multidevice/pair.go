@@ -97,12 +97,14 @@ func handlePairSuccess(cli *Client, node *waBinary.Node) bool {
 	wid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(waBinary.FullJID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
 
-	err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, wid)
-	if err != nil {
-		cli.Log.Errorln("Failed to pair device:", err)
-	} else {
-		cli.Log.Infoln("Successfully paired", cli.Session.ID)
-	}
+	go func() {
+		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, wid)
+		if err != nil {
+			cli.Log.Errorln("Failed to pair device:", err)
+		} else {
+			cli.Log.Infoln("Successfully paired", cli.Session.ID)
+		}
+	}()
 	return true
 }
 

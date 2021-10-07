@@ -62,3 +62,15 @@ func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {
 	}
 	ns.OnFrame(plaintext)
 }
+
+func (ns *NoiseSocket) SetOnFrame(onFrame func([]byte)) {
+	ns.OnFrame = onFrame
+}
+
+func (ns *NoiseSocket) GetOnFrame() func([]byte) {
+	return ns.OnFrame
+}
+
+func (ns *NoiseSocket) ConsumeNextFrame() (output <-chan []byte, cancel func()) {
+	return ConsumeNextFrame(ns)
+}

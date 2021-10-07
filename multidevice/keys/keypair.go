@@ -29,19 +29,13 @@ func NewKeyPair() (*KeyPair, error) {
 	return &kp, nil
 }
 
-func (kp *KeyPair) CreateSignedPreKey(keyID int) (*SignedKeyPair, error) {
-	if keyID <= 0 {
-		return nil, fmt.Errorf("invalid prekey ID %d", keyID)
-	}
-	newKey, err := NewKeyPair()
+func (kp *KeyPair) CreateSignedPreKey(keyID int) (*PreKey, error) {
+	newKey, err := NewPreKey(keyID)
 	if err != nil {
 		return nil, err
 	}
-	return &SignedKeyPair{
-		KeyPair:   *newKey,
-		KeyID:     keyID,
-		Signature: kp.Sign(newKey),
-	}, nil
+	newKey.Signature = kp.Sign(&newKey.KeyPair)
+	return newKey, nil
 }
 
 func (kp *KeyPair) Sign(keyToSign *KeyPair) []byte {
@@ -53,8 +47,22 @@ func (kp *KeyPair) Sign(keyToSign *KeyPair) []byte {
 	return signature[:]
 }
 
-type SignedKeyPair struct {
+type PreKey struct {
 	KeyPair
 	KeyID     int
 	Signature []byte
+}
+
+func NewPreKey(keyID int) (*PreKey, error) {
+	if keyID <= 0 {
+		return nil, fmt.Errorf("invalid prekey ID %d", keyID)
+	}
+	kp, err := NewKeyPair()
+	if err != nil {
+		return nil, err
+	}
+	return &PreKey{
+		KeyPair: *kp,
+		KeyID:   keyID,
+	}, nil
 }

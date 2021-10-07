@@ -65,7 +65,9 @@ func (fs *FrameSocket) Close() {
 	if err != nil {
 		fs.log.Errorln("Error closing websocket:", err)
 	}
-	fs.cancel()
+	if fs.cancel != nil {
+		fs.cancel()
+	}
 	fs.conn = nil
 	fs.ctx = nil
 	fs.cancel = nil
@@ -138,15 +140,21 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 	return fs.conn.WriteMessage(websocket.BinaryMessage, wholeFrame)
 }
 
+func (fs *FrameSocket) SetOnFrame(onFrame func([]byte)) {
+	fs.OnFrame = onFrame
+}
+
+func (fs *FrameSocket) GetOnFrame() func([]byte) {
+	return fs.OnFrame
+}
+
+func (fs *FrameSocket) ConsumeNextFrame() (output <-chan []byte, cancel func()) {
+	return ConsumeNextFrame(fs)
+}
+
 func (fs *FrameSocket) SendAndReceiveFrame(ctx context.Context, data []byte) ([]byte, error) {
-	output := make(chan []byte, 1)
-	prevOnFrame := fs.OnFrame
-	defer func() {
-		fs.OnFrame = prevOnFrame
-	}()
-	fs.OnFrame = func(bytes []byte) {
-		output <- bytes
-	}
+	output, cancel := fs.ConsumeNextFrame()
+	defer cancel()
 	err := fs.SendFrame(data)
 	if err != nil {
 		return nil, err

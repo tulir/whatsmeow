@@ -14,13 +14,27 @@ import (
 type Session struct {
 	NoiseKey          *keys.KeyPair
 	SignedIdentityKey *keys.KeyPair
-	SignedPreKey      *keys.SignedKeyPair
+	SignedPreKey      *keys.PreKey
 	RegistrationID    uint16
 	AdvSecretKey      []byte
 
 	identityKeys map[waBinary.FullJID][32]byte
 
+	preKeys           map[int]*keys.PreKey
+	firstUnuploadedID int
+	nextPreKeyID      int
+
 	Platform     string
 	BusinessName string
 	ID           *waBinary.FullJID
+}
+
+func NewSession() *Session {
+	return &Session{
+		identityKeys: map[waBinary.FullJID][32]byte{},
+	}
+}
+
+func (sess *Session) PutIdentity(jid *waBinary.FullJID, key [32]byte) {
+	sess.identityKeys[*jid] = key
 }
