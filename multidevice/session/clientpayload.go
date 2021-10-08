@@ -65,7 +65,7 @@ var CompanionProps = &waProto.CompanionProps{
 		Secondary: proto.Uint32(1),
 		Tertiary:  proto.Uint32(0),
 	},
-	PlatformType:    waProto.CompanionProps_FIREFOX.Enum(),
+	PlatformType:    waProto.CompanionProps_UNKNOWN.Enum(),
 	RequireFullSync: proto.Bool(false),
 }
 
@@ -79,7 +79,7 @@ func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
 	payload.RegData = &waProto.CompanionRegData{
 		ERegid:         regID,
 		EKeytype:       []byte{ecc.DjbType},
-		EIdent:         sess.SignedIdentityKey.Pub[:],
+		EIdent:         sess.IdentityKey.Pub[:],
 		ESkeyId:        preKeyID[1:],
 		ESkeyVal:       sess.SignedPreKey.Pub[:],
 		ESkeySig:       sess.SignedPreKey.Signature,

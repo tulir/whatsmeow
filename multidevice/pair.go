@@ -28,9 +28,15 @@ type QREvent struct {
 	Timeout time.Duration
 }
 
+type PairSuccessEvent struct {
+	ID           waBinary.FullJID
+	BusinessName string
+	Platform     string
+}
+
 const QRScanTimeout = 30 * time.Second
 
-func handlePairDevice(cli *Client, node *waBinary.Node) bool {
+func (cli *Client) handlePairDevice(node *waBinary.Node) bool {
 	if node.Tag != "iq" || len(node.GetChildren()) != 1 || node.Attrs["from"] != waBinary.ServerJID {
 		return false
 	}
@@ -76,12 +82,12 @@ func handlePairDevice(cli *Client, node *waBinary.Node) bool {
 
 func (cli *Client) makeQRData(ref string) string {
 	noise := base64.StdEncoding.EncodeToString(cli.Session.NoiseKey.Pub[:])
-	identity := base64.StdEncoding.EncodeToString(cli.Session.SignedIdentityKey.Pub[:])
+	identity := base64.StdEncoding.EncodeToString(cli.Session.IdentityKey.Pub[:])
 	adv := base64.StdEncoding.EncodeToString(cli.Session.AdvSecretKey)
 	return strings.Join([]string{ref, noise, identity, adv}, ",")
 }
 
-func handlePairSuccess(cli *Client, node *waBinary.Node) bool {
+func (cli *Client) handlePairSuccess(node *waBinary.Node) bool {
 	if node.Tag != "iq" || len(node.GetChildren()) != 1 || node.Attrs["from"] != waBinary.ServerJID {
 		return false
 	}
@@ -129,12 +135,12 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return fmt.Errorf("failed to parse signed device identity in pair success message: %w", err)
 	}
 
-	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Session.SignedIdentityKey) {
+	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Session.IdentityKey) {
 		cli.sendNotAuthorized(reqID)
 		return fmt.Errorf("invalid device signature in pair success message")
 	}
 
-	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Session.SignedIdentityKey)[:]
+	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Session.IdentityKey)[:]
 
 	var deviceIdentityDetails waProto.ADVDeviceIdentity
 	err = proto.Unmarshal(deviceIdentity.Details, &deviceIdentityDetails)
@@ -176,6 +182,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	cli.Session.ID = &wid
 	cli.Session.BusinessName = businessName
 	cli.Session.Platform = platform
+	cli.dispatchEvent(&PairSuccessEvent{ID: wid, BusinessName: businessName, Platform: platform})
 	return nil
 }
 

@@ -103,18 +103,11 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		return fmt.Errorf("failed to mix noise private key in: %w", err)
 	}
 
-	if cli.Session.SignedIdentityKey == nil {
-		cli.Session.SignedIdentityKey = &keys.KeyPair{}
-		cli.Session.SignedIdentityKey.Priv, cli.Session.SignedIdentityKey.Pub, err = curve25519.GenerateKey()
-		if err != nil {
-			return fmt.Errorf("failed to generate curve25519 keypair: %w", err)
-		}
+	if cli.Session.IdentityKey == nil {
+		cli.Session.IdentityKey = keys.NewKeyPair()
 	}
 	if cli.Session.SignedPreKey == nil {
-		cli.Session.SignedPreKey, err = cli.Session.SignedIdentityKey.CreateSignedPreKey(1)
-		if err != nil {
-			return fmt.Errorf("failed to generate signed prekey: %w", err)
-		}
+		cli.Session.SignedPreKey = cli.Session.IdentityKey.CreateSignedPreKey(1)
 	}
 	if cli.Session.RegistrationID == 0 {
 		cli.Session.RegistrationID = uint16(mathRand.Uint32() & 0x3fff)

@@ -7,22 +7,25 @@
 package session
 
 import (
+	"sync"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/multidevice/keys"
 )
 
 type Session struct {
-	NoiseKey          *keys.KeyPair
-	SignedIdentityKey *keys.KeyPair
-	SignedPreKey      *keys.PreKey
-	RegistrationID    uint16
-	AdvSecretKey      []byte
+	NoiseKey       *keys.KeyPair
+	IdentityKey    *keys.KeyPair
+	SignedPreKey   *keys.PreKey
+	RegistrationID uint16
+	AdvSecretKey   []byte
 
-	identityKeys map[waBinary.FullJID][32]byte
+	IdentityKeys map[waBinary.FullJID][32]byte
 
-	preKeys           map[int]*keys.PreKey
-	firstUnuploadedID int
-	nextPreKeyID      int
+	PreKeys           map[uint32]*keys.PreKey
+	preKeysLock       sync.Mutex
+	FirstUnuploadedID uint32
+	NextPreKeyID      uint32
 
 	Platform     string
 	BusinessName string
@@ -31,10 +34,63 @@ type Session struct {
 
 func NewSession() *Session {
 	return &Session{
-		identityKeys: map[waBinary.FullJID][32]byte{},
+		IdentityKeys:      map[waBinary.FullJID][32]byte{},
+		PreKeys:           make(map[uint32]*keys.PreKey),
+		FirstUnuploadedID: 2,
+		NextPreKeyID:      2,
 	}
 }
 
 func (sess *Session) PutIdentity(jid *waBinary.FullJID, key [32]byte) {
-	sess.identityKeys[*jid] = key
+	sess.IdentityKeys[*jid] = key
+}
+
+func (sess *Session) unlockedGetPreKeys(count uint32) []*keys.PreKey {
+	foundKeys := make([]*keys.PreKey, 0, count)
+	for _, key := range sess.PreKeys {
+		if key.KeyID >= sess.FirstUnuploadedID {
+			foundKeys = append(foundKeys, key)
+			if uint32(len(foundKeys)) >= count {
+				break
+			}
+		}
+	}
+	return foundKeys
+}
+
+func (sess *Session) GetPreKeys(count uint32) []*keys.PreKey {
+	sess.preKeysLock.Lock()
+	defer sess.preKeysLock.Unlock()
+	return sess.unlockedGetPreKeys(count)
+}
+
+func (sess *Session) GetPreKey(id uint32) *keys.PreKey {
+	sess.preKeysLock.Lock()
+	defer sess.preKeysLock.Unlock()
+	return sess.PreKeys[id]
+}
+
+func (sess *Session) RemovePreKey(id uint32) {
+	sess.preKeysLock.Lock()
+	delete(sess.PreKeys, id)
+	sess.preKeysLock.Unlock()
+}
+
+func (sess *Session) GetOrGenPreKeys(count uint32) []*keys.PreKey {
+	sess.preKeysLock.Lock()
+	defer sess.preKeysLock.Unlock()
+	for ; sess.NextPreKeyID < sess.FirstUnuploadedID+count; sess.NextPreKeyID++ {
+		sess.PreKeys[sess.NextPreKeyID] = keys.NewPreKey(sess.NextPreKeyID)
+	}
+	return sess.unlockedGetPreKeys(count)
+}
+
+func (sess *Session) ServerHasPreKeys() bool {
+	return sess.FirstUnuploadedID > 2
+}
+
+func (sess *Session) MarkPreKeysAsUploaded(upTo uint32) {
+	sess.preKeysLock.Lock()
+	sess.FirstUnuploadedID = upTo + 1
+	sess.preKeysLock.Unlock()
 }

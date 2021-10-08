@@ -38,29 +38,28 @@ type Client struct {
 func NewClient(sess *session.Session, log log.Logger) *Client {
 	randomBytes := make([]byte, 2)
 	_, _ = rand.Read(randomBytes)
-	return &Client{
+	cli := &Client{
 		Session:         sess,
 		Log:             log,
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
 		eventHandlers:   make([]func(interface{}), 0),
-		nodeHandlers: []nodeHandler{
-			handlePairDevice,
-			handlePairSuccess,
-			handleConnectSuccess,
-			handleStreamError,
-		},
 	}
+	cli.nodeHandlers = []nodeHandler{
+		cli.handlePairDevice,
+		cli.handlePairSuccess,
+		cli.handleConnectSuccess,
+		cli.handleStreamError,
+	}
+	return cli
 }
 
 func (cli *Client) Connect() error {
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader)
-	if ephemeralKP, err := keys.NewKeyPair(); err != nil {
-		return fmt.Errorf("failed to generate ephemeral keypair: %w", err)
-	} else if err = fs.Connect(); err != nil {
+	if err := fs.Connect(); err != nil {
 		fs.Close()
 		return err
-	} else if err = cli.doHandshake(fs, *ephemeralKP); err != nil {
+	} else if err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
 		fs.Close()
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
@@ -120,7 +119,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 
 func (cli *Client) dispatchNode(node *waBinary.Node) bool {
 	for _, handler := range cli.nodeHandlers {
-		if handler(cli, node) {
+		if handler(node) {
 			return true
 		}
 	}

@@ -19,23 +19,20 @@ type KeyPair struct {
 	Priv *[32]byte
 }
 
-func NewKeyPair() (*KeyPair, error) {
+func NewKeyPair() *KeyPair {
 	var kp KeyPair
 	var err error
 	kp.Priv, kp.Pub, err = curve25519.GenerateKey()
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate curve25519 keypair: %w", err)
+		panic(fmt.Errorf("failed to generate curve25519 keypair: %w", err))
 	}
-	return &kp, nil
+	return &kp
 }
 
-func (kp *KeyPair) CreateSignedPreKey(keyID int) (*PreKey, error) {
-	newKey, err := NewPreKey(keyID)
-	if err != nil {
-		return nil, err
-	}
+func (kp *KeyPair) CreateSignedPreKey(keyID uint32) *PreKey {
+	newKey := NewPreKey(keyID)
 	newKey.Signature = kp.Sign(&newKey.KeyPair)
-	return newKey, nil
+	return newKey
 }
 
 func (kp *KeyPair) Sign(keyToSign *KeyPair) []byte {
@@ -49,20 +46,13 @@ func (kp *KeyPair) Sign(keyToSign *KeyPair) []byte {
 
 type PreKey struct {
 	KeyPair
-	KeyID     int
+	KeyID     uint32
 	Signature []byte
 }
 
-func NewPreKey(keyID int) (*PreKey, error) {
-	if keyID <= 0 {
-		return nil, fmt.Errorf("invalid prekey ID %d", keyID)
-	}
-	kp, err := NewKeyPair()
-	if err != nil {
-		return nil, err
-	}
+func NewPreKey(keyID uint32) *PreKey {
 	return &PreKey{
-		KeyPair: *kp,
+		KeyPair: *NewKeyPair(),
 		KeyID:   keyID,
-	}, nil
+	}
 }
