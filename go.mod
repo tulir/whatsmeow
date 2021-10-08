@@ -14,7 +14,8 @@ require (
 require (
 	github.com/RadicalApp/complete v0.0.0-20170329192659-17e6c0ee499b // indirect
 	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
 
-replace github.com/RadicalApp/libsignal-protocol-go => github.com/crossle/libsignal-protocol-go v0.0.0-20200729065236-21cc516a6fbf
+replace github.com/RadicalApp/libsignal-protocol-go => github.com/tulir/libsignal-protocol-go v0.0.0-20211008154615-595e7a9a5988

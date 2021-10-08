@@ -150,7 +150,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 
 	mainDeviceJID := wid
 	mainDeviceJID.Device = 0
-	cli.Session.PutIdentity(&mainDeviceJID, *(*[32]byte)(deviceIdentity.AccountSignatureKey))
+	cli.Session.PutIdentity(mainDeviceJID, *(*[32]byte)(deviceIdentity.AccountSignatureKey))
 
 	deviceIdentity.AccountSignatureKey = nil
 	selfSignedDeviceIdentity, err := proto.Marshal(&deviceIdentity)

@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	signalProtocol "github.com/RadicalApp/libsignal-protocol-go/protocol"
 )
 
 const (
@@ -33,6 +35,14 @@ type FullJID struct {
 func (jid FullJID) UserInt() uint64 {
 	number, _ := strconv.ParseUint(jid.User, 10, 64)
 	return number
+}
+
+func (jid FullJID) SignalAddress() *signalProtocol.SignalAddress {
+	user := jid.User
+	if jid.Agent != 0 {
+		user = fmt.Sprintf("%s_%d", jid.User, jid.Agent)
+	}
+	return signalProtocol.NewSignalAddress(user, uint32(jid.Device))
 }
 
 func NewADJID(user string, agent, device uint8) FullJID {

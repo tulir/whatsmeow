@@ -9,6 +9,8 @@ package session
 import (
 	"sync"
 
+	"github.com/RadicalApp/libsignal-protocol-go/state/record"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/multidevice/keys"
 )
@@ -20,7 +22,11 @@ type Session struct {
 	RegistrationID uint16
 	AdvSecretKey   []byte
 
-	IdentityKeys map[waBinary.FullJID][32]byte
+	IdentityKeys     map[string][32]byte
+	identityKeysLock sync.Mutex
+
+	Sessions     map[string]*record.SessionStructure
+	sessionsLock sync.Mutex
 
 	PreKeys           map[uint32]*keys.PreKey
 	preKeysLock       sync.Mutex
@@ -34,15 +40,18 @@ type Session struct {
 
 func NewSession() *Session {
 	return &Session{
-		IdentityKeys:      map[waBinary.FullJID][32]byte{},
+		IdentityKeys:      map[string][32]byte{},
 		PreKeys:           make(map[uint32]*keys.PreKey),
+		Sessions:          make(map[string]*record.SessionStructure),
 		FirstUnuploadedID: 2,
 		NextPreKeyID:      2,
 	}
 }
 
-func (sess *Session) PutIdentity(jid *waBinary.FullJID, key [32]byte) {
-	sess.IdentityKeys[*jid] = key
+func (sess *Session) PutIdentity(jid waBinary.FullJID, key [32]byte) {
+	sess.identityKeysLock.Lock()
+	sess.IdentityKeys[jid.SignalAddress().String()] = key
+	sess.identityKeysLock.Unlock()
 }
 
 func (sess *Session) unlockedGetPreKeys(count uint32) []*keys.PreKey {
@@ -66,8 +75,12 @@ func (sess *Session) GetPreKeys(count uint32) []*keys.PreKey {
 
 func (sess *Session) GetPreKey(id uint32) *keys.PreKey {
 	sess.preKeysLock.Lock()
-	defer sess.preKeysLock.Unlock()
-	return sess.PreKeys[id]
+	key, ok := sess.PreKeys[id]
+	sess.preKeysLock.Unlock()
+	if !ok {
+		return nil
+	}
+	return key
 }
 
 func (sess *Session) RemovePreKey(id uint32) {

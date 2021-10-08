@@ -70,7 +70,7 @@ func preKeyToNode(key *keys.PreKey) waBinary.Node {
 		node.Tag = "skey"
 		node.Content = append(node.GetChildren(), waBinary.Node{
 			Tag:     "signature",
-			Content: key.Signature,
+			Content: key.Signature[:],
 		})
 	}
 	return node

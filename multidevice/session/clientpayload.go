@@ -12,8 +12,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
@@ -82,7 +83,7 @@ func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
 		EIdent:         sess.IdentityKey.Pub[:],
 		ESkeyId:        preKeyID[1:],
 		ESkeyVal:       sess.SignedPreKey.Pub[:],
-		ESkeySig:       sess.SignedPreKey.Signature,
+		ESkeySig:       sess.SignedPreKey.Signature[:],
 		BuildHash:      waVersionHash[:],
 		CompanionProps: companionProps,
 	}

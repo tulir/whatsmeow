@@ -35,19 +35,19 @@ func (kp *KeyPair) CreateSignedPreKey(keyID uint32) *PreKey {
 	return newKey
 }
 
-func (kp *KeyPair) Sign(keyToSign *KeyPair) []byte {
+func (kp *KeyPair) Sign(keyToSign *KeyPair) *[64]byte {
 	pubKeyForSignature := make([]byte, 33)
 	pubKeyForSignature[0] = ecc.DjbType
 	copy(pubKeyForSignature[1:], keyToSign.Pub[:])
 
 	signature := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*kp.Priv), pubKeyForSignature)
-	return signature[:]
+	return &signature
 }
 
 type PreKey struct {
 	KeyPair
 	KeyID     uint32
-	Signature []byte
+	Signature *[64]byte
 }
 
 func NewPreKey(keyID uint32) *PreKey {
