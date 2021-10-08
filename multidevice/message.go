@@ -65,7 +65,7 @@ func unpadMessage(plaintext []byte) ([]byte, error) {
 			return nil, fmt.Errorf("plaintext doesn't have expected padding")
 		}
 	}
-	return plaintext[:len(plaintext) - int(plaintext[len(plaintext)-1])], nil
+	return plaintext[:len(plaintext)-int(plaintext[len(plaintext)-1])], nil
 }
 
 func padMessage(plaintext []byte) []byte {
@@ -74,7 +74,7 @@ func padMessage(plaintext []byte) []byte {
 	if err != nil {
 		panic(err)
 	}
-	plaintext = append(plaintext, bytes.Repeat(pad[:], int(pad[0] & 0xf))...)
+	plaintext = append(plaintext, bytes.Repeat(pad[:], int(pad[0]&0xf))...)
 	return plaintext
 }
 
