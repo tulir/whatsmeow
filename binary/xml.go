@@ -3,7 +3,9 @@ package binary
 import (
 	"encoding/hex"
 	"fmt"
+	"sort"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -23,17 +25,27 @@ func (n *Node) attributeString() string {
 	if len(n.Attrs) == 0 {
 		return ""
 	}
-	var builder strings.Builder
-	builder.WriteRune(' ')
-	count := 0
+	stringAttrs := make([]string, len(n.Attrs) + 1)
+	i := 1
 	for key, value := range n.Attrs {
-		count += 1
-		_, _ = fmt.Fprintf(&builder, `%s="%v"`, key, value)
-		if count < len(n.Attrs) {
-			builder.WriteRune(' ')
+		stringAttrs[i] = fmt.Sprintf(`%s="%v"`, key, value)
+		i += 1
+	}
+	sort.Strings(stringAttrs)
+	return strings.Join(stringAttrs, " ")
+}
+
+func printable(data []byte) string {
+	if !utf8.Valid(data) {
+		return ""
+	}
+	str := string(data)
+	for _, c := range str {
+		if !unicode.IsPrint(c) {
+			return ""
 		}
 	}
-	return builder.String()
+	return str
 }
 
 func (n *Node) contentString() []string {
@@ -44,7 +56,7 @@ func (n *Node) contentString() []string {
 			split = append(split, strings.Split(item.XMLString(), "\n")...)
 		}
 	case []byte:
-		if utf8.Valid(content) {
+		if strContent := printable(content); len(strContent) > 0 {
 			split = append(split, strings.Split(string(content), "\n")...)
 		} else {
 			hexData := hex.EncodeToString(content)

@@ -44,15 +44,16 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
 		return false
 	}
 	cli.Log.Infoln("Successfully authenticated")
-	cli.dispatchEvent(&ConnectedEvent{})
-
-	if !cli.Session.ServerHasPreKeys() {
-		cli.uploadPreKeys()
-	}
-	//err := cli.sendPassiveIQ(false)
-	//if err != nil {
-	//	cli.Log.Warnln("Failed to send post-connect passive IQ:", err)
-	//}
+	go func() {
+		if !cli.Session.ServerHasPreKeys() {
+			cli.uploadPreKeys()
+		}
+		err := cli.sendPassiveIQ(false)
+		if err != nil {
+			cli.Log.Warnln("Failed to send post-connect passive IQ:", err)
+		}
+		cli.dispatchEvent(&ConnectedEvent{})
+	}()
 	return true
 }
 
@@ -98,7 +99,7 @@ func (cli *Client) uploadPreKeys() {
 		Content: []waBinary.Node{
 			{Tag: "registration", Content: registrationIDBytes[:]},
 			{Tag: "type", Content: []byte{ecc.DjbType}},
-			{Tag: "identity", Content: cli.Session.IdentityKey.Pub},
+			{Tag: "identity", Content: cli.Session.IdentityKey.Pub[:]},
 			{Tag: "list", Content: preKeysToNodes(preKeys)},
 			preKeyToNode(cli.Session.SignedPreKey),
 		},
