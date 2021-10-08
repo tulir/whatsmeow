@@ -49,17 +49,40 @@ func (cli *Client) receiveResponse(data *waBinary.Node) bool {
 	return true
 }
 
-func (cli *Client) sendRequest(req waBinary.Node) (<-chan *waBinary.Node, error) {
-	reqID, ok := req.Attrs["id"].(string)
-	if !ok {
-		reqID = cli.generateRequestID()
-		req.Attrs["id"] = reqID
+type InfoQuery struct {
+	Namespace string
+	Type      string
+	To        waBinary.FullJID
+	ID        string
+	Content   interface{}
+}
+
+func (cli *Client) sendIQAsync(query InfoQuery) (<-chan *waBinary.Node, error) {
+	if len(query.ID) == 0 {
+		query.ID = cli.generateRequestID()
 	}
-	waiter := cli.waitResponse(reqID)
-	err := cli.sendNode(req)
+	waiter := cli.waitResponse(query.ID)
+	err := cli.sendNode(waBinary.Node{
+		Tag: "iq",
+		Attrs: map[string]interface{}{
+			"id":    query.ID,
+			"xmlns": query.Namespace,
+			"type":  query.Type,
+			"to":    query.To,
+		},
+		Content: query.Content,
+	})
 	if err != nil {
-		cli.cancelResponse(reqID, waiter)
+		cli.cancelResponse(query.ID, waiter)
 		return nil, err
 	}
 	return waiter, nil
+}
+
+func (cli *Client) sendIQ(query InfoQuery) (*waBinary.Node, error) {
+	resChan, err := cli.sendIQAsync(query)
+	if err != nil {
+		return nil, err
+	}
+	return <-resChan, nil
 }

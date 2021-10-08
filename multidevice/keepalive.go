@@ -35,15 +35,11 @@ func (cli *Client) keepAliveLoop(ctx context.Context) {
 }
 
 func (cli *Client) sendKeepAlive(ctx context.Context) bool {
-	respCh, err := cli.sendRequest(waBinary.Node{
-		Tag: "iq",
-		Attrs: map[string]interface{}{
-			"to":    waBinary.ServerJID,
-			"type":  "get",
-			"xmlns": "w:p",
-			"id":    cli.generateRequestID(),
-		},
-		Content: []waBinary.Node{{Tag: "ping"}},
+	respCh, err := cli.sendIQAsync(InfoQuery{
+		Namespace: "w:p",
+		Type:      "get",
+		To:        waBinary.ServerJID,
+		Content:   []waBinary.Node{{Tag: "ping"}},
 	})
 	if err != nil {
 		cli.Log.Warnln("Failed to send keepalive:", err)

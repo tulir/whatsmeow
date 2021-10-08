@@ -8,7 +8,6 @@ package multidevice
 
 import (
 	"encoding/binary"
-	"fmt"
 
 	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 
@@ -37,7 +36,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 	return true
 }
 
-type ConnectedEvent struct {}
+type ConnectedEvent struct{}
 
 func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
 	if node.Tag != "success" {
@@ -89,13 +88,10 @@ func (cli *Client) uploadPreKeys() {
 	var registrationIDBytes [4]byte
 	binary.BigEndian.PutUint16(registrationIDBytes[2:], cli.Session.RegistrationID)
 	preKeys := cli.Session.GetOrGenPreKeys(30)
-	resChan, err := cli.sendRequest(waBinary.Node{
-		Tag: "iq",
-		Attrs: map[string]interface{}{
-			"xmlns": "encrypt",
-			"type":  "set",
-			"to":    waBinary.ServerJID,
-		},
+	_, err := cli.sendIQ(InfoQuery{
+		Namespace: "encrypt",
+		Type:      "set",
+		To:        waBinary.ServerJID,
 		Content: []waBinary.Node{
 			{Tag: "registration", Content: registrationIDBytes[:]},
 			{Tag: "type", Content: []byte{ecc.DjbType}},
@@ -108,7 +104,6 @@ func (cli *Client) uploadPreKeys() {
 		cli.Log.Errorln("Failed to send request to upload prekeys:", err)
 		return
 	}
-	<-resChan
 	cli.Log.Debugln("Got response to uploading prekeys")
 	cli.Session.MarkPreKeysAsUploaded(preKeys[len(preKeys)-1].KeyID)
 }
@@ -118,18 +113,14 @@ func (cli *Client) sendPassiveIQ(passive bool) error {
 	if passive {
 		tag = "passive"
 	}
-	res, err := cli.sendRequest(waBinary.Node{
-		Tag: "iq",
-		Attrs: map[string]interface{}{
-			"to":    waBinary.ServerJID,
-			"xmlns": "passive",
-			"type":  "set",
-		},
-		Content: []waBinary.Node{{Tag: tag}},
+	_, err := cli.sendIQ(InfoQuery{
+		Namespace: "passive",
+		Type:      "set",
+		To:        waBinary.ServerJID,
+		Content:   []waBinary.Node{{Tag: tag}},
 	})
 	if err != nil {
 		return err
 	}
-	fmt.Println("passive iq response:", <-res)
 	return nil
 }
