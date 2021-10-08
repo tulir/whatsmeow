@@ -25,7 +25,7 @@ func (n *Node) attributeString() string {
 	if len(n.Attrs) == 0 {
 		return ""
 	}
-	stringAttrs := make([]string, len(n.Attrs) + 1)
+	stringAttrs := make([]string, len(n.Attrs)+1)
 	i := 1
 	for key, value := range n.Attrs {
 		stringAttrs[i] = fmt.Sprintf(`%s="%v"`, key, value)
