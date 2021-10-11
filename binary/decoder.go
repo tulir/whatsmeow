@@ -132,29 +132,25 @@ func unpackByte(tag int, value byte) (byte, error) {
 
 func unpackNibble(value byte) (byte, error) {
 	switch {
-	case value < 0 || value > 15:
-		return 0, fmt.Errorf("unpackNibble with value %d", value)
+	case value < 10:
+		return '0' + value, nil
 	case value == 10:
 		return '-', nil
 	case value == 11:
 		return '.', nil
-	case value == 15:
-		return '\x00', nil
 	default:
-		return '0' + value, nil
+		return 0, fmt.Errorf("unpackNibble with value %d", value)
 	}
 }
 
 func unpackHex(value byte) (byte, error) {
 	switch {
-	case value < 0 || value > 15:
-		return 0, fmt.Errorf("unpackHex with value %d", value)
 	case value < 10:
 		return '0' + value, nil
-	case value == 15:
-		return '\x00', nil
-	default:
+	case value < 16:
 		return 'A' + value - 10, nil
+	default:
+		return 0, fmt.Errorf("unpackHex with value %d", value)
 	}
 }
 

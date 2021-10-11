@@ -262,7 +262,7 @@ func validateNibble(value string) bool {
 		return false
 	}
 	for _, char := range value {
-		if !(char >= '0' && char <= '9') && char != '-' && char != '.' && char != '\x00' {
+		if !(char >= '0' && char <= '9') && char != '-' && char != '.' {
 			return false
 		}
 	}
@@ -275,8 +275,6 @@ func packNibble(value byte) byte {
 		return 10
 	case '.':
 		return 11
-	case '\x00':
-		return 15
 	default:
 		if value >= '0' && value <= '9' {
 			return value - '0'
@@ -291,7 +289,7 @@ func validateHex(value string) bool {
 		return false
 	}
 	for _, char := range value {
-		if !(char >= '0' && char <= '9') && !(char >= 'A' && char <= 'F') && !(char >= 'a' && char <= 'a') && char != '\x00' {
+		if !(char >= '0' && char <= '9') && !(char >= 'A' && char <= 'F') && !(char >= 'a' && char <= 'a') {
 			return false
 		}
 	}
@@ -303,11 +301,9 @@ func packHex(value byte) byte {
 	case value >= '0' && value <= '9':
 		return value - '0'
 	case value >= 'A' && value <= 'F':
-		return value - 'A'
+		return 10 + value - 'A'
 	case value >= 'a' && value <= 'f':
-		return value - 'a'
-	case value == '\x00':
-		return 15
+		return 10 + value - 'a'
 	default:
 		// This should be validated beforehand
 		panic(fmt.Errorf("invalid string to pack as hex: %s", string(value)))
