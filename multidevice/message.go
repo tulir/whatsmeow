@@ -28,16 +28,12 @@ import (
 
 var pbSerializer = serialize.NewProtoBufSerializer()
 
-func (cli *Client) decryptDM(child *waBinary.Node, from *waBinary.FullJID) ([]byte, error) {
+func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.FullJID, isPreKey bool) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
-	encType, ok := child.Attrs["type"].(string)
-	if !ok {
-		return nil, fmt.Errorf("message doesn't have a valid type")
-	}
 	builder := session.NewBuilderFromSignal(cli.Session, from.SignalAddress(), serialize.NewJSONSerializer())
 	cipher := session.NewCipher(builder, from.SignalAddress())
-	if encType == "pkmsg" {
+	if isPreKey {
 		preKeyMsg, err := protocol.NewPreKeySignalMessageFromBytes(content, pbSerializer.PreKeySignalMessage, pbSerializer.SignalMessage)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse prekey message: %w", err)
@@ -58,6 +54,23 @@ func (cli *Client) decryptDM(child *waBinary.Node, from *waBinary.FullJID) ([]by
 		}
 		return unpadMessage(plaintext)
 	}
+}
+
+func (cli *Client) decryptGroupMsg(child *waBinary.Node, from waBinary.FullJID, chat waBinary.FullJID) ([]byte, error) {
+	content, _ := child.Content.([]byte)
+
+	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
+	builder := groups.NewGroupSessionBuilder(cli.Session, pbSerializer)
+	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.Session)
+	msg, err := protocol.NewSenderKeyMessageFromBytes(content, pbSerializer.SenderKeyMessage)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse group message: %w", err)
+	}
+	plaintext, err := cipher.Decrypt(msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt group message: %w", err)
+	}
+	return unpadMessage(plaintext)
 }
 
 var CheckPadding = true
@@ -89,17 +102,26 @@ func (cli *Client) decryptMessages(info *MessageInfo, nodes []waBinary.Node) {
 		if child.Tag != "enc" {
 			continue
 		}
+		encType, ok := child.Attrs["type"].(string)
+		if !ok {
+			continue
+		}
 		var decrypted []byte
 		var err error
-		if info.Chat == nil {
-			decrypted, err = cli.decryptDM(&child, info.From)
+		if encType == "pkmsg" || encType == "msg" {
+			decrypted, err = cli.decryptDM(&child, info.From, encType == "pkmsg")
+			if err != nil {
+				cli.Log.Warnfln("Error decrypting message from %s: %v", info.FromString(), err)
+				continue
+			}
+		} else if info.Chat != nil && encType == "skmsg" {
+			decrypted, err = cli.decryptGroupMsg(&child, info.From, *info.Chat)
 			if err != nil {
 				cli.Log.Warnfln("Error decrypting message from %s: %v", info.FromString(), err)
 				continue
 			}
 		} else {
-			// TODO group messages
-			cli.Log.Warnln("Unhandled group message from", info.FromString())
+			cli.Log.Warnfln("Unhandled encrypted message (type %s) from %s", encType, info.FromString())
 			continue
 		}
 
@@ -116,7 +138,7 @@ func (cli *Client) decryptMessages(info *MessageInfo, nodes []waBinary.Node) {
 }
 
 type MessageInfo struct {
-	From *waBinary.FullJID
+	From waBinary.FullJID
 	Chat *waBinary.FullJID
 	ID   string
 	Type string
@@ -143,14 +165,12 @@ func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
 	}
 	if from.Server == waBinary.DefaultGroupServer {
 		info.Chat = &from
-		var participant waBinary.FullJID
-		participant, ok = node.Attrs["participant"].(waBinary.FullJID)
+		info.From, ok = node.Attrs["participant"].(waBinary.FullJID)
 		if !ok {
 			return nil, fmt.Errorf("didn't find valid `participant` attribute in group message")
 		}
-		info.From = &participant
 	} else {
-		info.From = &from
+		info.From = from
 	}
 
 	info.ID, ok = node.Attrs["id"].(string)
@@ -229,7 +249,7 @@ func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message
 
 func (cli *Client) handleDecryptedMessage(info *MessageInfo, msg *waProto.Message) {
 	if msg.GetSenderKeyDistributionMessage() != nil {
-		cli.handleSenderKeyDistributionMessage(*info.Chat, *info.From, msg.SenderKeyDistributionMessage)
+		cli.handleSenderKeyDistributionMessage(*info.Chat, info.From, msg.SenderKeyDistributionMessage)
 	}
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)

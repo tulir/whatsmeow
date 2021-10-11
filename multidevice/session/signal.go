@@ -142,12 +142,14 @@ func (sess *Session) LoadSenderKey(senderKeyName *protocol.SenderKeyName) *group
 	sess.senderKeysLock.Lock()
 	defer sess.senderKeysLock.Unlock()
 	groupMap, ok := sess.SenderKeys[senderKeyName.GroupID()]
-	if ok {
-		senderKeyStruct, ok := groupMap[senderKeyName.Sender().String()]
-		if ok {
-			senderKey, _ := groupRecord.NewSenderKeyFromStruct(senderKeyStruct, nil, nil)
-			return senderKey
-		}
+	if !ok {
+		groupMap = make(map[string]*groupRecord.SenderKeyStructure)
+		sess.SenderKeys[senderKeyName.GroupID()] = groupMap
 	}
-	return nil
+	senderKeyStruct, ok := groupMap[senderKeyName.Sender().String()]
+	if !ok {
+		return groupRecord.NewSenderKey(nil, nil)
+	}
+	senderKey, _ := groupRecord.NewSenderKeyFromStruct(senderKeyStruct, nil, nil)
+	return senderKey
 }
