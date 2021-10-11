@@ -14,6 +14,7 @@ import (
 
 	log "maunium.net/go/maulogger/v2"
 
+	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/multidevice/keys"
 	"go.mau.fi/whatsmeow/multidevice/session"
@@ -24,6 +25,9 @@ type Client struct {
 	Session *session.Session
 	Log     log.Logger
 	socket  *socket.NoiseSocket
+
+	mediaConn     *whatsapp.MediaConn
+	mediaConnLock sync.Mutex
 
 	responseWaiters     map[string]chan<- *waBinary.Node
 	responseWaitersLock sync.Mutex

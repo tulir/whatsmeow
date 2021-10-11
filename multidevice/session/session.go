@@ -9,6 +9,7 @@ package session
 import (
 	"sync"
 
+	groupRecord "github.com/RadicalApp/libsignal-protocol-go/groups/state/record"
 	"github.com/RadicalApp/libsignal-protocol-go/state/record"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -33,6 +34,9 @@ type Session struct {
 	FirstUnuploadedID uint32
 	NextPreKeyID      uint32
 
+	SenderKeys     map[string]map[string]*groupRecord.SenderKeyStructure
+	senderKeysLock sync.Mutex
+
 	Platform     string
 	BusinessName string
 	ID           *waBinary.FullJID
@@ -43,6 +47,7 @@ func NewSession() *Session {
 		IdentityKeys:      map[string][32]byte{},
 		PreKeys:           make(map[uint32]*keys.PreKey),
 		Sessions:          make(map[string]*record.SessionStructure),
+		SenderKeys:        make(map[string]map[string]*groupRecord.SenderKeyStructure),
 		FirstUnuploadedID: 2,
 		NextPreKeyID:      2,
 	}

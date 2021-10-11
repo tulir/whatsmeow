@@ -93,19 +93,32 @@ func downloadMedia(url string) (file, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
+type MediaConnIP struct {
+	IP4 net.IP `json:"ip4"`
+	IP6 net.IP `json:"ip6"`
+}
+
+type MediaConnHost struct {
+	Hostname string        `json:"hostname"`
+	IPs      []MediaConnIP `json:"ips"`
+}
+
 type MediaConn struct {
-	Status    int `json:"status"`
-	MediaConn struct {
-		Auth  string `json:"auth"`
-		TTL   int    `json:"ttl"`
-		Hosts []struct {
-			Hostname string `json:"hostname"`
-			IPs      []struct {
-				IP4 net.IP `json:"ip4"`
-				IP6 net.IP `json:"ip6"`
-			} `json:"ips"`
-		} `json:"hosts"`
-	} `json:"media_conn"`
+	Auth       string          `json:"auth"`
+	AuthTTL    int             `json:"auth_ttl"`
+	TTL        int             `json:"ttl"`
+	MaxBuckets int             `json:"max_buckets"`
+	FetchedAt  time.Time       `json:"-"`
+	Hosts      []MediaConnHost `json:"hosts"`
+}
+
+func (mc *MediaConn) Expiry() time.Time {
+	return mc.FetchedAt.Add(time.Duration(mc.TTL) * time.Second)
+}
+
+type RespMediaConn struct {
+	Status    int       `json:"status"`
+	MediaConn MediaConn `json:"media_conn"`
 }
 
 func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
@@ -115,7 +128,7 @@ func (wac *Conn) queryMediaConn() (hostname, auth string, ttl int, err error) {
 		return "", "", 0, err
 	}
 
-	var resp MediaConn
+	var resp RespMediaConn
 	select {
 	case r := <-ch:
 		if err = json.Unmarshal([]byte(r), &resp); err != nil {

@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	DefaultUserServer  = "s.whatsapp.net"
-	DefaultGroupServer = "g.us"
+	DefaultUserServer      = "s.whatsapp.net"
+	DefaultGroupServer     = "g.us"
+	GroupParticipantServer = "c.us"
 )
 
 var (

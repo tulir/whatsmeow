@@ -21,6 +21,8 @@ const (
 	MediaVideo    MediaType = "WhatsApp Video Keys"
 	MediaAudio    MediaType = "WhatsApp Audio Keys"
 	MediaDocument MediaType = "WhatsApp Document Keys"
+	MediaHistory  MediaType = "WhatsApp History Keys"
+	MediaAppState MediaType = "WhatsApp App State Keys"
 )
 
 func (wac *Conn) SendRaw(msg *proto.WebMessageInfo, output chan<- error) {

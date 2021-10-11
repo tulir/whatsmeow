@@ -7,8 +7,10 @@
 package multidevice
 
 import (
+	"fmt"
 	"strconv"
 	"sync/atomic"
+	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
@@ -55,6 +57,8 @@ type InfoQuery struct {
 	To        waBinary.FullJID
 	ID        string
 	Content   interface{}
+
+	Timeout time.Duration
 }
 
 func (cli *Client) sendIQAsync(query InfoQuery) (<-chan *waBinary.Node, error) {
@@ -79,10 +83,22 @@ func (cli *Client) sendIQAsync(query InfoQuery) (<-chan *waBinary.Node, error) {
 	return waiter, nil
 }
 
-func (cli *Client) sendIQ(query InfoQuery) (*waBinary.Node, error) {
+func (cli *Client) sendIQ(query InfoQuery) ([]waBinary.Node, error) {
 	resChan, err := cli.sendIQAsync(query)
 	if err != nil {
 		return nil, err
 	}
-	return <-resChan, nil
+	if query.Timeout == 0 {
+		query.Timeout = 1 * time.Minute
+	}
+	select {
+	case res := <-resChan:
+		resType, _ := res.Attrs["type"].(string)
+		if res.Tag != "iq" || resType != "result" {
+			return nil, fmt.Errorf("unexpected response %s %s", res.Tag, resType)
+		}
+		return res.GetChildren(), nil
+	case <-time.After(query.Timeout):
+		return nil, fmt.Errorf("query timed out")
+	}
 }

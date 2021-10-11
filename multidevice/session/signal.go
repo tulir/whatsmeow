@@ -128,9 +128,26 @@ func (sess *Session) RemoveSignedPreKey(signedPreKeyID uint32) {
 }
 
 func (sess *Session) StoreSenderKey(senderKeyName *protocol.SenderKeyName, keyRecord *groupRecord.SenderKey) {
-	panic("implement me")
+	sess.senderKeysLock.Lock()
+	groupMap, ok := sess.SenderKeys[senderKeyName.GroupID()]
+	if !ok {
+		groupMap = make(map[string]*groupRecord.SenderKeyStructure)
+		sess.SenderKeys[senderKeyName.GroupID()] = groupMap
+	}
+	groupMap[senderKeyName.Sender().String()] = keyRecord.Structure()
+	sess.senderKeysLock.Unlock()
 }
 
 func (sess *Session) LoadSenderKey(senderKeyName *protocol.SenderKeyName) *groupRecord.SenderKey {
-	panic("implement me")
+	sess.senderKeysLock.Lock()
+	defer sess.senderKeysLock.Unlock()
+	groupMap, ok := sess.SenderKeys[senderKeyName.GroupID()]
+	if ok {
+		senderKeyStruct, ok := groupMap[senderKeyName.Sender().String()]
+		if ok {
+			senderKey, _ := groupRecord.NewSenderKeyFromStruct(senderKeyStruct, nil, nil)
+			return senderKey
+		}
+	}
+	return nil
 }

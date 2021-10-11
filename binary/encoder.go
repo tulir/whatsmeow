@@ -203,7 +203,7 @@ func (w *binaryEncoder) writeAttributes(attributes map[string]interface{}) {
 	}
 
 	for key, val := range attributes {
-		if val == "" {
+		if val == "" || val == nil {
 			continue
 		}
 
