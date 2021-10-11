@@ -138,6 +138,8 @@ func unpackNibble(value byte) (byte, error) {
 		return '-', nil
 	case value == 11:
 		return '.', nil
+	case value == 15:
+		return 0, nil
 	default:
 		return 0, fmt.Errorf("unpackNibble with value %d", value)
 	}

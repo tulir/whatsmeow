@@ -15,8 +15,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
@@ -151,7 +152,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	mainDeviceJID := wid
 	mainDeviceJID.Device = 0
 	cli.Session.PutIdentity(mainDeviceJID, *(*[32]byte)(deviceIdentity.AccountSignatureKey))
-	cli.Session.Account = &deviceIdentity
+	cli.Session.Account = proto.Clone(&deviceIdentity).(*waProto.ADVSignedDeviceIdentity)
 
 	deviceIdentity.AccountSignatureKey = nil
 	selfSignedDeviceIdentity, err := proto.Marshal(&deviceIdentity)

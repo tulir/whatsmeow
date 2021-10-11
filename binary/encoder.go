@@ -273,12 +273,14 @@ func packNibble(value byte) byte {
 		return 10
 	case '.':
 		return 11
+	case 0:
+		return 15
 	default:
 		if value >= '0' && value <= '9' {
 			return value - '0'
 		}
 		// This should be validated beforehand
-		panic(fmt.Errorf("invalid string to pack as nibble: %s", string(value)))
+		panic(fmt.Errorf("invalid string to pack as nibble: %d / '%s'", value, string(value)))
 	}
 }
 
@@ -302,8 +304,10 @@ func packHex(value byte) byte {
 		return 10 + value - 'A'
 	case value >= 'a' && value <= 'f':
 		return 10 + value - 'a'
+	case value == 0:
+		return 15
 	default:
 		// This should be validated beforehand
-		panic(fmt.Errorf("invalid string to pack as hex: %s", string(value)))
+		panic(fmt.Errorf("invalid string to pack as hex: %d / '%s'", value, string(value)))
 	}
 }

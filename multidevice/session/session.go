@@ -7,6 +7,7 @@
 package session
 
 import (
+	"sort"
 	"sync"
 
 	groupRecord "github.com/RadicalApp/libsignal-protocol-go/groups/state/record"
@@ -50,8 +51,8 @@ func NewSession() *Session {
 		PreKeys:           make(map[uint32]*keys.PreKey),
 		Sessions:          make(map[string]*record.SessionStructure),
 		SenderKeys:        make(map[string]map[string]*groupRecord.SenderKeyStructure),
-		FirstUnuploadedID: 2,
-		NextPreKeyID:      2,
+		FirstUnuploadedID: 1,
+		NextPreKeyID:      1,
 	}
 }
 
@@ -61,8 +62,22 @@ func (sess *Session) PutIdentity(jid waBinary.FullJID, key [32]byte) {
 	sess.identityKeysLock.Unlock()
 }
 
+type preKeyArray []*keys.PreKey
+
+func (p preKeyArray) Len() int {
+	return len(p)
+}
+
+func (p preKeyArray) Less(i, j int) bool {
+	return p[i].KeyID < p[j].KeyID
+}
+
+func (p preKeyArray) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
 func (sess *Session) unlockedGetPreKeys(count uint32) []*keys.PreKey {
-	foundKeys := make([]*keys.PreKey, 0, count)
+	foundKeys := make(preKeyArray, 0, count)
 	for _, key := range sess.PreKeys {
 		if key.KeyID >= sess.FirstUnuploadedID {
 			foundKeys = append(foundKeys, key)
@@ -71,6 +86,7 @@ func (sess *Session) unlockedGetPreKeys(count uint32) []*keys.PreKey {
 			}
 		}
 	}
+	sort.Sort(foundKeys)
 	return foundKeys
 }
 
@@ -106,7 +122,7 @@ func (sess *Session) GetOrGenPreKeys(count uint32) []*keys.PreKey {
 }
 
 func (sess *Session) ServerHasPreKeys() bool {
-	return sess.FirstUnuploadedID > 2
+	return sess.FirstUnuploadedID > 1
 }
 
 func (sess *Session) MarkPreKeysAsUploaded(upTo uint32) {
