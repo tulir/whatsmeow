@@ -32,6 +32,9 @@ type Client struct {
 	responseWaiters     map[string]chan<- *waBinary.Node
 	responseWaitersLock sync.Mutex
 
+	messageRetries     map[string]int
+	messageRetriesLock sync.Mutex
+
 	nodeHandlers  []nodeHandler
 	eventHandlers []func(interface{})
 
@@ -48,13 +51,15 @@ func NewClient(sess *session.Session, log log.Logger) *Client {
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
 		eventHandlers:   make([]func(interface{}), 0),
+		messageRetries:  make(map[string]int),
 	}
 	cli.nodeHandlers = []nodeHandler{
 		cli.handlePairDevice,
 		cli.handlePairSuccess,
 		cli.handleConnectSuccess,
 		cli.handleStreamError,
-		cli.handleMessage,
+		cli.handleEncryptedMessage,
+		cli.handleDevicesNotification,
 	}
 	return cli
 }

@@ -28,12 +28,19 @@ func (n *Node) GetChildren() []Node {
 	return children
 }
 
-func (n *Node) GetChildByTag(tag string) (val Node) {
+func (n *Node) GetChildrenByTag(tag string) (children []Node) {
 	for _, node := range n.GetChildren() {
 		if node.Tag == tag {
-			val = node
-			break
+			children = append(children, node)
 		}
+	}
+	return
+}
+
+func (n *Node) GetChildByTag(tag string) (val Node) {
+	nodes := n.GetChildrenByTag(tag)
+	if len(nodes) > 0 {
+		val = nodes[0]
 	}
 	return
 }

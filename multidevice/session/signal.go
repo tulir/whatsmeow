@@ -101,13 +101,15 @@ func (sess *Session) DeleteAllSessions() {
 }
 
 func (sess *Session) LoadSignedPreKey(signedPreKeyID uint32) *record.SignedPreKey {
+	//fmt.Println("LoadSignedPreKey(", signedPreKeyID, ")")
 	if signedPreKeyID == 1 {
 		return record.NewSignedPreKey(signedPreKeyID, 0, ecc.NewECKeyPair(
 			ecc.NewDjbECPublicKey(*sess.SignedPreKey.Pub),
 			ecc.NewDjbECPrivateKey(*sess.SignedPreKey.Priv),
 		), *sess.SignedPreKey.Signature, nil)
 	} else {
-		return record.NewSignedPreKey(signedPreKeyID, 0, sess.LoadPreKey(signedPreKeyID).KeyPair(), [64]byte{}, nil)
+		panic("Invalid signed prekey ID")
+		//return record.NewSignedPreKey(signedPreKeyID, 0, sess.LoadPreKey(signedPreKeyID).KeyPair(), [64]byte{}, nil)
 	}
 }
 

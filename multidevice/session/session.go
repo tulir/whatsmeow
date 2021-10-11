@@ -11,6 +11,7 @@ import (
 
 	groupRecord "github.com/RadicalApp/libsignal-protocol-go/groups/state/record"
 	"github.com/RadicalApp/libsignal-protocol-go/state/record"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/multidevice/keys"
@@ -20,6 +21,7 @@ type Session struct {
 	NoiseKey       *keys.KeyPair
 	IdentityKey    *keys.KeyPair
 	SignedPreKey   *keys.PreKey
+	Account        *waProto.ADVSignedDeviceIdentity
 	RegistrationID uint16
 	AdvSecretKey   []byte
 

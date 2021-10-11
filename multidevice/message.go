@@ -10,12 +10,14 @@ import (
 	"bytes"
 	"compress/zlib"
 	"crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"strconv"
 
 	"google.golang.org/protobuf/proto"
 
+	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"github.com/RadicalApp/libsignal-protocol-go/groups"
 	"github.com/RadicalApp/libsignal-protocol-go/protocol"
 	"github.com/RadicalApp/libsignal-protocol-go/serialize"
@@ -96,9 +98,14 @@ func padMessage(plaintext []byte) []byte {
 	return plaintext
 }
 
-func (cli *Client) decryptMessages(info *MessageInfo, nodes []waBinary.Node) {
-	cli.Log.Debugln("Decrypting", len(nodes), "messages from", info.FromString())
-	for _, child := range nodes {
+func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
+	if len(node.GetChildrenByTag("unavailable")) == len(node.GetChildren()) {
+		cli.sendRetryReceipt(node)
+		return
+	}
+	children := node.GetChildren()
+	cli.Log.Debugln("Decrypting", len(children), "messages from", info.FromString())
+	for _, child := range children {
 		if child.Tag != "enc" {
 			continue
 		}
@@ -110,18 +117,15 @@ func (cli *Client) decryptMessages(info *MessageInfo, nodes []waBinary.Node) {
 		var err error
 		if encType == "pkmsg" || encType == "msg" {
 			decrypted, err = cli.decryptDM(&child, info.From, encType == "pkmsg")
-			if err != nil {
-				cli.Log.Warnfln("Error decrypting message from %s: %v", info.FromString(), err)
-				continue
-			}
 		} else if info.Chat != nil && encType == "skmsg" {
 			decrypted, err = cli.decryptGroupMsg(&child, info.From, *info.Chat)
-			if err != nil {
-				cli.Log.Warnfln("Error decrypting message from %s: %v", info.FromString(), err)
-				continue
-			}
 		} else {
 			cli.Log.Warnfln("Unhandled encrypted message (type %s) from %s", encType, info.FromString())
+			continue
+		}
+		if err != nil {
+			cli.Log.Warnfln("Error decrypting message from %s: %v", info.FromString(), err)
+			cli.sendRetryReceipt(node)
 			continue
 		}
 
@@ -133,7 +137,10 @@ func (cli *Client) decryptMessages(info *MessageInfo, nodes []waBinary.Node) {
 
 		cli.handleDecryptedMessage(info, &msg)
 
-		cli.ackMessage(info)
+		if encType == "pkmsg" || encType == "msg" {
+			cli.ackMessage(info)
+			cli.sendMessageReceipt(info)
+		}
 	}
 }
 
@@ -142,6 +149,8 @@ type MessageInfo struct {
 	Chat *waBinary.FullJID
 	ID   string
 	Type string
+
+	Recipient *waBinary.FullJID
 
 	Notify    string
 	Timestamp int64
@@ -163,7 +172,11 @@ func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
 	if !ok {
 		return nil, fmt.Errorf("didn't find valid `from` attribute in message")
 	}
-	if from.Server == waBinary.DefaultGroupServer {
+	recipient, ok := node.Attrs["recipient"].(waBinary.FullJID)
+	if ok {
+		info.Recipient = &recipient
+	}
+	if from.Server == waBinary.GroupServer {
 		info.Chat = &from
 		info.From, ok = node.Attrs["participant"].(waBinary.FullJID)
 		if !ok {
@@ -193,7 +206,7 @@ func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
 	return &info, nil
 }
 
-func (cli *Client) handleMessage(node *waBinary.Node) bool {
+func (cli *Client) handleEncryptedMessage(node *waBinary.Node) bool {
 	if node.Tag != "message" {
 		return false
 	}
@@ -204,7 +217,7 @@ func (cli *Client) handleMessage(node *waBinary.Node) bool {
 		return true
 	}
 
-	go cli.decryptMessages(info, node.GetChildren())
+	go cli.decryptMessages(info, node)
 
 	return true
 }
@@ -233,6 +246,12 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 	} else {
 		cli.Log.Debugln("Received history sync")
 		fmt.Printf("%+v\n", &historySync)
+		for _, conv := range historySync.GetConversations() {
+			fmt.Println("  Conversation:", conv.GetId(), conv.GetName())
+			for _, msg := range conv.GetMessages() {
+				fmt.Println("    ", msg.Message)
+			}
+		}
 	}
 }
 
@@ -266,7 +285,7 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 		Attrs: map[string]interface{}{
 			"id":   id,
 			"type": msgType,
-			"to":   waBinary.NewJID(cli.Session.ID.User, waBinary.GroupParticipantServer),
+			"to":   waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer),
 		},
 		Content: nil,
 	})
@@ -281,18 +300,103 @@ func (cli *Client) ackMessage(info *MessageInfo) {
 		"id":    info.ID,
 	}
 	if info.Chat != nil {
-		attrs["to"] = waBinary.NewJID(cli.Session.ID.User, waBinary.GroupParticipantServer)
+		attrs["to"] = info.Chat
 		// TODO is this really supposed to be the user instead of info.Participant?
 		attrs["participant"] = waBinary.NewADJID(cli.Session.ID.User, 0, 0)
 	} else {
-		attrs["to"] = info.From
+		attrs["to"] = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
 	}
 	err := cli.sendNode(waBinary.Node{
-		Tag:     "ack",
-		Attrs:   attrs,
-		Content: nil,
+		Tag:   "ack",
+		Attrs: attrs,
 	})
 	if err != nil {
 		cli.Log.Warnfln("Failed to send acknowledgement for %s: %v", info.ID, err)
+	}
+}
+
+func (cli *Client) sendMessageReceipt(info *MessageInfo) {
+	attrs := map[string]interface{}{
+		"id": info.ID,
+	}
+	isFromMe := info.From.User == cli.Session.ID.User
+	if isFromMe {
+		attrs["type"] = "sender"
+	} else {
+		attrs["type"] = "inactive"
+	}
+	if info.Chat != nil {
+		attrs["to"] = *info.Chat
+		attrs["participant"] = info.From
+	} else {
+		attrs["to"] = info.From
+		if isFromMe && info.Recipient != nil {
+			attrs["recipient"] = *info.Recipient
+		}
+	}
+	err := cli.sendNode(waBinary.Node{
+		Tag:   "receipt",
+		Attrs: attrs,
+	})
+	if err != nil {
+		cli.Log.Warnfln("Failed to send receipt for %s: %v", info.ID, err)
+	}
+}
+
+func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
+	id, _ := node.Attrs["id"].(string)
+
+	cli.messageRetriesLock.Lock()
+	cli.messageRetries[id]++
+	retryCount := cli.messageRetries[id]
+	cli.messageRetriesLock.Unlock()
+
+	var registrationIDBytes [4]byte
+	binary.BigEndian.PutUint16(registrationIDBytes[2:], cli.Session.RegistrationID)
+	attrs := map[string]interface{}{
+		"id":   id,
+		"type": "retry",
+		"to":   node.Attrs["from"],
+	}
+	if recipient, ok := node.Attrs["recipient"]; ok {
+		attrs["recipient"] = recipient
+	}
+	if participant, ok := node.Attrs["participant"]; ok {
+		attrs["participant"] = participant
+	}
+	payload := waBinary.Node{
+		Tag:   "receipt",
+		Attrs: attrs,
+		Content: []waBinary.Node{
+			{Tag: "retry", Attrs: map[string]interface{}{
+				"count": retryCount,
+				"id":    id,
+				"t":     node.Attrs["t"],
+				"v":     1,
+			}},
+			{Tag: "registration", Content: registrationIDBytes[:]},
+		},
+	}
+	if retryCount > 1 {
+		keys := cli.Session.GetOrGenPreKeys(1)
+		deviceIdentity, err := proto.Marshal(cli.Session.Account)
+		if err != nil {
+			cli.Log.Errorln("Failed to marshal account info:", err)
+			return
+		}
+		payload.Content = append(payload.GetChildren(), waBinary.Node{
+			Tag: "keys",
+			Content: []waBinary.Node{
+				{Tag: "type", Content: []byte{ecc.DjbType}},
+				{Tag: "identity", Content: cli.Session.IdentityKey.Pub[:]},
+				preKeyToNode(keys[0]),
+				preKeyToNode(cli.Session.SignedPreKey),
+				{Tag: "device-identity", Content: deviceIdentity},
+			},
+		})
+	}
+	err := cli.sendNode(payload)
+	if err != nil {
+		cli.Log.Errorfln("Failed to send retry receipt for %s: %v", id, err)
 	}
 }

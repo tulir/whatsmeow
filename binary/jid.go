@@ -15,14 +15,19 @@ import (
 )
 
 const (
-	DefaultUserServer      = "s.whatsapp.net"
-	DefaultGroupServer     = "g.us"
-	GroupParticipantServer = "c.us"
+	DefaultUserServer = "s.whatsapp.net"
+	GroupServer       = "g.us"
+	UserServer        = "c.us"
+	BroadcastServer   = "broadcast"
 )
 
 var (
-	GroupServerJID = NewJID("", DefaultGroupServer)
-	ServerJID      = NewJID("", DefaultUserServer)
+	GroupServerJID      = NewJID("", GroupServer)
+	ServerJID           = NewJID("", DefaultUserServer)
+	BroadcastServerJID  = NewJID("", BroadcastServer)
+	StatusBroadcastJID  = NewJID("status", BroadcastServer)
+	PSAJID              = NewJID("0", UserServer)
+	OfficialBusinessJID = NewJID("16505361212", UserServer)
 )
 
 type FullJID struct {

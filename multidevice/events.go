@@ -36,6 +36,29 @@ func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 	return true
 }
 
+func (cli *Client) handleDevicesNotification(node *waBinary.Node) bool {
+	if node.Tag != "notification" || node.AttrGetter().String("type") != "account_sync" {
+		return false
+	}
+	id, _ := node.Attrs["id"].(string)
+	go func() {
+		cli.Log.Debugln("Received device list update")
+		err := cli.sendNode(waBinary.Node{
+			Tag: "ack",
+			Attrs: map[string]interface{}{
+				"id":    id,
+				"type":  "account_sync",
+				"class": "notification",
+				"to":    waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer),
+			},
+		})
+		if err != nil {
+			cli.Log.Warnfln("Failed to send acknowledgement to device list notification %s: %v", id, err)
+		}
+	}()
+	return true
+}
+
 type ConnectedEvent struct{}
 
 func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
