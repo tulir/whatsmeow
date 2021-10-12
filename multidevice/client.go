@@ -59,6 +59,7 @@ func NewClient(sess *session.Session, log log.Logger) *Client {
 		cli.handleConnectSuccess,
 		cli.handleStreamError,
 		cli.handleEncryptedMessage,
+		cli.handleReceipt,
 		cli.handleDevicesNotification,
 	}
 	return cli

@@ -20,13 +20,29 @@ func (n *Node) AttrGetter() *AttrUtility {
 	return &AttrUtility{Attrs: n.Attrs, Errors: make([]error, 0)}
 }
 
-func (au *AttrUtility) JID(key string) (jidVal FullJID) {
-	if val, ok := au.Attrs[key]; !ok {
-		au.Errors = append(au.Errors, fmt.Errorf("didn't find required JID attribute '%s'", key))
+func (au *AttrUtility) GetJID(key string, require bool) (jidVal FullJID, ok bool) {
+	var val interface{}
+	if val, ok = au.Attrs[key]; !ok {
+		if require {
+			au.Errors = append(au.Errors, fmt.Errorf("didn't find required JID attribute '%s'", key))
+		}
 	} else if jidVal, ok = val.(FullJID); !ok {
 		au.Errors = append(au.Errors, fmt.Errorf("expected attribute '%s' to be JID, but was %T", key, val))
 	}
 	return
+}
+
+func (au *AttrUtility) OptionalJID(key string) *FullJID {
+	jid, ok := au.GetJID(key, false)
+	if ok {
+		return &jid
+	}
+	return nil
+}
+
+func (au *AttrUtility) JID(key string) FullJID {
+	jid, _ := au.GetJID(key, true)
+	return jid
 }
 
 func (au *AttrUtility) GetString(key string, require bool) (strVal string, ok bool) {

@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/cipher"
 	"encoding/binary"
+	"sync"
 	"sync/atomic"
 )
 
@@ -20,6 +21,7 @@ type NoiseSocket struct {
 	readKey      cipher.AEAD
 	writeCounter uint32
 	readCounter  uint32
+	writeLock    sync.Mutex
 }
 
 func newNoiseSocket(fs *FrameSocket, writeKey, readKey cipher.AEAD) (*NoiseSocket, error) {
@@ -47,10 +49,12 @@ func (ns *NoiseSocket) Close() {
 }
 
 func (ns *NoiseSocket) SendFrame(plaintext []byte) error {
-	//ns.fs.log.Debugln("Encrypting and sending frame:", base64.StdEncoding.EncodeToString(plaintext))
-	count := atomic.AddUint32(&ns.writeCounter, 1) - 1
-	ciphertext := ns.writeKey.Seal(nil, generateIV(count), plaintext, nil)
-	return ns.fs.SendFrame(ciphertext)
+	ns.writeLock.Lock()
+	ciphertext := ns.writeKey.Seal(nil, generateIV(ns.writeCounter), plaintext, nil)
+	ns.writeCounter++
+	err := ns.fs.SendFrame(ciphertext)
+	ns.writeLock.Unlock()
+	return err
 }
 
 func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {

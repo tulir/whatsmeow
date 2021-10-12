@@ -1,0 +1,93 @@
+// Copyright (c) 2021 Tulir Asokan
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+package multidevice
+
+import (
+	"fmt"
+
+	waBinary "go.mau.fi/whatsmeow/binary"
+)
+
+type ReadReceipt struct {
+	From       waBinary.FullJID
+	Chat       *waBinary.FullJID
+	Recipient  *waBinary.FullJID
+	MessageIDs []string
+	Timestamp  int64
+}
+
+func (cli *Client) handleReceipt(node *waBinary.Node) bool {
+	if node.Tag != "receipt" {
+		return false
+	}
+
+	if node.AttrGetter().OptionalString("type") == "read" {
+		receipt, err := cli.parseReadReceipt(node)
+		if err != nil {
+			cli.Log.Warnln("Failed to parse read receipt:", err)
+		} else {
+			go cli.dispatchEvent(receipt)
+		}
+	}
+	go cli.ackReceipt(node)
+	return true
+}
+
+func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceipt, error) {
+	ag := node.AttrGetter()
+	if ag.String("type") != "read" {
+		return nil, nil
+	}
+	receiptChildren := node.GetChildren()
+	if len(receiptChildren) != 1 || receiptChildren[0].Tag != "list" {
+		return nil, fmt.Errorf("unexpected read receipt children (%+v)", receiptChildren)
+	}
+	listChildren := receiptChildren[0].GetChildren()
+	receipt := ReadReceipt{
+		From:       ag.JID("from"),
+		Recipient:  ag.OptionalJID("recipient"),
+		MessageIDs: make([]string, 0, len(listChildren)),
+		Timestamp:  ag.Int64("t"),
+	}
+	if receipt.From.Server == waBinary.GroupServer {
+		receipt.Chat = &receipt.From
+		receipt.From = ag.JID("participant")
+	}
+	if !ag.OK() {
+		return nil, fmt.Errorf("failed to parse read receipt attrs: %+v", ag.Errors)
+	}
+	for _, item := range listChildren {
+		if id, ok := item.Attrs["id"].(string); ok && item.Tag == "item" {
+			receipt.MessageIDs = append(receipt.MessageIDs, id)
+		}
+	}
+	return &receipt, nil
+}
+
+func (cli *Client) ackReceipt(node *waBinary.Node) {
+	attrs := map[string]interface{}{
+		"class": "receipt",
+		"id":    node.Attrs["id"],
+	}
+	attrs["to"] = node.Attrs["from"]
+	if participant, ok := node.Attrs["participant"]; ok {
+		attrs["participant"] = participant
+	}
+	if recipient, ok := node.Attrs["recipient"]; ok {
+		attrs["recipient"] = recipient
+	}
+	if receiptType, ok := node.Attrs["type"]; ok {
+		attrs["type"] = receiptType
+	}
+	err := cli.sendNode(waBinary.Node{
+		Tag:   "ack",
+		Attrs: attrs,
+	})
+	if err != nil {
+		cli.Log.Warnfln("Failed to send acknowledgement for receipt %s: %v", node.Attrs["id"], err)
+	}
+}

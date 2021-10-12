@@ -266,14 +266,20 @@ func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message
 	}
 }
 
+type Message struct {
+	Info    *MessageInfo
+	Message *waProto.Message
+}
+
 func (cli *Client) handleDecryptedMessage(info *MessageInfo, msg *waProto.Message) {
+	fmt.Printf("Received message: %+v -- info: %+v\n", msg, info)
 	if msg.GetSenderKeyDistributionMessage() != nil {
 		cli.handleSenderKeyDistributionMessage(*info.Chat, info.From, msg.SenderKeyDistributionMessage)
 	}
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
-	fmt.Printf("Received message: %+v -- info: %+v\n", msg, info)
+	cli.dispatchEvent(&Message{info, msg})
 }
 
 func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
@@ -296,11 +302,11 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 
 func (cli *Client) ackMessage(info *MessageInfo) {
 	attrs := map[string]interface{}{
-		"class": "receipt",
+		"class": "message",
 		"id":    info.ID,
 	}
 	if info.Chat != nil {
-		attrs["to"] = info.Chat
+		attrs["to"] = *info.Chat
 		// TODO is this really supposed to be the user instead of info.Participant?
 		attrs["participant"] = waBinary.NewADJID(cli.Session.ID.User, 0, 0)
 	} else {
