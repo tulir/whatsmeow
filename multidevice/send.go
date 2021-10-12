@@ -47,7 +47,7 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to waBinary.FullJID
 		}
 	}
 	cipher := session.NewCipher(builder, to.SignalAddress())
-	ciphertext, err := cipher.Encrypt(plaintext)
+	ciphertext, err := cipher.Encrypt(padMessage(plaintext))
 	if err != nil {
 		return nil, false, fmt.Errorf("cipher encryption failed: %w", err)
 	}
@@ -79,7 +79,6 @@ func marshalMessage(to waBinary.FullJID, message *waProto.Message) (plaintext, d
 		err = fmt.Errorf("failed to marshal message: %w", err)
 		return
 	}
-	plaintext = padMessage(plaintext)
 
 	dsmPlaintext, err = proto.Marshal(&waProto.DeviceSentMessage{
 		DestinationJid: proto.String(to.String()),
@@ -89,7 +88,6 @@ func marshalMessage(to waBinary.FullJID, message *waProto.Message) (plaintext, d
 		err = fmt.Errorf("failed to marshal message (for own devices): %w", err)
 		return
 	}
-	dsmPlaintext = padMessage(dsmPlaintext)
 
 	return
 }
