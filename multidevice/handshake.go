@@ -110,7 +110,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		cli.Session.SignedPreKey = cli.Session.IdentityKey.CreateSignedPreKey(1)
 	}
 	if cli.Session.RegistrationID == 0 {
-		cli.Session.RegistrationID = uint16(mathRand.Uint32() & 0x3fff)
+		cli.Session.RegistrationID = mathRand.Uint32()
 	}
 
 	clientFinishPayloadBytes, err := proto.Marshal(cli.Session.GetClientPayload())

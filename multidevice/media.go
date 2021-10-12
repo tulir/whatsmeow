@@ -60,11 +60,12 @@ func (cli *Client) queryMediaConn() (*whatsapp.MediaConn, error) {
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query media connections: %w", err)
-	} else if len(resp) == 0 || resp[0].Tag != "media_conn" {
+	} else if len(resp.GetChildren()) == 0 || resp.GetChildren()[0].Tag != "media_conn" {
 		return nil, fmt.Errorf("failed to query media connections: unexpected child tag")
 	}
+	respMC := resp.GetChildren()[0]
 	var mc whatsapp.MediaConn
-	ag := resp[0].AttrGetter()
+	ag := respMC.AttrGetter()
 	mc.FetchedAt = time.Now()
 	mc.Auth = ag.String("auth")
 	mc.TTL = ag.Int("ttl")
@@ -73,7 +74,7 @@ func (cli *Client) queryMediaConn() (*whatsapp.MediaConn, error) {
 	if !ag.OK() {
 		return nil, fmt.Errorf("failed to parse media connections: %+v", ag.Errors)
 	}
-	for _, child := range resp[0].GetChildren() {
+	for _, child := range respMC.GetChildren() {
 		if child.Tag != "host" {
 			cli.Log.Warnln("Unexpected child in media_conn element:", child.XMLString())
 			continue

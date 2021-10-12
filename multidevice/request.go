@@ -83,7 +83,7 @@ func (cli *Client) sendIQAsync(query InfoQuery) (<-chan *waBinary.Node, error) {
 	return waiter, nil
 }
 
-func (cli *Client) sendIQ(query InfoQuery) ([]waBinary.Node, error) {
+func (cli *Client) sendIQ(query InfoQuery) (*waBinary.Node, error) {
 	resChan, err := cli.sendIQAsync(query)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (cli *Client) sendIQ(query InfoQuery) ([]waBinary.Node, error) {
 		if res.Tag != "iq" || resType != "result" {
 			return nil, fmt.Errorf("unexpected response %s %s", res.Tag, resType)
 		}
-		return res.GetChildren(), nil
+		return res, nil
 	case <-time.After(query.Timeout):
 		return nil, fmt.Errorf("query timed out")
 	}

@@ -23,7 +23,7 @@ type Session struct {
 	IdentityKey    *keys.KeyPair
 	SignedPreKey   *keys.PreKey
 	Account        *waProto.ADVSignedDeviceIdentity
-	RegistrationID uint16
+	RegistrationID uint32
 	AdvSecretKey   []byte
 
 	IdentityKeys     map[string][32]byte

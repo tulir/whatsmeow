@@ -7,18 +7,23 @@
 package main
 
 import (
+	"bufio"
 	"encoding/gob"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/mdp/qrterminal/v3"
+	"google.golang.org/protobuf/proto"
 	log "maunium.net/go/maulogger/v2"
 
+	waBinary "go.mau.fi/whatsmeow/binary"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/multidevice"
 	"go.mau.fi/whatsmeow/multidevice/session"
 )
@@ -53,11 +58,13 @@ func saveSession(sess *session.Session) {
 	}
 }
 
+var cli *multidevice.Client
+
 func main() {
 	log.DefaultLogger.PrintLevel = 0
 
 	sess := loadSession()
-	cli := multidevice.NewClient(sess, log.DefaultLogger)
+	cli = multidevice.NewClient(sess, log.DefaultLogger)
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)
@@ -67,22 +74,57 @@ func main() {
 	defer saveSession(sess)
 
 	c := make(chan os.Signal)
-	q := make(chan os.Signal)
+	input := make(chan string)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	signal.Notify(q, syscall.SIGQUIT)
+	go func() {
+		defer close(input)
+		scan := bufio.NewScanner(os.Stdin)
+		for scan.Scan() {
+			line := strings.TrimSpace(scan.Text())
+			if len(line) > 0 {
+				input <- line
+			}
+		}
+	}()
 	for {
 		select {
 		case <-c:
 			cli.Disconnect()
 			return
-		case <-q:
-			cli.Disconnect()
-			err = cli.Connect()
-			if err != nil {
-				log.Fatalln("Failed to connect:", err)
-				return
-			}
+		case cmd := <-input:
+			args := strings.Fields(cmd)
+			cmd = args[0]
+			args = args[1:]
+			handleCmd(strings.ToLower(cmd), args)
 		}
+	}
+}
+
+func handleCmd(cmd string, args []string) {
+	switch cmd {
+	case "reconnect":
+		cli.Disconnect()
+		err := cli.Connect()
+		if err != nil {
+			log.Fatalln("Failed to connect:", err)
+			return
+		}
+	case "usync":
+		var jids []waBinary.FullJID
+		for _, jid := range args {
+			jids = append(jids, waBinary.NewJID(jid, waBinary.DefaultUserServer))
+		}
+		res, err := cli.GetUSyncDevices(jids, false)
+		fmt.Println(err)
+		fmt.Println(res)
+	case "send", "gsend":
+		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
+		recipient := waBinary.NewJID(args[0], waBinary.DefaultUserServer)
+		if cmd == "gsend" {
+			recipient.Server = waBinary.GroupServer
+		}
+		err := cli.SendMessage(recipient, "", msg)
+		fmt.Println("Send message response:", err)
 	}
 }
 

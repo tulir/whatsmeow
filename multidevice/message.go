@@ -33,7 +33,7 @@ var pbSerializer = serialize.NewProtoBufSerializer()
 func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.FullJID, isPreKey bool) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
-	builder := session.NewBuilderFromSignal(cli.Session, from.SignalAddress(), serialize.NewJSONSerializer())
+	builder := session.NewBuilderFromSignal(cli.Session, from.SignalAddress(), pbSerializer)
 	cipher := session.NewCipher(builder, from.SignalAddress())
 	if isPreKey {
 		preKeyMsg, err := protocol.NewPreKeySignalMessageFromBytes(content, pbSerializer.PreKeySignalMessage, pbSerializer.SignalMessage)
@@ -299,112 +299,5 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 	})
 	if err != nil {
 		cli.Log.Warnfln("Failed to send acknowledgement for protocol message %s: %v", id, err)
-	}
-}
-
-//func (cli *Client) ackMessage(info *MessageInfo) {
-//	attrs := map[string]interface{}{
-//		"class": "message",
-//		"id":    info.ID,
-//	}
-//	if info.Chat != nil {
-//		attrs["to"] = *info.Chat
-//		// TODO is this really supposed to be the user instead of info.Participant?
-//		attrs["participant"] = waBinary.NewADJID(cli.Session.ID.User, 0, 0)
-//	} else {
-//		attrs["to"] = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
-//	}
-//	err := cli.sendNode(waBinary.Node{
-//		Tag:   "ack",
-//		Attrs: attrs,
-//	})
-//	if err != nil {
-//		cli.Log.Warnfln("Failed to send acknowledgement for %s: %v", info.ID, err)
-//	}
-//}
-
-func (cli *Client) sendMessageReceipt(info *MessageInfo) {
-	attrs := map[string]interface{}{
-		"id": info.ID,
-	}
-	isFromMe := info.From.User == cli.Session.ID.User
-	if isFromMe {
-		attrs["type"] = "sender"
-	} else {
-		attrs["type"] = "inactive"
-	}
-	if info.Chat != nil {
-		attrs["to"] = *info.Chat
-		attrs["participant"] = info.From
-	} else {
-		attrs["to"] = info.From
-		if isFromMe && info.Recipient != nil {
-			attrs["recipient"] = *info.Recipient
-		}
-	}
-	err := cli.sendNode(waBinary.Node{
-		Tag:   "receipt",
-		Attrs: attrs,
-	})
-	if err != nil {
-		cli.Log.Warnfln("Failed to send receipt for %s: %v", info.ID, err)
-	}
-}
-
-func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
-	id, _ := node.Attrs["id"].(string)
-
-	cli.messageRetriesLock.Lock()
-	cli.messageRetries[id]++
-	retryCount := cli.messageRetries[id]
-	cli.messageRetriesLock.Unlock()
-
-	var registrationIDBytes [4]byte
-	binary.BigEndian.PutUint16(registrationIDBytes[2:], cli.Session.RegistrationID)
-	attrs := map[string]interface{}{
-		"id":   id,
-		"type": "retry",
-		"to":   node.Attrs["from"],
-	}
-	if recipient, ok := node.Attrs["recipient"]; ok {
-		attrs["recipient"] = recipient
-	}
-	if participant, ok := node.Attrs["participant"]; ok {
-		attrs["participant"] = participant
-	}
-	payload := waBinary.Node{
-		Tag:   "receipt",
-		Attrs: attrs,
-		Content: []waBinary.Node{
-			{Tag: "retry", Attrs: map[string]interface{}{
-				"count": retryCount,
-				"id":    id,
-				"t":     node.Attrs["t"],
-				"v":     1,
-			}},
-			{Tag: "registration", Content: registrationIDBytes[:]},
-		},
-	}
-	if retryCount > 1 {
-		keys := cli.Session.GetOrGenPreKeys(1)
-		deviceIdentity, err := proto.Marshal(cli.Session.Account)
-		if err != nil {
-			cli.Log.Errorln("Failed to marshal account info:", err)
-			return
-		}
-		payload.Content = append(payload.GetChildren(), waBinary.Node{
-			Tag: "keys",
-			Content: []waBinary.Node{
-				{Tag: "type", Content: []byte{ecc.DjbType}},
-				{Tag: "identity", Content: cli.Session.IdentityKey.Pub[:]},
-				preKeyToNode(keys[0]),
-				preKeyToNode(cli.Session.SignedPreKey),
-				{Tag: "device-identity", Content: deviceIdentity},
-			},
-		})
-	}
-	err := cli.sendNode(payload)
-	if err != nil {
-		cli.Log.Errorfln("Failed to send retry receipt for %s: %v", id, err)
 	}
 }

@@ -73,7 +73,7 @@ var CompanionProps = &waProto.CompanionProps{
 func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
 	payload := proto.Clone(BaseClientPayload).(*waProto.ClientPayload)
 	regID := make([]byte, 4)
-	binary.BigEndian.PutUint32(regID, uint32(sess.RegistrationID))
+	binary.BigEndian.PutUint32(regID, sess.RegistrationID)
 	preKeyID := make([]byte, 4)
 	binary.BigEndian.PutUint32(preKeyID, sess.SignedPreKey.KeyID)
 	companionProps, _ := proto.Marshal(CompanionProps)
