@@ -47,9 +47,9 @@ func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceipt, error) {
 		return nil, nil
 	}
 	receipt := ReadReceipt{
-		From:       ag.JID("from"),
-		Recipient:  ag.OptionalJID("recipient"),
-		Timestamp:  ag.Int64("t"),
+		From:      ag.JID("from"),
+		Recipient: ag.OptionalJID("recipient"),
+		Timestamp: ag.Int64("t"),
 	}
 	if receipt.From.Server == waBinary.GroupServer {
 		receipt.Chat = &receipt.From

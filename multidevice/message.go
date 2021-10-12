@@ -10,14 +10,12 @@ import (
 	"bytes"
 	"compress/zlib"
 	"crypto/rand"
-	"encoding/binary"
 	"fmt"
 	"io"
 	"strconv"
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
 	"github.com/RadicalApp/libsignal-protocol-go/groups"
 	"github.com/RadicalApp/libsignal-protocol-go/protocol"
 	"github.com/RadicalApp/libsignal-protocol-go/serialize"

@@ -45,7 +45,7 @@ func (cli *Client) uploadPreKeys() {
 
 type preKeyResp struct {
 	bundle *prekey.Bundle
-	err error
+	err    error
 }
 
 func (cli *Client) fetchPreKeys(users []waBinary.FullJID) (map[waBinary.FullJID]preKeyResp, error) {
@@ -53,7 +53,7 @@ func (cli *Client) fetchPreKeys(users []waBinary.FullJID) (map[waBinary.FullJID]
 	for i, user := range users {
 		requests[i].Tag = "user"
 		requests[i].Attrs = map[string]interface{}{
-			"jid": user,
+			"jid":    user,
 			"reason": "identity",
 		}
 	}
@@ -62,7 +62,7 @@ func (cli *Client) fetchPreKeys(users []waBinary.FullJID) (map[waBinary.FullJID]
 		Type:      "get",
 		To:        waBinary.ServerJID,
 		Content: []waBinary.Node{{
-			Tag: "key",
+			Tag:     "key",
 			Content: requests,
 		}},
 	})
