@@ -33,7 +33,7 @@ func (cli *Client) handleReceipt(node *waBinary.Node) bool {
 			go cli.dispatchEvent(receipt)
 		}
 	}
-	go cli.ackReceipt(node)
+	go cli.sendAck(node)
 	return true
 }
 
@@ -42,15 +42,9 @@ func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceipt, error) {
 	if ag.String("type") != "read" {
 		return nil, nil
 	}
-	receiptChildren := node.GetChildren()
-	if len(receiptChildren) != 1 || receiptChildren[0].Tag != "list" {
-		return nil, fmt.Errorf("unexpected read receipt children (%+v)", receiptChildren)
-	}
-	listChildren := receiptChildren[0].GetChildren()
 	receipt := ReadReceipt{
 		From:       ag.JID("from"),
 		Recipient:  ag.OptionalJID("recipient"),
-		MessageIDs: make([]string, 0, len(listChildren)),
 		Timestamp:  ag.Int64("t"),
 	}
 	if receipt.From.Server == waBinary.GroupServer {
@@ -60,17 +54,25 @@ func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceipt, error) {
 	if !ag.OK() {
 		return nil, fmt.Errorf("failed to parse read receipt attrs: %+v", ag.Errors)
 	}
-	for _, item := range listChildren {
-		if id, ok := item.Attrs["id"].(string); ok && item.Tag == "item" {
-			receipt.MessageIDs = append(receipt.MessageIDs, id)
+
+	receiptChildren := node.GetChildren()
+	if len(receiptChildren) == 1 && receiptChildren[0].Tag == "list" {
+		listChildren := receiptChildren[0].GetChildren()
+		receipt.MessageIDs = make([]string, 0, len(listChildren))
+		for _, item := range listChildren {
+			if id, ok := item.Attrs["id"].(string); ok && item.Tag == "item" {
+				receipt.MessageIDs = append(receipt.MessageIDs, id)
+			}
 		}
+	} else {
+		receipt.MessageIDs = []string{ag.String("id")}
 	}
 	return &receipt, nil
 }
 
-func (cli *Client) ackReceipt(node *waBinary.Node) {
+func (cli *Client) sendAck(node *waBinary.Node) {
 	attrs := map[string]interface{}{
-		"class": "receipt",
+		"class": node.Tag,
 		"id":    node.Attrs["id"],
 	}
 	attrs["to"] = node.Attrs["from"]
@@ -80,7 +82,7 @@ func (cli *Client) ackReceipt(node *waBinary.Node) {
 	if recipient, ok := node.Attrs["recipient"]; ok {
 		attrs["recipient"] = recipient
 	}
-	if receiptType, ok := node.Attrs["type"]; ok {
+	if receiptType, ok := node.Attrs["type"]; node.Tag == "receipt" && ok {
 		attrs["type"] = receiptType
 	}
 	err := cli.sendNode(waBinary.Node{
@@ -88,6 +90,6 @@ func (cli *Client) ackReceipt(node *waBinary.Node) {
 		Attrs: attrs,
 	})
 	if err != nil {
-		cli.Log.Warnfln("Failed to send acknowledgement for receipt %s: %v", node.Attrs["id"], err)
+		cli.Log.Warnfln("Failed to send acknowledgement for %s %s: %v", node.Tag, node.Attrs["id"], err)
 	}
 }

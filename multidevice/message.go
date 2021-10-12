@@ -105,6 +105,7 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 	}
 	children := node.GetChildren()
 	cli.Log.Debugln("Decrypting", len(children), "messages from", info.FromString())
+	handled := false
 	for _, child := range children {
 		if child.Tag != "enc" {
 			continue
@@ -126,21 +127,22 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Warnfln("Error decrypting message from %s: %v", info.FromString(), err)
 			cli.sendRetryReceipt(node)
-			continue
+			return
 		}
 
 		var msg waProto.Message
 		err = proto.Unmarshal(decrypted, &msg)
 		if err != nil {
 			cli.Log.Warnfln("Error unmarshaling decrypted message from %s: %v", info.FromString(), err)
+			continue
 		}
 
 		cli.handleDecryptedMessage(info, &msg)
-
-		if encType == "pkmsg" || encType == "msg" {
-			cli.ackMessage(info)
-			cli.sendMessageReceipt(info)
-		}
+		handled = true
+	}
+	if handled {
+		cli.sendMessageReceipt(info)
+		cli.sendAck(node)
 	}
 }
 
@@ -300,26 +302,26 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 	}
 }
 
-func (cli *Client) ackMessage(info *MessageInfo) {
-	attrs := map[string]interface{}{
-		"class": "message",
-		"id":    info.ID,
-	}
-	if info.Chat != nil {
-		attrs["to"] = *info.Chat
-		// TODO is this really supposed to be the user instead of info.Participant?
-		attrs["participant"] = waBinary.NewADJID(cli.Session.ID.User, 0, 0)
-	} else {
-		attrs["to"] = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
-	}
-	err := cli.sendNode(waBinary.Node{
-		Tag:   "ack",
-		Attrs: attrs,
-	})
-	if err != nil {
-		cli.Log.Warnfln("Failed to send acknowledgement for %s: %v", info.ID, err)
-	}
-}
+//func (cli *Client) ackMessage(info *MessageInfo) {
+//	attrs := map[string]interface{}{
+//		"class": "message",
+//		"id":    info.ID,
+//	}
+//	if info.Chat != nil {
+//		attrs["to"] = *info.Chat
+//		// TODO is this really supposed to be the user instead of info.Participant?
+//		attrs["participant"] = waBinary.NewADJID(cli.Session.ID.User, 0, 0)
+//	} else {
+//		attrs["to"] = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
+//	}
+//	err := cli.sendNode(waBinary.Node{
+//		Tag:   "ack",
+//		Attrs: attrs,
+//	})
+//	if err != nil {
+//		cli.Log.Warnfln("Failed to send acknowledgement for %s: %v", info.ID, err)
+//	}
+//}
 
 func (cli *Client) sendMessageReceipt(info *MessageInfo) {
 	attrs := map[string]interface{}{
