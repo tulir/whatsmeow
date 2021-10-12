@@ -75,7 +75,7 @@ func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
 	regID := make([]byte, 4)
 	binary.BigEndian.PutUint32(regID, uint32(sess.RegistrationID))
 	preKeyID := make([]byte, 4)
-	binary.BigEndian.PutUint32(preKeyID, uint32(sess.SignedPreKey.KeyID))
+	binary.BigEndian.PutUint32(preKeyID, sess.SignedPreKey.KeyID)
 	companionProps, _ := proto.Marshal(CompanionProps)
 	payload.RegData = &waProto.CompanionRegData{
 		ERegid:         regID,

@@ -42,6 +42,7 @@ func (sess *Session) IsTrustedIdentity(address *protocol.SignalAddress, identity
 }
 
 func (sess *Session) LoadPreKey(preKeyID uint32) *record.PreKey {
+	// TODO remove prekey after loading
 	key := sess.GetPreKey(preKeyID)
 	return record.NewPreKey(key.KeyID, ecc.NewECKeyPair(
 		ecc.NewDjbECPublicKey(*key.Pub),
@@ -101,7 +102,6 @@ func (sess *Session) DeleteAllSessions() {
 }
 
 func (sess *Session) LoadSignedPreKey(signedPreKeyID uint32) *record.SignedPreKey {
-	//fmt.Println("LoadSignedPreKey(", signedPreKeyID, ")")
 	if signedPreKeyID == 1 {
 		return record.NewSignedPreKey(signedPreKeyID, 0, ecc.NewECKeyPair(
 			ecc.NewDjbECPublicKey(*sess.SignedPreKey.Pub),
@@ -109,7 +109,6 @@ func (sess *Session) LoadSignedPreKey(signedPreKeyID uint32) *record.SignedPreKe
 		), *sess.SignedPreKey.Signature, nil)
 	} else {
 		panic("Invalid signed prekey ID")
-		//return record.NewSignedPreKey(signedPreKeyID, 0, sess.LoadPreKey(signedPreKeyID).KeyPair(), [64]byte{}, nil)
 	}
 }
 

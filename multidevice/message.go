@@ -247,13 +247,13 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 		cli.Log.Errorln("Failed to unmarshal history sync data:", err)
 	} else {
 		cli.Log.Debugln("Received history sync")
-		fmt.Printf("%+v\n", &historySync)
-		for _, conv := range historySync.GetConversations() {
-			fmt.Println("  Conversation:", conv.GetId(), conv.GetName())
-			for _, msg := range conv.GetMessages() {
-				fmt.Println("    ", msg.Message)
-			}
-		}
+		//fmt.Printf("%+v\n", &historySync)
+		//for _, conv := range historySync.GetConversations() {
+		//	fmt.Println("  Conversation:", conv.GetId(), conv.GetName())
+		//	for _, msg := range conv.GetMessages() {
+		//		fmt.Println("    ", msg.Message)
+		//	}
+		//}
 	}
 }
 
