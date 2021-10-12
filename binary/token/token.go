@@ -27,7 +27,7 @@ func GetSingleToken(i int, md bool) (string, error) {
 
 func getDoubleTokenMD(index1, index2 int) (string, error) {
 	if index1 < 0 || index1 >= len(mdDoubleByteTokens) {
-		return "", fmt.Errorf("index out of double byte token bounds %d", index1)
+		return "", fmt.Errorf("index out of double byte token bounds %d-%d", index1, index2)
 	} else if index2 < 0 || index2 >= len(mdDoubleByteTokens[index1]) {
 		return "", fmt.Errorf("index out of double byte token index %d bounds %d", index1, index2)
 	}
