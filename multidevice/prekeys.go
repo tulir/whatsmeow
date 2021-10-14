@@ -79,7 +79,6 @@ func (cli *Client) fetchPreKeys(users []waBinary.FullJID) (map[waBinary.FullJID]
 		}
 		jid, bundle, err := nodeToPreKeyBundle(child)
 		jid.AD = true
-		fmt.Printf("JID{User: %s, Server: %s, Device: %d, Agent: %d, AD: %t}: %v / %+v\n", jid.User, jid.Server, jid.Device, jid.Agent, jid.AD, err, bundle)
 		respData[jid] = preKeyResp{bundle, err}
 	}
 	return respData, nil

@@ -204,7 +204,6 @@ func (cli *Client) sendDM(to waBinary.FullJID, id string, message *waProto.Messa
 			cli.Log.Warnln("Failed to fetch prekeys for", retryDevices, "to retry encryption:", err)
 		} else {
 			for _, jid := range retryDevices {
-				fmt.Printf("Retrying JID{User: %s, Server: %s, Device: %d, Agent: %d, AD: %t}\n", jid.User, jid.Server, jid.Device, jid.Agent, jid.AD)
 				resp := bundles[jid]
 				if resp.err != nil {
 					cli.Log.Warnfln("Failed to fetch prekey for %s: %v", jid, resp.err)
