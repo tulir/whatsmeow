@@ -31,24 +31,33 @@ func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 	return true
 }
 
-func (cli *Client) handleDevicesNotification(node *waBinary.Node) bool {
-	if node.Tag != "notification" || node.AttrGetter().String("type") != "account_sync" {
+func (cli *Client) handleNotification(node *waBinary.Node) bool {
+	if node.Tag != "notification" {
 		return false
 	}
-	id, _ := node.Attrs["id"].(string)
+	ag := node.AttrGetter()
+	id := ag.String("id")
+	notifType := ag.String("type")
+	if !ag.OK() {
+		return false
+	}
 	go func() {
-		cli.Log.Debugln("Received device list update")
+		cli.Log.Debugln("Received", notifType, "update")
+		ackRecipient := waBinary.ServerJID
+		if notifType == "account_sync" {
+			ackRecipient = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
+		}
 		err := cli.sendNode(waBinary.Node{
 			Tag: "ack",
 			Attrs: map[string]interface{}{
 				"id":    id,
-				"type":  "account_sync",
+				"type":  notifType,
 				"class": "notification",
-				"to":    waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer),
+				"to":    ackRecipient,
 			},
 		})
 		if err != nil {
-			cli.Log.Warnfln("Failed to send acknowledgement to device list notification %s: %v", id, err)
+			cli.Log.Warnfln("Failed to send acknowledgement to %s notification %s: %v", notifType, id, err)
 		}
 	}()
 	return true
