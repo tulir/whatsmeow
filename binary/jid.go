@@ -74,14 +74,8 @@ func NewJID(user, server string) FullJID {
 }
 
 func (jid FullJID) String() string {
-	if jid.Agent != 0 || jid.Device != 0 {
-		if jid.Agent == 0 {
-			return fmt.Sprintf("%s:%d@%s", jid.User, jid.Device, jid.Server)
-		} else if jid.Device == 0 {
-			return fmt.Sprintf("%s.%d@%s", jid.User, jid.Agent, jid.Server)
-		} else {
-			return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.Agent, jid.Device, jid.Server)
-		}
+	if jid.AD {
+		return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.Agent, jid.Device, jid.Server)
 	} else if len(jid.User) > 0 {
 		return fmt.Sprintf("%s@%s", jid.User, jid.Server)
 	} else {
