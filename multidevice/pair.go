@@ -152,9 +152,9 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	mainDeviceJID := wid
 	mainDeviceJID.Device = 0
 	cli.Session.PutIdentity(mainDeviceJID, *(*[32]byte)(deviceIdentity.AccountSignatureKey))
+	deviceIdentity.AccountSignatureKey = nil
 	cli.Session.Account = proto.Clone(&deviceIdentity).(*waProto.ADVSignedDeviceIdentity)
 
-	deviceIdentity.AccountSignatureKey = nil
 	selfSignedDeviceIdentity, err := proto.Marshal(&deviceIdentity)
 	if err != nil {
 		return fmt.Errorf("failed to marshal self-signed device identity: %w", err)
@@ -214,7 +214,7 @@ func verifyDeviceIdentityAccountSignature(deviceIdentity *waProto.ADVSignedDevic
 }
 
 func generateDeviceSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ikp *keys.KeyPair) *[64]byte {
-	message := concatBytes([]byte{6, 1}, deviceIdentity.DeviceSignature, ikp.Pub[:], deviceIdentity.AccountSignatureKey)
+	message := concatBytes([]byte{6, 1}, deviceIdentity.Details, ikp.Pub[:], deviceIdentity.AccountSignatureKey)
 	sig := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*ikp.Priv), message)
 	return &sig
 }
