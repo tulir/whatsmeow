@@ -117,6 +117,10 @@ func handleCmd(cmd string, args []string) {
 		res, err := cli.GetUSyncDevices(jids, false)
 		fmt.Println(err)
 		fmt.Println(res)
+	case "getgroup":
+		resp, err := cli.GetGroupInfo(waBinary.NewJID(args[0], waBinary.GroupServer))
+		fmt.Println(err)
+		fmt.Printf("%+v\n", resp)
 	case "send", "gsend":
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
 		recipient := waBinary.NewJID(args[0], waBinary.DefaultUserServer)

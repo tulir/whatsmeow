@@ -38,22 +38,23 @@ func (cli *Client) handleNotification(node *waBinary.Node) bool {
 	ag := node.AttrGetter()
 	id := ag.String("id")
 	notifType := ag.String("type")
+	from := ag.JID("from")
 	if !ag.OK() {
 		return false
 	}
 	go func() {
 		cli.Log.Debugln("Received", notifType, "update")
-		ackRecipient := waBinary.ServerJID
-		if notifType == "account_sync" {
-			ackRecipient = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
-		}
+		//ackRecipient := from
+		//if notifType == "account_sync" {
+		//	ackRecipient = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
+		//}
 		err := cli.sendNode(waBinary.Node{
 			Tag: "ack",
 			Attrs: map[string]interface{}{
 				"id":    id,
 				"type":  notifType,
 				"class": "notification",
-				"to":    ackRecipient,
+				"to":    from,
 			},
 		})
 		if err != nil {

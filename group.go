@@ -10,6 +10,14 @@ import (
 	"go.mau.fi/whatsmeow/binary"
 )
 
+type GroupParticipant struct {
+	JID          JID  `json:"id"`
+	IsAdmin      bool `json:"isAdmin"`
+	IsSuperAdmin bool `json:"isSuperAdmin"`
+
+	FullJID binary.FullJID `json:"-"`
+}
+
 type GroupInfo struct {
 	JID      JID `json:"jid"`
 	OwnerJID JID `json:"owner"`
@@ -19,6 +27,7 @@ type GroupInfo struct {
 	NameSetBy   JID    `json:"subjectOwner"`
 
 	Announce bool `json:"announce"` // Can only admins send messages?
+	Locked bool `json:"locked"` // Can only admins edit group info?
 
 	Topic      string `json:"desc"`
 	TopicID    string `json:"descId"`
@@ -29,11 +38,7 @@ type GroupInfo struct {
 
 	Status int16 `json:"status"`
 
-	Participants []struct {
-		JID          JID  `json:"id"`
-		IsAdmin      bool `json:"isAdmin"`
-		IsSuperAdmin bool `json:"isSuperAdmin"`
-	} `json:"participants"`
+	Participants []GroupParticipant `json:"participants"`
 }
 
 type BroadcastListInfo struct {

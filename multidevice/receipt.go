@@ -18,11 +18,12 @@ import (
 )
 
 type ReadReceipt struct {
-	From       waBinary.FullJID
-	Chat       *waBinary.FullJID
-	Recipient  *waBinary.FullJID
-	MessageIDs []string
-	Timestamp  int64
+	From        waBinary.FullJID
+	Chat        *waBinary.FullJID
+	Recipient   *waBinary.FullJID
+	MessageID   string
+	PreviousIDs []string
+	Timestamp   int64
 }
 
 func (cli *Client) handleReceipt(node *waBinary.Node) bool {
@@ -56,6 +57,7 @@ func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceipt, error) {
 		receipt.Chat = &receipt.From
 		receipt.From = ag.JID("participant")
 	}
+	receipt.MessageID = ag.String("id")
 	if !ag.OK() {
 		return nil, fmt.Errorf("failed to parse read receipt attrs: %+v", ag.Errors)
 	}
@@ -63,14 +65,12 @@ func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceipt, error) {
 	receiptChildren := node.GetChildren()
 	if len(receiptChildren) == 1 && receiptChildren[0].Tag == "list" {
 		listChildren := receiptChildren[0].GetChildren()
-		receipt.MessageIDs = make([]string, 0, len(listChildren))
+		receipt.PreviousIDs = make([]string, 0, len(listChildren))
 		for _, item := range listChildren {
 			if id, ok := item.Attrs["id"].(string); ok && item.Tag == "item" {
-				receipt.MessageIDs = append(receipt.MessageIDs, id)
+				receipt.PreviousIDs = append(receipt.PreviousIDs, id)
 			}
 		}
-	} else {
-		receipt.MessageIDs = []string{ag.String("id")}
 	}
 	return &receipt, nil
 }

@@ -45,6 +45,15 @@ func (n *Node) GetChildByTag(tag string) (val Node) {
 	return
 }
 
+func (n *Node) GetOptionalChildByTag(tag string) (val *Node, ok bool) {
+	nodes := n.GetChildrenByTag(tag)
+	if len(nodes) > 0 {
+		val = &nodes[0]
+		ok = true
+	}
+	return
+}
+
 func (n *Node) convertLegacyAttributes() {
 	n.Attrs = make(map[string]interface{}, len(n.LegacyAttributes))
 	for key, attr := range n.LegacyAttributes {
