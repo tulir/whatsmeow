@@ -17,6 +17,4 @@ require (
 	rsc.io/qr v0.2.0 // indirect
 )
 
-replace github.com/RadicalApp/libsignal-protocol-go => github.com/tulir/libsignal-protocol-go v0.0.0-20211014112102-37689eb21b79
-
-replace filippo.io/edwards25519 => github.com/tulir/edwards25519 v1.0.0-at.2
+replace github.com/RadicalApp/libsignal-protocol-go => github.com/tulir/libsignal-protocol-go v0.0.0-20211014212652-fb541a37ef05
