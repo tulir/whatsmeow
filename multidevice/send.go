@@ -203,7 +203,7 @@ func (cli *Client) GetGroupInfo(jid waBinary.FullJID) (*whatsapp.GroupInfo, erro
 		}},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to request group info: %w")
+		return nil, fmt.Errorf("failed to request group info: %w", err)
 	}
 
 	errorNode, ok := res.GetOptionalChildByTag("error")
