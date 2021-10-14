@@ -75,13 +75,15 @@ func (cli *Client) decryptGroupMsg(child *waBinary.Node, from waBinary.FullJID, 
 
 var CheckPadding = true
 
+func isValidPadding(plaintext []byte) bool {
+	lastByte := plaintext[len(plaintext)-1]
+	expectedPadding := bytes.Repeat([]byte{lastByte}, int(lastByte))
+	return bytes.HasSuffix(plaintext, expectedPadding)
+}
+
 func unpadMessage(plaintext []byte) ([]byte, error) {
-	if CheckPadding {
-		lastByte := plaintext[len(plaintext)-1]
-		expectedPadding := bytes.Repeat([]byte{lastByte}, int(lastByte))
-		if !bytes.HasSuffix(plaintext, expectedPadding) {
-			return nil, fmt.Errorf("plaintext doesn't have expected padding")
-		}
+	if CheckPadding && !isValidPadding(plaintext) {
+		return nil, fmt.Errorf("plaintext doesn't have expected padding")
 	}
 	return plaintext[:len(plaintext)-int(plaintext[len(plaintext)-1])], nil
 }
@@ -92,7 +94,11 @@ func padMessage(plaintext []byte) []byte {
 	if err != nil {
 		panic(err)
 	}
-	plaintext = append(plaintext, bytes.Repeat(pad[:], int(pad[0]&0xf))...)
+	pad[0] &= 0xf
+	if pad[0] == 0 {
+		pad[0] = 0xf
+	}
+	plaintext = append(plaintext, bytes.Repeat(pad[:], int(pad[0]))...)
 	return plaintext
 }
 
