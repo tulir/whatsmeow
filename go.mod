@@ -6,15 +6,17 @@ require (
 	github.com/RadicalApp/libsignal-protocol-go v0.0.0-20170414202031-d09bcab9f18e
 	github.com/gorilla/websocket v1.4.2
 	github.com/mdp/qrterminal/v3 v3.0.0
-	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	google.golang.org/protobuf v1.27.1
 	maunium.net/go/maulogger/v2 v2.2.4
 )
 
 require (
+	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/RadicalApp/complete v0.0.0-20170329192659-17e6c0ee499b // indirect
-	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
 
-replace github.com/RadicalApp/libsignal-protocol-go => github.com/tulir/libsignal-protocol-go v0.0.0-20211011134536-a46d91ef9618
+replace github.com/RadicalApp/libsignal-protocol-go => github.com/tulir/libsignal-protocol-go v0.0.0-20211014112102-37689eb21b79
+
+replace filippo.io/edwards25519 => github.com/tulir/edwards25519 v1.0.0-at.2
