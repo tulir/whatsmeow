@@ -27,7 +27,7 @@ type GroupInfo struct {
 	NameSetBy   JID    `json:"subjectOwner"`
 
 	Announce bool `json:"announce"` // Can only admins send messages?
-	Locked bool `json:"locked"` // Can only admins edit group info?
+	Locked   bool `json:"locked"`   // Can only admins edit group info?
 
 	Topic      string `json:"desc"`
 	TopicID    string `json:"descId"`
