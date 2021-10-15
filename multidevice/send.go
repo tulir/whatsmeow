@@ -93,7 +93,7 @@ func (cli *Client) sendGroup(to waBinary.FullJID, id string, message *waProto.Me
 	if err != nil {
 		return fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
 	}
-	ciphertext := encrypted.Serialize()
+	ciphertext := encrypted.SignedSerialize()
 
 	participants := make([]waBinary.FullJID, len(groupInfo.Participants))
 	participantsStrings := make([]string, len(groupInfo.Participants))
@@ -179,9 +179,11 @@ func marshalMessage(to waBinary.FullJID, message *waProto.Message) (plaintext, d
 	}
 
 	if to.Server != waBinary.GroupServer {
-		dsmPlaintext, err = proto.Marshal(&waProto.DeviceSentMessage{
-			DestinationJid: proto.String(to.String()),
-			Message:        message,
+		dsmPlaintext, err = proto.Marshal(&waProto.Message{
+			DeviceSentMessage: &waProto.DeviceSentMessage{
+				DestinationJid: proto.String(to.String()),
+				Message:        message,
+			},
 		})
 		if err != nil {
 			err = fmt.Errorf("failed to marshal message (for own devices): %w", err)
