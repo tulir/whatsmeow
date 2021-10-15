@@ -19,14 +19,17 @@ import (
 	"go.mau.fi/whatsmeow/multidevice/keys"
 )
 
-func (cli *Client) uploadPreKeys() {
+const WantedPreKeyCount = 50
+
+func (cli *Client) uploadPreKeys(currentCount int) {
 	var registrationIDBytes [4]byte
 	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
-	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(30)
+	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(WantedPreKeyCount - uint32(currentCount))
 	if err != nil {
 		cli.Log.Errorln("Failed to get prekeys to upload:", err)
 		return
 	}
+	cli.Log.Infoln("Uploading", len(preKeys), "new prekeys to server")
 	_, err = cli.sendIQ(InfoQuery{
 		Namespace: "encrypt",
 		Type:      "set",

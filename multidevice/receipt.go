@@ -162,7 +162,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
 		},
 	}
 	if retryCount > 1 {
-		if keys, err := cli.Store.PreKeys.GetOrGenPreKeys(1); err != nil || len(keys) < 1 {
+		if key, err := cli.Store.PreKeys.GenOnePreKey(); err != nil {
 			cli.Log.Errorln("Failed to get prekey for retry receipt:", err)
 		} else if deviceIdentity, err := proto.Marshal(cli.Store.Account); err != nil {
 			cli.Log.Errorln("Failed to marshal account info:", err)
@@ -173,7 +173,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
 				Content: []waBinary.Node{
 					{Tag: "type", Content: []byte{ecc.DjbType}},
 					{Tag: "identity", Content: cli.Store.IdentityKey.Pub[:]},
-					preKeyToNode(keys[0]),
+					preKeyToNode(key),
 					preKeyToNode(cli.Store.SignedPreKey),
 					{Tag: "device-identity", Content: deviceIdentity},
 				},

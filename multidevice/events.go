@@ -42,6 +42,18 @@ func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 	return true
 }
 
+func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
+	count := node.GetChildByTag("count")
+	ag := count.AttrGetter()
+	otksLeft := ag.Int("value")
+	if !ag.OK() {
+		cli.Log.Warnln("Didn't get number of OTKs left in encryption notification")
+		return
+	}
+	cli.Log.Infoln("Server said we have", otksLeft, "one-time keys left")
+	cli.uploadPreKeys(otksLeft)
+}
+
 func (cli *Client) handleNotification(node *waBinary.Node) bool {
 	if node.Tag != "notification" {
 		return false
@@ -53,6 +65,10 @@ func (cli *Client) handleNotification(node *waBinary.Node) bool {
 	}
 	cli.Log.Debugln("Received", notifType, "update")
 	go cli.sendAck(node)
+	switch notifType {
+	case "encrypt":
+		go cli.handleEncryptNotification(node)
+	}
 	// TODO dispatch group info changes as events
 	return true
 }
@@ -68,8 +84,8 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
 		count, err := cli.Store.PreKeys.UploadedPreKeyCount()
 		if err != nil {
 			cli.Log.Errorln("Failed to get number of prekeys on server:", err)
-		} else if count < 15 {
-			cli.uploadPreKeys()
+		} else if count < WantedPreKeyCount {
+			cli.uploadPreKeys(count)
 		}
 		err = cli.sendPassiveIQ(false)
 		if err != nil {
