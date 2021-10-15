@@ -93,7 +93,7 @@ func (cli *Client) sendGroup(to waBinary.FullJID, id string, message *waProto.Me
 	if err != nil {
 		return fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
 	}
-	ciphertext := encrypted.Serialize()
+	ciphertext := encrypted.SignedSerialize()
 
 	participants := make([]waBinary.FullJID, len(groupInfo.Participants))
 	participantsStrings := make([]string, len(groupInfo.Participants))
