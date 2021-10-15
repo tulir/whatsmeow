@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package session
+package store
 
 import (
 	"crypto/md5"
@@ -70,20 +70,20 @@ var CompanionProps = &waProto.CompanionProps{
 	RequireFullSync: proto.Bool(false),
 }
 
-func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
+func (device *Device) getRegistrationPayload() *waProto.ClientPayload {
 	payload := proto.Clone(BaseClientPayload).(*waProto.ClientPayload)
 	regID := make([]byte, 4)
-	binary.BigEndian.PutUint32(regID, sess.RegistrationID)
+	binary.BigEndian.PutUint32(regID, device.RegistrationID)
 	preKeyID := make([]byte, 4)
-	binary.BigEndian.PutUint32(preKeyID, sess.SignedPreKey.KeyID)
+	binary.BigEndian.PutUint32(preKeyID, device.SignedPreKey.KeyID)
 	companionProps, _ := proto.Marshal(CompanionProps)
 	payload.RegData = &waProto.CompanionRegData{
 		ERegid:         regID,
 		EKeytype:       []byte{ecc.DjbType},
-		EIdent:         sess.IdentityKey.Pub[:],
+		EIdent:         device.IdentityKey.Pub[:],
 		ESkeyId:        preKeyID[1:],
-		ESkeyVal:       sess.SignedPreKey.Pub[:],
-		ESkeySig:       sess.SignedPreKey.Signature[:],
+		ESkeyVal:       device.SignedPreKey.Pub[:],
+		ESkeySig:       device.SignedPreKey.Signature[:],
 		BuildHash:      waVersionHash[:],
 		CompanionProps: companionProps,
 	}
@@ -91,18 +91,18 @@ func (sess *Session) getRegistrationPayload() *waProto.ClientPayload {
 	return payload
 }
 
-func (sess *Session) getLoginPayload() *waProto.ClientPayload {
+func (device *Device) getLoginPayload() *waProto.ClientPayload {
 	payload := proto.Clone(BaseClientPayload).(*waProto.ClientPayload)
-	payload.Username = proto.Uint64(sess.ID.UserInt())
-	payload.Device = proto.Uint32(uint32(sess.ID.Device))
+	payload.Username = proto.Uint64(device.ID.UserInt())
+	payload.Device = proto.Uint32(uint32(device.ID.Device))
 	payload.Passive = proto.Bool(true)
 	return payload
 }
 
-func (sess *Session) GetClientPayload() *waProto.ClientPayload {
-	if sess.ID != nil {
-		return sess.getLoginPayload()
+func (device *Device) GetClientPayload() *waProto.ClientPayload {
+	if device.ID != nil {
+		return device.getLoginPayload()
 	} else {
-		return sess.getRegistrationPayload()
+		return device.getRegistrationPayload()
 	}
 }

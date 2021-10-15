@@ -17,14 +17,14 @@ import (
 	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/multidevice/keys"
-	"go.mau.fi/whatsmeow/multidevice/session"
 	"go.mau.fi/whatsmeow/multidevice/socket"
+	"go.mau.fi/whatsmeow/multidevice/store"
 )
 
 type Client struct {
-	Session *session.Session
-	Log     log.Logger
-	socket  *socket.NoiseSocket
+	Store  *store.Device
+	Log    log.Logger
+	socket *socket.NoiseSocket
 
 	mediaConn     *whatsapp.MediaConn
 	mediaConnLock sync.Mutex
@@ -42,11 +42,11 @@ type Client struct {
 	idCounter uint64
 }
 
-func NewClient(sess *session.Session, log log.Logger) *Client {
+func NewClient(deviceStore *store.Device, log log.Logger) *Client {
 	randomBytes := make([]byte, 2)
 	_, _ = rand.Read(randomBytes)
 	cli := &Client{
-		Session:         sess,
+		Store:           deviceStore,
 		Log:             log,
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),

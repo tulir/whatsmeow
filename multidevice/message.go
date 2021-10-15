@@ -31,7 +31,7 @@ var pbSerializer = serialize.NewProtoBufSerializer()
 func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.FullJID, isPreKey bool) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
-	builder := session.NewBuilderFromSignal(cli.Session, from.SignalAddress(), pbSerializer)
+	builder := session.NewBuilderFromSignal(cli.Store, from.SignalAddress(), pbSerializer)
 	cipher := session.NewCipher(builder, from.SignalAddress())
 	if isPreKey {
 		preKeyMsg, err := protocol.NewPreKeySignalMessageFromBytes(content, pbSerializer.PreKeySignalMessage, pbSerializer.SignalMessage)
@@ -60,8 +60,8 @@ func (cli *Client) decryptGroupMsg(child *waBinary.Node, from waBinary.FullJID, 
 	content, _ := child.Content.([]byte)
 
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
-	builder := groups.NewGroupSessionBuilder(cli.Session, pbSerializer)
-	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.Session)
+	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
+	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.Store)
 	msg, err := protocol.NewSenderKeyMessageFromBytes(content, pbSerializer.SenderKeyMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse group message: %w", err)
@@ -229,7 +229,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) bool {
 }
 
 func (cli *Client) handleSenderKeyDistributionMessage(chat, from waBinary.FullJID, rawSKDMsg *waProto.SenderKeyDistributionMessage) {
-	builder := groups.NewGroupSessionBuilder(cli.Session, pbSerializer)
+	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
 	sdkMsg, err := protocol.NewSenderKeyDistributionMessageFromBytes(rawSKDMsg.AxolotlSenderKeyDistributionMessage, pbSerializer.SenderKeyDistributionMessage)
 	if err != nil {
@@ -297,7 +297,7 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 		Attrs: map[string]interface{}{
 			"id":   id,
 			"type": msgType,
-			"to":   waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer),
+			"to":   waBinary.NewJID(cli.Store.ID.User, waBinary.UserServer),
 		},
 		Content: nil,
 	})

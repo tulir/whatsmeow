@@ -7,11 +7,11 @@
 package keys
 
 import (
+	"crypto/rand"
 	"fmt"
 
 	"github.com/RadicalApp/libsignal-protocol-go/ecc"
-
-	"go.mau.fi/whatsmeow/crypto/curve25519"
+	"golang.org/x/crypto/curve25519"
 )
 
 type KeyPair struct {
@@ -19,14 +19,30 @@ type KeyPair struct {
 	Priv *[32]byte
 }
 
-func NewKeyPair() *KeyPair {
+var _ ecc.ECPublicKeyable
+
+func NewKeyPairFromPrivateKey(priv [32]byte) *KeyPair {
 	var kp KeyPair
-	var err error
-	kp.Priv, kp.Pub, err = curve25519.GenerateKey()
-	if err != nil {
-		panic(fmt.Errorf("failed to generate curve25519 keypair: %w", err))
-	}
+	kp.Priv = &priv
+	var pub [32]byte
+	curve25519.ScalarBaseMult(&pub, kp.Priv)
+	kp.Pub = &pub
 	return &kp
+}
+
+func NewKeyPair() *KeyPair {
+	var priv [32]byte
+
+	_, err := rand.Read(priv[:])
+	if err != nil {
+		panic(fmt.Errorf("failed to generate curve25519 private key: %w", err))
+	}
+
+	priv[0] &= 248
+	priv[31] &= 127
+	priv[31] |= 64
+
+	return NewKeyPairFromPrivateKey(priv)
 }
 
 func (kp *KeyPair) CreateSignedPreKey(keyID uint32) *PreKey {

@@ -103,7 +103,7 @@ func (cli *Client) sendMessageReceipt(info *MessageInfo) {
 	attrs := map[string]interface{}{
 		"id": info.ID,
 	}
-	isFromMe := info.From.User == cli.Session.ID.User
+	isFromMe := info.From.User == cli.Store.ID.User
 	if isFromMe {
 		attrs["type"] = "sender"
 	} else {
@@ -136,7 +136,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
 	cli.messageRetriesLock.Unlock()
 
 	var registrationIDBytes [4]byte
-	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Session.RegistrationID)
+	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
 	attrs := map[string]interface{}{
 		"id":   id,
 		"type": "retry",
@@ -162,22 +162,23 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
 		},
 	}
 	if retryCount > 1 {
-		keys := cli.Session.GetOrGenPreKeys(1)
-		deviceIdentity, err := proto.Marshal(cli.Session.Account)
-		if err != nil {
+		if key, err := cli.Store.PreKeys.GenOnePreKey(); err != nil {
+			cli.Log.Errorln("Failed to get prekey for retry receipt:", err)
+		} else if deviceIdentity, err := proto.Marshal(cli.Store.Account); err != nil {
 			cli.Log.Errorln("Failed to marshal account info:", err)
 			return
+		} else {
+			payload.Content = append(payload.GetChildren(), waBinary.Node{
+				Tag: "keys",
+				Content: []waBinary.Node{
+					{Tag: "type", Content: []byte{ecc.DjbType}},
+					{Tag: "identity", Content: cli.Store.IdentityKey.Pub[:]},
+					preKeyToNode(key),
+					preKeyToNode(cli.Store.SignedPreKey),
+					{Tag: "device-identity", Content: deviceIdentity},
+				},
+			})
 		}
-		payload.Content = append(payload.GetChildren(), waBinary.Node{
-			Tag: "keys",
-			Content: []waBinary.Node{
-				{Tag: "type", Content: []byte{ecc.DjbType}},
-				{Tag: "identity", Content: cli.Session.IdentityKey.Pub[:]},
-				preKeyToNode(keys[0]),
-				preKeyToNode(cli.Session.SignedPreKey),
-				{Tag: "device-identity", Content: deviceIdentity},
-			},
-		})
 	}
 	err := cli.sendNode(payload)
 	if err != nil {

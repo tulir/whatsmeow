@@ -71,8 +71,8 @@ func (cli *Client) sendGroup(to waBinary.FullJID, id string, message *waProto.Me
 		return err
 	}
 
-	builder := groups.NewGroupSessionBuilder(cli.Session, pbSerializer)
-	senderKeyName := protocol.NewSenderKeyName(to.String(), cli.Session.ID.SignalAddress())
+	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
+	senderKeyName := protocol.NewSenderKeyName(to.String(), cli.Store.ID.SignalAddress())
 	signalSKDMessage, err := builder.Create(senderKeyName)
 	if err != nil {
 		return fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
@@ -88,7 +88,7 @@ func (cli *Client) sendGroup(to waBinary.FullJID, id string, message *waProto.Me
 		return fmt.Errorf("failed to marshal sender key distribution message to send %s to %s: %w", id, to, err)
 	}
 
-	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.Session)
+	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.Store)
 	encrypted, err := cipher.Encrypt(padMessage(plaintext))
 	if err != nil {
 		return fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
@@ -140,7 +140,7 @@ func (cli *Client) sendDM(to waBinary.FullJID, id string, message *waProto.Messa
 		return err
 	}
 
-	allDevices, err := cli.GetUSyncDevices([]waBinary.FullJID{to, *cli.Session.ID}, false)
+	allDevices, err := cli.GetUSyncDevices([]waBinary.FullJID{to, *cli.Store.ID}, false)
 	if err != nil {
 		return fmt.Errorf("failed to get device list: %w", err)
 	}
@@ -322,7 +322,7 @@ func (cli *Client) GetUSyncDevices(jids []waBinary.FullJID, ignorePrimary bool) 
 				continue
 			}
 			deviceJID := waBinary.NewADJID(jid.User, 0, byte(deviceID))
-			if (deviceJID.Device > 0 || !ignorePrimary) && deviceJID != *cli.Session.ID {
+			if (deviceJID.Device > 0 || !ignorePrimary) && deviceJID != *cli.Store.ID {
 				devices = append(devices, deviceJID)
 			}
 		}
@@ -332,7 +332,7 @@ func (cli *Client) GetUSyncDevices(jids []waBinary.FullJID, ignorePrimary bool) 
 }
 
 func (cli *Client) appendDeviceIdentityNode(node *waBinary.Node) error {
-	deviceIdentity, err := proto.Marshal(cli.Session.Account)
+	deviceIdentity, err := proto.Marshal(cli.Store.Account)
 	if err != nil {
 		return fmt.Errorf("failed to marshal device identity: %w", err)
 	}
@@ -349,7 +349,7 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.FullJID, id st
 	var retryDevices []waBinary.FullJID
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
-		if jid.User == cli.Session.ID.User && dsmPlaintext != nil {
+		if jid.User == cli.Store.ID.User && dsmPlaintext != nil {
 			plaintext = dsmPlaintext
 		}
 		encrypted, isPreKey, err := cli.encryptMessageForDevice(plaintext, jid, nil)
@@ -377,7 +377,7 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.FullJID, id st
 					continue
 				}
 				plaintext := msgPlaintext
-				if jid.User == cli.Session.ID.User && dsmPlaintext != nil {
+				if jid.User == cli.Store.ID.User && dsmPlaintext != nil {
 					plaintext = dsmPlaintext
 				}
 				encrypted, isPreKey, err := cli.encryptMessageForDevice(plaintext, jid, resp.bundle)
@@ -398,8 +398,8 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.FullJID, id st
 var ErrNoSession = errors.New("no signal session established")
 
 func (cli *Client) encryptMessageForDevice(plaintext []byte, to waBinary.FullJID, bundle *prekey.Bundle) (*waBinary.Node, bool, error) {
-	builder := session.NewBuilderFromSignal(cli.Session, to.SignalAddress(), pbSerializer)
-	if !cli.Session.ContainsSession(to.SignalAddress()) {
+	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
+	if !cli.Store.ContainsSession(to.SignalAddress()) {
 		if bundle != nil {
 			cli.Log.Debugln("Processing prekey bundle for", to)
 			err := builder.ProcessBundle(bundle)

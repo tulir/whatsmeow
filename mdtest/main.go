@@ -8,16 +8,15 @@ package main
 
 import (
 	"bufio"
-	"encoding/gob"
-	"errors"
+	"database/sql"
 	"fmt"
-	"io/fs"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/mdp/qrterminal/v3"
 	"google.golang.org/protobuf/proto"
 	log "maunium.net/go/maulogger/v2"
@@ -25,53 +24,60 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/multidevice"
-	"go.mau.fi/whatsmeow/multidevice/session"
+	"go.mau.fi/whatsmeow/multidevice/store"
 )
 
-const SessionFileName = "mdtest.gob"
-
-func loadSession() *session.Session {
-	var sess session.Session
-	if file, err := os.OpenFile(SessionFileName, os.O_RDONLY, 0600); errors.Is(err, fs.ErrNotExist) {
-		return session.NewSession()
-	} else if err != nil {
-		log.Fatalln("Failed to open session file for reading:", err)
-	} else if err = gob.NewDecoder(file).Decode(&sess); err != nil {
-		log.Fatalln("Failed to decode session:", err)
-	} else {
-		if err = file.Close(); err != nil {
-			log.Warnln("Failed to close session file after reading:", err)
-		}
-		return &sess
-	}
-	os.Exit(2)
-	return nil
-}
-
-func saveSession(sess *session.Session) {
-	if file, err := os.OpenFile(SessionFileName, os.O_CREATE|os.O_WRONLY, 0600); err != nil {
-		log.Fatalln("Failed to open session file for writing:", err)
-	} else if err = gob.NewEncoder(file).Encode(sess); err != nil {
-		log.Fatalln("Failed to encode session:", err)
-	} else if err = file.Close(); err != nil {
-		log.Warnln("Failed to close session file after writing:", err)
-	}
-}
-
 var cli *multidevice.Client
+
+type waLogger struct{}
+
+func (w *waLogger) Warn(msg string, args ...interface{}) {
+	log.Warnfln(msg, args...)
+}
+
+func (w *waLogger) Error(msg string, args ...interface{}) {
+	log.Errorfln(msg, args...)
+}
+
+func getDevice() *store.Device {
+	db, err := sql.Open("sqlite3", "mdtest.db")
+	if err != nil {
+		log.Fatalln("Failed to open mdtest.db:", err)
+		return nil
+	}
+	storeContainer := store.NewSQLContainer(db, "sqlite3", &waLogger{})
+	err = storeContainer.Upgrade()
+	if err != nil {
+		log.Fatalln("Failed to upgrade database:", err)
+		return nil
+	}
+	devices, err := storeContainer.GetAllDevices()
+	if err != nil {
+		log.Fatalln("Failed to get devices from database:", err)
+		return nil
+	}
+	if len(devices) == 0 {
+		return storeContainer.NewDevice()
+	} else {
+		return devices[0]
+	}
+}
 
 func main() {
 	log.DefaultLogger.PrintLevel = 0
 
-	sess := loadSession()
-	cli = multidevice.NewClient(sess, log.DefaultLogger)
+	device := getDevice()
+	if device == nil {
+		return
+	}
+
+	cli = multidevice.NewClient(device, log.DefaultLogger)
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)
 		return
 	}
 	cli.AddEventHandler(handler)
-	defer saveSession(sess)
 
 	c := make(chan os.Signal)
 	input := make(chan string)

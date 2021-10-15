@@ -16,7 +16,6 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/crypto/curve25519"
 	"go.mau.fi/whatsmeow/multidevice/keys"
 	"go.mau.fi/whatsmeow/multidevice/socket"
 )
@@ -51,7 +50,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	serverEphemeralArr := *(*[32]byte)(serverEphemeral)
 
 	nh.Authenticate(serverEphemeral)
-	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, serverEphemeralArr))
+	err = nh.MixSharedSecretIntoKey(*ephemeralKP.Priv, serverEphemeralArr)
 	if err != nil {
 		return fmt.Errorf("failed to mix server ephemeral key in: %w", err)
 	}
@@ -62,7 +61,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	} else if len(staticDecrypted) != 32 {
 		return fmt.Errorf("unexpected length of server static plaintext %d (expected 32)", len(staticDecrypted))
 	}
-	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*ephemeralKP.Priv, *(*[32]byte)(staticDecrypted)))
+	err = nh.MixSharedSecretIntoKey(*ephemeralKP.Priv, *(*[32]byte)(staticDecrypted))
 	if err != nil {
 		return fmt.Errorf("failed to mix server static key in: %w", err)
 	}
@@ -89,31 +88,27 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		return fmt.Errorf("cert key doesn't match decrypted static")
 	}
 
-	if cli.Session.NoiseKey == nil {
-		cli.Session.NoiseKey = &keys.KeyPair{}
-		cli.Session.NoiseKey.Priv, cli.Session.NoiseKey.Pub, err = curve25519.GenerateKey()
-		if err != nil {
-			return fmt.Errorf("failed to generate curve25519 keypair: %w", err)
-		}
+	if cli.Store.NoiseKey == nil {
+		cli.Store.NoiseKey = keys.NewKeyPair()
 	}
 
-	encryptedPubkey := nh.Encrypt(cli.Session.NoiseKey.Pub[:])
-	err = nh.MixIntoKey(curve25519.GenerateSharedSecret(*cli.Session.NoiseKey.Priv, serverEphemeralArr))
+	encryptedPubkey := nh.Encrypt(cli.Store.NoiseKey.Pub[:])
+	err = nh.MixSharedSecretIntoKey(*cli.Store.NoiseKey.Priv, serverEphemeralArr)
 	if err != nil {
 		return fmt.Errorf("failed to mix noise private key in: %w", err)
 	}
 
-	if cli.Session.IdentityKey == nil {
-		cli.Session.IdentityKey = keys.NewKeyPair()
+	if cli.Store.IdentityKey == nil {
+		cli.Store.IdentityKey = keys.NewKeyPair()
 	}
-	if cli.Session.SignedPreKey == nil {
-		cli.Session.SignedPreKey = cli.Session.IdentityKey.CreateSignedPreKey(1)
+	if cli.Store.SignedPreKey == nil {
+		cli.Store.SignedPreKey = cli.Store.IdentityKey.CreateSignedPreKey(1)
 	}
-	if cli.Session.RegistrationID == 0 {
-		cli.Session.RegistrationID = mathRand.Uint32()
+	if cli.Store.RegistrationID == 0 {
+		cli.Store.RegistrationID = mathRand.Uint32()
 	}
 
-	clientFinishPayloadBytes, err := proto.Marshal(cli.Session.GetClientPayload())
+	clientFinishPayloadBytes, err := proto.Marshal(cli.Store.GetClientPayload())
 	if err != nil {
 		return fmt.Errorf("failed to marshal client finish payload: %w", err)
 	}
@@ -137,9 +132,9 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		return fmt.Errorf("failed to create noise socket: %w", err)
 	}
 
-	if cli.Session.AdvSecretKey == nil {
-		cli.Session.AdvSecretKey = make([]byte, 32)
-		_, err = rand.Read(cli.Session.AdvSecretKey)
+	if cli.Store.AdvSecretKey == nil {
+		cli.Store.AdvSecretKey = make([]byte, 32)
+		_, err = rand.Read(cli.Store.AdvSecretKey)
 		if err != nil {
 			return fmt.Errorf("failed to generate adv secret key: %w", err)
 		}

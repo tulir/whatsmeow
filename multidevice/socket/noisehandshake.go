@@ -14,6 +14,7 @@ import (
 	"io"
 	"sync/atomic"
 
+	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
 )
 
@@ -96,6 +97,14 @@ func (nh *NoiseHandshake) Finish(fs *FrameSocket) (*NoiseSocket, error) {
 	} else {
 		return ns, nil
 	}
+}
+
+func (nh *NoiseHandshake) MixSharedSecretIntoKey(priv, pub [32]byte) error {
+	secret, err := curve25519.X25519(priv[:], pub[:])
+	if err != nil {
+		return fmt.Errorf("failed to do x25519 scalar multiplication: %w", err)
+	}
+	return nh.MixIntoKey(secret)
 }
 
 func (nh *NoiseHandshake) MixIntoKey(data []byte) error {
