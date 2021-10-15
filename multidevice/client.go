@@ -22,9 +22,9 @@ import (
 )
 
 type Client struct {
-	Store *store.Device
-	Log   log.Logger
-	socket  *socket.NoiseSocket
+	Store  *store.Device
+	Log    log.Logger
+	socket *socket.NoiseSocket
 
 	mediaConn     *whatsapp.MediaConn
 	mediaConnLock sync.Mutex
