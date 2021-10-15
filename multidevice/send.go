@@ -179,9 +179,11 @@ func marshalMessage(to waBinary.FullJID, message *waProto.Message) (plaintext, d
 	}
 
 	if to.Server != waBinary.GroupServer {
-		dsmPlaintext, err = proto.Marshal(&waProto.DeviceSentMessage{
-			DestinationJid: proto.String(to.String()),
-			Message:        message,
+		dsmPlaintext, err = proto.Marshal(&waProto.Message{
+			DeviceSentMessage: &waProto.DeviceSentMessage{
+				DestinationJid: proto.String(to.String()),
+				Message:        message,
+			},
 		})
 		if err != nil {
 			err = fmt.Errorf("failed to marshal message (for own devices): %w", err)
