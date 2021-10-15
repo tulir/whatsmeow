@@ -87,7 +87,7 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 	if recipient, ok := node.Attrs["recipient"]; ok {
 		attrs["recipient"] = recipient
 	}
-	if receiptType, ok := node.Attrs["type"]; node.Tag == "receipt" && ok {
+	if receiptType, ok := node.Attrs["type"]; node.Tag != "message" && ok {
 		attrs["type"] = receiptType
 	}
 	err := cli.sendNode(waBinary.Node{
@@ -98,27 +98,6 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 		cli.Log.Warnfln("Failed to send acknowledgement for %s %s: %v", node.Tag, node.Attrs["id"], err)
 	}
 }
-
-//func (cli *Client) ackMessage(info *MessageInfo) {
-//	attrs := map[string]interface{}{
-//		"class": "message",
-//		"id":    info.ID,
-//	}
-//	if info.Chat != nil {
-//		attrs["to"] = *info.Chat
-//		// TODO is this really supposed to be the user instead of info.Participant?
-//		attrs["participant"] = waBinary.NewADJID(cli.Session.ID.User, 0, 0)
-//	} else {
-//		attrs["to"] = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
-//	}
-//	err := cli.sendNode(waBinary.Node{
-//		Tag:   "ack",
-//		Attrs: attrs,
-//	})
-//	if err != nil {
-//		cli.Log.Warnfln("Failed to send acknowledgement for %s: %v", info.ID, err)
-//	}
-//}
 
 func (cli *Client) sendMessageReceipt(info *MessageInfo) {
 	attrs := map[string]interface{}{

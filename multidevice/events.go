@@ -36,34 +36,13 @@ func (cli *Client) handleNotification(node *waBinary.Node) bool {
 		return false
 	}
 	ag := node.AttrGetter()
-	id := ag.String("id")
 	notifType := ag.String("type")
-	from := ag.JID("from")
 	if !ag.OK() {
 		return false
 	}
-	go func() {
-		cli.Log.Debugln("Received", notifType, "update")
-		attrs := map[string]interface{}{
-			"id":    id,
-			"type":  notifType,
-			"class": "notification",
-			"to":    from,
-		}
-		if notifType == "account_sync" {
-			attrs["to"] = waBinary.NewJID(cli.Session.ID.User, waBinary.UserServer)
-		} else if notifType == "w:gp2" {
-			attrs["participant"] = ag.JID("participant")
-			// TODO dispatch group info changes as events
-		}
-		err := cli.sendNode(waBinary.Node{
-			Tag:   "ack",
-			Attrs: attrs,
-		})
-		if err != nil {
-			cli.Log.Warnfln("Failed to send acknowledgement to %s notification %s: %v", notifType, id, err)
-		}
-	}()
+	cli.Log.Debugln("Received", notifType, "update")
+	go cli.sendAck(node)
+	// TODO dispatch group info changes as events
 	return true
 }
 
