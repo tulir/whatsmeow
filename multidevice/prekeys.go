@@ -21,18 +21,22 @@ import (
 
 func (cli *Client) uploadPreKeys() {
 	var registrationIDBytes [4]byte
-	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Session.RegistrationID)
-	preKeys := cli.Session.GetOrGenPreKeys(30)
-	_, err := cli.sendIQ(InfoQuery{
+	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
+	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(30)
+	if err != nil {
+		cli.Log.Errorln("Failed to get prekeys to upload:", err)
+		return
+	}
+	_, err = cli.sendIQ(InfoQuery{
 		Namespace: "encrypt",
 		Type:      "set",
 		To:        waBinary.ServerJID,
 		Content: []waBinary.Node{
 			{Tag: "registration", Content: registrationIDBytes[:]},
 			{Tag: "type", Content: []byte{ecc.DjbType}},
-			{Tag: "identity", Content: cli.Session.IdentityKey.Pub[:]},
+			{Tag: "identity", Content: cli.Store.IdentityKey.Pub[:]},
 			{Tag: "list", Content: preKeysToNodes(preKeys)},
-			preKeyToNode(cli.Session.SignedPreKey),
+			preKeyToNode(cli.Store.SignedPreKey),
 		},
 	})
 	if err != nil {
@@ -40,7 +44,10 @@ func (cli *Client) uploadPreKeys() {
 		return
 	}
 	cli.Log.Debugln("Got response to uploading prekeys")
-	cli.Session.MarkPreKeysAsUploaded(preKeys[len(preKeys)-1].KeyID)
+	err = cli.Store.PreKeys.MarkPreKeysAsUploaded(preKeys[len(preKeys)-1].KeyID)
+	if err != nil {
+		cli.Log.Warnln("Failed to mark prekeys as uploaded:", err)
+	}
 }
 
 type preKeyResp struct {

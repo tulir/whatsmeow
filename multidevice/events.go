@@ -12,6 +12,8 @@ import (
 
 type nodeHandler func(node *waBinary.Node) bool
 
+type LoggedOutEvent struct{}
+
 func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 	if node.Tag != "stream:error" {
 		return false
@@ -27,6 +29,15 @@ func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 				cli.Log.Errorln("Failed to reconnect after 515 code:", err)
 			}
 		}()
+	case "401":
+		conflict, ok := node.GetOptionalChildByTag("conflict")
+		if ok && conflict.AttrGetter().String("type") == "device_removed" {
+			go cli.dispatchEvent(&LoggedOutEvent{})
+			err := cli.Store.Delete()
+			if err != nil {
+				cli.Log.Warnln("Failed to delete store after device_removed error:", err)
+			}
+		}
 	}
 	return true
 }
@@ -54,10 +65,13 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
 	}
 	cli.Log.Infoln("Successfully authenticated")
 	go func() {
-		if !cli.Session.ServerHasPreKeys() {
+		count, err := cli.Store.PreKeys.UploadedPreKeyCount()
+		if err != nil {
+			cli.Log.Errorln("Failed to get number of prekeys on server:", err)
+		} else if count < 15 {
 			cli.uploadPreKeys()
 		}
-		err := cli.sendPassiveIQ(false)
+		err = cli.sendPassiveIQ(false)
 		if err != nil {
 			cli.Log.Warnln("Failed to send post-connect passive IQ:", err)
 		}

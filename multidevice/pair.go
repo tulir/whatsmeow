@@ -82,9 +82,9 @@ func (cli *Client) handlePairDevice(node *waBinary.Node) bool {
 }
 
 func (cli *Client) makeQRData(ref string) string {
-	noise := base64.StdEncoding.EncodeToString(cli.Session.NoiseKey.Pub[:])
-	identity := base64.StdEncoding.EncodeToString(cli.Session.IdentityKey.Pub[:])
-	adv := base64.StdEncoding.EncodeToString(cli.Session.AdvSecretKey)
+	noise := base64.StdEncoding.EncodeToString(cli.Store.NoiseKey.Pub[:])
+	identity := base64.StdEncoding.EncodeToString(cli.Store.IdentityKey.Pub[:])
+	adv := base64.StdEncoding.EncodeToString(cli.Store.AdvSecretKey)
 	return strings.Join([]string{ref, noise, identity, adv}, ",")
 }
 
@@ -109,7 +109,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) bool {
 		if err != nil {
 			cli.Log.Errorln("Failed to pair device:", err)
 		} else {
-			cli.Log.Infoln("Successfully paired", cli.Session.ID)
+			cli.Log.Infoln("Successfully paired", cli.Store.ID)
 		}
 	}()
 	return true
@@ -122,7 +122,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return fmt.Errorf("failed to parse device identity container in pair success message: %w", err)
 	}
 
-	h := hmac.New(sha256.New, cli.Session.AdvSecretKey)
+	h := hmac.New(sha256.New, cli.Store.AdvSecretKey)
 	h.Write(deviceIdentityContainer.Details)
 	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.Hmac) {
 		cli.Log.Warnln("Invalid HMAC from pair success message")
@@ -136,12 +136,12 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return fmt.Errorf("failed to parse signed device identity in pair success message: %w", err)
 	}
 
-	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Session.IdentityKey) {
+	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey) {
 		cli.sendNotAuthorized(reqID)
 		return fmt.Errorf("invalid device signature in pair success message")
 	}
 
-	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Session.IdentityKey)[:]
+	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Store.IdentityKey)[:]
 
 	var deviceIdentityDetails waProto.ADVDeviceIdentity
 	err = proto.Unmarshal(deviceIdentity.Details, &deviceIdentityDetails)
@@ -151,13 +151,26 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 
 	mainDeviceJID := wid
 	mainDeviceJID.Device = 0
-	cli.Session.PutIdentity(mainDeviceJID, *(*[32]byte)(deviceIdentity.AccountSignatureKey))
+	mainDeviceIdentity := *(*[32]byte)(deviceIdentity.AccountSignatureKey)
 	deviceIdentity.AccountSignatureKey = nil
-	cli.Session.Account = proto.Clone(&deviceIdentity).(*waProto.ADVSignedDeviceIdentity)
+
+	cli.Store.Account = proto.Clone(&deviceIdentity).(*waProto.ADVSignedDeviceIdentity)
 
 	selfSignedDeviceIdentity, err := proto.Marshal(&deviceIdentity)
 	if err != nil {
 		return fmt.Errorf("failed to marshal self-signed device identity: %w", err)
+	}
+
+	cli.Store.ID = &wid
+	cli.Store.BusinessName = businessName
+	cli.Store.Platform = platform
+	err = cli.Store.Save()
+	if err != nil {
+		return fmt.Errorf("failed to save device store: %w", err)
+	}
+	err = cli.Store.Identities.PutIdentity(mainDeviceJID.SignalAddress().String(), mainDeviceIdentity)
+	if err != nil {
+		return fmt.Errorf("failed to store main device identity: %w", err)
 	}
 
 	err = cli.sendNode(waBinary.Node{
@@ -179,11 +192,9 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		}},
 	})
 	if err != nil {
+		_ = cli.Store.Delete()
 		return fmt.Errorf("failed to send pairing confirmation: %w", err)
 	}
-	cli.Session.ID = &wid
-	cli.Session.BusinessName = businessName
-	cli.Session.Platform = platform
 	cli.dispatchEvent(&PairSuccessEvent{ID: wid, BusinessName: businessName, Platform: platform})
 	return nil
 }
