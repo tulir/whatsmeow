@@ -20,7 +20,7 @@ var mdDoubleByteTokenIndex map[string]doubleByteTokenIndex
 
 func init() {
 	mdSingleByteTokenIndex = make(map[string]byte, len(SingleByteTokens))
-	mdDoubleByteTokenIndex = make(map[string]doubleByteTokenIndex, 256*3)
+	mdDoubleByteTokenIndex = make(map[string]doubleByteTokenIndex, 256*4)
 	for index, token := range SingleByteTokens {
 		if token != "" {
 			mdSingleByteTokenIndex[token] = byte(index)
