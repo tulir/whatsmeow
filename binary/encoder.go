@@ -10,15 +10,10 @@ import (
 
 type binaryEncoder struct {
 	data []byte
-	md   bool
 }
 
-func NewEncoder(md bool) *binaryEncoder {
-	data := make([]byte, 0)
-	if md {
-		data = []byte{0}
-	}
-	return &binaryEncoder{data, md}
+func NewEncoder() *binaryEncoder {
+	return &binaryEncoder{[]byte{0}}
 }
 
 func (w *binaryEncoder) GetData() []byte {
@@ -139,27 +134,13 @@ func (w *binaryEncoder) write(data interface{}) {
 }
 
 func (w *binaryEncoder) writeString(data string) {
-	if !w.md && data == "c.us" {
-		swnToken, _ := token.IndexOfSingleToken("s.whatsapp.net", false)
-		w.pushByte(swnToken)
-		return
-	}
-
-	tokenIndex, ok := token.IndexOfSingleToken(data, w.md)
-	if ok {
+	var dictIndex byte
+	if tokenIndex, ok := token.IndexOfSingleToken(data); ok {
 		w.pushByte(tokenIndex)
-		return
-	}
-	if w.md {
-		var dictIndex byte
-		dictIndex, tokenIndex, ok = token.IndexOfDoubleByteToken(data)
-		if ok {
-			w.pushByte(token.Dictionary0 + dictIndex)
-			w.pushByte(tokenIndex)
-			return
-		}
-	}
-	if validateNibble(data) {
+	}  else if dictIndex, tokenIndex, ok = token.IndexOfDoubleByteToken(data); ok {
+		w.pushByte(token.Dictionary0 + dictIndex)
+		w.pushByte(tokenIndex)
+	} else if validateNibble(data) {
 		w.writePackedBytes(data, token.Nibble8)
 	} else if validateHex(data) {
 		w.writePackedBytes(data, token.Hex8)
@@ -256,7 +237,7 @@ func (w *binaryEncoder) packBytePair(packer func(byte) byte, part1, part2 byte) 
 }
 
 func validateNibble(value string) bool {
-	if len(value) >= 128 {
+	if len(value) > token.PackedMax {
 		return false
 	}
 	for _, char := range value {
@@ -285,7 +266,7 @@ func packNibble(value byte) byte {
 }
 
 func validateHex(value string) bool {
-	if len(value) >= 128 {
+	if len(value) > token.PackedMax {
 		return false
 	}
 	for _, char := range value {

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package multidevice
+package whatsapp
 
 import (
 	"crypto/rand"
@@ -14,11 +14,10 @@ import (
 
 	log "maunium.net/go/maulogger/v2"
 
-	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/multidevice/keys"
-	"go.mau.fi/whatsmeow/multidevice/socket"
-	"go.mau.fi/whatsmeow/multidevice/store"
+	"go.mau.fi/whatsmeow/keys"
+	"go.mau.fi/whatsmeow/socket"
+	"go.mau.fi/whatsmeow/store"
 )
 
 type Client struct {
@@ -26,7 +25,7 @@ type Client struct {
 	Log    log.Logger
 	socket *socket.NoiseSocket
 
-	mediaConn     *whatsapp.MediaConn
+	mediaConn     *MediaConn
 	mediaConnLock sync.Mutex
 
 	responseWaiters     map[string]chan<- *waBinary.Node
@@ -103,7 +102,7 @@ func (cli *Client) handleFrame(data []byte) {
 		cli.Log.Warnln("Received stream end frame")
 		return
 	}
-	node, err := waBinary.Unmarshal(decompressed, true)
+	node, err := waBinary.Unmarshal(decompressed)
 	if err != nil {
 		cli.Log.Warnln("Failed to decode node in frame:", err)
 		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(decompressed))
@@ -119,7 +118,7 @@ func (cli *Client) handleFrame(data []byte) {
 }
 
 func (cli *Client) sendNode(node waBinary.Node) error {
-	payload, err := waBinary.Marshal(node, true)
+	payload, err := waBinary.Marshal(node)
 	if err != nil {
 		return fmt.Errorf("failed to marshal ping IQ: %w", err)
 	}

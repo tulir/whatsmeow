@@ -30,6 +30,9 @@ var (
 	OfficialBusinessJID = NewJID("16505361212", UserServer)
 )
 
+// MessageID is the internal ID of a WhatsApp message.
+type MessageID = string
+
 type FullJID struct {
 	User   string
 	Agent  uint8

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package multidevice
+package whatsapp
 
 import (
 	"bytes"
@@ -16,8 +16,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/multidevice/keys"
-	"go.mau.fi/whatsmeow/multidevice/socket"
+	"go.mau.fi/whatsmeow/keys"
+	"go.mau.fi/whatsmeow/socket"
 )
 
 func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair) error {

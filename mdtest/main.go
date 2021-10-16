@@ -21,13 +21,13 @@ import (
 	"google.golang.org/protobuf/proto"
 	log "maunium.net/go/maulogger/v2"
 
+	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/multidevice"
-	"go.mau.fi/whatsmeow/multidevice/store"
+	"go.mau.fi/whatsmeow/store"
 )
 
-var cli *multidevice.Client
+var cli *whatsapp.Client
 
 type waLogger struct{}
 
@@ -65,13 +65,14 @@ func getDevice() *store.Device {
 
 func main() {
 	log.DefaultLogger.PrintLevel = 0
+	waBinary.IndentXML = true
 
 	device := getDevice()
 	if device == nil {
 		return
 	}
 
-	cli = multidevice.NewClient(device, log.DefaultLogger)
+	cli = whatsapp.NewClient(device, log.DefaultLogger)
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)
@@ -142,9 +143,9 @@ var stopQRs = make(chan struct{})
 
 func handler(rawEvt interface{}) {
 	switch evt := rawEvt.(type) {
-	case *multidevice.QREvent:
+	case *whatsapp.QREvent:
 		go printQRs(evt)
-	case *multidevice.PairSuccessEvent:
+	case *whatsapp.PairSuccessEvent:
 		select {
 		case stopQRs <- struct{}{}:
 		default:
@@ -152,7 +153,7 @@ func handler(rawEvt interface{}) {
 	}
 }
 
-func printQRs(evt *multidevice.QREvent) {
+func printQRs(evt *whatsapp.QREvent) {
 	for _, qr := range evt.Codes {
 		fmt.Println("\033[38;2;255;255;255m\u001B[48;2;0;0;0m")
 		qrterminal.GenerateHalfBlock(qr, qrterminal.L, os.Stdout)

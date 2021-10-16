@@ -13,8 +13,8 @@ import (
 
 	"go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/multidevice/keys"
-	waLog "go.mau.fi/whatsmeow/multidevice/log"
+	"go.mau.fi/whatsmeow/keys"
+	waLog "go.mau.fi/whatsmeow/log"
 )
 
 type SQLContainer struct {

@@ -7,7 +7,7 @@ securely transform amounts of data larger than a block.
 
 This package simplifies the usage of AES-256-CBC.
 */
-package cbc
+package cbcutil
 
 /*
 Some code is provided by the GitHub user locked (github.com/locked):

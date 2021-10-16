@@ -1,4 +1,4 @@
-package cbc
+package cbcutil
 
 import (
 	"bytes"

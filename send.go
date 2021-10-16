@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package multidevice
+package whatsapp
 
 import (
 	"crypto/rand"
@@ -23,7 +23,6 @@ import (
 	"github.com/RadicalApp/libsignal-protocol-go/protocol"
 	"github.com/RadicalApp/libsignal-protocol-go/session"
 
-	whatsapp "go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
@@ -98,8 +97,8 @@ func (cli *Client) sendGroup(to waBinary.FullJID, id string, message *waProto.Me
 	participants := make([]waBinary.FullJID, len(groupInfo.Participants))
 	participantsStrings := make([]string, len(groupInfo.Participants))
 	for i, part := range groupInfo.Participants {
-		participants[i] = part.FullJID
-		participantsStrings[i] = part.FullJID.String()
+		participants[i] = part.JID
+		participantsStrings[i] = part.JID.String()
 	}
 
 	allDevices, err := cli.GetUSyncDevices(participants, false)
@@ -192,75 +191,6 @@ func marshalMessage(to waBinary.FullJID, message *waProto.Message) (plaintext, d
 	}
 
 	return
-}
-
-func (cli *Client) GetGroupInfo(jid waBinary.FullJID) (*whatsapp.GroupInfo, error) {
-	res, err := cli.sendIQ(InfoQuery{
-		Namespace: "w:g2",
-		Type:      "get",
-		To:        jid,
-		Content: []waBinary.Node{{
-			Tag:   "query",
-			Attrs: map[string]interface{}{"request": "interactive"},
-		}},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to request group info: %w", err)
-	}
-
-	errorNode, ok := res.GetOptionalChildByTag("error")
-	if ok {
-		return nil, fmt.Errorf("group info request returned error: %s", errorNode.XMLString())
-	}
-
-	groupNode, ok := res.GetOptionalChildByTag("group")
-	if !ok {
-		return nil, fmt.Errorf("group info request didn't return group info")
-	}
-
-	var group whatsapp.GroupInfo
-	ag := groupNode.AttrGetter()
-
-	group.JID = waBinary.NewJID(ag.String("id"), waBinary.GroupServer).String()
-	group.OwnerJID = ag.JID("creator").String()
-
-	group.Name = ag.String("subject")
-	group.NameSetTime = ag.Int64("s_t")
-	group.NameSetBy = ag.JID("s_o").String()
-
-	group.GroupCreated = ag.Int64("creation")
-
-	for _, child := range groupNode.GetChildren() {
-		childAG := child.AttrGetter()
-		switch child.Tag {
-		case "participant":
-			participant := whatsapp.GroupParticipant{
-				IsAdmin: childAG.OptionalString("type") == "admin",
-				FullJID: childAG.JID("jid"),
-			}
-			participant.JID = participant.FullJID.String()
-			group.Participants = append(group.Participants, participant)
-		case "description":
-			body, bodyOK := child.GetOptionalChildByTag("body")
-			if bodyOK {
-				group.Topic, _ = body.Content.(string)
-				group.TopicID = childAG.String("id")
-				group.TopicSetBy = childAG.JID("participant").String()
-				group.TopicSetAt = childAG.Int64("t")
-			}
-		case "announcement":
-			group.Announce = true
-		case "locked":
-			group.Locked = true
-		default:
-			cli.Log.Debugfln("Unknown element in group node %s: %s", jid.String(), child.XMLString())
-		}
-		if !childAG.OK() {
-			cli.Log.Warnfln("Possibly failed to parse %s element in group node: %+v", child.Tag, childAG.Errors)
-		}
-	}
-
-	return &group, nil
 }
 
 func (cli *Client) GetUSyncDevices(jids []waBinary.FullJID, ignorePrimary bool) ([]waBinary.FullJID, error) {

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package multidevice
+package whatsapp
 
 import (
 	"bytes"
@@ -21,7 +21,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/multidevice/keys"
+	"go.mau.fi/whatsmeow/keys"
 )
 
 type QREvent struct {

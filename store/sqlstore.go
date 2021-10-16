@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"sync"
 
-	"go.mau.fi/whatsmeow/multidevice/keys"
+	"go.mau.fi/whatsmeow/keys"
 )
 
 var ErrInvalidLength = errors.New("database returned byte array with illegal length")
