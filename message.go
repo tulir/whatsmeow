@@ -27,7 +27,7 @@ import (
 
 var pbSerializer = serialize.NewProtoBufSerializer()
 
-func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.FullJID, isPreKey bool) ([]byte, error) {
+func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.JID, isPreKey bool) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
 	builder := session.NewBuilderFromSignal(cli.Store, from.SignalAddress(), pbSerializer)
@@ -55,7 +55,7 @@ func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.FullJID, isPreK
 	}
 }
 
-func (cli *Client) decryptGroupMsg(child *waBinary.Node, from waBinary.FullJID, chat waBinary.FullJID) ([]byte, error) {
+func (cli *Client) decryptGroupMsg(child *waBinary.Node, from waBinary.JID, chat waBinary.JID) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
@@ -150,12 +150,12 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 }
 
 type MessageInfo struct {
-	From waBinary.FullJID
-	Chat *waBinary.FullJID
+	From waBinary.JID
+	Chat *waBinary.JID
 	ID   string
 	Type string
 
-	Recipient *waBinary.FullJID
+	Recipient *waBinary.JID
 
 	Notify    string
 	Timestamp int64
@@ -173,17 +173,17 @@ func (mi *MessageInfo) FromString() string {
 func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
 	var info MessageInfo
 
-	from, ok := node.Attrs["from"].(waBinary.FullJID)
+	from, ok := node.Attrs["from"].(waBinary.JID)
 	if !ok {
 		return nil, fmt.Errorf("didn't find valid `from` attribute in message")
 	}
-	recipient, ok := node.Attrs["recipient"].(waBinary.FullJID)
+	recipient, ok := node.Attrs["recipient"].(waBinary.JID)
 	if ok {
 		info.Recipient = &recipient
 	}
 	if from.Server == waBinary.GroupServer {
 		info.Chat = &from
-		info.From, ok = node.Attrs["participant"].(waBinary.FullJID)
+		info.From, ok = node.Attrs["participant"].(waBinary.JID)
 		if !ok {
 			return nil, fmt.Errorf("didn't find valid `participant` attribute in group message")
 		}
@@ -227,7 +227,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) bool {
 	return true
 }
 
-func (cli *Client) handleSenderKeyDistributionMessage(chat, from waBinary.FullJID, rawSKDMsg *waProto.SenderKeyDistributionMessage) {
+func (cli *Client) handleSenderKeyDistributionMessage(chat, from waBinary.JID, rawSKDMsg *waProto.SenderKeyDistributionMessage) {
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
 	sdkMsg, err := protocol.NewSenderKeyDistributionMessageFromBytes(rawSKDMsg.AxolotlSenderKeyDistributionMessage, pbSerializer.SenderKeyDistributionMessage)

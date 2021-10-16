@@ -58,7 +58,7 @@ type preKeyResp struct {
 	err    error
 }
 
-func (cli *Client) fetchPreKeys(users []waBinary.FullJID) (map[waBinary.FullJID]preKeyResp, error) {
+func (cli *Client) fetchPreKeys(users []waBinary.JID) (map[waBinary.JID]preKeyResp, error) {
 	requests := make([]waBinary.Node, len(users))
 	for i, user := range users {
 		requests[i].Tag = "user"
@@ -82,7 +82,7 @@ func (cli *Client) fetchPreKeys(users []waBinary.FullJID) (map[waBinary.FullJID]
 		return nil, fmt.Errorf("got empty response to prekey request")
 	}
 	list := resp.GetChildByTag("list")
-	respData := make(map[waBinary.FullJID]preKeyResp)
+	respData := make(map[waBinary.JID]preKeyResp)
 	for _, child := range list.GetChildren() {
 		if child.Tag != "user" {
 			continue
@@ -114,7 +114,7 @@ func preKeyToNode(key *keys.PreKey) waBinary.Node {
 	return node
 }
 
-func nodeToPreKeyBundle(node waBinary.Node) (waBinary.FullJID, *prekey.Bundle, error) {
+func nodeToPreKeyBundle(node waBinary.Node) (waBinary.JID, *prekey.Bundle, error) {
 	jid := node.AttrGetter().JID("jid")
 
 	errorNode := node.GetChildByTag("error")

@@ -37,7 +37,7 @@ func GenerateMessageID() string {
 	return hex.EncodeToString(id)
 }
 
-func (cli *Client) SendMessage(to waBinary.FullJID, id string, message *waProto.Message) error {
+func (cli *Client) SendMessage(to waBinary.JID, id string, message *waProto.Message) error {
 	if to.AD {
 		return fmt.Errorf("message recipient must be non-AD JID")
 	}
@@ -59,7 +59,7 @@ func participantListHashV2(participantJIDs []string) string {
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendGroup(to waBinary.FullJID, id string, message *waProto.Message) error {
+func (cli *Client) sendGroup(to waBinary.JID, id string, message *waProto.Message) error {
 	groupInfo, err := cli.GetGroupInfo(to)
 	if err != nil {
 		return fmt.Errorf("failed to get group info: %w", err)
@@ -94,7 +94,7 @@ func (cli *Client) sendGroup(to waBinary.FullJID, id string, message *waProto.Me
 	}
 	ciphertext := encrypted.SignedSerialize()
 
-	participants := make([]waBinary.FullJID, len(groupInfo.Participants))
+	participants := make([]waBinary.JID, len(groupInfo.Participants))
 	participantsStrings := make([]string, len(groupInfo.Participants))
 	for i, part := range groupInfo.Participants {
 		participants[i] = part.JID
@@ -133,13 +133,13 @@ func (cli *Client) sendGroup(to waBinary.FullJID, id string, message *waProto.Me
 	return nil
 }
 
-func (cli *Client) sendDM(to waBinary.FullJID, id string, message *waProto.Message) error {
+func (cli *Client) sendDM(to waBinary.JID, id string, message *waProto.Message) error {
 	messagePlaintext, deviceSentMessagePlaintext, err := marshalMessage(to, message)
 	if err != nil {
 		return err
 	}
 
-	allDevices, err := cli.GetUSyncDevices([]waBinary.FullJID{to, *cli.Store.ID}, false)
+	allDevices, err := cli.GetUSyncDevices([]waBinary.JID{to, *cli.Store.ID}, false)
 	if err != nil {
 		return fmt.Errorf("failed to get device list: %w", err)
 	}
@@ -170,7 +170,7 @@ func (cli *Client) sendDM(to waBinary.FullJID, id string, message *waProto.Messa
 	return nil
 }
 
-func marshalMessage(to waBinary.FullJID, message *waProto.Message) (plaintext, dsmPlaintext []byte, err error) {
+func marshalMessage(to waBinary.JID, message *waProto.Message) (plaintext, dsmPlaintext []byte, err error) {
 	plaintext, err = proto.Marshal(message)
 	if err != nil {
 		err = fmt.Errorf("failed to marshal message: %w", err)
@@ -193,7 +193,7 @@ func marshalMessage(to waBinary.FullJID, message *waProto.Message) (plaintext, d
 	return
 }
 
-func (cli *Client) GetUSyncDevices(jids []waBinary.FullJID, ignorePrimary bool) ([]waBinary.FullJID, error) {
+func (cli *Client) GetUSyncDevices(jids []waBinary.JID, ignorePrimary bool) ([]waBinary.JID, error) {
 	userList := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		userList[i].Tag = "user"
@@ -235,9 +235,9 @@ func (cli *Client) GetUSyncDevices(jids []waBinary.FullJID, ignorePrimary bool) 
 		return nil, fmt.Errorf("missing list inside usync tag")
 	}
 
-	var devices []waBinary.FullJID
+	var devices []waBinary.JID
 	for _, user := range list.GetChildren() {
-		jid, jidOK := user.Attrs["jid"].(waBinary.FullJID)
+		jid, jidOK := user.Attrs["jid"].(waBinary.JID)
 		if user.Tag != "user" || !jidOK {
 			continue
 		}
@@ -273,10 +273,10 @@ func (cli *Client) appendDeviceIdentityNode(node *waBinary.Node) error {
 	return nil
 }
 
-func (cli *Client) encryptMessageForDevices(allDevices []waBinary.FullJID, id string, msgPlaintext, dsmPlaintext []byte) ([]waBinary.Node, bool) {
+func (cli *Client) encryptMessageForDevices(allDevices []waBinary.JID, id string, msgPlaintext, dsmPlaintext []byte) ([]waBinary.Node, bool) {
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
-	var retryDevices []waBinary.FullJID
+	var retryDevices []waBinary.JID
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
 		if jid.User == cli.Store.ID.User && dsmPlaintext != nil {
@@ -327,7 +327,7 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.FullJID, id st
 
 var ErrNoSession = errors.New("no signal session established")
 
-func (cli *Client) encryptMessageForDevice(plaintext []byte, to waBinary.FullJID, bundle *prekey.Bundle) (*waBinary.Node, bool, error) {
+func (cli *Client) encryptMessageForDevice(plaintext []byte, to waBinary.JID, bundle *prekey.Bundle) (*waBinary.Node, bool, error) {
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if !cli.Store.ContainsSession(to.SignalAddress()) {
 		if bundle != nil {

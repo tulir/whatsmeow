@@ -18,9 +18,9 @@ import (
 )
 
 type ReadReceipt struct {
-	From        waBinary.FullJID
-	Chat        *waBinary.FullJID
-	Recipient   *waBinary.FullJID
+	From        waBinary.JID
+	Chat        *waBinary.JID
+	Recipient   *waBinary.JID
 	MessageID   string
 	PreviousIDs []string
 	Timestamp   int64

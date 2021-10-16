@@ -13,26 +13,26 @@ import (
 )
 
 type GroupParticipant struct {
-	JID          waBinary.FullJID `json:"id"`
-	IsAdmin      bool             `json:"isAdmin"`
-	IsSuperAdmin bool             `json:"isSuperAdmin"`
+	JID          waBinary.JID `json:"id"`
+	IsAdmin      bool         `json:"isAdmin"`
+	IsSuperAdmin bool         `json:"isSuperAdmin"`
 }
 
 type GroupInfo struct {
-	JID      waBinary.FullJID `json:"jid"`
-	OwnerJID waBinary.FullJID `json:"owner"`
+	JID      waBinary.JID `json:"jid"`
+	OwnerJID waBinary.JID `json:"owner"`
 
-	Name        string           `json:"subject"`
-	NameSetTime int64            `json:"subjectTime"`
-	NameSetBy   waBinary.FullJID `json:"subjectOwner"`
+	Name        string       `json:"subject"`
+	NameSetTime int64        `json:"subjectTime"`
+	NameSetBy   waBinary.JID `json:"subjectOwner"`
 
 	Announce bool `json:"announce"` // Can only admins send messages?
 	Locked   bool `json:"locked"`   // Can only admins edit group info?
 
-	Topic      string           `json:"desc"`
-	TopicID    string           `json:"descId"`
-	TopicSetAt int64            `json:"descTime"`
-	TopicSetBy waBinary.FullJID `json:"descOwner"`
+	Topic      string       `json:"desc"`
+	TopicID    string       `json:"descId"`
+	TopicSetAt int64        `json:"descTime"`
+	TopicSetBy waBinary.JID `json:"descOwner"`
 
 	GroupCreated int64 `json:"creation"`
 
@@ -47,11 +47,11 @@ type BroadcastListInfo struct {
 	Name string `json:"name"`
 
 	Recipients []struct {
-		JID waBinary.FullJID `json:"id"`
+		JID waBinary.JID `json:"id"`
 	} `json:"recipients"`
 }
 
-func (cli *Client) GetGroupInfo(jid waBinary.FullJID) (*GroupInfo, error) {
+func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
 	res, err := cli.sendIQ(InfoQuery{
 		Namespace: "w:g2",
 		Type:      "get",

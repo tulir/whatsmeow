@@ -54,7 +54,7 @@ func (cli *Client) receiveResponse(data *waBinary.Node) bool {
 type InfoQuery struct {
 	Namespace string
 	Type      string
-	To        waBinary.FullJID
+	To        waBinary.JID
 	ID        string
 	Content   interface{}
 

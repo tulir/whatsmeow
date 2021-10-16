@@ -55,7 +55,7 @@ type Device struct {
 
 	Platform     string
 	BusinessName string
-	ID           *waBinary.FullJID
+	ID           *waBinary.JID
 
 	Initialized bool
 	Identities  IdentityStore

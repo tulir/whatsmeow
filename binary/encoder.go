@@ -105,7 +105,7 @@ func (w *binaryEncoder) write(data interface{}) {
 	switch typedData := data.(type) {
 	case nil:
 		w.pushByte(token.ListEmpty)
-	case FullJID:
+	case JID:
 		w.writeJID(typedData)
 	case string:
 		w.writeString(typedData)
@@ -159,7 +159,7 @@ func (w *binaryEncoder) writeStringRaw(value string) {
 	w.pushString(value)
 }
 
-func (w *binaryEncoder) writeJID(jid FullJID) {
+func (w *binaryEncoder) writeJID(jid JID) {
 	if jid.AD {
 		w.pushByte(token.ADJID)
 		w.pushByte(jid.Agent)

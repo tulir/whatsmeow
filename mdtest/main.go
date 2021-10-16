@@ -117,7 +117,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 	case "usync":
-		var jids []waBinary.FullJID
+		var jids []waBinary.JID
 		for _, jid := range args {
 			jids = append(jids, waBinary.NewJID(jid, waBinary.DefaultUserServer))
 		}

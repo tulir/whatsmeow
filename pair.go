@@ -30,7 +30,7 @@ type QREvent struct {
 }
 
 type PairSuccessEvent struct {
-	ID           waBinary.FullJID
+	ID           waBinary.JID
 	BusinessName string
 	Platform     string
 }
@@ -101,7 +101,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) bool {
 
 	deviceIdentityBytes, _ := pairSuccess.GetChildByTag("device-identity").Content.([]byte)
 	businessName, _ := pairSuccess.GetChildByTag("biz").Attrs["name"].(string)
-	wid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(waBinary.FullJID)
+	wid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(waBinary.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
 
 	go func() {
@@ -115,7 +115,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) bool {
 	return true
 }
 
-func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, wid waBinary.FullJID) error {
+func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, wid waBinary.JID) error {
 	var deviceIdentityContainer waProto.ADVSignedDeviceIdentityHMAC
 	err := proto.Unmarshal(deviceIdentityBytes, &deviceIdentityContainer)
 	if err != nil {
