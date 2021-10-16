@@ -83,7 +83,7 @@ func (n *Node) contentString() []string {
 	case nil:
 		// don't append anything
 	default:
-		strContent :=fmt.Sprintf("%s", content)
+		strContent := fmt.Sprintf("%s", content)
 		if IndentXML {
 			split = append(split, strings.Split(strContent, "\n")...)
 		} else {

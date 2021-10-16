@@ -137,7 +137,7 @@ func (w *binaryEncoder) writeString(data string) {
 	var dictIndex byte
 	if tokenIndex, ok := token.IndexOfSingleToken(data); ok {
 		w.pushByte(tokenIndex)
-	}  else if dictIndex, tokenIndex, ok = token.IndexOfDoubleByteToken(data); ok {
+	} else if dictIndex, tokenIndex, ok = token.IndexOfDoubleByteToken(data); ok {
 		w.pushByte(token.Dictionary0 + dictIndex)
 		w.pushByte(tokenIndex)
 	} else if validateNibble(data) {
