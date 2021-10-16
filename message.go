@@ -16,10 +16,10 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/RadicalApp/libsignal-protocol-go/groups"
-	"github.com/RadicalApp/libsignal-protocol-go/protocol"
-	"github.com/RadicalApp/libsignal-protocol-go/serialize"
-	"github.com/RadicalApp/libsignal-protocol-go/session"
+	"go.mau.fi/libsignal/groups"
+	"go.mau.fi/libsignal/protocol"
+	"go.mau.fi/libsignal/serialize"
+	"go.mau.fi/libsignal/session"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"

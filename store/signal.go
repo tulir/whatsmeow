@@ -7,13 +7,13 @@
 package store
 
 import (
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
-	groupRecord "github.com/RadicalApp/libsignal-protocol-go/groups/state/record"
-	"github.com/RadicalApp/libsignal-protocol-go/keys/identity"
-	"github.com/RadicalApp/libsignal-protocol-go/protocol"
-	"github.com/RadicalApp/libsignal-protocol-go/serialize"
-	"github.com/RadicalApp/libsignal-protocol-go/state/record"
-	"github.com/RadicalApp/libsignal-protocol-go/state/store"
+	"go.mau.fi/libsignal/ecc"
+	groupRecord "go.mau.fi/libsignal/groups/state/record"
+	"go.mau.fi/libsignal/keys/identity"
+	"go.mau.fi/libsignal/protocol"
+	"go.mau.fi/libsignal/serialize"
+	"go.mau.fi/libsignal/state/record"
+	"go.mau.fi/libsignal/state/store"
 )
 
 var SignalProtobufSerializer = serialize.NewProtoBufSerializer()

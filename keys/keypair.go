@@ -10,7 +10,7 @@ import (
 	"crypto/rand"
 	"fmt"
 
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
+	"go.mau.fi/libsignal/ecc"
 	"golang.org/x/crypto/curve25519"
 )
 
