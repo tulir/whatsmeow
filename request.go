@@ -94,8 +94,10 @@ func (cli *Client) sendIQ(query InfoQuery) (*waBinary.Node, error) {
 	select {
 	case res := <-resChan:
 		resType, _ := res.Attrs["type"].(string)
-		if res.Tag != "iq" || resType != "result" {
-			return nil, fmt.Errorf("unexpected response %s %s", res.Tag, resType)
+		if res.Tag != "iq" || (resType != "result" && resType != "error") {
+			return res, fmt.Errorf("unexpected response %s %s", res.Tag, resType)
+		} else if resType == "error" {
+			return res, fmt.Errorf("info query returned error: %s", res.XMLString())
 		}
 		return res, nil
 	case <-time.After(query.Timeout):
