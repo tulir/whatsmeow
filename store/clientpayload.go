@@ -21,7 +21,7 @@ import (
 )
 
 // waVersion is the WhatsApp web client version
-var waVersion = []int{2, 2138, 10}
+var waVersion = []uint32{2, 2140, 7}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
 var waVersionHash [16]byte
@@ -29,7 +29,7 @@ var waVersionHash [16]byte
 func init() {
 	waVersionParts := make([]string, len(waVersion))
 	for i, part := range waVersion {
-		waVersionParts[i] = strconv.Itoa(part)
+		waVersionParts[i] = strconv.Itoa(int(part))
 	}
 	waVersionString := strings.Join(waVersionParts, ".")
 	waVersionHash = md5.Sum([]byte(waVersionString))
@@ -40,9 +40,9 @@ var BaseClientPayload = &waProto.ClientPayload{
 		Platform:       waProto.UserAgent_WEB.Enum(),
 		ReleaseChannel: waProto.UserAgent_RELEASE.Enum(),
 		AppVersion: &waProto.AppVersion{
-			Primary:   proto.Uint32(uint32(waVersion[0])),
-			Secondary: proto.Uint32(uint32(waVersion[1])),
-			Tertiary:  proto.Uint32(uint32(waVersion[2])),
+			Primary:   &waVersion[0],
+			Secondary: &waVersion[1],
+			Tertiary:  &waVersion[2],
 		},
 		Mcc:                         proto.String("000"),
 		Mnc:                         proto.String("000"),

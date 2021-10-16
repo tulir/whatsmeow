@@ -230,6 +230,7 @@ message BizIdentityInfo {
     }
     optional BizIdentityInfoActualActorsType actualActors = 6;
     optional uint64 privacyModeTs = 7;
+    optional uint64 featureControls = 8;
 }
 
 message BizAccountLinkInfo {
@@ -347,6 +348,17 @@ message RecentEmojiWeightsAction {
     repeated RecentEmojiWeight weights = 1;
 }
 
+message FavoriteStickerAction {
+    optional string directPath = 1;
+    optional string lastUploadTimestamp = 2;
+    optional string handle = 3;
+    optional string encFilehash = 4;
+    optional string stickerHashWithoutMeta = 5;
+    optional string mediaKey = 6;
+    optional int64 mediaKeyTimestamp = 7;
+    optional bool isFavorite = 8;
+}
+
 message ArchiveChatAction {
     optional bool archived = 1;
     optional SyncActionMessageRange messageRange = 2;
@@ -389,6 +401,10 @@ message KeyExpiration {
     optional int32 expiredKeyEpoch = 1;
 }
 
+message PrimaryFeature {
+    repeated string flags = 1;
+}
+
 message SyncActionValue {
     optional int64 timestamp = 1;
     optional StarAction starAction = 2;
@@ -411,6 +427,8 @@ message SyncActionValue {
     optional ClearChatAction clearChatAction = 21;
     optional DeleteChatAction deleteChatAction = 22;
     optional UnarchiveChatsSetting unarchiveChatsSetting = 23;
+    optional PrimaryFeature primaryFeature = 24;
+    optional FavoriteStickerAction favoriteStickerAction = 25;
 }
 
 message RecentEmojiWeight {
@@ -590,6 +608,7 @@ message Conversation {
         ON = 2;
     }
     optional MediaVisibility mediaVisibility = 27;
+    optional uint64 tcTokenSenderTimestamp = 28;
 }
 
 message HistorySync {
@@ -611,15 +630,6 @@ message HistorySync {
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
-}
-
-message TemplateButton {
-    optional uint32 index = 4;
-    oneof button {
-        QuickReplyButton quickReplyButton = 1;
-        URLButton urlButton = 2;
-        CallButton callButton = 3;
-    }
 }
 
 message Location {
@@ -1168,7 +1178,6 @@ message ProductSnapshot {
     optional uint32 productImageCount = 9;
     optional string firstImageId = 11;
     optional int64 salePriceAmount1000 = 12;
-    optional string availability = 13;
 }
 
 message ProductMessage {
@@ -1303,12 +1312,13 @@ message CollectionMessage {
 
 message NativeFlowButton {
     optional string name = 1;
-    optional string paramsJson = 2;
+    optional string buttonParamsJson = 2;
 }
 
 message NativeFlowMessage {
     repeated NativeFlowButton buttons = 1;
-    optional int32 messageVersion = 2;
+    optional string messageParamsJson = 2;
+    optional int32 messageVersion = 3;
 }
 
 message InteractiveMessage {
@@ -1408,6 +1418,12 @@ message ReactionMessage {
     optional int64 senderTimestampMs = 4;
 }
 
+message StickerSyncRMRMessage {
+    repeated string filehash = 1;
+    optional string rmrSource = 2;
+    optional int64 requestTimestamp = 3;
+}
+
 message Message {
     optional string conversation = 1;
     optional SenderKeyDistributionMessage senderKeyDistributionMessage = 2;
@@ -1447,6 +1463,7 @@ message Message {
     optional PaymentInviteMessage paymentInviteMessage = 44;
     optional InteractiveMessage interactiveMessage = 45;
     optional ReactionMessage reactionMessage = 46;
+    optional StickerSyncRMRMessage stickerSyncRmrMessage = 47;
 }
 
 message ActionLink {
@@ -1534,6 +1551,16 @@ message CallButton {
     optional HighlyStructuredMessage phoneNumber = 2;
 }
 
+message TemplateButton {
+    optional uint32 index = 4;
+    oneof button {
+        QuickReplyButton quickReplyButton = 1;
+        URLButton urlButton = 2;
+        CallButton callButton = 3;
+    }
+}
+
+// Seems to be a duplicate of the AppVersion at the top
 //message AppVersion {
 //    optional uint32 primary = 1;
 //    optional uint32 secondary = 2;
