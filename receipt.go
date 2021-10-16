@@ -12,7 +12,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/RadicalApp/libsignal-protocol-go/ecc"
+	"go.mau.fi/libsignal/ecc"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 )

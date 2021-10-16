@@ -13,12 +13,10 @@ require (
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/RadicalApp/complete v0.0.0-20170329192659-17e6c0ee499b // indirect
-	github.com/RadicalApp/libsignal-protocol-go v0.0.0-20170414202031-d09bcab9f18e // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
+	go.mau.fi/libsignal v0.0.0-20211016125744-b84e562375e1 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
 
 replace go.mau.fi/whatsmeow => ../
-
-replace github.com/RadicalApp/libsignal-protocol-go => github.com/tulir/libsignal-protocol-go v0.0.0-20211015104614-7ac953a1b8f5

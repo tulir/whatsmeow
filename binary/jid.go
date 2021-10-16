@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	signalProtocol "github.com/RadicalApp/libsignal-protocol-go/protocol"
+	signalProtocol "go.mau.fi/libsignal/protocol"
 )
 
 const (
