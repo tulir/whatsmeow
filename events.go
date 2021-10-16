@@ -21,12 +21,12 @@ func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 	code, _ := node.Attrs["code"].(string)
 	switch code {
 	case "515":
-		cli.Log.Debugln("Got 515 code, reconnecting")
+		cli.Log.Debugf("Got 515 code, reconnecting")
 		go func() {
 			cli.Disconnect()
 			err := cli.Connect()
 			if err != nil {
-				cli.Log.Errorln("Failed to reconnect after 515 code:", err)
+				cli.Log.Errorf("Failed to reconnect after 515 code:", err)
 			}
 		}()
 	case "401":
@@ -35,7 +35,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 			go cli.dispatchEvent(&LoggedOutEvent{})
 			err := cli.Store.Delete()
 			if err != nil {
-				cli.Log.Warnln("Failed to delete store after device_removed error:", err)
+				cli.Log.Warnf("Failed to delete store after device_removed error:", err)
 			}
 		}
 	}
@@ -47,10 +47,10 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 	ag := count.AttrGetter()
 	otksLeft := ag.Int("value")
 	if !ag.OK() {
-		cli.Log.Warnln("Didn't get number of OTKs left in encryption notification")
+		cli.Log.Warnf("Didn't get number of OTKs left in encryption notification")
 		return
 	}
-	cli.Log.Infoln("Server said we have", otksLeft, "one-time keys left")
+	cli.Log.Infof("Server said we have %d one-time keys left", otksLeft)
 	cli.uploadPreKeys(otksLeft)
 }
 
@@ -63,7 +63,7 @@ func (cli *Client) handleNotification(node *waBinary.Node) bool {
 	if !ag.OK() {
 		return false
 	}
-	cli.Log.Debugln("Received", notifType, "update")
+	cli.Log.Debugf("Received %s update", notifType)
 	go cli.sendAck(node)
 	switch notifType {
 	case "encrypt":
@@ -79,17 +79,17 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
 	if node.Tag != "success" {
 		return false
 	}
-	cli.Log.Infoln("Successfully authenticated")
+	cli.Log.Infof("Successfully authenticated")
 	go func() {
 		count, err := cli.Store.PreKeys.UploadedPreKeyCount()
 		if err != nil {
-			cli.Log.Errorln("Failed to get number of prekeys on server:", err)
+			cli.Log.Errorf("Failed to get number of prekeys on server: %v", err)
 		} else if count < WantedPreKeyCount {
 			cli.uploadPreKeys(count)
 		}
 		err = cli.sendPassiveIQ(false)
 		if err != nil {
-			cli.Log.Warnln("Failed to send post-connect passive IQ:", err)
+			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
 		cli.dispatchEvent(&ConnectedEvent{})
 	}()

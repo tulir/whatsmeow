@@ -287,7 +287,7 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.JID, id string
 			retryDevices = append(retryDevices, jid)
 			continue
 		} else if err != nil {
-			cli.Log.Warnfln("Failed to encrypt %s for %s: %v", id, jid, err)
+			cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
 			continue
 		}
 		participantNodes = append(participantNodes, *encrypted)
@@ -298,12 +298,12 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.JID, id string
 	if len(retryDevices) > 0 {
 		bundles, err := cli.fetchPreKeys(retryDevices)
 		if err != nil {
-			cli.Log.Warnln("Failed to fetch prekeys for", retryDevices, "to retry encryption:", err)
+			cli.Log.Warnf("Failed to fetch prekeys for %d to retry encryption: %v", retryDevices, err)
 		} else {
 			for _, jid := range retryDevices {
 				resp := bundles[jid]
 				if resp.err != nil {
-					cli.Log.Warnfln("Failed to fetch prekey for %s: %v", jid, resp.err)
+					cli.Log.Warnf("Failed to fetch prekey for %s: %v", jid, resp.err)
 					continue
 				}
 				plaintext := msgPlaintext
@@ -312,7 +312,7 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.JID, id string
 				}
 				encrypted, isPreKey, err := cli.encryptMessageForDevice(plaintext, jid, resp.bundle)
 				if err != nil {
-					cli.Log.Warnfln("Failed to encrypt %s for %s (retry): %v", id, jid, err)
+					cli.Log.Warnf("Failed to encrypt %s for %s (retry): %v", id, jid, err)
 					continue
 				}
 				participantNodes = append(participantNodes, *encrypted)
@@ -331,7 +331,7 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to waBinary.JID, bu
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if !cli.Store.ContainsSession(to.SignalAddress()) {
 		if bundle != nil {
-			cli.Log.Debugln("Processing prekey bundle for", to)
+			cli.Log.Debugf("Processing prekey bundle for %s", to)
 			err := builder.ProcessBundle(bundle)
 			if err != nil {
 				return nil, false, fmt.Errorf("failed to process prekey bundle: %w", err)

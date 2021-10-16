@@ -242,7 +242,7 @@ func (cli *Client) downloadMedia(directPath string, encFileHash, mediaKey []byte
 			if i >= len(cli.mediaConn.Hosts)-1 {
 				return nil, fmt.Errorf("failed to download media from last host: %w", err)
 			} else {
-				cli.Log.Warnfln("Failed to download media: %s, trying with next host...", err)
+				cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
 			}
 		}
 	}
@@ -287,7 +287,7 @@ func (cli *Client) queryMediaConn() (*MediaConn, error) {
 	}
 	for _, child := range respMC.GetChildren() {
 		if child.Tag != "host" {
-			cli.Log.Warnln("Unexpected child in media_conn element:", child.XMLString())
+			cli.Log.Warnf("Unexpected child in media_conn element: %s", child.XMLString())
 			continue
 		}
 		cag := child.AttrGetter()

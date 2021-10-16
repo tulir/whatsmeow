@@ -34,14 +34,14 @@ func (device *Device) GetLocalRegistrationId() uint32 {
 func (device *Device) SaveIdentity(address *protocol.SignalAddress, identityKey *identity.Key) {
 	err := device.Identities.PutIdentity(address.String(), identityKey.PublicKey().PublicKey())
 	if err != nil {
-		device.Log.Error("Failed to save identity of %s: %v", address.String(), err)
+		device.Log.Errorf("Failed to save identity of %s: %v", address.String(), err)
 	}
 }
 
 func (device *Device) IsTrustedIdentity(address *protocol.SignalAddress, identityKey *identity.Key) bool {
 	isTrusted, err := device.Identities.IsTrustedIdentity(address.String(), identityKey.PublicKey().PublicKey())
 	if err != nil {
-		device.Log.Error("Failed to check if %s's identity is trusted: %v", address.String(), err)
+		device.Log.Errorf("Failed to check if %s's identity is trusted: %v", address.String(), err)
 	}
 	return isTrusted
 }
@@ -49,7 +49,7 @@ func (device *Device) IsTrustedIdentity(address *protocol.SignalAddress, identit
 func (device *Device) LoadPreKey(id uint32) *record.PreKey {
 	preKey, err := device.PreKeys.GetPreKey(id)
 	if err != nil {
-		device.Log.Error("Failed to load prekey %d: %v", id, err)
+		device.Log.Errorf("Failed to load prekey %d: %v", id, err)
 		return nil
 	} else if preKey == nil {
 		return nil
@@ -63,7 +63,7 @@ func (device *Device) LoadPreKey(id uint32) *record.PreKey {
 func (device *Device) RemovePreKey(id uint32) {
 	err := device.PreKeys.RemovePreKey(id)
 	if err != nil {
-		device.Log.Error("Failed to remove prekey %d: %v", id, err)
+		device.Log.Errorf("Failed to remove prekey %d: %v", id, err)
 	}
 }
 
@@ -78,14 +78,14 @@ func (device *Device) ContainsPreKey(preKeyID uint32) bool {
 func (device *Device) LoadSession(address *protocol.SignalAddress) *record.Session {
 	rawSess, err := device.Sessions.GetSession(address.String())
 	if err != nil {
-		device.Log.Error("Failed to load session with %s: %v", address.String(), err)
+		device.Log.Errorf("Failed to load session with %s: %v", address.String(), err)
 		return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
 	} else if rawSess == nil {
 		return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
 	}
 	sess, err := record.NewSessionFromBytes(rawSess, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
 	if err != nil {
-		device.Log.Error("Failed to deserialize session with %s: %v", address.String(), err)
+		device.Log.Errorf("Failed to deserialize session with %s: %v", address.String(), err)
 		return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
 	}
 	return sess
@@ -98,14 +98,14 @@ func (device *Device) GetSubDeviceSessions(name string) []uint32 {
 func (device *Device) StoreSession(address *protocol.SignalAddress, record *record.Session) {
 	err := device.Sessions.PutSession(address.String(), record.Serialize())
 	if err != nil {
-		device.Log.Error("Failed to store session with %s: %v", address.String(), err)
+		device.Log.Errorf("Failed to store session with %s: %v", address.String(), err)
 	}
 }
 
 func (device *Device) ContainsSession(remoteAddress *protocol.SignalAddress) bool {
 	hasSession, err := device.Sessions.HasSession(remoteAddress.String())
 	if err != nil {
-		device.Log.Warn("Failed to check if store has session for %s: %v", remoteAddress.String(), err)
+		device.Log.Warnf("Failed to check if store has session for %s: %v", remoteAddress.String(), err)
 	}
 	return hasSession
 }
@@ -147,21 +147,21 @@ func (device *Device) RemoveSignedPreKey(signedPreKeyID uint32) {
 func (device *Device) StoreSenderKey(senderKeyName *protocol.SenderKeyName, keyRecord *groupRecord.SenderKey) {
 	err := device.SenderKeys.PutSenderKey(senderKeyName.GroupID(), senderKeyName.Sender().String(), keyRecord.Serialize())
 	if err != nil {
-		device.Log.Error("Failed to store sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
+		device.Log.Errorf("Failed to store sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
 	}
 }
 
 func (device *Device) LoadSenderKey(senderKeyName *protocol.SenderKeyName) *groupRecord.SenderKey {
 	rawKey, err := device.SenderKeys.GetSenderKey(senderKeyName.GroupID(), senderKeyName.Sender().String())
 	if err != nil {
-		device.Log.Error("Failed to load sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
+		device.Log.Errorf("Failed to load sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
 		return groupRecord.NewSenderKey(SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
 	} else if rawKey == nil {
 		return groupRecord.NewSenderKey(SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
 	}
 	key, err := groupRecord.NewSenderKeyFromBytes(rawKey, SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
 	if err != nil {
-		device.Log.Error("Failed to deserialize sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
+		device.Log.Errorf("Failed to deserialize sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
 		return groupRecord.NewSenderKey(SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
 	}
 	return key

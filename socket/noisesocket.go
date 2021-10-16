@@ -61,7 +61,7 @@ func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {
 	count := atomic.AddUint32(&ns.readCounter, 1) - 1
 	plaintext, err := ns.readKey.Open(nil, generateIV(count), ciphertext, nil)
 	if err != nil {
-		ns.fs.log.Warnln("Failed to decrypt frame:", err)
+		ns.fs.log.Warnf("Failed to decrypt frame: %v", err)
 		return
 	}
 	ns.OnFrame(plaintext)

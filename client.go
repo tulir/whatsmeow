@@ -12,18 +12,19 @@ import (
 	"fmt"
 	"sync"
 
-	log "maunium.net/go/maulogger/v2"
-
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/keys"
+	waLog "go.mau.fi/whatsmeow/log"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
 )
 
 type Client struct {
-	Store  *store.Device
-	Log    log.Logger
-	socket *socket.NoiseSocket
+	Store   *store.Device
+	Log     waLog.Logger
+	recvLog waLog.Logger
+	sendLog waLog.Logger
+	socket  *socket.NoiseSocket
 
 	mediaConn     *MediaConn
 	mediaConnLock sync.Mutex
@@ -41,12 +42,17 @@ type Client struct {
 	idCounter uint64
 }
 
-func NewClient(deviceStore *store.Device, log log.Logger) *Client {
+func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
+	if log == nil {
+		log = waLog.Noop
+	}
 	randomBytes := make([]byte, 2)
 	_, _ = rand.Read(randomBytes)
 	cli := &Client{
 		Store:           deviceStore,
 		Log:             log,
+		recvLog:         log.Sub("Recv"),
+		sendLog:         log.Sub("Send"),
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
 		eventHandlers:   make([]func(interface{}), 0),
@@ -94,26 +100,26 @@ const streamEnd = "\xf8\x01\x02"
 func (cli *Client) handleFrame(data []byte) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
-		cli.Log.Warnln("Failed to decompress frame:", err)
-		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(data))
+		cli.Log.Warnf("Failed to decompress frame: %v", err)
+		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(data))
 		return
 	}
 	if len(decompressed) == len(streamEnd) && string(decompressed) == streamEnd {
-		cli.Log.Warnln("Received stream end frame")
+		cli.Log.Warnf("Received stream end frame")
 		return
 	}
 	node, err := waBinary.Unmarshal(decompressed)
 	if err != nil {
-		cli.Log.Warnln("Failed to decode node in frame:", err)
-		cli.Log.Debugln("Errored frame hex:", hex.EncodeToString(decompressed))
+		cli.Log.Warnf("Failed to decode node in frame: %v", err)
+		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(decompressed))
 		return
 	}
-	cli.Log.Debugln("RECEIVED:", node.XMLString())
+	cli.recvLog.Debugf("%s", node.XMLString())
 	switch {
 	case cli.receiveResponse(node):
 	case cli.dispatchNode(node):
 	default:
-		cli.Log.Debugln("Didn't handle WhatsApp node")
+		cli.Log.Debugf("Didn't handle WhatsApp node")
 	}
 }
 
@@ -123,7 +129,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 		return fmt.Errorf("failed to marshal ping IQ: %w", err)
 	}
 
-	cli.Log.Debugln("SENDING:", node.XMLString())
+	cli.sendLog.Debugf("%s", node.XMLString())
 	return cli.socket.SendFrame(payload)
 }
 

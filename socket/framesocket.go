@@ -15,23 +15,14 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	log "maunium.net/go/maulogger/v2"
-)
-
-const (
-	// Origin is the Origin header for all WhatsApp websocket connections
-	Origin = "https://web.whatsapp.com"
-	// URL is the websocket URL for the new multidevice protocol
-	URL = "wss://web.whatsapp.com/ws/chat"
-	// LegacyURL is the websocket URL for the legacy phone link protocol
-	LegacyURL = "wss://web.whatsapp.com/ws"
+	waLog "go.mau.fi/whatsmeow/log"
 )
 
 type FrameSocket struct {
 	conn   *websocket.Conn
 	ctx    context.Context
 	cancel func()
-	log    log.Logger
+	log    waLog.Logger
 
 	OnFrame      func([]byte)
 	WriteTimeout time.Duration
@@ -44,7 +35,7 @@ type FrameSocket struct {
 	partialHeader  []byte
 }
 
-func NewFrameSocket(log log.Logger, header []byte) *FrameSocket {
+func NewFrameSocket(log waLog.Logger, header []byte) *FrameSocket {
 	return &FrameSocket{
 		conn:   nil,
 		log:    log,
@@ -63,7 +54,7 @@ func (fs *FrameSocket) Close() {
 
 	err := fs.conn.Close()
 	if err != nil {
-		fs.log.Errorln("Error closing websocket:", err)
+		fs.log.Errorf("Error closing websocket: %v", err)
 	}
 	if fs.cancel != nil {
 		fs.cancel()
@@ -82,7 +73,7 @@ func (fs *FrameSocket) Connect() error {
 	dialer := websocket.Dialer{}
 
 	headers := http.Header{"Origin": []string{Origin}}
-	fs.log.Debugln("Dialing " + URL)
+	fs.log.Debugf("Dialing %s", URL)
 	var err error
 	fs.conn, _, err = dialer.Dial(URL, headers)
 	if err != nil {
@@ -91,7 +82,7 @@ func (fs *FrameSocket) Connect() error {
 	}
 
 	fs.conn.SetCloseHandler(func(code int, text string) error {
-		fs.log.Debugfln("Close handler called with %d/%s", code, text)
+		fs.log.Debugf("Close handler called with %d/%s", code, text)
 		cancel()
 		// from default CloseHandler
 		message := websocket.FormatCloseMessage(code, "")
@@ -134,7 +125,7 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 	if fs.WriteTimeout > 0 {
 		err := fs.conn.SetWriteDeadline(time.Now().Add(fs.WriteTimeout))
 		if err != nil {
-			fs.log.Warnln("Failed to set write deadline:", err)
+			fs.log.Warnf("Failed to set write deadline: %v", err)
 		}
 	}
 	return fs.conn.WriteMessage(websocket.BinaryMessage, wholeFrame)
@@ -174,7 +165,7 @@ func (fs *FrameSocket) frameComplete() {
 	fs.incomingLength = 0
 	fs.receivedLength = 0
 	if fs.OnFrame == nil {
-		fs.log.Warnln("No handler defined, dropping frame")
+		fs.log.Warnf("No handler defined, dropping frame")
 	} else {
 		fs.OnFrame(data)
 	}
@@ -203,7 +194,7 @@ func (fs *FrameSocket) processData(msg []byte) {
 					msg = nil
 				}
 			} else {
-				fs.log.Warnln("Received partial header (report if this happens often)")
+				fs.log.Warnf("Received partial header (report if this happens often)")
 				fs.partialHeader = msg
 				msg = nil
 			}
@@ -226,8 +217,8 @@ func (fs *FrameSocket) readPump(ctx context.Context) {
 	var msgType int
 	var reader io.Reader
 
-	fs.log.Debugfln("Frame websocket read pump starting %p", fs)
-	defer fs.log.Debugfln("Frame websocket read pump exiting %p", fs)
+	fs.log.Debugf("Frame websocket read pump starting %p", fs)
+	defer fs.log.Debugf("Frame websocket read pump exiting %p", fs)
 	for {
 		readerFound := make(chan struct{})
 		go func() {
@@ -237,16 +228,16 @@ func (fs *FrameSocket) readPump(ctx context.Context) {
 		select {
 		case <-readerFound:
 			if readErr != nil {
-				fs.log.Errorln("Error getting next websocket reader:", readErr)
+				fs.log.Errorf("Error getting next websocket reader: %v", readErr)
 				fs.Close()
 				return
 			} else if msgType != websocket.BinaryMessage {
-				fs.log.Warnfln("Got unexpected websocket message type %d", msgType)
+				fs.log.Warnf("Got unexpected websocket message type %d", msgType)
 				continue
 			}
 			msg, err := io.ReadAll(reader)
 			if err != nil {
-				fs.log.Errorln("Error reading message from websocket reader:", err)
+				fs.log.Errorf("Error reading message from websocket reader: %v", err)
 				continue
 			}
 			fs.processData(msg)

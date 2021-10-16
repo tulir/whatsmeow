@@ -24,19 +24,34 @@ import (
 	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	waLog "go.mau.fi/whatsmeow/log"
 	"go.mau.fi/whatsmeow/store"
 )
 
 var cli *whatsapp.Client
 
-type waLogger struct{}
-
-func (w *waLogger) Warn(msg string, args ...interface{}) {
-	log.Warnfln(msg, args...)
+type waLogger struct {
+	l log.Logger
 }
 
-func (w *waLogger) Error(msg string, args ...interface{}) {
-	log.Errorfln(msg, args...)
+func (w *waLogger) Debugf(msg string, args ...interface{}) {
+	w.l.Debugfln(msg, args...)
+}
+
+func (w *waLogger) Infof(msg string, args ...interface{}) {
+	w.l.Infofln(msg, args...)
+}
+
+func (w *waLogger) Warnf(msg string, args ...interface{}) {
+	w.l.Warnfln(msg, args...)
+}
+
+func (w *waLogger) Errorf(msg string, args ...interface{}) {
+	w.l.Errorfln(msg, args...)
+}
+
+func (w *waLogger) Sub(module string) waLog.Logger {
+	return &waLogger{l: w.l.Sub(module)}
 }
 
 func getDevice() *store.Device {
@@ -45,7 +60,7 @@ func getDevice() *store.Device {
 		log.Fatalln("Failed to open mdtest.db:", err)
 		return nil
 	}
-	storeContainer := store.NewSQLContainer(db, "sqlite3", &waLogger{})
+	storeContainer := store.NewSQLContainer(db, "sqlite3", &waLogger{log.DefaultLogger.Sub("Database")})
 	err = storeContainer.Upgrade()
 	if err != nil {
 		log.Fatalln("Failed to upgrade database:", err)
@@ -72,7 +87,7 @@ func main() {
 		return
 	}
 
-	cli = whatsapp.NewClient(device, log.DefaultLogger)
+	cli = whatsapp.NewClient(device, &waLogger{log.DefaultLogger.Sub("Client")})
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)

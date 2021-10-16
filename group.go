@@ -109,10 +109,10 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
 		case "locked":
 			group.Locked = true
 		default:
-			cli.Log.Debugfln("Unknown element in group node %s: %s", jid.String(), child.XMLString())
+			cli.Log.Debugf("Unknown element in group node %s: %s", jid.String(), child.XMLString())
 		}
 		if !childAG.OK() {
-			cli.Log.Warnfln("Possibly failed to parse %s element in group node: %+v", child.Tag, childAG.Errors)
+			cli.Log.Warnf("Possibly failed to parse %s element in group node: %+v", child.Tag, childAG.Errors)
 		}
 	}
 

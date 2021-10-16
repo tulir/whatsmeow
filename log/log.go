@@ -7,16 +7,22 @@
 package log
 
 type Logger interface {
-	Warn(msg string, args ...interface{})
-	Error(msg string, args ...interface{})
+	Warnf(msg string, args ...interface{})
+	Errorf(msg string, args ...interface{})
+	Infof(msg string, args ...interface{})
+	Debugf(msg string, args ...interface{})
+	Sub(module string) Logger
 }
 
 type noopLogger struct{}
 
 var _ Logger = (*noopLogger)(nil)
 
-func (n noopLogger) Error(_ string, _ ...interface{}) {}
-func (n noopLogger) Warn(_ string, _ ...interface{})  {}
+func (n *noopLogger) Errorf(_ string, _ ...interface{}) {}
+func (n *noopLogger) Warnf(_ string, _ ...interface{})  {}
+func (n *noopLogger) Infof(_ string, _ ...interface{})  {}
+func (n *noopLogger) Debugf(_ string, _ ...interface{}) {}
+func (n *noopLogger) Sub(_ string) Logger               { return n }
 
 // Noop is a no-op logger
 var Noop = &noopLogger{}

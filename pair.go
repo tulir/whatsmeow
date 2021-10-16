@@ -56,7 +56,7 @@ func (cli *Client) handlePairDevice(node *waBinary.Node) bool {
 		},
 	})
 	if err != nil {
-		cli.Log.Warnln("Failed to send acknowledgement for pair-device request:", err)
+		cli.Log.Warnf("Failed to send acknowledgement for pair-device request: %v", err)
 	}
 
 	evt := &QREvent{
@@ -65,12 +65,12 @@ func (cli *Client) handlePairDevice(node *waBinary.Node) bool {
 	}
 	for i, child := range pairDevice.GetChildren() {
 		if child.Tag != "ref" {
-			cli.Log.Warnfln("pair-device node contains unexpected child tag %s at index %d", child.Tag, i)
+			cli.Log.Warnf("pair-device node contains unexpected child tag %s at index %d", child.Tag, i)
 			continue
 		}
 		content, ok := child.Content.([]byte)
 		if !ok {
-			cli.Log.Warnfln("pair-device node contains unexpected child content type %T at index %d", child, i)
+			cli.Log.Warnf("pair-device node contains unexpected child content type %T at index %d", child, i)
 			continue
 		}
 		evt.Codes = append(evt.Codes, cli.makeQRData(string(content)))
@@ -107,9 +107,9 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) bool {
 	go func() {
 		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, wid)
 		if err != nil {
-			cli.Log.Errorln("Failed to pair device:", err)
+			cli.Log.Errorf("Failed to pair device: %v", err)
 		} else {
-			cli.Log.Infoln("Successfully paired", cli.Store.ID)
+			cli.Log.Infof("Successfully paired with %s", cli.Store.ID)
 		}
 	}()
 	return true
@@ -125,7 +125,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	h := hmac.New(sha256.New, cli.Store.AdvSecretKey)
 	h.Write(deviceIdentityContainer.Details)
 	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.Hmac) {
-		cli.Log.Warnln("Invalid HMAC from pair success message")
+		cli.Log.Warnf("Invalid HMAC from pair success message")
 		cli.sendNotAuthorized(reqID)
 		return fmt.Errorf("invalid device identity HMAC in pair success message")
 	}

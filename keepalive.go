@@ -42,14 +42,14 @@ func (cli *Client) sendKeepAlive(ctx context.Context) bool {
 		Content:   []waBinary.Node{{Tag: "ping"}},
 	})
 	if err != nil {
-		cli.Log.Warnln("Failed to send keepalive:", err)
+		cli.Log.Warnf("Failed to send keepalive: %v", err)
 		return true
 	}
 	select {
 	case <-respCh:
 		// All good
 	case <-time.After(KeepAliveResponseDeadlineMS * time.Millisecond):
-		cli.Log.Warnln("Keepalive timed out")
+		cli.Log.Warnf("Keepalive timed out")
 	case <-ctx.Done():
 		return false
 	}

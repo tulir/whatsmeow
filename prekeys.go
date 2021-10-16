@@ -26,10 +26,10 @@ func (cli *Client) uploadPreKeys(currentCount int) {
 	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
 	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(WantedPreKeyCount - uint32(currentCount))
 	if err != nil {
-		cli.Log.Errorln("Failed to get prekeys to upload:", err)
+		cli.Log.Errorf("Failed to get prekeys to upload: %v", err)
 		return
 	}
-	cli.Log.Infoln("Uploading", len(preKeys), "new prekeys to server")
+	cli.Log.Infof("Uploading %d new prekeys to server", len(preKeys))
 	_, err = cli.sendIQ(InfoQuery{
 		Namespace: "encrypt",
 		Type:      "set",
@@ -43,13 +43,13 @@ func (cli *Client) uploadPreKeys(currentCount int) {
 		},
 	})
 	if err != nil {
-		cli.Log.Errorln("Failed to send request to upload prekeys:", err)
+		cli.Log.Errorf("Failed to send request to upload prekeys: %v", err)
 		return
 	}
-	cli.Log.Debugln("Got response to uploading prekeys")
+	cli.Log.Debugf("Got response to uploading prekeys")
 	err = cli.Store.PreKeys.MarkPreKeysAsUploaded(preKeys[len(preKeys)-1].KeyID)
 	if err != nil {
-		cli.Log.Warnln("Failed to mark prekeys as uploaded:", err)
+		cli.Log.Warnf("Failed to mark prekeys as uploaded: %v", err)
 	}
 }
 

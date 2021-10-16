@@ -34,7 +34,7 @@ func (cli *Client) handleReceipt(node *waBinary.Node) bool {
 	if node.AttrGetter().OptionalString("type") == "read" {
 		receipt, err := cli.parseReadReceipt(node)
 		if err != nil {
-			cli.Log.Warnln("Failed to parse read receipt:", err)
+			cli.Log.Warnf("Failed to parse read receipt: %v", err)
 		} else {
 			go cli.dispatchEvent(receipt)
 		}
@@ -95,7 +95,7 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 		Attrs: attrs,
 	})
 	if err != nil {
-		cli.Log.Warnfln("Failed to send acknowledgement for %s %s: %v", node.Tag, node.Attrs["id"], err)
+		cli.Log.Warnf("Failed to send acknowledgement for %s %s: %v", node.Tag, node.Attrs["id"], err)
 	}
 }
 
@@ -123,7 +123,7 @@ func (cli *Client) sendMessageReceipt(info *MessageInfo) {
 		Attrs: attrs,
 	})
 	if err != nil {
-		cli.Log.Warnfln("Failed to send receipt for %s: %v", info.ID, err)
+		cli.Log.Warnf("Failed to send receipt for %s: %v", info.ID, err)
 	}
 }
 
@@ -163,9 +163,9 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
 	}
 	if retryCount > 1 {
 		if key, err := cli.Store.PreKeys.GenOnePreKey(); err != nil {
-			cli.Log.Errorln("Failed to get prekey for retry receipt:", err)
+			cli.Log.Errorf("Failed to get prekey for retry receipt: %v", err)
 		} else if deviceIdentity, err := proto.Marshal(cli.Store.Account); err != nil {
-			cli.Log.Errorln("Failed to marshal account info:", err)
+			cli.Log.Errorf("Failed to marshal account info: %v", err)
 			return
 		} else {
 			payload.Content = append(payload.GetChildren(), waBinary.Node{
@@ -182,6 +182,6 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
 	}
 	err := cli.sendNode(payload)
 	if err != nil {
-		cli.Log.Errorfln("Failed to send retry receipt for %s: %v", id, err)
+		cli.Log.Errorf("Failed to send retry receipt for %s: %v", id, err)
 	}
 }

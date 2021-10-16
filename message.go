@@ -107,7 +107,7 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		return
 	}
 	children := node.GetChildren()
-	cli.Log.Debugln("Decrypting", len(children), "messages from", info.FromString())
+	cli.Log.Debugf("Decrypting %d messages from %s", len(children), info.FromString())
 	handled := false
 	for _, child := range children {
 		if child.Tag != "enc" {
@@ -124,11 +124,11 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		} else if info.Chat != nil && encType == "skmsg" {
 			decrypted, err = cli.decryptGroupMsg(&child, info.From, *info.Chat)
 		} else {
-			cli.Log.Warnfln("Unhandled encrypted message (type %s) from %s", encType, info.FromString())
+			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.FromString())
 			continue
 		}
 		if err != nil {
-			cli.Log.Warnfln("Error decrypting message from %s: %v", info.FromString(), err)
+			cli.Log.Warnf("Error decrypting message from %s: %v", info.FromString(), err)
 			cli.sendRetryReceipt(node)
 			return
 		}
@@ -136,7 +136,7 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		var msg waProto.Message
 		err = proto.Unmarshal(decrypted, &msg)
 		if err != nil {
-			cli.Log.Warnfln("Error unmarshaling decrypted message from %s: %v", info.FromString(), err)
+			cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.FromString(), err)
 			continue
 		}
 
@@ -218,7 +218,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) bool {
 
 	info, err := parseMessageInfo(node)
 	if err != nil {
-		cli.Log.Warnln("Failed to parse message:", err)
+		cli.Log.Warnf("Failed to parse message: %v", err)
 		return true
 	}
 
@@ -232,7 +232,7 @@ func (cli *Client) handleSenderKeyDistributionMessage(chat, from waBinary.JID, r
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
 	sdkMsg, err := protocol.NewSenderKeyDistributionMessageFromBytes(rawSKDMsg.AxolotlSenderKeyDistributionMessage, pbSerializer.SenderKeyDistributionMessage)
 	if err != nil {
-		cli.Log.Errorfln("Failed to parse sender key distribution message from %s for %s: %v", from, chat, err)
+		cli.Log.Errorf("Failed to parse sender key distribution message from %s for %s: %v", from, chat, err)
 		return
 	}
 	builder.Process(senderKeyName, sdkMsg)
@@ -241,15 +241,15 @@ func (cli *Client) handleSenderKeyDistributionMessage(chat, from waBinary.JID, r
 func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotification) {
 	var historySync waProto.HistorySync
 	if data, err := cli.downloadMedia(notif.GetDirectPath(), notif.FileEncSha256, notif.MediaKey, int(notif.GetFileLength()), MediaHistory, "md-msg-hist"); err != nil {
-		cli.Log.Errorln("Failed to download history sync data:", err)
+		cli.Log.Errorf("Failed to download history sync data: %v", err)
 	} else if reader, err := zlib.NewReader(bytes.NewReader(data)); err != nil {
-		cli.Log.Errorln("Failed to create zlib reader for history sync data:", err)
+		cli.Log.Errorf("Failed to create zlib reader for history sync data: %v", err)
 	} else if rawData, err := io.ReadAll(reader); err != nil {
-		cli.Log.Errorln("Failed to decompress history sync data:", err)
+		cli.Log.Errorf("Failed to decompress history sync data: %v", err)
 	} else if err = proto.Unmarshal(rawData, &historySync); err != nil {
-		cli.Log.Errorln("Failed to unmarshal history sync data:", err)
+		cli.Log.Errorf("Failed to unmarshal history sync data: %v", err)
 	} else {
-		cli.Log.Debugln("Received history sync")
+		cli.Log.Debugf("Received history sync")
 		//fmt.Printf("%+v\n", &historySync)
 		//for _, conv := range historySync.GetConversations() {
 		//	fmt.Println("  Conversation:", conv.GetId(), conv.GetName())
@@ -301,6 +301,6 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 		Content: nil,
 	})
 	if err != nil {
-		cli.Log.Warnfln("Failed to send acknowledgement for protocol message %s: %v", id, err)
+		cli.Log.Warnf("Failed to send acknowledgement for protocol message %s: %v", id, err)
 	}
 }
