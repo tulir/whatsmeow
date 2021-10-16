@@ -9,6 +9,7 @@ package store
 import (
 	"crypto/md5"
 	"encoding/binary"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -68,6 +69,15 @@ var CompanionProps = &waProto.CompanionProps{
 	},
 	PlatformType:    waProto.CompanionProps_UNKNOWN.Enum(),
 	RequireFullSync: proto.Bool(false),
+}
+
+func SetOSInfo(name string, version [3]uint32) {
+	CompanionProps.Os = &name
+	CompanionProps.Version.Primary = &version[0]
+	CompanionProps.Version.Secondary = &version[1]
+	CompanionProps.Version.Tertiary = &version[2]
+	BaseClientPayload.UserAgent.OsVersion = proto.String(fmt.Sprintf("%d.%d.%d", version[0], version[1], version[2]))
+	BaseClientPayload.UserAgent.OsBuildNumber = BaseClientPayload.UserAgent.OsVersion
 }
 
 func (device *Device) getRegistrationPayload() *waProto.ClientPayload {
