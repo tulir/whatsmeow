@@ -12,9 +12,8 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
-	github.com/RadicalApp/complete v0.0.0-20170329192659-17e6c0ee499b // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
-	go.mau.fi/libsignal v0.0.0-20211016125744-b84e562375e1 // indirect
+	go.mau.fi/libsignal v0.0.0-20211016130347-464152efc488 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
