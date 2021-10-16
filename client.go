@@ -95,17 +95,11 @@ func (cli *Client) AddEventHandler(handler func(interface{})) {
 	cli.eventHandlers = append(cli.eventHandlers, handler)
 }
 
-const streamEnd = "\xf8\x01\x02"
-
 func (cli *Client) handleFrame(data []byte) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
 		cli.Log.Warnf("Failed to decompress frame: %v", err)
 		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(data))
-		return
-	}
-	if len(decompressed) == len(streamEnd) && string(decompressed) == streamEnd {
-		cli.Log.Warnf("Received stream end frame")
 		return
 	}
 	node, err := waBinary.Unmarshal(decompressed)
@@ -115,6 +109,10 @@ func (cli *Client) handleFrame(data []byte) {
 		return
 	}
 	cli.recvLog.Debugf("%s", node.XMLString())
+	if node.Tag == "xmlstreamend" {
+		cli.Log.Warnf("Received stream end frame")
+		return
+	}
 	switch {
 	case cli.receiveResponse(node):
 	case cli.dispatchNode(node):

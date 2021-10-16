@@ -3,7 +3,7 @@ package token
 import "fmt"
 
 func GetSingleToken(i int) (string, error) {
-	if i < 3 || i >= len(SingleByteTokens) {
+	if i < 1 || i >= len(SingleByteTokens) {
 		return "", fmt.Errorf("index out of single byte token bounds %d", i)
 	}
 
@@ -32,7 +32,6 @@ func IndexOfDoubleByteToken(token string) (byte, byte, bool) {
 
 const (
 	ListEmpty   = 0
-	StreamEnd   = 2
 	Dictionary0 = 236
 	Dictionary1 = 237
 	Dictionary2 = 238

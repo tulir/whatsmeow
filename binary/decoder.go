@@ -177,8 +177,6 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 	switch tag {
 	case token.ListEmpty:
 		return nil, nil
-	case token.StreamEnd:
-		return nil, ErrStreamEnd
 	case token.List8, token.List16:
 		return r.readList(tag)
 	case token.Binary8:
@@ -216,7 +214,7 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 	case token.Nibble8, token.Hex8:
 		return r.readPacked8(tag)
 	default:
-		if tag >= 3 && tag <= len(token.SingleByteTokens) {
+		if tag >= 1 && tag <= len(token.SingleByteTokens) {
 			tok, err := token.GetSingleToken(tag)
 			if err != nil {
 				return "", err
