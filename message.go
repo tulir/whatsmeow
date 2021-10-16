@@ -296,7 +296,7 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 		Attrs: map[string]interface{}{
 			"id":   id,
 			"type": msgType,
-			"to":   waBinary.NewJID(cli.Store.ID.User, waBinary.UserServer),
+			"to":   waBinary.NewJID(cli.Store.ID.User, waBinary.LegacyUserServer),
 		},
 		Content: nil,
 	})

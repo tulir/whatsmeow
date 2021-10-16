@@ -17,7 +17,7 @@ import (
 const (
 	DefaultUserServer = "s.whatsapp.net"
 	GroupServer       = "g.us"
-	UserServer        = "c.us"
+	LegacyUserServer  = "c.us"
 	BroadcastServer   = "broadcast"
 )
 
@@ -26,8 +26,8 @@ var (
 	ServerJID           = NewJID("", DefaultUserServer)
 	BroadcastServerJID  = NewJID("", BroadcastServer)
 	StatusBroadcastJID  = NewJID("status", BroadcastServer)
-	PSAJID              = NewJID("0", UserServer)
-	OfficialBusinessJID = NewJID("16505361212", UserServer)
+	PSAJID              = NewJID("0", LegacyUserServer)
+	OfficialBusinessJID = NewJID("16505361212", LegacyUserServer)
 )
 
 // MessageID is the internal ID of a WhatsApp message.
