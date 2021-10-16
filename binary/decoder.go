@@ -11,11 +11,10 @@ import (
 type binaryDecoder struct {
 	data  []byte
 	index int
-	md    bool
 }
 
-func NewDecoder(data []byte, md bool) *binaryDecoder {
-	return &binaryDecoder{data, 0, md}
+func NewDecoder(data []byte) *binaryDecoder {
+	return &binaryDecoder{data, 0}
 }
 
 func (r *binaryDecoder) checkEOS(length int) error {
@@ -209,7 +208,7 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 			return "", err
 		}
 
-		return token.GetDoubleToken(tag-token.Dictionary0, i, r.md)
+		return token.GetDoubleToken(tag-token.Dictionary0, i)
 	case token.JIDPair:
 		return r.readJIDPair()
 	case token.ADJID:
@@ -217,14 +216,10 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 	case token.Nibble8, token.Hex8:
 		return r.readPacked8(tag)
 	default:
-		if tag >= 3 && tag <= token.SingleTokenCount(r.md) {
-			tok, err := token.GetSingleToken(tag, r.md)
+		if tag >= 3 && tag <= len(token.SingleByteTokens) {
+			tok, err := token.GetSingleToken(tag)
 			if err != nil {
 				return "", err
-			}
-
-			if !r.md && tok == "s.whatsapp.net" {
-				tok = "c.us"
 			}
 
 			return tok, nil
@@ -241,7 +236,7 @@ func (r *binaryDecoder) readJIDPair() (interface{}, error) {
 	server, err := r.read(true)
 	if err != nil {
 		return nil, err
-	} else if server == nil || (user == nil && !r.md) {
+	} else if server == nil {
 		return nil, ErrInvalidJIDType
 	}
 

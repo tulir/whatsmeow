@@ -9,16 +9,20 @@ import (
 	"unicode/utf8"
 )
 
+var IndentXML = false
+var MaxBytesToPrintAsHex = 128
+
 // XMLString converts the Node to its XML representation
 func (n *Node) XMLString() string {
 	content := n.contentString()
 	if len(content) == 0 {
 		return fmt.Sprintf("<%[1]s%[2]s/>", n.Tag, n.attributeString())
-	} else if len(content) == 1 {
-		return fmt.Sprintf("<%[1]s%[2]s>%[3]s</%[1]s>", n.Tag, n.attributeString(), content[0])
-	} else {
-		return fmt.Sprintf("<%[1]s%[2]s>\n%[3]s\n</%[1]s>", n.Tag, n.attributeString(), strings.Join(content, "\n"))
 	}
+	newline := "\n"
+	if len(content) == 1 || !IndentXML {
+		newline = ""
+	}
+	return fmt.Sprintf("<%[1]s%[2]s>%[4]s%[3]s%[4]s</%[1]s>", n.Tag, n.attributeString(), strings.Join(content, newline), newline)
 }
 
 func (n *Node) attributeString() string {
@@ -57,7 +61,15 @@ func (n *Node) contentString() []string {
 		}
 	case []byte:
 		if strContent := printable(content); len(strContent) > 0 {
-			split = append(split, strings.Split(string(content), "\n")...)
+			if IndentXML {
+				split = append(split, strings.Split(string(content), "\n")...)
+			} else {
+				split = append(split, strings.ReplaceAll(string(content), "\n", "\\n"))
+			}
+		} else if len(content) > MaxBytesToPrintAsHex {
+			split = append(split, fmt.Sprintf("<!-- %d bytes -->", len(content)))
+		} else if !IndentXML {
+			split = append(split, hex.EncodeToString(content))
 		} else {
 			hexData := hex.EncodeToString(content)
 			for i := 0; i < len(hexData); i += 80 {
@@ -71,9 +83,14 @@ func (n *Node) contentString() []string {
 	case nil:
 		// don't append anything
 	default:
-		split = append(split, strings.Split(fmt.Sprintf("%s", content), "\n")...)
+		strContent := fmt.Sprintf("%s", content)
+		if IndentXML {
+			split = append(split, strings.Split(strContent, "\n")...)
+		} else {
+			split = append(split, strings.ReplaceAll(strContent, "\n", "\\n"))
+		}
 	}
-	if len(split) > 1 {
+	if len(split) > 1 && IndentXML {
 		for i, line := range split {
 			split[i] = "  " + line
 		}

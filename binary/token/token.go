@@ -2,61 +2,26 @@ package token
 
 import "fmt"
 
-func getSingleTokenMD(i int) (string, error) {
-	if i < 3 || i >= len(mdSingleByteTokens) {
+func GetSingleToken(i int) (string, error) {
+	if i < 3 || i >= len(SingleByteTokens) {
 		return "", fmt.Errorf("index out of single byte token bounds %d", i)
 	}
 
-	return mdSingleByteTokens[i], nil
-}
-func getSingleTokenWeb(i int) (string, error) {
-	if i < 3 || i >= len(webSingleByteTokens) {
-		return "", fmt.Errorf("index out of single byte token bounds %d", i)
-	}
-
-	return webSingleByteTokens[i], nil
+	return SingleByteTokens[i], nil
 }
 
-func GetSingleToken(i int, md bool) (string, error) {
-	if md {
-		return getSingleTokenMD(i)
-	} else {
-		return getSingleTokenWeb(i)
-	}
-}
-
-func getDoubleTokenMD(index1, index2 int) (string, error) {
-	if index1 < 0 || index1 >= len(mdDoubleByteTokens) {
+func GetDoubleToken(index1, index2 int) (string, error) {
+	if index1 < 0 || index1 >= len(DoubleByteTokens) {
 		return "", fmt.Errorf("index out of double byte token bounds %d-%d", index1, index2)
-	} else if index2 < 0 || index2 >= len(mdDoubleByteTokens[index1]) {
+	} else if index2 < 0 || index2 >= len(DoubleByteTokens[index1]) {
 		return "", fmt.Errorf("index out of double byte token index %d bounds %d", index1, index2)
 	}
 
-	return mdDoubleByteTokens[index1][index2], nil
+	return DoubleByteTokens[index1][index2], nil
 }
 
-func GetDoubleToken(index1, index2 int, md bool) (string, error) {
-	if md {
-		return getDoubleTokenMD(index1, index2)
-	} else {
-		return "", fmt.Errorf("web doesn't have double byte tokens")
-	}
-}
-
-func SingleTokenCount(md bool) int {
-	if md {
-		return len(mdSingleByteTokens)
-	} else {
-		return len(webSingleByteTokens)
-	}
-}
-
-func IndexOfSingleToken(token string, md bool) (val byte, ok bool) {
-	if md {
-		val, ok = mdSingleByteTokenIndex[token]
-	} else {
-		val, ok = webSingleByteTokenIndex[token]
-	}
+func IndexOfSingleToken(token string) (val byte, ok bool) {
+	val, ok = mdSingleByteTokenIndex[token]
 	return
 }
 
@@ -84,6 +49,6 @@ const (
 )
 
 const (
-	PackedMax     = 254
+	PackedMax     = 127
 	SingleByteMax = 256
 )

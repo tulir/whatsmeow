@@ -30,7 +30,10 @@ var (
 	OfficialBusinessJID = NewJID("16505361212", UserServer)
 )
 
-type FullJID struct {
+// MessageID is the internal ID of a WhatsApp message.
+type MessageID = string
+
+type JID struct {
 	User   string
 	Agent  uint8
 	Device uint8
@@ -38,12 +41,12 @@ type FullJID struct {
 	AD     bool
 }
 
-func (jid FullJID) UserInt() uint64 {
+func (jid JID) UserInt() uint64 {
 	number, _ := strconv.ParseUint(jid.User, 10, 64)
 	return number
 }
 
-func (jid FullJID) SignalAddress() *signalProtocol.SignalAddress {
+func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
 	user := jid.User
 	if jid.Agent != 0 {
 		user = fmt.Sprintf("%s_%d", jid.User, jid.Agent)
@@ -51,8 +54,8 @@ func (jid FullJID) SignalAddress() *signalProtocol.SignalAddress {
 	return signalProtocol.NewSignalAddress(user, uint32(jid.Device))
 }
 
-func NewADJID(user string, agent, device uint8) FullJID {
-	return FullJID{
+func NewADJID(user string, agent, device uint8) JID {
+	return JID{
 		User:   user,
 		Agent:  agent,
 		Device: device,
@@ -61,8 +64,8 @@ func NewADJID(user string, agent, device uint8) FullJID {
 	}
 }
 
-func parseADJID(user string) (FullJID, error) {
-	var fullJID FullJID
+func parseADJID(user string) (JID, error) {
+	var fullJID JID
 	fullJID.AD = true
 	fullJID.Server = DefaultUserServer
 
@@ -90,7 +93,7 @@ func parseADJID(user string) (FullJID, error) {
 	return fullJID, nil
 }
 
-func ParseJID(jid string) (FullJID, error) {
+func ParseJID(jid string) (JID, error) {
 	parts := strings.Split(jid, "@")
 	if len(parts) == 1 {
 		return NewJID("", parts[0]), nil
@@ -100,14 +103,14 @@ func ParseJID(jid string) (FullJID, error) {
 	return NewJID(parts[0], parts[1]), nil
 }
 
-func NewJID(user, server string) FullJID {
-	return FullJID{
+func NewJID(user, server string) JID {
+	return JID{
 		User:   user,
 		Server: server,
 	}
 }
 
-func (jid FullJID) String() string {
+func (jid JID) String() string {
 	if jid.AD {
 		return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.Agent, jid.Device, jid.Server)
 	} else if len(jid.User) > 0 {

@@ -21,22 +21,37 @@ import (
 	"google.golang.org/protobuf/proto"
 	log "maunium.net/go/maulogger/v2"
 
+	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/multidevice"
-	"go.mau.fi/whatsmeow/multidevice/store"
+	waLog "go.mau.fi/whatsmeow/log"
+	"go.mau.fi/whatsmeow/store"
 )
 
-var cli *multidevice.Client
+var cli *whatsapp.Client
 
-type waLogger struct{}
-
-func (w *waLogger) Warn(msg string, args ...interface{}) {
-	log.Warnfln(msg, args...)
+type waLogger struct {
+	l log.Logger
 }
 
-func (w *waLogger) Error(msg string, args ...interface{}) {
-	log.Errorfln(msg, args...)
+func (w *waLogger) Debugf(msg string, args ...interface{}) {
+	w.l.Debugfln(msg, args...)
+}
+
+func (w *waLogger) Infof(msg string, args ...interface{}) {
+	w.l.Infofln(msg, args...)
+}
+
+func (w *waLogger) Warnf(msg string, args ...interface{}) {
+	w.l.Warnfln(msg, args...)
+}
+
+func (w *waLogger) Errorf(msg string, args ...interface{}) {
+	w.l.Errorfln(msg, args...)
+}
+
+func (w *waLogger) Sub(module string) waLog.Logger {
+	return &waLogger{l: w.l.Sub(module)}
 }
 
 func getDevice() *store.Device {
@@ -45,7 +60,7 @@ func getDevice() *store.Device {
 		log.Fatalln("Failed to open mdtest.db:", err)
 		return nil
 	}
-	storeContainer := store.NewSQLContainer(db, "sqlite3", &waLogger{})
+	storeContainer := store.NewSQLContainer(db, "sqlite3", &waLogger{log.DefaultLogger.Sub("Database")})
 	err = storeContainer.Upgrade()
 	if err != nil {
 		log.Fatalln("Failed to upgrade database:", err)
@@ -65,13 +80,14 @@ func getDevice() *store.Device {
 
 func main() {
 	log.DefaultLogger.PrintLevel = 0
+	waBinary.IndentXML = true
 
 	device := getDevice()
 	if device == nil {
 		return
 	}
 
-	cli = multidevice.NewClient(device, log.DefaultLogger)
+	cli = whatsapp.NewClient(device, &waLogger{log.DefaultLogger.Sub("Client")})
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)
@@ -116,7 +132,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 	case "usync":
-		var jids []waBinary.FullJID
+		var jids []waBinary.JID
 		for _, jid := range args {
 			jids = append(jids, waBinary.NewJID(jid, waBinary.DefaultUserServer))
 		}
@@ -142,9 +158,9 @@ var stopQRs = make(chan struct{})
 
 func handler(rawEvt interface{}) {
 	switch evt := rawEvt.(type) {
-	case *multidevice.QREvent:
+	case *whatsapp.QREvent:
 		go printQRs(evt)
-	case *multidevice.PairSuccessEvent:
+	case *whatsapp.PairSuccessEvent:
 		select {
 		case stopQRs <- struct{}{}:
 		default:
@@ -152,7 +168,7 @@ func handler(rawEvt interface{}) {
 	}
 }
 
-func printQRs(evt *multidevice.QREvent) {
+func printQRs(evt *whatsapp.QREvent) {
 	for _, qr := range evt.Codes {
 		fmt.Println("\033[38;2;255;255;255m\u001B[48;2;0;0;0m")
 		qrterminal.GenerateHalfBlock(qr, qrterminal.L, os.Stdout)
