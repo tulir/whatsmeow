@@ -10,12 +10,9 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
-type nodeHandler func(node *waBinary.Node) bool
+type nodeHandler func(node *waBinary.Node)
 
-func (cli *Client) handleStreamError(node *waBinary.Node) bool {
-	if node.Tag != "stream:error" {
-		return false
-	}
+func (cli *Client) handleStreamError(node *waBinary.Node) {
 	code, _ := node.Attrs["code"].(string)
 	switch code {
 	case "515":
@@ -37,13 +34,9 @@ func (cli *Client) handleStreamError(node *waBinary.Node) bool {
 			}
 		}
 	}
-	return true
 }
 
-func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
-	if node.Tag != "success" {
-		return false
-	}
+func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.Log.Infof("Successfully authenticated")
 	go func() {
 		count, err := cli.Store.PreKeys.UploadedPreKeyCount()
@@ -58,7 +51,6 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
 		}
 		cli.dispatchEvent(&ConnectedEvent{})
 	}()
-	return true
 }
 
 func (cli *Client) sendPassiveIQ(passive bool) error {

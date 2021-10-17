@@ -26,16 +26,21 @@ import (
 
 const qrScanTimeout = 30 * time.Second
 
-func (cli *Client) handlePairDevice(node *waBinary.Node) bool {
-	if node.Tag != "iq" || len(node.GetChildren()) != 1 || node.Attrs["from"] != waBinary.ServerJID {
-		return false
+func (cli *Client) handleIQ(node *waBinary.Node) {
+	children := node.GetChildren()
+	if len(children) != 1 || node.Attrs["from"] != waBinary.ServerJID {
+		return
 	}
-
-	pairDevice := node.GetChildren()[0]
-	if pairDevice.Tag != "pair-device" {
-		return false
+	switch children[0].Tag {
+	case "pair-device":
+		cli.handlePairDevice(node)
+	case "pair-success":
+		cli.handlePairSuccess(node)
 	}
+}
 
+func (cli *Client) handlePairDevice(node *waBinary.Node) {
+	pairDevice := node.GetChildByTag("pair-device")
 	err := cli.sendNode(waBinary.Node{
 		Tag: "iq",
 		Attrs: map[string]interface{}{
@@ -66,8 +71,6 @@ func (cli *Client) handlePairDevice(node *waBinary.Node) bool {
 	}
 
 	cli.dispatchEvent(evt)
-
-	return true
 }
 
 func (cli *Client) makeQRData(ref string) string {
@@ -77,16 +80,9 @@ func (cli *Client) makeQRData(ref string) string {
 	return strings.Join([]string{ref, noise, identity, adv}, ",")
 }
 
-func (cli *Client) handlePairSuccess(node *waBinary.Node) bool {
-	if node.Tag != "iq" || len(node.GetChildren()) != 1 || node.Attrs["from"] != waBinary.ServerJID {
-		return false
-	}
-
+func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	id := node.Attrs["id"].(string)
-	pairSuccess := node.GetChildren()[0]
-	if pairSuccess.Tag != "pair-success" {
-		return false
-	}
+	pairSuccess := node.GetChildByTag("pair-success")
 
 	deviceIdentityBytes, _ := pairSuccess.GetChildByTag("device-identity").Content.([]byte)
 	businessName, _ := pairSuccess.GetChildByTag("biz").Attrs["name"].(string)
@@ -101,7 +97,6 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) bool {
 			cli.Log.Infof("Successfully paired with %s", cli.Store.ID)
 		}
 	}()
-	return true
 }
 
 func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, wid waBinary.JID) error {
