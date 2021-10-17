@@ -24,18 +24,7 @@ import (
 	"go.mau.fi/whatsmeow/keys"
 )
 
-type QREvent struct {
-	Codes   []string
-	Timeout time.Duration
-}
-
-type PairSuccessEvent struct {
-	ID           waBinary.JID
-	BusinessName string
-	Platform     string
-}
-
-const QRScanTimeout = 30 * time.Second
+const qrScanTimeout = 30 * time.Second
 
 func (cli *Client) handlePairDevice(node *waBinary.Node) bool {
 	if node.Tag != "iq" || len(node.GetChildren()) != 1 || node.Attrs["from"] != waBinary.ServerJID {
@@ -61,7 +50,7 @@ func (cli *Client) handlePairDevice(node *waBinary.Node) bool {
 
 	evt := &QREvent{
 		Codes:   make([]string, 0, len(pairDevice.GetChildren())),
-		Timeout: QRScanTimeout,
+		Timeout: qrScanTimeout,
 	}
 	for i, child := range pairDevice.GetChildren() {
 		if child.Tag != "ref" {

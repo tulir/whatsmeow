@@ -17,15 +17,6 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
-type ReadReceipt struct {
-	From        waBinary.JID
-	Chat        *waBinary.JID
-	Recipient   *waBinary.JID
-	MessageID   string
-	PreviousIDs []string
-	Timestamp   int64
-}
-
 func (cli *Client) handleReceipt(node *waBinary.Node) bool {
 	if node.Tag != "receipt" {
 		return false
@@ -43,12 +34,12 @@ func (cli *Client) handleReceipt(node *waBinary.Node) bool {
 	return true
 }
 
-func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceipt, error) {
+func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceiptEvent, error) {
 	ag := node.AttrGetter()
 	if ag.String("type") != "read" {
 		return nil, nil
 	}
-	receipt := ReadReceipt{
+	receipt := ReadReceiptEvent{
 		From:      ag.JID("from"),
 		Recipient: ag.OptionalJID("recipient"),
 		Timestamp: ag.Int64("t"),

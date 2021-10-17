@@ -19,6 +19,7 @@ import (
 	"go.mau.fi/whatsmeow/keys"
 )
 
+// WantedPreKeyCount is the number of prekeys that the client should keep on the WhatsApp servers.
 const WantedPreKeyCount = 50
 
 func (cli *Client) uploadPreKeys(currentCount int) {
@@ -30,7 +31,7 @@ func (cli *Client) uploadPreKeys(currentCount int) {
 		return
 	}
 	cli.Log.Infof("Uploading %d new prekeys to server", len(preKeys))
-	_, err = cli.sendIQ(InfoQuery{
+	_, err = cli.sendIQ(infoQuery{
 		Namespace: "encrypt",
 		Type:      "set",
 		To:        waBinary.ServerJID,
@@ -67,7 +68,7 @@ func (cli *Client) fetchPreKeys(users []waBinary.JID) (map[waBinary.JID]preKeyRe
 			"reason": "identity",
 		}
 	}
-	resp, err := cli.sendIQ(InfoQuery{
+	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "encrypt",
 		Type:      "get",
 		To:        waBinary.ServerJID,

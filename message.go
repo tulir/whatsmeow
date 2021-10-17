@@ -18,41 +18,41 @@ import (
 
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/protocol"
-	"go.mau.fi/libsignal/serialize"
 	"go.mau.fi/libsignal/session"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/store"
 )
 
-var pbSerializer = serialize.NewProtoBufSerializer()
+var pbSerializer = store.SignalProtobufSerializer
 
 func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.JID, isPreKey bool) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
 	builder := session.NewBuilderFromSignal(cli.Store, from.SignalAddress(), pbSerializer)
 	cipher := session.NewCipher(builder, from.SignalAddress())
+	var plaintext []byte
 	if isPreKey {
 		preKeyMsg, err := protocol.NewPreKeySignalMessageFromBytes(content, pbSerializer.PreKeySignalMessage, pbSerializer.SignalMessage)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse prekey message: %w", err)
 		}
-		plaintext, _, err := cipher.DecryptMessageReturnKey(preKeyMsg)
+		plaintext, _, err = cipher.DecryptMessageReturnKey(preKeyMsg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt prekey message: %w", err)
 		}
-		return unpadMessage(plaintext)
 	} else {
 		msg, err := protocol.NewSignalMessageFromBytes(content, pbSerializer.SignalMessage)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse normal message: %w", err)
 		}
-		plaintext, err := cipher.Decrypt(msg)
+		plaintext, err = cipher.Decrypt(msg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt normal message: %w", err)
 		}
-		return unpadMessage(plaintext)
 	}
+	return unpadMessage(plaintext)
 }
 
 func (cli *Client) decryptGroupMsg(child *waBinary.Node, from waBinary.JID, chat waBinary.JID) ([]byte, error) {
@@ -72,7 +72,7 @@ func (cli *Client) decryptGroupMsg(child *waBinary.Node, from waBinary.JID, chat
 	return unpadMessage(plaintext)
 }
 
-var CheckPadding = true
+const checkPadding = true
 
 func isValidPadding(plaintext []byte) bool {
 	lastByte := plaintext[len(plaintext)-1]
@@ -81,7 +81,7 @@ func isValidPadding(plaintext []byte) bool {
 }
 
 func unpadMessage(plaintext []byte) ([]byte, error) {
-	if CheckPadding && !isValidPadding(plaintext) {
+	if checkPadding && !isValidPadding(plaintext) {
 		return nil, fmt.Errorf("plaintext doesn't have expected padding")
 	}
 	return plaintext[:len(plaintext)-int(plaintext[len(plaintext)-1])], nil
@@ -107,7 +107,7 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		return
 	}
 	children := node.GetChildren()
-	cli.Log.Debugf("Decrypting %d messages from %s", len(children), info.FromString())
+	cli.Log.Debugf("Decrypting %d messages from %s", len(children), info.SourceString())
 	handled := false
 	for _, child := range children {
 		if child.Tag != "enc" {
@@ -124,11 +124,11 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		} else if info.Chat != nil && encType == "skmsg" {
 			decrypted, err = cli.decryptGroupMsg(&child, info.From, *info.Chat)
 		} else {
-			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.FromString())
+			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
 			continue
 		}
 		if err != nil {
-			cli.Log.Warnf("Error decrypting message from %s: %v", info.FromString(), err)
+			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			cli.sendRetryReceipt(node)
 			return
 		}
@@ -136,7 +136,7 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		var msg waProto.Message
 		err = proto.Unmarshal(decrypted, &msg)
 		if err != nil {
-			cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.FromString(), err)
+			cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
 			continue
 		}
 
@@ -149,22 +149,24 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 	}
 }
 
+// MessageInfo contains metadata about an incoming message.
 type MessageInfo struct {
-	From waBinary.JID
-	Chat *waBinary.JID
-	ID   string
-	Type string
-
-	Recipient *waBinary.JID
-
+	From      waBinary.JID  // The user who sent the message.
+	Chat      *waBinary.JID // For group and broadcast messages, the chat where the message was sent.
+	Recipient *waBinary.JID // For direct messages sent by the user, the user who the message was sent to.
+	ID        string
+	Type      string
 	Notify    string
 	Timestamp int64
 	Category  string
 }
 
-func (mi *MessageInfo) FromString() string {
+// SourceString returns a log-friendly representation of who sent the message and where.
+func (mi *MessageInfo) SourceString() string {
 	if mi.Chat != nil {
 		return fmt.Sprintf("%s in %s", mi.From, mi.Chat)
+	} else if mi.Recipient != nil {
+		return fmt.Sprintf("%s to %s", mi.From, mi.Recipient)
 	} else {
 		return mi.From.String()
 	}
@@ -251,13 +253,9 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 		cli.Log.Errorf("Failed to unmarshal history sync data: %v", err)
 	} else {
 		cli.Log.Debugf("Received history sync")
-		//fmt.Printf("%+v\n", &historySync)
-		//for _, conv := range historySync.GetConversations() {
-		//	fmt.Println("  Conversation:", conv.GetId(), conv.GetName())
-		//	for _, msg := range conv.GetMessages() {
-		//		fmt.Println("    ", msg.Message)
-		//	}
-		//}
+		cli.dispatchEvent(&HistorySyncEvent{
+			Data: &historySync,
+		})
 	}
 }
 
@@ -272,25 +270,10 @@ func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message
 	}
 }
 
-type DeviceSentMeta struct {
-	DestinationJID string
-	Phash          string
-}
-
-type Message struct {
-	Info           *MessageInfo
-	Message        *waProto.Message
-	DeviceSentMeta *DeviceSentMeta
-	IsEphemeral    bool
-	IsViewOnce     bool
-
-	RawMessage *waProto.Message
-}
-
 func (cli *Client) handleDecryptedMessage(info *MessageInfo, msg *waProto.Message) {
 	fmt.Printf("Received message: %+v -- info: %+v\n", msg, info)
 
-	evt := &Message{Info: info, RawMessage: msg}
+	evt := &MessageEvent{Info: info, RawMessage: msg}
 
 	// First unwrap device sent messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {

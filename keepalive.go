@@ -14,15 +14,18 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
-const (
-	KeepAliveResponseDeadlineMS = 10_000
-	KeepAliveIntervalMinMS      = 20_000
-	KeepAliveIntervalMaxMS      = 30_000
+var (
+	// KeepAliveResponseDeadline specifies the duration to wait for a response to websocket keepalive pings.
+	KeepAliveResponseDeadline = 10 * time.Second
+	// KeepAliveIntervalMin specifies the minimum interval for websocket keepalive pings.
+	KeepAliveIntervalMin = 20 * time.Second
+	// KeepAliveIntervalMax specifies the maximum interval for websocket keepalive pings.
+	KeepAliveIntervalMax = 30 * time.Second
 )
 
 func (cli *Client) keepAliveLoop(ctx context.Context) {
 	for {
-		interval := rand.Intn(KeepAliveIntervalMaxMS-KeepAliveIntervalMinMS) + KeepAliveIntervalMinMS
+		interval := rand.Int63n(KeepAliveIntervalMax.Milliseconds()-KeepAliveIntervalMin.Milliseconds()) + KeepAliveIntervalMin.Milliseconds()
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
 			if !cli.sendKeepAlive(ctx) {
@@ -35,7 +38,7 @@ func (cli *Client) keepAliveLoop(ctx context.Context) {
 }
 
 func (cli *Client) sendKeepAlive(ctx context.Context) bool {
-	respCh, err := cli.sendIQAsync(InfoQuery{
+	respCh, err := cli.sendIQAsync(infoQuery{
 		Namespace: "w:p",
 		Type:      "get",
 		To:        waBinary.ServerJID,
@@ -48,7 +51,8 @@ func (cli *Client) sendKeepAlive(ctx context.Context) bool {
 	select {
 	case <-respCh:
 		// All good
-	case <-time.After(KeepAliveResponseDeadlineMS * time.Millisecond):
+	case <-time.After(KeepAliveResponseDeadline):
+		// TODO disconnect websocket?
 		cli.Log.Warnf("Keepalive timed out")
 	case <-ctx.Done():
 		return false

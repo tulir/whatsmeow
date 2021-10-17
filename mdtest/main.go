@@ -136,7 +136,7 @@ func handleCmd(cmd string, args []string) {
 		for _, jid := range args {
 			jids = append(jids, waBinary.NewJID(jid, waBinary.DefaultUserServer))
 		}
-		res, err := cli.GetUSyncDevices(jids, false)
+		res, err := cli.GetUserDevices(jids, false)
 		fmt.Println(err)
 		fmt.Println(res)
 	case "getgroup":

@@ -27,6 +27,7 @@ import (
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
+// GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
 func GenerateMessageID() string {
 	id := make([]byte, 16)
 	_, err := rand.Read(id)
@@ -37,6 +38,7 @@ func GenerateMessageID() string {
 	return hex.EncodeToString(id)
 }
 
+// SendMessage sends the given message.
 func (cli *Client) SendMessage(to waBinary.JID, id string, message *waProto.Message) error {
 	if to.AD {
 		return fmt.Errorf("message recipient must be non-AD JID")
@@ -46,10 +48,15 @@ func (cli *Client) SendMessage(to waBinary.JID, id string, message *waProto.Mess
 		id = GenerateMessageID()
 	}
 
-	if to.Server == waBinary.GroupServer {
+	switch to.Server {
+	case waBinary.GroupServer:
 		return cli.sendGroup(to, id, message)
-	} else {
+	case waBinary.DefaultUserServer:
 		return cli.sendDM(to, id, message)
+	case waBinary.BroadcastServer:
+		return ErrBroadcastListUnsupported
+	default:
+		return fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
 }
 
@@ -101,7 +108,7 @@ func (cli *Client) sendGroup(to waBinary.JID, id string, message *waProto.Messag
 		participantsStrings[i] = part.JID.String()
 	}
 
-	allDevices, err := cli.GetUSyncDevices(participants, false)
+	allDevices, err := cli.GetUserDevices(participants, false)
 	if err != nil {
 		return fmt.Errorf("failed to get device list: %w", err)
 	}
@@ -139,7 +146,7 @@ func (cli *Client) sendDM(to waBinary.JID, id string, message *waProto.Message) 
 		return err
 	}
 
-	allDevices, err := cli.GetUSyncDevices([]waBinary.JID{to, *cli.Store.ID}, false)
+	allDevices, err := cli.GetUserDevices([]waBinary.JID{to, *cli.Store.ID}, false)
 	if err != nil {
 		return fmt.Errorf("failed to get device list: %w", err)
 	}
@@ -193,13 +200,14 @@ func marshalMessage(to waBinary.JID, message *waProto.Message) (plaintext, dsmPl
 	return
 }
 
-func (cli *Client) GetUSyncDevices(jids []waBinary.JID, ignorePrimary bool) ([]waBinary.JID, error) {
+// GetUserDevices gets the list of devices that the given user has.
+func (cli *Client) GetUserDevices(jids []waBinary.JID, ignorePrimary bool) ([]waBinary.JID, error) {
 	userList := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		userList[i].Tag = "user"
 		userList[i].Attrs = map[string]interface{}{"jid": waBinary.NewJID(jid.User, waBinary.DefaultUserServer)}
 	}
-	res, err := cli.sendIQ(InfoQuery{
+	res, err := cli.sendIQ(infoQuery{
 		Namespace: "usync",
 		Type:      "get",
 		To:        waBinary.ServerJID,
@@ -324,8 +332,6 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.JID, id string
 	}
 	return participantNodes, includeIdentity
 }
-
-var ErrNoSession = errors.New("no signal session established")
 
 func (cli *Client) encryptMessageForDevice(plaintext []byte, to waBinary.JID, bundle *prekey.Bundle) (*waBinary.Node, bool, error) {
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)

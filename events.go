@@ -7,108 +7,72 @@
 package whatsapp
 
 import (
+	"time"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
-type nodeHandler func(node *waBinary.Node) bool
-
-type LoggedOutEvent struct{}
-
-func (cli *Client) handleStreamError(node *waBinary.Node) bool {
-	if node.Tag != "stream:error" {
-		return false
-	}
-	code, _ := node.Attrs["code"].(string)
-	switch code {
-	case "515":
-		cli.Log.Debugf("Got 515 code, reconnecting")
-		go func() {
-			cli.Disconnect()
-			err := cli.Connect()
-			if err != nil {
-				cli.Log.Errorf("Failed to reconnect after 515 code:", err)
-			}
-		}()
-	case "401":
-		conflict, ok := node.GetOptionalChildByTag("conflict")
-		if ok && conflict.AttrGetter().String("type") == "device_removed" {
-			go cli.dispatchEvent(&LoggedOutEvent{})
-			err := cli.Store.Delete()
-			if err != nil {
-				cli.Log.Warnf("Failed to delete store after device_removed error:", err)
-			}
-		}
-	}
-	return true
+// QREvent is emitted after connecting when there's no session data in the device store.
+//
+// The QR codes are available in the Codes slice. You should render the strings as QR codes one by
+// one, switching to the next one whenever the duration specified in the Timeout field has passed.
+//
+// When the QR code has been scanned and pairing is complete, PairSuccessEvent will be emitted. If
+// you run out of codes before scanning, the server will close the websocket, and you will have to
+// reconnect to get more codes.
+type QREvent struct {
+	Codes   []string
+	Timeout time.Duration
 }
 
-func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
-	count := node.GetChildByTag("count")
-	ag := count.AttrGetter()
-	otksLeft := ag.Int("value")
-	if !ag.OK() {
-		cli.Log.Warnf("Didn't get number of OTKs left in encryption notification")
-		return
-	}
-	cli.Log.Infof("Server said we have %d one-time keys left", otksLeft)
-	cli.uploadPreKeys(otksLeft)
+// PairSuccessEvent is emitted after the QR code has been scanned with the phone and the handshake
+// has been completed. Note that this is generally followed by a websocket reconnection, so you
+// should wait for the ConnectedEvent before trying to send anything.
+type PairSuccessEvent struct {
+	ID           waBinary.JID
+	BusinessName string
+	Platform     string
 }
 
-func (cli *Client) handleNotification(node *waBinary.Node) bool {
-	if node.Tag != "notification" {
-		return false
-	}
-	ag := node.AttrGetter()
-	notifType := ag.String("type")
-	if !ag.OK() {
-		return false
-	}
-	cli.Log.Debugf("Received %s update", notifType)
-	go cli.sendAck(node)
-	switch notifType {
-	case "encrypt":
-		go cli.handleEncryptNotification(node)
-	}
-	// TODO dispatch group info changes as events
-	return true
-}
-
+// ConnectedEvent is emitted when the client has successfully connected to the WhatsApp servers
+// and is authenticated. The user who the client is authenticated as will be in the device store
+// at this point, which is why this event doesn't contain any data.
 type ConnectedEvent struct{}
 
-func (cli *Client) handleConnectSuccess(node *waBinary.Node) bool {
-	if node.Tag != "success" {
-		return false
-	}
-	cli.Log.Infof("Successfully authenticated")
-	go func() {
-		count, err := cli.Store.PreKeys.UploadedPreKeyCount()
-		if err != nil {
-			cli.Log.Errorf("Failed to get number of prekeys on server: %v", err)
-		} else if count < WantedPreKeyCount {
-			cli.uploadPreKeys(count)
-		}
-		err = cli.sendPassiveIQ(false)
-		if err != nil {
-			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
-		}
-		cli.dispatchEvent(&ConnectedEvent{})
-	}()
-	return true
+// LoggedOutEvent is emitted when the client has been unpaired from the phone.
+type LoggedOutEvent struct{}
+
+// HistorySyncEvent is emitted when the phone has sent a blob of historical messages.
+type HistorySyncEvent struct {
+	Data *waProto.HistorySync
 }
 
-func (cli *Client) sendPassiveIQ(passive bool) error {
-	tag := "active"
-	if passive {
-		tag = "passive"
-	}
-	_, err := cli.sendIQ(InfoQuery{
-		Namespace: "passive",
-		Type:      "set",
-		To:        waBinary.ServerJID,
-		Content:   []waBinary.Node{{Tag: tag}},
-	})
-	if err != nil {
-		return err
-	}
-	return nil
+// DeviceSentMeta contains metadata from messages sent by another one of the user's own devices.
+type DeviceSentMeta struct {
+	DestinationJID string // The destination user. This should match the MessageInfo.Recipient field.
+	Phash          string
+}
+
+// MessageEvent is emitted when receiving a new message.
+type MessageEvent struct {
+	Info           *MessageInfo     // Information about the message like the chat and sender IDs
+	Message        *waProto.Message // The actual message struct
+	DeviceSentMeta *DeviceSentMeta  // Metadata for direct messages sent from another one of the user's own devices.
+	IsEphemeral    bool
+	IsViewOnce     bool
+
+	// The raw message struct. This is the raw unwrapped data, which means the actual message might
+	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
+	RawMessage *waProto.Message
+}
+
+// ReadReceiptEvent is emitted when someone reads a message sent by the user.
+type ReadReceiptEvent struct {
+	From        waBinary.JID
+	Chat        *waBinary.JID
+	Recipient   *waBinary.JID
+	MessageID   string
+	PreviousIDs []string
+	Timestamp   int64
 }
