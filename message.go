@@ -181,7 +181,7 @@ func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
 	if ok {
 		info.Recipient = &recipient
 	}
-	if from.Server == waBinary.GroupServer {
+	if from.Server == waBinary.GroupServer || from.Server == waBinary.BroadcastServer {
 		info.Chat = &from
 		info.From, ok = node.Attrs["participant"].(waBinary.JID)
 		if !ok {
@@ -236,6 +236,7 @@ func (cli *Client) handleSenderKeyDistributionMessage(chat, from waBinary.JID, r
 		return
 	}
 	builder.Process(senderKeyName, sdkMsg)
+	cli.Log.Debugf("Processed sender key distribution message from %s in %s", senderKeyName.Sender().String(), senderKeyName.GroupID())
 }
 
 func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotification) {
@@ -271,20 +272,59 @@ func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message
 	}
 }
 
+type DeviceSentMeta struct {
+	DestinationJID string
+	Phash          string
+}
+
 type Message struct {
-	Info    *MessageInfo
-	Message *waProto.Message
+	Info           *MessageInfo
+	Message        *waProto.Message
+	DeviceSentMeta *DeviceSentMeta
+	IsEphemeral    bool
+	IsViewOnce     bool
+
+	RawMessage *waProto.Message
 }
 
 func (cli *Client) handleDecryptedMessage(info *MessageInfo, msg *waProto.Message) {
 	fmt.Printf("Received message: %+v -- info: %+v\n", msg, info)
+
+	evt := &Message{Info: info, RawMessage: msg}
+
+	// First unwrap device sent messages
+	if msg.GetDeviceSentMessage().GetMessage() != nil {
+		msg = msg.GetDeviceSentMessage().GetMessage()
+		evt.DeviceSentMeta = &DeviceSentMeta{
+			DestinationJID: msg.GetDeviceSentMessage().GetDestinationJid(),
+			Phash:          msg.GetDeviceSentMessage().GetPhash(),
+		}
+	}
+
 	if msg.GetSenderKeyDistributionMessage() != nil {
-		cli.handleSenderKeyDistributionMessage(*info.Chat, info.From, msg.SenderKeyDistributionMessage)
+		if info.Chat == nil {
+			cli.Log.Warnf("Got sender key distribution message in unknown chat from", info.From)
+		} else {
+			cli.handleSenderKeyDistributionMessage(*info.Chat, info.From, msg.SenderKeyDistributionMessage)
+		}
 	}
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
-	cli.dispatchEvent(&Message{info, msg})
+
+	// Unwrap ephemeral and view-once messages
+	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
+	if msg.GetEphemeralMessage().GetMessage() != nil {
+		msg = msg.GetEphemeralMessage().GetMessage()
+		evt.IsEphemeral = true
+	}
+	if msg.GetViewOnceMessage().GetMessage() != nil {
+		msg = msg.GetViewOnceMessage().GetMessage()
+		evt.IsViewOnce = true
+	}
+	evt.Message = msg
+
+	cli.dispatchEvent(evt)
 }
 
 func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
