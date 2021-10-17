@@ -12,7 +12,7 @@ var (
 	ErrNoSession = errors.New("can't encrypt message for device: no signal session established")
 
 	ErrBroadcastListUnsupported = errors.New("sending to broadcast lists is not yet supported")
-	ErrUnknownServer = errors.New("can't send message to unknown server")
+	ErrUnknownServer            = errors.New("can't send message to unknown server")
 
 	ErrNoURLPresent       = errors.New("no url present")
 	ErrFileLengthMismatch = errors.New("file length does not match")
