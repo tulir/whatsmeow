@@ -51,7 +51,7 @@ func (cli *Client) receiveResponse(data *waBinary.Node) bool {
 	return true
 }
 
-type InfoQuery struct {
+type infoQuery struct {
 	Namespace string
 	Type      string
 	To        waBinary.JID
@@ -61,7 +61,7 @@ type InfoQuery struct {
 	Timeout time.Duration
 }
 
-func (cli *Client) sendIQAsync(query InfoQuery) (<-chan *waBinary.Node, error) {
+func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
 	if len(query.ID) == 0 {
 		query.ID = cli.generateRequestID()
 	}
@@ -83,7 +83,7 @@ func (cli *Client) sendIQAsync(query InfoQuery) (<-chan *waBinary.Node, error) {
 	return waiter, nil
 }
 
-func (cli *Client) sendIQ(query InfoQuery) (*waBinary.Node, error) {
+func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 	resChan, err := cli.sendIQAsync(query)
 	if err != nil {
 		return nil, err

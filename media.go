@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"time"
 
@@ -24,8 +23,11 @@ import (
 	"go.mau.fi/whatsmeow/cbcutil"
 )
 
+// MediaType represents a type of uploaded file on WhatsApp.
+// The value is the key which is used as a part of generating the encryption keys.
 type MediaType string
 
+// The known media types
 const (
 	MediaImage    MediaType = "WhatsApp Image Keys"
 	MediaVideo    MediaType = "WhatsApp Video Keys"
@@ -42,6 +44,7 @@ var mediaTypeMap = map[MediaType]string{
 	MediaAudio:    "/mms/audio",
 }
 
+// Download downloads and decrypts a file from WhatsApp.
 func Download(url string, mediaKey []byte, appInfo MediaType, fileLength int) (data []byte, err error) {
 	if url == "" {
 		err = ErrNoURLPresent
@@ -119,32 +122,30 @@ func downloadMedia(url string) (file, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
-type MediaConnIP struct {
-	IP4 net.IP `json:"ip4"`
-	IP6 net.IP `json:"ip6"`
-}
+//type MediaConnIP struct {
+//	IP4 net.IP
+//	IP6 net.IP
+//}
 
+// MediaConnHost represents a single host to download media from.
 type MediaConnHost struct {
-	Hostname string        `json:"hostname"`
-	IPs      []MediaConnIP `json:"ips"`
+	Hostname string
+	//IPs      []MediaConnIP
 }
 
+// MediaConn contains a list of WhatsApp servers from which attachments can be downloaded from.
 type MediaConn struct {
-	Auth       string          `json:"auth"`
-	AuthTTL    int             `json:"auth_ttl"`
-	TTL        int             `json:"ttl"`
-	MaxBuckets int             `json:"max_buckets"`
-	FetchedAt  time.Time       `json:"-"`
-	Hosts      []MediaConnHost `json:"hosts"`
+	Auth       string
+	AuthTTL    int
+	TTL        int
+	MaxBuckets int
+	FetchedAt  time.Time
+	Hosts      []MediaConnHost
 }
 
+// Expiry returns the time when the MediaConn expires.
 func (mc *MediaConn) Expiry() time.Time {
 	return mc.FetchedAt.Add(time.Duration(mc.TTL) * time.Second)
-}
-
-type RespMediaConn struct {
-	Status    int       `json:"status"`
-	MediaConn MediaConn `json:"media_conn"`
 }
 
 //func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (downloadURL string, mediaKey, fileEncSha256, fileSha256 []byte, fileLength uint64, err error) {
@@ -241,9 +242,8 @@ func (cli *Client) downloadMedia(directPath string, encFileHash, mediaKey []byte
 		if err != nil {
 			if i >= len(cli.mediaConn.Hosts)-1 {
 				return nil, fmt.Errorf("failed to download media from last host: %w", err)
-			} else {
-				cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
 			}
+			cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
 		}
 	}
 	return
@@ -263,7 +263,7 @@ func (cli *Client) refreshMediaConn(force bool) error {
 }
 
 func (cli *Client) queryMediaConn() (*MediaConn, error) {
-	resp, err := cli.sendIQ(InfoQuery{
+	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:m",
 		Type:      "set",
 		To:        waBinary.ServerJID,

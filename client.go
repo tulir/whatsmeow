@@ -19,6 +19,7 @@ import (
 	"go.mau.fi/whatsmeow/store"
 )
 
+// Client contains everything necessary to connect to and interact with the WhatsApp web API.
 type Client struct {
 	Store   *store.Device
 	Log     waLog.Logger
@@ -42,6 +43,11 @@ type Client struct {
 	idCounter uint64
 }
 
+// NewClient initializes a new WhatsApp web client.
+//
+// The device store must be set. A default SQL-backed implementation is available in the store package.
+//
+// The logger can be nil, it will default to a no-op logger.
 func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	if log == nil {
 		log = waLog.Noop
@@ -70,6 +76,8 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	return cli
 }
 
+// Connect connects the client to the WhatsApp web websocket. After connection, it will either
+// authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader)
 	if err := fs.Connect(); err != nil {
@@ -84,6 +92,7 @@ func (cli *Client) Connect() error {
 	return nil
 }
 
+// Disconnect closes the websocket connection.
 func (cli *Client) Disconnect() {
 	if cli.socket != nil {
 		cli.socket.Close()
@@ -91,21 +100,16 @@ func (cli *Client) Disconnect() {
 	}
 }
 
+// AddEventHandler registers a new function to receive all events emitted by this client.
 func (cli *Client) AddEventHandler(handler func(interface{})) {
 	cli.eventHandlers = append(cli.eventHandlers, handler)
 }
-
-const streamEnd = "\xf8\x01\x02"
 
 func (cli *Client) handleFrame(data []byte) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
 		cli.Log.Warnf("Failed to decompress frame: %v", err)
 		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(data))
-		return
-	}
-	if len(decompressed) == len(streamEnd) && string(decompressed) == streamEnd {
-		cli.Log.Warnf("Received stream end frame")
 		return
 	}
 	node, err := waBinary.Unmarshal(decompressed)
@@ -115,6 +119,10 @@ func (cli *Client) handleFrame(data []byte) {
 		return
 	}
 	cli.recvLog.Debugf("%s", node.XMLString())
+	if node.Tag == "xmlstreamend" {
+		cli.Log.Warnf("Received stream end frame")
+		return
+	}
 	switch {
 	case cli.receiveResponse(node):
 	case cli.dispatchNode(node):

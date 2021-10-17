@@ -8,51 +8,48 @@ package whatsapp
 
 import (
 	"fmt"
+	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
+// GroupParticipant contains info about a participant of a WhatsApp group chat.
 type GroupParticipant struct {
-	JID          waBinary.JID `json:"id"`
-	IsAdmin      bool         `json:"isAdmin"`
-	IsSuperAdmin bool         `json:"isSuperAdmin"`
+	JID     waBinary.JID
+	IsAdmin bool
 }
 
+// GroupInfo contains basic information about a group chat on WhatsApp.
 type GroupInfo struct {
-	JID      waBinary.JID `json:"jid"`
-	OwnerJID waBinary.JID `json:"owner"`
+	JID      waBinary.JID
+	OwnerJID waBinary.JID
 
-	Name        string       `json:"subject"`
-	NameSetTime int64        `json:"subjectTime"`
-	NameSetBy   waBinary.JID `json:"subjectOwner"`
+	Name      string
+	NameSetAt time.Time
+	NameSetBy waBinary.JID
 
-	Announce bool `json:"announce"` // Can only admins send messages?
-	Locked   bool `json:"locked"`   // Can only admins edit group info?
+	Announce bool // Can only admins send messages?
+	Locked   bool // Can only admins edit group info?
 
-	Topic      string       `json:"desc"`
-	TopicID    string       `json:"descId"`
-	TopicSetAt int64        `json:"descTime"`
-	TopicSetBy waBinary.JID `json:"descOwner"`
+	Topic      string
+	TopicID    string
+	TopicSetAt time.Time
+	TopicSetBy waBinary.JID
 
-	GroupCreated int64 `json:"creation"`
+	GroupCreated time.Time
 
-	Status int16 `json:"status"`
-
-	Participants []GroupParticipant `json:"participants"`
+	Participants []GroupParticipant
 }
 
+// BroadcastListInfo contains basic information about a broadcast list on WhatsApp.
 type BroadcastListInfo struct {
-	Status int16 `json:"status"`
-
-	Name string `json:"name"`
-
-	Recipients []struct {
-		JID waBinary.JID `json:"id"`
-	} `json:"recipients"`
+	Name       string
+	Recipients []waBinary.JID
 }
 
+// GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
 func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
-	res, err := cli.sendIQ(InfoQuery{
+	res, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
 		Type:      "get",
 		To:        jid,
@@ -82,10 +79,10 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
 	group.OwnerJID = ag.JID("creator")
 
 	group.Name = ag.String("subject")
-	group.NameSetTime = ag.Int64("s_t")
+	group.NameSetAt = time.Unix(ag.Int64("s_t"), 0)
 	group.NameSetBy = ag.JID("s_o")
 
-	group.GroupCreated = ag.Int64("creation")
+	group.GroupCreated = time.Unix(ag.Int64("creation"), 0)
 
 	for _, child := range groupNode.GetChildren() {
 		childAG := child.AttrGetter()
@@ -102,7 +99,7 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
 				group.Topic, _ = body.Content.(string)
 				group.TopicID = childAG.String("id")
 				group.TopicSetBy = childAG.JID("participant")
-				group.TopicSetAt = childAG.Int64("t")
+				group.TopicSetAt = time.Unix(childAG.Int64("t"), 0)
 			}
 		case "announcement":
 			group.Announce = true

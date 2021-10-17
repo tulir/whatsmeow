@@ -177,8 +177,6 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 	switch tag {
 	case token.ListEmpty:
 		return nil, nil
-	case token.StreamEnd:
-		return nil, ErrStreamEnd
 	case token.List8, token.List16:
 		return r.readList(tag)
 	case token.Binary8:
@@ -216,13 +214,8 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 	case token.Nibble8, token.Hex8:
 		return r.readPacked8(tag)
 	default:
-		if tag >= 3 && tag <= len(token.SingleByteTokens) {
-			tok, err := token.GetSingleToken(tag)
-			if err != nil {
-				return "", err
-			}
-
-			return tok, nil
+		if tag >= 1 && tag < len(token.SingleByteTokens) {
+			return token.SingleByteTokens[tag], nil
 		}
 		return "", fmt.Errorf("%w %d at position %d", ErrInvalidToken, tag, r.index)
 	}
@@ -343,20 +336,15 @@ func (r *binaryDecoder) ReadNode() (*Node, error) {
 	return ret, err
 }
 
-func (r *binaryDecoder) readStringDirect(length int) (string, error) {
+func (r *binaryDecoder) readBytesOrString(length int, asString bool) (interface{}, error) {
 	data, err := r.readRaw(length)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return string(data), nil
-}
-
-func (r *binaryDecoder) readBytesOrString(length int, string bool) (interface{}, error) {
-	if string {
-		return r.readStringDirect(length)
-	} else {
-		return r.readRaw(length)
+	if asString {
+		return string(data), nil
 	}
+	return data, nil
 }
 
 func (r *binaryDecoder) readRaw(length int) ([]byte, error) {

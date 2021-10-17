@@ -2,14 +2,6 @@ package token
 
 import "fmt"
 
-func GetSingleToken(i int) (string, error) {
-	if i < 3 || i >= len(SingleByteTokens) {
-		return "", fmt.Errorf("index out of single byte token bounds %d", i)
-	}
-
-	return SingleByteTokens[i], nil
-}
-
 func GetDoubleToken(index1, index2 int) (string, error) {
 	if index1 < 0 || index1 >= len(DoubleByteTokens) {
 		return "", fmt.Errorf("index out of double byte token bounds %d-%d", index1, index2)
@@ -32,7 +24,6 @@ func IndexOfDoubleByteToken(token string) (byte, byte, bool) {
 
 const (
 	ListEmpty   = 0
-	StreamEnd   = 2
 	Dictionary0 = 236
 	Dictionary1 = 237
 	Dictionary2 = 238
