@@ -28,7 +28,7 @@ import (
 	"go.mau.fi/whatsmeow/store"
 )
 
-var cli *whatsapp.Client
+var cli *whatsmeow.Client
 
 type waLogger struct {
 	l log.Logger
@@ -87,7 +87,7 @@ func main() {
 		return
 	}
 
-	cli = whatsapp.NewClient(device, &waLogger{log.DefaultLogger.Sub("Client")})
+	cli = whatsmeow.NewClient(device, &waLogger{log.DefaultLogger.Sub("Client")})
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)
@@ -158,9 +158,9 @@ var stopQRs = make(chan struct{})
 
 func handler(rawEvt interface{}) {
 	switch evt := rawEvt.(type) {
-	case *whatsapp.QREvent:
+	case *whatsmeow.QREvent:
 		go printQRs(evt)
-	case *whatsapp.PairSuccessEvent:
+	case *whatsmeow.PairSuccessEvent:
 		select {
 		case stopQRs <- struct{}{}:
 		default:
@@ -168,7 +168,7 @@ func handler(rawEvt interface{}) {
 	}
 }
 
-func printQRs(evt *whatsapp.QREvent) {
+func printQRs(evt *whatsmeow.QREvent) {
 	for _, qr := range evt.Codes {
 		fmt.Println("\033[38;2;255;255;255m\u001B[48;2;0;0;0m")
 		qrterminal.GenerateHalfBlock(qr, qrterminal.L, os.Stdout)
