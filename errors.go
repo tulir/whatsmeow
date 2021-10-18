@@ -4,8 +4,12 @@ import (
 	"errors"
 )
 
+// Miscellaneous errors
 var (
-	ErrNoSession = errors.New("can't encrypt message for device: no signal session established")
+	ErrNoSession            = errors.New("can't encrypt message for device: no signal session established")
+	ErrIQUnexpectedResponse = errors.New("unexpected info query response")
+	ErrIQError              = errors.New("info query returned error")
+	ErrIQTimedOut           = errors.New("info query timed out")
 )
 
 // Some errors that Client.SendMessage can return

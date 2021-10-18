@@ -29,6 +29,15 @@ type UserInfo struct {
 	Devices      []waBinary.JID
 }
 
+// ProfilePictureInfo contains the ID and URL for a WhatsApp user's profile picture.
+type ProfilePictureInfo struct {
+	URL  string // The full URL for the image, can be downloaded with a simple HTTP request.
+	ID   string // The ID of the image. This is the same as UserInfo.PictureID.
+	Type string // The type of image. Known types include "image" (full res) and "preview" (thumbnail).
+
+	DirectPath string // The path to the image, probably not very useful
+}
+
 // IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
 type IsOnWhatsAppResponse struct {
 	Query string       // The query string used, plus @c.us at the end
@@ -126,6 +135,44 @@ func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
 	}
 
 	return devices, nil
+}
+
+// GetProfilePicture gets the URL where you can download a WhatsApp user's profile picture.
+func (cli *Client) GetProfilePicture(jid waBinary.JID, preview bool) (*ProfilePictureInfo, error) {
+	attrs := map[string]interface{}{
+		"query": "url",
+	}
+	if preview {
+		attrs["type"] = "preview"
+	} else {
+		attrs["type"] = "image"
+	}
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:profile:picture",
+		Type:      "get",
+		To:        jid,
+		Content: []waBinary.Node{{
+			Tag:   "picture",
+			Attrs: attrs,
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	picture, ok := resp.GetOptionalChildByTag("picture")
+	if !ok {
+		return nil, fmt.Errorf("missing <picture> element in response to profile picture query")
+	}
+	var info ProfilePictureInfo
+	ag := picture.AttrGetter()
+	info.ID = ag.String("id")
+	info.URL = ag.String("url")
+	info.Type = ag.String("type")
+	info.DirectPath = ag.String("direct_path")
+	if !ag.OK() {
+		return &info, ag.Error()
+	}
+	return &info, nil
 }
 
 func parseVerifiedName(businessNode waBinary.Node) (*VerifiedName, error) {
