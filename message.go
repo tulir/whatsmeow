@@ -29,6 +29,7 @@ var pbSerializer = store.SignalProtobufSerializer
 
 func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	info, err := parseMessageInfo(node)
+	info.IsFromMe = info.From.User == cli.Store.ID.User
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
@@ -41,6 +42,7 @@ type MessageInfo struct {
 	From      waBinary.JID  // The user who sent the message.
 	Chat      *waBinary.JID // For group and broadcast messages, the chat where the message was sent.
 	Recipient *waBinary.JID // For direct messages sent by the user, the user who the message was sent to.
+	IsFromMe  bool
 	ID        string
 	Type      string
 	Notify    string
@@ -255,10 +257,36 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 	}
 }
 
+func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare) {
+	for _, key := range keys.GetKeys() {
+		marshaledFingerprint, err := proto.Marshal(key.GetKeyData().GetFingerprint())
+		if err != nil {
+			cli.Log.Errorf("Failed to marshal fingerprint of app state sync key %X", key.GetKeyId().GetKeyId())
+			continue
+		}
+		err = cli.Store.AppStateKeys.PutAppStateSyncKey(key.GetKeyId().GetKeyId(), store.AppStateSyncKey{
+			Data:        key.GetKeyData().GetKeyData(),
+			Fingerprint: marshaledFingerprint,
+			Timestamp:   key.GetKeyData().GetTimestamp(),
+		})
+		if err != nil {
+			cli.Log.Errorf("Failed to store app state sync key %X", key.GetKeyId().GetKeyId())
+			continue
+		}
+		cli.Log.Debugf("Received app state sync key %X", key.GetKeyId().GetKeyId())
+	}
+}
+
 func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message) {
-	if msg.GetProtocolMessage().GetHistorySyncNotification() != nil {
-		cli.handleHistorySyncNotification(msg.GetProtocolMessage().GetHistorySyncNotification())
+	protoMsg := msg.GetProtocolMessage()
+
+	if protoMsg.GetHistorySyncNotification() != nil && info.IsFromMe {
+		cli.handleHistorySyncNotification(protoMsg.HistorySyncNotification)
 		cli.sendProtocolMessageReceipt(info.ID, "hist_sync")
+	}
+
+	if protoMsg.GetAppStateSyncKeyShare() != nil && info.IsFromMe {
+		cli.handleAppStateSyncKeyShare(protoMsg.AppStateSyncKeyShare)
 	}
 
 	if info.Category == "peer" {

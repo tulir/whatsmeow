@@ -79,6 +79,17 @@ func (au *AttrUtility) GetUint64(key string, require bool) (uint64, bool) {
 	}
 }
 
+func (au *AttrUtility) GetBool(key string, require bool) (bool, bool) {
+	if strVal, ok := au.GetString(key, require); !ok {
+		return false, false
+	} else if boolVal, err := strconv.ParseBool(strVal); err != nil {
+		au.Errors = append(au.Errors, fmt.Errorf("failed to parse bool in attribute '%s': %w", key, err))
+		return false, false
+	} else {
+		return boolVal, true
+	}
+}
+
 func (au *AttrUtility) OptionalString(key string) string {
 	strVal, _ := au.GetString(key, false)
 	return strVal
@@ -106,6 +117,16 @@ func (au *AttrUtility) Int64(key string) int64 {
 
 func (au *AttrUtility) Uint64(key string) uint64 {
 	val, _ := au.GetUint64(key, true)
+	return val
+}
+
+func (au *AttrUtility) OptionalBool(key string) bool {
+	val, _ := au.GetBool(key, false)
+	return val
+}
+
+func (au *AttrUtility) Bool(key string) bool {
+	val, _ := au.GetBool(key, true)
 	return val
 }
 

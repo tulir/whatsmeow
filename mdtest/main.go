@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -134,6 +135,19 @@ func handleCmd(cmd string, args []string) {
 			log.Fatalln("Failed to connect:", err)
 			return
 		}
+	case "appstate":
+		//cli.SendMessage(waBinary.NewJID(cli.Store.ID.User, waBinary.DefaultUserServer), "", &waProto.Message{
+		//	ProtocolMessage: &waProto.ProtocolMessage{
+		//		Type: waProto.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST.Enum(),
+		//		AppStateSyncKeyRequest: &waProto.AppStateSyncKeyRequest{
+		//			KeyIds: []*waProto.AppStateSyncKeyId{{
+		//				KeyId: []byte("\x00\x00\x00\x00\xf6\x19"),
+		//			}},
+		//		},
+		//	},
+		//})
+		val, _ := strconv.Atoi(args[1])
+		_, _ = cli.FetchAppState(args[0], val)
 	case "checkuser":
 		resp, err := cli.IsOnWhatsApp(args)
 		fmt.Println(err)

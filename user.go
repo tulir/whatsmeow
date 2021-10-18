@@ -269,11 +269,9 @@ func (cli *Client) usync(jids []waBinary.JID, mode, context string, query []waBi
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to send usync query: %w", err)
-	} else if usync, ok := resp.GetOptionalChildByTag("usync"); !ok {
-		return nil, fmt.Errorf("missing <usync> element in response to usync query")
-	} else if list, ok := usync.GetOptionalChildByTag("list"); !ok {
-		return nil, fmt.Errorf("missing <list> element in response to usync query")
+	} else if list, ok := resp.GetOptionalChildByTag("usync", "list"); !ok {
+		return nil, fmt.Errorf("missing usync list element in response to usync query")
 	} else {
-		return list, err
+		return &list, err
 	}
 }
