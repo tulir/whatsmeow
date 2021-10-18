@@ -11,6 +11,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"mime"
 	"net/http"
 	"os"
 	"os/signal"
@@ -171,6 +172,7 @@ func handleCmd(cmd string, args []string) {
 		msg := &waProto.Message{ImageMessage: &waProto.ImageMessage{
 			Caption:       proto.String(strings.Join(args[2:], " ")),
 			Url:           proto.String(uploaded.URL),
+			DirectPath:    proto.String(uploaded.DirectPath),
 			MediaKey:      uploaded.MediaKey,
 			Mimetype:      proto.String(http.DetectContentType(data)),
 			FileEncSha256: uploaded.FileEncSHA256,
@@ -196,6 +198,23 @@ func handler(rawEvt interface{}) {
 		select {
 		case stopQRs <- struct{}{}:
 		default:
+		}
+	case *whatsmeow.MessageEvent:
+		img := evt.Message.GetImageMessage()
+		if img != nil {
+			data, err := cli.Download(img)
+			if err != nil {
+				fmt.Println("Failed to download image:", err)
+				//return
+			}
+			exts, _ := mime.ExtensionsByType(img.GetMimetype())
+			path := fmt.Sprintf("%s%s", evt.Info.ID, exts[0])
+			err = os.WriteFile(path, data, 0600)
+			if err != nil {
+				fmt.Println("Failed to save image:", err)
+				return
+			}
+			fmt.Println("Saved image to", path)
 		}
 	}
 }
