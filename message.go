@@ -103,7 +103,7 @@ func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
 func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 	if len(node.GetChildrenByTag("unavailable")) == len(node.GetChildren()) {
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
-		go cli.sendRetryReceipt(node)
+		go cli.sendRetryReceipt(node, true)
 		return
 	}
 	children := node.GetChildren()
@@ -129,7 +129,7 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		}
 		if err != nil {
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
-			go cli.sendRetryReceipt(node)
+			go cli.sendRetryReceipt(node, false)
 			return
 		}
 
@@ -267,7 +267,7 @@ func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message
 }
 
 func (cli *Client) handleDecryptedMessage(info *MessageInfo, msg *waProto.Message) {
-	fmt.Printf("Received message: %+v -- info: %+v\n", msg, info)
+	cli.Log.Infof("Received message: %+v -- info: %+v\n", msg, info)
 
 	evt := &MessageEvent{Info: info, RawMessage: msg}
 

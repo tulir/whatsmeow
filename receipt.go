@@ -113,7 +113,7 @@ func (cli *Client) sendMessageReceipt(info *MessageInfo) {
 	}
 }
 
-func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
+func (cli *Client) sendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bool) {
 	id, _ := node.Attrs["id"].(string)
 
 	cli.messageRetriesLock.Lock()
@@ -147,7 +147,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node) {
 			{Tag: "registration", Content: registrationIDBytes[:]},
 		},
 	}
-	if retryCount > 1 {
+	if retryCount > 1 || forceIncludeIdentity {
 		if key, err := cli.Store.PreKeys.GenOnePreKey(); err != nil {
 			cli.Log.Errorf("Failed to get prekey for retry receipt: %v", err)
 		} else if deviceIdentity, err := proto.Marshal(cli.Store.Account); err != nil {
