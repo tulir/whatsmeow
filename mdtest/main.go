@@ -8,8 +8,10 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -151,6 +153,32 @@ func handleCmd(cmd string, args []string) {
 		}
 		err := cli.SendMessage(recipient, "", msg)
 		fmt.Println("Send message response:", err)
+	case "sendimg", "gsendimg":
+		data, err := os.ReadFile(args[1])
+		if err != nil {
+			fmt.Printf("Failed to read %s: %v\n", args[0], err)
+			return
+		}
+		uploaded, err := cli.Upload(context.Background(), data, whatsmeow.MediaImage)
+		if err != nil {
+			fmt.Println("Failed to upload file:", err)
+			return
+		}
+		msg := &waProto.Message{ImageMessage: &waProto.ImageMessage{
+			Caption:       proto.String(strings.Join(args[2:], " ")),
+			Url:           proto.String(uploaded.URL),
+			MediaKey:      uploaded.MediaKey,
+			Mimetype:      proto.String(http.DetectContentType(data)),
+			FileEncSha256: uploaded.FileEncSHA256,
+			FileSha256:    uploaded.FileSHA256,
+			FileLength:    proto.Uint64(uint64(len(data))),
+		}}
+		recipient := waBinary.NewJID(args[0], waBinary.DefaultUserServer)
+		if cmd == "gsendimg" {
+			recipient.Server = waBinary.GroupServer
+		}
+		err = cli.SendMessage(recipient, "", msg)
+		fmt.Println("Send image error:", err)
 	}
 }
 
