@@ -20,4 +20,10 @@ var (
 	ErrInvalidHashLength  = errors.New("hash too short")
 	ErrTooShortFile       = errors.New("file too short")
 	ErrInvalidMediaHMAC   = errors.New("invalid media hmac")
+
+	ErrInvalidMediaEncSHA256 = errors.New("hash of media ciphertext doesn't match")
+	ErrInvalidMediaSHA256    = errors.New("hash of media plaintext doesn't match")
+
+	ErrUnknownMediaType         = errors.New("unknown media type")
+	ErrNothingDownloadableFound = errors.New("didn't find any attachments in message")
 )

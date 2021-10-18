@@ -239,7 +239,7 @@ func (cli *Client) handleSenderKeyDistributionMessage(chat, from waBinary.JID, r
 
 func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotification) {
 	var historySync waProto.HistorySync
-	if data, err := cli.downloadMedia(notif.GetDirectPath(), notif.FileEncSha256, notif.MediaKey, int(notif.GetFileLength()), MediaHistory, "md-msg-hist"); err != nil {
+	if data, err := cli.Download(notif); err != nil {
 		cli.Log.Errorf("Failed to download history sync data: %v", err)
 	} else if reader, err := zlib.NewReader(bytes.NewReader(data)); err != nil {
 		cli.Log.Errorf("Failed to create zlib reader for history sync data: %v", err)
