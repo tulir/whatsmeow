@@ -6,7 +6,8 @@ and events still need to be added. Documentation will be added later.
 
 This was initially forked from [go-whatsapp] (MIT license), but large parts of
 the code have been rewritten for multidevice support. Parts of the code are
-ported from [WhatsappWeb4j] (also MIT license).
+ported from [WhatsappWeb4j] and [Baileys] (also MIT license).
 
 [go-whatsapp]: https://github.com/Rhymen/go-whatsapp
 [WhatsappWeb4j]: https://github.com/Auties00/WhatsappWeb4j
+[Baileys]: https://github.com/adiwajshing/Baileys
