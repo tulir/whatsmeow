@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"sync/atomic"
@@ -59,6 +60,7 @@ type infoQuery struct {
 	Content   interface{}
 
 	Timeout time.Duration
+	Context context.Context
 }
 
 func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
@@ -91,6 +93,9 @@ func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 	if query.Timeout == 0 {
 		query.Timeout = 1 * time.Minute
 	}
+	if query.Context == nil {
+		query.Context = context.Background()
+	}
 	select {
 	case res := <-resChan:
 		resType, _ := res.Attrs["type"].(string)
@@ -100,6 +105,8 @@ func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 			return res, fmt.Errorf("info query returned error: %s", res.XMLString())
 		}
 		return res, nil
+	case <-query.Context.Done():
+		return nil, query.Context.Err()
 	case <-time.After(query.Timeout):
 		return nil, fmt.Errorf("query timed out")
 	}

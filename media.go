@@ -7,20 +7,26 @@
 package whatsmeow
 
 import (
+	"bytes"
+	"context"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 
 	"golang.org/x/crypto/hkdf"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/cbcutil"
+	"go.mau.fi/whatsmeow/socket"
 )
 
 // MediaType represents a type of uploaded file on WhatsApp.
@@ -122,6 +128,112 @@ func downloadMedia(url string) (file, mac []byte, err error) {
 	return data[:n-10], data[n-10 : n], nil
 }
 
+func (cli *Client) downloadMedia(directPath string, encFileHash, mediaKey []byte, fileLength int, mediaType MediaType, mmsType string) (data []byte, err error) {
+	err = cli.refreshMediaConn(false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to refresh media connections: %w", err)
+	}
+	for i, host := range cli.mediaConn.Hosts {
+		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
+		data, err = Download(mediaURL, mediaKey, mediaType, fileLength)
+		if errors.Is(err, ErrInvalidMediaHMAC) {
+			err = nil
+		}
+		// TODO there are probably more errors that shouldn't retry
+		if err != nil {
+			if i >= len(cli.mediaConn.Hosts)-1 {
+				return nil, fmt.Errorf("failed to download media from last host: %w", err)
+			}
+			cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
+		}
+	}
+	return
+}
+
+type UploadResponse struct {
+	URL        string `json:"url"`
+	DirectPath string `json:"direct_path"`
+
+	MediaKey      []byte `json:"-"`
+	FileEncSHA256 []byte `json:"-"`
+	FileSHA256    []byte `json:"-"`
+}
+
+func (cli *Client) Upload(ctx context.Context, data []byte, appInfo MediaType) (resp UploadResponse, err error) {
+	resp.MediaKey = make([]byte, 32)
+	_, err = rand.Read(resp.MediaKey)
+	if err != nil {
+		return
+	}
+
+	var iv, cipherKey, macKey []byte
+	iv, cipherKey, macKey, _, err = getMediaKeys(resp.MediaKey, appInfo)
+	if err != nil {
+		return
+	}
+
+	var enc []byte
+	enc, err = cbcutil.Encrypt(cipherKey, iv, data)
+	if err != nil {
+		err = fmt.Errorf("failed to encrypt file: %w", err)
+		return
+	}
+
+	h := hmac.New(sha256.New, macKey)
+	h.Write(append(iv, enc...))
+	mac := h.Sum(nil)[:10]
+
+	sha := sha256.New()
+	sha.Write(data)
+	resp.FileSHA256 = sha.Sum(nil)
+
+	sha.Reset()
+	sha.Write(append(enc, mac...))
+	resp.FileEncSHA256 = sha.Sum(nil)
+
+	err = cli.refreshMediaConn(false)
+	if err != nil {
+		err = fmt.Errorf("failed to refresh media connections: %w", err)
+		return
+	}
+
+	token := base64.URLEncoding.EncodeToString(resp.FileEncSHA256)
+	q := url.Values{
+		"auth":  []string{cli.mediaConn.Auth},
+		"token": []string{token},
+	}
+	path := mediaTypeMap[appInfo]
+	uploadURL := url.URL{
+		Scheme:   "https",
+		Host:     cli.mediaConn.Hosts[0].Hostname,
+		Path:     fmt.Sprintf("%s/%s", path, token),
+		RawQuery: q.Encode(),
+	}
+
+	body := bytes.NewReader(append(enc, mac...))
+
+	var req *http.Request
+	req, err = http.NewRequestWithContext(ctx, http.MethodPost, uploadURL.String(), body)
+	if err != nil {
+		err = fmt.Errorf("failed to prepare request: %w", err)
+		return
+	}
+
+	req.Header.Set("Origin", socket.Origin)
+	req.Header.Set("Referer", socket.Origin+"/")
+
+	var httpResp *http.Response
+	httpResp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		err = fmt.Errorf("failed to execute request: %w", err)
+	} else if httpResp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("upload failed with status code %d", httpResp.StatusCode)
+	} else if err = json.NewDecoder(httpResp.Body).Decode(&resp); err != nil {
+		err = fmt.Errorf("failed to parse upload response: %w", err)
+	}
+	return
+}
+
 //type MediaConnIP struct {
 //	IP4 net.IP
 //	IP6 net.IP
@@ -146,107 +258,6 @@ type MediaConn struct {
 // Expiry returns the time when the MediaConn expires.
 func (mc *MediaConn) Expiry() time.Time {
 	return mc.FetchedAt.Add(time.Duration(mc.TTL) * time.Second)
-}
-
-//func (wac *Conn) Upload(reader io.Reader, appInfo MediaType) (downloadURL string, mediaKey, fileEncSha256, fileSha256 []byte, fileLength uint64, err error) {
-//	data, err := ioutil.ReadAll(reader)
-//	if err != nil {
-//		return "", nil, nil, nil, 0, err
-//	}
-//
-//	mediaKey = make([]byte, 32)
-//	rand.Read(mediaKey)
-//
-//	iv, cipherKey, macKey, _, err := getMediaKeys(mediaKey, appInfo)
-//	if err != nil {
-//		return "", nil, nil, nil, 0, err
-//	}
-//
-//	enc, err := cbcutil.Encrypt(cipherKey, iv, data)
-//	if err != nil {
-//		return "", nil, nil, nil, 0, err
-//	}
-//
-//	fileLength = uint64(len(data))
-//
-//	h := hmac.New(sha256.New, macKey)
-//	h.Write(append(iv, enc...))
-//	mac := h.Sum(nil)[:10]
-//
-//	sha := sha256.New()
-//	sha.Write(data)
-//	fileSha256 = sha.Sum(nil)
-//
-//	sha.Reset()
-//	sha.Write(append(enc, mac...))
-//	fileEncSha256 = sha.Sum(nil)
-//
-//	hostname, auth, _, err := wac.queryMediaConn()
-//	if err != nil {
-//		return "", nil, nil, nil, 0, err
-//	}
-//
-//	token := base64.URLEncoding.EncodeToString(fileEncSha256)
-//	q := url.Values{
-//		"auth":  []string{auth},
-//		"token": []string{token},
-//	}
-//	path := mediaTypeMap[appInfo]
-//	uploadURL := url.URL{
-//		Scheme:   "https",
-//		Host:     hostname,
-//		Path:     fmt.Sprintf("%s/%s", path, token),
-//		RawQuery: q.Encode(),
-//	}
-//
-//	body := bytes.NewReader(append(enc, mac...))
-//
-//	req, err := http.NewRequest(http.MethodPost, uploadURL.String(), body)
-//	if err != nil {
-//		return "", nil, nil, nil, 0, err
-//	}
-//
-//	req.Header.Set("Origin", "https://web.whatsapp.com")
-//	req.Header.Set("Referer", "https://web.whatsapp.com/")
-//
-//	client := &http.Client{}
-//	// Submit the request
-//	res, err := client.Do(req)
-//	if err != nil {
-//		return "", nil, nil, nil, 0, err
-//	}
-//
-//	if res.StatusCode != http.StatusOK {
-//		return "", nil, nil, nil, 0, fmt.Errorf("upload failed with status code %d", res.StatusCode)
-//	}
-//
-//	var jsonRes map[string]string
-//	if err := json.NewDecoder(res.Body).Decode(&jsonRes); err != nil {
-//		return "", nil, nil, nil, 0, err
-//	}
-//
-//	return jsonRes["url"], mediaKey, fileEncSha256, fileSha256, fileLength, nil
-//}
-
-func (cli *Client) downloadMedia(directPath string, encFileHash, mediaKey []byte, fileLength int, mediaType MediaType, mmsType string) (data []byte, err error) {
-	err = cli.refreshMediaConn(false)
-	if err != nil {
-		return nil, fmt.Errorf("failed to refresh media connections: %w", err)
-	}
-	for i, host := range cli.mediaConn.Hosts {
-		url := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
-		data, err = Download(url, mediaKey, mediaType, fileLength)
-		if errors.Is(err, ErrInvalidMediaHMAC) {
-			err = nil
-		}
-		if err != nil {
-			if i >= len(cli.mediaConn.Hosts)-1 {
-				return nil, fmt.Errorf("failed to download media from last host: %w", err)
-			}
-			cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
-		}
-	}
-	return
 }
 
 func (cli *Client) refreshMediaConn(force bool) error {
