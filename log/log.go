@@ -6,6 +6,11 @@
 
 package log
 
+import (
+	"fmt"
+	"time"
+)
+
 type Logger interface {
 	Warnf(msg string, args ...interface{})
 	Errorf(msg string, args ...interface{})
@@ -16,13 +21,32 @@ type Logger interface {
 
 type noopLogger struct{}
 
-var _ Logger = (*noopLogger)(nil)
-
 func (n *noopLogger) Errorf(_ string, _ ...interface{}) {}
 func (n *noopLogger) Warnf(_ string, _ ...interface{})  {}
 func (n *noopLogger) Infof(_ string, _ ...interface{})  {}
 func (n *noopLogger) Debugf(_ string, _ ...interface{}) {}
 func (n *noopLogger) Sub(_ string) Logger               { return n }
 
-// Noop is a no-op logger
-var Noop = &noopLogger{}
+// Noop is a no-op logger that silently drops everything.
+var Noop Logger = &noopLogger{}
+
+type stdoutLogger struct {
+	mod string
+}
+
+func (s *stdoutLogger) Outputf(level, msg string, args ...interface{}) {
+	fmt.Printf("%s [%s %s] %s\n", time.Now().Format("15:04:05.000"), s.mod, level, fmt.Sprintf(msg, args...))
+}
+
+func (s *stdoutLogger) Errorf(msg string, args ...interface{}) { s.Outputf("ERROR", msg, args...) }
+func (s *stdoutLogger) Warnf(msg string, args ...interface{})  { s.Outputf("WARN", msg, args...) }
+func (s *stdoutLogger) Infof(msg string, args ...interface{})  { s.Outputf("INFO", msg, args...) }
+func (s *stdoutLogger) Debugf(msg string, args ...interface{}) { s.Outputf("DEBUG", msg, args...) }
+func (s *stdoutLogger) Sub(mod string) Logger {
+	return &stdoutLogger{mod: fmt.Sprintf("%s/%s", s.mod, mod)}
+}
+
+// Stdout is a simple logger that logs to stdout. The module name given is included in log lines.
+func Stdout(module string) Logger {
+	return &stdoutLogger{mod: module}
+}

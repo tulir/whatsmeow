@@ -60,7 +60,7 @@ func getDevice() *store.Device {
 		log.Fatalln("Failed to open mdtest.db:", err)
 		return nil
 	}
-	storeContainer := store.NewSQLContainer(db, "sqlite3", &waLogger{log.DefaultLogger.Sub("Database")})
+	storeContainer := store.NewSQLContainerWithDB(db, "sqlite3", &waLogger{log.DefaultLogger.Sub("Database")})
 	err = storeContainer.Upgrade()
 	if err != nil {
 		log.Fatalln("Failed to upgrade database:", err)

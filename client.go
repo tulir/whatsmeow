@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -36,12 +37,15 @@ type Client struct {
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
 
-	nodeHandlers  []nodeHandler
+	nodeHandlers  map[string]nodeHandler
+	handlerQueue  chan *waBinary.Node
 	eventHandlers []func(interface{})
 
 	uniqueID  string
 	idCounter uint64
 }
+
+const handlerQueueSize = 2048
 
 // NewClient initializes a new WhatsApp web client.
 //
@@ -63,15 +67,15 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
 		eventHandlers:   make([]func(interface{}), 0),
 		messageRetries:  make(map[string]int),
+		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 	}
-	cli.nodeHandlers = []nodeHandler{
-		cli.handlePairDevice,
-		cli.handlePairSuccess,
-		cli.handleConnectSuccess,
-		cli.handleStreamError,
-		cli.handleEncryptedMessage,
-		cli.handleReceipt,
-		cli.handleNotification,
+	cli.nodeHandlers = map[string]nodeHandler{
+		"message":      cli.handleEncryptedMessage,
+		"receipt":      cli.handleReceipt,
+		"notification": cli.handleNotification,
+		"success":      cli.handleConnectSuccess,
+		"stream:error": cli.handleStreamError,
+		"iq":           cli.handleIQ,
 	}
 	return cli
 }
@@ -89,6 +93,7 @@ func (cli *Client) Connect() error {
 	}
 	cli.socket.OnFrame = cli.handleFrame
 	go cli.keepAliveLoop(cli.socket.Context())
+	go cli.handlerQueueLoop(cli.socket.Context())
 	return nil
 }
 
@@ -121,16 +126,33 @@ func (cli *Client) handleFrame(data []byte) {
 	cli.recvLog.Debugf("%s", node.XMLString())
 	if node.Tag == "xmlstreamend" {
 		cli.Log.Warnf("Received stream end frame")
-		return
-	}
-	switch {
-	case cli.receiveResponse(node):
-	case cli.dispatchNode(node):
-	default:
+		// TODO should we do something else?
+	} else if cli.receiveResponse(node) {
+		// handled
+	} else if _, ok := cli.nodeHandlers[node.Tag]; ok {
+		select {
+		case cli.handlerQueue <- node:
+		default:
+			cli.Log.Warnf("Handler queue is full, message ordering is no longer guaranteed")
+			go func() {
+				cli.handlerQueue <- node
+			}()
+		}
+	} else {
 		cli.Log.Debugf("Didn't handle WhatsApp node")
 	}
 }
 
+func (cli *Client) handlerQueueLoop(ctx context.Context) {
+	for {
+		select {
+		case node := <-cli.handlerQueue:
+			cli.nodeHandlers[node.Tag](node)
+		case <-ctx.Done():
+			return
+		}
+	}
+}
 func (cli *Client) sendNode(node waBinary.Node) error {
 	payload, err := waBinary.Marshal(node)
 	if err != nil {
@@ -139,15 +161,6 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 
 	cli.sendLog.Debugf("%s", node.XMLString())
 	return cli.socket.SendFrame(payload)
-}
-
-func (cli *Client) dispatchNode(node *waBinary.Node) bool {
-	for _, handler := range cli.nodeHandlers {
-		if handler(node) {
-			return true
-		}
-	}
-	return false
 }
 
 func (cli *Client) dispatchEvent(evt interface{}) {

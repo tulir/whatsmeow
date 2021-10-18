@@ -25,7 +25,20 @@ type SQLContainer struct {
 
 var EnableSQLiteForeignKeys = true
 
-func NewSQLContainer(db *sql.DB, dialect string, log waLog.Logger) *SQLContainer {
+func NewSQLContainer(dialect, address string, log waLog.Logger) (*SQLContainer, error) {
+	db, err := sql.Open(dialect, address)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+	container := NewSQLContainerWithDB(db, dialect, log)
+	err = container.Upgrade()
+	if err != nil {
+		return nil, fmt.Errorf("failed to upgrade database: %w", err)
+	}
+	return container, nil
+}
+
+func NewSQLContainerWithDB(db *sql.DB, dialect string, log waLog.Logger) *SQLContainer {
 	if EnableSQLiteForeignKeys && dialect == "sqlite3" {
 		_, _ = db.Exec("PRAGMA foreign_keys = ON;")
 	}

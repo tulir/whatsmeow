@@ -41,7 +41,7 @@ func GenerateMessageID() string {
 // SendMessage sends the given message.
 func (cli *Client) SendMessage(to waBinary.JID, id string, message *waProto.Message) error {
 	if to.AD {
-		return fmt.Errorf("message recipient must be non-AD JID")
+		return ErrRecipientADJID
 	}
 
 	if len(id) == 0 {

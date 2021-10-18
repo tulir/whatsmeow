@@ -20,14 +20,11 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 	cli.uploadPreKeys(otksLeft)
 }
 
-func (cli *Client) handleNotification(node *waBinary.Node) bool {
-	if node.Tag != "notification" {
-		return false
-	}
+func (cli *Client) handleNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
 	if !ag.OK() {
-		return false
+		return
 	}
 	cli.Log.Debugf("Received %s update", notifType)
 	go cli.sendAck(node)
@@ -36,5 +33,4 @@ func (cli *Client) handleNotification(node *waBinary.Node) bool {
 		go cli.handleEncryptNotification(node)
 	}
 	// TODO dispatch group info changes as events
-	return true
 }

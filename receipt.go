@@ -17,11 +17,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
-func (cli *Client) handleReceipt(node *waBinary.Node) bool {
-	if node.Tag != "receipt" {
-		return false
-	}
-
+func (cli *Client) handleReceipt(node *waBinary.Node) {
 	if node.AttrGetter().OptionalString("type") == "read" {
 		receipt, err := cli.parseReadReceipt(node)
 		if err != nil {
@@ -31,7 +27,6 @@ func (cli *Client) handleReceipt(node *waBinary.Node) bool {
 		}
 	}
 	go cli.sendAck(node)
-	return true
 }
 
 func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceiptEvent, error) {
