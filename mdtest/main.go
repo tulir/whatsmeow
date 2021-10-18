@@ -133,6 +133,10 @@ func handleCmd(cmd string, args []string) {
 			log.Fatalln("Failed to connect:", err)
 			return
 		}
+	case "checkuser":
+		resp, err := cli.IsOnWhatsApp(args)
+		fmt.Println(err)
+		fmt.Printf("%+v\n", resp)
 	case "getuser":
 		var jids []waBinary.JID
 		for _, jid := range args {

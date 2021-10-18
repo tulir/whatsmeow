@@ -15,11 +15,13 @@ import (
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
+// VerifiedName contains verified WhatsApp business details.
 type VerifiedName struct {
 	Certificate *waProto.VerifiedNameCertificate
 	Details     *waProto.VerifiedNameDetails
 }
 
+// UserInfo contains info about a WhatsApp user.
 type UserInfo struct {
 	VerifiedName *VerifiedName
 	Status       string
@@ -27,6 +29,51 @@ type UserInfo struct {
 	Devices      []waBinary.JID
 }
 
+// IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
+type IsOnWhatsAppResponse struct {
+	Query string       // The query string used, plus @c.us at the end
+	JID   waBinary.JID // The canonical user ID
+	IsIn  bool         // Whether or not the phone is registered.
+
+	VerifiedName *VerifiedName // If the phone is a business, the verified business details.
+}
+
+// IsOnWhatsApp checks if the given phone numbers are registered on WhatsApp.
+// The phone numbers should be in international format, including the `+` prefix.
+func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error) {
+	jids := make([]waBinary.JID, len(phones))
+	for i := range jids {
+		jids[i] = waBinary.NewJID(phones[i], waBinary.LegacyUserServer)
+	}
+	list, err := cli.usync(jids, "query", "interactive", []waBinary.Node{
+		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
+		{Tag: "contact"},
+	})
+	if err != nil {
+		return nil, err
+	}
+	output := make([]IsOnWhatsAppResponse, 0, len(jids))
+	for _, child := range list.GetChildren() {
+		jid, jidOK := child.Attrs["jid"].(waBinary.JID)
+		if child.Tag != "user" || !jidOK {
+			continue
+		}
+		var info IsOnWhatsAppResponse
+		info.JID = jid
+		info.VerifiedName, err = parseVerifiedName(child.GetChildByTag("business"))
+		if err != nil {
+			cli.Log.Warnf("Failed to parse %s's verified name details: %v", jid, err)
+		}
+		contactNode := child.GetChildByTag("contact")
+		info.IsIn = contactNode.AttrGetter().String("type") == "in"
+		contactQuery, _ := contactNode.Content.([]byte)
+		info.Query = string(contactQuery)
+		output = append(output, info)
+	}
+	return output, nil
+}
+
+// GetUserInfo gets basic user info (avatar, status, verified business name, device list).
 func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]UserInfo, error) {
 	list, err := cli.usync(jids, "full", "background", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
@@ -108,7 +155,7 @@ func parseVerifiedName(businessNode waBinary.Node) (*VerifiedName, error) {
 	fmt.Printf("%+v\n", &certDetails)
 	return &VerifiedName{
 		Certificate: &cert,
-		Details: &certDetails,
+		Details:     &certDetails,
 	}, nil
 }
 
@@ -139,7 +186,20 @@ func (cli *Client) usync(jids []waBinary.JID, mode, context string, query []waBi
 	userList := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		userList[i].Tag = "user"
-		userList[i].Attrs = map[string]interface{}{"jid": waBinary.NewJID(jid.User, waBinary.DefaultUserServer)}
+		if jid.AD {
+			jid.AD = false
+		}
+		switch jid.Server {
+		case waBinary.LegacyUserServer:
+			userList[i].Content = []waBinary.Node{{
+				Tag:     "contact",
+				Content: jid.String(),
+			}}
+		case waBinary.DefaultUserServer:
+			userList[i].Attrs = map[string]interface{}{"jid": jid}
+		default:
+			return nil, fmt.Errorf("unknown user server '%s'", jid.Server)
+		}
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "usync",
