@@ -108,7 +108,7 @@ func (cli *Client) sendGroup(to waBinary.JID, id string, message *waProto.Messag
 		participantsStrings[i] = part.JID.String()
 	}
 
-	allDevices, err := cli.GetUserDevices(participants, false)
+	allDevices, err := cli.GetUserDevices(participants)
 	if err != nil {
 		return fmt.Errorf("failed to get device list: %w", err)
 	}
@@ -146,7 +146,7 @@ func (cli *Client) sendDM(to waBinary.JID, id string, message *waProto.Message) 
 		return err
 	}
 
-	allDevices, err := cli.GetUserDevices([]waBinary.JID{to, *cli.Store.ID}, false)
+	allDevices, err := cli.GetUserDevices([]waBinary.JID{to, *cli.Store.ID})
 	if err != nil {
 		return fmt.Errorf("failed to get device list: %w", err)
 	}

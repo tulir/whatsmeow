@@ -26,6 +26,11 @@ func (n *Node) GetChildrenByTag(tag string) (children []Node) {
 	return
 }
 
+func (n *Node) GetChildPtrByTag(tag string) *Node {
+	val := n.GetChildByTag(tag)
+	return &val
+}
+
 func (n *Node) GetChildByTag(tag string) (val Node) {
 	nodes := n.GetChildrenByTag(tag)
 	if len(nodes) > 0 {

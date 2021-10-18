@@ -119,7 +119,7 @@ func main() {
 			args := strings.Fields(cmd)
 			cmd = args[0]
 			args = args[1:]
-			handleCmd(strings.ToLower(cmd), args)
+			go handleCmd(strings.ToLower(cmd), args)
 		}
 	}
 }
@@ -133,14 +133,18 @@ func handleCmd(cmd string, args []string) {
 			log.Fatalln("Failed to connect:", err)
 			return
 		}
-	case "usync":
+	case "checkuser":
+		resp, err := cli.IsOnWhatsApp(args)
+		fmt.Println(err)
+		fmt.Printf("%+v\n", resp)
+	case "getuser":
 		var jids []waBinary.JID
 		for _, jid := range args {
 			jids = append(jids, waBinary.NewJID(jid, waBinary.DefaultUserServer))
 		}
-		res, err := cli.GetUserDevices(jids, false)
+		resp, err := cli.GetUserInfo(jids)
 		fmt.Println(err)
-		fmt.Println(res)
+		fmt.Printf("%+v\n", resp)
 	case "getgroup":
 		resp, err := cli.GetGroupInfo(waBinary.NewJID(args[0], waBinary.GroupServer))
 		fmt.Println(err)

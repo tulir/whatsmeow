@@ -254,7 +254,8 @@ message BizAccountPayload {
     optional bytes bizAcctLinkInfo = 2;
 }
 
-message Details {
+// Renamed from Details due to conflict
+message VerifiedNameDetails {
     optional uint64 serial = 1;
     optional string issuer = 2;
     optional string verifiedName = 4;

@@ -9,50 +9,111 @@ package whatsmeow
 import (
 	"fmt"
 
+	"google.golang.org/protobuf/proto"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
-// GetUserDevices gets the list of devices that the given user has.
-func (cli *Client) GetUserDevices(jids []waBinary.JID, ignorePrimary bool) ([]waBinary.JID, error) {
-	userList := make([]waBinary.Node, len(jids))
-	for i, jid := range jids {
-		userList[i].Tag = "user"
-		userList[i].Attrs = map[string]interface{}{"jid": waBinary.NewJID(jid.User, waBinary.DefaultUserServer)}
+// VerifiedName contains verified WhatsApp business details.
+type VerifiedName struct {
+	Certificate *waProto.VerifiedNameCertificate
+	Details     *waProto.VerifiedNameDetails
+}
+
+// UserInfo contains info about a WhatsApp user.
+type UserInfo struct {
+	VerifiedName *VerifiedName
+	Status       string
+	PictureID    string
+	Devices      []waBinary.JID
+}
+
+// IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
+type IsOnWhatsAppResponse struct {
+	Query string       // The query string used, plus @c.us at the end
+	JID   waBinary.JID // The canonical user ID
+	IsIn  bool         // Whether or not the phone is registered.
+
+	VerifiedName *VerifiedName // If the phone is a business, the verified business details.
+}
+
+// IsOnWhatsApp checks if the given phone numbers are registered on WhatsApp.
+// The phone numbers should be in international format, including the `+` prefix.
+func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error) {
+	jids := make([]waBinary.JID, len(phones))
+	for i := range jids {
+		jids[i] = waBinary.NewJID(phones[i], waBinary.LegacyUserServer)
 	}
-	res, err := cli.sendIQ(infoQuery{
-		Namespace: "usync",
-		Type:      "get",
-		To:        waBinary.ServerJID,
-		Content: []waBinary.Node{{
-			Tag: "usync",
-			Attrs: map[string]interface{}{
-				"sid":     cli.generateRequestID(),
-				"mode":    "query",
-				"last":    "true",
-				"index":   "0",
-				"context": "message",
-			},
-			Content: []waBinary.Node{
-				{Tag: "query", Content: []waBinary.Node{{
-					Tag: "devices",
-					Attrs: map[string]interface{}{
-						"version": "2",
-					},
-				}}},
-				{Tag: "list", Content: userList},
-			},
-		}},
+	list, err := cli.usync(jids, "query", "interactive", []waBinary.Node{
+		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
+		{Tag: "contact"},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to send usync query: %w", err)
+		return nil, err
 	}
-	usync := res.GetChildByTag("usync")
-	if usync.Tag != "usync" {
-		return nil, fmt.Errorf("unexpected children in response to usync query")
+	output := make([]IsOnWhatsAppResponse, 0, len(jids))
+	for _, child := range list.GetChildren() {
+		jid, jidOK := child.Attrs["jid"].(waBinary.JID)
+		if child.Tag != "user" || !jidOK {
+			continue
+		}
+		var info IsOnWhatsAppResponse
+		info.JID = jid
+		info.VerifiedName, err = parseVerifiedName(child.GetChildByTag("business"))
+		if err != nil {
+			cli.Log.Warnf("Failed to parse %s's verified name details: %v", jid, err)
+		}
+		contactNode := child.GetChildByTag("contact")
+		info.IsIn = contactNode.AttrGetter().String("type") == "in"
+		contactQuery, _ := contactNode.Content.([]byte)
+		info.Query = string(contactQuery)
+		output = append(output, info)
 	}
-	list := usync.GetChildByTag("list")
-	if list.Tag != "list" {
-		return nil, fmt.Errorf("missing list inside usync tag")
+	return output, nil
+}
+
+// GetUserInfo gets basic user info (avatar, status, verified business name, device list).
+func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]UserInfo, error) {
+	list, err := cli.usync(jids, "full", "background", []waBinary.Node{
+		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
+		{Tag: "status"},
+		{Tag: "picture"},
+		{Tag: "devices", Attrs: map[string]interface{}{"version": "2"}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	respData := make(map[waBinary.JID]UserInfo, len(jids))
+	for _, child := range list.GetChildren() {
+		jid, jidOK := child.Attrs["jid"].(waBinary.JID)
+		if child.Tag != "user" || !jidOK {
+			continue
+		}
+		verifiedName, err := parseVerifiedName(child.GetChildByTag("business"))
+		if err != nil {
+			cli.Log.Warnf("Failed to parse %s's verified name details: %v", jid, err)
+		}
+		status, _ := child.GetChildByTag("status").Content.([]byte)
+		pictureID, _ := child.GetChildByTag("picture").Attrs["id"].(string)
+		devices := parseDeviceList(jid.User, child.GetChildByTag("devices"), nil, nil)
+		respData[jid] = UserInfo{
+			VerifiedName: verifiedName,
+			Status:       string(status),
+			PictureID:    pictureID,
+			Devices:      devices,
+		}
+	}
+	return respData, nil
+}
+
+// GetUserDevices gets the list of devices that the given user has.
+func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
+	list, err := cli.usync(jids, "query", "message", []waBinary.Node{
+		{Tag: "devices", Attrs: map[string]interface{}{"version": "2"}},
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	var devices []waBinary.JID
@@ -61,22 +122,111 @@ func (cli *Client) GetUserDevices(jids []waBinary.JID, ignorePrimary bool) ([]wa
 		if user.Tag != "user" || !jidOK {
 			continue
 		}
-		deviceNode := user.GetChildByTag("devices")
-		deviceList := deviceNode.GetChildByTag("device-list")
-		if deviceNode.Tag != "devices" || deviceList.Tag != "device-list" {
-			continue
-		}
-		for _, device := range deviceList.GetChildren() {
-			deviceID, ok := device.AttrGetter().GetInt64("id", true)
-			if device.Tag != "device" || !ok {
-				continue
-			}
-			deviceJID := waBinary.NewADJID(jid.User, 0, byte(deviceID))
-			if (deviceJID.Device > 0 || !ignorePrimary) && deviceJID != *cli.Store.ID {
-				devices = append(devices, deviceJID)
-			}
-		}
+		parseDeviceList(jid.User, user.GetChildByTag("devices"), &devices, cli.Store.ID)
 	}
 
 	return devices, nil
+}
+
+func parseVerifiedName(businessNode waBinary.Node) (*VerifiedName, error) {
+	if businessNode.Tag != "business" {
+		return nil, nil
+	}
+	verifiedNameNode, ok := businessNode.GetOptionalChildByTag("verified_name")
+	if !ok {
+		return nil, nil
+	}
+	rawCert, ok := verifiedNameNode.Content.([]byte)
+	if !ok {
+		return nil, nil
+	}
+
+	var cert waProto.VerifiedNameCertificate
+	err := proto.Unmarshal(rawCert, &cert)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("%+v\n", &cert)
+	var certDetails waProto.VerifiedNameDetails
+	err = proto.Unmarshal(cert.GetDetails(), &certDetails)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("%+v\n", &certDetails)
+	return &VerifiedName{
+		Certificate: &cert,
+		Details:     &certDetails,
+	}, nil
+}
+
+func parseDeviceList(user string, deviceNode waBinary.Node, appendTo *[]waBinary.JID, ignore *waBinary.JID) []waBinary.JID {
+	deviceList := deviceNode.GetChildByTag("device-list")
+	if deviceNode.Tag != "devices" || deviceList.Tag != "device-list" {
+		return nil
+	}
+	children := deviceList.GetChildren()
+	if appendTo == nil {
+		arr := make([]waBinary.JID, 0, len(children))
+		appendTo = &arr
+	}
+	for _, device := range children {
+		deviceID, ok := device.AttrGetter().GetInt64("id", true)
+		if device.Tag != "device" || !ok {
+			continue
+		}
+		deviceJID := waBinary.NewADJID(user, 0, byte(deviceID))
+		if ignore == nil || deviceJID != *ignore {
+			*appendTo = append(*appendTo, deviceJID)
+		}
+	}
+	return *appendTo
+}
+
+func (cli *Client) usync(jids []waBinary.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {
+	userList := make([]waBinary.Node, len(jids))
+	for i, jid := range jids {
+		userList[i].Tag = "user"
+		if jid.AD {
+			jid.AD = false
+		}
+		switch jid.Server {
+		case waBinary.LegacyUserServer:
+			userList[i].Content = []waBinary.Node{{
+				Tag:     "contact",
+				Content: jid.String(),
+			}}
+		case waBinary.DefaultUserServer:
+			userList[i].Attrs = map[string]interface{}{"jid": jid}
+		default:
+			return nil, fmt.Errorf("unknown user server '%s'", jid.Server)
+		}
+	}
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "usync",
+		Type:      "get",
+		To:        waBinary.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "usync",
+			Attrs: map[string]interface{}{
+				"sid":     cli.generateRequestID(),
+				"mode":    mode,
+				"last":    "true",
+				"index":   "0",
+				"context": context,
+			},
+			Content: []waBinary.Node{
+				{Tag: "query", Content: query},
+				{Tag: "list", Content: userList},
+			},
+		}},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to send usync query: %w", err)
+	} else if usync, ok := resp.GetOptionalChildByTag("usync"); !ok {
+		return nil, fmt.Errorf("missing <usync> element in response to usync query")
+	} else if list, ok := usync.GetOptionalChildByTag("list"); !ok {
+		return nil, fmt.Errorf("missing <list> element in response to usync query")
+	} else {
+		return list, err
+	}
 }
