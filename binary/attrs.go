@@ -112,3 +112,13 @@ func (au *AttrUtility) Uint64(key string) uint64 {
 func (au *AttrUtility) OK() bool {
 	return len(au.Errors) == 0
 }
+
+func (au *AttrUtility) Error() error {
+	return ErrorList(au.Errors)
+}
+
+type ErrorList []error
+
+func (el ErrorList) Error() string {
+	return fmt.Sprintf("%+v", []error(el))
+}
