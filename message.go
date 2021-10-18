@@ -312,7 +312,7 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 	}
 	err := cli.sendNode(waBinary.Node{
 		Tag: "receipt",
-		Attrs: map[string]interface{}{
+		Attrs: waBinary.Attrs{
 			"id":   id,
 			"type": msgType,
 			"to":   waBinary.NewJID(cli.Store.ID.User, waBinary.LegacyUserServer),

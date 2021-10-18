@@ -1,8 +1,10 @@
 package binary
 
+type Attrs = map[string]interface{}
+
 type Node struct {
 	Tag     string
-	Attrs   map[string]interface{}
+	Attrs   Attrs
 	Content interface{}
 }
 

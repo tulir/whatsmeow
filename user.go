@@ -88,7 +88,7 @@ func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]UserInfo, 
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "status"},
 		{Tag: "picture"},
-		{Tag: "devices", Attrs: map[string]interface{}{"version": "2"}},
+		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
 	})
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]UserInfo, 
 // GetUserDevices gets the list of devices that the given user has.
 func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
 	list, err := cli.usync(jids, "query", "message", []waBinary.Node{
-		{Tag: "devices", Attrs: map[string]interface{}{"version": "2"}},
+		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
 	})
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
 
 // GetProfilePicture gets the URL where you can download a WhatsApp user's profile picture.
 func (cli *Client) GetProfilePicture(jid waBinary.JID, preview bool) (*ProfilePictureInfo, error) {
-	attrs := map[string]interface{}{
+	attrs := waBinary.Attrs{
 		"query": "url",
 	}
 	if preview {
@@ -243,7 +243,7 @@ func (cli *Client) usync(jids []waBinary.JID, mode, context string, query []waBi
 				Content: jid.String(),
 			}}
 		case waBinary.DefaultUserServer:
-			userList[i].Attrs = map[string]interface{}{"jid": jid}
+			userList[i].Attrs = waBinary.Attrs{"jid": jid}
 		default:
 			return nil, fmt.Errorf("unknown user server '%s'", jid.Server)
 		}
@@ -254,7 +254,7 @@ func (cli *Client) usync(jids []waBinary.JID, mode, context string, query []waBi
 		To:        waBinary.ServerJID,
 		Content: []waBinary.Node{{
 			Tag: "usync",
-			Attrs: map[string]interface{}{
+			Attrs: waBinary.Attrs{
 				"sid":     cli.generateRequestID(),
 				"mode":    mode,
 				"last":    "true",

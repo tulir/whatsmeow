@@ -12,7 +12,7 @@ import (
 )
 
 type AttrUtility struct {
-	Attrs  map[string]interface{}
+	Attrs  Attrs
 	Errors []error
 }
 

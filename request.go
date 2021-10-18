@@ -70,7 +70,7 @@ func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
 	waiter := cli.waitResponse(query.ID)
 	err := cli.sendNode(waBinary.Node{
 		Tag: "iq",
-		Attrs: map[string]interface{}{
+		Attrs: waBinary.Attrs{
 			"id":    query.ID,
 			"xmlns": query.Namespace,
 			"type":  query.Type,

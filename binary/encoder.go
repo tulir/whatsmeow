@@ -176,7 +176,7 @@ func (w *binaryEncoder) writeJID(jid JID) {
 	}
 }
 
-func (w *binaryEncoder) writeAttributes(attributes map[string]interface{}) {
+func (w *binaryEncoder) writeAttributes(attributes Attrs) {
 	if attributes == nil {
 		return
 	}

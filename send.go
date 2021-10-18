@@ -116,7 +116,7 @@ func (cli *Client) sendGroup(to waBinary.JID, id string, message *waProto.Messag
 
 	node := waBinary.Node{
 		Tag: "message",
-		Attrs: map[string]interface{}{
+		Attrs: waBinary.Attrs{
 			"id":    id,
 			"type":  "text",
 			"to":    to,
@@ -124,7 +124,7 @@ func (cli *Client) sendGroup(to waBinary.JID, id string, message *waProto.Messag
 		},
 		Content: []waBinary.Node{
 			{Tag: "participants", Content: participantNodes},
-			{Tag: "enc", Content: ciphertext, Attrs: map[string]interface{}{"v": "2", "type": "skmsg"}},
+			{Tag: "enc", Content: ciphertext, Attrs: waBinary.Attrs{"v": "2", "type": "skmsg"}},
 		},
 	}
 	if includeIdentity {
@@ -154,7 +154,7 @@ func (cli *Client) sendDM(to waBinary.JID, id string, message *waProto.Message) 
 
 	node := waBinary.Node{
 		Tag: "message",
-		Attrs: map[string]interface{}{
+		Attrs: waBinary.Attrs{
 			"id":   id,
 			"type": "text",
 			"to":   to,
@@ -290,12 +290,12 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to waBinary.JID, bu
 
 	return &waBinary.Node{
 		Tag: "to",
-		Attrs: map[string]interface{}{
+		Attrs: waBinary.Attrs{
 			"jid": to,
 		},
 		Content: []waBinary.Node{{
 			Tag: "enc",
-			Attrs: map[string]interface{}{
+			Attrs: waBinary.Attrs{
 				"v":    "2",
 				"type": encType,
 			},
