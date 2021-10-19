@@ -55,7 +55,7 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
 		To:        jid,
 		Content: []waBinary.Node{{
 			Tag:   "query",
-			Attrs: map[string]interface{}{"request": "interactive"},
+			Attrs: waBinary.Attrs{"request": "interactive"},
 		}},
 	})
 	if err != nil {

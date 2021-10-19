@@ -43,7 +43,7 @@ func (cli *Client) handlePairDevice(node *waBinary.Node) {
 	pairDevice := node.GetChildByTag("pair-device")
 	err := cli.sendNode(waBinary.Node{
 		Tag: "iq",
-		Attrs: map[string]interface{}{
+		Attrs: waBinary.Attrs{
 			"to":   node.Attrs["from"],
 			"id":   node.Attrs["id"],
 			"type": "result",
@@ -159,7 +159,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 
 	err = cli.sendNode(waBinary.Node{
 		Tag: "iq",
-		Attrs: map[string]interface{}{
+		Attrs: waBinary.Attrs{
 			"to":   waBinary.ServerJID,
 			"type": "result",
 			"id":   reqID,
@@ -168,7 +168,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 			Tag: "pair-device-sign",
 			Content: []waBinary.Node{{
 				Tag: "device-identity",
-				Attrs: map[string]interface{}{
+				Attrs: waBinary.Attrs{
 					"key-index": deviceIdentityDetails.GetKeyIndex(),
 				},
 				Content: selfSignedDeviceIdentity,
@@ -217,14 +217,14 @@ func generateDeviceSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ik
 func (cli *Client) sendNotAuthorized(id string) waBinary.Node {
 	return waBinary.Node{
 		Tag: "iq",
-		Attrs: map[string]interface{}{
+		Attrs: waBinary.Attrs{
 			"to":   waBinary.ServerJID,
 			"type": "error",
 			"id":   id,
 		},
 		Content: []waBinary.Node{{
 			Tag: "error",
-			Attrs: map[string]interface{}{
+			Attrs: waBinary.Attrs{
 				"code": "401",
 				"text": "not-authorized",
 			},

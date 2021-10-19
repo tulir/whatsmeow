@@ -121,6 +121,8 @@ func (w *binaryEncoder) write(data interface{}) {
 		w.writeString(strconv.FormatInt(typedData, 10))
 	case uint64:
 		w.writeString(strconv.FormatUint(typedData, 10))
+	case bool:
+		w.writeString(strconv.FormatBool(typedData))
 	case []byte:
 		w.writeBytes(typedData)
 	case []Node:
@@ -176,7 +178,7 @@ func (w *binaryEncoder) writeJID(jid JID) {
 	}
 }
 
-func (w *binaryEncoder) writeAttributes(attributes map[string]interface{}) {
+func (w *binaryEncoder) writeAttributes(attributes Attrs) {
 	if attributes == nil {
 		return
 	}

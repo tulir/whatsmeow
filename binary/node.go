@@ -1,8 +1,10 @@
 package binary
 
+type Attrs = map[string]interface{}
+
 type Node struct {
 	Tag     string
-	Attrs   map[string]interface{}
+	Attrs   Attrs
 	Content interface{}
 }
 
@@ -26,26 +28,27 @@ func (n *Node) GetChildrenByTag(tag string) (children []Node) {
 	return
 }
 
-func (n *Node) GetChildPtrByTag(tag string) *Node {
-	val := n.GetChildByTag(tag)
-	return &val
-}
-
-func (n *Node) GetChildByTag(tag string) (val Node) {
-	nodes := n.GetChildrenByTag(tag)
-	if len(nodes) > 0 {
-		val = nodes[0]
+func (n *Node) GetOptionalChildByTag(tags ...string) (val Node, ok bool) {
+	val = *n
+Outer:
+	for _, tag := range tags {
+		for _, child := range val.GetChildren() {
+			if child.Tag == tag {
+				val = child
+				continue Outer
+			}
+		}
+		// If no matching children are found, return false
+		return
 	}
+	// All iterations of loop found a matching child, return it
+	ok = true
 	return
 }
 
-func (n *Node) GetOptionalChildByTag(tag string) (val *Node, ok bool) {
-	nodes := n.GetChildrenByTag(tag)
-	if len(nodes) > 0 {
-		val = &nodes[0]
-		ok = true
-	}
-	return
+func (n *Node) GetChildByTag(tags ...string) Node {
+	node, _ := n.GetOptionalChildByTag(tags...)
+	return node
 }
 
 func Marshal(n Node) ([]byte, error) {

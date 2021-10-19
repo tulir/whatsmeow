@@ -63,7 +63,7 @@ func (cli *Client) fetchPreKeys(users []waBinary.JID) (map[waBinary.JID]preKeyRe
 	requests := make([]waBinary.Node, len(users))
 	for i, user := range users {
 		requests[i].Tag = "user"
-		requests[i].Attrs = map[string]interface{}{
+		requests[i].Attrs = waBinary.Attrs{
 			"jid":    user,
 			"reason": "identity",
 		}

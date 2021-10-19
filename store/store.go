@@ -38,6 +38,17 @@ type SenderKeyStore interface {
 	GetSenderKey(group, user string) ([]byte, error)
 }
 
+type AppStateSyncKey struct {
+	Data        []byte
+	Fingerprint []byte
+	Timestamp   int64
+}
+
+type AppStateSyncKeyStore interface {
+	PutAppStateSyncKey(id []byte, key AppStateSyncKey) error
+	GetAppStateSyncKey(id []byte) (*AppStateSyncKey, error)
+}
+
 type DeviceContainer interface {
 	PutDevice(store *Device) error
 	DeleteDevice(store *Device) error
@@ -57,12 +68,13 @@ type Device struct {
 	BusinessName string
 	ID           *waBinary.JID
 
-	Initialized bool
-	Identities  IdentityStore
-	Sessions    SessionStore
-	PreKeys     PreKeyStore
-	SenderKeys  SenderKeyStore
-	Container   DeviceContainer
+	Initialized  bool
+	Identities   IdentityStore
+	Sessions     SessionStore
+	PreKeys      PreKeyStore
+	SenderKeys   SenderKeyStore
+	AppStateKeys AppStateSyncKeyStore
+	Container    DeviceContainer
 }
 
 func (device *Device) Save() error {

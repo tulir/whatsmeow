@@ -62,7 +62,7 @@ func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceiptEvent, err
 }
 
 func (cli *Client) sendAck(node *waBinary.Node) {
-	attrs := map[string]interface{}{
+	attrs := waBinary.Attrs{
 		"class": node.Tag,
 		"id":    node.Attrs["id"],
 	}
@@ -86,7 +86,7 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 }
 
 func (cli *Client) sendMessageReceipt(info *MessageInfo) {
-	attrs := map[string]interface{}{
+	attrs := waBinary.Attrs{
 		"id": info.ID,
 	}
 	isFromMe := info.From.User == cli.Store.ID.User
@@ -123,7 +123,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bo
 
 	var registrationIDBytes [4]byte
 	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
-	attrs := map[string]interface{}{
+	attrs := waBinary.Attrs{
 		"id":   id,
 		"type": "retry",
 		"to":   node.Attrs["from"],
@@ -138,7 +138,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bo
 		Tag:   "receipt",
 		Attrs: attrs,
 		Content: []waBinary.Node{
-			{Tag: "retry", Attrs: map[string]interface{}{
+			{Tag: "retry", Attrs: waBinary.Attrs{
 				"count": retryCount,
 				"id":    id,
 				"t":     node.Attrs["t"],

@@ -33,7 +33,6 @@ const (
 	MediaAudio    MediaType = "WhatsApp Audio Keys"
 	MediaDocument MediaType = "WhatsApp Document Keys"
 	MediaHistory  MediaType = "WhatsApp History Keys"
-	MediaAppState MediaType = "WhatsApp App State Keys"
 )
 
 // DownloadableMessage represents a protobuf message that contains attachment info.

@@ -256,12 +256,12 @@ func (r *binaryDecoder) readADJID() (interface{}, error) {
 	return NewADJID(user.(string), agent, device), nil
 }
 
-func (r *binaryDecoder) readAttributes(n int) (map[string]interface{}, error) {
+func (r *binaryDecoder) readAttributes(n int) (Attrs, error) {
 	if n == 0 {
 		return nil, nil
 	}
 
-	ret := make(map[string]interface{})
+	ret := make(Attrs)
 	for i := 0; i < n; i++ {
 		keyIfc, err := r.read(true)
 		if err != nil {
