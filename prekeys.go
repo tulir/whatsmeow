@@ -16,7 +16,7 @@ import (
 	"go.mau.fi/libsignal/util/optional"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/keys"
+	"go.mau.fi/whatsmeow/util/keys"
 )
 
 // WantedPreKeyCount is the number of prekeys that the client should keep on the WhatsApp servers.

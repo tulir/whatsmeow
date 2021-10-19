@@ -9,8 +9,8 @@ package store
 import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/keys"
-	waLog "go.mau.fi/whatsmeow/log"
+	"go.mau.fi/whatsmeow/util/keys"
+	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 type IdentityStore interface {
@@ -49,6 +49,20 @@ type AppStateSyncKeyStore interface {
 	GetAppStateSyncKey(id []byte) (*AppStateSyncKey, error)
 }
 
+type AppStateMutationMAC struct {
+	IndexMAC []byte
+	ValueMAC []byte
+}
+
+type AppStateStore interface {
+	PutAppStateVersion(name string, version uint64, hash [128]byte) error
+	GetAppStateVersion(name string) (uint64, [128]byte, error)
+
+	PutAppStateMutationMACs(name string, version uint64, mutations []AppStateMutationMAC) error
+	DeleteAppStateMutationMAC(name string, version uint64, indexMAC []byte) error
+	GetAppStateMutationMAC(name string, version uint64, indexMAC []byte) (valueMAC []byte, err error)
+}
+
 type DeviceContainer interface {
 	PutDevice(store *Device) error
 	DeleteDevice(store *Device) error
@@ -74,6 +88,7 @@ type Device struct {
 	PreKeys      PreKeyStore
 	SenderKeys   SenderKeyStore
 	AppStateKeys AppStateSyncKeyStore
+	AppState     AppStateStore
 	Container    DeviceContainer
 }
 

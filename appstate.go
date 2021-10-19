@@ -9,33 +9,35 @@ package whatsmeow
 import (
 	"fmt"
 
-	"google.golang.org/protobuf/proto"
-
+	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
-type patchList struct {
-	Name           string
-	HasMorePatches bool
-	Patches        []*waProto.SyncdPatch
+func (cli *Client) FetchAppState(name appstate.WAPatchName) {
+	state := appstate.NewHashState()
+	hasMore := true
+	for hasMore {
+		patches, err := cli.fetchSyncdPatches(name, state.Version)
+		if err != nil {
+			cli.Log.Errorf("Failed to fetch app state sync patches: %v", err)
+			return
+		}
+		hasMore = patches.HasMorePatches
+
+		mutations, newState, err := cli.appStateProc.DecodePatches(patches, state, true)
+		if err != nil {
+			cli.Log.Errorf("Failed to decode patches: %v", err)
+			break
+		}
+		state = newState
+		fmt.Printf("%d %X\n", newState.Version, newState.Hash)
+		for _, mutation := range mutations {
+			fmt.Printf("%s %v %X %+v\n", mutation.Operation, mutation.Index, mutation.IndexMAC, mutation.Action)
+		}
+	}
 }
 
-type AppStateMutation struct {
-	Action    *waProto.SyncActionValue
-	Index     []string
-	IndexMAC  []byte
-	ValueMAC  []byte
-	Operation int
-}
-
-type HashState struct {
-	Version   int
-	Hash      []byte
-	Mutations []AppStateMutation
-}
-
-func (cli *Client) FetchAppState(name string, fromVersion int) (*patchList, error) {
+func (cli *Client) fetchSyncdPatches(name appstate.WAPatchName, fromVersion uint64) (*appstate.PatchList, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:sync:app:state",
 		Type:      "set",
@@ -45,7 +47,7 @@ func (cli *Client) FetchAppState(name string, fromVersion int) (*patchList, erro
 			Content: []waBinary.Node{{
 				Tag: "collection",
 				Attrs: waBinary.Attrs{
-					"name":            name,
+					"name":            string(name),
 					"version":         fromVersion,
 					"return_snapshot": false,
 				},
@@ -55,30 +57,5 @@ func (cli *Client) FetchAppState(name string, fromVersion int) (*patchList, erro
 	if err != nil {
 		return nil, err
 	}
-	collection := resp.GetChildByTag("sync", "collection")
-	ag := collection.AttrGetter()
-	patchesNode := collection.GetChildByTag("patches")
-	patchNodes := patchesNode.GetChildren()
-	patches := make([]*waProto.SyncdPatch, 0, len(patchNodes))
-	for _, patchNode := range patchNodes {
-		rawPatch, ok := patchNode.Content.([]byte)
-		if patchNode.Tag != "patch" || !ok {
-			continue
-		}
-		var patch waProto.SyncdPatch
-		err = proto.Unmarshal(rawPatch, &patch)
-		if err != nil {
-			cli.Log.Warnf("Failed to unmarshal app state patch: %v", err)
-			continue
-		}
-		patches = append(patches, &patch)
-		fmt.Printf("%+v\n", &patch)
-	}
-	return &patchList{
-		Name:           ag.String("name"),
-		HasMorePatches: ag.OptionalBool("has_more_patches"),
-		Patches:        patches,
-	}, nil
+	return appstate.ParsePatchList(resp)
 }
-
-//func (cli *Client) decodeSyncdPatches(patches []*waProto.SyncdPatch)

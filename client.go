@@ -13,11 +13,12 @@ import (
 	"fmt"
 	"sync"
 
+	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/keys"
-	waLog "go.mau.fi/whatsmeow/log"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/util/keys"
+	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 // Client contains everything necessary to connect to and interact with the WhatsApp web API.
@@ -27,6 +28,8 @@ type Client struct {
 	recvLog waLog.Logger
 	sendLog waLog.Logger
 	socket  *socket.NoiseSocket
+
+	appStateProc *appstate.Processor
 
 	mediaConn     *MediaConn
 	mediaConnLock sync.Mutex
@@ -68,6 +71,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		eventHandlers:   make([]func(interface{}), 0),
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
+		appStateProc:    appstate.NewProcessor(deviceStore),
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,

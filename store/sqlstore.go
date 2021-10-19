@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"sync"
 
-	"go.mau.fi/whatsmeow/keys"
+	"go.mau.fi/whatsmeow/util/keys"
 )
 
 var ErrInvalidLength = errors.New("database returned byte array with illegal length")
@@ -234,4 +234,26 @@ func (s *SQLStore) GetAppStateSyncKey(id []byte) (*AppStateSyncKey, error) {
 		err = nil
 	}
 	return &key, err
+}
+
+const ()
+
+func (s *SQLStore) PutAppStateVersion(name string, version uint64, hash [128]byte) error {
+	panic("implement me")
+}
+
+func (s *SQLStore) GetAppStateVersion(name string) (uint64, [128]byte, error) {
+	panic("implement me")
+}
+
+func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutations []AppStateMutationMAC) error {
+	panic("implement me")
+}
+
+func (s *SQLStore) DeleteAppStateMutationMAC(name string, version uint64, indexMAC []byte) error {
+	panic("implement me")
+}
+
+func (s *SQLStore) GetAppStateMutationMAC(name string, version uint64, indexMAC []byte) (valueMAC []byte, err error) {
+	panic("implement me")
 }

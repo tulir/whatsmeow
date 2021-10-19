@@ -15,7 +15,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -26,10 +25,11 @@ import (
 	log "maunium.net/go/maulogger/v2"
 
 	"go.mau.fi/whatsmeow"
+	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	waLog "go.mau.fi/whatsmeow/log"
 	"go.mau.fi/whatsmeow/store"
+	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 var cli *whatsmeow.Client
@@ -136,18 +136,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 	case "appstate":
-		//cli.SendMessage(waBinary.NewJID(cli.Store.ID.User, waBinary.DefaultUserServer), "", &waProto.Message{
-		//	ProtocolMessage: &waProto.ProtocolMessage{
-		//		Type: waProto.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST.Enum(),
-		//		AppStateSyncKeyRequest: &waProto.AppStateSyncKeyRequest{
-		//			KeyIds: []*waProto.AppStateSyncKeyId{{
-		//				KeyId: []byte("\x00\x00\x00\x00\xf6\x19"),
-		//			}},
-		//		},
-		//	},
-		//})
-		val, _ := strconv.Atoi(args[1])
-		_, _ = cli.FetchAppState(args[0], val)
+		cli.FetchAppState(appstate.WAPatchName(args[0]))
 	case "checkuser":
 		resp, err := cli.IsOnWhatsApp(args)
 		fmt.Println(err)

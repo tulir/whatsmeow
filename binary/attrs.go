@@ -135,6 +135,9 @@ func (au *AttrUtility) OK() bool {
 }
 
 func (au *AttrUtility) Error() error {
+	if au.OK() {
+		return nil
+	}
 	return ErrorList(au.Errors)
 }
 
