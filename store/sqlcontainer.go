@@ -13,8 +13,8 @@ import (
 
 	"go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/keys"
-	waLog "go.mau.fi/whatsmeow/log"
+	"go.mau.fi/whatsmeow/util/keys"
+	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 type SQLContainer struct {
@@ -99,6 +99,7 @@ func (c *SQLContainer) scanDevice(row scannable) (*Device, error) {
 	store.PreKeys = innerStore
 	store.SenderKeys = innerStore
 	store.AppStateKeys = innerStore
+	store.AppState = innerStore
 	store.Container = c
 	store.Initialized = true
 
@@ -166,6 +167,7 @@ func (c *SQLContainer) PutDevice(store *Device) error {
 		store.PreKeys = innerStore
 		store.SenderKeys = innerStore
 		store.AppStateKeys = innerStore
+		store.AppState = innerStore
 		store.Initialized = true
 	}
 	return err

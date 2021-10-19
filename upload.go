@@ -18,8 +18,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"go.mau.fi/whatsmeow/cbcutil"
 	"go.mau.fi/whatsmeow/socket"
+	"go.mau.fi/whatsmeow/util/cbcutil"
 )
 
 var mediaTypeMap = map[MediaType]string{
@@ -50,11 +50,7 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	plaintextSHA256 := sha256.Sum256(plaintext)
 	resp.FileSHA256 = plaintextSHA256[:]
 
-	var iv, cipherKey, macKey []byte
-	iv, cipherKey, macKey, _, err = getMediaKeys(resp.MediaKey, appInfo)
-	if err != nil {
-		return
-	}
+	iv, cipherKey, macKey, _ := getMediaKeys(resp.MediaKey, appInfo)
 
 	var ciphertext []byte
 	ciphertext, err = cbcutil.Encrypt(cipherKey, iv, plaintext)

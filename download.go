@@ -11,15 +11,14 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 
-	"golang.org/x/crypto/hkdf"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/cbcutil"
+	"go.mau.fi/whatsmeow/util/cbcutil"
+	"go.mau.fi/whatsmeow/util/hkdfutil"
 )
 
 // MediaType represents a type of uploaded file on WhatsApp.
@@ -110,10 +109,9 @@ func (cli *Client) downloadMediaWithPath(directPath string, encFileHash, fileHas
 }
 
 func downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSha256, fileSha256 []byte) (data []byte, err error) {
-	var ciphertext, mac, iv, cipherKey, macKey []byte
+	iv, cipherKey, macKey, _ := getMediaKeys(mediaKey, appInfo)
+	var ciphertext, mac []byte
 	if ciphertext, mac, err = downloadEncryptedMedia(url, fileEncSha256); err != nil {
-
-	} else if iv, cipherKey, macKey, _, err = getMediaKeys(mediaKey, appInfo); err != nil {
 
 	} else if err = validateMedia(iv, ciphertext, macKey, mac); err != nil {
 
@@ -127,15 +125,9 @@ func downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLeng
 	return
 }
 
-func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, refKey []byte, err error) {
-	h := hkdf.New(sha256.New, mediaKey, nil, []byte(appInfo))
-	mediaKeyExpanded := make([]byte, 112)
-	_, err = io.ReadFull(h, mediaKeyExpanded)
-	if err != nil {
-		err = fmt.Errorf("failed to expand media key: %w", err)
-		return
-	}
-	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:], nil
+func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, refKey []byte) {
+	mediaKeyExpanded := hkdfutil.SHA256(mediaKey, nil, []byte(appInfo), 112)
+	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:]
 }
 
 func downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {

@@ -16,8 +16,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/keys"
 	"go.mau.fi/whatsmeow/socket"
+	"go.mau.fi/whatsmeow/util/keys"
 )
 
 func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair) error {

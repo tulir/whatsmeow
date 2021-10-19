@@ -15,7 +15,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	waLog "go.mau.fi/whatsmeow/log"
+	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 type FrameSocket struct {

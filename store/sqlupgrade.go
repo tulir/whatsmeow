@@ -83,12 +83,36 @@ var Upgrades = [...]upgradeFunc{
 		_, err = tx.Exec(`CREATE TABLE whatsmeow_app_state_sync_keys (
     		jid         TEXT,
     		key_id      bytea,
-    		key_data    bytea,
-    		timestamp   BIGINT,
-    		fingerprint bytea,
+    		key_data    bytea  NOT NULL,
+    		timestamp   BIGINT NOT NULL,
+    		fingerprint bytea  NOT NULL,
 
     		PRIMARY KEY (jid, key_id),
     		FOREIGN KEY (jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+		)`)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`CREATE TABLE whatsmeow_app_state_version (
+    		jid     TEXT,
+    		name    TEXT,
+    		version BIGINT NOT NULL,
+    		hash    bytea  NOT NULL CHECK ( length(hash) = 128 ),
+
+    		PRIMARY KEY (jid, name),
+    		FOREIGN KEY (jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+		)`)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`CREATE TABLE whatsmeow_app_state_mutation_macs (
+    		jid       TEXT,
+    		name      TEXT,
+    		index_mac bytea,
+    		value_mac bytea NOT NULL,
+
+    		PRIMARY KEY (jid, name, index_mac),
+    		FOREIGN KEY (jid, name) REFERENCES whatsmeow_app_state_version(jid, name) ON DELETE CASCADE ON UPDATE CASCADE
 		)`)
 		if err != nil {
 			return err

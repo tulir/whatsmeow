@@ -21,7 +21,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/keys"
+	"go.mau.fi/whatsmeow/util/keys"
 )
 
 const qrScanTimeout = 30 * time.Second
