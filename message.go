@@ -22,6 +22,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/events"
 	"go.mau.fi/whatsmeow/store"
 )
 
@@ -251,7 +252,7 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 		cli.Log.Errorf("Failed to unmarshal history sync data: %v", err)
 	} else {
 		cli.Log.Debugf("Received history sync")
-		cli.dispatchEvent(&HistorySyncEvent{
+		cli.dispatchEvent(&events.HistorySync{
 			Data: &historySync,
 		})
 	}
@@ -297,12 +298,12 @@ func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message
 func (cli *Client) handleDecryptedMessage(info *MessageInfo, msg *waProto.Message) {
 	cli.Log.Infof("Received message: %+v -- info: %+v\n", msg, info)
 
-	evt := &MessageEvent{Info: info, RawMessage: msg}
+	evt := &events.Message{Info: info, RawMessage: msg}
 
 	// First unwrap device sent messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
-		evt.DeviceSentMeta = &DeviceSentMeta{
+		evt.DeviceSentMeta = &events.DeviceSentMeta{
 			DestinationJID: msg.GetDeviceSentMessage().GetDestinationJid(),
 			Phash:          msg.GetDeviceSentMessage().GetPhash(),
 		}

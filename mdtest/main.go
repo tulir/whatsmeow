@@ -28,6 +28,7 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/events"
 	"go.mau.fi/whatsmeow/store"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
@@ -202,14 +203,14 @@ var stopQRs = make(chan struct{})
 
 func handler(rawEvt interface{}) {
 	switch evt := rawEvt.(type) {
-	case *whatsmeow.QREvent:
+	case *events.QR:
 		go printQRs(evt)
-	case *whatsmeow.PairSuccessEvent:
+	case *events.PairSuccess:
 		select {
 		case stopQRs <- struct{}{}:
 		default:
 		}
-	case *whatsmeow.MessageEvent:
+	case *events.Message:
 		img := evt.Message.GetImageMessage()
 		if img != nil {
 			data, err := cli.Download(img)
@@ -229,7 +230,7 @@ func handler(rawEvt interface{}) {
 	}
 }
 
-func printQRs(evt *whatsmeow.QREvent) {
+func printQRs(evt *events.QR) {
 	for _, qr := range evt.Codes {
 		fmt.Println("\033[38;2;255;255;255m\u001B[48;2;0;0;0m")
 		qrterminal.GenerateHalfBlock(qr, qrterminal.L, os.Stdout)

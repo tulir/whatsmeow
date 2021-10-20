@@ -11,6 +11,7 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/events"
 )
 
 // GroupParticipant contains info about a participant of a WhatsApp group chat.
@@ -147,8 +148,8 @@ func parseParticipantList(node *waBinary.Node) (participants []GroupParticipant)
 	return
 }
 
-func parseGroupChange(node *waBinary.Node) (*GroupInfoEvent, error) {
-	var evt GroupInfoEvent
+func parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
+	var evt events.GroupInfo
 	ag := node.AttrGetter()
 	evt.JID = ag.JID("from")
 	evt.Notify = ag.OptionalString("notify")

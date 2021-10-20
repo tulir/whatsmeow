@@ -16,6 +16,7 @@ import (
 	"go.mau.fi/libsignal/ecc"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/events"
 )
 
 func (cli *Client) handleReceipt(node *waBinary.Node) {
@@ -30,12 +31,12 @@ func (cli *Client) handleReceipt(node *waBinary.Node) {
 	go cli.sendAck(node)
 }
 
-func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceiptEvent, error) {
+func (cli *Client) parseReadReceipt(node *waBinary.Node) (*events.ReadReceipt, error) {
 	ag := node.AttrGetter()
 	if ag.String("type") != "read" {
 		return nil, nil
 	}
-	receipt := ReadReceiptEvent{
+	receipt := events.ReadReceipt{
 		From:      ag.JID("from"),
 		Recipient: ag.OptionalJID("recipient"),
 		Timestamp: time.Unix(ag.Int64("t"), 0),
