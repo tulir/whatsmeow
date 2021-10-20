@@ -154,7 +154,12 @@ func handleCmd(cmd string, args []string) {
 		fmt.Println(err)
 		fmt.Printf("%+v\n", resp)
 	case "getavatar":
-		pic, err := cli.GetProfilePicture(waBinary.NewJID(args[0], waBinary.DefaultUserServer), len(args) > 1 && args[1] == "preview")
+		jid := waBinary.NewJID(args[0], waBinary.DefaultUserServer)
+		if len(args) > 1 && args[1] == "group" {
+			jid.Server = waBinary.GroupServer
+			args = args[1:]
+		}
+		pic, err := cli.GetProfilePictureInfo(jid, len(args) > 1 && args[1] == "preview")
 		fmt.Println(err)
 		fmt.Printf("%+v\n", pic)
 	case "getgroup":
