@@ -8,16 +8,14 @@ package types
 
 import (
 	"fmt"
-
-	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
 // MessageSource contains basic sender and chat information about a message.
 type MessageSource struct {
-	Chat     waBinary.JID // The chat where the message was sent.
-	Sender   waBinary.JID // The user who sent the message.
-	IsFromMe bool         // Whether the message was sent by the current user instead of someone else.
-	IsGroup  bool         // Whether the chat is a group chat or broadcast list.
+	Chat     JID  // The chat where the message was sent.
+	Sender   JID  // The user who sent the message.
+	IsFromMe bool // Whether the message was sent by the current user instead of someone else.
+	IsGroup  bool // Whether the chat is a group chat or broadcast list.
 }
 
 // DeviceSentMeta contains metadata from messages sent by another one of the user's own devices.

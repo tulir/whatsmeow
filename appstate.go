@@ -14,6 +14,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/events"
+	"go.mau.fi/whatsmeow/types"
 )
 
 // EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
@@ -61,9 +62,9 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error
 
 func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 	cli.dispatchEvent(&events.AppState{Index: mutation.Index, SyncActionValue: mutation.Action})
-	var jid waBinary.JID
+	var jid types.JID
 	if len(mutation.Index) > 1 {
-		jid, _ = waBinary.ParseJID(mutation.Index[1])
+		jid, _ = types.ParseJID(mutation.Index[1])
 	}
 	ts := time.Unix(mutation.Action.GetTimestamp(), 0)
 	switch mutation.Index[0] {
@@ -84,7 +85,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 			IsFromMe:  mutation.Index[3] == "1",
 		}
 		if mutation.Index[4] != "0" {
-			evt.SenderJID, _ = waBinary.ParseJID(mutation.Index[4])
+			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		cli.dispatchEvent(&evt)
 	case "deleteMessageForMe":
@@ -96,7 +97,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 			IsFromMe:  mutation.Index[3] == "1",
 		}
 		if mutation.Index[4] != "0" {
-			evt.SenderJID, _ = waBinary.ParseJID(mutation.Index[4])
+			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		cli.dispatchEvent(&evt)
 	case "setting_pushName":
@@ -108,7 +109,7 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:sync:app:state",
 		Type:      "set",
-		To:        waBinary.ServerJID,
+		To:        types.ServerJID,
 		Content: []waBinary.Node{{
 			Tag: "sync",
 			Content: []waBinary.Node{{

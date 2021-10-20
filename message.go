@@ -39,13 +39,13 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 }
 
 func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.MessageSource, err error) {
-	from, ok := node.Attrs["from"].(waBinary.JID)
+	from, ok := node.Attrs["from"].(types.JID)
 	if !ok {
 		err = fmt.Errorf("didn't find valid `from` attribute in message")
-	} else if from.Server == waBinary.GroupServer || from.Server == waBinary.BroadcastServer {
+	} else if from.Server == types.GroupServer || from.Server == types.BroadcastServer {
 		source.IsGroup = true
 		source.Chat = from
-		sender, ok := node.Attrs["participant"].(waBinary.JID)
+		sender, ok := node.Attrs["participant"].(types.JID)
 		if !ok {
 			err = fmt.Errorf("didn't find valid `participant` attribute in group message")
 		} else {
@@ -57,7 +57,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.Message
 	} else if from.User == cli.Store.ID.User {
 		source.IsFromMe = true
 		source.Sender = from
-		recipient, ok := node.Attrs["recipient"].(waBinary.JID)
+		recipient, ok := node.Attrs["recipient"].(types.JID)
 		if !ok {
 			source.Chat = from
 		} else {
@@ -148,7 +148,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	}
 }
 
-func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.JID, isPreKey bool) ([]byte, error) {
+func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
 	builder := session.NewBuilderFromSignal(cli.Store, from.SignalAddress(), pbSerializer)
@@ -176,7 +176,7 @@ func (cli *Client) decryptDM(child *waBinary.Node, from waBinary.JID, isPreKey b
 	return unpadMessage(plaintext)
 }
 
-func (cli *Client) decryptGroupMsg(child *waBinary.Node, from waBinary.JID, chat waBinary.JID) ([]byte, error) {
+func (cli *Client) decryptGroupMsg(child *waBinary.Node, from types.JID, chat types.JID) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
@@ -222,7 +222,7 @@ func padMessage(plaintext []byte) []byte {
 	return plaintext
 }
 
-func (cli *Client) handleSenderKeyDistributionMessage(chat, from waBinary.JID, rawSKDMsg *waProto.SenderKeyDistributionMessage) {
+func (cli *Client) handleSenderKeyDistributionMessage(chat, from types.JID, rawSKDMsg *waProto.SenderKeyDistributionMessage) {
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
 	sdkMsg, err := protocol.NewSenderKeyDistributionMessageFromBytes(rawSKDMsg.AxolotlSenderKeyDistributionMessage, pbSerializer.SenderKeyDistributionMessage)
@@ -338,7 +338,7 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 		Attrs: waBinary.Attrs{
 			"id":   id,
 			"type": msgType,
-			"to":   waBinary.NewJID(cli.Store.ID.User, waBinary.LegacyUserServer),
+			"to":   types.NewJID(cli.Store.ID.User, types.LegacyUserServer),
 		},
 		Content: nil,
 	})

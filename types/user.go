@@ -7,7 +7,6 @@
 package types
 
 import (
-	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
@@ -22,7 +21,7 @@ type UserInfo struct {
 	VerifiedName *VerifiedName
 	Status       string
 	PictureID    string
-	Devices      []waBinary.JID
+	Devices      []JID
 }
 
 // ProfilePictureInfo contains the ID and URL for a WhatsApp user's profile picture or group's photo.

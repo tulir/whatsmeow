@@ -9,8 +9,8 @@ package events
 import (
 	"time"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	waBinary "go.mau.fi/whatsmeow/types"
 )
 
 // Contact is emitted when an entry in the user's contact list is modified from another device.

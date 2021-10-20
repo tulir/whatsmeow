@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/events"
+	"go.mau.fi/whatsmeow/types"
 )
 
 type nodeHandler func(node *waBinary.Node)
@@ -62,7 +63,7 @@ func (cli *Client) sendPassiveIQ(passive bool) error {
 	_, err := cli.sendIQ(infoQuery{
 		Namespace: "passive",
 		Type:      "set",
-		To:        waBinary.ServerJID,
+		To:        types.ServerJID,
 		Content:   []waBinary.Node{{Tag: tag}},
 	})
 	if err != nil {

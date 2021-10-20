@@ -12,6 +12,7 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/types"
 )
 
 var (
@@ -41,7 +42,7 @@ func (cli *Client) sendKeepAlive(ctx context.Context) bool {
 	respCh, err := cli.sendIQAsync(infoQuery{
 		Namespace: "w:p",
 		Type:      "get",
-		To:        waBinary.ServerJID,
+		To:        types.ServerJID,
 		Content:   []waBinary.Node{{Tag: "ping"}},
 	})
 	if err != nil {

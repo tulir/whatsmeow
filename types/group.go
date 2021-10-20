@@ -8,14 +8,12 @@ package types
 
 import (
 	"time"
-
-	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
 // GroupInfo contains basic information about a group chat on WhatsApp.
 type GroupInfo struct {
-	JID      waBinary.JID
-	OwnerJID waBinary.JID
+	JID      JID
+	OwnerJID JID
 
 	GroupName
 	GroupTopic
@@ -32,7 +30,7 @@ type GroupInfo struct {
 type GroupName struct {
 	Name      string
 	NameSetAt time.Time
-	NameSetBy waBinary.JID
+	NameSetBy JID
 }
 
 // GroupTopic contains the topic (description) of a group along with metadata of who set it and when.
@@ -40,7 +38,7 @@ type GroupTopic struct {
 	Topic      string
 	TopicID    string
 	TopicSetAt time.Time
-	TopicSetBy waBinary.JID
+	TopicSetBy JID
 }
 
 // GroupLocked specifies whether the group info can only be edited by admins.
@@ -56,6 +54,6 @@ type GroupAnnounce struct {
 
 // GroupParticipant contains info about a participant of a WhatsApp group chat.
 type GroupParticipant struct {
-	JID     waBinary.JID
+	JID     JID
 	IsAdmin bool
 }

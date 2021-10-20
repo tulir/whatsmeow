@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"go.mau.fi/whatsmeow/binary/token"
+	"go.mau.fi/whatsmeow/types"
 )
 
 type binaryEncoder struct {
@@ -105,7 +106,7 @@ func (w *binaryEncoder) write(data interface{}) {
 	switch typedData := data.(type) {
 	case nil:
 		w.pushByte(token.ListEmpty)
-	case JID:
+	case types.JID:
 		w.writeJID(typedData)
 	case string:
 		w.writeString(typedData)
@@ -161,7 +162,7 @@ func (w *binaryEncoder) writeStringRaw(value string) {
 	w.pushString(value)
 }
 
-func (w *binaryEncoder) writeJID(jid JID) {
+func (w *binaryEncoder) writeJID(jid types.JID) {
 	if jid.AD {
 		w.pushByte(token.ADJID)
 		w.pushByte(jid.Agent)

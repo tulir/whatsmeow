@@ -16,6 +16,7 @@ import (
 	"go.mau.fi/libsignal/util/optional"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
@@ -34,7 +35,7 @@ func (cli *Client) uploadPreKeys(currentCount int) {
 	_, err = cli.sendIQ(infoQuery{
 		Namespace: "encrypt",
 		Type:      "set",
-		To:        waBinary.ServerJID,
+		To:        types.ServerJID,
 		Content: []waBinary.Node{
 			{Tag: "registration", Content: registrationIDBytes[:]},
 			{Tag: "type", Content: []byte{ecc.DjbType}},
@@ -59,7 +60,7 @@ type preKeyResp struct {
 	err    error
 }
 
-func (cli *Client) fetchPreKeys(users []waBinary.JID) (map[waBinary.JID]preKeyResp, error) {
+func (cli *Client) fetchPreKeys(users []types.JID) (map[types.JID]preKeyResp, error) {
 	requests := make([]waBinary.Node, len(users))
 	for i, user := range users {
 		requests[i].Tag = "user"
@@ -71,7 +72,7 @@ func (cli *Client) fetchPreKeys(users []waBinary.JID) (map[waBinary.JID]preKeyRe
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "encrypt",
 		Type:      "get",
-		To:        waBinary.ServerJID,
+		To:        types.ServerJID,
 		Content: []waBinary.Node{{
 			Tag:     "key",
 			Content: requests,
@@ -83,7 +84,7 @@ func (cli *Client) fetchPreKeys(users []waBinary.JID) (map[waBinary.JID]preKeyRe
 		return nil, fmt.Errorf("got empty response to prekey request")
 	}
 	list := resp.GetChildByTag("list")
-	respData := make(map[waBinary.JID]preKeyResp)
+	respData := make(map[types.JID]preKeyResp)
 	for _, child := range list.GetChildren() {
 		if child.Tag != "user" {
 			continue
@@ -115,7 +116,7 @@ func preKeyToNode(key *keys.PreKey) waBinary.Node {
 	return node
 }
 
-func nodeToPreKeyBundle(node waBinary.Node) (waBinary.JID, *prekey.Bundle, error) {
+func nodeToPreKeyBundle(node waBinary.Node) (types.JID, *prekey.Bundle, error) {
 	jid := node.AttrGetter().JID("jid")
 
 	errorNode := node.GetChildByTag("error")

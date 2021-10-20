@@ -33,7 +33,7 @@ type QR struct {
 // been completed. Note that this is generally followed by a websocket reconnection, so you should
 // wait for the Connected before trying to send anything.
 type PairSuccess struct {
-	ID           waBinary.JID
+	ID           types.JID
 	BusinessName string
 	Platform     string
 }
@@ -95,10 +95,10 @@ type Receipt struct {
 
 // GroupInfo is emitted when the metadata of a group changes.
 type GroupInfo struct {
-	JID       waBinary.JID  // The group ID in question
-	Notify    string        // Seems like a top-level type for the invite
-	Sender    *waBinary.JID // The user who made the change. Doesn't seem to be present when notify=invite
-	Timestamp time.Time     // The time when the change occurred
+	JID       types.JID  // The group ID in question
+	Notify    string     // Seems like a top-level type for the invite
+	Sender    *types.JID // The user who made the change. Doesn't seem to be present when notify=invite
+	Timestamp time.Time  // The time when the change occurred
 
 	Name     *types.GroupName     // Group name change
 	Topic    *types.GroupTopic    // Group topic (description) change
@@ -120,9 +120,9 @@ type GroupInfo struct {
 //
 // You can use Client.GetProfilePictureInfo to get the actual image URL after this event.
 type Picture struct {
-	JID       waBinary.JID // The user or group ID where the picture was changed.
-	Author    waBinary.JID // The user who changed the picture.
-	Timestamp time.Time    // The timestamp when the picture was changed.
-	Remove    bool         // True if the picture was removed.
-	PictureID string       // The new picture ID if it was not removed.
+	JID       types.JID // The user or group ID where the picture was changed.
+	Author    types.JID // The user who changed the picture.
+	Timestamp time.Time // The timestamp when the picture was changed.
+	Remove    bool      // True if the picture was removed.
+	PictureID string    // The new picture ID if it was not removed.
 }

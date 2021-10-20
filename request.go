@@ -14,6 +14,7 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/types"
 )
 
 func (cli *Client) generateRequestID() string {
@@ -70,7 +71,7 @@ func (cli *Client) receiveResponse(data *waBinary.Node) bool {
 type infoQuery struct {
 	Namespace string
 	Type      string
-	To        waBinary.JID
+	To        types.JID
 	ID        string
 	Content   interface{}
 

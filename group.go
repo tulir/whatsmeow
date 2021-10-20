@@ -16,7 +16,7 @@ import (
 )
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
-func (cli *Client) GetGroupInfo(jid waBinary.JID) (*types.GroupInfo, error) {
+func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 	res, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
 		Type:      "get",
@@ -43,7 +43,7 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*types.GroupInfo, error) {
 	var group types.GroupInfo
 	ag := groupNode.AttrGetter()
 
-	group.JID = waBinary.NewJID(ag.String("id"), waBinary.GroupServer)
+	group.JID = types.NewJID(ag.String("id"), types.GroupServer)
 	group.OwnerJID = ag.JID("creator")
 
 	group.Name = ag.String("subject")
@@ -91,7 +91,7 @@ func parseParticipantList(node *waBinary.Node) (participants []types.GroupPartic
 	children := node.GetChildren()
 	participants = make([]types.GroupParticipant, 0, len(children))
 	for _, child := range children {
-		jid, ok := child.Attrs["jid"].(waBinary.JID)
+		jid, ok := child.Attrs["jid"].(types.JID)
 		if child.Tag != "participant" || !ok {
 			continue
 		}

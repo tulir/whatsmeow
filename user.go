@@ -18,9 +18,9 @@ import (
 
 // IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
 type IsOnWhatsAppResponse struct {
-	Query string       // The query string used, plus @c.us at the end
-	JID   waBinary.JID // The canonical user ID
-	IsIn  bool         // Whether or not the phone is registered.
+	Query string    // The query string used, plus @c.us at the end
+	JID   types.JID // The canonical user ID
+	IsIn  bool      // Whether or not the phone is registered.
 
 	VerifiedName *types.VerifiedName // If the phone is a business, the verified business details.
 }
@@ -28,9 +28,9 @@ type IsOnWhatsAppResponse struct {
 // IsOnWhatsApp checks if the given phone numbers are registered on WhatsApp.
 // The phone numbers should be in international format, including the `+` prefix.
 func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error) {
-	jids := make([]waBinary.JID, len(phones))
+	jids := make([]types.JID, len(phones))
 	for i := range jids {
-		jids[i] = waBinary.NewJID(phones[i], waBinary.LegacyUserServer)
+		jids[i] = types.NewJID(phones[i], types.LegacyUserServer)
 	}
 	list, err := cli.usync(jids, "query", "interactive", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
@@ -41,7 +41,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error)
 	}
 	output := make([]IsOnWhatsAppResponse, 0, len(jids))
 	for _, child := range list.GetChildren() {
-		jid, jidOK := child.Attrs["jid"].(waBinary.JID)
+		jid, jidOK := child.Attrs["jid"].(types.JID)
 		if child.Tag != "user" || !jidOK {
 			continue
 		}
@@ -61,7 +61,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error)
 }
 
 // GetUserInfo gets basic user info (avatar, status, verified business name, device list).
-func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]types.UserInfo, error) {
+func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, error) {
 	list, err := cli.usync(jids, "full", "background", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "status"},
@@ -71,9 +71,9 @@ func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]types.User
 	if err != nil {
 		return nil, err
 	}
-	respData := make(map[waBinary.JID]types.UserInfo, len(jids))
+	respData := make(map[types.JID]types.UserInfo, len(jids))
 	for _, child := range list.GetChildren() {
-		jid, jidOK := child.Attrs["jid"].(waBinary.JID)
+		jid, jidOK := child.Attrs["jid"].(types.JID)
 		if child.Tag != "user" || !jidOK {
 			continue
 		}
@@ -95,7 +95,7 @@ func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]types.User
 }
 
 // GetUserDevices gets the list of devices that the given user has.
-func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
+func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 	list, err := cli.usync(jids, "query", "message", []waBinary.Node{
 		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
 	})
@@ -103,9 +103,9 @@ func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
 		return nil, err
 	}
 
-	var devices []waBinary.JID
+	var devices []types.JID
 	for _, user := range list.GetChildren() {
-		jid, jidOK := user.Attrs["jid"].(waBinary.JID)
+		jid, jidOK := user.Attrs["jid"].(types.JID)
 		if user.Tag != "user" || !jidOK {
 			continue
 		}
@@ -116,7 +116,7 @@ func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
 }
 
 // GetProfilePictureInfo gets the URL where you can download a WhatsApp user's profile picture or group's photo.
-func (cli *Client) GetProfilePictureInfo(jid waBinary.JID, preview bool) (*types.ProfilePictureInfo, error) {
+func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.ProfilePictureInfo, error) {
 	attrs := waBinary.Attrs{
 		"query": "url",
 	}
@@ -182,14 +182,14 @@ func parseVerifiedName(businessNode waBinary.Node) (*types.VerifiedName, error) 
 	}, nil
 }
 
-func parseDeviceList(user string, deviceNode waBinary.Node, appendTo *[]waBinary.JID, ignore *waBinary.JID) []waBinary.JID {
+func parseDeviceList(user string, deviceNode waBinary.Node, appendTo *[]types.JID, ignore *types.JID) []types.JID {
 	deviceList := deviceNode.GetChildByTag("device-list")
 	if deviceNode.Tag != "devices" || deviceList.Tag != "device-list" {
 		return nil
 	}
 	children := deviceList.GetChildren()
 	if appendTo == nil {
-		arr := make([]waBinary.JID, 0, len(children))
+		arr := make([]types.JID, 0, len(children))
 		appendTo = &arr
 	}
 	for _, device := range children {
@@ -197,7 +197,7 @@ func parseDeviceList(user string, deviceNode waBinary.Node, appendTo *[]waBinary
 		if device.Tag != "device" || !ok {
 			continue
 		}
-		deviceJID := waBinary.NewADJID(user, 0, byte(deviceID))
+		deviceJID := types.NewADJID(user, 0, byte(deviceID))
 		if ignore == nil || deviceJID != *ignore {
 			*appendTo = append(*appendTo, deviceJID)
 		}
@@ -205,7 +205,7 @@ func parseDeviceList(user string, deviceNode waBinary.Node, appendTo *[]waBinary
 	return *appendTo
 }
 
-func (cli *Client) usync(jids []waBinary.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {
+func (cli *Client) usync(jids []types.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {
 	userList := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		userList[i].Tag = "user"
@@ -213,12 +213,12 @@ func (cli *Client) usync(jids []waBinary.JID, mode, context string, query []waBi
 			jid.AD = false
 		}
 		switch jid.Server {
-		case waBinary.LegacyUserServer:
+		case types.LegacyUserServer:
 			userList[i].Content = []waBinary.Node{{
 				Tag:     "contact",
 				Content: jid.String(),
 			}}
-		case waBinary.DefaultUserServer:
+		case types.DefaultUserServer:
 			userList[i].Attrs = waBinary.Attrs{"jid": jid}
 		default:
 			return nil, fmt.Errorf("unknown user server '%s'", jid.Server)
@@ -227,7 +227,7 @@ func (cli *Client) usync(jids []waBinary.JID, mode, context string, query []waBi
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "usync",
 		Type:      "get",
-		To:        waBinary.ServerJID,
+		To:        types.ServerJID,
 		Content: []waBinary.Node{{
 			Tag: "usync",
 			Attrs: waBinary.Attrs{
