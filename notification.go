@@ -12,15 +12,23 @@ import (
 )
 
 func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
-	count := node.GetChildByTag("count")
-	ag := count.AttrGetter()
-	otksLeft := ag.Int("value")
-	if !ag.OK() {
-		cli.Log.Warnf("Didn't get number of OTKs left in encryption notification")
-		return
+	cli.Log.Infof("Got encryption notification from server: %s", node.XMLString())
+	// TODO figure out what the count attribute means, it doesn't seem to be the remaining prekey count (it's always 0).
+	//count := node.GetChildByTag("count")
+	//ag := count.AttrGetter()
+	//otksLeft := ag.Int("value")
+	//if !ag.OK() {
+	//	cli.Log.Warnf("Didn't get number of OTKs left in encryption notification")
+	//	return
+	//}
+	//cli.Log.Infof("Server said we have %d one-time keys left", otksLeft)
+	//cli.uploadPreKeys(otksLeft)
+	otksLeft, err := cli.Store.PreKeys.UploadedPreKeyCount()
+	if err != nil {
+		cli.Log.Errorf("Failed to get number of prekeys on server: %v", err)
+	} else if otksLeft < WantedPreKeyCount {
+		cli.uploadPreKeys(otksLeft)
 	}
-	cli.Log.Infof("Server said we have %d one-time keys left", otksLeft)
-	cli.uploadPreKeys(otksLeft)
 }
 
 func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
@@ -49,6 +57,14 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		go cli.handleEncryptNotification(node)
 	case "server_sync":
 		go cli.handleAppStateNotification(node)
+	case "account_sync":
+		// If we start storing device lists locally, then this should update that store
+	case "w:gp2":
+		evt, err := parseGroupChange(node)
+		if err != nil {
+			cli.Log.Errorf("Failed to parse group info change: %v", err)
+		} else {
+			go cli.dispatchEvent(evt)
+		}
 	}
-	// TODO dispatch group info changes as events
 }

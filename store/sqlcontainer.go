@@ -7,9 +7,11 @@
 package store
 
 import (
+	"crypto/rand"
 	"database/sql"
 	"errors"
 	"fmt"
+	mathRand "math/rand"
 
 	"go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
@@ -142,10 +144,21 @@ const (
 )
 
 func (c *SQLContainer) NewDevice() *Device {
-	return &Device{
+	device := &Device{
 		Log:       c.log,
 		Container: c,
+
+		NoiseKey:       keys.NewKeyPair(),
+		IdentityKey:    keys.NewKeyPair(),
+		RegistrationID: mathRand.Uint32(),
+		AdvSecretKey:   make([]byte, 32),
 	}
+	_, err := rand.Read(device.AdvSecretKey)
+	if err != nil {
+		panic(err)
+	}
+	device.SignedPreKey = device.IdentityKey.CreateSignedPreKey(1)
+	return device
 }
 
 var ErrDeviceIDMustBeSet = errors.New("device JID must be known before accessing database")

@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"encoding/binary"
 	"fmt"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -37,7 +38,7 @@ func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceiptEvent, err
 	receipt := ReadReceiptEvent{
 		From:      ag.JID("from"),
 		Recipient: ag.OptionalJID("recipient"),
-		Timestamp: ag.Int64("t"),
+		Timestamp: time.Unix(ag.Int64("t"), 0),
 	}
 	if receipt.From.Server == waBinary.GroupServer {
 		receipt.Chat = &receipt.From

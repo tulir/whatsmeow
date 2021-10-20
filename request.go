@@ -20,6 +20,21 @@ func (cli *Client) generateRequestID() string {
 	return cli.uniqueID + strconv.FormatUint(atomic.AddUint64(&cli.idCounter, 1), 10)
 }
 
+var closedNode = &waBinary.Node{Tag: "xmlstreamend"}
+
+func (cli *Client) clearResponseWaiters() {
+	cli.responseWaitersLock.Lock()
+	for _, waiter := range cli.responseWaiters {
+		select {
+		case waiter <- closedNode:
+		default:
+			close(waiter)
+		}
+	}
+	cli.responseWaiters = make(map[string]chan<- *waBinary.Node)
+	cli.responseWaitersLock.Unlock()
+}
+
 func (cli *Client) waitResponse(reqID string) chan *waBinary.Node {
 	ch := make(chan *waBinary.Node, 1)
 	cli.responseWaitersLock.Lock()
@@ -98,6 +113,9 @@ func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 	}
 	select {
 	case res := <-resChan:
+		if res == closedNode {
+			return nil, ErrIQDisconnected
+		}
 		resType, _ := res.Attrs["type"].(string)
 		if res.Tag != "iq" || (resType != "result" && resType != "error") {
 			return res, fmt.Errorf("%w tag=%s type=%s", ErrIQUnexpectedResponse, res.Tag, resType)

@@ -75,13 +75,13 @@ type Device struct {
 	NoiseKey       *keys.KeyPair
 	IdentityKey    *keys.KeyPair
 	SignedPreKey   *keys.PreKey
-	Account        *waProto.ADVSignedDeviceIdentity
 	RegistrationID uint32
 	AdvSecretKey   []byte
 
+	ID           *waBinary.JID
+	Account      *waProto.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
-	ID           *waBinary.JID
 
 	Initialized  bool
 	Identities   IdentityStore

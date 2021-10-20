@@ -74,5 +74,28 @@ type ReadReceiptEvent struct {
 	Recipient   *waBinary.JID
 	MessageID   string
 	PreviousIDs []string
-	Timestamp   int64
+	Timestamp   time.Time
+}
+
+// GroupInfoEvent is emitted when the metadata of a group changes.
+type GroupInfoEvent struct {
+	JID       waBinary.JID  // The group ID in question
+	Notify    string        // Seems like a top-level type for the invite
+	Sender    *waBinary.JID // The user who made the change. Doesn't seem to be present when notify=invite
+	Timestamp time.Time     // The time when the change occurred
+
+	Name     *GroupName     // Group name change
+	Topic    *GroupTopic    // Group topic (description) change
+	Locked   *GroupLocked   // Group locked status change (can only admins edit group info?)
+	Announce *GroupAnnounce // Group announce status change (can only admins send messages?)
+
+	PrevParticipantVersionID string
+	ParticipantVersionID     string
+
+	JoinReason string // This will be invite if the user joined via invite link
+
+	Join  []GroupParticipant // Users who joined or were added the group
+	Leave []GroupParticipant // Users who left or were removed from the group
+
+	UnknownChanges []*waBinary.Node
 }
