@@ -1,13 +1,22 @@
+// Copyright (c) 2021 Tulir Asokan
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+// Package binary implements encoding and decoding documents in WhatsApp's binary XML format.
 package binary
 
 type Attrs = map[string]interface{}
 
+// Node represents an XML element.
 type Node struct {
-	Tag     string
-	Attrs   Attrs
-	Content interface{}
+	Tag     string      // The tag of the element.
+	Attrs   Attrs       // The attributes of the element.
+	Content interface{} // The content inside the element. Can be nil, a list of Nodes, or a byte array.
 }
 
+// GetChildren returns the Content of the node as a list of nodes. If the content is not a list of nodes, this returns nil.
 func (n *Node) GetChildren() []Node {
 	if n.Content == nil {
 		return nil
@@ -19,6 +28,7 @@ func (n *Node) GetChildren() []Node {
 	return children
 }
 
+// GetChildrenByTag returns the same list as GetChildren, but filters it by tag first.
 func (n *Node) GetChildrenByTag(tag string) (children []Node) {
 	for _, node := range n.GetChildren() {
 		if node.Tag == tag {
@@ -28,6 +38,8 @@ func (n *Node) GetChildrenByTag(tag string) (children []Node) {
 	return
 }
 
+// GetOptionalChildByTag finds the first child with the given tag and returns it.
+// Each provided tag will recurse in, so this is useful for getting a specific nested element.
 func (n *Node) GetOptionalChildByTag(tags ...string) (val Node, ok bool) {
 	val = *n
 Outer:
@@ -46,17 +58,20 @@ Outer:
 	return
 }
 
+// GetChildByTag does the same thing as GetOptionalChildByTag, but returns the Node directly without the ok boolean.
 func (n *Node) GetChildByTag(tags ...string) Node {
 	node, _ := n.GetOptionalChildByTag(tags...)
 	return node
 }
 
+// Marshal encodes a Node as binary.
 func Marshal(n Node) ([]byte, error) {
 	w := NewEncoder()
 	w.WriteNode(n)
 	return w.GetData(), nil
 }
 
+// Unmarshal decodes binary XML into a Node.
 func Unmarshal(data []byte) (*Node, error) {
 	r := NewDecoder(data)
 	n, err := r.ReadNode()

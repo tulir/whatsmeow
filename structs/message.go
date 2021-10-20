@@ -12,6 +12,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
+// MessageSource contains basic sender and chat information about a message.
 type MessageSource struct {
 	Chat     waBinary.JID // The chat where the message was sent.
 	Sender   waBinary.JID // The user who sent the message.
