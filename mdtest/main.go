@@ -59,7 +59,7 @@ func (w *waLogger) Sub(module string) waLog.Logger {
 }
 
 func getDevice() *store.Device {
-	db, err := sql.Open("sqlite3", "mdtest.db")
+	db, err := sql.Open("sqlite3", "file:mdtest.db?_foreign_keys=on")
 	if err != nil {
 		log.Fatalln("Failed to open mdtest.db:", err)
 		return nil
