@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"go.mau.fi/whatsmeow/binary/token"
+	"go.mau.fi/whatsmeow/types"
 )
 
 type binaryDecoder struct {
@@ -234,9 +235,9 @@ func (r *binaryDecoder) readJIDPair() (interface{}, error) {
 	}
 
 	if user == nil {
-		return NewJID("", server.(string)), nil
+		return types.NewJID("", server.(string)), nil
 	} else {
-		return NewJID(user.(string), server.(string)), nil
+		return types.NewJID(user.(string), server.(string)), nil
 	}
 }
 
@@ -253,7 +254,7 @@ func (r *binaryDecoder) readADJID() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewADJID(user.(string), agent, device), nil
+	return types.NewADJID(user.(string), agent, device), nil
 }
 
 func (r *binaryDecoder) readAttributes(n int) (Attrs, error) {

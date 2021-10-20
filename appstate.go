@@ -13,12 +13,16 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/events"
+	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 )
 
-// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted even when re-syncing the whole state.
+// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
+// even when re-syncing the whole state.
 var EmitAppStateEventsOnFullSync = false
 
+// FetchAppState fetches updates to the given type of app state. If fullSync is true, the current
+// cached state will be removed and all app state patches will be re-fetched from the server.
 func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error {
 	if fullSync {
 		err := cli.Store.AppState.DeleteAppStateVersion(string(name))
@@ -47,9 +51,7 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error
 			return fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 		}
 		state = newState
-		fmt.Printf("%d %X\n", newState.Version, newState.Hash)
 		for _, mutation := range mutations {
-			fmt.Printf("%s %v %X %+v\n", mutation.Operation, mutation.Index, mutation.IndexMAC, mutation.Action)
 			if (!fullSync || EmitAppStateEventsOnFullSync) && mutation.Operation == waProto.SyncdMutation_SET {
 				cli.dispatchAppState(mutation)
 			}
@@ -59,21 +61,21 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error
 }
 
 func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
-	cli.dispatchEvent(&events.AppState{mutation.Index, mutation.Action})
-	var jid waBinary.JID
+	cli.dispatchEvent(&events.AppState{Index: mutation.Index, SyncActionValue: mutation.Action})
+	var jid types.JID
 	if len(mutation.Index) > 1 {
-		jid, _ = waBinary.ParseJID(mutation.Index[1])
+		jid, _ = types.ParseJID(mutation.Index[1])
 	}
 	ts := time.Unix(mutation.Action.GetTimestamp(), 0)
 	switch mutation.Index[0] {
 	case "mute":
-		cli.dispatchEvent(&events.Mute{jid, ts, mutation.Action.GetMuteAction()})
+		cli.dispatchEvent(&events.Mute{JID: jid, Timestamp: ts, Action: mutation.Action.GetMuteAction()})
 	case "pin_v1":
-		cli.dispatchEvent(&events.Pin{jid, ts, mutation.Action.GetPinAction()})
+		cli.dispatchEvent(&events.Pin{JID: jid, Timestamp: ts, Action: mutation.Action.GetPinAction()})
 	case "archive":
-		cli.dispatchEvent(&events.Archive{jid, ts, mutation.Action.GetArchiveChatAction()})
+		cli.dispatchEvent(&events.Archive{JID: jid, Timestamp: ts, Action: mutation.Action.GetArchiveChatAction()})
 	case "contact":
-		cli.dispatchEvent(&events.Contact{jid, ts, mutation.Action.GetContactAction()})
+		cli.dispatchEvent(&events.Contact{JID: jid, Timestamp: ts, Action: mutation.Action.GetContactAction()})
 	case "star":
 		evt := events.Star{
 			ChatJID:   jid,
@@ -83,7 +85,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 			IsFromMe:  mutation.Index[3] == "1",
 		}
 		if mutation.Index[4] != "0" {
-			evt.SenderJID, _ = waBinary.ParseJID(mutation.Index[4])
+			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		cli.dispatchEvent(&evt)
 	case "deleteMessageForMe":
@@ -95,11 +97,11 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 			IsFromMe:  mutation.Index[3] == "1",
 		}
 		if mutation.Index[4] != "0" {
-			evt.SenderJID, _ = waBinary.ParseJID(mutation.Index[4])
+			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		cli.dispatchEvent(&evt)
 	case "setting_pushName":
-		cli.dispatchEvent(&events.PushName{ts, mutation.Action.GetPushNameSetting()})
+		cli.dispatchEvent(&events.PushName{Timestamp: ts, Action: mutation.Action.GetPushNameSetting()})
 	}
 }
 
@@ -107,7 +109,7 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:sync:app:state",
 		Type:      "set",
-		To:        waBinary.ServerJID,
+		To:        types.ServerJID,
 		Content: []waBinary.Node{{
 			Tag: "sync",
 			Content: []waBinary.Node{{

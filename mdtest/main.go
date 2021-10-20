@@ -28,8 +28,9 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/events"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
@@ -146,31 +147,31 @@ func handleCmd(cmd string, args []string) {
 		fmt.Println(err)
 		fmt.Printf("%+v\n", resp)
 	case "getuser":
-		var jids []waBinary.JID
+		var jids []types.JID
 		for _, jid := range args {
-			jids = append(jids, waBinary.NewJID(jid, waBinary.DefaultUserServer))
+			jids = append(jids, types.NewJID(jid, types.DefaultUserServer))
 		}
 		resp, err := cli.GetUserInfo(jids)
 		fmt.Println(err)
 		fmt.Printf("%+v\n", resp)
 	case "getavatar":
-		jid := waBinary.NewJID(args[0], waBinary.DefaultUserServer)
+		jid := types.NewJID(args[0], types.DefaultUserServer)
 		if len(args) > 1 && args[1] == "group" {
-			jid.Server = waBinary.GroupServer
+			jid.Server = types.GroupServer
 			args = args[1:]
 		}
 		pic, err := cli.GetProfilePictureInfo(jid, len(args) > 1 && args[1] == "preview")
 		fmt.Println(err)
 		fmt.Printf("%+v\n", pic)
 	case "getgroup":
-		resp, err := cli.GetGroupInfo(waBinary.NewJID(args[0], waBinary.GroupServer))
+		resp, err := cli.GetGroupInfo(types.NewJID(args[0], types.GroupServer))
 		fmt.Println(err)
 		fmt.Printf("%+v\n", resp)
 	case "send", "gsend":
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		recipient := waBinary.NewJID(args[0], waBinary.DefaultUserServer)
+		recipient := types.NewJID(args[0], types.DefaultUserServer)
 		if cmd == "gsend" {
-			recipient.Server = waBinary.GroupServer
+			recipient.Server = types.GroupServer
 		}
 		err := cli.SendMessage(recipient, "", msg)
 		fmt.Println("Send message response:", err)
@@ -195,9 +196,9 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(data))),
 		}}
-		recipient := waBinary.NewJID(args[0], waBinary.DefaultUserServer)
+		recipient := types.NewJID(args[0], types.DefaultUserServer)
 		if cmd == "gsendimg" {
-			recipient.Server = waBinary.GroupServer
+			recipient.Server = types.GroupServer
 		}
 		err = cli.SendMessage(recipient, "", msg)
 		fmt.Println("Send image error:", err)
@@ -235,6 +236,8 @@ func handler(rawEvt interface{}) {
 		}
 	case *events.Receipt:
 		log.Infofln("Received receipt: %+v", evt)
+	case *events.AppState:
+		log.Debugfln("App state event: %+v", evt)
 	}
 }
 

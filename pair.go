@@ -21,7 +21,8 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/events"
+	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
@@ -29,7 +30,7 @@ const qrScanTimeout = 30 * time.Second
 
 func (cli *Client) handleIQ(node *waBinary.Node) {
 	children := node.GetChildren()
-	if len(children) != 1 || node.Attrs["from"] != waBinary.ServerJID {
+	if len(children) != 1 || node.Attrs["from"] != types.ServerJID {
 		return
 	}
 	switch children[0].Tag {
@@ -87,7 +88,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 
 	deviceIdentityBytes, _ := pairSuccess.GetChildByTag("device-identity").Content.([]byte)
 	businessName, _ := pairSuccess.GetChildByTag("biz").Attrs["name"].(string)
-	wid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(waBinary.JID)
+	wid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
 
 	go func() {
@@ -100,7 +101,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	}()
 }
 
-func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, wid waBinary.JID) error {
+func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, wid types.JID) error {
 	var deviceIdentityContainer waProto.ADVSignedDeviceIdentityHMAC
 	err := proto.Unmarshal(deviceIdentityBytes, &deviceIdentityContainer)
 	if err != nil {
@@ -161,7 +162,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	err = cli.sendNode(waBinary.Node{
 		Tag: "iq",
 		Attrs: waBinary.Attrs{
-			"to":   waBinary.ServerJID,
+			"to":   types.ServerJID,
 			"type": "result",
 			"id":   reqID,
 		},
@@ -219,7 +220,7 @@ func (cli *Client) sendNotAuthorized(id string) waBinary.Node {
 	return waBinary.Node{
 		Tag: "iq",
 		Attrs: waBinary.Attrs{
-			"to":   waBinary.ServerJID,
+			"to":   types.ServerJID,
 			"type": "error",
 			"id":   id,
 		},

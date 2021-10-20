@@ -25,6 +25,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/types"
 )
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
@@ -39,7 +40,7 @@ func GenerateMessageID() string {
 }
 
 // SendMessage sends the given message.
-func (cli *Client) SendMessage(to waBinary.JID, id string, message *waProto.Message) error {
+func (cli *Client) SendMessage(to types.JID, id string, message *waProto.Message) error {
 	if to.AD {
 		return ErrRecipientADJID
 	}
@@ -49,11 +50,11 @@ func (cli *Client) SendMessage(to waBinary.JID, id string, message *waProto.Mess
 	}
 
 	switch to.Server {
-	case waBinary.GroupServer:
+	case types.GroupServer:
 		return cli.sendGroup(to, id, message)
-	case waBinary.DefaultUserServer:
+	case types.DefaultUserServer:
 		return cli.sendDM(to, id, message)
-	case waBinary.BroadcastServer:
+	case types.BroadcastServer:
 		return ErrBroadcastListUnsupported
 	default:
 		return fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
@@ -66,7 +67,7 @@ func participantListHashV2(participantJIDs []string) string {
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendGroup(to waBinary.JID, id string, message *waProto.Message) error {
+func (cli *Client) sendGroup(to types.JID, id string, message *waProto.Message) error {
 	groupInfo, err := cli.GetGroupInfo(to)
 	if err != nil {
 		return fmt.Errorf("failed to get group info: %w", err)
@@ -101,7 +102,7 @@ func (cli *Client) sendGroup(to waBinary.JID, id string, message *waProto.Messag
 	}
 	ciphertext := encrypted.SignedSerialize()
 
-	participants := make([]waBinary.JID, len(groupInfo.Participants))
+	participants := make([]types.JID, len(groupInfo.Participants))
 	participantsStrings := make([]string, len(groupInfo.Participants))
 	for i, part := range groupInfo.Participants {
 		participants[i] = part.JID
@@ -140,13 +141,13 @@ func (cli *Client) sendGroup(to waBinary.JID, id string, message *waProto.Messag
 	return nil
 }
 
-func (cli *Client) sendDM(to waBinary.JID, id string, message *waProto.Message) error {
+func (cli *Client) sendDM(to types.JID, id string, message *waProto.Message) error {
 	messagePlaintext, deviceSentMessagePlaintext, err := marshalMessage(to, message)
 	if err != nil {
 		return err
 	}
 
-	allDevices, err := cli.GetUserDevices([]waBinary.JID{to, *cli.Store.ID})
+	allDevices, err := cli.GetUserDevices([]types.JID{to, *cli.Store.ID})
 	if err != nil {
 		return fmt.Errorf("failed to get device list: %w", err)
 	}
@@ -177,14 +178,14 @@ func (cli *Client) sendDM(to waBinary.JID, id string, message *waProto.Message) 
 	return nil
 }
 
-func marshalMessage(to waBinary.JID, message *waProto.Message) (plaintext, dsmPlaintext []byte, err error) {
+func marshalMessage(to types.JID, message *waProto.Message) (plaintext, dsmPlaintext []byte, err error) {
 	plaintext, err = proto.Marshal(message)
 	if err != nil {
 		err = fmt.Errorf("failed to marshal message: %w", err)
 		return
 	}
 
-	if to.Server != waBinary.GroupServer {
+	if to.Server != types.GroupServer {
 		dsmPlaintext, err = proto.Marshal(&waProto.Message{
 			DeviceSentMessage: &waProto.DeviceSentMessage{
 				DestinationJid: proto.String(to.String()),
@@ -212,10 +213,10 @@ func (cli *Client) appendDeviceIdentityNode(node *waBinary.Node) error {
 	return nil
 }
 
-func (cli *Client) encryptMessageForDevices(allDevices []waBinary.JID, id string, msgPlaintext, dsmPlaintext []byte) ([]waBinary.Node, bool) {
+func (cli *Client) encryptMessageForDevices(allDevices []types.JID, id string, msgPlaintext, dsmPlaintext []byte) ([]waBinary.Node, bool) {
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
-	var retryDevices []waBinary.JID
+	var retryDevices []types.JID
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
 		if jid.User == cli.Store.ID.User && dsmPlaintext != nil {
@@ -264,7 +265,7 @@ func (cli *Client) encryptMessageForDevices(allDevices []waBinary.JID, id string
 	return participantNodes, includeIdentity
 }
 
-func (cli *Client) encryptMessageForDevice(plaintext []byte, to waBinary.JID, bundle *prekey.Bundle) (*waBinary.Node, bool, error) {
+func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle) (*waBinary.Node, bool, error) {
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if !cli.Store.ContainsSession(to.SignalAddress()) {
 		if bundle != nil {

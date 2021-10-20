@@ -9,6 +9,8 @@ package binary
 import (
 	"fmt"
 	"strconv"
+
+	"go.mau.fi/whatsmeow/types"
 )
 
 type AttrUtility struct {
@@ -20,19 +22,19 @@ func (n *Node) AttrGetter() *AttrUtility {
 	return &AttrUtility{Attrs: n.Attrs, Errors: make([]error, 0)}
 }
 
-func (au *AttrUtility) GetJID(key string, require bool) (jidVal JID, ok bool) {
+func (au *AttrUtility) GetJID(key string, require bool) (jidVal types.JID, ok bool) {
 	var val interface{}
 	if val, ok = au.Attrs[key]; !ok {
 		if require {
 			au.Errors = append(au.Errors, fmt.Errorf("didn't find required JID attribute '%s'", key))
 		}
-	} else if jidVal, ok = val.(JID); !ok {
+	} else if jidVal, ok = val.(types.JID); !ok {
 		au.Errors = append(au.Errors, fmt.Errorf("expected attribute '%s' to be JID, but was %T", key, val))
 	}
 	return
 }
 
-func (au *AttrUtility) OptionalJID(key string) *JID {
+func (au *AttrUtility) OptionalJID(key string) *types.JID {
 	jid, ok := au.GetJID(key, false)
 	if ok {
 		return &jid
@@ -40,7 +42,7 @@ func (au *AttrUtility) OptionalJID(key string) *JID {
 	return nil
 }
 
-func (au *AttrUtility) JID(key string) JID {
+func (au *AttrUtility) JID(key string) types.JID {
 	jid, _ := au.GetJID(key, true)
 	return jid
 }

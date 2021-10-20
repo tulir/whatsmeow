@@ -13,7 +13,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/structs"
+	"go.mau.fi/whatsmeow/types"
 )
 
 // QR is emitted after connecting when there's no session data in the device store.
@@ -33,7 +33,7 @@ type QR struct {
 // been completed. Note that this is generally followed by a websocket reconnection, so you should
 // wait for the Connected before trying to send anything.
 type PairSuccess struct {
-	ID           waBinary.JID
+	ID           types.JID
 	BusinessName string
 	Platform     string
 }
@@ -53,8 +53,8 @@ type HistorySync struct {
 
 // Message is emitted when receiving a new message.
 type Message struct {
-	Info        structs.MessageInfo // Information about the message like the chat and sender IDs
-	Message     *waProto.Message    // The actual message struct
+	Info        types.MessageInfo // Information about the message like the chat and sender IDs
+	Message     *waProto.Message  // The actual message struct
 	IsEphemeral bool
 	IsViewOnce  bool
 
@@ -86,7 +86,7 @@ func (rt ReceiptType) GoString() string {
 
 // Receipt is emitted when an outgoing message is delivered to or read by another user, or when another device reads an incoming message.
 type Receipt struct {
-	structs.MessageSource
+	types.MessageSource
 	MessageID   string
 	Timestamp   time.Time
 	Type        ReceiptType
@@ -95,23 +95,23 @@ type Receipt struct {
 
 // GroupInfo is emitted when the metadata of a group changes.
 type GroupInfo struct {
-	JID       waBinary.JID  // The group ID in question
-	Notify    string        // Seems like a top-level type for the invite
-	Sender    *waBinary.JID // The user who made the change. Doesn't seem to be present when notify=invite
-	Timestamp time.Time     // The time when the change occurred
+	JID       types.JID  // The group ID in question
+	Notify    string     // Seems like a top-level type for the invite
+	Sender    *types.JID // The user who made the change. Doesn't seem to be present when notify=invite
+	Timestamp time.Time  // The time when the change occurred
 
-	Name     *structs.GroupName     // Group name change
-	Topic    *structs.GroupTopic    // Group topic (description) change
-	Locked   *structs.GroupLocked   // Group locked status change (can only admins edit group info?)
-	Announce *structs.GroupAnnounce // Group announce status change (can only admins send messages?)
+	Name     *types.GroupName     // Group name change
+	Topic    *types.GroupTopic    // Group topic (description) change
+	Locked   *types.GroupLocked   // Group locked status change (can only admins edit group info?)
+	Announce *types.GroupAnnounce // Group announce status change (can only admins send messages?)
 
 	PrevParticipantVersionID string
 	ParticipantVersionID     string
 
 	JoinReason string // This will be invite if the user joined via invite link
 
-	Join  []structs.GroupParticipant // Users who joined or were added the group
-	Leave []structs.GroupParticipant // Users who left or were removed from the group
+	Join  []types.GroupParticipant // Users who joined or were added the group
+	Leave []types.GroupParticipant // Users who left or were removed from the group
 
 	UnknownChanges []*waBinary.Node
 }
@@ -120,9 +120,9 @@ type GroupInfo struct {
 //
 // You can use Client.GetProfilePictureInfo to get the actual image URL after this event.
 type Picture struct {
-	JID       waBinary.JID // The user or group ID where the picture was changed.
-	Author    waBinary.JID // The user who changed the picture.
-	Timestamp time.Time    // The timestamp when the picture was changed.
-	Remove    bool         // True if the picture was removed.
-	PictureID string       // The new picture ID if it was not removed.
+	JID       types.JID // The user or group ID where the picture was changed.
+	Author    types.JID // The user who changed the picture.
+	Timestamp time.Time // The timestamp when the picture was changed.
+	Remove    bool      // True if the picture was removed.
+	PictureID string    // The new picture ID if it was not removed.
 }

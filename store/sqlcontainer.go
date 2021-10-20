@@ -13,8 +13,8 @@ import (
 	"fmt"
 	mathRand "math/rand"
 
-	"go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
@@ -89,7 +89,7 @@ func (c *SQLContainer) scanDevice(row scannable) (*Device, error) {
 	store.SignedPreKey.KeyPair = *keys.NewKeyPairFromPrivateKey(*(*[32]byte)(preKeyPriv))
 	store.SignedPreKey.Signature = (*[64]byte)(preKeySig)
 
-	jidVal, err := binary.ParseJID(jid)
+	jidVal, err := types.ParseJID(jid)
 	if err != nil {
 		return nil, fmt.Errorf("invalid JID in database: %w", err)
 	}

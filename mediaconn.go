@@ -11,6 +11,7 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/types"
 )
 
 //type MediaConnIP struct {
@@ -56,7 +57,7 @@ func (cli *Client) queryMediaConn() (*MediaConn, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:m",
 		Type:      "set",
-		To:        waBinary.ServerJID,
+		To:        types.ServerJID,
 		Content:   []waBinary.Node{{Tag: "media_conn"}},
 	})
 	if err != nil {

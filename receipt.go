@@ -16,8 +16,8 @@ import (
 	"go.mau.fi/libsignal/ecc"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/events"
-	"go.mau.fi/whatsmeow/structs"
+	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 )
 
 func (cli *Client) handleReceipt(node *waBinary.Node) {
@@ -83,7 +83,7 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) sendMessageReceipt(info *structs.MessageInfo) {
+func (cli *Client) sendMessageReceipt(info *types.MessageInfo) {
 	attrs := waBinary.Attrs{
 		"id": info.ID,
 	}
