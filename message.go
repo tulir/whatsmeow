@@ -22,14 +22,15 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/events"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/structs"
 )
 
 var pbSerializer = store.SignalProtobufSerializer
 
 func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
-	info, err := parseMessageInfo(node)
-	info.IsFromMe = info.From.User == cli.Store.ID.User
+	info, err := cli.parseMessageInfo(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
@@ -37,51 +38,46 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	}
 }
 
-// MessageInfo contains metadata about an incoming message.
-type MessageInfo struct {
-	From      waBinary.JID  // The user who sent the message.
-	Chat      *waBinary.JID // For group and broadcast messages, the chat where the message was sent.
-	Recipient *waBinary.JID // For direct messages sent by the user, the user who the message was sent to.
-	IsFromMe  bool
-	ID        string
-	Type      string
-	Notify    string
-	Timestamp int64
-	Category  string
-}
-
-// SourceString returns a log-friendly representation of who sent the message and where.
-func (mi *MessageInfo) SourceString() string {
-	if mi.Chat != nil {
-		return fmt.Sprintf("%s in %s", mi.From, mi.Chat)
-	} else if mi.Recipient != nil {
-		return fmt.Sprintf("%s to %s", mi.From, mi.Recipient)
-	} else {
-		return mi.From.String()
-	}
-}
-
-func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
-	var info MessageInfo
-
+func (cli *Client) parseMessageSource(node *waBinary.Node) (source structs.MessageSource, err error) {
 	from, ok := node.Attrs["from"].(waBinary.JID)
 	if !ok {
-		return nil, fmt.Errorf("didn't find valid `from` attribute in message")
-	}
-	recipient, ok := node.Attrs["recipient"].(waBinary.JID)
-	if ok {
-		info.Recipient = &recipient
-	}
-	if from.Server == waBinary.GroupServer || from.Server == waBinary.BroadcastServer {
-		info.Chat = &from
-		info.From, ok = node.Attrs["participant"].(waBinary.JID)
+		err = fmt.Errorf("didn't find valid `from` attribute in message")
+	} else if from.Server == waBinary.GroupServer || from.Server == waBinary.BroadcastServer {
+		source.IsGroup = true
+		source.Chat = from
+		sender, ok := node.Attrs["participant"].(waBinary.JID)
 		if !ok {
-			return nil, fmt.Errorf("didn't find valid `participant` attribute in group message")
+			err = fmt.Errorf("didn't find valid `participant` attribute in group message")
+		} else {
+			source.Sender = sender
+			if source.Sender.User == cli.Store.ID.User {
+				source.IsFromMe = true
+			}
+		}
+	} else if from.User == cli.Store.ID.User {
+		source.IsFromMe = true
+		source.Sender = from
+		recipient, ok := node.Attrs["recipient"].(waBinary.JID)
+		if !ok {
+			source.Chat = from
+		} else {
+			source.Chat = recipient
 		}
 	} else {
-		info.From = from
+		source.Chat = from
+		source.Sender = from
 	}
+	return
+}
 
+func (cli *Client) parseMessageInfo(node *waBinary.Node) (*structs.MessageInfo, error) {
+	var info structs.MessageInfo
+	var err error
+	var ok bool
+	info.MessageSource, err = cli.parseMessageSource(node)
+	if err != nil {
+		return nil, err
+	}
 	info.ID, ok = node.Attrs["id"].(string)
 	if !ok {
 		return nil, fmt.Errorf("didn't find valid `id` attribute in message")
@@ -90,7 +86,6 @@ func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
 	if !ok {
 		return nil, fmt.Errorf("didn't find valid `t` (timestamp) attribute in message")
 	}
-	var err error
 	info.Timestamp, err = strconv.ParseInt(ts, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("didn't find valid `t` (timestamp) attribute in message: %w", err)
@@ -102,7 +97,7 @@ func parseMessageInfo(node *waBinary.Node) (*MessageInfo, error) {
 	return &info, nil
 }
 
-func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
+func (cli *Client) decryptMessages(info *structs.MessageInfo, node *waBinary.Node) {
 	if len(node.GetChildrenByTag("unavailable")) == len(node.GetChildren()) {
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
 		go cli.sendRetryReceipt(node, true)
@@ -122,9 +117,9 @@ func (cli *Client) decryptMessages(info *MessageInfo, node *waBinary.Node) {
 		var decrypted []byte
 		var err error
 		if encType == "pkmsg" || encType == "msg" {
-			decrypted, err = cli.decryptDM(&child, info.From, encType == "pkmsg")
-		} else if info.Chat != nil && encType == "skmsg" {
-			decrypted, err = cli.decryptGroupMsg(&child, info.From, *info.Chat)
+			decrypted, err = cli.decryptDM(&child, info.Sender, encType == "pkmsg")
+		} else if info.IsGroup && encType == "skmsg" {
+			decrypted, err = cli.decryptGroupMsg(&child, info.Sender, info.Chat)
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
 			continue
@@ -251,7 +246,7 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 		cli.Log.Errorf("Failed to unmarshal history sync data: %v", err)
 	} else {
 		cli.Log.Debugf("Received history sync")
-		cli.dispatchEvent(&HistorySyncEvent{
+		cli.dispatchEvent(&events.HistorySync{
 			Data: &historySync,
 		})
 	}
@@ -277,7 +272,7 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 	}
 }
 
-func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message) {
+func (cli *Client) handleProtocolMessage(info *structs.MessageInfo, msg *waProto.Message) {
 	protoMsg := msg.GetProtocolMessage()
 
 	if protoMsg.GetHistorySyncNotification() != nil && info.IsFromMe {
@@ -294,25 +289,25 @@ func (cli *Client) handleProtocolMessage(info *MessageInfo, msg *waProto.Message
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(info *MessageInfo, msg *waProto.Message) {
-	cli.Log.Infof("Received message: %+v -- info: %+v\n", msg, info)
+func (cli *Client) handleDecryptedMessage(info *structs.MessageInfo, msg *waProto.Message) {
+	fmt.Printf("Raw message: %+v -- info: %+v\n", msg, info)
 
-	evt := &MessageEvent{Info: info, RawMessage: msg}
+	evt := &events.Message{Info: *info, RawMessage: msg}
 
 	// First unwrap device sent messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
-		evt.DeviceSentMeta = &DeviceSentMeta{
+		evt.Info.DeviceSentMeta = &structs.DeviceSentMeta{
 			DestinationJID: msg.GetDeviceSentMessage().GetDestinationJid(),
 			Phash:          msg.GetDeviceSentMessage().GetPhash(),
 		}
 	}
 
 	if msg.GetSenderKeyDistributionMessage() != nil {
-		if info.Chat == nil {
-			cli.Log.Warnf("Got sender key distribution message in unknown chat from", info.From)
+		if !info.IsGroup {
+			cli.Log.Warnf("Got sender key distribution message in non-group chat from", info.Sender)
 		} else {
-			cli.handleSenderKeyDistributionMessage(*info.Chat, info.From, msg.SenderKeyDistributionMessage)
+			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, msg.SenderKeyDistributionMessage)
 		}
 	}
 	if msg.GetProtocolMessage() != nil {

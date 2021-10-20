@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/events"
 )
 
 type nodeHandler func(node *waBinary.Node)
@@ -27,7 +28,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 	case "401":
 		conflict, ok := node.GetOptionalChildByTag("conflict")
 		if ok && conflict.AttrGetter().String("type") == "device_removed" {
-			go cli.dispatchEvent(&LoggedOutEvent{})
+			go cli.dispatchEvent(&events.LoggedOut{})
 			err := cli.Store.Delete()
 			if err != nil {
 				cli.Log.Warnf("Failed to delete store after device_removed error:", err)
@@ -49,7 +50,7 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
-		cli.dispatchEvent(&ConnectedEvent{})
+		cli.dispatchEvent(&events.Connected{})
 	}()
 }
 

@@ -16,33 +16,30 @@ import (
 	"go.mau.fi/libsignal/ecc"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/events"
+	"go.mau.fi/whatsmeow/structs"
 )
 
 func (cli *Client) handleReceipt(node *waBinary.Node) {
-	if node.AttrGetter().OptionalString("type") == "read" {
-		receipt, err := cli.parseReadReceipt(node)
-		if err != nil {
-			cli.Log.Warnf("Failed to parse read receipt: %v", err)
-		} else {
-			go cli.dispatchEvent(receipt)
-		}
+	receipt, err := cli.parseReceipt(node)
+	if err != nil {
+		cli.Log.Warnf("Failed to parse receipt: %v", err)
+	} else {
+		go cli.dispatchEvent(receipt)
 	}
 	go cli.sendAck(node)
 }
 
-func (cli *Client) parseReadReceipt(node *waBinary.Node) (*ReadReceiptEvent, error) {
+func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 	ag := node.AttrGetter()
-	if ag.String("type") != "read" {
-		return nil, nil
+	source, err := cli.parseMessageSource(node)
+	if err != nil {
+		return nil, err
 	}
-	receipt := ReadReceiptEvent{
-		From:      ag.JID("from"),
-		Recipient: ag.OptionalJID("recipient"),
-		Timestamp: time.Unix(ag.Int64("t"), 0),
-	}
-	if receipt.From.Server == waBinary.GroupServer {
-		receipt.Chat = &receipt.From
-		receipt.From = ag.JID("participant")
+	receipt := events.Receipt{
+		MessageSource: source,
+		Timestamp:     time.Unix(ag.Int64("t"), 0),
+		Type:          events.ReceiptType(ag.OptionalString("type")),
 	}
 	receipt.MessageID = ag.String("id")
 	if !ag.OK() {
@@ -86,24 +83,20 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) sendMessageReceipt(info *MessageInfo) {
+func (cli *Client) sendMessageReceipt(info *structs.MessageInfo) {
 	attrs := waBinary.Attrs{
 		"id": info.ID,
 	}
-	isFromMe := info.From.User == cli.Store.ID.User
-	if isFromMe {
+	if info.IsFromMe {
 		attrs["type"] = "sender"
 	} else {
 		attrs["type"] = "inactive"
 	}
-	if info.Chat != nil {
-		attrs["to"] = *info.Chat
-		attrs["participant"] = info.From
-	} else {
-		attrs["to"] = info.From
-		if isFromMe && info.Recipient != nil {
-			attrs["recipient"] = *info.Recipient
-		}
+	attrs["to"] = info.Chat
+	if info.IsGroup {
+		attrs["participant"] = info.Sender
+	} else if info.IsFromMe {
+		attrs["recipient"] = info.Sender
 	}
 	err := cli.sendNode(waBinary.Node{
 		Tag:   "receipt",

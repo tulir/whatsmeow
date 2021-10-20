@@ -13,6 +13,7 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/events"
 )
 
 // EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted even when re-syncing the whole state.
@@ -58,7 +59,7 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error
 }
 
 func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
-	cli.dispatchEvent(&AppStateEvent{mutation.Index, mutation.Action})
+	cli.dispatchEvent(&events.AppState{mutation.Index, mutation.Action})
 	var jid waBinary.JID
 	if len(mutation.Index) > 1 {
 		jid, _ = waBinary.ParseJID(mutation.Index[1])
@@ -66,15 +67,15 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 	ts := time.Unix(mutation.Action.GetTimestamp(), 0)
 	switch mutation.Index[0] {
 	case "mute":
-		cli.dispatchEvent(&MuteEvent{jid, ts, mutation.Action.GetMuteAction()})
+		cli.dispatchEvent(&events.Mute{jid, ts, mutation.Action.GetMuteAction()})
 	case "pin_v1":
-		cli.dispatchEvent(&PinEvent{jid, ts, mutation.Action.GetPinAction()})
+		cli.dispatchEvent(&events.Pin{jid, ts, mutation.Action.GetPinAction()})
 	case "archive":
-		cli.dispatchEvent(&ArchiveEvent{jid, ts, mutation.Action.GetArchiveChatAction()})
+		cli.dispatchEvent(&events.Archive{jid, ts, mutation.Action.GetArchiveChatAction()})
 	case "contact":
-		cli.dispatchEvent(&ContactEvent{jid, ts, mutation.Action.GetContactAction()})
+		cli.dispatchEvent(&events.Contact{jid, ts, mutation.Action.GetContactAction()})
 	case "star":
-		evt := StarEvent{
+		evt := events.Star{
 			ChatJID:   jid,
 			MessageID: mutation.Index[2],
 			Timestamp: ts,
@@ -86,7 +87,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 		}
 		cli.dispatchEvent(&evt)
 	case "deleteMessageForMe":
-		evt := DeleteForMeEvent{
+		evt := events.DeleteForMe{
 			ChatJID:   jid,
 			MessageID: mutation.Index[2],
 			Timestamp: ts,
@@ -98,7 +99,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 		}
 		cli.dispatchEvent(&evt)
 	case "setting_pushName":
-		cli.dispatchEvent(&PushNameEvent{ts, mutation.Action.GetPushNameSetting()})
+		cli.dispatchEvent(&events.PushName{ts, mutation.Action.GetPushNameSetting()})
 	}
 }
 

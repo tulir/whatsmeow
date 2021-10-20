@@ -11,58 +11,12 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/events"
+	"go.mau.fi/whatsmeow/structs"
 )
 
-// GroupParticipant contains info about a participant of a WhatsApp group chat.
-type GroupParticipant struct {
-	JID     waBinary.JID
-	IsAdmin bool
-}
-
-// GroupInfo contains basic information about a group chat on WhatsApp.
-type GroupInfo struct {
-	JID      waBinary.JID
-	OwnerJID waBinary.JID
-
-	GroupName
-	GroupTopic
-	GroupLocked
-	GroupAnnounce
-
-	GroupCreated time.Time
-
-	ParticipantVersionID string
-	Participants         []GroupParticipant
-}
-
-// GroupName contains the name of a group along with metadata of who set it and when.
-type GroupName struct {
-	Name      string
-	NameSetAt time.Time
-	NameSetBy waBinary.JID
-}
-
-// GroupTopic contains the topic (description) of a group along with metadata of who set it and when.
-type GroupTopic struct {
-	Topic      string
-	TopicID    string
-	TopicSetAt time.Time
-	TopicSetBy waBinary.JID
-}
-
-// GroupLocked specifies whether the group info can only be edited by admins.
-type GroupLocked struct {
-	IsLocked bool
-}
-
-// GroupAnnounce specifies whether only admins can send messages in the group.
-type GroupAnnounce struct {
-	IsAnnounce        bool
-	AnnounceVersionID string
-}
-
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
-func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
+func (cli *Client) GetGroupInfo(jid waBinary.JID) (*structs.GroupInfo, error) {
 	res, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
 		Type:      "get",
@@ -86,7 +40,7 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
 		return nil, fmt.Errorf("group info request didn't return group info")
 	}
 
-	var group GroupInfo
+	var group structs.GroupInfo
 	ag := groupNode.AttrGetter()
 
 	group.JID = waBinary.NewJID(ag.String("id"), waBinary.GroupServer)
@@ -105,7 +59,7 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
 		childAG := child.AttrGetter()
 		switch child.Tag {
 		case "participant":
-			participant := GroupParticipant{
+			participant := structs.GroupParticipant{
 				IsAdmin: childAG.OptionalString("type") == "admin",
 				JID:     childAG.JID("jid"),
 			}
@@ -133,22 +87,22 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*GroupInfo, error) {
 	return &group, nil
 }
 
-func parseParticipantList(node *waBinary.Node) (participants []GroupParticipant) {
+func parseParticipantList(node *waBinary.Node) (participants []structs.GroupParticipant) {
 	children := node.GetChildren()
-	participants = make([]GroupParticipant, 0, len(children))
+	participants = make([]structs.GroupParticipant, 0, len(children))
 	for _, child := range children {
 		jid, ok := child.Attrs["jid"].(waBinary.JID)
 		if child.Tag != "participant" || !ok {
 			continue
 		}
 		pType, _ := child.Attrs["type"].(string)
-		participants = append(participants, GroupParticipant{JID: jid, IsAdmin: pType == "admin"})
+		participants = append(participants, structs.GroupParticipant{JID: jid, IsAdmin: pType == "admin"})
 	}
 	return
 }
 
-func parseGroupChange(node *waBinary.Node) (*GroupInfoEvent, error) {
-	var evt GroupInfoEvent
+func parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
+	var evt events.GroupInfo
 	ag := node.AttrGetter()
 	evt.JID = ag.JID("from")
 	evt.Notify = ag.OptionalString("notify")
@@ -171,16 +125,16 @@ func parseGroupChange(node *waBinary.Node) (*GroupInfoEvent, error) {
 			evt.ParticipantVersionID = cag.String("v_id")
 			evt.Leave = parseParticipantList(&child)
 		case "locked":
-			evt.Locked = &GroupLocked{true}
+			evt.Locked = &structs.GroupLocked{IsLocked: true}
 		case "unlocked":
-			evt.Locked = &GroupLocked{false}
+			evt.Locked = &structs.GroupLocked{IsLocked: false}
 		case "announcement":
-			evt.Announce = &GroupAnnounce{
+			evt.Announce = &structs.GroupAnnounce{
 				IsAnnounce:        true,
 				AnnounceVersionID: cag.String("v_id"),
 			}
 		case "not_announcement":
-			evt.Announce = &GroupAnnounce{
+			evt.Announce = &structs.GroupAnnounce{
 				IsAnnounce:        false,
 				AnnounceVersionID: cag.String("v_id"),
 			}

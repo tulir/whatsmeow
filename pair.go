@@ -21,6 +21,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/events"
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
@@ -53,7 +54,7 @@ func (cli *Client) handlePairDevice(node *waBinary.Node) {
 		cli.Log.Warnf("Failed to send acknowledgement for pair-device request: %v", err)
 	}
 
-	evt := &QREvent{
+	evt := &events.QR{
 		Codes:   make([]string, 0, len(pairDevice.GetChildren())),
 		Timeout: qrScanTimeout,
 	}
@@ -179,7 +180,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		_ = cli.Store.Delete()
 		return fmt.Errorf("failed to send pairing confirmation: %w", err)
 	}
-	cli.dispatchEvent(&PairSuccessEvent{ID: wid, BusinessName: businessName, Platform: platform})
+	cli.dispatchEvent(&events.PairSuccess{ID: wid, BusinessName: businessName, Platform: platform})
 	return nil
 }
 
