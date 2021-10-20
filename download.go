@@ -44,6 +44,16 @@ type DownloadableMessage interface {
 	ProtoReflect() protoreflect.Message
 }
 
+// All the message types that are intended to be downloadable
+var (
+	_ DownloadableMessage = (*waProto.ImageMessage)(nil)
+	_ DownloadableMessage = (*waProto.AudioMessage)(nil)
+	_ DownloadableMessage = (*waProto.VideoMessage)(nil)
+	_ DownloadableMessage = (*waProto.DocumentMessage)(nil)
+	_ DownloadableMessage = (*waProto.StickerMessage)(nil)
+	_ DownloadableMessage = (*waProto.HistorySyncNotification)(nil)
+)
+
 type downloadableMessageWithURL interface {
 	DownloadableMessage
 	GetUrl() string
@@ -63,6 +73,7 @@ var mediaTypeToMMSType = map[MediaType]string{
 	MediaHistory: "md-msg-hist",
 }
 
+// DownloadAny loops through the downloadable parts of the given message and downloads the first non-nil item.
 func (cli *Client) DownloadAny(msg *waProto.Message) (data []byte, err error) {
 	downloadables := []DownloadableMessage{msg.GetImageMessage(), msg.GetAudioMessage(), msg.GetVideoMessage(), msg.GetDocumentMessage(), msg.GetStickerMessage()}
 	for _, downloadable := range downloadables {
