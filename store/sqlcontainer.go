@@ -148,10 +148,10 @@ func (c *SQLContainer) NewDevice() *Device {
 		Log:       c.log,
 		Container: c,
 
-		NoiseKey: keys.NewKeyPair(),
-		IdentityKey: keys.NewKeyPair(),
+		NoiseKey:       keys.NewKeyPair(),
+		IdentityKey:    keys.NewKeyPair(),
 		RegistrationID: mathRand.Uint32(),
-		AdvSecretKey: make([]byte, 32),
+		AdvSecretKey:   make([]byte, 32),
 	}
 	_, err := rand.Read(device.AdvSecretKey)
 	if err != nil {
