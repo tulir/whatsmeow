@@ -228,8 +228,8 @@ func handler(rawEvt interface{}) {
 			}
 			fmt.Println("Saved image to", path)
 		}
-	case *events.ReadReceipt:
-		log.Infofln("Received read receipt: %+v", evt)
+	case *events.Receipt:
+		log.Infofln("Received receipt: %+v", evt)
 	}
 }
 

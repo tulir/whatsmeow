@@ -21,29 +21,25 @@ import (
 )
 
 func (cli *Client) handleReceipt(node *waBinary.Node) {
-	if node.AttrGetter().OptionalString("type") == "read" {
-		receipt, err := cli.parseReadReceipt(node)
-		if err != nil {
-			cli.Log.Warnf("Failed to parse read receipt: %v", err)
-		} else {
-			go cli.dispatchEvent(receipt)
-		}
+	receipt, err := cli.parseReceipt(node)
+	if err != nil {
+		cli.Log.Warnf("Failed to parse receipt: %v", err)
+	} else {
+		go cli.dispatchEvent(receipt)
 	}
 	go cli.sendAck(node)
 }
 
-func (cli *Client) parseReadReceipt(node *waBinary.Node) (*events.ReadReceipt, error) {
+func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 	ag := node.AttrGetter()
-	if ag.String("type") != "read" {
-		return nil, nil
-	}
 	source, err := cli.parseMessageSource(node)
 	if err != nil {
 		return nil, err
 	}
-	receipt := events.ReadReceipt{
+	receipt := events.Receipt{
 		MessageSource: source,
-		Timestamp: time.Unix(ag.Int64("t"), 0),
+		Timestamp:     time.Unix(ag.Int64("t"), 0),
+		Type:          events.ReceiptType(ag.OptionalString("type")),
 	}
 	receipt.MessageID = ag.String("id")
 	if !ag.OK() {

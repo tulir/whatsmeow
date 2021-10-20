@@ -8,6 +8,7 @@
 package events
 
 import (
+	"fmt"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -62,12 +63,31 @@ type Message struct {
 	RawMessage *waProto.Message
 }
 
-// ReadReceipt is emitted when someone reads a message sent by the user.
-type ReadReceipt struct {
+type ReceiptType string
+
+const (
+	ReceiptTypeDelivered ReceiptType = ""
+	ReceiptTypeRead      ReceiptType = "read"
+)
+
+func (rt ReceiptType) GoString() string {
+	switch rt {
+	case ReceiptTypeRead:
+		return "ReceiptTypeRead"
+	case ReceiptTypeDelivered:
+		return "ReceiptTypeDelivered"
+	default:
+		return fmt.Sprintf("ReceiptType(%#v)", string(rt))
+	}
+}
+
+// Receipt is emitted when an outgoing message is delivered to or read by another user, or when another device reads an incoming message.
+type Receipt struct {
 	structs.MessageSource
 	MessageID   string
-	PreviousIDs []string
 	Timestamp   time.Time
+	Type        ReceiptType
+	PreviousIDs []string // Additional message IDs that were read. Only present for read receipts.
 }
 
 // GroupInfo is emitted when the metadata of a group changes.
