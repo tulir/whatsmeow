@@ -13,7 +13,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/structs"
+	"go.mau.fi/whatsmeow/types"
 )
 
 // QR is emitted after connecting when there's no session data in the device store.
@@ -53,8 +53,8 @@ type HistorySync struct {
 
 // Message is emitted when receiving a new message.
 type Message struct {
-	Info        structs.MessageInfo // Information about the message like the chat and sender IDs
-	Message     *waProto.Message    // The actual message struct
+	Info        types.MessageInfo // Information about the message like the chat and sender IDs
+	Message     *waProto.Message  // The actual message struct
 	IsEphemeral bool
 	IsViewOnce  bool
 
@@ -86,7 +86,7 @@ func (rt ReceiptType) GoString() string {
 
 // Receipt is emitted when an outgoing message is delivered to or read by another user, or when another device reads an incoming message.
 type Receipt struct {
-	structs.MessageSource
+	types.MessageSource
 	MessageID   string
 	Timestamp   time.Time
 	Type        ReceiptType
@@ -100,18 +100,18 @@ type GroupInfo struct {
 	Sender    *waBinary.JID // The user who made the change. Doesn't seem to be present when notify=invite
 	Timestamp time.Time     // The time when the change occurred
 
-	Name     *structs.GroupName     // Group name change
-	Topic    *structs.GroupTopic    // Group topic (description) change
-	Locked   *structs.GroupLocked   // Group locked status change (can only admins edit group info?)
-	Announce *structs.GroupAnnounce // Group announce status change (can only admins send messages?)
+	Name     *types.GroupName     // Group name change
+	Topic    *types.GroupTopic    // Group topic (description) change
+	Locked   *types.GroupLocked   // Group locked status change (can only admins edit group info?)
+	Announce *types.GroupAnnounce // Group announce status change (can only admins send messages?)
 
 	PrevParticipantVersionID string
 	ParticipantVersionID     string
 
 	JoinReason string // This will be invite if the user joined via invite link
 
-	Join  []structs.GroupParticipant // Users who joined or were added the group
-	Leave []structs.GroupParticipant // Users who left or were removed from the group
+	Join  []types.GroupParticipant // Users who joined or were added the group
+	Leave []types.GroupParticipant // Users who left or were removed from the group
 
 	UnknownChanges []*waBinary.Node
 }

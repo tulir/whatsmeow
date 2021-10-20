@@ -12,11 +12,11 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/events"
-	"go.mau.fi/whatsmeow/structs"
+	"go.mau.fi/whatsmeow/types"
 )
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
-func (cli *Client) GetGroupInfo(jid waBinary.JID) (*structs.GroupInfo, error) {
+func (cli *Client) GetGroupInfo(jid waBinary.JID) (*types.GroupInfo, error) {
 	res, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
 		Type:      "get",
@@ -40,7 +40,7 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*structs.GroupInfo, error) {
 		return nil, fmt.Errorf("group info request didn't return group info")
 	}
 
-	var group structs.GroupInfo
+	var group types.GroupInfo
 	ag := groupNode.AttrGetter()
 
 	group.JID = waBinary.NewJID(ag.String("id"), waBinary.GroupServer)
@@ -59,7 +59,7 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*structs.GroupInfo, error) {
 		childAG := child.AttrGetter()
 		switch child.Tag {
 		case "participant":
-			participant := structs.GroupParticipant{
+			participant := types.GroupParticipant{
 				IsAdmin: childAG.OptionalString("type") == "admin",
 				JID:     childAG.JID("jid"),
 			}
@@ -87,16 +87,16 @@ func (cli *Client) GetGroupInfo(jid waBinary.JID) (*structs.GroupInfo, error) {
 	return &group, nil
 }
 
-func parseParticipantList(node *waBinary.Node) (participants []structs.GroupParticipant) {
+func parseParticipantList(node *waBinary.Node) (participants []types.GroupParticipant) {
 	children := node.GetChildren()
-	participants = make([]structs.GroupParticipant, 0, len(children))
+	participants = make([]types.GroupParticipant, 0, len(children))
 	for _, child := range children {
 		jid, ok := child.Attrs["jid"].(waBinary.JID)
 		if child.Tag != "participant" || !ok {
 			continue
 		}
 		pType, _ := child.Attrs["type"].(string)
-		participants = append(participants, structs.GroupParticipant{JID: jid, IsAdmin: pType == "admin"})
+		participants = append(participants, types.GroupParticipant{JID: jid, IsAdmin: pType == "admin"})
 	}
 	return
 }
@@ -125,16 +125,16 @@ func parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
 			evt.ParticipantVersionID = cag.String("v_id")
 			evt.Leave = parseParticipantList(&child)
 		case "locked":
-			evt.Locked = &structs.GroupLocked{IsLocked: true}
+			evt.Locked = &types.GroupLocked{IsLocked: true}
 		case "unlocked":
-			evt.Locked = &structs.GroupLocked{IsLocked: false}
+			evt.Locked = &types.GroupLocked{IsLocked: false}
 		case "announcement":
-			evt.Announce = &structs.GroupAnnounce{
+			evt.Announce = &types.GroupAnnounce{
 				IsAnnounce:        true,
 				AnnounceVersionID: cag.String("v_id"),
 			}
 		case "not_announcement":
-			evt.Announce = &structs.GroupAnnounce{
+			evt.Announce = &types.GroupAnnounce{
 				IsAnnounce:        false,
 				AnnounceVersionID: cag.String("v_id"),
 			}

@@ -13,7 +13,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/structs"
+	"go.mau.fi/whatsmeow/types"
 )
 
 // IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
@@ -22,7 +22,7 @@ type IsOnWhatsAppResponse struct {
 	JID   waBinary.JID // The canonical user ID
 	IsIn  bool         // Whether or not the phone is registered.
 
-	VerifiedName *structs.VerifiedName // If the phone is a business, the verified business details.
+	VerifiedName *types.VerifiedName // If the phone is a business, the verified business details.
 }
 
 // IsOnWhatsApp checks if the given phone numbers are registered on WhatsApp.
@@ -61,7 +61,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error)
 }
 
 // GetUserInfo gets basic user info (avatar, status, verified business name, device list).
-func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]structs.UserInfo, error) {
+func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]types.UserInfo, error) {
 	list, err := cli.usync(jids, "full", "background", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "status"},
@@ -71,7 +71,7 @@ func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]structs.Us
 	if err != nil {
 		return nil, err
 	}
-	respData := make(map[waBinary.JID]structs.UserInfo, len(jids))
+	respData := make(map[waBinary.JID]types.UserInfo, len(jids))
 	for _, child := range list.GetChildren() {
 		jid, jidOK := child.Attrs["jid"].(waBinary.JID)
 		if child.Tag != "user" || !jidOK {
@@ -84,7 +84,7 @@ func (cli *Client) GetUserInfo(jids []waBinary.JID) (map[waBinary.JID]structs.Us
 		status, _ := child.GetChildByTag("status").Content.([]byte)
 		pictureID, _ := child.GetChildByTag("picture").Attrs["id"].(string)
 		devices := parseDeviceList(jid.User, child.GetChildByTag("devices"), nil, nil)
-		respData[jid] = structs.UserInfo{
+		respData[jid] = types.UserInfo{
 			VerifiedName: verifiedName,
 			Status:       string(status),
 			PictureID:    pictureID,
@@ -116,7 +116,7 @@ func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
 }
 
 // GetProfilePictureInfo gets the URL where you can download a WhatsApp user's profile picture or group's photo.
-func (cli *Client) GetProfilePictureInfo(jid waBinary.JID, preview bool) (*structs.ProfilePictureInfo, error) {
+func (cli *Client) GetProfilePictureInfo(jid waBinary.JID, preview bool) (*types.ProfilePictureInfo, error) {
 	attrs := waBinary.Attrs{
 		"query": "url",
 	}
@@ -141,7 +141,7 @@ func (cli *Client) GetProfilePictureInfo(jid waBinary.JID, preview bool) (*struc
 	if !ok {
 		return nil, fmt.Errorf("missing <picture> element in response to profile picture query")
 	}
-	var info structs.ProfilePictureInfo
+	var info types.ProfilePictureInfo
 	ag := picture.AttrGetter()
 	info.ID = ag.String("id")
 	info.URL = ag.String("url")
@@ -153,7 +153,7 @@ func (cli *Client) GetProfilePictureInfo(jid waBinary.JID, preview bool) (*struc
 	return &info, nil
 }
 
-func parseVerifiedName(businessNode waBinary.Node) (*structs.VerifiedName, error) {
+func parseVerifiedName(businessNode waBinary.Node) (*types.VerifiedName, error) {
 	if businessNode.Tag != "business" {
 		return nil, nil
 	}
@@ -176,7 +176,7 @@ func parseVerifiedName(businessNode waBinary.Node) (*structs.VerifiedName, error
 	if err != nil {
 		return nil, err
 	}
-	return &structs.VerifiedName{
+	return &types.VerifiedName{
 		Certificate: &cert,
 		Details:     &certDetails,
 	}, nil
