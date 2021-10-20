@@ -60,6 +60,11 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	case "account_sync":
 		// If we start storing device lists locally, then this should update that store
 	case "w:gp2":
-		// TODO dispatch group info changes as events
+		evt, err := parseGroupChange(node)
+		if err != nil {
+			cli.Log.Errorf("Failed to parse group info change: %v", err)
+		} else {
+			go cli.dispatchEvent(evt)
+		}
 	}
 }
