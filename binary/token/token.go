@@ -1,3 +1,5 @@
+// Package token contains maps of predefined tokens that WhatsApp's binary XML
+// encoding uses to save bytes when sending commonly used strings.
 package token
 
 import "fmt"
