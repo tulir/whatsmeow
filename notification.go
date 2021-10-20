@@ -57,6 +57,9 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		go cli.handleEncryptNotification(node)
 	case "server_sync":
 		go cli.handleAppStateNotification(node)
+	case "account_sync":
+		// If we start storing device lists locally, then this should update that store
+	case "w:gp2":
+		// TODO dispatch group info changes as events
 	}
-	// TODO dispatch group info changes as events
 }

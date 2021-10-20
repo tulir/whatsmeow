@@ -16,6 +16,7 @@ var (
 	ErrIQUnexpectedResponse = errors.New("unexpected info query response")
 	ErrIQError              = errors.New("info query returned error")
 	ErrIQTimedOut           = errors.New("info query timed out")
+	ErrIQDisconnected       = errors.New("websocket disconnected before info query returned response")
 )
 
 // Some errors that Client.SendMessage can return
