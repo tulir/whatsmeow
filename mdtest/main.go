@@ -211,6 +211,7 @@ func handler(rawEvt interface{}) {
 		default:
 		}
 	case *events.Message:
+		log.Infofln("Received message: %+v", evt)
 		img := evt.Message.GetImageMessage()
 		if img != nil {
 			data, err := cli.Download(img)
@@ -227,6 +228,8 @@ func handler(rawEvt interface{}) {
 			}
 			fmt.Println("Saved image to", path)
 		}
+	case *events.ReadReceipt:
+		log.Infofln("Received read receipt: %+v", evt)
 	}
 }
 

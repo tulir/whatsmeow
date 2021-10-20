@@ -10,9 +10,9 @@ package events
 import (
 	"time"
 
-	"go.mau.fi/whatsmeow"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/structs"
 )
 
 // QR is emitted after connecting when there's no session data in the device store.
@@ -50,19 +50,12 @@ type HistorySync struct {
 	Data *waProto.HistorySync
 }
 
-// DeviceSentMeta contains metadata from messages sent by another one of the user's own devices.
-type DeviceSentMeta struct {
-	DestinationJID string // The destination user. This should match the MessageInfo.Recipient field.
-	Phash          string
-}
-
 // Message is emitted when receiving a new message.
 type Message struct {
-	Info           *whatsmeow.MessageInfo // Information about the message like the chat and sender IDs
-	Message        *waProto.Message       // The actual message struct
-	DeviceSentMeta *DeviceSentMeta        // Metadata for direct messages sent from another one of the user's own devices.
-	IsEphemeral    bool
-	IsViewOnce     bool
+	Info        structs.MessageInfo // Information about the message like the chat and sender IDs
+	Message     *waProto.Message    // The actual message struct
+	IsEphemeral bool
+	IsViewOnce  bool
 
 	// The raw message struct. This is the raw unwrapped data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
@@ -71,9 +64,7 @@ type Message struct {
 
 // ReadReceipt is emitted when someone reads a message sent by the user.
 type ReadReceipt struct {
-	From        waBinary.JID
-	Chat        *waBinary.JID
-	Recipient   *waBinary.JID
+	structs.MessageSource
 	MessageID   string
 	PreviousIDs []string
 	Timestamp   time.Time
@@ -86,18 +77,18 @@ type GroupInfo struct {
 	Sender    *waBinary.JID // The user who made the change. Doesn't seem to be present when notify=invite
 	Timestamp time.Time     // The time when the change occurred
 
-	Name     *whatsmeow.GroupName     // Group name change
-	Topic    *whatsmeow.GroupTopic    // Group topic (description) change
-	Locked   *whatsmeow.GroupLocked   // Group locked status change (can only admins edit group info?)
-	Announce *whatsmeow.GroupAnnounce // Group announce status change (can only admins send messages?)
+	Name     *structs.GroupName     // Group name change
+	Topic    *structs.GroupTopic    // Group topic (description) change
+	Locked   *structs.GroupLocked   // Group locked status change (can only admins edit group info?)
+	Announce *structs.GroupAnnounce // Group announce status change (can only admins send messages?)
 
 	PrevParticipantVersionID string
 	ParticipantVersionID     string
 
 	JoinReason string // This will be invite if the user joined via invite link
 
-	Join  []whatsmeow.GroupParticipant // Users who joined or were added the group
-	Leave []whatsmeow.GroupParticipant // Users who left or were removed from the group
+	Join  []structs.GroupParticipant // Users who joined or were added the group
+	Leave []structs.GroupParticipant // Users who left or were removed from the group
 
 	UnknownChanges []*waBinary.Node
 }
