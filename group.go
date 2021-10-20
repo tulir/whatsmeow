@@ -11,8 +11,8 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/events"
 	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 )
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
