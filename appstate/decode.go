@@ -126,7 +126,7 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 		version := patch.GetVersion().GetVersion()
 		currentState.Version = version
 		err = currentState.updateHash(patch, func(indexMAC []byte, maxIndex int) ([]byte, error) {
-			for i := maxIndex-1; i >= 0; i-- {
+			for i := maxIndex - 1; i >= 0; i-- {
 				if bytes.Equal(patch.Mutations[i].GetRecord().GetIndex().GetBlob(), indexMAC) {
 					value := patch.Mutations[i].GetRecord().GetValue().GetBlob()
 					return value[len(value)-32:], nil

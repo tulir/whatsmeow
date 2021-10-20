@@ -242,12 +242,12 @@ const (
 		INSERT INTO whatsmeow_app_state_version (jid, name, version, hash) VALUES ($1, $2, $3, $4)
 		ON CONFLICT (jid, name) DO UPDATE SET version=$3, hash=$4
 	`
-	getAppStateVersionQuery = `SELECT version, hash FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
-	deleteAppStateVersionQuery = `DELETE FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
-	putAppStateMutationMACsQuery = `INSERT INTO whatsmeow_app_state_mutation_macs (jid, name, version, index_mac, value_mac) VALUES `
+	getAppStateVersionQuery                 = `SELECT version, hash FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
+	deleteAppStateVersionQuery              = `DELETE FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
+	putAppStateMutationMACsQuery            = `INSERT INTO whatsmeow_app_state_mutation_macs (jid, name, version, index_mac, value_mac) VALUES `
 	deleteAppStateMutationMACsQueryPostgres = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=ANY($3)`
-	deleteAppStateMutationMACsQueryGeneric = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac IN `
-	getAppStateMutationMACQuery = `SELECT value_mac FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=$3 ORDER BY version DESC LIMIT 1`
+	deleteAppStateMutationMACsQueryGeneric  = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac IN `
+	getAppStateMutationMACQuery             = `SELECT value_mac FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=$3 ORDER BY version DESC LIMIT 1`
 )
 
 func (s *SQLStore) PutAppStateVersion(name string, version uint64, hash [128]byte) error {
@@ -289,12 +289,12 @@ func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uin
 	values[1] = name
 	values[2] = version
 	for i, mutation := range mutations {
-		baseIndex := 3 + i * 2
+		baseIndex := 3 + i*2
 		values[baseIndex] = mutation.IndexMAC
 		values[baseIndex+1] = mutation.ValueMAC
 		queryParts[i] = fmt.Sprintf("($1, $2, $3, $%d, $%d)", baseIndex+1, baseIndex+2)
 	}
-	_, err := tx.Exec(putAppStateMutationMACsQuery + strings.Join(queryParts, ","), values...)
+	_, err := tx.Exec(putAppStateMutationMACsQuery+strings.Join(queryParts, ","), values...)
 	return err
 }
 
@@ -308,7 +308,7 @@ func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutation
 		}
 		for i := 0; i < len(mutations); i += mutationBatchSize {
 			var mutationSlice []AppStateMutationMAC
-			if len(mutations) > i + mutationBatchSize {
+			if len(mutations) > i+mutationBatchSize {
 				mutationSlice, mutations = mutations[:i+mutationBatchSize], mutations[i+mutationBatchSize:]
 			} else {
 				mutationSlice = mutations
@@ -337,7 +337,7 @@ func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (
 	if s.dialect == "postgres" {
 		_, err = s.db.Exec(deleteAppStateMutationMACsQueryPostgres, s.JID, name, indexMACs)
 	} else {
-		args := make([]interface{}, 2 + len(indexMACs))
+		args := make([]interface{}, 2+len(indexMACs))
 		args[0] = s.JID
 		args[1] = name
 		queryParts := make([]string, len(indexMACs))
@@ -345,7 +345,7 @@ func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (
 			args[2+i] = item
 			queryParts[i] = fmt.Sprintf("$%d", i+3)
 		}
-		_, err = s.db.Exec(deleteAppStateMutationMACsQueryGeneric + "(" + strings.Join(queryParts, ",") + ")", args...)
+		_, err = s.db.Exec(deleteAppStateMutationMACsQueryGeneric+"("+strings.Join(queryParts, ",")+")", args...)
 	}
 	return
 }
