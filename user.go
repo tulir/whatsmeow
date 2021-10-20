@@ -29,7 +29,7 @@ type UserInfo struct {
 	Devices      []waBinary.JID
 }
 
-// ProfilePictureInfo contains the ID and URL for a WhatsApp user's profile picture.
+// ProfilePictureInfo contains the ID and URL for a WhatsApp user's profile picture or group's photo.
 type ProfilePictureInfo struct {
 	URL  string // The full URL for the image, can be downloaded with a simple HTTP request.
 	ID   string // The ID of the image. This is the same as UserInfo.PictureID.
@@ -137,8 +137,8 @@ func (cli *Client) GetUserDevices(jids []waBinary.JID) ([]waBinary.JID, error) {
 	return devices, nil
 }
 
-// GetProfilePicture gets the URL where you can download a WhatsApp user's profile picture.
-func (cli *Client) GetProfilePicture(jid waBinary.JID, preview bool) (*ProfilePictureInfo, error) {
+// GetProfilePictureInfo gets the URL where you can download a WhatsApp user's profile picture or group's photo.
+func (cli *Client) GetProfilePictureInfo(jid waBinary.JID, preview bool) (*ProfilePictureInfo, error) {
 	attrs := waBinary.Attrs{
 		"query": "url",
 	}

@@ -115,3 +115,14 @@ type GroupInfo struct {
 
 	UnknownChanges []*waBinary.Node
 }
+
+// Picture is emitted when a user's profile picture or group's photo is changed.
+//
+// You can use Client.GetProfilePictureInfo to get the actual image URL after this event.
+type Picture struct {
+	JID       waBinary.JID // The user or group ID where the picture was changed.
+	Author    waBinary.JID // The user who changed the picture.
+	Timestamp time.Time    // The timestamp when the picture was changed.
+	Remove    bool         // True if the picture was removed.
+	PictureID string       // The new picture ID if it was not removed.
+}

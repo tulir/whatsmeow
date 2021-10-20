@@ -4,6 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// Package socket implements a subset of the Noise protocol framework on top of websockets as used by WhatsApp.
 package socket
 
 import "errors"

@@ -7,8 +7,11 @@
 package whatsmeow
 
 import (
+	"time"
+
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/events"
 )
 
 func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
@@ -44,6 +47,25 @@ func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
 	}
 }
 
+func (cli *Client) handlePictureNotification(node *waBinary.Node) {
+	ts := time.Unix(node.AttrGetter().Int64("t"), 0)
+	for _, child := range node.GetChildren() {
+		ag := child.AttrGetter()
+		var evt events.Picture
+		evt.Timestamp = ts
+		evt.JID = ag.JID("jid")
+		evt.Author = ag.JID("author")
+		if child.Tag == "remove" {
+			evt.Remove = true
+		} else if child.Tag == "add" {
+			evt.PictureID = ag.String("id")
+		} else {
+			continue
+		}
+		cli.dispatchEvent(&evt)
+	}
+}
+
 func (cli *Client) handleNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
@@ -66,5 +88,7 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		} else {
 			go cli.dispatchEvent(evt)
 		}
+	case "picture":
+		go cli.handlePictureNotification(node)
 	}
 }
