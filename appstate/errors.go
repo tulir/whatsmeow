@@ -9,7 +9,7 @@ package appstate
 import "errors"
 
 var (
-	ErrMissingPreviousSetValueOperation = errors.New("missing previous set value operation")
+	ErrMissingPreviousSetValueOperation = errors.New("missing value MAC of previous SET operation")
 	ErrMismatchingLTHash                = errors.New("mismatching LTHash")
 	ErrMismatchingPatchMAC              = errors.New("mismatching patch MAC")
 	ErrMismatchingContentMAC            = errors.New("mismatching content MAC")

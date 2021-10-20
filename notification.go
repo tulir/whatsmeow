@@ -6,7 +6,10 @@
 
 package whatsmeow
 
-import waBinary "go.mau.fi/whatsmeow/binary"
+import (
+	"go.mau.fi/whatsmeow/appstate"
+	waBinary "go.mau.fi/whatsmeow/binary"
+)
 
 func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 	count := node.GetChildByTag("count")
@@ -20,6 +23,19 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 	cli.uploadPreKeys(otksLeft)
 }
 
+func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
+	for _, collection := range node.GetChildrenByTag("collection") {
+		ag := collection.AttrGetter()
+		name := appstate.WAPatchName(ag.String("name"))
+		version := ag.Uint64("version")
+		cli.Log.Debugf("Got server sync notification that app state %s has updated to version %d", name, version)
+		err := cli.FetchAppState(name, false)
+		if err != nil {
+			cli.Log.Errorf("Failed to sync app state after notification: %v", err)
+		}
+	}
+}
+
 func (cli *Client) handleNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
@@ -31,6 +47,8 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	switch notifType {
 	case "encrypt":
 		go cli.handleEncryptNotification(node)
+	case "server_sync":
+		go cli.handleAppStateNotification(node)
 	}
 	// TODO dispatch group info changes as events
 }

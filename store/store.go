@@ -57,10 +57,11 @@ type AppStateMutationMAC struct {
 type AppStateStore interface {
 	PutAppStateVersion(name string, version uint64, hash [128]byte) error
 	GetAppStateVersion(name string) (uint64, [128]byte, error)
+	DeleteAppStateVersion(name string) error
 
 	PutAppStateMutationMACs(name string, version uint64, mutations []AppStateMutationMAC) error
-	DeleteAppStateMutationMAC(name string, version uint64, indexMAC []byte) error
-	GetAppStateMutationMAC(name string, version uint64, indexMAC []byte) (valueMAC []byte, err error)
+	DeleteAppStateMutationMACs(name string, indexMACs [][]byte) error
+	GetAppStateMutationMAC(name string, indexMAC []byte) (valueMAC []byte, err error)
 }
 
 type DeviceContainer interface {

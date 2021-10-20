@@ -13,21 +13,29 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
-func (cli *Client) FetchAppState(name appstate.WAPatchName) {
-	state := appstate.NewHashState()
+func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error {
+	if fullSync {
+		err := cli.Store.AppState.DeleteAppStateVersion(string(name))
+		if err != nil {
+			return fmt.Errorf("failed to reset app state %s version: %w", name, err)
+		}
+	}
+	version, hash, err := cli.Store.AppState.GetAppStateVersion(string(name))
+	if err != nil {
+		return fmt.Errorf("failed to get app state %s version: %w", name, err)
+	}
+	state := appstate.HashState{Version: version, Hash: hash}
 	hasMore := true
 	for hasMore {
-		patches, err := cli.fetchSyncdPatches(name, state.Version)
+		patches, err := cli.fetchAppStatePatches(name, state.Version)
 		if err != nil {
-			cli.Log.Errorf("Failed to fetch app state sync patches: %v", err)
-			return
+			return fmt.Errorf("failed to fetch app state %s patches: %w", name, err)
 		}
 		hasMore = patches.HasMorePatches
 
 		mutations, newState, err := cli.appStateProc.DecodePatches(patches, state, true)
 		if err != nil {
-			cli.Log.Errorf("Failed to decode patches: %v", err)
-			break
+			return fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 		}
 		state = newState
 		fmt.Printf("%d %X\n", newState.Version, newState.Hash)
@@ -35,9 +43,10 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName) {
 			fmt.Printf("%s %v %X %+v\n", mutation.Operation, mutation.Index, mutation.IndexMAC, mutation.Action)
 		}
 	}
+	return nil
 }
 
-func (cli *Client) fetchSyncdPatches(name appstate.WAPatchName, fromVersion uint64) (*appstate.PatchList, error) {
+func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion uint64) (*appstate.PatchList, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:sync:app:state",
 		Type:      "set",

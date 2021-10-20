@@ -12,6 +12,7 @@ import (
 
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
+	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 type WAPatchName string
@@ -28,12 +29,14 @@ type Processor struct {
 	keyCache     map[string]ExpandedAppStateKeys
 	keyCacheLock sync.Mutex
 	Store        *store.Device
+	Log          waLog.Logger
 }
 
-func NewProcessor(store *store.Device) *Processor {
+func NewProcessor(store *store.Device, log waLog.Logger) *Processor {
 	return &Processor{
 		keyCache: make(map[string]ExpandedAppStateKeys),
 		Store:    store,
+		Log:      log,
 	}
 }
 

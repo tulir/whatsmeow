@@ -11,6 +11,7 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/binary"
+	"fmt"
 	"hash"
 
 	"go.mau.fi/whatsmeow/appstate/lthash"
@@ -26,16 +27,11 @@ type Mutation struct {
 }
 
 type HashState struct {
-	Version   uint64
-	Hash      [128]byte
-	Mutations []Mutation
+	Version uint64
+	Hash    [128]byte
 }
 
-func NewHashState() HashState {
-	return HashState{}
-}
-
-func (hs *HashState) updateHash(patch *waProto.SyncdPatch, getPrevSetValueMAC func(indexMAC []byte, maxIndex int) []byte) error {
+func (hs *HashState) updateHash(patch *waProto.SyncdPatch, getPrevSetValueMAC func(indexMAC []byte, maxIndex int) ([]byte, error)) error {
 	var added, removed [][]byte
 
 	for i, mutation := range patch.GetMutations() {
@@ -44,8 +40,10 @@ func (hs *HashState) updateHash(patch *waProto.SyncdPatch, getPrevSetValueMAC fu
 			added = append(added, value[len(value)-32:])
 		}
 		indexMAC := mutation.GetRecord().GetIndex().GetBlob()
-		removal := getPrevSetValueMAC(indexMAC, i)
-		if removal != nil {
+		removal, err := getPrevSetValueMAC(indexMAC, i)
+		if err != nil {
+			return fmt.Errorf("failed to get value MAC of previous SET operation: %w", err)
+		} else if removal != nil {
 			removed = append(removed, removal)
 		} else if mutation.GetOperation() == waProto.SyncdMutation_REMOVE {
 			return ErrMissingPreviousSetValueOperation
