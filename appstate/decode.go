@@ -16,6 +16,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 )
 
@@ -51,7 +52,13 @@ func ParsePatchList(node *waBinary.Node) (*PatchList, error) {
 	return list, ag.Error()
 }
 
-func (proc *Processor) decodePatch(patch *waProto.SyncdPatch, appendTo *[]Mutation, validateMACs bool) error {
+type patchOutput struct {
+	RemovedMACs [][]byte
+	AddedMACs   []store.AppStateMutationMAC
+	Mutations   []Mutation
+}
+
+func (proc *Processor) decodePatch(patch *waProto.SyncdPatch, out *patchOutput, validateMACs bool) error {
 	for i, mutation := range patch.Mutations {
 		keyID := mutation.GetRecord().GetKeyId().GetId()
 		keys, err := proc.getAppStateKey(keyID)
@@ -88,7 +95,15 @@ func (proc *Processor) decodePatch(patch *waProto.SyncdPatch, appendTo *[]Mutati
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal index of mutation #%d: %w", i+1, err)
 		}
-		*appendTo = append(*appendTo, Mutation{
+		if mutation.GetOperation() == waProto.SyncdMutation_REMOVE {
+			out.RemovedMACs = append(out.RemovedMACs, indexMAC)
+		} else if mutation.GetOperation() == waProto.SyncdMutation_SET {
+			out.AddedMACs = append(out.AddedMACs, store.AppStateMutationMAC{
+				IndexMAC: indexMAC,
+				ValueMAC: valueMAC,
+			})
+		}
+		out.Mutations = append(out.Mutations, Mutation{
 			Operation: mutation.GetOperation(),
 			Action:    syncAction.GetValue(),
 			Index:     index,
@@ -107,34 +122,19 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 	}
 	newMutations = make([]Mutation, 0, expectedLength)
 
-	getPrevSetValueMAC := func(indexMAC []byte, maxIndex int) []byte {
-		var value []byte
-		for _, item := range currentState.Mutations {
-			if bytes.Equal(item.IndexMAC, indexMAC) {
-				value = item.ValueMAC
-			}
-		}
-		for _, patch := range list.Patches {
-			patchVersion := patch.GetVersion().GetVersion()
-			if patchVersion > currentState.Version {
-				break
-			}
-			for i, mutation := range patch.Mutations {
-				if patchVersion == currentState.Version && i >= maxIndex {
-					break
-				}
-				if bytes.Equal(mutation.GetRecord().GetIndex().GetBlob(), indexMAC) {
-					value = mutation.GetRecord().GetValue().GetBlob()
-					value = value[len(value)-32:]
-				}
-			}
-		}
-		return value
-	}
-
 	for _, patch := range list.Patches {
-		currentState.Version = *patch.Version.Version
-		err = currentState.updateHash(patch, getPrevSetValueMAC)
+		version := patch.GetVersion().GetVersion()
+		currentState.Version = version
+		err = currentState.updateHash(patch, func(indexMAC []byte, maxIndex int) ([]byte, error) {
+			for i := maxIndex-1; i >= 0; i-- {
+				if bytes.Equal(patch.Mutations[i].GetRecord().GetIndex().GetBlob(), indexMAC) {
+					value := patch.Mutations[i].GetRecord().GetValue().GetBlob()
+					return value[len(value)-32:], nil
+				}
+			}
+			// Previous value not found in current patch, look in the database
+			return proc.Store.AppState.GetAppStateMutationMAC(string(list.Name), indexMAC)
+		})
 		if err != nil {
 			err = fmt.Errorf("failed to update state hash: %w", err)
 			return
@@ -144,27 +144,41 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 			var keys ExpandedAppStateKeys
 			keys, err = proc.getAppStateKey(patch.GetKeyId().GetId())
 			if err != nil {
-				err = fmt.Errorf("failed to get key %X to verify patch v%d MACs", patch.GetKeyId().GetId(), currentState.Version)
+				err = fmt.Errorf("failed to get key %X to verify patch v%d MACs", patch.GetKeyId().GetId(), version)
 				return
 			}
 			snapshotMAC := currentState.generateSnapshotMAC(list.Name, keys.SnapshotMAC)
 			if !bytes.Equal(snapshotMAC, patch.GetSnapshotMac()) {
-				err = fmt.Errorf("failed to verify patch v%d: %w", currentState.Version, ErrMismatchingLTHash)
+				err = fmt.Errorf("failed to verify patch v%d: %w", version, ErrMismatchingLTHash)
 				return
 			}
 			patchMAC := generatePatchMAC(patch, list.Name, keys.PatchMAC)
 			if !bytes.Equal(patchMAC, patch.GetPatchMac()) {
-				err = fmt.Errorf("failed to verify patch v%d: %w", currentState.Version, ErrMismatchingPatchMAC)
+				err = fmt.Errorf("failed to verify patch v%d: %w", version, ErrMismatchingPatchMAC)
 				return
 			}
 		}
 
-		err = proc.decodePatch(patch, &newMutations, validateMACs)
+		var out patchOutput
+		out.Mutations = newMutations
+		err = proc.decodePatch(patch, &out, validateMACs)
 		if err != nil {
-			err = fmt.Errorf("failed to decode patch v%d: %w", currentState.Version, err)
+			err = fmt.Errorf("failed to decode patch v%d: %w", version, err)
 			return
 		}
+		err = proc.Store.AppState.PutAppStateVersion(string(list.Name), currentState.Version, currentState.Hash)
+		if err != nil {
+			proc.Log.Errorf("Failed to update app state version in the database: %v", err)
+		}
+		err = proc.Store.AppState.DeleteAppStateMutationMACs(string(list.Name), out.RemovedMACs)
+		if err != nil {
+			proc.Log.Errorf("Failed to remove deleted mutation MACs from the database: %v", err)
+		}
+		err = proc.Store.AppState.PutAppStateMutationMACs(string(list.Name), version, out.AddedMACs)
+		if err != nil {
+			proc.Log.Errorf("Failed to insert added mutation MACs to the database: %v", err)
+		}
+		newMutations = out.Mutations
 	}
-	currentState.Mutations = append(currentState.Mutations, newMutations...)
 	return
 }

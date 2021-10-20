@@ -71,7 +71,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		eventHandlers:   make([]func(interface{}), 0),
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
-		appStateProc:    appstate.NewProcessor(deviceStore),
+		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,

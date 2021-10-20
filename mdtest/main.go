@@ -136,7 +136,10 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 	case "appstate":
-		cli.FetchAppState(appstate.WAPatchName(args[0]))
+		err := cli.FetchAppState(appstate.WAPatchName(args[0]), len(args) > 1 && args[1] == "resync")
+		if err != nil {
+			log.Errorln("Failed to sync app state:", err)
+		}
 	case "checkuser":
 		resp, err := cli.IsOnWhatsApp(args)
 		fmt.Println(err)

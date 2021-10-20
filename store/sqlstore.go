@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 
 	"go.mau.fi/whatsmeow/util/keys"
@@ -236,24 +237,123 @@ func (s *SQLStore) GetAppStateSyncKey(id []byte) (*AppStateSyncKey, error) {
 	return &key, err
 }
 
-const ()
+const (
+	putAppStateVersionQuery = `
+		INSERT INTO whatsmeow_app_state_version (jid, name, version, hash) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (jid, name) DO UPDATE SET version=$3, hash=$4
+	`
+	getAppStateVersionQuery = `SELECT version, hash FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
+	deleteAppStateVersionQuery = `DELETE FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
+	putAppStateMutationMACsQuery = `INSERT INTO whatsmeow_app_state_mutation_macs (jid, name, version, index_mac, value_mac) VALUES `
+	deleteAppStateMutationMACsQueryPostgres = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=ANY($3)`
+	deleteAppStateMutationMACsQueryGeneric = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac IN `
+	getAppStateMutationMACQuery = `SELECT value_mac FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=$3 ORDER BY version DESC LIMIT 1`
+)
 
 func (s *SQLStore) PutAppStateVersion(name string, version uint64, hash [128]byte) error {
-	panic("implement me")
+	_, err := s.db.Exec(putAppStateVersionQuery, s.JID, name, version, hash[:])
+	return err
 }
 
-func (s *SQLStore) GetAppStateVersion(name string) (uint64, [128]byte, error) {
-	panic("implement me")
+func (s *SQLStore) GetAppStateVersion(name string) (version uint64, hash [128]byte, err error) {
+	var uncheckedHash []byte
+	err = s.db.QueryRow(getAppStateVersionQuery, s.JID, name).Scan(&version, &uncheckedHash)
+	if errors.Is(err, sql.ErrNoRows) {
+		// version will be 0 and hash will be an empty array, which is the correct initial state
+		err = nil
+	} else if err != nil {
+		// There's an error, just return it
+	} else if len(uncheckedHash) != 128 {
+		// This shouldn't happen
+		err = ErrInvalidLength
+	} else {
+		// No errors, convert hash slice to array
+		hash = *(*[128]byte)(uncheckedHash)
+	}
+	return
 }
+
+func (s *SQLStore) DeleteAppStateVersion(name string) error {
+	_, err := s.db.Exec(deleteAppStateVersionQuery, s.JID, name)
+	return err
+}
+
+type execable interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uint64, mutations []AppStateMutationMAC) error {
+	values := make([]interface{}, 3+len(mutations)*2)
+	queryParts := make([]string, len(mutations))
+	values[0] = s.JID
+	values[1] = name
+	values[2] = version
+	for i, mutation := range mutations {
+		baseIndex := 3 + i * 2
+		values[baseIndex] = mutation.IndexMAC
+		values[baseIndex+1] = mutation.ValueMAC
+		queryParts[i] = fmt.Sprintf("($1, $2, $3, $%d, $%d)", baseIndex+1, baseIndex+2)
+	}
+	_, err := tx.Exec(putAppStateMutationMACsQuery + strings.Join(queryParts, ","), values...)
+	return err
+}
+
+const mutationBatchSize = 400
 
 func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutations []AppStateMutationMAC) error {
-	panic("implement me")
+	if len(mutations) > mutationBatchSize {
+		tx, err := s.db.Begin()
+		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+		for i := 0; i < len(mutations); i += mutationBatchSize {
+			var mutationSlice []AppStateMutationMAC
+			if len(mutations) > i + mutationBatchSize {
+				mutationSlice, mutations = mutations[:i+mutationBatchSize], mutations[i+mutationBatchSize:]
+			} else {
+				mutationSlice = mutations
+			}
+			err = s.putAppStateMutationMACs(tx, name, version, mutationSlice)
+			if err != nil {
+				_ = tx.Rollback()
+				return err
+			}
+		}
+		err = tx.Commit()
+		if err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
+		return nil
+	} else if len(mutations) > 0 {
+		return s.putAppStateMutationMACs(s.db, name, version, mutations)
+	}
+	return nil
 }
 
-func (s *SQLStore) DeleteAppStateMutationMAC(name string, version uint64, indexMAC []byte) error {
-	panic("implement me")
+func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (err error) {
+	if len(indexMACs) == 0 {
+		return
+	}
+	if s.dialect == "postgres" {
+		_, err = s.db.Exec(deleteAppStateMutationMACsQueryPostgres, s.JID, name, indexMACs)
+	} else {
+		args := make([]interface{}, 2 + len(indexMACs))
+		args[0] = s.JID
+		args[1] = name
+		queryParts := make([]string, len(indexMACs))
+		for i, item := range indexMACs {
+			args[2+i] = item
+			queryParts[i] = fmt.Sprintf("$%d", i+3)
+		}
+		_, err = s.db.Exec(deleteAppStateMutationMACsQueryGeneric + "(" + strings.Join(queryParts, ",") + ")", args...)
+	}
+	return
 }
 
-func (s *SQLStore) GetAppStateMutationMAC(name string, version uint64, indexMAC []byte) (valueMAC []byte, err error) {
-	panic("implement me")
+func (s *SQLStore) GetAppStateMutationMAC(name string, indexMAC []byte) (valueMAC []byte, err error) {
+	err = s.db.QueryRow(getAppStateMutationMACQuery, s.JID, name, indexMAC).Scan(&valueMAC)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
+	return
 }
