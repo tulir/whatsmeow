@@ -63,11 +63,14 @@ type Message struct {
 	RawMessage *waProto.Message
 }
 
+// ReceiptType represents the type of a Receipt event.
 type ReceiptType string
 
 const (
+	// ReceiptTypeDelivered means the message was delivered to the device (but the user might not have noticed).
 	ReceiptTypeDelivered ReceiptType = ""
-	ReceiptTypeRead      ReceiptType = "read"
+	// ReceiptTypeRead means the user opened the chat and saw the message.
+	ReceiptTypeRead ReceiptType = "read"
 )
 
 func (rt ReceiptType) GoString() string {
