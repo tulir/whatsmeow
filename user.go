@@ -171,7 +171,6 @@ func (cli *Client) updatePushName(user types.JID, name string) {
 	if cli.Store.Contacts == nil {
 		return
 	}
-	// TODO should this filter out repeated calls somehow?
 	err := cli.Store.Contacts.PutPushName(user, name)
 	if err != nil {
 		cli.Log.Errorf("Failed to save push name of %s in device store: %v", user, err)
