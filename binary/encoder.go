@@ -13,11 +13,11 @@ type binaryEncoder struct {
 	data []byte
 }
 
-func NewEncoder() *binaryEncoder {
+func newEncoder() *binaryEncoder {
 	return &binaryEncoder{[]byte{0}}
 }
 
-func (w *binaryEncoder) GetData() []byte {
+func (w *binaryEncoder) getData() []byte {
 	return w.data
 }
 
@@ -82,7 +82,7 @@ func (w *binaryEncoder) writeByteLength(length int) {
 
 const tagSize = 1
 
-func (w *binaryEncoder) WriteNode(n Node) {
+func (w *binaryEncoder) writeNode(n Node) {
 	if n.Tag == "0" {
 		w.pushByte(token.List8)
 		w.pushByte(token.ListEmpty)
@@ -129,7 +129,7 @@ func (w *binaryEncoder) write(data interface{}) {
 	case []Node:
 		w.writeListStart(len(typedData))
 		for _, n := range typedData {
-			w.WriteNode(n)
+			w.writeNode(n)
 		}
 	default:
 		panic(fmt.Errorf("%w: %T", ErrInvalidType, typedData))

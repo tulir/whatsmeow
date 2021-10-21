@@ -13,6 +13,11 @@ import (
 	"io"
 )
 
+// Unpack unpacks the given decrypted data from the WhatsApp web API.
+//
+// It checks the first byte to decide whether to uncompress the data with zlib or just return as-is
+// (without the first byte). There's currently no corresponding Pack function because Marshal
+// already returns the data with a leading zero (i.e. not compressed).
 func Unpack(data []byte) ([]byte, error) {
 	dataType, data := data[0], data[1:]
 	if 2&dataType > 0 {

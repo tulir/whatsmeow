@@ -13,11 +13,17 @@ import (
 	"go.mau.fi/whatsmeow/types"
 )
 
+// AttrUtility is a helper struct for reading multiple XML attributes and checking for errors afterwards.
+//
+// The functions return values directly and append any decoding errors to the Errors slice. The
+// slice can then be checked after all necessary attributes are read, instead of having to check
+// each attribute for errors separately.
 type AttrUtility struct {
 	Attrs  Attrs
 	Errors []error
 }
 
+// AttrGetter returns the AttrUtility for this Node.
 func (n *Node) AttrGetter() *AttrUtility {
 	return &AttrUtility{Attrs: n.Attrs, Errors: make([]error, 0)}
 }
@@ -34,6 +40,8 @@ func (au *AttrUtility) GetJID(key string, require bool) (jidVal types.JID, ok bo
 	return
 }
 
+// OptionalJID returns the JID under the given key. If there's no valid JID under the given key, this will return nil.
+// However, if the attribute is completely missing, this will not store an error.
 func (au *AttrUtility) OptionalJID(key string) *types.JID {
 	jid, ok := au.GetJID(key, false)
 	if ok {
@@ -42,6 +50,8 @@ func (au *AttrUtility) OptionalJID(key string) *types.JID {
 	return nil
 }
 
+// JID returns the JID under the given key.
+// If there's no valid JID under the given key, an error will be stored and a blank JID struct will be returned.
 func (au *AttrUtility) JID(key string) types.JID {
 	jid, _ := au.GetJID(key, true)
 	return jid
@@ -92,11 +102,14 @@ func (au *AttrUtility) GetBool(key string, require bool) (bool, bool) {
 	}
 }
 
+// OptionalString returns the string under the given key.
 func (au *AttrUtility) OptionalString(key string) string {
 	strVal, _ := au.GetString(key, false)
 	return strVal
 }
 
+// String returns the string under the given key.
+// If there's no valid string under the given key, an error will be stored and an empty string will be returned.
 func (au *AttrUtility) String(key string) string {
 	strVal, _ := au.GetString(key, true)
 	return strVal
@@ -132,10 +145,12 @@ func (au *AttrUtility) Bool(key string) bool {
 	return val
 }
 
+// OK returns true if there are no errors.
 func (au *AttrUtility) OK() bool {
 	return len(au.Errors) == 0
 }
 
+// Error returns the list of errors as a single error interface, or nil if there are no errors.
 func (au *AttrUtility) Error() error {
 	if au.OK() {
 		return nil
@@ -143,8 +158,10 @@ func (au *AttrUtility) Error() error {
 	return ErrorList(au.Errors)
 }
 
+// ErrorList is a list of errors that implements the error interface itself.
 type ErrorList []error
 
+// Error returns all the errors in the list as a string.
 func (el ErrorList) Error() string {
 	return fmt.Sprintf("%+v", []error(el))
 }

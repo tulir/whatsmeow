@@ -73,14 +73,15 @@ const (
 	ReceiptTypeRead ReceiptType = "read"
 )
 
+// GoString returns the name of the Go constant for the ReceiptType value.
 func (rt ReceiptType) GoString() string {
 	switch rt {
 	case ReceiptTypeRead:
-		return "ReceiptTypeRead"
+		return "events.ReceiptTypeRead"
 	case ReceiptTypeDelivered:
-		return "ReceiptTypeDelivered"
+		return "events.ReceiptTypeDelivered"
 	default:
-		return fmt.Sprintf("ReceiptType(%#v)", string(rt))
+		return fmt.Sprintf("events.ReceiptType(%#v)", string(rt))
 	}
 }
 

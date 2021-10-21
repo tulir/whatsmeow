@@ -77,6 +77,9 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 	case "contact":
 		cli.dispatchEvent(&events.Contact{JID: jid, Timestamp: ts, Action: mutation.Action.GetContactAction()})
 	case "star":
+		if len(mutation.Index) < 5 {
+			return
+		}
 		evt := events.Star{
 			ChatJID:   jid,
 			MessageID: mutation.Index[2],
@@ -89,6 +92,9 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 		}
 		cli.dispatchEvent(&evt)
 	case "deleteMessageForMe":
+		if len(mutation.Index) < 5 {
+			return
+		}
 		evt := events.DeleteForMe{
 			ChatJID:   jid,
 			MessageID: mutation.Index[2],

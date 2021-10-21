@@ -7,6 +7,7 @@
 // Package binary implements encoding and decoding documents in WhatsApp's binary XML format.
 package binary
 
+// Attrs is a type alias for the attributes of an XML element (Node).
 type Attrs = map[string]interface{}
 
 // Node represents an XML element.
@@ -64,17 +65,17 @@ func (n *Node) GetChildByTag(tags ...string) Node {
 	return node
 }
 
-// Marshal encodes a Node as binary.
+// Marshal encodes an XML element (Node) into WhatsApp's binary XML representation.
 func Marshal(n Node) ([]byte, error) {
-	w := NewEncoder()
-	w.WriteNode(n)
-	return w.GetData(), nil
+	w := newEncoder()
+	w.writeNode(n)
+	return w.getData(), nil
 }
 
-// Unmarshal decodes binary XML into a Node.
+// Unmarshal decodes WhatsApp's binary XML representation into a Node.
 func Unmarshal(data []byte) (*Node, error) {
-	r := NewDecoder(data)
-	n, err := r.ReadNode()
+	r := newDecoder(data)
+	n, err := r.readNode()
 	if err != nil {
 		return nil, err
 	}
