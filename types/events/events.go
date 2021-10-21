@@ -44,6 +44,8 @@ type PairSuccess struct {
 type Connected struct{}
 
 // LoggedOut is emitted when the client has been unpaired from the phone.
+//
+// This can happen while connected (stream:error messages) or right after connecting (connect failure messages).
 type LoggedOut struct{}
 
 // ConnectFailure is emitted when the WhatsApp server sends a <failure> node with an unknown reason.
@@ -61,6 +63,9 @@ type StreamError struct {
 	Code string
 	Raw  *waBinary.Node
 }
+
+// Disconnected is emitted when the websocket is closed by the server.
+type Disconnected struct {}
 
 // HistorySync is emitted when the phone has sent a blob of historical messages.
 type HistorySync struct {

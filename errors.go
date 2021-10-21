@@ -17,6 +17,8 @@ var (
 	ErrIQError              = errors.New("info query returned error")
 	ErrIQTimedOut           = errors.New("info query timed out")
 	ErrIQDisconnected       = errors.New("websocket disconnected before info query returned response")
+
+	ErrAlreadyConnected = errors.New("websocket is already connected")
 )
 
 // Some errors that Client.SendMessage can return

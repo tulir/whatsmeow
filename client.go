@@ -10,13 +10,18 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"sync"
+	"time"
+
+	"github.com/gorilla/websocket"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
@@ -27,7 +32,14 @@ type Client struct {
 	Log     waLog.Logger
 	recvLog waLog.Logger
 	sendLog waLog.Logger
-	socket  *socket.NoiseSocket
+
+	socket     *socket.NoiseSocket
+	socketLock sync.Mutex
+
+	isExpectedDisconnect  bool
+	EnableAutoReconnect   bool
+	LastSuccessfulConnect time.Time
+	AutoReconnectErrors   int
 
 	IsLoggedIn bool
 
@@ -90,28 +102,88 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
+	cli.socketLock.Lock()
+	defer cli.socketLock.Unlock()
+	if cli.socket != nil {
+		if !cli.socket.IsConnected() {
+			cli.disconnect()
+		} else {
+			return ErrAlreadyConnected
+		}
+	}
+
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader)
 	if err := fs.Connect(); err != nil {
-		fs.Close()
+		fs.Close(0)
 		return err
 	} else if err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
-		fs.Close()
+		fs.Close(0)
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
 	cli.socket.OnFrame = cli.handleFrame
+	cli.socket.SetOnDisconnect(func(ns *socket.NoiseSocket) {
+		ns.OnFrame = nil
+		ns.SetOnDisconnect(nil)
+		cli.socketLock.Lock()
+		defer cli.socketLock.Unlock()
+		if cli.socket == ns {
+			cli.socket = nil
+			if !cli.isExpectedDisconnect {
+				cli.Log.Debugf("Emitting Disconnected event")
+				go cli.dispatchEvent(&events.Disconnected{})
+				go cli.autoReconnect()
+			} else {
+				cli.Log.Debugf("OnDisconnect() called, but it was expected, so not emitting event")
+			}
+		} else {
+			cli.Log.Debugf("Ignoring OnDisconnect on different socket")
+		}
+	})
 	go cli.keepAliveLoop(cli.socket.Context())
 	go cli.handlerQueueLoop(cli.socket.Context())
 	return nil
+}
+
+func (cli *Client) autoReconnect() {
+	if !cli.EnableAutoReconnect {
+		return
+	}
+	for {
+		cli.AutoReconnectErrors++
+		autoReconnectDelay := time.Duration(cli.AutoReconnectErrors) * 2 * time.Second
+		cli.Log.Debugf("Automatically reconnecting after %v", autoReconnectDelay)
+		time.Sleep(autoReconnectDelay)
+		err := cli.Connect()
+		if errors.Is(err, ErrAlreadyConnected) {
+			cli.Log.Debugf("Connect() said we're already connected after autoreconnect sleep")
+			return
+		} else if err != nil {
+			cli.Log.Errorf("Error reconnecting after autoreconnect sleep: %v", err)
+		} else {
+			return
+		}
+	}
 }
 
 func (cli *Client) IsConnected() bool {
 	return cli.socket != nil && cli.socket.IsConnected()
 }
 
-// Disconnect closes the websocket connection.
 func (cli *Client) Disconnect() {
+	if cli.socket == nil {
+		return
+	}
+	cli.socketLock.Lock()
+	cli.disconnect()
+	cli.socketLock.Unlock()
+}
+
+// Disconnect closes the websocket connection.
+func (cli *Client) disconnect() {
 	if cli.socket != nil {
-		cli.socket.Close()
+		cli.socket.SetOnDisconnect(nil)
+		cli.socket.OnFrame = nil
+		cli.socket.Close(websocket.CloseNormalClosure)
 		cli.socket = nil
 	}
 }

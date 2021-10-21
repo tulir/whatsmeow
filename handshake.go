@@ -141,6 +141,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		}
 	}
 
+	cli.isExpectedDisconnect = false
 	cli.socket = ns
 
 	return nil
