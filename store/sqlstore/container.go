@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package store
+package sqlstore
 
 import (
 	"crypto/rand"
@@ -14,25 +14,26 @@ import (
 	mathRand "math/rand"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
-type SQLContainer struct {
+type Container struct {
 	db      *sql.DB
 	dialect string
 	log     waLog.Logger
 }
 
-var EnableSQLiteForeignKeys = true
+var _ store.DeviceContainer = (*Container)(nil)
 
-func NewSQLContainer(dialect, address string, log waLog.Logger) (*SQLContainer, error) {
+func New(dialect, address string, log waLog.Logger) (*Container, error) {
 	db, err := sql.Open(dialect, address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-	container := NewSQLContainerWithDB(db, dialect, log)
+	container := NewWithDB(db, dialect, log)
 	err = container.Upgrade()
 	if err != nil {
 		return nil, fmt.Errorf("failed to upgrade database: %w", err)
@@ -40,11 +41,8 @@ func NewSQLContainer(dialect, address string, log waLog.Logger) (*SQLContainer, 
 	return container, nil
 }
 
-func NewSQLContainerWithDB(db *sql.DB, dialect string, log waLog.Logger) *SQLContainer {
-	if EnableSQLiteForeignKeys && dialect == "sqlite3" {
-		_, _ = db.Exec("PRAGMA foreign_keys = ON;")
-	}
-	return &SQLContainer{
+func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
+	return &Container{
 		db:      db,
 		dialect: dialect,
 		log:     log,
@@ -65,8 +63,8 @@ type scannable interface {
 	Scan(dest ...interface{}) error
 }
 
-func (c *SQLContainer) scanDevice(row scannable) (*Device, error) {
-	var store Device
+func (c *Container) scanDevice(row scannable) (*store.Device, error) {
+	var store store.Device
 	store.Log = c.log
 	store.SignedPreKey = &keys.PreKey{}
 	var jid string
@@ -95,7 +93,7 @@ func (c *SQLContainer) scanDevice(row scannable) (*Device, error) {
 	}
 	store.ID = &jidVal
 
-	innerStore := &SQLStore{SQLContainer: c, JID: jid}
+	innerStore := &SQLStore{Container: c, JID: jid}
 	store.Identities = innerStore
 	store.Sessions = innerStore
 	store.PreKeys = innerStore
@@ -108,12 +106,12 @@ func (c *SQLContainer) scanDevice(row scannable) (*Device, error) {
 	return &store, nil
 }
 
-func (c *SQLContainer) GetAllDevices() ([]*Device, error) {
+func (c *Container) GetAllDevices() ([]*store.Device, error) {
 	res, err := c.db.Query(getAllDevicesQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
-	sessions := make([]*Device, 0)
+	sessions := make([]*store.Device, 0)
 	for res.Next() {
 		sess, scanErr := c.scanDevice(res)
 		if scanErr != nil {
@@ -124,7 +122,7 @@ func (c *SQLContainer) GetAllDevices() ([]*Device, error) {
 	return sessions, nil
 }
 
-func (c *SQLContainer) GetDevice(jid string) (*Device, error) {
+func (c *Container) GetDevice(jid string) (*store.Device, error) {
 	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
@@ -143,8 +141,8 @@ const (
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=$1`
 )
 
-func (c *SQLContainer) NewDevice() *Device {
-	device := &Device{
+func (c *Container) NewDevice() *store.Device {
+	device := &store.Device{
 		Log:       c.log,
 		Container: c,
 
@@ -163,7 +161,7 @@ func (c *SQLContainer) NewDevice() *Device {
 
 var ErrDeviceIDMustBeSet = errors.New("device JID must be known before accessing database")
 
-func (c *SQLContainer) PutDevice(store *Device) error {
+func (c *Container) PutDevice(store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
@@ -174,7 +172,7 @@ func (c *SQLContainer) PutDevice(store *Device) error {
 		store.Platform, store.BusinessName)
 
 	if !store.Initialized {
-		innerStore := &SQLStore{SQLContainer: c, JID: store.ID.String()}
+		innerStore := &SQLStore{Container: c, JID: store.ID.String()}
 		store.Identities = innerStore
 		store.Sessions = innerStore
 		store.PreKeys = innerStore
@@ -186,7 +184,7 @@ func (c *SQLContainer) PutDevice(store *Device) error {
 	return err
 }
 
-func (c *SQLContainer) DeleteDevice(store *Device) error {
+func (c *Container) DeleteDevice(store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}

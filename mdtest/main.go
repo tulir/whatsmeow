@@ -29,6 +29,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -66,7 +67,7 @@ func getDevice() *store.Device {
 		log.Fatalln("Failed to open mdtest.db:", err)
 		return nil
 	}
-	storeContainer := store.NewSQLContainerWithDB(db, "sqlite3", &waLogger{log.DefaultLogger.Sub("Database")})
+	storeContainer := sqlstore.NewWithDB(db, "sqlite3", &waLogger{log.DefaultLogger.Sub("Database")})
 	err = storeContainer.Upgrade()
 	if err != nil {
 		log.Fatalln("Failed to upgrade database:", err)
