@@ -8,6 +8,8 @@
 package types
 
 import (
+	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"strconv"
 	"strings"
@@ -25,6 +27,7 @@ const (
 
 // Some JIDs that are contacted often.
 var (
+	EmptyJID            = JID{}
 	GroupServerJID      = NewJID("", GroupServer)
 	ServerJID           = NewJID("", DefaultUserServer)
 	BroadcastServerJID  = NewJID("", BroadcastServer)
@@ -133,4 +136,41 @@ func (jid JID) String() string {
 	} else {
 		return jid.Server
 	}
+}
+
+// IsEmpty returns true if the JID has no server (which is required for all JIDs).
+func (jid JID) IsEmpty() bool {
+	return len(jid.Server) > 0
+}
+
+var _ sql.Scanner = (*JID)(nil)
+
+// Scan scans the given SQL value into this JID.
+func (jid *JID) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	var out JID
+	var err error
+	switch val := src.(type) {
+	case string:
+		out, err = ParseJID(val)
+	case []byte:
+		out, err = ParseJID(string(val))
+	default:
+		err = fmt.Errorf("unsupported type %T for scanning JID", val)
+	}
+	if err != nil {
+		return err
+	}
+	*jid = out
+	return nil
+}
+
+// Value returns the string representation of the JID as a value that the SQL package can use.
+func (jid JID) Value() (driver.Value, error) {
+	if len(jid.Server) == 0 {
+		return nil, nil
+	}
+	return jid.String(), nil
 }

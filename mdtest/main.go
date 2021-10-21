@@ -37,37 +37,13 @@ import (
 
 var cli *whatsmeow.Client
 
-type waLogger struct {
-	l log.Logger
-}
-
-func (w *waLogger) Debugf(msg string, args ...interface{}) {
-	w.l.Debugfln(msg, args...)
-}
-
-func (w *waLogger) Infof(msg string, args ...interface{}) {
-	w.l.Infofln(msg, args...)
-}
-
-func (w *waLogger) Warnf(msg string, args ...interface{}) {
-	w.l.Warnfln(msg, args...)
-}
-
-func (w *waLogger) Errorf(msg string, args ...interface{}) {
-	w.l.Errorfln(msg, args...)
-}
-
-func (w *waLogger) Sub(module string) waLog.Logger {
-	return &waLogger{l: w.l.Sub(module)}
-}
-
 func getDevice() *store.Device {
 	db, err := sql.Open("sqlite3", "file:mdtest.db?_foreign_keys=on")
 	if err != nil {
 		log.Fatalln("Failed to open mdtest.db:", err)
 		return nil
 	}
-	storeContainer := sqlstore.NewWithDB(db, "sqlite3", &waLogger{log.DefaultLogger.Sub("Database")})
+	storeContainer := sqlstore.NewWithDB(db, "sqlite3", waLog.Stdout("Database"))
 	err = storeContainer.Upgrade()
 	if err != nil {
 		log.Fatalln("Failed to upgrade database:", err)
@@ -94,7 +70,7 @@ func main() {
 		return
 	}
 
-	cli = whatsmeow.NewClient(device, &waLogger{log.DefaultLogger.Sub("Client")})
+	cli = whatsmeow.NewClient(device, waLog.Stdout("Client"))
 	err := cli.Connect()
 	if err != nil {
 		log.Fatalln("Failed to connect:", err)
@@ -147,6 +123,11 @@ func handleCmd(cmd string, args []string) {
 		resp, err := cli.IsOnWhatsApp(args)
 		fmt.Println(err)
 		fmt.Printf("%+v\n", resp)
+	case "presence":
+		fmt.Println(cli.SendPresence(types.Presence(args[0])))
+	case "chatpresence":
+		jid, _ := types.ParseJID(args[1])
+		fmt.Println(cli.SendChatPresence(types.ChatPresence(args[0]), jid))
 	case "getuser":
 		var jids []types.JID
 		for _, jid := range args {

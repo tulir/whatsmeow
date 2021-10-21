@@ -83,6 +83,7 @@ type Device struct {
 	Account      *waProto.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
+	PushName     string
 
 	Initialized  bool
 	Identities   IdentityStore

@@ -32,7 +32,8 @@ var Upgrades = [...]upgradeFunc{
 			adv_device_sig  bytea NOT NULL CHECK ( length(adv_device_sig) = 64 ),
 
 			platform      TEXT NOT NULL DEFAULT '',
-			business_name TEXT NOT NULL DEFAULT ''
+			business_name TEXT NOT NULL DEFAULT '',
+			push_name     TEXT NOT NULL DEFAULT ''
 		)`)
 		if err != nil {
 			return err

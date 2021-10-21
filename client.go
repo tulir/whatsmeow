@@ -29,6 +29,8 @@ type Client struct {
 	sendLog waLog.Logger
 	socket  *socket.NoiseSocket
 
+	IsLoggedIn bool
+
 	appStateProc *appstate.Processor
 
 	mediaConn     *MediaConn
@@ -99,6 +101,10 @@ func (cli *Client) Connect() error {
 	go cli.keepAliveLoop(cli.socket.Context())
 	go cli.handlerQueueLoop(cli.socket.Context())
 	return nil
+}
+
+func (cli *Client) IsConnected() bool {
+	return cli.socket != nil && cli.socket.IsConnected()
 }
 
 // Disconnect closes the websocket connection.

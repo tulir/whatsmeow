@@ -52,12 +52,26 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error
 		}
 		state = newState
 		for _, mutation := range mutations {
+			cli.updateAppStateCache(mutation)
 			if (!fullSync || EmitAppStateEventsOnFullSync) && mutation.Operation == waProto.SyncdMutation_SET {
 				cli.dispatchAppState(mutation)
 			}
 		}
 	}
 	return nil
+}
+
+func (cli *Client) updateAppStateCache(mutation appstate.Mutation) {
+	isSet := mutation.Operation == waProto.SyncdMutation_SET
+	idx := mutation.Index[0]
+	switch {
+	case isSet && idx == "setting_pushName":
+		cli.Store.PushName = mutation.Action.GetPushNameSetting().GetName()
+		err := cli.Store.Save()
+		if err != nil {
+			cli.Log.Errorf("Failed to save device store after updating push name: %v", err)
+		}
+	}
 }
 
 func (cli *Client) dispatchAppState(mutation appstate.Mutation) {

@@ -17,7 +17,7 @@ import (
 
 // Options to control how Node.XMLString behaves.
 var (
-	IndentXML = false
+	IndentXML            = false
 	MaxBytesToPrintAsHex = 128
 )
 
