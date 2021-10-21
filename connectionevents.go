@@ -29,13 +29,34 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		}()
 	case "401":
 		conflict, ok := node.GetOptionalChildByTag("conflict")
-		if ok && conflict.AttrGetter().String("type") == "device_removed" {
+		conflictType := conflict.AttrGetter().String("type")
+		if ok && conflictType == "device_removed" {
+			cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session")
 			go cli.dispatchEvent(&events.LoggedOut{})
 			err := cli.Store.Delete()
 			if err != nil {
 				cli.Log.Warnf("Failed to delete store after device_removed error:", err)
 			}
 		}
+	default:
+		cli.Log.Errorf("Unknown stream error: %s", node.XMLString())
+		go cli.dispatchEvent(&events.StreamError{Code: code, Raw: node})
+	}
+}
+
+func (cli *Client) handleConnectFailure(node *waBinary.Node) {
+	ag := node.AttrGetter()
+	reason := ag.String("reason")
+	if reason == "401" {
+		cli.Log.Infof("Got 401 connect failure, sending LoggedOut event and deleting session")
+		go cli.dispatchEvent(&events.LoggedOut{})
+		err := cli.Store.Delete()
+		if err != nil {
+			cli.Log.Warnf("Failed to delete store after 401 failure:", err)
+		}
+	} else {
+		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())
+		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Raw: node})
 	}
 }
 

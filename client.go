@@ -80,6 +80,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"receipt":      cli.handleReceipt,
 		"notification": cli.handleNotification,
 		"success":      cli.handleConnectSuccess,
+		"failure":      cli.handleConnectFailure,
 		"stream:error": cli.handleStreamError,
 		"iq":           cli.handleIQ,
 	}

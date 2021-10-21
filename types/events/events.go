@@ -46,9 +46,39 @@ type Connected struct{}
 // LoggedOut is emitted when the client has been unpaired from the phone.
 type LoggedOut struct{}
 
+// ConnectFailure is emitted when the WhatsApp server sends a <failure> node with an unknown reason.
+//
+// Known reasons are handled internally and emitted as different events (e.g. LoggedOut).
+type ConnectFailure struct {
+	Reason string
+	Raw    *waBinary.Node
+}
+
+// StreamError is emitted when the WhatsApp server sends a <stream:error> node with an unknown code.
+//
+// Known codes are handled internally and emitted as different events (e.g. LoggedOut).
+type StreamError struct {
+	Code string
+	Raw  *waBinary.Node
+}
+
 // HistorySync is emitted when the phone has sent a blob of historical messages.
 type HistorySync struct {
 	Data *waProto.HistorySync
+}
+
+// UndecryptableMessage is emitted when receiving a new message that failed to decrypt.
+//
+// The library will automatically ask the sender to retry. If the sender resends the message,
+// and it's decryptable, then it will be emitted as a normal Message event.
+//
+// The UndecryptableMessage event may also be repeated if the resent message is also undecryptable.
+type UndecryptableMessage struct {
+	Info types.MessageInfo
+
+	// IsUnavailable is true if the recipient device didn't send a ciphertext to this device at all
+	// (as opposed to sending a ciphertext, but the ciphertext not being decryptable).
+	IsUnavailable bool
 }
 
 // Message is emitted when receiving a new message.
