@@ -35,7 +35,7 @@ import (
 )
 
 var cli *whatsmeow.Client
-var log = waLog.Stdout("Main")
+var log = waLog.Stdout("Main", true)
 
 func getDevice() *store.Device {
 	db, err := sql.Open("sqlite3", "file:mdtest.db?_foreign_keys=on")
@@ -43,7 +43,7 @@ func getDevice() *store.Device {
 		log.Errorf("Failed to open mdtest.db: %v", err)
 		return nil
 	}
-	storeContainer := sqlstore.NewWithDB(db, "sqlite3", waLog.Stdout("Database"))
+	storeContainer := sqlstore.NewWithDB(db, "sqlite3", waLog.Stdout("Database", true))
 	err = storeContainer.Upgrade()
 	if err != nil {
 		log.Errorf("Failed to upgrade database: %v", err)
@@ -69,7 +69,7 @@ func main() {
 		return
 	}
 
-	cli = whatsmeow.NewClient(device, waLog.Stdout("Client"))
+	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", true))
 	err := cli.Connect()
 	if err != nil {
 		log.Errorf("Failed to connect: %v", err)

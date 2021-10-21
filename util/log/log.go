@@ -33,11 +33,23 @@ func (n *noopLogger) Sub(_ string) Logger               { return n }
 var Noop Logger = &noopLogger{}
 
 type stdoutLogger struct {
-	mod string
+	mod   string
+	color bool
+}
+
+var colors = map[string]string{
+	"INFO": "\033[36m",
+	"WARN": "\033[33m",
+	"ERROR": "\033[31m",
 }
 
 func (s *stdoutLogger) outputf(level, msg string, args ...interface{}) {
-	fmt.Printf("%s [%s %s] %s\n", time.Now().Format("15:04:05.000"), s.mod, level, fmt.Sprintf(msg, args...))
+	var colorStart, colorReset string
+	if s.color {
+		colorStart = colors[level]
+		colorReset = "\033[0m"
+	}
+	fmt.Printf("%s%s [%s %s] %s%s\n", time.Now().Format("15:04:05.000"), colorStart, s.mod, level, fmt.Sprintf(msg, args...), colorReset)
 }
 
 func (s *stdoutLogger) Errorf(msg string, args ...interface{}) { s.outputf("ERROR", msg, args...) }
@@ -45,10 +57,10 @@ func (s *stdoutLogger) Warnf(msg string, args ...interface{})  { s.outputf("WARN
 func (s *stdoutLogger) Infof(msg string, args ...interface{})  { s.outputf("INFO", msg, args...) }
 func (s *stdoutLogger) Debugf(msg string, args ...interface{}) { s.outputf("DEBUG", msg, args...) }
 func (s *stdoutLogger) Sub(mod string) Logger {
-	return &stdoutLogger{mod: fmt.Sprintf("%s/%s", s.mod, mod)}
+	return &stdoutLogger{mod: fmt.Sprintf("%s/%s", s.mod, mod), color: s.color}
 }
 
 // Stdout is a simple Logger implementation that outputs to stdout. The module name given is included in log lines.
-func Stdout(module string) Logger {
-	return &stdoutLogger{mod: module}
+func Stdout(module string, color bool) Logger {
+	return &stdoutLogger{mod: module, color: color}
 }
