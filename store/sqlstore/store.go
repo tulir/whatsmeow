@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package store
+// Package sqlstore contains an SQL-backed implementation of the interfaces in the store package.
+package sqlstore
 
 import (
 	"database/sql"
@@ -13,22 +14,25 @@ import (
 	"strings"
 	"sync"
 
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
 var ErrInvalidLength = errors.New("database returned byte array with illegal length")
 
 type SQLStore struct {
-	*SQLContainer
+	*Container
 	JID string
 
 	preKeyLock sync.Mutex
 }
 
-var _ IdentityStore = (*SQLStore)(nil)
-var _ SessionStore = (*SQLStore)(nil)
-var _ PreKeyStore = (*SQLStore)(nil)
-var _ SenderKeyStore = (*SQLStore)(nil)
+var _ store.IdentityStore = (*SQLStore)(nil)
+var _ store.SessionStore = (*SQLStore)(nil)
+var _ store.PreKeyStore = (*SQLStore)(nil)
+var _ store.SenderKeyStore = (*SQLStore)(nil)
+var _ store.AppStateSyncKeyStore = (*SQLStore)(nil)
+var _ store.AppStateStore = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `
@@ -223,13 +227,13 @@ const (
 	getAppStateSyncKeyQuery = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 AND key_id=$2`
 )
 
-func (s *SQLStore) PutAppStateSyncKey(id []byte, key AppStateSyncKey) error {
+func (s *SQLStore) PutAppStateSyncKey(id []byte, key store.AppStateSyncKey) error {
 	_, err := s.db.Exec(putAppStateSyncKeyQuery, s.JID, id, key.Data, key.Timestamp, key.Fingerprint)
 	return err
 }
 
-func (s *SQLStore) GetAppStateSyncKey(id []byte) (*AppStateSyncKey, error) {
-	var key AppStateSyncKey
+func (s *SQLStore) GetAppStateSyncKey(id []byte) (*store.AppStateSyncKey, error) {
+	var key store.AppStateSyncKey
 	err := s.db.QueryRow(getAppStateSyncKeyQuery, s.JID, id).Scan(&key.Data, &key.Timestamp, &key.Fingerprint)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
@@ -282,7 +286,7 @@ type execable interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 }
 
-func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uint64, mutations []AppStateMutationMAC) error {
+func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uint64, mutations []store.AppStateMutationMAC) error {
 	values := make([]interface{}, 3+len(mutations)*2)
 	queryParts := make([]string, len(mutations))
 	values[0] = s.JID
@@ -300,14 +304,14 @@ func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uin
 
 const mutationBatchSize = 400
 
-func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutations []AppStateMutationMAC) error {
+func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutations []store.AppStateMutationMAC) error {
 	if len(mutations) > mutationBatchSize {
 		tx, err := s.db.Begin()
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
 		}
 		for i := 0; i < len(mutations); i += mutationBatchSize {
-			var mutationSlice []AppStateMutationMAC
+			var mutationSlice []store.AppStateMutationMAC
 			if len(mutations) > i+mutationBatchSize {
 				mutationSlice, mutations = mutations[:i+mutationBatchSize], mutations[i+mutationBatchSize:]
 			} else {

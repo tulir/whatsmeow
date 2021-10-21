@@ -22,59 +22,36 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mdp/qrterminal/v3"
 	"google.golang.org/protobuf/proto"
-	log "maunium.net/go/maulogger/v2"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 var cli *whatsmeow.Client
-
-type waLogger struct {
-	l log.Logger
-}
-
-func (w *waLogger) Debugf(msg string, args ...interface{}) {
-	w.l.Debugfln(msg, args...)
-}
-
-func (w *waLogger) Infof(msg string, args ...interface{}) {
-	w.l.Infofln(msg, args...)
-}
-
-func (w *waLogger) Warnf(msg string, args ...interface{}) {
-	w.l.Warnfln(msg, args...)
-}
-
-func (w *waLogger) Errorf(msg string, args ...interface{}) {
-	w.l.Errorfln(msg, args...)
-}
-
-func (w *waLogger) Sub(module string) waLog.Logger {
-	return &waLogger{l: w.l.Sub(module)}
-}
+var log = waLog.Stdout("Main")
 
 func getDevice() *store.Device {
 	db, err := sql.Open("sqlite3", "file:mdtest.db?_foreign_keys=on")
 	if err != nil {
-		log.Fatalln("Failed to open mdtest.db:", err)
+		log.Errorf("Failed to open mdtest.db: %v", err)
 		return nil
 	}
-	storeContainer := store.NewSQLContainerWithDB(db, "sqlite3", &waLogger{log.DefaultLogger.Sub("Database")})
+	storeContainer := sqlstore.NewWithDB(db, "sqlite3", waLog.Stdout("Database"))
 	err = storeContainer.Upgrade()
 	if err != nil {
-		log.Fatalln("Failed to upgrade database:", err)
+		log.Errorf("Failed to upgrade database: %v", err)
 		return nil
 	}
 	devices, err := storeContainer.GetAllDevices()
 	if err != nil {
-		log.Fatalln("Failed to get devices from database:", err)
+		log.Errorf("Failed to get devices from database: %v", err)
 		return nil
 	}
 	if len(devices) == 0 {
@@ -85,7 +62,6 @@ func getDevice() *store.Device {
 }
 
 func main() {
-	log.DefaultLogger.PrintLevel = 0
 	waBinary.IndentXML = true
 
 	device := getDevice()
@@ -93,10 +69,10 @@ func main() {
 		return
 	}
 
-	cli = whatsmeow.NewClient(device, &waLogger{log.DefaultLogger.Sub("Client")})
+	cli = whatsmeow.NewClient(device, waLog.Stdout("Client"))
 	err := cli.Connect()
 	if err != nil {
-		log.Fatalln("Failed to connect:", err)
+		log.Errorf("Failed to connect: %v", err)
 		return
 	}
 	cli.AddEventHandler(handler)
@@ -134,18 +110,23 @@ func handleCmd(cmd string, args []string) {
 		cli.Disconnect()
 		err := cli.Connect()
 		if err != nil {
-			log.Fatalln("Failed to connect:", err)
+			log.Errorf("Failed to connect: %v", err)
 			return
 		}
 	case "appstate":
 		err := cli.FetchAppState(appstate.WAPatchName(args[0]), len(args) > 1 && args[1] == "resync")
 		if err != nil {
-			log.Errorln("Failed to sync app state:", err)
+			log.Errorf("Failed to sync app state: %v", err)
 		}
 	case "checkuser":
 		resp, err := cli.IsOnWhatsApp(args)
 		fmt.Println(err)
 		fmt.Printf("%+v\n", resp)
+	case "presence":
+		fmt.Println(cli.SendPresence(types.Presence(args[0])))
+	case "chatpresence":
+		jid, _ := types.ParseJID(args[1])
+		fmt.Println(cli.SendChatPresence(types.ChatPresence(args[0]), jid))
 	case "getuser":
 		var jids []types.JID
 		for _, jid := range args {
@@ -217,7 +198,7 @@ func handler(rawEvt interface{}) {
 		default:
 		}
 	case *events.Message:
-		log.Infofln("Received message: %+v", evt)
+		log.Infof("Received message: %+v", evt)
 		img := evt.Message.GetImageMessage()
 		if img != nil {
 			data, err := cli.Download(img)
@@ -235,9 +216,9 @@ func handler(rawEvt interface{}) {
 			fmt.Println("Saved image to", path)
 		}
 	case *events.Receipt:
-		log.Infofln("Received receipt: %+v", evt)
+		log.Infof("Received receipt: %+v", evt)
 	case *events.AppState:
-		log.Debugfln("App state event: %+v", evt)
+		log.Debugf("App state event: %+v", evt)
 	}
 }
 

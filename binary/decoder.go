@@ -14,7 +14,7 @@ type binaryDecoder struct {
 	index int
 }
 
-func NewDecoder(data []byte) *binaryDecoder {
+func newDecoder(data []byte) *binaryDecoder {
 	return &binaryDecoder{data, 0}
 }
 
@@ -232,13 +232,10 @@ func (r *binaryDecoder) readJIDPair() (interface{}, error) {
 		return nil, err
 	} else if server == nil {
 		return nil, ErrInvalidJIDType
-	}
-
-	if user == nil {
+	} else if user == nil {
 		return types.NewJID("", server.(string)), nil
-	} else {
-		return types.NewJID(user.(string), server.(string)), nil
 	}
+	return types.NewJID(user.(string), server.(string)), nil
 }
 
 func (r *binaryDecoder) readADJID() (interface{}, error) {
@@ -291,7 +288,7 @@ func (r *binaryDecoder) readList(tag int) ([]Node, error) {
 
 	ret := make([]Node, size)
 	for i := 0; i < size; i++ {
-		n, err := r.ReadNode()
+		n, err := r.readNode()
 
 		if err != nil {
 			return nil, err
@@ -303,7 +300,7 @@ func (r *binaryDecoder) readList(tag int) ([]Node, error) {
 	return ret, nil
 }
 
-func (r *binaryDecoder) ReadNode() (*Node, error) {
+func (r *binaryDecoder) readNode() (*Node, error) {
 	ret := &Node{}
 
 	size, err := r.readInt8(false)

@@ -15,8 +15,11 @@ import (
 	"unicode/utf8"
 )
 
-var IndentXML = false
-var MaxBytesToPrintAsHex = 128
+// Options to control how Node.XMLString behaves.
+var (
+	IndentXML            = false
+	MaxBytesToPrintAsHex = 128
+)
 
 // XMLString converts the Node to its XML representation
 func (n *Node) XMLString() string {
@@ -39,7 +42,7 @@ func (n *Node) attributeString() string {
 	i := 1
 	for key, value := range n.Attrs {
 		stringAttrs[i] = fmt.Sprintf(`%s="%v"`, key, value)
-		i += 1
+		i++
 	}
 	sort.Strings(stringAttrs)
 	return strings.Join(stringAttrs, " ")

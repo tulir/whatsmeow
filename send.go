@@ -40,6 +40,8 @@ func GenerateMessageID() string {
 }
 
 // SendMessage sends the given message.
+//
+// If the message ID is not provided, a random message ID will be generated.
 func (cli *Client) SendMessage(to types.JID, id string, message *waProto.Message) error {
 	if to.AD {
 		return ErrRecipientADJID

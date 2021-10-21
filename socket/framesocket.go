@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -23,8 +24,10 @@ type FrameSocket struct {
 	ctx    context.Context
 	cancel func()
 	log    waLog.Logger
+	lock   sync.Mutex
 
 	OnFrame      func([]byte)
+	OnDisconnect func()
 	WriteTimeout time.Duration
 
 	Header []byte
@@ -43,11 +46,18 @@ func NewFrameSocket(log waLog.Logger, header []byte) *FrameSocket {
 	}
 }
 
+func (fs *FrameSocket) IsConnected() bool {
+	return fs.conn != nil
+}
+
 func (fs *FrameSocket) Context() context.Context {
 	return fs.ctx
 }
 
 func (fs *FrameSocket) Close() {
+	fs.lock.Lock()
+	defer fs.lock.Unlock()
+
 	if fs.conn == nil {
 		return
 	}
@@ -62,14 +72,19 @@ func (fs *FrameSocket) Close() {
 	fs.conn = nil
 	fs.ctx = nil
 	fs.cancel = nil
+	if fs.OnDisconnect != nil {
+		go fs.OnDisconnect()
+	}
 }
 
 func (fs *FrameSocket) Connect() error {
+	fs.lock.Lock()
+	defer fs.lock.Unlock()
+
 	if fs.conn != nil {
 		return ErrSocketAlreadyOpen
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	fs.ctx, fs.cancel = ctx, cancel
+	fs.ctx, fs.cancel = context.WithCancel(context.Background())
 	dialer := websocket.Dialer{}
 
 	headers := http.Header{"Origin": []string{Origin}}
@@ -83,19 +98,20 @@ func (fs *FrameSocket) Connect() error {
 
 	fs.conn.SetCloseHandler(func(code int, text string) error {
 		fs.log.Debugf("Close handler called with %d/%s", code, text)
-		cancel()
 		// from default CloseHandler
 		message := websocket.FormatCloseMessage(code, "")
 		_ = fs.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
+		fs.Close()
 		return nil
 	})
 
-	go fs.readPump(ctx)
+	go fs.readPump(fs.conn, fs.ctx)
 	return nil
 }
 
 func (fs *FrameSocket) SendFrame(data []byte) error {
-	if fs.conn == nil {
+	conn := fs.conn
+	if conn == nil {
 		return ErrSocketClosed
 	}
 	dataLength := len(data)
@@ -123,12 +139,12 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 	copy(wholeFrame[headerLength+FrameLengthSize:], data)
 
 	if fs.WriteTimeout > 0 {
-		err := fs.conn.SetWriteDeadline(time.Now().Add(fs.WriteTimeout))
+		err := conn.SetWriteDeadline(time.Now().Add(fs.WriteTimeout))
 		if err != nil {
 			fs.log.Warnf("Failed to set write deadline: %v", err)
 		}
 	}
-	return fs.conn.WriteMessage(websocket.BinaryMessage, wholeFrame)
+	return conn.WriteMessage(websocket.BinaryMessage, wholeFrame)
 }
 
 func (fs *FrameSocket) SetOnFrame(onFrame func([]byte)) {
@@ -212,7 +228,7 @@ func (fs *FrameSocket) processData(msg []byte) {
 	}
 }
 
-func (fs *FrameSocket) readPump(ctx context.Context) {
+func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 	var readErr error
 	var msgType int
 	var reader io.Reader
@@ -222,7 +238,7 @@ func (fs *FrameSocket) readPump(ctx context.Context) {
 	for {
 		readerFound := make(chan struct{})
 		go func() {
-			msgType, reader, readErr = fs.conn.NextReader()
+			msgType, reader, readErr = conn.NextReader()
 			close(readerFound)
 		}()
 		select {

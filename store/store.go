@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-// Package store contains interfaces for storing data needed for WhatsApp multidevice, and an SQL-backed implementation of those interfaces.
+// Package store contains interfaces for storing data needed for WhatsApp multidevice.
 package store
 
 import (
@@ -83,6 +83,7 @@ type Device struct {
 	Account      *waProto.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
+	PushName     string
 
 	Initialized  bool
 	Identities   IdentityStore

@@ -20,7 +20,7 @@ import (
 type IsOnWhatsAppResponse struct {
 	Query string    // The query string used, plus @c.us at the end
 	JID   types.JID // The canonical user ID
-	IsIn  bool      // Whether or not the phone is registered.
+	IsIn  bool      // Whether the phone is registered or not.
 
 	VerifiedName *types.VerifiedName // If the phone is a business, the verified business details.
 }
@@ -94,7 +94,9 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 	return respData, nil
 }
 
-// GetUserDevices gets the list of devices that the given user has.
+// GetUserDevices gets the list of devices that the given user has. The input should be a list of
+// regular JIDs, and the output will be a list of AD JIDs. The local device will not be included in
+// the output even if the user's JID is included in the input. All other devices will be included.
 func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 	list, err := cli.usync(jids, "query", "message", []waBinary.Node{
 		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},

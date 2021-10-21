@@ -67,6 +67,14 @@ func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {
 	ns.OnFrame(plaintext)
 }
 
+func (ns *NoiseSocket) SetOnDisconnect(onDisconnect func()) {
+	ns.fs.OnDisconnect = onDisconnect
+}
+
+func (ns *NoiseSocket) IsConnected() bool {
+	return ns.fs.IsConnected()
+}
+
 func (ns *NoiseSocket) SetOnFrame(onFrame func([]byte)) {
 	ns.OnFrame = onFrame
 }

@@ -4,9 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// Package types contains various structs and other types used by whatsmeow.
 package types
 
 import (
+	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,6 +17,7 @@ import (
 	signalProtocol "go.mau.fi/libsignal/protocol"
 )
 
+// Known JID servers on WhatsApp
 const (
 	DefaultUserServer = "s.whatsapp.net"
 	GroupServer       = "g.us"
@@ -21,7 +25,9 @@ const (
 	BroadcastServer   = "broadcast"
 )
 
+// Some JIDs that are contacted often.
 var (
+	EmptyJID            = JID{}
 	GroupServerJID      = NewJID("", GroupServer)
 	ServerJID           = NewJID("", DefaultUserServer)
 	BroadcastServerJID  = NewJID("", BroadcastServer)
@@ -33,6 +39,11 @@ var (
 // MessageID is the internal ID of a WhatsApp message.
 type MessageID = string
 
+// JID represents a WhatsApp user ID.
+//
+// There are two types of JIDs: regular JID pairs (user and server) and AD-JIDs (user, agent and device).
+// AD JIDs are only used to refer to specific devices of users, so the server is always s.whatsapp.net (DefaultUserServer).
+// Regular JIDs can be used for entities on any servers (users, groups, broadcasts).
 type JID struct {
 	User   string
 	Agent  uint8
@@ -41,11 +52,13 @@ type JID struct {
 	AD     bool
 }
 
+// UserInt returns the user as an integer. This is only safe to run on normal users, not on groups or broadcast lists.
 func (jid JID) UserInt() uint64 {
 	number, _ := strconv.ParseUint(jid.User, 10, 64)
 	return number
 }
 
+// SignalAddress returns the Signal protocol address for the user.
 func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
 	user := jid.User
 	if jid.Agent != 0 {
@@ -54,6 +67,7 @@ func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
 	return signalProtocol.NewSignalAddress(user, uint32(jid.Device))
 }
 
+// NewADJID creates a new AD JID.
 func NewADJID(user string, agent, device uint8) JID {
 	return JID{
 		User:   user,
@@ -93,6 +107,7 @@ func parseADJID(user string) (JID, error) {
 	return fullJID, nil
 }
 
+// ParseJID parses a JID out of the given string. It supports both regular and AD JIDs.
 func ParseJID(jid string) (JID, error) {
 	parts := strings.Split(jid, "@")
 	if len(parts) == 1 {
@@ -103,6 +118,7 @@ func ParseJID(jid string) (JID, error) {
 	return NewJID(parts[0], parts[1]), nil
 }
 
+// NewJID creates a new regular JID.
 func NewJID(user, server string) JID {
 	return JID{
 		User:   user,
@@ -110,6 +126,8 @@ func NewJID(user, server string) JID {
 	}
 }
 
+// String converts the JID to a string representation.
+// The output string can be parsed with ParseJID, except for JIDs with no User part specified.
 func (jid JID) String() string {
 	if jid.AD {
 		return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.Agent, jid.Device, jid.Server)
@@ -118,4 +136,41 @@ func (jid JID) String() string {
 	} else {
 		return jid.Server
 	}
+}
+
+// IsEmpty returns true if the JID has no server (which is required for all JIDs).
+func (jid JID) IsEmpty() bool {
+	return len(jid.Server) > 0
+}
+
+var _ sql.Scanner = (*JID)(nil)
+
+// Scan scans the given SQL value into this JID.
+func (jid *JID) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+	var out JID
+	var err error
+	switch val := src.(type) {
+	case string:
+		out, err = ParseJID(val)
+	case []byte:
+		out, err = ParseJID(string(val))
+	default:
+		err = fmt.Errorf("unsupported type %T for scanning JID", val)
+	}
+	if err != nil {
+		return err
+	}
+	*jid = out
+	return nil
+}
+
+// Value returns the string representation of the JID as a value that the SQL package can use.
+func (jid JID) Value() (driver.Value, error) {
+	if len(jid.Server) == 0 {
+		return nil, nil
+	}
+	return jid.String(), nil
 }

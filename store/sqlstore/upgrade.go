@@ -4,16 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package store
+package sqlstore
 
 import (
 	"database/sql"
 )
 
-type upgradeFunc func(*sql.Tx, *SQLContainer) error
+type upgradeFunc func(*sql.Tx, *Container) error
 
 var Upgrades = [...]upgradeFunc{
-	func(tx *sql.Tx, _ *SQLContainer) error {
+	func(tx *sql.Tx, _ *Container) error {
 		_, err := tx.Exec(`CREATE TABLE whatsmeow_device (
 			jid TEXT PRIMARY KEY,
 
@@ -32,7 +32,8 @@ var Upgrades = [...]upgradeFunc{
 			adv_device_sig  bytea NOT NULL CHECK ( length(adv_device_sig) = 64 ),
 
 			platform      TEXT NOT NULL DEFAULT '',
-			business_name TEXT NOT NULL DEFAULT ''
+			business_name TEXT NOT NULL DEFAULT '',
+			push_name     TEXT NOT NULL DEFAULT ''
 		)`)
 		if err != nil {
 			return err
@@ -122,7 +123,7 @@ var Upgrades = [...]upgradeFunc{
 	},
 }
 
-func (c *SQLContainer) getVersion() (int, error) {
+func (c *Container) getVersion() (int, error) {
 	_, err := c.db.Exec("CREATE TABLE IF NOT EXISTS whatsmeow_version (version INTEGER)")
 	if err != nil {
 		return -1, err
@@ -136,7 +137,7 @@ func (c *SQLContainer) getVersion() (int, error) {
 	return version, nil
 }
 
-func (c *SQLContainer) setVersion(tx *sql.Tx, version int) error {
+func (c *Container) setVersion(tx *sql.Tx, version int) error {
 	_, err := tx.Exec("DELETE FROM whatsmeow_version")
 	if err != nil {
 		return err
@@ -146,7 +147,7 @@ func (c *SQLContainer) setVersion(tx *sql.Tx, version int) error {
 }
 
 // Upgrade upgrades the database from the current to the latest version available.
-func (c *SQLContainer) Upgrade() error {
+func (c *Container) Upgrade() error {
 	version, err := c.getVersion()
 	if err != nil {
 		return err

@@ -15,6 +15,7 @@ import (
 type nodeHandler func(node *waBinary.Node)
 
 func (cli *Client) handleStreamError(node *waBinary.Node) {
+	cli.IsLoggedIn = false
 	code, _ := node.Attrs["code"].(string)
 	switch code {
 	case "515":
@@ -40,6 +41,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 
 func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.Log.Infof("Successfully authenticated")
+	cli.IsLoggedIn = true
 	go func() {
 		count, err := cli.Store.PreKeys.UploadedPreKeyCount()
 		if err != nil {
@@ -47,7 +49,7 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 		} else if count < WantedPreKeyCount {
 			cli.uploadPreKeys(count)
 		}
-		err = cli.sendPassiveIQ(false)
+		err = cli.SetPassive(false)
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
@@ -55,7 +57,8 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	}()
 }
 
-func (cli *Client) sendPassiveIQ(passive bool) error {
+// SetPassive tells the WhatsApp server whether this device is passive or not.
+func (cli *Client) SetPassive(passive bool) error {
 	tag := "active"
 	if passive {
 		tag = "passive"
@@ -70,4 +73,30 @@ func (cli *Client) sendPassiveIQ(passive bool) error {
 		return err
 	}
 	return nil
+}
+
+// SendPresence updates the user's presence status on WhatsApp.
+//
+// You should call this at least once after connecting so that the server has your pushname.
+// Otherwise, other users will see "-" as the name.
+func (cli *Client) SendPresence(state types.Presence) error {
+	return cli.sendNode(waBinary.Node{
+		Tag: "presence",
+		Attrs: waBinary.Attrs{
+			"name": cli.Store.PushName,
+			"type": string(state),
+		},
+	})
+}
+
+// SendChatPresence updates the user's typing status in a specific chat.
+func (cli *Client) SendChatPresence(state types.ChatPresence, jid types.JID) error {
+	return cli.sendNode(waBinary.Node{
+		Tag: "chatstate",
+		Attrs: waBinary.Attrs{
+			"from": *cli.Store.ID,
+			"to":   jid,
+		},
+		Content: []waBinary.Node{{Tag: string(state)}},
+	})
 }
