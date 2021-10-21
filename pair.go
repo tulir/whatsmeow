@@ -159,6 +159,9 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return fmt.Errorf("failed to store main device identity: %w", err)
 	}
 
+	// Expect a disconnect after this and don't dispatch the usual Disconnected event
+	cli.isExpectedDisconnect = true
+
 	err = cli.sendNode(waBinary.Node{
 		Tag: "iq",
 		Attrs: waBinary.Attrs{

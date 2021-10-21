@@ -54,12 +54,20 @@ func (fs *FrameSocket) Context() context.Context {
 	return fs.ctx
 }
 
-func (fs *FrameSocket) Close() {
+func (fs *FrameSocket) Close(code int) {
 	fs.lock.Lock()
 	defer fs.lock.Unlock()
 
 	if fs.conn == nil {
 		return
+	}
+
+	if code > 0 {
+		message := websocket.FormatCloseMessage(code, "")
+		err := fs.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
+		if err != nil {
+			fs.log.Warnf("Error sending close message: %v", err)
+		}
 	}
 
 	err := fs.conn.Close()
@@ -72,7 +80,7 @@ func (fs *FrameSocket) Close() {
 	fs.conn = nil
 	fs.ctx = nil
 	fs.cancel = nil
-	if fs.OnDisconnect != nil {
+	if code > 0 && fs.OnDisconnect != nil {
 		go fs.OnDisconnect()
 	}
 }
@@ -237,7 +245,7 @@ func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 	fs.log.Debugf("Frame websocket read pump starting %p", fs)
 	defer func() {
 		fs.log.Debugf("Frame websocket read pump exiting %p", fs)
-		go fs.Close()
+		go fs.Close(0)
 	}()
 	for {
 		readerFound := make(chan struct{})

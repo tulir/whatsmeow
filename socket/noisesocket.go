@@ -44,8 +44,8 @@ func (ns *NoiseSocket) Context() context.Context {
 	return ns.fs.Context()
 }
 
-func (ns *NoiseSocket) Close() {
-	ns.fs.Close()
+func (ns *NoiseSocket) Close(code int) {
+	ns.fs.Close(code)
 }
 
 func (ns *NoiseSocket) SendFrame(plaintext []byte) error {
@@ -67,8 +67,14 @@ func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {
 	ns.OnFrame(plaintext)
 }
 
-func (ns *NoiseSocket) SetOnDisconnect(onDisconnect func()) {
-	ns.fs.OnDisconnect = onDisconnect
+func (ns *NoiseSocket) SetOnDisconnect(onDisconnect func(socket *NoiseSocket)) {
+	if onDisconnect == nil {
+		ns.fs.OnDisconnect = nil
+	} else {
+		ns.fs.OnDisconnect = func() {
+			onDisconnect(ns)
+		}
+	}
 }
 
 func (ns *NoiseSocket) IsConnected() bool {

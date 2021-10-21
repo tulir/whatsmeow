@@ -15,6 +15,7 @@ import (
 	"sync"
 
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
@@ -33,6 +34,7 @@ var _ store.PreKeyStore = (*SQLStore)(nil)
 var _ store.SenderKeyStore = (*SQLStore)(nil)
 var _ store.AppStateSyncKeyStore = (*SQLStore)(nil)
 var _ store.AppStateStore = (*SQLStore)(nil)
+var _ store.ContactStore = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `
@@ -359,5 +361,58 @@ func (s *SQLStore) GetAppStateMutationMAC(name string, indexMAC []byte) (valueMA
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
+	return
+}
+
+const (
+	putContactNameQuery = `
+		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=$3, full_name=$4
+	`
+	putPushNameQuery = `
+		INSERT INTO whatsmeow_contacts (our_jid, their_jid, push_name) VALUES ($1, $2, $3)
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET push_name=$3
+	`
+	putBusinessNameQuery = `
+		INSERT INTO whatsmeow_contacts (our_jid, their_jid, business_name) VALUES ($1, $2, $3)
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET business_name=$3
+	`
+	getContactQuery = `
+		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
+	`
+)
+
+func (s *SQLStore) PutPushName(user types.JID, pushName string) error {
+	_, err := s.db.Exec(putPushNameQuery, s.JID, user, pushName)
+	return err
+}
+
+func (s *SQLStore) PutBusinessName(user types.JID, businessName string) error {
+	_, err := s.db.Exec(putBusinessNameQuery, s.JID, user, businessName)
+	return err
+}
+
+func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) error {
+	_, err := s.db.Exec(putContactNameQuery, s.JID, user, firstName, fullName)
+	return err
+}
+
+func (s *SQLStore) GetContact(user types.JID) (info types.ContactInfo, err error) {
+	var first, full, push, business sql.NullString
+	err = s.db.QueryRow(getContactQuery, s.JID, user).Scan(&first, &full, &push, &business)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			// Ignore error, but don't set found = true
+			err = nil
+		} else {
+			return
+		}
+	} else {
+		info.Found = true
+	}
+	info.FirstName = first.String
+	info.FullName = full.String
+	info.PushName = push.String
+	info.BusinessName = business.String
 	return
 }

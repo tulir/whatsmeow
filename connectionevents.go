@@ -7,12 +7,12 @@
 package whatsmeow
 
 import (
+	"time"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
-
-type nodeHandler func(node *waBinary.Node)
 
 func (cli *Client) handleStreamError(node *waBinary.Node) {
 	cli.IsLoggedIn = false
@@ -31,12 +31,16 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		conflict, ok := node.GetOptionalChildByTag("conflict")
 		conflictType := conflict.AttrGetter().String("type")
 		if ok && conflictType == "device_removed" {
+			cli.isExpectedDisconnect = true
 			cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session")
 			go cli.dispatchEvent(&events.LoggedOut{})
 			err := cli.Store.Delete()
 			if err != nil {
 				cli.Log.Warnf("Failed to delete store after device_removed error:", err)
 			}
+		} else {
+			cli.Log.Errorf("Unknown stream error code 401: %s", node.XMLString())
+			go cli.dispatchEvent(&events.StreamError{Code: code, Raw: node})
 		}
 	default:
 		cli.Log.Errorf("Unknown stream error: %s", node.XMLString())
@@ -48,6 +52,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	reason := ag.String("reason")
 	if reason == "401" {
+		cli.isExpectedDisconnect = true
 		cli.Log.Infof("Got 401 connect failure, sending LoggedOut event and deleting session")
 		go cli.dispatchEvent(&events.LoggedOut{})
 		err := cli.Store.Delete()
@@ -62,6 +67,8 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 
 func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.Log.Infof("Successfully authenticated")
+	cli.LastSuccessfulConnect = time.Now()
+	cli.AutoReconnectErrors = 0
 	cli.IsLoggedIn = true
 	go func() {
 		count, err := cli.Store.PreKeys.UploadedPreKeyCount()

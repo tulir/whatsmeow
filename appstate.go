@@ -71,6 +71,15 @@ func (cli *Client) updateAppStateCache(mutation appstate.Mutation) {
 		if err != nil {
 			cli.Log.Errorf("Failed to save device store after updating push name: %v", err)
 		}
+	case isSet && idx == "contact" && len(mutation.Index) > 1 && cli.Store.Contacts != nil:
+		act := mutation.Action.GetContactAction()
+		jid, err := types.ParseJID(mutation.Index[1])
+		if err == nil && act != nil {
+			err = cli.Store.Contacts.PutContactName(jid, act.GetFirstName(), act.GetFullName())
+			if err != nil {
+				cli.Log.Errorf("Failed to save contact name of %s in device store: %v", jid, err)
+			}
+		}
 	}
 }
 

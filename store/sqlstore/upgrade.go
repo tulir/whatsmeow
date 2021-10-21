@@ -119,6 +119,20 @@ var Upgrades = [...]upgradeFunc{
 		if err != nil {
 			return err
 		}
+		_, err = tx.Exec(`CREATE TABLE whatsmeow_contacts (
+			our_jid       TEXT,
+			their_jid     TEXT,
+			first_name    TEXT,
+			full_name     TEXT,
+			push_name     TEXT,
+			business_name TEXT,
+
+			PRIMARY KEY (our_jid, their_jid),
+			FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+		)`)
+		if err != nil {
+			return err
+		}
 		return nil
 	},
 }

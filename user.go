@@ -90,6 +90,9 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 			PictureID:    pictureID,
 			Devices:      devices,
 		}
+		if verifiedName != nil {
+			cli.updateBusinessName(jid, verifiedName.Details.GetVerifiedName())
+		}
 	}
 	return respData, nil
 }
@@ -153,6 +156,27 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 		return &info, ag.Error()
 	}
 	return &info, nil
+}
+
+func (cli *Client) updatePushName(user types.JID, name string) {
+	if cli.Store.Contacts == nil {
+		return
+	}
+	// TODO should this filter out repeated calls somehow?
+	err := cli.Store.Contacts.PutPushName(user, name)
+	if err != nil {
+		cli.Log.Errorf("Failed to save push name of %s in device store: %v", user, err)
+	}
+}
+
+func (cli *Client) updateBusinessName(user types.JID, name string) {
+	if cli.Store.Contacts == nil {
+		return
+	}
+	err := cli.Store.Contacts.PutBusinessName(user, name)
+	if err != nil {
+		cli.Log.Errorf("Failed to save business name of %s in device store: %v", user, err)
+	}
 }
 
 func parseVerifiedName(businessNode waBinary.Node) (*types.VerifiedName, error) {
