@@ -96,6 +96,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.SenderKeys = innerStore
 	device.AppStateKeys = innerStore
 	device.AppState = innerStore
+	device.Contacts = innerStore
 	device.Container = c
 	device.Initialized = true
 
@@ -176,6 +177,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 		device.SenderKeys = innerStore
 		device.AppStateKeys = innerStore
 		device.AppState = innerStore
+		device.Contacts = innerStore
 		device.Initialized = true
 	}
 	return err

@@ -9,7 +9,7 @@ package store
 
 import (
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	waBinary "go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
@@ -65,6 +65,13 @@ type AppStateStore interface {
 	GetAppStateMutationMAC(name string, indexMAC []byte) (valueMAC []byte, err error)
 }
 
+type ContactStore interface {
+	PutPushName(user types.JID, pushName string) error
+	PutBusinessName(user types.JID, businessName string) error
+	PutContactName(user types.JID, fullName, firstName string) error
+	GetContact(user types.JID) (types.ContactInfo, error)
+}
+
 type DeviceContainer interface {
 	PutDevice(store *Device) error
 	DeleteDevice(store *Device) error
@@ -79,7 +86,7 @@ type Device struct {
 	RegistrationID uint32
 	AdvSecretKey   []byte
 
-	ID           *waBinary.JID
+	ID           *types.JID
 	Account      *waProto.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
@@ -92,6 +99,7 @@ type Device struct {
 	SenderKeys   SenderKeyStore
 	AppStateKeys AppStateSyncKeyStore
 	AppState     AppStateStore
+	Contacts     ContactStore
 	Container    DeviceContainer
 }
 

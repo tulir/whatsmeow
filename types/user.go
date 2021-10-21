@@ -32,3 +32,13 @@ type ProfilePictureInfo struct {
 
 	DirectPath string // The path to the image, probably not very useful
 }
+
+// ContactInfo contains the cached names of a WhatsApp user.
+type ContactInfo struct {
+	Found bool
+
+	FirstName    string
+	FullName     string
+	PushName     string
+	BusinessName string
+}
