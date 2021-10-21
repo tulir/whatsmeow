@@ -65,7 +65,7 @@ type StreamError struct {
 }
 
 // Disconnected is emitted when the websocket is closed by the server.
-type Disconnected struct {}
+type Disconnected struct{}
 
 // HistorySync is emitted when the phone has sent a blob of historical messages.
 type HistorySync struct {

@@ -14,8 +14,6 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-type nodeHandler func(node *waBinary.Node)
-
 func (cli *Client) handleStreamError(node *waBinary.Node) {
 	cli.IsLoggedIn = false
 	code, _ := node.Attrs["code"].(string)

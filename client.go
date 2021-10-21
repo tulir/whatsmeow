@@ -26,6 +26,10 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+// EventHandler is a function that can handle events from WhatsApp.
+type EventHandler func(evt interface{})
+type nodeHandler func(node *waBinary.Node)
+
 // Client contains everything necessary to connect to and interact with the WhatsApp web API.
 type Client struct {
 	Store   *store.Device
@@ -56,7 +60,7 @@ type Client struct {
 
 	nodeHandlers  map[string]nodeHandler
 	handlerQueue  chan *waBinary.Node
-	eventHandlers []func(interface{})
+	eventHandlers []EventHandler
 
 	uniqueID  string
 	idCounter uint64
@@ -82,7 +86,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		sendLog:         log.Sub("Send"),
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
-		eventHandlers:   make([]func(interface{}), 0),
+		eventHandlers:   make([]EventHandler, 0, 1),
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
@@ -189,8 +193,13 @@ func (cli *Client) disconnect() {
 }
 
 // AddEventHandler registers a new function to receive all events emitted by this client.
-func (cli *Client) AddEventHandler(handler func(interface{})) {
+func (cli *Client) AddEventHandler(handler EventHandler) {
 	cli.eventHandlers = append(cli.eventHandlers, handler)
+}
+
+// RemoveEventHandlers removes all event handlers that have been registered with AddEventHandler
+func (cli *Client) RemoveEventHandlers() {
+	cli.eventHandlers = make([]EventHandler, 0, 1)
 }
 
 func (cli *Client) handleFrame(data []byte) {
