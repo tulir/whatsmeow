@@ -84,28 +84,29 @@ func (fs *FrameSocket) Connect() error {
 	if fs.conn != nil {
 		return ErrSocketAlreadyOpen
 	}
-	fs.ctx, fs.cancel = context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 	dialer := websocket.Dialer{}
 
 	headers := http.Header{"Origin": []string{Origin}}
 	fs.log.Debugf("Dialing %s", URL)
-	var err error
-	fs.conn, _, err = dialer.Dial(URL, headers)
+	conn, _, err := dialer.Dial(URL, headers)
 	if err != nil {
-		fs.cancel()
+		cancel()
 		return fmt.Errorf("couldn't dial whatsapp web websocket: %w", err)
 	}
 
+	fs.ctx, fs.cancel = ctx, cancel
+	fs.conn = conn
 	fs.conn.SetCloseHandler(func(code int, text string) error {
 		fs.log.Debugf("Close handler called with %d/%s", code, text)
+		cancel()
 		// from default CloseHandler
 		message := websocket.FormatCloseMessage(code, "")
 		_ = fs.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
-		fs.Close()
 		return nil
 	})
 
-	go fs.readPump(fs.conn, fs.ctx)
+	go fs.readPump(conn, ctx)
 	return nil
 }
 
@@ -234,7 +235,10 @@ func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 	var reader io.Reader
 
 	fs.log.Debugf("Frame websocket read pump starting %p", fs)
-	defer fs.log.Debugf("Frame websocket read pump exiting %p", fs)
+	defer func() {
+		fs.log.Debugf("Frame websocket read pump exiting %p", fs)
+		go fs.Close()
+	}()
 	for {
 		readerFound := make(chan struct{})
 		go func() {
@@ -245,7 +249,6 @@ func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 		case <-readerFound:
 			if readErr != nil {
 				fs.log.Errorf("Error getting next websocket reader: %v", readErr)
-				fs.Close()
 				return
 			} else if msgType != websocket.BinaryMessage {
 				fs.log.Warnf("Got unexpected websocket message type %d", msgType)
