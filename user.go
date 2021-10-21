@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"errors"
 	"fmt"
 
 	"google.golang.org/protobuf/proto"
@@ -140,6 +141,14 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 		}},
 	})
 	if err != nil {
+		if errors.Is(err, ErrIQError) {
+			code := resp.GetChildByTag("error").Attrs["code"].(string)
+			if code == "404" {
+				return nil, nil
+			} else if code == "401" {
+				return nil, ErrProfilePictureUnauthorized
+			}
+		}
 		return nil, err
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")

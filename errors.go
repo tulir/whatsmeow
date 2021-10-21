@@ -21,6 +21,10 @@ var (
 	ErrAlreadyConnected = errors.New("websocket is already connected")
 )
 
+var (
+	ErrProfilePictureUnauthorized = errors.New("the user has hidden their profile picture from you")
+)
+
 // Some errors that Client.SendMessage can return
 var (
 	ErrBroadcastListUnsupported = errors.New("sending to broadcast lists is not yet supported")
