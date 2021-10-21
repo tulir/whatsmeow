@@ -38,8 +38,8 @@ type stdoutLogger struct {
 }
 
 var colors = map[string]string{
-	"INFO": "\033[36m",
-	"WARN": "\033[33m",
+	"INFO":  "\033[36m",
+	"WARN":  "\033[33m",
 	"ERROR": "\033[31m",
 }
 

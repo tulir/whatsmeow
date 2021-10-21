@@ -61,7 +61,7 @@ func (jid JID) UserInt() uint64 {
 func (jid JID) ToNonAD() JID {
 	if jid.AD {
 		return JID{
-			User: jid.User,
+			User:   jid.User,
 			Server: DefaultUserServer,
 		}
 	} else {
