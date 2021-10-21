@@ -22,7 +22,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mdp/qrterminal/v3"
 	"google.golang.org/protobuf/proto"
-	log "maunium.net/go/maulogger/v2"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
@@ -36,22 +35,23 @@ import (
 )
 
 var cli *whatsmeow.Client
+var log = waLog.Stdout("Main")
 
 func getDevice() *store.Device {
 	db, err := sql.Open("sqlite3", "file:mdtest.db?_foreign_keys=on")
 	if err != nil {
-		log.Fatalln("Failed to open mdtest.db:", err)
+		log.Errorf("Failed to open mdtest.db: %v", err)
 		return nil
 	}
 	storeContainer := sqlstore.NewWithDB(db, "sqlite3", waLog.Stdout("Database"))
 	err = storeContainer.Upgrade()
 	if err != nil {
-		log.Fatalln("Failed to upgrade database:", err)
+		log.Errorf("Failed to upgrade database: %v", err)
 		return nil
 	}
 	devices, err := storeContainer.GetAllDevices()
 	if err != nil {
-		log.Fatalln("Failed to get devices from database:", err)
+		log.Errorf("Failed to get devices from database: %v", err)
 		return nil
 	}
 	if len(devices) == 0 {
@@ -62,7 +62,6 @@ func getDevice() *store.Device {
 }
 
 func main() {
-	log.DefaultLogger.PrintLevel = 0
 	waBinary.IndentXML = true
 
 	device := getDevice()
@@ -73,7 +72,7 @@ func main() {
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client"))
 	err := cli.Connect()
 	if err != nil {
-		log.Fatalln("Failed to connect:", err)
+		log.Errorf("Failed to connect: %v", err)
 		return
 	}
 	cli.AddEventHandler(handler)
@@ -111,13 +110,13 @@ func handleCmd(cmd string, args []string) {
 		cli.Disconnect()
 		err := cli.Connect()
 		if err != nil {
-			log.Fatalln("Failed to connect:", err)
+			log.Errorf("Failed to connect: %v", err)
 			return
 		}
 	case "appstate":
 		err := cli.FetchAppState(appstate.WAPatchName(args[0]), len(args) > 1 && args[1] == "resync")
 		if err != nil {
-			log.Errorln("Failed to sync app state:", err)
+			log.Errorf("Failed to sync app state: %v", err)
 		}
 	case "checkuser":
 		resp, err := cli.IsOnWhatsApp(args)
@@ -199,7 +198,7 @@ func handler(rawEvt interface{}) {
 		default:
 		}
 	case *events.Message:
-		log.Infofln("Received message: %+v", evt)
+		log.Infof("Received message: %+v", evt)
 		img := evt.Message.GetImageMessage()
 		if img != nil {
 			data, err := cli.Download(img)
@@ -217,9 +216,9 @@ func handler(rawEvt interface{}) {
 			fmt.Println("Saved image to", path)
 		}
 	case *events.Receipt:
-		log.Infofln("Received receipt: %+v", evt)
+		log.Infof("Received receipt: %+v", evt)
 	case *events.AppState:
-		log.Debugfln("App state event: %+v", evt)
+		log.Debugf("App state event: %+v", evt)
 	}
 }
 

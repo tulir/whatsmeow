@@ -7,7 +7,6 @@ require (
 	github.com/mdp/qrterminal/v3 v3.0.0
 	go.mau.fi/whatsmeow v0.0.0-20211015203634-46b9eb90dc19
 	google.golang.org/protobuf v1.27.1
-	maunium.net/go/maulogger/v2 v2.2.4
 )
 
 require (
