@@ -172,6 +172,7 @@ func (cli *Client) updatePushName(user types.JID, messageInfo *types.MessageInfo
 	if cli.Store.Contacts == nil {
 		return
 	}
+	user = user.ToNonAD()
 	changed, previousName, err := cli.Store.Contacts.PutPushName(user, name)
 	if err != nil {
 		cli.Log.Errorf("Failed to save push name of %s in device store: %v", user, err)

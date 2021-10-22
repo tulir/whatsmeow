@@ -21,7 +21,7 @@ import (
 )
 
 // WantedPreKeyCount is the number of prekeys that the client should keep on the WhatsApp servers.
-const WantedPreKeyCount = 50
+const WantedPreKeyCount = 30
 
 func (cli *Client) uploadPreKeys(currentCount int) {
 	var registrationIDBytes [4]byte
