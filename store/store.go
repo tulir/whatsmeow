@@ -8,6 +8,8 @@
 package store
 
 import (
+	"time"
+
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
@@ -66,10 +68,17 @@ type AppStateStore interface {
 }
 
 type ContactStore interface {
-	PutPushName(user types.JID, pushName string) error
+	PutPushName(user types.JID, pushName string) (bool, string, error)
 	PutBusinessName(user types.JID, businessName string) error
 	PutContactName(user types.JID, fullName, firstName string) error
 	GetContact(user types.JID) (types.ContactInfo, error)
+}
+
+type ChatSettingsStore interface {
+	PutMutedUntil(chat types.JID, mutedUntil time.Time) error
+	PutPinned(chat types.JID, pinned bool) error
+	PutArchived(chat types.JID, archived bool) error
+	GetChatSettings(chat types.JID) (types.LocalChatSettings, error)
 }
 
 type DeviceContainer interface {
@@ -100,6 +109,7 @@ type Device struct {
 	AppStateKeys AppStateSyncKeyStore
 	AppState     AppStateStore
 	Contacts     ContactStore
+	ChatSettings ChatSettingsStore
 	Container    DeviceContainer
 }
 

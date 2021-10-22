@@ -133,6 +133,19 @@ var Upgrades = [...]upgradeFunc{
 		if err != nil {
 			return err
 		}
+		_, err = tx.Exec(`CREATE TABLE whatsmeow_chat_settings (
+			our_jid       TEXT,
+			chat_jid      TEXT,
+			muted_until   BIGINT  NOT NULL DEFAULT 0,
+			pinned        BOOLEAN NOT NULL DEFAULT false,
+			archived      BOOLEAN NOT NULL DEFAULT false,
+
+			PRIMARY KEY (our_jid, chat_jid),
+			FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+		)`)
+		if err != nil {
+			return err
+		}
 		return nil
 	},
 }

@@ -88,6 +88,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.IdentityKey = keys.NewKeyPairFromPrivateKey(*(*[32]byte)(identityPriv))
 	device.SignedPreKey.KeyPair = *keys.NewKeyPairFromPrivateKey(*(*[32]byte)(preKeyPriv))
 	device.SignedPreKey.Signature = (*[64]byte)(preKeySig)
+	device.Account = &account
 
 	innerStore := NewSQLStore(c, *device.ID)
 	device.Identities = innerStore
@@ -97,6 +98,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.AppStateKeys = innerStore
 	device.AppState = innerStore
 	device.Contacts = innerStore
+	device.ChatSettings = innerStore
 	device.Container = c
 	device.Initialized = true
 
@@ -178,6 +180,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 		device.AppStateKeys = innerStore
 		device.AppState = innerStore
 		device.Contacts = innerStore
+		device.ChatSettings = innerStore
 		device.Initialized = true
 	}
 	return err
