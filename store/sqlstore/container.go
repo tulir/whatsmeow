@@ -88,6 +88,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.IdentityKey = keys.NewKeyPairFromPrivateKey(*(*[32]byte)(identityPriv))
 	device.SignedPreKey.KeyPair = *keys.NewKeyPairFromPrivateKey(*(*[32]byte)(preKeyPriv))
 	device.SignedPreKey.Signature = (*[64]byte)(preKeySig)
+	device.Account = &account
 
 	innerStore := NewSQLStore(c, *device.ID)
 	device.Identities = innerStore

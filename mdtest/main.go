@@ -114,9 +114,16 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 	case "appstate":
-		err := cli.FetchAppState(appstate.WAPatchName(args[0]), len(args) > 1 && args[1] == "resync")
-		if err != nil {
-			log.Errorf("Failed to sync app state: %v", err)
+		names := []appstate.WAPatchName{appstate.WAPatchName(args[0])}
+		if args[0] == "all" {
+			names = []appstate.WAPatchName{appstate.WAPatchRegular, appstate.WAPatchRegularHigh, appstate.WAPatchRegularLow, appstate.WAPatchCriticalUnblockLow, appstate.WAPatchCriticalBlock}
+		}
+		resync := len(args) > 1 && args[1] == "resync"
+		for _, name := range names {
+			err := cli.FetchAppState(name, resync)
+			if err != nil {
+				log.Errorf("Failed to sync app state: %v", err)
+			}
 		}
 	case "checkuser":
 		resp, err := cli.IsOnWhatsApp(args)
