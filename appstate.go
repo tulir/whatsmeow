@@ -52,53 +52,59 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error
 		}
 		state = newState
 		for _, mutation := range mutations {
-			cli.updateAppStateCache(mutation)
-			if (!fullSync || EmitAppStateEventsOnFullSync) && mutation.Operation == waProto.SyncdMutation_SET {
-				cli.dispatchAppState(mutation)
-			}
+			cli.dispatchAppState(mutation, !fullSync || EmitAppStateEventsOnFullSync)
 		}
 	}
 	return nil
 }
 
-func (cli *Client) updateAppStateCache(mutation appstate.Mutation) {
-	isSet := mutation.Operation == waProto.SyncdMutation_SET
-	idx := mutation.Index[0]
-	switch {
-	case isSet && idx == "setting_pushName":
-		cli.Store.PushName = mutation.Action.GetPushNameSetting().GetName()
-		err := cli.Store.Save()
-		if err != nil {
-			cli.Log.Errorf("Failed to save device store after updating push name: %v", err)
-		}
-	case isSet && idx == "contact" && len(mutation.Index) > 1 && cli.Store.Contacts != nil:
-		act := mutation.Action.GetContactAction()
-		jid, err := types.ParseJID(mutation.Index[1])
-		if err == nil && act != nil {
-			err = cli.Store.Contacts.PutContactName(jid, act.GetFirstName(), act.GetFullName())
-			if err != nil {
-				cli.Log.Errorf("Failed to save contact name of %s in device store: %v", jid, err)
-			}
-		}
+func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts bool) {
+	if mutation.Operation == waProto.SyncdMutation_SET {
+		return
 	}
-}
 
-func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
-	cli.dispatchEvent(&events.AppState{Index: mutation.Index, SyncActionValue: mutation.Action})
+	dispatchEvt := cli.dispatchEvent
+	if !dispatchEvts {
+		dispatchEvt = func(_ interface{}) {}
+	}
+	dispatchEvt(&events.AppState{Index: mutation.Index, SyncActionValue: mutation.Action})
+
 	var jid types.JID
 	if len(mutation.Index) > 1 {
 		jid, _ = types.ParseJID(mutation.Index[1])
 	}
 	ts := time.Unix(mutation.Action.GetTimestamp(), 0)
+
+	var storeUpdateError error
 	switch mutation.Index[0] {
 	case "mute":
-		cli.dispatchEvent(&events.Mute{JID: jid, Timestamp: ts, Action: mutation.Action.GetMuteAction()})
+		act := mutation.Action.GetMuteAction()
+		dispatchEvt(&events.Mute{JID: jid, Timestamp: ts, Action: act})
+		var mutedUntil time.Time
+		if act.GetMuted() {
+			mutedUntil = time.Unix(act.GetMuteEndTimestamp(), 0)
+		}
+		if cli.Store.ChatSettings != nil {
+			storeUpdateError = cli.Store.ChatSettings.PutMutedUntil(jid, mutedUntil)
+		}
 	case "pin_v1":
-		cli.dispatchEvent(&events.Pin{JID: jid, Timestamp: ts, Action: mutation.Action.GetPinAction()})
+		act := mutation.Action.GetPinAction()
+		dispatchEvt(&events.Pin{JID: jid, Timestamp: ts, Action: act})
+		if cli.Store.ChatSettings != nil {
+			storeUpdateError = cli.Store.ChatSettings.PutPinned(jid, act.GetPinned())
+		}
 	case "archive":
-		cli.dispatchEvent(&events.Archive{JID: jid, Timestamp: ts, Action: mutation.Action.GetArchiveChatAction()})
+		act := mutation.Action.GetArchiveChatAction()
+		dispatchEvt(&events.Archive{JID: jid, Timestamp: ts, Action: act})
+		if cli.Store.ChatSettings != nil {
+			storeUpdateError = cli.Store.ChatSettings.PutArchived(jid, act.GetArchived())
+		}
 	case "contact":
-		cli.dispatchEvent(&events.Contact{JID: jid, Timestamp: ts, Action: mutation.Action.GetContactAction()})
+		act := mutation.Action.GetContactAction()
+		dispatchEvt(&events.Contact{JID: jid, Timestamp: ts, Action: act})
+		if cli.Store.Contacts != nil {
+			storeUpdateError = cli.Store.Contacts.PutContactName(jid, act.GetFirstName(), act.GetFullName())
+		}
 	case "star":
 		if len(mutation.Index) < 5 {
 			return
@@ -113,7 +119,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 		if mutation.Index[4] != "0" {
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
-		cli.dispatchEvent(&evt)
+		dispatchEvt(&evt)
 	case "deleteMessageForMe":
 		if len(mutation.Index) < 5 {
 			return
@@ -128,9 +134,19 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation) {
 		if mutation.Index[4] != "0" {
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
-		cli.dispatchEvent(&evt)
+		dispatchEvt(&evt)
 	case "setting_pushName":
-		cli.dispatchEvent(&events.PushName{Timestamp: ts, Action: mutation.Action.GetPushNameSetting()})
+		dispatchEvt(&events.PushNameSetting{Timestamp: ts, Action: mutation.Action.GetPushNameSetting()})
+		cli.Store.PushName = mutation.Action.GetPushNameSetting().GetName()
+		err := cli.Store.Save()
+		if err != nil {
+			cli.Log.Errorf("Failed to save device store after updating push name: %v", err)
+		}
+	case "setting_unarchiveChats":
+		dispatchEvt(&events.UnarchiveChatsSetting{Timestamp: ts, Action: mutation.Action.GetUnarchiveChatsSetting()})
+	}
+	if storeUpdateError != nil {
+		cli.Log.Errorf("Failed to update device store after app state mutation: %v", storeUpdateError)
 	}
 }
 

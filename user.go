@@ -15,6 +15,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 )
 
 // IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
@@ -167,13 +168,21 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 	return &info, nil
 }
 
-func (cli *Client) updatePushName(user types.JID, name string) {
+func (cli *Client) updatePushName(user types.JID, messageInfo *types.MessageInfo, name string) {
 	if cli.Store.Contacts == nil {
 		return
 	}
-	err := cli.Store.Contacts.PutPushName(user, name)
+	changed, previousName, err := cli.Store.Contacts.PutPushName(user, name)
 	if err != nil {
 		cli.Log.Errorf("Failed to save push name of %s in device store: %v", user, err)
+	} else if changed {
+		cli.Log.Debugf("Push name of %s changed from %s to %s, dispatching event", user, previousName, name)
+		cli.dispatchEvent(&events.PushName{
+			JID:         user,
+			Message:     messageInfo,
+			OldPushName: previousName,
+			NewPushName: name,
+		})
 	}
 }
 

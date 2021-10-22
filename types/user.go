@@ -7,6 +7,8 @@
 package types
 
 import (
+	"time"
+
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 )
 
@@ -41,4 +43,13 @@ type ContactInfo struct {
 	FullName     string
 	PushName     string
 	BusinessName string
+}
+
+// LocalChatSettings contains the cached local settings for a chat.
+type LocalChatSettings struct {
+	Found bool
+
+	MutedUntil time.Time
+	Pinned     bool
+	Archived   bool
 }

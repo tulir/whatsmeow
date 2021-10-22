@@ -35,7 +35,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
 		if len(info.PushName) > 0 && info.PushName != "-" {
-			go cli.updatePushName(info.Sender, info.PushName)
+			go cli.updatePushName(info.Sender, info, info.PushName)
 		}
 		cli.decryptMessages(info, node)
 	}

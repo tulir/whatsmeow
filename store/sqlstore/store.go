@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -393,23 +394,31 @@ const (
 	`
 )
 
-func (s *SQLStore) PutPushName(user types.JID, pushName string) error {
+func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, error) {
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
+
 	cached, err := s.getContact(user)
 	if err != nil {
-		return err
+		return false, "", err
 	}
 	if cached.PushName != pushName {
 		_, err = s.db.Exec(putPushNameQuery, s.JID, user, pushName)
 		if err != nil {
-			return err
+			return false, "", err
 		}
+		previousName := cached.PushName
 		cached.PushName = pushName
 		s.contactCache[user] = cached
+		return true, previousName, nil
 	}
-	return nil
+	return false, "", nil
 }
 
 func (s *SQLStore) PutBusinessName(user types.JID, businessName string) error {
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
+
 	cached, err := s.getContact(user)
 	if err != nil {
 		return err
@@ -425,6 +434,9 @@ func (s *SQLStore) PutBusinessName(user types.JID, businessName string) error {
 }
 
 func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) error {
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
+
 	cached, err := s.getContact(user)
 	if err != nil {
 		return err
@@ -441,9 +453,6 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 }
 
 func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
-	s.contactCacheLock.Lock()
-	defer s.contactCacheLock.Unlock()
-
 	cached, ok := s.contactCache[user]
 	if ok {
 		return cached, nil
@@ -473,4 +482,47 @@ func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
 		return types.ContactInfo{}, err
 	}
 	return *info, nil
+}
+
+const (
+	putChatSettingQuery = `
+		INSERT INTO whatsmeow_chat_settings (our_jid, chat_jid, %[1]s) VALUES ($1, $2, $3)
+		ON CONFLICT (our_jid, chat_jid) DO UPDATE SET %[1]s=$3
+	`
+	getChatSettingsQuery = `
+		SELECT muted_until, pinned, archived FROM whatsmeow_chat_settings WHERE our_jid=$1 AND chat_jid=$2
+	`
+)
+
+func (s *SQLStore) PutMutedUntil(chat types.JID, mutedUntil time.Time) error {
+	var val int64
+	if !mutedUntil.IsZero() {
+		val = mutedUntil.Unix()
+	}
+	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "muted_until"), s.JID, chat, val)
+	return err
+}
+
+func (s *SQLStore) PutPinned(chat types.JID, pinned bool) error {
+	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "pinned"), s.JID, chat, pinned)
+	return err
+}
+
+func (s *SQLStore) PutArchived(chat types.JID, archived bool) error {
+	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "archived"), s.JID, chat, archived)
+	return err
+}
+
+func (s *SQLStore) GetChatSettings(chat types.JID) (settings types.LocalChatSettings, err error) {
+	var mutedUntil int64
+	err = s.db.QueryRow(getChatSettingsQuery, s.JID, chat).Scan(&mutedUntil, &settings.Pinned, &settings.Archived)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return
+	} else if err == nil {
+		settings.Found = true
+	}
+	if mutedUntil != 0 {
+		settings.MutedUntil = time.Unix(mutedUntil, 0)
+	}
+	return
 }

@@ -218,7 +218,7 @@ func handler(rawEvt interface{}) {
 	case *events.Receipt:
 		log.Infof("Received receipt: %+v", evt)
 	case *events.AppState:
-		log.Debugf("App state event: %+v", evt)
+		log.Debugf("App state event: %+v / %+v", evt.Index, evt.SyncActionValue)
 	}
 }
 
