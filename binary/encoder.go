@@ -72,7 +72,7 @@ func (w *binaryEncoder) writeByteLength(length int) {
 	} else if length < (1 << 20) {
 		w.pushByte(token.Binary20)
 		w.pushInt20(length)
-	} else if length < math.MaxUint32 {
+	} else if length < math.MaxInt32 {
 		w.pushByte(token.Binary32)
 		w.pushInt32(length)
 	} else {
