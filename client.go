@@ -47,7 +47,8 @@ type Client struct {
 
 	IsLoggedIn bool
 
-	appStateProc *appstate.Processor
+	appStateProc     *appstate.Processor
+	appStateSyncLock sync.Mutex
 
 	mediaConn     *MediaConn
 	mediaConnLock sync.Mutex

@@ -23,7 +23,9 @@ var EmitAppStateEventsOnFullSync = false
 
 // FetchAppState fetches updates to the given type of app state. If fullSync is true, the current
 // cached state will be removed and all app state patches will be re-fetched from the server.
-func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error {
+func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) error {
+	cli.appStateSyncLock.Lock()
+	defer cli.appStateSyncLock.Unlock()
 	if fullSync {
 		err := cli.Store.AppState.DeleteAppStateVersion(string(name))
 		if err != nil {
@@ -36,6 +38,8 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync bool) error
 	}
 	if version == 0 {
 		fullSync = true
+	} else if onlyIfNotSynced {
+		return nil
 	}
 	state := appstate.HashState{Version: version, Hash: hash}
 	hasMore := true

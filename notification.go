@@ -40,7 +40,7 @@ func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
 		name := appstate.WAPatchName(ag.String("name"))
 		version := ag.Uint64("version")
 		cli.Log.Debugf("Got server sync notification that app state %s has updated to version %d", name, version)
-		err := cli.FetchAppState(name, false)
+		err := cli.FetchAppState(name, false, false)
 		if err != nil {
 			cli.Log.Errorf("Failed to sync app state after notification: %v", err)
 		}
