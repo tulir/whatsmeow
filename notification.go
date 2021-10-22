@@ -16,22 +16,21 @@ import (
 
 func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 	cli.Log.Infof("Got encryption notification from server: %s", node.XMLString())
-	// TODO figure out what the count attribute means, it doesn't seem to be the remaining prekey count (it's always 0).
-	//count := node.GetChildByTag("count")
-	//ag := count.AttrGetter()
-	//otksLeft := ag.Int("value")
-	//if !ag.OK() {
-	//	cli.Log.Warnf("Didn't get number of OTKs left in encryption notification")
-	//	return
-	//}
-	//cli.Log.Infof("Server said we have %d one-time keys left", otksLeft)
-	//cli.uploadPreKeys(otksLeft)
-	otksLeft, err := cli.Store.PreKeys.UploadedPreKeyCount()
-	if err != nil {
-		cli.Log.Errorf("Failed to get number of prekeys on server: %v", err)
-	} else if otksLeft < WantedPreKeyCount {
-		cli.uploadPreKeys(otksLeft)
+	count := node.GetChildByTag("count")
+	ag := count.AttrGetter()
+	otksLeft := ag.Int("value")
+	if !ag.OK() {
+		cli.Log.Warnf("Didn't get number of OTKs left in encryption notification")
+		return
 	}
+	// TODO the count attribute seems a bit unreliable sometimes, so don't upload the full 30 if it says there are 0
+	if otksLeft == 0 {
+		otksLeft, _ = cli.Store.PreKeys.UploadedPreKeyCount()
+		if otksLeft >= WantedPreKeyCount {
+			otksLeft = WantedPreKeyCount - 10
+		}
+	}
+	cli.uploadPreKeys(otksLeft)
 }
 
 func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
@@ -40,7 +39,7 @@ func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
 		name := appstate.WAPatchName(ag.String("name"))
 		version := ag.Uint64("version")
 		cli.Log.Debugf("Got server sync notification that app state %s has updated to version %d", name, version)
-		err := cli.FetchAppState(name, false)
+		err := cli.FetchAppState(name, false, false)
 		if err != nil {
 			cli.Log.Errorf("Failed to sync app state after notification: %v", err)
 		}

@@ -17,13 +17,13 @@ var Upgrades = [...]upgradeFunc{
 		_, err := tx.Exec(`CREATE TABLE whatsmeow_device (
 			jid TEXT PRIMARY KEY,
 
-			registration_id INTEGER NOT NULL,
+			registration_id BIGINT NOT NULL CHECK ( registration_id >= 0 AND registration_id < 4294967296 ),
 
 			noise_key    bytea NOT NULL CHECK ( length(noise_key) = 32 ),
 			identity_key bytea NOT NULL CHECK ( length(identity_key) = 32 ),
 
 			signed_pre_key     bytea   NOT NULL CHECK ( length(signed_pre_key) = 32 ),
-			signed_pre_key_id  INTEGER NOT NULL,
+			signed_pre_key_id  INTEGER NOT NULL CHECK ( signed_pre_key_id >= 0 AND signed_pre_key_id < 16777216 ),
 			signed_pre_key_sig bytea   NOT NULL CHECK ( length(signed_pre_key_sig) = 64 ),
 
 			adv_key         bytea NOT NULL,
@@ -48,7 +48,7 @@ var Upgrades = [...]upgradeFunc{
 		)`)
 		_, err = tx.Exec(`CREATE TABLE whatsmeow_pre_keys (
 			jid      TEXT,
-			key_id   INTEGER          CHECK ( key_id > 0 AND key_id < 16777216 ),
+			key_id   INTEGER          CHECK ( key_id >= 0 AND key_id < 16777216 ),
 			key      bytea   NOT NULL CHECK ( length(key) = 32 ),
 			uploaded BOOLEAN NOT NULL,
 

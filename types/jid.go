@@ -151,7 +151,7 @@ func (jid JID) String() string {
 
 // IsEmpty returns true if the JID has no server (which is required for all JIDs).
 func (jid JID) IsEmpty() bool {
-	return len(jid.Server) > 0
+	return len(jid.Server) == 0
 }
 
 var _ sql.Scanner = (*JID)(nil)

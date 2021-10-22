@@ -26,6 +26,8 @@ const (
 	WAPatchRegular            WAPatchName = "regular"
 )
 
+var AllPatchNames = [...]WAPatchName{WAPatchCriticalBlock, WAPatchCriticalUnblockLow, WAPatchRegularHigh, WAPatchRegular, WAPatchRegularLow}
+
 type Processor struct {
 	keyCache     map[string]ExpandedAppStateKeys
 	keyCacheLock sync.Mutex
