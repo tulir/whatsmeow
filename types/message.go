@@ -8,6 +8,7 @@ package types
 
 import (
 	"fmt"
+	"time"
 )
 
 // MessageSource contains basic sender and chat information about a message.
@@ -30,7 +31,7 @@ type MessageInfo struct {
 	ID        string
 	Type      string
 	PushName  string
-	Timestamp int64
+	Timestamp time.Time
 	Category  string
 
 	DeviceSentMeta *DeviceSentMeta // Metadata for direct messages sent from another one of the user's own devices.

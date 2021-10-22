@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -89,10 +90,11 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	if !ok {
 		return nil, fmt.Errorf("didn't find valid `t` (timestamp) attribute in message")
 	}
-	info.Timestamp, err = strconv.ParseInt(ts, 10, 64)
+	tsInt, err := strconv.ParseInt(ts, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("didn't find valid `t` (timestamp) attribute in message: %w", err)
 	}
+	info.Timestamp = time.Unix(tsInt, 0)
 
 	info.PushName, _ = node.Attrs["notify"].(string)
 	info.Category, _ = node.Attrs["category"].(string)
