@@ -58,6 +58,17 @@ func (jid JID) UserInt() uint64 {
 	return number
 }
 
+func (jid JID) ToNonAD() JID {
+	if jid.AD {
+		return JID{
+			User:   jid.User,
+			Server: DefaultUserServer,
+		}
+	} else {
+		return jid
+	}
+}
+
 // SignalAddress returns the Signal protocol address for the user.
 func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
 	user := jid.User

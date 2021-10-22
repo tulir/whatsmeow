@@ -26,6 +26,17 @@ type SQLStore struct {
 	JID string
 
 	preKeyLock sync.Mutex
+
+	contactCache     map[types.JID]*types.ContactInfo
+	contactCacheLock sync.Mutex
+}
+
+func NewSQLStore(c *Container, jid types.JID) *SQLStore {
+	return &SQLStore{
+		Container:    c,
+		JID:          jid.String(),
+		contactCache: make(map[types.JID]*types.ContactInfo),
+	}
 }
 
 var _ store.IdentityStore = (*SQLStore)(nil)
@@ -383,36 +394,83 @@ const (
 )
 
 func (s *SQLStore) PutPushName(user types.JID, pushName string) error {
-	_, err := s.db.Exec(putPushNameQuery, s.JID, user, pushName)
-	return err
+	cached, err := s.getContact(user)
+	if err != nil {
+		return err
+	}
+	if cached.PushName != pushName {
+		_, err = s.db.Exec(putPushNameQuery, s.JID, user, pushName)
+		if err != nil {
+			return err
+		}
+		cached.PushName = pushName
+		s.contactCache[user] = cached
+	}
+	return nil
 }
 
 func (s *SQLStore) PutBusinessName(user types.JID, businessName string) error {
-	_, err := s.db.Exec(putBusinessNameQuery, s.JID, user, businessName)
-	return err
+	cached, err := s.getContact(user)
+	if err != nil {
+		return err
+	}
+	if cached.BusinessName != businessName {
+		_, err = s.db.Exec(putBusinessNameQuery, s.JID, user, businessName)
+		if err != nil {
+			return err
+		}
+		cached.BusinessName = businessName
+	}
+	return nil
 }
 
 func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) error {
-	_, err := s.db.Exec(putContactNameQuery, s.JID, user, firstName, fullName)
-	return err
+	cached, err := s.getContact(user)
+	if err != nil {
+		return err
+	}
+	if cached.FirstName != firstName || cached.FullName != fullName {
+		_, err = s.db.Exec(putContactNameQuery, s.JID, user, firstName, fullName)
+		if err != nil {
+			return err
+		}
+		cached.FirstName = firstName
+		cached.FullName = fullName
+	}
+	return nil
 }
 
-func (s *SQLStore) GetContact(user types.JID) (info types.ContactInfo, err error) {
-	var first, full, push, business sql.NullString
-	err = s.db.QueryRow(getContactQuery, s.JID, user).Scan(&first, &full, &push, &business)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			// Ignore error, but don't set found = true
-			err = nil
-		} else {
-			return
-		}
-	} else {
-		info.Found = true
+func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
+
+	cached, ok := s.contactCache[user]
+	if ok {
+		return cached, nil
 	}
-	info.FirstName = first.String
-	info.FullName = full.String
-	info.PushName = push.String
-	info.BusinessName = business.String
-	return
+
+	var first, full, push, business sql.NullString
+	err := s.db.QueryRow(getContactQuery, s.JID, user).Scan(&first, &full, &push, &business)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	info := &types.ContactInfo{
+		Found:        err == nil,
+		FirstName:    first.String,
+		FullName:     full.String,
+		PushName:     push.String,
+		BusinessName: business.String,
+	}
+	s.contactCache[user] = info
+	return info, nil
+}
+
+func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
+	s.contactCacheLock.Lock()
+	info, err := s.getContact(user)
+	s.contactCacheLock.Unlock()
+	if err != nil {
+		return types.ContactInfo{}, err
+	}
+	return *info, nil
 }

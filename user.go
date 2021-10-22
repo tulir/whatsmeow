@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"errors"
 	"fmt"
 
 	"google.golang.org/protobuf/proto"
@@ -140,6 +141,14 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 		}},
 	})
 	if err != nil {
+		if errors.Is(err, ErrIQError) {
+			code := resp.GetChildByTag("error").Attrs["code"].(string)
+			if code == "404" {
+				return nil, nil
+			} else if code == "401" {
+				return nil, ErrProfilePictureUnauthorized
+			}
+		}
 		return nil, err
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")
@@ -162,7 +171,6 @@ func (cli *Client) updatePushName(user types.JID, name string) {
 	if cli.Store.Contacts == nil {
 		return
 	}
-	// TODO should this filter out repeated calls somehow?
 	err := cli.Store.Contacts.PutPushName(user, name)
 	if err != nil {
 		cli.Log.Errorf("Failed to save push name of %s in device store: %v", user, err)

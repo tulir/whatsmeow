@@ -34,8 +34,8 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
-		if len(info.Notify) > 0 && info.Notify != "-" {
-			go cli.updatePushName(info.Sender, info.Notify)
+		if len(info.PushName) > 0 && info.PushName != "-" {
+			go cli.updatePushName(info.Sender, info.PushName)
 		}
 		cli.decryptMessages(info, node)
 	}
@@ -94,7 +94,7 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 		return nil, fmt.Errorf("didn't find valid `t` (timestamp) attribute in message: %w", err)
 	}
 
-	info.Notify, _ = node.Attrs["notify"].(string)
+	info.PushName, _ = node.Attrs["notify"].(string)
 	info.Category, _ = node.Attrs["category"].(string)
 
 	return &info, nil

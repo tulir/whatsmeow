@@ -29,7 +29,7 @@ type MessageInfo struct {
 	MessageSource
 	ID        string
 	Type      string
-	Notify    string
+	PushName  string
 	Timestamp int64
 	Category  string
 
