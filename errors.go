@@ -19,6 +19,8 @@ var (
 	ErrIQDisconnected       = errors.New("websocket disconnected before info query returned response")
 
 	ErrAlreadyConnected = errors.New("websocket is already connected")
+
+	ErrNoPushName = errors.New("can't send presence without PushName set")
 )
 
 var (

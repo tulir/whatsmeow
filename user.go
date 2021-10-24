@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"google.golang.org/protobuf/proto"
 
@@ -20,7 +21,7 @@ import (
 
 // IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
 type IsOnWhatsAppResponse struct {
-	Query string    // The query string used, plus @c.us at the end
+	Query string    // The query string used
 	JID   types.JID // The canonical user ID
 	IsIn  bool      // Whether the phone is registered or not.
 
@@ -42,6 +43,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error)
 		return nil, err
 	}
 	output := make([]IsOnWhatsAppResponse, 0, len(jids))
+	querySuffix := "@" + types.LegacyUserServer
 	for _, child := range list.GetChildren() {
 		jid, jidOK := child.Attrs["jid"].(types.JID)
 		if child.Tag != "user" || !jidOK {
@@ -56,7 +58,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error)
 		contactNode := child.GetChildByTag("contact")
 		info.IsIn = contactNode.AttrGetter().String("type") == "in"
 		contactQuery, _ := contactNode.Content.([]byte)
-		info.Query = string(contactQuery)
+		info.Query = strings.TrimSuffix(string(contactQuery), querySuffix)
 		output = append(output, info)
 	}
 	return output, nil

@@ -96,7 +96,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
 		} else {
-			cli.Log.Infof("Successfully paired with %s", cli.Store.ID)
+			cli.Log.Infof("Successfully paired %s", cli.Store.ID)
 		}
 	}()
 }

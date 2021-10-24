@@ -305,8 +305,6 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 }
 
 func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
-	fmt.Printf("Raw message: %+v -- info: %+v\n", msg, info)
-
 	evt := &events.Message{Info: *info, RawMessage: msg}
 
 	// First unwrap device sent messages

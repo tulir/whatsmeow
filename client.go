@@ -218,7 +218,9 @@ func (cli *Client) handleFrame(data []byte) {
 	}
 	cli.recvLog.Debugf("%s", node.XMLString())
 	if node.Tag == "xmlstreamend" {
-		cli.Log.Warnf("Received stream end frame")
+		if !cli.isExpectedDisconnect {
+			cli.Log.Warnf("Received stream end frame")
+		}
 		// TODO should we do something else?
 	} else if cli.receiveResponse(node) {
 		// handled

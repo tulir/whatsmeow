@@ -9,6 +9,7 @@ package waLog
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -35,6 +36,7 @@ var Noop Logger = &noopLogger{}
 type stdoutLogger struct {
 	mod   string
 	color bool
+	min   int
 }
 
 var colors = map[string]string{
@@ -43,7 +45,18 @@ var colors = map[string]string{
 	"ERROR": "\033[31m",
 }
 
+var levelToInt = map[string]int{
+	"":      -1,
+	"DEBUG": 0,
+	"INFO":  1,
+	"WARN":  2,
+	"ERROR": 3,
+}
+
 func (s *stdoutLogger) outputf(level, msg string, args ...interface{}) {
+	if levelToInt[level] < s.min {
+		return
+	}
 	var colorStart, colorReset string
 	if s.color {
 		colorStart = colors[level]
@@ -57,10 +70,14 @@ func (s *stdoutLogger) Warnf(msg string, args ...interface{})  { s.outputf("WARN
 func (s *stdoutLogger) Infof(msg string, args ...interface{})  { s.outputf("INFO", msg, args...) }
 func (s *stdoutLogger) Debugf(msg string, args ...interface{}) { s.outputf("DEBUG", msg, args...) }
 func (s *stdoutLogger) Sub(mod string) Logger {
-	return &stdoutLogger{mod: fmt.Sprintf("%s/%s", s.mod, mod), color: s.color}
+	return &stdoutLogger{mod: fmt.Sprintf("%s/%s", s.mod, mod), color: s.color, min: s.min}
 }
 
 // Stdout is a simple Logger implementation that outputs to stdout. The module name given is included in log lines.
-func Stdout(module string, color bool) Logger {
-	return &stdoutLogger{mod: module, color: color}
+//
+// minLevel specifies the minimum log level to output. An empty string will output all logs.
+//
+// If color is true, then info, warn and error logs will be colored cyan, yellow and red respectively using ANSI color escape codes.
+func Stdout(module string, minLevel string, color bool) Logger {
+	return &stdoutLogger{mod: module, color: color, min: levelToInt[strings.ToUpper(minLevel)]}
 }

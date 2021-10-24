@@ -22,11 +22,30 @@ import (
 
 // WantedPreKeyCount is the number of prekeys that the client should keep on the WhatsApp servers.
 const WantedPreKeyCount = 30
+const MinPreKeyCount = 5
 
-func (cli *Client) uploadPreKeys(currentCount int) {
+func (cli *Client) getServerPreKeyCount() (int, error) {
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "encrypt",
+		Type:      "get",
+		To:        types.ServerJID,
+		Content: []waBinary.Node{
+			{Tag: "count"},
+		},
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to get prekey count on server: %w", err)
+	}
+	count := resp.GetChildByTag("count")
+	ag := count.AttrGetter()
+	val := ag.Int("value")
+	return val, ag.Error()
+}
+
+func (cli *Client) uploadPreKeys() {
 	var registrationIDBytes [4]byte
 	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
-	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(WantedPreKeyCount - uint32(currentCount))
+	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(WantedPreKeyCount)
 	if err != nil {
 		cli.Log.Errorf("Failed to get prekeys to upload: %v", err)
 		return

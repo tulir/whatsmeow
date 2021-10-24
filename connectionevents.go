@@ -19,7 +19,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 	code, _ := node.Attrs["code"].(string)
 	switch code {
 	case "515":
-		cli.Log.Debugf("Got 515 code, reconnecting")
+		cli.Log.Infof("Got 515 code, reconnecting...")
 		go func() {
 			cli.Disconnect()
 			err := cli.Connect()
@@ -71,13 +71,19 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.AutoReconnectErrors = 0
 	cli.IsLoggedIn = true
 	go func() {
-		count, err := cli.Store.PreKeys.UploadedPreKeyCount()
-		if err != nil {
-			cli.Log.Errorf("Failed to get number of prekeys on server: %v", err)
-		} else if count < WantedPreKeyCount {
-			cli.uploadPreKeys(count)
+		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(); err != nil {
+			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)
+		} else if serverCount, err := cli.getServerPreKeyCount(); err != nil {
+			cli.Log.Warnf("Failed to get number of prekeys on server: %v", err)
+		} else {
+			cli.Log.Debugf("Database has %d prekeys, server says we have %d", dbCount, serverCount)
+			if serverCount < MinPreKeyCount || dbCount < MinPreKeyCount {
+				cli.uploadPreKeys()
+				sc, _ := cli.getServerPreKeyCount()
+				cli.Log.Debugf("Prekey count after upload: %d", sc)
+			}
 		}
-		err = cli.SetPassive(false)
+		err := cli.SetPassive(false)
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
@@ -108,6 +114,9 @@ func (cli *Client) SetPassive(passive bool) error {
 // You should call this at least once after connecting so that the server has your pushname.
 // Otherwise, other users will see "-" as the name.
 func (cli *Client) SendPresence(state types.Presence) error {
+	if len(cli.Store.PushName) == 0 {
+		return ErrNoPushName
+	}
 	return cli.sendNode(waBinary.Node{
 		Tag: "presence",
 		Attrs: waBinary.Attrs{

@@ -9,6 +9,7 @@ package events
 import (
 	"time"
 
+	"go.mau.fi/whatsmeow/appstate"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 )
@@ -94,4 +95,9 @@ type UnarchiveChatsSetting struct {
 type AppState struct {
 	Index []string
 	*waProto.SyncActionValue
+}
+
+// AppStateSyncComplete is emitted when app state is resynced.
+type AppStateSyncComplete struct {
+	Name appstate.WAPatchName
 }
