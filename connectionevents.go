@@ -114,6 +114,9 @@ func (cli *Client) SetPassive(passive bool) error {
 // You should call this at least once after connecting so that the server has your pushname.
 // Otherwise, other users will see "-" as the name.
 func (cli *Client) SendPresence(state types.Presence) error {
+	if len(cli.Store.PushName) == 0 {
+		return ErrNoPushName
+	}
 	return cli.sendNode(waBinary.Node{
 		Tag: "presence",
 		Attrs: waBinary.Attrs{

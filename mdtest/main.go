@@ -35,7 +35,7 @@ import (
 )
 
 var cli *whatsmeow.Client
-var log = waLog.Stdout("Main", "DEBUG", true)
+var log waLog.Logger
 
 var logLevel = "INFO"
 var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
@@ -70,6 +70,7 @@ func main() {
 	if *debugLogs {
 		logLevel = "DEBUG"
 	}
+	log = waLog.Stdout("Main", logLevel, true)
 
 	device := getDevice()
 	if device == nil {
@@ -117,6 +118,25 @@ func main() {
 	}
 }
 
+func parseJID(arg string) (types.JID, bool) {
+	if arg[0] == '+' {
+		arg = arg[1:]
+	}
+	if !strings.ContainsRune(arg, '@') {
+		return types.NewJID(arg, types.DefaultUserServer), true
+	} else {
+		recipient, err := types.ParseJID(arg)
+		if err != nil {
+			log.Errorf("Invalid JID %s: %v", arg, err)
+			return recipient, false
+		} else if recipient.User == "" {
+			log.Errorf("Invalid JID %s: no server specified", arg)
+			return recipient, false
+		}
+		return recipient, true
+	}
+}
+
 func handleCmd(cmd string, args []string) {
 	switch cmd {
 	case "reconnect":
@@ -127,6 +147,10 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 	case "appstate":
+		if len(args) < 1 {
+			log.Errorf("Usage: appstate <types...>")
+			return
+		}
 		names := []appstate.WAPatchName{appstate.WAPatchName(args[0])}
 		if args[0] == "all" {
 			names = []appstate.WAPatchName{appstate.WAPatchRegular, appstate.WAPatchRegularHigh, appstate.WAPatchRegularLow, appstate.WAPatchCriticalUnblockLow, appstate.WAPatchCriticalBlock}
@@ -139,52 +163,114 @@ func handleCmd(cmd string, args []string) {
 			}
 		}
 	case "checkuser":
+		if len(args) < 1 {
+			log.Errorf("Usage: checkuser <phone numbers...>")
+			return
+		}
 		resp, err := cli.IsOnWhatsApp(args)
-		fmt.Println(err)
-		fmt.Printf("%+v\n", resp)
+		if err != nil {
+			log.Errorf("Failed to check if users are on WhatsApp:", err)
+		} else {
+			for _, item := range resp {
+				if item.VerifiedName != nil {
+					log.Infof("%s: on whatsapp: %t, JID: %s, business name: %s", item.Query, item.IsIn, item.JID, item.VerifiedName.Details.GetVerifiedName())
+				} else {
+					log.Infof("%s: on whatsapp: %t, JID: %s", item.Query, item.IsIn, item.JID)
+				}
+			}
+		}
 	case "presence":
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
 	case "chatpresence":
 		jid, _ := types.ParseJID(args[1])
 		fmt.Println(cli.SendChatPresence(types.ChatPresence(args[0]), jid))
 	case "getuser":
+		if len(args) < 1 {
+			log.Errorf("Usage: getuser <jids...>")
+			return
+		}
 		var jids []types.JID
-		for _, jid := range args {
-			jids = append(jids, types.NewJID(jid, types.DefaultUserServer))
+		for _, arg := range args {
+			jid, ok := parseJID(arg)
+			if !ok {
+				return
+			}
+			jids = append(jids, jid)
 		}
 		resp, err := cli.GetUserInfo(jids)
-		fmt.Println(err)
-		fmt.Printf("%+v\n", resp)
+		if err != nil {
+			log.Errorf("Failed to get user info: %v", err)
+		} else {
+			for jid, info := range resp {
+				log.Infof("%s: %+v", jid, info)
+			}
+		}
 	case "getavatar":
-		jid := types.NewJID(args[0], types.DefaultUserServer)
-		if len(args) > 1 && args[1] == "group" {
-			jid.Server = types.GroupServer
-			args = args[1:]
+		if len(args) < 1 {
+			log.Errorf("Usage: getavatar <jid>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
 		}
 		pic, err := cli.GetProfilePictureInfo(jid, len(args) > 1 && args[1] == "preview")
-		fmt.Println(err)
-		fmt.Printf("%+v\n", pic)
-	case "getgroup":
-		resp, err := cli.GetGroupInfo(types.NewJID(args[0], types.GroupServer))
-		fmt.Println(err)
-		fmt.Printf("%+v\n", resp)
-	case "send", "gsend":
-		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		recipient := types.NewJID(args[0], types.DefaultUserServer)
-		if cmd == "gsend" {
-			recipient.Server = types.GroupServer
+		if err != nil {
+			log.Errorf("Failed to get avatar: %v", err)
+		} else {
+			log.Infof("Got avatar ID %s: %s", pic.ID, pic.URL)
 		}
+	case "getgroup":
+		if len(args) < 1 {
+			log.Errorf("Usage: getgroup <jid>")
+			return
+		}
+		group, ok := parseJID(args[0])
+		if !ok {
+			return
+		} else if group.Server != types.GroupServer {
+			log.Errorf("Input must be a group JID (@%s)", types.GroupServer)
+			return
+		}
+		resp, err := cli.GetGroupInfo(group)
+		if err != nil {
+			log.Errorf("Failed to get group info: %v", err)
+		} else {
+			log.Infof("Group info: %+v", resp)
+		}
+	case "send":
+		if len(args) < 2 {
+			log.Errorf("Usage: send <jid> <text>")
+			return
+		}
+		recipient, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
 		err := cli.SendMessage(recipient, "", msg)
-		fmt.Println("Send message response:", err)
-	case "sendimg", "gsendimg":
+		if err != nil {
+			log.Errorf("Error sending message: %v", err)
+		} else {
+			log.Infof("Message sent")
+		}
+	case "sendimg":
+		if len(args) < 2 {
+			log.Errorf("Usage: sendimg <jid> <image path> [caption]")
+			return
+		}
+		recipient, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
 		data, err := os.ReadFile(args[1])
 		if err != nil {
-			fmt.Printf("Failed to read %s: %v\n", args[0], err)
+			log.Errorf("Failed to read %s: %v", args[0], err)
 			return
 		}
 		uploaded, err := cli.Upload(context.Background(), data, whatsmeow.MediaImage)
 		if err != nil {
-			fmt.Println("Failed to upload file:", err)
+			log.Errorf("Failed to upload file: %v", err)
 			return
 		}
 		msg := &waProto.Message{ImageMessage: &waProto.ImageMessage{
@@ -197,12 +283,12 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(data))),
 		}}
-		recipient := types.NewJID(args[0], types.DefaultUserServer)
-		if cmd == "gsendimg" {
-			recipient.Server = types.GroupServer
-		}
 		err = cli.SendMessage(recipient, "", msg)
-		fmt.Println("Send image error:", err)
+		if err != nil {
+			log.Errorf("Error sending image message: %v", err)
+		} else {
+			log.Infof("Image message sent")
+		}
 	}
 }
 
@@ -214,6 +300,27 @@ func handler(rawEvt interface{}) {
 		select {
 		case stopQRs <- struct{}{}:
 		default:
+		}
+	case *events.AppStateSyncComplete:
+		if len(cli.Store.PushName) > 0 && evt.Name == appstate.WAPatchCriticalBlock {
+			err := cli.SendPresence(types.PresenceAvailable)
+			if err != nil {
+				log.Warnf("Failed to send available presence: %v", err)
+			} else {
+				log.Infof("Marked self as available")
+			}
+		}
+	case *events.Connected, *events.PushNameSetting:
+		if len(cli.Store.PushName) == 0 {
+			return
+		}
+		// Send presence available when connecting and when the pushname is changed.
+		// This makes sure that outgoing messages always have the right pushname.
+		err := cli.SendPresence(types.PresenceAvailable)
+		if err != nil {
+			log.Warnf("Failed to send available presence: %v", err)
+		} else {
+			log.Infof("Marked self as available")
 		}
 	case *events.Message:
 		metaParts := []string{fmt.Sprintf("pushname: %s", evt.Info.PushName), fmt.Sprintf("timestamp: %s", evt.Info.Timestamp)}
@@ -250,7 +357,7 @@ func handler(rawEvt interface{}) {
 		}
 	case *events.Receipt:
 		if evt.Type == events.ReceiptTypeRead {
-			log.Infof("%s was read by %s at %s", evt.MessageSource, evt.SourceString(), evt.Timestamp)
+			log.Infof("%s was read by %s at %s", evt.MessageID, evt.SourceString(), evt.Timestamp)
 		} else if evt.Type == events.ReceiptTypeDelivered {
 			log.Infof("%s was delivered to %s at %s", evt.MessageID, evt.SourceString(), evt.Timestamp)
 		}

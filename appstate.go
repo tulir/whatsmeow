@@ -59,6 +59,9 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 			cli.dispatchAppState(mutation, !fullSync || EmitAppStateEventsOnFullSync)
 		}
 	}
+	if fullSync {
+		cli.dispatchEvent(&events.AppStateSyncComplete{Name: name})
+	}
 	return nil
 }
 
