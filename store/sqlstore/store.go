@@ -394,6 +394,9 @@ const (
 	getContactQuery = `
 		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
 	`
+	getAllContactsQuery = `
+		SELECT their_jid, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1
+	`
 )
 
 func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, error) {
@@ -484,6 +487,34 @@ func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
 		return types.ContactInfo{}, err
 	}
 	return *info, nil
+}
+
+func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
+	rows, err := s.db.Query(getAllContactsQuery, s.JID)
+	if err != nil {
+		return nil, err
+	}
+	output := make(map[types.JID]types.ContactInfo, len(s.contactCache))
+	for rows.Next() {
+		var jid types.JID
+		var first, full, push, business sql.NullString
+		err = rows.Scan(&jid, &first, &full, &push, &business)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning row: %w", err)
+		}
+		info := types.ContactInfo{
+			Found:        true,
+			FirstName:    first.String,
+			FullName:     full.String,
+			PushName:     push.String,
+			BusinessName: business.String,
+		}
+		output[jid] = info
+		s.contactCache[jid] = &info
+	}
+	return output, nil
 }
 
 const (
