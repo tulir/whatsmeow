@@ -72,6 +72,7 @@ type ContactStore interface {
 	PutBusinessName(user types.JID, businessName string) error
 	PutContactName(user types.JID, fullName, firstName string) error
 	GetContact(user types.JID) (types.ContactInfo, error)
+	GetAllContacts() (map[types.JID]types.ContactInfo, error)
 }
 
 type ChatSettingsStore interface {
