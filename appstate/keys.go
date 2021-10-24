@@ -19,11 +19,16 @@ import (
 type WAPatchName string
 
 const (
-	WAPatchCriticalBlock      WAPatchName = "critical_block"
+	// WAPatchCriticalBlock contains the user's settings like push name and locale.
+	WAPatchCriticalBlock WAPatchName = "critical_block"
+	// WAPatchCriticalUnblockLow contains the user's contact list.
 	WAPatchCriticalUnblockLow WAPatchName = "critical_unblock_low"
-	WAPatchRegularLow         WAPatchName = "regular_low"
-	WAPatchRegularHigh        WAPatchName = "regular_high"
-	WAPatchRegular            WAPatchName = "regular"
+	// WAPatchRegularLow contains some local chat settings like pin, archive status, and the setting of whether to unarchive chats when messages come in.
+	WAPatchRegularLow WAPatchName = "regular_low"
+	// WAPatchRegularHigh contains more local chat settings like mute status and starred messages.
+	WAPatchRegularHigh WAPatchName = "regular_high"
+	// WAPatchRegular contains protocol info about app state patches like key expiration.
+	WAPatchRegular WAPatchName = "regular"
 )
 
 var AllPatchNames = [...]WAPatchName{WAPatchCriticalBlock, WAPatchCriticalUnblockLow, WAPatchRegularHigh, WAPatchRegular, WAPatchRegularLow}
