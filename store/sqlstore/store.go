@@ -490,12 +490,12 @@ func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
 }
 
 func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
 	rows, err := s.db.Query(getAllContactsQuery, s.JID)
 	if err != nil {
 		return nil, err
 	}
-	s.contactCacheLock.Lock()
-	defer s.contactCacheLock.Unlock()
 	output := make(map[types.JID]types.ContactInfo, len(s.contactCache))
 	for rows.Next() {
 		var jid types.JID
