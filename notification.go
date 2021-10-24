@@ -23,14 +23,9 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 		cli.Log.Warnf("Didn't get number of OTKs left in encryption notification")
 		return
 	}
-	// TODO the count attribute seems a bit unreliable sometimes, so don't upload the full 30 if it says there are 0
-	if otksLeft == 0 {
-		otksLeft, _ = cli.Store.PreKeys.UploadedPreKeyCount()
-		if otksLeft >= WantedPreKeyCount {
-			otksLeft = WantedPreKeyCount - 10
-		}
+	if otksLeft < MinPreKeyCount {
+		cli.uploadPreKeys()
 	}
-	cli.uploadPreKeys(otksLeft)
 }
 
 func (cli *Client) handleAppStateNotification(node *waBinary.Node) {

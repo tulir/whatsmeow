@@ -71,13 +71,19 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.AutoReconnectErrors = 0
 	cli.IsLoggedIn = true
 	go func() {
-		count, err := cli.Store.PreKeys.UploadedPreKeyCount()
-		if err != nil {
-			cli.Log.Errorf("Failed to get number of prekeys on server: %v", err)
-		} else if count < WantedPreKeyCount {
-			cli.uploadPreKeys(count)
+		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(); err != nil {
+			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)
+		} else if serverCount, err := cli.getServerPreKeyCount(); err != nil {
+			cli.Log.Warnf("Failed to get number of prekeys on server: %v", err)
+		} else {
+			cli.Log.Debugf("Database has %d prekeys, server says we have %d", dbCount, serverCount)
+			if serverCount < MinPreKeyCount || dbCount < MinPreKeyCount {
+				cli.uploadPreKeys()
+				sc, _ := cli.getServerPreKeyCount()
+				cli.Log.Debugf("Prekey count after upload: %d", sc)
+			}
 		}
-		err = cli.SetPassive(false)
+		err := cli.SetPassive(false)
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
