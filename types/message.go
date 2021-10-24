@@ -38,12 +38,10 @@ type MessageInfo struct {
 }
 
 // SourceString returns a log-friendly representation of who sent the message and where.
-func (mi *MessageInfo) SourceString() string {
-	if mi.IsGroup {
-		return fmt.Sprintf("%s in %s", mi.Sender, mi.Chat)
-	} else if mi.Sender != mi.Chat {
-		return fmt.Sprintf("%s to %s", mi.Sender, mi.Chat)
+func (ms *MessageSource) SourceString() string {
+	if ms.Sender != ms.Chat {
+		return fmt.Sprintf("%s in %s", ms.Sender, ms.Chat)
 	} else {
-		return mi.Chat.String()
+		return ms.Chat.String()
 	}
 }

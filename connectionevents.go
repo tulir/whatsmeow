@@ -19,7 +19,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 	code, _ := node.Attrs["code"].(string)
 	switch code {
 	case "515":
-		cli.Log.Debugf("Got 515 code, reconnecting")
+		cli.Log.Infof("Got 515 code, reconnecting...")
 		go func() {
 			cli.Disconnect()
 			err := cli.Connect()
