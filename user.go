@@ -170,6 +170,22 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 	return &info, nil
 }
 
+func (cli *Client) handleHistoricalPushNames(names []*waProto.Pushname) {
+	if cli.Store.Contacts == nil {
+		return
+	}
+	for _, user := range names {
+		var changed bool
+		if jid, err := types.ParseJID(user.GetId()); err != nil {
+			cli.Log.Warnf("Failed to parse user ID '%s' in push name history sync: %v", user.GetId(), err)
+		} else if changed, _, err = cli.Store.Contacts.PutPushName(jid, user.GetPushname()); err != nil {
+			cli.Log.Warnf("Failed to store push name of %s from history sync: %v", err)
+		} else if changed {
+			cli.Log.Debugf("Got push name %s for %s in history sync", user.GetPushname(), jid)
+		}
+	}
+}
+
 func (cli *Client) updatePushName(user types.JID, messageInfo *types.MessageInfo, name string) {
 	if cli.Store.Contacts == nil {
 		return

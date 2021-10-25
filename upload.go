@@ -105,5 +105,8 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	} else if err = json.NewDecoder(httpResp.Body).Decode(&resp); err != nil {
 		err = fmt.Errorf("failed to parse upload response: %w", err)
 	}
+	if httpResp != nil {
+		_ = httpResp.Body.Close()
+	}
 	return
 }
