@@ -11,3 +11,9 @@ ported from [WhatsappWeb4j] and [Baileys] (also MIT license).
 [go-whatsapp]: https://github.com/Rhymen/go-whatsapp
 [WhatsappWeb4j]: https://github.com/Auties00/WhatsappWeb4j
 [Baileys]: https://github.com/adiwajshing/Baileys
+
+## Usage
+TODO, see [mdtest](./mdtest) for now
+
+## Discussion
+Matrix room: [#whatsmeow:maunium.net](https://matrix.to/#/#whatsmeow:maunium.net)
