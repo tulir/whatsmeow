@@ -80,7 +80,7 @@ func (fs *FrameSocket) Close(code int) {
 	fs.conn = nil
 	fs.ctx = nil
 	fs.cancel = nil
-	if code > 0 && fs.OnDisconnect != nil {
+	if code == 0 && fs.OnDisconnect != nil {
 		go fs.OnDisconnect()
 	}
 }

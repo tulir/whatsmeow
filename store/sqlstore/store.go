@@ -9,13 +9,12 @@ package sqlstore
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/lib/pq"
 
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -23,6 +22,13 @@ import (
 )
 
 var ErrInvalidLength = errors.New("database returned byte array with illegal length")
+
+// PostgresArrayWrapper is a function to wrap array values before passing them to the sql package.
+// When using github.com/lib/pq, set whatsmeow.PostgresArrayWrapper = pq.Array
+var PostgresArrayWrapper func(interface{}) interface{
+	driver.Valuer
+	sql.Scanner
+}
 
 type SQLStore struct {
 	*Container
@@ -354,8 +360,8 @@ func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (
 	if len(indexMACs) == 0 {
 		return
 	}
-	if s.dialect == "postgres" {
-		_, err = s.db.Exec(deleteAppStateMutationMACsQueryPostgres, s.JID, name, pq.Array(indexMACs))
+	if s.dialect == "postgres" && PostgresArrayWrapper != nil {
+		_, err = s.db.Exec(deleteAppStateMutationMACsQueryPostgres, s.JID, name, PostgresArrayWrapper(indexMACs))
 	} else {
 		args := make([]interface{}, 2+len(indexMACs))
 		args[0] = s.JID
