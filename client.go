@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -29,6 +30,13 @@ import (
 // EventHandler is a function that can handle events from WhatsApp.
 type EventHandler func(evt interface{})
 type nodeHandler func(node *waBinary.Node)
+
+var nextHandlerID uint32
+
+type wrappedEventHandler struct {
+	fn EventHandler
+	id uint32
+}
 
 // Client contains everything necessary to connect to and interact with the WhatsApp web API.
 type Client struct {
@@ -59,9 +67,10 @@ type Client struct {
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
 
-	nodeHandlers  map[string]nodeHandler
-	handlerQueue  chan *waBinary.Node
-	eventHandlers []EventHandler
+	nodeHandlers      map[string]nodeHandler
+	handlerQueue      chan *waBinary.Node
+	eventHandlers     []wrappedEventHandler
+	eventHandlersLock sync.RWMutex
 
 	uniqueID  string
 	idCounter uint64
@@ -87,10 +96,12 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		sendLog:         log.Sub("Send"),
 		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
-		eventHandlers:   make([]EventHandler, 0, 1),
+		eventHandlers:   make([]wrappedEventHandler, 0, 1),
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
+
+		EnableAutoReconnect: true,
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
@@ -194,13 +205,43 @@ func (cli *Client) disconnect() {
 }
 
 // AddEventHandler registers a new function to receive all events emitted by this client.
-func (cli *Client) AddEventHandler(handler EventHandler) {
-	cli.eventHandlers = append(cli.eventHandlers, handler)
+//
+// The returned integer is the event handler ID, which can be passed to RemoveEventHandler to remove it.
+func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
+	nextID := atomic.AddUint32(&nextHandlerID, 1)
+	cli.eventHandlersLock.Lock()
+	cli.eventHandlers = append(cli.eventHandlers, wrappedEventHandler{handler, nextID})
+	cli.eventHandlersLock.Unlock()
+	return nextID
+}
+
+// RemoveEventHandler removes a previously registered event handler function.
+// If the function with the given ID is found, this returns true.
+func (cli *Client) RemoveEventHandler(id uint32) bool {
+	cli.eventHandlersLock.Lock()
+	defer cli.eventHandlersLock.Unlock()
+	for index := range cli.eventHandlers {
+		if cli.eventHandlers[index].id == id {
+			if index == 0 {
+				cli.eventHandlers[0].fn = nil
+				cli.eventHandlers = cli.eventHandlers[1:]
+				return true
+			} else if index < len(cli.eventHandlers)-1 {
+				copy(cli.eventHandlers[index:], cli.eventHandlers[index+1:])
+			}
+			cli.eventHandlers[len(cli.eventHandlers)-1].fn = nil
+			cli.eventHandlers = cli.eventHandlers[:len(cli.eventHandlers)-1]
+			return true
+		}
+	}
+	return false
 }
 
 // RemoveEventHandlers removes all event handlers that have been registered with AddEventHandler
 func (cli *Client) RemoveEventHandlers() {
-	cli.eventHandlers = make([]EventHandler, 0, 1)
+	cli.eventHandlersLock.Lock()
+	cli.eventHandlers = make([]wrappedEventHandler, 0, 1)
+	cli.eventHandlersLock.Unlock()
 }
 
 func (cli *Client) handleFrame(data []byte) {
@@ -259,7 +300,9 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 }
 
 func (cli *Client) dispatchEvent(evt interface{}) {
+	cli.eventHandlersLock.RLock()
 	for _, handler := range cli.eventHandlers {
-		handler(evt)
+		handler.fn(evt)
 	}
+	cli.eventHandlersLock.RUnlock()
 }

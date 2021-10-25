@@ -75,6 +75,8 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		go cli.handleAppStateNotification(node)
 	case "account_sync":
 		// If we start storing device lists locally, then this should update that store
+	case "devices":
+		// This is probably other users' devices
 	case "w:gp2":
 		evt, err := parseGroupChange(node)
 		if err != nil {
