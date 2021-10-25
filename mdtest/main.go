@@ -9,6 +9,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"mime"
@@ -16,6 +17,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -292,6 +294,9 @@ func handleCmd(cmd string, args []string) {
 	}
 }
 
+var historySyncID int32
+var startupTime = time.Now().Unix()
+
 func handler(rawEvt interface{}) {
 	switch evt := rawEvt.(type) {
 	case *events.QR:
@@ -361,6 +366,23 @@ func handler(rawEvt interface{}) {
 		} else if evt.Type == events.ReceiptTypeDelivered {
 			log.Infof("%s was delivered to %s at %s", evt.MessageID, evt.SourceString(), evt.Timestamp)
 		}
+	case *events.HistorySync:
+		id := atomic.AddInt32(&historySyncID, 1)
+		fileName := fmt.Sprintf("history-%d-%d.json", startupTime, id)
+		file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			log.Errorf("Failed to open file to write history sync: %v", err)
+			return
+		}
+		enc := json.NewEncoder(file)
+		enc.SetIndent("", "  ")
+		err = enc.Encode(evt.Data)
+		if err != nil {
+			log.Errorf("Failed to write history sync: %v", err)
+			return
+		}
+		log.Infof("Wrote history sync to %s", fileName)
+		_ = file.Close()
 	case *events.AppState:
 		log.Debugf("App state event: %+v / %+v", evt.Index, evt.SyncActionValue)
 	}
