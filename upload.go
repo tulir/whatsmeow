@@ -100,7 +100,10 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	httpResp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		err = fmt.Errorf("failed to execute request: %w", err)
-	} else if httpResp.StatusCode != http.StatusOK {
+		return
+	}
+	defer httpResp.Body.Close()
+	if httpResp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("upload failed with status code %d", httpResp.StatusCode)
 	} else if err = json.NewDecoder(httpResp.Body).Decode(&resp); err != nil {
 		err = fmt.Errorf("failed to parse upload response: %w", err)
