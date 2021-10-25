@@ -254,6 +254,9 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 		cli.Log.Errorf("Failed to unmarshal history sync data: %v", err)
 	} else {
 		cli.Log.Debugf("Received history sync")
+		if historySync.GetSyncType() == waProto.HistorySync_PUSH_NAME {
+			go cli.handleHistoricalPushNames(historySync.GetPushnames())
+		}
 		cli.dispatchEvent(&events.HistorySync{
 			Data: &historySync,
 		})
