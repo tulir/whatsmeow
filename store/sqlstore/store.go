@@ -25,7 +25,7 @@ var ErrInvalidLength = errors.New("database returned byte array with illegal len
 
 // PostgresArrayWrapper is a function to wrap array values before passing them to the sql package.
 // When using github.com/lib/pq, set whatsmeow.PostgresArrayWrapper = pq.Array
-var PostgresArrayWrapper func(interface{}) interface{
+var PostgresArrayWrapper func(interface{}) interface {
 	driver.Valuer
 	sql.Scanner
 }
