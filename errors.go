@@ -17,6 +17,7 @@ var (
 	ErrIQError              = errors.New("info query returned error")
 	ErrIQTimedOut           = errors.New("info query timed out")
 	ErrIQDisconnected       = errors.New("websocket disconnected before info query returned response")
+	ErrNotConnected         = errors.New("websocket not connected")
 
 	ErrAlreadyConnected = errors.New("websocket is already connected")
 

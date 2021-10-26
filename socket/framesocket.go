@@ -27,7 +27,7 @@ type FrameSocket struct {
 	lock   sync.Mutex
 
 	OnFrame      func([]byte)
-	OnDisconnect func()
+	OnDisconnect func(remote bool)
 	WriteTimeout time.Duration
 
 	Header []byte
@@ -80,8 +80,8 @@ func (fs *FrameSocket) Close(code int) {
 	fs.conn = nil
 	fs.ctx = nil
 	fs.cancel = nil
-	if code == 0 && fs.OnDisconnect != nil {
-		go fs.OnDisconnect()
+	if fs.OnDisconnect != nil {
+		go fs.OnDisconnect(code == 0)
 	}
 }
 

@@ -137,19 +137,22 @@ func (cli *Client) Connect() error {
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
 	cli.socket.OnFrame = cli.handleFrame
-	cli.socket.SetOnDisconnect(func(ns *socket.NoiseSocket) {
+	cli.socket.SetOnDisconnect(func(ns *socket.NoiseSocket, remote bool) {
 		ns.OnFrame = nil
 		ns.SetOnDisconnect(nil)
 		cli.socketLock.Lock()
 		defer cli.socketLock.Unlock()
 		if cli.socket == ns {
 			cli.socket = nil
-			if !cli.isExpectedDisconnect {
+			cli.clearResponseWaiters()
+			if !cli.isExpectedDisconnect && remote {
 				cli.Log.Debugf("Emitting Disconnected event")
 				go cli.dispatchEvent(&events.Disconnected{})
 				go cli.autoReconnect()
-			} else {
+			} else if remote {
 				cli.Log.Debugf("OnDisconnect() called, but it was expected, so not emitting event")
+			} else {
+				cli.Log.Debugf("OnDisconnect() called after manual disconnection")
 			}
 		} else {
 			cli.Log.Debugf("Ignoring OnDisconnect on different socket")
@@ -290,6 +293,10 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 	}
 }
 func (cli *Client) sendNode(node waBinary.Node) error {
+	if cli.socket == nil {
+		return ErrNotConnected
+	}
+
 	payload, err := waBinary.Marshal(node)
 	if err != nil {
 		return fmt.Errorf("failed to marshal ping IQ: %w", err)
