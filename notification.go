@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"errors"
 	"time"
 
 	"go.mau.fi/whatsmeow/appstate"
@@ -35,7 +36,11 @@ func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
 		version := ag.Uint64("version")
 		cli.Log.Debugf("Got server sync notification that app state %s has updated to version %d", name, version)
 		err := cli.FetchAppState(name, false, false)
-		if err != nil {
+		if errors.Is(err, ErrIQDisconnected) || errors.Is(err, ErrNotConnected) {
+			// There are some app state changes right before a remote logout, so stop syncing if we're disconnected.
+			cli.Log.Debugf("Failed to sync app state after notification: %v, not trying to sync other states", err)
+			return
+		} else if err != nil {
 			cli.Log.Errorf("Failed to sync app state after notification: %v", err)
 		}
 	}
