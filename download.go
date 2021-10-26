@@ -32,6 +32,7 @@ const (
 	MediaAudio    MediaType = "WhatsApp Audio Keys"
 	MediaDocument MediaType = "WhatsApp Document Keys"
 	MediaHistory  MediaType = "WhatsApp History Keys"
+	MediaAppState MediaType = "WhatsApp App State Keys"
 )
 
 // DownloadableMessage represents a protobuf message that contains attachment info.
@@ -40,7 +41,6 @@ type DownloadableMessage interface {
 	GetMediaKey() []byte
 	GetFileSha256() []byte
 	GetFileEncSha256() []byte
-	GetFileLength() uint64
 	ProtoReflect() protoreflect.Message
 }
 
@@ -52,7 +52,18 @@ var (
 	_ DownloadableMessage = (*waProto.DocumentMessage)(nil)
 	_ DownloadableMessage = (*waProto.StickerMessage)(nil)
 	_ DownloadableMessage = (*waProto.HistorySyncNotification)(nil)
+	_ DownloadableMessage = (*waProto.ExternalBlobReference)(nil)
 )
+
+type downloadableMessageWithLength interface {
+	DownloadableMessage
+	GetFileLength() uint64
+}
+
+type downloadableMessageWithSizeBytes interface {
+	DownloadableMessage
+	GetFileSizeBytes() uint64
+}
 
 type downloadableMessageWithURL interface {
 	DownloadableMessage
@@ -67,10 +78,12 @@ var classToMediaType = map[protoreflect.Name]MediaType{
 	"StickerMessage":  MediaImage,
 
 	"HistorySyncNotification": MediaHistory,
+	"ExternalBlobReference":   MediaAppState,
 }
 
 var mediaTypeToMMSType = map[MediaType]string{
-	MediaHistory: "md-msg-hist",
+	MediaHistory:  "md-msg-hist",
+	MediaAppState: "md-app-state",
 }
 
 // DownloadAny loops through the downloadable parts of the given message and downloads the first non-nil item.
@@ -84,6 +97,17 @@ func (cli *Client) DownloadAny(msg *waProto.Message) (data []byte, err error) {
 	return nil, ErrNothingDownloadableFound
 }
 
+func getSize(msg DownloadableMessage) int {
+	switch sized := msg.(type) {
+	case downloadableMessageWithLength:
+		return int(sized.GetFileLength())
+	case downloadableMessageWithSizeBytes:
+		return int(sized.GetFileSizeBytes())
+	default:
+		return -1
+	}
+}
+
 // Download downloads the attachment from the given protobuf message.
 func (cli *Client) Download(msg DownloadableMessage) (data []byte, err error) {
 	mediaType, ok := classToMediaType[msg.ProtoReflect().Descriptor().Name()]
@@ -92,9 +116,9 @@ func (cli *Client) Download(msg DownloadableMessage) (data []byte, err error) {
 	}
 	urlable, ok := msg.(downloadableMessageWithURL)
 	if ok && len(urlable.GetUrl()) > 0 {
-		return downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, int(msg.GetFileLength()), msg.GetFileEncSha256(), msg.GetFileSha256())
+		return downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
 	} else if len(msg.GetDirectPath()) > 0 {
-		return cli.downloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), int(msg.GetFileLength()), mediaType, mediaTypeToMMSType[mediaType])
+		return cli.downloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
 	} else {
 		return nil, ErrNoURLPresent
 	}
@@ -128,7 +152,7 @@ func downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLeng
 
 	} else if data, err = cbcutil.Decrypt(cipherKey, iv, ciphertext); err != nil {
 		err = fmt.Errorf("failed to decrypt file: %w", err)
-	} else if len(data) != fileLength {
+	} else if fileLength >= 0 && len(data) != fileLength {
 		err = fmt.Errorf("%w: expected %d, got %d", ErrFileLengthMismatch, fileLength, len(data))
 	} else if len(fileSha256) == 32 && sha256.Sum256(data) != *(*[32]byte)(fileSha256) {
 		err = ErrInvalidMediaSHA256
