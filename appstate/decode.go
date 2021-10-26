@@ -45,12 +45,14 @@ func ParsePatchList(node *waBinary.Node, downloadExternal DownloadExternalFunc) 
 			return nil, fmt.Errorf("failed to unmarshal patch #%d: %w", i+1, err)
 		}
 		if patch.GetExternalMutations() != nil && downloadExternal != nil {
-			downloaded, err := downloadExternal(patch.GetExternalMutations())
-			if downloaded != nil {
-				patch.Mutations = downloaded.GetMutations()
-			} else if err != nil {
+			var downloaded *waProto.SyncdMutations
+			downloaded, err = downloadExternal(patch.GetExternalMutations())
+			if err != nil {
 				return nil, fmt.Errorf("failed to download external mutations: %w", err)
+			} else if len(downloaded.GetMutations()) == 0 {
+				return nil, fmt.Errorf("didn't get any mutations from download")
 			}
+			patch.Mutations = downloaded.Mutations
 		}
 		patches = append(patches, &patch)
 	}

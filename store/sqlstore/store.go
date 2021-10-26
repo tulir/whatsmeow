@@ -555,9 +555,11 @@ func (s *SQLStore) PutArchived(chat types.JID, archived bool) error {
 func (s *SQLStore) GetChatSettings(chat types.JID) (settings types.LocalChatSettings, err error) {
 	var mutedUntil int64
 	err = s.db.QueryRow(getChatSettingsQuery, s.JID, chat).Scan(&mutedUntil, &settings.Pinned, &settings.Archived)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	} else if err != nil {
 		return
-	} else if err == nil {
+	} else {
 		settings.Found = true
 	}
 	if mutedUntil != 0 {
