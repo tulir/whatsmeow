@@ -406,6 +406,10 @@ message PrimaryFeature {
     repeated string flags = 1;
 }
 
+message AndroidUnsupportedActions {
+    optional bool allowed = 1;
+}
+
 message SyncActionValue {
     optional int64 timestamp = 1;
     optional StarAction starAction = 2;
@@ -430,6 +434,7 @@ message SyncActionValue {
     optional UnarchiveChatsSetting unarchiveChatsSetting = 23;
     optional PrimaryFeature primaryFeature = 24;
     optional FavoriteStickerAction favoriteStickerAction = 25;
+    optional AndroidUnsupportedActions androidUnsupportedActions = 26;
 }
 
 message RecentEmojiWeight {
