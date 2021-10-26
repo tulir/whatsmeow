@@ -26,7 +26,9 @@ type PatchList struct {
 	Patches        []*waProto.SyncdPatch
 }
 
-func ParsePatchList(node *waBinary.Node) (*PatchList, error) {
+type DownloadExternalFunc func(*waProto.ExternalBlobReference) (*waProto.SyncdMutations, error)
+
+func ParsePatchList(node *waBinary.Node, downloadExternal DownloadExternalFunc) (*PatchList, error) {
 	collection := node.GetChildByTag("sync", "collection")
 	ag := collection.AttrGetter()
 	patchesNode := collection.GetChildByTag("patches")
@@ -41,6 +43,14 @@ func ParsePatchList(node *waBinary.Node) (*PatchList, error) {
 		err := proto.Unmarshal(rawPatch, &patch)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal patch #%d: %w", i+1, err)
+		}
+		if patch.GetExternalMutations() != nil && downloadExternal != nil {
+			downloaded, err := downloadExternal(patch.GetExternalMutations())
+			if downloaded != nil {
+				patch.Mutations = downloaded.GetMutations()
+			} else if err != nil {
+				return nil, fmt.Errorf("failed to download external mutations: %w", err)
+			}
 		}
 		patches = append(patches, &patch)
 	}

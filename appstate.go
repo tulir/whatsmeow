@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
@@ -159,6 +161,19 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 	}
 }
 
+func (cli *Client) downloadExternalAppStateBlob(ref *waProto.ExternalBlobReference) (*waProto.SyncdMutations, error) {
+	data, err := cli.Download(ref)
+	if err != nil {
+		return nil, err
+	}
+	var mutations waProto.SyncdMutations
+	err = proto.Unmarshal(data, &mutations)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal mutation list: %w", err)
+	}
+	return &mutations, nil
+}
+
 func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion uint64) (*appstate.PatchList, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:sync:app:state",
@@ -179,5 +194,5 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 	if err != nil {
 		return nil, err
 	}
-	return appstate.ParsePatchList(resp)
+	return appstate.ParsePatchList(resp, cli.downloadExternalAppStateBlob)
 }
