@@ -22,13 +22,6 @@ import (
 	"go.mau.fi/whatsmeow/util/cbcutil"
 )
 
-var mediaTypeMap = map[MediaType]string{
-	MediaImage:    "/mms/image",
-	MediaVideo:    "/mms/video",
-	MediaDocument: "/mms/document",
-	MediaAudio:    "/mms/audio",
-}
-
 // UploadResponse contains the data from the attachment upload, which can be put into a message to send the attachment.
 type UploadResponse struct {
 	URL        string `json:"url"`
@@ -78,11 +71,11 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 		"auth":  []string{cli.mediaConn.Auth},
 		"token": []string{token},
 	}
-	path := mediaTypeMap[appInfo]
+	mmsType := mediaTypeToMMSType[appInfo]
 	uploadURL := url.URL{
 		Scheme:   "https",
 		Host:     cli.mediaConn.Hosts[0].Hostname,
-		Path:     fmt.Sprintf("%s/%s", path, token),
+		Path:     fmt.Sprintf("/mms/%s/%s", mmsType, token),
 		RawQuery: q.Encode(),
 	}
 

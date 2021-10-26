@@ -82,6 +82,10 @@ var classToMediaType = map[protoreflect.Name]MediaType{
 }
 
 var mediaTypeToMMSType = map[MediaType]string{
+	MediaImage:    "image",
+	MediaAudio:    "audio",
+	MediaVideo:    "video",
+	MediaDocument: "document",
 	MediaHistory:  "md-msg-hist",
 	MediaAppState: "md-app-state",
 }
