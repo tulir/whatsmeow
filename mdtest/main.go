@@ -82,7 +82,7 @@ func main() {
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
 
-	ch, err := cli.GetQRChannel()
+	ch, err := cli.GetQRChannel(context.Background())
 	if err != nil {
 		// This error means that we're already logged in, so ignore it.
 		if !errors.Is(err, whatsmeow.ErrQRStoreContainsID) {

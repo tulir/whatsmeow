@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -36,6 +37,7 @@ type qrChannel struct {
 	sync.Mutex
 	cli       *Client
 	log       waLog.Logger
+	ctx       context.Context
 	handlerID uint32
 	closed    uint32
 	output    chan<- QRChannelItem
@@ -50,6 +52,7 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 				qrc.log.Debugf("Ran out of QR codes, closing channel with status %s and disconnecting client", QRChannelTimeout)
 				qrc.output <- QRChannelTimeout
 				close(qrc.output)
+				go qrc.cli.RemoveEventHandler(qrc.handlerID)
 				qrc.cli.Disconnect()
 			} else {
 				qrc.log.Debugf("Ran out of QR codes, but channel is already closed")
@@ -69,6 +72,13 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 		case <-qrc.stopQRs:
 			qrc.log.Debugf("Got signal to stop QR emitter")
 			return
+		case <-qrc.ctx.Done():
+			qrc.log.Debugf("Context is done, stopping QR emitter")
+			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
+				close(qrc.output)
+				go qrc.cli.RemoveEventHandler(qrc.handlerID)
+				qrc.cli.Disconnect()
+			}
 		}
 	}
 }
@@ -111,7 +121,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 //
 // The last value to be emitted will be a special string, either "success", "timeout" or "err-already-have-id",
 // depending on the result of the pairing. The channel will be closed immediately after one of those.
-func (cli *Client) GetQRChannel() (<-chan QRChannelItem, error) {
+func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, error) {
 	if cli.IsConnected() {
 		return nil, ErrQRAlreadyConnected
 	} else if cli.Store.ID != nil {
@@ -123,6 +133,7 @@ func (cli *Client) GetQRChannel() (<-chan QRChannelItem, error) {
 		stopQRs: make(chan struct{}),
 		cli:     cli,
 		log:     cli.Log.Sub("QRChannel"),
+		ctx:     ctx,
 	}
 	qrc.handlerID = cli.AddEventHandler(qrc.handleEvent)
 	return ch, nil
