@@ -29,7 +29,7 @@ import (
 )
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
-func GenerateMessageID() string {
+func GenerateMessageID() types.MessageID {
 	id := make([]byte, 16)
 	_, err := rand.Read(id)
 	if err != nil {
@@ -42,7 +42,7 @@ func GenerateMessageID() string {
 // SendMessage sends the given message.
 //
 // If the message ID is not provided, a random message ID will be generated.
-func (cli *Client) SendMessage(to types.JID, id string, message *waProto.Message) error {
+func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProto.Message) error {
 	if to.AD {
 		return ErrRecipientADJID
 	}
@@ -61,6 +61,21 @@ func (cli *Client) SendMessage(to types.JID, id string, message *waProto.Message
 	default:
 		return fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
+}
+
+// RevokeMessage deletes the given message from everyone in the chat.
+// You can only revoke your own messages, and if the message is too old, then other users will ignore the deletion.
+func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) error {
+	return cli.SendMessage(chat, cli.generateRequestID(), &waProto.Message{
+		ProtocolMessage: &waProto.ProtocolMessage{
+			Type: waProto.ProtocolMessage_REVOKE.Enum(),
+			Key: &waProto.MessageKey{
+				FromMe:    proto.Bool(true),
+				Id:        proto.String(id),
+				RemoteJid: proto.String(chat.String()),
+			},
+		},
+	})
 }
 
 func participantListHashV2(participantJIDs []string) string {
@@ -130,6 +145,9 @@ func (cli *Client) sendGroup(to types.JID, id string, message *waProto.Message) 
 			{Tag: "enc", Content: ciphertext, Attrs: waBinary.Attrs{"v": "2", "type": "skmsg"}},
 		},
 	}
+	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE {
+		node.Attrs["edit"] = "7"
+	}
 	if includeIdentity {
 		err = cli.appendDeviceIdentityNode(&node)
 		if err != nil {
@@ -166,6 +184,9 @@ func (cli *Client) sendDM(to types.JID, id string, message *waProto.Message) err
 			Tag:     "participants",
 			Content: participantNodes,
 		}},
+	}
+	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE {
+		node.Attrs["edit"] = "7"
 	}
 	if includeIdentity {
 		err = cli.appendDeviceIdentityNode(&node)
