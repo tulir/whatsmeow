@@ -22,6 +22,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -57,6 +58,9 @@ type Client struct {
 
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
+
+	uploadPreKeysLock sync.Mutex
+	lastPreKeyUpload time.Time
 
 	mediaConn     *MediaConn
 	mediaConnLock sync.Mutex

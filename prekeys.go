@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"encoding/binary"
 	"fmt"
+	"time"
 
 	"go.mau.fi/libsignal/ecc"
 	"go.mau.fi/libsignal/keys/identity"
@@ -43,6 +44,15 @@ func (cli *Client) getServerPreKeyCount() (int, error) {
 }
 
 func (cli *Client) uploadPreKeys() {
+	cli.uploadPreKeysLock.Lock()
+	defer cli.uploadPreKeysLock.Unlock()
+	if cli.lastPreKeyUpload.Add(10 * time.Minute).After(time.Now()) {
+		sc, _ := cli.getServerPreKeyCount()
+		if sc >= WantedPreKeyCount {
+			cli.Log.Debugf("Canceling prekey upload request due to likely race condition")
+			return
+		}
+	}
 	var registrationIDBytes [4]byte
 	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
 	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(WantedPreKeyCount)
@@ -72,6 +82,7 @@ func (cli *Client) uploadPreKeys() {
 	if err != nil {
 		cli.Log.Warnf("Failed to mark prekeys as uploaded: %v", err)
 	}
+	cli.lastPreKeyUpload = time.Now()
 }
 
 type preKeyResp struct {
