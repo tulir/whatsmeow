@@ -36,7 +36,7 @@ func GenerateMessageID() string {
 		// Out of entropy
 		panic(err)
 	}
-	return hex.EncodeToString(id)
+	return strings.ToUpper(hex.EncodeToString(id))
 }
 
 // SendMessage sends the given message.
