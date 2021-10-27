@@ -38,6 +38,14 @@ type PairSuccess struct {
 	Platform     string
 }
 
+// PairError is emitted when a pair-success event is received from the server, but finishing the pairing locally fails.
+type PairError struct {
+	ID           types.JID
+	BusinessName string
+	Platform     string
+	Error        error
+}
+
 // Connected is emitted when the client has successfully connected to the WhatsApp servers
 // and is authenticated. The user who the client is authenticated as will be in the device store
 // at this point, which is why this event doesn't contain any data.

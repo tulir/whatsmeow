@@ -119,5 +119,6 @@ func (device *Device) Save() error {
 }
 
 func (device *Device) Delete() error {
+	device.ID = nil
 	return device.Container.DeleteDevice(device)
 }

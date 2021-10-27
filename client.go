@@ -164,7 +164,7 @@ func (cli *Client) Connect() error {
 }
 
 func (cli *Client) autoReconnect() {
-	if !cli.EnableAutoReconnect {
+	if !cli.EnableAutoReconnect || cli.Store.ID == nil {
 		return
 	}
 	for {
