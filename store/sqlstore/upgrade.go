@@ -46,6 +46,9 @@ var Upgrades = [...]upgradeFunc{
 			PRIMARY KEY (our_jid, their_id),
 			FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
 		)`)
+		if err != nil {
+			return err
+		}
 		_, err = tx.Exec(`CREATE TABLE whatsmeow_pre_keys (
 			jid      TEXT,
 			key_id   INTEGER          CHECK ( key_id >= 0 AND key_id < 16777216 ),
