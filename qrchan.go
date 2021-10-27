@@ -74,6 +74,10 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 }
 
 func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
+	if atomic.LoadUint32(&qrc.closed) == 1 {
+		qrc.log.Debugf("Dropping event of type %T, channel is closed", rawEvt)
+		return
+	}
 	var outputType QRChannelItem
 	switch evt := rawEvt.(type) {
 	case *events.QR:
@@ -97,7 +101,8 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 	} else {
 		qrc.log.Debugf("Got status %s, but channel is already closed", outputType)
 	}
-	qrc.cli.RemoveEventHandler(qrc.handlerID)
+	// Has to be done in background because otherwise there's a deadlock with eventHandlersLock
+	go qrc.cli.RemoveEventHandler(qrc.handlerID)
 }
 
 // GetQRChannel returns a channel that automatically outputs a new QR code when the previous one expires.
