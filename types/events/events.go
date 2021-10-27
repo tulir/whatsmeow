@@ -137,6 +137,12 @@ type Receipt struct {
 	PreviousIDs []string // Additional message IDs that were read. Only present for read receipts.
 }
 
+// ChatPresence is emitted when a chat state update (also known as typing notification) is received.
+type ChatPresence struct {
+	types.MessageSource
+	State types.ChatPresence
+}
+
 // GroupInfo is emitted when the metadata of a group changes.
 type GroupInfo struct {
 	JID       types.JID  // The group ID in question
