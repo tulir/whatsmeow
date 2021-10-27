@@ -18,8 +18,12 @@ var (
 	ErrIQTimedOut           = errors.New("info query timed out")
 	ErrIQDisconnected       = errors.New("websocket disconnected before info query returned response")
 	ErrNotConnected         = errors.New("websocket not connected")
+	ErrNotLoggedIn          = errors.New("the store doesn't contain a device JID")
 
 	ErrAlreadyConnected = errors.New("websocket is already connected")
+
+	ErrQRAlreadyConnected = errors.New("GetQRChannel must be called before connecting")
+	ErrQRStoreContainsID  = errors.New("GetQRChannel can only be called when there's no user ID in the client's Store")
 
 	ErrNoPushName = errors.New("can't send presence without PushName set")
 )

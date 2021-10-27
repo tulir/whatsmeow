@@ -88,23 +88,27 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 
 	deviceIdentityBytes, _ := pairSuccess.GetChildByTag("device-identity").Content.([]byte)
 	businessName, _ := pairSuccess.GetChildByTag("biz").Attrs["name"].(string)
-	wid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
+	jid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
 
 	go func() {
-		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, wid)
+		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, jid)
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
+			cli.Disconnect()
+			cli.dispatchEvent(&events.PairError{ID: jid, BusinessName: businessName, Platform: platform, Error: err})
 		} else {
 			cli.Log.Infof("Successfully paired %s", cli.Store.ID)
+			cli.dispatchEvent(&events.PairSuccess{ID: jid, BusinessName: businessName, Platform: platform})
 		}
 	}()
 }
 
-func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, wid types.JID) error {
+func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, jid types.JID) error {
 	var deviceIdentityContainer waProto.ADVSignedDeviceIdentityHMAC
 	err := proto.Unmarshal(deviceIdentityBytes, &deviceIdentityContainer)
 	if err != nil {
+		cli.sendIQError(reqID, 500, "internal-error")
 		return fmt.Errorf("failed to parse device identity container in pair success message: %w", err)
 	}
 
@@ -112,18 +116,19 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	h.Write(deviceIdentityContainer.Details)
 	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.Hmac) {
 		cli.Log.Warnf("Invalid HMAC from pair success message")
-		cli.sendNotAuthorized(reqID)
+		cli.sendIQError(reqID, 401, "not-authorized")
 		return fmt.Errorf("invalid device identity HMAC in pair success message")
 	}
 
 	var deviceIdentity waProto.ADVSignedDeviceIdentity
 	err = proto.Unmarshal(deviceIdentityContainer.Details, &deviceIdentity)
 	if err != nil {
+		cli.sendIQError(reqID, 500, "internal-error")
 		return fmt.Errorf("failed to parse signed device identity in pair success message: %w", err)
 	}
 
 	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey) {
-		cli.sendNotAuthorized(reqID)
+		cli.sendIQError(reqID, 401, "not-authorized")
 		return fmt.Errorf("invalid device signature in pair success message")
 	}
 
@@ -132,10 +137,11 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	var deviceIdentityDetails waProto.ADVDeviceIdentity
 	err = proto.Unmarshal(deviceIdentity.Details, &deviceIdentityDetails)
 	if err != nil {
+		cli.sendIQError(reqID, 500, "internal-error")
 		return fmt.Errorf("failed to parse device identity details in pair success message: %w", err)
 	}
 
-	mainDeviceJID := wid
+	mainDeviceJID := jid
 	mainDeviceJID.Device = 0
 	mainDeviceIdentity := *(*[32]byte)(deviceIdentity.AccountSignatureKey)
 	deviceIdentity.AccountSignatureKey = nil
@@ -144,18 +150,22 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 
 	selfSignedDeviceIdentity, err := proto.Marshal(&deviceIdentity)
 	if err != nil {
+		cli.sendIQError(reqID, 500, "internal-error")
 		return fmt.Errorf("failed to marshal self-signed device identity: %w", err)
 	}
 
-	cli.Store.ID = &wid
+	cli.Store.ID = &jid
 	cli.Store.BusinessName = businessName
 	cli.Store.Platform = platform
 	err = cli.Store.Save()
 	if err != nil {
+		cli.sendIQError(reqID, 500, "internal-error")
 		return fmt.Errorf("failed to save device store: %w", err)
 	}
 	err = cli.Store.Identities.PutIdentity(mainDeviceJID.SignalAddress().String(), mainDeviceIdentity)
 	if err != nil {
+		_ = cli.Store.Delete()
+		cli.sendIQError(reqID, 500, "internal-error")
 		return fmt.Errorf("failed to store main device identity: %w", err)
 	}
 
@@ -184,7 +194,6 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		_ = cli.Store.Delete()
 		return fmt.Errorf("failed to send pairing confirmation: %w", err)
 	}
-	cli.dispatchEvent(&events.PairSuccess{ID: wid, BusinessName: businessName, Platform: platform})
 	return nil
 }
 
@@ -219,7 +228,7 @@ func generateDeviceSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ik
 	return &sig
 }
 
-func (cli *Client) sendNotAuthorized(id string) waBinary.Node {
+func (cli *Client) sendIQError(id string, code int, text string) waBinary.Node {
 	return waBinary.Node{
 		Tag: "iq",
 		Attrs: waBinary.Attrs{
@@ -230,8 +239,8 @@ func (cli *Client) sendNotAuthorized(id string) waBinary.Node {
 		Content: []waBinary.Node{{
 			Tag: "error",
 			Attrs: waBinary.Attrs{
-				"code": "401",
-				"text": "not-authorized",
+				"code": code,
+				"text": text,
 			},
 		}},
 	}

@@ -36,7 +36,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 			go cli.dispatchEvent(&events.LoggedOut{})
 			err := cli.Store.Delete()
 			if err != nil {
-				cli.Log.Warnf("Failed to delete store after device_removed error:", err)
+				cli.Log.Warnf("Failed to delete store after device_removed error: %v", err)
 			}
 		} else {
 			cli.Log.Errorf("Unknown stream error code 401: %s", node.XMLString())
@@ -57,7 +57,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		go cli.dispatchEvent(&events.LoggedOut{})
 		err := cli.Store.Delete()
 		if err != nil {
-			cli.Log.Warnf("Failed to delete store after 401 failure:", err)
+			cli.Log.Warnf("Failed to delete store after 401 failure: %v", err)
 		}
 	} else {
 		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())

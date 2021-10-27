@@ -22,6 +22,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -57,6 +58,9 @@ type Client struct {
 
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
+
+	uploadPreKeysLock sync.Mutex
+	lastPreKeyUpload  time.Time
 
 	mediaConn     *MediaConn
 	mediaConnLock sync.Mutex
@@ -164,7 +168,7 @@ func (cli *Client) Connect() error {
 }
 
 func (cli *Client) autoReconnect() {
-	if !cli.EnableAutoReconnect {
+	if !cli.EnableAutoReconnect || cli.Store.ID == nil {
 		return
 	}
 	for {
@@ -205,6 +209,34 @@ func (cli *Client) disconnect() {
 		cli.socket.Close(websocket.CloseNormalClosure)
 		cli.socket = nil
 	}
+}
+
+// Logout sends a request to unlink the device.
+func (cli *Client) Logout() error {
+	if cli.Store.ID == nil {
+		return ErrNotLoggedIn
+	}
+	_, err := cli.sendIQ(infoQuery{
+		Namespace: "md",
+		Type:      "set",
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "remove-companion-device",
+			Attrs: waBinary.Attrs{
+				"jid":    *cli.Store.ID,
+				"reason": "user_initiated",
+			},
+		}},
+	})
+	if err != nil {
+		return fmt.Errorf("error sending logout request: %w", err)
+	}
+	cli.Disconnect()
+	err = cli.Store.Delete()
+	if err != nil {
+		return fmt.Errorf("error deleting data from store: %w", err)
+	}
+	return nil
 }
 
 // AddEventHandler registers a new function to receive all events emitted by this client.

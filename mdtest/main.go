@@ -10,6 +10,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"mime"
@@ -80,12 +81,31 @@ func main() {
 	}
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
-	err := cli.Connect()
+
+	ch, err := cli.GetQRChannel()
+	if err != nil {
+		// This error means that we're already logged in, so ignore it.
+		if !errors.Is(err, whatsmeow.ErrQRStoreContainsID) {
+			log.Errorf("Failed to get QR channel: %v", err)
+		}
+	} else {
+		go func() {
+			for evt := range ch {
+				if evt.IsQR() {
+					qrterminal.GenerateHalfBlock(string(evt), qrterminal.L, os.Stdout)
+				} else {
+					log.Infof("QR channel result: %s", evt)
+				}
+			}
+		}()
+	}
+
+	cli.AddEventHandler(handler)
+	err = cli.Connect()
 	if err != nil {
 		log.Errorf("Failed to connect: %v", err)
 		return
 	}
-	cli.AddEventHandler(handler)
 
 	c := make(chan os.Signal)
 	input := make(chan string)
@@ -146,7 +166,13 @@ func handleCmd(cmd string, args []string) {
 		err := cli.Connect()
 		if err != nil {
 			log.Errorf("Failed to connect: %v", err)
-			return
+		}
+	case "logout":
+		err := cli.Logout()
+		if err != nil {
+			log.Errorf("Error logging out: %v", err)
+		} else {
+			log.Infof("Successfully logged out")
 		}
 	case "appstate":
 		if len(args) < 1 {
@@ -299,13 +325,6 @@ var startupTime = time.Now().Unix()
 
 func handler(rawEvt interface{}) {
 	switch evt := rawEvt.(type) {
-	case *events.QR:
-		go printQRs(evt)
-	case *events.PairSuccess:
-		select {
-		case stopQRs <- struct{}{}:
-		default:
-		}
 	case *events.AppStateSyncComplete:
 		if len(cli.Store.PushName) > 0 && evt.Name == appstate.WAPatchCriticalBlock {
 			err := cli.SendPresence(types.PresenceAvailable)
@@ -385,18 +404,5 @@ func handler(rawEvt interface{}) {
 		_ = file.Close()
 	case *events.AppState:
 		log.Debugf("App state event: %+v / %+v", evt.Index, evt.SyncActionValue)
-	}
-}
-
-var stopQRs = make(chan struct{})
-
-func printQRs(evt *events.QR) {
-	for _, qr := range evt.Codes {
-		qrterminal.GenerateHalfBlock(qr, qrterminal.L, os.Stdout)
-		select {
-		case <-time.After(evt.Timeout):
-		case <-stopQRs:
-			return
-		}
 	}
 }
