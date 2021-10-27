@@ -211,6 +211,34 @@ func (cli *Client) disconnect() {
 	}
 }
 
+// Logout sends a request to unlink the device.
+func (cli *Client) Logout() error {
+	if cli.Store.ID == nil {
+		return ErrNotLoggedIn
+	}
+	_, err := cli.sendIQ(infoQuery{
+		Namespace: "md",
+		Type:      "set",
+		To:        types.ServerJID,
+		Content:   []waBinary.Node{{
+			Tag: "remove-companion-device",
+			Attrs: waBinary.Attrs{
+				"jid": *cli.Store.ID,
+				"reason": "user_initiated",
+			},
+		}},
+	})
+	if err != nil {
+		return fmt.Errorf("error sending logout request: %w", err)
+	}
+	cli.Disconnect()
+	err = cli.Store.Delete()
+	if err != nil {
+		return fmt.Errorf("error deleting data from store: %w", err)
+	}
+	return nil
+}
+
 // AddEventHandler registers a new function to receive all events emitted by this client.
 //
 // The returned integer is the event handler ID, which can be passed to RemoveEventHandler to remove it.

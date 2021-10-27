@@ -100,12 +100,12 @@ func main() {
 		}()
 	}
 
+	cli.AddEventHandler(handler)
 	err = cli.Connect()
 	if err != nil {
 		log.Errorf("Failed to connect: %v", err)
 		return
 	}
-	cli.AddEventHandler(handler)
 
 	c := make(chan os.Signal)
 	input := make(chan string)
@@ -166,7 +166,13 @@ func handleCmd(cmd string, args []string) {
 		err := cli.Connect()
 		if err != nil {
 			log.Errorf("Failed to connect: %v", err)
-			return
+		}
+	case "logout":
+		err := cli.Logout()
+		if err != nil {
+			log.Errorf("Error logging out: %v", err)
+		} else {
+			log.Infof("Successfully logged out")
 		}
 	case "appstate":
 		if len(args) < 1 {
