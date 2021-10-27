@@ -84,7 +84,7 @@ func participantListHashV2(participantJIDs []string) string {
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendGroup(to types.JID, id string, message *waProto.Message) error {
+func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.Message) error {
 	groupInfo, err := cli.GetGroupInfo(to)
 	if err != nil {
 		return fmt.Errorf("failed to get group info: %w", err)
@@ -126,52 +126,48 @@ func (cli *Client) sendGroup(to types.JID, id string, message *waProto.Message) 
 		participantsStrings[i] = part.JID.String()
 	}
 
-	allDevices, err := cli.GetUserDevices(participants)
+	node, err := cli.prepareMessageNode(to, id, message, participants, skdPlaintext, nil)
 	if err != nil {
-		return fmt.Errorf("failed to get device list: %w", err)
+		return err
 	}
-	participantNodes, includeIdentity := cli.encryptMessageForDevices(allDevices, id, skdPlaintext, nil)
 
-	node := waBinary.Node{
-		Tag: "message",
-		Attrs: waBinary.Attrs{
-			"id":    id,
-			"type":  "text",
-			"to":    to,
-			"phash": participantListHashV2(participantsStrings),
-		},
-		Content: []waBinary.Node{
-			{Tag: "participants", Content: participantNodes},
-			{Tag: "enc", Content: ciphertext, Attrs: waBinary.Attrs{"v": "2", "type": "skmsg"}},
-		},
-	}
-	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE {
-		node.Attrs["edit"] = "7"
-	}
-	if includeIdentity {
-		err = cli.appendDeviceIdentityNode(&node)
-		if err != nil {
-			return err
-		}
-	}
-	err = cli.sendNode(node)
+	node.Attrs["phash"] = participantListHashV2(participantsStrings)
+	node.Content = append(node.GetChildren(), waBinary.Node{
+		Tag:     "enc",
+		Content: ciphertext,
+		Attrs:   waBinary.Attrs{"v": "2", "type": "skmsg"},
+	})
+
+	err = cli.sendNode(*node)
 	if err != nil {
 		return fmt.Errorf("failed to send message node: %w", err)
 	}
 	return nil
 }
 
-func (cli *Client) sendDM(to types.JID, id string, message *waProto.Message) error {
+func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Message) error {
 	messagePlaintext, deviceSentMessagePlaintext, err := marshalMessage(to, message)
 	if err != nil {
 		return err
 	}
 
-	allDevices, err := cli.GetUserDevices([]types.JID{to, *cli.Store.ID})
+	node, err := cli.prepareMessageNode(to, id, message, []types.JID{to, *cli.Store.ID}, messagePlaintext, deviceSentMessagePlaintext)
 	if err != nil {
-		return fmt.Errorf("failed to get device list: %w", err)
+		return err
 	}
-	participantNodes, includeIdentity := cli.encryptMessageForDevices(allDevices, id, messagePlaintext, deviceSentMessagePlaintext)
+	err = cli.sendNode(*node)
+	if err != nil {
+		return fmt.Errorf("failed to send message node: %w", err)
+	}
+	return nil
+}
+
+func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte) (*waBinary.Node, error) {
+	allDevices, err := cli.GetUserDevices(participants)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get device list: %w", err)
+	}
+	participantNodes, includeIdentity := cli.encryptMessageForDevices(allDevices, id, plaintext, dsmPlaintext)
 
 	node := waBinary.Node{
 		Tag: "message",
@@ -189,16 +185,12 @@ func (cli *Client) sendDM(to types.JID, id string, message *waProto.Message) err
 		node.Attrs["edit"] = "7"
 	}
 	if includeIdentity {
-		err = cli.appendDeviceIdentityNode(&node)
+		err := cli.appendDeviceIdentityNode(&node)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	err = cli.sendNode(node)
-	if err != nil {
-		return fmt.Errorf("failed to send message node: %w", err)
-	}
-	return nil
+	return &node, nil
 }
 
 func marshalMessage(to types.JID, message *waProto.Message) (plaintext, dsmPlaintext []byte, err error) {
