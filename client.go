@@ -60,7 +60,7 @@ type Client struct {
 	appStateSyncLock sync.Mutex
 
 	uploadPreKeysLock sync.Mutex
-	lastPreKeyUpload time.Time
+	lastPreKeyUpload  time.Time
 
 	mediaConn     *MediaConn
 	mediaConnLock sync.Mutex
@@ -220,10 +220,10 @@ func (cli *Client) Logout() error {
 		Namespace: "md",
 		Type:      "set",
 		To:        types.ServerJID,
-		Content:   []waBinary.Node{{
+		Content: []waBinary.Node{{
 			Tag: "remove-companion-device",
 			Attrs: waBinary.Attrs{
-				"jid": *cli.Store.ID,
+				"jid":    *cli.Store.ID,
 				"reason": "user_initiated",
 			},
 		}},
