@@ -30,6 +30,25 @@ func (cli *Client) handleReceipt(node *waBinary.Node) {
 	go cli.sendAck(node)
 }
 
+func (cli *Client) handleChatState(node *waBinary.Node) {
+	source, err := cli.parseMessageSource(node)
+	if err != nil {
+		cli.Log.Warnf("Failed to parse chat state update: %v", err)
+	} else if len(node.GetChildren()) != 1 {
+		cli.Log.Warnf("Failed to parse chat state update: unexpected number of children in element (%d)", len(node.GetChildren()))
+	} else {
+		child := node.GetChildren()[0]
+		presence := types.ChatPresence(child.Tag)
+		if presence != types.ChatPresenceComposing && presence != types.ChatPresenceRecording && presence != types.ChatPresencePaused {
+			cli.Log.Warnf("Unrecognized chat presence state %s", child.Tag)
+		}
+		cli.dispatchEvent(&events.ChatPresence{
+			MessageSource: source,
+			State:         presence,
+		})
+	}
+}
+
 func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 	ag := node.AttrGetter()
 	source, err := cli.parseMessageSource(node)
@@ -81,6 +100,37 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 	if err != nil {
 		cli.Log.Warnf("Failed to send acknowledgement for %s %s: %v", node.Tag, node.Attrs["id"], err)
 	}
+}
+
+// MarkRead sends a read receipt for the given message IDs including the given timestamp as the read at time.
+//
+// The first JID parameter (chat) must always be set to the chat ID (user ID in DMs and group ID in group chats).
+// The second JID parameter (sender) must be set in group chats and must be the user ID who sent the message.
+func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, sender types.JID) error {
+	node := waBinary.Node{
+		Tag: "receipt",
+		Attrs: waBinary.Attrs{
+			"id":   ids[0],
+			"type": "read",
+			"to":   chat,
+			"t":    timestamp.Unix(),
+		},
+	}
+	if !sender.IsEmpty() && chat.Server != types.DefaultUserServer {
+		node.Attrs["participant"] = sender.ToNonAD()
+	}
+	if len(ids) > 1 {
+		children := make([]waBinary.Node, len(ids)-1)
+		for i := 1; i < len(ids); i++ {
+			children[i].Tag = "item"
+			children[i].Attrs = waBinary.Attrs{"id": ids[i]}
+		}
+		node.Content = []waBinary.Node{{
+			Tag:     "list",
+			Content: children,
+		}}
+	}
+	return cli.sendNode(node)
 }
 
 func (cli *Client) sendMessageReceipt(info *types.MessageInfo) {
