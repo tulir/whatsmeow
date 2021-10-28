@@ -80,10 +80,6 @@ func (r *binaryDecoder) readInt32(littleEndian bool) (int, error) {
 	return r.readIntN(4, littleEndian)
 }
 
-func (r *binaryDecoder) readInt64(littleEndian bool) (int, error) {
-	return r.readIntN(8, littleEndian)
-}
-
 func (r *binaryDecoder) readPacked8(tag int) (string, error) {
 	startByte, err := r.readByte()
 	if err != nil {

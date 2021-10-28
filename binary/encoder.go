@@ -57,10 +57,6 @@ func (w *binaryEncoder) pushInt32(value int) {
 	w.pushIntN(value, 4, false)
 }
 
-func (w *binaryEncoder) pushInt64(value int) {
-	w.pushIntN(value, 8, false)
-}
-
 func (w *binaryEncoder) pushString(value string) {
 	w.pushBytes([]byte(value))
 }

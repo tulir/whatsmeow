@@ -177,6 +177,9 @@ func (s *SQLStore) GetOrGenPreKeys(count uint32) ([]*keys.PreKey, error) {
 		}
 		for i := existingCount; i < count; i++ {
 			newKeys[i], err = s.genOnePreKey(nextKeyID, false)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate prekey: %w", err)
+			}
 			nextKeyID++
 		}
 	}

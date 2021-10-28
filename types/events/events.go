@@ -158,10 +158,13 @@ type GroupInfo struct {
 	PrevParticipantVersionID string
 	ParticipantVersionID     string
 
-	JoinReason string // This will be invite if the user joined via invite link
+	JoinReason string // This will be "invite" if the user joined via invite link
 
-	Join  []types.GroupParticipant // Users who joined or were added the group
-	Leave []types.GroupParticipant // Users who left or were removed from the group
+	Join  []types.JID // Users who joined or were added the group
+	Leave []types.JID // Users who left or were removed from the group
+
+	Promote []types.JID // Users who were promoted to admins
+	Demote  []types.JID // Users who were demoted to normal users
 
 	UnknownChanges []*waBinary.Node
 }
