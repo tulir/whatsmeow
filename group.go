@@ -87,16 +87,15 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 	return &group, nil
 }
 
-func parseParticipantList(node *waBinary.Node) (participants []types.GroupParticipant) {
+func parseParticipantList(node *waBinary.Node) (participants []types.JID) {
 	children := node.GetChildren()
-	participants = make([]types.GroupParticipant, 0, len(children))
+	participants = make([]types.JID, 0, len(children))
 	for _, child := range children {
 		jid, ok := child.Attrs["jid"].(types.JID)
 		if child.Tag != "participant" || !ok {
 			continue
 		}
-		pType, _ := child.Attrs["type"].(string)
-		participants = append(participants, types.GroupParticipant{JID: jid, IsAdmin: pType == "admin"})
+		participants = append(participants, jid)
 	}
 	return
 }
@@ -114,16 +113,20 @@ func parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
 
 	for _, child := range node.GetChildren() {
 		cag := child.AttrGetter()
-		switch child.Tag {
-		case "add":
+		if child.Tag == "add" || child.Tag == "remove" || child.Tag == "promote" || child.Tag == "demote" {
 			evt.PrevParticipantVersionID = cag.String("prev_v_id")
 			evt.ParticipantVersionID = cag.String("v_id")
+		}
+		switch child.Tag {
+		case "add":
 			evt.JoinReason = cag.OptionalString("reason")
 			evt.Join = parseParticipantList(&child)
 		case "remove":
-			evt.PrevParticipantVersionID = cag.String("prev_v_id")
-			evt.ParticipantVersionID = cag.String("v_id")
 			evt.Leave = parseParticipantList(&child)
+		case "promote":
+			evt.Promote = parseParticipantList(&child)
+		case "demote":
+			evt.Demote = parseParticipantList(&child)
 		case "locked":
 			evt.Locked = &types.GroupLocked{IsLocked: true}
 		case "unlocked":
