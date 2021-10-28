@@ -48,7 +48,7 @@ type PairError struct {
 
 // QRScannedWithoutMultidevice is emitted when the pairing QR code is scanned, but the phone didn't have multidevice enabled.
 // The same QR code can still be scanned after this event, which means the user can just be told to enable multidevice and re-scan the code.
-type QRScannedWithoutMultidevice struct {}
+type QRScannedWithoutMultidevice struct{}
 
 // Connected is emitted when the client has successfully connected to the WhatsApp servers
 // and is authenticated. The user who the client is authenticated as will be in the device store

@@ -21,9 +21,12 @@ import (
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
-// WantedPreKeyCount is the number of prekeys that the client should keep on the WhatsApp servers.
-const WantedPreKeyCount = 30
-const MinPreKeyCount = 5
+const (
+	// WantedPreKeyCount is the number of prekeys that the client should upload to the WhatsApp servers in a single batch.
+	WantedPreKeyCount = 50
+	// MinPreKeyCount is the number of prekeys when the client will upload a new batch of prekeys to the WhatsApp servers.
+	MinPreKeyCount = 5
+)
 
 func (cli *Client) getServerPreKeyCount() (int, error) {
 	resp, err := cli.sendIQ(infoQuery{
