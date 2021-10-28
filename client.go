@@ -190,10 +190,13 @@ func (cli *Client) autoReconnect() {
 	}
 }
 
+// IsConnected checks if the client is connected to the WhatsApp web websocket.
+// Note that this doesn't check if the client is authenticated. See the IsLoggedIn field for that.
 func (cli *Client) IsConnected() bool {
 	return cli.socket != nil && cli.socket.IsConnected()
 }
 
+// Disconnect disconnects from the WhatsApp web websocket.
 func (cli *Client) Disconnect() {
 	if cli.socket == nil {
 		return
@@ -213,7 +216,10 @@ func (cli *Client) disconnect() {
 	}
 }
 
-// Logout sends a request to unlink the device.
+// Logout sends a request to unlink the device, then disconnects from the websocket and deletes the local device store.
+//
+// If the logout request fails, the disconnection and local data deletion will not happen either.
+// If an error is returned, but you want to force disconnect/clear data, call Client.Disconnect() and Client.Store.Delete() manually.
 func (cli *Client) Logout() error {
 	if cli.Store.ID == nil {
 		return ErrNotLoggedIn

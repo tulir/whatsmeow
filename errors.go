@@ -29,6 +29,8 @@ var (
 )
 
 var (
+	// ErrProfilePictureUnauthorized is returned by GetProfilePictureInfo when trying to get the profile picture of a user
+	// whose privacy settings prevent you from seeing their profile picture.
 	ErrProfilePictureUnauthorized = errors.New("the user has hidden their profile picture from you")
 )
 

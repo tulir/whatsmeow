@@ -109,7 +109,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 		outputType = QRChannelSuccess
 	case *events.Disconnected:
 		outputType = QRChannelTimeout
-	case *events.Connected, *events.ConnectFailure:
+	case *events.Connected, *events.ConnectFailure, *events.LoggedOut:
 		outputType = QRChannelErrUnexpectedEvent
 	default:
 		return
