@@ -116,6 +116,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"failure":      cli.handleConnectFailure,
 		"stream:error": cli.handleStreamError,
 		"iq":           cli.handleIQ,
+		"ib":           cli.handleIB,
 	}
 	return cli
 }

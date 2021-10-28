@@ -18,9 +18,9 @@ import (
 
 type QRChannelItem string
 
-// IsQR returns true if this channel item is an actual QR code rather than a close event.
+// IsQR returns true if this channel item is an actual QR code rather than a special message.
 func (qrci QRChannelItem) IsQR() bool {
-	return qrci != QRChannelSuccess && qrci != QRChannelTimeout && qrci != QRChannelErrUnexpectedEvent
+	return qrci != QRChannelSuccess && qrci != QRChannelTimeout && qrci != QRChannelErrUnexpectedEvent && qrci != QRChannelScannedWithoutMultidevice
 }
 
 const (
@@ -28,9 +28,11 @@ const (
 	QRChannelSuccess QRChannelItem = "success"
 	// QRChannelTimeout is emitted from GetQRChannel if the socket gets disconnected by the server before the pairing is successful.
 	QRChannelTimeout QRChannelItem = "timeout"
-	// QRChannelErrUnexpectedEvent is emitted from GetQRChannel if n unexpected connection event is received,
+	// QRChannelErrUnexpectedEvent is emitted from GetQRChannel if an unexpected connection event is received,
 	// as that likely means that the pairing has already happened before the channel was set up.
 	QRChannelErrUnexpectedEvent QRChannelItem = "err-unexpected-state"
+	// QRChannelScannedWithoutMultidevice is emitted from GetQRChannel if events.QRScannedWithoutMultidevice is received.
+	QRChannelScannedWithoutMultidevice QRChannelItem = "err-scanned-without-multidevice"
 )
 
 type qrChannel struct {
@@ -65,6 +67,11 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 		case qrc.output <- QRChannelItem(nextCode):
 		default:
 			qrc.log.Debugf("Output channel didn't accept code, exiting QR emitter")
+			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
+				close(qrc.output)
+				go qrc.cli.RemoveEventHandler(qrc.handlerID)
+				qrc.cli.Disconnect()
+			}
 			return
 		}
 		select {
@@ -93,6 +100,10 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 	case *events.QR:
 		qrc.log.Debugf("Received QR code event, starting to emit codes to channel")
 		go qrc.emitQRs(evt)
+		return
+	case *events.QRScannedWithoutMultidevice:
+		qrc.log.Debugf("QR code scanned without multidevice enabled")
+		qrc.output <- QRChannelScannedWithoutMultidevice
 		return
 	case *events.PairSuccess:
 		outputType = QRChannelSuccess
@@ -127,7 +138,7 @@ func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, erro
 	} else if cli.Store.ID != nil {
 		return nil, ErrQRStoreContainsID
 	}
-	ch := make(chan QRChannelItem, 7)
+	ch := make(chan QRChannelItem, 8)
 	qrc := qrChannel{
 		output:  ch,
 		stopQRs: make(chan struct{}),

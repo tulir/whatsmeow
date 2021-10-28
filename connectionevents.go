@@ -48,6 +48,13 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 	}
 }
 
+func (cli *Client) handleIB(node *waBinary.Node) {
+	children := node.GetChildren()
+	if len(children) == 1 && children[0].Tag == "downgrade_webclient" {
+		go cli.dispatchEvent(&events.QRScannedWithoutMultidevice{})
+	}
+}
+
 func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	reason := ag.String("reason")
