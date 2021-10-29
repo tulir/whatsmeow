@@ -60,6 +60,9 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 				qrc.log.Debugf("Ran out of QR codes, but channel is already closed")
 			}
 			return
+		} else if atomic.LoadUint32(&qrc.closed) == 1 {
+			qrc.log.Debugf("QR code channel is closed, exiting QR emitter")
+			return
 		}
 		nextCode, evt.Codes = evt.Codes[0], evt.Codes[1:]
 		qrc.log.Debugf("Emitting QR code %s", nextCode)
