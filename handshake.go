@@ -8,10 +8,7 @@ package whatsmeow
 
 import (
 	"bytes"
-	"context"
-	"crypto/rand"
 	"fmt"
-	mathRand "math/rand"
 
 	"google.golang.org/protobuf/proto"
 
@@ -33,10 +30,11 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	if err != nil {
 		return fmt.Errorf("failed to marshal handshake message: %w", err)
 	}
-	resp, err := fs.SendAndReceiveFrame(context.Background(), data)
+	err = fs.SendFrame(data)
 	if err != nil {
 		return fmt.Errorf("failed to send handshake message: %w", err)
 	}
+	resp := <-fs.Frames
 	var handshakeResponse waProto.HandshakeMessage
 	err = proto.Unmarshal(resp, &handshakeResponse)
 	if err != nil {
@@ -89,24 +87,10 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		return fmt.Errorf("cert key doesn't match decrypted static")
 	}
 
-	if cli.Store.NoiseKey == nil {
-		cli.Store.NoiseKey = keys.NewKeyPair()
-	}
-
 	encryptedPubkey := nh.Encrypt(cli.Store.NoiseKey.Pub[:])
 	err = nh.MixSharedSecretIntoKey(*cli.Store.NoiseKey.Priv, serverEphemeralArr)
 	if err != nil {
 		return fmt.Errorf("failed to mix noise private key in: %w", err)
-	}
-
-	if cli.Store.IdentityKey == nil {
-		cli.Store.IdentityKey = keys.NewKeyPair()
-	}
-	if cli.Store.SignedPreKey == nil {
-		cli.Store.SignedPreKey = cli.Store.IdentityKey.CreateSignedPreKey(1)
-	}
-	if cli.Store.RegistrationID == 0 {
-		cli.Store.RegistrationID = mathRand.Uint32()
 	}
 
 	clientFinishPayloadBytes, err := proto.Marshal(cli.Store.GetClientPayload())
@@ -128,20 +112,11 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		return fmt.Errorf("failed to send handshake finish message: %w", err)
 	}
 
-	ns, err := nh.Finish(fs)
+	ns, err := nh.Finish(fs, cli.handleFrame, cli.onDisconnect)
 	if err != nil {
 		return fmt.Errorf("failed to create noise socket: %w", err)
 	}
 
-	if cli.Store.AdvSecretKey == nil {
-		cli.Store.AdvSecretKey = make([]byte, 32)
-		_, err = rand.Read(cli.Store.AdvSecretKey)
-		if err != nil {
-			return fmt.Errorf("failed to generate adv secret key: %w", err)
-		}
-	}
-
-	cli.isExpectedDisconnect = false
 	cli.socket = ns
 
 	return nil

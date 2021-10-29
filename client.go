@@ -17,8 +17,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
-
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/socket"
@@ -48,9 +46,9 @@ type Client struct {
 	sendLog waLog.Logger
 
 	socket     *socket.NoiseSocket
-	socketLock sync.Mutex
+	socketLock sync.RWMutex
 
-	isExpectedDisconnect  bool
+	expectedDisconnectVal uint32
 	EnableAutoReconnect   bool
 	LastSuccessfulConnect time.Time
 	AutoReconnectErrors   int
@@ -129,12 +127,13 @@ func (cli *Client) Connect() error {
 	defer cli.socketLock.Unlock()
 	if cli.socket != nil {
 		if !cli.socket.IsConnected() {
-			cli.disconnect()
+			cli.unlockedDisconnect()
 		} else {
 			return ErrAlreadyConnected
 		}
 	}
 
+	cli.resetExpectedDisconnect()
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader)
 	if err := fs.Connect(); err != nil {
 		fs.Close(0)
@@ -143,31 +142,42 @@ func (cli *Client) Connect() error {
 		fs.Close(0)
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
-	cli.socket.OnFrame = cli.handleFrame
-	cli.socket.SetOnDisconnect(func(ns *socket.NoiseSocket, remote bool) {
-		ns.OnFrame = nil
-		ns.SetOnDisconnect(nil)
-		cli.socketLock.Lock()
-		defer cli.socketLock.Unlock()
-		if cli.socket == ns {
-			cli.socket = nil
-			cli.clearResponseWaiters()
-			if !cli.isExpectedDisconnect && remote {
-				cli.Log.Debugf("Emitting Disconnected event")
-				go cli.dispatchEvent(&events.Disconnected{})
-				go cli.autoReconnect()
-			} else if remote {
-				cli.Log.Debugf("OnDisconnect() called, but it was expected, so not emitting event")
-			} else {
-				cli.Log.Debugf("OnDisconnect() called after manual disconnection")
-			}
-		} else {
-			cli.Log.Debugf("Ignoring OnDisconnect on different socket")
-		}
-	})
 	go cli.keepAliveLoop(cli.socket.Context())
 	go cli.handlerQueueLoop(cli.socket.Context())
 	return nil
+}
+
+func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
+	ns.Stop(false)
+	cli.socketLock.Lock()
+	defer cli.socketLock.Unlock()
+	if cli.socket == ns {
+		cli.socket = nil
+		cli.clearResponseWaiters()
+		if !cli.isExpectedDisconnect() && remote {
+			cli.Log.Debugf("Emitting Disconnected event")
+			go cli.dispatchEvent(&events.Disconnected{})
+			go cli.autoReconnect()
+		} else if remote {
+			cli.Log.Debugf("OnDisconnect() called, but it was expected, so not emitting event")
+		} else {
+			cli.Log.Debugf("OnDisconnect() called after manual disconnection")
+		}
+	} else {
+		cli.Log.Debugf("Ignoring OnDisconnect on different socket")
+	}
+}
+
+func (cli *Client) expectDisconnect() {
+	atomic.StoreUint32(&cli.expectedDisconnectVal, 1)
+}
+
+func (cli *Client) resetExpectedDisconnect() {
+	atomic.StoreUint32(&cli.expectedDisconnectVal, 0)
+}
+
+func (cli *Client) isExpectedDisconnect() bool {
+	return atomic.LoadUint32(&cli.expectedDisconnectVal) == 1
 }
 
 func (cli *Client) autoReconnect() {
@@ -194,7 +204,10 @@ func (cli *Client) autoReconnect() {
 // IsConnected checks if the client is connected to the WhatsApp web websocket.
 // Note that this doesn't check if the client is authenticated. See the IsLoggedIn field for that.
 func (cli *Client) IsConnected() bool {
-	return cli.socket != nil && cli.socket.IsConnected()
+	cli.socketLock.RLock()
+	connected := cli.socket != nil && cli.socket.IsConnected()
+	cli.socketLock.RUnlock()
+	return connected
 }
 
 // Disconnect disconnects from the WhatsApp web websocket.
@@ -203,16 +216,14 @@ func (cli *Client) Disconnect() {
 		return
 	}
 	cli.socketLock.Lock()
-	cli.disconnect()
+	cli.unlockedDisconnect()
 	cli.socketLock.Unlock()
 }
 
 // Disconnect closes the websocket connection.
-func (cli *Client) disconnect() {
+func (cli *Client) unlockedDisconnect() {
 	if cli.socket != nil {
-		cli.socket.SetOnDisconnect(nil)
-		cli.socket.OnFrame = nil
-		cli.socket.Close(websocket.CloseNormalClosure)
+		cli.socket.Stop(true)
 		cli.socket = nil
 	}
 }
@@ -303,7 +314,7 @@ func (cli *Client) handleFrame(data []byte) {
 	}
 	cli.recvLog.Debugf("%s", node.XMLString())
 	if node.Tag == "xmlstreamend" {
-		if !cli.isExpectedDisconnect {
+		if !cli.isExpectedDisconnect() {
 			cli.Log.Warnf("Received stream end frame")
 		}
 		// TODO should we do something else?
@@ -334,7 +345,10 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 	}
 }
 func (cli *Client) sendNode(node waBinary.Node) error {
-	if cli.socket == nil {
+	cli.socketLock.RLock()
+	sock := cli.socket
+	cli.socketLock.RUnlock()
+	if sock == nil {
 		return ErrNotConnected
 	}
 
@@ -344,7 +358,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())
-	return cli.socket.SendFrame(payload)
+	return sock.SendFrame(payload)
 }
 
 func (cli *Client) dispatchEvent(evt interface{}) {

@@ -170,7 +170,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	}
 
 	// Expect a disconnect after this and don't dispatch the usual Disconnected event
-	cli.isExpectedDisconnect = true
+	cli.expectDisconnect()
 
 	err = cli.sendNode(waBinary.Node{
 		Tag: "iq",
