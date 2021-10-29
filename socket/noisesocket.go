@@ -12,26 +12,52 @@ import (
 	"encoding/binary"
 	"sync"
 	"sync/atomic"
+
+	"github.com/gorilla/websocket"
 )
 
 type NoiseSocket struct {
 	fs           *FrameSocket
-	OnFrame      func([]byte)
+	onFrame      FrameHandler
 	writeKey     cipher.AEAD
 	readKey      cipher.AEAD
 	writeCounter uint32
 	readCounter  uint32
 	writeLock    sync.Mutex
+	destroyed    uint32
+	stopConsumer chan struct{}
 }
 
-func newNoiseSocket(fs *FrameSocket, writeKey, readKey cipher.AEAD) (*NoiseSocket, error) {
+type DisconnectHandler func(socket *NoiseSocket, remote bool)
+type FrameHandler func([]byte)
+
+func newNoiseSocket(fs *FrameSocket, writeKey, readKey cipher.AEAD, frameHandler FrameHandler, disconnectHandler DisconnectHandler) (*NoiseSocket, error) {
 	ns := &NoiseSocket{
-		fs:       fs,
-		writeKey: writeKey,
-		readKey:  readKey,
+		fs:           fs,
+		writeKey:     writeKey,
+		readKey:      readKey,
+		onFrame:      frameHandler,
+		stopConsumer: make(chan struct{}),
 	}
-	fs.OnFrame = ns.receiveEncryptedFrame
+	fs.OnDisconnect = func(remote bool) {
+		disconnectHandler(ns, remote)
+	}
+	go ns.consumeFrames(fs.ctx, fs.Frames)
 	return ns, nil
+}
+
+func (ns *NoiseSocket) consumeFrames(ctx context.Context, frames <-chan []byte) {
+	ctxDone := ctx.Done()
+	for {
+		select {
+		case frame := <-frames:
+			ns.receiveEncryptedFrame(frame)
+		case <-ctxDone:
+			return
+		case <-ns.stopConsumer:
+			return
+		}
+	}
 }
 
 func generateIV(count uint32) []byte {
@@ -44,8 +70,14 @@ func (ns *NoiseSocket) Context() context.Context {
 	return ns.fs.Context()
 }
 
-func (ns *NoiseSocket) Close(code int) {
-	ns.fs.Close(code)
+func (ns *NoiseSocket) Stop(disconnect bool) {
+	if atomic.CompareAndSwapUint32(&ns.destroyed, 0, 1) {
+		close(ns.stopConsumer)
+		ns.fs.OnDisconnect = nil
+		if disconnect {
+			ns.fs.Close(websocket.CloseNormalClosure)
+		}
+	}
 }
 
 func (ns *NoiseSocket) SendFrame(plaintext []byte) error {
@@ -64,31 +96,9 @@ func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {
 		ns.fs.log.Warnf("Failed to decrypt frame: %v", err)
 		return
 	}
-	ns.OnFrame(plaintext)
-}
-
-func (ns *NoiseSocket) SetOnDisconnect(onDisconnect func(socket *NoiseSocket, remote bool)) {
-	if onDisconnect == nil {
-		ns.fs.OnDisconnect = nil
-	} else {
-		ns.fs.OnDisconnect = func(remote bool) {
-			onDisconnect(ns, remote)
-		}
-	}
+	ns.onFrame(plaintext)
 }
 
 func (ns *NoiseSocket) IsConnected() bool {
 	return ns.fs.IsConnected()
-}
-
-func (ns *NoiseSocket) SetOnFrame(onFrame func([]byte)) {
-	ns.OnFrame = onFrame
-}
-
-func (ns *NoiseSocket) GetOnFrame() func([]byte) {
-	return ns.OnFrame
-}
-
-func (ns *NoiseSocket) ConsumeNextFrame() (output <-chan []byte, cancel func()) {
-	return ConsumeNextFrame(ns)
 }

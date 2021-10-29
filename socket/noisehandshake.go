@@ -85,14 +85,14 @@ func (nh *NoiseHandshake) Decrypt(ciphertext []byte) (plaintext []byte, err erro
 	return
 }
 
-func (nh *NoiseHandshake) Finish(fs *FrameSocket) (*NoiseSocket, error) {
+func (nh *NoiseHandshake) Finish(fs *FrameSocket, frameHandler FrameHandler, disconnectHandler DisconnectHandler) (*NoiseSocket, error) {
 	if write, read, err := nh.extractAndExpand(nh.salt, nil); err != nil {
 		return nil, fmt.Errorf("failed to extract final keys: %w", err)
 	} else if writeKey, err := newCipher(write); err != nil {
 		return nil, fmt.Errorf("failed to create final write cipher: %w", err)
 	} else if readKey, err := newCipher(read); err != nil {
 		return nil, fmt.Errorf("failed to create final read cipher: %w", err)
-	} else if ns, err := newNoiseSocket(fs, writeKey, readKey); err != nil {
+	} else if ns, err := newNoiseSocket(fs, writeKey, readKey, frameHandler, disconnectHandler); err != nil {
 		return nil, fmt.Errorf("failed to create noise socket: %w", err)
 	} else {
 		return ns, nil
