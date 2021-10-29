@@ -54,6 +54,7 @@ type GroupAnnounce struct {
 
 // GroupParticipant contains info about a participant of a WhatsApp group chat.
 type GroupParticipant struct {
-	JID     JID
-	IsAdmin bool
+	JID          JID
+	IsAdmin      bool
+	IsSuperAdmin bool
 }

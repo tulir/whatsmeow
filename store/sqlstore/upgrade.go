@@ -149,6 +149,36 @@ var Upgrades = [...]upgradeFunc{
 		if err != nil {
 			return err
 		}
+
+		_, err = tx.Exec(`CREATE TABLE whatsmeow_groups (
+			our_jid       TEXT,
+			group_jid     TEXT,
+			owner_jid     TEXT,
+			group_name    TEXT,
+			is_locked     BOOLEAN NOT NULL DEFAULT false,
+			is_announce   BOOLEAN NOT NULL DEFAULT false,
+
+			PRIMARY KEY (our_jid, group_jid),
+			FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+		)`)
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec(`CREATE TABLE whatsmeow_group_participants (
+			our_jid       TEXT,
+			group_jid     TEXT,
+			their_jid     TEXT,
+			is_admin      BOOLEAN NOT NULL DEFAULT false,
+			is_superadmin      BOOLEAN NOT NULL DEFAULT false,
+
+			PRIMARY KEY (our_jid, group_jid, their_jid),
+			FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+		)`)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	},
 }

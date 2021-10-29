@@ -38,6 +38,9 @@ type SQLStore struct {
 
 	contactCache     map[types.JID]*types.ContactInfo
 	contactCacheLock sync.Mutex
+
+	groupCache     map[types.JID]*types.GroupInfo
+	groupCacheLock sync.Mutex
 }
 
 func NewSQLStore(c *Container, jid types.JID) *SQLStore {
@@ -45,6 +48,7 @@ func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 		Container:    c,
 		JID:          jid.String(),
 		contactCache: make(map[types.JID]*types.ContactInfo),
+		groupCache:   make(map[types.JID]*types.GroupInfo),
 	}
 }
 
@@ -55,6 +59,7 @@ var _ store.SenderKeyStore = (*SQLStore)(nil)
 var _ store.AppStateSyncKeyStore = (*SQLStore)(nil)
 var _ store.AppStateStore = (*SQLStore)(nil)
 var _ store.ContactStore = (*SQLStore)(nil)
+var _ store.GroupStore = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `
@@ -541,7 +546,7 @@ func (s *SQLStore) PutMutedUntil(chat types.JID, mutedUntil time.Time) error {
 	if !mutedUntil.IsZero() {
 		val = mutedUntil.Unix()
 	}
-	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "muted_until"), s.JID, chat, val)
+	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "mute_until"), s.JID, chat, val)
 	return err
 }
 
@@ -569,4 +574,155 @@ func (s *SQLStore) GetChatSettings(chat types.JID) (settings types.LocalChatSett
 		settings.MutedUntil = time.Unix(mutedUntil, 0)
 	}
 	return
+}
+
+const (
+	putGroupQuery = `
+		INSERT INTO whatsmeow_groups (our_jid, group_jid, owner_jid, group_name, is_locked, is_announce) VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (our_jid, group_jid) DO UPDATE SET group_name=$4, is_locked=$5, is_announce=$6
+	`
+
+	putGroupParticipantQuery = `
+		INSERT INTO whatsmeow_group_participants (our_jid, group_jid, their_jid, is_admin, is_superadmin) VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (our_jid, group_jid, their_jid) DO UPDATE SET is_admin=$4, is_superadmin=$5
+	`
+
+	getGroupQuery = `
+		SELECT group_jid, owner_jid, group_name, is_locked, is_announce FROM whatsmeow_groups WHERE our_jid=$1 AND group_jid=$2
+	`
+
+	getAllGroupsQuery = `
+		SELECT group_jid, owner_jid, group_name, is_locked, is_announce FROM whatsmeow_groups WHERE our_jid=$1
+	`
+
+	getAllParticipantsByGroupQuery = `
+		SELECT their_jid, is_admin FROM whatsmeow_group_participants WHERE group_jid=$1
+	`
+)
+
+func (s *SQLStore) PutGroup(group types.GroupInfo) error {
+	s.groupCacheLock.Lock()
+	defer s.groupCacheLock.Unlock()
+
+	_, err := s.db.Exec(putGroupQuery, s.JID, group.JID, group.OwnerJID, group.Name, group.IsLocked, group.IsAnnounce)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range group.Participants {
+		_, err := s.db.Exec(putGroupParticipantQuery, s.JID, group.JID, v.JID, v.IsAdmin, v.IsSuperAdmin)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *SQLStore) GetGroup(group types.JID) (*types.GroupInfo, error) {
+	cached, ok := s.groupCache[group]
+	if ok {
+		return cached, nil
+	}
+
+	var groupJID, ownerJID types.JID
+	var groupName sql.NullString
+	var isLocked, isAnnounce sql.NullBool
+
+	err := s.db.QueryRow(getGroupQuery, s.JID, group).Scan(&groupJID, &ownerJID, &groupName, &isLocked, &isAnnounce)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+	info := types.GroupInfo{
+		JID:      groupJID,
+		OwnerJID: ownerJID,
+	}
+
+	info.Name = groupName.String
+	info.IsLocked = isLocked.Bool
+	info.IsAnnounce = isAnnounce.Bool
+
+	prows, err := s.db.Query(getAllParticipantsByGroupQuery, groupJID)
+	if err == nil {
+		var poutput []types.GroupParticipant
+		for prows.Next() {
+			var jid types.JID
+			var isAdmin, isSuperAdmin sql.NullBool
+
+			err = prows.Scan(&jid, &isAdmin)
+			if err != nil {
+				continue
+			}
+
+			participant := types.GroupParticipant{
+				JID:          jid,
+				IsAdmin:      isAdmin.Bool,
+				IsSuperAdmin: isSuperAdmin.Bool,
+			}
+
+			poutput = append(poutput, participant)
+		}
+
+		info.Participants = poutput
+	}
+
+	s.groupCache[group] = &info
+
+	return &info, nil
+}
+
+func (s *SQLStore) GetAllGroups() (map[types.JID]types.GroupInfo, error) {
+	s.groupCacheLock.Lock()
+	defer s.groupCacheLock.Unlock()
+	rows, err := s.db.Query(getAllGroupsQuery, s.JID)
+	if err != nil {
+		return nil, err
+	}
+	output := make(map[types.JID]types.GroupInfo, len(s.groupCache))
+	for rows.Next() {
+		var groupJID, ownerJID types.JID
+		var groupName sql.NullString
+		var isLocked, isAnnounce sql.NullBool
+
+		err = rows.Scan(&groupJID, &ownerJID, &groupName, &isLocked, &isAnnounce)
+		if err != nil {
+			continue
+		}
+
+		info := types.GroupInfo{
+			JID:      groupJID,
+			OwnerJID: ownerJID,
+		}
+
+		info.Name = groupName.String
+		info.IsLocked = isLocked.Bool
+		info.IsAnnounce = isAnnounce.Bool
+
+		prows, err := s.db.Query(getAllParticipantsByGroupQuery, groupJID)
+		if err == nil {
+			var poutput []types.GroupParticipant
+			for prows.Next() {
+				var jid types.JID
+				var isAdmin, isSuperAdmin sql.NullBool
+
+				err = prows.Scan(&jid, &isAdmin)
+				if err != nil {
+					continue
+				}
+
+				participant := types.GroupParticipant{
+					JID:          jid,
+					IsAdmin:      isAdmin.Bool,
+					IsSuperAdmin: isSuperAdmin.Bool,
+				}
+
+				poutput = append(poutput, participant)
+			}
+
+			info.Participants = poutput
+		}
+
+		output[groupJID] = info
+		s.groupCache[groupJID] = &info
+	}
+	return output, nil
 }

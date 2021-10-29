@@ -186,6 +186,28 @@ func (cli *Client) handleHistoricalPushNames(names []*waProto.Pushname) {
 	}
 }
 
+func (cli *Client) handleHistoricalRecent(conversations []*waProto.Conversation) {
+	if cli.Store.Groups == nil {
+		return
+	}
+	for _, conversation := range conversations {
+		//store groupinfo
+		if jid, err := types.ParseJID(conversation.GetId()); err != nil {
+			cli.Log.Warnf("Failed to parse user ID '%s' in conversation history sync: %v", conversation.GetId(), err)
+		} else if jid.Server == types.GroupServer {
+			groupInfo, err := cli.GetGroupInfo(jid)
+			if err != nil {
+				cli.Log.Warnf("Failed to get group info: %v", err)
+			} else {
+				err := cli.Store.Groups.PutGroup(*groupInfo)
+				if err != nil {
+					cli.Log.Warnf("Failed to store group: %v", err)
+				}
+			}
+		}
+	}
+}
+
 func (cli *Client) updatePushName(user types.JID, messageInfo *types.MessageInfo, name string) {
 	if cli.Store.Contacts == nil {
 		return

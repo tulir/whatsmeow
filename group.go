@@ -60,8 +60,9 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 		switch child.Tag {
 		case "participant":
 			participant := types.GroupParticipant{
-				IsAdmin: childAG.OptionalString("type") == "admin",
-				JID:     childAG.JID("jid"),
+				IsAdmin:      childAG.OptionalString("type") == "admin",
+				IsSuperAdmin: childAG.OptionalString("type") == "superadmin",
+				JID:          childAG.JID("jid"),
 			}
 			group.Participants = append(group.Participants, participant)
 		case "description":

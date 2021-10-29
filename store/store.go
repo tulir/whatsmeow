@@ -82,6 +82,12 @@ type ChatSettingsStore interface {
 	GetChatSettings(chat types.JID) (types.LocalChatSettings, error)
 }
 
+type GroupStore interface {
+	PutGroup(group types.GroupInfo) error
+	GetGroup(group types.JID) (*types.GroupInfo, error)
+	GetAllGroups() (map[types.JID]types.GroupInfo, error)
+}
+
 type DeviceContainer interface {
 	PutDevice(store *Device) error
 	DeleteDevice(store *Device) error
@@ -110,6 +116,7 @@ type Device struct {
 	AppStateKeys AppStateSyncKeyStore
 	AppState     AppStateStore
 	Contacts     ContactStore
+	Groups       GroupStore
 	ChatSettings ChatSettingsStore
 	Container    DeviceContainer
 }

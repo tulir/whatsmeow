@@ -256,6 +256,8 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 		cli.Log.Debugf("Received history sync")
 		if historySync.GetSyncType() == waProto.HistorySync_PUSH_NAME {
 			go cli.handleHistoricalPushNames(historySync.GetPushnames())
+		} else if historySync.GetSyncType() == waProto.HistorySync_RECENT {
+			go cli.handleHistoricalRecent(historySync.Conversations)
 		}
 		cli.dispatchEvent(&events.HistorySync{
 			Data: &historySync,
