@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -348,8 +349,14 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 
 func (cli *Client) dispatchEvent(evt interface{}) {
 	cli.eventHandlersLock.RLock()
+	defer func() {
+		cli.eventHandlersLock.RUnlock()
+		err := recover()
+		if err != nil {
+			cli.Log.Errorf("Event handler panicked while handling a %T: %v\n%s", evt, err, debug.Stack())
+		}
+	}()
 	for _, handler := range cli.eventHandlers {
 		handler.fn(evt)
 	}
-	cli.eventHandlersLock.RUnlock()
 }
