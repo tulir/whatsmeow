@@ -8,8 +8,8 @@ package socket
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -26,7 +26,7 @@ type FrameSocket struct {
 	log    waLog.Logger
 	lock   sync.Mutex
 
-	OnFrame      func([]byte)
+	Frames       chan []byte
 	OnDisconnect func(remote bool)
 	WriteTimeout time.Duration
 
@@ -43,6 +43,7 @@ func NewFrameSocket(log waLog.Logger, header []byte) *FrameSocket {
 		conn:   nil,
 		log:    log,
 		Header: header,
+		Frames: make(chan []byte),
 	}
 }
 
@@ -70,12 +71,10 @@ func (fs *FrameSocket) Close(code int) {
 		}
 	}
 
+	fs.cancel()
 	err := fs.conn.Close()
 	if err != nil {
 		fs.log.Errorf("Error closing websocket: %v", err)
-	}
-	if fs.cancel != nil {
-		fs.cancel()
 	}
 	fs.conn = nil
 	fs.ctx = nil
@@ -105,12 +104,12 @@ func (fs *FrameSocket) Connect() error {
 
 	fs.ctx, fs.cancel = ctx, cancel
 	fs.conn = conn
-	fs.conn.SetCloseHandler(func(code int, text string) error {
-		fs.log.Debugf("Close handler called with %d/%s", code, text)
+	conn.SetCloseHandler(func(code int, text string) error {
+		fs.log.Debugf("Server closed websocket with status %d/%s", code, text)
 		cancel()
 		// from default CloseHandler
 		message := websocket.FormatCloseMessage(code, "")
-		_ = fs.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
+		_ = conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
 		return nil
 	})
 
@@ -156,44 +155,13 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 	return conn.WriteMessage(websocket.BinaryMessage, wholeFrame)
 }
 
-func (fs *FrameSocket) SetOnFrame(onFrame func([]byte)) {
-	fs.OnFrame = onFrame
-}
-
-func (fs *FrameSocket) GetOnFrame() func([]byte) {
-	return fs.OnFrame
-}
-
-func (fs *FrameSocket) ConsumeNextFrame() (output <-chan []byte, cancel func()) {
-	return ConsumeNextFrame(fs)
-}
-
-func (fs *FrameSocket) SendAndReceiveFrame(ctx context.Context, data []byte) ([]byte, error) {
-	output, cancel := fs.ConsumeNextFrame()
-	defer cancel()
-	err := fs.SendFrame(data)
-	if err != nil {
-		return nil, err
-	}
-	select {
-	case data = <-output:
-		return data, nil
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
-}
-
 func (fs *FrameSocket) frameComplete() {
 	data := fs.incoming
 	fs.incoming = nil
 	fs.partialHeader = nil
 	fs.incomingLength = 0
 	fs.receivedLength = 0
-	if fs.OnFrame == nil {
-		fs.log.Warnf("No handler defined, dropping frame")
-	} else {
-		fs.OnFrame(data)
-	}
+	fs.Frames <- data
 }
 
 func (fs *FrameSocket) processData(msg []byte) {
@@ -238,38 +206,23 @@ func (fs *FrameSocket) processData(msg []byte) {
 }
 
 func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
-	var readErr error
-	var msgType int
-	var reader io.Reader
-
 	fs.log.Debugf("Frame websocket read pump starting %p", fs)
 	defer func() {
 		fs.log.Debugf("Frame websocket read pump exiting %p", fs)
 		go fs.Close(0)
 	}()
 	for {
-		readerFound := make(chan struct{})
-		go func() {
-			msgType, reader, readErr = conn.NextReader()
-			close(readerFound)
-		}()
-		select {
-		case <-readerFound:
-			if readErr != nil {
-				fs.log.Errorf("Error getting next websocket reader: %v", readErr)
-				return
-			} else if msgType != websocket.BinaryMessage {
-				fs.log.Warnf("Got unexpected websocket message type %d", msgType)
-				continue
+		msgType, data, err := conn.ReadMessage()
+		if err != nil {
+			// Ignore the error if the context has been closed
+			if !errors.Is(ctx.Err(), context.Canceled) {
+				fs.log.Errorf("Error reading from websocket: %v", err)
 			}
-			msg, err := io.ReadAll(reader)
-			if err != nil {
-				fs.log.Errorf("Error reading message from websocket reader: %v", err)
-				continue
-			}
-			fs.processData(msg)
-		case <-ctx.Done():
 			return
+		} else if msgType != websocket.BinaryMessage {
+			fs.log.Warnf("Got unexpected websocket message type %d", msgType)
+			continue
 		}
+		fs.processData(data)
 	}
 }

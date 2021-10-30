@@ -58,7 +58,11 @@ type Connected struct{}
 // LoggedOut is emitted when the client has been unpaired from the phone.
 //
 // This can happen while connected (stream:error messages) or right after connecting (connect failure messages).
-type LoggedOut struct{}
+type LoggedOut struct {
+	// OnConnect is true if the event was triggered by a connect failure message.
+	// If it's false, the event was triggered by a stream:error message.
+	OnConnect bool
+}
 
 // ConnectFailure is emitted when the WhatsApp server sends a <failure> node with an unknown reason.
 //
