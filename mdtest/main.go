@@ -53,7 +53,6 @@ func main() {
 	}
 	log = waLog.Stdout("Main", logLevel, true)
 
-
 	dbLog := waLog.Stdout("Database", logLevel, true)
 	storeContainer, err := sqlstore.New(*dbDialect, *dbAddress, dbLog)
 	if err != nil {
