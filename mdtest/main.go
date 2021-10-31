@@ -253,6 +253,15 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Group info: %+v", resp)
 		}
+	case "listgroups":
+		groups, err := cli.GetJoinedGroups()
+		if err != nil {
+			log.Errorf("Failed to get group list: %v", err)
+		} else {
+			for _, group := range groups {
+				log.Infof("%+v", group)
+			}
+		}
 	case "getinvitelink":
 		if len(args) < 1 {
 			log.Errorf("Usage: getinvitelink <jid>")
