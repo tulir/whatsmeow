@@ -312,11 +312,11 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		err := cli.SendMessage(recipient, "", msg)
+		ts, err := cli.SendMessage(recipient, "", msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
 		} else {
-			log.Infof("Message sent")
+			log.Infof("Message sent (server timestamp: %s)", ts)
 		}
 	case "sendimg":
 		if len(args) < 2 {
@@ -347,11 +347,11 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(data))),
 		}}
-		err = cli.SendMessage(recipient, "", msg)
+		ts, err := cli.SendMessage(recipient, "", msg)
 		if err != nil {
 			log.Errorf("Error sending image message: %v", err)
 		} else {
-			log.Infof("Image message sent")
+			log.Infof("Image message sent (server timestamp: %s)", ts)
 		}
 	}
 }
