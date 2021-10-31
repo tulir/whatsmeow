@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -16,25 +17,89 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
+const InviteLinkPrefix = "https://chat.whatsapp.com/"
+
 // GetGroupInviteLink requests the invite link to the group from the WhatsApp servers.
-func (cli *Client) GetGroupInviteLink(jid types.JID) (string, error) {
+//
+// If reset is true, then the old invite link will be revoked and a new one generated.
+func (cli *Client) GetGroupInviteLink(jid types.JID, reset bool) (string, error) {
+	iqType := "get"
+	if reset {
+		iqType = "set"
+	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
-		Type:      "get",
+		Type:      iqType,
 		To:        jid,
 		Content:   []waBinary.Node{{Tag: "invite"}},
 	})
-	if err != nil {
-		if errors.Is(err, ErrIQNotAuthorized) {
-			return "", wrapIQError(ErrGroupInviteLinkUnauthorized, err)
-		}
-		return "", fmt.Errorf("failed to request group invite link: %w", err)
+	if errors.Is(err, ErrIQNotAuthorized) {
+		return "", wrapIQError(ErrGroupInviteLinkUnauthorized, err)
+	} else if errors.Is(err, ErrIQNotFound) {
+		return "", wrapIQError(ErrGroupNotFound, err)
+	} else if errors.Is(err, ErrIQForbidden) {
+		return "", wrapIQError(ErrNotInGroup, err)
+	} else if err != nil {
+		return "", err
 	}
 	code, ok := resp.GetChildByTag("invite").Attrs["code"].(string)
 	if !ok {
 		return "", fmt.Errorf("didn't find invite code in response")
 	}
-	return fmt.Sprintf("https://chat.whatsapp.com/%s", code), nil
+	return InviteLinkPrefix + code, nil
+}
+
+// GetGroupInfoFromLink resolves the given invite link and asks the WhatsApp servers for info about the group.
+// This will not cause the user to join the group.
+func (cli *Client) GetGroupInfoFromLink(code string) (*types.GroupInfo, error) {
+	code = strings.TrimPrefix(code, InviteLinkPrefix)
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      "get",
+		To:        types.GroupServerJID,
+		Content: []waBinary.Node{{
+			Tag:   "invite",
+			Attrs: waBinary.Attrs{"code": code},
+		}},
+	})
+	if errors.Is(err, ErrIQGone) {
+		return nil, wrapIQError(ErrInviteLinkRevoked, err)
+	} else if errors.Is(err, ErrIQNotAcceptable) {
+		return nil, wrapIQError(ErrInviteLinkInvalid, err)
+	} else if err != nil {
+		return nil, err
+	}
+	groupNode, ok := resp.GetOptionalChildByTag("group")
+	if !ok {
+		return nil, fmt.Errorf("missing <group> element in response to invite link group info query")
+	}
+	return cli.parseGroupNode(&groupNode)
+}
+
+// JoinGroupViaLink joins the group using the given invite link.
+func (cli *Client) JoinGroupViaLink(code string) (types.JID, error) {
+	code = strings.TrimPrefix(code, InviteLinkPrefix)
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      "set",
+		To:        types.GroupServerJID,
+		Content: []waBinary.Node{{
+			Tag:   "invite",
+			Attrs: waBinary.Attrs{"code": code}},
+		},
+	})
+	if errors.Is(err, ErrIQGone) {
+		return types.EmptyJID, wrapIQError(ErrInviteLinkRevoked, err)
+	} else if errors.Is(err, ErrIQNotAcceptable) {
+		return types.EmptyJID, wrapIQError(ErrInviteLinkInvalid, err)
+	} else if err != nil {
+		return types.EmptyJID, err
+	}
+	groupNode, ok := resp.GetOptionalChildByTag("group")
+	if !ok {
+		return types.EmptyJID, fmt.Errorf("missing <group> element in response to invite link group info query")
+	}
+	return groupNode.AttrGetter().JID("jid"), nil
 }
 
 // GetJoinedGroups returns the list of groups the user is participating in.
@@ -52,11 +117,11 @@ func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
 		}},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to request group list: %w", err)
+		return nil, err
 	}
 	groups, ok := resp.GetOptionalChildByTag("groups")
 	if !ok {
-		return nil, fmt.Errorf("group list response didn't contain list of groups")
+		return nil, fmt.Errorf("missing <groups> element in response to group list query")
 	}
 	children := groups.GetChildren()
 	infos := make([]*types.GroupInfo, 0, len(children))
@@ -85,13 +150,17 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 			Attrs: waBinary.Attrs{"request": "interactive"},
 		}},
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to request group info: %w", err)
+	if errors.Is(err, ErrIQNotFound) {
+		return nil, wrapIQError(ErrGroupNotFound, err)
+	} else if errors.Is(err, ErrIQForbidden) {
+		return nil, wrapIQError(ErrNotInGroup, err)
+	} else if err != nil {
+		return nil, err
 	}
 
 	groupNode, ok := res.GetOptionalChildByTag("group")
 	if !ok {
-		return nil, fmt.Errorf("group info request didn't return group info")
+		return nil, fmt.Errorf("missing <group> element in response to group info query")
 	}
 	return cli.parseGroupNode(&groupNode)
 }
@@ -110,7 +179,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	group.GroupCreated = time.Unix(ag.Int64("creation"), 0)
 
 	group.AnnounceVersionID = ag.OptionalString("a_v_id")
-	group.ParticipantVersionID = ag.String("p_v_id")
+	group.ParticipantVersionID = ag.OptionalString("p_v_id")
 
 	for _, child := range groupNode.GetChildren() {
 		childAG := child.AttrGetter()
@@ -159,7 +228,22 @@ func parseParticipantList(node *waBinary.Node) (participants []types.JID) {
 	return
 }
 
-func parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
+func (cli *Client) parseGroupCreate(node *waBinary.Node) (*events.JoinedGroup, error) {
+	groupNode, ok := node.GetOptionalChildByTag("group")
+	if !ok {
+		return nil, fmt.Errorf("group create notification didn't contain group info")
+	}
+	var evt events.JoinedGroup
+	evt.Reason = node.AttrGetter().OptionalString("reason")
+	info, err := cli.parseGroupNode(&groupNode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
+	}
+	evt.GroupInfo = *info
+	return &evt, nil
+}
+
+func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
 	var evt events.GroupInfo
 	ag := node.AttrGetter()
 	evt.JID = ag.JID("from")
@@ -200,6 +284,9 @@ func parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
 				IsAnnounce:        false,
 				AnnounceVersionID: cag.String("v_id"),
 			}
+		case "invite":
+			link := InviteLinkPrefix + cag.String("code")
+			evt.NewInviteLink = &link
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
@@ -208,4 +295,13 @@ func parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
 		}
 	}
 	return &evt, nil
+}
+
+func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, error) {
+	children := node.GetChildren()
+	if len(children) == 1 && children[0].Tag == "create" {
+		return cli.parseGroupCreate(&children[0])
+	} else {
+		return cli.parseGroupChange(node)
+	}
 }

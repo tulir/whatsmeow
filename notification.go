@@ -83,9 +83,9 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	case "devices":
 		// This is probably other users' devices
 	case "w:gp2":
-		evt, err := parseGroupChange(node)
+		evt, err := cli.parseGroupNotification(node)
 		if err != nil {
-			cli.Log.Errorf("Failed to parse group info change: %v", err)
+			cli.Log.Errorf("Failed to parse group notification: %v", err)
 		} else {
 			go cli.dispatchEvent(evt)
 		}

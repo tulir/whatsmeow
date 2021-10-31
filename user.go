@@ -144,12 +144,11 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 			Attrs: attrs,
 		}},
 	})
-	if err != nil {
-		if errors.Is(err, ErrIQNotAuthorized) {
-			return nil, wrapIQError(ErrProfilePictureUnauthorized, err)
-		} else if errors.Is(err, ErrIQNotFound) {
-			return nil, nil
-		}
+	if errors.Is(err, ErrIQNotAuthorized) {
+		return nil, wrapIQError(ErrProfilePictureUnauthorized, err)
+	} else if errors.Is(err, ErrIQNotFound) {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")
