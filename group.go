@@ -49,6 +49,56 @@ func (cli *Client) GetGroupInviteLink(jid types.JID, reset bool) (string, error)
 	return InviteLinkPrefix + code, nil
 }
 
+// GetGroupInfoFromInvite gets the group info from an invite message.
+//
+// Note that this is specifically for invite messages, not invite links. Use GetGroupInfoFromLink for resolving chat.whatsapp.com links.
+func (cli *Client) GetGroupInfoFromInvite(jid, inviter types.JID, code string, expiration int64) (*types.GroupInfo, error) {
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      "get",
+		To:        jid,
+		Content: []waBinary.Node{{
+			Tag: "query",
+			Content: []waBinary.Node{{
+				Tag: "add_request",
+				Attrs: waBinary.Attrs{
+					"code":       code,
+					"expiration": expiration,
+					"admin":      inviter,
+				},
+			}},
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	groupNode, ok := resp.GetOptionalChildByTag("group")
+	if !ok {
+		return nil, fmt.Errorf("missing <group> element in response to invite group info query")
+	}
+	return cli.parseGroupNode(&groupNode)
+}
+
+// AcceptGroupInvite joins a group using an invite message.
+//
+// Note that this is specifically for invite messages, not invite links. Use GetGroupInfoFromLink for resolving chat.whatsapp.com links.
+func (cli *Client) AcceptGroupInvite(jid, inviter types.JID, code string, expiration int64) error {
+	_, err := cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      "set",
+		To:        jid,
+		Content: []waBinary.Node{{
+			Tag: "accept",
+			Attrs: waBinary.Attrs{
+				"code":       code,
+				"expiration": expiration,
+				"admin":      inviter,
+			},
+		}},
+	})
+	return err
+}
+
 // GetGroupInfoFromLink resolves the given invite link and asks the WhatsApp servers for info about the group.
 // This will not cause the user to join the group.
 func (cli *Client) GetGroupInfoFromLink(code string) (*types.GroupInfo, error) {
