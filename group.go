@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -14,6 +15,27 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
+
+// GetGroupInviteLink requests the invite link to the group from the WhatsApp servers.
+func (cli *Client) GetGroupInviteLink(jid types.JID) (string, error) {
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      "get",
+		To:        jid,
+		Content:   []waBinary.Node{{Tag: "invite"}},
+	})
+	if err != nil {
+		if errors.Is(err, ErrIQNotAuthorized) {
+			return "", wrapIQError(ErrGroupInviteLinkUnauthorized, err)
+		}
+		return "", fmt.Errorf("failed to request group invite link: %w", err)
+	}
+	code, ok := resp.GetChildByTag("invite").Attrs["code"].(string)
+	if !ok {
+		return "", fmt.Errorf("didn't find invite code in response")
+	}
+	return fmt.Sprintf("https://chat.whatsapp.com/%s", code), nil
+}
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
 func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {

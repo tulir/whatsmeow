@@ -230,8 +230,10 @@ func handleCmd(cmd string, args []string) {
 		pic, err := cli.GetProfilePictureInfo(jid, len(args) > 1 && args[1] == "preview")
 		if err != nil {
 			log.Errorf("Failed to get avatar: %v", err)
-		} else {
+		} else if pic != nil {
 			log.Infof("Got avatar ID %s: %s", pic.ID, pic.URL)
+		} else {
+			log.Infof("No avatar found")
 		}
 	case "getgroup":
 		if len(args) < 1 {
@@ -250,6 +252,24 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to get group info: %v", err)
 		} else {
 			log.Infof("Group info: %+v", resp)
+		}
+	case "getinvitelink":
+		if len(args) < 1 {
+			log.Errorf("Usage: getinvitelink <jid>")
+			return
+		}
+		group, ok := parseJID(args[0])
+		if !ok {
+			return
+		} else if group.Server != types.GroupServer {
+			log.Errorf("Input must be a group JID (@%s)", types.GroupServer)
+			return
+		}
+		resp, err := cli.GetGroupInviteLink(group)
+		if err != nil {
+			log.Errorf("Failed to get group invite link: %v", err)
+		} else {
+			log.Infof("Group invite link: %s", resp)
 		}
 	case "send":
 		if len(args) < 2 {
