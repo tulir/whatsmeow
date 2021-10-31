@@ -21,10 +21,14 @@ import (
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
+// ErrInvalidLength is returned by some database getters if the database returned a byte array with an unexpected length.
+// This should be impossible, as the database schema contains CHECK()s for all the relevant columns.
 var ErrInvalidLength = errors.New("database returned byte array with illegal length")
 
 // PostgresArrayWrapper is a function to wrap array values before passing them to the sql package.
-// When using github.com/lib/pq, set whatsmeow.PostgresArrayWrapper = pq.Array
+//
+// When using github.com/lib/pq, you should set
+//   whatsmeow.PostgresArrayWrapper = pq.Array
 var PostgresArrayWrapper func(interface{}) interface {
 	driver.Valuer
 	sql.Scanner
@@ -40,6 +44,10 @@ type SQLStore struct {
 	contactCacheLock sync.Mutex
 }
 
+// NewSQLStore creates a new SQLStore with the given database container and user JID.
+// It contains implementations of all the different stores in the store package.
+//
+// In general, you should use Container.NewDevice or Container.GetDevice instead of this.
 func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 	return &SQLStore{
 		Container:    c,

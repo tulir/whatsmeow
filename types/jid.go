@@ -58,6 +58,7 @@ func (jid JID) UserInt() uint64 {
 	return number
 }
 
+// ToNonAD returns a version of the JID struct that doesn't have the agent and device set.
 func (jid JID) ToNonAD() JID {
 	if jid.AD {
 		return JID{

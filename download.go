@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
@@ -37,11 +38,11 @@ const (
 
 // DownloadableMessage represents a protobuf message that contains attachment info.
 type DownloadableMessage interface {
+	proto.Message
 	GetDirectPath() string
 	GetMediaKey() []byte
 	GetFileSha256() []byte
 	GetFileEncSha256() []byte
-	ProtoReflect() protoreflect.Message
 }
 
 // All the message types that are intended to be downloadable

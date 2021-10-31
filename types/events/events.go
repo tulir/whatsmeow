@@ -104,12 +104,13 @@ type UndecryptableMessage struct {
 
 // Message is emitted when receiving a new message.
 type Message struct {
-	Info        types.MessageInfo // Information about the message like the chat and sender IDs
-	Message     *waProto.Message  // The actual message struct
-	IsEphemeral bool
-	IsViewOnce  bool
+	Info    types.MessageInfo // Information about the message like the chat and sender IDs
+	Message *waProto.Message  // The actual message struct
 
-	// The raw message struct. This is the raw unwrapped data, which means the actual message might
+	IsEphemeral bool // True if the message was unwrapped from an EphemeralMessage
+	IsViewOnce  bool // True if the message was unwrapped from a ViewOnceMessage
+
+	// The raw message struct. This is the raw unmodified data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
 	RawMessage *waProto.Message
 }
