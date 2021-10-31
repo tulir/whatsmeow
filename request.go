@@ -8,7 +8,6 @@ package whatsmeow
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -119,9 +118,9 @@ func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 		}
 		resType, _ := res.Attrs["type"].(string)
 		if res.Tag != "iq" || (resType != "result" && resType != "error") {
-			return res, fmt.Errorf("%w tag=%s type=%s", ErrIQUnexpectedResponse, res.Tag, resType)
+			return res, &IQError{RawNode: res}
 		} else if resType == "error" {
-			return res, fmt.Errorf("%w: %s", ErrIQError, res.XMLString())
+			return res, parseIQError(res)
 		}
 		return res, nil
 	case <-query.Context.Done():

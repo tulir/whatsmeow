@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -14,6 +15,64 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
+
+// GetGroupInviteLink requests the invite link to the group from the WhatsApp servers.
+func (cli *Client) GetGroupInviteLink(jid types.JID) (string, error) {
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      "get",
+		To:        jid,
+		Content:   []waBinary.Node{{Tag: "invite"}},
+	})
+	if err != nil {
+		if errors.Is(err, ErrIQNotAuthorized) {
+			return "", wrapIQError(ErrGroupInviteLinkUnauthorized, err)
+		}
+		return "", fmt.Errorf("failed to request group invite link: %w", err)
+	}
+	code, ok := resp.GetChildByTag("invite").Attrs["code"].(string)
+	if !ok {
+		return "", fmt.Errorf("didn't find invite code in response")
+	}
+	return fmt.Sprintf("https://chat.whatsapp.com/%s", code), nil
+}
+
+// GetJoinedGroups returns the list of groups the user is participating in.
+func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      "get",
+		To:        types.GroupServerJID,
+		Content: []waBinary.Node{{
+			Tag: "participating",
+			Content: []waBinary.Node{
+				{Tag: "participants"},
+				{Tag: "description"},
+			},
+		}},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to request group list: %w", err)
+	}
+	groups, ok := resp.GetOptionalChildByTag("groups")
+	if !ok {
+		return nil, fmt.Errorf("group list response didn't contain list of groups")
+	}
+	children := groups.GetChildren()
+	infos := make([]*types.GroupInfo, 0, len(children))
+	for _, child := range children {
+		if child.Tag != "group" {
+			cli.Log.Debugf("Unexpected child in group list response: %s", child.XMLString())
+			continue
+		}
+		parsed, parseErr := cli.parseGroupNode(&child)
+		if parseErr != nil {
+			cli.Log.Warnf("Error parsing group %s: %v", parsed.JID, parseErr)
+		}
+		infos = append(infos, parsed)
+	}
+	return infos, nil
+}
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
 func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
@@ -30,16 +89,14 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 		return nil, fmt.Errorf("failed to request group info: %w", err)
 	}
 
-	errorNode, ok := res.GetOptionalChildByTag("error")
-	if ok {
-		return nil, fmt.Errorf("group info request returned error: %s", errorNode.XMLString())
-	}
-
 	groupNode, ok := res.GetOptionalChildByTag("group")
 	if !ok {
 		return nil, fmt.Errorf("group info request didn't return group info")
 	}
+	return cli.parseGroupNode(&groupNode)
+}
 
+func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, error) {
 	var group types.GroupInfo
 	ag := groupNode.AttrGetter()
 
@@ -59,9 +116,11 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 		childAG := child.AttrGetter()
 		switch child.Tag {
 		case "participant":
+			pcpType := childAG.OptionalString("type")
 			participant := types.GroupParticipant{
-				IsAdmin: childAG.OptionalString("type") == "admin",
-				JID:     childAG.JID("jid"),
+				IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
+				IsSuperAdmin: pcpType == "superadmin",
+				JID:          childAG.JID("jid"),
 			}
 			group.Participants = append(group.Participants, participant)
 		case "description":
@@ -77,14 +136,14 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 		case "locked":
 			group.IsLocked = true
 		default:
-			cli.Log.Debugf("Unknown element in group node %s: %s", jid.String(), child.XMLString())
+			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
 		if !childAG.OK() {
 			cli.Log.Warnf("Possibly failed to parse %s element in group node: %+v", child.Tag, childAG.Errors)
 		}
 	}
 
-	return &group, nil
+	return &group, ag.Error()
 }
 
 func parseParticipantList(node *waBinary.Node) (participants []types.JID) {

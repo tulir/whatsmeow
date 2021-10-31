@@ -125,6 +125,7 @@ func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 }
 
 // GetProfilePictureInfo gets the URL where you can download a WhatsApp user's profile picture or group's photo.
+// If the user or group doesn't have a profile picture, this returns nil with no error.
 func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.ProfilePictureInfo, error) {
 	attrs := waBinary.Attrs{
 		"query": "url",
@@ -144,13 +145,10 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 		}},
 	})
 	if err != nil {
-		if errors.Is(err, ErrIQError) {
-			code := resp.GetChildByTag("error").Attrs["code"].(string)
-			if code == "404" {
-				return nil, nil
-			} else if code == "401" {
-				return nil, ErrProfilePictureUnauthorized
-			}
+		if errors.Is(err, ErrIQNotAuthorized) {
+			return nil, wrapIQError(ErrProfilePictureUnauthorized, err)
+		} else if errors.Is(err, ErrIQNotFound) {
+			return nil, nil
 		}
 		return nil, err
 	}

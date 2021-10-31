@@ -8,17 +8,18 @@ package whatsmeow
 
 import (
 	"errors"
+	"fmt"
+
+	waBinary "go.mau.fi/whatsmeow/binary"
 )
 
 // Miscellaneous errors
 var (
-	ErrNoSession            = errors.New("can't encrypt message for device: no signal session established")
-	ErrIQUnexpectedResponse = errors.New("unexpected info query response")
-	ErrIQError              = errors.New("info query returned error")
-	ErrIQTimedOut           = errors.New("info query timed out")
-	ErrIQDisconnected       = errors.New("websocket disconnected before info query returned response")
-	ErrNotConnected         = errors.New("websocket not connected")
-	ErrNotLoggedIn          = errors.New("the store doesn't contain a device JID")
+	ErrNoSession      = errors.New("can't encrypt message for device: no signal session established")
+	ErrIQTimedOut     = errors.New("info query timed out")
+	ErrIQDisconnected = errors.New("websocket disconnected before info query returned response")
+	ErrNotConnected   = errors.New("websocket not connected")
+	ErrNotLoggedIn    = errors.New("the store doesn't contain a device JID")
 
 	ErrAlreadyConnected = errors.New("websocket is already connected")
 
@@ -32,6 +33,8 @@ var (
 	// ErrProfilePictureUnauthorized is returned by GetProfilePictureInfo when trying to get the profile picture of a user
 	// whose privacy settings prevent you from seeing their profile picture.
 	ErrProfilePictureUnauthorized = errors.New("the user has hidden their profile picture from you")
+	// ErrGroupInviteLinkUnauthorized is returned by GetGroupInviteLink when trying
+	ErrGroupInviteLinkUnauthorized = errors.New("you don't have the permission to get the group's invite link")
 )
 
 // Some errors that Client.SendMessage can return
@@ -54,3 +57,77 @@ var (
 	ErrUnknownMediaType           = errors.New("unknown media type")
 	ErrNothingDownloadableFound   = errors.New("didn't find any attachments in message")
 )
+
+type wrappedIQError struct {
+	HumanError error
+	IQError    error
+}
+
+func (err *wrappedIQError) Error() string {
+	return err.HumanError.Error()
+}
+
+func (err *wrappedIQError) Is(other error) bool {
+	return errors.Is(other, err.HumanError)
+}
+
+func (err *wrappedIQError) Unwrap() error {
+	return err.IQError
+}
+
+func wrapIQError(human, iq error) error {
+	return &wrappedIQError{human, iq}
+}
+
+// IQError is a generic error container for info queries
+type IQError struct {
+	Code      int
+	Text      string
+	ErrorNode *waBinary.Node
+	RawNode   *waBinary.Node
+}
+
+// Common errors returned by info queries for use with errors.Is
+var (
+	ErrIQNotAuthorized error = &IQError{Code: 401, Text: "not-authorized"}
+	ErrIQNotFound      error = &IQError{Code: 404, Text: "not-found"}
+)
+
+func parseIQError(node *waBinary.Node) error {
+	var err IQError
+	err.RawNode = node
+	val, ok := node.GetOptionalChildByTag("error")
+	if ok {
+		err.ErrorNode = &val
+		ag := val.AttrGetter()
+		err.Code = ag.OptionalInt("code")
+		err.Text = ag.OptionalString("text")
+	}
+	return &err
+}
+
+func (iqe *IQError) Error() string {
+	if iqe.Code == 0 {
+		if iqe.ErrorNode != nil {
+			return fmt.Sprintf("info query returned unknown error: %s", iqe.ErrorNode.XMLString())
+		} else if iqe.RawNode != nil {
+			return fmt.Sprintf("info query returned unexpected response: %s", iqe.RawNode.XMLString())
+		} else {
+			return "unknown info query error"
+		}
+	}
+	return fmt.Sprintf("info query returned status %d: %s", iqe.Code, iqe.Text)
+}
+
+func (iqe *IQError) Is(other error) bool {
+	otherIQE, ok := other.(*IQError)
+	if !ok {
+		return false
+	} else if iqe.Code != 0 && otherIQE.Code != 0 {
+		return otherIQE.Code == iqe.Code && otherIQE.Text == iqe.Text
+	} else if iqe.ErrorNode != nil && otherIQE.ErrorNode != nil {
+		return iqe.ErrorNode.XMLString() == otherIQE.ErrorNode.XMLString()
+	} else {
+		return false
+	}
+}
