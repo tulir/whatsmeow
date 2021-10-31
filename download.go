@@ -11,7 +11,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"google.golang.org/protobuf/proto"
@@ -188,7 +188,7 @@ func downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err 
 	if resp.ContentLength <= 10 {
 		return nil, nil, ErrTooShortFile
 	}
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, err
 	} else if len(checksum) == 32 && sha256.Sum256(data) != *(*[32]byte)(checksum) {
