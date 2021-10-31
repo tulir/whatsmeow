@@ -284,6 +284,9 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 				IsAnnounce:        false,
 				AnnounceVersionID: cag.String("v_id"),
 			}
+		case "invite":
+			link := InviteLinkPrefix + cag.String("code")
+			evt.NewInviteLink = &link
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
@@ -299,6 +302,6 @@ func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, err
 	if len(children) == 1 && children[0].Tag == "create" {
 		return cli.parseGroupCreate(&children[0])
 	} else {
-		return cli.parseGroupNotification(node)
+		return cli.parseGroupChange(node)
 	}
 }

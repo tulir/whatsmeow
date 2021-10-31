@@ -170,6 +170,8 @@ type GroupInfo struct {
 	Locked   *types.GroupLocked   // Group locked status change (can only admins edit group info?)
 	Announce *types.GroupAnnounce // Group announce status change (can only admins send messages?)
 
+	NewInviteLink *string // Group invite link change
+
 	PrevParticipantVersionID string
 	ParticipantVersionID     string
 
