@@ -20,10 +20,16 @@ import (
 const InviteLinkPrefix = "https://chat.whatsapp.com/"
 
 // GetGroupInviteLink requests the invite link to the group from the WhatsApp servers.
-func (cli *Client) GetGroupInviteLink(jid types.JID) (string, error) {
+//
+// If reset is true, then the old invite link will be revoked and a new one generated.
+func (cli *Client) GetGroupInviteLink(jid types.JID, reset bool) (string, error) {
+	iqType := "get"
+	if reset {
+		iqType = "set"
+	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
-		Type:      "get",
+		Type:      iqType,
 		To:        jid,
 		Content:   []waBinary.Node{{Tag: "invite"}},
 	})

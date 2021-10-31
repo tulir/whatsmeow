@@ -264,7 +264,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "getinvitelink":
 		if len(args) < 1 {
-			log.Errorf("Usage: getinvitelink <jid>")
+			log.Errorf("Usage: getinvitelink <jid> [--reset]")
 			return
 		}
 		group, ok := parseJID(args[0])
@@ -274,7 +274,7 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Input must be a group JID (@%s)", types.GroupServer)
 			return
 		}
-		resp, err := cli.GetGroupInviteLink(group)
+		resp, err := cli.GetGroupInviteLink(group, len(args) > 1 && args[1] == "--reset")
 		if err != nil {
 			log.Errorf("Failed to get group invite link: %v", err)
 		} else {
