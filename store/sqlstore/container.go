@@ -143,6 +143,21 @@ func (c *Container) GetAllDevices() ([]*store.Device, error) {
 	return sessions, nil
 }
 
+// GetFirstDevice is a convenience method for getting the first device in the store. If there are
+// no devices, then a new device will be created. You should only use this if you don't want to
+// have multiple sessions simultaneously.
+func (c *Container) GetFirstDevice() (*store.Device, error) {
+	devices, err := c.GetAllDevices()
+	if err != nil {
+		return nil, err
+	}
+	if len(devices) == 0 {
+		return c.NewDevice(), nil
+	} else {
+		return devices[0], nil
+	}
+}
+
 // GetDevice finds the device with the specified JID in the database.
 //
 // If the device is not found, nil is returned instead.
