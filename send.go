@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -42,30 +43,45 @@ func GenerateMessageID() types.MessageID {
 // SendMessage sends the given message.
 //
 // If the message ID is not provided, a random message ID will be generated.
-func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProto.Message) error {
+//
+// This method will wait for the server to acknowledge the message before returning.
+// The return value is the timestamp of the message from the server.
+func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProto.Message) (time.Time, error) {
 	if to.AD {
-		return ErrRecipientADJID
+		return time.Time{}, ErrRecipientADJID
 	}
 
 	if len(id) == 0 {
 		id = GenerateMessageID()
 	}
 
+	respChan := cli.waitResponse(id)
+	var err error
 	switch to.Server {
 	case types.GroupServer:
-		return cli.sendGroup(to, id, message)
+		err = cli.sendGroup(to, id, message)
 	case types.DefaultUserServer:
-		return cli.sendDM(to, id, message)
+		err = cli.sendDM(to, id, message)
 	case types.BroadcastServer:
-		return ErrBroadcastListUnsupported
+		err = ErrBroadcastListUnsupported
 	default:
-		return fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
+		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
+	if err != nil {
+		cli.cancelResponse(id, respChan)
+		return time.Time{}, err
+	}
+	resp := <-respChan
+	ts := resp.AttrGetter().Int64("t")
+	return time.Unix(ts, 0), nil
 }
 
 // RevokeMessage deletes the given message from everyone in the chat.
 // You can only revoke your own messages, and if the message is too old, then other users will ignore the deletion.
-func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) error {
+//
+// This method will wait for the server to acknowledge the revocation message before returning.
+// The return value is the timestamp of the message from the server.
+func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (time.Time, error) {
 	return cli.SendMessage(chat, cli.generateRequestID(), &waProto.Message{
 		ProtocolMessage: &waProto.ProtocolMessage{
 			Type: waProto.ProtocolMessage_REVOKE.Enum(),

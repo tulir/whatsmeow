@@ -52,7 +52,7 @@ func (cli *Client) cancelResponse(reqID string, ch chan *waBinary.Node) {
 
 func (cli *Client) receiveResponse(data *waBinary.Node) bool {
 	id, ok := data.Attrs["id"].(string)
-	if !ok || data.Tag != "iq" {
+	if !ok || (data.Tag != "iq" && data.Tag != "ack") {
 		return false
 	}
 	cli.responseWaitersLock.Lock()
