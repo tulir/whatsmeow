@@ -152,6 +152,12 @@ type ChatPresence struct {
 	State types.ChatPresence
 }
 
+// JoinedGroup is emitted when you join or are added to a group.
+type JoinedGroup struct {
+	Reason string // If the event was triggered by you using an invite link, this will be "invite"
+	types.GroupInfo
+}
+
 // GroupInfo is emitted when the metadata of a group changes.
 type GroupInfo struct {
 	JID       types.JID  // The group ID in question

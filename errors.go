@@ -39,6 +39,10 @@ var (
 	ErrNotInGroup = errors.New("you're not participating in that group")
 	// ErrGroupNotFound is returned by group info getting methods if the group doesn't exist (status code 404).
 	ErrGroupNotFound = errors.New("that group does not exist")
+	// ErrInviteLinkInvalid is returned by methods that use group invite links if the invite link is malformed.
+	ErrInviteLinkInvalid = errors.New("that group invite link is not valid")
+	// ErrInviteLinkRevoked is returned by methods that use group invite links if the invite link was valid, but has been revoked and can no longer be used.
+	ErrInviteLinkRevoked = errors.New("that group invite link has been revoked")
 )
 
 // Some errors that Client.SendMessage can return
@@ -96,6 +100,8 @@ var (
 	ErrIQNotAuthorized error = &IQError{Code: 401, Text: "not-authorized"}
 	ErrIQForbidden     error = &IQError{Code: 403, Text: "forbidden"}
 	ErrIQNotFound      error = &IQError{Code: 404, Text: "item-not-found"}
+	ErrIQNotAcceptable error = &IQError{Code: 406, Text: "not-acceptable"}
+	ErrIQGone          error = &IQError{Code: 410, Text: "gone"}
 )
 
 func parseIQError(node *waBinary.Node) error {

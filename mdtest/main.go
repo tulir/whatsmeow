@@ -280,6 +280,28 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Group invite link: %s", resp)
 		}
+	case "queryinvitelink":
+		if len(args) < 1 {
+			log.Errorf("Usage: queryinvitelink <link>")
+			return
+		}
+		resp, err := cli.GetGroupInfoFromLink(args[0])
+		if err != nil {
+			log.Errorf("Failed to resolve group invite link: %v", err)
+		} else {
+			log.Infof("Group info: %+v", resp)
+		}
+	case "acceptinvitelink":
+		if len(args) < 1 {
+			log.Errorf("Usage: acceptinvitelink <link>")
+			return
+		}
+		groupID, err := cli.JoinGroupViaLink(args[0])
+		if err != nil {
+			log.Errorf("Failed to join group via invite link: %v", err)
+		} else {
+			log.Infof("Joined %s", groupID)
+		}
 	case "send":
 		if len(args) < 2 {
 			log.Errorf("Usage: send <jid> <text>")
