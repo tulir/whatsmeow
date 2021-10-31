@@ -24,11 +24,14 @@ func (cli *Client) GetGroupInviteLink(jid types.JID) (string, error) {
 		To:        jid,
 		Content:   []waBinary.Node{{Tag: "invite"}},
 	})
-	if err != nil {
-		if errors.Is(err, ErrIQNotAuthorized) {
-			return "", wrapIQError(ErrGroupInviteLinkUnauthorized, err)
-		}
-		return "", fmt.Errorf("failed to request group invite link: %w", err)
+	if errors.Is(err, ErrIQNotAuthorized) {
+		return "", wrapIQError(ErrGroupInviteLinkUnauthorized, err)
+	} else if errors.Is(err, ErrIQNotFound) {
+		return "", wrapIQError(ErrGroupNotFound, err)
+	} else if errors.Is(err, ErrIQForbidden) {
+		return "", wrapIQError(ErrNotInGroup, err)
+	} else if err != nil {
+		return "", err
 	}
 	code, ok := resp.GetChildByTag("invite").Attrs["code"].(string)
 	if !ok {
@@ -52,11 +55,11 @@ func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
 		}},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to request group list: %w", err)
+		return nil, err
 	}
 	groups, ok := resp.GetOptionalChildByTag("groups")
 	if !ok {
-		return nil, fmt.Errorf("group list response didn't contain list of groups")
+		return nil, fmt.Errorf("missing <groups> element in response to group list query")
 	}
 	children := groups.GetChildren()
 	infos := make([]*types.GroupInfo, 0, len(children))
@@ -85,13 +88,17 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 			Attrs: waBinary.Attrs{"request": "interactive"},
 		}},
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to request group info: %w", err)
+	if errors.Is(err, ErrIQNotFound) {
+		return nil, wrapIQError(ErrGroupNotFound, err)
+	} else if errors.Is(err, ErrIQForbidden) {
+		return nil, wrapIQError(ErrNotInGroup, err)
+	} else if err != nil {
+		return nil, err
 	}
 
 	groupNode, ok := res.GetOptionalChildByTag("group")
 	if !ok {
-		return nil, fmt.Errorf("group info request didn't return group info")
+		return nil, fmt.Errorf("missing <group> element in response to group info query")
 	}
 	return cli.parseGroupNode(&groupNode)
 }

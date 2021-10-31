@@ -31,10 +31,14 @@ var (
 
 var (
 	// ErrProfilePictureUnauthorized is returned by GetProfilePictureInfo when trying to get the profile picture of a user
-	// whose privacy settings prevent you from seeing their profile picture.
+	// whose privacy settings prevent you from seeing their profile picture (status code 401).
 	ErrProfilePictureUnauthorized = errors.New("the user has hidden their profile picture from you")
-	// ErrGroupInviteLinkUnauthorized is returned by GetGroupInviteLink when trying
+	// ErrGroupInviteLinkUnauthorized is returned by GetGroupInviteLink if you don't have the permission to get the link (status code 401).
 	ErrGroupInviteLinkUnauthorized = errors.New("you don't have the permission to get the group's invite link")
+	// ErrNotInGroup is returned by group info getting methods if you're not in the group (status code 403).
+	ErrNotInGroup = errors.New("you're not participating in that group")
+	// ErrGroupNotFound is returned by group info getting methods if the group doesn't exist (status code 404).
+	ErrGroupNotFound = errors.New("that group does not exist")
 )
 
 // Some errors that Client.SendMessage can return
@@ -90,7 +94,8 @@ type IQError struct {
 // Common errors returned by info queries for use with errors.Is
 var (
 	ErrIQNotAuthorized error = &IQError{Code: 401, Text: "not-authorized"}
-	ErrIQNotFound      error = &IQError{Code: 404, Text: "not-found"}
+	ErrIQForbidden     error = &IQError{Code: 403, Text: "forbidden"}
+	ErrIQNotFound      error = &IQError{Code: 404, Text: "item-not-found"}
 )
 
 func parseIQError(node *waBinary.Node) error {
