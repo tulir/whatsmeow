@@ -53,6 +53,10 @@ type Client struct {
 	LastSuccessfulConnect time.Time
 	AutoReconnectErrors   int
 
+	// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
+	// even when re-syncing the whole state.
+	EmitAppStateEventsOnFullSync bool
+
 	IsLoggedIn bool
 
 	appStateProc     *appstate.Processor
@@ -83,9 +87,19 @@ const handlerQueueSize = 2048
 
 // NewClient initializes a new WhatsApp web client.
 //
-// The device store must be set. A default SQL-backed implementation is available in the store package.
-//
 // The logger can be nil, it will default to a no-op logger.
+//
+// The device store must be set. A default SQL-backed implementation is available in the store/sqlstore package.
+//     container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
+//     if err != nil {
+//         panic(err)
+//     }
+//     // If you want multiple sessions, remember their JIDs and use .GetDevice(jid) or .GetAllDevices() instead.
+//     deviceStore, err := container.GetFirstDevice()
+//     if err != nil {
+//         panic(err)
+//     }
+//     client := whatsmeow.NewClient(deviceStore, nil)
 func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	if log == nil {
 		log = waLog.Noop
@@ -262,6 +276,31 @@ func (cli *Client) Logout() error {
 // AddEventHandler registers a new function to receive all events emitted by this client.
 //
 // The returned integer is the event handler ID, which can be passed to RemoveEventHandler to remove it.
+//
+// All registered event handlers will receive all events. You should use a type switch statement to
+// filter the events you want:
+//     func myEventHandler(evt interface{}) {
+//         switch v := evt.(type) {
+//         case *events.Message:
+//             fmt.Println("Received a message!")
+//         case *events.Receipt:
+//             fmt.Println("Received a receipt!")
+//         }
+//     }
+//
+// If you want to access the Client instance inside the event handler, the recommended way is to
+// wrap the whole handler in another struct:
+//     type MyClient struct {
+//         WAClient *whatsmeow.Client
+//     }
+//
+//     func (mycli *MyClient) register() {
+//         mycli.WAClient.AddEventHandler(mycli.myEventHandler)
+//     }
+//
+//     func (mycli *MyClient) myEventHandler(evt interface{}) {
+//          // Handle event and access mycli.WAClient
+//     }
 func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 	nextID := atomic.AddUint32(&nextHandlerID, 1)
 	cli.eventHandlersLock.Lock()

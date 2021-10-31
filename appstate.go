@@ -19,10 +19,6 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
-// even when re-syncing the whole state.
-var EmitAppStateEventsOnFullSync = false
-
 // FetchAppState fetches updates to the given type of app state. If fullSync is true, the current
 // cached state will be removed and all app state patches will be re-fetched from the server.
 func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) error {
@@ -58,7 +54,7 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 		}
 		state = newState
 		for _, mutation := range mutations {
-			cli.dispatchAppState(mutation, !fullSync || EmitAppStateEventsOnFullSync)
+			cli.dispatchAppState(mutation, !fullSync || cli.EmitAppStateEventsOnFullSync)
 		}
 	}
 	if fullSync {

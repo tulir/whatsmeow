@@ -20,6 +20,7 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+// Container is a wrapper for a SQL database that can contain multiple whatsmeow sessions.
 type Container struct {
 	db      *sql.DB
 	dialect string
@@ -28,6 +29,14 @@ type Container struct {
 
 var _ store.DeviceContainer = (*Container)(nil)
 
+// New connects to the given SQL database and wraps it in a Container.
+//
+// Only SQLite and Postgres are currently fully supported.
+//
+// The logger can be nil and will default to a no-op logger.
+//
+// When using SQLite, it's strongly recommended to enable foreign keys by adding `?_foreign_keys=true`:
+//   container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
 func New(dialect, address string, log waLog.Logger) (*Container, error) {
 	db, err := sql.Open(dialect, address)
 	if err != nil {
@@ -41,6 +50,18 @@ func New(dialect, address string, log waLog.Logger) (*Container, error) {
 	return container, nil
 }
 
+// NewWithDB wraps an existing SQL connection in a Container.
+//
+// Only SQLite and Postgres are currently fully supported.
+//
+// The logger can be nil and will default to a no-op logger.
+//
+// When using SQLite, it's strongly recommended to enable foreign keys by adding `?_foreign_keys=true`:
+//   db, err := sql.Open("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on")
+//   if err != nil {
+//       panic(err)
+//   }
+//   container, err := sqlstore.NewWithDB(db, "sqlite3", nil)
 func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
 	if log == nil {
 		log = waLog.Noop
@@ -105,6 +126,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	return &device, nil
 }
 
+// GetAllDevices finds all the devices in the database.
 func (c *Container) GetAllDevices() ([]*store.Device, error) {
 	res, err := c.db.Query(getAllDevicesQuery)
 	if err != nil {
@@ -121,6 +143,26 @@ func (c *Container) GetAllDevices() ([]*store.Device, error) {
 	return sessions, nil
 }
 
+// GetFirstDevice is a convenience method for getting the first device in the store. If there are
+// no devices, then a new device will be created. You should only use this if you don't want to
+// have multiple sessions simultaneously.
+func (c *Container) GetFirstDevice() (*store.Device, error) {
+	devices, err := c.GetAllDevices()
+	if err != nil {
+		return nil, err
+	}
+	if len(devices) == 0 {
+		return c.NewDevice(), nil
+	} else {
+		return devices[0], nil
+	}
+}
+
+// GetDevice finds the device with the specified JID in the database.
+//
+// If the device is not found, nil is returned instead.
+//
+// Note that the parameter usually must be an AD-JID.
 func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
 	if errors.Is(err, sql.ErrNoRows) {
@@ -141,6 +183,10 @@ const (
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=$1`
 )
 
+// NewDevice creates a new device in this database.
+//
+// No data is actually stored before Save is called. However, the pairing process will automatically
+// call Save after a successful pairing, so you most likely don't need to call it yourself.
 func (c *Container) NewDevice() *store.Device {
 	device := &store.Device{
 		Log:       c.log,
@@ -159,8 +205,11 @@ func (c *Container) NewDevice() *store.Device {
 	return device
 }
 
+// ErrDeviceIDMustBeSet is the error returned by PutDevice if you try to save a device before knowing its JID.
 var ErrDeviceIDMustBeSet = errors.New("device JID must be known before accessing database")
 
+// PutDevice stores the given device in this database. This should be called through Device.Save()
+// (which usually doesn't need to be called manually, as the library does that automatically when relevant).
 func (c *Container) PutDevice(device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
@@ -186,6 +235,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 	return err
 }
 
+// DeleteDevice deletes the given device from this database. This should be called through Device.Delete()
 func (c *Container) DeleteDevice(store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet

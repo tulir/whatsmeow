@@ -24,16 +24,18 @@ import (
 
 // UploadResponse contains the data from the attachment upload, which can be put into a message to send the attachment.
 type UploadResponse struct {
-	URL        string `json:"url"`
-	DirectPath string `json:"direct_path"`
+	URL        string
+	DirectPath string
 
-	MediaKey      []byte `json:"-"`
-	FileEncSHA256 []byte `json:"-"`
-	FileSHA256    []byte `json:"-"`
+	MediaKey      []byte
+	FileEncSHA256 []byte
+	FileSHA256    []byte
+	FileLength    uint64
 }
 
 // Upload uploads the given attachment to WhatsApp servers.
 func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaType) (resp UploadResponse, err error) {
+	resp.FileLength = uint64(len(plaintext))
 	resp.MediaKey = make([]byte, 32)
 	_, err = rand.Read(resp.MediaKey)
 	if err != nil {

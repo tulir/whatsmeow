@@ -20,14 +20,17 @@ import (
 	"go.mau.fi/whatsmeow/util/cbcutil"
 )
 
+// PatchList represents a decoded response to getting app state patches from the WhatsApp servers.
 type PatchList struct {
 	Name           WAPatchName
 	HasMorePatches bool
 	Patches        []*waProto.SyncdPatch
 }
 
+// DownloadExternalFunc is a function that can download a blob of external app state patches.
 type DownloadExternalFunc func(*waProto.ExternalBlobReference) (*waProto.SyncdMutations, error)
 
+// ParsePatchList will decode an XML node containing app state patches, including downloading any external blobs.
 func ParsePatchList(node *waBinary.Node, downloadExternal DownloadExternalFunc) (*PatchList, error) {
 	collection := node.GetChildByTag("sync", "collection")
 	ag := collection.AttrGetter()
@@ -126,6 +129,7 @@ func (proc *Processor) decodePatch(patch *waProto.SyncdPatch, out *patchOutput, 
 	return nil
 }
 
+// DecodePatches will decode all the patches in a PatchList into a list of app state mutations.
 func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, validateMACs bool) (newMutations []Mutation, currentState HashState, err error) {
 	currentState = initialState
 	var expectedLength int

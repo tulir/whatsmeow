@@ -8,6 +8,7 @@ package appstate
 
 import "errors"
 
+// Errors that this package can return.
 var (
 	ErrMissingPreviousSetValueOperation = errors.New("missing value MAC of previous SET operation")
 	ErrMismatchingLTHash                = errors.New("mismatching LTHash")

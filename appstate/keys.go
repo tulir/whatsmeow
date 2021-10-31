@@ -16,6 +16,7 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+// WAPatchName represents a type of app state patch.
 type WAPatchName string
 
 const (
@@ -31,6 +32,7 @@ const (
 	WAPatchRegular WAPatchName = "regular"
 )
 
+// AllPatchNames contains all currently known patch state names.
 var AllPatchNames = [...]WAPatchName{WAPatchCriticalBlock, WAPatchCriticalUnblockLow, WAPatchRegularHigh, WAPatchRegular, WAPatchRegularLow}
 
 type Processor struct {

@@ -30,7 +30,6 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -45,27 +44,6 @@ var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
 
-// getDevice connects to the database and returns the first device stored there.
-// If there are no devices, a new device store is returned.
-func getDevice() *store.Device {
-	dbLog := waLog.Stdout("Database", logLevel, true)
-	storeContainer, err := sqlstore.New(*dbDialect, *dbAddress, dbLog)
-	if err != nil {
-		log.Errorf("Failed to connect to database: %v", err)
-		return nil
-	}
-	devices, err := storeContainer.GetAllDevices()
-	if err != nil {
-		log.Errorf("Failed to get devices from database: %v", err)
-		return nil
-	}
-	if len(devices) == 0 {
-		return storeContainer.NewDevice()
-	} else {
-		return devices[0]
-	}
-}
-
 func main() {
 	waBinary.IndentXML = true
 	flag.Parse()
@@ -75,8 +53,15 @@ func main() {
 	}
 	log = waLog.Stdout("Main", logLevel, true)
 
-	device := getDevice()
-	if device == nil {
+	dbLog := waLog.Stdout("Database", logLevel, true)
+	storeContainer, err := sqlstore.New(*dbDialect, *dbAddress, dbLog)
+	if err != nil {
+		log.Errorf("Failed to connect to database: %v", err)
+		return
+	}
+	device, err := storeContainer.GetFirstDevice()
+	if err != nil {
+		log.Errorf("Failed to get device: %v", err)
 		return
 	}
 
