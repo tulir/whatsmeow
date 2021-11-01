@@ -81,7 +81,7 @@ type Client struct {
 	eventHandlersLock sync.RWMutex
 
 	uniqueID  string
-	idCounter uint64
+	idCounter uint32
 }
 
 const handlerQueueSize = 2048
