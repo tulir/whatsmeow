@@ -291,12 +291,12 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Group info: %+v", resp)
 		}
-	case "acceptinvitelink":
+	case "joininvitelink":
 		if len(args) < 1 {
 			log.Errorf("Usage: acceptinvitelink <link>")
 			return
 		}
-		groupID, err := cli.JoinGroupViaLink(args[0])
+		groupID, err := cli.JoinGroupWithLink(args[0])
 		if err != nil {
 			log.Errorf("Failed to join group via invite link: %v", err)
 		} else {

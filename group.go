@@ -79,10 +79,10 @@ func (cli *Client) GetGroupInfoFromInvite(jid, inviter types.JID, code string, e
 	return cli.parseGroupNode(&groupNode)
 }
 
-// AcceptGroupInvite joins a group using an invite message.
+// JoinGroupWithInvite joins a group using an invite message.
 //
-// Note that this is specifically for invite messages, not invite links. Use GetGroupInfoFromLink for resolving chat.whatsapp.com links.
-func (cli *Client) AcceptGroupInvite(jid, inviter types.JID, code string, expiration int64) error {
+// Note that this is specifically for invite messages, not invite links. Use JoinGroupWithLink for joining with chat.whatsapp.com links.
+func (cli *Client) JoinGroupWithInvite(jid, inviter types.JID, code string, expiration int64) error {
 	_, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
 		Type:      "set",
@@ -126,8 +126,8 @@ func (cli *Client) GetGroupInfoFromLink(code string) (*types.GroupInfo, error) {
 	return cli.parseGroupNode(&groupNode)
 }
 
-// JoinGroupViaLink joins the group using the given invite link.
-func (cli *Client) JoinGroupViaLink(code string) (types.JID, error) {
+// JoinGroupWithLink joins the group using the given invite link.
+func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
 	code = strings.TrimPrefix(code, InviteLinkPrefix)
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
