@@ -220,7 +220,10 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	ag := groupNode.AttrGetter()
 
 	group.JID = types.NewJID(ag.String("id"), types.GroupServer)
-	group.OwnerJID = ag.JID("creator")
+	owner := ag.OptionalJID("creator")
+	if owner != nil {
+		group.OwnerJID = *owner
+	}
 
 	group.Name = ag.String("subject")
 	group.NameSetAt = time.Unix(ag.Int64("s_t"), 0)
