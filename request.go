@@ -17,7 +17,7 @@ import (
 )
 
 func (cli *Client) generateRequestID() string {
-	return cli.uniqueID + strconv.FormatUint(atomic.AddUint64(&cli.idCounter, 1), 10)
+	return cli.uniqueID + strconv.FormatUint(uint64(atomic.AddUint32(&cli.idCounter, 1)), 10)
 }
 
 var closedNode = &waBinary.Node{Tag: "xmlstreamend"}
