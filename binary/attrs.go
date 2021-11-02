@@ -50,6 +50,16 @@ func (au *AttrUtility) OptionalJID(key string) *types.JID {
 	return nil
 }
 
+// OptionalJIDOrEmpty returns the JID under the given key. If there's no valid JID under the given key, this will return an empty JID.
+// However, if the attribute is completely missing, this will not store an error.
+func (au *AttrUtility) OptionalJIDOrEmpty(key string) types.JID {
+	jid, ok := au.GetJID(key, false)
+	if ok {
+		return jid
+	}
+	return types.EmptyJID
+}
+
 // JID returns the JID under the given key.
 // If there's no valid JID under the given key, an error will be stored and a blank JID struct will be returned.
 func (au *AttrUtility) JID(key string) types.JID {
