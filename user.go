@@ -172,6 +172,9 @@ func (cli *Client) handleHistoricalPushNames(names []*waProto.Pushname) {
 		return
 	}
 	for _, user := range names {
+		if user.GetPushname() == "-" {
+			continue
+		}
 		var changed bool
 		if jid, err := types.ParseJID(user.GetId()); err != nil {
 			cli.Log.Warnf("Failed to parse user ID '%s' in push name history sync: %v", user.GetId(), err)

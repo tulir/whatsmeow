@@ -220,14 +220,11 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	ag := groupNode.AttrGetter()
 
 	group.JID = types.NewJID(ag.String("id"), types.GroupServer)
-	owner := ag.OptionalJID("creator")
-	if owner != nil {
-		group.OwnerJID = *owner
-	}
+	group.OwnerJID = ag.OptionalJIDOrEmpty("creator")
 
 	group.Name = ag.String("subject")
 	group.NameSetAt = time.Unix(ag.Int64("s_t"), 0)
-	group.NameSetBy = ag.JID("s_o")
+	group.NameSetBy = ag.OptionalJIDOrEmpty("s_o")
 
 	group.GroupCreated = time.Unix(ag.Int64("creation"), 0)
 
@@ -250,7 +247,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 			if bodyOK {
 				group.Topic, _ = body.Content.(string)
 				group.TopicID = childAG.String("id")
-				group.TopicSetBy = childAG.JID("participant")
+				group.TopicSetBy = childAG.OptionalJIDOrEmpty("participant")
 				group.TopicSetAt = time.Unix(childAG.Int64("t"), 0)
 			}
 		case "announcement":
@@ -327,6 +324,25 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			evt.Locked = &types.GroupLocked{IsLocked: true}
 		case "unlocked":
 			evt.Locked = &types.GroupLocked{IsLocked: false}
+		case "subject":
+			evt.Name = &types.GroupName{
+				Name:      cag.String("subject"),
+				NameSetAt: time.Unix(cag.Int64("s_t"), 0),
+				NameSetBy: cag.OptionalJIDOrEmpty("s_o"),
+			}
+		case "description":
+			topicChild := child.GetChildByTag("body")
+			topicText := string(topicChild.Content.([]byte))
+			var setBy types.JID
+			if evt.Sender != nil {
+				setBy = *evt.Sender
+			}
+			evt.Topic = &types.GroupTopic{
+				Topic:      topicText,
+				TopicID:    cag.String("id"),
+				TopicSetAt: evt.Timestamp,
+				TopicSetBy: setBy,
+			}
 		case "announcement":
 			evt.Announce = &types.GroupAnnounce{
 				IsAnnounce:        true,
