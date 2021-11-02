@@ -324,6 +324,25 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			evt.Locked = &types.GroupLocked{IsLocked: true}
 		case "unlocked":
 			evt.Locked = &types.GroupLocked{IsLocked: false}
+		case "subject":
+			evt.Name = &types.GroupName{
+				Name:      cag.String("subject"),
+				NameSetAt: time.Unix(cag.Int64("s_t"), 0),
+				NameSetBy: cag.OptionalJIDOrEmpty("s_o"),
+			}
+		case "description":
+			topicChild := child.GetChildByTag("body")
+			topicText := string(topicChild.Content.([]byte))
+			var setBy types.JID
+			if evt.Sender != nil {
+				setBy = *evt.Sender
+			}
+			evt.Topic = &types.GroupTopic{
+				Topic:      topicText,
+				TopicID:    cag.String("id"),
+				TopicSetAt: evt.Timestamp,
+				TopicSetBy: setBy,
+			}
 		case "announcement":
 			evt.Announce = &types.GroupAnnounce{
 				IsAnnounce:        true,
