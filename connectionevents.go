@@ -42,6 +42,10 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 			cli.Log.Errorf("Unknown stream error code 401: %s", node.XMLString())
 			go cli.dispatchEvent(&events.StreamError{Code: code, Raw: node})
 		}
+	case "503":
+		// This seems to happen when the server wants to restart or something.
+		// The disconnection will be emitted as an events.Disconnected and then the auto-reconnect will do its thing.
+		cli.Log.Warnf("Got 503 stream error, assuming automatic reconnect will handle it")
 	default:
 		cli.Log.Errorf("Unknown stream error: %s", node.XMLString())
 		go cli.dispatchEvent(&events.StreamError{Code: code, Raw: node})

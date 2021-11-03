@@ -371,7 +371,7 @@ func (cli *Client) handleFrame(data []byte) {
 			}()
 		}
 	} else {
-		cli.Log.Debugf("Didn't handle WhatsApp node")
+		cli.Log.Debugf("Didn't handle WhatsApp node %s", node.Tag)
 	}
 }
 
