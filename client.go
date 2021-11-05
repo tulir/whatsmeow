@@ -294,10 +294,11 @@ func (cli *Client) Logout() error {
 // wrap the whole handler in another struct:
 //     type MyClient struct {
 //         WAClient *whatsmeow.Client
+//         eventHandlerID uint32
 //     }
 //
 //     func (mycli *MyClient) register() {
-//         mycli.WAClient.AddEventHandler(mycli.myEventHandler)
+//         mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
 //     }
 //
 //     func (mycli *MyClient) myEventHandler(evt interface{}) {
@@ -313,6 +314,15 @@ func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 
 // RemoveEventHandler removes a previously registered event handler function.
 // If the function with the given ID is found, this returns true.
+//
+// N.B. Do not run this directly from an event handler. That would cause a deadlock because the
+// event dispatcher holds a read lock on the event handler list, and this method wants a write lock
+// on the same list. Instead run it in a goroutine:
+//     func (mycli *MyClient) myEventHandler(evt interface{}) {
+//         if noLongerWantEvents {
+//             go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
+//         }
+//     }
 func (cli *Client) RemoveEventHandler(id uint32) bool {
 	cli.eventHandlersLock.Lock()
 	defer cli.eventHandlersLock.Unlock()
