@@ -533,9 +533,6 @@ message MediaRetryNotification {
 message MsgOpaqueData {
     optional string body = 1;
     optional string caption = 3;
-    optional string clientUrl = 4;
-    // TODO is this actually 5 and 6?
-    //optional string loc = 4;
     optional double lng = 5;
     optional double lat = 7;
     optional int32 paymentAmount1000 = 8;
@@ -545,11 +542,18 @@ message MsgOpaqueData {
     optional string title = 12;
     optional string description = 13;
     optional bytes futureproofBuffer = 14;
+    optional string clientUrl = 15;
+    optional string loc = 16;
 }
 
 message MsgRowOpaqueData {
     optional MsgOpaqueData currentMsg = 1;
     optional MsgOpaqueData quotedMsg = 2;
+}
+
+message GlobalSettings {
+    optional WallpaperSettings wallpaper = 1;
+    optional MediaVisibility mediaVisibility = 2;
 }
 
 message WallpaperSettings {
@@ -608,11 +612,6 @@ message Conversation {
     optional uint32 pinned = 24;
     optional uint64 muteEndTime = 25;
     optional WallpaperSettings wallpaper = 26;
-    enum MediaVisibility {
-        DEFAULT = 0;
-        OFF = 1;
-        ON = 2;
-    }
     optional MediaVisibility mediaVisibility = 27;
     optional uint64 tcTokenSenderTimestamp = 28;
 }
@@ -631,17 +630,17 @@ message HistorySync {
     optional uint32 chunkOrder = 5;
     optional uint32 progress = 6;
     repeated Pushname pushnames = 7;
+    optional GlobalSettings globalSettings = 8;
 }
 
+enum MediaVisibility {
+    DEFAULT = 0;
+    OFF = 1;
+    ON = 2;
+}
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
-}
-
-message Location {
-    optional double degreesLatitude = 1;
-    optional double degreesLongitude = 2;
-    optional string name = 3;
 }
 
 message Point {
@@ -1119,6 +1118,7 @@ message StickerMessage {
     optional uint32 firstFrameLength = 11;
     optional bytes firstFrameSidecar = 12;
     optional bool isAnimated = 13;
+    optional bool fromStickerMaker = 14;
     optional bytes pngThumbnail = 16;
     optional ContextInfo contextInfo = 17;
 }
@@ -1347,6 +1347,11 @@ message GroupInviteMessage {
     optional bytes jpegThumbnail = 5;
     optional string caption = 6;
     optional ContextInfo contextInfo = 7;
+    enum GroupInviteMessageGroupType {
+        DEFAULT = 0;
+        PARENT = 1;
+    }
+    optional GroupInviteMessageGroupType groupType = 8;
 }
 
 message DeviceSentMessage {
@@ -1566,6 +1571,12 @@ message TemplateButton {
     }
 }
 
+message Location {
+    optional double degreesLatitude = 1;
+    optional double degreesLongitude = 2;
+    optional string name = 3;
+}
+
 // Seems to be a duplicate of the AppVersion at the top
 //message AppVersion {
 //    optional uint32 primary = 1;
@@ -1639,7 +1650,6 @@ message Reaction {
     optional string text = 2;
     optional string groupingKey = 3;
     optional int64 senderTimestampMs = 4;
-    optional bool revoked = 5;
 }
 
 message UserReceipt {
@@ -1712,6 +1722,7 @@ message WebFeatures {
     optional WebFeaturesFlag mdForceUpgrade = 46;
     optional WebFeaturesFlag disappearingMode = 47;
     optional WebFeaturesFlag externalMdOptInAvailable = 48;
+    optional WebFeaturesFlag noDeleteMessageTimeLimit = 49;
 }
 
 message NotificationMessageInfo {
@@ -1977,5 +1988,7 @@ message WebMessageInfo {
     optional MediaData quotedStickerData = 42;
     optional bytes futureproofData = 43;
     optional string statusPsaCampaignId = 44;
+    optional uint32 statusPsaCampaignDuration = 45;
+    optional uint64 statusPsaCampaignReadTimestamp = 46;
 }
 

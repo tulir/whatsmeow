@@ -19,20 +19,161 @@ import (
 
 const InviteLinkPrefix = "https://chat.whatsapp.com/"
 
+func (cli *Client) sendGroupIQ(iqType infoQueryType, jid types.JID, content waBinary.Node) (*waBinary.Node, error) {
+	return cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      iqType,
+		To:        jid,
+		Content:   []waBinary.Node{content},
+	})
+}
+
+// CreateGroup creates a group on WhatsApp with the given name and participants.
+//
+// You don't need to include your own JID in the participants array, the WhatsApp servers will add it implicitly.
+func (cli *Client) CreateGroup(name string, participants []types.JID) (*types.GroupInfo, error) {
+	participantNodes := make([]waBinary.Node, len(participants))
+	for i, participant := range participants {
+		participantNodes[i] = waBinary.Node{
+			Tag:   "participant",
+			Attrs: waBinary.Attrs{"jid": participant},
+		}
+	}
+	key := GenerateMessageID()
+	resp, err := cli.sendGroupIQ(iqSet, types.GroupServerJID, waBinary.Node{
+		Tag: "create",
+		Attrs: waBinary.Attrs{
+			"subject": name,
+			"key":     key,
+		},
+		Content: participantNodes,
+	})
+	if err != nil {
+		return nil, err
+	}
+	groupNode, ok := resp.GetOptionalChildByTag("group")
+	if !ok {
+		return nil, fmt.Errorf("missing <group> element in response to create group info query")
+	}
+	return cli.parseGroupNode(&groupNode)
+}
+
+// LeaveGroup leaves the specified group on WhatsApp.
+func (cli *Client) LeaveGroup(jid types.JID) error {
+	_, err := cli.sendGroupIQ(iqSet, types.GroupServerJID, waBinary.Node{
+		Tag: "leave",
+		Content: []waBinary.Node{{
+			Tag:   "group",
+			Attrs: waBinary.Attrs{"jid": jid},
+		}},
+	})
+	return err
+}
+
+type ParticipantChange string
+
+const (
+	ParticipantChangeAdd     ParticipantChange = "add"
+	ParticipantChangeRemove  ParticipantChange = "remove"
+	ParticipantChangePromote ParticipantChange = "promote"
+	ParticipantChangeDemote  ParticipantChange = "demote"
+)
+
+// UpdateGroupParticipants can be used to add, remove, promote and demote members in a WhatsApp group.
+func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map[types.JID]ParticipantChange) (*waBinary.Node, error) {
+	content := make([]waBinary.Node, len(participantChanges))
+	i := 0
+	for participantJID, change := range participantChanges {
+		content[i] = waBinary.Node{
+			Tag: string(change),
+			Content: []waBinary.Node{{
+				Tag:   "participant",
+				Attrs: waBinary.Attrs{"jid": participantJID},
+			}},
+		}
+		i++
+	}
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:g2",
+		Type:      iqSet,
+		To:        jid,
+		Content:   content,
+	})
+	if err != nil {
+		return nil, err
+	}
+	// TODO proper return value?
+	return resp, nil
+}
+
+// SetGroupName updates the name (subject) of the given group on WhatsApp.
+func (cli *Client) SetGroupName(jid types.JID, name string) error {
+	_, err := cli.sendGroupIQ(iqSet, jid, waBinary.Node{
+		Tag:     "subject",
+		Content: []byte(name),
+	})
+	return err
+}
+
+// SetGroupTopic updates the topic (description) of the given group on WhatsApp.
+//
+// The previousID and newID fields are optional. If the previous ID is not specified, this will
+// automatically fetch the current group info to find the previous topic ID. If the new ID is not
+// specified, one will be generated with GenerateMessageID().
+func (cli *Client) SetGroupTopic(jid types.JID, previousID, newID, topic string) error {
+	if previousID == "" {
+		oldInfo, err := cli.GetGroupInfo(jid)
+		if err != nil {
+			return fmt.Errorf("failed to get old group info to update topic: %v", err)
+		}
+		previousID = oldInfo.TopicID
+	}
+	if newID == "" {
+		newID = GenerateMessageID()
+	}
+	_, err := cli.sendGroupIQ(iqSet, jid, waBinary.Node{
+		Tag: "description",
+		Attrs: waBinary.Attrs{
+			"prev": previousID,
+			"id":   newID,
+		},
+		Content: []waBinary.Node{{
+			Tag:     "body",
+			Content: []byte(topic),
+		}},
+	})
+	return err
+}
+
+// SetGroupLocked changes whether the group is locked (i.e. whether only admins can modify group info).
+func (cli *Client) SetGroupLocked(jid types.JID, locked bool) error {
+	tag := "locked"
+	if !locked {
+		tag = "unlocked"
+	}
+	_, err := cli.sendGroupIQ(iqSet, jid, waBinary.Node{Tag: tag})
+	return err
+}
+
+// SetGroupAnnounce changes whether the group is in announce mode (i.e. whether only admins can send messages).
+func (cli *Client) SetGroupAnnounce(jid types.JID, announce bool) error {
+	tag := "announcement"
+	if !announce {
+		tag = "not_announcement"
+	}
+	_, err := cli.sendGroupIQ(iqSet, jid, waBinary.Node{Tag: tag})
+	return err
+}
+
 // GetGroupInviteLink requests the invite link to the group from the WhatsApp servers.
 //
 // If reset is true, then the old invite link will be revoked and a new one generated.
 func (cli *Client) GetGroupInviteLink(jid types.JID, reset bool) (string, error) {
-	iqType := "get"
+	iqType := iqGet
 	if reset {
-		iqType = "set"
+		iqType = iqSet
 	}
-	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      iqType,
-		To:        jid,
-		Content:   []waBinary.Node{{Tag: "invite"}},
-	})
+	resp, err := cli.sendGroupIQ(iqType, jid, waBinary.Node{Tag: "invite"})
 	if errors.Is(err, ErrIQNotAuthorized) {
 		return "", wrapIQError(ErrGroupInviteLinkUnauthorized, err)
 	} else if errors.Is(err, ErrIQNotFound) {
@@ -53,20 +194,15 @@ func (cli *Client) GetGroupInviteLink(jid types.JID, reset bool) (string, error)
 //
 // Note that this is specifically for invite messages, not invite links. Use GetGroupInfoFromLink for resolving chat.whatsapp.com links.
 func (cli *Client) GetGroupInfoFromInvite(jid, inviter types.JID, code string, expiration int64) (*types.GroupInfo, error) {
-	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      "get",
-		To:        jid,
+	resp, err := cli.sendGroupIQ(iqGet, jid, waBinary.Node{
+		Tag: "query",
 		Content: []waBinary.Node{{
-			Tag: "query",
-			Content: []waBinary.Node{{
-				Tag: "add_request",
-				Attrs: waBinary.Attrs{
-					"code":       code,
-					"expiration": expiration,
-					"admin":      inviter,
-				},
-			}},
+			Tag: "add_request",
+			Attrs: waBinary.Attrs{
+				"code":       code,
+				"expiration": expiration,
+				"admin":      inviter,
+			},
 		}},
 	})
 	if err != nil {
@@ -83,18 +219,13 @@ func (cli *Client) GetGroupInfoFromInvite(jid, inviter types.JID, code string, e
 //
 // Note that this is specifically for invite messages, not invite links. Use JoinGroupWithLink for joining with chat.whatsapp.com links.
 func (cli *Client) JoinGroupWithInvite(jid, inviter types.JID, code string, expiration int64) error {
-	_, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      "set",
-		To:        jid,
-		Content: []waBinary.Node{{
-			Tag: "accept",
-			Attrs: waBinary.Attrs{
-				"code":       code,
-				"expiration": expiration,
-				"admin":      inviter,
-			},
-		}},
+	_, err := cli.sendGroupIQ(iqSet, jid, waBinary.Node{
+		Tag: "accept",
+		Attrs: waBinary.Attrs{
+			"code":       code,
+			"expiration": expiration,
+			"admin":      inviter,
+		},
 	})
 	return err
 }
@@ -103,14 +234,9 @@ func (cli *Client) JoinGroupWithInvite(jid, inviter types.JID, code string, expi
 // This will not cause the user to join the group.
 func (cli *Client) GetGroupInfoFromLink(code string) (*types.GroupInfo, error) {
 	code = strings.TrimPrefix(code, InviteLinkPrefix)
-	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      "get",
-		To:        types.GroupServerJID,
-		Content: []waBinary.Node{{
-			Tag:   "invite",
-			Attrs: waBinary.Attrs{"code": code},
-		}},
+	resp, err := cli.sendGroupIQ(iqGet, types.GroupServerJID, waBinary.Node{
+		Tag:   "invite",
+		Attrs: waBinary.Attrs{"code": code},
 	})
 	if errors.Is(err, ErrIQGone) {
 		return nil, wrapIQError(ErrInviteLinkRevoked, err)
@@ -129,14 +255,9 @@ func (cli *Client) GetGroupInfoFromLink(code string) (*types.GroupInfo, error) {
 // JoinGroupWithLink joins the group using the given invite link.
 func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
 	code = strings.TrimPrefix(code, InviteLinkPrefix)
-	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      "set",
-		To:        types.GroupServerJID,
-		Content: []waBinary.Node{{
-			Tag:   "invite",
-			Attrs: waBinary.Attrs{"code": code}},
-		},
+	resp, err := cli.sendGroupIQ(iqSet, types.GroupServerJID, waBinary.Node{
+		Tag:   "invite",
+		Attrs: waBinary.Attrs{"code": code},
 	})
 	if errors.Is(err, ErrIQGone) {
 		return types.EmptyJID, wrapIQError(ErrInviteLinkRevoked, err)
@@ -154,17 +275,12 @@ func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
 
 // GetJoinedGroups returns the list of groups the user is participating in.
 func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
-	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      "get",
-		To:        types.GroupServerJID,
-		Content: []waBinary.Node{{
-			Tag: "participating",
-			Content: []waBinary.Node{
-				{Tag: "participants"},
-				{Tag: "description"},
-			},
-		}},
+	resp, err := cli.sendGroupIQ(iqGet, types.GroupServerJID, waBinary.Node{
+		Tag: "participating",
+		Content: []waBinary.Node{
+			{Tag: "participants"},
+			{Tag: "description"},
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -191,14 +307,9 @@ func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
 func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
-	res, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      "get",
-		To:        jid,
-		Content: []waBinary.Node{{
-			Tag:   "query",
-			Attrs: waBinary.Attrs{"request": "interactive"},
-		}},
+	res, err := cli.sendGroupIQ(iqGet, jid, waBinary.Node{
+		Tag:   "query",
+		Attrs: waBinary.Attrs{"request": "interactive"},
 	})
 	if errors.Is(err, ErrIQNotFound) {
 		return nil, wrapIQError(ErrGroupNotFound, err)
