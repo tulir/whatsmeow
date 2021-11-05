@@ -67,9 +67,16 @@ func (cli *Client) receiveResponse(data *waBinary.Node) bool {
 	return true
 }
 
+type infoQueryType string
+
+const (
+	iqSet infoQueryType = "set"
+	iqGet infoQueryType = "get"
+)
+
 type infoQuery struct {
 	Namespace string
-	Type      string
+	Type      infoQueryType
 	To        types.JID
 	ID        string
 	Content   interface{}
@@ -88,7 +95,7 @@ func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
 		Attrs: waBinary.Attrs{
 			"id":    query.ID,
 			"xmlns": query.Namespace,
-			"type":  query.Type,
+			"type":  string(query.Type),
 			"to":    query.To,
 		},
 		Content: query.Content,
