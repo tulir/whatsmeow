@@ -27,8 +27,8 @@ import (
 const recentMessagesSize = 256
 
 type recentMessageKey struct {
-	To   types.JID
-	ID   types.MessageID
+	To types.JID
+	ID types.MessageID
 }
 
 // RecentMessage contains the info needed to re-send a message when another device fails to decrypt it.
