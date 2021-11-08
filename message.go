@@ -64,12 +64,12 @@ func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.Message
 		source.Sender = from
 		recipient, ok := node.Attrs["recipient"].(types.JID)
 		if !ok {
-			source.Chat = from
+			source.Chat = from.ToNonAD()
 		} else {
 			source.Chat = recipient
 		}
 	} else {
-		source.Chat = from
+		source.Chat = from.ToNonAD()
 		source.Sender = from
 	}
 	return

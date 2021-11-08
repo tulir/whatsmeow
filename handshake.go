@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"bytes"
 	"fmt"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -16,6 +17,8 @@ import (
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/util/keys"
 )
+
+const NoiseHandshakeResponseTimeout = 20 * time.Second
 
 // doHandshake implements the Noise_XX_25519_AESGCM_SHA256 handshake for the WhatsApp web API.
 func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair) error {
@@ -34,7 +37,12 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	if err != nil {
 		return fmt.Errorf("failed to send handshake message: %w", err)
 	}
-	resp := <-fs.Frames
+	var resp []byte
+	select {
+	case resp = <-fs.Frames:
+	case <-time.After(NoiseHandshakeResponseTimeout):
+		return fmt.Errorf("timed out waiting for handshake response")
+	}
 	var handshakeResponse waProto.HandshakeMessage
 	err = proto.Unmarshal(resp, &handshakeResponse)
 	if err != nil {

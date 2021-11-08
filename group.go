@@ -443,13 +443,16 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			}
 		case "description":
 			topicChild := child.GetChildByTag("body")
-			topicText := string(topicChild.Content.([]byte))
+			topicBytes, ok := topicChild.Content.([]byte)
+			if !ok {
+				return nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
+			}
 			var setBy types.JID
 			if evt.Sender != nil {
 				setBy = *evt.Sender
 			}
 			evt.Topic = &types.GroupTopic{
-				Topic:      topicText,
+				Topic:      string(topicBytes),
 				TopicID:    cag.String("id"),
 				TopicSetAt: evt.Timestamp,
 				TopicSetBy: setBy,

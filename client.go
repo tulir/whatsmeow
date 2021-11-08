@@ -20,6 +20,7 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -58,6 +59,7 @@ type Client struct {
 	// even when re-syncing the whole state.
 	EmitAppStateEventsOnFullSync bool
 
+	// IsLoggedIn is set to true after the client is successfully connected and authenticated on WhatsApp.
 	IsLoggedIn bool
 
 	appStateProc     *appstate.Processor
@@ -72,18 +74,28 @@ type Client struct {
 	responseWaiters     map[string]chan<- *waBinary.Node
 	responseWaitersLock sync.Mutex
 
-	messageRetries     map[string]int
-	messageRetriesLock sync.Mutex
-
 	nodeHandlers      map[string]nodeHandler
 	handlerQueue      chan *waBinary.Node
 	eventHandlers     []wrappedEventHandler
 	eventHandlersLock sync.RWMutex
 
+	messageRetries     map[string]int
+	messageRetriesLock sync.Mutex
+
+	recentMessagesMap  map[recentMessageKey]*waProto.Message
+	recentMessagesList [recentMessagesSize]recentMessageKey
+	recentMessagesPtr  int
+	recentMessagesLock sync.RWMutex
+	// GetMessageForRetry is used to find the source message for handling retry receipts
+	// when the message is not found in the recently sent message cache.
+	GetMessageForRetry func(to types.JID, id types.MessageID) *waProto.Message
+
 	uniqueID  string
 	idCounter uint32
 }
 
+// Size of buffer for the channel that all incoming XML nodes go through.
+// In general it shouldn't go past a few buffered messages, but the channel is big to be safe.
 const handlerQueueSize = 2048
 
 // NewClient initializes a new WhatsApp web client.
@@ -118,6 +130,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
+
+		recentMessagesMap:  make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
+		GetMessageForRetry: func(to types.JID, id types.MessageID) *waProto.Message { return nil },
 
 		EnableAutoReconnect: true,
 	}
@@ -294,10 +309,11 @@ func (cli *Client) Logout() error {
 // wrap the whole handler in another struct:
 //     type MyClient struct {
 //         WAClient *whatsmeow.Client
+//         eventHandlerID uint32
 //     }
 //
 //     func (mycli *MyClient) register() {
-//         mycli.WAClient.AddEventHandler(mycli.myEventHandler)
+//         mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
 //     }
 //
 //     func (mycli *MyClient) myEventHandler(evt interface{}) {
@@ -313,6 +329,15 @@ func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 
 // RemoveEventHandler removes a previously registered event handler function.
 // If the function with the given ID is found, this returns true.
+//
+// N.B. Do not run this directly from an event handler. That would cause a deadlock because the
+// event dispatcher holds a read lock on the event handler list, and this method wants a write lock
+// on the same list. Instead run it in a goroutine:
+//     func (mycli *MyClient) myEventHandler(evt interface{}) {
+//         if noLongerWantEvents {
+//             go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
+//         }
+//     }
 func (cli *Client) RemoveEventHandler(id uint32) bool {
 	cli.eventHandlersLock.Lock()
 	defer cli.eventHandlersLock.Unlock()
