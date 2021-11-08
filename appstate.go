@@ -58,7 +58,10 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 		}
 	}
 	if fullSync {
+		cli.Log.Debugf("Full sync of app state %s completed. Current version: %d", name, state.Version)
 		cli.dispatchEvent(&events.AppStateSyncComplete{Name: name})
+	} else {
+		cli.Log.Debugf("Synced app state %s from version %d to %d", name, version, state.Version)
 	}
 	return nil
 }
