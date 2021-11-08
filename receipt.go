@@ -7,13 +7,8 @@
 package whatsmeow
 
 import (
-	"encoding/binary"
 	"fmt"
 	"time"
-
-	"google.golang.org/protobuf/proto"
-
-	"go.mau.fi/libsignal/ecc"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
@@ -25,6 +20,14 @@ func (cli *Client) handleReceipt(node *waBinary.Node) {
 	if err != nil {
 		cli.Log.Warnf("Failed to parse receipt: %v", err)
 	} else {
+		if receipt.Type == events.ReceiptTypeRetry {
+			go func() {
+				err := cli.handleRetryReceipt(receipt, node)
+				if err != nil {
+					cli.Log.Errorf("Failed to handle retry receipt for %s/%s from %s: %v", receipt.Chat, receipt.MessageID, receipt.Sender, err)
+				}
+			}()
+		}
 		go cli.dispatchEvent(receipt)
 	}
 	go cli.sendAck(node)
@@ -154,64 +157,5 @@ func (cli *Client) sendMessageReceipt(info *types.MessageInfo) {
 	})
 	if err != nil {
 		cli.Log.Warnf("Failed to send receipt for %s: %v", info.ID, err)
-	}
-}
-
-func (cli *Client) sendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bool) {
-	id, _ := node.Attrs["id"].(string)
-
-	cli.messageRetriesLock.Lock()
-	cli.messageRetries[id]++
-	retryCount := cli.messageRetries[id]
-	cli.messageRetriesLock.Unlock()
-
-	var registrationIDBytes [4]byte
-	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
-	attrs := waBinary.Attrs{
-		"id":   id,
-		"type": "retry",
-		"to":   node.Attrs["from"],
-	}
-	if recipient, ok := node.Attrs["recipient"]; ok {
-		attrs["recipient"] = recipient
-	}
-	if participant, ok := node.Attrs["participant"]; ok {
-		attrs["participant"] = participant
-	}
-	payload := waBinary.Node{
-		Tag:   "receipt",
-		Attrs: attrs,
-		Content: []waBinary.Node{
-			{Tag: "retry", Attrs: waBinary.Attrs{
-				"count": retryCount,
-				"id":    id,
-				"t":     node.Attrs["t"],
-				"v":     1,
-			}},
-			{Tag: "registration", Content: registrationIDBytes[:]},
-		},
-	}
-	if retryCount > 1 || forceIncludeIdentity {
-		if key, err := cli.Store.PreKeys.GenOnePreKey(); err != nil {
-			cli.Log.Errorf("Failed to get prekey for retry receipt: %v", err)
-		} else if deviceIdentity, err := proto.Marshal(cli.Store.Account); err != nil {
-			cli.Log.Errorf("Failed to marshal account info: %v", err)
-			return
-		} else {
-			payload.Content = append(payload.GetChildren(), waBinary.Node{
-				Tag: "keys",
-				Content: []waBinary.Node{
-					{Tag: "type", Content: []byte{ecc.DjbType}},
-					{Tag: "identity", Content: cli.Store.IdentityKey.Pub[:]},
-					preKeyToNode(key),
-					preKeyToNode(cli.Store.SignedPreKey),
-					{Tag: "device-identity", Content: deviceIdentity},
-				},
-			})
-		}
-	}
-	err := cli.sendNode(payload)
-	if err != nil {
-		cli.Log.Errorf("Failed to send retry receipt for %s: %v", id, err)
 	}
 }

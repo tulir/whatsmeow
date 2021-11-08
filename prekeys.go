@@ -122,8 +122,9 @@ func (cli *Client) fetchPreKeys(users []types.JID) (map[types.JID]preKeyResp, er
 		if child.Tag != "user" {
 			continue
 		}
-		jid, bundle, err := nodeToPreKeyBundle(child)
+		jid := child.AttrGetter().JID("jid")
 		jid.AD = true
+		bundle, err := nodeToPreKeyBundle(uint32(jid.Device), child)
 		respData[jid] = preKeyResp{bundle, err}
 	}
 	return respData, nil
@@ -149,36 +150,39 @@ func preKeyToNode(key *keys.PreKey) waBinary.Node {
 	return node
 }
 
-func nodeToPreKeyBundle(node waBinary.Node) (types.JID, *prekey.Bundle, error) {
-	jid := node.AttrGetter().JID("jid")
-
-	errorNode := node.GetChildByTag("error")
-	if errorNode.Tag == "error" {
-		return jid, nil, fmt.Errorf("got error getting prekeys: %s", errorNode.XMLString())
+func nodeToPreKeyBundle(deviceID uint32, node waBinary.Node) (*prekey.Bundle, error) {
+	errorNode, ok := node.GetOptionalChildByTag("error")
+	if ok && errorNode.Tag == "error" {
+		return nil, fmt.Errorf("got error getting prekeys: %s", errorNode.XMLString())
 	}
 
 	registrationBytes, ok := node.GetChildByTag("registration").Content.([]byte)
 	if !ok || len(registrationBytes) != 4 {
-		return jid, nil, fmt.Errorf("invalid registration ID in prekey response")
+		return nil, fmt.Errorf("invalid registration ID in prekey response")
 	}
 	registrationID := binary.BigEndian.Uint32(registrationBytes)
 
-	identityKeyRaw, ok := node.GetChildByTag("identity").Content.([]byte)
+	keysNode, ok := node.GetOptionalChildByTag("keys")
+	if !ok {
+		keysNode = node
+	}
+
+	identityKeyRaw, ok := keysNode.GetChildByTag("identity").Content.([]byte)
 	if !ok || len(identityKeyRaw) != 32 {
-		return jid, nil, fmt.Errorf("invalid identity key in prekey response")
+		return nil, fmt.Errorf("invalid identity key in prekey response")
 	}
 	identityKeyPub := *(*[32]byte)(identityKeyRaw)
 
-	preKey, err := nodeToPreKey(node.GetChildByTag("key"))
+	preKey, err := nodeToPreKey(keysNode.GetChildByTag("key"))
 	if err != nil {
-		return jid, nil, fmt.Errorf("invalid prekey in prekey response: %w", err)
+		return nil, fmt.Errorf("invalid prekey in prekey response: %w", err)
 	}
-	signedPreKey, err := nodeToPreKey(node.GetChildByTag("skey"))
+	signedPreKey, err := nodeToPreKey(keysNode.GetChildByTag("skey"))
 	if err != nil {
-		return jid, nil, fmt.Errorf("invalid signed prekey in prekey response: %w", err)
+		return nil, fmt.Errorf("invalid signed prekey in prekey response: %w", err)
 	}
 
-	return jid, prekey.NewBundle(registrationID, uint32(jid.Device),
+	return prekey.NewBundle(registrationID, deviceID,
 		optional.NewOptionalUint32(preKey.KeyID), signedPreKey.KeyID,
 		ecc.NewDjbECPublicKey(*preKey.Pub), ecc.NewDjbECPublicKey(*signedPreKey.Pub), *signedPreKey.Signature,
 		identity.NewKey(ecc.NewDjbECPublicKey(identityKeyPub))), nil
