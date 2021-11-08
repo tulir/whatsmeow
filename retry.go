@@ -125,6 +125,17 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if err != nil {
 			return fmt.Errorf("failed to read prekey bundle in retry receipt: %w", err)
 		}
+	} else if retryCount >= 2 {
+		cli.Log.Debugf("Fetching prekeys for %s due to retry receipt with count>1 but no prekey bundle", receipt.Sender)
+		var keys map[types.JID]preKeyResp
+		keys, err = cli.fetchPreKeys([]types.JID{receipt.Sender})
+		if err != nil {
+			return err
+		}
+		bundle, err = keys[receipt.Sender].bundle, keys[receipt.Sender].err
+		if err != nil {
+			return fmt.Errorf("failed to fetch prekeys: %w", err)
+		}
 	}
 	encrypted, err := cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle)
 	if err != nil {
