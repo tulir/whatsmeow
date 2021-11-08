@@ -12,20 +12,29 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
 
 func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
-	cli.Log.Infof("Got encryption notification from server: %s", node.XMLString())
-	count := node.GetChildByTag("count")
-	ag := count.AttrGetter()
-	otksLeft := ag.Int("value")
-	if !ag.OK() {
-		cli.Log.Warnf("Didn't get number of OTKs left in encryption notification")
-		return
-	}
-	if otksLeft < MinPreKeyCount {
-		cli.uploadPreKeys()
+	from := node.AttrGetter().JID("from")
+	if from == types.ServerJID {
+		count := node.GetChildByTag("count")
+		ag := count.AttrGetter()
+		otksLeft := ag.Int("value")
+		if !ag.OK() {
+			cli.Log.Warnf("Didn't get number of OTKs left in encryption notification %s", node.XMLString())
+			return
+		}
+		cli.Log.Infof("Got prekey count from server: %s", node.XMLString())
+		if otksLeft < MinPreKeyCount {
+			cli.uploadPreKeys()
+		}
+	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
+		cli.Log.Debugf("Got identity change for %s: %s", from, node.XMLString())
+		// TODO handle identity of other users changing
+	} else {
+		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
 	}
 }
 
@@ -53,12 +62,19 @@ func (cli *Client) handlePictureNotification(node *waBinary.Node) {
 		var evt events.Picture
 		evt.Timestamp = ts
 		evt.JID = ag.JID("jid")
-		evt.Author = ag.JID("author")
+		evt.Author = ag.OptionalJIDOrEmpty("author")
 		if child.Tag == "remove" {
 			evt.Remove = true
 		} else if child.Tag == "add" {
 			evt.PictureID = ag.String("id")
+		} else if child.Tag == "set" {
+			// TODO sometimes there's a hash and no ID?
+			evt.PictureID = ag.String("id")
 		} else {
+			continue
+		}
+		if !ag.OK() {
+			cli.Log.Debugf("Ignoring picture change notification with unexpected attributes: %v", ag.Error())
 			continue
 		}
 		cli.dispatchEvent(&evt)
