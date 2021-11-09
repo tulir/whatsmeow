@@ -455,7 +455,7 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 		}
 		previousName := cached.PushName
 		cached.PushName = pushName
-		s.contactCache[user] = cached
+		cached.Found = true
 		return true, previousName, nil
 	}
 	return false, "", nil
@@ -475,6 +475,7 @@ func (s *SQLStore) PutBusinessName(user types.JID, businessName string) error {
 			return err
 		}
 		cached.BusinessName = businessName
+		cached.Found = true
 	}
 	return nil
 }
@@ -494,6 +495,7 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 		}
 		cached.FirstName = firstName
 		cached.FullName = fullName
+		cached.Found = true
 	}
 	return nil
 }
