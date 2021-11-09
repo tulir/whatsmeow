@@ -32,13 +32,13 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 		}
 	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
 		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node.XMLString())
-		err := cli.Store.Identities.DeleteIdentities(from.User)
+		err := cli.Store.Identities.DeleteAllIdentities(from.User)
 		if err != nil {
-			cli.Log.Warnf("Failed to delete identities of %s from store after identity change: %v", from, err)
+			cli.Log.Warnf("Failed to delete all identities of %s from store after identity change: %v", from, err)
 		}
-		err = cli.Store.Sessions.DeleteSessions(from.User)
+		err = cli.Store.Sessions.DeleteAllSessions(from.User)
 		if err != nil {
-			cli.Log.Warnf("Failed to delete sessions of %s from store after identity change: %v", from, err)
+			cli.Log.Warnf("Failed to delete all sessions of %s from store after identity change: %v", from, err)
 		}
 		ts := time.Unix(node.AttrGetter().Int64("t"), 0)
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})

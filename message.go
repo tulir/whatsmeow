@@ -10,11 +10,13 @@ import (
 	"bytes"
 	"compress/zlib"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
 	"time"
 
+	"go.mau.fi/libsignal/signalerror"
 	"google.golang.org/protobuf/proto"
 
 	"go.mau.fi/libsignal/groups"
@@ -166,6 +168,19 @@ func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool
 			return nil, fmt.Errorf("failed to parse prekey message: %w", err)
 		}
 		plaintext, _, err = cipher.DecryptMessageReturnKey(preKeyMsg)
+		if errors.Is(err, signalerror.ErrUntrustedIdentity) {
+			cli.Log.Warnf("Got %v error while trying to decrypt prekey message from %s, clearing stored identity and retrying", err, from)
+			err = cli.Store.Identities.DeleteIdentity(from.SignalAddress().String())
+			if err != nil {
+				cli.Log.Warnf("Failed to delete identity of %s from store after decryption error: %v", from, err)
+			}
+			err = cli.Store.Sessions.DeleteSession(from.SignalAddress().String())
+			if err != nil {
+				cli.Log.Warnf("Failed to delete session with %s from store after decryption error: %v", from, err)
+			}
+			cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: time.Now(), Implicit: true})
+			plaintext, _, err = cipher.DecryptMessageReturnKey(preKeyMsg)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to decrypt prekey message: %w", err)
 		}

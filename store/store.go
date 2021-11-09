@@ -18,7 +18,8 @@ import (
 
 type IdentityStore interface {
 	PutIdentity(address string, key [32]byte) error
-	DeleteIdentities(phone string) error
+	DeleteAllIdentities(phone string) error
+	DeleteIdentity(address string) error
 	IsTrustedIdentity(address string, key [32]byte) (bool, error)
 }
 
@@ -26,7 +27,8 @@ type SessionStore interface {
 	GetSession(address string) ([]byte, error)
 	HasSession(address string) (bool, error)
 	PutSession(address string, session []byte) error
-	DeleteSessions(phone string) error
+	DeleteAllSessions(phone string) error
+	DeleteSession(address string) error
 }
 
 type PreKeyStore interface {

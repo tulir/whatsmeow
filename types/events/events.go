@@ -203,4 +203,8 @@ type Picture struct {
 type IdentityChange struct {
 	JID       types.JID
 	Timestamp time.Time
+
+	// Implicit will be set to true if the event was triggered by an untrusted identity error,
+	// rather than an identity change notification from the server.
+	Implicit bool
 }

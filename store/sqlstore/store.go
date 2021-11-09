@@ -69,8 +69,9 @@ const (
 		INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET identity=$3
 	`
-	deleteIdentitiesQuery = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id LIKE $2`
-	getIdentityQuery      = `SELECT identity FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
+	deleteAllIdentitiesQuery = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id LIKE $2`
+	deleteIdentityQuery      = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
+	getIdentityQuery         = `SELECT identity FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
 )
 
 func (s *SQLStore) PutIdentity(address string, key [32]byte) error {
@@ -78,8 +79,13 @@ func (s *SQLStore) PutIdentity(address string, key [32]byte) error {
 	return err
 }
 
-func (s *SQLStore) DeleteIdentities(phone string) error {
-	_, err := s.db.Exec(deleteIdentitiesQuery, s.JID, phone+":%")
+func (s *SQLStore) DeleteAllIdentities(phone string) error {
+	_, err := s.db.Exec(deleteAllIdentitiesQuery, s.JID, phone+":%")
+	return err
+}
+
+func (s *SQLStore) DeleteIdentity(address string) error {
+	_, err := s.db.Exec(deleteAllIdentitiesQuery, s.JID, address)
 	return err
 }
 
@@ -104,7 +110,8 @@ const (
 		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=$3
 	`
-	deleteSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id LIKE $2`
+	deleteAllSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id LIKE $2`
+	deleteSessionQuery     = `DELETE FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
 )
 
 func (s *SQLStore) GetSession(address string) (session []byte, err error) {
@@ -128,8 +135,13 @@ func (s *SQLStore) PutSession(address string, session []byte) error {
 	return err
 }
 
-func (s *SQLStore) DeleteSessions(phone string) error {
-	_, err := s.db.Exec(deleteSessionsQuery, s.JID, phone+":%")
+func (s *SQLStore) DeleteAllSessions(phone string) error {
+	_, err := s.db.Exec(deleteAllSessionsQuery, s.JID, phone+":%")
+	return err
+}
+
+func (s *SQLStore) DeleteSession(address string) error {
+	_, err := s.db.Exec(deleteSessionQuery, s.JID, address)
 	return err
 }
 
