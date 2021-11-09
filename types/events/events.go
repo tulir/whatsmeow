@@ -198,3 +198,9 @@ type Picture struct {
 	Remove    bool      // True if the picture was removed.
 	PictureID string    // The new picture ID if it was not removed.
 }
+
+// IdentityChange is emitted when another user changes their primary device.
+type IdentityChange struct {
+	JID       types.JID
+	Timestamp time.Time
+}

@@ -69,11 +69,17 @@ const (
 		INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET identity=$3
 	`
-	getIdentityQuery = `SELECT identity FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
+	deleteIdentitiesQuery = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id LIKE $2`
+	getIdentityQuery      = `SELECT identity FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
 )
 
 func (s *SQLStore) PutIdentity(address string, key [32]byte) error {
 	_, err := s.db.Exec(putIdentityQuery, s.JID, address, key[:])
+	return err
+}
+
+func (s *SQLStore) DeleteIdentities(phone string) error {
+	_, err := s.db.Exec(deleteIdentitiesQuery, s.JID, phone+":%")
 	return err
 }
 
@@ -98,6 +104,7 @@ const (
 		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=$3
 	`
+	deleteSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id LIKE $2`
 )
 
 func (s *SQLStore) GetSession(address string) (session []byte, err error) {
@@ -118,6 +125,11 @@ func (s *SQLStore) HasSession(address string) (has bool, err error) {
 
 func (s *SQLStore) PutSession(address string, session []byte) error {
 	_, err := s.db.Exec(putSessionQuery, s.JID, address, session)
+	return err
+}
+
+func (s *SQLStore) DeleteSessions(phone string) error {
+	_, err := s.db.Exec(deleteSessionsQuery, s.JID, phone+":%")
 	return err
 }
 

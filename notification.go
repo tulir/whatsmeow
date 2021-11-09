@@ -31,8 +31,17 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 			cli.uploadPreKeys()
 		}
 	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
-		cli.Log.Debugf("Got identity change for %s: %s", from, node.XMLString())
-		// TODO handle identity of other users changing
+		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node.XMLString())
+		err := cli.Store.Identities.DeleteIdentities(from.User)
+		if err != nil {
+			cli.Log.Warnf("Failed to delete identities of %s from store after identity change: %v", from, err)
+		}
+		err = cli.Store.Sessions.DeleteSessions(from.User)
+		if err != nil {
+			cli.Log.Warnf("Failed to delete sessions of %s from store after identity change: %v", from, err)
+		}
+		ts := time.Unix(node.AttrGetter().Int64("t"), 0)
+		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
 		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
 	}
