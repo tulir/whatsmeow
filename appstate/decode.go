@@ -141,7 +141,8 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 	for _, patch := range list.Patches {
 		version := patch.GetVersion().GetVersion()
 		currentState.Version = version
-		err = currentState.updateHash(patch, func(indexMAC []byte, maxIndex int) ([]byte, error) {
+		var warn []error
+		warn, err = currentState.updateHash(patch, func(indexMAC []byte, maxIndex int) ([]byte, error) {
 			for i := maxIndex - 1; i >= 0; i-- {
 				if bytes.Equal(patch.Mutations[i].GetRecord().GetIndex().GetBlob(), indexMAC) {
 					value := patch.Mutations[i].GetRecord().GetValue().GetBlob()
@@ -151,6 +152,9 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 			// Previous value not found in current patch, look in the database
 			return proc.Store.AppState.GetAppStateMutationMAC(string(list.Name), indexMAC)
 		})
+		if len(warn) > 0 {
+			proc.Log.Warnf("Warnings while updating hash for %s: %+v", list.Name, warn)
+		}
 		if err != nil {
 			err = fmt.Errorf("failed to update state hash: %w", err)
 			return
