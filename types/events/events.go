@@ -144,9 +144,9 @@ func (rt ReceiptType) GoString() string {
 // N.B. WhatsApp on Android sends message IDs from newest message to oldest, but WhatsApp on iOS sends them in the opposite order (oldest first).
 type Receipt struct {
 	types.MessageSource
-	MessageIDs  []types.MessageID
-	Timestamp   time.Time
-	Type        ReceiptType
+	MessageIDs []types.MessageID
+	Timestamp  time.Time
+	Type       ReceiptType
 }
 
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
