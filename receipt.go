@@ -125,8 +125,8 @@ func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, se
 	if len(ids) > 1 {
 		children := make([]waBinary.Node, len(ids)-1)
 		for i := 1; i < len(ids); i++ {
-			children[i].Tag = "item"
-			children[i].Attrs = waBinary.Attrs{"id": ids[i]}
+			children[i-1].Tag = "item"
+			children[i-1].Attrs = waBinary.Attrs{"id": ids[i]}
 		}
 		node.Content = []waBinary.Node{{
 			Tag:     "list",
