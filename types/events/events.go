@@ -140,12 +140,13 @@ func (rt ReceiptType) GoString() string {
 }
 
 // Receipt is emitted when an outgoing message is delivered to or read by another user, or when another device reads an incoming message.
+//
+// N.B. WhatsApp on Android sends message IDs from newest message to oldest, but WhatsApp on iOS sends them in the opposite order (oldest first).
 type Receipt struct {
 	types.MessageSource
-	MessageID   string
+	MessageIDs  []types.MessageID
 	Timestamp   time.Time
 	Type        ReceiptType
-	PreviousIDs []string // Additional message IDs that were read. Only present for read receipts.
 }
 
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
