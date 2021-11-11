@@ -24,7 +24,7 @@ func (cli *Client) handleReceipt(node *waBinary.Node) {
 			go func() {
 				err := cli.handleRetryReceipt(receipt, node)
 				if err != nil {
-					cli.Log.Errorf("Failed to handle retry receipt for %s/%s from %s: %v", receipt.Chat, receipt.MessageID, receipt.Sender, err)
+					cli.Log.Errorf("Failed to handle retry receipt for %s/%s from %s: %v", receipt.Chat, receipt.MessageIDs[0], receipt.Sender, err)
 				}
 			}()
 		}
@@ -63,7 +63,7 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 		Timestamp:     time.Unix(ag.Int64("t"), 0),
 		Type:          events.ReceiptType(ag.OptionalString("type")),
 	}
-	receipt.MessageID = ag.String("id")
+	mainMessageID := ag.String("id")
 	if !ag.OK() {
 		return nil, fmt.Errorf("failed to parse read receipt attrs: %+v", ag.Errors)
 	}
@@ -71,12 +71,15 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 	receiptChildren := node.GetChildren()
 	if len(receiptChildren) == 1 && receiptChildren[0].Tag == "list" {
 		listChildren := receiptChildren[0].GetChildren()
-		receipt.PreviousIDs = make([]string, 0, len(listChildren))
+		receipt.MessageIDs = make([]string, 1, len(listChildren)+1)
+		receipt.MessageIDs[0] = mainMessageID
 		for _, item := range listChildren {
 			if id, ok := item.Attrs["id"].(string); ok && item.Tag == "item" {
-				receipt.PreviousIDs = append(receipt.PreviousIDs, id)
+				receipt.MessageIDs = append(receipt.MessageIDs, id)
 			}
 		}
+	} else {
+		receipt.MessageIDs = []types.MessageID{mainMessageID}
 	}
 	return &receipt, nil
 }
@@ -125,8 +128,8 @@ func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, se
 	if len(ids) > 1 {
 		children := make([]waBinary.Node, len(ids)-1)
 		for i := 1; i < len(ids); i++ {
-			children[i].Tag = "item"
-			children[i].Attrs = waBinary.Attrs{"id": ids[i]}
+			children[i-1].Tag = "item"
+			children[i-1].Attrs = waBinary.Attrs{"id": ids[i]}
 		}
 		node.Content = []waBinary.Node{{
 			Tag:     "list",

@@ -140,12 +140,13 @@ func (rt ReceiptType) GoString() string {
 }
 
 // Receipt is emitted when an outgoing message is delivered to or read by another user, or when another device reads an incoming message.
+//
+// N.B. WhatsApp on Android sends message IDs from newest message to oldest, but WhatsApp on iOS sends them in the opposite order (oldest first).
 type Receipt struct {
 	types.MessageSource
-	MessageID   string
-	Timestamp   time.Time
-	Type        ReceiptType
-	PreviousIDs []string // Additional message IDs that were read. Only present for read receipts.
+	MessageIDs []types.MessageID
+	Timestamp  time.Time
+	Type       ReceiptType
 }
 
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
@@ -197,4 +198,14 @@ type Picture struct {
 	Timestamp time.Time // The timestamp when the picture was changed.
 	Remove    bool      // True if the picture was removed.
 	PictureID string    // The new picture ID if it was not removed.
+}
+
+// IdentityChange is emitted when another user changes their primary device.
+type IdentityChange struct {
+	JID       types.JID
+	Timestamp time.Time
+
+	// Implicit will be set to true if the event was triggered by an untrusted identity error,
+	// rather than an identity change notification from the server.
+	Implicit bool
 }

@@ -69,11 +69,23 @@ const (
 		INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET identity=$3
 	`
-	getIdentityQuery = `SELECT identity FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
+	deleteAllIdentitiesQuery = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id LIKE $2`
+	deleteIdentityQuery      = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
+	getIdentityQuery         = `SELECT identity FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
 )
 
 func (s *SQLStore) PutIdentity(address string, key [32]byte) error {
 	_, err := s.db.Exec(putIdentityQuery, s.JID, address, key[:])
+	return err
+}
+
+func (s *SQLStore) DeleteAllIdentities(phone string) error {
+	_, err := s.db.Exec(deleteAllIdentitiesQuery, s.JID, phone+":%")
+	return err
+}
+
+func (s *SQLStore) DeleteIdentity(address string) error {
+	_, err := s.db.Exec(deleteAllIdentitiesQuery, s.JID, address)
 	return err
 }
 
@@ -98,6 +110,8 @@ const (
 		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=$3
 	`
+	deleteAllSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id LIKE $2`
+	deleteSessionQuery     = `DELETE FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
 )
 
 func (s *SQLStore) GetSession(address string) (session []byte, err error) {
@@ -118,6 +132,16 @@ func (s *SQLStore) HasSession(address string) (has bool, err error) {
 
 func (s *SQLStore) PutSession(address string, session []byte) error {
 	_, err := s.db.Exec(putSessionQuery, s.JID, address, session)
+	return err
+}
+
+func (s *SQLStore) DeleteAllSessions(phone string) error {
+	_, err := s.db.Exec(deleteAllSessionsQuery, s.JID, phone+":%")
+	return err
+}
+
+func (s *SQLStore) DeleteSession(address string) error {
+	_, err := s.db.Exec(deleteSessionQuery, s.JID, address)
 	return err
 }
 
@@ -431,7 +455,7 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 		}
 		previousName := cached.PushName
 		cached.PushName = pushName
-		s.contactCache[user] = cached
+		cached.Found = true
 		return true, previousName, nil
 	}
 	return false, "", nil
@@ -451,6 +475,7 @@ func (s *SQLStore) PutBusinessName(user types.JID, businessName string) error {
 			return err
 		}
 		cached.BusinessName = businessName
+		cached.Found = true
 	}
 	return nil
 }
@@ -470,6 +495,7 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 		}
 		cached.FirstName = firstName
 		cached.FullName = fullName
+		cached.Found = true
 	}
 	return nil
 }

@@ -49,14 +49,12 @@ func (cli *Client) addRecentMessage(to types.JID, id types.MessageID, message *w
 	if cli.recentMessagesPtr >= len(cli.recentMessagesList) {
 		cli.recentMessagesPtr = 0
 	}
-	fmt.Printf("Added %s/%s to message cache\n", to, id)
 	cli.recentMessagesLock.Unlock()
 }
 
 func (cli *Client) getRecentMessage(to types.JID, id types.MessageID) *waProto.Message {
 	cli.recentMessagesLock.RLock()
 	msg, _ := cli.recentMessagesMap[recentMessageKey{to, id}]
-	fmt.Printf("Message cache result for %s/%s: %+v\n", to, id, msg)
 	cli.recentMessagesLock.RUnlock()
 	return msg
 }

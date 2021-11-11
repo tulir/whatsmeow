@@ -31,8 +31,9 @@ type HashState struct {
 	Hash    [128]byte
 }
 
-func (hs *HashState) updateHash(patch *waProto.SyncdPatch, getPrevSetValueMAC func(indexMAC []byte, maxIndex int) ([]byte, error)) error {
+func (hs *HashState) updateHash(patch *waProto.SyncdPatch, getPrevSetValueMAC func(indexMAC []byte, maxIndex int) ([]byte, error)) ([]error, error) {
 	var added, removed [][]byte
+	var warnings []error
 
 	for i, mutation := range patch.GetMutations() {
 		if mutation.GetOperation() == waProto.SyncdMutation_SET {
@@ -42,16 +43,20 @@ func (hs *HashState) updateHash(patch *waProto.SyncdPatch, getPrevSetValueMAC fu
 		indexMAC := mutation.GetRecord().GetIndex().GetBlob()
 		removal, err := getPrevSetValueMAC(indexMAC, i)
 		if err != nil {
-			return fmt.Errorf("failed to get value MAC of previous SET operation: %w", err)
+			return warnings, fmt.Errorf("failed to get value MAC of previous SET operation: %w", err)
 		} else if removal != nil {
 			removed = append(removed, removal)
 		} else if mutation.GetOperation() == waProto.SyncdMutation_REMOVE {
-			return ErrMissingPreviousSetValueOperation
+			// TODO figure out if there are certain cases that are safe to ignore and others that aren't
+			// At least removing contact access from WhatsApp seems to create a REMOVE op for your own JID
+			// that points to a non-existent index and is safe to ignore here. Other keys might not be safe to ignore.
+			warnings = append(warnings, fmt.Errorf("%w for %X", ErrMissingPreviousSetValueOperation, mutation.GetRecord().GetIndex().GetBlob()))
+			//return ErrMissingPreviousSetValueOperation
 		}
 	}
 
 	lthash.WAPatchIntegrity.SubtractThenAddInPlace(hs.Hash[:], removed, added)
-	return nil
+	return warnings, nil
 }
 
 func uint64ToBytes(val uint64) []byte {
