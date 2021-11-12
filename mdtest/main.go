@@ -417,9 +417,9 @@ func handler(rawEvt interface{}) {
 		}
 	case *events.Receipt:
 		if evt.Type == events.ReceiptTypeRead {
-			log.Infof("%s was read by %s at %s", evt.MessageID, evt.SourceString(), evt.Timestamp)
+			log.Infof("%v was read by %s at %s", evt.MessageIDs, evt.SourceString(), evt.Timestamp)
 		} else if evt.Type == events.ReceiptTypeDelivered {
-			log.Infof("%s was delivered to %s at %s", evt.MessageID, evt.SourceString(), evt.Timestamp)
+			log.Infof("%s was delivered to %s at %s", evt.MessageIDs[0], evt.SourceString(), evt.Timestamp)
 		}
 	case *events.HistorySync:
 		id := atomic.AddInt32(&historySyncID, 1)
