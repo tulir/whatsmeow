@@ -55,10 +55,7 @@ func (cli *Client) handlePairDevice(node *waBinary.Node) {
 		cli.Log.Warnf("Failed to send acknowledgement for pair-device request: %v", err)
 	}
 
-	evt := &events.QR{
-		Codes:   make([]string, 0, len(pairDevice.GetChildren())),
-		Timeout: qrScanTimeout,
-	}
+	evt := &events.QR{Codes: make([]string, 0, len(pairDevice.GetChildren()))}
 	for i, child := range pairDevice.GetChildren() {
 		if child.Tag != "ref" {
 			cli.Log.Warnf("pair-device node contains unexpected child tag %s at index %d", child.Tag, i)
