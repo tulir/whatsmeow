@@ -71,6 +71,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 			cli.Log.Warnf("Failed to delete store after 401 failure: %v", err)
 		}
 	} else {
+		cli.expectDisconnect()
 		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())
 		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Raw: node})
 	}
