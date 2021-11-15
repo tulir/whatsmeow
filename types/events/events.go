@@ -19,14 +19,14 @@ import (
 // QR is emitted after connecting when there's no session data in the device store.
 //
 // The QR codes are available in the Codes slice. You should render the strings as QR codes one by
-// one, switching to the next one whenever the duration specified in the Timeout field has passed.
+// one, switching to the next one whenever enough time has passed. WhatsApp web seems to show the
+// first code for 60 seconds and all other codes for 20 seconds.
 //
 // When the QR code has been scanned and pairing is complete, PairSuccess will be emitted. If you
 // run out of codes before scanning, the server will close the websocket, and you will have to
 // reconnect to get more codes.
 type QR struct {
-	Codes   []string
-	Timeout time.Duration
+	Codes []string
 }
 
 // PairSuccess is emitted after the QR code has been scanned with the phone and the handshake has

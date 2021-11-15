@@ -16,23 +16,26 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
-type QRChannelItem string
-
-// IsQR returns true if this channel item is an actual QR code rather than a special message.
-func (qrci QRChannelItem) IsQR() bool {
-	return qrci != QRChannelSuccess && qrci != QRChannelTimeout && qrci != QRChannelErrUnexpectedEvent && qrci != QRChannelScannedWithoutMultidevice
+type QRChannelItem struct {
+	// The type of event, "code" for new QR codes.
+	// For non-code events, you can just compare the whole item to the event variables (like QRChannelSuccess).
+	Event string
+	// If the item is a new code, then this field contains the raw data.
+	Code string
+	// The timeout after which the next code will be sent down the channel.
+	Timeout time.Duration
 }
 
-const (
+var (
 	// QRChannelSuccess is emitted from GetQRChannel when the pairing is successful.
-	QRChannelSuccess QRChannelItem = "success"
+	QRChannelSuccess = QRChannelItem{Event: "success"}
 	// QRChannelTimeout is emitted from GetQRChannel if the socket gets disconnected by the server before the pairing is successful.
-	QRChannelTimeout QRChannelItem = "timeout"
+	QRChannelTimeout = QRChannelItem{Event: "timeout"}
 	// QRChannelErrUnexpectedEvent is emitted from GetQRChannel if an unexpected connection event is received,
 	// as that likely means that the pairing has already happened before the channel was set up.
-	QRChannelErrUnexpectedEvent QRChannelItem = "err-unexpected-state"
+	QRChannelErrUnexpectedEvent = QRChannelItem{Event: "err-unexpected-state"}
 	// QRChannelScannedWithoutMultidevice is emitted from GetQRChannel if events.QRScannedWithoutMultidevice is received.
-	QRChannelScannedWithoutMultidevice QRChannelItem = "err-scanned-without-multidevice"
+	QRChannelScannedWithoutMultidevice = QRChannelItem{Event: "err-scanned-without-multidevice"}
 )
 
 type qrChannel struct {
@@ -64,10 +67,14 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 			qrc.log.Debugf("QR code channel is closed, exiting QR emitter")
 			return
 		}
+		timeout := 20 * time.Second
+		if len(evt.Codes) == 6 {
+			timeout = 60 * time.Second
+		}
 		nextCode, evt.Codes = evt.Codes[0], evt.Codes[1:]
 		qrc.log.Debugf("Emitting QR code %s", nextCode)
 		select {
-		case qrc.output <- QRChannelItem(nextCode):
+		case qrc.output <- QRChannelItem{Code: nextCode, Timeout: timeout, Event: "code"}:
 		default:
 			qrc.log.Debugf("Output channel didn't accept code, exiting QR emitter")
 			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
@@ -78,7 +85,7 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 			return
 		}
 		select {
-		case <-time.After(evt.Timeout):
+		case <-time.After(timeout):
 		case <-qrc.stopQRs:
 			qrc.log.Debugf("Got signal to stop QR emitter")
 			return

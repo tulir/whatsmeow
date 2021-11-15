@@ -76,10 +76,10 @@ func main() {
 	} else {
 		go func() {
 			for evt := range ch {
-				if evt.IsQR() {
-					qrterminal.GenerateHalfBlock(string(evt), qrterminal.L, os.Stdout)
+				if evt.Event == "code" {
+					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
 				} else {
-					log.Infof("QR channel result: %s", evt)
+					log.Infof("QR channel result: %s", evt.Event)
 				}
 			}
 		}()
