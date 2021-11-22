@@ -10,8 +10,6 @@ import (
 	"fmt"
 	"time"
 
-	"google.golang.org/protobuf/proto"
-
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
@@ -39,10 +37,14 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 	} else if onlyIfNotSynced {
 		return nil
 	}
+
 	state := appstate.HashState{Version: version, Hash: hash}
+
 	hasMore := true
+	wantSnapshot := fullSync
 	for hasMore {
-		patches, err := cli.fetchAppStatePatches(name, state.Version)
+		patches, err := cli.fetchAppStatePatches(name, state.Version, wantSnapshot)
+		wantSnapshot = false
 		if err != nil {
 			return fmt.Errorf("failed to fetch app state %s patches: %w", name, err)
 		}
@@ -160,20 +162,18 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 	}
 }
 
-func (cli *Client) downloadExternalAppStateBlob(ref *waProto.ExternalBlobReference) (*waProto.SyncdMutations, error) {
-	data, err := cli.Download(ref)
-	if err != nil {
-		return nil, err
-	}
-	var mutations waProto.SyncdMutations
-	err = proto.Unmarshal(data, &mutations)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal mutation list: %w", err)
-	}
-	return &mutations, nil
+func (cli *Client) downloadExternalAppStateBlob(ref *waProto.ExternalBlobReference) ([]byte, error) {
+	return cli.Download(ref)
 }
 
-func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion uint64) (*appstate.PatchList, error) {
+func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion uint64, snapshot bool) (*appstate.PatchList, error) {
+	attrs := waBinary.Attrs{
+		"name":            string(name),
+		"return_snapshot": snapshot,
+	}
+	if !snapshot {
+		attrs["version"] = fromVersion
+	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:sync:app:state",
 		Type:      "set",
@@ -182,11 +182,7 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 			Tag: "sync",
 			Content: []waBinary.Node{{
 				Tag: "collection",
-				Attrs: waBinary.Attrs{
-					"name":            string(name),
-					"version":         fromVersion,
-					"return_snapshot": false,
-				},
+				Attrs: attrs,
 			}},
 		}},
 	})
