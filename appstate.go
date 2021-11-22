@@ -181,7 +181,7 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 		Content: []waBinary.Node{{
 			Tag: "sync",
 			Content: []waBinary.Node{{
-				Tag: "collection",
+				Tag:   "collection",
 				Attrs: attrs,
 			}},
 		}},
