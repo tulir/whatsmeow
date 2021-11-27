@@ -78,7 +78,7 @@ func (cli *Client) getMessageForRetry(receipt *events.Receipt, messageID types.M
 func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.Node) error {
 	retryChild, ok := node.GetOptionalChildByTag("retry")
 	if !ok {
-		return fmt.Errorf("missing <retry> element in retry receipt")
+		return &ElementMissingError{Tag: "retry", In: "retry receipt"}
 	}
 	ag := retryChild.AttrGetter()
 	messageID := ag.String("id")

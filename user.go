@@ -49,7 +49,7 @@ func (cli *Client) ResolveBusinessMessageLink(code string) (*types.BusinessMessa
 	}
 	qrChild, ok := resp.GetOptionalChildByTag("qr")
 	if !ok {
-		return nil, fmt.Errorf("didn't get <qr> element in response")
+		return nil, &ElementMissingError{Tag: "qr", In: "response to business message link query"}
 	}
 	var target types.BusinessMessageLinkTarget
 	ag := qrChild.AttrGetter()
@@ -195,7 +195,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")
 	if !ok {
-		return nil, fmt.Errorf("missing <picture> element in response to profile picture query")
+		return nil, &ElementMissingError{Tag: "picture", In: "response to profile picture query"}
 	}
 	var info types.ProfilePictureInfo
 	ag := picture.AttrGetter()
@@ -350,7 +350,7 @@ func (cli *Client) usync(jids []types.JID, mode, context string, query []waBinar
 	if err != nil {
 		return nil, fmt.Errorf("failed to send usync query: %w", err)
 	} else if list, ok := resp.GetOptionalChildByTag("usync", "list"); !ok {
-		return nil, fmt.Errorf("missing usync list element in response to usync query")
+		return nil, &ElementMissingError{Tag: "list", In: "response to usync query"}
 	} else {
 		return &list, err
 	}

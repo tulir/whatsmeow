@@ -144,3 +144,13 @@ func (iqe *IQError) Is(other error) bool {
 		return false
 	}
 }
+
+// ElementMissingError is returned by various functions that parse XML elements when a required element is missing.
+type ElementMissingError struct {
+	Tag string
+	In  string
+}
+
+func (eme *ElementMissingError) Error() string {
+	return fmt.Sprintf("missing <%s> element in %s", eme.Tag, eme.In)
+}
