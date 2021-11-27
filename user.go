@@ -19,18 +19,60 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-// IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
-type IsOnWhatsAppResponse struct {
-	Query string    // The query string used
-	JID   types.JID // The canonical user ID
-	IsIn  bool      // Whether the phone is registered or not.
+const BusinessMessageLinkPrefix = "https://wa.me/message/"
+const BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
 
-	VerifiedName *types.VerifiedName // If the phone is a business, the verified business details.
+// ResolveBusinessMessageLink resolves a business message short link and returns the target JID, business name and
+// text to prefill in the input field (if any).
+//
+// The links look like https://wa.me/message/<code> or https://api.whatsapp.com/message/<code>. You can either provide
+// the full link, or just the <code> part.
+func (cli *Client) ResolveBusinessMessageLink(code string) (*types.BusinessMessageLinkTarget, error) {
+	code = strings.TrimPrefix(code, BusinessMessageLinkPrefix)
+	code = strings.TrimPrefix(code, BusinessMessageLinkDirectPrefix)
+
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:qr",
+		Type:      "get",
+		// WhatsApp android doesn't seem to have a "to" field for this one at all, not sure why but it works
+		Content: []waBinary.Node{{
+			Tag: "qr",
+			Attrs: waBinary.Attrs{
+				"code": code,
+			},
+		}},
+	})
+	if errors.Is(err, ErrIQNotFound) {
+		return nil, wrapIQError(ErrBusinessMessageLinkNotFound, err)
+	} else if err != nil {
+		return nil, err
+	}
+	qrChild, ok := resp.GetOptionalChildByTag("qr")
+	if !ok {
+		return nil, fmt.Errorf("didn't get <qr> element in response")
+	}
+	var target types.BusinessMessageLinkTarget
+	ag := qrChild.AttrGetter()
+	target.JID = ag.JID("jid")
+	target.PushName = ag.String("notify")
+	messageChild, ok := qrChild.GetOptionalChildByTag("message")
+	if ok {
+		messageBytes, _ := messageChild.Content.([]byte)
+		target.Message = string(messageBytes)
+	}
+	businessChild, ok := qrChild.GetOptionalChildByTag("business")
+	if ok {
+		bag := businessChild.AttrGetter()
+		target.IsSigned = bag.OptionalBool("is_signed")
+		target.VerifiedName = bag.OptionalString("verified_name")
+		target.VerifiedLevel = bag.OptionalString("verified_level")
+	}
+	return &target, ag.Error()
 }
 
 // IsOnWhatsApp checks if the given phone numbers are registered on WhatsApp.
 // The phone numbers should be in international format, including the `+` prefix.
-func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error) {
+func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, error) {
 	jids := make([]types.JID, len(phones))
 	for i := range jids {
 		jids[i] = types.NewJID(phones[i], types.LegacyUserServer)
@@ -42,14 +84,14 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]IsOnWhatsAppResponse, error)
 	if err != nil {
 		return nil, err
 	}
-	output := make([]IsOnWhatsAppResponse, 0, len(jids))
+	output := make([]types.IsOnWhatsAppResponse, 0, len(jids))
 	querySuffix := "@" + types.LegacyUserServer
 	for _, child := range list.GetChildren() {
 		jid, jidOK := child.Attrs["jid"].(types.JID)
 		if child.Tag != "user" || !jidOK {
 			continue
 		}
-		var info IsOnWhatsAppResponse
+		var info types.IsOnWhatsAppResponse
 		info.JID = jid
 		info.VerifiedName, err = parseVerifiedName(child.GetChildByTag("business"))
 		if err != nil {

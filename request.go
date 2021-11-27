@@ -90,14 +90,17 @@ func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
 		query.ID = cli.generateRequestID()
 	}
 	waiter := cli.waitResponse(query.ID)
+	attrs := waBinary.Attrs{
+		"id":    query.ID,
+		"xmlns": query.Namespace,
+		"type":  string(query.Type),
+	}
+	if !query.To.IsEmpty() {
+		attrs["to"] = query.To
+	}
 	err := cli.sendNode(waBinary.Node{
-		Tag: "iq",
-		Attrs: waBinary.Attrs{
-			"id":    query.ID,
-			"xmlns": query.Namespace,
-			"type":  string(query.Type),
-			"to":    query.To,
-		},
+		Tag:     "iq",
+		Attrs:   attrs,
 		Content: query.Content,
 	})
 	if err != nil {

@@ -43,6 +43,8 @@ var (
 	ErrInviteLinkInvalid = errors.New("that group invite link is not valid")
 	// ErrInviteLinkRevoked is returned by methods that use group invite links if the invite link was valid, but has been revoked and can no longer be used.
 	ErrInviteLinkRevoked = errors.New("that group invite link has been revoked")
+	// ErrBusinessMessageLinkNotFound is returned by ResolveBusinessMessageLink if the link doesn't exist or has been revoked.
+	ErrBusinessMessageLinkNotFound = errors.New("that business message link does not exist or has been revoked")
 )
 
 // Some errors that Client.SendMessage can return

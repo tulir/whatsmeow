@@ -291,6 +291,17 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Group info: %+v", resp)
 		}
+	case "querybusinesslink":
+		if len(args) < 1 {
+			log.Errorf("Usage: querybusinesslink <link>")
+			return
+		}
+		resp, err := cli.ResolveBusinessMessageLink(args[0])
+		if err != nil {
+			log.Errorf("Failed to resolve business message link: %v", err)
+		} else {
+			log.Infof("Business info: %+v", resp)
+		}
 	case "joininvitelink":
 		if len(args) < 1 {
 			log.Errorf("Usage: acceptinvitelink <link>")
