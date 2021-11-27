@@ -69,7 +69,7 @@ type BusinessMessageLinkTarget struct {
 
 	PushName      string // The notify / push name of the business.
 	VerifiedName  string // The verified business name.
-	IsSigned      bool // Some boolean, seems to be true?
+	IsSigned      bool   // Some boolean, seems to be true?
 	VerifiedLevel string // I guess the level of verification, starting from "unknown".
 
 	Message string // The message that WhatsApp clients will pre-fill in the input box when clicking the link.
