@@ -420,7 +420,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 
 	payload, err := waBinary.Marshal(node)
 	if err != nil {
-		return fmt.Errorf("failed to marshal ping IQ: %w", err)
+		return fmt.Errorf("failed to marshal node: %w", err)
 	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())
