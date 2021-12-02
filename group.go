@@ -53,7 +53,7 @@ func (cli *Client) CreateGroup(name string, participants []types.JID) (*types.Gr
 	}
 	groupNode, ok := resp.GetOptionalChildByTag("group")
 	if !ok {
-		return nil, fmt.Errorf("missing <group> element in response to create group info query")
+		return nil, &ElementMissingError{Tag: "group", In: "response to create group query"}
 	}
 	return cli.parseGroupNode(&groupNode)
 }
@@ -210,7 +210,7 @@ func (cli *Client) GetGroupInfoFromInvite(jid, inviter types.JID, code string, e
 	}
 	groupNode, ok := resp.GetOptionalChildByTag("group")
 	if !ok {
-		return nil, fmt.Errorf("missing <group> element in response to invite group info query")
+		return nil, &ElementMissingError{Tag: "group", In: "response to invite group info query"}
 	}
 	return cli.parseGroupNode(&groupNode)
 }
@@ -247,7 +247,7 @@ func (cli *Client) GetGroupInfoFromLink(code string) (*types.GroupInfo, error) {
 	}
 	groupNode, ok := resp.GetOptionalChildByTag("group")
 	if !ok {
-		return nil, fmt.Errorf("missing <group> element in response to invite link group info query")
+		return nil, &ElementMissingError{Tag: "group", In: "response to group link info query"}
 	}
 	return cli.parseGroupNode(&groupNode)
 }
@@ -268,7 +268,7 @@ func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
 	}
 	groupNode, ok := resp.GetOptionalChildByTag("group")
 	if !ok {
-		return types.EmptyJID, fmt.Errorf("missing <group> element in response to invite link group info query")
+		return types.EmptyJID, &ElementMissingError{Tag: "group", In: "response to group link join query"}
 	}
 	return groupNode.AttrGetter().JID("jid"), nil
 }
@@ -287,7 +287,7 @@ func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
 	}
 	groups, ok := resp.GetOptionalChildByTag("groups")
 	if !ok {
-		return nil, fmt.Errorf("missing <groups> element in response to group list query")
+		return nil, &ElementMissingError{Tag: "groups", In: "response to group list query"}
 	}
 	children := groups.GetChildren()
 	infos := make([]*types.GroupInfo, 0, len(children))
@@ -321,7 +321,7 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 
 	groupNode, ok := res.GetOptionalChildByTag("group")
 	if !ok {
-		return nil, fmt.Errorf("missing <group> element in response to group info query")
+		return nil, &ElementMissingError{Tag: "groups", In: "response to group info query"}
 	}
 	return cli.parseGroupNode(&groupNode)
 }

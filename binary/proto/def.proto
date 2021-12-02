@@ -39,6 +39,7 @@ message UserAgent {
         OCULUS_MSG = 25;
         OCULUS_CALL = 26;
         MILAN = 27;
+        CAPI = 28;
     }
     optional UserAgentPlatform platform = 1;
     optional AppVersion appVersion = 2;
@@ -244,7 +245,6 @@ message BizAccountLinkInfo {
     optional BizAccountLinkInfoHostStorageType hostStorage = 4;
     enum BizAccountLinkInfoAccountType {
         ENTERPRISE = 0;
-        PAGE = 1;
     }
     optional BizAccountLinkInfoAccountType accountType = 5;
 }
@@ -552,8 +552,9 @@ message MsgRowOpaqueData {
 }
 
 message GlobalSettings {
-    optional WallpaperSettings wallpaper = 1;
+    optional WallpaperSettings lightThemeWallpaper = 1;
     optional MediaVisibility mediaVisibility = 2;
+    optional WallpaperSettings darkThemeWallpaper = 3;
 }
 
 message WallpaperSettings {
@@ -614,6 +615,7 @@ message Conversation {
     optional WallpaperSettings wallpaper = 26;
     optional MediaVisibility mediaVisibility = 27;
     optional uint64 tcTokenSenderTimestamp = 28;
+    optional bool suspended = 29;
 }
 
 message HistorySync {
@@ -631,6 +633,8 @@ message HistorySync {
     optional uint32 progress = 6;
     repeated Pushname pushnames = 7;
     optional GlobalSettings globalSettings = 8;
+    optional bytes threadIdUserSecret = 9;
+    optional uint32 threadDsTimeframeOffset = 10;
 }
 
 enum MediaVisibility {
@@ -641,13 +645,6 @@ enum MediaVisibility {
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
-}
-
-message Point {
-    optional int32 xDeprecated = 1;
-    optional int32 yDeprecated = 2;
-    optional double x = 3;
-    optional double y = 4;
 }
 
 message InteractiveAnnotation {
@@ -828,6 +825,11 @@ message ExtendedTextMessage {
     optional int64 mediaKeyTimestamp = 23;
     optional uint32 thumbnailHeight = 24;
     optional uint32 thumbnailWidth = 25;
+    enum ExtendedTextMessageInviteLinkGroupType {
+        DEFAULT = 0;
+        PARENT = 1;
+    }
+    optional ExtendedTextMessageInviteLinkGroupType inviteLinkGroupType = 26;
 }
 
 message DocumentMessage {
@@ -1118,7 +1120,6 @@ message StickerMessage {
     optional uint32 firstFrameLength = 11;
     optional bytes firstFrameSidecar = 12;
     optional bool isAnimated = 13;
-    optional bool fromStickerMaker = 14;
     optional bytes pngThumbnail = 16;
     optional ContextInfo contextInfo = 17;
 }
@@ -1287,6 +1288,7 @@ message Header {
         DocumentMessage documentMessage = 3;
         ImageMessage imageMessage = 4;
         bytes jpegThumbnail = 6;
+        VideoMessage videoMessage = 7;
     }
 }
 
@@ -1575,6 +1577,13 @@ message Location {
     optional double degreesLatitude = 1;
     optional double degreesLongitude = 2;
     optional string name = 3;
+}
+
+message Point {
+    optional int32 xDeprecated = 1;
+    optional int32 yDeprecated = 2;
+    optional double x = 3;
+    optional double y = 4;
 }
 
 // Seems to be a duplicate of the AppVersion at the top

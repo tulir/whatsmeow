@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"sync/atomic"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -15,7 +16,7 @@ import (
 )
 
 func (cli *Client) handleStreamError(node *waBinary.Node) {
-	cli.IsLoggedIn = false
+	atomic.StoreUint32(&cli.isLoggedIn, 0)
 	code, _ := node.Attrs["code"].(string)
 	switch code {
 	case "515":
@@ -81,7 +82,7 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.Log.Infof("Successfully authenticated")
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
-	cli.IsLoggedIn = true
+	atomic.StoreUint32(&cli.isLoggedIn, 1)
 	go func() {
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(); err != nil {
 			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)

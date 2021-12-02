@@ -298,33 +298,32 @@ func (cli *Client) encryptMessageForDevices(allDevices []types.JID, id string, m
 }
 
 func (cli *Client) encryptMessageForDeviceAndWrap(plaintext []byte, to types.JID, bundle *prekey.Bundle) (*waBinary.Node, bool, error) {
-	node, err := cli.encryptMessageForDevice(plaintext, to, bundle)
+	node, includeDeviceIdentity, err := cli.encryptMessageForDevice(plaintext, to, bundle)
 	if err != nil {
 		return nil, false, err
 	}
-	encType := node.Attrs["type"].(string)
 	return &waBinary.Node{
 		Tag:     "to",
 		Attrs:   waBinary.Attrs{"jid": to},
 		Content: []waBinary.Node{*node},
-	}, encType == "pkmsg", nil
+	}, includeDeviceIdentity, nil
 }
 
-func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle) (*waBinary.Node, error) {
+func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle) (*waBinary.Node, bool, error) {
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if bundle != nil {
 		cli.Log.Debugf("Processing prekey bundle for %s", to)
 		err := builder.ProcessBundle(bundle)
 		if err != nil {
-			return nil, fmt.Errorf("failed to process prekey bundle: %w", err)
+			return nil, false, fmt.Errorf("failed to process prekey bundle: %w", err)
 		}
 	} else if !cli.Store.ContainsSession(to.SignalAddress()) {
-		return nil, ErrNoSession
+		return nil, false, ErrNoSession
 	}
 	cipher := session.NewCipher(builder, to.SignalAddress())
 	ciphertext, err := cipher.Encrypt(padMessage(plaintext))
 	if err != nil {
-		return nil, fmt.Errorf("cipher encryption failed: %w", err)
+		return nil, false, fmt.Errorf("cipher encryption failed: %w", err)
 	}
 
 	encType := "msg"
@@ -339,5 +338,5 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundl
 			"type": encType,
 		},
 		Content: ciphertext.Serialize(),
-	}, nil
+	}, encType == "pkmsg", nil
 }

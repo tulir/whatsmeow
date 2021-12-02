@@ -43,6 +43,8 @@ var (
 	ErrInviteLinkInvalid = errors.New("that group invite link is not valid")
 	// ErrInviteLinkRevoked is returned by methods that use group invite links if the invite link was valid, but has been revoked and can no longer be used.
 	ErrInviteLinkRevoked = errors.New("that group invite link has been revoked")
+	// ErrBusinessMessageLinkNotFound is returned by ResolveBusinessMessageLink if the link doesn't exist or has been revoked.
+	ErrBusinessMessageLinkNotFound = errors.New("that business message link does not exist or has been revoked")
 )
 
 // Some errors that Client.SendMessage can return
@@ -141,4 +143,14 @@ func (iqe *IQError) Is(other error) bool {
 	} else {
 		return false
 	}
+}
+
+// ElementMissingError is returned by various functions that parse XML elements when a required element is missing.
+type ElementMissingError struct {
+	Tag string
+	In  string
+}
+
+func (eme *ElementMissingError) Error() string {
+	return fmt.Sprintf("missing <%s> element in %s", eme.Tag, eme.In)
 }
