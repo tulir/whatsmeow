@@ -427,7 +427,7 @@ func handler(rawEvt interface{}) {
 			log.Infof("Saved image in message to %s", path)
 		}
 	case *events.Receipt:
-		if evt.Type == events.ReceiptTypeRead {
+		if evt.Type == events.ReceiptTypeRead || evt.Type == events.ReceiptTypeReadSelf {
 			log.Infof("%v was read by %s at %s", evt.MessageIDs, evt.SourceString(), evt.Timestamp)
 		} else if evt.Type == events.ReceiptTypeDelivered {
 			log.Infof("%s was delivered to %s at %s", evt.MessageIDs[0], evt.SourceString(), evt.Timestamp)

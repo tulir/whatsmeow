@@ -125,6 +125,8 @@ const (
 	ReceiptTypeRetry ReceiptType = "retry"
 	// ReceiptTypeRead means the user opened the chat and saw the message.
 	ReceiptTypeRead ReceiptType = "read"
+	// ReceiptTypeReadSelf seems to be sent by some WhatsApp clients when the current user reads a message from a different device.
+	ReceiptTypeReadSelf ReceiptType = "read-self"
 )
 
 // GoString returns the name of the Go constant for the ReceiptType value.
@@ -132,6 +134,8 @@ func (rt ReceiptType) GoString() string {
 	switch rt {
 	case ReceiptTypeRead:
 		return "events.ReceiptTypeRead"
+	case ReceiptTypeReadSelf:
+		return "events.ReceiptTypeReadSelf"
 	case ReceiptTypeDelivered:
 		return "events.ReceiptTypeDelivered"
 	default:
