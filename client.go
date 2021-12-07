@@ -80,6 +80,8 @@ type Client struct {
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
 
+	privacySettingsCache atomic.Value
+
 	recentMessagesMap  map[recentMessageKey]*waProto.Message
 	recentMessagesList [recentMessagesSize]recentMessageKey
 	recentMessagesPtr  int

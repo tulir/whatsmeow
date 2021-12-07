@@ -74,3 +74,23 @@ type BusinessMessageLinkTarget struct {
 
 	Message string // The message that WhatsApp clients will pre-fill in the input box when clicking the link.
 }
+
+// PrivacySetting is an individual setting value in the user's privacy settings.
+type PrivacySetting string
+
+// Possible privacy setting values.
+const (
+	PrivacySettingUndefined PrivacySetting = ""
+	PrivacySettingAll       PrivacySetting = "all"
+	PrivacySettingContacts  PrivacySetting = "contacts"
+	PrivacySettingNone      PrivacySetting = "none"
+)
+
+// PrivacySettings contains the user's privacy settings.
+type PrivacySettings struct {
+	GroupAdd     PrivacySetting
+	LastSeen     PrivacySetting
+	Status       PrivacySetting
+	Profile      PrivacySetting
+	ReadReceipts PrivacySetting
+}

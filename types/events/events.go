@@ -125,7 +125,7 @@ const (
 	ReceiptTypeRetry ReceiptType = "retry"
 	// ReceiptTypeRead means the user opened the chat and saw the message.
 	ReceiptTypeRead ReceiptType = "read"
-	// ReceiptTypeReadSelf seems to be sent by some WhatsApp clients when the current user reads a message from a different device.
+	// ReceiptTypeReadSelf means the current user read a message from a different device, and has read receipts disabled in privacy settings.
 	ReceiptTypeReadSelf ReceiptType = "read-self"
 )
 
@@ -215,4 +215,14 @@ type IdentityChange struct {
 	// Implicit will be set to true if the event was triggered by an untrusted identity error,
 	// rather than an identity change notification from the server.
 	Implicit bool
+}
+
+// PrivacySettings is emitted when the user changes their privacy settings.
+type PrivacySettings struct {
+	NewSettings         types.PrivacySettings
+	GroupAddChanged     bool
+	LastSeenChanged     bool
+	StatusChanged       bool
+	ProfileChanged      bool
+	ReadReceiptsChanged bool
 }
