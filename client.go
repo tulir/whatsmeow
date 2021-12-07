@@ -141,6 +141,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"receipt":      cli.handleReceipt,
 		"call":         cli.handleCallEvent,
 		"chatstate":    cli.handleChatState,
+		"presence":     cli.handlePresence,
 		"notification": cli.handleNotification,
 		"success":      cli.handleConnectSuccess,
 		"failure":      cli.handleConnectFailure,

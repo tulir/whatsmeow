@@ -162,6 +162,19 @@ type ChatPresence struct {
 	State types.ChatPresence
 }
 
+// Presence is emitted when a presence update is received.
+//
+// Note that WhatsApp only sends you presence updates for individual users after you subscribe to them:
+//  client.SubscribePresence(user JID)
+type Presence struct {
+	// The user whose presence event this is
+	From types.JID
+	// True if the user is now offline
+	Unavailable bool
+	// The time when the user was last online. This may be the zero value if the user has hid their last seen time.
+	LastSeen time.Time
+}
+
 // JoinedGroup is emitted when you join or are added to a group.
 type JoinedGroup struct {
 	Reason string // If the event was triggered by you using an invite link, this will be "invite"

@@ -192,6 +192,19 @@ func handleCmd(cmd string, args []string) {
 				}
 			}
 		}
+	case "subscribepresence":
+		if len(args) < 1 {
+			log.Errorf("Usage: subscribepresence <jid>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		err := cli.SubscribePresence(jid)
+		if err != nil {
+			fmt.Println(err)
+		}
 	case "presence":
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
 	case "chatpresence":
@@ -438,6 +451,16 @@ func handler(rawEvt interface{}) {
 			log.Infof("%v was read by %s at %s", evt.MessageIDs, evt.SourceString(), evt.Timestamp)
 		} else if evt.Type == events.ReceiptTypeDelivered {
 			log.Infof("%s was delivered to %s at %s", evt.MessageIDs[0], evt.SourceString(), evt.Timestamp)
+		}
+	case *events.Presence:
+		if evt.Unavailable {
+			if evt.LastSeen.IsZero() {
+				log.Infof("%s is now offline", evt.From)
+			} else {
+				log.Infof("%s is now offline (last seen: %s)", evt.From, evt.LastSeen)
+			}
+		} else {
+			log.Infof("%s is now online", evt.From)
 		}
 	case *events.HistorySync:
 		id := atomic.AddInt32(&historySyncID, 1)

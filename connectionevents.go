@@ -124,32 +124,3 @@ func (cli *Client) SetPassive(passive bool) error {
 	}
 	return nil
 }
-
-// SendPresence updates the user's presence status on WhatsApp.
-//
-// You should call this at least once after connecting so that the server has your pushname.
-// Otherwise, other users will see "-" as the name.
-func (cli *Client) SendPresence(state types.Presence) error {
-	if len(cli.Store.PushName) == 0 {
-		return ErrNoPushName
-	}
-	return cli.sendNode(waBinary.Node{
-		Tag: "presence",
-		Attrs: waBinary.Attrs{
-			"name": cli.Store.PushName,
-			"type": string(state),
-		},
-	})
-}
-
-// SendChatPresence updates the user's typing status in a specific chat.
-func (cli *Client) SendChatPresence(state types.ChatPresence, jid types.JID) error {
-	return cli.sendNode(waBinary.Node{
-		Tag: "chatstate",
-		Attrs: waBinary.Attrs{
-			"from": *cli.Store.ID,
-			"to":   jid,
-		},
-		Content: []waBinary.Node{{Tag: string(state)}},
-	})
-}
