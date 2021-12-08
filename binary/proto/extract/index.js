@@ -28,6 +28,7 @@ async function findAppModules(mods) {
 }
 
 (async () => {
+    const addedSpecs = new Set()
     // The module IDs that contain protobuf types
     const wantedModules = [
         84593, // AppVersion, UserAgent, WebdPayload ...
@@ -245,12 +246,22 @@ async function findAppModules(mods) {
         };
 
         // message specification stringifying function
-        let stringifyMessageSpec = (name, members) =>
-            [].concat(
-                [`message ${name} {`],
-                indent([].concat(...members.map(m => stringifyMessageSpecMember(m))), spacesPerIndentLevel),
-                ["}", ""]
-            );
+        let stringifyMessageSpec = (name, members) => {
+            let result = []
+            if(!addedSpecs.has(name)) {
+                result.push(
+                    `message ${name} {`,
+                    ...indent([].concat(...members.map(m => stringifyMessageSpecMember(m))), spacesPerIndentLevel),
+                    "}", 
+                    ""
+                )
+                addedSpecs.add(name)
+            } else {
+                console.log(`duplicate spec "${name}", with ${members.length} members, ignoring`)
+            }
+
+            return result
+        }
 
         let lines = [].concat(...objectToArray(modInfo.identifiers).map(i => i[1].members ? stringifyMessageSpec(i[0], i[1].members) : stringifyEnum(i[0], i[1].enumValues)));
         console.log(lines.join("\n"));
