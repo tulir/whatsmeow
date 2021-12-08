@@ -64,6 +64,12 @@ type LoggedOut struct {
 	OnConnect bool
 }
 
+// StreamReplaced is emitted when the client is disconnected by another client connecting with the same keys.
+//
+// This can happen if you accidentally start another process with the same session
+// or otherwise try to connect twice with the same session.
+type StreamReplaced struct{}
+
 // ConnectFailure is emitted when the WhatsApp server sends a <failure> node with an unknown reason.
 //
 // Known reasons are handled internally and emitted as different events (e.g. LoggedOut).
