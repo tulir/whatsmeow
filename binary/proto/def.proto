@@ -719,6 +719,8 @@ message ContextInfo {
     optional uint32 entryPointConversionDelaySeconds = 31;
     optional DisappearingMode disappearingMode = 32;
     optional ActionLink actionLink = 33;
+    optional string groupSubject = 34;
+    optional string parentGroupJid = 35;
 }
 
 message SenderKeyDistributionMessage {
@@ -1659,6 +1661,7 @@ message Reaction {
     optional string text = 2;
     optional string groupingKey = 3;
     optional int64 senderTimestampMs = 4;
+    optional bool unread = 5;
 }
 
 message UserReceipt {
