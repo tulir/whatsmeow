@@ -1,6 +1,7 @@
 const request = require("request-promise-native");
 const acorn = require("acorn");
 const walk = require("acorn-walk");
+const fs = require('fs')
 
 const objectToArray = obj => Object.keys(obj).map(k => [k, obj[k]]);
 const indent = (lines, n) => lines.map(l => " ".repeat(n) + l);
@@ -209,9 +210,6 @@ async function findAppModules(mods) {
         });
     }
 
-	console.log('syntax = "proto2";')
-	console.log('package proto;')
-	console.log('')
     for(const mod of modules) {
         let modInfo = modulesInfo[mod.key.value];
         let spacesPerIndentLevel = 4;
@@ -264,6 +262,12 @@ async function findAppModules(mods) {
         }
 
         let lines = [].concat(...objectToArray(modInfo.identifiers).map(i => i[1].members ? stringifyMessageSpec(i[0], i[1].members) : stringifyEnum(i[0], i[1].enumValues)));
-        console.log(lines.join("\n"));
+        decodedProto.push(...lines)
+        
+        let decodedProtoStr = decodedProto.join('\n')
+        decodedProtoStr = decodedProtoStr.replace(/Spec /g, ' ')
+        fs.writeFileSync('./WAProto.proto', decodedProtoStr)
+
+        console.log(`extracted proto to ./WAProto.proto`)
     }
 })();
