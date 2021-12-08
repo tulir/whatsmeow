@@ -3,5 +3,5 @@ This is an updated version of the [protobuf extractor from sigalor/whatsapp-web-
 
 ## Usage
 1. Install dependencies with `yarn` (or `npm install`)
-2. `node index.js | sed 's/Spec//g' > ../def.proto`
-3. Apply manual fixes (TODO: automate this?)
+2. `node index.js`
+3. The script will update `../def.proto` (except if something is broken)
