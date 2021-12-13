@@ -173,7 +173,7 @@ message ClientPayload {
     optional bytes fbDeviceId = 32;
 }
 
-// Renamed from Details due to conflict
+// Renamed from Details
 message NoiseCertificateDetails {
     optional uint32 serial = 1;
     optional string issuer = 2;
@@ -254,7 +254,7 @@ message BizAccountPayload {
     optional bytes bizAcctLinkInfo = 2;
 }
 
-// Renamed from Details due to conflict
+// Renamed from Details
 message VerifiedNameDetails {
     optional uint64 serial = 1;
     optional string issuer = 2;
@@ -719,6 +719,8 @@ message ContextInfo {
     optional uint32 entryPointConversionDelaySeconds = 31;
     optional DisappearingMode disappearingMode = 32;
     optional ActionLink actionLink = 33;
+    optional string groupSubject = 34;
+    optional string parentGroupJid = 35;
 }
 
 message SenderKeyDistributionMessage {
@@ -1493,7 +1495,7 @@ message DisappearingMode {
     optional DisappearingModeInitiator initiator = 1;
 }
 
-// Renamed from MediaData due to conflict
+// Renamed from MediaData
 message PBMediaData {
     optional bytes mediaKey = 1;
     optional int64 mediaKeyTimestamp = 2;
@@ -1586,7 +1588,7 @@ message Point {
     optional double y = 4;
 }
 
-// Seems to be a duplicate of the AppVersion at the top
+// Duplicate type omitted
 //message AppVersion {
 //    optional uint32 primary = 1;
 //    optional uint32 secondary = 2;
@@ -1659,6 +1661,7 @@ message Reaction {
     optional string text = 2;
     optional string groupingKey = 3;
     optional int64 senderTimestampMs = 4;
+    optional bool unread = 5;
 }
 
 message UserReceipt {

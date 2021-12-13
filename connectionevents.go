@@ -18,8 +18,10 @@ import (
 func (cli *Client) handleStreamError(node *waBinary.Node) {
 	atomic.StoreUint32(&cli.isLoggedIn, 0)
 	code, _ := node.Attrs["code"].(string)
-	switch code {
-	case "515":
+	conflict, _ := node.GetOptionalChildByTag("conflict")
+	conflictType := conflict.AttrGetter().OptionalString("type")
+	switch {
+	case code == "515":
 		cli.Log.Infof("Got 515 code, reconnecting...")
 		go func() {
 			cli.Disconnect()
@@ -28,22 +30,19 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 				cli.Log.Errorf("Failed to reconnect after 515 code:", err)
 			}
 		}()
-	case "401":
-		conflict, ok := node.GetOptionalChildByTag("conflict")
-		conflictType := conflict.AttrGetter().String("type")
-		if ok && conflictType == "device_removed" {
-			cli.expectDisconnect()
-			cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session")
-			go cli.dispatchEvent(&events.LoggedOut{OnConnect: false})
-			err := cli.Store.Delete()
-			if err != nil {
-				cli.Log.Warnf("Failed to delete store after device_removed error: %v", err)
-			}
-		} else {
-			cli.Log.Errorf("Unknown stream error code 401: %s", node.XMLString())
-			go cli.dispatchEvent(&events.StreamError{Code: code, Raw: node})
+	case code == "401" && conflictType == "device_removed":
+		cli.expectDisconnect()
+		cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session")
+		go cli.dispatchEvent(&events.LoggedOut{OnConnect: false})
+		err := cli.Store.Delete()
+		if err != nil {
+			cli.Log.Warnf("Failed to delete store after device_removed error: %v", err)
 		}
-	case "503":
+	case conflictType == "replaced":
+		cli.expectDisconnect()
+		cli.Log.Infof("Got replaced stream error, sending StreamReplaced event")
+		go cli.dispatchEvent(&events.StreamReplaced{})
+	case code == "503":
 		// This seems to happen when the server wants to restart or something.
 		// The disconnection will be emitted as an events.Disconnected and then the auto-reconnect will do its thing.
 		cli.Log.Warnf("Got 503 stream error, assuming automatic reconnect will handle it")
@@ -123,33 +122,4 @@ func (cli *Client) SetPassive(passive bool) error {
 		return err
 	}
 	return nil
-}
-
-// SendPresence updates the user's presence status on WhatsApp.
-//
-// You should call this at least once after connecting so that the server has your pushname.
-// Otherwise, other users will see "-" as the name.
-func (cli *Client) SendPresence(state types.Presence) error {
-	if len(cli.Store.PushName) == 0 {
-		return ErrNoPushName
-	}
-	return cli.sendNode(waBinary.Node{
-		Tag: "presence",
-		Attrs: waBinary.Attrs{
-			"name": cli.Store.PushName,
-			"type": string(state),
-		},
-	})
-}
-
-// SendChatPresence updates the user's typing status in a specific chat.
-func (cli *Client) SendChatPresence(state types.ChatPresence, jid types.JID) error {
-	return cli.sendNode(waBinary.Node{
-		Tag: "chatstate",
-		Attrs: waBinary.Attrs{
-			"from": *cli.Store.ID,
-			"to":   jid,
-		},
-		Content: []waBinary.Node{{Tag: string(state)}},
-	})
 }

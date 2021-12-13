@@ -80,6 +80,8 @@ type Client struct {
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
 
+	privacySettingsCache atomic.Value
+
 	recentMessagesMap  map[recentMessageKey]*waProto.Message
 	recentMessagesList [recentMessagesSize]recentMessageKey
 	recentMessagesPtr  int
@@ -139,6 +141,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"receipt":      cli.handleReceipt,
 		"call":         cli.handleCallEvent,
 		"chatstate":    cli.handleChatState,
+		"presence":     cli.handlePresence,
 		"notification": cli.handleNotification,
 		"success":      cli.handleConnectSuccess,
 		"failure":      cli.handleConnectFailure,

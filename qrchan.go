@@ -18,8 +18,10 @@ import (
 
 type QRChannelItem struct {
 	// The type of event, "code" for new QR codes.
-	// For non-code events, you can just compare the whole item to the event variables (like QRChannelSuccess).
+	// For non-code/error events, you can just compare the whole item to the event variables (like QRChannelSuccess).
 	Event string
+	// If the item is a pair error, then this field contains the error message.
+	Error error
 	// If the item is a new code, then this field contains the raw data.
 	Code string
 	// The timeout after which the next code will be sent down the channel.
@@ -117,6 +119,11 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 		return
 	case *events.PairSuccess:
 		outputType = QRChannelSuccess
+	case *events.PairError:
+		outputType = QRChannelItem{
+			Event: "error",
+			Error: evt.Error,
+		}
 	case *events.Disconnected:
 		outputType = QRChannelTimeout
 	case *events.Connected, *events.ConnectFailure, *events.LoggedOut:
@@ -126,11 +133,11 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 	}
 	close(qrc.stopQRs)
 	if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
-		qrc.log.Debugf("Closing channel with status %s", outputType)
+		qrc.log.Debugf("Closing channel with status %+v", outputType)
 		qrc.output <- outputType
 		close(qrc.output)
 	} else {
-		qrc.log.Debugf("Got status %s, but channel is already closed", outputType)
+		qrc.log.Debugf("Got status %+v, but channel is already closed", outputType)
 	}
 	// Has to be done in background because otherwise there's a deadlock with eventHandlersLock
 	go qrc.cli.RemoveEventHandler(qrc.handlerID)
