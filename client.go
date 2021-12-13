@@ -50,6 +50,7 @@ type Client struct {
 	socket     *socket.NoiseSocket
 	socketLock sync.RWMutex
 
+	isLoggedIn            uint32
 	expectedDisconnectVal uint32
 	EnableAutoReconnect   bool
 	LastSuccessfulConnect time.Time
@@ -58,9 +59,6 @@ type Client struct {
 	// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
 	// even when re-syncing the whole state.
 	EmitAppStateEventsOnFullSync bool
-
-	isLoggedIn     bool
-	isLoggedInLock sync.RWMutex
 
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
@@ -81,6 +79,8 @@ type Client struct {
 
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
+
+	privacySettingsCache atomic.Value
 
 	recentMessagesMap  map[recentMessageKey]*waProto.Message
 	recentMessagesList [recentMessagesSize]recentMessageKey
@@ -141,6 +141,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"receipt":      cli.handleReceipt,
 		"call":         cli.handleCallEvent,
 		"chatstate":    cli.handleChatState,
+		"presence":     cli.handlePresence,
 		"notification": cli.handleNotification,
 		"success":      cli.handleConnectSuccess,
 		"failure":      cli.handleConnectFailure,
@@ -176,6 +177,11 @@ func (cli *Client) Connect() error {
 	go cli.keepAliveLoop(cli.socket.Context())
 	go cli.handlerQueueLoop(cli.socket.Context())
 	return nil
+}
+
+// IsLoggedIn returns true after the client is successfully connected and authenticated on WhatsApp.
+func (cli *Client) IsLoggedIn() bool {
+	return atomic.LoadUint32(&cli.isLoggedIn) == 1
 }
 
 func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
@@ -433,7 +439,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 
 	payload, err := waBinary.Marshal(node)
 	if err != nil {
-		return fmt.Errorf("failed to marshal ping IQ: %w", err)
+		return fmt.Errorf("failed to marshal node: %w", err)
 	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())

@@ -53,3 +53,44 @@ type LocalChatSettings struct {
 	Pinned     bool
 	Archived   bool
 }
+
+// IsOnWhatsAppResponse contains information received in response to checking if a phone number is on WhatsApp.
+type IsOnWhatsAppResponse struct {
+	Query string // The query string used
+	JID   JID    // The canonical user ID
+	IsIn  bool   // Whether the phone is registered or not.
+
+	VerifiedName *VerifiedName // If the phone is a business, the verified business details.
+}
+
+// BusinessMessageLinkTarget contains the info that is found using a business message link (see Client.ResolveBusinessMessageLink)
+type BusinessMessageLinkTarget struct {
+	JID JID // The JID of the business.
+
+	PushName      string // The notify / push name of the business.
+	VerifiedName  string // The verified business name.
+	IsSigned      bool   // Some boolean, seems to be true?
+	VerifiedLevel string // I guess the level of verification, starting from "unknown".
+
+	Message string // The message that WhatsApp clients will pre-fill in the input box when clicking the link.
+}
+
+// PrivacySetting is an individual setting value in the user's privacy settings.
+type PrivacySetting string
+
+// Possible privacy setting values.
+const (
+	PrivacySettingUndefined PrivacySetting = ""
+	PrivacySettingAll       PrivacySetting = "all"
+	PrivacySettingContacts  PrivacySetting = "contacts"
+	PrivacySettingNone      PrivacySetting = "none"
+)
+
+// PrivacySettings contains the user's privacy settings.
+type PrivacySettings struct {
+	GroupAdd     PrivacySetting
+	LastSeen     PrivacySetting
+	Status       PrivacySetting
+	Profile      PrivacySetting
+	ReadReceipts PrivacySetting
+}

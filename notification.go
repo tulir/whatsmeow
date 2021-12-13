@@ -104,6 +104,10 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	case "server_sync":
 		go cli.handleAppStateNotification(node)
 	case "account_sync":
+		privacyNode, ok := node.GetOptionalChildByTag("privacy")
+		if ok {
+			go cli.handlePrivacySettingsNotification(&privacyNode)
+		}
 		// If we start storing device lists locally, then this should update that store
 	case "devices":
 		// This is probably other users' devices

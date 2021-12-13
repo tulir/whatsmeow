@@ -25,15 +25,37 @@ type PatchList struct {
 	Name           WAPatchName
 	HasMorePatches bool
 	Patches        []*waProto.SyncdPatch
+	Snapshot       *waProto.SyncdSnapshot
 }
 
 // DownloadExternalFunc is a function that can download a blob of external app state patches.
-type DownloadExternalFunc func(*waProto.ExternalBlobReference) (*waProto.SyncdMutations, error)
+type DownloadExternalFunc func(*waProto.ExternalBlobReference) ([]byte, error)
 
-// ParsePatchList will decode an XML node containing app state patches, including downloading any external blobs.
-func ParsePatchList(node *waBinary.Node, downloadExternal DownloadExternalFunc) (*PatchList, error) {
-	collection := node.GetChildByTag("sync", "collection")
-	ag := collection.AttrGetter()
+func parseSnapshotInternal(collection *waBinary.Node, downloadExternal DownloadExternalFunc) (*waProto.SyncdSnapshot, error) {
+	snapshotNode := collection.GetChildByTag("snapshot")
+	rawSnapshot, ok := snapshotNode.Content.([]byte)
+	if snapshotNode.Tag != "snapshot" || !ok {
+		return nil, nil
+	}
+	var snapshot waProto.ExternalBlobReference
+	err := proto.Unmarshal(rawSnapshot, &snapshot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal snapshot: %w", err)
+	}
+	var rawData []byte
+	rawData, err = downloadExternal(&snapshot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download external mutations: %w", err)
+	}
+	var downloaded waProto.SyncdSnapshot
+	err = proto.Unmarshal(rawData, &downloaded)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal mutation list: %w", err)
+	}
+	return &downloaded, nil
+}
+
+func parsePatchListInternal(collection *waBinary.Node, downloadExternal DownloadExternalFunc) ([]*waProto.SyncdPatch, error) {
 	patchesNode := collection.GetChildByTag("patches")
 	patchNodes := patchesNode.GetChildren()
 	patches := make([]*waProto.SyncdPatch, 0, len(patchNodes))
@@ -48,10 +70,15 @@ func ParsePatchList(node *waBinary.Node, downloadExternal DownloadExternalFunc) 
 			return nil, fmt.Errorf("failed to unmarshal patch #%d: %w", i+1, err)
 		}
 		if patch.GetExternalMutations() != nil && downloadExternal != nil {
-			var downloaded *waProto.SyncdMutations
-			downloaded, err = downloadExternal(patch.GetExternalMutations())
+			var rawData []byte
+			rawData, err = downloadExternal(patch.GetExternalMutations())
 			if err != nil {
 				return nil, fmt.Errorf("failed to download external mutations: %w", err)
+			}
+			var downloaded waProto.SyncdMutations
+			err = proto.Unmarshal(rawData, &downloaded)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal mutation list: %w", err)
 			} else if len(downloaded.GetMutations()) == 0 {
 				return nil, fmt.Errorf("didn't get any mutations from download")
 			}
@@ -59,10 +86,26 @@ func ParsePatchList(node *waBinary.Node, downloadExternal DownloadExternalFunc) 
 		}
 		patches = append(patches, &patch)
 	}
+	return patches, nil
+}
+
+// ParsePatchList will decode an XML node containing app state patches, including downloading any external blobs.
+func ParsePatchList(node *waBinary.Node, downloadExternal DownloadExternalFunc) (*PatchList, error) {
+	collection := node.GetChildByTag("sync", "collection")
+	ag := collection.AttrGetter()
+	snapshot, err := parseSnapshotInternal(&collection, downloadExternal)
+	if err != nil {
+		return nil, err
+	}
+	patches, err := parsePatchListInternal(&collection, downloadExternal)
+	if err != nil {
+		return nil, err
+	}
 	list := &PatchList{
 		Name:           WAPatchName(ag.String("name")),
 		HasMorePatches: ag.OptionalBool("has_more_patches"),
 		Patches:        patches,
+		Snapshot:       snapshot,
 	}
 	return list, ag.Error()
 }
@@ -73,8 +116,8 @@ type patchOutput struct {
 	Mutations   []Mutation
 }
 
-func (proc *Processor) decodePatch(patch *waProto.SyncdPatch, out *patchOutput, validateMACs bool) error {
-	for i, mutation := range patch.Mutations {
+func (proc *Processor) decodeMutations(mutations []*waProto.SyncdMutation, out *patchOutput, validateMACs bool) error {
+	for i, mutation := range mutations {
 		keyID := mutation.GetRecord().GetKeyId().GetId()
 		keys, err := proc.getAppStateKey(keyID)
 		if err != nil {
@@ -129,20 +172,101 @@ func (proc *Processor) decodePatch(patch *waProto.SyncdPatch, out *patchOutput, 
 	return nil
 }
 
+func (proc *Processor) storeMACs(name WAPatchName, currentState HashState, out *patchOutput) {
+	err := proc.Store.AppState.PutAppStateVersion(string(name), currentState.Version, currentState.Hash)
+	if err != nil {
+		proc.Log.Errorf("Failed to update app state version in the database: %v", err)
+	}
+	err = proc.Store.AppState.DeleteAppStateMutationMACs(string(name), out.RemovedMACs)
+	if err != nil {
+		proc.Log.Errorf("Failed to remove deleted mutation MACs from the database: %v", err)
+	}
+	err = proc.Store.AppState.PutAppStateMutationMACs(string(name), currentState.Version, out.AddedMACs)
+	if err != nil {
+		proc.Log.Errorf("Failed to insert added mutation MACs to the database: %v", err)
+	}
+}
+
+func (proc *Processor) validateSnapshotMAC(name WAPatchName, currentState HashState, keyID, expectedSnapshotMAC []byte) (keys ExpandedAppStateKeys, err error) {
+	keys, err = proc.getAppStateKey(keyID)
+	if err != nil {
+		err = fmt.Errorf("failed to get key %X to verify patch v%d MACs", keyID, currentState.Version)
+		return
+	}
+	snapshotMAC := currentState.generateSnapshotMAC(name, keys.SnapshotMAC)
+	if !bytes.Equal(snapshotMAC, expectedSnapshotMAC) {
+		err = fmt.Errorf("failed to verify patch v%d: %w", currentState.Version, ErrMismatchingLTHash)
+	}
+	return
+}
+
+func (proc *Processor) decodeSnapshot(name WAPatchName, ss *waProto.SyncdSnapshot, initialState HashState, validateMACs bool, newMutationsInput []Mutation) (newMutations []Mutation, currentState HashState, err error) {
+	currentState = initialState
+	currentState.Version = ss.GetVersion().GetVersion()
+
+	encryptedMutations := make([]*waProto.SyncdMutation, len(ss.GetRecords()))
+	for i, record := range ss.GetRecords() {
+		encryptedMutations[i] = &waProto.SyncdMutation{
+			Operation: waProto.SyncdMutation_SET.Enum(),
+			Record:    record,
+		}
+	}
+
+	var warn []error
+	warn, err = currentState.updateHash(encryptedMutations, func(indexMAC []byte, maxIndex int) ([]byte, error) {
+		return nil, nil
+	})
+	if len(warn) > 0 {
+		proc.Log.Warnf("Warnings while updating hash for %s: %+v", name, warn)
+	}
+	if err != nil {
+		err = fmt.Errorf("failed to update state hash: %w", err)
+		return
+	}
+
+	if validateMACs {
+		_, err = proc.validateSnapshotMAC(name, currentState, ss.GetKeyId().GetId(), ss.GetMac())
+		if err != nil {
+			return
+		}
+	}
+
+	var out patchOutput
+	out.Mutations = newMutationsInput
+	err = proc.decodeMutations(encryptedMutations, &out, validateMACs)
+	if err != nil {
+		err = fmt.Errorf("failed to decode snapshot of v%d: %w", currentState.Version, err)
+		return
+	}
+	proc.storeMACs(name, currentState, &out)
+	newMutations = out.Mutations
+	return
+}
+
 // DecodePatches will decode all the patches in a PatchList into a list of app state mutations.
 func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, validateMACs bool) (newMutations []Mutation, currentState HashState, err error) {
 	currentState = initialState
 	var expectedLength int
+	if list.Snapshot != nil {
+		expectedLength = len(list.Snapshot.GetRecords())
+	}
 	for _, patch := range list.Patches {
 		expectedLength += len(patch.GetMutations())
 	}
 	newMutations = make([]Mutation, 0, expectedLength)
 
+	if list.Snapshot != nil {
+		newMutations, currentState, err = proc.decodeSnapshot(list.Name, list.Snapshot, currentState, validateMACs, newMutations)
+		if err != nil {
+			return
+		}
+	}
+
 	for _, patch := range list.Patches {
 		version := patch.GetVersion().GetVersion()
 		currentState.Version = version
 		var warn []error
-		warn, err = currentState.updateHash(patch, func(indexMAC []byte, maxIndex int) ([]byte, error) {
+		warn, err = currentState.updateHash(patch.GetMutations(), func(indexMAC []byte, maxIndex int) ([]byte, error) {
 			for i := maxIndex - 1; i >= 0; i-- {
 				if bytes.Equal(patch.Mutations[i].GetRecord().GetIndex().GetBlob(), indexMAC) {
 					value := patch.Mutations[i].GetRecord().GetValue().GetBlob()
@@ -162,14 +286,8 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 
 		if validateMACs {
 			var keys ExpandedAppStateKeys
-			keys, err = proc.getAppStateKey(patch.GetKeyId().GetId())
+			keys, err = proc.validateSnapshotMAC(list.Name, currentState, patch.GetKeyId().GetId(), patch.GetSnapshotMac())
 			if err != nil {
-				err = fmt.Errorf("failed to get key %X to verify patch v%d MACs", patch.GetKeyId().GetId(), version)
-				return
-			}
-			snapshotMAC := currentState.generateSnapshotMAC(list.Name, keys.SnapshotMAC)
-			if !bytes.Equal(snapshotMAC, patch.GetSnapshotMac()) {
-				err = fmt.Errorf("failed to verify patch v%d: %w", version, ErrMismatchingLTHash)
 				return
 			}
 			patchMAC := generatePatchMAC(patch, list.Name, keys.PatchMAC)
@@ -181,23 +299,11 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 
 		var out patchOutput
 		out.Mutations = newMutations
-		err = proc.decodePatch(patch, &out, validateMACs)
+		err = proc.decodeMutations(patch.GetMutations(), &out, validateMACs)
 		if err != nil {
-			err = fmt.Errorf("failed to decode patch v%d: %w", version, err)
 			return
 		}
-		err = proc.Store.AppState.PutAppStateVersion(string(list.Name), currentState.Version, currentState.Hash)
-		if err != nil {
-			proc.Log.Errorf("Failed to update app state version in the database: %v", err)
-		}
-		err = proc.Store.AppState.DeleteAppStateMutationMACs(string(list.Name), out.RemovedMACs)
-		if err != nil {
-			proc.Log.Errorf("Failed to remove deleted mutation MACs from the database: %v", err)
-		}
-		err = proc.Store.AppState.PutAppStateMutationMACs(string(list.Name), version, out.AddedMACs)
-		if err != nil {
-			proc.Log.Errorf("Failed to insert added mutation MACs to the database: %v", err)
-		}
+		proc.storeMACs(list.Name, currentState, &out)
 		newMutations = out.Mutations
 	}
 	return
