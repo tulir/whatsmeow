@@ -64,6 +64,12 @@ type LoggedOut struct {
 	OnConnect bool
 }
 
+// StreamReplaced is emitted when the client is disconnected by another client connecting with the same keys.
+//
+// This can happen if you accidentally start another process with the same session
+// or otherwise try to connect twice with the same session.
+type StreamReplaced struct{}
+
 // ConnectFailure is emitted when the WhatsApp server sends a <failure> node with an unknown reason.
 //
 // Known reasons are handled internally and emitted as different events (e.g. LoggedOut).
@@ -125,6 +131,8 @@ const (
 	ReceiptTypeRetry ReceiptType = "retry"
 	// ReceiptTypeRead means the user opened the chat and saw the message.
 	ReceiptTypeRead ReceiptType = "read"
+	// ReceiptTypeReadSelf means the current user read a message from a different device, and has read receipts disabled in privacy settings.
+	ReceiptTypeReadSelf ReceiptType = "read-self"
 )
 
 // GoString returns the name of the Go constant for the ReceiptType value.
@@ -132,6 +140,8 @@ func (rt ReceiptType) GoString() string {
 	switch rt {
 	case ReceiptTypeRead:
 		return "events.ReceiptTypeRead"
+	case ReceiptTypeReadSelf:
+		return "events.ReceiptTypeReadSelf"
 	case ReceiptTypeDelivered:
 		return "events.ReceiptTypeDelivered"
 	default:
@@ -150,9 +160,25 @@ type Receipt struct {
 }
 
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
+//
+// Note that WhatsApp won't send you these updates unless you mark yourself as online:
+//  client.SendPresence(types.PresenceAvailable)
 type ChatPresence struct {
 	types.MessageSource
 	State types.ChatPresence
+}
+
+// Presence is emitted when a presence update is received.
+//
+// Note that WhatsApp only sends you presence updates for individual users after you subscribe to them:
+//  client.SubscribePresence(user JID)
+type Presence struct {
+	// The user whose presence event this is
+	From types.JID
+	// True if the user is now offline
+	Unavailable bool
+	// The time when the user was last online. This may be the zero value if the user has hid their last seen time.
+	LastSeen time.Time
 }
 
 // JoinedGroup is emitted when you join or are added to a group.
@@ -208,4 +234,14 @@ type IdentityChange struct {
 	// Implicit will be set to true if the event was triggered by an untrusted identity error,
 	// rather than an identity change notification from the server.
 	Implicit bool
+}
+
+// PrivacySettings is emitted when the user changes their privacy settings.
+type PrivacySettings struct {
+	NewSettings         types.PrivacySettings
+	GroupAddChanged     bool
+	LastSeenChanged     bool
+	StatusChanged       bool
+	ProfileChanged      bool
+	ReadReceiptsChanged bool
 }

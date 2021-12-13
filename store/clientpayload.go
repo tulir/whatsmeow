@@ -21,7 +21,7 @@ import (
 )
 
 // waVersion is the WhatsApp web client version
-var waVersion = []uint32{2, 2142, 12}
+var waVersion = []uint32{2, 2147, 14}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
 var waVersionHash [16]byte

@@ -78,7 +78,7 @@ func (cli *Client) getMessageForRetry(receipt *events.Receipt, messageID types.M
 func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.Node) error {
 	retryChild, ok := node.GetOptionalChildByTag("retry")
 	if !ok {
-		return fmt.Errorf("missing <retry> element in retry receipt")
+		return &ElementMissingError{Tag: "retry", In: "retry receipt"}
 	}
 	ag := retryChild.AttrGetter()
 	messageID := ag.String("id")
@@ -130,12 +130,16 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if err != nil {
 			return err
 		}
-		bundle, err = keys[receipt.Sender].bundle, keys[receipt.Sender].err
+		senderAD := receipt.Sender
+		senderAD.AD = true
+		bundle, err = keys[senderAD].bundle, keys[senderAD].err
 		if err != nil {
 			return fmt.Errorf("failed to fetch prekeys: %w", err)
+		} else if bundle == nil {
+			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", senderAD, len(keys))
 		}
 	}
-	encrypted, err := cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle)
+	encrypted, includeDeviceIdentity, err := cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle)
 	if err != nil {
 		return fmt.Errorf("failed to encrypt message for retry: %w", err)
 	}
@@ -156,11 +160,18 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	if edit, ok := node.Attrs["edit"]; ok {
 		attrs["edit"] = edit
 	}
-	err = cli.sendNode(waBinary.Node{
+	req := waBinary.Node{
 		Tag:     "message",
 		Attrs:   attrs,
 		Content: []waBinary.Node{*encrypted},
-	})
+	}
+	if includeDeviceIdentity {
+		err = cli.appendDeviceIdentityNode(&req)
+		if err != nil {
+			return fmt.Errorf("failed to add device identity to retry message: %w", err)
+		}
+	}
+	err = cli.sendNode(req)
 	if err != nil {
 		return fmt.Errorf("failed to send retry message: %w", err)
 	}
