@@ -64,7 +64,7 @@ func (cli *Client) LeaveGroup(jid types.JID) error {
 		Tag: "leave",
 		Content: []waBinary.Node{{
 			Tag:   "group",
-			Attrs: waBinary.Attrs{"jid": jid},
+			Attrs: waBinary.Attrs{"id": jid},
 		}},
 	})
 	return err
