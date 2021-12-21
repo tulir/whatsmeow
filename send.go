@@ -73,6 +73,9 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 		return time.Time{}, err
 	}
 	resp := <-respChan
+	if resp == closedNode {
+		return time.Time{}, ErrSendDisconnected
+	}
 	ts := time.Unix(resp.AttrGetter().Int64("t"), 0)
 	return ts, nil
 }
