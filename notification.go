@@ -72,7 +72,7 @@ func (cli *Client) handlePictureNotification(node *waBinary.Node) {
 		evt.Timestamp = ts
 		evt.JID = ag.JID("jid")
 		evt.Author = ag.OptionalJIDOrEmpty("author")
-		if child.Tag == "remove" {
+		if child.Tag == "delete" {
 			evt.Remove = true
 		} else if child.Tag == "add" {
 			evt.PictureID = ag.String("id")
