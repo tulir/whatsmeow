@@ -79,6 +79,7 @@ func (cli *Client) parsePrivacySettings(privacyNode *waBinary.Node, settings *ty
 }
 
 func (cli *Client) handlePrivacySettingsNotification(privacyNode *waBinary.Node) {
+	cli.Log.Debugf("Parsing privacy settings change notification")
 	settings, err := cli.TryFetchPrivacySettings(false)
 	if err != nil {
 		cli.Log.Errorf("Failed to fetch privacy settings when handling change: %v", err)

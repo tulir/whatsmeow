@@ -129,7 +129,7 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		}
 		status, _ := child.GetChildByTag("status").Content.([]byte)
 		pictureID, _ := child.GetChildByTag("picture").Attrs["id"].(string)
-		devices := parseDeviceList(jid.User, child.GetChildByTag("devices"), nil, nil)
+		devices := parseDeviceList(jid.User, child.GetChildByTag("devices"))
 		respData[jid] = types.UserInfo{
 			VerifiedName: verifiedName,
 			Status:       string(status),
@@ -147,20 +147,37 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 // regular JIDs, and the output will be a list of AD JIDs. The local device will not be included in
 // the output even if the user's JID is included in the input. All other devices will be included.
 func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
-	list, err := cli.usync(jids, "query", "message", []waBinary.Node{
+	cli.userDevicesCacheLock.Lock()
+	defer cli.userDevicesCacheLock.Unlock()
+
+	var devices, jidsToSync []types.JID
+	for _, jid := range jids {
+		cached, ok := cli.userDevicesCache[jid]
+		if ok && len(cached) > 0 {
+			devices = append(devices, cached...)
+		} else {
+			jidsToSync = append(jidsToSync, jid)
+		}
+	}
+	if len(jidsToSync) == 0 {
+		return devices, nil
+	}
+
+	list, err := cli.usync(jidsToSync, "query", "message", []waBinary.Node{
 		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	var devices []types.JID
 	for _, user := range list.GetChildren() {
 		jid, jidOK := user.Attrs["jid"].(types.JID)
 		if user.Tag != "user" || !jidOK {
 			continue
 		}
-		parseDeviceList(jid.User, user.GetChildByTag("devices"), &devices, cli.Store.ID)
+		userDevices := parseDeviceList(jid.User, user.GetChildByTag("devices"))
+		cli.userDevicesCache[jid] = userDevices
+		devices = append(devices, userDevices...)
 	}
 
 	return devices, nil
@@ -286,27 +303,21 @@ func parseVerifiedName(businessNode waBinary.Node) (*types.VerifiedName, error) 
 	}, nil
 }
 
-func parseDeviceList(user string, deviceNode waBinary.Node, appendTo *[]types.JID, ignore *types.JID) []types.JID {
+func parseDeviceList(user string, deviceNode waBinary.Node) []types.JID {
 	deviceList := deviceNode.GetChildByTag("device-list")
 	if deviceNode.Tag != "devices" || deviceList.Tag != "device-list" {
 		return nil
 	}
 	children := deviceList.GetChildren()
-	if appendTo == nil {
-		arr := make([]types.JID, 0, len(children))
-		appendTo = &arr
-	}
+	devices := make([]types.JID, 0, len(children))
 	for _, device := range children {
 		deviceID, ok := device.AttrGetter().GetInt64("id", true)
 		if device.Tag != "device" || !ok {
 			continue
 		}
-		deviceJID := types.NewADJID(user, 0, byte(deviceID))
-		if ignore == nil || deviceJID != *ignore {
-			*appendTo = append(*appendTo, deviceJID)
-		}
+		devices = append(devices, types.NewADJID(user, 0, byte(deviceID)))
 	}
-	return *appendTo
+	return devices
 }
 
 func (cli *Client) usync(jids []types.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {

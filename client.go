@@ -82,6 +82,11 @@ type Client struct {
 
 	privacySettingsCache atomic.Value
 
+	groupParticipantsCache     map[types.JID][]types.JID
+	groupParticipantsCacheLock sync.Mutex
+	userDevicesCache           map[types.JID][]types.JID
+	userDevicesCacheLock       sync.Mutex
+
 	recentMessagesMap  map[recentMessageKey]*waProto.Message
 	recentMessagesList [recentMessagesSize]recentMessageKey
 	recentMessagesPtr  int
@@ -130,6 +135,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
+
+		groupParticipantsCache: make(map[types.JID][]types.JID),
+		userDevicesCache:       make(map[types.JID][]types.JID),
 
 		recentMessagesMap:  make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
 		GetMessageForRetry: func(to types.JID, id types.MessageID) *waProto.Message { return nil },
