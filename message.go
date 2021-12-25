@@ -61,6 +61,12 @@ func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.Message
 				source.IsFromMe = true
 			}
 		}
+		if from.Server == types.BroadcastServer {
+			recipient, ok := node.Attrs["recipient"].(types.JID)
+			if ok {
+				source.BroadcastListOwner = recipient
+			}
+		}
 	} else if from.User == cli.Store.ID.User {
 		source.IsFromMe = true
 		source.Sender = from

@@ -79,6 +79,11 @@ func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
 	return signalProtocol.NewSignalAddress(user, uint32(jid.Device))
 }
 
+// IsBroadcastList returns true if the JID is a broadcast list, but not the status broadcast.
+func (jid JID) IsBroadcastList() bool {
+	return jid.Server == BroadcastServer && jid.User != StatusBroadcastJID.User
+}
+
 // NewADJID creates a new AD JID.
 func NewADJID(user string, agent, device uint8) JID {
 	return JID{
