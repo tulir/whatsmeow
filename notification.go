@@ -72,7 +72,7 @@ func (cli *Client) handlePictureNotification(node *waBinary.Node) {
 		evt.Timestamp = ts
 		evt.JID = ag.JID("jid")
 		evt.Author = ag.OptionalJIDOrEmpty("author")
-		if child.Tag == "remove" {
+		if child.Tag == "delete" {
 			evt.Remove = true
 		} else if child.Tag == "add" {
 			evt.PictureID = ag.String("id")
@@ -90,13 +90,95 @@ func (cli *Client) handlePictureNotification(node *waBinary.Node) {
 	}
 }
 
+func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
+	cli.userDevicesCacheLock.Lock()
+	defer cli.userDevicesCacheLock.Unlock()
+	ag := node.AttrGetter()
+	from := ag.JID("from")
+	cached, ok := cli.userDevicesCache[from]
+	var cachedParticipantHash string
+	if ok {
+		cachedParticipantHash = participantListHashV2(cached)
+	}
+	for _, child := range node.GetChildren() {
+		if child.Tag != "add" && child.Tag != "remove" {
+			cli.Log.Debugf("Unknown device list change tag %s", child.Tag)
+			continue
+		}
+		cag := child.AttrGetter()
+		deviceHash := cag.String("device_hash")
+		deviceChild, _ := child.GetOptionalChildByTag("device")
+		changedDeviceJID := deviceChild.AttrGetter().JID("jid")
+		switch child.Tag {
+		case "add":
+			cached = append(cached, changedDeviceJID)
+		case "remove":
+			for i, jid := range cached {
+				if jid == changedDeviceJID {
+					cached = append(cached[:i], cached[i+1:]...)
+				}
+			}
+		case "update":
+			// ???
+		}
+		newParticipantHash := participantListHashV2(cached)
+		if newParticipantHash == deviceHash {
+			cli.Log.Debugf("%s's device list hash changed from %s to %s (%s). New hash matches", from, cachedParticipantHash, deviceHash, child.Tag)
+			cli.userDevicesCache[from] = cached
+		} else {
+			cli.Log.Warnf("%s's device list hash changed from %s to %s (%s). New hash doesn't match (%s)", from, cachedParticipantHash, deviceHash, child.Tag, newParticipantHash)
+			delete(cli.userDevicesCache, from)
+		}
+	}
+}
+
+func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
+	cli.userDevicesCacheLock.Lock()
+	defer cli.userDevicesCacheLock.Unlock()
+	cached, ok := cli.userDevicesCache[cli.Store.ID.ToNonAD()]
+	if !ok {
+		cli.Log.Debugf("Ignoring own device change notification, device list not cached")
+		return
+	}
+	oldHash := participantListHashV2(cached)
+	expectedNewHash := node.AttrGetter().String("dhash")
+	var newDeviceList []types.JID
+	for _, child := range node.GetChildren() {
+		jid := child.AttrGetter().JID("jid")
+		if child.Tag == "device" && !jid.IsEmpty() {
+			jid.AD = true
+			newDeviceList = append(newDeviceList, jid)
+		}
+	}
+	newHash := participantListHashV2(newDeviceList)
+	if newHash != expectedNewHash {
+		cli.Log.Debugf("Received own device list change notification %s -> %s, but expected hash was %s", oldHash, newHash, expectedNewHash)
+		delete(cli.userDevicesCache, cli.Store.ID.ToNonAD())
+	} else {
+		cli.Log.Debugf("Received own device list change notification %s -> %s", oldHash, newHash)
+		cli.userDevicesCache[cli.Store.ID.ToNonAD()] = newDeviceList
+	}
+}
+
+func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
+	for _, child := range node.GetChildren() {
+		switch child.Tag {
+		case "privacy":
+			cli.handlePrivacySettingsNotification(&child)
+		case "devices":
+			cli.handleOwnDevicesNotification(&child)
+		default:
+			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
+		}
+	}
+}
+
 func (cli *Client) handleNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
 	if !ag.OK() {
 		return
 	}
-	cli.Log.Debugf("Received %s update", notifType)
 	go cli.sendAck(node)
 	switch notifType {
 	case "encrypt":
@@ -104,13 +186,9 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	case "server_sync":
 		go cli.handleAppStateNotification(node)
 	case "account_sync":
-		privacyNode, ok := node.GetOptionalChildByTag("privacy")
-		if ok {
-			go cli.handlePrivacySettingsNotification(&privacyNode)
-		}
-		// If we start storing device lists locally, then this should update that store
+		go cli.handleAccountSyncNotification(node)
 	case "devices":
-		// This is probably other users' devices
+		go cli.handleDeviceNotification(node)
 	case "w:gp2":
 		evt, err := cli.parseGroupNotification(node)
 		if err != nil {
@@ -120,5 +198,7 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		}
 	case "picture":
 		go cli.handlePictureNotification(node)
+	default:
+		cli.Log.Debugf("Unhandled notification with type %s", notifType)
 	}
 }

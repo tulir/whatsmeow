@@ -52,6 +52,7 @@ var (
 	ErrBroadcastListUnsupported = errors.New("sending to broadcast lists is not yet supported")
 	ErrUnknownServer            = errors.New("can't send message to unknown server")
 	ErrRecipientADJID           = errors.New("message recipient must be normal (non-AD) JID")
+	ErrSendDisconnected         = errors.New("websocket disconnected before message send returned response")
 )
 
 // Some errors that Client.Download can return

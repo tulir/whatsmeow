@@ -58,9 +58,10 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 	cli.addRecentMessage(to, id, message)
 	respChan := cli.waitResponse(id)
 	var err error
+	var phash string
 	switch to.Server {
 	case types.GroupServer:
-		err = cli.sendGroup(to, id, message)
+		phash, err = cli.sendGroup(to, id, message)
 	case types.DefaultUserServer:
 		err = cli.sendDM(to, id, message)
 	case types.BroadcastServer:
@@ -73,7 +74,19 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 		return time.Time{}, err
 	}
 	resp := <-respChan
-	ts := time.Unix(resp.AttrGetter().Int64("t"), 0)
+	if resp == closedNode {
+		return time.Time{}, ErrSendDisconnected
+	}
+	ag := resp.AttrGetter()
+	ts := time.Unix(ag.Int64("t"), 0)
+	expectedPHash := ag.OptionalString("phash")
+	if len(expectedPHash) > 0 && phash != expectedPHash {
+		cli.Log.Warnf("Server returned different participant list hash when sending to %s. Some devices may not have received the message.", to)
+		// TODO also invalidate device list caches
+		cli.groupParticipantsCacheLock.Lock()
+		delete(cli.groupParticipantsCache, to)
+		cli.groupParticipantsCacheLock.Unlock()
+	}
 	return ts, nil
 }
 
@@ -95,28 +108,33 @@ func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (time.Time,
 	})
 }
 
-func participantListHashV2(participantJIDs []string) string {
-	sort.Strings(participantJIDs)
-	hash := sha256.Sum256([]byte(strings.Join(participantJIDs, "")))
+func participantListHashV2(participants []types.JID) string {
+	participantsStrings := make([]string, len(participants))
+	for i, part := range participants {
+		participantsStrings[i] = part.String()
+	}
+
+	sort.Strings(participantsStrings)
+	hash := sha256.Sum256([]byte(strings.Join(participantsStrings, "")))
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.Message) error {
-	groupInfo, err := cli.GetGroupInfo(to)
+func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.Message) (string, error) {
+	participants, err := cli.getGroupMembers(to)
 	if err != nil {
-		return fmt.Errorf("failed to get group info: %w", err)
+		return "", fmt.Errorf("failed to get group members: %w", err)
 	}
 
 	plaintext, _, err := marshalMessage(to, message)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(to.String(), cli.Store.ID.SignalAddress())
 	signalSKDMessage, err := builder.Create(senderKeyName)
 	if err != nil {
-		return fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
+		return "", fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
 	}
 	skdMessage := &waProto.Message{
 		SenderKeyDistributionMessage: &waProto.SenderKeyDistributionMessage{
@@ -126,29 +144,23 @@ func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.
 	}
 	skdPlaintext, err := proto.Marshal(skdMessage)
 	if err != nil {
-		return fmt.Errorf("failed to marshal sender key distribution message to send %s to %s: %w", id, to, err)
+		return "", fmt.Errorf("failed to marshal sender key distribution message to send %s to %s: %w", id, to, err)
 	}
 
 	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.Store)
 	encrypted, err := cipher.Encrypt(padMessage(plaintext))
 	if err != nil {
-		return fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
+		return "", fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
 	}
 	ciphertext := encrypted.SignedSerialize()
 
-	participants := make([]types.JID, len(groupInfo.Participants))
-	participantsStrings := make([]string, len(groupInfo.Participants))
-	for i, part := range groupInfo.Participants {
-		participants[i] = part.JID
-		participantsStrings[i] = part.JID.String()
-	}
-
-	node, err := cli.prepareMessageNode(to, id, message, participants, skdPlaintext, nil)
+	node, allDevices, err := cli.prepareMessageNode(to, id, message, participants, skdPlaintext, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	node.Attrs["phash"] = participantListHashV2(participantsStrings)
+	phash := participantListHashV2(allDevices)
+	node.Attrs["phash"] = phash
 	node.Content = append(node.GetChildren(), waBinary.Node{
 		Tag:     "enc",
 		Content: ciphertext,
@@ -157,9 +169,9 @@ func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.
 
 	err = cli.sendNode(*node)
 	if err != nil {
-		return fmt.Errorf("failed to send message node: %w", err)
+		return "", fmt.Errorf("failed to send message node: %w", err)
 	}
-	return nil
+	return phash, nil
 }
 
 func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Message) error {
@@ -168,7 +180,7 @@ func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Mes
 		return err
 	}
 
-	node, err := cli.prepareMessageNode(to, id, message, []types.JID{to, *cli.Store.ID}, messagePlaintext, deviceSentMessagePlaintext)
+	node, _, err := cli.prepareMessageNode(to, id, message, []types.JID{to, *cli.Store.ID}, messagePlaintext, deviceSentMessagePlaintext)
 	if err != nil {
 		return err
 	}
@@ -179,10 +191,10 @@ func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Mes
 	return nil
 }
 
-func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte) (*waBinary.Node, error) {
+func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte) (*waBinary.Node, []types.JID, error) {
 	allDevices, err := cli.GetUserDevices(participants)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get device list: %w", err)
+		return nil, nil, fmt.Errorf("failed to get device list: %w", err)
 	}
 	participantNodes, includeIdentity := cli.encryptMessageForDevices(allDevices, id, plaintext, dsmPlaintext)
 
@@ -204,10 +216,10 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 	if includeIdentity {
 		err := cli.appendDeviceIdentityNode(&node)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
-	return &node, nil
+	return &node, allDevices, nil
 }
 
 func marshalMessage(to types.JID, message *waProto.Message) (plaintext, dsmPlaintext []byte, err error) {
@@ -252,6 +264,9 @@ func (cli *Client) encryptMessageForDevices(allDevices []types.JID, id string, m
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
 		if jid.User == cli.Store.ID.User && dsmPlaintext != nil {
+			if jid == *cli.Store.ID {
+				continue
+			}
 			plaintext = dsmPlaintext
 		}
 		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(plaintext, jid, nil)
