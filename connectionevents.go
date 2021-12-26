@@ -16,7 +16,6 @@ import (
 )
 
 func (cli *Client) handleStreamError(node *waBinary.Node) {
-	cli.setIsLoggedIn(false)
 	atomic.StoreUint32(&cli.isLoggedIn, 0)
 	code, _ := node.Attrs["code"].(string)
 	conflict, _ := node.GetOptionalChildByTag("conflict")
@@ -82,7 +81,6 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.Log.Infof("Successfully authenticated")
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
-	cli.setIsLoggedIn(true)
 	atomic.StoreUint32(&cli.isLoggedIn, 1)
 	go func() {
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(); err != nil {

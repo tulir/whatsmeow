@@ -246,19 +246,6 @@ func (cli *Client) autoReconnect() {
 	}
 }
 
-func (cli *Client) setIsLoggedIn(b bool) {
-	cli.isLoggedInLock.Lock()
-	cli.isLoggedIn = b
-	cli.isLoggedInLock.Unlock()
-}
-
-// IsLoggedIn is set to true after the client is successfully connected and authenticated on WhatsApp.
-func (cli *Client) IsLoggedIn() bool {
-	cli.isLoggedInLock.RLock()
-	defer cli.isLoggedInLock.RUnlock()
-	return cli.isLoggedIn
-}
-
 // IsConnected checks if the client is connected to the WhatsApp web websocket.
 // Note that this doesn't check if the client is authenticated. See the IsLoggedIn field for that.
 func (cli *Client) IsConnected() bool {
