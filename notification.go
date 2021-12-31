@@ -96,10 +96,11 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	from := ag.JID("from")
 	cached, ok := cli.userDevicesCache[from]
-	var cachedParticipantHash string
-	if ok {
-		cachedParticipantHash = participantListHashV2(cached)
+	if !ok {
+		cli.Log.Debugf("No device list cached for %s, ignoring device list notification", from)
+		return
 	}
+	cachedParticipantHash := participantListHashV2(cached)
 	for _, child := range node.GetChildren() {
 		if child.Tag != "add" && child.Tag != "remove" {
 			cli.Log.Debugf("Unknown device list change tag %s", child.Tag)
