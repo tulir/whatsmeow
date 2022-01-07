@@ -19,6 +19,7 @@ type GroupInfo struct {
 	GroupTopic
 	GroupLocked
 	GroupAnnounce
+	GroupEphemeral
 
 	GroupCreated time.Time
 
@@ -57,4 +58,10 @@ type GroupParticipant struct {
 	JID          JID
 	IsAdmin      bool
 	IsSuperAdmin bool
+}
+
+// GroupEphemeral contains the group's disappearing messages settings.
+type GroupEphemeral struct {
+	IsEphemeral       bool
+	DisappearingTimer uint32
 }
