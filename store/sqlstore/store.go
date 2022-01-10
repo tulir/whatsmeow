@@ -293,7 +293,7 @@ func (s *SQLStore) GetAppStateSyncKey(id []byte) (*store.AppStateSyncKey, error)
 	var key store.AppStateSyncKey
 	err := s.db.QueryRow(getAppStateSyncKeyQuery, s.JID, id).Scan(&key.Data, &key.Timestamp, &key.Fingerprint)
 	if errors.Is(err, sql.ErrNoRows) {
-		err = nil
+		return nil, nil
 	}
 	return &key, err
 }
@@ -353,7 +353,11 @@ func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uin
 		baseIndex := 3 + i*2
 		values[baseIndex] = mutation.IndexMAC
 		values[baseIndex+1] = mutation.ValueMAC
-		queryParts[i] = fmt.Sprintf("($1, $2, $3, $%d, $%d)", baseIndex+1, baseIndex+2)
+		if s.dialect == "sqlite3" {
+			queryParts[i] = fmt.Sprintf("(?1, ?2, ?3, ?%d, ?%d)", baseIndex+1, baseIndex+2)
+		} else {
+			queryParts[i] = fmt.Sprintf("($1, $2, $3, $%d, $%d)", baseIndex+1, baseIndex+2)
+		}
 	}
 	_, err := tx.Exec(putAppStateMutationMACsQuery+strings.Join(queryParts, ","), values...)
 	return err
@@ -370,9 +374,9 @@ func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutation
 		for i := 0; i < len(mutations); i += mutationBatchSize {
 			var mutationSlice []store.AppStateMutationMAC
 			if len(mutations) > i+mutationBatchSize {
-				mutationSlice, mutations = mutations[:i+mutationBatchSize], mutations[i+mutationBatchSize:]
+				mutationSlice = mutations[i : i+mutationBatchSize]
 			} else {
-				mutationSlice = mutations
+				mutationSlice = mutations[i:]
 			}
 			err = s.putAppStateMutationMACs(tx, name, version, mutationSlice)
 			if err != nil {

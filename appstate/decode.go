@@ -121,7 +121,7 @@ func (proc *Processor) decodeMutations(mutations []*waProto.SyncdMutation, out *
 		keyID := mutation.GetRecord().GetKeyId().GetId()
 		keys, err := proc.getAppStateKey(keyID)
 		if err != nil {
-			return fmt.Errorf("failed to get key %X to decode mutation", keyID)
+			return fmt.Errorf("failed to get key %X to decode mutation: %w", keyID, err)
 		}
 		content := mutation.GetRecord().GetValue().GetBlob()
 		content, valueMAC := content[:len(content)-32], content[len(content)-32:]
@@ -190,7 +190,7 @@ func (proc *Processor) storeMACs(name WAPatchName, currentState HashState, out *
 func (proc *Processor) validateSnapshotMAC(name WAPatchName, currentState HashState, keyID, expectedSnapshotMAC []byte) (keys ExpandedAppStateKeys, err error) {
 	keys, err = proc.getAppStateKey(keyID)
 	if err != nil {
-		err = fmt.Errorf("failed to get key %X to verify patch v%d MACs", keyID, currentState.Version)
+		err = fmt.Errorf("failed to get key %X to verify patch v%d MACs: %w", keyID, currentState.Version, err)
 		return
 	}
 	snapshotMAC := currentState.generateSnapshotMAC(name, keys.SnapshotMAC)
