@@ -394,6 +394,9 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 			group.IsAnnounce = true
 		case "locked":
 			group.IsLocked = true
+		case "ephemeral":
+			group.IsEphemeral = true
+			group.DisappearingTimer = uint32(childAG.Uint64("expiration"))
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
@@ -499,6 +502,14 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 		case "invite":
 			link := InviteLinkPrefix + cag.String("code")
 			evt.NewInviteLink = &link
+		case "ephemeral":
+			timer := uint32(cag.Uint64("expiration"))
+			evt.Ephemeral = &types.GroupEphemeral{
+				IsEphemeral:       true,
+				DisappearingTimer: timer,
+			}
+		case "not_ephemeral":
+			evt.Ephemeral = &types.GroupEphemeral{IsEphemeral: false}
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
