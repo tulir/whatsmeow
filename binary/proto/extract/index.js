@@ -23,6 +23,8 @@ async function findAppModules(mods) {
     const bootstrapQRURL = baseURL + "/bootstrap_qr." + bootstrapQRID + ".js"
     console.error("Found bootstrap_qr.js URL:", bootstrapQRURL)
     const qrData = await request.get(bootstrapQRURL, ua)
+    const waVersion = qrData.match(/VERSION_STR:"(\d\.\d+\.\d+)"/)[1]
+    console.log("Current version:", waVersion)
     // This one list of types is so long that it's split into two JavaScript declarations.
     // The module finder below can't handle it, so just patch it manually here.
     const patchedQrData = qrData.replace("ButtonsResponseMessageType=void 0,t.ActionLinkSpec", "ButtonsResponseMessageType=t.ActionLinkSpec")
