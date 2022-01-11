@@ -162,7 +162,7 @@ message ClientPayload {
     optional bytes fbCat = 21;
     optional bytes fbUserAgent = 22;
     optional bool oc = 23;
-    optional uint32 lc = 24;
+    optional int32 lc = 24;
     enum ClientPayloadIOSAppExtension {
         SHARE_EXTENSION = 0;
         SERVICE_EXTENSION = 1;
@@ -695,6 +695,7 @@ message ExternalAdReplyInfo {
     optional string sourceType = 7;
     optional string sourceId = 8;
     optional string sourceUrl = 9;
+    optional bool containsAutoReply = 10;
 }
 
 message ContextInfo {
@@ -1673,6 +1674,11 @@ message UserReceipt {
     repeated string deliveredDeviceJid = 6;
 }
 
+message StatusPSA {
+    required string campaignId = 44;
+    optional uint64 campaignExpirationTimestamp = 45;
+}
+
 message PhotoChange {
     optional bytes oldPhoto = 1;
     optional bytes newPhoto = 2;
@@ -1972,6 +1978,7 @@ message WebMessageInfo {
         BIZ_PRIVACY_MODE_TO_BSP = 129;
         DISAPPEARING_MODE = 130;
         E2E_DEVICE_FETCH_FAILED = 131;
+        ADMIN_REVOKE = 132;
     }
     optional WebMessageInfoStubType messageStubType = 24;
     optional bool clearMedia = 25;
@@ -1999,8 +2006,6 @@ message WebMessageInfo {
     repeated Reaction reactions = 41;
     optional MediaData quotedStickerData = 42;
     optional bytes futureproofData = 43;
-    optional string statusPsaCampaignId = 44;
-    optional uint32 statusPsaCampaignDuration = 45;
-    optional uint64 statusPsaCampaignReadTimestamp = 46;
+    optional StatusPSA statusPsa = 44;
 }
 
