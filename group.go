@@ -64,7 +64,7 @@ func (cli *Client) LeaveGroup(jid types.JID) error {
 		Tag: "leave",
 		Content: []waBinary.Node{{
 			Tag:   "group",
-			Attrs: waBinary.Attrs{"jid": jid},
+			Attrs: waBinary.Attrs{"id": jid},
 		}},
 	})
 	return err
@@ -307,6 +307,10 @@ func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
 func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
+	return cli.getGroupInfo(jid, true)
+}
+
+func (cli *Client) getGroupInfo(jid types.JID, lockParticipantCache bool) (*types.GroupInfo, error) {
 	res, err := cli.sendGroupIQ(iqGet, jid, waBinary.Node{
 		Tag:   "query",
 		Attrs: waBinary.Attrs{"request": "interactive"},
@@ -323,7 +327,32 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 	if !ok {
 		return nil, &ElementMissingError{Tag: "groups", In: "response to group info query"}
 	}
-	return cli.parseGroupNode(&groupNode)
+	groupInfo, err := cli.parseGroupNode(&groupNode)
+	if err != nil {
+		return groupInfo, err
+	}
+	if lockParticipantCache {
+		cli.groupParticipantsCacheLock.Lock()
+		defer cli.groupParticipantsCacheLock.Unlock()
+	}
+	participants := make([]types.JID, len(groupInfo.Participants))
+	for i, part := range groupInfo.Participants {
+		participants[i] = part.JID
+	}
+	cli.groupParticipantsCache[jid] = participants
+	return groupInfo, nil
+}
+
+func (cli *Client) getGroupMembers(jid types.JID) ([]types.JID, error) {
+	cli.groupParticipantsCacheLock.Lock()
+	defer cli.groupParticipantsCacheLock.Unlock()
+	if _, ok := cli.groupParticipantsCache[jid]; !ok {
+		_, err := cli.getGroupInfo(jid, false)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return cli.groupParticipantsCache[jid], nil
 }
 
 func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, error) {
@@ -365,6 +394,9 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 			group.IsAnnounce = true
 		case "locked":
 			group.IsLocked = true
+		case "ephemeral":
+			group.IsEphemeral = true
+			group.DisappearingTimer = uint32(childAG.Uint64("expiration"))
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
@@ -470,6 +502,14 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 		case "invite":
 			link := InviteLinkPrefix + cag.String("code")
 			evt.NewInviteLink = &link
+		case "ephemeral":
+			timer := uint32(cag.Uint64("expiration"))
+			evt.Ephemeral = &types.GroupEphemeral{
+				IsEphemeral:       true,
+				DisappearingTimer: timer,
+			}
+		case "not_ephemeral":
+			evt.Ephemeral = &types.GroupEphemeral{IsEphemeral: false}
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
@@ -480,11 +520,47 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 	return &evt, nil
 }
 
+func (cli *Client) updateGroupParticipantCache(evt *events.GroupInfo) {
+	if len(evt.Join) == 0 && len(evt.Leave) == 0 {
+		return
+	}
+	cli.groupParticipantsCacheLock.Lock()
+	defer cli.groupParticipantsCacheLock.Unlock()
+	cached, ok := cli.groupParticipantsCache[evt.JID]
+	if !ok {
+		return
+	}
+Outer:
+	for _, jid := range evt.Join {
+		for _, existingJID := range cached {
+			if jid == existingJID {
+				continue Outer
+			}
+		}
+		cached = append(cached, jid)
+	}
+	for _, jid := range evt.Leave {
+		for i, existingJID := range cached {
+			if existingJID == jid {
+				cached[i] = cached[len(cached)-1]
+				cached = cached[:len(cached)-1]
+				break
+			}
+		}
+	}
+	cli.groupParticipantsCache[evt.JID] = cached
+}
+
 func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, error) {
 	children := node.GetChildren()
 	if len(children) == 1 && children[0].Tag == "create" {
 		return cli.parseGroupCreate(&children[0])
 	} else {
-		return cli.parseGroupChange(node)
+		groupChange, err := cli.parseGroupChange(node)
+		if err != nil {
+			return nil, err
+		}
+		cli.updateGroupParticipantCache(groupChange)
+		return groupChange, nil
 	}
 }

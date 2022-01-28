@@ -112,6 +112,12 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 			},
 		}
 	}
+
+	if cli.PreRetryCallback != nil && !cli.PreRetryCallback(receipt, retryCount, msg) {
+		cli.Log.Debugf("Cancelled retry receipt in PreRetryCallback")
+		return nil
+	}
+
 	plaintext, err := proto.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
@@ -123,8 +129,12 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if err != nil {
 			return fmt.Errorf("failed to read prekey bundle in retry receipt: %w", err)
 		}
-	} else if retryCount >= 2 {
-		cli.Log.Debugf("Fetching prekeys for %s due to retry receipt with count>1 but no prekey bundle", receipt.Sender)
+	} else if retryCount >= 2 || !cli.Store.ContainsSession(receipt.Sender.SignalAddress()) {
+		if retryCount >= 2 {
+			cli.Log.Debugf("Fetching prekeys for %s due to retry receipt with count>1 but no prekey bundle", receipt.Sender)
+		} else {
+			cli.Log.Debugf("Fetching prekeys for %s for handling retry receipt because we don't have a Signal session with them", receipt.Sender)
+		}
 		var keys map[types.JID]preKeyResp
 		keys, err = cli.fetchPreKeys([]types.JID{receipt.Sender})
 		if err != nil {

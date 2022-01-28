@@ -171,31 +171,35 @@ func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, re
 }
 
 func downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
-	resp, err := http.Get(url)
+	var resp *http.Response
+	resp, err = http.Get(url)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		if resp.StatusCode == http.StatusNotFound {
-			return nil, nil, ErrMediaDownloadFailedWith404
+			err = ErrMediaDownloadFailedWith404
+		} else if resp.StatusCode == http.StatusGone {
+			err = ErrMediaDownloadFailedWith410
+		} else {
+			err = fmt.Errorf("download failed with status code %d", resp.StatusCode)
 		}
-		if resp.StatusCode == http.StatusGone {
-			return nil, nil, ErrMediaDownloadFailedWith410
-		}
-		return nil, nil, fmt.Errorf("download failed with status code %d", resp.StatusCode)
+		return
 	}
-	if resp.ContentLength <= 10 {
-		return nil, nil, ErrTooShortFile
-	}
-	data, err := io.ReadAll(resp.Body)
+	var data []byte
+	data, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, nil, err
-	} else if len(checksum) == 32 && sha256.Sum256(data) != *(*[32]byte)(checksum) {
-		return nil, nil, ErrInvalidMediaEncSHA256
+		return
+	} else if len(data) <= 10 {
+		err = ErrTooShortFile
+		return
 	}
-
-	return data[:len(data)-10], data[len(data)-10:], nil
+	file, mac = data[:len(data)-10], data[len(data)-10:]
+	if len(checksum) == 32 && sha256.Sum256(data) != *(*[32]byte)(checksum) {
+		err = ErrInvalidMediaEncSHA256
+	}
+	return
 }
 
 func validateMedia(iv, file, macKey, mac []byte) error {

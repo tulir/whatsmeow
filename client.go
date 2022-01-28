@@ -82,6 +82,11 @@ type Client struct {
 
 	privacySettingsCache atomic.Value
 
+	groupParticipantsCache     map[types.JID][]types.JID
+	groupParticipantsCacheLock sync.Mutex
+	userDevicesCache           map[types.JID][]types.JID
+	userDevicesCacheLock       sync.Mutex
+
 	recentMessagesMap  map[recentMessageKey]*waProto.Message
 	recentMessagesList [recentMessagesSize]recentMessageKey
 	recentMessagesPtr  int
@@ -89,6 +94,9 @@ type Client struct {
 	// GetMessageForRetry is used to find the source message for handling retry receipts
 	// when the message is not found in the recently sent message cache.
 	GetMessageForRetry func(to types.JID, id types.MessageID) *waProto.Message
+	// PreRetryCallback is called before a retry receipt is accepted.
+	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
+	PreRetryCallback func(receipt *events.Receipt, retryCount int, msg *waProto.Message) bool
 
 	uniqueID  string
 	idCounter uint32
@@ -130,6 +138,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
+
+		groupParticipantsCache: make(map[types.JID][]types.JID),
+		userDevicesCache:       make(map[types.JID][]types.JID),
 
 		recentMessagesMap:  make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
 		GetMessageForRetry: func(to types.JID, id types.MessageID) *waProto.Message { return nil },

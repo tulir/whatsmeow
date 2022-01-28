@@ -54,8 +54,24 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 
 func (cli *Client) handleIB(node *waBinary.Node) {
 	children := node.GetChildren()
-	if len(children) == 1 && children[0].Tag == "downgrade_webclient" {
-		go cli.dispatchEvent(&events.QRScannedWithoutMultidevice{})
+	for _, child := range children {
+		ag := child.AttrGetter()
+		switch child.Tag {
+		case "downgrade_webclient":
+			go cli.dispatchEvent(&events.QRScannedWithoutMultidevice{})
+		case "offline_preview":
+			cli.dispatchEvent(&events.OfflineSyncPreview{
+				Total:          ag.Int("count"),
+				AppDataChanges: ag.Int("appdata"),
+				Messages:       ag.Int("message"),
+				Notifications:  ag.Int("notification"),
+				Receipts:       ag.Int("receipt"),
+			})
+		case "offline":
+			cli.dispatchEvent(&events.OfflineSyncCompleted{
+				Count: ag.Int("count"),
+			})
+		}
 	}
 }
 

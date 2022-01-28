@@ -17,6 +17,17 @@ type MessageSource struct {
 	Sender   JID  // The user who sent the message.
 	IsFromMe bool // Whether the message was sent by the current user instead of someone else.
 	IsGroup  bool // Whether the chat is a group chat or broadcast list.
+
+	// When sending a read receipt to a broadcast list message, the Chat is the broadcast list
+	// and Sender is you, so this field contains the recipient of the read receipt.
+	BroadcastListOwner JID
+}
+
+// IsIncomingBroadcast returns true if the message was sent to a broadcast list instead of directly to the user.
+//
+// If this is true, it means the message shows up in the direct chat with the Sender.
+func (ms *MessageSource) IsIncomingBroadcast() bool {
+	return (!ms.IsFromMe || !ms.BroadcastListOwner.IsEmpty()) && ms.Chat.IsBroadcastList()
 }
 
 // DeviceSentMeta contains metadata from messages sent by another one of the user's own devices.

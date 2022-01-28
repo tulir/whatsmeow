@@ -194,10 +194,11 @@ type GroupInfo struct {
 	Sender    *types.JID // The user who made the change. Doesn't seem to be present when notify=invite
 	Timestamp time.Time  // The time when the change occurred
 
-	Name     *types.GroupName     // Group name change
-	Topic    *types.GroupTopic    // Group topic (description) change
-	Locked   *types.GroupLocked   // Group locked status change (can only admins edit group info?)
-	Announce *types.GroupAnnounce // Group announce status change (can only admins send messages?)
+	Name      *types.GroupName      // Group name change
+	Topic     *types.GroupTopic     // Group topic (description) change
+	Locked    *types.GroupLocked    // Group locked status change (can only admins edit group info?)
+	Announce  *types.GroupAnnounce  // Group announce status change (can only admins send messages?)
+	Ephemeral *types.GroupEphemeral // Disappearing messages change
 
 	NewInviteLink *string // Group invite link change
 
@@ -244,4 +245,19 @@ type PrivacySettings struct {
 	StatusChanged       bool
 	ProfileChanged      bool
 	ReadReceiptsChanged bool
+}
+
+// OfflineSyncPreview is emitted right after connecting if the server is going to send events that the client missed during downtime.
+type OfflineSyncPreview struct {
+	Total int
+
+	AppDataChanges int
+	Messages       int
+	Notifications  int
+	Receipts       int
+}
+
+// OfflineSyncCompleted is emitted after the server has finished sending missed events.
+type OfflineSyncCompleted struct {
+	Count int
 }
