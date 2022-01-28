@@ -3284,6 +3284,7 @@ const (
 	WebMessageInfo_DISAPPEARING_MODE                                        WebMessageInfo_WebMessageInfoStubType = 130
 	WebMessageInfo_E2E_DEVICE_FETCH_FAILED                                  WebMessageInfo_WebMessageInfoStubType = 131
 	WebMessageInfo_ADMIN_REVOKE                                             WebMessageInfo_WebMessageInfoStubType = 132
+	WebMessageInfo_GROUP_INVITE_LINK_GROWTH_LOCKED                          WebMessageInfo_WebMessageInfoStubType = 133
 )
 
 // Enum value maps for WebMessageInfo_WebMessageInfoStubType.
@@ -3422,6 +3423,7 @@ var (
 		130: "DISAPPEARING_MODE",
 		131: "E2E_DEVICE_FETCH_FAILED",
 		132: "ADMIN_REVOKE",
+		133: "GROUP_INVITE_LINK_GROWTH_LOCKED",
 	}
 	WebMessageInfo_WebMessageInfoStubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -3557,6 +3559,7 @@ var (
 		"DISAPPEARING_MODE":                                        130,
 		"E2E_DEVICE_FETCH_FAILED":                                  131,
 		"ADMIN_REVOKE":                                             132,
+		"GROUP_INVITE_LINK_GROWTH_LOCKED":                          133,
 	}
 )
 
@@ -4254,7 +4257,6 @@ type ClientPayload struct {
 	Shards              []int32                                     `protobuf:"varint,14,rep,name=shards" json:"shards,omitempty"`
 	DnsSource           *DNSSource                                  `protobuf:"bytes,15,opt,name=dnsSource" json:"dnsSource,omitempty"`
 	ConnectAttemptCount *uint32                                     `protobuf:"varint,16,opt,name=connectAttemptCount" json:"connectAttemptCount,omitempty"`
-	Agent               *uint32                                     `protobuf:"varint,17,opt,name=agent" json:"agent,omitempty"`
 	Device              *uint32                                     `protobuf:"varint,18,opt,name=device" json:"device,omitempty"`
 	RegData             *CompanionRegData                           `protobuf:"bytes,19,opt,name=regData" json:"regData,omitempty"`
 	Product             *ClientPayload_ClientPayloadProduct         `protobuf:"varint,20,opt,name=product,enum=proto.ClientPayload_ClientPayloadProduct" json:"product,omitempty"`
@@ -4379,13 +4381,6 @@ func (x *ClientPayload) GetDnsSource() *DNSSource {
 func (x *ClientPayload) GetConnectAttemptCount() uint32 {
 	if x != nil && x.ConnectAttemptCount != nil {
 		return *x.ConnectAttemptCount
-	}
-	return 0
-}
-
-func (x *ClientPayload) GetAgent() uint32 {
-	if x != nil && x.Agent != nil {
-		return *x.Agent
 	}
 	return 0
 }
