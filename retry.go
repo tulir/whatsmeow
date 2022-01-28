@@ -112,6 +112,12 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 			},
 		}
 	}
+
+	if cli.PreRetryCallback != nil && !cli.PreRetryCallback(receipt, retryCount, msg) {
+		cli.Log.Debugf("Cancelled retry receipt in PreRetryCallback")
+		return nil
+	}
+
 	plaintext, err := proto.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
