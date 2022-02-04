@@ -34,6 +34,8 @@ const (
 	MediaDocument MediaType = "WhatsApp Document Keys"
 	MediaHistory  MediaType = "WhatsApp History Keys"
 	MediaAppState MediaType = "WhatsApp App State Keys"
+
+	MediaLinkThumbnail MediaType = "WhatsApp Link Thumbnail Keys"
 )
 
 // DownloadableMessage represents a protobuf message that contains attachment info.
@@ -45,15 +47,25 @@ type DownloadableMessage interface {
 	GetFileEncSha256() []byte
 }
 
+// DownloadableThumbnail represents a protobuf message that contains a thumbnail attachment.
+type DownloadableThumbnail interface {
+	proto.Message
+	GetThumbnailDirectPath() string
+	GetThumbnailSha256() []byte
+	GetThumbnailEncSha256() []byte
+	GetMediaKey() []byte
+}
+
 // All the message types that are intended to be downloadable
 var (
-	_ DownloadableMessage = (*waProto.ImageMessage)(nil)
-	_ DownloadableMessage = (*waProto.AudioMessage)(nil)
-	_ DownloadableMessage = (*waProto.VideoMessage)(nil)
-	_ DownloadableMessage = (*waProto.DocumentMessage)(nil)
-	_ DownloadableMessage = (*waProto.StickerMessage)(nil)
-	_ DownloadableMessage = (*waProto.HistorySyncNotification)(nil)
-	_ DownloadableMessage = (*waProto.ExternalBlobReference)(nil)
+	_ DownloadableMessage   = (*waProto.ImageMessage)(nil)
+	_ DownloadableMessage   = (*waProto.AudioMessage)(nil)
+	_ DownloadableMessage   = (*waProto.VideoMessage)(nil)
+	_ DownloadableMessage   = (*waProto.DocumentMessage)(nil)
+	_ DownloadableMessage   = (*waProto.StickerMessage)(nil)
+	_ DownloadableMessage   = (*waProto.HistorySyncNotification)(nil)
+	_ DownloadableMessage   = (*waProto.ExternalBlobReference)(nil)
+	_ DownloadableThumbnail = (*waProto.ExtendedTextMessage)(nil)
 )
 
 type downloadableMessageWithLength interface {
@@ -82,6 +94,10 @@ var classToMediaType = map[protoreflect.Name]MediaType{
 	"ExternalBlobReference":   MediaAppState,
 }
 
+var classToThumbnailMediaType = map[protoreflect.Name]MediaType{
+	"ExtendedTextMessage": MediaLinkThumbnail,
+}
+
 var mediaTypeToMMSType = map[MediaType]string{
 	MediaImage:    "image",
 	MediaAudio:    "audio",
@@ -89,6 +105,8 @@ var mediaTypeToMMSType = map[MediaType]string{
 	MediaDocument: "document",
 	MediaHistory:  "md-msg-hist",
 	MediaAppState: "md-app-state",
+
+	MediaLinkThumbnail: "thumbnail-link",
 }
 
 // DownloadAny loops through the downloadable parts of the given message and downloads the first non-nil item.
@@ -113,8 +131,19 @@ func getSize(msg DownloadableMessage) int {
 	}
 }
 
+func (cli *Client) DownloadThumbnail(msg DownloadableThumbnail) ([]byte, error) {
+	mediaType, ok := classToThumbnailMediaType[msg.ProtoReflect().Descriptor().Name()]
+	if !ok {
+		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
+	} else if len(msg.GetThumbnailDirectPath()) > 0 {
+		return cli.downloadMediaWithPath(msg.GetThumbnailDirectPath(), msg.GetThumbnailEncSha256(), msg.GetThumbnailSha256(), msg.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType])
+	} else {
+		return nil, ErrNoURLPresent
+	}
+}
+
 // Download downloads the attachment from the given protobuf message.
-func (cli *Client) Download(msg DownloadableMessage) (data []byte, err error) {
+func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 	mediaType, ok := classToMediaType[msg.ProtoReflect().Descriptor().Name()]
 	if !ok {
 		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
