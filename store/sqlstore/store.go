@@ -66,7 +66,7 @@ var _ store.ContactStore = (*SQLStore)(nil)
 const (
 	putIdentityQuery = `
 		INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity) VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE identity=?
+		ON CONFLICT (our_jid, their_id) DO UPDATE SET identity=?
 	`
 	deleteAllIdentitiesQuery = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=? AND their_id LIKE ?`
 	deleteIdentityQuery      = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=? AND their_id=?`
@@ -74,7 +74,7 @@ const (
 )
 
 func (s *SQLStore) PutIdentity(address string, key [32]byte) error {
-	_, err := s.db.Exec(putIdentityQuery, s.JID, address, key[:], key[:])
+	_, err := s.db.Exec(s.DialectAdjustmets(putIdentityQuery), s.JID, address, key[:], key[:])
 	return err
 }
 
@@ -107,7 +107,7 @@ const (
 	hasSessionQuery = `SELECT true FROM whatsmeow_sessions WHERE our_jid=? AND their_id=?`
 	putSessionQuery = `
 		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE session=?
+		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=?
 	`
 	deleteAllSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE our_jid=? AND their_id LIKE ?`
 	deleteSessionQuery     = `DELETE FROM whatsmeow_sessions WHERE our_jid=? AND their_id=?`
@@ -130,7 +130,7 @@ func (s *SQLStore) HasSession(address string) (has bool, err error) {
 }
 
 func (s *SQLStore) PutSession(address string, session []byte) error {
-	_, err := s.db.Exec(putSessionQuery, s.JID, address, session, session)
+	_, err := s.db.Exec(s.DialectAdjustmets(putSessionQuery), s.JID, address, session, session)
 	return err
 }
 
@@ -258,12 +258,12 @@ const (
 	getSenderKeyQuery = `SELECT sender_key FROM whatsmeow_sender_keys WHERE our_jid=? AND chat_id=? AND sender_id=?`
 	putSenderKeyQuery = `
 		INSERT INTO whatsmeow_sender_keys (our_jid, chat_id, sender_id, sender_key) VALUES (?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE sender_key=?
+		ON CONFLICT (our_jid, chat_id, sender_id) DO UPDATE SET sender_key=?
 	`
 )
 
 func (s *SQLStore) PutSenderKey(group, user string, session []byte) error {
-	_, err := s.db.Exec(putSenderKeyQuery, s.JID, group, user, session, session)
+	_, err := s.db.Exec(s.DialectAdjustmets(putSenderKeyQuery), s.JID, group, user, session, session)
 	return err
 }
 
@@ -278,13 +278,13 @@ func (s *SQLStore) GetSenderKey(group, user string) (key []byte, err error) {
 const (
 	putAppStateSyncKeyQuery = `
 		INSERT INTO whatsmeow_app_state_sync_keys (jid, key_id, key_data, timestamp, fingerprint) VALUES (?, ?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE key_data=?, timestamp=?, fingerprint=?
+		ON CONFLICT (jid, key_id) DO UPDATE SET key_data=?, timestamp=?, fingerprint=?
 	`
 	getAppStateSyncKeyQuery = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=? AND key_id=?`
 )
 
 func (s *SQLStore) PutAppStateSyncKey(id []byte, key store.AppStateSyncKey) error {
-	_, err := s.db.Exec(putAppStateSyncKeyQuery, s.JID, id, key.Data, key.Timestamp, key.Fingerprint, key.Data, key.Timestamp, key.Fingerprint)
+	_, err := s.db.Exec(s.DialectAdjustmets(putAppStateSyncKeyQuery), s.JID, id, key.Data, key.Timestamp, key.Fingerprint, key.Data, key.Timestamp, key.Fingerprint)
 	return err
 }
 
@@ -300,7 +300,7 @@ func (s *SQLStore) GetAppStateSyncKey(id []byte) (*store.AppStateSyncKey, error)
 const (
 	putAppStateVersionQuery = `
 		INSERT INTO whatsmeow_app_state_version (jid, name, version, hash) VALUES (?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE version=?, hash=?
+		ON CONFLICT (jid, name) DO UPDATE SET version=?, hash=?
 	`
 	getAppStateVersionQuery                 = `SELECT version, hash FROM whatsmeow_app_state_version WHERE jid=? AND name=?`
 	deleteAppStateVersionQuery              = `DELETE FROM whatsmeow_app_state_version WHERE jid=? AND name=?`
@@ -311,7 +311,7 @@ const (
 )
 
 func (s *SQLStore) PutAppStateVersion(name string, version uint64, hash [128]byte) error {
-	_, err := s.db.Exec(putAppStateVersionQuery, s.JID, name, version, hash[:], version, hash[:])
+	_, err := s.db.Exec(s.DialectAdjustmets(putAppStateVersionQuery), s.JID, name, version, hash[:], version, hash[:])
 	return err
 }
 
@@ -344,7 +344,7 @@ type execable interface {
 
 func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uint64, mutations []store.AppStateMutationMAC) (err error) {
 	for _, mutation := range mutations {
-		query := putAppStateMutationMACsQuery+"(?, ?, ?, ?, ?)"
+		query := putAppStateMutationMACsQuery + "(?, ?, ?, ?, ?)"
 		_, err = tx.Exec(query, s.JID, name, version, mutation.IndexMAC, mutation.ValueMAC)
 		if err != nil {
 			return
@@ -398,7 +398,7 @@ func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (
 				return
 			}
 		}
-		
+
 	}
 	return
 }
@@ -414,15 +414,15 @@ func (s *SQLStore) GetAppStateMutationMAC(name string, indexMAC []byte) (valueMA
 const (
 	putContactNameQuery = `
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name) VALUES (?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE first_name=?, full_name=?
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=?, full_name=?
 	`
 	putPushNameQuery = `
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, push_name) VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE push_name=?
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET push_name=?
 	`
 	putBusinessNameQuery = `
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, business_name) VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE business_name=?
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET business_name=?
 	`
 	getContactQuery = `
 		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=? AND their_jid=?
@@ -441,7 +441,7 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 		return false, "", err
 	}
 	if cached.PushName != pushName {
-		_, err = s.db.Exec(putPushNameQuery, s.JID, user, pushName, pushName)
+		_, err = s.db.Exec(s.DialectAdjustmets(putPushNameQuery), s.JID, user, pushName, pushName)
 		if err != nil {
 			return false, "", err
 		}
@@ -462,7 +462,7 @@ func (s *SQLStore) PutBusinessName(user types.JID, businessName string) error {
 		return err
 	}
 	if cached.BusinessName != businessName {
-		_, err = s.db.Exec(putBusinessNameQuery, s.JID, user, businessName, businessName)
+		_, err = s.db.Exec(s.DialectAdjustmets(putBusinessNameQuery), s.JID, user, businessName, businessName)
 		if err != nil {
 			return err
 		}
@@ -481,7 +481,7 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 		return err
 	}
 	if cached.FirstName != firstName || cached.FullName != fullName {
-		_, err = s.db.Exec(putContactNameQuery, s.JID, user, firstName, fullName, firstName, fullName)
+		_, err = s.db.Exec(s.DialectAdjustmets(putContactNameQuery), s.JID, user, firstName, fullName, firstName, fullName)
 		if err != nil {
 			return err
 		}
@@ -555,7 +555,7 @@ func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
 const (
 	putChatSettingQuery = `
 		INSERT INTO whatsmeow_chat_settings (our_jid, chat_jid, %[1]s) VALUES (?, ?, ?)
-		ON DUPLICATE KEY UPDATE %[1]s=?
+		ON CONFLICT (our_jid, chat_jid) DO UPDATE SET %[1]s=?
 	`
 	getChatSettingsQuery = `
 		SELECT muted_until, pinned, archived FROM whatsmeow_chat_settings WHERE our_jid=? AND chat_jid=?
@@ -567,17 +567,17 @@ func (s *SQLStore) PutMutedUntil(chat types.JID, mutedUntil time.Time) error {
 	if !mutedUntil.IsZero() {
 		val = mutedUntil.Unix()
 	}
-	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "muted_until"), s.JID, chat, val, val)
+	_, err := s.db.Exec(fmt.Sprintf(s.DialectAdjustmets(putChatSettingQuery), "muted_until"), s.JID, chat, val, val)
 	return err
 }
 
 func (s *SQLStore) PutPinned(chat types.JID, pinned bool) error {
-	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "pinned"), s.JID, chat, pinned, pinned)
+	_, err := s.db.Exec(fmt.Sprintf(s.DialectAdjustmets(putChatSettingQuery), "pinned"), s.JID, chat, pinned, pinned)
 	return err
 }
 
 func (s *SQLStore) PutArchived(chat types.JID, archived bool) error {
-	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "archived"), s.JID, chat, archived, archived)
+	_, err := s.db.Exec(fmt.Sprintf(s.DialectAdjustmets(putChatSettingQuery), "archived"), s.JID, chat, archived, archived)
 	return err
 }
 

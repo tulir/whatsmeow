@@ -12,6 +12,7 @@ import (
 	"errors"
 	"fmt"
 	mathRand "math/rand"
+	"regexp"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store"
@@ -32,6 +33,7 @@ var _ store.DeviceContainer = (*Container)(nil)
 // New connects to the given SQL database and wraps it in a Container.
 //
 // Only SQLite and Postgres are currently fully supported.
+// MySQL support is experimental.
 //
 // The logger can be nil and will default to a no-op logger.
 //
@@ -53,6 +55,7 @@ func New(dialect, address string, log waLog.Logger) (*Container, error) {
 // NewWithDB wraps an existing SQL connection in a Container.
 //
 // Only SQLite and Postgres are currently fully supported.
+// MySQL support is experimental.
 //
 // The logger can be nil and will default to a no-op logger.
 //
@@ -178,7 +181,7 @@ const (
 									  adv_key, adv_details, adv_account_sig, adv_device_sig,
 									  platform, business_name, push_name)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE platform=?, business_name=?, push_name=?
+		ON CONFLICT (jid) DO UPDATE SET platform=?, business_name=?, push_name=?
 	`
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=?`
 )
@@ -214,7 +217,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(insertDeviceQuery,
+	_, err := c.db.Exec(c.DialectAdjustmets(insertDeviceQuery),
 		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.DeviceSignature,
@@ -243,4 +246,18 @@ func (c *Container) DeleteDevice(store *store.Device) error {
 	}
 	_, err := c.db.Exec(deleteDeviceQuery, store.ID.String())
 	return err
+}
+
+var (
+	mysqlConflictPattern     = regexp.MustCompile(`ON CONFLICT \([^)]+\) DO UPDATE SET`) // cannot be const
+	mysqlConflictReplacement = `ON DUPLICATE KEY UPDATE`
+)
+
+// DialectAdjustmets changes a query for use with the current database dialect
+// only mysql is a special case
+func (c *Container) DialectAdjustmets(query string) string {
+	if c.dialect == "mysql" {
+		query = mysqlConflictPattern.ReplaceAllString(query, mysqlConflictReplacement)
+	}
+	return query
 }

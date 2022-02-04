@@ -41,7 +41,7 @@ var log waLog.Logger
 
 var logLevel = "INFO"
 var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
-var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
+var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3, postgres or mysql)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
 
 func main() {
