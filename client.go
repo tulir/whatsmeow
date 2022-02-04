@@ -94,6 +94,9 @@ type Client struct {
 	// GetMessageForRetry is used to find the source message for handling retry receipts
 	// when the message is not found in the recently sent message cache.
 	GetMessageForRetry func(to types.JID, id types.MessageID) *waProto.Message
+	// PreRetryCallback is called before a retry receipt is accepted.
+	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
+	PreRetryCallback func(receipt *events.Receipt, retryCount int, msg *waProto.Message) bool
 
 	uniqueID  string
 	idCounter uint32

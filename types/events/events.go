@@ -246,3 +246,18 @@ type PrivacySettings struct {
 	ProfileChanged      bool
 	ReadReceiptsChanged bool
 }
+
+// OfflineSyncPreview is emitted right after connecting if the server is going to send events that the client missed during downtime.
+type OfflineSyncPreview struct {
+	Total int
+
+	AppDataChanges int
+	Messages       int
+	Notifications  int
+	Receipts       int
+}
+
+// OfflineSyncCompleted is emitted after the server has finished sending missed events.
+type OfflineSyncCompleted struct {
+	Count int
+}

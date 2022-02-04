@@ -151,7 +151,6 @@ message ClientPayload {
     repeated int32 shards = 14;
     optional DNSSource dnsSource = 15;
     optional uint32 connectAttemptCount = 16;
-    optional uint32 agent = 17;
     optional uint32 device = 18;
     optional CompanionRegData regData = 19;
     enum ClientPayloadProduct {
@@ -1979,6 +1978,7 @@ message WebMessageInfo {
         DISAPPEARING_MODE = 130;
         E2E_DEVICE_FETCH_FAILED = 131;
         ADMIN_REVOKE = 132;
+        GROUP_INVITE_LINK_GROWTH_LOCKED = 133;
     }
     optional WebMessageInfoStubType messageStubType = 24;
     optional bool clearMedia = 25;

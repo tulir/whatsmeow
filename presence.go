@@ -74,6 +74,10 @@ func (cli *Client) SendPresence(state types.Presence) error {
 // SubscribePresence asks the WhatsApp servers to send presence updates of a specific user to this client.
 //
 // After subscribing to this event, you should start receiving *events.Presence for that user in normal event handlers.
+//
+// Also, it seems that the WhatsApp servers require you to be online to receive presence status from other users,
+// so you should mark yourself as online before trying to use this function:
+//     cli.SendPresence(types.PresenceAvailable)
 func (cli *Client) SubscribePresence(jid types.JID) error {
 	return cli.sendNode(waBinary.Node{
 		Tag: "presence",
