@@ -365,7 +365,7 @@ func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.
 }
 
 func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
-	if len(id) == 0 {
+	if len(id) == 0 || cli.Store.ID == nil {
 		return
 	}
 	err := cli.sendNode(waBinary.Node{

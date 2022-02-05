@@ -24,13 +24,13 @@ import (
 
 // UploadResponse contains the data from the attachment upload, which can be put into a message to send the attachment.
 type UploadResponse struct {
-	URL        string
-	DirectPath string
+	URL        string `json:"url"`
+	DirectPath string `json:"direct_path"`
 
-	MediaKey      []byte
-	FileEncSHA256 []byte
-	FileSHA256    []byte
-	FileLength    uint64
+	MediaKey      []byte `json:"-"`
+	FileEncSHA256 []byte `json:"-"`
+	FileSHA256    []byte `json:"-"`
+	FileLength    uint64 `json:"-"`
 }
 
 // Upload uploads the given attachment to WhatsApp servers.
