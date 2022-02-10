@@ -261,3 +261,16 @@ type OfflineSyncPreview struct {
 type OfflineSyncCompleted struct {
 	Count int
 }
+
+// MediaRetry is emitted when the phone sends a response to a media retry request.
+type MediaRetry struct {
+	Ciphertext []byte
+	IV         []byte
+
+	Timestamp time.Time // The time of the response.
+
+	MessageID types.MessageID // The ID of the message.
+	ChatID    types.JID       // The chat ID where the message was sent.
+	SenderID  types.JID       // The user who sent the message. Only present in groups.
+	FromMe    bool            // Whether the message was sent by the current user or someone else.
+}

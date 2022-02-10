@@ -199,6 +199,8 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		}
 	case "picture":
 		go cli.handlePictureNotification(node)
+	case "mediaretry":
+		go cli.handleMediaRetryNotification(node)
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)
 	}

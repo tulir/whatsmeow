@@ -136,10 +136,15 @@ func (cli *Client) DownloadThumbnail(msg DownloadableThumbnail) ([]byte, error) 
 	if !ok {
 		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
 	} else if len(msg.GetThumbnailDirectPath()) > 0 {
-		return cli.downloadMediaWithPath(msg.GetThumbnailDirectPath(), msg.GetThumbnailEncSha256(), msg.GetThumbnailSha256(), msg.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType])
+		return cli.DownloadMediaWithPath(msg.GetThumbnailDirectPath(), msg.GetThumbnailEncSha256(), msg.GetThumbnailSha256(), msg.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType])
 	} else {
 		return nil, ErrNoURLPresent
 	}
+}
+
+// GetMediaType returns the MediaType value corresponding to the given protobuf message.
+func GetMediaType(msg DownloadableMessage) MediaType {
+	return classToMediaType[msg.ProtoReflect().Descriptor().Name()]
 }
 
 // Download downloads the attachment from the given protobuf message.
@@ -152,16 +157,20 @@ func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 	if ok && len(urlable.GetUrl()) > 0 {
 		return downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
 	} else if len(msg.GetDirectPath()) > 0 {
-		return cli.downloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
+		return cli.DownloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
 	} else {
 		return nil, ErrNoURLPresent
 	}
 }
 
-func (cli *Client) downloadMediaWithPath(directPath string, encFileHash, fileHash, mediaKey []byte, fileLength int, mediaType MediaType, mmsType string) (data []byte, err error) {
+// DownloadMediaWithPath downloads an attachment by manually specifying the path and encryption details.
+func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHash, mediaKey []byte, fileLength int, mediaType MediaType, mmsType string) (data []byte, err error) {
 	err = cli.refreshMediaConn(false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh media connections: %w", err)
+	}
+	if len(mmsType) == 0 {
+		mmsType = mediaTypeToMMSType[mediaType]
 	}
 	for i, host := range cli.mediaConn.Hosts {
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
