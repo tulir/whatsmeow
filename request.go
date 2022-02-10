@@ -78,6 +78,7 @@ type infoQuery struct {
 	Namespace string
 	Type      infoQueryType
 	To        types.JID
+	Target    types.JID
 	ID        string
 	Content   interface{}
 
@@ -97,6 +98,9 @@ func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
 	}
 	if !query.To.IsEmpty() {
 		attrs["to"] = query.To
+	}
+	if !query.Target.IsEmpty() {
+		attrs["target"] = query.Target
 	}
 	err := cli.sendNode(waBinary.Node{
 		Tag:     "iq",
