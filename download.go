@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -113,7 +114,7 @@ var mediaTypeToMMSType = map[MediaType]string{
 func (cli *Client) DownloadAny(msg *waProto.Message) (data []byte, err error) {
 	downloadables := []DownloadableMessage{msg.GetImageMessage(), msg.GetAudioMessage(), msg.GetVideoMessage(), msg.GetDocumentMessage(), msg.GetStickerMessage()}
 	for _, downloadable := range downloadables {
-		if downloadable != nil {
+		if !reflect.ValueOf(downloadable).IsNil() {
 			return cli.Download(downloadable)
 		}
 	}
