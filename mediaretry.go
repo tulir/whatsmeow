@@ -153,6 +153,7 @@ func parseMediaRetryNotification(node *waBinary.Node) (*events.MediaRetry, error
 }
 
 func (cli *Client) handleMediaRetryNotification(node *waBinary.Node) {
+	// TODO handle errors (e.g. <error code="2"/>)
 	evt, err := parseMediaRetryNotification(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse media retry notification: %v", err)
