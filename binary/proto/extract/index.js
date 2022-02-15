@@ -8,12 +8,12 @@ const addPrefix = (lines, prefix) => lines.map(line => prefix + line)
 async function findAppModules(mods) {
     const ua = {
         headers: {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:96.0) Gecko/20100101 Firefox/96.0",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-User": "?1",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8", /**/
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0",
+            "Sec-Fetch-Dest": "script",
+            "Sec-Fetch-Mode": "no-cors",
+            "Sec-Fetch-Site": "same-origin",
+            "Referer": "https://web.whatsapp.com/",
+            "Accept": "*/*",
             "Accept-Language": "Accept-Language: en-US,en;q=0.5",
         }
     }
@@ -27,7 +27,7 @@ async function findAppModules(mods) {
     console.log("Current version:", waVersion)
     // This one list of types is so long that it's split into two JavaScript declarations.
     // The module finder below can't handle it, so just patch it manually here.
-    const patchedQrData = qrData.replace("ButtonsResponseMessageType=void 0,t.ActionLinkSpec", "ButtonsResponseMessageType=t.ActionLinkSpec")
+    const patchedQrData = qrData.replace("t.ActionLinkSpec=void 0,t.VideoMessageSpec", "t.ActionLinkSpec=t.VideoMessageSpec")
     const qrModules = acorn.parse(patchedQrData).body[0].expression.arguments[0].elements[1].properties
     return qrModules.filter(m => mods.includes(m.key.value))
 }
@@ -35,30 +35,30 @@ async function findAppModules(mods) {
 (async () => {
     // The module IDs that contain protobuf types
     const wantedModules = [
-        50450, // AppVersion, UserAgent, WebdPayload ...
-        // 36142, // seems to be same as above, but different Details and new CertChainSpec
-        88818, // BizIdentityInfo, BizAccountLinkInfo, ...
-        90964, // SyncActionData, StarAction, ...
-        69512, // SyncdPatch, SyncdMutation, ...
-        69486, // ServerErrorReceipt, MediaRetryNotification, ...
-        38632, // MsgOpaqueData, MsgRowOpaqueData
-        78395, // GlobalSettings, ..., GroupParticipant, Pushname, HistorySyncMsg, ...
-        90468, // EphemeralSetting
-        58427, // InteractiveAnnotation, DeviceListMetadata, MessageContextInfo, ..., ActionLink, ..., QuickReplyButton, ...
-        70463, // AppVersion, CompanionProps, CompanionPropsPlatform
-        97743, // ADVSignedDeviceIdentityHMAC, ADVSignedDeviceIdentity, ...
-        95463, // MessageKey
-        78698, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
+        61438, // ADVSignedKeyIndexList, ADVSignedDeviceIdentity, ADVSignedDeviceIdentityHMAC, ADVKeyIndexList, ADVDeviceIdentity
+        98263, // CompanionPropsPlatform, CompanionProps, AppVersion
+        24808, // RequestPaymentMessage, Reaction, QuickReplyButton, ..., ButtonsResponseMessage, ActionLink, ...
+        28286, // EphemeralSetting
+        73027, // WallpaperSettings, Pushname, MediaVisibility, HistorySync, ..., GroupParticipant, ...
+        60946, // MsgOpaqueData, MsgRowOpaqueData
+        16258, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
+        93890, // MessageKey
+        12492, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
+        22701, // UnarchiveChatsSetting, SyncActionData, StarAction, ...
+        91344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
+        84331, // AppVersion, UserAgent, WebdPayload ...
+        // 78155, // seems to be same as above, but different Details and new CertChainSpec
+        21224, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
     ]
     // Conflicting specs by module ID and what to rename them to
     const renames = {
-        88818: {
+        91344: {
             "Details": "VerifiedNameDetails",
         },
-        50450: {
+        84331: {
             "Details": "NoiseCertificateDetails",
         },
-        58427: {
+        24808: {
             "MediaData": "PBMediaData",
         }
     }
