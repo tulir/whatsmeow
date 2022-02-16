@@ -283,6 +283,7 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 }
 
 func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare) {
+	cli.Log.Debugf("Got %d new app state keys", len(keys.GetKeys()))
 	for _, key := range keys.GetKeys() {
 		marshaledFingerprint, err := proto.Marshal(key.GetKeyData().GetFingerprint())
 		if err != nil {
