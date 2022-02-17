@@ -82,7 +82,7 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 
 func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mutation, []store.ContactEntry) {
 	filteredMutations := mutations[:0]
-	contacts := make([]store.ContactEntry, len(mutations))
+	contacts := make([]store.ContactEntry, 0, len(mutations))
 	for _, mutation := range mutations {
 		if mutation.Index[0] == "contact" && len(mutation.Index) > 1 {
 			jid, _ := types.ParseJID(mutation.Index[1])

@@ -512,19 +512,31 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 const contactBatchSize = 300
 
 func (s *SQLStore) putContactNamesBatch(tx execable, contacts []store.ContactEntry) error {
-	values := make([]interface{}, 1+len(contacts)*3)
-	queryParts := make([]string, len(contacts))
+	values := make([]interface{}, 1, 1+len(contacts)*3)
+	queryParts := make([]string, 0, len(contacts))
 	values[0] = s.JID
 	placeholderSyntax := "($1, $%d, $%d, $%d)"
 	if s.dialect == "sqlite3" {
 		placeholderSyntax = "(?1, ?%d, ?%d, ?%d)"
 	}
-	for i, contact := range contacts {
+	i := 0
+	handledContacts := make(map[types.JID]struct{}, len(contacts))
+	for _, contact := range contacts {
+		if contact.JID.IsEmpty() {
+			s.log.Warnf("Empty contact info in mass insert: %+v", contact)
+			continue
+		}
+		// The whole query will break if there are duplicates, so make sure there aren't any duplicates
+		_, alreadyHandled := handledContacts[contact.JID]
+		if alreadyHandled {
+			s.log.Warnf("Duplicate contact info for %s in mass insert", contact.JID)
+			continue
+		}
+		handledContacts[contact.JID] = struct{}{}
 		baseIndex := i*3 + 1
-		values[baseIndex] = contact.JID.String()
-		values[baseIndex+1] = contact.FirstName
-		values[baseIndex+2] = contact.FullName
-		queryParts[i] = fmt.Sprintf(placeholderSyntax, baseIndex+1, baseIndex+2, baseIndex+3)
+		values = append(values, contact.JID.String(), contact.FirstName, contact.FullName)
+		queryParts = append(queryParts, fmt.Sprintf(placeholderSyntax, baseIndex+1, baseIndex+2, baseIndex+3))
+		i++
 	}
 	_, err := tx.Exec(fmt.Sprintf(putManyContactNamesQuery, strings.Join(queryParts, ",")), values...)
 	return err
