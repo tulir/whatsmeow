@@ -100,6 +100,8 @@ type Client struct {
 
 	uniqueID  string
 	idCounter uint32
+
+	proxyAddr string
 }
 
 // Size of buffer for the channel that all incoming XML nodes go through.
@@ -163,6 +165,12 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	return cli
 }
 
+// SetProxy a socks5 proxy to use for outgoing connections.
+func (cli *Client) SetProxy(addr string) *Client {
+	cli.proxyAddr = addr
+	return cli
+}
+
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
@@ -178,7 +186,7 @@ func (cli *Client) Connect() error {
 
 	cli.resetExpectedDisconnect()
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader)
-	if err := fs.Connect(); err != nil {
+	if err := fs.Connect(cli.proxyAddr); err != nil {
 		fs.Close(0)
 		return err
 	} else if err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
