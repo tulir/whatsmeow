@@ -155,6 +155,21 @@ func (jid JID) String() string {
 	}
 }
 
+// MarshalText implements encoding.TextMarshaler for JID
+func (jid JID) MarshalText() ([]byte, error) {
+	return []byte(jid.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler for JID
+func (jid *JID) UnmarshalText(val []byte) error {
+	out, err := ParseJID(string(val))
+	if err != nil {
+		return err
+	}
+	*jid = out
+	return nil
+}
+
 // IsEmpty returns true if the JID has no server (which is required for all JIDs).
 func (jid JID) IsEmpty() bool {
 	return len(jid.Server) == 0
