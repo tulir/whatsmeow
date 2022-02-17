@@ -15,6 +15,10 @@ var (
 	}
 )
 
+// DictVersion is the version number of the token lists above.
+// It's sent when connecting to the websocket so the server knows which tokens are supported.
+const DictVersion = 2
+
 type doubleByteTokenIndex struct {
 	dictionary byte
 	index      byte
