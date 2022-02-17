@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2022 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,6 +36,8 @@ var (
 	// QRChannelErrUnexpectedEvent is emitted from GetQRChannel if an unexpected connection event is received,
 	// as that likely means that the pairing has already happened before the channel was set up.
 	QRChannelErrUnexpectedEvent = QRChannelItem{Event: "err-unexpected-state"}
+	// QRChannelClientOutdated is emitted from GetQRChannel if events.ClientOutdated is received.
+	QRChannelClientOutdated = QRChannelItem{Event: "err-client-outdated"}
 	// QRChannelScannedWithoutMultidevice is emitted from GetQRChannel if events.QRScannedWithoutMultidevice is received.
 	QRChannelScannedWithoutMultidevice = QRChannelItem{Event: "err-scanned-without-multidevice"}
 )
@@ -117,6 +119,8 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 		qrc.log.Debugf("QR code scanned without multidevice enabled")
 		qrc.output <- QRChannelScannedWithoutMultidevice
 		return
+	case *events.ClientOutdated:
+		outputType = QRChannelClientOutdated
 	case *events.PairSuccess:
 		outputType = QRChannelSuccess
 	case *events.PairError:
@@ -126,7 +130,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 		}
 	case *events.Disconnected:
 		outputType = QRChannelTimeout
-	case *events.Connected, *events.ConnectFailure, *events.LoggedOut:
+	case *events.Connected, *events.ConnectFailure, *events.LoggedOut, *events.TemporaryBan:
 		outputType = QRChannelErrUnexpectedEvent
 	default:
 		return

@@ -159,6 +159,9 @@ type ConnectFailure struct {
 	Raw    *waBinary.Node
 }
 
+// ClientOutdated is emitted when the WhatsApp server rejects the connection with the ConnectFailureClientOutdated code.
+type ClientOutdated struct{}
+
 // StreamError is emitted when the WhatsApp server sends a <stream:error> node with an unknown code.
 //
 // Known codes are handled internally and emitted as different events (e.g. LoggedOut).

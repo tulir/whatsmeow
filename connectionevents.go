@@ -97,6 +97,9 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 			Code:   events.TempBanReason(ag.Int("code")),
 			Expire: expiryTime,
 		})
+	} else if reason == events.ConnectFailureClientOutdated {
+		cli.Log.Errorf("Client outdated (405) connect failure")
+		go cli.dispatchEvent(&events.ClientOutdated{})
 	} else {
 		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())
 		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Raw: node})
