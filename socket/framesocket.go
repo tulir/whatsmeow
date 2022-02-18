@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -84,7 +85,7 @@ func (fs *FrameSocket) Close(code int) {
 	}
 }
 
-func (fs *FrameSocket) Connect() error {
+func (fs *FrameSocket) Connect(proxyAddr ...string) error {
 	fs.lock.Lock()
 	defer fs.lock.Unlock()
 
@@ -93,6 +94,11 @@ func (fs *FrameSocket) Connect() error {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	dialer := websocket.Dialer{}
+	if len(proxyAddr) > 0 && proxyAddr[0] != "" {
+		dialer.Proxy = func(*http.Request) (*url.URL, error) {
+			return url.Parse(proxyAddr[0])
+		}
+	}
 
 	headers := http.Header{"Origin": []string{Origin}}
 	fs.log.Debugf("Dialing %s", URL)
