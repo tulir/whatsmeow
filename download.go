@@ -18,6 +18,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
 )
@@ -209,8 +210,16 @@ func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, re
 }
 
 func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
+	var req *http.Request
+	req, err = http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		err = fmt.Errorf("failed to prepare request: %w", err)
+		return
+	}
+	req.Header.Set("Origin", socket.Origin)
+	req.Header.Set("Referer", socket.Origin+"/")
 	var resp *http.Response
-	resp, err = cli.http.Get(url)
+	resp, err = cli.http.Do(req)
 	if err != nil {
 		return
 	}
