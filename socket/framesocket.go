@@ -20,6 +20,8 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+type Proxy = func(*http.Request) (*url.URL, error)
+
 type FrameSocket struct {
 	conn   *websocket.Conn
 	ctx    context.Context
@@ -31,8 +33,8 @@ type FrameSocket struct {
 	OnDisconnect func(remote bool)
 	WriteTimeout time.Duration
 
-	Header       []byte
-	ProxyAddress *url.URL
+	Header []byte
+	Proxy  Proxy
 
 	incomingLength int
 	receivedLength int
@@ -40,14 +42,14 @@ type FrameSocket struct {
 	partialHeader  []byte
 }
 
-func NewFrameSocket(log waLog.Logger, header []byte, proxyAddr *url.URL) *FrameSocket {
+func NewFrameSocket(log waLog.Logger, header []byte, proxy Proxy) *FrameSocket {
 	return &FrameSocket{
 		conn:   nil,
 		log:    log,
 		Header: header,
 		Frames: make(chan []byte),
 
-		ProxyAddress: proxyAddr,
+		Proxy: proxy,
 	}
 }
 
@@ -96,11 +98,8 @@ func (fs *FrameSocket) Connect() error {
 		return ErrSocketAlreadyOpen
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	dialer := websocket.Dialer{}
-	if fs.ProxyAddress != nil {
-		dialer.Proxy = func(*http.Request) (*url.URL, error) {
-			return fs.ProxyAddress, nil
-		}
+	dialer := websocket.Dialer{
+		Proxy: fs.Proxy,
 	}
 
 	headers := http.Header{"Origin": []string{Origin}}
