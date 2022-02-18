@@ -210,7 +210,7 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 			Content: participantNodes,
 		}},
 	}
-	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE {
+	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE && message.GetProtocolMessage().GetKey() != nil {
 		node.Attrs["edit"] = "7"
 	}
 	if includeIdentity {

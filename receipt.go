@@ -137,6 +137,9 @@ func (cli *Client) sendMessageReceipt(info *types.MessageInfo) {
 		attrs["participant"] = info.Sender
 	} else if info.IsFromMe {
 		attrs["recipient"] = info.Sender
+	} else {
+		// Override the to attribute with the JID version with a device number
+		attrs["to"] = info.Sender
 	}
 	err := cli.sendNode(waBinary.Node{
 		Tag:   "receipt",
