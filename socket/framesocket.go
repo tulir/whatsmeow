@@ -31,7 +31,8 @@ type FrameSocket struct {
 	OnDisconnect func(remote bool)
 	WriteTimeout time.Duration
 
-	Header []byte
+	Header       []byte
+	ProxyAddress *url.URL
 
 	incomingLength int
 	receivedLength int
@@ -39,12 +40,14 @@ type FrameSocket struct {
 	partialHeader  []byte
 }
 
-func NewFrameSocket(log waLog.Logger, header []byte) *FrameSocket {
+func NewFrameSocket(log waLog.Logger, header []byte, proxyAddr *url.URL) *FrameSocket {
 	return &FrameSocket{
 		conn:   nil,
 		log:    log,
 		Header: header,
 		Frames: make(chan []byte),
+
+		ProxyAddress: proxyAddr,
 	}
 }
 
@@ -85,7 +88,7 @@ func (fs *FrameSocket) Close(code int) {
 	}
 }
 
-func (fs *FrameSocket) Connect(proxyAddr ...string) error {
+func (fs *FrameSocket) Connect() error {
 	fs.lock.Lock()
 	defer fs.lock.Unlock()
 
@@ -94,9 +97,9 @@ func (fs *FrameSocket) Connect(proxyAddr ...string) error {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	dialer := websocket.Dialer{}
-	if len(proxyAddr) > 0 && proxyAddr[0] != "" {
+	if fs.ProxyAddress != nil {
 		dialer.Proxy = func(*http.Request) (*url.URL, error) {
-			return url.Parse(proxyAddr[0])
+			return fs.ProxyAddress, nil
 		}
 	}
 

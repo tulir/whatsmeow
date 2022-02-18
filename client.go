@@ -13,6 +13,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
@@ -101,7 +103,8 @@ type Client struct {
 	uniqueID  string
 	idCounter uint32
 
-	proxyAddr string
+	proxyAddress *url.URL
+	http         *http.Client
 }
 
 // Size of buffer for the channel that all incoming XML nodes go through.
@@ -130,6 +133,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	randomBytes := make([]byte, 2)
 	_, _ = rand.Read(randomBytes)
 	cli := &Client{
+		http: &http.Client{
+			Transport: (http.DefaultTransport.(*http.Transport)).Clone(),
+		},
 		Store:           deviceStore,
 		Log:             log,
 		recvLog:         log.Sub("Recv"),
@@ -166,10 +172,27 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	return cli
 }
 
-// SetProxy a socks5 proxy to use for outgoing connections.
-func (cli *Client) SetProxy(addr string) *Client {
-	cli.proxyAddr = addr
-	return cli
+// SetProxyAddress sets the proxy address to use for the WhatsApp web websocket connection. Must be called before Connect().
+//
+// Returns an error if url.Parse fails to parse the given address.
+func (cli *Client) SetProxyAddress(addr string) (err error) {
+	cli.proxyAddress, err = url.Parse(addr)
+	return
+}
+
+// SetUseProxyForMedia sets whether the proxy address (set with SetProxyAddress) should be used for HTTP media downloads and uploads.
+//
+// If false (the default), media requests will use the default behavior of Go's net/http, which is to read proxy info
+// from the https_proxy environment variable.
+func (cli *Client) SetUseProxyForMedia(use bool) {
+	transport := cli.http.Transport.(*http.Transport)
+	if use {
+		transport.Proxy = func(request *http.Request) (*url.URL, error) {
+			return cli.proxyAddress, nil
+		}
+	} else {
+		transport.Proxy = http.ProxyFromEnvironment
+	}
 }
 
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
@@ -186,8 +209,8 @@ func (cli *Client) Connect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader)
-	if err := fs.Connect(cli.proxyAddr); err != nil {
+	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader, cli.proxyAddress)
+	if err := fs.Connect(); err != nil {
 		fs.Close(0)
 		return err
 	} else if err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {

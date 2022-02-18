@@ -92,7 +92,7 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	req.Header.Set("Referer", socket.Origin+"/")
 
 	var httpResp *http.Response
-	httpResp, err = http.DefaultClient.Do(req)
+	httpResp, err = cli.http.Do(req)
 	if err != nil {
 		err = fmt.Errorf("failed to execute request: %w", err)
 	} else if httpResp.StatusCode != http.StatusOK {

@@ -155,7 +155,7 @@ func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 	}
 	urlable, ok := msg.(downloadableMessageWithURL)
 	if ok && len(urlable.GetUrl()) > 0 {
-		return downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
+		return cli.downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
 	} else if len(msg.GetDirectPath()) > 0 {
 		return cli.DownloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
 	} else {
@@ -174,7 +174,7 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 	}
 	for i, host := range cli.mediaConn.Hosts {
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
-		data, err = downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
+		data, err = cli.downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
 		// TODO there are probably some errors that shouldn't retry
 		if err != nil {
 			if i >= len(cli.mediaConn.Hosts)-1 {
@@ -186,10 +186,10 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 	return
 }
 
-func downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSha256, fileSha256 []byte) (data []byte, err error) {
+func (cli *Client) downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSha256, fileSha256 []byte) (data []byte, err error) {
 	iv, cipherKey, macKey, _ := getMediaKeys(mediaKey, appInfo)
 	var ciphertext, mac []byte
-	if ciphertext, mac, err = downloadEncryptedMedia(url, fileEncSha256); err != nil {
+	if ciphertext, mac, err = cli.downloadEncryptedMedia(url, fileEncSha256); err != nil {
 
 	} else if err = validateMedia(iv, ciphertext, macKey, mac); err != nil {
 
@@ -208,9 +208,9 @@ func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, re
 	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:]
 }
 
-func downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
+func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
 	var resp *http.Response
-	resp, err = http.Get(url)
+	resp, err = cli.http.Get(url)
 	if err != nil {
 		return
 	}
