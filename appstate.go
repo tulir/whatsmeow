@@ -175,6 +175,12 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		eventToDispatch = &evt
+	case "markChatAsRead":
+		eventToDispatch = &events.MarkChatAsRead{
+			JID:       jid,
+			Timestamp: ts,
+			Action:    mutation.Action.GetMarkChatAsReadAction(),
+		}
 	case "setting_pushName":
 		eventToDispatch = &events.PushNameSetting{Timestamp: ts, Action: mutation.Action.GetPushNameSetting()}
 		cli.Store.PushName = mutation.Action.GetPushNameSetting().GetName()
