@@ -112,13 +112,23 @@ var mediaTypeToMMSType = map[MediaType]string{
 
 // DownloadAny loops through the downloadable parts of the given message and downloads the first non-nil item.
 func (cli *Client) DownloadAny(msg *waProto.Message) (data []byte, err error) {
-	downloadables := []DownloadableMessage{msg.GetImageMessage(), msg.GetAudioMessage(), msg.GetVideoMessage(), msg.GetDocumentMessage(), msg.GetStickerMessage()}
-	for _, downloadable := range downloadables {
-		if downloadable != nil {
-			return cli.Download(downloadable)
-		}
+	if msg == nil {
+		return nil, ErrNothingDownloadableFound
 	}
-	return nil, ErrNothingDownloadableFound
+	switch {
+	case msg.ImageMessage != nil:
+		return cli.Download(msg.ImageMessage)
+	case msg.VideoMessage != nil:
+		return cli.Download(msg.VideoMessage)
+	case msg.AudioMessage != nil:
+		return cli.Download(msg.AudioMessage)
+	case msg.DocumentMessage != nil:
+		return cli.Download(msg.DocumentMessage)
+	case msg.StickerMessage != nil:
+		return cli.Download(msg.StickerMessage)
+	default:
+		return nil, ErrNothingDownloadableFound
+	}
 }
 
 func getSize(msg DownloadableMessage) int {
