@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"sync/atomic"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -61,6 +62,11 @@ func (cli *Client) handlePresence(node *waBinary.Node) {
 func (cli *Client) SendPresence(state types.Presence) error {
 	if len(cli.Store.PushName) == 0 {
 		return ErrNoPushName
+	}
+	if state == types.PresenceAvailable {
+		atomic.CompareAndSwapUint32(&cli.sendActiveReceipts, 0, 1)
+	} else {
+		atomic.CompareAndSwapUint32(&cli.sendActiveReceipts, 1, 0)
 	}
 	return cli.sendNode(waBinary.Node{
 		Tag: "presence",
