@@ -419,7 +419,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		case "description":
 			body, bodyOK := child.GetOptionalChildByTag("body")
 			if bodyOK {
-				group.Topic, _ = body.Content.(string)
+				topicBytes, _ := body.Content.([]byte)
+				group.Topic = string(topicBytes)
 				group.TopicID = childAG.String("id")
 				group.TopicSetBy = childAG.OptionalJIDOrEmpty("participant")
 				group.TopicSetAt = time.Unix(childAG.Int64("t"), 0)
