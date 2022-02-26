@@ -61,6 +61,35 @@ message AppVersion {
     optional uint32 quinary = 5;
 }
 
+message StickerMessage {
+    optional string url = 1;
+    optional bytes fileSha256 = 2;
+    optional bytes fileEncSha256 = 3;
+    optional bytes mediaKey = 4;
+    optional string mimetype = 5;
+    optional uint32 height = 6;
+    optional uint32 width = 7;
+    optional string directPath = 8;
+    optional uint64 fileLength = 9;
+    optional int64 mediaKeyTimestamp = 10;
+    optional uint32 firstFrameLength = 11;
+    optional bytes firstFrameSidecar = 12;
+    optional bool isAnimated = 13;
+    optional bytes pngThumbnail = 16;
+    optional ContextInfo contextInfo = 17;
+}
+
+message SenderKeyDistributionMessage {
+    optional string groupId = 1;
+    optional bytes axolotlSenderKeyDistributionMessage = 2;
+}
+
+message SendPaymentMessage {
+    optional Message noteMessage = 2;
+    optional MessageKey requestMessageKey = 3;
+    optional PaymentBackground background = 4;
+}
+
 message RequestPaymentMessage {
     optional Message noteMessage = 4;
     optional string currencyCodeIso4217 = 1;
@@ -76,11 +105,6 @@ message ReactionMessage {
     optional string text = 2;
     optional string groupingKey = 3;
     optional int64 senderTimestampMs = 4;
-}
-
-message QuickReplyButton {
-    optional HighlyStructuredMessage displayText = 1;
-    optional string id = 2;
 }
 
 message ProtocolMessage {
@@ -107,8 +131,13 @@ message ProtocolMessage {
     optional DisappearingMode disappearingMode = 11;
 }
 
-message Product {
-    optional string productId = 1;
+message ProductMessage {
+    optional ProductSnapshot product = 1;
+    optional string businessOwnerJid = 2;
+    optional CatalogSnapshot catalog = 4;
+    optional string body = 5;
+    optional string footer = 6;
+    optional ContextInfo contextInfo = 17;
 }
 
 message ProductSnapshot {
@@ -125,36 +154,10 @@ message ProductSnapshot {
     optional int64 salePriceAmount1000 = 12;
 }
 
-message ProductSection {
-    optional string title = 1;
-    repeated Product products = 2;
-}
-
-message ProductMessage {
-    optional ProductSnapshot product = 1;
-    optional string businessOwnerJid = 2;
-    optional CatalogSnapshot catalog = 4;
-    optional string body = 5;
-    optional string footer = 6;
-    optional ContextInfo contextInfo = 17;
-}
-
-message ProductListInfo {
-    repeated ProductSection productSections = 1;
-    optional ProductListHeaderImage headerImage = 2;
-    optional string businessOwnerJid = 3;
-}
-
-message ProductListHeaderImage {
-    optional string productId = 1;
-    optional bytes jpegThumbnail = 2;
-}
-
-message Point {
-    optional int32 xDeprecated = 1;
-    optional int32 yDeprecated = 2;
-    optional double x = 3;
-    optional double y = 4;
+message CatalogSnapshot {
+    optional ImageMessage catalogImage = 1;
+    optional string title = 2;
+    optional string description = 3;
 }
 
 message PaymentInviteMessage {
@@ -166,23 +169,6 @@ message PaymentInviteMessage {
     }
     optional PaymentInviteMessageServiceType serviceType = 1;
     optional int64 expiryTimestamp = 2;
-}
-
-message PaymentBackground {
-    optional string id = 1;
-    optional uint64 fileLength = 2;
-    optional uint32 width = 3;
-    optional uint32 height = 4;
-    optional string mimetype = 5;
-    optional fixed32 placeholderArgb = 6;
-    optional fixed32 textArgb = 7;
-    optional fixed32 subtextArgb = 8;
-    optional PBMediaData mediaData = 9;
-    enum PaymentBackgroundType {
-        UNKNOWN = 0;
-        DEFAULT = 1;
-    }
-    optional PaymentBackgroundType type = 10;
 }
 
 message OrderMessage {
@@ -204,91 +190,6 @@ message OrderMessage {
     optional int64 totalAmount1000 = 10;
     optional string totalCurrencyCode = 11;
     optional ContextInfo contextInfo = 17;
-}
-
-message NativeFlowMessage {
-    repeated NativeFlowButton buttons = 1;
-    optional string messageParamsJson = 2;
-    optional int32 messageVersion = 3;
-}
-
-message NativeFlowInfo {
-    optional string name = 1;
-    optional string paramsJson = 2;
-}
-
-message NativeFlowButton {
-    optional string name = 1;
-    optional string buttonParamsJson = 2;
-}
-
-message Money {
-    optional int64 value = 1;
-    optional uint32 offset = 2;
-    optional string currencyCode = 3;
-}
-
-message Message {
-    optional string conversation = 1;
-    optional SenderKeyDistributionMessage senderKeyDistributionMessage = 2;
-    optional ImageMessage imageMessage = 3;
-    optional ContactMessage contactMessage = 4;
-    optional LocationMessage locationMessage = 5;
-    optional ExtendedTextMessage extendedTextMessage = 6;
-    optional DocumentMessage documentMessage = 7;
-    optional AudioMessage audioMessage = 8;
-    optional VideoMessage videoMessage = 9;
-    optional Call call = 10;
-    optional Chat chat = 11;
-    optional ProtocolMessage protocolMessage = 12;
-    optional ContactsArrayMessage contactsArrayMessage = 13;
-    optional HighlyStructuredMessage highlyStructuredMessage = 14;
-    optional SenderKeyDistributionMessage fastRatchetKeySenderKeyDistributionMessage = 15;
-    optional SendPaymentMessage sendPaymentMessage = 16;
-    optional LiveLocationMessage liveLocationMessage = 18;
-    optional RequestPaymentMessage requestPaymentMessage = 22;
-    optional DeclinePaymentRequestMessage declinePaymentRequestMessage = 23;
-    optional CancelPaymentRequestMessage cancelPaymentRequestMessage = 24;
-    optional TemplateMessage templateMessage = 25;
-    optional StickerMessage stickerMessage = 26;
-    optional GroupInviteMessage groupInviteMessage = 28;
-    optional TemplateButtonReplyMessage templateButtonReplyMessage = 29;
-    optional ProductMessage productMessage = 30;
-    optional DeviceSentMessage deviceSentMessage = 31;
-    optional MessageContextInfo messageContextInfo = 35;
-    optional ListMessage listMessage = 36;
-    optional FutureProofMessage viewOnceMessage = 37;
-    optional OrderMessage orderMessage = 38;
-    optional ListResponseMessage listResponseMessage = 39;
-    optional FutureProofMessage ephemeralMessage = 40;
-    optional InvoiceMessage invoiceMessage = 41;
-    optional ButtonsMessage buttonsMessage = 42;
-    optional ButtonsResponseMessage buttonsResponseMessage = 43;
-    optional PaymentInviteMessage paymentInviteMessage = 44;
-    optional InteractiveMessage interactiveMessage = 45;
-    optional ReactionMessage reactionMessage = 46;
-    optional StickerSyncRMRMessage stickerSyncRmrMessage = 47;
-    optional InteractiveResponseMessage interactiveResponseMessage = 48;
-}
-
-message MessageContextInfo {
-    optional DeviceListMetadata deviceListMetadata = 1;
-    optional int32 deviceListMetadataVersion = 2;
-}
-
-// Renamed from PaymentBackground$MediaData
-message PBMediaData {
-    optional bytes mediaKey = 1;
-    optional int64 mediaKeyTimestamp = 2;
-    optional bytes fileSha256 = 3;
-    optional bytes fileEncSha256 = 4;
-    optional string directPath = 5;
-}
-
-message Location {
-    optional double degreesLatitude = 1;
-    optional double degreesLongitude = 2;
-    optional string name = 3;
 }
 
 message LocationMessage {
@@ -331,6 +232,10 @@ message ListResponseMessage {
     optional string description = 5;
 }
 
+message SingleSelectReply {
+    optional string selectedRowId = 1;
+}
+
 message ListMessage {
     optional string title = 1;
     optional string description = 2;
@@ -345,6 +250,37 @@ message ListMessage {
     optional ProductListInfo productListInfo = 6;
     optional string footerText = 7;
     optional ContextInfo contextInfo = 8;
+}
+
+message Section {
+    optional string title = 1;
+    repeated Row rows = 2;
+}
+
+message Row {
+    optional string title = 1;
+    optional string description = 2;
+    optional string rowId = 3;
+}
+
+message Product {
+    optional string productId = 1;
+}
+
+message ProductSection {
+    optional string title = 1;
+    repeated Product products = 2;
+}
+
+message ProductListInfo {
+    repeated ProductSection productSections = 1;
+    optional ProductListHeaderImage headerImage = 2;
+    optional string businessOwnerJid = 3;
+}
+
+message ProductListHeaderImage {
+    optional string productId = 1;
+    optional bytes jpegThumbnail = 2;
 }
 
 message InvoiceMessage {
@@ -395,11 +331,49 @@ message InteractiveMessage {
     }
 }
 
-message InteractiveAnnotation {
-    repeated Point polygonVertices = 1;
-    oneof action {
-        Location location = 2;
+message ShopMessage {
+    optional string id = 1;
+    enum ShopMessageSurface {
+        UNKNOWN_SURFACE = 0;
+        FB = 1;
+        IG = 2;
+        WA = 3;
     }
+    optional ShopMessageSurface surface = 2;
+    optional int32 messageVersion = 3;
+}
+
+message NativeFlowMessage {
+    repeated NativeFlowButton buttons = 1;
+    optional string messageParamsJson = 2;
+    optional int32 messageVersion = 3;
+}
+
+message NativeFlowButton {
+    optional string name = 1;
+    optional string buttonParamsJson = 2;
+}
+
+message Header {
+    optional string title = 1;
+    optional string subtitle = 2;
+    optional bool hasMediaAttachment = 5;
+    oneof media {
+        DocumentMessage documentMessage = 3;
+        ImageMessage imageMessage = 4;
+        bytes jpegThumbnail = 6;
+        VideoMessage videoMessage = 7;
+    }
+}
+
+message Footer {
+    optional string text = 1;
+}
+
+message CollectionMessage {
+    optional string bizJid = 1;
+    optional string id = 2;
+    optional int32 messageVersion = 3;
 }
 
 // Renamed from Message$InteractiveMessage$Body
@@ -440,44 +414,6 @@ message ImageMessage {
     optional string staticUrl = 29;
 }
 
-message HydratedURLButton {
-    optional string displayText = 1;
-    optional string url = 2;
-}
-
-message HydratedTemplateButton {
-    optional uint32 index = 4;
-    oneof hydratedButton {
-        HydratedQuickReplyButton quickReplyButton = 1;
-        HydratedURLButton urlButton = 2;
-        HydratedCallButton callButton = 3;
-    }
-}
-
-message HydratedQuickReplyButton {
-    optional string displayText = 1;
-    optional string id = 2;
-}
-
-message HydratedFourRowTemplate {
-    optional string hydratedContentText = 6;
-    optional string hydratedFooterText = 7;
-    repeated HydratedTemplateButton hydratedButtons = 8;
-    optional string templateId = 9;
-    oneof title {
-        DocumentMessage documentMessage = 1;
-        string hydratedTitleText = 2;
-        ImageMessage imageMessage = 3;
-        VideoMessage videoMessage = 4;
-        LocationMessage locationMessage = 5;
-    }
-}
-
-message HydratedCallButton {
-    optional string displayText = 1;
-    optional string phoneNumber = 2;
-}
-
 message HistorySyncNotification {
     optional bytes fileSha256 = 1;
     optional uint64 fileLength = 2;
@@ -508,18 +444,6 @@ message HighlyStructuredMessage {
     optional TemplateMessage hydratedHsm = 9;
 }
 
-message Header {
-    optional string title = 1;
-    optional string subtitle = 2;
-    optional bool hasMediaAttachment = 5;
-    oneof media {
-        DocumentMessage documentMessage = 3;
-        ImageMessage imageMessage = 4;
-        bytes jpegThumbnail = 6;
-        VideoMessage videoMessage = 7;
-    }
-}
-
 message HSMLocalizableParameter {
     optional string default = 1;
     oneof paramOneof {
@@ -528,15 +452,15 @@ message HSMLocalizableParameter {
     }
 }
 
-message HSMDateTimeUnixEpoch {
-    optional int64 timestamp = 1;
-}
-
 message HSMDateTime {
     oneof datetimeOneof {
         HSMDateTimeComponent component = 1;
         HSMDateTimeUnixEpoch unixEpoch = 2;
     }
+}
+
+message HSMDateTimeUnixEpoch {
+    optional int64 timestamp = 1;
 }
 
 message HSMDateTimeComponent {
@@ -584,43 +508,6 @@ message GroupInviteMessage {
 
 message FutureProofMessage {
     optional Message message = 1;
-}
-
-message FourRowTemplate {
-    optional HighlyStructuredMessage content = 6;
-    optional HighlyStructuredMessage footer = 7;
-    repeated TemplateButton buttons = 8;
-    oneof title {
-        DocumentMessage documentMessage = 1;
-        HighlyStructuredMessage highlyStructuredMessage = 2;
-        ImageMessage imageMessage = 3;
-        VideoMessage videoMessage = 4;
-        LocationMessage locationMessage = 5;
-    }
-}
-
-message Footer {
-    optional string text = 1;
-}
-
-message ExternalAdReplyInfo {
-    optional string title = 1;
-    optional string body = 2;
-    enum ExternalAdReplyInfoMediaType {
-        NONE = 0;
-        IMAGE = 1;
-        VIDEO = 2;
-    }
-    optional ExternalAdReplyInfoMediaType mediaType = 3;
-    optional string thumbnailUrl = 4;
-    optional string mediaUrl = 5;
-    optional bytes thumbnail = 6;
-    optional string sourceType = 7;
-    optional string sourceId = 8;
-    optional string sourceUrl = 9;
-    optional bool containsAutoReply = 10;
-    optional bool renderLargerThumbnail = 11;
-    optional bool showAdAttribution = 12;
 }
 
 message ExtendedTextMessage {
@@ -684,58 +571,14 @@ message DocumentMessage {
     optional uint32 thumbnailWidth = 19;
 }
 
-message DisappearingMode {
-    enum DisappearingModeInitiator {
-        CHANGED_IN_CHAT = 0;
-        INITIATED_BY_ME = 1;
-        INITIATED_BY_OTHER = 2;
-    }
-    optional DisappearingModeInitiator initiator = 1;
-}
-
 message DeviceSentMessage {
     optional string destinationJid = 1;
     optional Message message = 2;
     optional string phash = 3;
 }
 
-message DeviceListMetadata {
-    optional bytes senderKeyHash = 1;
-    optional uint64 senderTimestamp = 2;
-    repeated uint32 senderKeyIndexes = 3 [packed=true];
-    optional bytes recipientKeyHash = 8;
-    optional uint64 recipientTimestamp = 9;
-    repeated uint32 recipientKeyIndexes = 10 [packed=true];
-}
-
 message DeclinePaymentRequestMessage {
     optional MessageKey key = 1;
-}
-
-message ContextInfo {
-    optional string stanzaId = 1;
-    optional string participant = 2;
-    optional Message quotedMessage = 3;
-    optional string remoteJid = 4;
-    repeated string mentionedJid = 15;
-    optional string conversionSource = 18;
-    optional bytes conversionData = 19;
-    optional uint32 conversionDelaySeconds = 20;
-    optional uint32 forwardingScore = 21;
-    optional bool isForwarded = 22;
-    optional AdReplyInfo quotedAd = 23;
-    optional MessageKey placeholderKey = 24;
-    optional uint32 expiration = 25;
-    optional int64 ephemeralSettingTimestamp = 26;
-    optional bytes ephemeralSharedSecret = 27;
-    optional ExternalAdReplyInfo externalAdReply = 28;
-    optional string entryPointConversionSource = 29;
-    optional string entryPointConversionApp = 30;
-    optional uint32 entryPointConversionDelaySeconds = 31;
-    optional DisappearingMode disappearingMode = 32;
-    optional ActionLink actionLink = 33;
-    optional string groupSubject = 34;
-    optional string parentGroupJid = 35;
 }
 
 message ContactsArrayMessage {
@@ -750,21 +593,9 @@ message ContactMessage {
     optional ContextInfo contextInfo = 17;
 }
 
-message CollectionMessage {
-    optional string bizJid = 1;
-    optional string id = 2;
-    optional int32 messageVersion = 3;
-}
-
 message Chat {
     optional string displayName = 1;
     optional string id = 2;
-}
-
-message CatalogSnapshot {
-    optional ImageMessage catalogImage = 1;
-    optional string title = 2;
-    optional string description = 3;
 }
 
 message CancelPaymentRequestMessage {
@@ -776,11 +607,6 @@ message Call {
     optional string conversionSource = 2;
     optional bytes conversionData = 3;
     optional uint32 conversionDelaySeconds = 4;
-}
-
-message CallButton {
-    optional HighlyStructuredMessage displayText = 1;
-    optional HighlyStructuredMessage phoneNumber = 2;
 }
 
 message ButtonsResponseMessage {
@@ -820,10 +646,6 @@ message ButtonsMessage {
     }
 }
 
-message ButtonText {
-    optional string displayText = 1;
-}
-
 message Button {
     optional string buttonId = 1;
     optional ButtonText buttonText = 2;
@@ -834,6 +656,15 @@ message Button {
     }
     optional ButtonType type = 3;
     optional NativeFlowInfo nativeFlowInfo = 4;
+}
+
+message NativeFlowInfo {
+    optional string name = 1;
+    optional string paramsJson = 2;
+}
+
+message ButtonText {
+    optional string displayText = 1;
 }
 
 message AudioMessage {
@@ -886,6 +717,107 @@ message AppStateFatalExceptionNotification {
     optional int64 timestamp = 2;
 }
 
+message Location {
+    optional double degreesLatitude = 1;
+    optional double degreesLongitude = 2;
+    optional string name = 3;
+}
+
+message InteractiveAnnotation {
+    repeated Point polygonVertices = 1;
+    oneof action {
+        Location location = 2;
+    }
+}
+
+message HydratedTemplateButton {
+    optional uint32 index = 4;
+    oneof hydratedButton {
+        HydratedQuickReplyButton quickReplyButton = 1;
+        HydratedURLButton urlButton = 2;
+        HydratedCallButton callButton = 3;
+    }
+}
+
+message HydratedURLButton {
+    optional string displayText = 1;
+    optional string url = 2;
+}
+
+message HydratedQuickReplyButton {
+    optional string displayText = 1;
+    optional string id = 2;
+}
+
+message HydratedCallButton {
+    optional string displayText = 1;
+    optional string phoneNumber = 2;
+}
+
+message DisappearingMode {
+    enum DisappearingModeInitiator {
+        CHANGED_IN_CHAT = 0;
+        INITIATED_BY_ME = 1;
+        INITIATED_BY_OTHER = 2;
+    }
+    optional DisappearingModeInitiator initiator = 1;
+}
+
+message DeviceListMetadata {
+    optional bytes senderKeyHash = 1;
+    optional uint64 senderTimestamp = 2;
+    repeated uint32 senderKeyIndexes = 3 [packed=true];
+    optional bytes recipientKeyHash = 8;
+    optional uint64 recipientTimestamp = 9;
+    repeated uint32 recipientKeyIndexes = 10 [packed=true];
+}
+
+message ContextInfo {
+    optional string stanzaId = 1;
+    optional string participant = 2;
+    optional Message quotedMessage = 3;
+    optional string remoteJid = 4;
+    repeated string mentionedJid = 15;
+    optional string conversionSource = 18;
+    optional bytes conversionData = 19;
+    optional uint32 conversionDelaySeconds = 20;
+    optional uint32 forwardingScore = 21;
+    optional bool isForwarded = 22;
+    optional AdReplyInfo quotedAd = 23;
+    optional MessageKey placeholderKey = 24;
+    optional uint32 expiration = 25;
+    optional int64 ephemeralSettingTimestamp = 26;
+    optional bytes ephemeralSharedSecret = 27;
+    optional ExternalAdReplyInfo externalAdReply = 28;
+    optional string entryPointConversionSource = 29;
+    optional string entryPointConversionApp = 30;
+    optional uint32 entryPointConversionDelaySeconds = 31;
+    optional DisappearingMode disappearingMode = 32;
+    optional ActionLink actionLink = 33;
+    optional string groupSubject = 34;
+    optional string parentGroupJid = 35;
+}
+
+message ExternalAdReplyInfo {
+    optional string title = 1;
+    optional string body = 2;
+    enum ExternalAdReplyInfoMediaType {
+        NONE = 0;
+        IMAGE = 1;
+        VIDEO = 2;
+    }
+    optional ExternalAdReplyInfoMediaType mediaType = 3;
+    optional string thumbnailUrl = 4;
+    optional string mediaUrl = 5;
+    optional bytes thumbnail = 6;
+    optional string sourceType = 7;
+    optional string sourceId = 8;
+    optional string sourceUrl = 9;
+    optional bool containsAutoReply = 10;
+    optional bool renderLargerThumbnail = 11;
+    optional bool showAdAttribution = 12;
+}
+
 message AdReplyInfo {
     optional string advertiserName = 1;
     enum AdReplyInfoMediaType {
@@ -901,6 +833,117 @@ message AdReplyInfo {
 message ActionLink {
     optional string url = 1;
     optional string buttonTitle = 2;
+}
+
+message TemplateButton {
+    optional uint32 index = 4;
+    oneof button {
+        QuickReplyButton quickReplyButton = 1;
+        URLButton urlButton = 2;
+        CallButton callButton = 3;
+    }
+}
+
+message URLButton {
+    optional HighlyStructuredMessage displayText = 1;
+    optional HighlyStructuredMessage url = 2;
+}
+
+message QuickReplyButton {
+    optional HighlyStructuredMessage displayText = 1;
+    optional string id = 2;
+}
+
+message CallButton {
+    optional HighlyStructuredMessage displayText = 1;
+    optional HighlyStructuredMessage phoneNumber = 2;
+}
+
+message Point {
+    optional int32 xDeprecated = 1;
+    optional int32 yDeprecated = 2;
+    optional double x = 3;
+    optional double y = 4;
+}
+
+message PaymentBackground {
+    optional string id = 1;
+    optional uint64 fileLength = 2;
+    optional uint32 width = 3;
+    optional uint32 height = 4;
+    optional string mimetype = 5;
+    optional fixed32 placeholderArgb = 6;
+    optional fixed32 textArgb = 7;
+    optional fixed32 subtextArgb = 8;
+    optional PBMediaData mediaData = 9;
+    enum PaymentBackgroundType {
+        UNKNOWN = 0;
+        DEFAULT = 1;
+    }
+    optional PaymentBackgroundType type = 10;
+}
+
+// Renamed from PaymentBackground$MediaData
+message PBMediaData {
+    optional bytes mediaKey = 1;
+    optional int64 mediaKeyTimestamp = 2;
+    optional bytes fileSha256 = 3;
+    optional bytes fileEncSha256 = 4;
+    optional string directPath = 5;
+}
+
+message Money {
+    optional int64 value = 1;
+    optional uint32 offset = 2;
+    optional string currencyCode = 3;
+}
+
+message Message {
+    optional string conversation = 1;
+    optional SenderKeyDistributionMessage senderKeyDistributionMessage = 2;
+    optional ImageMessage imageMessage = 3;
+    optional ContactMessage contactMessage = 4;
+    optional LocationMessage locationMessage = 5;
+    optional ExtendedTextMessage extendedTextMessage = 6;
+    optional DocumentMessage documentMessage = 7;
+    optional AudioMessage audioMessage = 8;
+    optional VideoMessage videoMessage = 9;
+    optional Call call = 10;
+    optional Chat chat = 11;
+    optional ProtocolMessage protocolMessage = 12;
+    optional ContactsArrayMessage contactsArrayMessage = 13;
+    optional HighlyStructuredMessage highlyStructuredMessage = 14;
+    optional SenderKeyDistributionMessage fastRatchetKeySenderKeyDistributionMessage = 15;
+    optional SendPaymentMessage sendPaymentMessage = 16;
+    optional LiveLocationMessage liveLocationMessage = 18;
+    optional RequestPaymentMessage requestPaymentMessage = 22;
+    optional DeclinePaymentRequestMessage declinePaymentRequestMessage = 23;
+    optional CancelPaymentRequestMessage cancelPaymentRequestMessage = 24;
+    optional TemplateMessage templateMessage = 25;
+    optional StickerMessage stickerMessage = 26;
+    optional GroupInviteMessage groupInviteMessage = 28;
+    optional TemplateButtonReplyMessage templateButtonReplyMessage = 29;
+    optional ProductMessage productMessage = 30;
+    optional DeviceSentMessage deviceSentMessage = 31;
+    optional MessageContextInfo messageContextInfo = 35;
+    optional ListMessage listMessage = 36;
+    optional FutureProofMessage viewOnceMessage = 37;
+    optional OrderMessage orderMessage = 38;
+    optional ListResponseMessage listResponseMessage = 39;
+    optional FutureProofMessage ephemeralMessage = 40;
+    optional InvoiceMessage invoiceMessage = 41;
+    optional ButtonsMessage buttonsMessage = 42;
+    optional ButtonsResponseMessage buttonsResponseMessage = 43;
+    optional PaymentInviteMessage paymentInviteMessage = 44;
+    optional InteractiveMessage interactiveMessage = 45;
+    optional ReactionMessage reactionMessage = 46;
+    optional StickerSyncRMRMessage stickerSyncRmrMessage = 47;
+    optional InteractiveResponseMessage interactiveResponseMessage = 48;
+}
+
+message MessageContextInfo {
+    optional DeviceListMetadata deviceListMetadata = 1;
+    optional int32 deviceListMetadataVersion = 2;
 }
 
 message VideoMessage {
@@ -934,11 +977,6 @@ message VideoMessage {
     optional string staticUrl = 24;
 }
 
-message URLButton {
-    optional HighlyStructuredMessage displayText = 1;
-    optional HighlyStructuredMessage url = 2;
-}
-
 message TemplateMessage {
     optional ContextInfo contextInfo = 3;
     optional HydratedFourRowTemplate hydratedTemplate = 4;
@@ -948,12 +986,30 @@ message TemplateMessage {
     }
 }
 
-message TemplateButton {
-    optional uint32 index = 4;
-    oneof button {
-        QuickReplyButton quickReplyButton = 1;
-        URLButton urlButton = 2;
-        CallButton callButton = 3;
+message HydratedFourRowTemplate {
+    optional string hydratedContentText = 6;
+    optional string hydratedFooterText = 7;
+    repeated HydratedTemplateButton hydratedButtons = 8;
+    optional string templateId = 9;
+    oneof title {
+        DocumentMessage documentMessage = 1;
+        string hydratedTitleText = 2;
+        ImageMessage imageMessage = 3;
+        VideoMessage videoMessage = 4;
+        LocationMessage locationMessage = 5;
+    }
+}
+
+message FourRowTemplate {
+    optional HighlyStructuredMessage content = 6;
+    optional HighlyStructuredMessage footer = 7;
+    repeated TemplateButton buttons = 8;
+    oneof title {
+        DocumentMessage documentMessage = 1;
+        HighlyStructuredMessage highlyStructuredMessage = 2;
+        ImageMessage imageMessage = 3;
+        VideoMessage videoMessage = 4;
+        LocationMessage locationMessage = 5;
     }
 }
 
@@ -968,62 +1024,6 @@ message StickerSyncRMRMessage {
     repeated string filehash = 1;
     optional string rmrSource = 2;
     optional int64 requestTimestamp = 3;
-}
-
-message StickerMessage {
-    optional string url = 1;
-    optional bytes fileSha256 = 2;
-    optional bytes fileEncSha256 = 3;
-    optional bytes mediaKey = 4;
-    optional string mimetype = 5;
-    optional uint32 height = 6;
-    optional uint32 width = 7;
-    optional string directPath = 8;
-    optional uint64 fileLength = 9;
-    optional int64 mediaKeyTimestamp = 10;
-    optional uint32 firstFrameLength = 11;
-    optional bytes firstFrameSidecar = 12;
-    optional bool isAnimated = 13;
-    optional bytes pngThumbnail = 16;
-    optional ContextInfo contextInfo = 17;
-}
-
-message SingleSelectReply {
-    optional string selectedRowId = 1;
-}
-
-message ShopMessage {
-    optional string id = 1;
-    enum ShopMessageSurface {
-        UNKNOWN_SURFACE = 0;
-        FB = 1;
-        IG = 2;
-        WA = 3;
-    }
-    optional ShopMessageSurface surface = 2;
-    optional int32 messageVersion = 3;
-}
-
-message SenderKeyDistributionMessage {
-    optional string groupId = 1;
-    optional bytes axolotlSenderKeyDistributionMessage = 2;
-}
-
-message SendPaymentMessage {
-    optional Message noteMessage = 2;
-    optional MessageKey requestMessageKey = 3;
-    optional PaymentBackground background = 4;
-}
-
-message Section {
-    optional string title = 1;
-    repeated Row rows = 2;
-}
-
-message Row {
-    optional string title = 1;
-    optional string description = 2;
-    optional string rowId = 3;
 }
 
 message EphemeralSetting {
@@ -1243,10 +1243,6 @@ message ExitCode {
     optional string text = 2;
 }
 
-message UnarchiveChatsSetting {
-    optional bool unarchiveChats = 1;
-}
-
 message SyncActionValue {
     optional int64 timestamp = 1;
     optional StarAction starAction = 2;
@@ -1274,6 +1270,10 @@ message SyncActionValue {
     optional AndroidUnsupportedActions androidUnsupportedActions = 26;
 }
 
+message UnarchiveChatsSetting {
+    optional bool unarchiveChats = 1;
+}
+
 message SyncActionMessage {
     optional MessageKey key = 1;
     optional int64 timestamp = 2;
@@ -1283,13 +1283,6 @@ message SyncActionMessageRange {
     optional int64 lastMessageTimestamp = 1;
     optional int64 lastSystemMessageTimestamp = 2;
     repeated SyncActionMessage messages = 3;
-}
-
-message SyncActionData {
-    optional bytes index = 1;
-    optional SyncActionValue value = 2;
-    optional bytes padding = 3;
-    optional int32 version = 4;
 }
 
 message StarAction {
@@ -1304,11 +1297,6 @@ message RecentStickerWeightsAction {
     repeated RecentStickerWeight weights = 1;
 }
 
-message RecentStickerWeight {
-    optional string filehash = 1;
-    optional float weight = 2;
-}
-
 message RecentStickerMetadata {
     optional string directPath = 1;
     optional string encFilehash = 2;
@@ -1321,11 +1309,6 @@ message RecentStickerMetadata {
 
 message RecentEmojiWeightsAction {
     repeated RecentEmojiWeight weights = 1;
-}
-
-message RecentEmojiWeight {
-    optional string emoji = 1;
-    optional float weight = 2;
 }
 
 message QuickReplyAction {
@@ -1415,16 +1398,27 @@ message AndroidUnsupportedActions {
     optional bool allowed = 1;
 }
 
+message SyncActionData {
+    optional bytes index = 1;
+    optional SyncActionValue value = 2;
+    optional bytes padding = 3;
+    optional int32 version = 4;
+}
+
+message RecentStickerWeight {
+    optional string filehash = 1;
+    optional float weight = 2;
+}
+
+message RecentEmojiWeight {
+    optional string emoji = 1;
+    optional float weight = 2;
+}
+
 message VerifiedNameCertificate {
     optional bytes details = 1;
     optional bytes signature = 2;
     optional bytes serverSignature = 3;
-}
-
-message LocalizedName {
-    optional string lg = 1;
-    optional string lc = 2;
-    optional string verifiedName = 3;
 }
 
 // Renamed from VerifiedNameCertificate$Details
@@ -1434,6 +1428,12 @@ message VerifiedNameDetails {
     optional string verifiedName = 4;
     repeated LocalizedName localizedNames = 8;
     optional uint64 issueTime = 10;
+}
+
+message LocalizedName {
+    optional string lg = 1;
+    optional string lc = 2;
+    optional string verifiedName = 3;
 }
 
 message BizIdentityInfo {
@@ -1480,102 +1480,9 @@ message BizAccountLinkInfo {
     optional BizAccountLinkInfoAccountType accountType = 5;
 }
 
-message WebdPayload {
-    optional bool usesParticipantInKey = 1;
-    optional bool supportsStarredMessages = 2;
-    optional bool supportsDocumentMessages = 3;
-    optional bool supportsUrlMessages = 4;
-    optional bool supportsMediaRetry = 5;
-    optional bool supportsE2EImage = 6;
-    optional bool supportsE2EVideo = 7;
-    optional bool supportsE2EAudio = 8;
-    optional bool supportsE2EDocument = 9;
-    optional string documentTypes = 10;
-    optional bytes features = 11;
-}
-
-message WebInfo {
-    optional string refToken = 1;
-    optional string version = 2;
-    optional WebdPayload webdPayload = 3;
-    enum WebInfoWebSubPlatform {
-        WEB_BROWSER = 0;
-        APP_STORE = 1;
-        WIN_STORE = 2;
-        DARWIN = 3;
-        WIN32 = 4;
-    }
-    optional WebInfoWebSubPlatform webSubPlatform = 4;
-}
-
-message UserAgent {
-    enum UserAgentPlatform {
-        ANDROID = 0;
-        IOS = 1;
-        WINDOWS_PHONE = 2;
-        BLACKBERRY = 3;
-        BLACKBERRYX = 4;
-        S40 = 5;
-        S60 = 6;
-        PYTHON_CLIENT = 7;
-        TIZEN = 8;
-        ENTERPRISE = 9;
-        SMB_ANDROID = 10;
-        KAIOS = 11;
-        SMB_IOS = 12;
-        WINDOWS = 13;
-        WEB = 14;
-        PORTAL = 15;
-        GREEN_ANDROID = 16;
-        GREEN_IPHONE = 17;
-        BLUE_ANDROID = 18;
-        BLUE_IPHONE = 19;
-        FBLITE_ANDROID = 20;
-        MLITE_ANDROID = 21;
-        IGLITE_ANDROID = 22;
-        PAGE = 23;
-        MACOS = 24;
-        OCULUS_MSG = 25;
-        OCULUS_CALL = 26;
-        MILAN = 27;
-        CAPI = 28;
-    }
-    optional UserAgentPlatform platform = 1;
-    optional AppVersion appVersion = 2;
-    optional string mcc = 3;
-    optional string mnc = 4;
-    optional string osVersion = 5;
-    optional string manufacturer = 6;
-    optional string device = 7;
-    optional string osBuildNumber = 8;
-    optional string phoneId = 9;
-    enum UserAgentReleaseChannel {
-        RELEASE = 0;
-        BETA = 1;
-        ALPHA = 2;
-        DEBUG = 3;
-    }
-    optional UserAgentReleaseChannel releaseChannel = 10;
-    optional string localeLanguageIso6391 = 11;
-    optional string localeCountryIso31661Alpha2 = 12;
-    optional string deviceBoard = 13;
-}
-
-message ServerHello {
-    optional bytes ephemeral = 1;
-    optional bytes static = 2;
-    optional bytes payload = 3;
-}
-
 message NoiseCertificate {
     optional bytes details = 1;
     optional bytes signature = 2;
-}
-
-message HandshakeMessage {
-    optional ClientHello clientHello = 2;
-    optional ServerHello serverHello = 3;
-    optional ClientFinish clientFinish = 4;
 }
 
 // Renamed from NoiseCertificate$Details
@@ -1587,27 +1494,27 @@ message NoiseCertificateDetails {
     optional bytes key = 5;
 }
 
-message DNSSource {
-    enum DNSSourceDNSResolutionMethod {
-        SYSTEM = 0;
-        GOOGLE = 1;
-        HARDCODED = 2;
-        OVERRIDE = 3;
-        FALLBACK = 4;
-    }
-    optional DNSSourceDNSResolutionMethod dnsMethod = 15;
-    optional bool appCached = 16;
+message HandshakeMessage {
+    optional ClientHello clientHello = 2;
+    optional ServerHello serverHello = 3;
+    optional ClientFinish clientFinish = 4;
 }
 
-message CompanionRegData {
-    optional bytes eRegid = 1;
-    optional bytes eKeytype = 2;
-    optional bytes eIdent = 3;
-    optional bytes eSkeyId = 4;
-    optional bytes eSkeyVal = 5;
-    optional bytes eSkeySig = 6;
-    optional bytes buildHash = 7;
-    optional bytes companionProps = 8;
+message ServerHello {
+    optional bytes ephemeral = 1;
+    optional bytes static = 2;
+    optional bytes payload = 3;
+}
+
+message ClientHello {
+    optional bytes ephemeral = 1;
+    optional bytes static = 2;
+    optional bytes payload = 3;
+}
+
+message ClientFinish {
+    optional bytes static = 1;
+    optional bytes payload = 2;
 }
 
 message ClientPayload {
@@ -1670,15 +1577,85 @@ message ClientPayload {
     optional bool pull = 33;
 }
 
-message ClientHello {
-    optional bytes ephemeral = 1;
-    optional bytes static = 2;
-    optional bytes payload = 3;
+message WebInfo {
+    optional string refToken = 1;
+    optional string version = 2;
+    optional WebdPayload webdPayload = 3;
+    enum WebInfoWebSubPlatform {
+        WEB_BROWSER = 0;
+        APP_STORE = 1;
+        WIN_STORE = 2;
+        DARWIN = 3;
+        WIN32 = 4;
+    }
+    optional WebInfoWebSubPlatform webSubPlatform = 4;
 }
 
-message ClientFinish {
-    optional bytes static = 1;
-    optional bytes payload = 2;
+message WebdPayload {
+    optional bool usesParticipantInKey = 1;
+    optional bool supportsStarredMessages = 2;
+    optional bool supportsDocumentMessages = 3;
+    optional bool supportsUrlMessages = 4;
+    optional bool supportsMediaRetry = 5;
+    optional bool supportsE2EImage = 6;
+    optional bool supportsE2EVideo = 7;
+    optional bool supportsE2EAudio = 8;
+    optional bool supportsE2EDocument = 9;
+    optional string documentTypes = 10;
+    optional bytes features = 11;
+}
+
+message UserAgent {
+    enum UserAgentPlatform {
+        ANDROID = 0;
+        IOS = 1;
+        WINDOWS_PHONE = 2;
+        BLACKBERRY = 3;
+        BLACKBERRYX = 4;
+        S40 = 5;
+        S60 = 6;
+        PYTHON_CLIENT = 7;
+        TIZEN = 8;
+        ENTERPRISE = 9;
+        SMB_ANDROID = 10;
+        KAIOS = 11;
+        SMB_IOS = 12;
+        WINDOWS = 13;
+        WEB = 14;
+        PORTAL = 15;
+        GREEN_ANDROID = 16;
+        GREEN_IPHONE = 17;
+        BLUE_ANDROID = 18;
+        BLUE_IPHONE = 19;
+        FBLITE_ANDROID = 20;
+        MLITE_ANDROID = 21;
+        IGLITE_ANDROID = 22;
+        PAGE = 23;
+        MACOS = 24;
+        OCULUS_MSG = 25;
+        OCULUS_CALL = 26;
+        MILAN = 27;
+        CAPI = 28;
+    }
+    optional UserAgentPlatform platform = 1;
+    optional AppVersion appVersion = 2;
+    optional string mcc = 3;
+    optional string mnc = 4;
+    optional string osVersion = 5;
+    optional string manufacturer = 6;
+    optional string device = 7;
+    optional string osBuildNumber = 8;
+    optional string phoneId = 9;
+    enum UserAgentReleaseChannel {
+        RELEASE = 0;
+        BETA = 1;
+        ALPHA = 2;
+        DEBUG = 3;
+    }
+    optional UserAgentReleaseChannel releaseChannel = 10;
+    optional string localeLanguageIso6391 = 11;
+    optional string localeCountryIso31661Alpha2 = 12;
+    optional string deviceBoard = 13;
 }
 
 // Duplicate type omitted
@@ -1689,6 +1666,29 @@ message ClientFinish {
 //    optional uint32 quaternary = 4;
 //    optional uint32 quinary = 5;
 //}
+
+message DNSSource {
+    enum DNSSourceDNSResolutionMethod {
+        SYSTEM = 0;
+        GOOGLE = 1;
+        HARDCODED = 2;
+        OVERRIDE = 3;
+        FALLBACK = 4;
+    }
+    optional DNSSourceDNSResolutionMethod dnsMethod = 15;
+    optional bool appCached = 16;
+}
+
+message CompanionRegData {
+    optional bytes eRegid = 1;
+    optional bytes eKeytype = 2;
+    optional bytes eIdent = 3;
+    optional bytes eSkeyId = 4;
+    optional bytes eSkeyVal = 5;
+    optional bytes eSkeySig = 6;
+    optional bytes buildHash = 7;
+    optional bytes companionProps = 8;
+}
 
 message WebNotificationsInfo {
     optional uint64 timestamp = 2;
