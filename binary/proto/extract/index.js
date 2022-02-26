@@ -23,11 +23,12 @@ async function findAppModules(mods) {
     const bootstrapQRURL = baseURL + "/bootstrap_qr." + bootstrapQRID + ".js"
     console.error("Found bootstrap_qr.js URL:", bootstrapQRURL)
     const qrData = await request.get(bootstrapQRURL, ua)
-    const waVersion = qrData.match(/VERSION_STR:"(\d\.\d+\.\d+)"/)[1]
+    const waVersion = qrData.match(/appVersion:"(\d\.\d+\.\d+)"/)[1]
     console.log("Current version:", waVersion)
     // This one list of types is so long that it's split into two JavaScript declarations.
     // The module finder below can't handle it, so just patch it manually here.
-    const patchedQrData = qrData.replace("t.ActionLinkSpec=void 0,t.VideoMessageSpec", "t.ActionLinkSpec=t.VideoMessageSpec")
+    const patchedQrData = qrData.replace("t.ActionLinkSpec=void 0,t.TemplateButtonSpec", "t.ActionLinkSpec=t.TemplateButtonSpec")
+    //const patchedQrData = qrData.replace("Spec=void 0,t.", "Spec=t.")
     const qrModules = acorn.parse(patchedQrData).body[0].expression.arguments[0].elements[1].properties
     return qrModules.filter(m => mods.includes(m.key.value))
 }
@@ -43,7 +44,7 @@ async function findAppModules(mods) {
         60946, // MsgOpaqueData, MsgRowOpaqueData
         16258, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
         93890, // MessageKey
-        12492, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
+        50073, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
         22701, // UnarchiveChatsSetting, SyncActionData, StarAction, ...
         91344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
         84331, // AppVersion, UserAgent, WebdPayload ...
@@ -53,19 +54,22 @@ async function findAppModules(mods) {
     // Conflicting specs by module ID and what to rename them to
     const renames = {
         91344: {
-            "Details": "VerifiedNameDetails",
+            "VerifiedNameCertificate$Details": "VerifiedNameDetails",
         },
         84331: {
-            "Details": "NoiseCertificateDetails",
+            "NoiseCertificate$Details": "NoiseCertificateDetails",
         },
         24808: {
-            "MediaData": "PBMediaData",
+            "PaymentBackground$MediaData": "PBMediaData",
+            "Message$InteractiveResponseMessage$Body": "InteractiveResponseMessageBody",
+            "Message$InteractiveMessage$Body": "InteractiveMessageBody",
         }
     }
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
+    const unnestName = name => name.split("$").slice(-1)[0]
     const makeRenameFunc = modID => name => {
         name = unspecName(name)
-        return renames[modID]?.[name] ?? name
+        return renames[modID]?.[name] ?? unnestName(name)
     }
     // The constructor ID that's used in all enum types
     const enumConstructorID = 54302
@@ -113,7 +117,7 @@ async function findAppModules(mods) {
                     const makeBlankIdent = a => {
                         const key = rename(a.property.name)
                         const value = {name: key}
-                        if (key !== unspecName(a.property.name)) {
+                        if (key !== unspecName(unnestName(a.property.name))) {
                             value.renamedFrom = unspecName(a.property.name)
                         }
                         return [key, value]

@@ -268,6 +268,7 @@ message Message {
     optional InteractiveMessage interactiveMessage = 45;
     optional ReactionMessage reactionMessage = 46;
     optional StickerSyncRMRMessage stickerSyncRmrMessage = 47;
+    optional InteractiveResponseMessage interactiveResponseMessage = 48;
 }
 
 message MessageContextInfo {
@@ -275,7 +276,7 @@ message MessageContextInfo {
     optional int32 deviceListMetadataVersion = 2;
 }
 
-// Renamed from MediaData
+// Renamed from PaymentBackground$MediaData
 message PBMediaData {
     optional bytes mediaKey = 1;
     optional int64 mediaKeyTimestamp = 2;
@@ -363,9 +364,28 @@ message InvoiceMessage {
     optional bytes attachmentJpegThumbnail = 10;
 }
 
+message InteractiveResponseMessage {
+    optional InteractiveResponseMessageBody body = 1;
+    optional ContextInfo contextInfo = 15;
+    oneof interactiveResponseMessage {
+        NativeFlowResponseMessage nativeFlowResponseMessage = 2;
+    }
+}
+
+message NativeFlowResponseMessage {
+    optional string name = 1;
+    optional string paramsJson = 2;
+    optional int32 version = 3;
+}
+
+// Renamed from Message$InteractiveResponseMessage$Body
+message InteractiveResponseMessageBody {
+    optional string text = 1;
+}
+
 message InteractiveMessage {
     optional Header header = 1;
-    optional Body body = 2;
+    optional InteractiveMessageBody body = 2;
     optional Footer footer = 3;
     optional ContextInfo contextInfo = 15;
     oneof interactiveMessage {
@@ -380,6 +400,11 @@ message InteractiveAnnotation {
     oneof action {
         Location location = 2;
     }
+}
+
+// Renamed from Message$InteractiveMessage$Body
+message InteractiveMessageBody {
+    optional string text = 1;
 }
 
 message InitialSecurityNotificationSettingSync {
@@ -594,6 +619,8 @@ message ExternalAdReplyInfo {
     optional string sourceId = 8;
     optional string sourceUrl = 9;
     optional bool containsAutoReply = 10;
+    optional bool renderLargerThumbnail = 11;
+    optional bool showAdAttribution = 12;
 }
 
 message ExtendedTextMessage {
@@ -807,10 +834,6 @@ message Button {
     }
     optional ButtonType type = 3;
     optional NativeFlowInfo nativeFlowInfo = 4;
-}
-
-message Body {
-    optional string text = 1;
 }
 
 message AudioMessage {
@@ -1061,6 +1084,9 @@ message GlobalSettings {
     optional WallpaperSettings lightThemeWallpaper = 1;
     optional MediaVisibility mediaVisibility = 2;
     optional WallpaperSettings darkThemeWallpaper = 3;
+    optional AutoDownloadSettings autodownloadWiFi = 4;
+    optional AutoDownloadSettings autodownloadCellular = 5;
+    optional AutoDownloadSettings autodownloadRoaming = 6;
 }
 
 message Conversation {
@@ -1097,6 +1123,13 @@ message Conversation {
     optional MediaVisibility mediaVisibility = 27;
     optional uint64 tcTokenSenderTimestamp = 28;
     optional bool suspended = 29;
+}
+
+message AutoDownloadSettings {
+    optional bool downloadImages = 1;
+    optional bool downloadAudio = 2;
+    optional bool downloadVideo = 3;
+    optional bool downloadDocuments = 4;
 }
 
 message MsgRowOpaqueData {
@@ -1394,7 +1427,7 @@ message LocalizedName {
     optional string verifiedName = 3;
 }
 
-// Renamed from Details
+// Renamed from VerifiedNameCertificate$Details
 message VerifiedNameDetails {
     optional uint64 serial = 1;
     optional string issuer = 2;
@@ -1545,7 +1578,7 @@ message HandshakeMessage {
     optional ClientFinish clientFinish = 4;
 }
 
-// Renamed from Details
+// Renamed from NoiseCertificate$Details
 message NoiseCertificateDetails {
     optional uint32 serial = 1;
     optional string issuer = 2;
@@ -1634,6 +1667,7 @@ message ClientPayload {
     optional ClientPayloadIOSAppExtension iosAppExtension = 30;
     optional uint64 fbAppId = 31;
     optional bytes fbDeviceId = 32;
+    optional bool pull = 33;
 }
 
 message ClientHello {
@@ -1821,6 +1855,9 @@ message WebMessageInfo {
         E2E_DEVICE_FETCH_FAILED = 131;
         ADMIN_REVOKE = 132;
         GROUP_INVITE_LINK_GROWTH_LOCKED = 133;
+        COMMUNITY_LINK_PARENT_GROUP = 134;
+        COMMUNITY_LINK_SIBLING_GROUP = 135;
+        COMMUNITY_LINK_SUB_GROUP = 136;
     }
     optional WebMessageInfoStubType messageStubType = 24;
     optional bool clearMedia = 25;
