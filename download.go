@@ -40,6 +40,9 @@ const (
 )
 
 // DownloadableMessage represents a protobuf message that contains attachment info.
+//
+// All of the downloadable messages inside a Message struct implement this interface
+// (ImageMessage, VideoMessage, AudioMessage, DocumentMessage, StickerMessage).
 type DownloadableMessage interface {
 	proto.Message
 	GetDirectPath() string
@@ -49,6 +52,8 @@ type DownloadableMessage interface {
 }
 
 // DownloadableThumbnail represents a protobuf message that contains a thumbnail attachment.
+//
+// This is primarily meant for link preview thumbnails in ExtendedTextMessage.
 type DownloadableThumbnail interface {
 	proto.Message
 	GetThumbnailDirectPath() string
@@ -142,6 +147,12 @@ func getSize(msg DownloadableMessage) int {
 	}
 }
 
+// DownloadThumbnail downloads a thumbnail from a message.
+//
+// This is primarily intended for downloading link preview thumbnails, which are in ExtendedTextMessage:
+//     var msg *waProto.Message
+//     ...
+//     thumbnailImageBytes, err := cli.DownloadThumbnail(msg.GetExtendedTextMessage())
 func (cli *Client) DownloadThumbnail(msg DownloadableThumbnail) ([]byte, error) {
 	mediaType, ok := classToThumbnailMediaType[msg.ProtoReflect().Descriptor().Name()]
 	if !ok {
@@ -159,6 +170,13 @@ func GetMediaType(msg DownloadableMessage) MediaType {
 }
 
 // Download downloads the attachment from the given protobuf message.
+//
+// The attachment is a specific part of a Message protobuf struct, not the message itself, e.g.
+//     var msg *waProto.Message
+//     ...
+//     imageData, err := cli.Download(msg.GetImageMessage())
+//
+// You can also use DownloadAny to download the first non-nil sub-message.
 func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 	mediaType, ok := classToMediaType[msg.ProtoReflect().Descriptor().Name()]
 	if !ok {
