@@ -53,7 +53,7 @@ func GenerateMessageID() types.MessageID {
 // The message itself can contain anything you want (within the protobuf schema).
 // e.g. for a simple text message, use the Conversation field:
 //   cli.SendMessage(targetJID, "", &waProto.Message{
-//     Conversation: proto.String("Hello, World!"),
+//       Conversation: proto.String("Hello, World!"),
 //   })
 //
 // Things like replies, mentioning users and the "forwarded" flag are stored in ContextInfo,

@@ -40,18 +40,20 @@ type UploadResponse struct {
 // For example, to send an image:
 //   resp, err := cli.Upload(context.Background(), yourImageBytes, whatsmeow.MediaImage)
 //   // handle error
+//
 //   imageMsg := &waProto.ImageMessage{
-//     Caption:  proto.String("Hello, world!"),
-//     Mimetype: proto.String("image/png"), // replace this with the actual mime type
-//     // you can also optionally add other fields like ContextInfo and JpegThumbnail here
-//     Url:           &resp.URL,
-//     MediaKey:      &resp.MediaKey,
-//     FileEncSha256: &resp.FileEncSHA256,
-//     FileSha256:    &resp.FileSha256,
-//     FileLength:    &resp.FileLength,
+//       Caption:  proto.String("Hello, world!"),
+//       Mimetype: proto.String("image/png"), // replace this with the actual mime type
+//       // you can also optionally add other fields like ContextInfo and JpegThumbnail here
+//
+//       Url:           &resp.URL,
+//       MediaKey:      &resp.MediaKey,
+//       FileEncSha256: &resp.FileEncSHA256,
+//       FileSha256:    &resp.FileSha256,
+//       FileLength:    &resp.FileLength,
 //   }
 //   _, err = cli.SendMessage(targetJID, "", &waProto.Message{
-//     ImageMessage: imageMsg,
+//       ImageMessage: imageMsg,
 //   })
 //   // handle error again
 //

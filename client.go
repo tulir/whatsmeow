@@ -199,11 +199,11 @@ func (cli *Client) SetProxyAddress(addr string) error {
 //
 // To use a different proxy for the websocket and media, pass a function that checks the request path or headers:
 //  cli.SetProxy(func(r *http.Request) (*url.URL, error) {
-//    if r.URL.Host == "web.whatsapp.com" && r.URL.Path == "/ws/chat" {
-//      return websocketProxyURL, nil
-//    } else {
-//      return mediaProxyURL, nil
-//    }
+//      if r.URL.Host == "web.whatsapp.com" && r.URL.Path == "/ws/chat" {
+//          return websocketProxyURL, nil
+//      } else {
+//          return mediaProxyURL, nil
+//      }
 //  })
 func (cli *Client) SetProxy(proxy socket.Proxy) {
 	cli.proxy = proxy
@@ -360,29 +360,29 @@ func (cli *Client) Logout() error {
 //
 // All registered event handlers will receive all events. You should use a type switch statement to
 // filter the events you want:
-//     func myEventHandler(evt interface{}) {
-//         switch v := evt.(type) {
-//         case *events.Message:
-//             fmt.Println("Received a message!")
-//         case *events.Receipt:
-//             fmt.Println("Received a receipt!")
-//         }
-//     }
+//   func myEventHandler(evt interface{}) {
+//       switch v := evt.(type) {
+//       case *events.Message:
+//           fmt.Println("Received a message!")
+//       case *events.Receipt:
+//           fmt.Println("Received a receipt!")
+//       }
+//   }
 //
 // If you want to access the Client instance inside the event handler, the recommended way is to
 // wrap the whole handler in another struct:
-//     type MyClient struct {
-//         WAClient *whatsmeow.Client
-//         eventHandlerID uint32
-//     }
+//   type MyClient struct {
+//       WAClient *whatsmeow.Client
+//       eventHandlerID uint32
+//   }
 //
-//     func (mycli *MyClient) register() {
-//         mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
-//     }
+//   func (mycli *MyClient) register() {
+//       mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
+//   }
 //
-//     func (mycli *MyClient) myEventHandler(evt interface{}) {
-//          // Handle event and access mycli.WAClient
-//     }
+//   func (mycli *MyClient) myEventHandler(evt interface{}) {
+//        // Handle event and access mycli.WAClient
+//   }
 func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 	nextID := atomic.AddUint32(&nextHandlerID, 1)
 	cli.eventHandlersLock.Lock()
@@ -397,11 +397,11 @@ func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 // N.B. Do not run this directly from an event handler. That would cause a deadlock because the
 // event dispatcher holds a read lock on the event handler list, and this method wants a write lock
 // on the same list. Instead run it in a goroutine:
-//     func (mycli *MyClient) myEventHandler(evt interface{}) {
-//         if noLongerWantEvents {
-//             go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
-//         }
-//     }
+//   func (mycli *MyClient) myEventHandler(evt interface{}) {
+//       if noLongerWantEvents {
+//           go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
+//       }
+//   }
 func (cli *Client) RemoveEventHandler(id uint32) bool {
 	cli.eventHandlersLock.Lock()
 	defer cli.eventHandlersLock.Unlock()
