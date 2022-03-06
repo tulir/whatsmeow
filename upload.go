@@ -47,9 +47,10 @@ type UploadResponse struct {
 //       // you can also optionally add other fields like ContextInfo and JpegThumbnail here
 //
 //       Url:           &resp.URL,
-//       MediaKey:      &resp.MediaKey,
-//       FileEncSha256: &resp.FileEncSHA256,
-//       FileSha256:    &resp.FileSha256,
+//       DirectPath:    &uploaded.DirectPath,
+//       MediaKey:      resp.MediaKey,
+//       FileEncSha256: resp.FileEncSHA256,
+//       FileSha256:    resp.FileSha256,
 //       FileLength:    &resp.FileLength,
 //   }
 //   _, err = cli.SendMessage(targetJID, "", &waProto.Message{
