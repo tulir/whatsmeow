@@ -3,9 +3,9 @@ module go.mau.fi/whatsmeow
 go 1.17
 
 require (
-	github.com/gorilla/websocket v1.4.2
-	go.mau.fi/libsignal v0.0.0-20211109153248-a67163214910
-	golang.org/x/crypto v0.0.0-20220214200702-86341886e292
+	github.com/gorilla/websocket v1.5.0
+	go.mau.fi/libsignal v0.0.0-20220308120827-0d87a03fd7c7
+	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70
 	google.golang.org/protobuf v1.27.1
 )
 
