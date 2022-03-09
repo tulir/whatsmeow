@@ -103,7 +103,7 @@ func (cli *Client) SendChatPresence(jid types.JID, state types.ChatPresence, med
 	content := []waBinary.Node{{Tag: string(state)}}
 	if state == types.ChatPresenceComposing && len(media) > 0 {
 		content[0].Attrs = waBinary.Attrs{
-			"media": media,
+			"media": string(media),
 		}
 	}
 	return cli.sendNode(waBinary.Node{
