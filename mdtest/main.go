@@ -208,8 +208,10 @@ func handleCmd(cmd string, args []string) {
 	case "presence":
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
 	case "chatpresence":
-		if len(args) < 2 {
-			log.Errorf("Usage: chatpresence <jid> <composing/paused> <text/audio>")
+		if len(args) == 2 {
+			args = append(args, "")
+		} else if len(args) < 2 {
+			log.Errorf("Usage: chatpresence <jid> <composing/paused> [audio]")
 			return
 		}
 		jid, _ := types.ParseJID(args[0])
