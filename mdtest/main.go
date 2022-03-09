@@ -208,8 +208,12 @@ func handleCmd(cmd string, args []string) {
 	case "presence":
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
 	case "chatpresence":
-		jid, _ := types.ParseJID(args[1])
-		fmt.Println(cli.SendChatPresence(types.ChatPresence(args[0]), jid))
+		if len(args) < 2 {
+			log.Errorf("Usage: chatpresence <jid> <composing/paused> <text/audio>")
+			return
+		}
+		jid, _ := types.ParseJID(args[0])
+		fmt.Println(cli.SendChatPresence(jid, types.ChatPresence(args[1]), types.ChatPresenceMedia(args[2])))
 	case "privacysettings":
 		resp, err := cli.TryFetchPrivacySettings(false)
 		if err != nil {

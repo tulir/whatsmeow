@@ -17,6 +17,12 @@ type ChatPresence string
 
 const (
 	ChatPresenceComposing ChatPresence = "composing"
-	ChatPresenceRecording ChatPresence = "recording"
 	ChatPresencePaused    ChatPresence = "paused"
+)
+
+type ChatPresenceMedia string
+
+const (
+	ChatPresenceMediaText  ChatPresenceMedia = ""
+	ChatPresenceMediaAudio ChatPresenceMedia = "audio"
 )

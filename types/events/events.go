@@ -249,7 +249,8 @@ type Receipt struct {
 //  client.SendPresence(types.PresenceAvailable)
 type ChatPresence struct {
 	types.MessageSource
-	State types.ChatPresence
+	State types.ChatPresence      // The current state, either composing or paused
+	Media types.ChatPresenceMedia // When composing, the type of message
 }
 
 // Presence is emitted when a presence update is received.
