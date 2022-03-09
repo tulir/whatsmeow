@@ -8,7 +8,7 @@ const addPrefix = (lines, prefix) => lines.map(line => prefix + line)
 async function findAppModules(mods) {
     const ua = {
         headers: {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:97.0) Gecko/20100101 Firefox/97.0",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0",
             "Sec-Fetch-Dest": "script",
             "Sec-Fetch-Mode": "no-cors",
             "Sec-Fetch-Site": "same-origin",
@@ -38,14 +38,15 @@ async function findAppModules(mods) {
     const wantedModules = [
         61438, // ADVSignedKeyIndexList, ADVSignedDeviceIdentity, ADVSignedDeviceIdentityHMAC, ADVKeyIndexList, ADVDeviceIdentity
         98263, // CompanionPropsPlatform, CompanionProps, AppVersion
-        24808, // RequestPaymentMessage, Reaction, QuickReplyButton, ..., ButtonsResponseMessage, ActionLink, ...
+        24808, // Message, ..., RequestPaymentMessage, Reaction, QuickReplyButton, ..., ButtonsResponseMessage, ActionLink, ...
         28286, // EphemeralSetting
         73027, // WallpaperSettings, Pushname, MediaVisibility, HistorySync, ..., GroupParticipant, ...
-        60946, // MsgOpaqueData, MsgRowOpaqueData
+        82348, // MsgOpaqueData, MsgRowOpaqueData
         16258, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
         93890, // MessageKey
+        72493, // Duplicate of MessageKey
         50073, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
-        22701, // UnarchiveChatsSetting, SyncActionData, StarAction, ...
+        381,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
         91344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
         84331, // AppVersion, UserAgent, WebdPayload ...
         // 78155, // seems to be same as above, but different Details and new CertChainSpec
@@ -71,8 +72,8 @@ async function findAppModules(mods) {
         name = unspecName(name)
         return renames[modID]?.[name] ?? unnestName(name)
     }
-    // The constructor ID that's used in all enum types
-    const enumConstructorID = 54302
+    // The constructor IDs that can be used for enum types
+    const enumConstructorIDs = [76672, 54302]
 
     const unsortedModules = await findAppModules(wantedModules)
     if (unsortedModules.length !== wantedModules.length) {
@@ -137,7 +138,7 @@ async function findAppModules(mods) {
                 }
             },
             VariableDeclarator(node) {
-                if (node.init && node.init.type === "CallExpression" && node.init.callee?.arguments?.[0]?.value === enumConstructorID && node.init.arguments.length === 1 && node.init.arguments[0].type === "ObjectExpression") {
+                if (node.init && node.init.type === "CallExpression" && enumConstructorIDs.includes(node.init.callee?.arguments?.[0]?.value) && node.init.arguments.length === 1 && node.init.arguments[0].type === "ObjectExpression") {
                     enumAliases[node.id.name] = node.init.arguments[0].properties.map(p => ({
                         name: p.key.name,
                         id: p.value.value
@@ -309,7 +310,18 @@ async function findAppModules(mods) {
             return result
         }
 
-        decodedProto = decodedProto.concat(...Object.values(modInfo.identifiers).map(v => v.members ? stringifyMessageSpec(v) : stringifyEnum(v)))
+        const stringifyEntity = v => {
+            if (v.members) {
+                return stringifyMessageSpec(v)
+            } else if (v.enumValues) {
+                return stringifyEnum(v)
+            } else {
+                console.error(v)
+                return "// Unknown entity"
+            }
+        }
+
+        decodedProto = decodedProto.concat(...Object.values(modInfo.identifiers).map(stringifyEntity))
     }
     const decodedProtoStr = decodedProto.join("\n") + "\n"
     await fs.writeFile("../def.proto", decodedProtoStr)

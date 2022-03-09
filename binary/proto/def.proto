@@ -859,6 +859,34 @@ message CallButton {
     optional HighlyStructuredMessage phoneNumber = 2;
 }
 
+message PollUpdateMessage {
+    optional MessageKey pollCreationMessageKey = 1;
+    optional bytes encPayload = 2;
+    optional bytes encIv = 3;
+}
+
+message PollUpdateMessageContent {
+    oneof update {
+        PollVoteMessage voteMessage = 1;
+    }
+}
+
+message PollVoteMessage {
+    repeated bytes selectedOptions = 1;
+    optional int64 senderTimestampMs = 2;
+}
+
+message PollCreationMessage {
+    optional bytes encKey = 1;
+    optional string name = 2;
+    repeated Option options = 3;
+    optional uint32 selectableOptionsCount = 4;
+}
+
+message Option {
+    optional string optionName = 1;
+}
+
 message Point {
     optional int32 xDeprecated = 1;
     optional int32 yDeprecated = 2;
@@ -939,6 +967,8 @@ message Message {
     optional ReactionMessage reactionMessage = 46;
     optional StickerSyncRMRMessage stickerSyncRmrMessage = 47;
     optional InteractiveResponseMessage interactiveResponseMessage = 48;
+    optional PollCreationMessage pollCreationMessage = 49;
+    optional PollUpdateMessage pollUpdateMessage = 50;
 }
 
 message MessageContextInfo {
@@ -1084,9 +1114,11 @@ message GlobalSettings {
     optional WallpaperSettings lightThemeWallpaper = 1;
     optional MediaVisibility mediaVisibility = 2;
     optional WallpaperSettings darkThemeWallpaper = 3;
-    optional AutoDownloadSettings autodownloadWiFi = 4;
-    optional AutoDownloadSettings autodownloadCellular = 5;
-    optional AutoDownloadSettings autodownloadRoaming = 6;
+    optional AutoDownloadSettings autoDownloadWiFi = 4;
+    optional AutoDownloadSettings autoDownloadCellular = 5;
+    optional AutoDownloadSettings autoDownloadRoaming = 6;
+    optional bool showIndividualNotificationsPreview = 7;
+    optional bool showGroupNotificationsPreview = 8;
 }
 
 message Conversation {
@@ -1141,6 +1173,7 @@ message MsgOpaqueData {
     optional string body = 1;
     optional string caption = 3;
     optional double lng = 5;
+    optional bool isLive = 6;
     optional double lat = 7;
     optional int32 paymentAmount1000 = 8;
     optional string paymentNoteMsgBody = 9;
@@ -1175,6 +1208,14 @@ message MessageKey {
     optional string id = 3;
     optional string participant = 4;
 }
+
+// Duplicate type omitted
+//message MessageKey {
+//    optional string remoteJid = 1;
+//    optional bool fromMe = 2;
+//    optional string id = 3;
+//    optional string participant = 4;
+//}
 
 message SyncdVersion {
     optional uint64 version = 1;
@@ -1886,6 +1927,8 @@ message WebMessageInfo {
     optional MediaData quotedStickerData = 42;
     optional bytes futureproofData = 43;
     optional StatusPSA statusPsa = 44;
+    repeated PollUpdate pollUpdates = 45;
+    optional PollAdditionalMetadata pollAdditionalMetadata = 46;
 }
 
 message WebFeatures {
@@ -1962,6 +2005,15 @@ message Reaction {
     optional string groupingKey = 3;
     optional int64 senderTimestampMs = 4;
     optional bool unread = 5;
+}
+
+message PollUpdate {
+    optional MessageKey pollUpdateMessageKey = 1;
+    optional PollUpdateMessageContent pollUpdateMessage = 2;
+}
+
+message PollAdditionalMetadata {
+    optional bool pollInvalidated = 1;
 }
 
 message PhotoChange {
