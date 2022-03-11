@@ -30,6 +30,7 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -190,6 +191,20 @@ func handleCmd(cmd string, args []string) {
 				} else {
 					log.Infof("%s: on whatsapp: %t, JID: %s", item.Query, item.IsIn, item.JID)
 				}
+			}
+		}
+	case "checkupdate":
+		resp, err := cli.CheckUpdate()
+		if err != nil {
+			log.Errorf("Failed to check for updates: %v", err)
+		} else {
+			log.Debugf("Version data: %#v", resp)
+			if resp.ParsedVersion == store.GetWAVersion() {
+				log.Infof("Client is up to date")
+			} else if store.GetWAVersion().LessThan(resp.ParsedVersion) {
+				log.Warnf("Client is outdated")
+			} else {
+				log.Infof("Client is newer than latest")
 			}
 		}
 	case "subscribepresence":
