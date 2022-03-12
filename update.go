@@ -30,8 +30,14 @@ type CheckUpdateResponse struct {
 // CheckUpdateURL is the base URL to check for WhatsApp web updates.
 const CheckUpdateURL = "https://web.whatsapp.com/check-update"
 
-// CheckUpdate asks the WhatsApp servers if there is an update available.
+// CheckUpdate asks the WhatsApp servers if there is an update available
+// (using the HTTP client and proxy settings of this whatsmeow Client instance).
 func (cli *Client) CheckUpdate() (respData CheckUpdateResponse, err error) {
+	return CheckUpdate(http.DefaultClient)
+}
+
+// CheckUpdate asks the WhatsApp servers if there is an update available.
+func CheckUpdate(httpClient *http.Client) (respData CheckUpdateResponse, err error) {
 	var reqURL *url.URL
 	reqURL, err = url.Parse(CheckUpdateURL)
 	if err != nil {
@@ -51,7 +57,7 @@ func (cli *Client) CheckUpdate() (respData CheckUpdateResponse, err error) {
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
 	var resp *http.Response
-	resp, err = cli.http.Do(req)
+	resp, err = httpClient.Do(req)
 	if err != nil {
 		err = fmt.Errorf("failed to send request: %w", err)
 		return
