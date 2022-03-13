@@ -33,7 +33,7 @@ const CheckUpdateURL = "https://web.whatsapp.com/check-update"
 // CheckUpdate asks the WhatsApp servers if there is an update available
 // (using the HTTP client and proxy settings of this whatsmeow Client instance).
 func (cli *Client) CheckUpdate() (respData CheckUpdateResponse, err error) {
-	return CheckUpdate(http.DefaultClient)
+	return CheckUpdate(cli.http)
 }
 
 // CheckUpdate asks the WhatsApp servers if there is an update available.
