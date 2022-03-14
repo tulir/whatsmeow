@@ -283,6 +283,7 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 }
 
 func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare) {
+	cli.Log.Debugf("Got %d new app state keys", len(keys.GetKeys()))
 	for _, key := range keys.GetKeys() {
 		marshaledFingerprint, err := proto.Marshal(key.GetKeyData().GetFingerprint())
 		if err != nil {
@@ -365,7 +366,7 @@ func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.
 }
 
 func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
-	if len(id) == 0 {
+	if len(id) == 0 || cli.Store.ID == nil {
 		return
 	}
 	err := cli.sendNode(waBinary.Node{

@@ -30,6 +30,9 @@ import (
 )
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
+//
+//   msgID := whatsmeow.GenerateMessageID()
+//   cli.SendMessage(targetJID, msgID, &waProto.Message{...})
 func GenerateMessageID() types.MessageID {
 	id := make([]byte, 16)
 	_, err := rand.Read(id)
@@ -46,6 +49,20 @@ func GenerateMessageID() types.MessageID {
 //
 // This method will wait for the server to acknowledge the message before returning.
 // The return value is the timestamp of the message from the server.
+//
+// The message itself can contain anything you want (within the protobuf schema).
+// e.g. for a simple text message, use the Conversation field:
+//   cli.SendMessage(targetJID, "", &waProto.Message{
+//       Conversation: proto.String("Hello, World!"),
+//   })
+//
+// Things like replies, mentioning users and the "forwarded" flag are stored in ContextInfo,
+// which can be put in ExtendedTextMessage and any of the media message types.
+//
+// For uploading and sending media/attachments, see the Upload method.
+//
+// For other message types, you'll have to figure it out yourself. Looking at the protobuf schema
+// in binary/proto/def.proto may be useful to find out all the allowed fields.
 func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProto.Message) (time.Time, error) {
 	if to.AD {
 		return time.Time{}, ErrRecipientADJID
@@ -210,7 +227,7 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 			Content: participantNodes,
 		}},
 	}
-	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE {
+	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE && message.GetProtocolMessage().GetKey() != nil {
 		node.Attrs["edit"] = "7"
 	}
 	if includeIdentity {

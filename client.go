@@ -13,6 +13,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
@@ -55,6 +57,8 @@ type Client struct {
 	EnableAutoReconnect   bool
 	LastSuccessfulConnect time.Time
 	AutoReconnectErrors   int
+
+	sendActiveReceipts uint32
 
 	// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
 	// even when re-syncing the whole state.
@@ -100,6 +104,9 @@ type Client struct {
 
 	uniqueID  string
 	idCounter uint32
+
+	proxy socket.Proxy
+	http  *http.Client
 }
 
 // Size of buffer for the channel that all incoming XML nodes go through.
@@ -128,6 +135,10 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	randomBytes := make([]byte, 2)
 	_, _ = rand.Read(randomBytes)
 	cli := &Client{
+		http: &http.Client{
+			Transport: (http.DefaultTransport.(*http.Transport)).Clone(),
+		},
+		proxy:           http.ProxyFromEnvironment,
 		Store:           deviceStore,
 		Log:             log,
 		recvLog:         log.Sub("Recv"),
@@ -159,8 +170,44 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"stream:error": cli.handleStreamError,
 		"iq":           cli.handleIQ,
 		"ib":           cli.handleIB,
+		// Apparently there's also an <error> node which can have a code=479 and means "Invalid stanza sent (smax-invalid)"
 	}
 	return cli
+}
+
+// SetProxyAddress is a helper method that parses a URL string and calls SetProxy.
+//
+// Returns an error if url.Parse fails to parse the given address.
+func (cli *Client) SetProxyAddress(addr string) error {
+	parsed, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+	cli.SetProxy(http.ProxyURL(parsed))
+	return nil
+}
+
+// SetProxy sets the proxy to use for WhatsApp web websocket connections and media uploads/downloads.
+//
+// Must be called before Connect() to take effect in the websocket connection.
+// If you want to change the proxy after connecting, you must call Disconnect() and then Connect() again manually.
+//
+// By default, the client will find the proxy from the https_proxy environment variable like Go's net/http does.
+//
+// To disable reading proxy info from environment variables, explicitly set the proxy to nil:
+//   cli.SetProxy(nil)
+//
+// To use a different proxy for the websocket and media, pass a function that checks the request path or headers:
+//  cli.SetProxy(func(r *http.Request) (*url.URL, error) {
+//      if r.URL.Host == "web.whatsapp.com" && r.URL.Path == "/ws/chat" {
+//          return websocketProxyURL, nil
+//      } else {
+//          return mediaProxyURL, nil
+//      }
+//  })
+func (cli *Client) SetProxy(proxy socket.Proxy) {
+	cli.proxy = proxy
+	cli.http.Transport.(*http.Transport).Proxy = proxy
 }
 
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
@@ -177,7 +224,7 @@ func (cli *Client) Connect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader)
+	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader, cli.proxy)
 	if err := fs.Connect(); err != nil {
 		fs.Close(0)
 		return err
@@ -313,29 +360,29 @@ func (cli *Client) Logout() error {
 //
 // All registered event handlers will receive all events. You should use a type switch statement to
 // filter the events you want:
-//     func myEventHandler(evt interface{}) {
-//         switch v := evt.(type) {
-//         case *events.Message:
-//             fmt.Println("Received a message!")
-//         case *events.Receipt:
-//             fmt.Println("Received a receipt!")
-//         }
-//     }
+//   func myEventHandler(evt interface{}) {
+//       switch v := evt.(type) {
+//       case *events.Message:
+//           fmt.Println("Received a message!")
+//       case *events.Receipt:
+//           fmt.Println("Received a receipt!")
+//       }
+//   }
 //
 // If you want to access the Client instance inside the event handler, the recommended way is to
 // wrap the whole handler in another struct:
-//     type MyClient struct {
-//         WAClient *whatsmeow.Client
-//         eventHandlerID uint32
-//     }
+//   type MyClient struct {
+//       WAClient *whatsmeow.Client
+//       eventHandlerID uint32
+//   }
 //
-//     func (mycli *MyClient) register() {
-//         mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
-//     }
+//   func (mycli *MyClient) register() {
+//       mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
+//   }
 //
-//     func (mycli *MyClient) myEventHandler(evt interface{}) {
-//          // Handle event and access mycli.WAClient
-//     }
+//   func (mycli *MyClient) myEventHandler(evt interface{}) {
+//        // Handle event and access mycli.WAClient
+//   }
 func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 	nextID := atomic.AddUint32(&nextHandlerID, 1)
 	cli.eventHandlersLock.Lock()
@@ -350,11 +397,11 @@ func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 // N.B. Do not run this directly from an event handler. That would cause a deadlock because the
 // event dispatcher holds a read lock on the event handler list, and this method wants a write lock
 // on the same list. Instead run it in a goroutine:
-//     func (mycli *MyClient) myEventHandler(evt interface{}) {
-//         if noLongerWantEvents {
-//             go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
-//         }
-//     }
+//   func (mycli *MyClient) myEventHandler(evt interface{}) {
+//       if noLongerWantEvents {
+//           go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
+//       }
+//   }
 func (cli *Client) RemoveEventHandler(id uint32) bool {
 	cli.eventHandlersLock.Lock()
 	defer cli.eventHandlersLock.Unlock()

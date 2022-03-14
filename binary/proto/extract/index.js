@@ -8,12 +8,12 @@ const addPrefix = (lines, prefix) => lines.map(line => prefix + line)
 async function findAppModules(mods) {
     const ua = {
         headers: {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:96.0) Gecko/20100101 Firefox/96.0",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-User": "?1",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8", /**/
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0",
+            "Sec-Fetch-Dest": "script",
+            "Sec-Fetch-Mode": "no-cors",
+            "Sec-Fetch-Site": "same-origin",
+            "Referer": "https://web.whatsapp.com/",
+            "Accept": "*/*",
             "Accept-Language": "Accept-Language: en-US,en;q=0.5",
         }
     }
@@ -23,11 +23,12 @@ async function findAppModules(mods) {
     const bootstrapQRURL = baseURL + "/bootstrap_qr." + bootstrapQRID + ".js"
     console.error("Found bootstrap_qr.js URL:", bootstrapQRURL)
     const qrData = await request.get(bootstrapQRURL, ua)
-    const waVersion = qrData.match(/VERSION_STR:"(\d\.\d+\.\d+)"/)[1]
+    const waVersion = qrData.match(/appVersion:"(\d\.\d+\.\d+)"/)[1]
     console.log("Current version:", waVersion)
     // This one list of types is so long that it's split into two JavaScript declarations.
     // The module finder below can't handle it, so just patch it manually here.
-    const patchedQrData = qrData.replace("ButtonsResponseMessageType=void 0,t.ActionLinkSpec", "ButtonsResponseMessageType=t.ActionLinkSpec")
+    const patchedQrData = qrData.replace("t.ActionLinkSpec=void 0,t.TemplateButtonSpec", "t.ActionLinkSpec=t.TemplateButtonSpec")
+    //const patchedQrData = qrData.replace("Spec=void 0,t.", "Spec=t.")
     const qrModules = acorn.parse(patchedQrData).body[0].expression.arguments[0].elements[1].properties
     return qrModules.filter(m => mods.includes(m.key.value))
 }
@@ -35,40 +36,44 @@ async function findAppModules(mods) {
 (async () => {
     // The module IDs that contain protobuf types
     const wantedModules = [
-        50450, // AppVersion, UserAgent, WebdPayload ...
-        // 36142, // seems to be same as above, but different Details and new CertChainSpec
-        88818, // BizIdentityInfo, BizAccountLinkInfo, ...
-        90964, // SyncActionData, StarAction, ...
-        69512, // SyncdPatch, SyncdMutation, ...
-        69486, // ServerErrorReceipt, MediaRetryNotification, ...
-        38632, // MsgOpaqueData, MsgRowOpaqueData
-        78395, // GlobalSettings, ..., GroupParticipant, Pushname, HistorySyncMsg, ...
-        90468, // EphemeralSetting
-        58427, // InteractiveAnnotation, DeviceListMetadata, MessageContextInfo, ..., ActionLink, ..., QuickReplyButton, ...
-        70463, // AppVersion, CompanionProps, CompanionPropsPlatform
-        97743, // ADVSignedDeviceIdentityHMAC, ADVSignedDeviceIdentity, ...
-        95463, // MessageKey
-        78698, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
+        61438, // ADVSignedKeyIndexList, ADVSignedDeviceIdentity, ADVSignedDeviceIdentityHMAC, ADVKeyIndexList, ADVDeviceIdentity
+        98263, // CompanionPropsPlatform, CompanionProps, AppVersion
+        24808, // Message, ..., RequestPaymentMessage, Reaction, QuickReplyButton, ..., ButtonsResponseMessage, ActionLink, ...
+        28286, // EphemeralSetting
+        73027, // WallpaperSettings, Pushname, MediaVisibility, HistorySync, ..., GroupParticipant, ...
+        82348, // MsgOpaqueData, MsgRowOpaqueData
+        16258, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
+        93890, // MessageKey
+        72493, // Duplicate of MessageKey
+        50073, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
+        381,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
+        91344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
+        84331, // AppVersion, UserAgent, WebdPayload ...
+        // 78155, // seems to be same as above, but different Details and new CertChainSpec
+        21224, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
     ]
     // Conflicting specs by module ID and what to rename them to
     const renames = {
-        88818: {
-            "Details": "VerifiedNameDetails",
+        91344: {
+            "VerifiedNameCertificate$Details": "VerifiedNameDetails",
         },
-        50450: {
-            "Details": "NoiseCertificateDetails",
+        84331: {
+            "NoiseCertificate$Details": "NoiseCertificateDetails",
         },
-        58427: {
-            "MediaData": "PBMediaData",
+        24808: {
+            "PaymentBackground$MediaData": "PBMediaData",
+            "Message$InteractiveResponseMessage$Body": "InteractiveResponseMessageBody",
+            "Message$InteractiveMessage$Body": "InteractiveMessageBody",
         }
     }
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
+    const unnestName = name => name.split("$").slice(-1)[0]
     const makeRenameFunc = modID => name => {
         name = unspecName(name)
-        return renames[modID]?.[name] ?? name
+        return renames[modID]?.[name] ?? unnestName(name)
     }
-    // The constructor ID that's used in all enum types
-    const enumConstructorID = 54302
+    // The constructor IDs that can be used for enum types
+    const enumConstructorIDs = [76672, 54302]
 
     const unsortedModules = await findAppModules(wantedModules)
     if (unsortedModules.length !== wantedModules.length) {
@@ -113,7 +118,7 @@ async function findAppModules(mods) {
                     const makeBlankIdent = a => {
                         const key = rename(a.property.name)
                         const value = {name: key}
-                        if (key !== unspecName(a.property.name)) {
+                        if (key !== unspecName(unnestName(a.property.name))) {
                             value.renamedFrom = unspecName(a.property.name)
                         }
                         return [key, value]
@@ -133,7 +138,7 @@ async function findAppModules(mods) {
                 }
             },
             VariableDeclarator(node) {
-                if (node.init && node.init.type === "CallExpression" && node.init.callee?.arguments?.[0]?.value === enumConstructorID && node.init.arguments.length === 1 && node.init.arguments[0].type === "ObjectExpression") {
+                if (node.init && node.init.type === "CallExpression" && enumConstructorIDs.includes(node.init.callee?.arguments?.[0]?.value) && node.init.arguments.length === 1 && node.init.arguments[0].type === "ObjectExpression") {
                     enumAliases[node.id.name] = node.init.arguments[0].properties.map(p => ({
                         name: p.key.name,
                         id: p.value.value
@@ -305,7 +310,18 @@ async function findAppModules(mods) {
             return result
         }
 
-        decodedProto = decodedProto.concat(...Object.values(modInfo.identifiers).map(v => v.members ? stringifyMessageSpec(v) : stringifyEnum(v)))
+        const stringifyEntity = v => {
+            if (v.members) {
+                return stringifyMessageSpec(v)
+            } else if (v.enumValues) {
+                return stringifyEnum(v)
+            } else {
+                console.error(v)
+                return "// Unknown entity"
+            }
+        }
+
+        decodedProto = decodedProto.concat(...Object.values(modInfo.identifiers).map(stringifyEntity))
     }
     const decodedProtoStr = decodedProto.join("\n") + "\n"
     await fs.writeFile("../def.proto", decodedProtoStr)

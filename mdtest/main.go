@@ -30,6 +30,7 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -192,6 +193,20 @@ func handleCmd(cmd string, args []string) {
 				}
 			}
 		}
+	case "checkupdate":
+		resp, err := cli.CheckUpdate()
+		if err != nil {
+			log.Errorf("Failed to check for updates: %v", err)
+		} else {
+			log.Debugf("Version data: %#v", resp)
+			if resp.ParsedVersion == store.GetWAVersion() {
+				log.Infof("Client is up to date")
+			} else if store.GetWAVersion().LessThan(resp.ParsedVersion) {
+				log.Warnf("Client is outdated")
+			} else {
+				log.Infof("Client is newer than latest")
+			}
+		}
 	case "subscribepresence":
 		if len(args) < 1 {
 			log.Errorf("Usage: subscribepresence <jid>")
@@ -208,8 +223,14 @@ func handleCmd(cmd string, args []string) {
 	case "presence":
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
 	case "chatpresence":
-		jid, _ := types.ParseJID(args[1])
-		fmt.Println(cli.SendChatPresence(types.ChatPresence(args[0]), jid))
+		if len(args) == 2 {
+			args = append(args, "")
+		} else if len(args) < 2 {
+			log.Errorf("Usage: chatpresence <jid> <composing/paused> [audio]")
+			return
+		}
+		jid, _ := types.ParseJID(args[0])
+		fmt.Println(cli.SendChatPresence(jid, types.ChatPresence(args[1]), types.ChatPresenceMedia(args[2])))
 	case "privacysettings":
 		resp, err := cli.TryFetchPrivacySettings(false)
 		if err != nil {
@@ -348,6 +369,59 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Error sending message: %v", err)
 		} else {
 			log.Infof("Message sent (server timestamp: %s)", ts)
+		}
+	case "react":
+		if len(args) < 3 {
+			log.Errorf("Usage: react <jid> <message ID> <reaction>")
+			return
+		}
+		recipient, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		messageID := args[1]
+		fromMe := false
+		if strings.HasPrefix(messageID, "me:") {
+			fromMe = true
+			messageID = messageID[len("me:"):]
+		}
+		reaction := args[2]
+		if reaction == "remove" {
+			reaction = ""
+		}
+		msg := &waProto.Message{
+			ReactionMessage: &waProto.ReactionMessage{
+				Key: &waProto.MessageKey{
+					RemoteJid: proto.String(recipient.String()),
+					FromMe:    proto.Bool(fromMe),
+					Id:        proto.String(messageID),
+				},
+				Text:              proto.String(reaction),
+				GroupingKey:       proto.String(reaction),
+				SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
+			},
+		}
+		ts, err := cli.SendMessage(recipient, "", msg)
+		if err != nil {
+			log.Errorf("Error sending reaction: %v", err)
+		} else {
+			log.Infof("Reaction sent (server timestamp: %s)", ts)
+		}
+	case "revoke":
+		if len(args) < 2 {
+			log.Errorf("Usage: revoke <jid> <message ID>")
+			return
+		}
+		recipient, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		messageID := args[1]
+		ts, err := cli.RevokeMessage(recipient, messageID)
+		if err != nil {
+			log.Errorf("Error sending revocation: %v", err)
+		} else {
+			log.Infof("Revocation sent (server timestamp: %s)", ts)
 		}
 	case "sendimg":
 		if len(args) < 2 {

@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2022 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,6 +13,7 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -54,7 +55,18 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 		if err != nil {
 			return fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 		}
+		wasFullSync := state.Version == 0 && patches.Snapshot != nil
 		state = newState
+		if name == appstate.WAPatchCriticalUnblockLow && wasFullSync && !cli.EmitAppStateEventsOnFullSync {
+			var contacts []store.ContactEntry
+			mutations, contacts = cli.filterContacts(mutations)
+			cli.Log.Debugf("Mass inserting app state snapshot with %d contacts into the store", len(contacts))
+			err = cli.Store.Contacts.PutAllContactNames(contacts)
+			if err != nil {
+				// This is a fairly serious failure, so just abort the whole thing
+				return fmt.Errorf("failed to update contact store with data from snapshot: %v", err)
+			}
+		}
 		for _, mutation := range mutations {
 			cli.dispatchAppState(mutation, !fullSync || cli.EmitAppStateEventsOnFullSync)
 		}
@@ -66,6 +78,25 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 		cli.Log.Debugf("Synced app state %s from version %d to %d", name, version, state.Version)
 	}
 	return nil
+}
+
+func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mutation, []store.ContactEntry) {
+	filteredMutations := mutations[:0]
+	contacts := make([]store.ContactEntry, 0, len(mutations))
+	for _, mutation := range mutations {
+		if mutation.Index[0] == "contact" && len(mutation.Index) > 1 {
+			jid, _ := types.ParseJID(mutation.Index[1])
+			act := mutation.Action.GetContactAction()
+			contacts = append(contacts, store.ContactEntry{
+				JID:       jid,
+				FirstName: act.GetFirstName(),
+				FullName:  act.GetFullName(),
+			})
+		} else {
+			filteredMutations = append(filteredMutations, mutation)
+		}
+	}
+	return filteredMutations, contacts
 }
 
 func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts bool) {
@@ -144,6 +175,12 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		eventToDispatch = &evt
+	case "markChatAsRead":
+		eventToDispatch = &events.MarkChatAsRead{
+			JID:       jid,
+			Timestamp: ts,
+			Action:    mutation.Action.GetMarkChatAsReadAction(),
+		}
 	case "setting_pushName":
 		eventToDispatch = &events.PushNameSetting{Timestamp: ts, Action: mutation.Action.GetPushNameSetting()}
 		cli.Store.PushName = mutation.Action.GetPushNameSetting().GetName()

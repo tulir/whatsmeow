@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -18,6 +19,8 @@ import (
 
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
+
+type Proxy = func(*http.Request) (*url.URL, error)
 
 type FrameSocket struct {
 	conn   *websocket.Conn
@@ -31,6 +34,7 @@ type FrameSocket struct {
 	WriteTimeout time.Duration
 
 	Header []byte
+	Proxy  Proxy
 
 	incomingLength int
 	receivedLength int
@@ -38,12 +42,14 @@ type FrameSocket struct {
 	partialHeader  []byte
 }
 
-func NewFrameSocket(log waLog.Logger, header []byte) *FrameSocket {
+func NewFrameSocket(log waLog.Logger, header []byte, proxy Proxy) *FrameSocket {
 	return &FrameSocket{
 		conn:   nil,
 		log:    log,
 		Header: header,
 		Frames: make(chan []byte),
+
+		Proxy: proxy,
 	}
 }
 
@@ -92,7 +98,9 @@ func (fs *FrameSocket) Connect() error {
 		return ErrSocketAlreadyOpen
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	dialer := websocket.Dialer{}
+	dialer := websocket.Dialer{
+		Proxy: fs.Proxy,
+	}
 
 	headers := http.Header{"Origin": []string{Origin}}
 	fs.log.Debugf("Dialing %s", URL)

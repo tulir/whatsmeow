@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2022 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -71,10 +71,17 @@ type AppStateStore interface {
 	GetAppStateMutationMAC(name string, indexMAC []byte) (valueMAC []byte, err error)
 }
 
+type ContactEntry struct {
+	JID       types.JID
+	FirstName string
+	FullName  string
+}
+
 type ContactStore interface {
 	PutPushName(user types.JID, pushName string) (bool, string, error)
 	PutBusinessName(user types.JID, businessName string) error
 	PutContactName(user types.JID, fullName, firstName string) error
+	PutAllContactNames(contacts []ContactEntry) error
 	GetContact(user types.JID) (types.ContactInfo, error)
 	GetAllContacts() (map[types.JID]types.ContactInfo, error)
 }

@@ -10,7 +10,11 @@
 // The Client struct in the top-level whatsmeow package handles everything.
 package socket
 
-import "errors"
+import (
+	"errors"
+
+	"go.mau.fi/whatsmeow/binary/token"
+)
 
 const (
 	// Origin is the Origin header for all WhatsApp websocket connections
@@ -22,11 +26,10 @@ const (
 const (
 	NoiseStartPattern = "Noise_XX_25519_AESGCM_SHA256\x00\x00\x00\x00"
 
-	WADictVersion = 2
-	WAMagicValue  = 5
+	WAMagicValue = 5
 )
 
-var WAConnHeader = []byte{'W', 'A', WAMagicValue, WADictVersion}
+var WAConnHeader = []byte{'W', 'A', WAMagicValue, token.DictVersion}
 
 const (
 	FrameMaxSize    = 2 << 23

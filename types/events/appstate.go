@@ -76,6 +76,14 @@ type Archive struct {
 	Action *waProto.ArchiveChatAction // The current archival status of the chat.
 }
 
+// MarkChatAsRead is emitted when a whole chat is marked as read or unread from another device.
+type MarkChatAsRead struct {
+	JID       types.JID // The chat which was marked as read or unread.
+	Timestamp time.Time // The time when the marking happened.
+
+	Action *waProto.MarkChatAsReadAction // Whether the chat was marked as read or unread, and info about the most recent messages.
+}
+
 // PushNameSetting is emitted when the user's push name is changed from another device.
 type PushNameSetting struct {
 	Timestamp time.Time // The time when the push name was changed.

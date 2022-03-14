@@ -106,6 +106,40 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map
 	return resp, nil
 }
 
+// SetGroupPhoto updates the group picture/icon of the given group on WhatsApp.
+// The avatar should be a JPEG photo, other formats may be rejected with ErrInvalidImageFormat.
+// The bytes can be nil to remove the photo. Returns the new picture ID.
+func (cli *Client) SetGroupPhoto(jid types.JID, avatar []byte) (string, error) {
+	var content interface{}
+	if avatar != nil {
+		content = []waBinary.Node{{
+			Tag:     "picture",
+			Attrs:   waBinary.Attrs{"type": "image"},
+			Content: avatar,
+		}}
+	}
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:profile:picture",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Target:    jid,
+		Content:   content,
+	})
+	if errors.Is(err, ErrIQNotAcceptable) {
+		return "", wrapIQError(ErrInvalidImageFormat, err)
+	} else if err != nil {
+		return "", err
+	}
+	if avatar == nil {
+		return "remove", nil
+	}
+	pictureID, ok := resp.GetChildByTag("picture").Attrs["id"].(string)
+	if !ok {
+		return "", fmt.Errorf("didn't find picture ID in response")
+	}
+	return pictureID, nil
+}
+
 // SetGroupName updates the name (subject) of the given group on WhatsApp.
 func (cli *Client) SetGroupName(jid types.JID, name string) error {
 	_, err := cli.sendGroupIQ(iqSet, jid, waBinary.Node{
@@ -385,7 +419,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		case "description":
 			body, bodyOK := child.GetOptionalChildByTag("body")
 			if bodyOK {
-				group.Topic, _ = body.Content.(string)
+				topicBytes, _ := body.Content.([]byte)
+				group.Topic = string(topicBytes)
 				group.TopicID = childAG.String("id")
 				group.TopicSetBy = childAG.OptionalJIDOrEmpty("participant")
 				group.TopicSetAt = time.Unix(childAG.Int64("t"), 0)

@@ -24,16 +24,41 @@ import (
 
 // UploadResponse contains the data from the attachment upload, which can be put into a message to send the attachment.
 type UploadResponse struct {
-	URL        string
-	DirectPath string
+	URL        string `json:"url"`
+	DirectPath string `json:"direct_path"`
 
-	MediaKey      []byte
-	FileEncSHA256 []byte
-	FileSHA256    []byte
-	FileLength    uint64
+	MediaKey      []byte `json:"-"`
+	FileEncSHA256 []byte `json:"-"`
+	FileSHA256    []byte `json:"-"`
+	FileLength    uint64 `json:"-"`
 }
 
 // Upload uploads the given attachment to WhatsApp servers.
+//
+// You should copy the fields in the response to the corresponding fields in a protobuf message.
+//
+// For example, to send an image:
+//   resp, err := cli.Upload(context.Background(), yourImageBytes, whatsmeow.MediaImage)
+//   // handle error
+//
+//   imageMsg := &waProto.ImageMessage{
+//       Caption:  proto.String("Hello, world!"),
+//       Mimetype: proto.String("image/png"), // replace this with the actual mime type
+//       // you can also optionally add other fields like ContextInfo and JpegThumbnail here
+//
+//       Url:           &resp.URL,
+//       DirectPath:    &uploaded.DirectPath,
+//       MediaKey:      resp.MediaKey,
+//       FileEncSha256: resp.FileEncSHA256,
+//       FileSha256:    resp.FileSha256,
+//       FileLength:    &resp.FileLength,
+//   }
+//   _, err = cli.SendMessage(targetJID, "", &waProto.Message{
+//       ImageMessage: imageMsg,
+//   })
+//   // handle error again
+//
+// The same applies to the other message types like DocumentMessage, just replace the struct type and Message field name.
 func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaType) (resp UploadResponse, err error) {
 	resp.FileLength = uint64(len(plaintext))
 	resp.MediaKey = make([]byte, 32)
@@ -92,7 +117,7 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	req.Header.Set("Referer", socket.Origin+"/")
 
 	var httpResp *http.Response
-	httpResp, err = http.DefaultClient.Do(req)
+	httpResp, err = cli.http.Do(req)
 	if err != nil {
 		err = fmt.Errorf("failed to execute request: %w", err)
 	} else if httpResp.StatusCode != http.StatusOK {

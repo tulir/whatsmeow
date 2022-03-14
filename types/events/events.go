@@ -62,6 +62,8 @@ type LoggedOut struct {
 	// OnConnect is true if the event was triggered by a connect failure message.
 	// If it's false, the event was triggered by a stream:error message.
 	OnConnect bool
+	// If OnConnect is true, then this field contains the reason code.
+	Reason ConnectFailureReason
 }
 
 // StreamReplaced is emitted when the client is disconnected by another client connecting with the same keys.
@@ -70,13 +72,95 @@ type LoggedOut struct {
 // or otherwise try to connect twice with the same session.
 type StreamReplaced struct{}
 
+// TempBanReason is an error code included in temp ban error events.
+type TempBanReason int
+
+const (
+	TempBanBlockedByUsers         TempBanReason = 101
+	TempBanSentToTooManyPeople    TempBanReason = 102
+	TempBanCreatedTooManyGroups   TempBanReason = 103
+	TempBanSentTooManySameMessage TempBanReason = 104
+	TempBanBroadcastList          TempBanReason = 106
+)
+
+var tempBanReasonMessage = map[TempBanReason]string{
+	TempBanBlockedByUsers:         "too many people blocked you",
+	TempBanSentToTooManyPeople:    "you sent too many messages to people who don't have you in their address books",
+	TempBanCreatedTooManyGroups:   "you created too many groups with people who don't have you in their address books",
+	TempBanSentTooManySameMessage: "you sent the same message to too many people",
+	TempBanBroadcastList:          "you sent too many messages to a broadcast list",
+}
+
+// String returns the reason code and a human-readable description of the ban reason.
+func (tbr TempBanReason) String() string {
+	msg, ok := tempBanReasonMessage[tbr]
+	if !ok {
+		msg = "you may have violated the terms of service (unknown error)"
+	}
+	return fmt.Sprintf("%d: %s", int(tbr), msg)
+}
+
+// TemporaryBan is emitted when there's a connection failure with the ConnectFailureTempBanned reason code.
+type TemporaryBan struct {
+	Code   TempBanReason
+	Expire time.Time
+}
+
+func (tb *TemporaryBan) String() string {
+	if tb.Expire.IsZero() {
+		return fmt.Sprintf("You've been temporarily banned: %v", tb.Code)
+	}
+	return fmt.Sprintf("You've been temporarily banned: %v. The ban expires at %v", tb.Code, tb.Expire)
+}
+
+// ConnectFailureReason is an error code included in connection failure events.
+type ConnectFailureReason int
+
+const (
+	ConnectFailureLoggedOut     ConnectFailureReason = 401
+	ConnectFailureTempBanned    ConnectFailureReason = 402
+	ConnectFailureBanned        ConnectFailureReason = 403
+	ConnectFailureUnknownLogout ConnectFailureReason = 406
+
+	ConnectFailureClientOutdated ConnectFailureReason = 405
+	ConnectFailureBadUserAgent   ConnectFailureReason = 409
+
+	// 400, 500 and 501 are also existing codes, but the meaning is unknown
+)
+
+var connectFailureReasonMessage = map[ConnectFailureReason]string{
+	ConnectFailureLoggedOut:      "logged out from another device",
+	ConnectFailureTempBanned:     "account temporarily banned",
+	ConnectFailureBanned:         "account banned from WhatsApp",
+	ConnectFailureUnknownLogout:  "logged out for unknown reason",
+	ConnectFailureClientOutdated: "client is out of date",
+	ConnectFailureBadUserAgent:   "client user agent was rejected",
+}
+
+// IsLoggedOut returns true if the client should delete session data due to this connect failure.
+func (cfr ConnectFailureReason) IsLoggedOut() bool {
+	return cfr == ConnectFailureLoggedOut || cfr == ConnectFailureBanned || cfr == ConnectFailureUnknownLogout
+}
+
+// String returns the reason code and a short human-readable description of the error.
+func (cfr ConnectFailureReason) String() string {
+	msg, ok := connectFailureReasonMessage[cfr]
+	if !ok {
+		msg = "unknown error"
+	}
+	return fmt.Sprintf("%d: %s", int(cfr), msg)
+}
+
 // ConnectFailure is emitted when the WhatsApp server sends a <failure> node with an unknown reason.
 //
-// Known reasons are handled internally and emitted as different events (e.g. LoggedOut).
+// Known reasons are handled internally and emitted as different events (e.g. LoggedOut and TemporaryBan).
 type ConnectFailure struct {
-	Reason string
+	Reason ConnectFailureReason
 	Raw    *waBinary.Node
 }
+
+// ClientOutdated is emitted when the WhatsApp server rejects the connection with the ConnectFailureClientOutdated code.
+type ClientOutdated struct{}
 
 // StreamError is emitted when the WhatsApp server sends a <stream:error> node with an unknown code.
 //
@@ -165,7 +249,8 @@ type Receipt struct {
 //  client.SendPresence(types.PresenceAvailable)
 type ChatPresence struct {
 	types.MessageSource
-	State types.ChatPresence
+	State types.ChatPresence      // The current state, either composing or paused
+	Media types.ChatPresenceMedia // When composing, the type of message
 }
 
 // Presence is emitted when a presence update is received.
@@ -260,4 +345,17 @@ type OfflineSyncPreview struct {
 // OfflineSyncCompleted is emitted after the server has finished sending missed events.
 type OfflineSyncCompleted struct {
 	Count int
+}
+
+// MediaRetry is emitted when the phone sends a response to a media retry request.
+type MediaRetry struct {
+	Ciphertext []byte
+	IV         []byte
+
+	Timestamp time.Time // The time of the response.
+
+	MessageID types.MessageID // The ID of the message.
+	ChatID    types.JID       // The chat ID where the message was sent.
+	SenderID  types.JID       // The user who sent the message. Only present in groups.
+	FromMe    bool            // Whether the message was sent by the current user or someone else.
 }

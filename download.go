@@ -18,6 +18,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
 )
@@ -34,9 +35,14 @@ const (
 	MediaDocument MediaType = "WhatsApp Document Keys"
 	MediaHistory  MediaType = "WhatsApp History Keys"
 	MediaAppState MediaType = "WhatsApp App State Keys"
+
+	MediaLinkThumbnail MediaType = "WhatsApp Link Thumbnail Keys"
 )
 
 // DownloadableMessage represents a protobuf message that contains attachment info.
+//
+// All of the downloadable messages inside a Message struct implement this interface
+// (ImageMessage, VideoMessage, AudioMessage, DocumentMessage, StickerMessage).
 type DownloadableMessage interface {
 	proto.Message
 	GetDirectPath() string
@@ -45,15 +51,27 @@ type DownloadableMessage interface {
 	GetFileEncSha256() []byte
 }
 
+// DownloadableThumbnail represents a protobuf message that contains a thumbnail attachment.
+//
+// This is primarily meant for link preview thumbnails in ExtendedTextMessage.
+type DownloadableThumbnail interface {
+	proto.Message
+	GetThumbnailDirectPath() string
+	GetThumbnailSha256() []byte
+	GetThumbnailEncSha256() []byte
+	GetMediaKey() []byte
+}
+
 // All the message types that are intended to be downloadable
 var (
-	_ DownloadableMessage = (*waProto.ImageMessage)(nil)
-	_ DownloadableMessage = (*waProto.AudioMessage)(nil)
-	_ DownloadableMessage = (*waProto.VideoMessage)(nil)
-	_ DownloadableMessage = (*waProto.DocumentMessage)(nil)
-	_ DownloadableMessage = (*waProto.StickerMessage)(nil)
-	_ DownloadableMessage = (*waProto.HistorySyncNotification)(nil)
-	_ DownloadableMessage = (*waProto.ExternalBlobReference)(nil)
+	_ DownloadableMessage   = (*waProto.ImageMessage)(nil)
+	_ DownloadableMessage   = (*waProto.AudioMessage)(nil)
+	_ DownloadableMessage   = (*waProto.VideoMessage)(nil)
+	_ DownloadableMessage   = (*waProto.DocumentMessage)(nil)
+	_ DownloadableMessage   = (*waProto.StickerMessage)(nil)
+	_ DownloadableMessage   = (*waProto.HistorySyncNotification)(nil)
+	_ DownloadableMessage   = (*waProto.ExternalBlobReference)(nil)
+	_ DownloadableThumbnail = (*waProto.ExtendedTextMessage)(nil)
 )
 
 type downloadableMessageWithLength interface {
@@ -82,6 +100,10 @@ var classToMediaType = map[protoreflect.Name]MediaType{
 	"ExternalBlobReference":   MediaAppState,
 }
 
+var classToThumbnailMediaType = map[protoreflect.Name]MediaType{
+	"ExtendedTextMessage": MediaLinkThumbnail,
+}
+
 var mediaTypeToMMSType = map[MediaType]string{
 	MediaImage:    "image",
 	MediaAudio:    "audio",
@@ -89,17 +111,29 @@ var mediaTypeToMMSType = map[MediaType]string{
 	MediaDocument: "document",
 	MediaHistory:  "md-msg-hist",
 	MediaAppState: "md-app-state",
+
+	MediaLinkThumbnail: "thumbnail-link",
 }
 
 // DownloadAny loops through the downloadable parts of the given message and downloads the first non-nil item.
 func (cli *Client) DownloadAny(msg *waProto.Message) (data []byte, err error) {
-	downloadables := []DownloadableMessage{msg.GetImageMessage(), msg.GetAudioMessage(), msg.GetVideoMessage(), msg.GetDocumentMessage(), msg.GetStickerMessage()}
-	for _, downloadable := range downloadables {
-		if downloadable != nil {
-			return cli.Download(downloadable)
-		}
+	if msg == nil {
+		return nil, ErrNothingDownloadableFound
 	}
-	return nil, ErrNothingDownloadableFound
+	switch {
+	case msg.ImageMessage != nil:
+		return cli.Download(msg.ImageMessage)
+	case msg.VideoMessage != nil:
+		return cli.Download(msg.VideoMessage)
+	case msg.AudioMessage != nil:
+		return cli.Download(msg.AudioMessage)
+	case msg.DocumentMessage != nil:
+		return cli.Download(msg.DocumentMessage)
+	case msg.StickerMessage != nil:
+		return cli.Download(msg.StickerMessage)
+	default:
+		return nil, ErrNothingDownloadableFound
+	}
 }
 
 func getSize(msg DownloadableMessage) int {
@@ -113,30 +147,63 @@ func getSize(msg DownloadableMessage) int {
 	}
 }
 
+// DownloadThumbnail downloads a thumbnail from a message.
+//
+// This is primarily intended for downloading link preview thumbnails, which are in ExtendedTextMessage:
+//     var msg *waProto.Message
+//     ...
+//     thumbnailImageBytes, err := cli.DownloadThumbnail(msg.GetExtendedTextMessage())
+func (cli *Client) DownloadThumbnail(msg DownloadableThumbnail) ([]byte, error) {
+	mediaType, ok := classToThumbnailMediaType[msg.ProtoReflect().Descriptor().Name()]
+	if !ok {
+		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
+	} else if len(msg.GetThumbnailDirectPath()) > 0 {
+		return cli.DownloadMediaWithPath(msg.GetThumbnailDirectPath(), msg.GetThumbnailEncSha256(), msg.GetThumbnailSha256(), msg.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType])
+	} else {
+		return nil, ErrNoURLPresent
+	}
+}
+
+// GetMediaType returns the MediaType value corresponding to the given protobuf message.
+func GetMediaType(msg DownloadableMessage) MediaType {
+	return classToMediaType[msg.ProtoReflect().Descriptor().Name()]
+}
+
 // Download downloads the attachment from the given protobuf message.
-func (cli *Client) Download(msg DownloadableMessage) (data []byte, err error) {
+//
+// The attachment is a specific part of a Message protobuf struct, not the message itself, e.g.
+//     var msg *waProto.Message
+//     ...
+//     imageData, err := cli.Download(msg.GetImageMessage())
+//
+// You can also use DownloadAny to download the first non-nil sub-message.
+func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 	mediaType, ok := classToMediaType[msg.ProtoReflect().Descriptor().Name()]
 	if !ok {
 		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
 	}
 	urlable, ok := msg.(downloadableMessageWithURL)
 	if ok && len(urlable.GetUrl()) > 0 {
-		return downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
+		return cli.downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
 	} else if len(msg.GetDirectPath()) > 0 {
-		return cli.downloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
+		return cli.DownloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
 	} else {
 		return nil, ErrNoURLPresent
 	}
 }
 
-func (cli *Client) downloadMediaWithPath(directPath string, encFileHash, fileHash, mediaKey []byte, fileLength int, mediaType MediaType, mmsType string) (data []byte, err error) {
+// DownloadMediaWithPath downloads an attachment by manually specifying the path and encryption details.
+func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHash, mediaKey []byte, fileLength int, mediaType MediaType, mmsType string) (data []byte, err error) {
 	err = cli.refreshMediaConn(false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh media connections: %w", err)
 	}
+	if len(mmsType) == 0 {
+		mmsType = mediaTypeToMMSType[mediaType]
+	}
 	for i, host := range cli.mediaConn.Hosts {
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
-		data, err = downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
+		data, err = cli.downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
 		// TODO there are probably some errors that shouldn't retry
 		if err != nil {
 			if i >= len(cli.mediaConn.Hosts)-1 {
@@ -148,10 +215,10 @@ func (cli *Client) downloadMediaWithPath(directPath string, encFileHash, fileHas
 	return
 }
 
-func downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSha256, fileSha256 []byte) (data []byte, err error) {
+func (cli *Client) downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSha256, fileSha256 []byte) (data []byte, err error) {
 	iv, cipherKey, macKey, _ := getMediaKeys(mediaKey, appInfo)
 	var ciphertext, mac []byte
-	if ciphertext, mac, err = downloadEncryptedMedia(url, fileEncSha256); err != nil {
+	if ciphertext, mac, err = cli.downloadEncryptedMedia(url, fileEncSha256); err != nil {
 
 	} else if err = validateMedia(iv, ciphertext, macKey, mac); err != nil {
 
@@ -170,9 +237,17 @@ func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, re
 	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:]
 }
 
-func downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
+func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
+	var req *http.Request
+	req, err = http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		err = fmt.Errorf("failed to prepare request: %w", err)
+		return
+	}
+	req.Header.Set("Origin", socket.Origin)
+	req.Header.Set("Referer", socket.Origin+"/")
 	var resp *http.Response
-	resp, err = http.Get(url)
+	resp, err = cli.http.Do(req)
 	if err != nil {
 		return
 	}
