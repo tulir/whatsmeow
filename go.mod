@@ -4,8 +4,8 @@ go 1.17
 
 require (
 	github.com/gorilla/websocket v1.5.0
-	go.mau.fi/libsignal v0.0.0-20220308120827-0d87a03fd7c7
-	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70
+	go.mau.fi/libsignal v0.0.0-20220315232917-871a40435d3b
+	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
 	google.golang.org/protobuf v1.27.1
 )
 
