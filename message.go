@@ -13,7 +13,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"runtime/debug"
 	"strconv"
+	"sync/atomic"
 	"time"
 
 	"go.mau.fi/libsignal/signalerror"
@@ -261,6 +263,26 @@ func (cli *Client) handleSenderKeyDistributionMessage(chat, from types.JID, rawS
 	cli.Log.Debugf("Processed sender key distribution message from %s in %s", senderKeyName.Sender().String(), senderKeyName.GroupID())
 }
 
+func (cli *Client) handleHistorySyncNotificationLoop() {
+	defer func() {
+		atomic.StoreUint32(&cli.historySyncHandlerStarted, 0)
+		err := recover()
+		if err != nil {
+			cli.Log.Errorf("History sync handler panicked: %v\n%s", err, debug.Stack())
+		}
+
+		// Check in case something new appeared in the channel between the loop stopping
+		// and the atomic variable being updated. If yes, restart the loop.
+		if len(cli.historySyncNotifications) > 0 && atomic.CompareAndSwapUint32(&cli.historySyncHandlerStarted, 0, 1) {
+			cli.Log.Warnf("New history sync notifications appeared after loop stopped, restarting loop...")
+			go cli.handleHistorySyncNotificationLoop()
+		}
+	}()
+	for notif := range cli.historySyncNotifications {
+		cli.handleHistorySyncNotification(notif)
+	}
+}
+
 func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotification) {
 	var historySync waProto.HistorySync
 	if data, err := cli.Download(notif); err != nil {
@@ -314,16 +336,19 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 	protoMsg := msg.GetProtocolMessage()
 
 	if protoMsg.GetHistorySyncNotification() != nil && info.IsFromMe {
-		cli.handleHistorySyncNotification(protoMsg.HistorySyncNotification)
-		cli.sendProtocolMessageReceipt(info.ID, "hist_sync")
+		cli.historySyncNotifications <- protoMsg.HistorySyncNotification
+		if atomic.CompareAndSwapUint32(&cli.historySyncHandlerStarted, 0, 1) {
+			go cli.handleHistorySyncNotificationLoop()
+		}
+		go cli.sendProtocolMessageReceipt(info.ID, "hist_sync")
 	}
 
 	if protoMsg.GetAppStateSyncKeyShare() != nil && info.IsFromMe {
-		cli.handleAppStateSyncKeyShare(protoMsg.AppStateSyncKeyShare)
+		go cli.handleAppStateSyncKeyShare(protoMsg.AppStateSyncKeyShare)
 	}
 
 	if info.Category == "peer" {
-		cli.sendProtocolMessageReceipt(info.ID, "peer_msg")
+		go cli.sendProtocolMessageReceipt(info.ID, "peer_msg")
 	}
 }
 
@@ -347,7 +372,7 @@ func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.
 		}
 	}
 	if msg.GetProtocolMessage() != nil {
-		go cli.handleProtocolMessage(info, msg)
+		cli.handleProtocolMessage(info, msg)
 	}
 
 	// Unwrap ephemeral and view-once messages

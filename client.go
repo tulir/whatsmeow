@@ -67,6 +67,9 @@ type Client struct {
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 
+	historySyncNotifications  chan *waProto.HistorySyncNotification
+	historySyncHandlerStarted uint32
+
 	uploadPreKeysLock sync.Mutex
 	lastPreKeyUpload  time.Time
 
@@ -149,6 +152,8 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
+
+		historySyncNotifications: make(chan *waProto.HistorySyncNotification, 32),
 
 		groupParticipantsCache: make(map[types.JID][]types.JID),
 		userDevicesCache:       make(map[types.JID][]types.JID),
