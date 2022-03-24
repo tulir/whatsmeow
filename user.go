@@ -230,6 +230,7 @@ func (cli *Client) handleHistoricalPushNames(names []*waProto.Pushname) {
 	if cli.Store.Contacts == nil {
 		return
 	}
+	cli.Log.Infof("Updating contact store with %d push names from history sync", len(names))
 	for _, user := range names {
 		if user.GetPushname() == "-" {
 			continue
