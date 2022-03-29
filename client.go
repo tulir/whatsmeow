@@ -73,8 +73,8 @@ type Client struct {
 	uploadPreKeysLock sync.Mutex
 	lastPreKeyUpload  time.Time
 
-	mediaConn     *MediaConn
-	mediaConnLock sync.Mutex
+	mediaConnCache *MediaConn
+	mediaConnLock  sync.Mutex
 
 	responseWaiters     map[string]chan<- *waBinary.Node
 	responseWaitersLock sync.Mutex

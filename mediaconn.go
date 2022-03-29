@@ -40,17 +40,17 @@ func (mc *MediaConn) Expiry() time.Time {
 	return mc.FetchedAt.Add(time.Duration(mc.TTL) * time.Second)
 }
 
-func (cli *Client) refreshMediaConn(force bool) error {
+func (cli *Client) refreshMediaConn(force bool) (*MediaConn, error) {
 	cli.mediaConnLock.Lock()
 	defer cli.mediaConnLock.Unlock()
-	if cli.mediaConn == nil || force || time.Now().After(cli.mediaConn.Expiry()) {
+	if cli.mediaConnCache == nil || force || time.Now().After(cli.mediaConnCache.Expiry()) {
 		var err error
-		cli.mediaConn, err = cli.queryMediaConn()
+		cli.mediaConnCache, err = cli.queryMediaConn()
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return cli.mediaConnCache, nil
 }
 
 func (cli *Client) queryMediaConn() (*MediaConn, error) {
