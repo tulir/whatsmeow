@@ -44,7 +44,7 @@ async function findAppModules(mods) {
         82348, // MsgOpaqueData, MsgRowOpaqueData
         16258, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
         93890, // MessageKey
-        72493, // Duplicate of MessageKey
+        70910, // Duplicate of MessageKey
         50073, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
         381,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
         91344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
