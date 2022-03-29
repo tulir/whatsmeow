@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"go.mau.fi/libsignal/signalerror"
 	"google.golang.org/protobuf/proto"
 
 	"go.mau.fi/libsignal/groups"
@@ -346,6 +347,11 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundl
 	if bundle != nil {
 		cli.Log.Debugf("Processing prekey bundle for %s", to)
 		err := builder.ProcessBundle(bundle)
+		if cli.AutoTrustIdentity && errors.Is(err, signalerror.ErrUntrustedIdentity) {
+			cli.Log.Warnf("Got %v error while trying to process prekey bundle for %s, clearing stored identity and retrying", err, to)
+			cli.clearUntrustedIdentity(to)
+			err = builder.ProcessBundle(bundle)
+		}
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to process prekey bundle: %w", err)
 		}

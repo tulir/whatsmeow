@@ -164,6 +164,18 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	}
 }
 
+func (cli *Client) clearUntrustedIdentity(target types.JID) {
+	err := cli.Store.Identities.DeleteIdentity(target.SignalAddress().String())
+	if err != nil {
+		cli.Log.Warnf("Failed to delete untrusted identity of %s from store: %v", target, err)
+	}
+	err = cli.Store.Sessions.DeleteSession(target.SignalAddress().String())
+	if err != nil {
+		cli.Log.Warnf("Failed to delete session with %s (untrusted identity) from store: %v", target, err)
+	}
+	cli.dispatchEvent(&events.IdentityChange{JID: target, Timestamp: time.Now(), Implicit: true})
+}
+
 func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool) ([]byte, error) {
 	content, _ := child.Content.([]byte)
 
@@ -176,17 +188,9 @@ func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool
 			return nil, fmt.Errorf("failed to parse prekey message: %w", err)
 		}
 		plaintext, _, err = cipher.DecryptMessageReturnKey(preKeyMsg)
-		if errors.Is(err, signalerror.ErrUntrustedIdentity) {
+		if cli.AutoTrustIdentity && errors.Is(err, signalerror.ErrUntrustedIdentity) {
 			cli.Log.Warnf("Got %v error while trying to decrypt prekey message from %s, clearing stored identity and retrying", err, from)
-			err = cli.Store.Identities.DeleteIdentity(from.SignalAddress().String())
-			if err != nil {
-				cli.Log.Warnf("Failed to delete identity of %s from store after decryption error: %v", from, err)
-			}
-			err = cli.Store.Sessions.DeleteSession(from.SignalAddress().String())
-			if err != nil {
-				cli.Log.Warnf("Failed to delete session with %s from store after decryption error: %v", from, err)
-			}
-			cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: time.Now(), Implicit: true})
+			cli.clearUntrustedIdentity(from)
 			plaintext, _, err = cipher.DecryptMessageReturnKey(preKeyMsg)
 		}
 		if err != nil {
