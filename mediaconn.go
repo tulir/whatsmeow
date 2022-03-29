@@ -7,22 +7,25 @@
 package whatsmeow
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 )
 
-//type MediaConnIP struct {
-//	IP4 net.IP
-//	IP6 net.IP
-//}
+// MediaConnIP represents a host’s IPv4 and IPv6 address pair.
+type MediaConnIP struct {
+	IP4 net.IP
+	IP6 net.IP
+}
 
 // MediaConnHost represents a single host to download media from.
 type MediaConnHost struct {
 	Hostname string
-	//IPs      []MediaConnIP
+	IPs      []MediaConnIP
 }
 
 // MediaConn contains a list of WhatsApp servers from which attachments can be downloaded from.
@@ -51,6 +54,14 @@ func (cli *Client) refreshMediaConn(force bool) (*MediaConn, error) {
 		}
 	}
 	return cli.mediaConnCache, nil
+}
+
+// MediaConn requests a new media CDN configuration for uploads and downloads.
+// Using this method makes sense only for external CDN client implementations.
+// It always requests a new configuration from WhatsApp and it is a caller’s
+// responsibility to cache and refresh the result after expiry.
+func (cli *Client) MediaConn(ctx context.Context) (*MediaConn, error) {
+	return cli.queryMediaConn()
 }
 
 func (cli *Client) queryMediaConn() (*MediaConn, error) {
