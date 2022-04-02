@@ -180,7 +180,7 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	if !ag.OK() {
 		return
 	}
-	go cli.sendAck(node)
+	go cli.SendAck(node)
 	switch notifType {
 	case "encrypt":
 		go cli.handleEncryptNotification(node)

@@ -15,7 +15,7 @@ import (
 )
 
 func (cli *Client) handleCallEvent(node *waBinary.Node) {
-	go cli.sendAck(node)
+	go cli.SendAck(node)
 
 	if len(node.GetChildren()) != 1 {
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})

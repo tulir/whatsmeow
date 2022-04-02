@@ -203,6 +203,7 @@ type Message struct {
 	// The raw message struct. This is the raw unmodified data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
 	RawMessage *waProto.Message
+	Node       *waBinary.Node // Node is used for SendAck
 }
 
 // ReceiptType represents the type of a Receipt event.

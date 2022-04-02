@@ -31,7 +31,7 @@ func (cli *Client) handleReceipt(node *waBinary.Node) {
 		}
 		go cli.dispatchEvent(receipt)
 	}
-	go cli.sendAck(node)
+	go cli.SendAck(node)
 }
 
 func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
@@ -66,7 +66,7 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 	return &receipt, nil
 }
 
-func (cli *Client) sendAck(node *waBinary.Node) {
+func (cli *Client) SendAck(node *waBinary.Node) {
 	attrs := waBinary.Attrs{
 		"class": node.Tag,
 		"id":    node.Attrs["id"],

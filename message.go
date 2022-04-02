@@ -114,8 +114,8 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 }
 
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
-	go cli.sendAck(node)
 	if len(node.GetChildrenByTag("unavailable")) == len(node.GetChildren()) {
+		go cli.SendAck(node)
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
 		go cli.sendRetryReceipt(node, true)
 		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true})
@@ -143,6 +143,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			continue
 		}
 		if err != nil {
+			go cli.SendAck(node)
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			go cli.sendRetryReceipt(node, false)
 			cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: false})
@@ -156,7 +157,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			continue
 		}
 
-		cli.handleDecryptedMessage(info, &msg)
+		cli.handleDecryptedMessage(info, &msg, node)
 		handled = true
 	}
 	if handled {
@@ -356,8 +357,8 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
-	evt := &events.Message{Info: *info, RawMessage: msg}
+func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message, node *waBinary.Node) {
+	evt := &events.Message{Info: *info, RawMessage: msg, Node: node}
 
 	// First unwrap device sent messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
