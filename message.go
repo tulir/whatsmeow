@@ -110,6 +110,14 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	info.PushName, _ = node.Attrs["notify"].(string)
 	info.Category, _ = node.Attrs["category"].(string)
 
+	for _, child := range node.GetChildren() {
+		if child.Tag == "multicast" {
+			info.Multicast = true
+		} else if mediaType, ok := child.AttrGetter().GetString("mediatype", false); ok {
+			info.MediaType = mediaType
+		}
+	}
+
 	return &info, nil
 }
 
