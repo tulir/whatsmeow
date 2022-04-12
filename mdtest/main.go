@@ -44,6 +44,7 @@ var logLevel = "INFO"
 var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
+var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
 
 func main() {
 	waBinary.IndentXML = true
@@ -51,6 +52,9 @@ func main() {
 
 	if *debugLogs {
 		logLevel = "DEBUG"
+	}
+	if *requestFullSync {
+		store.CompanionProps.RequireFullSync = proto.Bool(true)
 	}
 	log = waLog.Stdout("Main", logLevel, true)
 
