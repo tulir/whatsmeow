@@ -229,7 +229,11 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 		}},
 	}
 	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE && message.GetProtocolMessage().GetKey() != nil {
-		node.Attrs["edit"] = "7"
+		if message.GetProtocolMessage().GetKey().GetFromMe() {
+			node.Attrs["edit"] = "7"
+		} else {
+			node.Attrs["edit"] = "8"
+		}
 	}
 	if includeIdentity {
 		err := cli.appendDeviceIdentityNode(&node)
