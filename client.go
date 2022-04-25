@@ -10,6 +10,7 @@ package whatsmeow
 import (
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -109,6 +110,8 @@ type Client struct {
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
 	// If false, decrypting a message from untrusted devices will fail.
 	AutoTrustIdentity bool
+
+	DebugDecodeBeforeSend bool
 
 	uniqueID  string
 	idCounter uint32
@@ -496,6 +499,15 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 	payload, err := waBinary.Marshal(node)
 	if err != nil {
 		return fmt.Errorf("failed to marshal node: %w", err)
+	}
+	if cli.DebugDecodeBeforeSend {
+		var decoded *waBinary.Node
+		decoded, err = waBinary.Unmarshal(payload[1:])
+		if err != nil {
+			cli.Log.Infof("Malformed payload: %s", base64.URLEncoding.EncodeToString(payload))
+			return fmt.Errorf("failed to decode the binary we just produced: %w", err)
+		}
+		node = *decoded
 	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())
