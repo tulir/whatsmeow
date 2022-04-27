@@ -47,7 +47,7 @@ type UploadResponse struct {
 //       // you can also optionally add other fields like ContextInfo and JpegThumbnail here
 //
 //       Url:           &resp.URL,
-//       DirectPath:    &uploaded.DirectPath,
+//       DirectPath:    &resp.DirectPath,
 //       MediaKey:      resp.MediaKey,
 //       FileEncSha256: resp.FileEncSHA256,
 //       FileSha256:    resp.FileSha256,
