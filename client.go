@@ -488,6 +488,7 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 		}
 	}
 }
+
 func (cli *Client) sendNode(node waBinary.Node) error {
 	cli.socketLock.RLock()
 	sock := cli.socket
