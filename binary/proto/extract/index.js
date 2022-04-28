@@ -8,7 +8,7 @@ const addPrefix = (lines, prefix) => lines.map(line => prefix + line)
 async function findAppModules(mods) {
     const ua = {
         headers: {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0",
             "Sec-Fetch-Dest": "script",
             "Sec-Fetch-Mode": "no-cors",
             "Sec-Fetch-Site": "same-origin",
