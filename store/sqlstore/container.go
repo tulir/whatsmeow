@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2022 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,6 +25,8 @@ type Container struct {
 	db      *sql.DB
 	dialect string
 	log     waLog.Logger
+
+	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
 
 var _ store.DeviceContainer = (*Container)(nil)
@@ -89,6 +91,7 @@ type scannable interface {
 
 func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	var device store.Device
+	device.DatabaseErrorHandler = c.DatabaseErrorHandler
 	device.Log = c.log
 	device.SignedPreKey = &keys.PreKey{}
 	var noisePriv, identityPriv, preKeyPriv, preKeySig []byte
@@ -191,6 +194,8 @@ func (c *Container) NewDevice() *store.Device {
 	device := &store.Device{
 		Log:       c.log,
 		Container: c,
+
+		DatabaseErrorHandler: c.DatabaseErrorHandler,
 
 		NoiseKey:       keys.NewKeyPair(),
 		IdentityKey:    keys.NewKeyPair(),
