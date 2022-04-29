@@ -45,7 +45,7 @@ func (device *Device) SaveIdentity(address *protocol.SignalAddress, identityKey 
 func (device *Device) IsTrustedIdentity(address *protocol.SignalAddress, identityKey *identity.Key) bool {
 	for i := 0; ; i++ {
 		isTrusted, err := device.Identities.IsTrustedIdentity(address.String(), identityKey.PublicKey().PublicKey())
-		if err == nil || !device.handleDatabaseError(i, err, "check if %'s identity is trusted", address.String()) {
+		if err == nil || !device.handleDatabaseError(i, err, "check if %s's identity is trusted", address.String()) {
 			return isTrusted
 		}
 	}
