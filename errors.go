@@ -47,6 +47,10 @@ var (
 	ErrBusinessMessageLinkNotFound = errors.New("that business message link does not exist or has been revoked")
 	// ErrInvalidImageFormat is returned by SetGroupPhoto if the given photo is not in the correct format.
 	ErrInvalidImageFormat = errors.New("the given data is not a valid image")
+	// ErrMediaNotAvailableOnPhone is returned by DecryptMediaRetryNotification if the given event contains error code 2.
+	ErrMediaNotAvailableOnPhone = errors.New("media no longer available on phone")
+	// ErrUnknownMediaRetryError is returned by DecryptMediaRetryNotification if the given event contains an unknown error code.
+	ErrUnknownMediaRetryError = errors.New("unknown media retry error")
 )
 
 // Some errors that Client.SendMessage can return

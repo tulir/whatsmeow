@@ -347,10 +347,17 @@ type OfflineSyncCompleted struct {
 	Count int
 }
 
+type MediaRetryError struct {
+	Code int
+}
+
 // MediaRetry is emitted when the phone sends a response to a media retry request.
 type MediaRetry struct {
 	Ciphertext []byte
 	IV         []byte
+
+	// Sometimes there's an unencrypted media retry error. In these cases, Ciphertext and IV will be nil.
+	Error *MediaRetryError
 
 	Timestamp time.Time // The time of the response.
 

@@ -105,20 +105,22 @@ func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []
 
 // DecryptMediaRetryNotification decrypts a media retry notification using the media key.
 func DecryptMediaRetryNotification(evt *events.MediaRetry, mediaKey []byte) (*waProto.MediaRetryNotification, error) {
-	gcm, err := prepareMediaRetryGCM(mediaKey)
-	if err != nil {
-		return nil, err
-	}
-	plaintext, err := gcm.Open(nil, evt.IV, evt.Ciphertext, []byte(evt.MessageID))
-	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt notification: %w", err)
-	}
 	var notif waProto.MediaRetryNotification
-	err = proto.Unmarshal(plaintext, &notif)
-	if err != nil {
+	var plaintext []byte
+	if evt.Error != nil && evt.Ciphertext == nil {
+		if evt.Error.Code == 2 {
+			return nil, ErrMediaNotAvailableOnPhone
+		}
+		return nil, fmt.Errorf("%w (code: %d)", ErrUnknownMediaRetryError, evt.Error.Code)
+	} else if gcm, err := prepareMediaRetryGCM(mediaKey); err != nil {
+		return nil, err
+	} else if plaintext, err = gcm.Open(nil, evt.IV, evt.Ciphertext, []byte(evt.MessageID)); err != nil {
+		return nil, fmt.Errorf("failed to decrypt notification: %w", err)
+	} else if err = proto.Unmarshal(plaintext, &notif); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal notification (invalid encryption key?): %w", err)
+	} else {
+		return &notif, nil
 	}
-	return &notif, nil
 }
 
 func parseMediaRetryNotification(node *waBinary.Node) (*events.MediaRetry, error) {
@@ -141,6 +143,14 @@ func parseMediaRetryNotification(node *waBinary.Node) (*events.MediaRetry, error
 		return nil, fmt.Errorf("missing attributes in <rmr> tag: %w", rmrAG.Error())
 	}
 
+	errNode, ok := node.GetOptionalChildByTag("error")
+	if ok {
+		evt.Error = &events.MediaRetryError{
+			Code: errNode.AttrGetter().Int("code"),
+		}
+		return &evt, nil
+	}
+
 	evt.Ciphertext, ok = node.GetChildByTag("encrypt", "enc_p").Content.([]byte)
 	if !ok {
 		return nil, &ElementMissingError{Tag: "enc_p", In: fmt.Sprintf("retry notification %s", evt.MessageID)}
@@ -153,7 +163,6 @@ func parseMediaRetryNotification(node *waBinary.Node) (*events.MediaRetry, error
 }
 
 func (cli *Client) handleMediaRetryNotification(node *waBinary.Node) {
-	// TODO handle errors (e.g. <error code="2"/>)
 	evt, err := parseMediaRetryNotification(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse media retry notification: %v", err)
