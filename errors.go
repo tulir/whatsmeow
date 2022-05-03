@@ -15,11 +15,10 @@ import (
 
 // Miscellaneous errors
 var (
-	ErrNoSession      = errors.New("can't encrypt message for device: no signal session established")
-	ErrIQTimedOut     = errors.New("info query timed out")
-	ErrIQDisconnected = errors.New("websocket disconnected before info query returned response")
-	ErrNotConnected   = errors.New("websocket not connected")
-	ErrNotLoggedIn    = errors.New("the store doesn't contain a device JID")
+	ErrNoSession    = errors.New("can't encrypt message for device: no signal session established")
+	ErrIQTimedOut   = errors.New("info query timed out")
+	ErrNotConnected = errors.New("websocket not connected")
+	ErrNotLoggedIn  = errors.New("the store doesn't contain a device JID")
 
 	ErrAlreadyConnected = errors.New("websocket is already connected")
 
@@ -58,7 +57,6 @@ var (
 	ErrBroadcastListUnsupported = errors.New("sending to broadcast lists is not yet supported")
 	ErrUnknownServer            = errors.New("can't send message to unknown server")
 	ErrRecipientADJID           = errors.New("message recipient must be normal (non-AD) JID")
-	ErrSendDisconnected         = errors.New("websocket disconnected before message send returned response")
 )
 
 // Some errors that Client.Download can return
@@ -160,4 +158,24 @@ type ElementMissingError struct {
 
 func (eme *ElementMissingError) Error() string {
 	return fmt.Sprintf("missing <%s> element in %s", eme.Tag, eme.In)
+}
+
+var ErrIQDisconnected = &DisconnectedError{Action: "info query"}
+
+// DisconnectedError is returned if the websocket disconnects before an info query or other request gets a response.
+type DisconnectedError struct {
+	Action string
+	Node   *waBinary.Node
+}
+
+func (err *DisconnectedError) Error() string {
+	return fmt.Sprintf("websocket disconnected before %s returned response", err.Action)
+}
+
+func (err *DisconnectedError) Is(other error) bool {
+	otherDisc, ok := other.(*DisconnectedError)
+	if !ok {
+		return false
+	}
+	return otherDisc.Action == err.Action
 }

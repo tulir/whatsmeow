@@ -20,13 +20,17 @@ func (cli *Client) generateRequestID() string {
 	return cli.uniqueID + strconv.FormatUint(uint64(atomic.AddUint32(&cli.idCounter, 1)), 10)
 }
 
-var closedNode = &waBinary.Node{Tag: "xmlstreamend"}
+var xmlStreamEndNode = &waBinary.Node{Tag: "xmlstreamend"}
 
-func (cli *Client) clearResponseWaiters() {
+func isDisconnectNode(node *waBinary.Node) bool {
+	return node == xmlStreamEndNode || node.Tag == "stream:error"
+}
+
+func (cli *Client) clearResponseWaiters(node *waBinary.Node) {
 	cli.responseWaitersLock.Lock()
 	for _, waiter := range cli.responseWaiters {
 		select {
-		case waiter <- closedNode:
+		case waiter <- node:
 		default:
 			close(waiter)
 		}
@@ -127,8 +131,8 @@ func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 	}
 	select {
 	case res := <-resChan:
-		if res == closedNode {
-			return nil, ErrIQDisconnected
+		if isDisconnectNode(res) {
+			return nil, &DisconnectedError{Action: "info query"}
 		}
 		resType, _ := res.Attrs["type"].(string)
 		if res.Tag != "iq" || (resType != "result" && resType != "error") {

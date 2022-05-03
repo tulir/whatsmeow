@@ -262,7 +262,7 @@ func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
 	defer cli.socketLock.Unlock()
 	if cli.socket == ns {
 		cli.socket = nil
-		cli.clearResponseWaiters()
+		cli.clearResponseWaiters(xmlStreamEndNode)
 		if !cli.isExpectedDisconnect() && remote {
 			cli.Log.Debugf("Emitting Disconnected event")
 			go cli.dispatchEvent(&events.Disconnected{})

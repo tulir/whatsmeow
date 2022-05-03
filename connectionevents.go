@@ -17,6 +17,7 @@ import (
 
 func (cli *Client) handleStreamError(node *waBinary.Node) {
 	atomic.StoreUint32(&cli.isLoggedIn, 0)
+	cli.clearResponseWaiters(node)
 	code, _ := node.Attrs["code"].(string)
 	conflict, _ := node.GetOptionalChildByTag("conflict")
 	conflictType := conflict.AttrGetter().OptionalString("type")
