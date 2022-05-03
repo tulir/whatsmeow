@@ -45,6 +45,7 @@ var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
+var oneMessageAtATime = flag.Bool("one-message-at-a-time", false, "Only allow one message send to be in flight at a time?")
 
 func main() {
 	waBinary.IndentXML = true
@@ -71,6 +72,7 @@ func main() {
 	}
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
+	cli.OneMessageAtATime = *oneMessageAtATime
 
 	ch, err := cli.GetQRChannel(context.Background())
 	if err != nil {

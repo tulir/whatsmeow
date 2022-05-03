@@ -73,6 +73,11 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 		id = GenerateMessageID()
 	}
 
+	if cli.OneMessageAtATime {
+		cli.messageSendLock.Lock()
+		defer cli.messageSendLock.Unlock()
+	}
+
 	cli.addRecentMessage(to, id, message)
 	respChan := cli.waitResponse(id)
 	var err error

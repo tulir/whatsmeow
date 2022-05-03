@@ -112,6 +112,8 @@ type Client struct {
 	AutoTrustIdentity bool
 
 	DebugDecodeBeforeSend bool
+	OneMessageAtATime     bool
+	messageSendLock       sync.Mutex
 
 	uniqueID  string
 	idCounter uint32
