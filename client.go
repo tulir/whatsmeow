@@ -489,30 +489,35 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 	}
 }
 
-func (cli *Client) sendNode(node waBinary.Node) error {
+func (cli *Client) sendNodeDebug(node waBinary.Node) ([]byte, error) {
 	cli.socketLock.RLock()
 	sock := cli.socket
 	cli.socketLock.RUnlock()
 	if sock == nil {
-		return ErrNotConnected
+		return nil, ErrNotConnected
 	}
 
 	payload, err := waBinary.Marshal(node)
 	if err != nil {
-		return fmt.Errorf("failed to marshal node: %w", err)
+		return nil, fmt.Errorf("failed to marshal node: %w", err)
 	}
 	if cli.DebugDecodeBeforeSend {
 		var decoded *waBinary.Node
 		decoded, err = waBinary.Unmarshal(payload[1:])
 		if err != nil {
 			cli.Log.Infof("Malformed payload: %s", base64.URLEncoding.EncodeToString(payload))
-			return fmt.Errorf("failed to decode the binary we just produced: %w", err)
+			return nil, fmt.Errorf("failed to decode the binary we just produced: %w", err)
 		}
 		node = *decoded
 	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())
-	return sock.SendFrame(payload)
+	return payload, sock.SendFrame(payload)
+}
+
+func (cli *Client) sendNode(node waBinary.Node) error {
+	_, err := cli.sendNodeDebug(node)
+	return err
 }
 
 func (cli *Client) dispatchEvent(evt interface{}) {

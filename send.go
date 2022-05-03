@@ -77,11 +77,12 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 	respChan := cli.waitResponse(id)
 	var err error
 	var phash string
+	var data []byte
 	switch to.Server {
 	case types.GroupServer:
-		phash, err = cli.sendGroup(to, id, message)
+		phash, data, err = cli.sendGroup(to, id, message)
 	case types.DefaultUserServer:
-		err = cli.sendDM(to, id, message)
+		data, err = cli.sendDM(to, id, message)
 	case types.BroadcastServer:
 		err = ErrBroadcastListUnsupported
 	default:
@@ -93,6 +94,9 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 	}
 	resp := <-respChan
 	if isDisconnectNode(resp) {
+		if cli.DebugDecodeBeforeSend && resp.Tag == "stream:error" && resp.GetChildByTag("xml-not-well-formed").Tag != "" {
+			cli.Log.Debugf("Message that was interrupted by xml-not-well-formed: %s", base64.URLEncoding.EncodeToString(data))
+		}
 		return time.Time{}, &DisconnectedError{Action: "message send", Node: resp}
 	}
 	ag := resp.AttrGetter()
@@ -137,22 +141,22 @@ func participantListHashV2(participants []types.JID) string {
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.Message) (string, error) {
+func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.Message) (string, []byte, error) {
 	participants, err := cli.getGroupMembers(to)
 	if err != nil {
-		return "", fmt.Errorf("failed to get group members: %w", err)
+		return "", nil, fmt.Errorf("failed to get group members: %w", err)
 	}
 
 	plaintext, _, err := marshalMessage(to, message)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(to.String(), cli.Store.ID.SignalAddress())
 	signalSKDMessage, err := builder.Create(senderKeyName)
 	if err != nil {
-		return "", fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
+		return "", nil, fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
 	}
 	skdMessage := &waProto.Message{
 		SenderKeyDistributionMessage: &waProto.SenderKeyDistributionMessage{
@@ -162,19 +166,19 @@ func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.
 	}
 	skdPlaintext, err := proto.Marshal(skdMessage)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal sender key distribution message to send %s to %s: %w", id, to, err)
+		return "", nil, fmt.Errorf("failed to marshal sender key distribution message to send %s to %s: %w", id, to, err)
 	}
 
 	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.Store)
 	encrypted, err := cipher.Encrypt(padMessage(plaintext))
 	if err != nil {
-		return "", fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
+		return "", nil, fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
 	}
 	ciphertext := encrypted.SignedSerialize()
 
 	node, allDevices, err := cli.prepareMessageNode(to, id, message, participants, skdPlaintext, nil)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	phash := participantListHashV2(allDevices)
@@ -185,28 +189,28 @@ func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.
 		Attrs:   waBinary.Attrs{"v": "2", "type": "skmsg"},
 	})
 
-	err = cli.sendNode(*node)
+	data, err := cli.sendNodeDebug(*node)
 	if err != nil {
-		return "", fmt.Errorf("failed to send message node: %w", err)
+		return "", nil, fmt.Errorf("failed to send message node: %w", err)
 	}
-	return phash, nil
+	return phash, data, nil
 }
 
-func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Message) error {
+func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Message) ([]byte, error) {
 	messagePlaintext, deviceSentMessagePlaintext, err := marshalMessage(to, message)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	node, _, err := cli.prepareMessageNode(to, id, message, []types.JID{to, cli.Store.ID.ToNonAD()}, messagePlaintext, deviceSentMessagePlaintext)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = cli.sendNode(*node)
+	data, err := cli.sendNodeDebug(*node)
 	if err != nil {
-		return fmt.Errorf("failed to send message node: %w", err)
+		return nil, fmt.Errorf("failed to send message node: %w", err)
 	}
-	return nil
+	return data, nil
 }
 
 func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte) (*waBinary.Node, []types.JID, error) {

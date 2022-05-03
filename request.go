@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	"context"
+	"encoding/base64"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -90,7 +91,7 @@ type infoQuery struct {
 	Context context.Context
 }
 
-func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
+func (cli *Client) sendIQAsyncDebug(query infoQuery) (<-chan *waBinary.Node, []byte, error) {
 	if len(query.ID) == 0 {
 		query.ID = cli.generateRequestID()
 	}
@@ -106,20 +107,25 @@ func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
 	if !query.Target.IsEmpty() {
 		attrs["target"] = query.Target
 	}
-	err := cli.sendNode(waBinary.Node{
+	data, err := cli.sendNodeDebug(waBinary.Node{
 		Tag:     "iq",
 		Attrs:   attrs,
 		Content: query.Content,
 	})
 	if err != nil {
 		cli.cancelResponse(query.ID, waiter)
-		return nil, err
+		return nil, data, err
 	}
-	return waiter, nil
+	return waiter, data, nil
+}
+
+func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
+	ch, _, err := cli.sendIQAsyncDebug(query)
+	return ch, err
 }
 
 func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
-	resChan, err := cli.sendIQAsync(query)
+	resChan, data, err := cli.sendIQAsyncDebug(query)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +138,10 @@ func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 	select {
 	case res := <-resChan:
 		if isDisconnectNode(res) {
-			return nil, &DisconnectedError{Action: "info query"}
+			if cli.DebugDecodeBeforeSend && res.Tag == "stream:error" && res.GetChildByTag("xml-not-well-formed").Tag != "" {
+				cli.Log.Debugf("Info query that was interrupted by xml-not-well-formed: %s", base64.URLEncoding.EncodeToString(data))
+			}
+			return nil, &DisconnectedError{Action: "info query", Node: res}
 		}
 		resType, _ := res.Attrs["type"].(string)
 		if res.Tag != "iq" || (resType != "result" && resType != "error") {
