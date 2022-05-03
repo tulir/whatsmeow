@@ -198,7 +198,7 @@ func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Mes
 		return err
 	}
 
-	node, _, err := cli.prepareMessageNode(to, id, message, []types.JID{to, *cli.Store.ID}, messagePlaintext, deviceSentMessagePlaintext)
+	node, _, err := cli.prepareMessageNode(to, id, message, []types.JID{to, cli.Store.ID.ToNonAD()}, messagePlaintext, deviceSentMessagePlaintext)
 	if err != nil {
 		return err
 	}
@@ -307,7 +307,7 @@ func (cli *Client) encryptMessageForDevices(allDevices []types.JID, id string, m
 	if len(retryDevices) > 0 {
 		bundles, err := cli.fetchPreKeys(retryDevices)
 		if err != nil {
-			cli.Log.Warnf("Failed to fetch prekeys for %d to retry encryption: %v", retryDevices, err)
+			cli.Log.Warnf("Failed to fetch prekeys for %v to retry encryption: %v", retryDevices, err)
 		} else {
 			for _, jid := range retryDevices {
 				resp := bundles[jid]
