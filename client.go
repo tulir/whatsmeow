@@ -294,9 +294,9 @@ func (cli *Client) autoReconnect() {
 		return
 	}
 	for {
-		cli.AutoReconnectErrors++
 		autoReconnectDelay := time.Duration(cli.AutoReconnectErrors) * 2 * time.Second
 		cli.Log.Debugf("Automatically reconnecting after %v", autoReconnectDelay)
+		cli.AutoReconnectErrors++
 		time.Sleep(autoReconnectDelay)
 		err := cli.Connect()
 		if errors.Is(err, ErrAlreadyConnected) {
