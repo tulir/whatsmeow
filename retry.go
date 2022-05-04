@@ -148,6 +148,13 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		} else if bundle == nil {
 			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", senderAD, len(keys))
 		}
+		if retryCount > 3 {
+			cli.Log.Debugf("Erasing existing session for %s due to retry receipt with count>3", receipt.Sender)
+			err = cli.Store.Sessions.DeleteSession(receipt.Sender.SignalAddress().String())
+			if err != nil {
+				return fmt.Errorf("failed to delete session for %s: %w", senderAD, err)
+			}
+		}
 	}
 	encrypted, includeDeviceIdentity, err := cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle)
 	if err != nil {
@@ -160,6 +167,9 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		"type": "text",
 		"id":   messageID,
 		"t":    timestamp.Unix(),
+	}
+	if !receipt.IsGroup {
+		attrs["device_fanout"] = false
 	}
 	if participant, ok := node.Attrs["participant"]; ok {
 		attrs["participant"] = participant
