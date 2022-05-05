@@ -85,6 +85,7 @@ type infoQuery struct {
 	To        types.JID
 	Target    types.JID
 	ID        string
+	SmaxId	  string
 	Content   interface{}
 
 	Timeout time.Duration
