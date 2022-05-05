@@ -9,7 +9,6 @@ package whatsmeow
 
 import (
 	"encoding/xml"
-	"fmt"
 	"bytes"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
