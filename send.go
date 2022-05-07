@@ -243,9 +243,14 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 		} else {
 			node.Attrs["edit"] = "8"
 		}
+	} else if message.ReactionMessage != nil {
+		node.Attrs["type"] = "reaction"
+		if message.ReactionMessage.GetText() == "" {
+			node.Attrs["edit"] = "7"
+		}
 	}
 	if includeIdentity {
-		err := cli.appendDeviceIdentityNode(&node)
+		err = cli.appendDeviceIdentityNode(&node)
 		if err != nil {
 			return nil, nil, err
 		}

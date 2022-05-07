@@ -432,7 +432,6 @@ func handleCmd(cmd string, args []string) {
 					Id:        proto.String(messageID),
 				},
 				Text:              proto.String(reaction),
-				GroupingKey:       proto.String(reaction),
 				SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
 			},
 		}
