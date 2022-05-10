@@ -129,9 +129,9 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if err != nil {
 			return fmt.Errorf("failed to read prekey bundle in retry receipt: %w", err)
 		}
-	} else if retryCount >= 2 || !cli.Store.ContainsSession(receipt.Sender.SignalAddress()) {
-		if retryCount >= 2 {
-			cli.Log.Debugf("Fetching prekeys for %s due to retry receipt with count>1 but no prekey bundle", receipt.Sender)
+	} else if retryCount == 2 || retryCount == 3 || !cli.Store.ContainsSession(receipt.Sender.SignalAddress()) {
+		if retryCount == 2 || retryCount == 3 {
+			cli.Log.Debugf("Fetching prekeys for %s due to retry receipt with count==2|3 but no prekey bundle", receipt.Sender)
 		} else {
 			cli.Log.Debugf("Fetching prekeys for %s for handling retry receipt because we don't have a Signal session with them", receipt.Sender)
 		}
@@ -147,13 +147,6 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 			return fmt.Errorf("failed to fetch prekeys: %w", err)
 		} else if bundle == nil {
 			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", senderAD, len(keys))
-		}
-		if retryCount > 3 {
-			cli.Log.Debugf("Erasing existing session for %s due to retry receipt with count>3", receipt.Sender)
-			err = cli.Store.Sessions.DeleteSession(receipt.Sender.SignalAddress().String())
-			if err != nil {
-				return fmt.Errorf("failed to delete session for %s: %w", senderAD, err)
-			}
 		}
 	}
 	encrypted, includeDeviceIdentity, err := cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle)
