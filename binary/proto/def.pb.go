@@ -10131,7 +10131,6 @@ type ContextInfo struct {
 	ActionLink                       *ActionLink          `protobuf:"bytes,33,opt,name=actionLink" json:"actionLink,omitempty"`
 	GroupSubject                     *string              `protobuf:"bytes,34,opt,name=groupSubject" json:"groupSubject,omitempty"`
 	ParentGroupJid                   *string              `protobuf:"bytes,35,opt,name=parentGroupJid" json:"parentGroupJid,omitempty"`
-	MessageSecret                    []byte               `protobuf:"bytes,36,opt,name=messageSecret" json:"messageSecret,omitempty"`
 }
 
 func (x *ContextInfo) Reset() {
@@ -10325,13 +10324,6 @@ func (x *ContextInfo) GetParentGroupJid() string {
 		return *x.ParentGroupJid
 	}
 	return ""
-}
-
-func (x *ContextInfo) GetMessageSecret() []byte {
-	if x != nil {
-		return x.MessageSecret
-	}
-	return nil
 }
 
 type ExternalAdReplyInfo struct {
@@ -11577,6 +11569,7 @@ type MessageContextInfo struct {
 
 	DeviceListMetadata        *DeviceListMetadata `protobuf:"bytes,1,opt,name=deviceListMetadata" json:"deviceListMetadata,omitempty"`
 	DeviceListMetadataVersion *int32              `protobuf:"varint,2,opt,name=deviceListMetadataVersion" json:"deviceListMetadataVersion,omitempty"`
+	MessageSecret             []byte              `protobuf:"bytes,3,opt,name=messageSecret" json:"messageSecret,omitempty"`
 }
 
 func (x *MessageContextInfo) Reset() {
@@ -11623,6 +11616,13 @@ func (x *MessageContextInfo) GetDeviceListMetadataVersion() int32 {
 		return *x.DeviceListMetadataVersion
 	}
 	return 0
+}
+
+func (x *MessageContextInfo) GetMessageSecret() []byte {
+	if x != nil {
+		return x.MessageSecret
+	}
+	return nil
 }
 
 type VideoMessage struct {
@@ -13220,6 +13220,8 @@ type GlobalSettings struct {
 	AutoDownloadRoaming                *AutoDownloadSettings `protobuf:"bytes,6,opt,name=autoDownloadRoaming" json:"autoDownloadRoaming,omitempty"`
 	ShowIndividualNotificationsPreview *bool                 `protobuf:"varint,7,opt,name=showIndividualNotificationsPreview" json:"showIndividualNotificationsPreview,omitempty"`
 	ShowGroupNotificationsPreview      *bool                 `protobuf:"varint,8,opt,name=showGroupNotificationsPreview" json:"showGroupNotificationsPreview,omitempty"`
+	DisappearingModeDuration           *int32                `protobuf:"varint,9,opt,name=disappearingModeDuration" json:"disappearingModeDuration,omitempty"`
+	DisappearingModeTimestamp          *int64                `protobuf:"varint,10,opt,name=disappearingModeTimestamp" json:"disappearingModeTimestamp,omitempty"`
 }
 
 func (x *GlobalSettings) Reset() {
@@ -13308,6 +13310,20 @@ func (x *GlobalSettings) GetShowGroupNotificationsPreview() bool {
 		return *x.ShowGroupNotificationsPreview
 	}
 	return false
+}
+
+func (x *GlobalSettings) GetDisappearingModeDuration() int32 {
+	if x != nil && x.DisappearingModeDuration != nil {
+		return *x.DisappearingModeDuration
+	}
+	return 0
+}
+
+func (x *GlobalSettings) GetDisappearingModeTimestamp() int64 {
+	if x != nil && x.DisappearingModeTimestamp != nil {
+		return *x.DisappearingModeTimestamp
+	}
+	return 0
 }
 
 type Conversation struct {
