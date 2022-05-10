@@ -101,8 +101,18 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 	if isDisconnectNode(resp) {
 		if cli.DebugDecodeBeforeSend && resp.Tag == "stream:error" && resp.GetChildByTag("xml-not-well-formed").Tag != "" {
 			cli.Log.Debugf("Message that was interrupted by xml-not-well-formed: %s", base64.URLEncoding.EncodeToString(data))
+			oldResp := resp
+			resp, err = cli.hackyResendFailedNode(data, id)
+			if err != nil {
+				return time.Time{}, err
+			} else if resp == nil {
+				return time.Time{}, &DisconnectedError{Action: "message send", Node: oldResp}
+			} else if isDisconnectNode(resp) {
+				return time.Time{}, &DisconnectedError{Action: "message send (retry)", Node: resp}
+			}
+		} else {
+			return time.Time{}, &DisconnectedError{Action: "message send", Node: resp}
 		}
-		return time.Time{}, &DisconnectedError{Action: "message send", Node: resp}
 	}
 	ag := resp.AttrGetter()
 	ts := time.Unix(ag.Int64("t"), 0)
@@ -115,6 +125,24 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 		cli.groupParticipantsCacheLock.Unlock()
 	}
 	return ts, nil
+}
+
+func (cli *Client) hackyResendFailedNode(data []byte, id types.MessageID) (*waBinary.Node, error) {
+	// TODO if resending works, this should just wait for reconnection rather than sleeping arbitrarily
+	cli.Log.Debugf("Attempting to resend failed message in 5 seconds")
+	time.Sleep(5 * time.Second)
+	if !cli.IsConnected() || !cli.IsLoggedIn() {
+		cli.Log.Debugf("Client is not connected after 5 seconds, not resending")
+		return nil, nil
+	}
+	cli.Log.Debugf("Client connected after 5 seconds - now resending node that failed")
+	respChan := cli.waitResponse(id)
+	err := cli.socket.SendFrame(data)
+	if err != nil {
+		cli.cancelResponse(id, respChan)
+		return nil, err
+	}
+	return <-respChan, nil
 }
 
 // RevokeMessage deletes the given message from everyone in the chat.
