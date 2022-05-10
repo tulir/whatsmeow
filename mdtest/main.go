@@ -73,6 +73,7 @@ func main() {
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
 	cli.OneMessageAtATime = *oneMessageAtATime
+	cli.DebugDecodeBeforeSend = *oneMessageAtATime
 
 	ch, err := cli.GetQRChannel(context.Background())
 	if err != nil {
