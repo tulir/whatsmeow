@@ -218,6 +218,36 @@ func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Mes
 	return data, nil
 }
 
+func getTypeFromMessage(msg *waProto.Message) string {
+	switch {
+	case msg.ViewOnceMessage != nil:
+		return getTypeFromMessage(msg.ViewOnceMessage.Message)
+	case msg.EphemeralMessage != nil:
+		return getTypeFromMessage(msg.EphemeralMessage.Message)
+	case msg.ReactionMessage != nil:
+		return "reaction"
+	case msg.Conversation != nil, msg.ExtendedTextMessage != nil, msg.ProtocolMessage != nil:
+		return "text"
+	case msg.ImageMessage != nil, msg.DocumentMessage != nil, msg.AudioMessage != nil, msg.VideoMessage != nil:
+		return "media"
+	default:
+		return "text"
+	}
+}
+
+func getEditAttribute(msg *waProto.Message) string {
+	if msg.ProtocolMessage != nil && msg.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE && msg.GetProtocolMessage().GetKey() != nil {
+		if msg.GetProtocolMessage().GetKey().GetFromMe() {
+			return "7"
+		} else {
+			return "8"
+		}
+	} else if msg.ReactionMessage != nil && msg.ReactionMessage.GetText() == "" {
+		return "7"
+	}
+	return ""
+}
+
 func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte) (*waBinary.Node, []types.JID, error) {
 	allDevices, err := cli.GetUserDevices(participants)
 	if err != nil {
@@ -229,7 +259,7 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 		Tag: "message",
 		Attrs: waBinary.Attrs{
 			"id":   id,
-			"type": "text",
+			"type": getTypeFromMessage(message),
 			"to":   to,
 		},
 		Content: []waBinary.Node{{
@@ -237,17 +267,8 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 			Content: participantNodes,
 		}},
 	}
-	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE && message.GetProtocolMessage().GetKey() != nil {
-		if message.GetProtocolMessage().GetKey().GetFromMe() {
-			node.Attrs["edit"] = "7"
-		} else {
-			node.Attrs["edit"] = "8"
-		}
-	} else if message.ReactionMessage != nil {
-		node.Attrs["type"] = "reaction"
-		if message.ReactionMessage.GetText() == "" {
-			node.Attrs["edit"] = "7"
-		}
+	if editAttr := getEditAttribute(message); editAttr != "" {
+		node.Attrs["edit"] = editAttr
 	}
 	if includeIdentity {
 		err = cli.appendDeviceIdentityNode(&node)

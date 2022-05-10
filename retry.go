@@ -172,7 +172,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 
 	attrs := waBinary.Attrs{
 		"to":   node.Attrs["from"],
-		"type": "text",
+		"type": getTypeFromMessage(msg),
 		"id":   messageID,
 		"t":    timestamp.Unix(),
 	}
