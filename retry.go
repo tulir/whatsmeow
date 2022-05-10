@@ -74,6 +74,25 @@ func (cli *Client) getMessageForRetry(receipt *events.Receipt, messageID types.M
 	return proto.Clone(msg).(*waProto.Message), nil
 }
 
+const recreateSessionTimeout = 1 * time.Hour
+
+func (cli *Client) shouldRecreateSession(retryCount int, jid types.JID) (reason string, recreate bool) {
+	cli.sessionRecreateHistoryLock.Lock()
+	defer cli.sessionRecreateHistoryLock.Unlock()
+	if !cli.Store.ContainsSession(jid.SignalAddress()) {
+		cli.sessionRecreateHistory[jid] = time.Now()
+		return "we don't have a Signal session with them", true
+	} else if retryCount < 2 {
+		return "", false
+	}
+	prevTime, ok := cli.sessionRecreateHistory[jid]
+	if !ok || prevTime.Add(recreateSessionTimeout).Before(time.Now()) {
+		cli.sessionRecreateHistory[jid] = time.Now()
+		return "retry count > 1 and over an hour since last recreation", true
+	}
+	return "", false
+}
+
 // handleRetryReceipt handles an incoming retry receipt for an outgoing message.
 func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.Node) error {
 	retryChild, ok := node.GetOptionalChildByTag("retry")
@@ -129,12 +148,8 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if err != nil {
 			return fmt.Errorf("failed to read prekey bundle in retry receipt: %w", err)
 		}
-	} else if retryCount == 2 || retryCount == 3 || !cli.Store.ContainsSession(receipt.Sender.SignalAddress()) {
-		if retryCount == 2 || retryCount == 3 {
-			cli.Log.Debugf("Fetching prekeys for %s due to retry receipt with count==2|3 but no prekey bundle", receipt.Sender)
-		} else {
-			cli.Log.Debugf("Fetching prekeys for %s for handling retry receipt because we don't have a Signal session with them", receipt.Sender)
-		}
+	} else if reason, recreate := cli.shouldRecreateSession(retryCount, receipt.Sender); recreate {
+		cli.Log.Debugf("Fetching prekeys for %s for handling retry receipt with no prekey bundle because %s", receipt.Sender, reason)
 		var keys map[types.JID]preKeyResp
 		keys, err = cli.fetchPreKeys([]types.JID{receipt.Sender})
 		if err != nil {
