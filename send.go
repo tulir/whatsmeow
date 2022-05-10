@@ -256,8 +256,9 @@ func getTypeFromMessage(msg *waProto.Message) string {
 		return "reaction"
 	case msg.Conversation != nil, msg.ExtendedTextMessage != nil, msg.ProtocolMessage != nil:
 		return "text"
-	case msg.ImageMessage != nil, msg.DocumentMessage != nil, msg.AudioMessage != nil, msg.VideoMessage != nil:
-		return "media"
+	//TODO this requires setting mediatype in the enc nodes
+	//case msg.ImageMessage != nil, msg.DocumentMessage != nil, msg.AudioMessage != nil, msg.VideoMessage != nil:
+	//	return "media"
 	default:
 		return "text"
 	}
