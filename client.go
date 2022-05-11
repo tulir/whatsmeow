@@ -370,6 +370,7 @@ func (cli *Client) unlockedDisconnect() {
 	if cli.socket != nil {
 		cli.socket.Stop(true)
 		cli.socket = nil
+		cli.clearResponseWaiters(xmlStreamEndNode)
 	}
 }
 
