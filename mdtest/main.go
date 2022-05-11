@@ -589,5 +589,17 @@ func handler(rawEvt interface{}) {
 		_ = file.Close()
 	case *events.AppState:
 		log.Debugf("App state event: %+v / %+v", evt.Index, evt.SyncActionValue)
+	case *events.KeepAliveTimeout:
+		log.Debugf("Keepalive timeout event: %+v", evt)
+		if evt.ErrorCount > 3 {
+			log.Debugf("Got >3 keepalive timeouts, forcing reconnect")
+			go func() {
+				cli.Disconnect()
+				err := cli.Connect()
+				if err != nil {
+					log.Errorf("Error force-reconnecting after keepalive timeouts: %v", err)
+				}
+			}()
+		}
 	}
 }
