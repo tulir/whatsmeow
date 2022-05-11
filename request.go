@@ -8,7 +8,7 @@ package whatsmeow
 
 import (
 	"context"
-	"encoding/base64"
+	"fmt"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -25,6 +25,20 @@ var xmlStreamEndNode = &waBinary.Node{Tag: "xmlstreamend"}
 
 func isDisconnectNode(node *waBinary.Node) bool {
 	return node == xmlStreamEndNode || node.Tag == "stream:error"
+}
+
+// isAuthErrorDisconnect checks if the given disconnect node is an error that shouldn't cause retrying.
+func isAuthErrorDisconnect(node *waBinary.Node) bool {
+	if node.Tag != "stream:error" {
+		return false
+	}
+	code, _ := node.Attrs["code"].(string)
+	conflict, _ := node.GetOptionalChildByTag("conflict")
+	conflictType := conflict.AttrGetter().OptionalString("type")
+	if code == "401" || conflictType == "replaced" || conflictType == "device_removed" {
+		return true
+	}
+	return false
 }
 
 func (cli *Client) clearResponseWaiters(node *waBinary.Node) {
@@ -88,10 +102,11 @@ type infoQuery struct {
 	Content   interface{}
 
 	Timeout time.Duration
+	NoRetry bool
 	Context context.Context
 }
 
-func (cli *Client) sendIQAsyncDebug(query infoQuery) (<-chan *waBinary.Node, []byte, error) {
+func (cli *Client) sendIQAsyncAndGetData(query *infoQuery) (<-chan *waBinary.Node, []byte, error) {
 	if len(query.ID) == 0 {
 		query.ID = cli.generateRequestID()
 	}
@@ -107,7 +122,7 @@ func (cli *Client) sendIQAsyncDebug(query infoQuery) (<-chan *waBinary.Node, []b
 	if !query.Target.IsEmpty() {
 		attrs["target"] = query.Target
 	}
-	data, err := cli.sendNodeDebug(waBinary.Node{
+	data, err := cli.sendNodeAndGetData(waBinary.Node{
 		Tag:     "iq",
 		Attrs:   attrs,
 		Content: query.Content,
@@ -120,12 +135,12 @@ func (cli *Client) sendIQAsyncDebug(query infoQuery) (<-chan *waBinary.Node, []b
 }
 
 func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
-	ch, _, err := cli.sendIQAsyncDebug(query)
+	ch, _, err := cli.sendIQAsyncAndGetData(&query)
 	return ch, err
 }
 
 func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
-	resChan, data, err := cli.sendIQAsyncDebug(query)
+	resChan, data, err := cli.sendIQAsyncAndGetData(&query)
 	if err != nil {
 		return nil, err
 	}
@@ -138,10 +153,13 @@ func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 	select {
 	case res := <-resChan:
 		if isDisconnectNode(res) {
-			if cli.DebugDecodeBeforeSend && res.Tag == "stream:error" && res.GetChildByTag("xml-not-well-formed").Tag != "" {
-				cli.Log.Debugf("Info query that was interrupted by xml-not-well-formed: %s", base64.URLEncoding.EncodeToString(data))
+			if query.NoRetry {
+				return nil, &DisconnectedError{Action: "info query", Node: res}
 			}
-			return nil, &DisconnectedError{Action: "info query", Node: res}
+			res, err = cli.retryFrame("info query", query.ID, data, res, query.Context, query.Timeout)
+			if err != nil {
+				return nil, err
+			}
 		}
 		resType, _ := res.Attrs["type"].(string)
 		if res.Tag != "iq" || (resType != "result" && resType != "error") {
@@ -155,4 +173,49 @@ func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 	case <-time.After(query.Timeout):
 		return nil, ErrIQTimedOut
 	}
+}
+
+func (cli *Client) retryFrame(reqType, id string, data []byte, origResp *waBinary.Node, ctx context.Context, timeout time.Duration) (*waBinary.Node, error) {
+	if isAuthErrorDisconnect(origResp) {
+		cli.Log.Debugf("%s (%s) was interrupted by websocket disconnection (%s), not retrying as it looks like an auth error", id, reqType, origResp.XMLString())
+		return nil, &DisconnectedError{Action: reqType, Node: origResp}
+	}
+
+	cli.Log.Debugf("%s (%s) was interrupted by websocket disconnection (%s), waiting for reconnect to retry...", id, reqType, origResp.XMLString())
+	if !cli.WaitForConnection(5 * time.Second) {
+		cli.Log.Debugf("Websocket didn't reconnect within 5 seconds of failed %s (%s)", reqType, id)
+		return nil, &DisconnectedError{Action: reqType, Node: origResp}
+	}
+
+	cli.socketLock.RLock()
+	sock := cli.socket
+	cli.socketLock.RUnlock()
+	if sock == nil {
+		return nil, ErrNotConnected
+	}
+
+	respChan := cli.waitResponse(id)
+	err := sock.SendFrame(data)
+	if err != nil {
+		cli.cancelResponse(id, respChan)
+		return nil, err
+	}
+	var resp *waBinary.Node
+	if ctx != nil && timeout > 0 {
+		select {
+		case resp = <-respChan:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(timeout):
+			// FIXME this error isn't technically correct (but works for now - the ctx and timeout params are only used from sendIQ)
+			return nil, ErrIQTimedOut
+		}
+	} else {
+		resp = <-respChan
+	}
+	if isDisconnectNode(resp) {
+		cli.Log.Debugf("Retrying %s %s was interrupted by websocket disconnection (%v), not retrying anymore", reqType, id, resp.XMLString())
+		return nil, &DisconnectedError{Action: fmt.Sprintf("%s (retry)", reqType), Node: resp}
+	}
+	return resp, nil
 }

@@ -10,7 +10,6 @@ package whatsmeow
 import (
 	"context"
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -52,6 +51,7 @@ type Client struct {
 
 	socket     *socket.NoiseSocket
 	socketLock sync.RWMutex
+	socketWait chan struct{}
 
 	isLoggedIn            uint32
 	expectedDisconnectVal uint32
@@ -88,6 +88,8 @@ type Client struct {
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
 
+	messageSendLock sync.Mutex
+
 	privacySettingsCache atomic.Value
 
 	groupParticipantsCache     map[types.JID][]types.JID
@@ -113,10 +115,6 @@ type Client struct {
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
 	// If false, decrypting a message from untrusted devices will fail.
 	AutoTrustIdentity bool
-
-	DebugDecodeBeforeSend bool
-	OneMessageAtATime     bool
-	messageSendLock       sync.Mutex
 
 	uniqueID  string
 	idCounter uint32
@@ -165,6 +163,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		messageRetries:  make(map[string]int),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
+		socketWait:      make(chan struct{}),
 
 		historySyncNotifications: make(chan *waProto.HistorySyncNotification, 32),
 
@@ -228,6 +227,37 @@ func (cli *Client) SetProxyAddress(addr string) error {
 func (cli *Client) SetProxy(proxy socket.Proxy) {
 	cli.proxy = proxy
 	cli.http.Transport.(*http.Transport).Proxy = proxy
+}
+
+func (cli *Client) getSocketWaitChan() <-chan struct{} {
+	cli.socketLock.RLock()
+	ch := cli.socketWait
+	cli.socketLock.RUnlock()
+	return ch
+}
+
+func (cli *Client) closeSocketWaitChan() {
+	cli.socketLock.Lock()
+	close(cli.socketWait)
+	cli.socketWait = make(chan struct{})
+	cli.socketLock.Unlock()
+}
+
+func (cli *Client) WaitForConnection(timeout time.Duration) bool {
+	timeoutChan := time.After(timeout)
+	cli.socketLock.RLock()
+	for cli.socket == nil || !cli.socket.IsConnected() || !cli.IsLoggedIn() {
+		ch := cli.socketWait
+		cli.socketLock.RUnlock()
+		select {
+		case <-ch:
+		case <-timeoutChan:
+			return false
+		}
+		cli.socketLock.RLock()
+	}
+	cli.socketLock.RUnlock()
+	return true
 }
 
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
@@ -495,7 +525,7 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 	}
 }
 
-func (cli *Client) sendNodeDebug(node waBinary.Node) ([]byte, error) {
+func (cli *Client) sendNodeAndGetData(node waBinary.Node) ([]byte, error) {
 	cli.socketLock.RLock()
 	sock := cli.socket
 	cli.socketLock.RUnlock()
@@ -507,22 +537,13 @@ func (cli *Client) sendNodeDebug(node waBinary.Node) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal node: %w", err)
 	}
-	if cli.DebugDecodeBeforeSend {
-		var decoded *waBinary.Node
-		decoded, err = waBinary.Unmarshal(payload[1:])
-		if err != nil {
-			cli.Log.Infof("Malformed payload: %s", base64.URLEncoding.EncodeToString(payload))
-			return nil, fmt.Errorf("failed to decode the binary we just produced: %w", err)
-		}
-		node = *decoded
-	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())
 	return payload, sock.SendFrame(payload)
 }
 
 func (cli *Client) sendNode(node waBinary.Node) error {
-	_, err := cli.sendNodeDebug(node)
+	_, err := cli.sendNodeAndGetData(node)
 	return err
 }
 
