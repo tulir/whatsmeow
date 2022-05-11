@@ -42,6 +42,10 @@ func (cli *Client) keepAliveLoop(ctx context.Context) {
 					LastSuccess: lastSuccess,
 				})
 			} else {
+				if errorCount > 0 {
+					errorCount = 0
+					go cli.dispatchEvent(&events.KeepAliveRestored{})
+				}
 				lastSuccess = time.Now()
 			}
 		case <-ctx.Done():

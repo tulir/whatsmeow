@@ -65,6 +65,10 @@ type KeepAliveTimeout struct {
 	LastSuccess time.Time
 }
 
+// KeepAliveRestored is emitted if the keepalive pings start working again after some KeepAliveTimeout events.
+// Note that if the websocket disconnects before the pings start working, this event will not be emitted.
+type KeepAliveRestored struct{}
+
 // LoggedOut is emitted when the client has been unpaired from the phone.
 //
 // This can happen while connected (stream:error messages) or right after connecting (connect failure messages).

@@ -601,5 +601,7 @@ func handler(rawEvt interface{}) {
 				}
 			}()
 		}
+	case *events.KeepAliveRestored:
+		log.Debugf("Keepalive restored")
 	}
 }
