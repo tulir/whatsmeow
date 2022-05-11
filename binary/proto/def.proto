@@ -781,7 +781,6 @@ message ContextInfo {
     optional ActionLink actionLink = 33;
     optional string groupSubject = 34;
     optional string parentGroupJid = 35;
-    optional bytes messageSecret = 36;
 }
 
 message ExternalAdReplyInfo {
@@ -932,6 +931,7 @@ message Message {
 message MessageContextInfo {
     optional DeviceListMetadata deviceListMetadata = 1;
     optional int32 deviceListMetadataVersion = 2;
+    optional bytes messageSecret = 3;
 }
 
 message VideoMessage {
@@ -1123,6 +1123,8 @@ message GlobalSettings {
     optional AutoDownloadSettings autoDownloadRoaming = 6;
     optional bool showIndividualNotificationsPreview = 7;
     optional bool showGroupNotificationsPreview = 8;
+    optional int32 disappearingModeDuration = 9;
+    optional int64 disappearingModeTimestamp = 10;
 }
 
 message Conversation {

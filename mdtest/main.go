@@ -73,6 +73,7 @@ func main() {
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
 	cli.OneMessageAtATime = *oneMessageAtATime
+	cli.DebugDecodeBeforeSend = *oneMessageAtATime
 
 	ch, err := cli.GetQRChannel(context.Background())
 	if err != nil {
@@ -432,7 +433,6 @@ func handleCmd(cmd string, args []string) {
 					Id:        proto.String(messageID),
 				},
 				Text:              proto.String(reaction),
-				GroupingKey:       proto.String(reaction),
 				SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
 			},
 		}

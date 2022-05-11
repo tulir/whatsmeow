@@ -101,8 +101,18 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 	if isDisconnectNode(resp) {
 		if cli.DebugDecodeBeforeSend && resp.Tag == "stream:error" && resp.GetChildByTag("xml-not-well-formed").Tag != "" {
 			cli.Log.Debugf("Message that was interrupted by xml-not-well-formed: %s", base64.URLEncoding.EncodeToString(data))
+			oldResp := resp
+			resp, err = cli.hackyResendFailedNode(data, id)
+			if err != nil {
+				return time.Time{}, err
+			} else if resp == nil {
+				return time.Time{}, &DisconnectedError{Action: "message send", Node: oldResp}
+			} else if isDisconnectNode(resp) {
+				return time.Time{}, &DisconnectedError{Action: "message send (retry)", Node: resp}
+			}
+		} else {
+			return time.Time{}, &DisconnectedError{Action: "message send", Node: resp}
 		}
-		return time.Time{}, &DisconnectedError{Action: "message send", Node: resp}
 	}
 	ag := resp.AttrGetter()
 	ts := time.Unix(ag.Int64("t"), 0)
@@ -115,6 +125,24 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 		cli.groupParticipantsCacheLock.Unlock()
 	}
 	return ts, nil
+}
+
+func (cli *Client) hackyResendFailedNode(data []byte, id types.MessageID) (*waBinary.Node, error) {
+	// TODO if resending works, this should just wait for reconnection rather than sleeping arbitrarily
+	cli.Log.Debugf("Attempting to resend failed message in 5 seconds")
+	time.Sleep(5 * time.Second)
+	if !cli.IsConnected() || !cli.IsLoggedIn() {
+		cli.Log.Debugf("Client is not connected after 5 seconds, not resending")
+		return nil, nil
+	}
+	cli.Log.Debugf("Client connected after 5 seconds - now resending node that failed")
+	respChan := cli.waitResponse(id)
+	err := cli.socket.SendFrame(data)
+	if err != nil {
+		cli.cancelResponse(id, respChan)
+		return nil, err
+	}
+	return <-respChan, nil
 }
 
 // RevokeMessage deletes the given message from everyone in the chat.
@@ -218,6 +246,37 @@ func (cli *Client) sendDM(to types.JID, id types.MessageID, message *waProto.Mes
 	return data, nil
 }
 
+func getTypeFromMessage(msg *waProto.Message) string {
+	switch {
+	case msg.ViewOnceMessage != nil:
+		return getTypeFromMessage(msg.ViewOnceMessage.Message)
+	case msg.EphemeralMessage != nil:
+		return getTypeFromMessage(msg.EphemeralMessage.Message)
+	case msg.ReactionMessage != nil:
+		return "reaction"
+	case msg.Conversation != nil, msg.ExtendedTextMessage != nil, msg.ProtocolMessage != nil:
+		return "text"
+	//TODO this requires setting mediatype in the enc nodes
+	//case msg.ImageMessage != nil, msg.DocumentMessage != nil, msg.AudioMessage != nil, msg.VideoMessage != nil:
+	//	return "media"
+	default:
+		return "text"
+	}
+}
+
+func getEditAttribute(msg *waProto.Message) string {
+	if msg.ProtocolMessage != nil && msg.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE && msg.GetProtocolMessage().GetKey() != nil {
+		if msg.GetProtocolMessage().GetKey().GetFromMe() {
+			return "7"
+		} else {
+			return "8"
+		}
+	} else if msg.ReactionMessage != nil && msg.ReactionMessage.GetText() == "" {
+		return "7"
+	}
+	return ""
+}
+
 func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte) (*waBinary.Node, []types.JID, error) {
 	allDevices, err := cli.GetUserDevices(participants)
 	if err != nil {
@@ -229,7 +288,7 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 		Tag: "message",
 		Attrs: waBinary.Attrs{
 			"id":   id,
-			"type": "text",
+			"type": getTypeFromMessage(message),
 			"to":   to,
 		},
 		Content: []waBinary.Node{{
@@ -237,15 +296,11 @@ func (cli *Client) prepareMessageNode(to types.JID, id types.MessageID, message 
 			Content: participantNodes,
 		}},
 	}
-	if message.ProtocolMessage != nil && message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE && message.GetProtocolMessage().GetKey() != nil {
-		if message.GetProtocolMessage().GetKey().GetFromMe() {
-			node.Attrs["edit"] = "7"
-		} else {
-			node.Attrs["edit"] = "8"
-		}
+	if editAttr := getEditAttribute(message); editAttr != "" {
+		node.Attrs["edit"] = editAttr
 	}
 	if includeIdentity {
-		err := cli.appendDeviceIdentityNode(&node)
+		err = cli.appendDeviceIdentityNode(&node)
 		if err != nil {
 			return nil, nil, err
 		}

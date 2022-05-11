@@ -99,6 +99,9 @@ type Client struct {
 	recentMessagesList [recentMessagesSize]recentMessageKey
 	recentMessagesPtr  int
 	recentMessagesLock sync.RWMutex
+
+	sessionRecreateHistory     map[types.JID]time.Time
+	sessionRecreateHistoryLock sync.Mutex
 	// GetMessageForRetry is used to find the source message for handling retry receipts
 	// when the message is not found in the recently sent message cache.
 	GetMessageForRetry func(to types.JID, id types.MessageID) *waProto.Message
@@ -168,8 +171,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		groupParticipantsCache: make(map[types.JID][]types.JID),
 		userDevicesCache:       make(map[types.JID][]types.JID),
 
-		recentMessagesMap:  make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
-		GetMessageForRetry: func(to types.JID, id types.MessageID) *waProto.Message { return nil },
+		recentMessagesMap:      make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
+		sessionRecreateHistory: make(map[types.JID]time.Time),
+		GetMessageForRetry:     func(to types.JID, id types.MessageID) *waProto.Message { return nil },
 
 		EnableAutoReconnect: true,
 		AutoTrustIdentity:   true,
