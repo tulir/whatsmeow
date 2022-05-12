@@ -55,6 +55,20 @@ type QRScannedWithoutMultidevice struct{}
 // at this point, which is why this event doesn't contain any data.
 type Connected struct{}
 
+// KeepAliveTimeout is emitted when the keepalive ping request to WhatsApp web servers times out.
+//
+// Currently, there's no automatic handling for these, but it's expected that the TCP connection will
+// either start working again or notice it's dead on its own eventually. Clients may use this event to
+// decide to force a disconnect+reconnect faster.
+type KeepAliveTimeout struct {
+	ErrorCount  int
+	LastSuccess time.Time
+}
+
+// KeepAliveRestored is emitted if the keepalive pings start working again after some KeepAliveTimeout events.
+// Note that if the websocket disconnects before the pings start working, this event will not be emitted.
+type KeepAliveRestored struct{}
+
 // LoggedOut is emitted when the client has been unpaired from the phone.
 //
 // This can happen while connected (stream:error messages) or right after connecting (connect failure messages).
