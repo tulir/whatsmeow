@@ -367,7 +367,8 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
 	evt := &events.Message{Info: *info, RawMessage: msg}
 
-	// First unwrap device sent messages
+	// First unwrap device sent messages. These should only be in real-time messages,
+	// which is why it doesn't happen in UnwrapRaw (which also deals with historical messages).
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
 		evt.Info.DeviceSentMeta = &types.DeviceSentMeta{
@@ -389,15 +390,7 @@ func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.
 
 	// Unwrap ephemeral and view-once messages
 	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
-	if msg.GetEphemeralMessage().GetMessage() != nil {
-		msg = msg.GetEphemeralMessage().GetMessage()
-		evt.IsEphemeral = true
-	}
-	if msg.GetViewOnceMessage().GetMessage() != nil {
-		msg = msg.GetViewOnceMessage().GetMessage()
-		evt.IsViewOnce = true
-	}
-	evt.Message = msg
+	evt.UnwrapRaw()
 
 	cli.dispatchEvent(evt)
 }
