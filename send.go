@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2022 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -83,12 +83,10 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 	var phash string
 	var data []byte
 	switch to.Server {
-	case types.GroupServer:
+	case types.GroupServer, types.BroadcastServer:
 		phash, data, err = cli.sendGroup(to, id, message)
 	case types.DefaultUserServer:
 		data, err = cli.sendDM(to, id, message)
-	case types.BroadcastServer:
-		err = ErrBroadcastListUnsupported
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
@@ -146,9 +144,18 @@ func participantListHashV2(participants []types.JID) string {
 }
 
 func (cli *Client) sendGroup(to types.JID, id types.MessageID, message *waProto.Message) (string, []byte, error) {
-	participants, err := cli.getGroupMembers(to)
-	if err != nil {
-		return "", nil, fmt.Errorf("failed to get group members: %w", err)
+	var participants []types.JID
+	var err error
+	if to.Server == types.GroupServer {
+		participants, err = cli.getGroupMembers(to)
+		if err != nil {
+			return "", nil, fmt.Errorf("failed to get group members: %w", err)
+		}
+	} else {
+		participants, err = cli.getBroadcastListParticipants(to)
+		if err != nil {
+			return "", nil, fmt.Errorf("failed to get broadcast list members: %w", err)
+		}
 	}
 
 	plaintext, _, err := marshalMessage(to, message)

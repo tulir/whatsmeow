@@ -23,9 +23,10 @@ Most core features are already present:
 * Sending and receiving delivery and read receipts
 * Reading app state (contact list, chat pin/mute status, etc)
 * Sending and handling retry receipts if message decryption fails
+* Sending status messages (experimental, may not work for large contact lists)
 
 Things that are not yet implemented:
 
 * Writing app state (contact list, chat pin/mute status, etc)
-* Sending status messages or broadcast list messages (this is not supported on WhatsApp web either)
+* Sending broadcast list messages (this is not supported on WhatsApp web either)
 * Calls

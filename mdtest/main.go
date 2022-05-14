@@ -358,6 +358,10 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Joined %s", groupID)
 		}
+	case "getstatusprivacy":
+		resp, err := cli.GetStatusPrivacy()
+		fmt.Println(err)
+		fmt.Println(resp)
 	case "send":
 		if len(args) < 2 {
 			log.Errorf("Usage: send <jid> <text>")
