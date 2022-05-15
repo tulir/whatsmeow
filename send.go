@@ -140,6 +140,23 @@ const (
 	DisappearingTimer90Days  = 90 * 24 * time.Hour
 )
 
+// ParseDisappearingTimerString parses common human-readable disappearing message timer strings into Duration values.
+// If the string doesn't look like one of the allowed values (0, 24h, 7d, 90d), the second return value is false.
+func ParseDisappearingTimerString(val string) (time.Duration, bool) {
+	switch strings.ReplaceAll(strings.ToLower(val), " ", "") {
+	case "0d", "0h", "0s", "0", "off":
+		return DisappearingTimerOff, true
+	case "1day", "day", "1d", "1", "24h", "24", "86400s", "86400":
+		return DisappearingTimer24Hours, true
+	case "1week", "week", "7d", "7", "168h", "168", "604800s", "604800":
+		return DisappearingTimer7Days, true
+	case "3months", "3m", "3mo", "90d", "90", "2160h", "2160", "7776000s", "7776000":
+		return DisappearingTimer90Days, true
+	default:
+		return 0, false
+	}
+}
+
 // SetDisappearingTimer sets the disappearing timer in a chat. Both private chats and groups are supported, but they're
 // set with different methods.
 //
