@@ -367,16 +367,9 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
 	evt := &events.Message{Info: *info, RawMessage: msg}
 
-	// First unwrap device sent messages. These should only be in real-time messages,
-	// which is why it doesn't happen in UnwrapRaw (which also deals with historical messages).
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
-		evt.Info.DeviceSentMeta = &types.DeviceSentMeta{
-			DestinationJID: msg.GetDeviceSentMessage().GetDestinationJid(),
-			Phash:          msg.GetDeviceSentMessage().GetPhash(),
-		}
 	}
-
 	if msg.GetSenderKeyDistributionMessage() != nil {
 		if !info.IsGroup {
 			cli.Log.Warnf("Got sender key distribution message in non-group chat from", info.Sender)
