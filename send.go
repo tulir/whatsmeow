@@ -102,7 +102,7 @@ func (cli *Client) SendMessage(to types.JID, id types.MessageID, message *waProt
 		}
 	}
 	ag := resp.AttrGetter()
-	ts := time.Unix(ag.Int64("t"), 0)
+	ts := ag.UnixTime("t")
 	expectedPHash := ag.OptionalString("phash")
 	if len(expectedPHash) > 0 && phash != expectedPHash {
 		cli.Log.Warnf("Server returned different participant list hash when sending to %s. Some devices may not have received the message.", to)

@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
@@ -397,10 +396,10 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	group.OwnerJID = ag.OptionalJIDOrEmpty("creator")
 
 	group.Name = ag.String("subject")
-	group.NameSetAt = time.Unix(ag.Int64("s_t"), 0)
+	group.NameSetAt = ag.UnixTime("s_t")
 	group.NameSetBy = ag.OptionalJIDOrEmpty("s_o")
 
-	group.GroupCreated = time.Unix(ag.Int64("creation"), 0)
+	group.GroupCreated = ag.UnixTime("creation")
 
 	group.AnnounceVersionID = ag.OptionalString("a_v_id")
 	group.ParticipantVersionID = ag.OptionalString("p_v_id")
@@ -423,7 +422,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 				group.Topic = string(topicBytes)
 				group.TopicID = childAG.String("id")
 				group.TopicSetBy = childAG.OptionalJIDOrEmpty("participant")
-				group.TopicSetAt = time.Unix(childAG.Int64("t"), 0)
+				group.TopicSetAt = childAG.UnixTime("t")
 			}
 		case "announcement":
 			group.IsAnnounce = true
@@ -477,7 +476,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 	evt.JID = ag.JID("from")
 	evt.Notify = ag.OptionalString("notify")
 	evt.Sender = ag.OptionalJID("participant")
-	evt.Timestamp = time.Unix(ag.Int64("t"), 0)
+	evt.Timestamp = ag.UnixTime("t")
 	if !ag.OK() {
 		return nil, fmt.Errorf("group change doesn't contain required attributes: %w", ag.Error())
 	}
@@ -505,7 +504,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 		case "subject":
 			evt.Name = &types.GroupName{
 				Name:      cag.String("subject"),
-				NameSetAt: time.Unix(cag.Int64("s_t"), 0),
+				NameSetAt: cag.UnixTime("s_t"),
 				NameSetBy: cag.OptionalJIDOrEmpty("s_o"),
 			}
 		case "description":

@@ -101,7 +101,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	}
 	ag := retryChild.AttrGetter()
 	messageID := ag.String("id")
-	timestamp := time.Unix(ag.Int64("t"), 0)
+	timestamp := ag.UnixTime("t")
 	retryCount := ag.Int("count")
 	if !ag.OK() {
 		return ag.Error()

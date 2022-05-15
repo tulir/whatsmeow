@@ -42,7 +42,7 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 	}
 	receipt := events.Receipt{
 		MessageSource: source,
-		Timestamp:     time.Unix(ag.Int64("t"), 0),
+		Timestamp:     ag.UnixTime("t"),
 		Type:          events.ReceiptType(ag.OptionalString("type")),
 	}
 	mainMessageID := ag.String("id")

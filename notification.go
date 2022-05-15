@@ -8,7 +8,6 @@ package whatsmeow
 
 import (
 	"errors"
-	"time"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -40,7 +39,7 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Warnf("Failed to delete all sessions of %s from store after identity change: %v", from, err)
 		}
-		ts := time.Unix(node.AttrGetter().Int64("t"), 0)
+		ts := node.AttrGetter().UnixTime("t")
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
 		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
@@ -65,7 +64,7 @@ func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
 }
 
 func (cli *Client) handlePictureNotification(node *waBinary.Node) {
-	ts := time.Unix(node.AttrGetter().Int64("t"), 0)
+	ts := node.AttrGetter().UnixTime("t")
 	for _, child := range node.GetChildren() {
 		ag := child.AttrGetter()
 		var evt events.Picture
