@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -130,6 +131,49 @@ func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (time.Time,
 			},
 		},
 	})
+}
+
+const (
+	DisappearingTimerOff     = time.Duration(0)
+	DisappearingTimer24Hours = 24 * time.Hour
+	DisappearingTimer7Days   = 7 * 24 * time.Hour
+	DisappearingTimer90Days  = 90 * 24 * time.Hour
+)
+
+// SetDisappearingTimer sets the disappearing timer in a chat. Both private chats and groups are supported, but they're
+// set with different methods.
+//
+// Note that while this function allows passing non-standard durations, official WhatsApp apps will ignore those,
+// and in groups the server will just reject the change. You can use the DisappearingTimer<Duration> constants for convenience.
+//
+// In groups, the server will echo the change as a notification, so it'll show up as a *events.GroupInfo update.
+func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (err error) {
+	switch chat.Server {
+	case types.DefaultUserServer:
+		_, err = cli.SendMessage(chat, "", &waProto.Message{
+			ProtocolMessage: &waProto.ProtocolMessage{
+				Type:                waProto.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
+				EphemeralExpiration: proto.Uint32(uint32(timer.Seconds())),
+			},
+		})
+	case types.GroupServer:
+		if timer == 0 {
+			_, err = cli.sendGroupIQ(iqSet, chat, waBinary.Node{Tag: "not_ephemeral"})
+		} else {
+			_, err = cli.sendGroupIQ(iqSet, chat, waBinary.Node{
+				Tag: "ephemeral",
+				Attrs: waBinary.Attrs{
+					"expiration": strconv.Itoa(int(timer.Seconds())),
+				},
+			})
+			if errors.Is(err, ErrIQBadRequest) {
+				err = wrapIQError(ErrInvalidDisappearingTimer, err)
+			}
+		}
+	default:
+		err = fmt.Errorf("can't set disappearing time in a %s chat", chat.Server)
+	}
+	return
 }
 
 func participantListHashV2(participants []types.JID) string {

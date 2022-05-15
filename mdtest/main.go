@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -362,6 +363,24 @@ func handleCmd(cmd string, args []string) {
 		resp, err := cli.GetStatusPrivacy()
 		fmt.Println(err)
 		fmt.Println(resp)
+	case "setdisappeartimer":
+		if len(args) < 2 {
+			log.Errorf("Usage: setdisappeartimer <jid> <days>")
+			return
+		}
+		days, err := strconv.Atoi(args[1])
+		if err != nil {
+			log.Errorf("Invalid duration: %v", err)
+			return
+		}
+		recipient, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		err = cli.SetDisappearingTimer(recipient, time.Duration(days)*24*time.Hour)
+		if err != nil {
+			log.Errorf("Failed to set disappearing timer: %v", err)
+		}
 	case "send":
 		if len(args) < 2 {
 			log.Errorf("Usage: send <jid> <text>")
