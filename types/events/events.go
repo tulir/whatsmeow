@@ -219,6 +219,19 @@ type Message struct {
 	RawMessage *waProto.Message
 }
 
+// UnwrapRaw fills the Message, IsEphemeral and IsViewOnce fields based on the raw message in the RawMessage field.
+func (msg *Message) UnwrapRaw() {
+	msg.Message = msg.RawMessage
+	if msg.Message.GetEphemeralMessage().GetMessage() != nil {
+		msg.Message = msg.Message.GetEphemeralMessage().GetMessage()
+		msg.IsEphemeral = true
+	}
+	if msg.Message.GetViewOnceMessage().GetMessage() != nil {
+		msg.Message = msg.Message.GetViewOnceMessage().GetMessage()
+		msg.IsViewOnce = true
+	}
+}
+
 // ReceiptType represents the type of a Receipt event.
 type ReceiptType string
 

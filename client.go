@@ -561,3 +561,43 @@ func (cli *Client) dispatchEvent(evt interface{}) {
 		handler.fn(evt)
 	}
 }
+
+// ParseWebMessage parses a WebMessageInfo object into *events.Message to match what real-time messages have.
+//
+// The chat JID can be found in the Conversation data:
+//   chatJID, err := types.ParseJID(conv.GetId())
+//   for _, historyMsg := range conv.GetMessages() {
+//     evt, err := cli.ParseWebMessage(chatJID, historyMsg.GetMessage())
+//     yourNormalEventHandler(evt)
+//   }
+func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessageInfo) (*events.Message, error) {
+	info := types.MessageInfo{
+		MessageSource: types.MessageSource{
+			Chat:     chatJID,
+			IsFromMe: webMsg.GetKey().GetFromMe(),
+			IsGroup:  chatJID.Server == types.GroupServer,
+		},
+		ID:        webMsg.GetKey().GetId(),
+		PushName:  webMsg.GetPushName(),
+		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
+	}
+	var err error
+	if info.IsFromMe {
+		info.Sender = cli.Store.ID.ToNonAD()
+	} else if chatJID.Server == types.DefaultUserServer {
+		info.Sender = chatJID
+	} else if webMsg.GetParticipant() != "" {
+		info.Sender, err = types.ParseJID(webMsg.GetParticipant())
+	} else if webMsg.GetKey().GetParticipant() != "" {
+		info.Sender, err = types.ParseJID(webMsg.GetKey().GetParticipant())
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse sender of message: %v", err)
+	}
+	evt := &events.Message{
+		RawMessage: webMsg.GetMessage(),
+		Info:       info,
+	}
+	evt.UnwrapRaw()
+	return evt, nil
+}

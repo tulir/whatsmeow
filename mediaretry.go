@@ -64,8 +64,38 @@ func encryptMediaRetryReceipt(messageID types.MessageID, mediaKey []byte) (ciphe
 
 // SendMediaRetryReceipt sends a request to the phone to re-upload the media in a message.
 //
+// This is mostly relevant when handling history syncs and getting a 404 or 410 error downloading media.
+// Rough example on how to use it (will not work out of the box, you must adjust it depending on what you need exactly):
+//
+//   var mediaRetryCache map[types.MessageID]*waProto.ImageMessage
+//
+//   evt, err := cli.ParseWebMessage(chatJID, historyMsg.GetMessage())
+//   imageMsg := evt.Message.GetImageMessage() // replace this with the part of the message you want to download
+//   data, err := cli.Download(imageMsg)
+//   if errors.Is(err, whatsmeow.ErrMediaDownloadFailedWith404) || errors.Is(err, whatsmeow.ErrMediaDownloadFailedWith410) {
+//     err = cli.SendMediaRetryReceipt(&evt.Info, imageMsg.GetMediaKey())
+//     // You need to store the event data somewhere as it's necessary for handling the retry response.
+//     mediaRetryCache[evt.Info.ID] = imageMsg
+//   }
+//
 // The response will come as an *events.MediaRetry. The response will then have to be decrypted
-// using DecryptMediaRetryNotification and the same media key passed here.
+// using DecryptMediaRetryNotification and the same media key passed here. If the media retry was successful,
+// the decrypted notification should contain an updated DirectPath, which can be used to download the file.
+//
+//   func eventHandler(rawEvt interface{}) {
+//     switch evt := rawEvt.(type) {
+//     case *events.MediaRetry:
+//       imageMsg := mediaRetryCache[evt.MessageID]
+//       retryData, err := whatsmeow.DecryptMediaRetryNotification(evt, imageMsg.GetMediaKey())
+//       if err != nil || retryData.GetResult != waProto.MediaRetryNotification_SUCCESS {
+//         return
+//       }
+//       // Use the new path to download the attachment
+//       imageMsg.DirectPath = retryData.DirectPath
+//       data, err := cli.Download(imageMsg)
+//       // Alternatively, you can use cli.DownloadMediaWithPath and provide the individual fields manually.
+//     }
+//   }
 func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []byte) error {
 	ciphertext, iv, err := encryptMediaRetryReceipt(message.ID, mediaKey)
 	if err != nil {
@@ -104,6 +134,7 @@ func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []
 }
 
 // DecryptMediaRetryNotification decrypts a media retry notification using the media key.
+// See Client.SendMediaRetryReceipt for more info on how to use this.
 func DecryptMediaRetryNotification(evt *events.MediaRetry, mediaKey []byte) (*waProto.MediaRetryNotification, error) {
 	var notif waProto.MediaRetryNotification
 	var plaintext []byte
