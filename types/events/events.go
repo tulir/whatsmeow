@@ -220,23 +220,24 @@ type Message struct {
 }
 
 // UnwrapRaw fills the Message, IsEphemeral and IsViewOnce fields based on the raw message in the RawMessage field.
-func (msg *Message) UnwrapRaw() {
-	msg.Message = msg.RawMessage
-	if msg.Message.GetDeviceSentMessage().GetMessage() != nil {
-		msg.Info.DeviceSentMeta = &types.DeviceSentMeta{
-			DestinationJID: msg.Message.GetDeviceSentMessage().GetDestinationJid(),
-			Phash:          msg.Message.GetDeviceSentMessage().GetPhash(),
+func (evt *Message) UnwrapRaw() *Message {
+	evt.Message = evt.RawMessage
+	if evt.Message.GetDeviceSentMessage().GetMessage() != nil {
+		evt.Info.DeviceSentMeta = &types.DeviceSentMeta{
+			DestinationJID: evt.Message.GetDeviceSentMessage().GetDestinationJid(),
+			Phash:          evt.Message.GetDeviceSentMessage().GetPhash(),
 		}
-		msg.Message = msg.Message.GetDeviceSentMessage().GetMessage()
+		evt.Message = evt.Message.GetDeviceSentMessage().GetMessage()
 	}
-	if msg.Message.GetEphemeralMessage().GetMessage() != nil {
-		msg.Message = msg.Message.GetEphemeralMessage().GetMessage()
-		msg.IsEphemeral = true
+	if evt.Message.GetEphemeralMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetEphemeralMessage().GetMessage()
+		evt.IsEphemeral = true
 	}
-	if msg.Message.GetViewOnceMessage().GetMessage() != nil {
-		msg.Message = msg.Message.GetViewOnceMessage().GetMessage()
-		msg.IsViewOnce = true
+	if evt.Message.GetViewOnceMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetViewOnceMessage().GetMessage()
+		evt.IsViewOnce = true
 	}
+	return evt
 }
 
 // ReceiptType represents the type of a Receipt event.

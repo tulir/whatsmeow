@@ -364,9 +364,8 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
-	evt := &events.Message{Info: *info, RawMessage: msg}
-
+func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Message) {
+	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
 	}
@@ -381,11 +380,12 @@ func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.
 		cli.handleProtocolMessage(info, msg)
 	}
 
-	// Unwrap ephemeral and view-once messages
-	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
-	evt.UnwrapRaw()
+}
 
-	cli.dispatchEvent(evt)
+func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
+	cli.processProtocolParts(info, msg)
+	evt := &events.Message{Info: *info, RawMessage: msg}
+	cli.dispatchEvent(evt.UnwrapRaw())
 }
 
 func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
