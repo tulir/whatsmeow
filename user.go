@@ -123,22 +123,19 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		if child.Tag != "user" || !jidOK {
 			continue
 		}
+		var info types.UserInfo
 		verifiedName, err := parseVerifiedName(child.GetChildByTag("business"))
 		if err != nil {
 			cli.Log.Warnf("Failed to parse %s's verified name details: %v", jid, err)
 		}
 		status, _ := child.GetChildByTag("status").Content.([]byte)
-		pictureID, _ := child.GetChildByTag("picture").Attrs["id"].(string)
-		devices := parseDeviceList(jid.User, child.GetChildByTag("devices"))
-		respData[jid] = types.UserInfo{
-			VerifiedName: verifiedName,
-			Status:       string(status),
-			PictureID:    pictureID,
-			Devices:      devices,
-		}
+		info.Status = string(status)
+		info.PictureID, _ = child.GetChildByTag("picture").Attrs["id"].(string)
+		info.Devices = parseDeviceList(jid.User, child.GetChildByTag("devices"))
 		if verifiedName != nil {
 			cli.updateBusinessName(jid, verifiedName.Details.GetVerifiedName())
 		}
+		respData[jid] = info
 	}
 	return respData, nil
 }

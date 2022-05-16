@@ -7,8 +7,6 @@
 package whatsmeow
 
 import (
-	"time"
-
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -26,7 +24,7 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 	cag := child.AttrGetter()
 	basicMeta := types.BasicCallMeta{
 		From:        ag.JID("from"),
-		Timestamp:   time.Unix(ag.Int64("t"), 0),
+		Timestamp:   ag.UnixTime("t"),
 		CallCreator: cag.JID("call-creator"),
 		CallID:      cag.String("call-id"),
 	}

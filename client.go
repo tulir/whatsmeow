@@ -88,6 +88,9 @@ type Client struct {
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
 
+	appStateKeyRequests     map[string]time.Time
+	appStateKeyRequestsLock sync.RWMutex
+
 	messageSendLock sync.Mutex
 
 	privacySettingsCache atomic.Value
@@ -109,7 +112,7 @@ type Client struct {
 	GetMessageForRetry func(to types.JID, id types.MessageID) *waProto.Message
 	// PreRetryCallback is called before a retry receipt is accepted.
 	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
-	PreRetryCallback func(receipt *events.Receipt, retryCount int, msg *waProto.Message) bool
+	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waProto.Message) bool
 
 	// Should untrusted identity errors be handled automatically? If true, the stored identity and existing signal
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
@@ -173,6 +176,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		recentMessagesMap:      make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
 		GetMessageForRetry:     func(to types.JID, id types.MessageID) *waProto.Message { return nil },
+		appStateKeyRequests:    make(map[string]time.Time),
 
 		EnableAutoReconnect: true,
 		AutoTrustIdentity:   true,

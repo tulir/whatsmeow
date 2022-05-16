@@ -10,11 +10,11 @@ import (
 	"bytes"
 	"compress/zlib"
 	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
 	"runtime/debug"
-	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -48,67 +48,50 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 }
 
 func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.MessageSource, err error) {
-	from, ok := node.Attrs["from"].(types.JID)
-	if !ok {
-		err = fmt.Errorf("didn't find valid `from` attribute in message")
-	} else if from.Server == types.GroupServer || from.Server == types.BroadcastServer {
+	ag := node.AttrGetter()
+	from := ag.JID("from")
+	if from.Server == types.GroupServer || from.Server == types.BroadcastServer {
 		source.IsGroup = true
 		source.Chat = from
-		sender, ok := node.Attrs["participant"].(types.JID)
-		if !ok {
-			err = fmt.Errorf("didn't find valid `participant` attribute in group message")
-		} else {
-			source.Sender = sender
-			if source.Sender.User == cli.Store.ID.User {
-				source.IsFromMe = true
-			}
+		source.Sender = ag.JID("participant")
+		if source.Sender.User == cli.Store.ID.User {
+			source.IsFromMe = true
 		}
 		if from.Server == types.BroadcastServer {
-			recipient, ok := node.Attrs["recipient"].(types.JID)
-			if ok {
-				source.BroadcastListOwner = recipient
-			}
+			source.BroadcastListOwner = ag.OptionalJIDOrEmpty("recipient")
 		}
 	} else if from.User == cli.Store.ID.User {
 		source.IsFromMe = true
 		source.Sender = from
-		recipient, ok := node.Attrs["recipient"].(types.JID)
-		if !ok {
-			source.Chat = from.ToNonAD()
+		recipient := ag.OptionalJID("recipient")
+		if recipient != nil {
+			source.Chat = *recipient
 		} else {
-			source.Chat = recipient
+			source.Chat = from.ToNonAD()
 		}
 	} else {
 		source.Chat = from.ToNonAD()
 		source.Sender = from
 	}
+	err = ag.Error()
 	return
 }
 
 func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, error) {
 	var info types.MessageInfo
 	var err error
-	var ok bool
 	info.MessageSource, err = cli.parseMessageSource(node)
 	if err != nil {
 		return nil, err
 	}
-	info.ID, ok = node.Attrs["id"].(string)
-	if !ok {
-		return nil, fmt.Errorf("didn't find valid `id` attribute in message")
+	ag := node.AttrGetter()
+	info.ID = types.MessageID(ag.String("id"))
+	info.Timestamp = ag.UnixTime("t")
+	info.PushName = ag.OptionalString("notify")
+	info.Category = ag.OptionalString("category")
+	if !ag.OK() {
+		return nil, ag.Error()
 	}
-	ts, ok := node.Attrs["t"].(string)
-	if !ok {
-		return nil, fmt.Errorf("didn't find valid `t` (timestamp) attribute in message")
-	}
-	tsInt, err := strconv.ParseInt(ts, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("didn't find valid `t` (timestamp) attribute in message: %w", err)
-	}
-	info.Timestamp = time.Unix(tsInt, 0)
-
-	info.PushName, _ = node.Attrs["notify"].(string)
-	info.Category, _ = node.Attrs["category"].(string)
 
 	for _, child := range node.GetChildren() {
 		if child.Tag == "multicast" {
@@ -317,12 +300,19 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 }
 
 func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare) {
+	onlyResyncIfNotSynced := true
+
 	cli.Log.Debugf("Got %d new app state keys", len(keys.GetKeys()))
+	cli.appStateKeyRequestsLock.RLock()
 	for _, key := range keys.GetKeys() {
 		marshaledFingerprint, err := proto.Marshal(key.GetKeyData().GetFingerprint())
 		if err != nil {
 			cli.Log.Errorf("Failed to marshal fingerprint of app state sync key %X", key.GetKeyId().GetKeyId())
 			continue
+		}
+		_, isReRequest := cli.appStateKeyRequests[hex.EncodeToString(key.GetKeyId().GetKeyId())]
+		if isReRequest {
+			onlyResyncIfNotSynced = false
 		}
 		err = cli.Store.AppStateKeys.PutAppStateSyncKey(key.GetKeyId().GetKeyId(), store.AppStateSyncKey{
 			Data:        key.GetKeyData().GetKeyData(),
@@ -330,14 +320,15 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 			Timestamp:   key.GetKeyData().GetTimestamp(),
 		})
 		if err != nil {
-			cli.Log.Errorf("Failed to store app state sync key %X", key.GetKeyId().GetKeyId())
+			cli.Log.Errorf("Failed to store app state sync key %X: %v", key.GetKeyId().GetKeyId(), err)
 			continue
 		}
 		cli.Log.Debugf("Received app state sync key %X", key.GetKeyId().GetKeyId())
 	}
+	cli.appStateKeyRequestsLock.RUnlock()
 
 	for _, name := range appstate.AllPatchNames {
-		err := cli.FetchAppState(name, false, true)
+		err := cli.FetchAppState(name, false, onlyResyncIfNotSynced)
 		if err != nil {
 			cli.Log.Errorf("Failed to do initial fetch of app state %s: %v", name, err)
 		}
@@ -364,19 +355,11 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
-	evt := &events.Message{Info: *info, RawMessage: msg}
-
-	// First unwrap device sent messages. These should only be in real-time messages,
-	// which is why it doesn't happen in UnwrapRaw (which also deals with historical messages).
+func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Message) {
+	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
-		evt.Info.DeviceSentMeta = &types.DeviceSentMeta{
-			DestinationJID: msg.GetDeviceSentMessage().GetDestinationJid(),
-			Phash:          msg.GetDeviceSentMessage().GetPhash(),
-		}
 	}
-
 	if msg.GetSenderKeyDistributionMessage() != nil {
 		if !info.IsGroup {
 			cli.Log.Warnf("Got sender key distribution message in non-group chat from", info.Sender)
@@ -388,11 +371,12 @@ func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.
 		cli.handleProtocolMessage(info, msg)
 	}
 
-	// Unwrap ephemeral and view-once messages
-	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
-	evt.UnwrapRaw()
+}
 
-	cli.dispatchEvent(evt)
+func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
+	cli.processProtocolParts(info, msg)
+	evt := &events.Message{Info: *info, RawMessage: msg}
+	cli.dispatchEvent(evt.UnwrapRaw())
 }
 
 func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
