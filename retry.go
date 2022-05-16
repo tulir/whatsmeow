@@ -188,18 +188,15 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	if edit, ok := node.Attrs["edit"]; ok {
 		attrs["edit"] = edit
 	}
-	req := waBinary.Node{
+	content := []waBinary.Node{*encrypted}
+	if includeDeviceIdentity {
+		content = append(content, cli.makeDeviceIdentityNode())
+	}
+	err = cli.sendNode(waBinary.Node{
 		Tag:     "message",
 		Attrs:   attrs,
-		Content: []waBinary.Node{*encrypted},
-	}
-	if includeDeviceIdentity {
-		err = cli.appendDeviceIdentityNode(&req)
-		if err != nil {
-			return fmt.Errorf("failed to add device identity to retry message: %w", err)
-		}
-	}
-	err = cli.sendNode(req)
+		Content: content,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to send retry message: %w", err)
 	}
