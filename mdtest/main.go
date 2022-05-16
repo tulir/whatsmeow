@@ -9,6 +9,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -181,6 +182,21 @@ func handleCmd(cmd string, args []string) {
 				log.Errorf("Failed to sync app state: %v", err)
 			}
 		}
+	case "request-appstate-key":
+		if len(args) < 1 {
+			log.Errorf("Usage: request-appstate-key <ids...>")
+			return
+		}
+		var keyIDs = make([][]byte, len(args))
+		for i, id := range args {
+			decoded, err := hex.DecodeString(id)
+			if err != nil {
+				log.Errorf("Failed to decode %s as hex: %v", id, err)
+				return
+			}
+			keyIDs[i] = decoded
+		}
+		cli.DangerousInternals().RequestAppStateKeys(keyIDs)
 	case "checkuser":
 		if len(args) < 1 {
 			log.Errorf("Usage: checkuser <phone numbers...>")

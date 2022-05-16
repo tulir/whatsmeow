@@ -7,6 +7,8 @@
 package whatsmeow
 
 import (
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
@@ -53,6 +55,9 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 
 		mutations, newState, err := cli.appStateProc.DecodePatches(patches, state, true)
 		if err != nil {
+			if errors.Is(err, appstate.ErrKeyNotFound) {
+				go cli.requestAppStateKeys(cli.appStateProc.GetMissingKeyIDs(patches))
+			}
 			return fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 		}
 		wasFullSync := state.Version == 0 && patches.Snapshot != nil
@@ -227,4 +232,37 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 		return nil, err
 	}
 	return appstate.ParsePatchList(resp, cli.downloadExternalAppStateBlob)
+}
+
+func (cli *Client) requestAppStateKeys(rawKeyIDs [][]byte) {
+	keyIDs := make([]*waProto.AppStateSyncKeyId, 0, len(rawKeyIDs))
+	debugKeyIDs := make([]string, 0, len(rawKeyIDs))
+	cli.appStateKeyRequestsLock.Lock()
+	now := time.Now()
+	for _, keyID := range rawKeyIDs {
+		stringKeyID := hex.EncodeToString(keyID)
+		lastRequestTime := cli.appStateKeyRequests[stringKeyID]
+		if lastRequestTime.IsZero() || lastRequestTime.Add(24*time.Hour).Before(now) {
+			cli.appStateKeyRequests[stringKeyID] = now
+			debugKeyIDs = append(debugKeyIDs, stringKeyID)
+			keyIDs = append(keyIDs, &waProto.AppStateSyncKeyId{KeyId: keyID})
+		}
+	}
+	cli.appStateKeyRequestsLock.Unlock()
+	if len(keyIDs) == 0 {
+		return
+	}
+	msg := &waProto.Message{
+		ProtocolMessage: &waProto.ProtocolMessage{
+			Type: waProto.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST.Enum(),
+			AppStateSyncKeyRequest: &waProto.AppStateSyncKeyRequest{
+				KeyIds: keyIDs,
+			},
+		},
+	}
+	cli.Log.Infof("Sending key request for app state keys %+v", debugKeyIDs)
+	_, err := cli.SendMessage(cli.Store.ID.ToNonAD(), "", msg)
+	if err != nil {
+		cli.Log.Warnf("Failed to send app state key request: %v", err)
+	}
 }

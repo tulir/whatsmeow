@@ -88,6 +88,9 @@ type Client struct {
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
 
+	appStateKeyRequests     map[string]time.Time
+	appStateKeyRequestsLock sync.Mutex
+
 	messageSendLock sync.Mutex
 
 	privacySettingsCache atomic.Value
@@ -173,6 +176,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		recentMessagesMap:      make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
 		GetMessageForRetry:     func(to types.JID, id types.MessageID) *waProto.Message { return nil },
+		appStateKeyRequests:    make(map[string]time.Time),
 
 		EnableAutoReconnect: true,
 		AutoTrustIdentity:   true,
