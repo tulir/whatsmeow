@@ -89,7 +89,7 @@ type Client struct {
 	messageRetriesLock sync.Mutex
 
 	appStateKeyRequests     map[string]time.Time
-	appStateKeyRequestsLock sync.Mutex
+	appStateKeyRequestsLock sync.RWMutex
 
 	messageSendLock sync.Mutex
 

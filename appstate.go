@@ -56,7 +56,7 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 		mutations, newState, err := cli.appStateProc.DecodePatches(patches, state, true)
 		if err != nil {
 			if errors.Is(err, appstate.ErrKeyNotFound) {
-				go cli.requestAppStateKeys(cli.appStateProc.GetMissingKeyIDs(patches))
+				go cli.requestMissingAppStateKeys(patches)
 			}
 			return fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 		}
@@ -234,23 +234,29 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 	return appstate.ParsePatchList(resp, cli.downloadExternalAppStateBlob)
 }
 
-func (cli *Client) requestAppStateKeys(rawKeyIDs [][]byte) {
-	keyIDs := make([]*waProto.AppStateSyncKeyId, 0, len(rawKeyIDs))
-	debugKeyIDs := make([]string, 0, len(rawKeyIDs))
+func (cli *Client) requestMissingAppStateKeys(patches *appstate.PatchList) {
 	cli.appStateKeyRequestsLock.Lock()
+	rawKeyIDs := cli.appStateProc.GetMissingKeyIDs(patches)
+	filteredKeyIDs := make([][]byte, 0, len(rawKeyIDs))
 	now := time.Now()
 	for _, keyID := range rawKeyIDs {
 		stringKeyID := hex.EncodeToString(keyID)
 		lastRequestTime := cli.appStateKeyRequests[stringKeyID]
 		if lastRequestTime.IsZero() || lastRequestTime.Add(24*time.Hour).Before(now) {
 			cli.appStateKeyRequests[stringKeyID] = now
-			debugKeyIDs = append(debugKeyIDs, stringKeyID)
-			keyIDs = append(keyIDs, &waProto.AppStateSyncKeyId{KeyId: keyID})
+			filteredKeyIDs = append(filteredKeyIDs, keyID)
 		}
 	}
 	cli.appStateKeyRequestsLock.Unlock()
-	if len(keyIDs) == 0 {
-		return
+	cli.requestAppStateKeys(filteredKeyIDs)
+}
+
+func (cli *Client) requestAppStateKeys(rawKeyIDs [][]byte) {
+	keyIDs := make([]*waProto.AppStateSyncKeyId, len(rawKeyIDs))
+	debugKeyIDs := make([]string, len(rawKeyIDs))
+	for i, keyID := range rawKeyIDs {
+		keyIDs[i] = &waProto.AppStateSyncKeyId{KeyId: keyID}
+		debugKeyIDs[i] = hex.EncodeToString(keyID)
 	}
 	msg := &waProto.Message{
 		ProtocolMessage: &waProto.ProtocolMessage{

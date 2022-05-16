@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"compress/zlib"
 	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -299,12 +300,19 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 }
 
 func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare) {
+	onlyResyncIfNotSynced := true
+
 	cli.Log.Debugf("Got %d new app state keys", len(keys.GetKeys()))
+	cli.appStateKeyRequestsLock.RLock()
 	for _, key := range keys.GetKeys() {
 		marshaledFingerprint, err := proto.Marshal(key.GetKeyData().GetFingerprint())
 		if err != nil {
 			cli.Log.Errorf("Failed to marshal fingerprint of app state sync key %X", key.GetKeyId().GetKeyId())
 			continue
+		}
+		_, isReRequest := cli.appStateKeyRequests[hex.EncodeToString(key.GetKeyId().GetKeyId())]
+		if isReRequest {
+			onlyResyncIfNotSynced = false
 		}
 		err = cli.Store.AppStateKeys.PutAppStateSyncKey(key.GetKeyId().GetKeyId(), store.AppStateSyncKey{
 			Data:        key.GetKeyData().GetKeyData(),
@@ -317,9 +325,10 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 		}
 		cli.Log.Debugf("Received app state sync key %X", key.GetKeyId().GetKeyId())
 	}
+	cli.appStateKeyRequestsLock.RUnlock()
 
 	for _, name := range appstate.AllPatchNames {
-		err := cli.FetchAppState(name, false, true)
+		err := cli.FetchAppState(name, false, onlyResyncIfNotSynced)
 		if err != nil {
 			cli.Log.Errorf("Failed to do initial fetch of app state %s: %v", name, err)
 		}
