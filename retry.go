@@ -132,7 +132,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		}
 	}
 
-	if cli.PreRetryCallback != nil && !cli.PreRetryCallback(receipt, retryCount, msg) {
+	if cli.PreRetryCallback != nil && !cli.PreRetryCallback(receipt, messageID, retryCount, msg) {
 		cli.Log.Debugf("Cancelled retry receipt in PreRetryCallback")
 		return nil
 	}
