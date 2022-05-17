@@ -115,6 +115,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	children := node.GetChildren()
 	cli.Log.Debugf("Decrypting %d messages from %s", len(children), info.SourceString())
 	handled := false
+	containsDirectMsg := false
 	for _, child := range children {
 		if child.Tag != "enc" {
 			continue
@@ -127,6 +128,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 		var err error
 		if encType == "pkmsg" || encType == "msg" {
 			decrypted, err = cli.decryptDM(&child, info.Sender, encType == "pkmsg")
+			containsDirectMsg = true
 		} else if info.IsGroup && encType == "skmsg" {
 			decrypted, err = cli.decryptGroupMsg(&child, info.Sender, info.Chat)
 		} else {
@@ -135,8 +137,9 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 		}
 		if err != nil {
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
-			go cli.sendRetryReceipt(node, false)
-			cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: false})
+			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
+			go cli.sendRetryReceipt(node, isUnavailable)
+			cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: isUnavailable})
 			return
 		}
 
