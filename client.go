@@ -594,9 +594,11 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		info.Sender, err = types.ParseJID(webMsg.GetParticipant())
 	} else if webMsg.GetKey().GetParticipant() != "" {
 		info.Sender, err = types.ParseJID(webMsg.GetKey().GetParticipant())
+	} else {
+		return nil, fmt.Errorf("couldn't find sender of message %s", info.ID)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse sender of message: %v", err)
+		return nil, fmt.Errorf("failed to parse sender of message %s: %v", info.ID, err)
 	}
 	evt := &events.Message{
 		RawMessage: webMsg.GetMessage(),
