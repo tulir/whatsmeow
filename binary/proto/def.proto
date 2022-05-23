@@ -1635,7 +1635,7 @@ message ClientPayload {
     optional DNSSource dnsSource = 15;
     optional uint32 connectAttemptCount = 16;
     optional uint32 device = 18;
-    optional CompanionRegData regData = 19;
+    optional DevicePairingRegistrationData devicePairingData = 19;
     enum ClientPayloadProduct {
         WHATSAPP = 0;
         MESSENGER = 1;
@@ -1746,6 +1746,17 @@ message UserAgent {
 //    optional uint32 quinary = 5;
 //}
 
+message DevicePairingRegistrationData {
+    optional bytes eRegid = 1;
+    optional bytes eKeytype = 2;
+    optional bytes eIdent = 3;
+    optional bytes eSkeyId = 4;
+    optional bytes eSkeyVal = 5;
+    optional bytes eSkeySig = 6;
+    optional bytes buildHash = 7;
+    optional bytes deviceProps = 8;
+}
+
 message DNSSource {
     enum DNSSourceDNSResolutionMethod {
         SYSTEM = 0;
@@ -1756,17 +1767,6 @@ message DNSSource {
     }
     optional DNSSourceDNSResolutionMethod dnsMethod = 15;
     optional bool appCached = 16;
-}
-
-message CompanionRegData {
-    optional bytes eRegid = 1;
-    optional bytes eKeytype = 2;
-    optional bytes eIdent = 3;
-    optional bytes eSkeyId = 4;
-    optional bytes eSkeyVal = 5;
-    optional bytes eSkeySig = 6;
-    optional bytes buildHash = 7;
-    optional bytes companionProps = 8;
 }
 
 message WebNotificationsInfo {

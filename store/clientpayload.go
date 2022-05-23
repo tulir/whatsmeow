@@ -74,7 +74,7 @@ func (vc WAVersionContainer) ProtoAppVersion() *waProto.AppVersion {
 }
 
 // waVersion is the WhatsApp web client version
-var waVersion = WAVersionContainer{2, 2216, 8}
+var waVersion = WAVersionContainer{2, 2218, 7}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
 var waVersionHash [16]byte
@@ -122,7 +122,10 @@ var BaseClientPayload = &waProto.ClientPayload{
 	ConnectReason: waProto.ClientPayload_USER_ACTIVATED.Enum(),
 }
 
-var CompanionProps = &waProto.CompanionProps{
+// Deprecated: renamed to DeviceProps
+var CompanionProps = DeviceProps
+
+var DeviceProps = &waProto.CompanionProps{
 	Os: proto.String("whatsmeow"),
 	Version: &waProto.AppVersion{
 		Primary:   proto.Uint32(0),
@@ -134,10 +137,10 @@ var CompanionProps = &waProto.CompanionProps{
 }
 
 func SetOSInfo(name string, version [3]uint32) {
-	CompanionProps.Os = &name
-	CompanionProps.Version.Primary = &version[0]
-	CompanionProps.Version.Secondary = &version[1]
-	CompanionProps.Version.Tertiary = &version[2]
+	DeviceProps.Os = &name
+	DeviceProps.Version.Primary = &version[0]
+	DeviceProps.Version.Secondary = &version[1]
+	DeviceProps.Version.Tertiary = &version[2]
 	BaseClientPayload.UserAgent.OsVersion = proto.String(fmt.Sprintf("%d.%d.%d", version[0], version[1], version[2]))
 	BaseClientPayload.UserAgent.OsBuildNumber = BaseClientPayload.UserAgent.OsVersion
 }
@@ -148,16 +151,16 @@ func (device *Device) getRegistrationPayload() *waProto.ClientPayload {
 	binary.BigEndian.PutUint32(regID, device.RegistrationID)
 	preKeyID := make([]byte, 4)
 	binary.BigEndian.PutUint32(preKeyID, device.SignedPreKey.KeyID)
-	companionProps, _ := proto.Marshal(CompanionProps)
-	payload.RegData = &waProto.CompanionRegData{
-		ERegid:         regID,
-		EKeytype:       []byte{ecc.DjbType},
-		EIdent:         device.IdentityKey.Pub[:],
-		ESkeyId:        preKeyID[1:],
-		ESkeyVal:       device.SignedPreKey.Pub[:],
-		ESkeySig:       device.SignedPreKey.Signature[:],
-		BuildHash:      waVersionHash[:],
-		CompanionProps: companionProps,
+	deviceProps, _ := proto.Marshal(DeviceProps)
+	payload.DevicePairingData = &waProto.DevicePairingRegistrationData{
+		ERegid:      regID,
+		EKeytype:    []byte{ecc.DjbType},
+		EIdent:      device.IdentityKey.Pub[:],
+		ESkeyId:     preKeyID[1:],
+		ESkeyVal:    device.SignedPreKey.Pub[:],
+		ESkeySig:    device.SignedPreKey.Signature[:],
+		BuildHash:   waVersionHash[:],
+		DeviceProps: deviceProps,
 	}
 	payload.Passive = proto.Bool(false)
 	return payload
