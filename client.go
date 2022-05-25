@@ -109,7 +109,7 @@ type Client struct {
 	sessionRecreateHistoryLock sync.Mutex
 	// GetMessageForRetry is used to find the source message for handling retry receipts
 	// when the message is not found in the recently sent message cache.
-	GetMessageForRetry func(to types.JID, id types.MessageID) *waProto.Message
+	GetMessageForRetry func(requester, to types.JID, id types.MessageID) *waProto.Message
 	// PreRetryCallback is called before a retry receipt is accepted.
 	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
 	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waProto.Message) bool
@@ -175,7 +175,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		recentMessagesMap:      make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
-		GetMessageForRetry:     func(to types.JID, id types.MessageID) *waProto.Message { return nil },
+		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
 		appStateKeyRequests:    make(map[string]time.Time),
 
 		EnableAutoReconnect: true,
@@ -594,9 +594,11 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		info.Sender, err = types.ParseJID(webMsg.GetParticipant())
 	} else if webMsg.GetKey().GetParticipant() != "" {
 		info.Sender, err = types.ParseJID(webMsg.GetKey().GetParticipant())
+	} else {
+		return nil, fmt.Errorf("couldn't find sender of message %s", info.ID)
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse sender of message: %v", err)
+		return nil, fmt.Errorf("failed to parse sender of message %s: %v", info.ID, err)
 	}
 	evt := &events.Message{
 		RawMessage: webMsg.GetMessage(),

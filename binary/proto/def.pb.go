@@ -2739,7 +2739,7 @@ func (x *DNSSource_DNSSourceDNSResolutionMethod) UnmarshalJSON(b []byte) error {
 
 // Deprecated: Use DNSSource_DNSSourceDNSResolutionMethod.Descriptor instead.
 func (DNSSource_DNSSourceDNSResolutionMethod) EnumDescriptor() ([]byte, []int) {
-	return file_binary_proto_def_proto_rawDescGZIP(), []int{182, 0}
+	return file_binary_proto_def_proto_rawDescGZIP(), []int{183, 0}
 }
 
 type WebMessageInfo_WebMessageInfoStatus int32
@@ -17706,7 +17706,7 @@ type ClientPayload struct {
 	DnsSource           *DNSSource                                  `protobuf:"bytes,15,opt,name=dnsSource" json:"dnsSource,omitempty"`
 	ConnectAttemptCount *uint32                                     `protobuf:"varint,16,opt,name=connectAttemptCount" json:"connectAttemptCount,omitempty"`
 	Device              *uint32                                     `protobuf:"varint,18,opt,name=device" json:"device,omitempty"`
-	RegData             *CompanionRegData                           `protobuf:"bytes,19,opt,name=regData" json:"regData,omitempty"`
+	DevicePairingData   *DevicePairingRegistrationData              `protobuf:"bytes,19,opt,name=devicePairingData" json:"devicePairingData,omitempty"`
 	Product             *ClientPayload_ClientPayloadProduct         `protobuf:"varint,20,opt,name=product,enum=proto.ClientPayload_ClientPayloadProduct" json:"product,omitempty"`
 	FbCat               []byte                                      `protobuf:"bytes,21,opt,name=fbCat" json:"fbCat,omitempty"`
 	FbUserAgent         []byte                                      `protobuf:"bytes,22,opt,name=fbUserAgent" json:"fbUserAgent,omitempty"`
@@ -17841,9 +17841,9 @@ func (x *ClientPayload) GetDevice() uint32 {
 	return 0
 }
 
-func (x *ClientPayload) GetRegData() *CompanionRegData {
+func (x *ClientPayload) GetDevicePairingData() *DevicePairingRegistrationData {
 	if x != nil {
-		return x.RegData
+		return x.DevicePairingData
 	}
 	return nil
 }
@@ -18252,6 +18252,109 @@ func (x *UserAgent) GetDeviceBoard() string {
 	return ""
 }
 
+type DevicePairingRegistrationData struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ERegid      []byte `protobuf:"bytes,1,opt,name=eRegid" json:"eRegid,omitempty"`
+	EKeytype    []byte `protobuf:"bytes,2,opt,name=eKeytype" json:"eKeytype,omitempty"`
+	EIdent      []byte `protobuf:"bytes,3,opt,name=eIdent" json:"eIdent,omitempty"`
+	ESkeyId     []byte `protobuf:"bytes,4,opt,name=eSkeyId" json:"eSkeyId,omitempty"`
+	ESkeyVal    []byte `protobuf:"bytes,5,opt,name=eSkeyVal" json:"eSkeyVal,omitempty"`
+	ESkeySig    []byte `protobuf:"bytes,6,opt,name=eSkeySig" json:"eSkeySig,omitempty"`
+	BuildHash   []byte `protobuf:"bytes,7,opt,name=buildHash" json:"buildHash,omitempty"`
+	DeviceProps []byte `protobuf:"bytes,8,opt,name=deviceProps" json:"deviceProps,omitempty"`
+}
+
+func (x *DevicePairingRegistrationData) Reset() {
+	*x = DevicePairingRegistrationData{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_binary_proto_def_proto_msgTypes[182]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DevicePairingRegistrationData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DevicePairingRegistrationData) ProtoMessage() {}
+
+func (x *DevicePairingRegistrationData) ProtoReflect() protoreflect.Message {
+	mi := &file_binary_proto_def_proto_msgTypes[182]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DevicePairingRegistrationData.ProtoReflect.Descriptor instead.
+func (*DevicePairingRegistrationData) Descriptor() ([]byte, []int) {
+	return file_binary_proto_def_proto_rawDescGZIP(), []int{182}
+}
+
+func (x *DevicePairingRegistrationData) GetERegid() []byte {
+	if x != nil {
+		return x.ERegid
+	}
+	return nil
+}
+
+func (x *DevicePairingRegistrationData) GetEKeytype() []byte {
+	if x != nil {
+		return x.EKeytype
+	}
+	return nil
+}
+
+func (x *DevicePairingRegistrationData) GetEIdent() []byte {
+	if x != nil {
+		return x.EIdent
+	}
+	return nil
+}
+
+func (x *DevicePairingRegistrationData) GetESkeyId() []byte {
+	if x != nil {
+		return x.ESkeyId
+	}
+	return nil
+}
+
+func (x *DevicePairingRegistrationData) GetESkeyVal() []byte {
+	if x != nil {
+		return x.ESkeyVal
+	}
+	return nil
+}
+
+func (x *DevicePairingRegistrationData) GetESkeySig() []byte {
+	if x != nil {
+		return x.ESkeySig
+	}
+	return nil
+}
+
+func (x *DevicePairingRegistrationData) GetBuildHash() []byte {
+	if x != nil {
+		return x.BuildHash
+	}
+	return nil
+}
+
+func (x *DevicePairingRegistrationData) GetDeviceProps() []byte {
+	if x != nil {
+		return x.DeviceProps
+	}
+	return nil
+}
+
 type DNSSource struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -18264,7 +18367,7 @@ type DNSSource struct {
 func (x *DNSSource) Reset() {
 	*x = DNSSource{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_binary_proto_def_proto_msgTypes[182]
+		mi := &file_binary_proto_def_proto_msgTypes[183]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -18277,7 +18380,7 @@ func (x *DNSSource) String() string {
 func (*DNSSource) ProtoMessage() {}
 
 func (x *DNSSource) ProtoReflect() protoreflect.Message {
-	mi := &file_binary_proto_def_proto_msgTypes[182]
+	mi := &file_binary_proto_def_proto_msgTypes[183]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -18290,7 +18393,7 @@ func (x *DNSSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DNSSource.ProtoReflect.Descriptor instead.
 func (*DNSSource) Descriptor() ([]byte, []int) {
-	return file_binary_proto_def_proto_rawDescGZIP(), []int{182}
+	return file_binary_proto_def_proto_rawDescGZIP(), []int{183}
 }
 
 func (x *DNSSource) GetDnsMethod() DNSSource_DNSSourceDNSResolutionMethod {
@@ -18305,109 +18408,6 @@ func (x *DNSSource) GetAppCached() bool {
 		return *x.AppCached
 	}
 	return false
-}
-
-type CompanionRegData struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	ERegid         []byte `protobuf:"bytes,1,opt,name=eRegid" json:"eRegid,omitempty"`
-	EKeytype       []byte `protobuf:"bytes,2,opt,name=eKeytype" json:"eKeytype,omitempty"`
-	EIdent         []byte `protobuf:"bytes,3,opt,name=eIdent" json:"eIdent,omitempty"`
-	ESkeyId        []byte `protobuf:"bytes,4,opt,name=eSkeyId" json:"eSkeyId,omitempty"`
-	ESkeyVal       []byte `protobuf:"bytes,5,opt,name=eSkeyVal" json:"eSkeyVal,omitempty"`
-	ESkeySig       []byte `protobuf:"bytes,6,opt,name=eSkeySig" json:"eSkeySig,omitempty"`
-	BuildHash      []byte `protobuf:"bytes,7,opt,name=buildHash" json:"buildHash,omitempty"`
-	CompanionProps []byte `protobuf:"bytes,8,opt,name=companionProps" json:"companionProps,omitempty"`
-}
-
-func (x *CompanionRegData) Reset() {
-	*x = CompanionRegData{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_binary_proto_def_proto_msgTypes[183]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *CompanionRegData) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CompanionRegData) ProtoMessage() {}
-
-func (x *CompanionRegData) ProtoReflect() protoreflect.Message {
-	mi := &file_binary_proto_def_proto_msgTypes[183]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CompanionRegData.ProtoReflect.Descriptor instead.
-func (*CompanionRegData) Descriptor() ([]byte, []int) {
-	return file_binary_proto_def_proto_rawDescGZIP(), []int{183}
-}
-
-func (x *CompanionRegData) GetERegid() []byte {
-	if x != nil {
-		return x.ERegid
-	}
-	return nil
-}
-
-func (x *CompanionRegData) GetEKeytype() []byte {
-	if x != nil {
-		return x.EKeytype
-	}
-	return nil
-}
-
-func (x *CompanionRegData) GetEIdent() []byte {
-	if x != nil {
-		return x.EIdent
-	}
-	return nil
-}
-
-func (x *CompanionRegData) GetESkeyId() []byte {
-	if x != nil {
-		return x.ESkeyId
-	}
-	return nil
-}
-
-func (x *CompanionRegData) GetESkeyVal() []byte {
-	if x != nil {
-		return x.ESkeyVal
-	}
-	return nil
-}
-
-func (x *CompanionRegData) GetESkeySig() []byte {
-	if x != nil {
-		return x.ESkeySig
-	}
-	return nil
-}
-
-func (x *CompanionRegData) GetBuildHash() []byte {
-	if x != nil {
-		return x.BuildHash
-	}
-	return nil
-}
-
-func (x *CompanionRegData) GetCompanionProps() []byte {
-	if x != nil {
-		return x.CompanionProps
-	}
-	return nil
 }
 
 type WebNotificationsInfo struct {
@@ -20138,8 +20138,8 @@ var file_binary_proto_def_proto_goTypes = []interface{}{
 	(*WebInfo)(nil),                                                     // 229: proto.WebInfo
 	(*WebdPayload)(nil),                                                 // 230: proto.WebdPayload
 	(*UserAgent)(nil),                                                   // 231: proto.UserAgent
-	(*DNSSource)(nil),                                                   // 232: proto.DNSSource
-	(*CompanionRegData)(nil),                                            // 233: proto.CompanionRegData
+	(*DevicePairingRegistrationData)(nil),                               // 232: proto.DevicePairingRegistrationData
+	(*DNSSource)(nil),                                                   // 233: proto.DNSSource
 	(*WebNotificationsInfo)(nil),                                        // 234: proto.WebNotificationsInfo
 	(*WebMessageInfo)(nil),                                              // 235: proto.WebMessageInfo
 	(*WebFeatures)(nil),                                                 // 236: proto.WebFeatures
@@ -20433,8 +20433,8 @@ var file_binary_proto_def_proto_depIdxs = []int32{
 	229, // 276: proto.ClientPayload.webInfo:type_name -> proto.WebInfo
 	35,  // 277: proto.ClientPayload.connectType:type_name -> proto.ClientPayload.ClientPayloadConnectType
 	36,  // 278: proto.ClientPayload.connectReason:type_name -> proto.ClientPayload.ClientPayloadConnectReason
-	232, // 279: proto.ClientPayload.dnsSource:type_name -> proto.DNSSource
-	233, // 280: proto.ClientPayload.regData:type_name -> proto.CompanionRegData
+	233, // 279: proto.ClientPayload.dnsSource:type_name -> proto.DNSSource
+	232, // 280: proto.ClientPayload.devicePairingData:type_name -> proto.DevicePairingRegistrationData
 	37,  // 281: proto.ClientPayload.product:type_name -> proto.ClientPayload.ClientPayloadProduct
 	38,  // 282: proto.ClientPayload.iosAppExtension:type_name -> proto.ClientPayload.ClientPayloadIOSAppExtension
 	230, // 283: proto.WebInfo.webdPayload:type_name -> proto.WebdPayload
@@ -22714,7 +22714,7 @@ func file_binary_proto_def_proto_init() {
 			}
 		}
 		file_binary_proto_def_proto_msgTypes[182].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DNSSource); i {
+			switch v := v.(*DevicePairingRegistrationData); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -22726,7 +22726,7 @@ func file_binary_proto_def_proto_init() {
 			}
 		}
 		file_binary_proto_def_proto_msgTypes[183].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CompanionRegData); i {
+			switch v := v.(*DNSSource); i {
 			case 0:
 				return &v.state
 			case 1:

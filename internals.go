@@ -57,3 +57,7 @@ func (int *DangerousInternalClient) GetServerPreKeyCount() (int, error) {
 func (int *DangerousInternalClient) RequestAppStateKeys(keyIDs [][]byte) {
 	int.c.requestAppStateKeys(keyIDs)
 }
+
+func (int *DangerousInternalClient) SendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bool) {
+	int.c.sendRetryReceipt(node, forceIncludeIdentity)
+}

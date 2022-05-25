@@ -62,7 +62,7 @@ func (cli *Client) getRecentMessage(to types.JID, id types.MessageID) *waProto.M
 func (cli *Client) getMessageForRetry(receipt *events.Receipt, messageID types.MessageID) (*waProto.Message, error) {
 	msg := cli.getRecentMessage(receipt.Chat, messageID)
 	if msg == nil {
-		msg = cli.GetMessageForRetry(receipt.Chat, messageID)
+		msg = cli.GetMessageForRetry(receipt.Sender, receipt.Chat, messageID)
 		if msg == nil {
 			return nil, fmt.Errorf("couldn't find message %s", messageID)
 		} else {

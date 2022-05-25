@@ -56,7 +56,7 @@ func main() {
 		logLevel = "DEBUG"
 	}
 	if *requestFullSync {
-		store.CompanionProps.RequireFullSync = proto.Bool(true)
+		store.DeviceProps.RequireFullSync = proto.Bool(true)
 	}
 	log = waLog.Stdout("Main", logLevel, true)
 
