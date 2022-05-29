@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"errors"
 	"fmt"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -76,6 +77,11 @@ func (cli *Client) getStatusBroadcastRecipients() ([]types.JID, error) {
 	return contactsArray, nil
 }
 
+var DefaultStatusPrivacy = []types.StatusPrivacy{{
+	Type:      types.StatusPrivacyTypeContacts,
+	IsDefault: true,
+}}
+
 // GetStatusPrivacy gets the user's status privacy settings (who to send status broadcasts to).
 //
 // There can be multiple different stored settings, the first one is always the default.
@@ -89,6 +95,9 @@ func (cli *Client) GetStatusPrivacy() ([]types.StatusPrivacy, error) {
 		}},
 	})
 	if err != nil {
+		if errors.Is(err, ErrIQNotFound) {
+			return DefaultStatusPrivacy, nil
+		}
 		return nil, err
 	}
 	privacyLists := resp.GetChildByTag("privacy")
@@ -123,10 +132,7 @@ func (cli *Client) GetStatusPrivacy() ([]types.StatusPrivacy, error) {
 		}
 	}
 	if len(outputs) == 0 {
-		outputs = append(outputs, types.StatusPrivacy{
-			Type:      types.StatusPrivacyTypeContacts,
-			IsDefault: true,
-		})
+		return DefaultStatusPrivacy, nil
 	}
 	return outputs, nil
 }
