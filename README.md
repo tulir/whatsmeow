@@ -6,6 +6,12 @@ whatsmeow is a Go library for the WhatsApp web multidevice API.
 ## Discussion
 Matrix room: [#whatsmeow:maunium.net](https://matrix.to/#/#whatsmeow:maunium.net)
 
+For questions about the WhatsApp protocol (like how to send a specific type of
+message), you can also use the [WhatsApp protocol Q&A] section on GitHub
+discussions.
+
+[WhatsApp protocol Q&A]: https://github.com/tulir/whatsmeow/discussions/categories/whatsapp-protocol-q-a
+
 ## Usage
 The [godoc](https://pkg.go.dev/go.mau.fi/whatsmeow) includes docs for all methods and event types.
 There's also a [simple example](https://godocs.io/go.mau.fi/whatsmeow#example-package) at the top.

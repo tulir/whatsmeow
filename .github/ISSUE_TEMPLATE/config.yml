@@ -1,0 +1,7 @@
+contact_links:
+  - name: WhatsApp protocol Q&A
+    about: Questions on how to send specific types of messages and other protocol details which aren't directly related to whatsmeow
+    url: https://github.com/tulir/whatsmeow/discussions/new?category=whatsapp-protocol-q-a
+  - name: Support room on Matrix
+    about: For questions about using the library
+    url: https://matrix.to/#/#whatsmeow:maunium.net
