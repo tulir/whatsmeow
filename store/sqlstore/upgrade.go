@@ -16,7 +16,7 @@ type upgradeFunc func(*sql.Tx, *Container) error
 //
 // This may be of use if you want to manage the database fully manually, but in most cases you
 // should just call Container.Upgrade to let the library handle everything.
-var Upgrades = [...]upgradeFunc{upgradeV1}
+var Upgrades = [...]upgradeFunc{upgradeV1, upgradeV2}
 
 func (c *Container) getVersion() (int, error) {
 	_, err := c.db.Exec("CREATE TABLE IF NOT EXISTS whatsmeow_version (version INTEGER)")
@@ -56,6 +56,7 @@ func (c *Container) Upgrade() error {
 		}
 
 		migrateFunc := Upgrades[version]
+		c.log.Infof("Upgrading database to v%d", version+1)
 		err = migrateFunc(tx, c)
 		if err != nil {
 			_ = tx.Rollback()
@@ -209,6 +210,47 @@ func upgradeV1(tx *sql.Tx, _ *Container) error {
 	)`)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+const fillSigKeyPostgres = `
+UPDATE whatsmeow_device SET adv_account_sig_key=(
+	SELECT identity
+	FROM whatsmeow_identity_keys
+	WHERE our_jid=whatsmeow_device.jid
+	  AND their_id=concat(split_part(whatsmeow_device.jid, '.', 1), ':0')
+)
+`
+
+const fillSigKeySQLite = `
+UPDATE whatsmeow_device SET adv_account_sig_key=(
+	SELECT identity
+	FROM whatsmeow_identity_keys
+	WHERE our_jid=whatsmeow_device.jid
+	  AND their_id=substr(whatsmeow_device.jid, 0, instr(whatsmeow_device.jid, '.')) || ':0'
+)
+`
+
+func upgradeV2(tx *sql.Tx, container *Container) error {
+	_, err := tx.Exec("ALTER TABLE whatsmeow_device ADD COLUMN adv_account_sig_key bytea CHECK ( length(adv_account_sig_key) = 32 )")
+	if err != nil {
+		return err
+	}
+	if container.dialect == "postgres" {
+		_, err = tx.Exec(fillSigKeyPostgres)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec("ALTER TABLE whatsmeow_device ALTER COLUMN adv_account_sig_key SET NOT NULL")
+		if err != nil {
+			return err
+		}
+	} else {
+		_, err = tx.Exec(fillSigKeySQLite)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
