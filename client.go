@@ -360,6 +360,9 @@ func (cli *Client) IsConnected() bool {
 }
 
 // Disconnect disconnects from the WhatsApp web websocket.
+//
+// This will not emit any events, the Disconnected event is only used when the
+// connection is closed by the server or a network error.
 func (cli *Client) Disconnect() {
 	if cli.socket == nil {
 		return
@@ -382,6 +385,9 @@ func (cli *Client) unlockedDisconnect() {
 //
 // If the logout request fails, the disconnection and local data deletion will not happen either.
 // If an error is returned, but you want to force disconnect/clear data, call Client.Disconnect() and Client.Store.Delete() manually.
+//
+// Note that this will not emit any events. The LoggedOut event is only used for external logouts
+// (triggered by the user from the main device or by WhatsApp servers).
 func (cli *Client) Logout() error {
 	if cli.Store.ID == nil {
 		return ErrNotLoggedIn
