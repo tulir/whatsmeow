@@ -181,7 +181,8 @@ const (
 									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
 									  platform, business_name, push_name)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-		ON CONFLICT (jid) DO UPDATE SET platform=$12, business_name=$13, push_name=$14
+		ON CONFLICT (jid) DO UPDATE
+		    SET platform=excluded.platform, business_name=excluded.business_name, push_name=excluded.push_name
 	`
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=$1`
 )
