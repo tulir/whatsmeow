@@ -31,6 +31,7 @@ type GroupInfo struct {
 
 	ParticipantVersionID string
 	Participants         []GroupParticipant
+	Invitees             []GroupInvitee
 
 	MemberAddMode GroupMemberAddMode
 }
@@ -66,6 +67,13 @@ type GroupParticipant struct {
 	JID          JID
 	IsAdmin      bool
 	IsSuperAdmin bool
+}
+// GroupInvitee contains info about participants which failed to be added to the group
+type GroupInvitee struct {
+	JID          JID
+	Err          int
+	InviteCode   string
+	Expiration   int
 }
 
 // GroupEphemeral contains the group's disappearing messages settings.
