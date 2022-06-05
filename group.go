@@ -420,12 +420,33 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		switch child.Tag {
 		case "participant":
 			pcpType := childAG.OptionalString("type")
-			participant := types.GroupParticipant{
-				IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
-				IsSuperAdmin: pcpType == "superadmin",
-				JID:          childAG.JID("jid"),
+			err := childAG.OptionalInt("error")
+			if err!=0 {
+				// This happens for participants which have restricted who can
+				// invite them to groups, the error code will be: '403'
+
+				invitee := types.GroupInvitee{
+					JID:childAG.JID("jid"),
+				}
+				invitee.Err = err
+				for _, inv := range child.GetChildren() {
+					invAG := inv.AttrGetter()
+					switch inv.Tag {
+					case "add_request":
+						invitee.InviteCode = invAG.String("code")
+						invitee.Expiration = invAG.Int("expiration")
+					}
+				}
+
+				group.Invitees = append(group.Invitees, invitee)
+			} else {
+				participant := types.GroupParticipant{
+					IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
+					IsSuperAdmin: pcpType == "superadmin",
+					JID:          childAG.JID("jid"),
+				}
+				group.Participants = append(group.Participants, participant)
 			}
-			group.Participants = append(group.Participants, participant)
 		case "description":
 			body, bodyOK := child.GetOptionalChildByTag("body")
 			if bodyOK {
