@@ -90,7 +90,7 @@ func (w *binaryEncoder) writeNode(n Node) {
 		hasContent = 1
 	}
 
-	w.writeListStart(2*len(n.Attrs) + tagSize + hasContent)
+	w.writeListStart(2*w.countAttributes(n.Attrs) + tagSize + hasContent)
 	w.writeString(n.Tag)
 	w.writeAttributes(n.Attrs)
 	if n.Content != nil {
@@ -189,6 +189,21 @@ func (w *binaryEncoder) writeAttributes(attributes Attrs) {
 		w.write(val)
 	}
 }
+func (w *binaryEncoder) countAttributes(attributes Attrs) int {
+	if attributes == nil {
+		return 0
+	}
+
+    var count = 0
+	for _, val := range attributes {
+		if val == "" || val == nil {
+			continue
+		}
+        count += 1
+	}
+    return count
+}
+
 
 func (w *binaryEncoder) writeListStart(listSize int) {
 	if listSize == 0 {
