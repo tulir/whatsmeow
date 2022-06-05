@@ -206,11 +206,23 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Failed to check if users are on WhatsApp:", err)
 		} else {
+			var jids []types.JID
 			for _, item := range resp {
 				if item.VerifiedName != nil {
 					log.Infof("%s: on whatsapp: %t, JID: %s, business name: %s", item.Query, item.IsIn, item.JID, item.VerifiedName.Details.GetVerifiedName())
 				} else {
 					log.Infof("%s: on whatsapp: %t, JID: %s", item.Query, item.IsIn, item.JID)
+				}
+				if item.IsIn {
+					jids = append(jids, item.JID)
+				}
+			}
+			resp, err := cli.GetUserInfo(jids)
+			if err != nil {
+				log.Errorf("Failed to get user info: %v", err)
+			} else {
+				for jid, info := range resp {
+					log.Infof("%s: %+v", jid, info)
 				}
 			}
 		}
@@ -235,11 +247,12 @@ func handleCmd(cmd string, args []string) {
 		}
 		jid, ok := parseJID(args[0])
 		if !ok {
+			log.Errorf("invalid jid: %v", args[0])
 			return
 		}
 		err := cli.SubscribePresence(jid)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("subscribe %v -> %v\n", jid, err)
 		}
 	case "presence":
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
@@ -319,6 +332,94 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Group info: %+v", resp)
 		}
+	case "addgroup":
+		if len(args) < 2 {
+			log.Errorf("Usage: addgroup [props] <jid> ...")
+			log.Errorf("  props: {name|topic|invite}:\"...\"")
+			return
+		}
+		var spec InviteGroupSpec
+		for _, arg := range args {
+			if strings.HasPrefix(arg, "name:") {
+				spec.Name = strings.Trim(arg[5:], "\"")
+			} else if strings.HasPrefix(arg, "topic:") {
+				spec.Topic = strings.Trim(arg[6:], "\"")
+			} else if strings.HasPrefix(arg, "invite:") {
+				spec.Invite = strings.Trim(arg[7:], "\"")
+			} else {
+				jid, ok := parseJID(arg)
+				if !ok {
+					log.Errorf("error parsing JID: %v", arg)
+					return
+				}
+				spec.Members = append(spec.Members, jid)
+			}
+		}
+		if len(spec.Name)==0 {
+			log.Errorf("must specify a groupname")
+			return
+		}
+		if len(spec.Invite)==0 {
+			spec.Invite = fmt.Sprintf("Invitation for group %s", spec.Name)
+			if len(spec.Topic)!=0 {
+				spec.Invite = spec.Invite + " " + spec.Topic
+			}
+		}
+		CreateInviteGroup(spec)
+
+	case "jsonadd":
+		/*
+		todo: add support for update:
+		'jid' : GROUPJID
+		'add' : [ jids ]
+		'del' : [ jids ]
+ 		*/
+		log.Infof("starting jsonadd: %v", args)
+		if len(args) < 1 {
+			log.Errorf("Usage: jsonadd <groupdef.json>")
+			return
+		}
+		data, err := os.ReadFile(args[0])
+		if err != nil {
+			log.Errorf("Failed to read %s: %v", args[0], err)
+			return
+		}
+		type JsonGroupDef struct {
+			Name string        //  name    - max 25
+			Topic string       //  topic   - max 512
+			Invite string      //  invitemsg - max 1024
+			Members []string   //  members - max 256
+		}
+		var gdef JsonGroupDef
+
+		// decode json
+		err = json.Unmarshal(data, &gdef)
+		if err != nil {
+			log.Errorf("Error decoding json: %v", err)
+			return
+		}
+
+		// check what members are on whatsapp
+		found, err := cli.IsOnWhatsApp(gdef.Members)
+		if err!=nil {
+			log.Errorf("error checking members: %v", err)
+			return
+		}
+		gspec := InviteGroupSpec{
+			Name: gdef.Name,
+			Topic: gdef.Topic,
+			Invite: gdef.Invite,
+		}
+
+		// convert found JID list to memberlist
+		for i, v := range found {
+			if v.IsIn {
+				gspec.Members = append(gspec.Members, v.JID)
+			} else {
+				log.Infof("not on whatsapp: %d: %v", i, v)
+			}
+		}
+		CreateInviteGroup(gspec)
 	case "listgroups":
 		groups, err := cli.GetJoinedGroups()
 		if err != nil {
@@ -657,5 +758,51 @@ func handler(rawEvt interface{}) {
 		}
 	case *events.KeepAliveRestored:
 		log.Debugf("Keepalive restored")
+	}
+}
+
+type InviteGroupSpec struct {
+	Name string        //  name    - max 25
+	Topic string       //  topic   - max 512
+	Invite string      //  msg     - max 1024
+	Members []types.JID      //  members - max 256
+}
+func CreateInviteGroup(spec InviteGroupSpec) {
+	grp, err := cli.CreateGroup(spec.Name, spec.Members)
+	if err!=nil {
+		log.Errorf("error creating group: %v", err)
+		return
+	}
+    err = cli.SetGroupTopic(grp.JID, /*previd*/"", /*newid*/"", spec.Topic)
+    if err!=nil {
+        log.Errorf("error setting topic: %v", err)
+        return
+    }
+
+	log.Infof("Group info: %v", grp)
+	for _, v := range grp.Invitees {
+		SendInvite(grp, v, spec.Invite)
+	}
+
+	//  chg = { jid => ParticipantChangeAdd }
+	//  UpdateGroupParticipants(grp.JID, chg)
+
+}
+
+func SendInvite(grp *types.GroupInfo, inv types.GroupInvitee, invmsg string) {
+	msg := &waProto.Message{
+		GroupInviteMessage: &waProto.GroupInviteMessage{
+			GroupJid: proto.String(grp.JID.String()),
+			InviteCode: proto.String(inv.InviteCode),
+			InviteExpiration: proto.Int64(int64(inv.Expiration)),
+			GroupName: proto.String(grp.GroupName.Name),
+			Caption: proto.String(invmsg),
+		},
+	}
+	ts, err := cli.SendMessage(inv.JID, /*msgid*/"", msg)
+	if err != nil {
+		log.Errorf("Error sending invite: %v", err)
+	} else {
+		log.Infof("Invitation sent (server timestamp: %s)", ts)
 	}
 }
