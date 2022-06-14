@@ -31,10 +31,10 @@ message ADVDeviceIdentity {
     optional uint32 keyIndex = 3;
 }
 
-message CompanionProps {
+message DeviceProps {
     optional string os = 1;
     optional AppVersion version = 2;
-    enum CompanionPropsPlatformType {
+    enum DevicePropsPlatformType {
         UNKNOWN = 0;
         CHROME = 1;
         FIREFOX = 2;
@@ -50,7 +50,7 @@ message CompanionProps {
         CATALINA = 12;
         TCL_TV = 13;
     }
-    optional CompanionPropsPlatformType platformType = 3;
+    optional DevicePropsPlatformType platformType = 3;
     optional bool requireFullSync = 4;
 }
 
@@ -60,39 +60,6 @@ message AppVersion {
     optional uint32 tertiary = 3;
     optional uint32 quaternary = 4;
     optional uint32 quinary = 5;
-}
-
-message ProtocolMessage {
-    optional MessageKey key = 1;
-    enum ProtocolMessageType {
-        REVOKE = 0;
-        EPHEMERAL_SETTING = 3;
-        EPHEMERAL_SYNC_RESPONSE = 4;
-        HISTORY_SYNC_NOTIFICATION = 5;
-        APP_STATE_SYNC_KEY_SHARE = 6;
-        APP_STATE_SYNC_KEY_REQUEST = 7;
-        MSG_FANOUT_BACKFILL_REQUEST = 8;
-        INITIAL_SECURITY_NOTIFICATION_SETTING_SYNC = 9;
-        APP_STATE_FATAL_EXCEPTION_NOTIFICATION = 10;
-    }
-    optional ProtocolMessageType type = 2;
-    optional uint32 ephemeralExpiration = 4;
-    optional int64 ephemeralSettingTimestamp = 5;
-    optional HistorySyncNotification historySyncNotification = 6;
-    optional AppStateSyncKeyShare appStateSyncKeyShare = 7;
-    optional AppStateSyncKeyRequest appStateSyncKeyRequest = 8;
-    optional InitialSecurityNotificationSettingSync initialSecurityNotificationSettingSync = 9;
-    optional AppStateFatalExceptionNotification appStateFatalExceptionNotification = 10;
-    optional DisappearingMode disappearingMode = 11;
-}
-
-message ProductMessage {
-    optional ProductSnapshot product = 1;
-    optional string businessOwnerJid = 2;
-    optional CatalogSnapshot catalog = 4;
-    optional string body = 5;
-    optional string footer = 6;
-    optional ContextInfo contextInfo = 17;
 }
 
 message ProductSnapshot {
@@ -123,6 +90,10 @@ message PollVoteMessage {
 message PollUpdateMessage {
     optional MessageKey pollCreationMessageKey = 1;
     optional PollEncValue vote = 2;
+    optional PollUpdateMessageMetadata metadata = 3;
+}
+
+message PollUpdateMessageMetadata {
 }
 
 message PollEncValue {
@@ -263,6 +234,12 @@ message ProductListInfo {
 message ProductListHeaderImage {
     optional string productId = 1;
     optional bytes jpegThumbnail = 2;
+}
+
+message KeepInChatMessage {
+    optional MessageKey key = 1;
+    optional KeepType keepType = 2;
+    optional int64 timestampMs = 3;
 }
 
 message InvoiceMessage {
@@ -708,6 +685,11 @@ message Location {
     optional string name = 3;
 }
 
+enum KeepType {
+    UNKNOWN = 0;
+    KEEP_FOR_ALL = 1;
+    UNDO_KEEP_FOR_ALL = 2;
+}
 message InteractiveAnnotation {
     repeated Point polygonVertices = 1;
     oneof action {
@@ -926,6 +908,7 @@ message Message {
     optional InteractiveResponseMessage interactiveResponseMessage = 48;
     optional PollCreationMessage pollCreationMessage = 49;
     optional PollUpdateMessage pollUpdateMessage = 50;
+    optional KeepInChatMessage keepInChatMessage = 51;
 }
 
 message MessageContextInfo {
@@ -1060,6 +1043,39 @@ message ReactionMessage {
     optional int64 senderTimestampMs = 4;
 }
 
+message ProtocolMessage {
+    optional MessageKey key = 1;
+    enum ProtocolMessageType {
+        REVOKE = 0;
+        EPHEMERAL_SETTING = 3;
+        EPHEMERAL_SYNC_RESPONSE = 4;
+        HISTORY_SYNC_NOTIFICATION = 5;
+        APP_STATE_SYNC_KEY_SHARE = 6;
+        APP_STATE_SYNC_KEY_REQUEST = 7;
+        MSG_FANOUT_BACKFILL_REQUEST = 8;
+        INITIAL_SECURITY_NOTIFICATION_SETTING_SYNC = 9;
+        APP_STATE_FATAL_EXCEPTION_NOTIFICATION = 10;
+    }
+    optional ProtocolMessageType type = 2;
+    optional uint32 ephemeralExpiration = 4;
+    optional int64 ephemeralSettingTimestamp = 5;
+    optional HistorySyncNotification historySyncNotification = 6;
+    optional AppStateSyncKeyShare appStateSyncKeyShare = 7;
+    optional AppStateSyncKeyRequest appStateSyncKeyRequest = 8;
+    optional InitialSecurityNotificationSettingSync initialSecurityNotificationSettingSync = 9;
+    optional AppStateFatalExceptionNotification appStateFatalExceptionNotification = 10;
+    optional DisappearingMode disappearingMode = 11;
+}
+
+message ProductMessage {
+    optional ProductSnapshot product = 1;
+    optional string businessOwnerJid = 2;
+    optional CatalogSnapshot catalog = 4;
+    optional string body = 5;
+    optional string footer = 6;
+    optional ContextInfo contextInfo = 17;
+}
+
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
@@ -1161,6 +1177,7 @@ message Conversation {
     optional MediaVisibility mediaVisibility = 27;
     optional uint64 tcTokenSenderTimestamp = 28;
     optional bool suspended = 29;
+    optional bool terminated = 30;
 }
 
 message AutoDownloadSettings {
@@ -1557,20 +1574,6 @@ message BizAccountLinkInfo {
         ENTERPRISE = 0;
     }
     optional BizAccountLinkInfoAccountType accountType = 5;
-}
-
-message NoiseCertificate {
-    optional bytes details = 1;
-    optional bytes signature = 2;
-}
-
-// Renamed from NoiseCertificate$Details
-message NoiseCertificateDetails {
-    optional uint32 serial = 1;
-    optional string issuer = 2;
-    optional uint64 expires = 3;
-    optional string subject = 4;
-    optional bytes key = 5;
 }
 
 message HandshakeMessage {
@@ -1976,6 +1979,7 @@ message WebMessageInfo {
     optional string agentId = 47;
     optional bool statusAlreadyViewed = 48;
     optional bytes messageSecret = 49;
+    optional KeepInChat keepInChat = 50;
 }
 
 message WebFeatures {
@@ -2146,5 +2150,45 @@ message NotificationMessageInfo {
 
 message MediaData {
     optional string localPath = 1;
+}
+
+message KeepInChat {
+    optional KeepType keepType = 1;
+    optional int64 serverTimestamp = 2;
+    optional string kicUser = 3;
+}
+
+message NoiseCertificate {
+    optional bytes details = 1;
+    optional bytes signature = 2;
+}
+
+// Renamed from NoiseCertificate$Details
+message NoiseCertificateDetails {
+    optional uint32 serial = 1;
+    optional string issuer = 2;
+    optional uint64 expires = 3;
+    optional string subject = 4;
+    optional bytes key = 5;
+}
+
+message CertChain {
+    optional CertChainNoiseCertificate leaf = 1;
+    optional CertChainNoiseCertificate intermediate = 2;
+}
+
+// Renamed from CertChain$NoiseCertificate
+message CertChainNoiseCertificate {
+    optional bytes details = 1;
+    optional bytes signature = 2;
+}
+
+// Renamed from CertChain$NoiseCertificate$Details
+message CertChainNoiseCertificateDetails {
+    optional uint32 serial = 1;
+    optional uint32 issuerSerial = 2;
+    optional bytes key = 3;
+    optional uint64 notBefore = 4;
+    optional uint64 notAfter = 5;
 }
 
