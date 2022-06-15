@@ -49,16 +49,19 @@ async function findAppModules(mods) {
         381,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
         91344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
         84331, // AppVersion, UserAgent, WebdPayload ...
-        // 78155, // seems to be same as above, but different Details and new CertChainSpec
+        // 78155, // seems to be same as above
         21224, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
+        40965, // NoiseCertificate, CertChain
     ]
     // Conflicting specs by module ID and what to rename them to
     const renames = {
         91344: {
             "VerifiedNameCertificate$Details": "VerifiedNameDetails",
         },
-        84331: {
+        40965: {
             "NoiseCertificate$Details": "NoiseCertificateDetails",
+            "CertChain$NoiseCertificate": "CertChainNoiseCertificate",
+            "CertChain$NoiseCertificate$Details": "CertChainNoiseCertificateDetails",
         },
         24808: {
             "PaymentBackground$MediaData": "PBMediaData",
@@ -240,7 +243,7 @@ async function findAppModules(mods) {
             // count number of occurrences of this enumeration and store these identifiers
             const occurrences = Object.values(idents).filter(v => v.members && v.members.find(m => m.type === ident.name))
             // if there's only one occurrence, add the enum to that message. Also remove enums that do not occur anywhere
-            if (occurrences.length <= 1) {
+            if (occurrences.length <= 1 && ident.name !== "KeepType") {
                 if (occurrences.length === 1) {
                     idents[occurrences[0].name].members.find(m => m.type === ident.name).enumValues = ident.enumValues
                 }
