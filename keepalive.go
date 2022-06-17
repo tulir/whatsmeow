@@ -13,6 +13,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 )
 
 var (
@@ -25,12 +26,27 @@ var (
 )
 
 func (cli *Client) keepAliveLoop(ctx context.Context) {
+	var lastSuccess time.Time
+	var errorCount int
 	for {
 		interval := rand.Int63n(KeepAliveIntervalMax.Milliseconds()-KeepAliveIntervalMin.Milliseconds()) + KeepAliveIntervalMin.Milliseconds()
 		select {
 		case <-time.After(time.Duration(interval) * time.Millisecond):
-			if !cli.sendKeepAlive(ctx) {
+			isSuccess, shouldContinue := cli.sendKeepAlive(ctx)
+			if !shouldContinue {
 				return
+			} else if !isSuccess {
+				errorCount++
+				go cli.dispatchEvent(&events.KeepAliveTimeout{
+					ErrorCount:  errorCount,
+					LastSuccess: lastSuccess,
+				})
+			} else {
+				if errorCount > 0 {
+					errorCount = 0
+					go cli.dispatchEvent(&events.KeepAliveRestored{})
+				}
+				lastSuccess = time.Now()
 			}
 		case <-ctx.Done():
 			return
@@ -38,7 +54,7 @@ func (cli *Client) keepAliveLoop(ctx context.Context) {
 	}
 }
 
-func (cli *Client) sendKeepAlive(ctx context.Context) bool {
+func (cli *Client) sendKeepAlive(ctx context.Context) (isSuccess, shouldContinue bool) {
 	respCh, err := cli.sendIQAsync(infoQuery{
 		Namespace: "w:p",
 		Type:      "get",
@@ -47,16 +63,16 @@ func (cli *Client) sendKeepAlive(ctx context.Context) bool {
 	})
 	if err != nil {
 		cli.Log.Warnf("Failed to send keepalive: %v", err)
-		return true
+		return false, true
 	}
 	select {
 	case <-respCh:
 		// All good
+		return true, true
 	case <-time.After(KeepAliveResponseDeadline):
-		// TODO disconnect websocket?
 		cli.Log.Warnf("Keepalive timed out")
+		return false, true
 	case <-ctx.Done():
-		return false
+		return false, false
 	}
-	return true
 }

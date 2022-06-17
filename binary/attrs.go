@@ -9,6 +9,7 @@ package binary
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"go.mau.fi/whatsmeow/types"
 )
@@ -112,6 +113,16 @@ func (au *AttrUtility) GetBool(key string, require bool) (bool, bool) {
 	}
 }
 
+func (au *AttrUtility) GetUnixTime(key string, require bool) (time.Time, bool) {
+	if intVal, ok := au.GetInt64(key, require); !ok {
+		return time.Time{}, false
+	} else if intVal == 0 {
+		return time.Time{}, true
+	} else {
+		return time.Unix(intVal, 0), true
+	}
+}
+
 // OptionalString returns the string under the given key.
 func (au *AttrUtility) OptionalString(key string) string {
 	strVal, _ := au.GetString(key, false)
@@ -152,6 +163,16 @@ func (au *AttrUtility) OptionalBool(key string) bool {
 
 func (au *AttrUtility) Bool(key string) bool {
 	val, _ := au.GetBool(key, true)
+	return val
+}
+
+func (au *AttrUtility) OptionalUnixTime(key string) time.Time {
+	val, _ := au.GetUnixTime(key, false)
+	return val
+}
+
+func (au *AttrUtility) UnixTime(key string) time.Time {
+	val, _ := au.GetUnixTime(key, true)
 	return val
 }
 

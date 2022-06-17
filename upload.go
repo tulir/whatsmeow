@@ -47,7 +47,7 @@ type UploadResponse struct {
 //       // you can also optionally add other fields like ContextInfo and JpegThumbnail here
 //
 //       Url:           &resp.URL,
-//       DirectPath:    &uploaded.DirectPath,
+//       DirectPath:    &resp.DirectPath,
 //       MediaKey:      resp.MediaKey,
 //       FileEncSha256: resp.FileEncSHA256,
 //       FileSha256:    resp.FileSha256,
@@ -87,7 +87,8 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	fileEncSHA256 := sha256.Sum256(dataToUpload)
 	resp.FileEncSHA256 = fileEncSHA256[:]
 
-	err = cli.refreshMediaConn(false)
+	var mediaConn *MediaConn
+	mediaConn, err = cli.refreshMediaConn(false)
 	if err != nil {
 		err = fmt.Errorf("failed to refresh media connections: %w", err)
 		return
@@ -95,13 +96,13 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 
 	token := base64.URLEncoding.EncodeToString(resp.FileEncSHA256)
 	q := url.Values{
-		"auth":  []string{cli.mediaConn.Auth},
+		"auth":  []string{mediaConn.Auth},
 		"token": []string{token},
 	}
 	mmsType := mediaTypeToMMSType[appInfo]
 	uploadURL := url.URL{
 		Scheme:   "https",
-		Host:     cli.mediaConn.Hosts[0].Hostname,
+		Host:     mediaConn.Hosts[0].Hostname,
 		Path:     fmt.Sprintf("/mms/%s/%s", mmsType, token),
 		RawQuery: q.Encode(),
 	}

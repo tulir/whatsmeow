@@ -8,7 +8,6 @@ package whatsmeow
 
 import (
 	"sync/atomic"
-	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
@@ -48,7 +47,7 @@ func (cli *Client) handlePresence(node *waBinary.Node) {
 	}
 	lastSeen := ag.OptionalString("last")
 	if lastSeen != "" && lastSeen != "deny" {
-		evt.LastSeen = time.Unix(ag.Int64("last"), 0)
+		evt.LastSeen = ag.UnixTime("last")
 	}
 	if !ag.OK() {
 		cli.Log.Warnf("Error parsing presence event: %+v", ag.Errors)

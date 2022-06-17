@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2022 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,6 +14,8 @@ import (
 	"go.mau.fi/libsignal/serialize"
 	"go.mau.fi/libsignal/state/record"
 	"go.mau.fi/libsignal/state/store"
+
+	"go.mau.fi/whatsmeow/util/keys"
 )
 
 var SignalProtobufSerializer = serialize.NewProtoBufSerializer()
@@ -32,26 +34,33 @@ func (device *Device) GetLocalRegistrationId() uint32 {
 }
 
 func (device *Device) SaveIdentity(address *protocol.SignalAddress, identityKey *identity.Key) {
-	err := device.Identities.PutIdentity(address.String(), identityKey.PublicKey().PublicKey())
-	if err != nil {
-		device.Log.Errorf("Failed to save identity of %s: %v", address.String(), err)
+	for i := 0; ; i++ {
+		err := device.Identities.PutIdentity(address.String(), identityKey.PublicKey().PublicKey())
+		if err == nil || !device.handleDatabaseError(i, err, "save identity of %s", address.String()) {
+			break
+		}
 	}
 }
 
 func (device *Device) IsTrustedIdentity(address *protocol.SignalAddress, identityKey *identity.Key) bool {
-	isTrusted, err := device.Identities.IsTrustedIdentity(address.String(), identityKey.PublicKey().PublicKey())
-	if err != nil {
-		device.Log.Errorf("Failed to check if %s's identity is trusted: %v", address.String(), err)
+	for i := 0; ; i++ {
+		isTrusted, err := device.Identities.IsTrustedIdentity(address.String(), identityKey.PublicKey().PublicKey())
+		if err == nil || !device.handleDatabaseError(i, err, "check if %s's identity is trusted", address.String()) {
+			return isTrusted
+		}
 	}
-	return isTrusted
 }
 
 func (device *Device) LoadPreKey(id uint32) *record.PreKey {
-	preKey, err := device.PreKeys.GetPreKey(id)
-	if err != nil {
-		device.Log.Errorf("Failed to load prekey %d: %v", id, err)
-		return nil
-	} else if preKey == nil {
+	var preKey *keys.PreKey
+	for i := 0; ; i++ {
+		var err error
+		preKey, err = device.PreKeys.GetPreKey(id)
+		if err == nil || !device.handleDatabaseError(i, err, "load prekey %d", id) {
+			break
+		}
+	}
+	if preKey == nil {
 		return nil
 	}
 	return record.NewPreKey(preKey.KeyID, ecc.NewECKeyPair(
@@ -61,9 +70,11 @@ func (device *Device) LoadPreKey(id uint32) *record.PreKey {
 }
 
 func (device *Device) RemovePreKey(id uint32) {
-	err := device.PreKeys.RemovePreKey(id)
-	if err != nil {
-		device.Log.Errorf("Failed to remove prekey %d: %v", id, err)
+	for i := 0; ; i++ {
+		err := device.PreKeys.RemovePreKey(id)
+		if err == nil || !device.handleDatabaseError(i, err, "remove prekey %d", id) {
+			break
+		}
 	}
 }
 
@@ -76,11 +87,15 @@ func (device *Device) ContainsPreKey(preKeyID uint32) bool {
 }
 
 func (device *Device) LoadSession(address *protocol.SignalAddress) *record.Session {
-	rawSess, err := device.Sessions.GetSession(address.String())
-	if err != nil {
-		device.Log.Errorf("Failed to load session with %s: %v", address.String(), err)
-		return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
-	} else if rawSess == nil {
+	var rawSess []byte
+	for i := 0; ; i++ {
+		var err error
+		rawSess, err = device.Sessions.GetSession(address.String())
+		if err == nil || !device.handleDatabaseError(i, err, "load session with %s", address.String()) {
+			break
+		}
+	}
+	if rawSess == nil {
 		return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
 	}
 	sess, err := record.NewSessionFromBytes(rawSess, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
@@ -96,18 +111,21 @@ func (device *Device) GetSubDeviceSessions(name string) []uint32 {
 }
 
 func (device *Device) StoreSession(address *protocol.SignalAddress, record *record.Session) {
-	err := device.Sessions.PutSession(address.String(), record.Serialize())
-	if err != nil {
-		device.Log.Errorf("Failed to store session with %s: %v", address.String(), err)
+	for i := 0; ; i++ {
+		err := device.Sessions.PutSession(address.String(), record.Serialize())
+		if err == nil || !device.handleDatabaseError(i, err, "store session with %s", address.String()) {
+			return
+		}
 	}
 }
 
 func (device *Device) ContainsSession(remoteAddress *protocol.SignalAddress) bool {
-	hasSession, err := device.Sessions.HasSession(remoteAddress.String())
-	if err != nil {
-		device.Log.Warnf("Failed to check if store has session for %s: %v", remoteAddress.String(), err)
+	for i := 0; ; i++ {
+		hasSession, err := device.Sessions.HasSession(remoteAddress.String())
+		if err == nil || !device.handleDatabaseError(i, err, "store has session for %s", remoteAddress.String()) {
+			return hasSession
+		}
 	}
-	return hasSession
 }
 
 func (device *Device) DeleteSession(remoteAddress *protocol.SignalAddress) {
@@ -145,18 +163,24 @@ func (device *Device) RemoveSignedPreKey(signedPreKeyID uint32) {
 }
 
 func (device *Device) StoreSenderKey(senderKeyName *protocol.SenderKeyName, keyRecord *groupRecord.SenderKey) {
-	err := device.SenderKeys.PutSenderKey(senderKeyName.GroupID(), senderKeyName.Sender().String(), keyRecord.Serialize())
-	if err != nil {
-		device.Log.Errorf("Failed to store sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
+	for i := 0; ; i++ {
+		err := device.SenderKeys.PutSenderKey(senderKeyName.GroupID(), senderKeyName.Sender().String(), keyRecord.Serialize())
+		if err == nil || !device.handleDatabaseError(i, err, "store sender key from %s", senderKeyName.Sender().String()) {
+			return
+		}
 	}
 }
 
 func (device *Device) LoadSenderKey(senderKeyName *protocol.SenderKeyName) *groupRecord.SenderKey {
-	rawKey, err := device.SenderKeys.GetSenderKey(senderKeyName.GroupID(), senderKeyName.Sender().String())
-	if err != nil {
-		device.Log.Errorf("Failed to load sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
-		return groupRecord.NewSenderKey(SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
-	} else if rawKey == nil {
+	var rawKey []byte
+	for i := 0; ; i++ {
+		var err error
+		rawKey, err = device.SenderKeys.GetSenderKey(senderKeyName.GroupID(), senderKeyName.Sender().String())
+		if err == nil || !device.handleDatabaseError(i, err, "load sender key from %s for %s", senderKeyName.Sender().String(), senderKeyName.GroupID()) {
+			break
+		}
+	}
+	if rawKey == nil {
 		return groupRecord.NewSenderKey(SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
 	}
 	key, err := groupRecord.NewSenderKeyFromBytes(rawKey, SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)

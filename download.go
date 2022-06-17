@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -183,30 +184,40 @@ func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
 	}
 	urlable, ok := msg.(downloadableMessageWithURL)
-	if ok && len(urlable.GetUrl()) > 0 {
+	var url string
+	var isWebWhatsappNetURL bool
+	if ok {
+		url = urlable.GetUrl()
+		isWebWhatsappNetURL = strings.HasPrefix(urlable.GetUrl(), "https://web.whatsapp.net")
+	}
+	if len(url) > 0 && !isWebWhatsappNetURL {
 		return cli.downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
 	} else if len(msg.GetDirectPath()) > 0 {
 		return cli.DownloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
 	} else {
+		if isWebWhatsappNetURL {
+			cli.Log.Warnf("Got a media message with a web.whatsapp.net URL (%s) and no direct path", url)
+		}
 		return nil, ErrNoURLPresent
 	}
 }
 
 // DownloadMediaWithPath downloads an attachment by manually specifying the path and encryption details.
 func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHash, mediaKey []byte, fileLength int, mediaType MediaType, mmsType string) (data []byte, err error) {
-	err = cli.refreshMediaConn(false)
+	var mediaConn *MediaConn
+	mediaConn, err = cli.refreshMediaConn(false)
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh media connections: %w", err)
 	}
 	if len(mmsType) == 0 {
 		mmsType = mediaTypeToMMSType[mediaType]
 	}
-	for i, host := range cli.mediaConn.Hosts {
+	for i, host := range mediaConn.Hosts {
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
 		data, err = cli.downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
 		// TODO there are probably some errors that shouldn't retry
 		if err != nil {
-			if i >= len(cli.mediaConn.Hosts)-1 {
+			if i >= len(mediaConn.Hosts)-1 {
 				return nil, fmt.Errorf("failed to download media from last host: %w", err)
 			}
 			cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)

@@ -15,11 +15,10 @@ import (
 
 // Miscellaneous errors
 var (
-	ErrNoSession      = errors.New("can't encrypt message for device: no signal session established")
-	ErrIQTimedOut     = errors.New("info query timed out")
-	ErrIQDisconnected = errors.New("websocket disconnected before info query returned response")
-	ErrNotConnected   = errors.New("websocket not connected")
-	ErrNotLoggedIn    = errors.New("the store doesn't contain a device JID")
+	ErrNoSession    = errors.New("can't encrypt message for device: no signal session established")
+	ErrIQTimedOut   = errors.New("info query timed out")
+	ErrNotConnected = errors.New("websocket not connected")
+	ErrNotLoggedIn  = errors.New("the store doesn't contain a device JID")
 
 	ErrAlreadyConnected = errors.New("websocket is already connected")
 
@@ -47,14 +46,19 @@ var (
 	ErrBusinessMessageLinkNotFound = errors.New("that business message link does not exist or has been revoked")
 	// ErrInvalidImageFormat is returned by SetGroupPhoto if the given photo is not in the correct format.
 	ErrInvalidImageFormat = errors.New("the given data is not a valid image")
+	// ErrMediaNotAvailableOnPhone is returned by DecryptMediaRetryNotification if the given event contains error code 2.
+	ErrMediaNotAvailableOnPhone = errors.New("media no longer available on phone")
+	// ErrUnknownMediaRetryError is returned by DecryptMediaRetryNotification if the given event contains an unknown error code.
+	ErrUnknownMediaRetryError = errors.New("unknown media retry error")
+	// ErrInvalidDisappearingTimer is returned by SetDisappearingTimer if the given timer is not one of the allowed values.
+	ErrInvalidDisappearingTimer = errors.New("invalid disappearing timer provided")
 )
 
 // Some errors that Client.SendMessage can return
 var (
-	ErrBroadcastListUnsupported = errors.New("sending to broadcast lists is not yet supported")
+	ErrBroadcastListUnsupported = errors.New("sending to non-status broadcast lists is not yet supported")
 	ErrUnknownServer            = errors.New("can't send message to unknown server")
 	ErrRecipientADJID           = errors.New("message recipient must be normal (non-AD) JID")
-	ErrSendDisconnected         = errors.New("websocket disconnected before message send returned response")
 )
 
 // Some errors that Client.Download can return
@@ -102,6 +106,7 @@ type IQError struct {
 
 // Common errors returned by info queries for use with errors.Is
 var (
+	ErrIQBadRequest    error = &IQError{Code: 400, Text: "bad-request"}
 	ErrIQNotAuthorized error = &IQError{Code: 401, Text: "not-authorized"}
 	ErrIQForbidden     error = &IQError{Code: 403, Text: "forbidden"}
 	ErrIQNotFound      error = &IQError{Code: 404, Text: "item-not-found"}
@@ -156,4 +161,24 @@ type ElementMissingError struct {
 
 func (eme *ElementMissingError) Error() string {
 	return fmt.Sprintf("missing <%s> element in %s", eme.Tag, eme.In)
+}
+
+var ErrIQDisconnected = &DisconnectedError{Action: "info query"}
+
+// DisconnectedError is returned if the websocket disconnects before an info query or other request gets a response.
+type DisconnectedError struct {
+	Action string
+	Node   *waBinary.Node
+}
+
+func (err *DisconnectedError) Error() string {
+	return fmt.Sprintf("websocket disconnected before %s returned response", err.Action)
+}
+
+func (err *DisconnectedError) Is(other error) bool {
+	otherDisc, ok := other.(*DisconnectedError)
+	if !ok {
+		return false
+	}
+	return otherDisc.Action == err.Action
 }

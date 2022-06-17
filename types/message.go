@@ -44,6 +44,8 @@ type MessageInfo struct {
 	PushName  string
 	Timestamp time.Time
 	Category  string
+	Multicast bool
+	MediaType string
 
 	DeviceSentMeta *DeviceSentMeta // Metadata for direct messages sent from another one of the user's own devices.
 }

@@ -83,3 +83,36 @@ func (proc *Processor) getAppStateKey(keyID []byte) (keys ExpandedAppStateKeys, 
 	}
 	return
 }
+
+func (proc *Processor) GetMissingKeyIDs(pl *PatchList) [][]byte {
+	cache := make(map[string]bool)
+	var missingKeys [][]byte
+	checkMissing := func(keyID []byte) {
+		if keyID == nil {
+			return
+		}
+		stringKeyID := base64.RawStdEncoding.EncodeToString(keyID)
+		_, alreadyAdded := cache[stringKeyID]
+		if !alreadyAdded {
+			keyData, err := proc.Store.AppStateKeys.GetAppStateSyncKey(keyID)
+			if err != nil {
+				proc.Log.Warnf("Error fetching key %X while checking if it's missing: %v", keyID, err)
+			}
+			missing := keyData == nil && err == nil
+			cache[stringKeyID] = missing
+			if missing {
+				missingKeys = append(missingKeys, keyID)
+			}
+		}
+	}
+	if pl.Snapshot != nil {
+		checkMissing(pl.Snapshot.GetKeyId().GetId())
+		for _, record := range pl.Snapshot.GetRecords() {
+			checkMissing(record.GetKeyId().GetId())
+		}
+	}
+	for _, patch := range pl.Patches {
+		checkMissing(patch.GetKeyId().GetId())
+	}
+	return missingKeys
+}

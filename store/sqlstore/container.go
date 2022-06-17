@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2022 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,6 +25,8 @@ type Container struct {
 	db      *sql.DB
 	dialect string
 	log     waLog.Logger
+
+	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
 
 var _ store.DeviceContainer = (*Container)(nil)
@@ -76,7 +78,7 @@ func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
 const getAllDevicesQuery = `
 SELECT jid, registration_id, noise_key, identity_key,
        signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
-       adv_key, adv_details, adv_account_sig, adv_device_sig,
+       adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
        platform, business_name, push_name
 FROM whatsmeow_device
 `
@@ -89,6 +91,7 @@ type scannable interface {
 
 func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	var device store.Device
+	device.DatabaseErrorHandler = c.DatabaseErrorHandler
 	device.Log = c.log
 	device.SignedPreKey = &keys.PreKey{}
 	var noisePriv, identityPriv, preKeyPriv, preKeySig []byte
@@ -97,7 +100,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	err := row.Scan(
 		&device.ID, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
-		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.DeviceSignature,
+		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
 		&device.Platform, &device.BusinessName, &device.PushName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan session: %w", err)
@@ -175,10 +178,11 @@ const (
 	insertDeviceQuery = `
 		INSERT INTO whatsmeow_device (jid, registration_id, noise_key, identity_key,
 									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
-									  adv_key, adv_details, adv_account_sig, adv_device_sig,
+									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
 									  platform, business_name, push_name)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-		ON CONFLICT (jid) DO UPDATE SET platform=$12, business_name=$13, push_name=$14
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		ON CONFLICT (jid) DO UPDATE
+		    SET platform=excluded.platform, business_name=excluded.business_name, push_name=excluded.push_name
 	`
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=$1`
 )
@@ -191,6 +195,8 @@ func (c *Container) NewDevice() *store.Device {
 	device := &store.Device{
 		Log:       c.log,
 		Container: c,
+
+		DatabaseErrorHandler: c.DatabaseErrorHandler,
 
 		NoiseKey:       keys.NewKeyPair(),
 		IdentityKey:    keys.NewKeyPair(),
@@ -217,7 +223,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 	_, err := c.db.Exec(insertDeviceQuery,
 		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
-		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.DeviceSignature,
+		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
 		device.Platform, device.BusinessName, device.PushName)
 
 	if !device.Initialized {

@@ -4,9 +4,9 @@ go 1.17
 
 require (
 	github.com/gorilla/websocket v1.5.0
-	go.mau.fi/libsignal v0.0.0-20220308120827-0d87a03fd7c7
-	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70
-	google.golang.org/protobuf v1.27.1
+	go.mau.fi/libsignal v0.0.0-20220425070825-c40c839ee6a0
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
+	google.golang.org/protobuf v1.28.0
 )
 
 require filippo.io/edwards25519 v1.0.0-rc.1 // indirect

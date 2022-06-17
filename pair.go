@@ -138,12 +138,12 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return fmt.Errorf("failed to parse device identity details in pair success message: %w", err)
 	}
 
+	cli.Store.Account = proto.Clone(&deviceIdentity).(*waProto.ADVSignedDeviceIdentity)
+
 	mainDeviceJID := jid
 	mainDeviceJID.Device = 0
 	mainDeviceIdentity := *(*[32]byte)(deviceIdentity.AccountSignatureKey)
 	deviceIdentity.AccountSignatureKey = nil
-
-	cli.Store.Account = proto.Clone(&deviceIdentity).(*waProto.ADVSignedDeviceIdentity)
 
 	selfSignedDeviceIdentity, err := proto.Marshal(&deviceIdentity)
 	if err != nil {

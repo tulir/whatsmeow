@@ -7,6 +7,10 @@
 // Package binary implements encoding and decoding documents in WhatsApp's binary XML format.
 package binary
 
+import (
+	"fmt"
+)
+
 // Attrs is a type alias for the attributes of an XML element (Node).
 type Attrs = map[string]interface{}
 
@@ -78,6 +82,8 @@ func Unmarshal(data []byte) (*Node, error) {
 	n, err := r.readNode()
 	if err != nil {
 		return nil, err
+	} else if r.index != len(r.data) {
+		return n, fmt.Errorf("%d leftover bytes after decoding", len(r.data)-r.index)
 	}
 	return n, nil
 }

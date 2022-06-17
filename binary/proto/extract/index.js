@@ -8,7 +8,7 @@ const addPrefix = (lines, prefix) => lines.map(line => prefix + line)
 async function findAppModules(mods) {
     const ua = {
         headers: {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0",
             "Sec-Fetch-Dest": "script",
             "Sec-Fetch-Mode": "no-cors",
             "Sec-Fetch-Site": "same-origin",
@@ -44,21 +44,24 @@ async function findAppModules(mods) {
         82348, // MsgOpaqueData, MsgRowOpaqueData
         16258, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
         93890, // MessageKey
-        72493, // Duplicate of MessageKey
+        70910, // Duplicate of MessageKey
         50073, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
         381,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
         91344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
         84331, // AppVersion, UserAgent, WebdPayload ...
-        // 78155, // seems to be same as above, but different Details and new CertChainSpec
+        // 78155, // seems to be same as above
         21224, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
+        40965, // NoiseCertificate, CertChain
     ]
     // Conflicting specs by module ID and what to rename them to
     const renames = {
         91344: {
             "VerifiedNameCertificate$Details": "VerifiedNameDetails",
         },
-        84331: {
+        40965: {
             "NoiseCertificate$Details": "NoiseCertificateDetails",
+            "CertChain$NoiseCertificate": "CertChainNoiseCertificate",
+            "CertChain$NoiseCertificate$Details": "CertChainNoiseCertificateDetails",
         },
         24808: {
             "PaymentBackground$MediaData": "PBMediaData",
@@ -240,7 +243,7 @@ async function findAppModules(mods) {
             // count number of occurrences of this enumeration and store these identifiers
             const occurrences = Object.values(idents).filter(v => v.members && v.members.find(m => m.type === ident.name))
             // if there's only one occurrence, add the enum to that message. Also remove enums that do not occur anywhere
-            if (occurrences.length <= 1) {
+            if (occurrences.length <= 1 && ident.name !== "KeepType") {
                 if (occurrences.length === 1) {
                     idents[occurrences[0].name].members.find(m => m.type === ident.name).enumValues = ident.enumValues
                 }
