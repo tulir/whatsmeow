@@ -56,6 +56,7 @@ type Client struct {
 	isLoggedIn            uint32
 	expectedDisconnectVal uint32
 	EnableAutoReconnect   bool
+	AutoReconnectTimes    int
 	LastSuccessfulConnect time.Time
 	AutoReconnectErrors   int
 
@@ -179,6 +180,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		appStateKeyRequests:    make(map[string]time.Time),
 
 		EnableAutoReconnect: true,
+		AutoReconnectTimes:  0,
 		AutoTrustIdentity:   true,
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
@@ -333,17 +335,23 @@ func (cli *Client) autoReconnect() {
 	if !cli.EnableAutoReconnect || cli.Store.ID == nil {
 		return
 	}
+	thisAutoReconnect := 0
 	for {
 		autoReconnectDelay := time.Duration(cli.AutoReconnectErrors) * 2 * time.Second
 		cli.Log.Debugf("Automatically reconnecting after %v", autoReconnectDelay)
 		cli.AutoReconnectErrors++
 		time.Sleep(autoReconnectDelay)
 		err := cli.Connect()
+		thisAutoReconnect++
 		if errors.Is(err, ErrAlreadyConnected) {
 			cli.Log.Debugf("Connect() said we're already connected after autoreconnect sleep")
 			return
 		} else if err != nil {
-			cli.Log.Errorf("Error reconnecting after autoreconnect sleep: %v", err)
+			cli.Log.Errorf("Error reconnecting after autoreconnect sleep: %v,automatically retried %d times so far", err, thisAutoReconnect)
+			if cli.AutoReconnectTimes > 0 && thisAutoReconnect >= cli.AutoReconnectTimes {
+				cli.Log.Errorf("Max autoreconnects reached, giving up")
+				return
+			}
 		} else {
 			return
 		}
