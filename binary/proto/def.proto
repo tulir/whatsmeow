@@ -915,6 +915,7 @@ message MessageContextInfo {
     optional DeviceListMetadata deviceListMetadata = 1;
     optional int32 deviceListMetadataVersion = 2;
     optional bytes messageSecret = 3;
+    optional bytes paddingBytes = 4;
 }
 
 message VideoMessage {
@@ -1178,6 +1179,16 @@ message Conversation {
     optional uint64 tcTokenSenderTimestamp = 28;
     optional bool suspended = 29;
     optional bool terminated = 30;
+    optional uint64 createdAt = 31;
+    optional string createdBy = 32;
+    optional string description = 33;
+    optional bool support = 34;
+    optional bool isParentGroup = 35;
+    optional bool isDefaultSubgroup = 36;
+    optional string parentGroupId = 37;
+    optional string displayName = 38;
+    optional string pnJid = 39;
+    optional bool selfMasked = 40;
 }
 
 message AutoDownloadSettings {
@@ -1209,8 +1220,8 @@ message MsgOpaqueData {
     optional string loc = 16;
     optional string pollName = 17;
     repeated PollOption pollOptions = 18;
-    optional bytes pollEncKey = 19;
     optional uint32 pollSelectableOptionsCount = 20;
+    optional bytes messageSecret = 21;
 }
 
 message PollOption {
@@ -1946,6 +1957,7 @@ message WebMessageInfo {
         GROUP_PARTICIPANT_ACCEPT = 140;
         GROUP_PARTICIPANT_LINKED_GROUP_JOIN = 141;
         COMMUNITY_CREATE = 142;
+        EPHEMERAL_KEEP_IN_CHAT = 143;
     }
     optional WebMessageInfoStubType messageStubType = 24;
     optional bool clearMedia = 25;
@@ -2155,7 +2167,7 @@ message MediaData {
 message KeepInChat {
     optional KeepType keepType = 1;
     optional int64 serverTimestamp = 2;
-    optional string kicUser = 3;
+    optional string deviceJid = 3;
 }
 
 message NoiseCertificate {

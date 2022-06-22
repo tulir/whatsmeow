@@ -36,34 +36,34 @@ async function findAppModules(mods) {
 (async () => {
     // The module IDs that contain protobuf types
     const wantedModules = [
-        61438, // ADVSignedKeyIndexList, ADVSignedDeviceIdentity, ADVSignedDeviceIdentityHMAC, ADVKeyIndexList, ADVDeviceIdentity
-        98263, // CompanionPropsPlatform, CompanionProps, AppVersion
-        24808, // Message, ..., RequestPaymentMessage, Reaction, QuickReplyButton, ..., ButtonsResponseMessage, ActionLink, ...
-        28286, // EphemeralSetting
-        73027, // WallpaperSettings, Pushname, MediaVisibility, HistorySync, ..., GroupParticipant, ...
-        82348, // MsgOpaqueData, MsgRowOpaqueData
+        361438, // ADVSignedKeyIndexList, ADVSignedDeviceIdentity, ADVSignedDeviceIdentityHMAC, ADVKeyIndexList, ADVDeviceIdentity
+        698263, // DeviceProps
+        124808, // Message, ..., RequestPaymentMessage, Reaction, QuickReplyButton, ..., ButtonsResponseMessage, ActionLink, ...
+        128286, // EphemeralSetting
+        573027, // WallpaperSettings, Pushname, MediaVisibility, HistorySync, ..., GroupParticipant, ...
+        682348, // MsgOpaqueData, MsgRowOpaqueData
         16258, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
-        93890, // MessageKey
-        70910, // Duplicate of MessageKey
-        50073, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
+        793890, // MessageKey
+        370910, // Duplicate of MessageKey
+        550073, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
         381,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
-        91344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
-        84331, // AppVersion, UserAgent, WebdPayload ...
-        // 78155, // seems to be same as above
-        21224, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
-        40965, // NoiseCertificate, CertChain
+        691344, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
+        384331, // HandshakeMessage, ..., ClientPayload, ..., AppVersion, UserAgent, WebdPayload ...
+        // 178155, // seems to be same as above
+        421224, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
+        640965, // NoiseCertificate, CertChain
     ]
     // Conflicting specs by module ID and what to rename them to
     const renames = {
-        91344: {
+        691344: {
             "VerifiedNameCertificate$Details": "VerifiedNameDetails",
         },
-        40965: {
+        640965: {
             "NoiseCertificate$Details": "NoiseCertificateDetails",
             "CertChain$NoiseCertificate": "CertChainNoiseCertificate",
             "CertChain$NoiseCertificate$Details": "CertChainNoiseCertificateDetails",
         },
-        24808: {
+        124808: {
             "PaymentBackground$MediaData": "PBMediaData",
             "Message$InteractiveResponseMessage$Body": "InteractiveResponseMessageBody",
             "Message$InteractiveMessage$Body": "InteractiveMessageBody",
@@ -76,7 +76,7 @@ async function findAppModules(mods) {
         return renames[modID]?.[name] ?? unnestName(name)
     }
     // The constructor IDs that can be used for enum types
-    const enumConstructorIDs = [76672, 54302]
+    const enumConstructorIDs = [76672, 654302]
 
     const unsortedModules = await findAppModules(wantedModules)
     if (unsortedModules.length !== wantedModules.length) {
