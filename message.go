@@ -47,13 +47,17 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.MessageSource, err error) {
+func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
 	ag := node.AttrGetter()
 	from := ag.JID("from")
 	if from.Server == types.GroupServer || from.Server == types.BroadcastServer {
 		source.IsGroup = true
 		source.Chat = from
-		source.Sender = ag.JID("participant")
+		if requireParticipant {
+			source.Sender = ag.JID("participant")
+		} else {
+			source.Sender = ag.OptionalJIDOrEmpty("participant")
+		}
 		if source.Sender.User == cli.Store.ID.User {
 			source.IsFromMe = true
 		}
@@ -80,7 +84,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.Message
 func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, error) {
 	var info types.MessageInfo
 	var err error
-	info.MessageSource, err = cli.parseMessageSource(node)
+	info.MessageSource, err = cli.parseMessageSource(node, true)
 	if err != nil {
 		return nil, err
 	}
