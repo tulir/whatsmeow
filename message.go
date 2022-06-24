@@ -40,11 +40,11 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
+		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
+			go cli.updateBusinessName(info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
+		}
 		if len(info.PushName) > 0 && info.PushName != "-" {
 			go cli.updatePushName(info.Sender, info, info.PushName)
-		}
-		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
-			go cli.updateBusinessName(info.Sender, info.VerifiedName.Details.GetVerifiedName())
 		}
 		cli.decryptMessages(info, node)
 	}
