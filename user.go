@@ -280,6 +280,10 @@ func parseVerifiedName(businessNode waBinary.Node) (*types.VerifiedName, error) 
 	if !ok {
 		return nil, nil
 	}
+	return parseVerifiedNameContent(verifiedNameNode)
+}
+
+func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedName, error) {
 	rawCert, ok := verifiedNameNode.Content.([]byte)
 	if !ok {
 		return nil, nil
