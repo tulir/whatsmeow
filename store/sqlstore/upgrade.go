@@ -239,7 +239,7 @@ func upgradeV2(tx *sql.Tx, container *Container) error {
 	if err != nil {
 		return err
 	}
-	if container.dialect == "postgres" {
+	if container.dialect == "postgres" || container.dialect == "pgx" {
 		_, err = tx.Exec(fillSigKeyPostgres)
 	} else {
 		_, err = tx.Exec(fillSigKeySQLite)
