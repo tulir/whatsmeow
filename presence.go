@@ -15,7 +15,7 @@ import (
 )
 
 func (cli *Client) handleChatState(node *waBinary.Node) {
-	source, err := cli.parseMessageSource(node)
+	source, err := cli.parseMessageSource(node, true)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse chat state update: %v", err)
 	} else if len(node.GetChildren()) != 1 {

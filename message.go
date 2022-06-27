@@ -40,6 +40,9 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
+		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
+			go cli.updateBusinessName(info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
+		}
 		if len(info.PushName) > 0 && info.PushName != "-" {
 			go cli.updatePushName(info.Sender, info, info.PushName)
 		}
@@ -47,13 +50,17 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.MessageSource, err error) {
+func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
 	ag := node.AttrGetter()
 	from := ag.JID("from")
 	if from.Server == types.GroupServer || from.Server == types.BroadcastServer {
 		source.IsGroup = true
 		source.Chat = from
-		source.Sender = ag.JID("participant")
+		if requireParticipant {
+			source.Sender = ag.JID("participant")
+		} else {
+			source.Sender = ag.OptionalJIDOrEmpty("participant")
+		}
 		if source.Sender.User == cli.Store.ID.User {
 			source.IsFromMe = true
 		}
@@ -80,7 +87,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node) (source types.Message
 func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, error) {
 	var info types.MessageInfo
 	var err error
-	info.MessageSource, err = cli.parseMessageSource(node)
+	info.MessageSource, err = cli.parseMessageSource(node, true)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +103,11 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	for _, child := range node.GetChildren() {
 		if child.Tag == "multicast" {
 			info.Multicast = true
+		} else if child.Tag == "verified_name" {
+			info.VerifiedName, err = parseVerifiedNameContent(child)
+			if err != nil {
+				cli.Log.Warnf("Failed to parse verified_name node in %s: %v", info.ID, err)
+			}
 		} else if mediaType, ok := child.AttrGetter().GetString("mediatype", false); ok {
 			info.MediaType = mediaType
 		}

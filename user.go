@@ -133,7 +133,7 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		info.PictureID, _ = child.GetChildByTag("picture").Attrs["id"].(string)
 		info.Devices = parseDeviceList(jid.User, child.GetChildByTag("devices"))
 		if verifiedName != nil {
-			cli.updateBusinessName(jid, verifiedName.Details.GetVerifiedName())
+			cli.updateBusinessName(jid, nil, verifiedName.Details.GetVerifiedName())
 		}
 		respData[jid] = info
 	}
@@ -262,13 +262,21 @@ func (cli *Client) updatePushName(user types.JID, messageInfo *types.MessageInfo
 	}
 }
 
-func (cli *Client) updateBusinessName(user types.JID, name string) {
+func (cli *Client) updateBusinessName(user types.JID, messageInfo *types.MessageInfo, name string) {
 	if cli.Store.Contacts == nil {
 		return
 	}
-	err := cli.Store.Contacts.PutBusinessName(user, name)
+	changed, previousName, err := cli.Store.Contacts.PutBusinessName(user, name)
 	if err != nil {
 		cli.Log.Errorf("Failed to save business name of %s in device store: %v", user, err)
+	} else if changed {
+		cli.Log.Debugf("Business name of %s changed from %s to %s, dispatching event", user, previousName, name)
+		cli.dispatchEvent(&events.BusinessName{
+			JID:             user,
+			Message:         messageInfo,
+			OldBusinessName: previousName,
+			NewBusinessName: name,
+		})
 	}
 }
 
@@ -280,6 +288,10 @@ func parseVerifiedName(businessNode waBinary.Node) (*types.VerifiedName, error) 
 	if !ok {
 		return nil, nil
 	}
+	return parseVerifiedNameContent(verifiedNameNode)
+}
+
+func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedName, error) {
 	rawCert, ok := verifiedNameNode.Content.([]byte)
 	if !ok {
 		return nil, nil

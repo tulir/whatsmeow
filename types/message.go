@@ -47,6 +47,7 @@ type MessageInfo struct {
 	Multicast bool
 	MediaType string
 
+	VerifiedName   *VerifiedName
 	DeviceSentMeta *DeviceSentMeta // Metadata for direct messages sent from another one of the user's own devices.
 }
 
