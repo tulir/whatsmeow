@@ -30,7 +30,12 @@ func (cli *Client) sendGroupIQ(iqType infoQueryType, jid types.JID, content waBi
 // CreateGroup creates a group on WhatsApp with the given name and participants.
 //
 // You don't need to include your own JID in the participants array, the WhatsApp servers will add it implicitly.
-func (cli *Client) CreateGroup(name string, participants []types.JID) (*types.GroupInfo, error) {
+//
+// Group names are limited to 25 characters. A longer group name will cause a 406 not acceptable error.
+//
+// Optionally, a create key can be provided to deduplicate the group create notification that will be triggered
+// when the group is created. If provided, the JoinedGroup event will contain the same key.
+func (cli *Client) CreateGroup(name string, participants []types.JID, createKey types.MessageID) (*types.GroupInfo, error) {
 	participantNodes := make([]waBinary.Node, len(participants))
 	for i, participant := range participants {
 		participantNodes[i] = waBinary.Node{
@@ -38,7 +43,11 @@ func (cli *Client) CreateGroup(name string, participants []types.JID) (*types.Gr
 			Attrs: waBinary.Attrs{"jid": participant},
 		}
 	}
-	key := GenerateMessageID()
+	if createKey == "" {
+		createKey = GenerateMessageID()
+	}
+	// WhatsApp web doesn't seem to include the static prefix for these
+	key := strings.TrimPrefix(createKey, "3EB0")
 	resp, err := cli.sendGroupIQ(iqSet, types.GroupServerJID, waBinary.Node{
 		Tag: "create",
 		Attrs: waBinary.Attrs{
@@ -464,7 +473,10 @@ func (cli *Client) parseGroupCreate(node *waBinary.Node) (*events.JoinedGroup, e
 		return nil, fmt.Errorf("group create notification didn't contain group info")
 	}
 	var evt events.JoinedGroup
-	evt.Reason = node.AttrGetter().OptionalString("reason")
+	ag := node.AttrGetter()
+	evt.Reason = ag.OptionalString("reason")
+	evt.CreateKey = ag.OptionalString("key")
+	evt.Type = ag.OptionalString("type")
 	info, err := cli.parseGroupNode(&groupNode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
