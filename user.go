@@ -214,7 +214,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool, existingID
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")
 	if !ok {
-		if existingID == "" {
+		if existingID != "" {
 			return nil, nil
 		}
 		return nil, &ElementMissingError{Tag: "picture", In: "response to profile picture query"}
