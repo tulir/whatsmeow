@@ -181,9 +181,9 @@ func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 }
 
 // GetProfilePictureInfo gets the URL where you can download a WhatsApp user's profile picture or group's photo.
-// If the user or group doesn't have a profile picture, this returns nil with no error.
 //
-// Optionally, you can pass the last known profile picture ID. If the profile picture hasn't changed, this will return nil.
+// Optionally, you can pass the last known profile picture ID.
+// If the profile picture hasn't changed, this will return nil with no error.
 func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool, existingID string) (*types.ProfilePictureInfo, error) {
 	attrs := waBinary.Attrs{
 		"query": "url",
@@ -208,12 +208,15 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool, existingID
 	if errors.Is(err, ErrIQNotAuthorized) {
 		return nil, wrapIQError(ErrProfilePictureUnauthorized, err)
 	} else if errors.Is(err, ErrIQNotFound) {
-		return nil, nil
+		return nil, wrapIQError(ErrProfilePictureNotSet, err)
 	} else if err != nil {
 		return nil, err
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")
 	if !ok {
+		if existingID == "" {
+			return nil, nil
+		}
 		return nil, &ElementMissingError{Tag: "picture", In: "response to profile picture query"}
 	}
 	var info types.ProfilePictureInfo
