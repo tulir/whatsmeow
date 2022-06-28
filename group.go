@@ -431,6 +431,9 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		case "ephemeral":
 			group.IsEphemeral = true
 			group.DisappearingTimer = uint32(childAG.Uint64("expiration"))
+		case "member_add_mode":
+			modeBytes, _ := child.Content.([]byte)
+			group.MemberAddMode = types.GroupMemberAddMode(modeBytes)
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
