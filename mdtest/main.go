@@ -282,14 +282,18 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "getavatar":
 		if len(args) < 1 {
-			log.Errorf("Usage: getavatar <jid>")
+			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview]")
 			return
 		}
 		jid, ok := parseJID(args[0])
 		if !ok {
 			return
 		}
-		pic, err := cli.GetProfilePictureInfo(jid, len(args) > 1 && args[1] == "preview")
+		existingID := ""
+		if len(args) > 2 {
+			existingID = args[2]
+		}
+		pic, err := cli.GetProfilePictureInfo(jid, args[len(args)-1] == "--preview", existingID)
 		if err != nil {
 			log.Errorf("Failed to get avatar: %v", err)
 		} else if pic != nil {
