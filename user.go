@@ -70,6 +70,23 @@ func (cli *Client) ResolveBusinessMessageLink(code string) (*types.BusinessMessa
 	return &target, ag.Error()
 }
 
+// SetStatusMessage updates the current user's status text, which is shown in the "About" section in the user profile.
+//
+// This is different from the ephemeral status broadcast messages. Use SendMessage to types.StatusBroadcastJID to send
+// such messages.
+func (cli *Client) SetStatusMessage(msg string) error {
+	_, err := cli.sendIQ(infoQuery{
+		Namespace: "status",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag:     "status",
+			Content: msg,
+		}},
+	})
+	return err
+}
+
 // IsOnWhatsApp checks if the given phone numbers are registered on WhatsApp.
 // The phone numbers should be in international format, including the `+` prefix.
 func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, error) {

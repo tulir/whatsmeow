@@ -533,6 +533,17 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Image message sent (server timestamp: %s)", ts)
 		}
+	case "setstatus":
+		if len(args) == 0 {
+			log.Errorf("Usage: setstatus <message>")
+			return
+		}
+		err := cli.SetStatusMessage(strings.Join(args, " "))
+		if err != nil {
+			log.Errorf("Error setting status message: %v", err)
+		} else {
+			log.Infof("Status updated")
+		}
 	}
 }
 
