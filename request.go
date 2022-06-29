@@ -201,17 +201,17 @@ func (cli *Client) retryFrame(reqType, id string, data []byte, origResp *waBinar
 		return nil, err
 	}
 	var resp *waBinary.Node
-	if ctx != nil && timeout > 0 {
-		select {
-		case resp = <-respChan:
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-time.After(timeout):
-			// FIXME this error isn't technically correct (but works for now - the ctx and timeout params are only used from sendIQ)
-			return nil, ErrIQTimedOut
-		}
-	} else {
-		resp = <-respChan
+	timeoutChan := make(<-chan time.Time, 1)
+	if timeout > 0 {
+		timeoutChan = time.After(timeout)
+	}
+	select {
+	case resp = <-respChan:
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case <-timeoutChan:
+		// FIXME this error isn't technically correct (but works for now - the timeout param is only used from sendIQ)
+		return nil, ErrIQTimedOut
 	}
 	if isDisconnectNode(resp) {
 		cli.Log.Debugf("Retrying %s %s was interrupted by websocket disconnection (%v), not retrying anymore", reqType, id, resp.XMLString())

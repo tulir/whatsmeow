@@ -196,7 +196,7 @@ func handleCmd(cmd string, args []string) {
 			}
 			keyIDs[i] = decoded
 		}
-		cli.DangerousInternals().RequestAppStateKeys(keyIDs)
+		cli.DangerousInternals().RequestAppStateKeys(context.Background(), keyIDs)
 	case "checkuser":
 		if len(args) < 1 {
 			log.Errorf("Usage: checkuser <phone numbers...>")
@@ -411,7 +411,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		ts, err := cli.SendMessage(recipient, "", msg)
+		ts, err := cli.SendMessage(context.Background(), recipient, "", msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
 		} else {
@@ -438,7 +438,7 @@ func handleCmd(cmd string, args []string) {
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
 		for _, recipient := range recipients {
 			go func(recipient types.JID) {
-				ts, err := cli.SendMessage(recipient, "", msg)
+				ts, err := cli.SendMessage(context.Background(), recipient, "", msg)
 				if err != nil {
 					log.Errorf("Error sending message to %s: %v", recipient, err)
 				} else {
@@ -476,7 +476,7 @@ func handleCmd(cmd string, args []string) {
 				SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
 			},
 		}
-		ts, err := cli.SendMessage(recipient, "", msg)
+		ts, err := cli.SendMessage(context.Background(), recipient, "", msg)
 		if err != nil {
 			log.Errorf("Error sending reaction: %v", err)
 		} else {
@@ -527,7 +527,7 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(data))),
 		}}
-		ts, err := cli.SendMessage(recipient, "", msg)
+		ts, err := cli.SendMessage(context.Background(), recipient, "", msg)
 		if err != nil {
 			log.Errorf("Error sending image message: %v", err)
 		} else {

@@ -15,10 +15,11 @@ import (
 
 // Miscellaneous errors
 var (
-	ErrNoSession    = errors.New("can't encrypt message for device: no signal session established")
-	ErrIQTimedOut   = errors.New("info query timed out")
-	ErrNotConnected = errors.New("websocket not connected")
-	ErrNotLoggedIn  = errors.New("the store doesn't contain a device JID")
+	ErrNoSession       = errors.New("can't encrypt message for device: no signal session established")
+	ErrIQTimedOut      = errors.New("info query timed out")
+	ErrNotConnected    = errors.New("websocket not connected")
+	ErrNotLoggedIn     = errors.New("the store doesn't contain a device JID")
+	ErrMessageTimedOut = errors.New("timed out waiting for message send response")
 
 	ErrAlreadyConnected = errors.New("websocket is already connected")
 

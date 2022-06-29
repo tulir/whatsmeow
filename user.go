@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -94,7 +95,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, 
 	for i := range jids {
 		jids[i] = types.NewJID(phones[i], types.LegacyUserServer)
 	}
-	list, err := cli.usync(jids, "query", "interactive", []waBinary.Node{
+	list, err := cli.usync(context.TODO(), jids, "query", "interactive", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "contact"},
 	})
@@ -125,7 +126,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, 
 
 // GetUserInfo gets basic user info (avatar, status, verified business name, device list).
 func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, error) {
-	list, err := cli.usync(jids, "full", "background", []waBinary.Node{
+	list, err := cli.usync(context.TODO(), jids, "full", "background", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "status"},
 		{Tag: "picture"},
@@ -161,6 +162,10 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 // regular JIDs, and the output will be a list of AD JIDs. The local device will not be included in
 // the output even if the user's JID is included in the input. All other devices will be included.
 func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
+	return cli.GetUserDevicesContext(context.Background(), jids)
+}
+
+func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) ([]types.JID, error) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 
@@ -177,7 +182,7 @@ func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 		return devices, nil
 	}
 
-	list, err := cli.usync(jidsToSync, "query", "message", []waBinary.Node{
+	list, err := cli.usync(ctx, jidsToSync, "query", "message", []waBinary.Node{
 		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
 	})
 	if err != nil {
@@ -355,7 +360,7 @@ func parseDeviceList(user string, deviceNode waBinary.Node) []types.JID {
 	return devices
 }
 
-func (cli *Client) usync(jids []types.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {
+func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {
 	userList := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		userList[i].Tag = "user"
@@ -375,6 +380,7 @@ func (cli *Client) usync(jids []types.JID, mode, context string, query []waBinar
 		}
 	}
 	resp, err := cli.sendIQ(infoQuery{
+		Context:   ctx,
 		Namespace: "usync",
 		Type:      "get",
 		To:        types.ServerJID,
