@@ -6,7 +6,11 @@
 
 package whatsmeow
 
-import waBinary "go.mau.fi/whatsmeow/binary"
+import (
+	"context"
+
+	waBinary "go.mau.fi/whatsmeow/binary"
+)
 
 type DangerousInternalClient struct {
 	c *Client
@@ -54,8 +58,8 @@ func (int *DangerousInternalClient) GetServerPreKeyCount() (int, error) {
 	return int.c.getServerPreKeyCount()
 }
 
-func (int *DangerousInternalClient) RequestAppStateKeys(keyIDs [][]byte) {
-	int.c.requestAppStateKeys(keyIDs)
+func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, keyIDs [][]byte) {
+	int.c.requestAppStateKeys(ctx, keyIDs)
 }
 
 func (int *DangerousInternalClient) SendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bool) {

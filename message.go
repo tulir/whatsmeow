@@ -51,6 +51,10 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 }
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
+	if cli.Store.ID == nil {
+		err = ErrNotLoggedIn
+		return
+	}
 	ag := node.AttrGetter()
 	from := ag.JID("from")
 	if from.Server == types.GroupServer || from.Server == types.BroadcastServer {

@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -56,7 +57,7 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 		mutations, newState, err := cli.appStateProc.DecodePatches(patches, state, true)
 		if err != nil {
 			if errors.Is(err, appstate.ErrKeyNotFound) {
-				go cli.requestMissingAppStateKeys(patches)
+				go cli.requestMissingAppStateKeys(context.TODO(), patches)
 			}
 			return fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 		}
@@ -234,7 +235,7 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 	return appstate.ParsePatchList(resp, cli.downloadExternalAppStateBlob)
 }
 
-func (cli *Client) requestMissingAppStateKeys(patches *appstate.PatchList) {
+func (cli *Client) requestMissingAppStateKeys(ctx context.Context, patches *appstate.PatchList) {
 	cli.appStateKeyRequestsLock.Lock()
 	rawKeyIDs := cli.appStateProc.GetMissingKeyIDs(patches)
 	filteredKeyIDs := make([][]byte, 0, len(rawKeyIDs))
@@ -248,10 +249,10 @@ func (cli *Client) requestMissingAppStateKeys(patches *appstate.PatchList) {
 		}
 	}
 	cli.appStateKeyRequestsLock.Unlock()
-	cli.requestAppStateKeys(filteredKeyIDs)
+	cli.requestAppStateKeys(ctx, filteredKeyIDs)
 }
 
-func (cli *Client) requestAppStateKeys(rawKeyIDs [][]byte) {
+func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) {
 	keyIDs := make([]*waProto.AppStateSyncKeyId, len(rawKeyIDs))
 	debugKeyIDs := make([]string, len(rawKeyIDs))
 	for i, keyID := range rawKeyIDs {
@@ -266,8 +267,11 @@ func (cli *Client) requestAppStateKeys(rawKeyIDs [][]byte) {
 			},
 		},
 	}
+	if cli.Store.ID == nil {
+		return
+	}
 	cli.Log.Infof("Sending key request for app state keys %+v", debugKeyIDs)
-	_, err := cli.SendMessage(cli.Store.ID.ToNonAD(), "", msg)
+	_, err := cli.SendMessage(ctx, cli.Store.ID.ToNonAD(), "", msg)
 	if err != nil {
 		cli.Log.Warnf("Failed to send app state key request: %v", err)
 	}

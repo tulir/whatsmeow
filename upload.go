@@ -53,7 +53,7 @@ type UploadResponse struct {
 //       FileSha256:    resp.FileSha256,
 //       FileLength:    &resp.FileLength,
 //   }
-//   _, err = cli.SendMessage(targetJID, "", &waProto.Message{
+//   _, err = cli.SendMessage(context.Background(), targetJID, "", &waProto.Message{
 //       ImageMessage: imageMsg,
 //   })
 //   // handle error again

@@ -305,7 +305,9 @@ type Presence struct {
 
 // JoinedGroup is emitted when you join or are added to a group.
 type JoinedGroup struct {
-	Reason string // If the event was triggered by you using an invite link, this will be "invite"
+	Reason    string          // If the event was triggered by you using an invite link, this will be "invite".
+	Type      string          // "new" if it's a newly created group.
+	CreateKey types.MessageID // If you created the group, this is the same message ID you passed to CreateGroup.
 	types.GroupInfo
 }
 

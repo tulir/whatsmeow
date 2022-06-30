@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"time"
@@ -93,7 +94,7 @@ type preKeyResp struct {
 	err    error
 }
 
-func (cli *Client) fetchPreKeys(users []types.JID) (map[types.JID]preKeyResp, error) {
+func (cli *Client) fetchPreKeys(ctx context.Context, users []types.JID) (map[types.JID]preKeyResp, error) {
 	requests := make([]waBinary.Node, len(users))
 	for i, user := range users {
 		requests[i].Tag = "user"
@@ -103,6 +104,7 @@ func (cli *Client) fetchPreKeys(users []types.JID) (map[types.JID]preKeyResp, er
 		}
 	}
 	resp, err := cli.sendIQ(infoQuery{
+		Context:   ctx,
 		Namespace: "encrypt",
 		Type:      "get",
 		To:        types.ServerJID,
