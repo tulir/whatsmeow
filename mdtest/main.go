@@ -151,8 +151,44 @@ func parseJID(arg string) (types.JID, bool) {
 	}
 }
 
+func usage() {
+    log.Errorf("Available commands:")
+    log.Errorf("   reconnect")
+    log.Errorf("   logout")
+    log.Errorf("   appstate [all | resync] <types...>")
+    log.Errorf("   request-appstate-key <ids...>")
+    log.Errorf("   checkuser <phone numbers...>")
+    log.Errorf("   checkupdate")
+    log.Errorf("   subscribepresence <jid>")
+    log.Errorf("   presence <arg>")
+    log.Errorf("   chatpresence <jid> <composing/paused> [audio]")
+    log.Errorf("   privacysettings")
+    log.Errorf("   getuser <jids...>")
+    log.Errorf("   getavatar <jid> [preview]")
+    log.Errorf("   getgroup <jid>")
+    log.Errorf("   addgroup [props] <jid> ...")
+    log.Errorf("         props: {name|topic|invite}:\"...\"")
+    log.Errorf("   jsonadd <groupdef.json>")
+    log.Errorf("   listgroups")
+    log.Errorf("   getinvitelink <jid> [--reset]")
+    log.Errorf("   queryinvitelink <link>")
+    log.Errorf("   querybusinesslink <link>")
+    log.Errorf("   joininvitelink <link>")
+    log.Errorf("   getstatusprivacy")
+    log.Errorf("   setdisappeartimer <jid> <days>")
+    log.Errorf("   send <jid> <text>")
+    log.Errorf("   multisend <jids...> -- <text>")
+    log.Errorf("   react <jid> [me:]<message ID> [remove | <reaction>]")
+    log.Errorf("   revoke <jid> <message ID>")
+    log.Errorf("   sendimg <jid> <image path> [caption]")
+}
+
+
 func handleCmd(cmd string, args []string) {
 	switch cmd {
+	case "help":
+        usage()
+
 	case "reconnect":
 		cli.Disconnect()
 		err := cli.Connect()
@@ -374,9 +410,9 @@ func handleCmd(cmd string, args []string) {
 		'add' : [ jids ]
 		'del' : [ jids ]
  		*/
-		log.Infof("starting jsonadd: %v", args)
 		if len(args) < 1 {
 			log.Errorf("Usage: jsonadd <groupdef.json>")
+            log.Errorf("   example: { \"name\":\"my group\", \"topic\":\"my topic\",\n    \"invite\":\"invitation for my group\", \"members\":[\"06-12345678\"] }")
 			return
 		}
 		data, err := os.ReadFile(args[0])
@@ -471,7 +507,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "joininvitelink":
 		if len(args) < 1 {
-			log.Errorf("Usage: acceptinvitelink <link>")
+			log.Errorf("Usage: joininvitelink <link>")
 			return
 		}
 		groupID, err := cli.JoinGroupWithLink(args[0])
@@ -645,6 +681,8 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Status updated")
 		}
+    default:
+        log.Errorf("Invalid command, type: help")
 	}
 }
 
