@@ -30,6 +30,14 @@ type PushName struct {
 	NewPushName string             // The new push name that was included in the message.
 }
 
+// BusinessName is emitted when a message is received with a different verified business name than the previous value cached for the same user.
+type BusinessName struct {
+	JID             types.JID
+	Message         *types.MessageInfo // This is only present if the change was detected in a message.
+	OldBusinessName string
+	NewBusinessName string
+}
+
 // Pin is emitted when a chat is pinned or unpinned from another device.
 type Pin struct {
 	JID       types.JID // The chat which was pinned or unpinned.

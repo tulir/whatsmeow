@@ -471,23 +471,25 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 	return false, "", nil
 }
 
-func (s *SQLStore) PutBusinessName(user types.JID, businessName string) error {
+func (s *SQLStore) PutBusinessName(user types.JID, businessName string) (bool, string, error) {
 	s.contactCacheLock.Lock()
 	defer s.contactCacheLock.Unlock()
 
 	cached, err := s.getContact(user)
 	if err != nil {
-		return err
+		return false, "", err
 	}
 	if cached.BusinessName != businessName {
 		_, err = s.db.Exec(putBusinessNameQuery, s.JID, user, businessName)
 		if err != nil {
-			return err
+			return false, "", err
 		}
+		previousName := cached.BusinessName
 		cached.BusinessName = businessName
 		cached.Found = true
+		return true, previousName, nil
 	}
-	return nil
+	return false, "", nil
 }
 
 func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) error {

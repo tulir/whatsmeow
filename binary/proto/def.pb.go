@@ -3015,6 +3015,7 @@ const (
 	WebMessageInfo_GROUP_PARTICIPANT_ACCEPT                                 WebMessageInfo_WebMessageInfoStubType = 140
 	WebMessageInfo_GROUP_PARTICIPANT_LINKED_GROUP_JOIN                      WebMessageInfo_WebMessageInfoStubType = 141
 	WebMessageInfo_COMMUNITY_CREATE                                         WebMessageInfo_WebMessageInfoStubType = 142
+	WebMessageInfo_EPHEMERAL_KEEP_IN_CHAT                                   WebMessageInfo_WebMessageInfoStubType = 143
 )
 
 // Enum value maps for WebMessageInfo_WebMessageInfoStubType.
@@ -3163,6 +3164,7 @@ var (
 		140: "GROUP_PARTICIPANT_ACCEPT",
 		141: "GROUP_PARTICIPANT_LINKED_GROUP_JOIN",
 		142: "COMMUNITY_CREATE",
+		143: "EPHEMERAL_KEEP_IN_CHAT",
 	}
 	WebMessageInfo_WebMessageInfoStubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -3308,6 +3310,7 @@ var (
 		"GROUP_PARTICIPANT_ACCEPT":                                 140,
 		"GROUP_PARTICIPANT_LINKED_GROUP_JOIN":                      141,
 		"COMMUNITY_CREATE":                                         142,
+		"EPHEMERAL_KEEP_IN_CHAT":                                   143,
 	}
 )
 
@@ -11540,6 +11543,7 @@ type MessageContextInfo struct {
 	DeviceListMetadata        *DeviceListMetadata `protobuf:"bytes,1,opt,name=deviceListMetadata" json:"deviceListMetadata,omitempty"`
 	DeviceListMetadataVersion *int32              `protobuf:"varint,2,opt,name=deviceListMetadataVersion" json:"deviceListMetadataVersion,omitempty"`
 	MessageSecret             []byte              `protobuf:"bytes,3,opt,name=messageSecret" json:"messageSecret,omitempty"`
+	PaddingBytes              []byte              `protobuf:"bytes,4,opt,name=paddingBytes" json:"paddingBytes,omitempty"`
 }
 
 func (x *MessageContextInfo) Reset() {
@@ -11591,6 +11595,13 @@ func (x *MessageContextInfo) GetDeviceListMetadataVersion() int32 {
 func (x *MessageContextInfo) GetMessageSecret() []byte {
 	if x != nil {
 		return x.MessageSecret
+	}
+	return nil
+}
+
+func (x *MessageContextInfo) GetPaddingBytes() []byte {
+	if x != nil {
+		return x.PaddingBytes
 	}
 	return nil
 }
@@ -13537,6 +13548,16 @@ type Conversation struct {
 	TcTokenSenderTimestamp    *uint64                                            `protobuf:"varint,28,opt,name=tcTokenSenderTimestamp" json:"tcTokenSenderTimestamp,omitempty"`
 	Suspended                 *bool                                              `protobuf:"varint,29,opt,name=suspended" json:"suspended,omitempty"`
 	Terminated                *bool                                              `protobuf:"varint,30,opt,name=terminated" json:"terminated,omitempty"`
+	CreatedAt                 *uint64                                            `protobuf:"varint,31,opt,name=createdAt" json:"createdAt,omitempty"`
+	CreatedBy                 *string                                            `protobuf:"bytes,32,opt,name=createdBy" json:"createdBy,omitempty"`
+	Description               *string                                            `protobuf:"bytes,33,opt,name=description" json:"description,omitempty"`
+	Support                   *bool                                              `protobuf:"varint,34,opt,name=support" json:"support,omitempty"`
+	IsParentGroup             *bool                                              `protobuf:"varint,35,opt,name=isParentGroup" json:"isParentGroup,omitempty"`
+	IsDefaultSubgroup         *bool                                              `protobuf:"varint,36,opt,name=isDefaultSubgroup" json:"isDefaultSubgroup,omitempty"`
+	ParentGroupId             *string                                            `protobuf:"bytes,37,opt,name=parentGroupId" json:"parentGroupId,omitempty"`
+	DisplayName               *string                                            `protobuf:"bytes,38,opt,name=displayName" json:"displayName,omitempty"`
+	PnJid                     *string                                            `protobuf:"bytes,39,opt,name=pnJid" json:"pnJid,omitempty"`
+	SelfMasked                *bool                                              `protobuf:"varint,40,opt,name=selfMasked" json:"selfMasked,omitempty"`
 }
 
 func (x *Conversation) Reset() {
@@ -13781,6 +13802,76 @@ func (x *Conversation) GetTerminated() bool {
 	return false
 }
 
+func (x *Conversation) GetCreatedAt() uint64 {
+	if x != nil && x.CreatedAt != nil {
+		return *x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Conversation) GetCreatedBy() string {
+	if x != nil && x.CreatedBy != nil {
+		return *x.CreatedBy
+	}
+	return ""
+}
+
+func (x *Conversation) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *Conversation) GetSupport() bool {
+	if x != nil && x.Support != nil {
+		return *x.Support
+	}
+	return false
+}
+
+func (x *Conversation) GetIsParentGroup() bool {
+	if x != nil && x.IsParentGroup != nil {
+		return *x.IsParentGroup
+	}
+	return false
+}
+
+func (x *Conversation) GetIsDefaultSubgroup() bool {
+	if x != nil && x.IsDefaultSubgroup != nil {
+		return *x.IsDefaultSubgroup
+	}
+	return false
+}
+
+func (x *Conversation) GetParentGroupId() string {
+	if x != nil && x.ParentGroupId != nil {
+		return *x.ParentGroupId
+	}
+	return ""
+}
+
+func (x *Conversation) GetDisplayName() string {
+	if x != nil && x.DisplayName != nil {
+		return *x.DisplayName
+	}
+	return ""
+}
+
+func (x *Conversation) GetPnJid() string {
+	if x != nil && x.PnJid != nil {
+		return *x.PnJid
+	}
+	return ""
+}
+
+func (x *Conversation) GetSelfMasked() bool {
+	if x != nil && x.SelfMasked != nil {
+		return *x.SelfMasked
+	}
+	return false
+}
+
 type AutoDownloadSettings struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -13928,8 +14019,8 @@ type MsgOpaqueData struct {
 	Loc                        *string       `protobuf:"bytes,16,opt,name=loc" json:"loc,omitempty"`
 	PollName                   *string       `protobuf:"bytes,17,opt,name=pollName" json:"pollName,omitempty"`
 	PollOptions                []*PollOption `protobuf:"bytes,18,rep,name=pollOptions" json:"pollOptions,omitempty"`
-	PollEncKey                 []byte        `protobuf:"bytes,19,opt,name=pollEncKey" json:"pollEncKey,omitempty"`
 	PollSelectableOptionsCount *uint32       `protobuf:"varint,20,opt,name=pollSelectableOptionsCount" json:"pollSelectableOptionsCount,omitempty"`
+	MessageSecret              []byte        `protobuf:"bytes,21,opt,name=messageSecret" json:"messageSecret,omitempty"`
 }
 
 func (x *MsgOpaqueData) Reset() {
@@ -14076,18 +14167,18 @@ func (x *MsgOpaqueData) GetPollOptions() []*PollOption {
 	return nil
 }
 
-func (x *MsgOpaqueData) GetPollEncKey() []byte {
-	if x != nil {
-		return x.PollEncKey
-	}
-	return nil
-}
-
 func (x *MsgOpaqueData) GetPollSelectableOptionsCount() uint32 {
 	if x != nil && x.PollSelectableOptionsCount != nil {
 		return *x.PollSelectableOptionsCount
 	}
 	return 0
+}
+
+func (x *MsgOpaqueData) GetMessageSecret() []byte {
+	if x != nil {
+		return x.MessageSecret
+	}
+	return nil
 }
 
 type PollOption struct {
@@ -19950,7 +20041,7 @@ type KeepInChat struct {
 
 	KeepType        *KeepType `protobuf:"varint,1,opt,name=keepType,enum=proto.KeepType" json:"keepType,omitempty"`
 	ServerTimestamp *int64    `protobuf:"varint,2,opt,name=serverTimestamp" json:"serverTimestamp,omitempty"`
-	KicUser         *string   `protobuf:"bytes,3,opt,name=kicUser" json:"kicUser,omitempty"`
+	DeviceJid       *string   `protobuf:"bytes,3,opt,name=deviceJid" json:"deviceJid,omitempty"`
 }
 
 func (x *KeepInChat) Reset() {
@@ -19999,9 +20090,9 @@ func (x *KeepInChat) GetServerTimestamp() int64 {
 	return 0
 }
 
-func (x *KeepInChat) GetKicUser() string {
-	if x != nil && x.KicUser != nil {
-		return *x.KicUser
+func (x *KeepInChat) GetDeviceJid() string {
+	if x != nil && x.DeviceJid != nil {
+		return *x.DeviceJid
 	}
 	return ""
 }

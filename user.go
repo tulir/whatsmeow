@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -70,6 +71,23 @@ func (cli *Client) ResolveBusinessMessageLink(code string) (*types.BusinessMessa
 	return &target, ag.Error()
 }
 
+// SetStatusMessage updates the current user's status text, which is shown in the "About" section in the user profile.
+//
+// This is different from the ephemeral status broadcast messages. Use SendMessage to types.StatusBroadcastJID to send
+// such messages.
+func (cli *Client) SetStatusMessage(msg string) error {
+	_, err := cli.sendIQ(infoQuery{
+		Namespace: "status",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag:     "status",
+			Content: msg,
+		}},
+	})
+	return err
+}
+
 // IsOnWhatsApp checks if the given phone numbers are registered on WhatsApp.
 // The phone numbers should be in international format, including the `+` prefix.
 func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, error) {
@@ -77,7 +95,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, 
 	for i := range jids {
 		jids[i] = types.NewJID(phones[i], types.LegacyUserServer)
 	}
-	list, err := cli.usync(jids, "query", "interactive", []waBinary.Node{
+	list, err := cli.usync(context.TODO(), jids, "query", "interactive", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "contact"},
 	})
@@ -108,7 +126,7 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, 
 
 // GetUserInfo gets basic user info (avatar, status, verified business name, device list).
 func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, error) {
-	list, err := cli.usync(jids, "full", "background", []waBinary.Node{
+	list, err := cli.usync(context.TODO(), jids, "full", "background", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "status"},
 		{Tag: "picture"},
@@ -133,7 +151,7 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		info.PictureID, _ = child.GetChildByTag("picture").Attrs["id"].(string)
 		info.Devices = parseDeviceList(jid.User, child.GetChildByTag("devices"))
 		if verifiedName != nil {
-			cli.updateBusinessName(jid, verifiedName.Details.GetVerifiedName())
+			cli.updateBusinessName(jid, nil, verifiedName.Details.GetVerifiedName())
 		}
 		respData[jid] = info
 	}
@@ -144,6 +162,10 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 // regular JIDs, and the output will be a list of AD JIDs. The local device will not be included in
 // the output even if the user's JID is included in the input. All other devices will be included.
 func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
+	return cli.GetUserDevicesContext(context.Background(), jids)
+}
+
+func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) ([]types.JID, error) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 
@@ -160,7 +182,7 @@ func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 		return devices, nil
 	}
 
-	list, err := cli.usync(jidsToSync, "query", "message", []waBinary.Node{
+	list, err := cli.usync(ctx, jidsToSync, "query", "message", []waBinary.Node{
 		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
 	})
 	if err != nil {
@@ -181,8 +203,10 @@ func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 }
 
 // GetProfilePictureInfo gets the URL where you can download a WhatsApp user's profile picture or group's photo.
-// If the user or group doesn't have a profile picture, this returns nil with no error.
-func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.ProfilePictureInfo, error) {
+//
+// Optionally, you can pass the last known profile picture ID.
+// If the profile picture hasn't changed, this will return nil with no error.
+func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool, existingID string) (*types.ProfilePictureInfo, error) {
 	attrs := waBinary.Attrs{
 		"query": "url",
 	}
@@ -190,6 +214,9 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 		attrs["type"] = "preview"
 	} else {
 		attrs["type"] = "image"
+	}
+	if existingID != "" {
+		attrs["id"] = existingID
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:profile:picture",
@@ -203,12 +230,15 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool) (*types.Pr
 	if errors.Is(err, ErrIQNotAuthorized) {
 		return nil, wrapIQError(ErrProfilePictureUnauthorized, err)
 	} else if errors.Is(err, ErrIQNotFound) {
-		return nil, nil
+		return nil, wrapIQError(ErrProfilePictureNotSet, err)
 	} else if err != nil {
 		return nil, err
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")
 	if !ok {
+		if existingID != "" {
+			return nil, nil
+		}
 		return nil, &ElementMissingError{Tag: "picture", In: "response to profile picture query"}
 	}
 	var info types.ProfilePictureInfo
@@ -262,13 +292,21 @@ func (cli *Client) updatePushName(user types.JID, messageInfo *types.MessageInfo
 	}
 }
 
-func (cli *Client) updateBusinessName(user types.JID, name string) {
+func (cli *Client) updateBusinessName(user types.JID, messageInfo *types.MessageInfo, name string) {
 	if cli.Store.Contacts == nil {
 		return
 	}
-	err := cli.Store.Contacts.PutBusinessName(user, name)
+	changed, previousName, err := cli.Store.Contacts.PutBusinessName(user, name)
 	if err != nil {
 		cli.Log.Errorf("Failed to save business name of %s in device store: %v", user, err)
+	} else if changed {
+		cli.Log.Debugf("Business name of %s changed from %s to %s, dispatching event", user, previousName, name)
+		cli.dispatchEvent(&events.BusinessName{
+			JID:             user,
+			Message:         messageInfo,
+			OldBusinessName: previousName,
+			NewBusinessName: name,
+		})
 	}
 }
 
@@ -280,6 +318,10 @@ func parseVerifiedName(businessNode waBinary.Node) (*types.VerifiedName, error) 
 	if !ok {
 		return nil, nil
 	}
+	return parseVerifiedNameContent(verifiedNameNode)
+}
+
+func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedName, error) {
 	rawCert, ok := verifiedNameNode.Content.([]byte)
 	if !ok {
 		return nil, nil
@@ -318,7 +360,7 @@ func parseDeviceList(user string, deviceNode waBinary.Node) []types.JID {
 	return devices
 }
 
-func (cli *Client) usync(jids []types.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {
+func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {
 	userList := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		userList[i].Tag = "user"
@@ -338,6 +380,7 @@ func (cli *Client) usync(jids []types.JID, mode, context string, query []waBinar
 		}
 	}
 	resp, err := cli.sendIQ(infoQuery{
+		Context:   ctx,
 		Namespace: "usync",
 		Type:      "get",
 		To:        types.ServerJID,

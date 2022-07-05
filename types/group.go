@@ -10,6 +10,12 @@ import (
 	"time"
 )
 
+type GroupMemberAddMode string
+
+const (
+	GroupMemberAddModeAdmin GroupMemberAddMode = "admin_add"
+)
+
 // GroupInfo contains basic information about a group chat on WhatsApp.
 type GroupInfo struct {
 	JID      JID
@@ -25,6 +31,8 @@ type GroupInfo struct {
 
 	ParticipantVersionID string
 	Participants         []GroupParticipant
+
+	MemberAddMode GroupMemberAddMode
 }
 
 // GroupName contains the name of a group along with metadata of who set it and when.

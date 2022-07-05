@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"encoding/binary"
 	"fmt"
 	"time"
@@ -151,7 +152,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	} else if reason, recreate := cli.shouldRecreateSession(retryCount, receipt.Sender); recreate {
 		cli.Log.Debugf("Fetching prekeys for %s for handling retry receipt with no prekey bundle because %s", receipt.Sender, reason)
 		var keys map[types.JID]preKeyResp
-		keys, err = cli.fetchPreKeys([]types.JID{receipt.Sender})
+		keys, err = cli.fetchPreKeys(context.TODO(), []types.JID{receipt.Sender})
 		if err != nil {
 			return err
 		}
