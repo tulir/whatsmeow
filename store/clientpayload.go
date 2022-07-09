@@ -74,7 +74,7 @@ func (vc WAVersionContainer) ProtoAppVersion() *waProto.AppVersion {
 }
 
 // waVersion is the WhatsApp web client version
-var waVersion = WAVersionContainer{2, 2222, 11}
+var waVersion = WAVersionContainer{2, 2224, 8}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
 var waVersionHash [16]byte
