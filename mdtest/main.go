@@ -739,13 +739,31 @@ func handler(rawEvt interface{}) {
 				return
 			}
 			exts, _ := mime.ExtensionsByType(img.GetMimetype())
-			path := fmt.Sprintf("%s%s", evt.Info.ID, exts[0])
+            datetime := evt.Info.Timestamp.Format("20060102-150405")
+            path := fmt.Sprintf("%s-%s%s", datetime, evt.Info.ID, exts[0])
 			err = os.WriteFile(path, data, 0600)
 			if err != nil {
 				log.Errorf("Failed to save image: %v", err)
 				return
 			}
 			log.Infof("Saved image in message to %s", path)
+		}
+		vid := evt.Message.GetVideoMessage()
+		if vid != nil {
+			data, err := cli.Download(vid)
+			if err != nil {
+				log.Errorf("Failed to download video: %v", err)
+				return
+			}
+			exts, _ := mime.ExtensionsByType(vid.GetMimetype())
+            datetime := evt.Info.Timestamp.Format("20060102-150405")
+            path := fmt.Sprintf("%s-%s%s", datetime, evt.Info.ID, exts[0])
+			err = os.WriteFile(path, data, 0600)
+			if err != nil {
+				log.Errorf("Failed to save video: %v", err)
+				return
+			}
+			log.Infof("Saved video in message to %s", path)
 		}
 	case *events.Receipt:
 		if evt.Type == events.ReceiptTypeRead || evt.Type == events.ReceiptTypeReadSelf {
@@ -806,7 +824,7 @@ type InviteGroupSpec struct {
 	Members []types.JID      //  members - max 256
 }
 func CreateInviteGroup(spec InviteGroupSpec) {
-	grp, err := cli.CreateGroup(spec.Name, spec.Members)
+	grp, err := cli.CreateGroup(spec.Name, spec.Members, /*msgid*/"")
 	if err!=nil {
 		log.Errorf("error creating group: %v", err)
 		return
@@ -837,7 +855,7 @@ func SendInvite(grp *types.GroupInfo, inv types.GroupInvitee, invmsg string) {
 			Caption: proto.String(invmsg),
 		},
 	}
-	ts, err := cli.SendMessage(inv.JID, /*msgid*/"", msg)
+	ts, err := cli.SendMessage(context.Background(), inv.JID, /*msgid*/"", msg)
 	if err != nil {
 		log.Errorf("Error sending invite: %v", err)
 	} else {
