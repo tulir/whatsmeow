@@ -92,6 +92,14 @@ type MarkChatAsRead struct {
 	Action *waProto.MarkChatAsReadAction // Whether the chat was marked as read or unread, and info about the most recent messages.
 }
 
+// DeleteChat is emitted when a chat is deleted on another device.
+type DeleteChat struct {
+	JID       types.JID // The chat which was deleted.
+	Timestamp time.Time // The time when the deletion happened.
+
+	Action *waProto.DeleteChatAction // Information about the deletion.
+}
+
 // PushNameSetting is emitted when the user's push name is changed from another device.
 type PushNameSetting struct {
 	Timestamp time.Time // The time when the push name was changed.
