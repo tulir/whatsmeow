@@ -151,8 +151,44 @@ func parseJID(arg string) (types.JID, bool) {
 	}
 }
 
+func usage() {
+    log.Errorf("Available commands:")
+    log.Errorf("   reconnect")
+    log.Errorf("   logout")
+    log.Errorf("   appstate [all | resync] <types...>")
+    log.Errorf("   request-appstate-key <ids...>")
+    log.Errorf("   checkuser <phone numbers...>")
+    log.Errorf("   checkupdate")
+    log.Errorf("   subscribepresence <jid>")
+    log.Errorf("   presence <arg>")
+    log.Errorf("   chatpresence <jid> <composing/paused> [audio]")
+    log.Errorf("   privacysettings")
+    log.Errorf("   getuser <jids...>")
+    log.Errorf("   getavatar <jid> [preview]")
+    log.Errorf("   getgroup <jid>")
+    log.Errorf("   addgroup [props] <jid> ...")
+    log.Errorf("         props: {name|topic|invite}:\"...\"")
+    log.Errorf("   jsonadd <groupdef.json>")
+    log.Errorf("   listgroups")
+    log.Errorf("   getinvitelink <jid> [--reset]")
+    log.Errorf("   queryinvitelink <link>")
+    log.Errorf("   querybusinesslink <link>")
+    log.Errorf("   joininvitelink <link>")
+    log.Errorf("   getstatusprivacy")
+    log.Errorf("   setdisappeartimer <jid> <days>")
+    log.Errorf("   send <jid> <text>")
+    log.Errorf("   multisend <jids...> -- <text>")
+    log.Errorf("   react <jid> [me:]<message ID> [remove | <reaction>]")
+    log.Errorf("   revoke <jid> <message ID>")
+    log.Errorf("   sendimg <jid> <image path> [caption]")
+}
+
+
 func handleCmd(cmd string, args []string) {
 	switch cmd {
+	case "help":
+        usage()
+
 	case "reconnect":
 		cli.Disconnect()
 		err := cli.Connect()
@@ -206,11 +242,23 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Failed to check if users are on WhatsApp:", err)
 		} else {
+			var jids []types.JID
 			for _, item := range resp {
 				if item.VerifiedName != nil {
 					log.Infof("%s: on whatsapp: %t, JID: %s, business name: %s", item.Query, item.IsIn, item.JID, item.VerifiedName.Details.GetVerifiedName())
 				} else {
 					log.Infof("%s: on whatsapp: %t, JID: %s", item.Query, item.IsIn, item.JID)
+				}
+				if item.IsIn {
+					jids = append(jids, item.JID)
+				}
+			}
+			resp, err := cli.GetUserInfo(jids)
+			if err != nil {
+				log.Errorf("Failed to get user info: %v", err)
+			} else {
+				for jid, info := range resp {
+					log.Infof("%s: %+v", jid, info)
 				}
 			}
 		}
@@ -235,11 +283,12 @@ func handleCmd(cmd string, args []string) {
 		}
 		jid, ok := parseJID(args[0])
 		if !ok {
+			log.Errorf("invalid jid: %v", args[0])
 			return
 		}
 		err := cli.SubscribePresence(jid)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("subscribe %v -> %v\n", jid, err)
 		}
 	case "presence":
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
@@ -319,6 +368,94 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Group info: %+v", resp)
 		}
+	case "addgroup":
+		if len(args) < 2 {
+			log.Errorf("Usage: addgroup [props] <jid> ...")
+			log.Errorf("  props: {name|topic|invite}:\"...\"")
+			return
+		}
+		var spec InviteGroupSpec
+		for _, arg := range args {
+			if strings.HasPrefix(arg, "name:") {
+				spec.Name = strings.Trim(arg[5:], "\"")
+			} else if strings.HasPrefix(arg, "topic:") {
+				spec.Topic = strings.Trim(arg[6:], "\"")
+			} else if strings.HasPrefix(arg, "invite:") {
+				spec.Invite = strings.Trim(arg[7:], "\"")
+			} else {
+				jid, ok := parseJID(arg)
+				if !ok {
+					log.Errorf("error parsing JID: %v", arg)
+					return
+				}
+				spec.Members = append(spec.Members, jid)
+			}
+		}
+		if len(spec.Name)==0 {
+			log.Errorf("must specify a groupname")
+			return
+		}
+		if len(spec.Invite)==0 {
+			spec.Invite = fmt.Sprintf("Invitation for group %s", spec.Name)
+			if len(spec.Topic)!=0 {
+				spec.Invite = spec.Invite + " " + spec.Topic
+			}
+		}
+		CreateInviteGroup(spec)
+
+	case "jsonadd":
+		/*
+		todo: add support for update:
+		'jid' : GROUPJID
+		'add' : [ jids ]
+		'del' : [ jids ]
+ 		*/
+		if len(args) < 1 {
+			log.Errorf("Usage: jsonadd <groupdef.json>")
+            log.Errorf("   example: { \"name\":\"my group\", \"topic\":\"my topic\",\n    \"invite\":\"invitation for my group\", \"members\":[\"06-12345678\"] }")
+			return
+		}
+		data, err := os.ReadFile(args[0])
+		if err != nil {
+			log.Errorf("Failed to read %s: %v", args[0], err)
+			return
+		}
+		type JsonGroupDef struct {
+			Name string        //  name    - max 25
+			Topic string       //  topic   - max 512
+			Invite string      //  invitemsg - max 1024
+			Members []string   //  members - max 256
+		}
+		var gdef JsonGroupDef
+
+		// decode json
+		err = json.Unmarshal(data, &gdef)
+		if err != nil {
+			log.Errorf("Error decoding json: %v", err)
+			return
+		}
+
+		// check what members are on whatsapp
+		found, err := cli.IsOnWhatsApp(gdef.Members)
+		if err!=nil {
+			log.Errorf("error checking members: %v", err)
+			return
+		}
+		gspec := InviteGroupSpec{
+			Name: gdef.Name,
+			Topic: gdef.Topic,
+			Invite: gdef.Invite,
+		}
+
+		// convert found JID list to memberlist
+		for i, v := range found {
+			if v.IsIn {
+				gspec.Members = append(gspec.Members, v.JID)
+			} else {
+				log.Infof("not on whatsapp: %d: %v", i, v)
+			}
+		}
+		CreateInviteGroup(gspec)
 	case "listgroups":
 		groups, err := cli.GetJoinedGroups()
 		if err != nil {
@@ -370,7 +507,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "joininvitelink":
 		if len(args) < 1 {
-			log.Errorf("Usage: acceptinvitelink <link>")
+			log.Errorf("Usage: joininvitelink <link>")
 			return
 		}
 		groupID, err := cli.JoinGroupWithLink(args[0])
@@ -544,6 +681,8 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Status updated")
 		}
+    default:
+        log.Errorf("Invalid command, type: help")
 	}
 }
 
@@ -600,13 +739,31 @@ func handler(rawEvt interface{}) {
 				return
 			}
 			exts, _ := mime.ExtensionsByType(img.GetMimetype())
-			path := fmt.Sprintf("%s%s", evt.Info.ID, exts[0])
+            datetime := evt.Info.Timestamp.Format("20060102-150405")
+            path := fmt.Sprintf("%s-%s%s", datetime, evt.Info.ID, exts[0])
 			err = os.WriteFile(path, data, 0600)
 			if err != nil {
 				log.Errorf("Failed to save image: %v", err)
 				return
 			}
 			log.Infof("Saved image in message to %s", path)
+		}
+		vid := evt.Message.GetVideoMessage()
+		if vid != nil {
+			data, err := cli.Download(vid)
+			if err != nil {
+				log.Errorf("Failed to download video: %v", err)
+				return
+			}
+			exts, _ := mime.ExtensionsByType(vid.GetMimetype())
+            datetime := evt.Info.Timestamp.Format("20060102-150405")
+            path := fmt.Sprintf("%s-%s%s", datetime, evt.Info.ID, exts[0])
+			err = os.WriteFile(path, data, 0600)
+			if err != nil {
+				log.Errorf("Failed to save video: %v", err)
+				return
+			}
+			log.Infof("Saved video in message to %s", path)
 		}
 	case *events.Receipt:
 		if evt.Type == events.ReceiptTypeRead || evt.Type == events.ReceiptTypeReadSelf {
@@ -657,5 +814,51 @@ func handler(rawEvt interface{}) {
 		}
 	case *events.KeepAliveRestored:
 		log.Debugf("Keepalive restored")
+	}
+}
+
+type InviteGroupSpec struct {
+	Name string        //  name    - max 25
+	Topic string       //  topic   - max 512
+	Invite string      //  msg     - max 1024
+	Members []types.JID      //  members - max 256
+}
+func CreateInviteGroup(spec InviteGroupSpec) {
+	grp, err := cli.CreateGroup(spec.Name, spec.Members, /*msgid*/"")
+	if err!=nil {
+		log.Errorf("error creating group: %v", err)
+		return
+	}
+    err = cli.SetGroupTopic(grp.JID, /*previd*/"", /*newid*/"", spec.Topic)
+    if err!=nil {
+        log.Errorf("error setting topic: %v", err)
+        return
+    }
+
+	log.Infof("Group info: %v", grp)
+	for _, v := range grp.Invitees {
+		SendInvite(grp, v, spec.Invite)
+	}
+
+	//  chg = { jid => ParticipantChangeAdd }
+	//  UpdateGroupParticipants(grp.JID, chg)
+
+}
+
+func SendInvite(grp *types.GroupInfo, inv types.GroupInvitee, invmsg string) {
+	msg := &waProto.Message{
+		GroupInviteMessage: &waProto.GroupInviteMessage{
+			GroupJid: proto.String(grp.JID.String()),
+			InviteCode: proto.String(inv.InviteCode),
+			InviteExpiration: proto.Int64(int64(inv.Expiration)),
+			GroupName: proto.String(grp.GroupName.Name),
+			Caption: proto.String(invmsg),
+		},
+	}
+	ts, err := cli.SendMessage(context.Background(), inv.JID, /*msgid*/"", msg)
+	if err != nil {
+		log.Errorf("Error sending invite: %v", err)
+	} else {
+		log.Infof("Invitation sent (server timestamp: %s)", ts)
 	}
 }
