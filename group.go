@@ -420,8 +420,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		switch child.Tag {
 		case "participant":
 			pcpType := childAG.OptionalString("type")
-			err := childAG.OptionalInt("error")
-			if err!=0 {
+			errCode := childAG.OptionalInt("error")
+			if errCode == 403 {
 				// This happens for participants which have restricted who can
 				// invite them to groups, the error code will be: '403'
 
