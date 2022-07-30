@@ -19,7 +19,7 @@ import (
 )
 
 type Mutation struct {
-	Operation waProto.SyncdMutation_SyncdMutationSyncdOperation
+	Operation waProto.SyncdMutation_SyncdOperation
 	Action    *waProto.SyncActionValue
 	Index     []string
 	IndexMAC  []byte
@@ -89,7 +89,7 @@ func generatePatchMAC(patch *waProto.SyncdPatch, name WAPatchName, key []byte) [
 	return concatAndHMAC(sha256.New, key, dataToHash...)
 }
 
-func generateContentMAC(operation waProto.SyncdMutation_SyncdMutationSyncdOperation, data, keyID, key []byte) []byte {
+func generateContentMAC(operation waProto.SyncdMutation_SyncdOperation, data, keyID, key []byte) []byte {
 	operationBytes := []byte{byte(operation) + 1}
 	keyDataLength := uint64ToBytes(uint64(len(keyID) + 1))
 	return concatAndHMAC(sha512.New, key, operationBytes, keyID, data, keyDataLength)[:32]

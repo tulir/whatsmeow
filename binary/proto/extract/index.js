@@ -54,7 +54,7 @@ async function findAppModules(mods) {
         640965, // NoiseCertificate, CertChain
     ]
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
-    const unnestName = name => name.replace("Message$", "") // Don't nest messages into Message, that's too much nesting
+    const unnestName = name => name.replace("Message$", "").replace("SyncActionValue$", "") // Don't nest messages into Message, that's too much nesting
     const rename = name => unnestName(unspecName(name))
     // The constructor IDs that can be used for enum types
     const enumConstructorIDs = [76672, 654302]

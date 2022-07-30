@@ -15,7 +15,7 @@ import (
 // VerifiedName contains verified WhatsApp business details.
 type VerifiedName struct {
 	Certificate *waProto.VerifiedNameCertificate
-	Details     *waProto.VerifiedNameDetails
+	Details     *waProto.VerifiedNameCertificate_Details
 }
 
 // UserInfo contains info about a WhatsApp user.
