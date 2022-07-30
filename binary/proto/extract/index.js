@@ -53,15 +53,9 @@ async function findAppModules(mods) {
         421224, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
         640965, // NoiseCertificate, CertChain
     ]
-    // Conflicting specs by module ID and what to rename them to
-    const renames = {
-    }
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
     const unnestName = name => name.replace("Message$", "") // Don't nest messages into Message, that's too much nesting
-    const makeRenameFunc = modID => name => {
-        name = unspecName(name)
-        return renames[modID]?.[name] ?? unnestName(name)
-    }
+    const rename = name => unnestName(unspecName(name))
     // The constructor IDs that can be used for enum types
     const enumConstructorIDs = [76672, 654302]
 
@@ -93,7 +87,6 @@ async function findAppModules(mods) {
     // find all identifiers and, for enums, their array of values
     for (const mod of modules) {
         const modInfo = modulesInfo[mod.key.value]
-        const rename = makeRenameFunc(mod.key.value)
 
         // all identifiers will be initialized to "void 0" (i.e. "undefined") at the start, so capture them here
         walk.ancestor(mod, {
@@ -108,9 +101,6 @@ async function findAppModules(mods) {
                     const makeBlankIdent = a => {
                         const key = rename(a.property.name)
                         const value = {name: key}
-                        if (key !== unspecName(unnestName(a.property.name))) {
-                            value.renamedFrom = unspecName(a.property.name)
-                        }
                         return [key, value]
                     }
                     modInfo.identifiers = Object.fromEntries(assignments.map(makeBlankIdent).reverse())
@@ -141,7 +131,6 @@ async function findAppModules(mods) {
     // find the contents for all protobuf messages
     for (const mod of modules) {
         const modInfo = modulesInfo[mod.key.value]
-        const rename = makeRenameFunc(mod.key.value)
 
         // message specifications are stored in a "internalSpec" attribute of the respective identifier alias
         walk.simple(mod, {
@@ -250,25 +239,6 @@ async function findAppModules(mods) {
         }
     }
 
-    // make all enums only one message uses be local to that message
-    for (const mod of modules) {
-        const idents = modulesInfo[mod.key.value].identifiers
-        for (const ident of Object.values(idents)) {
-            if (!ident.enumValues) {
-                continue
-            }
-            // count number of occurrences of this enumeration and store these identifiers
-            const occurrences = Object.values(idents).filter(v => v.members && v.members.find(m => m.type === ident.name))
-            // if there's only one occurrence, add the enum to that message. Also remove enums that do not occur anywhere
-            if (occurrences.length <= 1 && ident.name !== "KeepType") {
-                if (occurrences.length === 1) {
-                    idents[occurrences[0].name].members.find(m => m.type === ident.name).enumValues = ident.enumValues
-                }
-                delete idents[ident.name]
-            }
-        }
-    }
-
     const addedMessages = new Set()
     let decodedProto = [
         'syntax = "proto2";',
@@ -313,9 +283,6 @@ async function findAppModules(mods) {
         // message specification stringifying function
         const stringifyMessageSpec = (ident) => {
             let result = []
-            if (ident.renamedFrom) {
-                result.push(`// Renamed from ${ident.renamedFrom}`)
-            }
             result.push(
                 `message ${ident.unnestedName ?? ident.name} {`,
                 ...addPrefix([].concat(...ident.children.map(m => stringifyEntity(m))), spaceIndent),
