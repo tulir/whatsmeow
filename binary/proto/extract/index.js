@@ -8,7 +8,7 @@ const addPrefix = (lines, prefix) => lines.map(line => prefix + line)
 async function findAppModules(mods) {
     const ua = {
         headers: {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:100.0) Gecko/20100101 Firefox/100.0",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0",
             "Sec-Fetch-Dest": "script",
             "Sec-Fetch-Mode": "no-cors",
             "Sec-Fetch-Site": "same-origin",
@@ -55,22 +55,9 @@ async function findAppModules(mods) {
     ]
     // Conflicting specs by module ID and what to rename them to
     const renames = {
-        691344: {
-            "VerifiedNameCertificate$Details": "VerifiedNameDetails",
-        },
-        640965: {
-            "NoiseCertificate$Details": "NoiseCertificateDetails",
-            "CertChain$NoiseCertificate": "CertChainNoiseCertificate",
-            "CertChain$NoiseCertificate$Details": "CertChainNoiseCertificateDetails",
-        },
-        124808: {
-            "PaymentBackground$MediaData": "PBMediaData",
-            "Message$InteractiveResponseMessage$Body": "InteractiveResponseMessageBody",
-            "Message$InteractiveMessage$Body": "InteractiveMessageBody",
-        }
     }
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
-    const unnestName = name => name.split("$").slice(-1)[0]
+    const unnestName = name => name.replace("Message$", "") // Don't nest messages into Message, that's too much nesting
     const makeRenameFunc = modID => name => {
         name = unspecName(name)
         return renames[modID]?.[name] ?? unnestName(name)
@@ -228,9 +215,39 @@ async function findAppModules(mods) {
                     })
 
                     targetIdent.members = members
+                    targetIdent.children = []
                 }
             }
         })
+    }
+
+    const findNested = (items, path) => {
+        if (path.length === 0) {
+            return items
+        }
+        const item = items.find(v => (v.unnestedName ?? v.name) === path[0])
+        if (path.length === 1) {
+            return item
+        }
+        return findNested(item.children, path.slice(1))
+    }
+
+
+    for (const mod of modules) {
+        const idents = modulesInfo[mod.key.value].identifiers
+        for (const ident of Object.values(idents)) {
+            if (!ident.name.includes("$")) {
+                continue
+            }
+            const parts = ident.name.split("$")
+            const parent = findNested(Object.values(idents), parts.slice(0, -1))
+            if (!parent) {
+                continue
+            }
+            parent.children.push(ident)
+            delete idents[ident.name]
+            ident.unnestedName = parts[parts.length-1]
+        }
     }
 
     // make all enums only one message uses be local to that message
@@ -265,7 +282,7 @@ async function findAppModules(mods) {
         // enum stringifying function
         const stringifyEnum = (ident, overrideName = null) =>
             [].concat(
-                [`enum ${overrideName || ident.name} {`],
+                [`enum ${overrideName ?? ident.unnestedName ?? ident.name} {`],
                 addPrefix(ident.enumValues.map(v => `${v.name} = ${v.id};`), spaceIndent),
                 ["}"]
             )
@@ -287,7 +304,8 @@ async function findAppModules(mods) {
                     info.flags.push("optional")
                 }
                 const ret = info.enumValues ? stringifyEnum(info, info.type) : []
-                ret.push(`${info.flags.join(" ") + (info.flags.length === 0 ? "" : " ")}${info.type} ${info.name} = ${info.id}${info.packed || ""};`)
+                const unnestedType = info.type.split("$").slice(-1)[0]
+                ret.push(`${info.flags.join(" ") + (info.flags.length === 0 ? "" : " ")}${unnestedType} ${info.name} = ${info.id}${info.packed || ""};`)
                 return ret
             }
         }
@@ -299,7 +317,8 @@ async function findAppModules(mods) {
                 result.push(`// Renamed from ${ident.renamedFrom}`)
             }
             result.push(
-                `message ${ident.name} {`,
+                `message ${ident.unnestedName ?? ident.name} {`,
+                ...addPrefix([].concat(...ident.children.map(m => stringifyEntity(m))), spaceIndent),
                 ...addPrefix([].concat(...ident.members.map(m => stringifyMessageSpecMember(m))), spaceIndent),
                 "}",
             )
