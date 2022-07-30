@@ -245,6 +245,14 @@ async function findAppModules(mods) {
         "package proto;",
         ""
     ]
+    const sharesParent = (path1, path2) => {
+        for (let i = 0; i < path1.length - 1 && i < path2.length - 1; i++) {
+            if (path1[i] != path2[i]) {
+                return false
+            }
+        }
+        return true
+    }
     const spaceIndent = " ".repeat(4)
     for (const mod of modules) {
         const modInfo = modulesInfo[mod.key.value]
@@ -258,11 +266,11 @@ async function findAppModules(mods) {
             )
 
         // message specification member stringifying function
-        const stringifyMessageSpecMember = (info, completeFlags = true) => {
+        const stringifyMessageSpecMember = (info, path, completeFlags = true) => {
             if (info.type === "__oneof__") {
                 return [].concat(
                     [`oneof ${info.name} {`],
-                    addPrefix([].concat(...info.members.map(m => stringifyMessageSpecMember(m, false))), spaceIndent),
+                    addPrefix([].concat(...info.members.map(m => stringifyMessageSpecMember(m, path, false))), spaceIndent),
                     ["}"]
                 )
             } else {
@@ -274,7 +282,11 @@ async function findAppModules(mods) {
                     info.flags.push("optional")
                 }
                 const ret = info.enumValues ? stringifyEnum(info, info.type) : []
-                const unnestedType = info.type.split("$").slice(-1)[0]
+                const typeParts = info.type.split("$")
+                let unnestedType = typeParts[typeParts.length-1]
+                if (!sharesParent(typeParts, path.split("$"))) {
+                    unnestedType = typeParts.join(".")
+                }
                 ret.push(`${info.flags.join(" ") + (info.flags.length === 0 ? "" : " ")}${unnestedType} ${info.name} = ${info.id}${info.packed || ""};`)
                 return ret
             }
@@ -286,7 +298,7 @@ async function findAppModules(mods) {
             result.push(
                 `message ${ident.unnestedName ?? ident.name} {`,
                 ...addPrefix([].concat(...ident.children.map(m => stringifyEntity(m))), spaceIndent),
-                ...addPrefix([].concat(...ident.members.map(m => stringifyMessageSpecMember(m))), spaceIndent),
+                ...addPrefix([].concat(...ident.members.map(m => stringifyMessageSpecMember(m, ident.name))), spaceIndent),
                 "}",
             )
             if (addedMessages.has(ident.name)) {
