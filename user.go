@@ -332,7 +332,7 @@ func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedNa
 	if err != nil {
 		return nil, err
 	}
-	var certDetails waProto.VerifiedNameDetails
+	var certDetails waProto.VerifiedNameCertificate_Details
 	err = proto.Unmarshal(cert.GetDetails(), &certDetails)
 	if err != nil {
 		return nil, err

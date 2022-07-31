@@ -26,7 +26,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	nh.Start(socket.NoiseStartPattern, fs.Header)
 	nh.Authenticate(ephemeralKP.Pub[:])
 	data, err := proto.Marshal(&waProto.HandshakeMessage{
-		ClientHello: &waProto.ClientHello{
+		ClientHello: &waProto.HandshakeClientHello{
 			Ephemeral: ephemeralKP.Pub[:],
 		},
 	})
@@ -87,7 +87,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	if certDetailsRaw == nil || certSignature == nil {
 		return fmt.Errorf("missing parts of noise certificate")
 	}
-	var certDetails waProto.NoiseCertificateDetails
+	var certDetails waProto.NoiseCertificate_Details
 	err = proto.Unmarshal(certDetailsRaw, &certDetails)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal noise certificate details: %w", err)
@@ -107,7 +107,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	}
 	encryptedClientFinishPayload := nh.Encrypt(clientFinishPayloadBytes)
 	data, err = proto.Marshal(&waProto.HandshakeMessage{
-		ClientFinish: &waProto.ClientFinish{
+		ClientFinish: &waProto.HandshakeClientFinish{
 			Static:  encryptedPubkey,
 			Payload: encryptedClientFinishPayload,
 		},
