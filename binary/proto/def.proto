@@ -358,6 +358,7 @@ message HistorySyncNotification {
         FULL = 2;
         RECENT = 3;
         PUSH_NAME = 4;
+        NON_BLOCKING_DATA = 5;
     }
     optional bytes fileSha256 = 1;
     optional uint64 fileLength = 2;
@@ -1014,6 +1015,7 @@ message SendPaymentMessage {
 enum RmrSource {
     FAVORITE_STICKER = 0;
     RECENT_STICKER = 1;
+    RECENT_STICKER_INIT = 2;
 }
 message RequestPhoneNumberMessage {
     optional ContextInfo contextInfo = 1;
@@ -1132,6 +1134,7 @@ message StickerMetadata {
     optional string directPath = 8;
     optional uint64 fileLength = 9;
     optional float weight = 10;
+    optional int64 lastStickerSentTs = 11;
 }
 
 message Pushname {
@@ -1140,7 +1143,7 @@ message Pushname {
 }
 
 message PastParticipants {
-    required string groupJid = 1;
+    optional string groupJid = 1;
     repeated PastParticipant pastParticipants = 2;
 }
 
@@ -1149,9 +1152,9 @@ message PastParticipant {
         LEFT = 0;
         REMOVED = 1;
     }
-    required string userJid = 1;
-    required LeaveReason leaveReason = 2;
-    required uint64 leaveTs = 3;
+    optional string userJid = 1;
+    optional LeaveReason leaveReason = 2;
+    optional uint64 leaveTs = 3;
 }
 
 enum MediaVisibility {
@@ -1166,7 +1169,7 @@ message HistorySync {
         FULL = 2;
         RECENT = 3;
         PUSH_NAME = 4;
-        UNBLOCKING_DATA = 5;
+        NON_BLOCKING_DATA = 5;
     }
     required HistorySyncType syncType = 1;
     repeated Conversation conversations = 2;
@@ -1297,6 +1300,7 @@ message MsgOpaqueData {
     repeated PollOption pollOptions = 18;
     optional uint32 pollSelectableOptionsCount = 20;
     optional bytes messageSecret = 21;
+    optional string originalSelfAuthorJid = 51;
     optional int64 senderTimestampMs = 22;
     optional string pollUpdateParentKey = 23;
     optional PollEncValue encPollVote = 24;
@@ -1479,6 +1483,10 @@ message StarAction {
 
 message SecurityNotificationSetting {
     optional bool showNotification = 1;
+}
+
+message RemoveRecentStickerAction {
+    optional int64 lastStickerSentTs = 1;
 }
 
 message RecentEmojiWeightsAction {
@@ -2006,6 +2014,8 @@ message WebMessageInfo {
         COMMUNITY_PARTICIPANT_PROMOTE = 147;
         COMMUNITY_PARTICIPANT_DEMOTE = 148;
         COMMUNITY_PARENT_GROUP_DELETED = 149;
+        COMMUNITY_LINK_PARENT_GROUP_MEMBERSHIP_APPROVAL = 150;
+        GROUP_PARTICIPANT_JOINED_GROUP_AND_PARENT_GROUP = 151;
     }
     enum Status {
         ERROR = 0;
