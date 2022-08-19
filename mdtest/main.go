@@ -484,7 +484,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "revoke":
 		var (
-			me bool
+			me bool = true
 			part types.JID
 			ok bool
 		)
