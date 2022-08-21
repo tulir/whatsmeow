@@ -179,7 +179,7 @@ func (cli *Client) RevokeMessage(chat, part types.JID, id types.MessageID) (Send
 		},
 	}
 	if part != "" {
-		msg.ProtocolMessage.Key.Participant = proto.String(part)
+		msg.ProtocolMessage.Key.Participant = proto.String(part.String())
 		msg.ProtocolMessage.Key.FromMe = proto.Bool(false)
 	}
 	return cli.SendMessage(context.TODO(), chat, "", msg)
