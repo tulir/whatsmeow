@@ -167,19 +167,20 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, id types.Messa
 //
 // This method will wait for the server to acknowledge the revocation message before returning.
 // The return value is the timestamp of the message from the server.
-func (cli *Client) RevokeMessage(chat, part types.JID, id types.MessageID, me bool) (SendResponse, error) {
+func (cli *Client) RevokeMessage(chat, part types.JID, id types.MessageID) (SendResponse, error) {
 	msg := &waProto.Message{
 		ProtocolMessage: &waProto.ProtocolMessage{
 			Type: waProto.ProtocolMessage_REVOKE.Enum(),
 			Key: &waProto.MessageKey{
-				FromMe:    proto.Bool(me),
+				FromMe:    proto.Bool(true),
 				Id:        proto.String(id),
 				RemoteJid: proto.String(chat.String()),
 			},
 		},
 	}
-	if !me {
-		msg.ProtocolMessage.Key.Participant = proto.String(part.String())
+	if part != "" {
+		msg.ProtocolMessage.Key.Participant = proto.String(part)
+		msg.ProtocolMessage.Key.FromMe = proto.Bool(false)
 	}
 	return cli.SendMessage(context.TODO(), chat, "", msg)
 }
