@@ -483,17 +483,9 @@ func handleCmd(cmd string, args []string) {
 			log.Infof("Reaction sent (server timestamp: %s)", resp.Timestamp)
 		}
 	case "revoke":
-		var (
-			me bool = true
-			part types.JID
-			ok bool
-		)
+		var part string
 		if len(args) == 3 {
-			me = false
-			part, ok = parseJID(args[2])
-			if !ok {
-				return
-			}
+			part = args[2]
 		} else if len(args) < 2 {
 			log.Errorf("Usage: revoke <jid> <message ID> <participant>")
 			return
@@ -503,7 +495,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		messageID := args[1]
-		resp, err := cli.RevokeMessage(groupjid, part, messageID, me)
+		resp, err := cli.RevokeMessage(groupjid, part, messageID)
 		if err != nil {
 			log.Errorf("Error sending revocation: %v", err)
 		} else {
