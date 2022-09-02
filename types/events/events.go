@@ -213,8 +213,10 @@ type Message struct {
 	Info    types.MessageInfo // Information about the message like the chat and sender IDs
 	Message *waProto.Message  // The actual message struct
 
-	IsEphemeral bool // True if the message was unwrapped from an EphemeralMessage
-	IsViewOnce  bool // True if the message was unwrapped from a ViewOnceMessage
+	IsEphemeral           bool // True if the message was unwrapped from an EphemeralMessage
+	IsViewOnce            bool // True if the message was unwrapped from a ViewOnceMessage or ViewOnceMessageV2
+	IsViewOnceV2          bool // True if the message was unwrapped from a ViewOnceMessage
+	IsDocumentWithCaption bool // True if the message was unwrapped from a DocumentWithCaptionMessage
 
 	// The raw message struct. This is the raw unmodified data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
@@ -238,6 +240,15 @@ func (evt *Message) UnwrapRaw() *Message {
 	if evt.Message.GetViewOnceMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetViewOnceMessage().GetMessage()
 		evt.IsViewOnce = true
+	}
+	if evt.Message.GetViewOnceMessageV2().GetMessage() != nil {
+		evt.Message = evt.Message.GetViewOnceMessageV2().GetMessage()
+		evt.IsViewOnce = true
+		evt.IsViewOnceV2 = true
+	}
+	if evt.Message.GetDocumentWithCaptionMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetDocumentWithCaptionMessage().GetMessage()
+		evt.IsDocumentWithCaption = true
 	}
 	return evt
 }

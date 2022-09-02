@@ -151,6 +151,9 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 		if cli.Store.Contacts != nil {
 			storeUpdateError = cli.Store.Contacts.PutContactName(jid, act.GetFirstName(), act.GetFullName())
 		}
+	case "deleteChat":
+		act := mutation.Action.GetDeleteChatAction()
+		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act}
 	case "star":
 		if len(mutation.Index) < 5 {
 			return
