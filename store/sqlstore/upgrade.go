@@ -235,11 +235,11 @@ UPDATE whatsmeow_device SET adv_account_sig_key=(
 `
 
 func upgradeV2(tx *sql.Tx, container *Container) error {
-	_, err := tx.Exec("ALTER TABLE whatsmeow_device ADD COLUMN adv_account_sig_key bytea CHECK ( length(adv_account_sig_key) = 32 )")
+	_, err := tx.Exec("ALTER TABLE whatsmeow_device ADD COLUMN adv_account_sig_key LONGBLOB CHECK ( length(adv_account_sig_key) = 32 )")
 	if err != nil {
 		return err
 	}
-	if container.dialect == "postgres" || container.dialect == "pgx" {
+	if container.dialect == "postgres" || container.dialect == "pgx" || container.dialect == "mysql" {
 		_, err = tx.Exec(fillSigKeyPostgres)
 	} else {
 		_, err = tx.Exec(fillSigKeySQLite)
