@@ -38,25 +38,26 @@ type UploadResponse struct {
 // You should copy the fields in the response to the corresponding fields in a protobuf message.
 //
 // For example, to send an image:
-//   resp, err := cli.Upload(context.Background(), yourImageBytes, whatsmeow.MediaImage)
-//   // handle error
 //
-//   imageMsg := &waProto.ImageMessage{
-//       Caption:  proto.String("Hello, world!"),
-//       Mimetype: proto.String("image/png"), // replace this with the actual mime type
-//       // you can also optionally add other fields like ContextInfo and JpegThumbnail here
+//	resp, err := cli.Upload(context.Background(), yourImageBytes, whatsmeow.MediaImage)
+//	// handle error
 //
-//       Url:           &resp.URL,
-//       DirectPath:    &resp.DirectPath,
-//       MediaKey:      resp.MediaKey,
-//       FileEncSha256: resp.FileEncSHA256,
-//       FileSha256:    resp.FileSha256,
-//       FileLength:    &resp.FileLength,
-//   }
-//   _, err = cli.SendMessage(context.Background(), targetJID, "", &waProto.Message{
-//       ImageMessage: imageMsg,
-//   })
-//   // handle error again
+//	imageMsg := &waProto.ImageMessage{
+//		Caption:  proto.String("Hello, world!"),
+//		Mimetype: proto.String("image/png"), // replace this with the actual mime type
+//		// you can also optionally add other fields like ContextInfo and JpegThumbnail here
+//
+//		Url:           &resp.URL,
+//		DirectPath:    &resp.DirectPath,
+//		MediaKey:      resp.MediaKey,
+//		FileEncSha256: resp.FileEncSHA256,
+//		FileSha256:    resp.FileSha256,
+//		FileLength:    &resp.FileLength,
+//	}
+//	_, err = cli.SendMessage(context.Background(), targetJID, "", &waProto.Message{
+//		ImageMessage: imageMsg,
+//	})
+//	// handle error again
 //
 // The same applies to the other message types like DocumentMessage, just replace the struct type and Message field name.
 func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaType) (resp UploadResponse, err error) {
