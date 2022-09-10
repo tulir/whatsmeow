@@ -493,6 +493,12 @@ message ExtendedTextMessage {
     optional InviteLinkGroupType inviteLinkGroupTypeV2 = 29;
 }
 
+message EncReactionMessage {
+    optional MessageKey targetMessageKey = 1;
+    optional bytes encPayload = 2;
+    optional bytes encIv = 3;
+}
+
 message DocumentMessage {
     optional string url = 1;
     optional string mimetype = 2;
@@ -894,6 +900,7 @@ message Message {
     optional FutureProofMessage documentWithCaptionMessage = 53;
     optional RequestPhoneNumberMessage requestPhoneNumberMessage = 54;
     optional FutureProofMessage viewOnceMessageV2 = 55;
+    optional EncReactionMessage encReactionMessage = 56;
 }
 
 message MessageContextInfo {
@@ -999,6 +1006,7 @@ message StickerMessage {
     optional bool isAnimated = 13;
     optional bytes pngThumbnail = 16;
     optional ContextInfo contextInfo = 17;
+    optional int64 stickerSentTs = 18;
 }
 
 message SenderKeyDistributionMessage {
@@ -1085,6 +1093,12 @@ message ProtocolMessage {
 }
 
 message ProductMessage {
+    message CatalogSnapshot {
+        optional ImageMessage catalogImage = 1;
+        optional string title = 2;
+        optional string description = 3;
+    }
+    
     message ProductSnapshot {
         optional ImageMessage productImage = 1;
         optional string productId = 2;
@@ -1097,12 +1111,6 @@ message ProductMessage {
         optional uint32 productImageCount = 9;
         optional string firstImageId = 11;
         optional int64 salePriceAmount1000 = 12;
-    }
-    
-    message CatalogSnapshot {
-        optional ImageMessage catalogImage = 1;
-        optional string title = 2;
-        optional string description = 3;
     }
     
     optional ProductSnapshot product = 1;
@@ -1300,7 +1308,7 @@ message MsgOpaqueData {
     repeated PollOption pollOptions = 18;
     optional uint32 pollSelectableOptionsCount = 20;
     optional bytes messageSecret = 21;
-    optional string originalSelfAuthorJid = 51;
+    optional string originalSelfAuthor = 51;
     optional int64 senderTimestampMs = 22;
     optional string pollUpdateParentKey = 23;
     optional PollEncValue encPollVote = 24;
@@ -1433,6 +1441,8 @@ message SyncActionValue {
     optional NuxAction nuxAction = 31;
     optional PrimaryVersionAction primaryVersionAction = 32;
     optional StickerAction stickerAction = 33;
+    optional RemoveRecentStickerAction removeRecentStickerAction = 34;
+    optional ChatAssignmentAction chatAssignment = 35;
 }
 
 message UserStatusMuteAction {
@@ -1566,6 +1576,11 @@ message ContactAction {
 
 message ClearChatAction {
     optional SyncActionMessageRange messageRange = 1;
+}
+
+message ChatAssignmentAction {
+    optional string deviceAgentID = 1;
+    optional bool chatOpened = 2;
 }
 
 message ArchiveChatAction {
@@ -1829,6 +1844,11 @@ message ClientPayload {
         NETWORK_SWITCH = 4;
         PING_RECONNECT = 5;
     }
+    enum BizMarketSegment {
+        DEFAULT = 0;
+        DEVX = 1;
+        INBOX = 2;
+    }
     optional uint64 username = 1;
     optional bool passive = 3;
     optional UserAgent userAgent = 5;
@@ -1853,6 +1873,7 @@ message ClientPayload {
     optional bytes fbDeviceId = 32;
     optional bool pull = 33;
     optional bytes paddingBytes = 34;
+    optional BizMarketSegment bizMarketSegment = 35;
 }
 
 message WebNotificationsInfo {
@@ -2016,6 +2037,11 @@ message WebMessageInfo {
         COMMUNITY_PARENT_GROUP_DELETED = 149;
         COMMUNITY_LINK_PARENT_GROUP_MEMBERSHIP_APPROVAL = 150;
         GROUP_PARTICIPANT_JOINED_GROUP_AND_PARENT_GROUP = 151;
+        MASKED_THREAD_CREATED = 152;
+        MASKED_THREAD_UNMASKED = 153;
+        BIZ_CHAT_ASSIGNMENT = 154;
+        CHAT_PSA = 155;
+        CHAT_POLL_CREATION_MESSAGE = 156;
     }
     enum Status {
         ERROR = 0;
@@ -2252,6 +2278,8 @@ message KeepInChat {
     optional int64 serverTimestamp = 2;
     optional MessageKey key = 3;
     optional string deviceJid = 4;
+    optional int64 clientTimestampMs = 5;
+    optional int64 serverTimestampMs = 6;
 }
 
 message NoiseCertificate {
