@@ -1,0 +1,9 @@
+# VSCode
+.vscode/
+
+# build file
+server/whatsapp-bridge
+
+# Environment
+server/.env
+bridge-server/.env

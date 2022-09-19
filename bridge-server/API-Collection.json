@@ -1,0 +1,66 @@
+{
+    "info": {
+        "_postman_id": "244f1524-07ed-4988-a24f-8fdeeda47019",
+        "name": "Whatsmeow-Bridge",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Whatsapp Message Send",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"fromPhone\": \"918208106722\",\n    \"toPhone\": \"919561214185\",\n    \"messageText\": \"We did it!\"\n}",
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                },
+                "url": {
+                    "raw": "http://localhost:8080/api/whatsapp/send",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "whatsapp",
+                        "send"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Connect to Whatsapp",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/api/connect/qr?fromPhone=918208106722",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "8080",
+                    "path": [
+                        "api",
+                        "connect",
+                        "qr"
+                    ],
+                    "query": [
+                        {
+                            "key": "fromPhone",
+                            "value": "918208106722"
+                        }
+                    ]
+                }
+            },
+            "response": []
+        }
+    ]
+}
