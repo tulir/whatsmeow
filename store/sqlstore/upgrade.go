@@ -8,6 +8,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 type upgradeFunc func(*sql.Tx, *Container) error
@@ -37,7 +38,7 @@ func (c *Container) setVersion(tx *sql.Tx, version int) error {
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec("INSERT INTO whatsmeow_version (version) VALUES ($1)", version)
+	_, err = tx.Exec("INSERT INTO whatsmeow_version (version) VALUES (?)", version)
 	return err
 }
 
@@ -107,19 +108,18 @@ func upgradeV1(tx *sql.Tx, _ *Container) error {
 
 		-- PRIMARY KEY (our_jid, their_id),
 		-- FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
-	);)`)
+	);`)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec("CREATE TABLE whatsmeow_pre_keys (" +
-		"jid      TEXT," +
-		"key_id   INTEGER   CHECK ( key_id >= 0 AND key_id < 16777216 )," +
-		"`key`    LONGBLOB  NOT NULL CHECK ( length(`key`) = 32 )," +
-		"uploaded BOOLEAN NOT NULL" +
-
-		"-- PRIMARY KEY (jid, key_id)," +
-		"-- FOREIGN KEY (jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE" +
-		");")
+	_, err = tx.Exec(fmt.Sprintf(`CREATE TABLE whatsmeow_pre_keys (
+		jid      TEXT,
+		key_id   INTEGER   CHECK ( key_id >= 0 AND key_id < 16777216 ),
+		%s   LONGBLOB  NOT NULL CHECK ( length(%s) = 32 ),
+		uploaded BOOLEAN NOT NULL
+		-- PRIMARY KEY (jid, key_id),
+		-- FOREIGN KEY (jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+		);`, "`key`", "`key`"))
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func upgradeV2(tx *sql.Tx, container *Container) error {
 	if err != nil {
 		return err
 	}
-	if container.dialect == "postgres" || container.dialect == "pgx" || container.dialect == "mysql" {
+	if container.dialect == "postgres" || container.dialect == "pgx" {
 		_, err = tx.Exec(fillSigKeyPostgres)
 	} else {
 		_, err = tx.Exec(fillSigKeySQLite)
