@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -38,6 +39,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/nyaruka/phonenumbers v1.1.1
 	github.com/pelletier/go-toml/v2 v2.0.1 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.mau.fi/libsignal v0.0.0-20220425070825-c40c839ee6a0 // indirect

@@ -12,15 +12,15 @@ func GetCustomerTicketDetailsConversationStateForWhatsAppTicketByPhone(phone *st
 		db.Context,
 		`
 		SELECT
-			c.customer_id,
-			c.organization_id,
+			c.customer_id::TEXT,
+			c.organization_id::TEXT,
 			c.name_first,
 			c.name_last,
 			c.city,
 			c.tag,
 			c.comment,
-			t.ticket_id,
-			t.employee_id,
+			t.ticket_id::TEXT,
+			t.employee_id::TEXT,
 			tt.department       AS temporary_ticket_department,
 			ccs.state_whatsapp  AS conversation_state_whatsapp
 		FROM customers c
@@ -86,7 +86,7 @@ func SaveCustomerWithPhone(subdomain, phone, countryCode *string, c *types.ST_DB
 		INSERT INTO customers_conversation_state(customer_id)
 		SELECT new_customer.customer_id
 		FROM new_customer
-		RETURNING customer_id;
+		RETURNING customer_id::TEXT;
 		`, subdomain, phone, countryCode,
 	).Scan(&c.CustomerID)
 	if err != nil {

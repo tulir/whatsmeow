@@ -85,7 +85,7 @@ func SaveMessageAndTemporaryURLOfAttachment(
 		)
 		SELECT $1, $2, $3, $4, new_attachment.ticket_attachment_id
 		FROM new_attachment
-		RETURNING ticket_attachment_id;
+		RETURNING ticket_attachment_id::TEXT;
 		`, messageSenderID, messageType, ticketID, messageText, temporaryURL, mimeType,
 	).Scan(&nm.TicketAttachmentID)
 	if err != nil {

@@ -25,6 +25,7 @@ var (
 	err error
 )
 
+// stored all clients with phone numbers
 var mapAllClients = make(map[string]*whatsmeow.Client)
 
 //////////////////

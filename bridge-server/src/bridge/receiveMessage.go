@@ -1,7 +1,10 @@
 package bridge
 
 import (
+	// internal packages
+	strconv "strconv"
 	// external packages
+	phonenumbers "github.com/nyaruka/phonenumbers"
 	events "go.mau.fi/whatsmeow/types/events"
 	// local packages
 	tickets "bitaminco/support-whatsapp-bridge/src/tickets"
@@ -16,11 +19,15 @@ import (
 func receiveMessageEventHandler(m *events.Message, eventReceivedPhone string) {
 	// only personal message
 	if !m.Info.IsGroup {
-		// TODO : add subdomain and country id
+		// parse country code
+		userPhone, _ := phonenumbers.Parse("+"+m.Info.Sender.User, "")
+		userCountryCode := phonenumbers.GetCountryCodeForRegion(phonenumbers.GetRegionCodeForNumber(userPhone))
+
+		// TODO : add subdomain
 		// extract incoming message
 		var im types.ST_G_IncomingMessage
 		im.Subdomain = "imb"
-		im.CountryCode = "91"
+		im.CountryCode = strconv.Itoa(userCountryCode)
 		im.PushName = m.Info.PushName
 		im.JID = m.Info.Sender
 

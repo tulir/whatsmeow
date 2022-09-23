@@ -26,7 +26,7 @@ func saveMessageInTicket(messageType string, messageToStore, attachmentURL, atta
 	var newStoredMessage types.ST_DBR_NewMessage
 	ticketID, _ := cd.TicketID.(string)
 
-	if attachmentURL != nil {
+	if *attachmentURL != "" {
 		err := models.SaveMessageAndTemporaryURLOfAttachment(
 			&messageSenderID,
 			&messageType,
