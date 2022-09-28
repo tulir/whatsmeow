@@ -75,6 +75,13 @@ type BusinessMessageLinkTarget struct {
 	Message string // The message that WhatsApp clients will pre-fill in the input box when clicking the link.
 }
 
+// ContactQRLinkTarget contains the info that is found using a contact QR link (see Client.ResolveContactQRLink)
+type ContactQRLinkTarget struct {
+	JID      JID    // The JID of the user.
+	Type     string // Might always be "contact".
+	PushName string // The notify / push name of the user.
+}
+
 // PrivacySetting is an individual setting value in the user's privacy settings.
 type PrivacySetting string
 

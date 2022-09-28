@@ -48,6 +48,8 @@ var (
 	ErrInviteLinkRevoked = errors.New("that group invite link has been revoked")
 	// ErrBusinessMessageLinkNotFound is returned by ResolveBusinessMessageLink if the link doesn't exist or has been revoked.
 	ErrBusinessMessageLinkNotFound = errors.New("that business message link does not exist or has been revoked")
+	// ErrContactQRLinkNotFound is returned by ResolveContactQRLink if the link doesn't exist or has been revoked.
+	ErrContactQRLinkNotFound = errors.New("that contact QR link does not exist or has been revoked")
 	// ErrInvalidImageFormat is returned by SetGroupPhoto if the given photo is not in the correct format.
 	ErrInvalidImageFormat = errors.New("the given data is not a valid image")
 	// ErrMediaNotAvailableOnPhone is returned by DecryptMediaRetryNotification if the given event contains error code 2.
