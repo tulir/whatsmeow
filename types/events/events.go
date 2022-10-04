@@ -265,6 +265,12 @@ const (
 	ReceiptTypeRead ReceiptType = "read"
 	// ReceiptTypeReadSelf means the current user read a message from a different device, and has read receipts disabled in privacy settings.
 	ReceiptTypeReadSelf ReceiptType = "read-self"
+	// ReceiptTypePlayed means the user opened a view-once media message.
+	//
+	// This is dispatched for both incoming and outgoing messages when played. If the current user opened the media,
+	// it means the media should be removed from all devices. If a recipient opened the media, it's just a notification
+	// for the sender that the media was viewed.
+	ReceiptTypePlayed ReceiptType = "played"
 )
 
 // GoString returns the name of the Go constant for the ReceiptType value.
@@ -276,6 +282,8 @@ func (rt ReceiptType) GoString() string {
 		return "events.ReceiptTypeReadSelf"
 	case ReceiptTypeDelivered:
 		return "events.ReceiptTypeDelivered"
+	case ReceiptTypePlayed:
+		return "events.ReceiptTypePlayed"
 	default:
 		return fmt.Sprintf("events.ReceiptType(%#v)", string(rt))
 	}

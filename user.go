@@ -21,7 +21,9 @@ import (
 )
 
 const BusinessMessageLinkPrefix = "https://wa.me/message/"
+const ContactQRLinkPrefix = "https://wa.me/qr/"
 const BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
+const ContactQRLinkDirectPrefix = "https://api.whatsapp.com/qr/"
 
 // ResolveBusinessMessageLink resolves a business message short link and returns the target JID, business name and
 // text to prefill in the input field (if any).
@@ -34,7 +36,7 @@ func (cli *Client) ResolveBusinessMessageLink(code string) (*types.BusinessMessa
 
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:qr",
-		Type:      "get",
+		Type:      iqGet,
 		// WhatsApp android doesn't seem to have a "to" field for this one at all, not sure why but it works
 		Content: []waBinary.Node{{
 			Tag: "qr",
@@ -69,6 +71,72 @@ func (cli *Client) ResolveBusinessMessageLink(code string) (*types.BusinessMessa
 		target.VerifiedLevel = bag.OptionalString("verified_level")
 	}
 	return &target, ag.Error()
+}
+
+// ResolveContactQRLink resolves a link from a contact share QR code and returns the target JID and push name.
+//
+// The links look like https://wa.me/qr/<code> or https://api.whatsapp.com/qr/<code>. You can either provide
+// the full link, or just the <code> part.
+func (cli *Client) ResolveContactQRLink(code string) (*types.ContactQRLinkTarget, error) {
+	code = strings.TrimPrefix(code, ContactQRLinkPrefix)
+	code = strings.TrimPrefix(code, ContactQRLinkDirectPrefix)
+
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:qr",
+		Type:      iqGet,
+		Content: []waBinary.Node{{
+			Tag: "qr",
+			Attrs: waBinary.Attrs{
+				"code": code,
+			},
+		}},
+	})
+	if errors.Is(err, ErrIQNotFound) {
+		return nil, wrapIQError(ErrContactQRLinkNotFound, err)
+	} else if err != nil {
+		return nil, err
+	}
+	qrChild, ok := resp.GetOptionalChildByTag("qr")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "qr", In: "response to contact link query"}
+	}
+	var target types.ContactQRLinkTarget
+	ag := qrChild.AttrGetter()
+	target.JID = ag.JID("jid")
+	target.PushName = ag.OptionalString("notify")
+	target.Type = ag.String("type")
+	return &target, ag.Error()
+}
+
+// GetContactQRLink gets your own contact share QR link that can be resolved using ResolveContactQRLink
+// (or scanned with the official apps when encoded as a QR code).
+//
+// If the revoke parameter is set to true, it will ask the server to revoke the previous link and generate a new one.
+func (cli *Client) GetContactQRLink(revoke bool) (string, error) {
+	action := "get"
+	if revoke {
+		action = "revoke"
+	}
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:qr",
+		Type:      iqSet,
+		Content: []waBinary.Node{{
+			Tag: "qr",
+			Attrs: waBinary.Attrs{
+				"type":   "contact",
+				"action": action,
+			},
+		}},
+	})
+	if err != nil {
+		return "", err
+	}
+	qrChild, ok := resp.GetOptionalChildByTag("qr")
+	if !ok {
+		return "", &ElementMissingError{Tag: "qr", In: "response to own contact link fetch"}
+	}
+	ag := qrChild.AttrGetter()
+	return ag.String("code"), ag.Error()
 }
 
 // SetStatusMessage updates the current user's status text, which is shown in the "About" section in the user profile.
