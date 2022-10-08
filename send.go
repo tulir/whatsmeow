@@ -376,17 +376,36 @@ func getTypeFromMessage(msg *waProto.Message) string {
 	}
 }
 
+const (
+	EditAttributeEmpty        = ""
+	EditAttributeMessageEdit  = "1"
+	EditAttributeSenderRevoke = "7"
+	EditAttributeAdminRevoke  = "8"
+)
+
+const RemoveReactionText = ""
+
 func getEditAttribute(msg *waProto.Message) string {
-	if msg.ProtocolMessage != nil && msg.GetProtocolMessage().GetType() == waProto.ProtocolMessage_REVOKE && msg.GetProtocolMessage().GetKey() != nil {
-		if msg.GetProtocolMessage().GetKey().GetFromMe() {
-			return "7"
-		} else {
-			return "8"
+	switch {
+	case msg.ProtocolMessage != nil && msg.ProtocolMessage.GetKey() != nil:
+		switch msg.ProtocolMessage.GetType() {
+		case waProto.ProtocolMessage_REVOKE:
+			if msg.ProtocolMessage.GetKey().GetFromMe() {
+				return EditAttributeSenderRevoke
+			} else {
+				return EditAttributeAdminRevoke
+			}
+		case waProto.ProtocolMessage_MESSAGE_EDIT:
+			if msg.EditedMessage != nil {
+				return EditAttributeMessageEdit
+			}
 		}
-	} else if msg.ReactionMessage != nil && msg.ReactionMessage.GetText() == "" {
-		return "7"
+	case msg.ReactionMessage != nil && msg.ReactionMessage.GetText() == RemoveReactionText:
+		return EditAttributeSenderRevoke
+	case msg.KeepInChatMessage != nil && msg.KeepInChatMessage.GetKey().GetFromMe() && msg.KeepInChatMessage.GetKeepType() == waProto.KeepType_UNDO_KEEP_FOR_ALL:
+		return EditAttributeSenderRevoke
 	}
-	return ""
+	return EditAttributeEmpty
 }
 
 func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) (*waBinary.Node, error) {
