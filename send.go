@@ -34,8 +34,8 @@ import (
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
 //
-//   msgID := whatsmeow.GenerateMessageID()
-//   cli.SendMessage(context.Background(), targetJID, msgID, &waProto.Message{...})
+//	msgID := whatsmeow.GenerateMessageID()
+//	cli.SendMessage(context.Background(), targetJID, msgID, &waProto.Message{...})
 func GenerateMessageID() types.MessageID {
 	id := make([]byte, 8)
 	_, err := rand.Read(id)
@@ -80,9 +80,10 @@ type SendResponse struct {
 //
 // The message itself can contain anything you want (within the protobuf schema).
 // e.g. for a simple text message, use the Conversation field:
-//   cli.SendMessage(context.Background(), targetJID, "", &waProto.Message{
-//       Conversation: proto.String("Hello, World!"),
-//   })
+//
+//	cli.SendMessage(context.Background(), targetJID, "", &waProto.Message{
+//		Conversation: proto.String("Hello, World!"),
+//	})
 //
 // Things like replies, mentioning users and the "forwarded" flag are stored in ContextInfo,
 // which can be put in ExtendedTextMessage and any of the media message types.

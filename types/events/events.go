@@ -307,7 +307,8 @@ type Receipt struct {
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
 //
 // Note that WhatsApp won't send you these updates unless you mark yourself as online:
-//  client.SendPresence(types.PresenceAvailable)
+//
+//	client.SendPresence(types.PresenceAvailable)
 type ChatPresence struct {
 	types.MessageSource
 	State types.ChatPresence      // The current state, either composing or paused
@@ -317,7 +318,8 @@ type ChatPresence struct {
 // Presence is emitted when a presence update is received.
 //
 // Note that WhatsApp only sends you presence updates for individual users after you subscribe to them:
-//  client.SubscribePresence(user JID)
+//
+//	client.SubscribePresence(user JID)
 type Presence struct {
 	// The user whose presence event this is
 	From types.JID
