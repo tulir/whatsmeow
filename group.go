@@ -428,7 +428,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 				invitee := types.GroupInvitee{
 					JID:childAG.JID("jid"),
 				}
-				invitee.Err = err
+				invitee.Err = errCode
 				for _, inv := range child.GetChildren() {
 					invAG := inv.AttrGetter()
 					switch inv.Tag {
