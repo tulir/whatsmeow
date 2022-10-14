@@ -1,1 +1,31 @@
+# IDE
+*.idea
+*.sublime-project
+*.sublime-workspace
+.buildpath
+.project
+.settings
+.vscode
+.vendor-new
+gateway.log
+runtime/*
+config.json
+config.*.json
+
+# VENDOR
 /vendor
+
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+
+# Main binary program
+main
+gen
+consumer
+cli
