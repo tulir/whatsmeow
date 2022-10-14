@@ -387,6 +387,8 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, msg.SenderKeyDistributionMessage)
 		}
 	}
+	// N.B. Edits are protocol messages, but they're also wrapped inside EditedMessage,
+	// which is only unwrapped after processProtocolParts, so this won't trigger for edits.
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
