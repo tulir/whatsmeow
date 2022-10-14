@@ -217,6 +217,7 @@ type Message struct {
 	IsViewOnce            bool // True if the message was unwrapped from a ViewOnceMessage or ViewOnceMessageV2
 	IsViewOnceV2          bool // True if the message was unwrapped from a ViewOnceMessage
 	IsDocumentWithCaption bool // True if the message was unwrapped from a DocumentWithCaptionMessage
+	IsEdit                bool // True if the message was unwrapped from an EditedMessage
 
 	// The raw message struct. This is the raw unmodified data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
@@ -249,6 +250,10 @@ func (evt *Message) UnwrapRaw() *Message {
 	if evt.Message.GetDocumentWithCaptionMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetDocumentWithCaptionMessage().GetMessage()
 		evt.IsDocumentWithCaption = true
+	}
+	if evt.Message.GetEditedMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetEditedMessage().GetMessage()
+		evt.IsEdit = true
 	}
 	return evt
 }
@@ -302,7 +307,8 @@ type Receipt struct {
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
 //
 // Note that WhatsApp won't send you these updates unless you mark yourself as online:
-//  client.SendPresence(types.PresenceAvailable)
+//
+//	client.SendPresence(types.PresenceAvailable)
 type ChatPresence struct {
 	types.MessageSource
 	State types.ChatPresence      // The current state, either composing or paused
@@ -312,7 +318,8 @@ type ChatPresence struct {
 // Presence is emitted when a presence update is received.
 //
 // Note that WhatsApp only sends you presence updates for individual users after you subscribe to them:
-//  client.SubscribePresence(user JID)
+//
+//	client.SubscribePresence(user JID)
 type Presence struct {
 	// The user whose presence event this is
 	From types.JID
