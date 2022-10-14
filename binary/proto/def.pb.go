@@ -7367,6 +7367,7 @@ type AudioMessage struct {
 	ContextInfo       *ContextInfo `protobuf:"bytes,17,opt,name=contextInfo" json:"contextInfo,omitempty"`
 	StreamingSidecar  []byte       `protobuf:"bytes,18,opt,name=streamingSidecar" json:"streamingSidecar,omitempty"`
 	Waveform          []byte       `protobuf:"bytes,19,opt,name=waveform" json:"waveform,omitempty"`
+	BackgroundArgb    *uint32      `protobuf:"fixed32,20,opt,name=backgroundArgb" json:"backgroundArgb,omitempty"`
 }
 
 func (x *AudioMessage) Reset() {
@@ -7490,6 +7491,13 @@ func (x *AudioMessage) GetWaveform() []byte {
 		return x.Waveform
 	}
 	return nil
+}
+
+func (x *AudioMessage) GetBackgroundArgb() uint32 {
+	if x != nil && x.BackgroundArgb != nil {
+		return *x.BackgroundArgb
+	}
+	return 0
 }
 
 type AppStateSyncKey struct {
@@ -8927,7 +8935,7 @@ type Message struct {
 	RequestPhoneNumberMessage                  *RequestPhoneNumberMessage    `protobuf:"bytes,54,opt,name=requestPhoneNumberMessage" json:"requestPhoneNumberMessage,omitempty"`
 	ViewOnceMessageV2                          *FutureProofMessage           `protobuf:"bytes,55,opt,name=viewOnceMessageV2" json:"viewOnceMessageV2,omitempty"`
 	EncReactionMessage                         *EncReactionMessage           `protobuf:"bytes,56,opt,name=encReactionMessage" json:"encReactionMessage,omitempty"`
-	EditedMessage                              *FutureProofMessage           `protobuf:"bytes,57,opt,name=editedMessage" json:"editedMessage,omitempty"`
+	EditedMessage                              *FutureProofMessage           `protobuf:"bytes,58,opt,name=editedMessage" json:"editedMessage,omitempty"`
 }
 
 func (x *Message) Reset() {
