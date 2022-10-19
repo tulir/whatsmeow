@@ -151,9 +151,10 @@ func getSize(msg DownloadableMessage) int {
 // DownloadThumbnail downloads a thumbnail from a message.
 //
 // This is primarily intended for downloading link preview thumbnails, which are in ExtendedTextMessage:
-//     var msg *waProto.Message
-//     ...
-//     thumbnailImageBytes, err := cli.DownloadThumbnail(msg.GetExtendedTextMessage())
+//
+//	var msg *waProto.Message
+//	...
+//	thumbnailImageBytes, err := cli.DownloadThumbnail(msg.GetExtendedTextMessage())
 func (cli *Client) DownloadThumbnail(msg DownloadableThumbnail) ([]byte, error) {
 	mediaType, ok := classToThumbnailMediaType[msg.ProtoReflect().Descriptor().Name()]
 	if !ok {
@@ -173,9 +174,10 @@ func GetMediaType(msg DownloadableMessage) MediaType {
 // Download downloads the attachment from the given protobuf message.
 //
 // The attachment is a specific part of a Message protobuf struct, not the message itself, e.g.
-//     var msg *waProto.Message
-//     ...
-//     imageData, err := cli.Download(msg.GetImageMessage())
+//
+//	var msg *waProto.Message
+//	...
+//	imageData, err := cli.Download(msg.GetImageMessage())
 //
 // You can also use DownloadAny to download the first non-nil sub-message.
 func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
