@@ -648,6 +648,7 @@ message AudioMessage {
     optional ContextInfo contextInfo = 17;
     optional bytes streamingSidecar = 18;
     optional bytes waveform = 19;
+    optional fixed32 backgroundArgb = 20;
 }
 
 message AppStateSyncKey {
@@ -917,7 +918,7 @@ message Message {
     optional RequestPhoneNumberMessage requestPhoneNumberMessage = 54;
     optional FutureProofMessage viewOnceMessageV2 = 55;
     optional EncReactionMessage encReactionMessage = 56;
-    optional FutureProofMessage editedMessage = 57;
+    optional FutureProofMessage editedMessage = 58;
 }
 
 message MessageContextInfo {
