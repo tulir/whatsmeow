@@ -219,7 +219,7 @@ UPDATE whatsmeow_device SET adv_account_sig_key=(
 	SELECT identity
 	FROM whatsmeow_identity_keys
 	WHERE our_jid=whatsmeow_device.jid
-	  AND their_id=concat(split_part(whatsmeow_device.jid, '.', 1), ':0')
+	  AND their_id=concat(split_part(whatsmeow_device.jid, '.', 1), '0')
 );
 DELETE FROM whatsmeow_device WHERE adv_account_sig_key IS NULL;
 ALTER TABLE whatsmeow_device ALTER COLUMN adv_account_sig_key SET NOT NULL;
@@ -230,7 +230,7 @@ UPDATE whatsmeow_device SET adv_account_sig_key=(
 	SELECT identity
 	FROM whatsmeow_identity_keys
 	WHERE our_jid=whatsmeow_device.jid
-	  AND their_id=substr(whatsmeow_device.jid, 0, instr(whatsmeow_device.jid, '.')) || ':0'
+	  AND their_id=substr(whatsmeow_device.jid, 0, instr(whatsmeow_device.jid, '.')) || '0'
 )
 `
 
