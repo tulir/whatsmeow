@@ -2829,6 +2829,9 @@ const (
 	ClientPayload_UserAgent_OCULUS_CALL    ClientPayload_UserAgent_Platform = 26
 	ClientPayload_UserAgent_MILAN          ClientPayload_UserAgent_Platform = 27
 	ClientPayload_UserAgent_CAPI           ClientPayload_UserAgent_Platform = 28
+	ClientPayload_UserAgent_WEAROS         ClientPayload_UserAgent_Platform = 29
+	ClientPayload_UserAgent_ARDEVICE       ClientPayload_UserAgent_Platform = 30
+	ClientPayload_UserAgent_VRDEVICE       ClientPayload_UserAgent_Platform = 31
 )
 
 // Enum value maps for ClientPayload_UserAgent_Platform.
@@ -2863,6 +2866,9 @@ var (
 		26: "OCULUS_CALL",
 		27: "MILAN",
 		28: "CAPI",
+		29: "WEAROS",
+		30: "ARDEVICE",
+		31: "VRDEVICE",
 	}
 	ClientPayload_UserAgent_Platform_value = map[string]int32{
 		"ANDROID":        0,
@@ -2894,6 +2900,9 @@ var (
 		"OCULUS_CALL":    26,
 		"MILAN":          27,
 		"CAPI":           28,
+		"WEAROS":         29,
+		"ARDEVICE":       30,
+		"VRDEVICE":       31,
 	}
 )
 
@@ -3159,6 +3168,7 @@ const (
 	WebMessageInfo_BIZ_CHAT_ASSIGNMENT                                      WebMessageInfo_StubType = 154
 	WebMessageInfo_CHAT_PSA                                                 WebMessageInfo_StubType = 155
 	WebMessageInfo_CHAT_POLL_CREATION_MESSAGE                               WebMessageInfo_StubType = 156
+	WebMessageInfo_CAG_MASKED_THREAD_CREATED                                WebMessageInfo_StubType = 157
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -3321,6 +3331,7 @@ var (
 		154: "BIZ_CHAT_ASSIGNMENT",
 		155: "CHAT_PSA",
 		156: "CHAT_POLL_CREATION_MESSAGE",
+		157: "CAG_MASKED_THREAD_CREATED",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -3480,6 +3491,7 @@ var (
 		"BIZ_CHAT_ASSIGNMENT":                                      154,
 		"CHAT_PSA":                                                 155,
 		"CHAT_POLL_CREATION_MESSAGE":                               156,
+		"CAG_MASKED_THREAD_CREATED":                                157,
 	}
 )
 
@@ -8278,6 +8290,8 @@ type ContextInfo struct {
 	ActionLink                       *ActionLink                      `protobuf:"bytes,33,opt,name=actionLink" json:"actionLink,omitempty"`
 	GroupSubject                     *string                          `protobuf:"bytes,34,opt,name=groupSubject" json:"groupSubject,omitempty"`
 	ParentGroupJid                   *string                          `protobuf:"bytes,35,opt,name=parentGroupJid" json:"parentGroupJid,omitempty"`
+	TrustBannerType                  *string                          `protobuf:"bytes,37,opt,name=trustBannerType" json:"trustBannerType,omitempty"`
+	TrustBannerAction                *uint32                          `protobuf:"varint,38,opt,name=trustBannerAction" json:"trustBannerAction,omitempty"`
 }
 
 func (x *ContextInfo) Reset() {
@@ -8471,6 +8485,20 @@ func (x *ContextInfo) GetParentGroupJid() string {
 		return *x.ParentGroupJid
 	}
 	return ""
+}
+
+func (x *ContextInfo) GetTrustBannerType() string {
+	if x != nil && x.TrustBannerType != nil {
+		return *x.TrustBannerType
+	}
+	return ""
+}
+
+func (x *ContextInfo) GetTrustBannerAction() uint32 {
+	if x != nil && x.TrustBannerAction != nil {
+		return *x.TrustBannerAction
+	}
+	return 0
 }
 
 type ActionLink struct {
@@ -9851,6 +9879,7 @@ type StickerMessage struct {
 	PngThumbnail      []byte       `protobuf:"bytes,16,opt,name=pngThumbnail" json:"pngThumbnail,omitempty"`
 	ContextInfo       *ContextInfo `protobuf:"bytes,17,opt,name=contextInfo" json:"contextInfo,omitempty"`
 	StickerSentTs     *int64       `protobuf:"varint,18,opt,name=stickerSentTs" json:"stickerSentTs,omitempty"`
+	IsAvatar          *bool        `protobuf:"varint,19,opt,name=isAvatar" json:"isAvatar,omitempty"`
 }
 
 func (x *StickerMessage) Reset() {
@@ -9995,6 +10024,13 @@ func (x *StickerMessage) GetStickerSentTs() int64 {
 		return *x.StickerSentTs
 	}
 	return 0
+}
+
+func (x *StickerMessage) GetIsAvatar() bool {
+	if x != nil && x.IsAvatar != nil {
+		return *x.IsAvatar
+	}
+	return false
 }
 
 type SenderKeyDistributionMessage struct {
@@ -11667,6 +11703,7 @@ type Conversation struct {
 	DisplayName               *string                                `protobuf:"bytes,38,opt,name=displayName" json:"displayName,omitempty"`
 	PnJid                     *string                                `protobuf:"bytes,39,opt,name=pnJid" json:"pnJid,omitempty"`
 	ShareOwnPn                *bool                                  `protobuf:"varint,40,opt,name=shareOwnPn" json:"shareOwnPn,omitempty"`
+	PnhDuplicateLidThread     *bool                                  `protobuf:"varint,41,opt,name=pnhDuplicateLidThread" json:"pnhDuplicateLidThread,omitempty"`
 }
 
 func (x *Conversation) Reset() {
@@ -11977,6 +12014,13 @@ func (x *Conversation) GetPnJid() string {
 func (x *Conversation) GetShareOwnPn() bool {
 	if x != nil && x.ShareOwnPn != nil {
 		return *x.ShareOwnPn
+	}
+	return false
+}
+
+func (x *Conversation) GetPnhDuplicateLidThread() bool {
+	if x != nil && x.PnhDuplicateLidThread != nil {
+		return *x.PnhDuplicateLidThread
 	}
 	return false
 }

@@ -801,6 +801,8 @@ message ContextInfo {
     optional ActionLink actionLink = 33;
     optional string groupSubject = 34;
     optional string parentGroupJid = 35;
+    optional string trustBannerType = 37;
+    optional uint32 trustBannerAction = 38;
 }
 
 message ActionLink {
@@ -1025,6 +1027,7 @@ message StickerMessage {
     optional bytes pngThumbnail = 16;
     optional ContextInfo contextInfo = 17;
     optional int64 stickerSentTs = 18;
+    optional bool isAvatar = 19;
 }
 
 message SenderKeyDistributionMessage {
@@ -1295,6 +1298,7 @@ message Conversation {
     optional string displayName = 38;
     optional string pnJid = 39;
     optional bool shareOwnPn = 40;
+    optional bool pnhDuplicateLidThread = 41;
 }
 
 message AutoDownloadSettings {
@@ -1797,6 +1801,9 @@ message ClientPayload {
             OCULUS_CALL = 26;
             MILAN = 27;
             CAPI = 28;
+            WEAROS = 29;
+            ARDEVICE = 30;
+            VRDEVICE = 31;
         }
         message AppVersion {
             optional uint32 primary = 1;
@@ -2078,6 +2085,7 @@ message WebMessageInfo {
         BIZ_CHAT_ASSIGNMENT = 154;
         CHAT_PSA = 155;
         CHAT_POLL_CREATION_MESSAGE = 156;
+        CAG_MASKED_THREAD_CREATED = 157;
     }
     enum Status {
         ERROR = 0;
