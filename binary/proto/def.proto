@@ -51,6 +51,7 @@ message DeviceProps {
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
         optional uint32 fullSyncSizeMbLimit = 2;
+        optional uint32 storageQuotaMb = 3;
     }
     
     message AppVersion {
@@ -991,9 +992,11 @@ message TemplateMessage {
     
     optional ContextInfo contextInfo = 3;
     optional HydratedFourRowTemplate hydratedTemplate = 4;
+    optional string templateId = 9;
     oneof format {
         FourRowTemplate fourRowTemplate = 1;
         HydratedFourRowTemplate hydratedFourRowTemplate = 2;
+        InteractiveMessage interactiveMessageTemplate = 5;
     }
 }
 
@@ -1251,6 +1254,7 @@ message GlobalSettings {
     optional bool showGroupNotificationsPreview = 8;
     optional int32 disappearingModeDuration = 9;
     optional int64 disappearingModeTimestamp = 10;
+    optional AvatarUserSettings avatarUserSettings = 11;
 }
 
 message Conversation {
@@ -1299,6 +1303,12 @@ message Conversation {
     optional string pnJid = 39;
     optional bool shareOwnPn = 40;
     optional bool pnhDuplicateLidThread = 41;
+    optional string lidJid = 42;
+}
+
+message AvatarUserSettings {
+    optional string fbid = 1;
+    optional string password = 2;
 }
 
 message AutoDownloadSettings {
@@ -1569,6 +1579,7 @@ message NuxAction {
 message MuteAction {
     optional bool muted = 1;
     optional int64 muteEndTimestamp = 2;
+    optional bool autoMuted = 3;
 }
 
 message MarkChatAsReadAction {
@@ -1607,6 +1618,7 @@ message DeleteChatAction {
 message ContactAction {
     optional string fullName = 1;
     optional string firstName = 2;
+    optional string lidJid = 3;
 }
 
 message ClearChatAction {
@@ -2086,6 +2098,9 @@ message WebMessageInfo {
         CHAT_PSA = 155;
         CHAT_POLL_CREATION_MESSAGE = 156;
         CAG_MASKED_THREAD_CREATED = 157;
+        COMMUNITY_PARENT_GROUP_SUBJECT_CHANGED = 158;
+        CAG_INVITE_AUTO_ADD = 159;
+        BIZ_CHAT_ASSIGNMENT_UNASSIGN = 160;
     }
     enum Status {
         ERROR = 0;
