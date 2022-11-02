@@ -492,7 +492,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		messageID := args[1]
-		resp, err := cli.RevokeMessage(recipient, messageID)
+		resp, err := cli.SendMessage(context.Background(), recipient, "", cli.BuildRevoke(recipient, types.EmptyJID, messageID))
 		if err != nil {
 			log.Errorf("Error sending revocation: %v", err)
 		} else {
