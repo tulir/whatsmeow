@@ -3172,6 +3172,7 @@ const (
 	WebMessageInfo_COMMUNITY_PARENT_GROUP_SUBJECT_CHANGED                   WebMessageInfo_StubType = 158
 	WebMessageInfo_CAG_INVITE_AUTO_ADD                                      WebMessageInfo_StubType = 159
 	WebMessageInfo_BIZ_CHAT_ASSIGNMENT_UNASSIGN                             WebMessageInfo_StubType = 160
+	WebMessageInfo_CAG_INVITE_AUTO_JOINED                                   WebMessageInfo_StubType = 161
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -3338,6 +3339,7 @@ var (
 		158: "COMMUNITY_PARENT_GROUP_SUBJECT_CHANGED",
 		159: "CAG_INVITE_AUTO_ADD",
 		160: "BIZ_CHAT_ASSIGNMENT_UNASSIGN",
+		161: "CAG_INVITE_AUTO_JOINED",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -3501,6 +3503,7 @@ var (
 		"COMMUNITY_PARENT_GROUP_SUBJECT_CHANGED":                   158,
 		"CAG_INVITE_AUTO_ADD":                                      159,
 		"BIZ_CHAT_ASSIGNMENT_UNASSIGN":                             160,
+		"CAG_INVITE_AUTO_JOINED":                                   161,
 	}
 )
 
@@ -5857,15 +5860,16 @@ type HistorySyncNotification struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FileSha256        []byte                                   `protobuf:"bytes,1,opt,name=fileSha256" json:"fileSha256,omitempty"`
-	FileLength        *uint64                                  `protobuf:"varint,2,opt,name=fileLength" json:"fileLength,omitempty"`
-	MediaKey          []byte                                   `protobuf:"bytes,3,opt,name=mediaKey" json:"mediaKey,omitempty"`
-	FileEncSha256     []byte                                   `protobuf:"bytes,4,opt,name=fileEncSha256" json:"fileEncSha256,omitempty"`
-	DirectPath        *string                                  `protobuf:"bytes,5,opt,name=directPath" json:"directPath,omitempty"`
-	SyncType          *HistorySyncNotification_HistorySyncType `protobuf:"varint,6,opt,name=syncType,enum=proto.HistorySyncNotification_HistorySyncType" json:"syncType,omitempty"`
-	ChunkOrder        *uint32                                  `protobuf:"varint,7,opt,name=chunkOrder" json:"chunkOrder,omitempty"`
-	OriginalMessageId *string                                  `protobuf:"bytes,8,opt,name=originalMessageId" json:"originalMessageId,omitempty"`
-	Progress          *uint32                                  `protobuf:"varint,9,opt,name=progress" json:"progress,omitempty"`
+	FileSha256                   []byte                                   `protobuf:"bytes,1,opt,name=fileSha256" json:"fileSha256,omitempty"`
+	FileLength                   *uint64                                  `protobuf:"varint,2,opt,name=fileLength" json:"fileLength,omitempty"`
+	MediaKey                     []byte                                   `protobuf:"bytes,3,opt,name=mediaKey" json:"mediaKey,omitempty"`
+	FileEncSha256                []byte                                   `protobuf:"bytes,4,opt,name=fileEncSha256" json:"fileEncSha256,omitempty"`
+	DirectPath                   *string                                  `protobuf:"bytes,5,opt,name=directPath" json:"directPath,omitempty"`
+	SyncType                     *HistorySyncNotification_HistorySyncType `protobuf:"varint,6,opt,name=syncType,enum=proto.HistorySyncNotification_HistorySyncType" json:"syncType,omitempty"`
+	ChunkOrder                   *uint32                                  `protobuf:"varint,7,opt,name=chunkOrder" json:"chunkOrder,omitempty"`
+	OriginalMessageId            *string                                  `protobuf:"bytes,8,opt,name=originalMessageId" json:"originalMessageId,omitempty"`
+	Progress                     *uint32                                  `protobuf:"varint,9,opt,name=progress" json:"progress,omitempty"`
+	OldestMsgInChunkTimestampSec *int64                                   `protobuf:"varint,10,opt,name=oldestMsgInChunkTimestampSec" json:"oldestMsgInChunkTimestampSec,omitempty"`
 }
 
 func (x *HistorySyncNotification) Reset() {
@@ -5959,6 +5963,13 @@ func (x *HistorySyncNotification) GetOriginalMessageId() string {
 func (x *HistorySyncNotification) GetProgress() uint32 {
 	if x != nil && x.Progress != nil {
 		return *x.Progress
+	}
+	return 0
+}
+
+func (x *HistorySyncNotification) GetOldestMsgInChunkTimestampSec() int64 {
+	if x != nil && x.OldestMsgInChunkTimestampSec != nil {
+		return *x.OldestMsgInChunkTimestampSec
 	}
 	return 0
 }

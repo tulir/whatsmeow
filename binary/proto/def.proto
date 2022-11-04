@@ -386,6 +386,7 @@ message HistorySyncNotification {
     optional uint32 chunkOrder = 7;
     optional string originalMessageId = 8;
     optional uint32 progress = 9;
+    optional int64 oldestMsgInChunkTimestampSec = 10;
 }
 
 message HighlyStructuredMessage {
@@ -2101,6 +2102,7 @@ message WebMessageInfo {
         COMMUNITY_PARENT_GROUP_SUBJECT_CHANGED = 158;
         CAG_INVITE_AUTO_ADD = 159;
         BIZ_CHAT_ASSIGNMENT_UNASSIGN = 160;
+        CAG_INVITE_AUTO_JOINED = 161;
     }
     enum Status {
         ERROR = 0;
