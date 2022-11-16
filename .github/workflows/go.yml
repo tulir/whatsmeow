@@ -18,6 +18,11 @@ jobs:
       with:
         go-version: ${{ matrix.go-version }}
 
+    - name: Install goimports
+      run: |
+        go install golang.org/x/tools/cmd/goimports@latest
+        export PATH="$HOME/go/bin:$PATH"
+
     - name: Build
       run: go build -v ./...
 
@@ -25,5 +30,5 @@ jobs:
       run: go test -v ./...
 
     - name: Format
-      run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+      run: if [ "$(goimports -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
       if: matrix.go-version == 1.17
