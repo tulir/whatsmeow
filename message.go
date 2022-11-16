@@ -392,7 +392,14 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
-
+	if msgSecret := msg.GetMessageContextInfo().GetMessageSecret(); len(msgSecret) > 0 {
+		err := cli.Store.MsgSecrets.PutMessageSecret(info.Chat, info.Sender, info.ID, msgSecret)
+		if err != nil {
+			cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
+		} else {
+			cli.Log.Debugf("Stored message secret key for %s", info.ID)
+		}
+	}
 }
 
 func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {

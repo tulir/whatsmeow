@@ -115,6 +115,14 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, id types.Messa
 	if !isPeerMessage {
 		cli.addRecentMessage(to, id, message)
 	}
+	if message.GetMessageContextInfo().GetMessageSecret() != nil {
+		err = cli.Store.MsgSecrets.PutMessageSecret(to.ToNonAD(), cli.Store.ID.ToNonAD(), id, message.GetMessageContextInfo().GetMessageSecret())
+		if err != nil {
+			cli.Log.Warnf("Failed to store message secret key for outgoing message %s: %v", id, err)
+		} else {
+			cli.Log.Debugf("Stored message secret key for outgoing message %s", id)
+		}
+	}
 	var phash string
 	var data []byte
 	switch to.Server {
@@ -410,10 +418,16 @@ func getTypeFromMessage(msg *waProto.Message) string {
 	switch {
 	case msg.ViewOnceMessage != nil:
 		return getTypeFromMessage(msg.ViewOnceMessage.Message)
+	case msg.ViewOnceMessageV2 != nil:
+		return getTypeFromMessage(msg.ViewOnceMessageV2.Message)
 	case msg.EphemeralMessage != nil:
 		return getTypeFromMessage(msg.EphemeralMessage.Message)
+	case msg.DocumentWithCaptionMessage != nil:
+		return getTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
 	case msg.ReactionMessage != nil:
 		return "reaction"
+	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
+		return "poll"
 	case msg.Conversation != nil, msg.ExtendedTextMessage != nil, msg.ProtocolMessage != nil:
 		return "text"
 	//TODO this requires setting mediatype in the enc nodes
@@ -516,6 +530,18 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to types.JID, id type
 	}}
 	if includeIdentity {
 		content = append(content, cli.makeDeviceIdentityNode())
+	}
+	if attrs["type"] == "poll" {
+		pollType := "creation"
+		if message.PollUpdateMessage != nil {
+			pollType = "vote"
+		}
+		content = append(content, waBinary.Node{
+			Tag: "meta",
+			Attrs: waBinary.Attrs{
+				"polltype": pollType,
+			},
+		})
 	}
 	return &waBinary.Node{
 		Tag:     "message",

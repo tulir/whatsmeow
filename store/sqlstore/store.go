@@ -28,7 +28,8 @@ var ErrInvalidLength = errors.New("database returned byte array with illegal len
 // PostgresArrayWrapper is a function to wrap array values before passing them to the sql package.
 //
 // When using github.com/lib/pq, you should set
-//   whatsmeow.PostgresArrayWrapper = pq.Array
+//
+//	whatsmeow.PostgresArrayWrapper = pq.Array
 var PostgresArrayWrapper func(interface{}) interface {
 	driver.Valuer
 	sql.Scanner
@@ -684,6 +685,28 @@ func (s *SQLStore) GetChatSettings(chat types.JID) (settings types.LocalChatSett
 	}
 	if mutedUntil != 0 {
 		settings.MutedUntil = time.Unix(mutedUntil, 0)
+	}
+	return
+}
+
+const (
+	putMsgSecret = `
+		INSERT INTO whatsmeow_message_secrets (our_jid, chat_jid, sender_jid, message_id, key) VALUES ($1, $2, $3, $4, $5)
+	`
+	getMsgSecret = `
+		SELECT key FROM whatsmeow_message_secrets WHERE our_jid=$1 AND chat_jid=$2 AND sender_jid=$3 AND message_id=$4
+	`
+)
+
+func (s *SQLStore) PutMessageSecret(chat, sender types.JID, id types.MessageID, key []byte) (err error) {
+	_, err = s.db.Exec(putMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, key)
+	return
+}
+
+func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) (key []byte, err error) {
+	err = s.db.QueryRow(getMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&key)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
 	}
 	return
 }

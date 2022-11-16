@@ -38,7 +38,8 @@ var _ store.DeviceContainer = (*Container)(nil)
 // The logger can be nil and will default to a no-op logger.
 //
 // When using SQLite, it's strongly recommended to enable foreign keys by adding `?_foreign_keys=true`:
-//   container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
+//
+//	container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
 func New(dialect, address string, log waLog.Logger) (*Container, error) {
 	db, err := sql.Open(dialect, address)
 	if err != nil {
@@ -59,11 +60,12 @@ func New(dialect, address string, log waLog.Logger) (*Container, error) {
 // The logger can be nil and will default to a no-op logger.
 //
 // When using SQLite, it's strongly recommended to enable foreign keys by adding `?_foreign_keys=true`:
-//   db, err := sql.Open("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on")
-//   if err != nil {
-//       panic(err)
-//   }
-//   container, err := sqlstore.NewWithDB(db, "sqlite3", nil)
+//
+//	db, err := sql.Open("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on")
+//	if err != nil {
+//	    panic(err)
+//	}
+//	container, err := sqlstore.NewWithDB(db, "sqlite3", nil)
 func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
 	if log == nil {
 		log = waLog.Noop
@@ -123,6 +125,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.AppState = innerStore
 	device.Contacts = innerStore
 	device.ChatSettings = innerStore
+	device.MsgSecrets = innerStore
 	device.Container = c
 	device.Initialized = true
 

@@ -417,6 +417,33 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Message sent (server timestamp: %s)", resp.Timestamp)
 		}
+	case "sendpoll":
+		if len(args) < 7 {
+			log.Errorf("Usage: sendpoll <jid> <max answers> <question> -- <option 1> / <option 2> / ...")
+			return
+		}
+		recipient, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		maxAnswers, err := strconv.Atoi(args[1])
+		if err != nil {
+			log.Errorf("Number of max answers must be an integer")
+			return
+		}
+		remainingArgs := strings.Join(args[2:], " ")
+		question, optionsStr, _ := strings.Cut(remainingArgs, "--")
+		question = strings.TrimSpace(question)
+		options := strings.Split(optionsStr, "/")
+		for i, opt := range options {
+			options[i] = strings.TrimSpace(opt)
+		}
+		resp, err := cli.SendMessage(context.Background(), recipient, "", cli.BuildPollCreation(question, options, maxAnswers))
+		if err != nil {
+			log.Errorf("Error sending message: %v", err)
+		} else {
+			log.Infof("Message sent (server timestamp: %s)", resp.Timestamp)
+		}
 	case "multisend":
 		if len(args) < 3 {
 			log.Errorf("Usage: multisend <jids...> -- <text>")
@@ -600,6 +627,18 @@ func handler(rawEvt interface{}) {
 		}
 
 		log.Infof("Received message %s from %s (%s): %+v", evt.Info.ID, evt.Info.SourceString(), strings.Join(metaParts, ", "), evt.Message)
+
+		if evt.Message.GetPollUpdateMessage() != nil {
+			decrypted, err := cli.DecryptPollVote(evt)
+			if err != nil {
+				log.Errorf("Failed to decrypt vote: %v", err)
+			} else {
+				log.Infof("Selected options in decrypted vote:")
+				for _, option := range decrypted.SelectedOptions {
+					log.Infof("- %X", option)
+				}
+			}
+		}
 
 		img := evt.Message.GetImageMessage()
 		if img != nil {

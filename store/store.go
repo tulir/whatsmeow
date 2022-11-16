@@ -99,6 +99,11 @@ type DeviceContainer interface {
 	DeleteDevice(store *Device) error
 }
 
+type MsgSecretStore interface {
+	PutMessageSecret(chat, sender types.JID, id types.MessageID, key []byte) error
+	GetMessageSecret(chat, sender types.JID, id types.MessageID) ([]byte, error)
+}
+
 type Device struct {
 	Log waLog.Logger
 
@@ -123,6 +128,7 @@ type Device struct {
 	AppState     AppStateStore
 	Contacts     ContactStore
 	ChatSettings ChatSettingsStore
+	MsgSecrets   MsgSecretStore
 	Container    DeviceContainer
 
 	DatabaseErrorHandler func(device *Device, action string, attemptIndex int, err error) (retry bool)
