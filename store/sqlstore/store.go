@@ -691,20 +691,37 @@ func (s *SQLStore) GetChatSettings(chat types.JID) (settings types.LocalChatSett
 
 const (
 	putMsgSecret = `
-		INSERT INTO whatsmeow_message_secrets (our_jid, chat_jid, sender_jid, message_id, key) VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO whatsmeow_message_secrets (our_jid, chat_jid, sender_jid, message_id, key)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (our_jid, chat_jid, sender_jid, message_id) DO NOTHING
 	`
 	getMsgSecret = `
 		SELECT key FROM whatsmeow_message_secrets WHERE our_jid=$1 AND chat_jid=$2 AND sender_jid=$3 AND message_id=$4
 	`
 )
 
-func (s *SQLStore) PutMessageSecret(chat, sender types.JID, id types.MessageID, key []byte) (err error) {
-	_, err = s.db.Exec(putMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, key)
+func (s *SQLStore) PutMessageSecrets(inserts []store.MessageSecretInsert) (err error) {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	for _, insert := range inserts {
+		_, err = s.db.Exec(putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
+	}
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
 	return
 }
 
-func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) (key []byte, err error) {
-	err = s.db.QueryRow(getMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&key)
+func (s *SQLStore) PutMessageSecret(chat, sender types.JID, id types.MessageID, secret []byte) (err error) {
+	_, err = s.db.Exec(putMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, secret)
+	return
+}
+
+func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) (secret []byte, err error) {
+	err = s.db.QueryRow(getMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&secret)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}

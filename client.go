@@ -618,5 +618,11 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		Info:       info,
 	}
 	evt.UnwrapRaw()
+	err = cli.Store.MsgSecrets.PutMessageSecret(info.Chat, info.Sender, info.ID, webMsg.GetMessageSecret())
+	if err != nil {
+		cli.Log.Errorf("Failed to store message secret key for historical message %s: %v", info.ID, err)
+	} else {
+		cli.Log.Debugf("Stored message secret key for historical message %s", info.ID)
+	}
 	return evt, nil
 }

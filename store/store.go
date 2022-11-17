@@ -99,8 +99,16 @@ type DeviceContainer interface {
 	DeleteDevice(store *Device) error
 }
 
+type MessageSecretInsert struct {
+	Chat   types.JID
+	Sender types.JID
+	ID     types.MessageID
+	Secret []byte
+}
+
 type MsgSecretStore interface {
-	PutMessageSecret(chat, sender types.JID, id types.MessageID, key []byte) error
+	PutMessageSecrets([]MessageSecretInsert) error
+	PutMessageSecret(chat, sender types.JID, id types.MessageID, secret []byte) error
 	GetMessageSecret(chat, sender types.JID, id types.MessageID) ([]byte, error)
 }
 

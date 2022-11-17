@@ -312,6 +312,8 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 		cli.Log.Debugf("Received history sync (type %s, chunk %d)", historySync.GetSyncType(), historySync.GetChunkOrder())
 		if historySync.GetSyncType() == waProto.HistorySync_PUSH_NAME {
 			go cli.handleHistoricalPushNames(historySync.GetPushnames())
+		} else if len(historySync.GetConversations()) > 0 {
+			go cli.storeHistoricalMessageSecrets(historySync.GetConversations())
 		}
 		cli.dispatchEvent(&events.HistorySync{
 			Data: &historySync,
@@ -398,6 +400,50 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 			cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
 		} else {
 			cli.Log.Debugf("Stored message secret key for %s", info.ID)
+		}
+	}
+}
+
+func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conversation) {
+	var secrets []store.MessageSecretInsert
+	me := cli.Store.ID.ToNonAD()
+	for _, conv := range conversations {
+		chatJID, _ := types.ParseJID(conv.GetId())
+		if chatJID.IsEmpty() {
+			continue
+		}
+		for _, msg := range conv.GetMessages() {
+			if secret := msg.GetMessage().GetMessageSecret(); secret != nil {
+				var senderJID types.JID
+				msgKey := msg.GetMessage().GetKey()
+				if msgKey.GetFromMe() {
+					senderJID = me
+				} else if chatJID.Server == types.DefaultUserServer {
+					senderJID = chatJID
+				} else if msgKey.GetParticipant() != "" {
+					senderJID, _ = types.ParseJID(msgKey.GetParticipant())
+				} else if msg.GetMessage().GetParticipant() != "" {
+					senderJID, _ = types.ParseJID(msg.GetMessage().GetParticipant())
+				}
+				if senderJID.IsEmpty() || msgKey.GetId() == "" {
+					continue
+				}
+				secrets = append(secrets, store.MessageSecretInsert{
+					Chat:   chatJID,
+					Sender: senderJID,
+					ID:     msgKey.GetId(),
+					Secret: secret,
+				})
+			}
+		}
+	}
+	if len(secrets) > 0 {
+		cli.Log.Debugf("Storing %d message secret keys in history sync", len(secrets))
+		err := cli.Store.MsgSecrets.PutMessageSecrets(secrets)
+		if err != nil {
+			cli.Log.Errorf("Failed to store message secret keys in history sync: %v", err)
+		} else {
+			cli.Log.Infof("Stored %d message secret keys from history sync", len(secrets))
 		}
 	}
 }

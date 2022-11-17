@@ -116,7 +116,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, id types.Messa
 		cli.addRecentMessage(to, id, message)
 	}
 	if message.GetMessageContextInfo().GetMessageSecret() != nil {
-		err = cli.Store.MsgSecrets.PutMessageSecret(to.ToNonAD(), cli.Store.ID.ToNonAD(), id, message.GetMessageContextInfo().GetMessageSecret())
+		err = cli.Store.MsgSecrets.PutMessageSecret(to, *cli.Store.ID, id, message.GetMessageContextInfo().GetMessageSecret())
 		if err != nil {
 			cli.Log.Warnf("Failed to store message secret key for outgoing message %s: %v", id, err)
 		} else {
