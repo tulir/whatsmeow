@@ -175,12 +175,15 @@ func (cli *Client) SetGroupTopic(jid types.JID, previousID, newID, topic string)
 	if newID == "" {
 		newID = GenerateMessageID()
 	}
+	attrs := waBinary.Attrs{
+		"id": newID,
+	}
+	if previousID != "" {
+		attrs["prev"] = previousID
+	}
 	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
-		Tag: "description",
-		Attrs: waBinary.Attrs{
-			"prev": previousID,
-			"id":   newID,
-		},
+		Tag:   "description",
+		Attrs: attrs,
 		Content: []waBinary.Node{{
 			Tag:     "body",
 			Content: []byte(topic),
