@@ -533,20 +533,26 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 				NameSetBy: cag.OptionalJIDOrEmpty("s_o"),
 			}
 		case "description":
-			topicChild := child.GetChildByTag("body")
-			topicBytes, ok := topicChild.Content.([]byte)
-			if !ok {
-				return nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
+			var topicStr string
+			_, isDelete := child.GetOptionalChildByTag("delete")
+			if !isDelete {
+				topicChild := child.GetChildByTag("body")
+				topicBytes, ok := topicChild.Content.([]byte)
+				if !ok {
+					return nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
+				}
+				topicStr = string(topicBytes)
 			}
 			var setBy types.JID
 			if evt.Sender != nil {
 				setBy = *evt.Sender
 			}
 			evt.Topic = &types.GroupTopic{
-				Topic:      string(topicBytes),
-				TopicID:    cag.String("id"),
-				TopicSetAt: evt.Timestamp,
-				TopicSetBy: setBy,
+				Topic:        topicStr,
+				TopicID:      cag.String("id"),
+				TopicSetAt:   evt.Timestamp,
+				TopicSetBy:   setBy,
+				TopicDeleted: isDelete,
 			}
 		case "announcement":
 			evt.Announce = &types.GroupAnnounce{
