@@ -181,13 +181,18 @@ func (cli *Client) SetGroupTopic(jid types.JID, previousID, newID, topic string)
 	if previousID != "" {
 		attrs["prev"] = previousID
 	}
+	content := []waBinary.Node{{
+		Tag:     "body",
+		Content: []byte(topic),
+	}}
+	if len(topic) == 0 {
+		attrs["delete"] = "true"
+		content = nil
+	}
 	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
-		Tag:   "description",
-		Attrs: attrs,
-		Content: []waBinary.Node{{
-			Tag:     "body",
-			Content: []byte(topic),
-		}},
+		Tag:     "description",
+		Attrs:   attrs,
+		Content: content,
 	})
 	return err
 }
