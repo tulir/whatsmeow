@@ -7,14 +7,13 @@
 package proto
 
 import (
-	reflect "reflect"
-	sync "sync"
-
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-
-	_ "embed"
+	reflect "reflect"
+	sync "sync"
 )
+
+import _ "embed"
 
 const (
 	// Verify that this generated code is sufficiently up-to-date.
@@ -12294,28 +12293,31 @@ type MsgOpaqueData struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Body                       *string                     `protobuf:"bytes,1,opt,name=body" json:"body,omitempty"`
-	Caption                    *string                     `protobuf:"bytes,3,opt,name=caption" json:"caption,omitempty"`
-	Lng                        *float64                    `protobuf:"fixed64,5,opt,name=lng" json:"lng,omitempty"`
-	IsLive                     *bool                       `protobuf:"varint,6,opt,name=isLive" json:"isLive,omitempty"`
-	Lat                        *float64                    `protobuf:"fixed64,7,opt,name=lat" json:"lat,omitempty"`
-	PaymentAmount1000          *int32                      `protobuf:"varint,8,opt,name=paymentAmount1000" json:"paymentAmount1000,omitempty"`
-	PaymentNoteMsgBody         *string                     `protobuf:"bytes,9,opt,name=paymentNoteMsgBody" json:"paymentNoteMsgBody,omitempty"`
-	CanonicalUrl               *string                     `protobuf:"bytes,10,opt,name=canonicalUrl" json:"canonicalUrl,omitempty"`
-	MatchedText                *string                     `protobuf:"bytes,11,opt,name=matchedText" json:"matchedText,omitempty"`
-	Title                      *string                     `protobuf:"bytes,12,opt,name=title" json:"title,omitempty"`
-	Description                *string                     `protobuf:"bytes,13,opt,name=description" json:"description,omitempty"`
-	FutureproofBuffer          []byte                      `protobuf:"bytes,14,opt,name=futureproofBuffer" json:"futureproofBuffer,omitempty"`
-	ClientUrl                  *string                     `protobuf:"bytes,15,opt,name=clientUrl" json:"clientUrl,omitempty"`
-	Loc                        *string                     `protobuf:"bytes,16,opt,name=loc" json:"loc,omitempty"`
-	PollName                   *string                     `protobuf:"bytes,17,opt,name=pollName" json:"pollName,omitempty"`
-	PollOptions                []*MsgOpaqueData_PollOption `protobuf:"bytes,18,rep,name=pollOptions" json:"pollOptions,omitempty"`
-	PollSelectableOptionsCount *uint32                     `protobuf:"varint,20,opt,name=pollSelectableOptionsCount" json:"pollSelectableOptionsCount,omitempty"`
-	MessageSecret              []byte                      `protobuf:"bytes,21,opt,name=messageSecret" json:"messageSecret,omitempty"`
-	OriginalSelfAuthor         *string                     `protobuf:"bytes,51,opt,name=originalSelfAuthor" json:"originalSelfAuthor,omitempty"`
-	SenderTimestampMs          *int64                      `protobuf:"varint,22,opt,name=senderTimestampMs" json:"senderTimestampMs,omitempty"`
-	PollUpdateParentKey        *string                     `protobuf:"bytes,23,opt,name=pollUpdateParentKey" json:"pollUpdateParentKey,omitempty"`
-	EncPollVote                *PollEncValue               `protobuf:"bytes,24,opt,name=encPollVote" json:"encPollVote,omitempty"`
+	Body                        *string                     `protobuf:"bytes,1,opt,name=body" json:"body,omitempty"`
+	Caption                     *string                     `protobuf:"bytes,3,opt,name=caption" json:"caption,omitempty"`
+	Lng                         *float64                    `protobuf:"fixed64,5,opt,name=lng" json:"lng,omitempty"`
+	IsLive                      *bool                       `protobuf:"varint,6,opt,name=isLive" json:"isLive,omitempty"`
+	Lat                         *float64                    `protobuf:"fixed64,7,opt,name=lat" json:"lat,omitempty"`
+	PaymentAmount1000           *int32                      `protobuf:"varint,8,opt,name=paymentAmount1000" json:"paymentAmount1000,omitempty"`
+	PaymentNoteMsgBody          *string                     `protobuf:"bytes,9,opt,name=paymentNoteMsgBody" json:"paymentNoteMsgBody,omitempty"`
+	CanonicalUrl                *string                     `protobuf:"bytes,10,opt,name=canonicalUrl" json:"canonicalUrl,omitempty"`
+	MatchedText                 *string                     `protobuf:"bytes,11,opt,name=matchedText" json:"matchedText,omitempty"`
+	Title                       *string                     `protobuf:"bytes,12,opt,name=title" json:"title,omitempty"`
+	Description                 *string                     `protobuf:"bytes,13,opt,name=description" json:"description,omitempty"`
+	FutureproofBuffer           []byte                      `protobuf:"bytes,14,opt,name=futureproofBuffer" json:"futureproofBuffer,omitempty"`
+	ClientUrl                   *string                     `protobuf:"bytes,15,opt,name=clientUrl" json:"clientUrl,omitempty"`
+	Loc                         *string                     `protobuf:"bytes,16,opt,name=loc" json:"loc,omitempty"`
+	PollName                    *string                     `protobuf:"bytes,17,opt,name=pollName" json:"pollName,omitempty"`
+	PollOptions                 []*MsgOpaqueData_PollOption `protobuf:"bytes,18,rep,name=pollOptions" json:"pollOptions,omitempty"`
+	PollSelectableOptionsCount  *uint32                     `protobuf:"varint,20,opt,name=pollSelectableOptionsCount" json:"pollSelectableOptionsCount,omitempty"`
+	MessageSecret               []byte                      `protobuf:"bytes,21,opt,name=messageSecret" json:"messageSecret,omitempty"`
+	OriginalSelfAuthor          *string                     `protobuf:"bytes,51,opt,name=originalSelfAuthor" json:"originalSelfAuthor,omitempty"`
+	SenderTimestampMs           *int64                      `protobuf:"varint,22,opt,name=senderTimestampMs" json:"senderTimestampMs,omitempty"`
+	PollUpdateParentKey         *string                     `protobuf:"bytes,23,opt,name=pollUpdateParentKey" json:"pollUpdateParentKey,omitempty"`
+	EncPollVote                 *PollEncValue               `protobuf:"bytes,24,opt,name=encPollVote" json:"encPollVote,omitempty"`
+	EncReactionTargetMessageKey *string                     `protobuf:"bytes,25,opt,name=encReactionTargetMessageKey" json:"encReactionTargetMessageKey,omitempty"`
+	EncReactionEncPayload       []byte                      `protobuf:"bytes,26,opt,name=encReactionEncPayload" json:"encReactionEncPayload,omitempty"`
+	EncReactionEncIv            []byte                      `protobuf:"bytes,27,opt,name=encReactionEncIv" json:"encReactionEncIv,omitempty"`
 }
 
 func (x *MsgOpaqueData) Reset() {
@@ -12500,6 +12502,27 @@ func (x *MsgOpaqueData) GetPollUpdateParentKey() string {
 func (x *MsgOpaqueData) GetEncPollVote() *PollEncValue {
 	if x != nil {
 		return x.EncPollVote
+	}
+	return nil
+}
+
+func (x *MsgOpaqueData) GetEncReactionTargetMessageKey() string {
+	if x != nil && x.EncReactionTargetMessageKey != nil {
+		return *x.EncReactionTargetMessageKey
+	}
+	return ""
+}
+
+func (x *MsgOpaqueData) GetEncReactionEncPayload() []byte {
+	if x != nil {
+		return x.EncReactionEncPayload
+	}
+	return nil
+}
+
+func (x *MsgOpaqueData) GetEncReactionEncIv() []byte {
+	if x != nil {
+		return x.EncReactionEncIv
 	}
 	return nil
 }
