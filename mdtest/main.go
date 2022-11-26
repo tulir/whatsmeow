@@ -638,6 +638,13 @@ func handler(rawEvt interface{}) {
 					log.Infof("- %X", option)
 				}
 			}
+		} else if evt.Message.GetEncReactionMessage() != nil {
+			decrypted, err := cli.DecryptReaction(evt)
+			if err != nil {
+				log.Errorf("Failed to decrypt encrypted reaction: %v", err)
+			} else {
+				log.Infof("Decrypted reaction: %+v", decrypted)
+			}
 		}
 
 		img := evt.Message.GetImageMessage()
