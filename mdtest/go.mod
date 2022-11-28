@@ -16,5 +16,3 @@ require (
 	golang.org/x/crypto v0.0.0-20221012134737-56aed061732a // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
-
-replace go.mau.fi/whatsmeow => ../
