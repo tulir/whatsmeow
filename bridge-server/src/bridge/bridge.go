@@ -57,24 +57,29 @@ func StartSyncingToAllExistingDevices(wg *sync.WaitGroup) {
 	// all connected devices updated
 	db.getAllConnectedDevices()
 
-	// connect to all devices
-	for _, device := range db.DeviceStore {
-		// add job to wait group
-		wg.Add(1)
+	if len(db.DeviceStore) == 0 {
+		// empty device store
+		env.InfoLogger.Println("No connected device. Empty Store!")
+	} else {
+		// connect to all devices
+		for _, device := range db.DeviceStore {
+			// add job to wait group
+			wg.Add(1)
 
-		// run goroutines to sync devices
-		go func(device *store.Device) {
-			// when done
-			defer wg.Done()
-			// get client and connect one by one
-			meowClient := whatsmeow.NewClient(device, nil)
-			mapAllClients[device.ID.User] = meowClient
-			// add receive handler
-			eventHandler := addEventHandlerWithDeviceInfo(device.ID.User)
-			meowClient.AddEventHandler(eventHandler)
-			// connect to client
-			whatsappClientConnection(meowClient)
-		}(device)
+			// run goroutines to sync devices
+			go func(device *store.Device) {
+				// when done
+				defer wg.Done()
+				// get client and connect one by one
+				meowClient := whatsmeow.NewClient(device, nil)
+				mapAllClients[device.ID.User] = meowClient
+				// add receive handler
+				eventHandler := addEventHandlerWithDeviceInfo(device.ID.User)
+				meowClient.AddEventHandler(eventHandler)
+				// connect to client
+				whatsappClientConnection(meowClient)
+			}(device)
+		}
 	}
 }
 
