@@ -135,16 +135,17 @@ const handlerQueueSize = 2048
 // The logger can be nil, it will default to a no-op logger.
 //
 // The device store must be set. A default SQL-backed implementation is available in the store/sqlstore package.
-//     container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
-//     if err != nil {
-//         panic(err)
-//     }
-//     // If you want multiple sessions, remember their JIDs and use .GetDevice(jid) or .GetAllDevices() instead.
-//     deviceStore, err := container.GetFirstDevice()
-//     if err != nil {
-//         panic(err)
-//     }
-//     client := whatsmeow.NewClient(deviceStore, nil)
+//
+//	container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
+//	if err != nil {
+//		panic(err)
+//	}
+//	// If you want multiple sessions, remember their JIDs and use .GetDevice(jid) or .GetAllDevices() instead.
+//	deviceStore, err := container.GetFirstDevice()
+//	if err != nil {
+//		panic(err)
+//	}
+//	client := whatsmeow.NewClient(deviceStore, nil)
 func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	if log == nil {
 		log = waLog.Noop
@@ -218,16 +219,18 @@ func (cli *Client) SetProxyAddress(addr string) error {
 // By default, the client will find the proxy from the https_proxy environment variable like Go's net/http does.
 //
 // To disable reading proxy info from environment variables, explicitly set the proxy to nil:
-//   cli.SetProxy(nil)
+//
+//	cli.SetProxy(nil)
 //
 // To use a different proxy for the websocket and media, pass a function that checks the request path or headers:
-//  cli.SetProxy(func(r *http.Request) (*url.URL, error) {
-//      if r.URL.Host == "web.whatsapp.com" && r.URL.Path == "/ws/chat" {
-//          return websocketProxyURL, nil
-//      } else {
-//          return mediaProxyURL, nil
-//      }
-//  })
+//
+//	cli.SetProxy(func(r *http.Request) (*url.URL, error) {
+//		if r.URL.Host == "web.whatsapp.com" && r.URL.Path == "/ws/chat" {
+//			return websocketProxyURL, nil
+//		} else {
+//			return mediaProxyURL, nil
+//		}
+//	})
 func (cli *Client) SetProxy(proxy socket.Proxy) {
 	cli.proxy = proxy
 	cli.http.Transport.(*http.Transport).Proxy = proxy
@@ -421,29 +424,31 @@ func (cli *Client) Logout() error {
 //
 // All registered event handlers will receive all events. You should use a type switch statement to
 // filter the events you want:
-//   func myEventHandler(evt interface{}) {
-//       switch v := evt.(type) {
-//       case *events.Message:
-//           fmt.Println("Received a message!")
-//       case *events.Receipt:
-//           fmt.Println("Received a receipt!")
-//       }
-//   }
+//
+//	func myEventHandler(evt interface{}) {
+//		switch v := evt.(type) {
+//		case *events.Message:
+//			fmt.Println("Received a message!")
+//		case *events.Receipt:
+//			fmt.Println("Received a receipt!")
+//		}
+//	}
 //
 // If you want to access the Client instance inside the event handler, the recommended way is to
 // wrap the whole handler in another struct:
-//   type MyClient struct {
-//       WAClient *whatsmeow.Client
-//       eventHandlerID uint32
-//   }
 //
-//   func (mycli *MyClient) register() {
-//       mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
-//   }
+//	type MyClient struct {
+//		WAClient *whatsmeow.Client
+//		eventHandlerID uint32
+//	}
 //
-//   func (mycli *MyClient) myEventHandler(evt interface{}) {
-//        // Handle event and access mycli.WAClient
-//   }
+//	func (mycli *MyClient) register() {
+//		mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
+//	}
+//
+//	func (mycli *MyClient) myEventHandler(evt interface{}) {
+//		// Handle event and access mycli.WAClient
+//	}
 func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 	nextID := atomic.AddUint32(&nextHandlerID, 1)
 	cli.eventHandlersLock.Lock()
@@ -458,11 +463,12 @@ func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
 // N.B. Do not run this directly from an event handler. That would cause a deadlock because the
 // event dispatcher holds a read lock on the event handler list, and this method wants a write lock
 // on the same list. Instead run it in a goroutine:
-//   func (mycli *MyClient) myEventHandler(evt interface{}) {
-//       if noLongerWantEvents {
-//           go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
-//       }
-//   }
+//
+//	func (mycli *MyClient) myEventHandler(evt interface{}) {
+//		if noLongerWantEvents {
+//			go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
+//		}
+//	}
 func (cli *Client) RemoveEventHandler(id uint32) bool {
 	cli.eventHandlersLock.Lock()
 	defer cli.eventHandlersLock.Unlock()
@@ -575,11 +581,12 @@ func (cli *Client) dispatchEvent(evt interface{}) {
 // ParseWebMessage parses a WebMessageInfo object into *events.Message to match what real-time messages have.
 //
 // The chat JID can be found in the Conversation data:
-//   chatJID, err := types.ParseJID(conv.GetId())
-//   for _, historyMsg := range conv.GetMessages() {
-//     evt, err := cli.ParseWebMessage(chatJID, historyMsg.GetMessage())
-//     yourNormalEventHandler(evt)
-//   }
+//
+//	chatJID, err := types.ParseJID(conv.GetId())
+//	for _, historyMsg := range conv.GetMessages() {
+//		evt, err := cli.ParseWebMessage(chatJID, historyMsg.GetMessage())
+//		yourNormalEventHandler(evt)
+//	}
 func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessageInfo) (*events.Message, error) {
 	info := types.MessageInfo{
 		MessageSource: types.MessageSource{

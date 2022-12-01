@@ -1,6 +1,6 @@
 module go.mau.fi/whatsmeow
 
-go 1.17
+go 1.18
 
 require (
 	github.com/gorilla/websocket v1.5.0

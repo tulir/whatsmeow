@@ -7,7 +7,6 @@
 package socket
 
 import (
-	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
 	"fmt"
@@ -16,6 +15,8 @@ import (
 
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/hkdf"
+
+	"go.mau.fi/whatsmeow/util/gcmutil"
 )
 
 type NoiseHandshake struct {
@@ -27,18 +28,6 @@ type NoiseHandshake struct {
 
 func NewNoiseHandshake() *NoiseHandshake {
 	return &NoiseHandshake{}
-}
-
-func newCipher(key []byte) (cipher.AEAD, error) {
-	aesCipher, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	aesGCM, err := cipher.NewGCM(aesCipher)
-	if err != nil {
-		return nil, err
-	}
-	return aesGCM, nil
 }
 
 func sha256Slice(data []byte) []byte {
@@ -55,7 +44,7 @@ func (nh *NoiseHandshake) Start(pattern string, header []byte) {
 	}
 	nh.salt = nh.hash
 	var err error
-	nh.key, err = newCipher(nh.hash)
+	nh.key, err = gcmutil.Prepare(nh.hash)
 	if err != nil {
 		panic(err)
 	}
@@ -88,9 +77,9 @@ func (nh *NoiseHandshake) Decrypt(ciphertext []byte) (plaintext []byte, err erro
 func (nh *NoiseHandshake) Finish(fs *FrameSocket, frameHandler FrameHandler, disconnectHandler DisconnectHandler) (*NoiseSocket, error) {
 	if write, read, err := nh.extractAndExpand(nh.salt, nil); err != nil {
 		return nil, fmt.Errorf("failed to extract final keys: %w", err)
-	} else if writeKey, err := newCipher(write); err != nil {
+	} else if writeKey, err := gcmutil.Prepare(write); err != nil {
 		return nil, fmt.Errorf("failed to create final write cipher: %w", err)
-	} else if readKey, err := newCipher(read); err != nil {
+	} else if readKey, err := gcmutil.Prepare(read); err != nil {
 		return nil, fmt.Errorf("failed to create final read cipher: %w", err)
 	} else if ns, err := newNoiseSocket(fs, writeKey, readKey, frameHandler, disconnectHandler); err != nil {
 		return nil, fmt.Errorf("failed to create noise socket: %w", err)
@@ -114,7 +103,7 @@ func (nh *NoiseHandshake) MixIntoKey(data []byte) error {
 		return fmt.Errorf("failed to extract keys for mixing: %w", err)
 	}
 	nh.salt = write
-	nh.key, err = newCipher(read)
+	nh.key, err = gcmutil.Prepare(read)
 	if err != nil {
 		return fmt.Errorf("failed to create new cipher while mixing keys: %w", err)
 	}

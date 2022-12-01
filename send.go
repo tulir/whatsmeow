@@ -115,6 +115,14 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, id types.Messa
 	if !isPeerMessage {
 		cli.addRecentMessage(to, id, message)
 	}
+	if message.GetMessageContextInfo().GetMessageSecret() != nil {
+		err = cli.Store.MsgSecrets.PutMessageSecret(to, *cli.Store.ID, id, message.GetMessageContextInfo().GetMessageSecret())
+		if err != nil {
+			cli.Log.Warnf("Failed to store message secret key for outgoing message %s: %v", id, err)
+		} else {
+			cli.Log.Debugf("Stored message secret key for outgoing message %s", id)
+		}
+	}
 	var phash string
 	var data []byte
 	switch to.Server {
@@ -164,21 +172,68 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, id types.Messa
 }
 
 // RevokeMessage deletes the given message from everyone in the chat.
-// You can only revoke your own messages, and if the message is too old, then other users will ignore the deletion.
 //
 // This method will wait for the server to acknowledge the revocation message before returning.
 // The return value is the timestamp of the message from the server.
+//
+// Deprecated: This method is deprecated in favor of BuildRevoke
 func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (SendResponse, error) {
-	return cli.SendMessage(context.TODO(), chat, "", &waProto.Message{
+	return cli.SendMessage(context.TODO(), chat, "", cli.BuildRevoke(chat, types.EmptyJID, id))
+}
+
+// BuildRevoke builds a message revocation message using the given variables.
+// The built message can be sent normally using Client.SendMessage.
+//
+// To revoke your own messages, pass your JID or an empty JID as the second parameter (sender).
+//
+//	resp, err := cli.SendMessage(context.Background(), chat, "", cli.BuildRevoke(chat, types.EmptyJID, originalMessageID)
+//
+// To revoke someone else's messages when you are group admin, pass the message sender's JID as the second parameter.
+//
+//	resp, err := cli.SendMessage(context.Background(), chat, "", cli.BuildRevoke(chat, senderJID, originalMessageID)
+func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waProto.Message {
+	key := &waProto.MessageKey{
+		FromMe:    proto.Bool(true),
+		Id:        proto.String(id),
+		RemoteJid: proto.String(chat.String()),
+	}
+	if !sender.IsEmpty() && sender.User != cli.Store.ID.User {
+		key.FromMe = proto.Bool(false)
+		if chat.Server != types.DefaultUserServer {
+			key.Participant = proto.String(sender.ToNonAD().String())
+		}
+	}
+	return &waProto.Message{
 		ProtocolMessage: &waProto.ProtocolMessage{
 			Type: waProto.ProtocolMessage_REVOKE.Enum(),
-			Key: &waProto.MessageKey{
-				FromMe:    proto.Bool(true),
-				Id:        proto.String(id),
-				RemoteJid: proto.String(chat.String()),
+			Key:  key,
+		},
+	}
+}
+
+// BuildEdit builds a message edit message using the given variables.
+// The built message can be sent normally using Client.SendMessage.
+//
+//	resp, err := cli.SendMessage(context.Background(), chat, "", cli.BuildEdit(chat, originalMessageID, &waProto.Message{
+//		Conversation: proto.String("edited message"),
+//	})
+func (cli *Client) BuildEdit(chat types.JID, id types.MessageID, newContent *waProto.Message) *waProto.Message {
+	return &waProto.Message{
+		EditedMessage: &waProto.FutureProofMessage{
+			Message: &waProto.Message{
+				ProtocolMessage: &waProto.ProtocolMessage{
+					Key: &waProto.MessageKey{
+						FromMe:    proto.Bool(true),
+						Id:        proto.String(id),
+						RemoteJid: proto.String(chat.String()),
+					},
+					Type:          waProto.ProtocolMessage_MESSAGE_EDIT.Enum(),
+					EditedMessage: newContent,
+					TimestampMs:   proto.Int64(time.Now().UnixMilli()),
+				},
 			},
 		},
-	})
+	}
 }
 
 const (
@@ -363,10 +418,16 @@ func getTypeFromMessage(msg *waProto.Message) string {
 	switch {
 	case msg.ViewOnceMessage != nil:
 		return getTypeFromMessage(msg.ViewOnceMessage.Message)
+	case msg.ViewOnceMessageV2 != nil:
+		return getTypeFromMessage(msg.ViewOnceMessageV2.Message)
 	case msg.EphemeralMessage != nil:
 		return getTypeFromMessage(msg.EphemeralMessage.Message)
+	case msg.DocumentWithCaptionMessage != nil:
+		return getTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
 	case msg.ReactionMessage != nil:
 		return "reaction"
+	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
+		return "poll"
 	case msg.Conversation != nil, msg.ExtendedTextMessage != nil, msg.ProtocolMessage != nil:
 		return "text"
 	//TODO this requires setting mediatype in the enc nodes
@@ -469,6 +530,18 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to types.JID, id type
 	}}
 	if includeIdentity {
 		content = append(content, cli.makeDeviceIdentityNode())
+	}
+	if attrs["type"] == "poll" {
+		pollType := "creation"
+		if message.PollUpdateMessage != nil {
+			pollType = "vote"
+		}
+		content = append(content, waBinary.Node{
+			Tag: "meta",
+			Attrs: waBinary.Attrs{
+				"polltype": pollType,
+			},
+		})
 	}
 	return &waBinary.Node{
 		Tag:     "message",

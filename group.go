@@ -175,16 +175,24 @@ func (cli *Client) SetGroupTopic(jid types.JID, previousID, newID, topic string)
 	if newID == "" {
 		newID = GenerateMessageID()
 	}
+	attrs := waBinary.Attrs{
+		"id": newID,
+	}
+	if previousID != "" {
+		attrs["prev"] = previousID
+	}
+	content := []waBinary.Node{{
+		Tag:     "body",
+		Content: []byte(topic),
+	}}
+	if len(topic) == 0 {
+		attrs["delete"] = "true"
+		content = nil
+	}
 	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
-		Tag: "description",
-		Attrs: waBinary.Attrs{
-			"prev": previousID,
-			"id":   newID,
-		},
-		Content: []waBinary.Node{{
-			Tag:     "body",
-			Content: []byte(topic),
-		}},
+		Tag:     "description",
+		Attrs:   attrs,
+		Content: content,
 	})
 	return err
 }
@@ -525,20 +533,26 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 				NameSetBy: cag.OptionalJIDOrEmpty("s_o"),
 			}
 		case "description":
-			topicChild := child.GetChildByTag("body")
-			topicBytes, ok := topicChild.Content.([]byte)
-			if !ok {
-				return nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
+			var topicStr string
+			_, isDelete := child.GetOptionalChildByTag("delete")
+			if !isDelete {
+				topicChild := child.GetChildByTag("body")
+				topicBytes, ok := topicChild.Content.([]byte)
+				if !ok {
+					return nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
+				}
+				topicStr = string(topicBytes)
 			}
 			var setBy types.JID
 			if evt.Sender != nil {
 				setBy = *evt.Sender
 			}
 			evt.Topic = &types.GroupTopic{
-				Topic:      string(topicBytes),
-				TopicID:    cag.String("id"),
-				TopicSetAt: evt.Timestamp,
-				TopicSetBy: setBy,
+				Topic:        topicStr,
+				TopicID:      cag.String("id"),
+				TopicSetAt:   evt.Timestamp,
+				TopicSetBy:   setBy,
+				TopicDeleted: isDelete,
 			}
 		case "announcement":
 			evt.Announce = &types.GroupAnnounce{

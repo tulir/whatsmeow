@@ -13,16 +13,16 @@ async function findAppModules(mods) {
             "Sec-Fetch-Mode": "no-cors",
             "Sec-Fetch-Site": "same-origin",
             "Referer": "https://web.whatsapp.com/",
-            "Accept": "*/*",
+            "Accept": "*/*", /**/
             "Accept-Language": "Accept-Language: en-US,en;q=0.5",
         }
     }
     const baseURL = "https://web.whatsapp.com"
     const index = await request.get(baseURL, ua)
-    const bootstrapQRID = index.match(/src="\/bootstrap_qr.([0-9a-z]{10,}).js"/)[1]
-    const bootstrapQRURL = baseURL + "/bootstrap_qr." + bootstrapQRID + ".js"
-    console.error("Found bootstrap_qr.js URL:", bootstrapQRURL)
-    const qrData = await request.get(bootstrapQRURL, ua)
+    const appID = index.match(/src="\/app.([0-9a-z]{10,}).js"/)[1]
+    const appURL = baseURL + "/app." + appID + ".js"
+    console.error("Found app.js URL:", appURL)
+    const qrData = await request.get(appURL, ua)
     const waVersion = qrData.match(/appVersion:"(\d\.\d+\.\d+)"/)[1]
     console.log("Current version:", waVersion)
     // This one list of types is so long that it's split into two JavaScript declarations.
@@ -48,8 +48,7 @@ async function findAppModules(mods) {
         715739, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
         370625,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
         759089, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
-        498007, // HandshakeMessage, ..., ClientPayload, ..., AppVersion, UserAgent, WebdPayload ...
-        // 614806, // seems to be same as above
+        614806, // HandshakeMessage, ..., ClientPayload, ..., AppVersion, UserAgent, WebdPayload ...
         968923, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
         294075, // NoiseCertificate, CertChain
     ]

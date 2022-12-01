@@ -81,6 +81,12 @@ var (
 	ErrNothingDownloadableFound   = errors.New("didn't find any attachments in message")
 )
 
+var (
+	ErrOriginalMessageSecretNotFound = errors.New("original message secret key not found")
+	ErrNotEncryptedReactionMessage   = errors.New("given message isn't an encrypted reaction message")
+	ErrNotPollUpdateMessage          = errors.New("given message isn't a poll update message")
+)
+
 type wrappedIQError struct {
 	HumanError error
 	IQError    error

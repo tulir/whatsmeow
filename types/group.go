@@ -44,10 +44,11 @@ type GroupName struct {
 
 // GroupTopic contains the topic (description) of a group along with metadata of who set it and when.
 type GroupTopic struct {
-	Topic      string
-	TopicID    string
-	TopicSetAt time.Time
-	TopicSetBy JID
+	Topic        string
+	TopicID      string
+	TopicSetAt   time.Time
+	TopicSetBy   JID
+	TopicDeleted bool
 }
 
 // GroupLocked specifies whether the group info can only be edited by admins.
