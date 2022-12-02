@@ -645,6 +645,8 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			evt.Locked = &types.GroupLocked{IsLocked: true}
 		case "unlocked":
 			evt.Locked = &types.GroupLocked{IsLocked: false}
+		case "delete":
+			evt.Delete = &types.GroupDelete{Deleted: true, DeleteReason: cag.String("reason")}
 		case "subject":
 			evt.Name = &types.GroupName{
 				Name:      cag.String("subject"),
@@ -709,8 +711,8 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			}
 		case "unlink":
 			evt.Unlink = &types.GroupLinkChange{
-				Type:   types.GroupLinkChangeType(cag.String("unlink_type")),
-				Reason: types.GroupLinkChangeReason(cag.String("unlink_reason")),
+				Type:         types.GroupLinkChangeType(cag.String("unlink_type")),
+				UnlinkReason: types.GroupUnlinkReason(cag.String("unlink_reason")),
 			}
 			groupNode, ok := child.GetOptionalChildByTag("group")
 			if !ok {

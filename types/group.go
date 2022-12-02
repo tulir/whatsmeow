@@ -92,6 +92,11 @@ type GroupEphemeral struct {
 	DisappearingTimer uint32
 }
 
+type GroupDelete struct {
+	Deleted      bool
+	DeleteReason string
+}
+
 type GroupLinkChangeType string
 
 const (
@@ -100,10 +105,11 @@ const (
 	GroupLinkChangeTypeSibling GroupLinkChangeType = "sibling_group"
 )
 
-type GroupLinkChangeReason string
+type GroupUnlinkReason string
 
 const (
-	GroupLinkChangeReasonUnlink GroupLinkChangeReason = "unlink_group"
+	GroupUnlinkReasonDefault GroupUnlinkReason = "unlink_group"
+	GroupUnlinkReasonDelete  GroupUnlinkReason = "delete_parent"
 )
 
 type GroupLinkTarget struct {
@@ -113,7 +119,7 @@ type GroupLinkTarget struct {
 }
 
 type GroupLinkChange struct {
-	Type   GroupLinkChangeType
-	Reason GroupLinkChangeReason
-	Group  GroupLinkTarget
+	Type         GroupLinkChangeType
+	UnlinkReason GroupUnlinkReason
+	Group        GroupLinkTarget
 }
