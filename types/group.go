@@ -27,12 +27,29 @@ type GroupInfo struct {
 	GroupAnnounce
 	GroupEphemeral
 
+	GroupParent
+	GroupLinkedParent
+	GroupIsDefaultSub
+
 	GroupCreated time.Time
 
 	ParticipantVersionID string
 	Participants         []GroupParticipant
 
 	MemberAddMode GroupMemberAddMode
+}
+
+type GroupParent struct {
+	IsParent                      bool
+	DefaultMembershipApprovalMode string // request_required
+}
+
+type GroupLinkedParent struct {
+	LinkedParentJID JID
+}
+
+type GroupIsDefaultSub struct {
+	IsDefaultSubGroup bool
 }
 
 // GroupName contains the name of a group along with metadata of who set it and when.
@@ -73,4 +90,30 @@ type GroupParticipant struct {
 type GroupEphemeral struct {
 	IsEphemeral       bool
 	DisappearingTimer uint32
+}
+
+type GroupLinkChangeType string
+
+const (
+	GroupLinkChangeTypeParent  GroupLinkChangeType = "parent_group"
+	GroupLinkChangeTypeSub     GroupLinkChangeType = "sub_group"
+	GroupLinkChangeTypeSibling GroupLinkChangeType = "sibling_group"
+)
+
+type GroupLinkChangeReason string
+
+const (
+	GroupLinkChangeReasonUnlink GroupLinkChangeReason = "unlink_group"
+)
+
+type GroupLinkTarget struct {
+	JID JID
+	GroupName
+	GroupIsDefaultSub
+}
+
+type GroupLinkChange struct {
+	Type   GroupLinkChangeType
+	Reason GroupLinkChangeReason
+	Group  GroupLinkTarget
 }
