@@ -84,6 +84,16 @@ type GroupParticipant struct {
 	JID          JID
 	IsAdmin      bool
 	IsSuperAdmin bool
+
+	// When creating groups, adding some participants may fail.
+	// In such cases, the error code will be here.
+	Error      int
+	AddRequest *GroupParticipantAddRequest
+}
+
+type GroupParticipantAddRequest struct {
+	Code       string
+	Expiration time.Time
 }
 
 // GroupEphemeral contains the group's disappearing messages settings.

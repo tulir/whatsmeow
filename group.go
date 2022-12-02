@@ -527,6 +527,17 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 				IsSuperAdmin: pcpType == "superadmin",
 				JID:          childAG.JID("jid"),
 			}
+			if errorCode := childAG.OptionalInt("error"); errorCode != 0 {
+				participant.Error = errorCode
+				addRequest, ok := child.GetOptionalChildByTag("add_request")
+				if ok {
+					addAG := addRequest.AttrGetter()
+					participant.AddRequest = &types.GroupParticipantAddRequest{
+						Code:       addAG.String("code"),
+						Expiration: addAG.UnixTime("expiration"),
+					}
+				}
+			}
 			group.Participants = append(group.Participants, participant)
 		case "description":
 			body, bodyOK := child.GetOptionalChildByTag("body")
