@@ -27,6 +27,7 @@ func HandleIncomingMessage(i *types.ST_G_IncomingMessage) *string {
 			outgoingMessageText = errorMessageToCustomer
 			return &outgoingMessageText
 		}
+
 	} else {
 		customerRegistrationInfo.IsRegistered = true
 	}

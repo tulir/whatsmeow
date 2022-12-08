@@ -91,6 +91,7 @@ func flowOnElse(cri *types.ST_G_CustomerRegistrationInfo, i *types.ST_G_Incoming
 			// thanking message after rating
 			// TODO : whatsAppMessageType = "normal";
 			return thankYouAfterRatingMessage
+
 		} else {
 			// send message of invalid input
 			// ask for 1, 2, 3, 4 or 5 as input

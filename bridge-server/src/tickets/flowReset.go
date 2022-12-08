@@ -14,6 +14,7 @@ func flowOnReset(isCustomerRegistered *bool, customerDetails *types.ST_DBR_Custo
 		if err != nil {
 			return err.Error()
 		}
+
 	} else {
 		// set the conversation state to 0
 		err := models.SetConversationState(customerDetails.CustomerID, 0)
