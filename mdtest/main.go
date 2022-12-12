@@ -42,7 +42,7 @@ import (
 var cli *whatsmeow.Client
 var log waLog.Logger
 
-var logLevel = "INFO"
+var logLevel = waLog.InfoLevel
 var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
@@ -53,14 +53,23 @@ func main() {
 	flag.Parse()
 
 	if *debugLogs {
-		logLevel = "DEBUG"
+		logLevel = waLog.DebugLevel
 	}
 	if *requestFullSync {
 		store.DeviceProps.RequireFullSync = proto.Bool(true)
 	}
+	// Logging to stdout because you want to see the CLI feedback.
 	log = waLog.Stdout("Main", logLevel, true)
+	// Alternatively if you want to follow along a log file:
+	// var err error
+	// log, err = waLog.File("Main", logLevel, "/tmp/whatsmeow.log",
+	// 	false, // don't reopen the file when an external script rotates it away
+	// 	true)  // append to an existing log
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	dbLog := waLog.Stdout("Database", logLevel, true)
+	dbLog := log.Sub("Database")
 	storeContainer, err := sqlstore.New(*dbDialect, *dbAddress, dbLog)
 	if err != nil {
 		log.Errorf("Failed to connect to database: %v", err)
@@ -72,7 +81,7 @@ func main() {
 		return
 	}
 
-	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
+	cli = whatsmeow.NewClient(device, log.Sub("Client"))
 
 	ch, err := cli.GetQRChannel(context.Background())
 	if err != nil {

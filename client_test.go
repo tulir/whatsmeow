@@ -27,7 +27,14 @@ func eventHandler(evt interface{}) {
 }
 
 func Example() {
-	dbLog := waLog.Stdout("Database", "DEBUG", true)
+	mainLog, err := waLog.File("", waLog.DebugLevel, "/tmp/whatsmeow.log", false, false)
+	if err != nil {
+		panic(err)
+	}
+	// Alternatively for logging to stdout:
+	//  mainLog := waLog.Stdout("", waLog.DebugLevel, true)
+
+	dbLog := mainLog.Sub("Database")
 	// Make sure you add appropriate DB connector imports, e.g. github.com/mattn/go-sqlite3 for SQLite
 	container, err := sqlstore.New("sqlite3", "file:examplestore.db?_foreign_keys=on", dbLog)
 	if err != nil {
@@ -38,7 +45,7 @@ func Example() {
 	if err != nil {
 		panic(err)
 	}
-	clientLog := waLog.Stdout("Client", "DEBUG", true)
+	clientLog := mainLog.Sub("Client")
 	client := whatsmeow.NewClient(deviceStore, clientLog)
 	client.AddEventHandler(eventHandler)
 
