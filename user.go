@@ -270,29 +270,53 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 	return devices, nil
 }
 
+type GetProfilePictureParams struct {
+	Preview     bool
+	ExistingID  string
+	IsCommunity bool
+}
+
 // GetProfilePictureInfo gets the URL where you can download a WhatsApp user's profile picture or group's photo.
 //
 // Optionally, you can pass the last known profile picture ID.
 // If the profile picture hasn't changed, this will return nil with no error.
-func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool, existingID string) (*types.ProfilePictureInfo, error) {
+//
+// To get a community photo, you should pass `IsCommunity: true`, as otherwise you may get a 401 error.
+func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictureParams) (*types.ProfilePictureInfo, error) {
 	attrs := waBinary.Attrs{
 		"query": "url",
 	}
-	if preview {
+	if params == nil {
+		params = &GetProfilePictureParams{}
+	}
+	if params.Preview {
 		attrs["type"] = "preview"
 	} else {
 		attrs["type"] = "image"
 	}
-	if existingID != "" {
-		attrs["id"] = existingID
+	if params.ExistingID != "" {
+		attrs["id"] = params.ExistingID
+	}
+	var pictureContent []waBinary.Node
+	namespace := "w:profile:picture"
+	if params.IsCommunity {
+		namespace = "w:g2"
+		pictureContent = []waBinary.Node{{
+			Tag: "query_linked",
+			Attrs: waBinary.Attrs{
+				"type": "parent_group",
+				"jid":  jid,
+			},
+		}}
 	}
 	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "w:profile:picture",
+		Namespace: namespace,
 		Type:      "get",
 		To:        jid,
 		Content: []waBinary.Node{{
-			Tag:   "picture",
-			Attrs: attrs,
+			Tag:     "picture",
+			Attrs:   attrs,
+			Content: pictureContent,
 		}},
 	})
 	if errors.Is(err, ErrIQNotAuthorized) {
@@ -304,7 +328,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, preview bool, existingID
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")
 	if !ok {
-		if existingID != "" {
+		if params.ExistingID != "" {
 			return nil, nil
 		}
 		return nil, &ElementMissingError{Tag: "picture", In: "response to profile picture query"}

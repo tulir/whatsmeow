@@ -293,7 +293,19 @@ func handleCmd(cmd string, args []string) {
 		if len(args) > 2 {
 			existingID = args[2]
 		}
-		pic, err := cli.GetProfilePictureInfo(jid, args[len(args)-1] == "--preview", existingID)
+		var preview, isCommunity bool
+		for _, arg := range args {
+			if arg == "--preview" {
+				preview = true
+			} else if arg == "--community" {
+				isCommunity = true
+			}
+		}
+		pic, err := cli.GetProfilePictureInfo(jid, &whatsmeow.GetProfilePictureParams{
+			Preview:     preview,
+			IsCommunity: isCommunity,
+			ExistingID:  existingID,
+		})
 		if err != nil {
 			log.Errorf("Failed to get avatar: %v", err)
 		} else if pic != nil {
