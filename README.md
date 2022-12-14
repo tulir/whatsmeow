@@ -14,7 +14,7 @@ discussions.
 
 ## Usage
 
-> **Warning**: Do not log out immediately after logging in, otherwise various panics will be raised because the [program as a whole will probably not be ready by them](https://github.com/tulir/whatsmeow/issues/295). If you want to log out, wait a few seconds and only then press CRTL+C.
+> **Warning**: Do not log out immediately after logging in, otherwise various panics will be raised because the [program as a whole will probably not be ready by then](https://github.com/tulir/whatsmeow/issues/295). If you want to log out, wait a few seconds and only then press CRTL+C.
 
 The [godoc](https://pkg.go.dev/go.mau.fi/whatsmeow) includes docs for all methods and event types.
 There's also a [simple example](https://godocs.io/go.mau.fi/whatsmeow#example-package) at the top.
