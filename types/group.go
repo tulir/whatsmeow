@@ -27,12 +27,29 @@ type GroupInfo struct {
 	GroupAnnounce
 	GroupEphemeral
 
+	GroupParent
+	GroupLinkedParent
+	GroupIsDefaultSub
+
 	GroupCreated time.Time
 
 	ParticipantVersionID string
 	Participants         []GroupParticipant
 
 	MemberAddMode GroupMemberAddMode
+}
+
+type GroupParent struct {
+	IsParent                      bool
+	DefaultMembershipApprovalMode string // request_required
+}
+
+type GroupLinkedParent struct {
+	LinkedParentJID JID
+}
+
+type GroupIsDefaultSub struct {
+	IsDefaultSubGroup bool
 }
 
 // GroupName contains the name of a group along with metadata of who set it and when.
@@ -67,10 +84,52 @@ type GroupParticipant struct {
 	JID          JID
 	IsAdmin      bool
 	IsSuperAdmin bool
+
+	// When creating groups, adding some participants may fail.
+	// In such cases, the error code will be here.
+	Error      int
+	AddRequest *GroupParticipantAddRequest
+}
+
+type GroupParticipantAddRequest struct {
+	Code       string
+	Expiration time.Time
 }
 
 // GroupEphemeral contains the group's disappearing messages settings.
 type GroupEphemeral struct {
 	IsEphemeral       bool
 	DisappearingTimer uint32
+}
+
+type GroupDelete struct {
+	Deleted      bool
+	DeleteReason string
+}
+
+type GroupLinkChangeType string
+
+const (
+	GroupLinkChangeTypeParent  GroupLinkChangeType = "parent_group"
+	GroupLinkChangeTypeSub     GroupLinkChangeType = "sub_group"
+	GroupLinkChangeTypeSibling GroupLinkChangeType = "sibling_group"
+)
+
+type GroupUnlinkReason string
+
+const (
+	GroupUnlinkReasonDefault GroupUnlinkReason = "unlink_group"
+	GroupUnlinkReasonDelete  GroupUnlinkReason = "delete_parent"
+)
+
+type GroupLinkTarget struct {
+	JID JID
+	GroupName
+	GroupIsDefaultSub
+}
+
+type GroupLinkChange struct {
+	Type         GroupLinkChangeType
+	UnlinkReason GroupUnlinkReason
+	Group        GroupLinkTarget
 }

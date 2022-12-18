@@ -70,6 +70,7 @@ var (
 	_ DownloadableMessage   = (*waProto.VideoMessage)(nil)
 	_ DownloadableMessage   = (*waProto.DocumentMessage)(nil)
 	_ DownloadableMessage   = (*waProto.StickerMessage)(nil)
+	_ DownloadableMessage   = (*waProto.StickerMetadata)(nil)
 	_ DownloadableMessage   = (*waProto.HistorySyncNotification)(nil)
 	_ DownloadableMessage   = (*waProto.ExternalBlobReference)(nil)
 	_ DownloadableThumbnail = (*waProto.ExtendedTextMessage)(nil)
@@ -96,6 +97,7 @@ var classToMediaType = map[protoreflect.Name]MediaType{
 	"VideoMessage":    MediaVideo,
 	"DocumentMessage": MediaDocument,
 	"StickerMessage":  MediaImage,
+	"StickerMetadata": MediaImage,
 
 	"HistorySyncNotification": MediaHistory,
 	"ExternalBlobReference":   MediaAppState,

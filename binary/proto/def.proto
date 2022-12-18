@@ -2249,6 +2249,7 @@ message PollUpdate {
     optional MessageKey pollUpdateMessageKey = 1;
     optional PollVoteMessage vote = 2;
     optional int64 senderTimestampMs = 3;
+    optional int64 serverTimestampMs = 4;
 }
 
 message PollAdditionalMetadata {

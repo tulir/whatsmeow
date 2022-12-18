@@ -293,7 +293,19 @@ func handleCmd(cmd string, args []string) {
 		if len(args) > 2 {
 			existingID = args[2]
 		}
-		pic, err := cli.GetProfilePictureInfo(jid, args[len(args)-1] == "--preview", existingID)
+		var preview, isCommunity bool
+		for _, arg := range args {
+			if arg == "--preview" {
+				preview = true
+			} else if arg == "--community" {
+				isCommunity = true
+			}
+		}
+		pic, err := cli.GetProfilePictureInfo(jid, &whatsmeow.GetProfilePictureParams{
+			Preview:     preview,
+			IsCommunity: isCommunity,
+			ExistingID:  existingID,
+		})
 		if err != nil {
 			log.Errorf("Failed to get avatar: %v", err)
 		} else if pic != nil {
@@ -318,6 +330,44 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to get group info: %v", err)
 		} else {
 			log.Infof("Group info: %+v", resp)
+		}
+	case "subgroups":
+		if len(args) < 1 {
+			log.Errorf("Usage: subgroups <jid>")
+			return
+		}
+		group, ok := parseJID(args[0])
+		if !ok {
+			return
+		} else if group.Server != types.GroupServer {
+			log.Errorf("Input must be a group JID (@%s)", types.GroupServer)
+			return
+		}
+		resp, err := cli.GetSubGroups(group)
+		if err != nil {
+			log.Errorf("Failed to get subgroups: %v", err)
+		} else {
+			for _, sub := range resp {
+				log.Infof("Subgroup: %+v", sub)
+			}
+		}
+	case "communityparticipants":
+		if len(args) < 1 {
+			log.Errorf("Usage: communityparticipants <jid>")
+			return
+		}
+		group, ok := parseJID(args[0])
+		if !ok {
+			return
+		} else if group.Server != types.GroupServer {
+			log.Errorf("Input must be a group JID (@%s)", types.GroupServer)
+			return
+		}
+		resp, err := cli.GetLinkedGroupsParticipants(group)
+		if err != nil {
+			log.Errorf("Failed to get community participants: %v", err)
+		} else {
+			log.Infof("Community participants: %+v", resp)
 		}
 	case "listgroups":
 		groups, err := cli.GetJoinedGroups()

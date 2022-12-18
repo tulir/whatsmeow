@@ -17478,6 +17478,7 @@ type PollUpdate struct {
 	PollUpdateMessageKey *MessageKey      `protobuf:"bytes,1,opt,name=pollUpdateMessageKey" json:"pollUpdateMessageKey,omitempty"`
 	Vote                 *PollVoteMessage `protobuf:"bytes,2,opt,name=vote" json:"vote,omitempty"`
 	SenderTimestampMs    *int64           `protobuf:"varint,3,opt,name=senderTimestampMs" json:"senderTimestampMs,omitempty"`
+	ServerTimestampMs    *int64           `protobuf:"varint,4,opt,name=serverTimestampMs" json:"serverTimestampMs,omitempty"`
 }
 
 func (x *PollUpdate) Reset() {
@@ -17529,6 +17530,13 @@ func (x *PollUpdate) GetVote() *PollVoteMessage {
 func (x *PollUpdate) GetSenderTimestampMs() int64 {
 	if x != nil && x.SenderTimestampMs != nil {
 		return *x.SenderTimestampMs
+	}
+	return 0
+}
+
+func (x *PollUpdate) GetServerTimestampMs() int64 {
+	if x != nil && x.ServerTimestampMs != nil {
+		return *x.ServerTimestampMs
 	}
 	return 0
 }
