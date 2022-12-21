@@ -807,6 +807,7 @@ message ContextInfo {
     optional string parentGroupJid = 35;
     optional string trustBannerType = 37;
     optional uint32 trustBannerAction = 38;
+    optional bool isSampled = 39;
 }
 
 message ActionLink {
@@ -926,6 +927,7 @@ message Message {
     optional EncReactionMessage encReactionMessage = 56;
     optional FutureProofMessage editedMessage = 58;
     optional FutureProofMessage viewOnceMessageV2Extension = 59;
+    optional PollCreationMessage pollCreationMessageV2 = 60;
 }
 
 message MessageContextInfo {
@@ -1360,6 +1362,7 @@ message MsgOpaqueData {
     optional int64 senderTimestampMs = 22;
     optional string pollUpdateParentKey = 23;
     optional PollEncValue encPollVote = 24;
+    optional bool isSentCagPollCreation = 28;
     optional string encReactionTargetMessageKey = 25;
     optional bytes encReactionEncPayload = 26;
     optional bytes encReactionEncIv = 27;
