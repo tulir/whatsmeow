@@ -112,6 +112,17 @@ type MsgSecretStore interface {
 	GetMessageSecret(chat, sender types.JID, id types.MessageID) ([]byte, error)
 }
 
+type PrivacyToken struct {
+	User      types.JID
+	Token     []byte
+	Timestamp time.Time
+}
+
+type PrivacyTokenStore interface {
+	PutPrivacyTokens(tokens ...PrivacyToken) error
+	GetPrivacyToken(user types.JID) (*PrivacyToken, error)
+}
+
 type Device struct {
 	Log waLog.Logger
 
@@ -127,17 +138,18 @@ type Device struct {
 	BusinessName string
 	PushName     string
 
-	Initialized  bool
-	Identities   IdentityStore
-	Sessions     SessionStore
-	PreKeys      PreKeyStore
-	SenderKeys   SenderKeyStore
-	AppStateKeys AppStateSyncKeyStore
-	AppState     AppStateStore
-	Contacts     ContactStore
-	ChatSettings ChatSettingsStore
-	MsgSecrets   MsgSecretStore
-	Container    DeviceContainer
+	Initialized   bool
+	Identities    IdentityStore
+	Sessions      SessionStore
+	PreKeys       PreKeyStore
+	SenderKeys    SenderKeyStore
+	AppStateKeys  AppStateSyncKeyStore
+	AppState      AppStateStore
+	Contacts      ContactStore
+	ChatSettings  ChatSettingsStore
+	MsgSecrets    MsgSecretStore
+	PrivacyTokens PrivacyTokenStore
+	Container     DeviceContainer
 
 	DatabaseErrorHandler func(device *Device, action string, attemptIndex int, err error) (retry bool)
 }

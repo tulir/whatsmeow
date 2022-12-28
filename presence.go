@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"fmt"
 	"sync/atomic"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -87,13 +88,30 @@ func (cli *Client) SendPresence(state types.Presence) error {
 //
 //	cli.SendPresence(types.PresenceAvailable)
 func (cli *Client) SubscribePresence(jid types.JID) error {
-	return cli.sendNode(waBinary.Node{
+	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(jid)
+	if err != nil {
+		return fmt.Errorf("failed to get privacy token: %w", err)
+	} else if privacyToken == nil {
+		if cli.ErrorOnSubscribePresenceWithoutToken {
+			return fmt.Errorf("%w for %v", ErrNoPrivacyToken, jid.ToNonAD())
+		} else {
+			cli.Log.Debugf("Trying to subscribe to presence of %s without privacy token", jid)
+		}
+	}
+	req := waBinary.Node{
 		Tag: "presence",
 		Attrs: waBinary.Attrs{
 			"type": "subscribe",
 			"to":   jid,
 		},
-	})
+	}
+	if privacyToken != nil {
+		req.Content = []waBinary.Node{{
+			Tag:     "tctoken",
+			Content: privacyToken.Token,
+		}}
+	}
+	return cli.sendNode(req)
 }
 
 // SendChatPresence updates the user's typing status in a specific chat.

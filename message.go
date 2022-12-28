@@ -406,11 +406,23 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 
 func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conversation) {
 	var secrets []store.MessageSecretInsert
+	var privacyTokens []store.PrivacyToken
 	me := cli.Store.ID.ToNonAD()
 	for _, conv := range conversations {
 		chatJID, _ := types.ParseJID(conv.GetId())
 		if chatJID.IsEmpty() {
 			continue
+		}
+		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
+			ts := conv.GetTcTokenSenderTimestamp()
+			if ts == 0 {
+				ts = conv.GetTcTokenTimestamp()
+			}
+			privacyTokens = append(privacyTokens, store.PrivacyToken{
+				User:      chatJID,
+				Token:     conv.GetTcToken(),
+				Timestamp: time.Unix(int64(ts), 0),
+			})
 		}
 		for _, msg := range conv.GetMessages() {
 			if secret := msg.GetMessage().GetMessageSecret(); secret != nil {
@@ -444,6 +456,15 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conver
 			cli.Log.Errorf("Failed to store message secret keys in history sync: %v", err)
 		} else {
 			cli.Log.Infof("Stored %d message secret keys from history sync", len(secrets))
+		}
+	}
+	if len(privacyTokens) > 0 {
+		cli.Log.Debugf("Storing %d privacy tokens in history sync", len(privacyTokens))
+		err := cli.Store.PrivacyTokens.PutPrivacyTokens(privacyTokens...)
+		if err != nil {
+			cli.Log.Errorf("Failed to store privacy tokens in history sync: %v", err)
+		} else {
+			cli.Log.Infof("Stored %d privacy tokens from history sync", len(privacyTokens))
 		}
 	}
 }

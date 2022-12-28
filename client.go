@@ -119,6 +119,9 @@ type Client struct {
 	// If false, decrypting a message from untrusted devices will fail.
 	AutoTrustIdentity bool
 
+	// Should SubscribePresence return an error if no privacy token is stored for the user?
+	ErrorOnSubscribePresenceWithoutToken bool
+
 	uniqueID  string
 	idCounter uint32
 

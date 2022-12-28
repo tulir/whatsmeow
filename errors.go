@@ -27,6 +27,8 @@ var (
 	ErrQRStoreContainsID  = errors.New("GetQRChannel can only be called when there's no user ID in the client's Store")
 
 	ErrNoPushName = errors.New("can't send presence without PushName set")
+
+	ErrNoPrivacyToken = errors.New("no privacy token stored")
 )
 
 var (
