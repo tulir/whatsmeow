@@ -123,8 +123,8 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 }
 
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
-	go cli.sendAck(node)
 	if len(node.GetChildrenByTag("unavailable")) > 0 && len(node.GetChildrenByTag("enc")) == 0 {
+		go cli.SendAck(node)
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
 		go cli.sendRetryReceipt(node, info, true)
 		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true})
@@ -155,6 +155,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			continue
 		}
 		if err != nil {
+			go cli.SendAck(node)
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
 			go cli.sendRetryReceipt(node, info, isUnavailable)
@@ -178,7 +179,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			cli.cancelDelayedRequestFromPhone(info.ID)
 		}
 
-		cli.handleDecryptedMessage(info, &msg, retryCount)
+		cli.handleDecryptedMessage(info, &msg, retryCount, node)
 		handled = true
 	}
 	if handled {
@@ -505,9 +506,9 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conver
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message, retryCount int) {
+func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message, retryCount int, node *waBinary.Node) {
 	cli.processProtocolParts(info, msg)
-	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount}
+	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount, Node: node}
 	cli.dispatchEvent(evt.UnwrapRaw())
 }
 
