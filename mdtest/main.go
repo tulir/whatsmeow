@@ -461,7 +461,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
 		} else {
@@ -488,7 +488,7 @@ func handleCmd(cmd string, args []string) {
 		for i, opt := range options {
 			options[i] = strings.TrimSpace(opt)
 		}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", cli.BuildPollCreation(question, options, maxAnswers))
+		resp, err := cli.SendMessage(context.Background(), recipient, cli.BuildPollCreation(question, options, maxAnswers))
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
 		} else {
@@ -515,7 +515,7 @@ func handleCmd(cmd string, args []string) {
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
 		for _, recipient := range recipients {
 			go func(recipient types.JID) {
-				resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+				resp, err := cli.SendMessage(context.Background(), recipient, msg)
 				if err != nil {
 					log.Errorf("Error sending message to %s: %v", recipient, err)
 				} else {
@@ -553,7 +553,7 @@ func handleCmd(cmd string, args []string) {
 				SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
 			},
 		}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending reaction: %v", err)
 		} else {
@@ -569,7 +569,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		messageID := args[1]
-		resp, err := cli.SendMessage(context.Background(), recipient, "", cli.BuildRevoke(recipient, types.EmptyJID, messageID))
+		resp, err := cli.SendMessage(context.Background(), recipient, cli.BuildRevoke(recipient, types.EmptyJID, messageID))
 		if err != nil {
 			log.Errorf("Error sending revocation: %v", err)
 		} else {
@@ -604,7 +604,7 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(data))),
 		}}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending image message: %v", err)
 		} else {
