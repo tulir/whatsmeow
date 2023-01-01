@@ -242,6 +242,10 @@ func handleCmd(cmd string, args []string) {
 			fmt.Println(err)
 		}
 	case "presence":
+		if len(args) == 0 {
+			log.Errorf("Usage: presence <available/unavailable>")
+			return
+		}
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
 	case "chatpresence":
 		if len(args) == 2 {
