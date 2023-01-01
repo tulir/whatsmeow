@@ -82,6 +82,10 @@ func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []
 	if err != nil {
 		return fmt.Errorf("failed to prepare encrypted retry receipt: %w", err)
 	}
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		return ErrNotLoggedIn
+	}
 
 	rmrAttrs := waBinary.Attrs{
 		"jid":     message.Chat,
@@ -100,7 +104,7 @@ func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []
 		Tag: "receipt",
 		Attrs: waBinary.Attrs{
 			"id":   message.ID,
-			"to":   cli.Store.ID.ToNonAD(),
+			"to":   ownID,
 			"type": "server-error",
 		},
 		Content: []waBinary.Node{

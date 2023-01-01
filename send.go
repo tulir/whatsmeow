@@ -125,6 +125,11 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		err = ErrRecipientADJID
 		return
 	}
+	ownID := cli.getOwnID()
+	if ownID.IsEmpty() {
+		err = ErrNotLoggedIn
+		return
+	}
 
 	if len(req.ID) == 0 {
 		req.ID = GenerateMessageID()
@@ -143,7 +148,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		cli.addRecentMessage(to, req.ID, message)
 	}
 	if message.GetMessageContextInfo().GetMessageSecret() != nil {
-		err = cli.Store.MsgSecrets.PutMessageSecret(to, *cli.Store.ID, req.ID, message.GetMessageContextInfo().GetMessageSecret())
+		err = cli.Store.MsgSecrets.PutMessageSecret(to, ownID, req.ID, message.GetMessageContextInfo().GetMessageSecret())
 		if err != nil {
 			cli.Log.Warnf("Failed to store message secret key for outgoing message %s: %v", req.ID, err)
 		} else {
@@ -154,12 +159,12 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	var data []byte
 	switch to.Server {
 	case types.GroupServer, types.BroadcastServer:
-		phash, data, err = cli.sendGroup(ctx, to, req.ID, message, &resp.DebugTimings)
+		phash, data, err = cli.sendGroup(ctx, to, ownID, req.ID, message, &resp.DebugTimings)
 	case types.DefaultUserServer:
 		if req.Peer {
 			data, err = cli.sendPeerMessage(to, req.ID, message, &resp.DebugTimings)
 		} else {
-			data, err = cli.sendDM(ctx, to, req.ID, message, &resp.DebugTimings)
+			data, err = cli.sendDM(ctx, to, ownID, req.ID, message, &resp.DebugTimings)
 		}
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
@@ -224,7 +229,7 @@ func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waPr
 		Id:        proto.String(id),
 		RemoteJid: proto.String(chat.String()),
 	}
-	if !sender.IsEmpty() && sender.User != cli.Store.ID.User {
+	if !sender.IsEmpty() && sender.User != cli.getOwnID().User {
 		key.FromMe = proto.Bool(false)
 		if chat.Server != types.DefaultUserServer {
 			key.Participant = proto.String(sender.ToNonAD().String())
@@ -334,7 +339,7 @@ func participantListHashV2(participants []types.JID) string {
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendGroup(ctx context.Context, to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) (string, []byte, error) {
+func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) (string, []byte, error) {
 	var participants []types.JID
 	var err error
 	start := time.Now()
@@ -360,7 +365,7 @@ func (cli *Client) sendGroup(ctx context.Context, to types.JID, id types.Message
 
 	start = time.Now()
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
-	senderKeyName := protocol.NewSenderKeyName(to.String(), cli.Store.ID.SignalAddress())
+	senderKeyName := protocol.NewSenderKeyName(to.String(), ownID.SignalAddress())
 	signalSKDMessage, err := builder.Create(senderKeyName)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
@@ -384,7 +389,7 @@ func (cli *Client) sendGroup(ctx context.Context, to types.JID, id types.Message
 	ciphertext := encrypted.SignedSerialize()
 	timings.GroupEncrypt = time.Since(start)
 
-	node, allDevices, err := cli.prepareMessageNode(ctx, to, id, message, participants, skdPlaintext, nil, timings)
+	node, allDevices, err := cli.prepareMessageNode(ctx, to, ownID, id, message, participants, skdPlaintext, nil, timings)
 	if err != nil {
 		return "", nil, err
 	}
@@ -420,7 +425,7 @@ func (cli *Client) sendPeerMessage(to types.JID, id types.MessageID, message *wa
 	return data, nil
 }
 
-func (cli *Client) sendDM(ctx context.Context, to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) ([]byte, error) {
+func (cli *Client) sendDM(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) ([]byte, error) {
 	start := time.Now()
 	messagePlaintext, deviceSentMessagePlaintext, err := marshalMessage(to, message)
 	timings.Marshal = time.Since(start)
@@ -428,7 +433,7 @@ func (cli *Client) sendDM(ctx context.Context, to types.JID, id types.MessageID,
 		return nil, err
 	}
 
-	node, _, err := cli.prepareMessageNode(ctx, to, id, message, []types.JID{to, cli.Store.ID.ToNonAD()}, messagePlaintext, deviceSentMessagePlaintext, timings)
+	node, _, err := cli.prepareMessageNode(ctx, to, ownID, id, message, []types.JID{to, ownID.ToNonAD()}, messagePlaintext, deviceSentMessagePlaintext, timings)
 	if err != nil {
 		return nil, err
 	}
@@ -531,7 +536,7 @@ func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, mess
 	}, nil
 }
 
-func (cli *Client) prepareMessageNode(ctx context.Context, to types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte, timings *MessageDebugTimings) (*waBinary.Node, []types.JID, error) {
+func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte, timings *MessageDebugTimings) (*waBinary.Node, []types.JID, error) {
 	start := time.Now()
 	allDevices, err := cli.GetUserDevicesContext(ctx, participants)
 	timings.GetDevices = time.Since(start)
@@ -549,7 +554,7 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to types.JID, id type
 	}
 
 	start = time.Now()
-	participantNodes, includeIdentity := cli.encryptMessageForDevices(ctx, allDevices, id, plaintext, dsmPlaintext)
+	participantNodes, includeIdentity := cli.encryptMessageForDevices(ctx, allDevices, ownID, id, plaintext, dsmPlaintext)
 	timings.PeerEncrypt = time.Since(start)
 	content := []waBinary.Node{{
 		Tag:     "participants",
@@ -611,14 +616,14 @@ func (cli *Client) makeDeviceIdentityNode() waBinary.Node {
 	}
 }
 
-func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []types.JID, id string, msgPlaintext, dsmPlaintext []byte) ([]waBinary.Node, bool) {
+func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []types.JID, ownID types.JID, id string, msgPlaintext, dsmPlaintext []byte) ([]waBinary.Node, bool) {
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
 	var retryDevices []types.JID
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
-		if jid.User == cli.Store.ID.User && dsmPlaintext != nil {
-			if jid == *cli.Store.ID {
+		if jid.User == ownID.User && dsmPlaintext != nil {
+			if jid == ownID {
 				continue
 			}
 			plaintext = dsmPlaintext
@@ -648,7 +653,7 @@ func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []ty
 					continue
 				}
 				plaintext := msgPlaintext
-				if jid.User == cli.Store.ID.User && dsmPlaintext != nil {
+				if jid.User == ownID.User && dsmPlaintext != nil {
 					plaintext = dsmPlaintext
 				}
 				encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(plaintext, jid, resp.bundle)

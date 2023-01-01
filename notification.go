@@ -136,7 +136,12 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
-	cached, ok := cli.userDevicesCache[cli.Store.ID.ToNonAD()]
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		cli.Log.Debugf("Ignoring own device change notification, session was deleted")
+		return
+	}
+	cached, ok := cli.userDevicesCache[ownID]
 	if !ok {
 		cli.Log.Debugf("Ignoring own device change notification, device list not cached")
 		return
@@ -154,10 +159,10 @@ func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	newHash := participantListHashV2(newDeviceList)
 	if newHash != expectedNewHash {
 		cli.Log.Debugf("Received own device list change notification %s -> %s, but expected hash was %s", oldHash, newHash, expectedNewHash)
-		delete(cli.userDevicesCache, cli.Store.ID.ToNonAD())
+		delete(cli.userDevicesCache, ownID)
 	} else {
 		cli.Log.Debugf("Received own device list change notification %s -> %s", oldHash, newHash)
-		cli.userDevicesCache[cli.Store.ID.ToNonAD()] = newDeviceList
+		cli.userDevicesCache[ownID] = newDeviceList
 	}
 }
 
@@ -175,8 +180,9 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 }
 
 func (cli *Client) handlePrivacyTokenNotification(node *waBinary.Node) {
-	ownID := cli.Store.ID
-	if ownID == nil {
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		cli.Log.Debugf("Ignoring privacy token notification, session was deleted")
 		return
 	}
 	tokens := node.GetChildByTag("tokens")
@@ -194,7 +200,7 @@ func (cli *Client) handlePrivacyTokenNotification(node *waBinary.Node) {
 		ag := child.AttrGetter()
 		if child.Tag != "token" {
 			cli.Log.Warnf("privacy_token notification contained unexpected <%s> tag", child.Tag)
-		} else if targetUser := ag.JID("jid"); targetUser != ownID.ToNonAD() {
+		} else if targetUser := ag.JID("jid"); targetUser != ownID {
 			cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
 		} else if tokenType := ag.String("type"); tokenType != "trusted_contact" {
 			cli.Log.Warnf("privacy_token notification contained unexpected token type %s", tokenType)

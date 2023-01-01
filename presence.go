@@ -118,6 +118,10 @@ func (cli *Client) SubscribePresence(jid types.JID) error {
 //
 // The media parameter can be set to indicate the user is recording media (like a voice message) rather than typing a text message.
 func (cli *Client) SendChatPresence(jid types.JID, state types.ChatPresence, media types.ChatPresenceMedia) error {
+	ownID := cli.getOwnID()
+	if ownID.IsEmpty() {
+		return ErrNotLoggedIn
+	}
 	content := []waBinary.Node{{Tag: string(state)}}
 	if state == types.ChatPresenceComposing && len(media) > 0 {
 		content[0].Attrs = waBinary.Attrs{
@@ -127,7 +131,7 @@ func (cli *Client) SendChatPresence(jid types.JID, state types.ChatPresence, med
 	return cli.sendNode(waBinary.Node{
 		Tag: "chatstate",
 		Attrs: waBinary.Attrs{
-			"from": *cli.Store.ID,
+			"from": ownID,
 			"to":   jid,
 		},
 		Content: content,

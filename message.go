@@ -51,8 +51,8 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 }
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
-	clientID := cli.Store.ID
-	if clientID == nil {
+	clientID := cli.getOwnID()
+	if clientID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
 	}
@@ -407,7 +407,10 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conversation) {
 	var secrets []store.MessageSecretInsert
 	var privacyTokens []store.PrivacyToken
-	me := cli.Store.ID.ToNonAD()
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		return
+	}
 	for _, conv := range conversations {
 		chatJID, _ := types.ParseJID(conv.GetId())
 		if chatJID.IsEmpty() {
@@ -429,7 +432,7 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conver
 				var senderJID types.JID
 				msgKey := msg.GetMessage().GetKey()
 				if msgKey.GetFromMe() {
-					senderJID = me
+					senderJID = ownID
 				} else if chatJID.Server == types.DefaultUserServer {
 					senderJID = chatJID
 				} else if msgKey.GetParticipant() != "" {
