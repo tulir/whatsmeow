@@ -706,7 +706,7 @@ func (s *SQLStore) PutMessageSecrets(inserts []store.MessageSecretInsert) (err e
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	for _, insert := range inserts {
-		_, err = s.db.Exec(putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
+		_, err = tx.Exec(putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
 	}
 	err = tx.Commit()
 	if err != nil {
