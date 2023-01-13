@@ -1498,6 +1498,7 @@ message SyncActionValue {
     optional RemoveRecentStickerAction removeRecentStickerAction = 34;
     optional ChatAssignmentAction chatAssignment = 35;
     optional ChatAssignmentOpenedStatusAction chatAssignmentOpenedStatus = 36;
+    optional PnForLidChatAction pnForLidChatAction = 37;
 }
 
 message UserStatusMuteAction {
@@ -1576,6 +1577,10 @@ message PrimaryVersionAction {
 
 message PrimaryFeature {
     repeated string flags = 1;
+}
+
+message PnForLidChatAction {
+    optional string pnJid = 1;
 }
 
 message PinAction {
