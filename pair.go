@@ -134,6 +134,11 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return &PairProtoError{"failed to parse device identity details in pair success message", err}
 	}
 
+	if cli.PrePairCallback != nil && !cli.PrePairCallback(jid, platform, businessName) {
+		cli.sendIQError(reqID, 500, "internal-error")
+		return ErrPairRejectedLocally
+	}
+
 	cli.Store.Account = proto.Clone(&deviceIdentity).(*waProto.ADVSignedDeviceIdentity)
 
 	mainDeviceJID := jid

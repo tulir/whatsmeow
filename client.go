@@ -114,6 +114,10 @@ type Client struct {
 	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
 	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waProto.Message) bool
 
+	// PrePairCallback is called before pairing is completed. If it returns false, the pairing will be cancelled and
+	// the client will disconnect.
+	PrePairCallback func(jid types.JID, platform, businessName string) bool
+
 	// Should untrusted identity errors be handled automatically? If true, the stored identity and existing signal
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
 	// If false, decrypting a message from untrusted devices will fail.

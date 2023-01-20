@@ -35,6 +35,7 @@ var (
 var (
 	ErrPairInvalidDeviceIdentityHMAC = errors.New("invalid device identity HMAC in pair success message")
 	ErrPairInvalidDeviceSignature    = errors.New("invalid device signature in pair success message")
+	ErrPairRejectedLocally           = errors.New("local PrePairCallback rejected pairing")
 )
 
 // PairProtoError is included in an events.PairError if the pairing failed due to a protobuf error.
