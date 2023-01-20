@@ -155,12 +155,18 @@ type IQError struct {
 
 // Common errors returned by info queries for use with errors.Is
 var (
-	ErrIQBadRequest    error = &IQError{Code: 400, Text: "bad-request"}
-	ErrIQNotAuthorized error = &IQError{Code: 401, Text: "not-authorized"}
-	ErrIQForbidden     error = &IQError{Code: 403, Text: "forbidden"}
-	ErrIQNotFound      error = &IQError{Code: 404, Text: "item-not-found"}
-	ErrIQNotAcceptable error = &IQError{Code: 406, Text: "not-acceptable"}
-	ErrIQGone          error = &IQError{Code: 410, Text: "gone"}
+	ErrIQBadRequest          error = &IQError{Code: 400, Text: "bad-request"}
+	ErrIQNotAuthorized       error = &IQError{Code: 401, Text: "not-authorized"}
+	ErrIQForbidden           error = &IQError{Code: 403, Text: "forbidden"}
+	ErrIQNotFound            error = &IQError{Code: 404, Text: "item-not-found"}
+	ErrIQNotAllowed          error = &IQError{Code: 405, Text: "not-allowed"}
+	ErrIQNotAcceptable       error = &IQError{Code: 406, Text: "not-acceptable"}
+	ErrIQGone                error = &IQError{Code: 410, Text: "gone"}
+	ErrIQResourceLimit       error = &IQError{Code: 419, Text: "resource-limit"}
+	ErrIQLocked              error = &IQError{Code: 423, Text: "locked"}
+	ErrIQInternalServerError error = &IQError{Code: 500, Text: "internal-server-error"}
+	ErrIQServiceUnavailable  error = &IQError{Code: 503, Text: "service-unavailable"}
+	ErrIQPartialServerError  error = &IQError{Code: 530, Text: "partial-server-error"}
 )
 
 func parseIQError(node *waBinary.Node) error {
