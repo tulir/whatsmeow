@@ -31,6 +31,40 @@ var (
 	ErrNoPrivacyToken = errors.New("no privacy token stored")
 )
 
+// Errors that happen while confirming device pairing
+var (
+	ErrPairInvalidDeviceIdentityHMAC = errors.New("invalid device identity HMAC in pair success message")
+	ErrPairInvalidDeviceSignature    = errors.New("invalid device signature in pair success message")
+)
+
+// PairProtoError is included in an events.PairError if the pairing failed due to a protobuf error.
+type PairProtoError struct {
+	Message  string
+	ProtoErr error
+}
+
+func (err *PairProtoError) Error() string {
+	return fmt.Sprintf("%s: %v", err.Message, err.ProtoErr)
+}
+
+func (err *PairProtoError) Unwrap() error {
+	return err.ProtoErr
+}
+
+// PairDatabaseError is included in an events.PairError if the pairing failed due to being unable to save the credentials to the device store.
+type PairDatabaseError struct {
+	Message string
+	DBErr   error
+}
+
+func (err *PairDatabaseError) Error() string {
+	return fmt.Sprintf("%s: %v", err.Message, err.DBErr)
+}
+
+func (err *PairDatabaseError) Unwrap() error {
+	return err.DBErr
+}
+
 var (
 	// ErrProfilePictureUnauthorized is returned by GetProfilePictureInfo when trying to get the profile picture of a user
 	// whose privacy settings prevent you from seeing their profile picture (status code 401).
