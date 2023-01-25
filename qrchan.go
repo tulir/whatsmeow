@@ -28,6 +28,7 @@ type QRChannelItem struct {
 	Timeout time.Duration
 }
 
+// Possible final items in the QR channel.
 var (
 	// QRChannelSuccess is emitted from GetQRChannel when the pairing is successful.
 	QRChannelSuccess = QRChannelItem{Event: "success"}
@@ -151,7 +152,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 //
 // This must be called *before* Connect(). It will then listen to all the relevant events from the client.
 //
-// The last value to be emitted will be a special string, either "success", "timeout" or "err-already-have-id",
+// The last value to be emitted will be a special event like "success", "timeout" or another error code
 // depending on the result of the pairing. The channel will be closed immediately after one of those.
 func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, error) {
 	if cli.IsConnected() {
