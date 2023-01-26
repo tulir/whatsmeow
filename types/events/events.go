@@ -92,16 +92,16 @@ type StreamReplaced struct{}
 type TempBanReason int
 
 const (
-	TempBanBlockedByUsers         TempBanReason = 101
-	TempBanSentToTooManyPeople    TempBanReason = 102
+	TempBanSentToTooManyPeople    TempBanReason = 101
+	TempBanBlockedByUsers         TempBanReason = 102
 	TempBanCreatedTooManyGroups   TempBanReason = 103
 	TempBanSentTooManySameMessage TempBanReason = 104
 	TempBanBroadcastList          TempBanReason = 106
 )
 
 var tempBanReasonMessage = map[TempBanReason]string{
-	TempBanBlockedByUsers:         "too many people blocked you",
 	TempBanSentToTooManyPeople:    "you sent too many messages to people who don't have you in their address books",
+	TempBanBlockedByUsers:         "too many people blocked you",
 	TempBanCreatedTooManyGroups:   "you created too many groups with people who don't have you in their address books",
 	TempBanSentTooManySameMessage: "you sent the same message to too many people",
 	TempBanBroadcastList:          "you sent too many messages to a broadcast list",
