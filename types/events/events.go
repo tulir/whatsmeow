@@ -119,14 +119,14 @@ func (tbr TempBanReason) String() string {
 // TemporaryBan is emitted when there's a connection failure with the ConnectFailureTempBanned reason code.
 type TemporaryBan struct {
 	Code   TempBanReason
-	Expire time.Time
+	Expire time.Duration
 }
 
 func (tb *TemporaryBan) String() string {
-	if tb.Expire.IsZero() {
+	if tb.Expire == 0 {
 		return fmt.Sprintf("You've been temporarily banned: %v", tb.Code)
 	}
-	return fmt.Sprintf("You've been temporarily banned: %v. The ban expires at %v", tb.Code, tb.Expire)
+	return fmt.Sprintf("You've been temporarily banned: %v. The ban expires in %v", tb.Code, tb.Expire)
 }
 
 // ConnectFailureReason is an error code included in connection failure events.
