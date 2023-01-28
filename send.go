@@ -192,6 +192,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	}
 	ag := respNode.AttrGetter()
 	resp.Timestamp = ag.UnixTime("t")
+	if errorCode := ag.Int("error"); errorCode != 0 {
+		err = fmt.Errorf("%w %d", ErrServerReturnedError, errorCode)
+	}
 	expectedPHash := ag.OptionalString("phash")
 	if len(expectedPHash) > 0 && phash != expectedPHash {
 		cli.Log.Warnf("Server returned different participant list hash when sending to %s. Some devices may not have received the message.", to)
