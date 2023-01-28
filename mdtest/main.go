@@ -311,7 +311,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "getavatar":
 		if len(args) < 1 {
-			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview]")
+			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview] [--community]")
 			return
 		}
 		jid, ok := parseJID(args[0])
