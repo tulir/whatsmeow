@@ -69,11 +69,6 @@ message DeviceProps {
     optional HistorySyncConfig historySyncConfig = 5;
 }
 
-enum PeerDataOperationRequestType {
-    UPLOAD_STICKER = 0;
-    SEND_RECENT_STICKER_BOOTSTRAP = 1;
-    GENERATE_LINK_PREVIEW = 2;
-}
 message PeerDataOperationRequestResponseMessage {
     message PeerDataOperationResult {
         message LinkPreviewResponse {
@@ -730,6 +725,13 @@ message HydratedTemplateButton {
     }
 }
 
+message GroupMention {
+    // Manually bumped indexes by 1.
+    // They seem to be 0 and 1 in JS, but index 0 isn't valid 🤔
+    optional string jid = 1;
+    optional string groupSubject = 2;
+}
+
 message DisappearingMode {
     enum Initiator {
         CHANGED_IN_CHAT = 0;
@@ -808,6 +810,7 @@ message ContextInfo {
     optional string trustBannerType = 37;
     optional uint32 trustBannerAction = 38;
     optional bool isSampled = 39;
+    repeated GroupMention groupMentions = 40;
 }
 
 message ActionLink {
@@ -928,6 +931,8 @@ message Message {
     optional FutureProofMessage editedMessage = 58;
     optional FutureProofMessage viewOnceMessageV2Extension = 59;
     optional PollCreationMessage pollCreationMessageV2 = 60;
+    optional ScheduledCallCreationMessage scheduledCallCreationMessage = 61;
+    optional FutureProofMessage groupMentionedMessage = 62;
 }
 
 message MessageContextInfo {
@@ -1050,6 +1055,17 @@ message SendPaymentMessage {
     optional PaymentBackground background = 4;
 }
 
+message ScheduledCallCreationMessage {
+    enum CallType {
+        UNKNOWN = 0;
+        VOICE = 1;
+        VIDEO = 2;
+    }
+    optional int64 scheduledTimestampMs = 1;
+    optional CallType callType = 2;
+    optional string title = 3;
+}
+
 message RequestPhoneNumberMessage {
     optional ContextInfo contextInfo = 1;
 }
@@ -1163,6 +1179,11 @@ message PollCreationMessage {
     optional ContextInfo contextInfo = 5;
 }
 
+enum PeerDataOperationRequestType {
+    UPLOAD_STICKER = 0;
+    SEND_RECENT_STICKER_BOOTSTRAP = 1;
+    GENERATE_LINK_PREVIEW = 2;
+}
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
