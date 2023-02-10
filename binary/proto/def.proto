@@ -480,6 +480,11 @@ message ExtendedTextMessage {
         BRYNDAN_WRITE = 3;
         BEBASNEUE_REGULAR = 4;
         OSWALD_HEAVY = 5;
+        DAMION_REGULAR = 6;
+        MORNINGBREEZE_REGULAR = 7;
+        CALISTOGA_REGULAR = 8;
+        EXO2_EXTRABOLD = 9;
+        COURIERPRIME_BOLD = 10;
     }
     optional string text = 1;
     optional string matchedText = 2;
@@ -726,9 +731,7 @@ message HydratedTemplateButton {
 }
 
 message GroupMention {
-    // Manually bumped indexes by 1.
-    // They seem to be 0 and 1 in JS, but index 0 isn't valid 🤔
-    optional string jid = 1;
+    optional string groupJid = 1;
     optional string groupSubject = 2;
 }
 
@@ -849,6 +852,11 @@ message Point {
     optional double y = 4;
 }
 
+enum PinMessageType {
+    UNKNOWN_PIN_MESSAGE_TYPE = 0;
+    PIN_FOR_ALL = 1;
+    UNPIN_FOR_ALL = 2;
+}
 message PaymentBackground {
     enum Type {
         UNKNOWN = 0;
@@ -933,6 +941,7 @@ message Message {
     optional PollCreationMessage pollCreationMessageV2 = 60;
     optional ScheduledCallCreationMessage scheduledCallCreationMessage = 61;
     optional FutureProofMessage groupMentionedMessage = 62;
+    optional PinMessage pinMessage = 63;
 }
 
 message MessageContextInfo {
@@ -1177,6 +1186,12 @@ message PollCreationMessage {
     repeated Option options = 3;
     optional uint32 selectableOptionsCount = 4;
     optional ContextInfo contextInfo = 5;
+}
+
+message PinMessage {
+    optional MessageKey key = 1;
+    optional PinMessageType pinMessageType = 2;
+    optional int64 senderTimestampMs = 3;
 }
 
 enum PeerDataOperationRequestType {
@@ -1933,11 +1948,6 @@ message ClientPayload {
         NETWORK_SWITCH = 4;
         PING_RECONNECT = 5;
     }
-    enum BizMarketSegment {
-        DEFAULT = 0;
-        DEVX = 1;
-        INBOX = 2;
-    }
     optional uint64 username = 1;
     optional bool passive = 3;
     optional UserAgent userAgent = 5;
@@ -1962,7 +1972,6 @@ message ClientPayload {
     optional bytes fbDeviceId = 32;
     optional bool pull = 33;
     optional bytes paddingBytes = 34;
-    optional BizMarketSegment bizMarketSegment = 35;
     optional int32 yearClass = 36;
     optional int32 memClass = 37;
 }
