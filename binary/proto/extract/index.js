@@ -13,16 +13,16 @@ async function findAppModules(mods) {
             "Sec-Fetch-Mode": "no-cors",
             "Sec-Fetch-Site": "same-origin",
             "Referer": "https://web.whatsapp.com/",
-            "Accept": "*/*",
+            "Accept": "*/*", /**/
             "Accept-Language": "Accept-Language: en-US,en;q=0.5",
         }
     }
     const baseURL = "https://web.whatsapp.com"
     const index = await request.get(baseURL, ua)
-    const bootstrapQRID = index.match(/src="\/bootstrap_qr.([0-9a-z]{10,}).js"/)[1]
-    const bootstrapQRURL = baseURL + "/bootstrap_qr." + bootstrapQRID + ".js"
-    console.error("Found bootstrap_qr.js URL:", bootstrapQRURL)
-    const qrData = await request.get(bootstrapQRURL, ua)
+    const appID = index.match(/src="\/app.([0-9a-z]{10,}).js"/)[1]
+    const appURL = baseURL + "/app." + appID + ".js"
+    console.error("Found app.js URL:", appURL)
+    const qrData = await request.get(appURL, ua)
     const waVersion = qrData.match(/appVersion:"(\d\.\d+\.\d+)"/)[1]
     console.log("Current version:", waVersion)
     // This one list of types is so long that it's split into two JavaScript declarations.
@@ -36,22 +36,21 @@ async function findAppModules(mods) {
 (async () => {
     // The module IDs that contain protobuf types
     const wantedModules = [
-        618036, // ADVSignedKeyIndexList, ADVSignedDeviceIdentity, ADVSignedDeviceIdentityHMAC, ADVKeyIndexList, ADVDeviceIdentity
-        395782, // DeviceProps
-        970016, // Message, ..., RequestPaymentMessage, Reaction, QuickReplyButton, ..., ButtonsResponseMessage, ActionLink, ...
-        118494, // EphemeralSetting
-        655919, // WallpaperSettings, Pushname, MediaVisibility, HistorySync, ..., GroupParticipant, ...
-        575637, // PollEncValue, MsgOpaqueData, MsgRowOpaqueData
-        692440, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
-        135923, // MessageKey
-        370910, // Duplicate of MessageKey
-        550073, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
-        381,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
-        482593, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
-        92776, // HandshakeMessage, ..., ClientPayload, ..., AppVersion, UserAgent, WebdPayload ...
-        // 275511, // seems to be same as above
-        956262, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
-        819601, // NoiseCertificate, CertChain
+        962559, // ADVSignedKeyIndexList, ADVSignedDeviceIdentity, ADVSignedDeviceIdentityHMAC, ADVKeyIndexList, ADVDeviceIdentity
+        113259, // DeviceProps
+        533494, // Message, ..., RequestPaymentMessage, Reaction, QuickReplyButton, ..., ButtonsResponseMessage, ActionLink, ...
+        199931, // EphemeralSetting
+        60370, // WallpaperSettings, Pushname, MediaVisibility, HistorySync, ..., GroupParticipant, ...
+        412744, // PollEncValue, MsgOpaqueData, MsgRowOpaqueData
+        229479, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
+        933734, // MessageKey
+        150715, // Duplicate of MessageKey
+        984084, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
+        517244, // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
+        759089, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
+        614806, // HandshakeMessage, ..., ClientPayload, ..., AppVersion, UserAgent, WebdPayload ...
+        968923, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
+        294075, // NoiseCertificate, CertChain
     ]
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
     const unnestName = name => name.replace("Message$", "").replace("SyncActionValue$", "") // Don't nest messages into Message, that's too much nesting

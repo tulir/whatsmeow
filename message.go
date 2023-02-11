@@ -51,8 +51,8 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 }
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
-	clientID := cli.Store.ID
-	if clientID == nil {
+	clientID := cli.getOwnID()
+	if clientID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
 	}
@@ -312,6 +312,8 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 		cli.Log.Debugf("Received history sync (type %s, chunk %d)", historySync.GetSyncType(), historySync.GetChunkOrder())
 		if historySync.GetSyncType() == waProto.HistorySync_PUSH_NAME {
 			go cli.handleHistoricalPushNames(historySync.GetPushnames())
+		} else if len(historySync.GetConversations()) > 0 {
+			go cli.storeHistoricalMessageSecrets(historySync.GetConversations())
 		}
 		cli.dispatchEvent(&events.HistorySync{
 			Data: &historySync,
@@ -387,10 +389,87 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, msg.SenderKeyDistributionMessage)
 		}
 	}
+	// N.B. Edits are protocol messages, but they're also wrapped inside EditedMessage,
+	// which is only unwrapped after processProtocolParts, so this won't trigger for edits.
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
+	if msgSecret := msg.GetMessageContextInfo().GetMessageSecret(); len(msgSecret) > 0 {
+		err := cli.Store.MsgSecrets.PutMessageSecret(info.Chat, info.Sender, info.ID, msgSecret)
+		if err != nil {
+			cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
+		} else {
+			cli.Log.Debugf("Stored message secret key for %s", info.ID)
+		}
+	}
+}
 
+func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conversation) {
+	var secrets []store.MessageSecretInsert
+	var privacyTokens []store.PrivacyToken
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		return
+	}
+	for _, conv := range conversations {
+		chatJID, _ := types.ParseJID(conv.GetId())
+		if chatJID.IsEmpty() {
+			continue
+		}
+		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
+			ts := conv.GetTcTokenSenderTimestamp()
+			if ts == 0 {
+				ts = conv.GetTcTokenTimestamp()
+			}
+			privacyTokens = append(privacyTokens, store.PrivacyToken{
+				User:      chatJID,
+				Token:     conv.GetTcToken(),
+				Timestamp: time.Unix(int64(ts), 0),
+			})
+		}
+		for _, msg := range conv.GetMessages() {
+			if secret := msg.GetMessage().GetMessageSecret(); secret != nil {
+				var senderJID types.JID
+				msgKey := msg.GetMessage().GetKey()
+				if msgKey.GetFromMe() {
+					senderJID = ownID
+				} else if chatJID.Server == types.DefaultUserServer {
+					senderJID = chatJID
+				} else if msgKey.GetParticipant() != "" {
+					senderJID, _ = types.ParseJID(msgKey.GetParticipant())
+				} else if msg.GetMessage().GetParticipant() != "" {
+					senderJID, _ = types.ParseJID(msg.GetMessage().GetParticipant())
+				}
+				if senderJID.IsEmpty() || msgKey.GetId() == "" {
+					continue
+				}
+				secrets = append(secrets, store.MessageSecretInsert{
+					Chat:   chatJID,
+					Sender: senderJID,
+					ID:     msgKey.GetId(),
+					Secret: secret,
+				})
+			}
+		}
+	}
+	if len(secrets) > 0 {
+		cli.Log.Debugf("Storing %d message secret keys in history sync", len(secrets))
+		err := cli.Store.MsgSecrets.PutMessageSecrets(secrets)
+		if err != nil {
+			cli.Log.Errorf("Failed to store message secret keys in history sync: %v", err)
+		} else {
+			cli.Log.Infof("Stored %d message secret keys from history sync", len(secrets))
+		}
+	}
+	if len(privacyTokens) > 0 {
+		cli.Log.Debugf("Storing %d privacy tokens in history sync", len(privacyTokens))
+		err := cli.Store.PrivacyTokens.PutPrivacyTokens(privacyTokens...)
+		if err != nil {
+			cli.Log.Errorf("Failed to store privacy tokens in history sync: %v", err)
+		} else {
+			cli.Log.Infof("Stored %d privacy tokens from history sync", len(privacyTokens))
+		}
+	}
 }
 
 func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {

@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"fmt"
 	"sync/atomic"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -84,21 +85,43 @@ func (cli *Client) SendPresence(state types.Presence) error {
 //
 // Also, it seems that the WhatsApp servers require you to be online to receive presence status from other users,
 // so you should mark yourself as online before trying to use this function:
-//     cli.SendPresence(types.PresenceAvailable)
+//
+//	cli.SendPresence(types.PresenceAvailable)
 func (cli *Client) SubscribePresence(jid types.JID) error {
-	return cli.sendNode(waBinary.Node{
+	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(jid)
+	if err != nil {
+		return fmt.Errorf("failed to get privacy token: %w", err)
+	} else if privacyToken == nil {
+		if cli.ErrorOnSubscribePresenceWithoutToken {
+			return fmt.Errorf("%w for %v", ErrNoPrivacyToken, jid.ToNonAD())
+		} else {
+			cli.Log.Debugf("Trying to subscribe to presence of %s without privacy token", jid)
+		}
+	}
+	req := waBinary.Node{
 		Tag: "presence",
 		Attrs: waBinary.Attrs{
 			"type": "subscribe",
 			"to":   jid,
 		},
-	})
+	}
+	if privacyToken != nil {
+		req.Content = []waBinary.Node{{
+			Tag:     "tctoken",
+			Content: privacyToken.Token,
+		}}
+	}
+	return cli.sendNode(req)
 }
 
 // SendChatPresence updates the user's typing status in a specific chat.
 //
 // The media parameter can be set to indicate the user is recording media (like a voice message) rather than typing a text message.
 func (cli *Client) SendChatPresence(jid types.JID, state types.ChatPresence, media types.ChatPresenceMedia) error {
+	ownID := cli.getOwnID()
+	if ownID.IsEmpty() {
+		return ErrNotLoggedIn
+	}
 	content := []waBinary.Node{{Tag: string(state)}}
 	if state == types.ChatPresenceComposing && len(media) > 0 {
 		content[0].Attrs = waBinary.Attrs{
@@ -108,7 +131,7 @@ func (cli *Client) SendChatPresence(jid types.JID, state types.ChatPresence, med
 	return cli.sendNode(waBinary.Node{
 		Tag: "chatstate",
 		Attrs: waBinary.Attrs{
-			"from": *cli.Store.ID,
+			"from": ownID,
 			"to":   jid,
 		},
 		Content: content,

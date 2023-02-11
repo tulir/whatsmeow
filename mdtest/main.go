@@ -47,6 +47,7 @@ var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
+var pairRejectChan = make(chan bool, 1)
 
 func main() {
 	waBinary.IndentXML = true
@@ -73,6 +74,22 @@ func main() {
 	}
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
+	var isWaitingForPair atomic.Bool
+	cli.PrePairCallback = func(jid types.JID, platform, businessName string) bool {
+		isWaitingForPair.Store(true)
+		defer isWaitingForPair.Store(false)
+		log.Infof("Pairing %s (platform: %q, business name: %q). Type r within 3 seconds to reject pair", jid, platform, businessName)
+		select {
+		case reject := <-pairRejectChan:
+			if reject {
+				log.Infof("Rejecting pair")
+				return false
+			}
+		case <-time.After(3 * time.Second):
+		}
+		log.Infof("Accepting pair")
+		return true
+	}
 
 	ch, err := cli.GetQRChannel(context.Background())
 	if err != nil {
@@ -123,6 +140,14 @@ func main() {
 				log.Infof("Stdin closed, exiting")
 				cli.Disconnect()
 				return
+			}
+			if isWaitingForPair.Load() {
+				if cmd == "r" {
+					pairRejectChan <- true
+				} else if cmd == "a" {
+					pairRejectChan <- false
+				}
+				continue
 			}
 			args := strings.Fields(cmd)
 			cmd = args[0]
@@ -242,6 +267,10 @@ func handleCmd(cmd string, args []string) {
 			fmt.Println(err)
 		}
 	case "presence":
+		if len(args) == 0 {
+			log.Errorf("Usage: presence <available/unavailable>")
+			return
+		}
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
 	case "chatpresence":
 		if len(args) == 2 {
@@ -282,7 +311,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "getavatar":
 		if len(args) < 1 {
-			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview]")
+			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview] [--community]")
 			return
 		}
 		jid, ok := parseJID(args[0])
@@ -293,7 +322,19 @@ func handleCmd(cmd string, args []string) {
 		if len(args) > 2 {
 			existingID = args[2]
 		}
-		pic, err := cli.GetProfilePictureInfo(jid, args[len(args)-1] == "--preview", existingID)
+		var preview, isCommunity bool
+		for _, arg := range args {
+			if arg == "--preview" {
+				preview = true
+			} else if arg == "--community" {
+				isCommunity = true
+			}
+		}
+		pic, err := cli.GetProfilePictureInfo(jid, &whatsmeow.GetProfilePictureParams{
+			Preview:     preview,
+			IsCommunity: isCommunity,
+			ExistingID:  existingID,
+		})
 		if err != nil {
 			log.Errorf("Failed to get avatar: %v", err)
 		} else if pic != nil {
@@ -318,6 +359,44 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to get group info: %v", err)
 		} else {
 			log.Infof("Group info: %+v", resp)
+		}
+	case "subgroups":
+		if len(args) < 1 {
+			log.Errorf("Usage: subgroups <jid>")
+			return
+		}
+		group, ok := parseJID(args[0])
+		if !ok {
+			return
+		} else if group.Server != types.GroupServer {
+			log.Errorf("Input must be a group JID (@%s)", types.GroupServer)
+			return
+		}
+		resp, err := cli.GetSubGroups(group)
+		if err != nil {
+			log.Errorf("Failed to get subgroups: %v", err)
+		} else {
+			for _, sub := range resp {
+				log.Infof("Subgroup: %+v", sub)
+			}
+		}
+	case "communityparticipants":
+		if len(args) < 1 {
+			log.Errorf("Usage: communityparticipants <jid>")
+			return
+		}
+		group, ok := parseJID(args[0])
+		if !ok {
+			return
+		} else if group.Server != types.GroupServer {
+			log.Errorf("Input must be a group JID (@%s)", types.GroupServer)
+			return
+		}
+		resp, err := cli.GetLinkedGroupsParticipants(group)
+		if err != nil {
+			log.Errorf("Failed to get community participants: %v", err)
+		} else {
+			log.Infof("Community participants: %+v", resp)
 		}
 	case "listgroups":
 		groups, err := cli.GetJoinedGroups()
@@ -411,7 +490,34 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
+		if err != nil {
+			log.Errorf("Error sending message: %v", err)
+		} else {
+			log.Infof("Message sent (server timestamp: %s)", resp.Timestamp)
+		}
+	case "sendpoll":
+		if len(args) < 7 {
+			log.Errorf("Usage: sendpoll <jid> <max answers> <question> -- <option 1> / <option 2> / ...")
+			return
+		}
+		recipient, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		maxAnswers, err := strconv.Atoi(args[1])
+		if err != nil {
+			log.Errorf("Number of max answers must be an integer")
+			return
+		}
+		remainingArgs := strings.Join(args[2:], " ")
+		question, optionsStr, _ := strings.Cut(remainingArgs, "--")
+		question = strings.TrimSpace(question)
+		options := strings.Split(optionsStr, "/")
+		for i, opt := range options {
+			options[i] = strings.TrimSpace(opt)
+		}
+		resp, err := cli.SendMessage(context.Background(), recipient, cli.BuildPollCreation(question, options, maxAnswers))
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
 		} else {
@@ -438,7 +544,7 @@ func handleCmd(cmd string, args []string) {
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
 		for _, recipient := range recipients {
 			go func(recipient types.JID) {
-				resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+				resp, err := cli.SendMessage(context.Background(), recipient, msg)
 				if err != nil {
 					log.Errorf("Error sending message to %s: %v", recipient, err)
 				} else {
@@ -476,7 +582,7 @@ func handleCmd(cmd string, args []string) {
 				SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
 			},
 		}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending reaction: %v", err)
 		} else {
@@ -492,7 +598,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		messageID := args[1]
-		resp, err := cli.RevokeMessage(recipient, messageID)
+		resp, err := cli.SendMessage(context.Background(), recipient, cli.BuildRevoke(recipient, types.EmptyJID, messageID))
 		if err != nil {
 			log.Errorf("Error sending revocation: %v", err)
 		} else {
@@ -527,7 +633,7 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(data))),
 		}}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending image message: %v", err)
 		} else {
@@ -589,8 +695,36 @@ func handler(rawEvt interface{}) {
 		if evt.IsViewOnce {
 			metaParts = append(metaParts, "ephemeral")
 		}
+		if evt.IsViewOnceV2 {
+			metaParts = append(metaParts, "ephemeral (v2)")
+		}
+		if evt.IsDocumentWithCaption {
+			metaParts = append(metaParts, "document with caption")
+		}
+		if evt.IsEdit {
+			metaParts = append(metaParts, "edit")
+		}
 
 		log.Infof("Received message %s from %s (%s): %+v", evt.Info.ID, evt.Info.SourceString(), strings.Join(metaParts, ", "), evt.Message)
+
+		if evt.Message.GetPollUpdateMessage() != nil {
+			decrypted, err := cli.DecryptPollVote(evt)
+			if err != nil {
+				log.Errorf("Failed to decrypt vote: %v", err)
+			} else {
+				log.Infof("Selected options in decrypted vote:")
+				for _, option := range decrypted.SelectedOptions {
+					log.Infof("- %X", option)
+				}
+			}
+		} else if evt.Message.GetEncReactionMessage() != nil {
+			decrypted, err := cli.DecryptReaction(evt)
+			if err != nil {
+				log.Errorf("Failed to decrypt encrypted reaction: %v", err)
+			} else {
+				log.Infof("Decrypted reaction: %+v", decrypted)
+			}
+		}
 
 		img := evt.Message.GetImageMessage()
 		if img != nil {

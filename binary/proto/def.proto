@@ -48,6 +48,12 @@ message DeviceProps {
         CATALINA = 12;
         TCL_TV = 13;
     }
+    message HistorySyncConfig {
+        optional uint32 fullSyncDaysLimit = 1;
+        optional uint32 fullSyncSizeMbLimit = 2;
+        optional uint32 storageQuotaMb = 3;
+    }
+    
     message AppVersion {
         optional uint32 primary = 1;
         optional uint32 secondary = 2;
@@ -60,37 +66,43 @@ message DeviceProps {
     optional AppVersion version = 2;
     optional PlatformType platformType = 3;
     optional bool requireFullSync = 4;
+    optional HistorySyncConfig historySyncConfig = 5;
 }
 
-message PollVoteMessage {
-    repeated bytes selectedOptions = 1;
-}
-
-message PollUpdateMessage {
-    optional MessageKey pollCreationMessageKey = 1;
-    optional PollEncValue vote = 2;
-    optional PollUpdateMessageMetadata metadata = 3;
-    optional int64 senderTimestampMs = 4;
-}
-
-message PollUpdateMessageMetadata {
-}
-
-message PollEncValue {
-    optional bytes encPayload = 1;
-    optional bytes encIv = 2;
-}
-
-message PollCreationMessage {
-    message Option {
-        optional string optionName = 1;
+message PeerDataOperationRequestResponseMessage {
+    message PeerDataOperationResult {
+        message LinkPreviewResponse {
+            optional string url = 1;
+            optional string title = 2;
+            optional string description = 3;
+            optional bytes thumbData = 4;
+            optional string canonicalUrl = 5;
+            optional string matchText = 6;
+            optional string previewType = 7;
+        }
+        
+        optional MediaRetryNotification.ResultType mediaUploadResult = 1;
+        optional StickerMessage stickerMessage = 2;
+        optional LinkPreviewResponse linkPreviewResponse = 3;
     }
     
-    optional bytes encKey = 1;
-    optional string name = 2;
-    repeated Option options = 3;
-    optional uint32 selectableOptionsCount = 4;
-    optional ContextInfo contextInfo = 5;
+    optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
+    optional string stanzaId = 2;
+    repeated PeerDataOperationResult peerDataOperationResult = 3;
+}
+
+message PeerDataOperationRequestMessage {
+    message RequestUrlPreview {
+        optional string url = 1;
+    }
+    
+    message RequestStickerReupload {
+        optional string fileSha256 = 1;
+    }
+    
+    optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
+    repeated RequestStickerReupload requestStickerReupload = 2;
+    repeated RequestUrlPreview requestUrlPreview = 3;
 }
 
 message PaymentInviteMessage {
@@ -369,6 +381,7 @@ message HistorySyncNotification {
     optional uint32 chunkOrder = 7;
     optional string originalMessageId = 8;
     optional uint32 progress = 9;
+    optional int64 oldestMsgInChunkTimestampSec = 10;
 }
 
 message HighlyStructuredMessage {
@@ -467,6 +480,11 @@ message ExtendedTextMessage {
         BRYNDAN_WRITE = 3;
         BEBASNEUE_REGULAR = 4;
         OSWALD_HEAVY = 5;
+        DAMION_REGULAR = 6;
+        MORNINGBREEZE_REGULAR = 7;
+        CALISTOGA_REGULAR = 8;
+        EXO2_EXTRABOLD = 9;
+        COURIERPRIME_BOLD = 10;
     }
     optional string text = 1;
     optional string matchedText = 2;
@@ -491,6 +509,13 @@ message ExtendedTextMessage {
     optional string inviteLinkParentGroupSubjectV2 = 27;
     optional bytes inviteLinkParentGroupThumbnailV2 = 28;
     optional InviteLinkGroupType inviteLinkGroupTypeV2 = 29;
+    optional bool viewOnce = 30;
+}
+
+message EncReactionMessage {
+    optional MessageKey targetMessageKey = 1;
+    optional bytes encPayload = 2;
+    optional bytes encIv = 3;
 }
 
 message DocumentMessage {
@@ -626,6 +651,7 @@ message AudioMessage {
     optional ContextInfo contextInfo = 17;
     optional bytes streamingSidecar = 18;
     optional bytes waveform = 19;
+    optional fixed32 backgroundArgb = 20;
 }
 
 message AppStateSyncKey {
@@ -704,6 +730,11 @@ message HydratedTemplateButton {
     }
 }
 
+message GroupMention {
+    optional string groupJid = 1;
+    optional string groupSubject = 2;
+}
+
 message DisappearingMode {
     enum Initiator {
         CHANGED_IN_CHAT = 0;
@@ -741,6 +772,7 @@ message ContextInfo {
         optional bool containsAutoReply = 10;
         optional bool renderLargerThumbnail = 11;
         optional bool showAdAttribution = 12;
+        optional string ctwaClid = 13;
     }
     
     message AdReplyInfo {
@@ -778,6 +810,10 @@ message ContextInfo {
     optional ActionLink actionLink = 33;
     optional string groupSubject = 34;
     optional string parentGroupJid = 35;
+    optional string trustBannerType = 37;
+    optional uint32 trustBannerAction = 38;
+    optional bool isSampled = 39;
+    repeated GroupMention groupMentions = 40;
 }
 
 message ActionLink {
@@ -816,6 +852,11 @@ message Point {
     optional double y = 4;
 }
 
+enum PinMessageType {
+    UNKNOWN_PIN_MESSAGE_TYPE = 0;
+    PIN_FOR_ALL = 1;
+    UNPIN_FOR_ALL = 2;
+}
 message PaymentBackground {
     enum Type {
         UNKNOWN = 0;
@@ -894,6 +935,13 @@ message Message {
     optional FutureProofMessage documentWithCaptionMessage = 53;
     optional RequestPhoneNumberMessage requestPhoneNumberMessage = 54;
     optional FutureProofMessage viewOnceMessageV2 = 55;
+    optional EncReactionMessage encReactionMessage = 56;
+    optional FutureProofMessage editedMessage = 58;
+    optional FutureProofMessage viewOnceMessageV2Extension = 59;
+    optional PollCreationMessage pollCreationMessageV2 = 60;
+    optional ScheduledCallCreationMessage scheduledCallCreationMessage = 61;
+    optional FutureProofMessage groupMentionedMessage = 62;
+    optional PinMessage pinMessage = 63;
 }
 
 message MessageContextInfo {
@@ -964,9 +1012,11 @@ message TemplateMessage {
     
     optional ContextInfo contextInfo = 3;
     optional HydratedFourRowTemplate hydratedTemplate = 4;
+    optional string templateId = 9;
     oneof format {
         FourRowTemplate fourRowTemplate = 1;
         HydratedFourRowTemplate hydratedFourRowTemplate = 2;
+        InteractiveMessage interactiveMessageTemplate = 5;
     }
 }
 
@@ -999,6 +1049,8 @@ message StickerMessage {
     optional bool isAnimated = 13;
     optional bytes pngThumbnail = 16;
     optional ContextInfo contextInfo = 17;
+    optional int64 stickerSentTs = 18;
+    optional bool isAvatar = 19;
 }
 
 message SenderKeyDistributionMessage {
@@ -1012,11 +1064,17 @@ message SendPaymentMessage {
     optional PaymentBackground background = 4;
 }
 
-enum RmrSource {
-    FAVORITE_STICKER = 0;
-    RECENT_STICKER = 1;
-    RECENT_STICKER_INIT = 2;
+message ScheduledCallCreationMessage {
+    enum CallType {
+        UNKNOWN = 0;
+        VOICE = 1;
+        VIDEO = 2;
+    }
+    optional int64 scheduledTimestampMs = 1;
+    optional CallType callType = 2;
+    optional string title = 3;
 }
+
 message RequestPhoneNumberMessage {
     optional ContextInfo contextInfo = 1;
 }
@@ -1029,23 +1087,6 @@ message RequestPaymentMessage {
     optional int64 expiryTimestamp = 5;
     optional Money amount = 6;
     optional PaymentBackground background = 7;
-}
-
-message RequestMediaUploadResponseMessage {
-    message RequestMediaUploadResult {
-        optional string fileSha256 = 1;
-        optional MediaRetryNotification.ResultType mediaUploadResult = 2;
-        optional StickerMessage stickerMessage = 3;
-    }
-    
-    optional RmrSource rmrSource = 1;
-    optional string stanzaId = 2;
-    repeated RequestMediaUploadResult reuploadResult = 3;
-}
-
-message RequestMediaUploadMessage {
-    repeated string fileSha256 = 1;
-    optional RmrSource rmrSource = 2;
 }
 
 message ReactionMessage {
@@ -1067,8 +1108,9 @@ message ProtocolMessage {
         INITIAL_SECURITY_NOTIFICATION_SETTING_SYNC = 9;
         APP_STATE_FATAL_EXCEPTION_NOTIFICATION = 10;
         SHARE_PHONE_NUMBER = 11;
-        REQUEST_MEDIA_UPLOAD_MESSAGE = 12;
-        REQUEST_MEDIA_UPLOAD_RESPONSE_MESSAGE = 13;
+        MESSAGE_EDIT = 14;
+        PEER_DATA_OPERATION_REQUEST_MESSAGE = 16;
+        PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE = 17;
     }
     optional MessageKey key = 1;
     optional Type type = 2;
@@ -1080,8 +1122,10 @@ message ProtocolMessage {
     optional InitialSecurityNotificationSettingSync initialSecurityNotificationSettingSync = 9;
     optional AppStateFatalExceptionNotification appStateFatalExceptionNotification = 10;
     optional DisappearingMode disappearingMode = 11;
-    optional RequestMediaUploadMessage requestMediaUploadMessage = 12;
-    optional RequestMediaUploadResponseMessage requestMediaUploadResponseMessage = 13;
+    optional Message editedMessage = 14;
+    optional int64 timestampMs = 15;
+    optional PeerDataOperationRequestMessage peerDataOperationRequestMessage = 16;
+    optional PeerDataOperationRequestResponseMessage peerDataOperationRequestResponseMessage = 17;
 }
 
 message ProductMessage {
@@ -1113,6 +1157,48 @@ message ProductMessage {
     optional ContextInfo contextInfo = 17;
 }
 
+message PollVoteMessage {
+    repeated bytes selectedOptions = 1;
+}
+
+message PollUpdateMessage {
+    optional MessageKey pollCreationMessageKey = 1;
+    optional PollEncValue vote = 2;
+    optional PollUpdateMessageMetadata metadata = 3;
+    optional int64 senderTimestampMs = 4;
+}
+
+message PollUpdateMessageMetadata {
+}
+
+message PollEncValue {
+    optional bytes encPayload = 1;
+    optional bytes encIv = 2;
+}
+
+message PollCreationMessage {
+    message Option {
+        optional string optionName = 1;
+    }
+    
+    optional bytes encKey = 1;
+    optional string name = 2;
+    repeated Option options = 3;
+    optional uint32 selectableOptionsCount = 4;
+    optional ContextInfo contextInfo = 5;
+}
+
+message PinMessage {
+    optional MessageKey key = 1;
+    optional PinMessageType pinMessageType = 2;
+    optional int64 senderTimestampMs = 3;
+}
+
+enum PeerDataOperationRequestType {
+    UPLOAD_STICKER = 0;
+    SEND_RECENT_STICKER_BOOTSTRAP = 1;
+    GENERATE_LINK_PREVIEW = 2;
+}
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
@@ -1210,6 +1296,7 @@ message GlobalSettings {
     optional bool showGroupNotificationsPreview = 8;
     optional int32 disappearingModeDuration = 9;
     optional int64 disappearingModeTimestamp = 10;
+    optional AvatarUserSettings avatarUserSettings = 11;
 }
 
 message Conversation {
@@ -1256,7 +1343,14 @@ message Conversation {
     optional string parentGroupId = 37;
     optional string displayName = 38;
     optional string pnJid = 39;
-    optional bool selfPnExposed = 40;
+    optional bool shareOwnPn = 40;
+    optional bool pnhDuplicateLidThread = 41;
+    optional string lidJid = 42;
+}
+
+message AvatarUserSettings {
+    optional string fbid = 1;
+    optional string password = 2;
 }
 
 message AutoDownloadSettings {
@@ -1300,10 +1394,14 @@ message MsgOpaqueData {
     repeated PollOption pollOptions = 18;
     optional uint32 pollSelectableOptionsCount = 20;
     optional bytes messageSecret = 21;
-    optional string originalSelfAuthorJid = 51;
+    optional string originalSelfAuthor = 51;
     optional int64 senderTimestampMs = 22;
     optional string pollUpdateParentKey = 23;
     optional PollEncValue encPollVote = 24;
+    optional bool isSentCagPollCreation = 28;
+    optional string encReactionTargetMessageKey = 25;
+    optional bytes encReactionEncPayload = 26;
+    optional bytes encReactionEncIv = 27;
 }
 
 message ServerErrorReceipt {
@@ -1433,6 +1531,10 @@ message SyncActionValue {
     optional NuxAction nuxAction = 31;
     optional PrimaryVersionAction primaryVersionAction = 32;
     optional StickerAction stickerAction = 33;
+    optional RemoveRecentStickerAction removeRecentStickerAction = 34;
+    optional ChatAssignmentAction chatAssignment = 35;
+    optional ChatAssignmentOpenedStatusAction chatAssignmentOpenedStatus = 36;
+    optional PnForLidChatAction pnForLidChatAction = 37;
 }
 
 message UserStatusMuteAction {
@@ -1513,6 +1615,10 @@ message PrimaryFeature {
     repeated string flags = 1;
 }
 
+message PnForLidChatAction {
+    optional string pnJid = 1;
+}
+
 message PinAction {
     optional bool pinned = 1;
 }
@@ -1524,6 +1630,7 @@ message NuxAction {
 message MuteAction {
     optional bool muted = 1;
     optional int64 muteEndTimestamp = 2;
+    optional bool autoMuted = 3;
 }
 
 message MarkChatAsReadAction {
@@ -1562,10 +1669,19 @@ message DeleteChatAction {
 message ContactAction {
     optional string fullName = 1;
     optional string firstName = 2;
+    optional string lidJid = 3;
 }
 
 message ClearChatAction {
     optional SyncActionMessageRange messageRange = 1;
+}
+
+message ChatAssignmentOpenedStatusAction {
+    optional bool chatOpened = 1;
+}
+
+message ChatAssignmentAction {
+    optional string deviceAgentID = 1;
 }
 
 message ArchiveChatAction {
@@ -1748,6 +1864,9 @@ message ClientPayload {
             OCULUS_CALL = 26;
             MILAN = 27;
             CAPI = 28;
+            WEAROS = 29;
+            ARDEVICE = 30;
+            VRDEVICE = 31;
         }
         message AppVersion {
             optional uint32 primary = 1;
@@ -1853,6 +1972,8 @@ message ClientPayload {
     optional bytes fbDeviceId = 32;
     optional bool pull = 33;
     optional bytes paddingBytes = 34;
+    optional int32 yearClass = 36;
+    optional int32 memClass = 37;
 }
 
 message WebNotificationsInfo {
@@ -2016,6 +2137,16 @@ message WebMessageInfo {
         COMMUNITY_PARENT_GROUP_DELETED = 149;
         COMMUNITY_LINK_PARENT_GROUP_MEMBERSHIP_APPROVAL = 150;
         GROUP_PARTICIPANT_JOINED_GROUP_AND_PARENT_GROUP = 151;
+        MASKED_THREAD_CREATED = 152;
+        MASKED_THREAD_UNMASKED = 153;
+        BIZ_CHAT_ASSIGNMENT = 154;
+        CHAT_PSA = 155;
+        CHAT_POLL_CREATION_MESSAGE = 156;
+        CAG_MASKED_THREAD_CREATED = 157;
+        COMMUNITY_PARENT_GROUP_SUBJECT_CHANGED = 158;
+        CAG_INVITE_AUTO_ADD = 159;
+        BIZ_CHAT_ASSIGNMENT_UNASSIGN = 160;
+        CAG_INVITE_AUTO_JOINED = 161;
     }
     enum Status {
         ERROR = 0;
@@ -2156,6 +2287,7 @@ message PollUpdate {
     optional MessageKey pollUpdateMessageKey = 1;
     optional PollVoteMessage vote = 2;
     optional int64 senderTimestampMs = 3;
+    optional int64 serverTimestampMs = 4;
 }
 
 message PollAdditionalMetadata {
@@ -2252,6 +2384,8 @@ message KeepInChat {
     optional int64 serverTimestamp = 2;
     optional MessageKey key = 3;
     optional string deviceJid = 4;
+    optional int64 clientTimestampMs = 5;
+    optional int64 serverTimestampMs = 6;
 }
 
 message NoiseCertificate {

@@ -89,10 +89,9 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		}
 	} else if reason == events.ConnectFailureTempBanned {
 		cli.Log.Warnf("Temporary ban connect failure: %s", node.XMLString())
-		expiryTime := ag.UnixTime("expire")
 		go cli.dispatchEvent(&events.TemporaryBan{
 			Code:   events.TempBanReason(ag.Int("code")),
-			Expire: expiryTime,
+			Expire: time.Duration(ag.Int("expire")) * time.Second,
 		})
 	} else if reason == events.ConnectFailureClientOutdated {
 		cli.Log.Errorf("Client outdated (405) connect failure")

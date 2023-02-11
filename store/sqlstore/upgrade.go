@@ -16,7 +16,7 @@ type upgradeFunc func(*sql.Tx, *Container) error
 //
 // This may be of use if you want to manage the database fully manually, but in most cases you
 // should just call Container.Upgrade to let the library handle everything.
-var Upgrades = [...]upgradeFunc{upgradeV1, upgradeV2}
+var Upgrades = [...]upgradeFunc{upgradeV1, upgradeV2, upgradeV3, upgradeV4}
 
 func (c *Container) getVersion() (int, error) {
 	_, err := c.db.Exec("CREATE TABLE IF NOT EXISTS whatsmeow_version (version INTEGER)")
@@ -244,5 +244,30 @@ func upgradeV2(tx *sql.Tx, container *Container) error {
 	} else {
 		_, err = tx.Exec(fillSigKeySQLite)
 	}
+	return err
+}
+
+func upgradeV3(tx *sql.Tx, container *Container) error {
+	_, err := tx.Exec(`CREATE TABLE whatsmeow_message_secrets (
+		our_jid    TEXT,
+		chat_jid   TEXT,
+		sender_jid TEXT,
+		message_id TEXT,
+		key        bytea NOT NULL,
+
+		PRIMARY KEY (our_jid, chat_jid, sender_jid, message_id),
+		FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+	)`)
+	return err
+}
+
+func upgradeV4(tx *sql.Tx, container *Container) error {
+	_, err := tx.Exec(`CREATE TABLE whatsmeow_privacy_tokens (
+		our_jid   TEXT,
+		their_jid TEXT,
+		token     bytea  NOT NULL,
+		timestamp BIGINT NOT NULL,
+		PRIMARY KEY (our_jid, their_jid)
+	)`)
 	return err
 }

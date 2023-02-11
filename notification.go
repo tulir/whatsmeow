@@ -11,6 +11,7 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -135,7 +136,12 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
-	cached, ok := cli.userDevicesCache[cli.Store.ID.ToNonAD()]
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		cli.Log.Debugf("Ignoring own device change notification, session was deleted")
+		return
+	}
+	cached, ok := cli.userDevicesCache[ownID]
 	if !ok {
 		cli.Log.Debugf("Ignoring own device change notification, device list not cached")
 		return
@@ -153,10 +159,10 @@ func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	newHash := participantListHashV2(newDeviceList)
 	if newHash != expectedNewHash {
 		cli.Log.Debugf("Received own device list change notification %s -> %s, but expected hash was %s", oldHash, newHash, expectedNewHash)
-		delete(cli.userDevicesCache, cli.Store.ID.ToNonAD())
+		delete(cli.userDevicesCache, ownID)
 	} else {
 		cli.Log.Debugf("Received own device list change notification %s -> %s", oldHash, newHash)
-		cli.userDevicesCache[cli.Store.ID.ToNonAD()] = newDeviceList
+		cli.userDevicesCache[ownID] = newDeviceList
 	}
 }
 
@@ -169,6 +175,52 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 			cli.handleOwnDevicesNotification(&child)
 		default:
 			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
+		}
+	}
+}
+
+func (cli *Client) handlePrivacyTokenNotification(node *waBinary.Node) {
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		cli.Log.Debugf("Ignoring privacy token notification, session was deleted")
+		return
+	}
+	tokens := node.GetChildByTag("tokens")
+	if tokens.Tag != "tokens" {
+		cli.Log.Warnf("privacy_token notification didn't contain <tokens> tag")
+		return
+	}
+	parentAG := node.AttrGetter()
+	sender := parentAG.JID("from")
+	if !parentAG.OK() {
+		cli.Log.Warnf("privacy_token notification didn't have a sender (%v)", parentAG.Error())
+		return
+	}
+	for _, child := range tokens.GetChildren() {
+		ag := child.AttrGetter()
+		if child.Tag != "token" {
+			cli.Log.Warnf("privacy_token notification contained unexpected <%s> tag", child.Tag)
+		} else if targetUser := ag.JID("jid"); targetUser != ownID {
+			cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
+		} else if tokenType := ag.String("type"); tokenType != "trusted_contact" {
+			cli.Log.Warnf("privacy_token notification contained unexpected token type %s", tokenType)
+		} else if token, ok := child.Content.([]byte); !ok {
+			cli.Log.Warnf("privacy_token notification contained non-binary token")
+		} else {
+			timestamp := ag.UnixTime("t")
+			if !ag.OK() {
+				cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
+			}
+			err := cli.Store.PrivacyTokens.PutPrivacyTokens(store.PrivacyToken{
+				User:      sender,
+				Token:     token,
+				Timestamp: timestamp,
+			})
+			if err != nil {
+				cli.Log.Errorf("Failed to save privacy token from %s: %v", sender, err)
+			} else {
+				cli.Log.Debugf("Stored privacy token from %s (ts: %v)", sender, timestamp)
+			}
 		}
 	}
 }
@@ -200,7 +252,9 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		go cli.handlePictureNotification(node)
 	case "mediaretry":
 		go cli.handleMediaRetryNotification(node)
-	// Other types: business, disappearing_mode, server, status, pay, psa, privacy_token
+	case "privacy_token":
+		go cli.handlePrivacyTokenNotification(node)
+	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)
 	}

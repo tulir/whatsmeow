@@ -47,6 +47,10 @@ func newNoiseSocket(fs *FrameSocket, writeKey, readKey cipher.AEAD, frameHandler
 }
 
 func (ns *NoiseSocket) consumeFrames(ctx context.Context, frames <-chan []byte) {
+	if ctx == nil {
+		// ctx being nil implies the connection already closed somehow
+		return
+	}
 	ctxDone := ctx.Done()
 	for {
 		select {
