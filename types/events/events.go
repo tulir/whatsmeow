@@ -142,6 +142,11 @@ const (
 	ConnectFailureBadUserAgent   ConnectFailureReason = 409
 
 	// 400, 500 and 501 are also existing codes, but the meaning is unknown
+
+	// 503 doesn't seem to be included in the web app JS with the other codes, and it's very rare,
+	// but does happen after a 503 stream error sometimes.
+
+	ConnectFailureServiceUnavailable ConnectFailureReason = 503
 )
 
 var connectFailureReasonMessage = map[ConnectFailureReason]string{
