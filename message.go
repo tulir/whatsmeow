@@ -345,7 +345,7 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 			cli.Log.Errorf("Failed to store app state sync key %X: %v", key.GetKeyId().GetKeyId(), err)
 			continue
 		}
-		cli.Log.Debugf("Received app state sync key %X", key.GetKeyId().GetKeyId())
+		cli.Log.Debugf("Received app state sync key %X (ts: %d)", key.GetKeyId().GetKeyId(), key.GetKeyData().GetTimestamp())
 	}
 	cli.appStateKeyRequestsLock.RUnlock()
 

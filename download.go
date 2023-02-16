@@ -194,10 +194,10 @@ func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 		url = urlable.GetUrl()
 		isWebWhatsappNetURL = strings.HasPrefix(urlable.GetUrl(), "https://web.whatsapp.net")
 	}
-	if len(url) > 0 && !isWebWhatsappNetURL {
-		return cli.downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
-	} else if len(msg.GetDirectPath()) > 0 {
+	if len(msg.GetDirectPath()) > 0 {
 		return cli.DownloadMediaWithPath(msg.GetDirectPath(), msg.GetFileEncSha256(), msg.GetFileSha256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
+	} else if len(url) > 0 && !isWebWhatsappNetURL {
+		return cli.downloadAndDecrypt(urlable.GetUrl(), msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSha256(), msg.GetFileSha256())
 	} else {
 		if isWebWhatsappNetURL {
 			cli.Log.Warnf("Got a media message with a web.whatsapp.net URL (%s) and no direct path", url)
