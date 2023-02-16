@@ -271,7 +271,7 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 		},
 	}
 	ownID := cli.getOwnID().ToNonAD()
-	if ownID.IsEmpty() {
+	if ownID.IsEmpty() || len(debugKeyIDs) == 0 {
 		return
 	}
 	cli.Log.Infof("Sending key request for app state keys %+v", debugKeyIDs)
