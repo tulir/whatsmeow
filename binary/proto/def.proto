@@ -852,11 +852,6 @@ message Point {
     optional double y = 4;
 }
 
-enum PinMessageType {
-    UNKNOWN_PIN_MESSAGE_TYPE = 0;
-    PIN_FOR_ALL = 1;
-    UNPIN_FOR_ALL = 2;
-}
 message PaymentBackground {
     enum Type {
         UNKNOWN = 0;
@@ -942,6 +937,8 @@ message Message {
     optional ScheduledCallCreationMessage scheduledCallCreationMessage = 61;
     optional FutureProofMessage groupMentionedMessage = 62;
     optional PinMessage pinMessage = 63;
+    optional PollCreationMessage pollCreationMessageV3 = 64;
+    optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
 }
 
 message MessageContextInfo {
@@ -1062,6 +1059,15 @@ message SendPaymentMessage {
     optional Message noteMessage = 2;
     optional MessageKey requestMessageKey = 3;
     optional PaymentBackground background = 4;
+}
+
+message ScheduledCallEditMessage {
+    enum EditType {
+        UNKNOWN = 0;
+        CANCEL = 1;
+    }
+    optional MessageKey key = 1;
+    optional EditType editType = 2;
 }
 
 message ScheduledCallCreationMessage {
@@ -1189,6 +1195,11 @@ message PollCreationMessage {
 }
 
 message PinMessage {
+    enum PinMessageType {
+        UNKNOWN_PIN_MESSAGE_TYPE = 0;
+        PIN_FOR_ALL = 1;
+        UNPIN_FOR_ALL = 2;
+    }
     optional MessageKey key = 1;
     optional PinMessageType pinMessageType = 2;
     optional int64 senderTimestampMs = 3;
@@ -1867,6 +1878,7 @@ message ClientPayload {
             WEAROS = 29;
             ARDEVICE = 30;
             VRDEVICE = 31;
+            BLUE_WEB = 32;
         }
         message AppVersion {
             optional uint32 primary = 1;
