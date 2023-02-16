@@ -123,6 +123,10 @@ type Client struct {
 	// If false, decrypting a message from untrusted devices will fail.
 	AutoTrustIdentity bool
 
+	// Should sending to own devices be skipped when sending broadcasts?
+	// This works around a bug in the WhatsApp android app where it crashes if you send a status message from a linked device.
+	DontSendSelfBroadcast bool
+
 	// Should SubscribePresence return an error if no privacy token is stored for the user?
 	ErrorOnSubscribePresenceWithoutToken bool
 
@@ -186,8 +190,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
 		appStateKeyRequests:    make(map[string]time.Time),
 
-		EnableAutoReconnect: true,
-		AutoTrustIdentity:   true,
+		EnableAutoReconnect:   true,
+		AutoTrustIdentity:     true,
+		DontSendSelfBroadcast: true,
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
