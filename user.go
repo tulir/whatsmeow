@@ -352,7 +352,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	}
 	var info types.ProfilePictureInfo
 	ag := picture.AttrGetter()
-	if ag.Int("status") == 304 {
+	if ag.OptionalInt("status") == 304 {
 		return nil, nil
 	}
 	info.ID = ag.String("id")
