@@ -314,7 +314,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 				Attrs: attrs,
 			}},
 		}}
-	} else if jid.Server == types.DefaultUserServer || jid.Server == types.HiddenUserServer {
+	} else {
 		to = types.ServerJID
 		target = jid
 		content = []waBinary.Node{{
