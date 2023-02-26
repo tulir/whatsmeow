@@ -69,28 +69,6 @@ message DeviceProps {
     optional HistorySyncConfig historySyncConfig = 5;
 }
 
-message PeerDataOperationRequestResponseMessage {
-    message PeerDataOperationResult {
-        message LinkPreviewResponse {
-            optional string url = 1;
-            optional string title = 2;
-            optional string description = 3;
-            optional bytes thumbData = 4;
-            optional string canonicalUrl = 5;
-            optional string matchText = 6;
-            optional string previewType = 7;
-        }
-        
-        optional MediaRetryNotification.ResultType mediaUploadResult = 1;
-        optional StickerMessage stickerMessage = 2;
-        optional LinkPreviewResponse linkPreviewResponse = 3;
-    }
-    
-    optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
-    optional string stanzaId = 2;
-    repeated PeerDataOperationResult peerDataOperationResult = 3;
-}
-
 message PeerDataOperationRequestMessage {
     message RequestUrlPreview {
         optional string url = 1;
@@ -754,6 +732,11 @@ message DeviceListMetadata {
 }
 
 message ContextInfo {
+    message UTMInfo {
+        optional string utmSource = 1;
+        optional string utmCampaign = 2;
+    }
+    
     message ExternalAdReplyInfo {
         enum MediaType {
             NONE = 0;
@@ -814,6 +797,7 @@ message ContextInfo {
     optional uint32 trustBannerAction = 38;
     optional bool isSampled = 39;
     repeated GroupMention groupMentions = 40;
+    optional UTMInfo utm = 41;
 }
 
 message ActionLink {
@@ -1210,6 +1194,28 @@ enum PeerDataOperationRequestType {
     SEND_RECENT_STICKER_BOOTSTRAP = 1;
     GENERATE_LINK_PREVIEW = 2;
 }
+message PeerDataOperationRequestResponseMessage {
+    message PeerDataOperationResult {
+        message LinkPreviewResponse {
+            optional string url = 1;
+            optional string title = 2;
+            optional string description = 3;
+            optional bytes thumbData = 4;
+            optional string canonicalUrl = 5;
+            optional string matchText = 6;
+            optional string previewType = 7;
+        }
+        
+        optional MediaRetryNotification.ResultType mediaUploadResult = 1;
+        optional StickerMessage stickerMessage = 2;
+        optional LinkPreviewResponse linkPreviewResponse = 3;
+    }
+    
+    optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
+    optional string stanzaId = 2;
+    repeated PeerDataOperationResult peerDataOperationResult = 3;
+}
+
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
@@ -2300,6 +2306,7 @@ message PollUpdate {
     optional PollVoteMessage vote = 2;
     optional int64 senderTimestampMs = 3;
     optional int64 serverTimestampMs = 4;
+    optional bool unread = 5;
 }
 
 message PollAdditionalMetadata {
