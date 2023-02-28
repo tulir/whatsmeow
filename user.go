@@ -519,3 +519,46 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 		return &list, err
 	}
 }
+
+func (cli *Client) UnblockUser(target types.JID) (Blockedlist []types.JID, err error) {
+	return cli.updateBlock(target, false)
+}
+
+func (cli *Client) BlockUser(target types.JID) (Blockedlist []types.JID, err error) {
+	return cli.updateBlock(target, true)
+}
+
+func (cli *Client) updateBlock(target types.JID, block bool) ([]types.JID, error) {
+	var content interface{}
+	action := "unblock"
+	if block {
+		action = "block"
+	}
+
+	content = []waBinary.Node{{
+		Tag:   "item",
+		Attrs: waBinary.Attrs{"action": action, "jid": target},
+	}}
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "blocklist",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content:   content,
+	})
+	if err != nil {
+		return []types.JID{}, err
+	}
+
+	listOfBlocked := []types.JID{}
+	if list, ok := resp.GetOptionalChildByTag("list"); ok {
+		for _, child := range list.GetChildren() {
+			jid, jidOK := child.Attrs["jid"].(types.JID)
+			if child.Tag != "item" || !jidOK {
+				continue
+			}
+			listOfBlocked = append(listOfBlocked, jid)
+		}
+	}
+
+	return listOfBlocked, nil
+}
