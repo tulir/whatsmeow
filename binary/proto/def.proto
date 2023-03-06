@@ -47,6 +47,10 @@ message DeviceProps {
         ALOHA = 11;
         CATALINA = 12;
         TCL_TV = 13;
+        IOS_PHONE = 14;
+        IOS_CATALYST = 15;
+        ANDROID_PHONE = 16;
+        ANDROID_AMBIGUOUS = 17;
     }
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
@@ -78,9 +82,18 @@ message PeerDataOperationRequestMessage {
         optional string fileSha256 = 1;
     }
     
+    message HistorySyncOnDemandRequest {
+        optional string chatJid = 1;
+        optional string oldestMsgId = 2;
+        optional bool oldestMsgFromMe = 3;
+        optional int32 onDemandMsgCount = 4;
+        optional int64 oldestMsgTimestampMs = 5;
+    }
+    
     optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
     repeated RequestStickerReupload requestStickerReupload = 2;
     repeated RequestUrlPreview requestUrlPreview = 3;
+    optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
 }
 
 message PaymentInviteMessage {
@@ -349,6 +362,7 @@ message HistorySyncNotification {
         RECENT = 3;
         PUSH_NAME = 4;
         NON_BLOCKING_DATA = 5;
+        ON_DEMAND = 6;
     }
     optional bytes fileSha256 = 1;
     optional uint64 fileLength = 2;
@@ -630,6 +644,7 @@ message AudioMessage {
     optional bytes streamingSidecar = 18;
     optional bytes waveform = 19;
     optional fixed32 backgroundArgb = 20;
+    optional bool viewOnce = 21;
 }
 
 message AppStateSyncKey {
@@ -923,6 +938,7 @@ message Message {
     optional PinMessage pinMessage = 63;
     optional PollCreationMessage pollCreationMessageV3 = 64;
     optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
+    optional VideoMessage ptvMessage = 66;
 }
 
 message MessageContextInfo {
@@ -1193,6 +1209,7 @@ enum PeerDataOperationRequestType {
     UPLOAD_STICKER = 0;
     SEND_RECENT_STICKER_BOOTSTRAP = 1;
     GENERATE_LINK_PREVIEW = 2;
+    HISTORY_SYNC_ON_DEMAND = 3;
 }
 message PeerDataOperationRequestResponseMessage {
     message PeerDataOperationResult {
@@ -1273,6 +1290,7 @@ message HistorySync {
         RECENT = 3;
         PUSH_NAME = 4;
         NON_BLOCKING_DATA = 5;
+        ON_DEMAND = 6;
     }
     required HistorySyncType syncType = 1;
     repeated Conversation conversations = 2;
@@ -1356,8 +1374,8 @@ message Conversation {
     optional string description = 33;
     optional bool support = 34;
     optional bool isParentGroup = 35;
-    optional bool isDefaultSubgroup = 36;
     optional string parentGroupId = 37;
+    optional bool isDefaultSubgroup = 36;
     optional string displayName = 38;
     optional string pnJid = 39;
     optional bool shareOwnPn = 40;
