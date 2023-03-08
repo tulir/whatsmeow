@@ -520,33 +520,35 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 	}
 }
 
-func (cli *Client) UnblockUser(target types.JID) (Blockedlist []types.JID, err error) {
+func (cli *Client) UnblockUser(target types.JID) ([]types.JID, error) {
 	return cli.updateBlock(target, false)
 }
 
-func (cli *Client) BlockUser(target types.JID) (Blockedlist []types.JID, err error) {
+func (cli *Client) BlockUser(target types.JID) ([]types.JID, error) {
 	return cli.updateBlock(target, true)
 }
 
+func (cli *Client) BlockedUsers() ([]types.JID, error) {
+	return cli.UnblockUser(types.JID{})
+}
+
 func (cli *Client) updateBlock(target types.JID, block bool) ([]types.JID, error) {
-	var content interface{}
 	action := "unblock"
 	if block {
 		action = "block"
 	}
 
-	content = []waBinary.Node{{
-		Tag:   "item",
-		Attrs: waBinary.Attrs{"action": action, "jid": target},
-	}}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "blocklist",
 		Type:      iqSet,
 		To:        types.ServerJID,
-		Content:   content,
+		Content: []waBinary.Node{{
+			Tag:   "item",
+			Attrs: waBinary.Attrs{"action": action, "jid": target},
+		}},
 	})
 	if err != nil {
-		return []types.JID{}, err
+		return nil, err
 	}
 
 	listOfBlocked := []types.JID{}
