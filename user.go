@@ -528,10 +528,6 @@ func (cli *Client) BlockUser(target types.JID) ([]types.JID, error) {
 	return cli.updateBlock(target, true)
 }
 
-func (cli *Client) BlockedUsers() ([]types.JID, error) {
-	return cli.UnblockUser(types.JID{})
-}
-
 func (cli *Client) updateBlock(target types.JID, block bool) ([]types.JID, error) {
 	action := "unblock"
 	if block {
