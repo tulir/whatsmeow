@@ -213,6 +213,13 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 			Action:       mutation.Action.GetUnarchiveChatsSetting(),
 			FromFullSync: fullSync,
 		}
+	case "userStatusMute":
+		eventToDispatch = &events.UserStatusMute{
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       mutation.Action.GetUserStatusMuteAction(),
+			FromFullSync: fullSync,
+		}
 	}
 	if storeUpdateError != nil {
 		cli.Log.Errorf("Failed to update device store after app state mutation: %v", storeUpdateError)

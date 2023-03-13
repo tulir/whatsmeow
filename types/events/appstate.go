@@ -124,6 +124,15 @@ type UnarchiveChatsSetting struct {
 	FromFullSync bool                           // Whether the action is emitted because of a fullSync
 }
 
+// UserStatusMute is emitted when the user mutes or unmutes another user's status updates.
+type UserStatusMute struct {
+	JID       types.JID // The user who was muted or unmuted
+	Timestamp time.Time // The timestamp when the action happened
+
+	Action       *waProto.UserStatusMuteAction // The new mute status
+	FromFullSync bool                          // Whether the action is emitted because of a fullSync
+}
+
 // AppState is emitted directly for new data received from app state syncing.
 // You should generally use the higher-level events like events.Contact and events.Mute.
 type AppState struct {
