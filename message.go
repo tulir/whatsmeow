@@ -101,6 +101,7 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	info.Timestamp = ag.UnixTime("t")
 	info.PushName = ag.OptionalString("notify")
 	info.Category = ag.OptionalString("category")
+	info.Type = ag.OptionalString("type")
 	if !ag.OK() {
 		return nil, ag.Error()
 	}

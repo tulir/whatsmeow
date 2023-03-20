@@ -47,6 +47,10 @@ message DeviceProps {
         ALOHA = 11;
         CATALINA = 12;
         TCL_TV = 13;
+        IOS_PHONE = 14;
+        IOS_CATALYST = 15;
+        ANDROID_PHONE = 16;
+        ANDROID_AMBIGUOUS = 17;
     }
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
@@ -69,28 +73,6 @@ message DeviceProps {
     optional HistorySyncConfig historySyncConfig = 5;
 }
 
-message PeerDataOperationRequestResponseMessage {
-    message PeerDataOperationResult {
-        message LinkPreviewResponse {
-            optional string url = 1;
-            optional string title = 2;
-            optional string description = 3;
-            optional bytes thumbData = 4;
-            optional string canonicalUrl = 5;
-            optional string matchText = 6;
-            optional string previewType = 7;
-        }
-        
-        optional MediaRetryNotification.ResultType mediaUploadResult = 1;
-        optional StickerMessage stickerMessage = 2;
-        optional LinkPreviewResponse linkPreviewResponse = 3;
-    }
-    
-    optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
-    optional string stanzaId = 2;
-    repeated PeerDataOperationResult peerDataOperationResult = 3;
-}
-
 message PeerDataOperationRequestMessage {
     message RequestUrlPreview {
         optional string url = 1;
@@ -100,9 +82,18 @@ message PeerDataOperationRequestMessage {
         optional string fileSha256 = 1;
     }
     
+    message HistorySyncOnDemandRequest {
+        optional string chatJid = 1;
+        optional string oldestMsgId = 2;
+        optional bool oldestMsgFromMe = 3;
+        optional int32 onDemandMsgCount = 4;
+        optional int64 oldestMsgTimestampMs = 5;
+    }
+    
     optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
     repeated RequestStickerReupload requestStickerReupload = 2;
     repeated RequestUrlPreview requestUrlPreview = 3;
+    optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
 }
 
 message PaymentInviteMessage {
@@ -371,6 +362,7 @@ message HistorySyncNotification {
         RECENT = 3;
         PUSH_NAME = 4;
         NON_BLOCKING_DATA = 5;
+        ON_DEMAND = 6;
     }
     optional bytes fileSha256 = 1;
     optional uint64 fileLength = 2;
@@ -652,6 +644,7 @@ message AudioMessage {
     optional bytes streamingSidecar = 18;
     optional bytes waveform = 19;
     optional fixed32 backgroundArgb = 20;
+    optional bool viewOnce = 21;
 }
 
 message AppStateSyncKey {
@@ -754,6 +747,11 @@ message DeviceListMetadata {
 }
 
 message ContextInfo {
+    message UTMInfo {
+        optional string utmSource = 1;
+        optional string utmCampaign = 2;
+    }
+    
     message ExternalAdReplyInfo {
         enum MediaType {
             NONE = 0;
@@ -814,6 +812,7 @@ message ContextInfo {
     optional uint32 trustBannerAction = 38;
     optional bool isSampled = 39;
     repeated GroupMention groupMentions = 40;
+    optional UTMInfo utm = 41;
 }
 
 message ActionLink {
@@ -852,11 +851,6 @@ message Point {
     optional double y = 4;
 }
 
-enum PinMessageType {
-    UNKNOWN_PIN_MESSAGE_TYPE = 0;
-    PIN_FOR_ALL = 1;
-    UNPIN_FOR_ALL = 2;
-}
 message PaymentBackground {
     enum Type {
         UNKNOWN = 0;
@@ -942,6 +936,9 @@ message Message {
     optional ScheduledCallCreationMessage scheduledCallCreationMessage = 61;
     optional FutureProofMessage groupMentionedMessage = 62;
     optional PinMessage pinMessage = 63;
+    optional PollCreationMessage pollCreationMessageV3 = 64;
+    optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
+    optional VideoMessage ptvMessage = 66;
 }
 
 message MessageContextInfo {
@@ -1062,6 +1059,15 @@ message SendPaymentMessage {
     optional Message noteMessage = 2;
     optional MessageKey requestMessageKey = 3;
     optional PaymentBackground background = 4;
+}
+
+message ScheduledCallEditMessage {
+    enum EditType {
+        UNKNOWN = 0;
+        CANCEL = 1;
+    }
+    optional MessageKey key = 1;
+    optional EditType editType = 2;
 }
 
 message ScheduledCallCreationMessage {
@@ -1189,6 +1195,11 @@ message PollCreationMessage {
 }
 
 message PinMessage {
+    enum PinMessageType {
+        UNKNOWN_PIN_MESSAGE_TYPE = 0;
+        PIN_FOR_ALL = 1;
+        UNPIN_FOR_ALL = 2;
+    }
     optional MessageKey key = 1;
     optional PinMessageType pinMessageType = 2;
     optional int64 senderTimestampMs = 3;
@@ -1198,7 +1209,30 @@ enum PeerDataOperationRequestType {
     UPLOAD_STICKER = 0;
     SEND_RECENT_STICKER_BOOTSTRAP = 1;
     GENERATE_LINK_PREVIEW = 2;
+    HISTORY_SYNC_ON_DEMAND = 3;
 }
+message PeerDataOperationRequestResponseMessage {
+    message PeerDataOperationResult {
+        message LinkPreviewResponse {
+            optional string url = 1;
+            optional string title = 2;
+            optional string description = 3;
+            optional bytes thumbData = 4;
+            optional string canonicalUrl = 5;
+            optional string matchText = 6;
+            optional string previewType = 7;
+        }
+        
+        optional MediaRetryNotification.ResultType mediaUploadResult = 1;
+        optional StickerMessage stickerMessage = 2;
+        optional LinkPreviewResponse linkPreviewResponse = 3;
+    }
+    
+    optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
+    optional string stanzaId = 2;
+    repeated PeerDataOperationResult peerDataOperationResult = 3;
+}
+
 message EphemeralSetting {
     optional sfixed32 duration = 1;
     optional sfixed64 timestamp = 2;
@@ -1256,6 +1290,7 @@ message HistorySync {
         RECENT = 3;
         PUSH_NAME = 4;
         NON_BLOCKING_DATA = 5;
+        ON_DEMAND = 6;
     }
     required HistorySyncType syncType = 1;
     repeated Conversation conversations = 2;
@@ -1339,8 +1374,8 @@ message Conversation {
     optional string description = 33;
     optional bool support = 34;
     optional bool isParentGroup = 35;
-    optional bool isDefaultSubgroup = 36;
     optional string parentGroupId = 37;
+    optional bool isDefaultSubgroup = 36;
     optional string displayName = 38;
     optional string pnJid = 39;
     optional bool shareOwnPn = 40;
@@ -1535,6 +1570,9 @@ message SyncActionValue {
     optional ChatAssignmentAction chatAssignment = 35;
     optional ChatAssignmentOpenedStatusAction chatAssignmentOpenedStatus = 36;
     optional PnForLidChatAction pnForLidChatAction = 37;
+    optional MarketingMessageAction marketingMessageAction = 38;
+    optional MarketingMessageBroadcastAction marketingMessageBroadcastAction = 39;
+    optional ExternalWebBetaAction externalWebBetaAction = 40;
 }
 
 message UserStatusMuteAction {
@@ -1633,6 +1671,24 @@ message MuteAction {
     optional bool autoMuted = 3;
 }
 
+message MarketingMessageBroadcastAction {
+    optional int32 repliedCount = 1;
+}
+
+message MarketingMessageAction {
+    enum MarketingMessageMsgType {
+        TEXT = 0;
+        IMAGE = 1;
+        VIDEO = 2;
+    }
+    optional string name = 1;
+    optional string message = 2;
+    optional MarketingMessageMsgType msgType = 3;
+    optional int64 createdAt = 4;
+    optional int64 lastSentAt = 5;
+    optional bool isDeleted = 6;
+}
+
 message MarkChatAsReadAction {
     optional bool read = 1;
     optional SyncActionMessageRange messageRange = 2;
@@ -1655,6 +1711,10 @@ message LabelAssociationAction {
 
 message KeyExpiration {
     optional int32 expiredKeyEpoch = 1;
+}
+
+message ExternalWebBetaAction {
+    optional bool isOptIn = 1;
 }
 
 message DeleteMessageForMeAction {
@@ -1867,6 +1927,7 @@ message ClientPayload {
             WEAROS = 29;
             ARDEVICE = 30;
             VRDEVICE = 31;
+            BLUE_WEB = 32;
         }
         message AppVersion {
             optional uint32 primary = 1;
@@ -2147,6 +2208,7 @@ message WebMessageInfo {
         CAG_INVITE_AUTO_ADD = 159;
         BIZ_CHAT_ASSIGNMENT_UNASSIGN = 160;
         CAG_INVITE_AUTO_JOINED = 161;
+        SCHEDULED_CALL_START_MESSAGE = 162;
     }
     enum Status {
         ERROR = 0;
@@ -2288,6 +2350,7 @@ message PollUpdate {
     optional PollVoteMessage vote = 2;
     optional int64 senderTimestampMs = 3;
     optional int64 serverTimestampMs = 4;
+    optional bool unread = 5;
 }
 
 message PollAdditionalMetadata {

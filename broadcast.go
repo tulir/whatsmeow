@@ -30,14 +30,19 @@ func (cli *Client) getBroadcastListParticipants(jid types.JID) ([]types.JID, err
 		return nil, ErrNotLoggedIn
 	}
 
-	var hasSelf bool
-	for _, participant := range list {
+	selfIndex := -1
+	for i, participant := range list {
 		if participant.User == ownID.User {
-			hasSelf = true
+			selfIndex = i
 			break
 		}
 	}
-	if !hasSelf {
+	if selfIndex >= 0 {
+		if cli.DontSendSelfBroadcast {
+			list[selfIndex] = list[len(list)-1]
+			list = list[:len(list)-1]
+		}
+	} else if !cli.DontSendSelfBroadcast {
 		list = append(list, ownID)
 	}
 	return list, nil

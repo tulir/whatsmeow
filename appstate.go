@@ -74,7 +74,7 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 			}
 		}
 		for _, mutation := range mutations {
-			cli.dispatchAppState(mutation, !fullSync || cli.EmitAppStateEventsOnFullSync)
+			cli.dispatchAppState(mutation, fullSync, cli.EmitAppStateEventsOnFullSync)
 		}
 	}
 	if fullSync {
@@ -105,7 +105,10 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 	return filteredMutations, contacts
 }
 
-func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts bool) {
+func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, emitOnFullSync bool) {
+
+	dispatchEvts := !fullSync || emitOnFullSync
+
 	if mutation.Operation != waProto.SyncdMutation_SET {
 		return
 	}
@@ -125,7 +128,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 	switch mutation.Index[0] {
 	case "mute":
 		act := mutation.Action.GetMuteAction()
-		eventToDispatch = &events.Mute{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.Mute{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		var mutedUntil time.Time
 		if act.GetMuted() {
 			mutedUntil = time.Unix(act.GetMuteEndTimestamp(), 0)
@@ -135,35 +138,36 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 		}
 	case "pin_v1":
 		act := mutation.Action.GetPinAction()
-		eventToDispatch = &events.Pin{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.Pin{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutPinned(jid, act.GetPinned())
 		}
 	case "archive":
 		act := mutation.Action.GetArchiveChatAction()
-		eventToDispatch = &events.Archive{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.Archive{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutArchived(jid, act.GetArchived())
 		}
 	case "contact":
 		act := mutation.Action.GetContactAction()
-		eventToDispatch = &events.Contact{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.Contact{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.Contacts != nil {
 			storeUpdateError = cli.Store.Contacts.PutContactName(jid, act.GetFirstName(), act.GetFullName())
 		}
 	case "deleteChat":
 		act := mutation.Action.GetDeleteChatAction()
-		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 	case "star":
 		if len(mutation.Index) < 5 {
 			return
 		}
 		evt := events.Star{
-			ChatJID:   jid,
-			MessageID: mutation.Index[2],
-			Timestamp: ts,
-			Action:    mutation.Action.GetStarAction(),
-			IsFromMe:  mutation.Index[3] == "1",
+			ChatJID:      jid,
+			MessageID:    mutation.Index[2],
+			Timestamp:    ts,
+			Action:       mutation.Action.GetStarAction(),
+			IsFromMe:     mutation.Index[3] == "1",
+			FromFullSync: fullSync,
 		}
 		if mutation.Index[4] != "0" {
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
@@ -174,11 +178,12 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 			return
 		}
 		evt := events.DeleteForMe{
-			ChatJID:   jid,
-			MessageID: mutation.Index[2],
-			Timestamp: ts,
-			Action:    mutation.Action.GetDeleteMessageForMeAction(),
-			IsFromMe:  mutation.Index[3] == "1",
+			ChatJID:      jid,
+			MessageID:    mutation.Index[2],
+			Timestamp:    ts,
+			Action:       mutation.Action.GetDeleteMessageForMeAction(),
+			IsFromMe:     mutation.Index[3] == "1",
+			FromFullSync: fullSync,
 		}
 		if mutation.Index[4] != "0" {
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
@@ -186,19 +191,35 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 		eventToDispatch = &evt
 	case "markChatAsRead":
 		eventToDispatch = &events.MarkChatAsRead{
-			JID:       jid,
-			Timestamp: ts,
-			Action:    mutation.Action.GetMarkChatAsReadAction(),
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       mutation.Action.GetMarkChatAsReadAction(),
+			FromFullSync: fullSync,
 		}
 	case "setting_pushName":
-		eventToDispatch = &events.PushNameSetting{Timestamp: ts, Action: mutation.Action.GetPushNameSetting()}
+		eventToDispatch = &events.PushNameSetting{
+			Timestamp:    ts,
+			Action:       mutation.Action.GetPushNameSetting(),
+			FromFullSync: fullSync,
+		}
 		cli.Store.PushName = mutation.Action.GetPushNameSetting().GetName()
 		err := cli.Store.Save()
 		if err != nil {
 			cli.Log.Errorf("Failed to save device store after updating push name: %v", err)
 		}
 	case "setting_unarchiveChats":
-		eventToDispatch = &events.UnarchiveChatsSetting{Timestamp: ts, Action: mutation.Action.GetUnarchiveChatsSetting()}
+		eventToDispatch = &events.UnarchiveChatsSetting{
+			Timestamp:    ts,
+			Action:       mutation.Action.GetUnarchiveChatsSetting(),
+			FromFullSync: fullSync,
+		}
+	case "userStatusMute":
+		eventToDispatch = &events.UserStatusMute{
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       mutation.Action.GetUserStatusMuteAction(),
+			FromFullSync: fullSync,
+		}
 	}
 	if storeUpdateError != nil {
 		cli.Log.Errorf("Failed to update device store after app state mutation: %v", storeUpdateError)
@@ -271,7 +292,7 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 		},
 	}
 	ownID := cli.getOwnID().ToNonAD()
-	if ownID.IsEmpty() {
+	if ownID.IsEmpty() || len(debugKeyIDs) == 0 {
 		return
 	}
 	cli.Log.Infof("Sending key request for app state keys %+v", debugKeyIDs)

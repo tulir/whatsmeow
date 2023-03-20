@@ -282,7 +282,7 @@ const (
 		INSERT INTO whatsmeow_app_state_sync_keys (jid, key_id, key_data, timestamp, fingerprint) VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (jid, key_id) DO UPDATE
 			SET key_data=excluded.key_data, timestamp=excluded.timestamp, fingerprint=excluded.fingerprint
-			WHERE excluded.timestamp > timestamp
+			WHERE excluded.timestamp > whatsmeow_app_state_sync_keys.timestamp
 	`
 	getAppStateSyncKeyQuery = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 AND key_id=$2`
 )

@@ -309,6 +309,13 @@ func handleCmd(cmd string, args []string) {
 				log.Infof("%s: %+v", jid, info)
 			}
 		}
+	case "mediaconn":
+		conn, err := cli.DangerousInternals().RefreshMediaConn(false)
+		if err != nil {
+			log.Errorf("Failed to get media connection: %v", err)
+		} else {
+			log.Infof("Media connection: %+v", conn)
+		}
 	case "getavatar":
 		if len(args) < 1 {
 			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview] [--community]")
