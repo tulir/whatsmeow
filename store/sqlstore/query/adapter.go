@@ -8,6 +8,8 @@ func NewByDialect(dialect string) Adapter {
 		return &Sqlite{
 			Default: &Postgres{},
 		}
+	case "mysql":
+		return &MySql{}
 	default:
 		return &Postgres{}
 	}
@@ -28,7 +30,7 @@ type Adapter interface {
 	ChatSettings
 	MessageSecrets
 	PrivacyTokens
-	PlaceholderSyntax() string
+	PlaceholderCreate(int, int) string
 }
 
 // Version represents the table whatsmeow_version
@@ -44,6 +46,8 @@ type Device interface {
 	CreateTableDevice() string
 	AlterTableDevice_AddColumnSigKey() string
 	FillSigKey() string
+	DeleteNullSigKeys() string
+	AlterTableDevice_SetNotNull() string
 	GetAllDevices() string
 	GetDevice() string
 	InsertDevice() string
@@ -106,8 +110,8 @@ type AppStateVersion interface {
 // AppStateMutationMacs represents the table whatsmeow_app_state_mutation_macs
 type AppStateMutationMacs interface {
 	CreateTableStateMutationMacs() string
-	PutAppStateMutationMACs() string
-	DeleteAppStateMutationMACs() string
+	PutAppStateMutationMACs(string) string
+	DeleteAppStateMutationMACs(string) string
 	GetAppStateMutationMAC() string
 }
 
@@ -115,7 +119,7 @@ type AppStateMutationMacs interface {
 type Contacts interface {
 	CreateTableContacts() string
 	PutContactName() string
-	PutManyContactNames() string
+	PutManyContactNames(string) string
 	PutPushName() string
 	PutBusinessName() string
 	GetContact() string
@@ -125,7 +129,7 @@ type Contacts interface {
 // ChatSettings represents the table whatsmeow_chat_settings
 type ChatSettings interface {
 	CreateTableChatSettings() string
-	PutChatSetting() string
+	PutChatSetting(string) string
 	GetChatSettings() string
 }
 
@@ -139,6 +143,6 @@ type MessageSecrets interface {
 // PrivacyTokens represents the table whatsmeow_privacy_tokens
 type PrivacyTokens interface {
 	CreateTablePrivacyTokens() string
-	PutPrivacyTokens() string
+	PutPrivacyTokens(string) string
 	GetPrivacyToken() string
 }

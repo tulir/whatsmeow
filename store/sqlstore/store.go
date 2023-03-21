@@ -12,7 +12,6 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -287,18 +286,11 @@ type execable interface {
 }
 
 func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uint64, mutations []store.AppStateMutationMAC) error {
-	values := make([]interface{}, 3+len(mutations)*2)
-	queryParts := make([]string, len(mutations))
-	values[0] = s.JID
-	values[1] = name
-	values[2] = version
-	for i, mutation := range mutations {
-		baseIndex := 3 + i*2
-		values[baseIndex] = mutation.IndexMAC
-		values[baseIndex+1] = mutation.ValueMAC
-		queryParts[i] = fmt.Sprintf(s.query.PlaceholderSyntax(), baseIndex+1, baseIndex+2)
+	var values []any
+	for _, mutation := range mutations {
+		values = append(values, s.JID, name, version, mutation.IndexMAC, mutation.ValueMAC)
 	}
-	_, err := tx.Exec(s.query.PutAppStateMutationMACs()+strings.Join(queryParts, ","), values...)
+	_, err := tx.Exec(s.query.PutAppStateMutationMACs(s.query.PlaceholderCreate(5, len(mutations))), values...)
 	return err
 }
 
@@ -339,17 +331,13 @@ func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (
 		return
 	}
 	if s.dialect == "postgres" && PostgresArrayWrapper != nil {
-		_, err = s.db.Exec(s.query.DeleteAppStateMutationMACs(), s.JID, name, PostgresArrayWrapper(indexMACs))
+		_, err = s.db.Exec(s.query.DeleteAppStateMutationMACs(""), s.JID, name, PostgresArrayWrapper(indexMACs))
 	} else {
-		args := make([]interface{}, 2+len(indexMACs))
-		args[0] = s.JID
-		args[1] = name
-		queryParts := make([]string, len(indexMACs))
-		for i, item := range indexMACs {
-			args[2+i] = item
-			queryParts[i] = fmt.Sprintf("$%d", i+3)
+		args := []any{s.JID, name}
+		for _, item := range indexMACs {
+			args = append(args, item)
 		}
-		_, err = s.db.Exec(s.query.DeleteAppStateMutationMACs()+"("+strings.Join(queryParts, ",")+")", args...)
+		_, err = s.db.Exec(s.query.DeleteAppStateMutationMACs(s.query.PlaceholderCreate(len(indexMACs), 1)), args...)
 	}
 	return
 }
@@ -427,10 +415,7 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 const contactBatchSize = 300
 
 func (s *SQLStore) putContactNamesBatch(tx execable, contacts []store.ContactEntry) error {
-	values := make([]interface{}, 1, 1+len(contacts)*3)
-	queryParts := make([]string, 0, len(contacts))
-	values[0] = s.JID
-	i := 0
+	var values []any
 	handledContacts := make(map[types.JID]struct{}, len(contacts))
 	for _, contact := range contacts {
 		if contact.JID.IsEmpty() {
@@ -444,12 +429,9 @@ func (s *SQLStore) putContactNamesBatch(tx execable, contacts []store.ContactEnt
 			continue
 		}
 		handledContacts[contact.JID] = struct{}{}
-		baseIndex := i*3 + 1
-		values = append(values, contact.JID.String(), contact.FirstName, contact.FullName)
-		queryParts = append(queryParts, fmt.Sprintf(s.query.PlaceholderSyntax(), baseIndex+1, baseIndex+2, baseIndex+3))
-		i++
+		values = append(values, s.JID, contact.JID.String(), contact.FirstName, contact.FullName)
 	}
-	_, err := tx.Exec(fmt.Sprintf(s.query.PutManyContactNames(), strings.Join(queryParts, ",")), values...)
+	_, err := tx.Exec(s.query.PutManyContactNames(s.query.PlaceholderCreate(4, len(contacts))), values...)
 	return err
 }
 
@@ -556,17 +538,17 @@ func (s *SQLStore) PutMutedUntil(chat types.JID, mutedUntil time.Time) error {
 	if !mutedUntil.IsZero() {
 		val = mutedUntil.Unix()
 	}
-	_, err := s.db.Exec(fmt.Sprintf(s.query.PutChatSetting(), "muted_until"), s.JID, chat, val)
+	_, err := s.db.Exec(s.query.PutChatSetting("muted_until"), s.JID, chat, val)
 	return err
 }
 
 func (s *SQLStore) PutPinned(chat types.JID, pinned bool) error {
-	_, err := s.db.Exec(fmt.Sprintf(s.query.PutChatSetting(), "pinned"), s.JID, chat, pinned)
+	_, err := s.db.Exec(s.query.PutChatSetting("pinned"), s.JID, chat, pinned)
 	return err
 }
 
 func (s *SQLStore) PutArchived(chat types.JID, archived bool) error {
-	_, err := s.db.Exec(fmt.Sprintf(s.query.PutChatSetting(), "archived"), s.JID, chat, archived)
+	_, err := s.db.Exec(s.query.PutChatSetting("archived"), s.JID, chat, archived)
 	return err
 }
 
@@ -615,17 +597,12 @@ func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) 
 }
 
 func (s *SQLStore) PutPrivacyTokens(tokens ...store.PrivacyToken) error {
-	args := make([]any, 1+len(tokens)*3)
-	placeholders := make([]string, len(tokens))
-	args[0] = s.JID
-	for i, token := range tokens {
-		args[i*3+1] = token.User.ToNonAD().String()
-		args[i*3+2] = token.Token
-		args[i*3+3] = token.Timestamp.Unix()
-		placeholders[i] = fmt.Sprintf("($1, $%d, $%d, $%d)", i*3+2, i*3+3, i*3+4)
+	args := make([]any, 0)
+	for _, token := range tokens {
+		args = append(args, s.JID, token.User.ToNonAD().String(), token.Token, token.Timestamp.Unix())
 	}
-	query := strings.ReplaceAll(s.query.PutPrivacyTokens(), "($1, $2, $3, $4)", strings.Join(placeholders, ","))
-	_, err := s.db.Exec(query, args...)
+	placeholders := s.query.PlaceholderCreate(4, len(tokens))
+	_, err := s.db.Exec(s.query.PutPrivacyTokens(placeholders), args...)
 	return err
 }
 

@@ -1,5 +1,10 @@
 package query
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Sqlite struct {
 	Default Adapter
 }
@@ -34,11 +39,19 @@ func (a *Sqlite) AlterTableDevice_AddColumnSigKey() string {
 
 func (a *Sqlite) FillSigKey() string {
 	return `UPDATE whatsmeow_device SET adv_account_sig_key=(
-		SELECT identity
-		FROM whatsmeow_identity_keys
-		WHERE our_jid=whatsmeow_device.jid
-		  AND their_id=substr(whatsmeow_device.jid, 0, instr(whatsmeow_device.jid, '.')) || ':0'
-	)`
+        SELECT identity
+        FROM whatsmeow_identity_keys
+        WHERE our_jid=whatsmeow_device.jid
+            AND their_id=substr(whatsmeow_device.jid, 0, instr(whatsmeow_device.jid, '.')) || ':0'
+    )`
+}
+
+func (a *Sqlite) DeleteNullSigKeys() string {
+	return a.Default.DeleteNullSigKeys()
+}
+
+func (a *Sqlite) AlterTableDevice_SetNotNull() string {
+	return ""
 }
 
 func (a *Sqlite) GetAllDevices() string {
@@ -191,12 +204,12 @@ func (a *Sqlite) CreateTableStateMutationMacs() string {
 	return a.Default.CreateTableStateMutationMacs()
 }
 
-func (a *Sqlite) PutAppStateMutationMACs() string {
-	return a.Default.PutAppStateMutationMACs()
+func (a *Sqlite) PutAppStateMutationMACs(placeholder string) string {
+	return a.Default.PutAppStateMutationMACs(placeholder)
 }
 
-func (a *Sqlite) DeleteAppStateMutationMACs() string {
-	return `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac IN `
+func (a *Sqlite) DeleteAppStateMutationMACs(placeholder string) string {
+	return fmt.Sprintf("DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac IN %s", placeholder)
 }
 
 func (a *Sqlite) GetAppStateMutationMAC() string {
@@ -213,8 +226,8 @@ func (a *Sqlite) PutContactName() string {
 	return a.Default.PutContactName()
 }
 
-func (a *Sqlite) PutManyContactNames() string {
-	return a.Default.PutManyContactNames()
+func (a *Sqlite) PutManyContactNames(placeholder string) string {
+	return a.Default.PutManyContactNames(placeholder)
 }
 
 func (a *Sqlite) PutPushName() string {
@@ -239,8 +252,8 @@ func (a *Sqlite) CreateTableChatSettings() string {
 	return a.Default.CreateTableChatSettings()
 }
 
-func (a *Sqlite) PutChatSetting() string {
-	return a.Default.PutChatSetting()
+func (a *Sqlite) PutChatSetting(field string) string {
+	return a.Default.PutChatSetting(field)
 }
 
 func (a *Sqlite) GetChatSettings() string {
@@ -267,16 +280,24 @@ func (a *Sqlite) CreateTablePrivacyTokens() string {
 	return a.Default.CreateTablePrivacyTokens()
 }
 
-func (a *Sqlite) PutPrivacyTokens() string {
-	return a.Default.PutPrivacyTokens()
+func (a *Sqlite) PutPrivacyTokens(placeholder string) string {
+	return a.Default.PutPrivacyTokens(placeholder)
 }
 
 func (a *Sqlite) GetPrivacyToken() string {
 	return a.Default.GetPrivacyToken()
 }
 
-// placeholder ???
+// helper
 
-func (a *Sqlite) PlaceholderSyntax() string {
-	return "(?1, ?2, ?3, ?%d, ?%d)"
+func (a *Sqlite) PlaceholderCreate(size, repeat int) string {
+	var multipart []string
+	for i := 0; i < repeat; i++ {
+		var placeholders []string
+		for j := 1; j < size+1; j++ {
+			placeholders = append(placeholders, fmt.Sprintf("?%d", (i*size)+j))
+		}
+		multipart = append(multipart, fmt.Sprintf("(%s)", strings.Join(placeholders, ",")))
+	}
+	return strings.Join(multipart, ", ")
 }

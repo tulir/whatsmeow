@@ -125,6 +125,14 @@ func upgradeV2(tx *sql.Tx, container *Container) error {
 		return err
 	}
 	_, err = tx.Exec(container.query.FillSigKey())
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(container.query.DeleteNullSigKeys())
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(container.query.AlterTableDevice_SetNotNull())
 	return err
 }
 
