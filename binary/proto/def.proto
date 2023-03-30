@@ -71,6 +71,7 @@ message DeviceProps {
     optional PlatformType platformType = 3;
     optional bool requireFullSync = 4;
     optional HistorySyncConfig historySyncConfig = 5;
+    optional bool inlineInitialHistSyncPayloadInE2EeMsg = 6;
 }
 
 message PeerDataOperationRequestMessage {
@@ -374,6 +375,7 @@ message HistorySyncNotification {
     optional string originalMessageId = 8;
     optional uint32 progress = 9;
     optional int64 oldestMsgInChunkTimestampSec = 10;
+    optional bytes initialHistBootstrapInlinePayload = 11;
 }
 
 message HighlyStructuredMessage {
@@ -1332,6 +1334,7 @@ message GlobalSettings {
     optional int32 disappearingModeDuration = 9;
     optional int64 disappearingModeTimestamp = 10;
     optional AvatarUserSettings avatarUserSettings = 11;
+    optional int32 fontSize = 12;
 }
 
 message Conversation {
@@ -1955,7 +1958,14 @@ message ClientPayload {
     enum Product {
         WHATSAPP = 0;
         MESSENGER = 1;
+        INTEROP = 2;
     }
+    message InteropData {
+        optional uint64 accountId = 1;
+        optional uint32 integratorId = 2;
+        optional bytes token = 3;
+    }
+    
     enum IOSAppExtension {
         SHARE_EXTENSION = 0;
         SERVICE_EXTENSION = 1;
@@ -2035,6 +2045,7 @@ message ClientPayload {
     optional bytes paddingBytes = 34;
     optional int32 yearClass = 36;
     optional int32 memClass = 37;
+    optional InteropData interopData = 38;
 }
 
 message WebNotificationsInfo {
@@ -2209,6 +2220,12 @@ message WebMessageInfo {
         BIZ_CHAT_ASSIGNMENT_UNASSIGN = 160;
         CAG_INVITE_AUTO_JOINED = 161;
         SCHEDULED_CALL_START_MESSAGE = 162;
+        COMMUNITY_INVITE_RICH = 163;
+        COMMUNITY_INVITE_AUTO_ADD_RICH = 164;
+        SUB_GROUP_INVITE_RICH = 165;
+        SUB_GROUP_PARTICIPANT_ADD_RICH = 166;
+        COMMUNITY_LINK_PARENT_GROUP_RICH = 167;
+        COMMUNITY_PARTICIPANT_ADD_RICH = 168;
     }
     enum Status {
         ERROR = 0;
