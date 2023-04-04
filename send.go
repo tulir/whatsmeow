@@ -529,6 +529,12 @@ func getMediaTypeFromMessage(msg *waProto.Message) string {
 
 func getButtonTypeFromMessage(msg *waProto.Message) string {
 	switch {
+	case msg.ViewOnceMessage != nil:
+		return getButtonTypeFromMessage(msg.ViewOnceMessage.Message)
+	case msg.ViewOnceMessageV2 != nil:
+		return getButtonTypeFromMessage(msg.ViewOnceMessageV2.Message)
+	case msg.EphemeralMessage != nil:
+		return getButtonTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.ButtonsMessage != nil:
 		return "buttons"
 	case msg.ButtonsResponseMessage != nil:
@@ -546,6 +552,12 @@ func getButtonTypeFromMessage(msg *waProto.Message) string {
 
 func getButtonAttributes(msg *waProto.Message) waBinary.Attrs {
 	switch {
+	case msg.ViewOnceMessage != nil:
+		return getButtonAttributes(msg.ViewOnceMessage.Message)
+	case msg.ViewOnceMessageV2 != nil:
+		return getButtonAttributes(msg.ViewOnceMessageV2.Message)
+	case msg.EphemeralMessage != nil:
+		return getButtonAttributes(msg.EphemeralMessage.Message)
 	case msg.TemplateMessage != nil:
 		return waBinary.Attrs{}
 	case msg.ListMessage != nil:
