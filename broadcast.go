@@ -25,16 +25,25 @@ func (cli *Client) getBroadcastListParticipants(jid types.JID) ([]types.JID, err
 	if err != nil {
 		return nil, err
 	}
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		return nil, ErrNotLoggedIn
+	}
 
-	var hasSelf bool
-	for _, participant := range list {
-		if participant.User == cli.Store.ID.User {
-			hasSelf = true
+	selfIndex := -1
+	for i, participant := range list {
+		if participant.User == ownID.User {
+			selfIndex = i
 			break
 		}
 	}
-	if !hasSelf {
-		list = append(list, cli.Store.ID.ToNonAD())
+	if selfIndex >= 0 {
+		if cli.DontSendSelfBroadcast {
+			list[selfIndex] = list[len(list)-1]
+			list = list[:len(list)-1]
+		}
+	} else if !cli.DontSendSelfBroadcast {
+		list = append(list, ownID)
 	}
 	return list, nil
 }

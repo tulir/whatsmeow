@@ -17,7 +17,7 @@ import (
 )
 
 type QRChannelItem struct {
-	// The type of event, "code" for new QR codes.
+	// The type of event, "code" for new QR codes (see Code field) and "error" for pairing errors (see Error) field.
 	// For non-code/error events, you can just compare the whole item to the event variables (like QRChannelSuccess).
 	Event string
 	// If the item is a pair error, then this field contains the error message.
@@ -28,6 +28,11 @@ type QRChannelItem struct {
 	Timeout time.Duration
 }
 
+const QRChannelEventCode = "code"
+const QRChannelEventError = "error"
+
+// Possible final items in the QR channel. In addition to these, an `error` event may be emitted,
+// in which case the Error field will have the error that occurred during pairing.
 var (
 	// QRChannelSuccess is emitted from GetQRChannel when the pairing is successful.
 	QRChannelSuccess = QRChannelItem{Event: "success"}
@@ -78,7 +83,7 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 		nextCode, evt.Codes = evt.Codes[0], evt.Codes[1:]
 		qrc.log.Debugf("Emitting QR code %s", nextCode)
 		select {
-		case qrc.output <- QRChannelItem{Code: nextCode, Timeout: timeout, Event: "code"}:
+		case qrc.output <- QRChannelItem{Code: nextCode, Timeout: timeout, Event: QRChannelEventCode}:
 		default:
 			qrc.log.Debugf("Output channel didn't accept code, exiting QR emitter")
 			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
@@ -125,7 +130,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 		outputType = QRChannelSuccess
 	case *events.PairError:
 		outputType = QRChannelItem{
-			Event: "error",
+			Event: QRChannelEventError,
 			Error: evt.Error,
 		}
 	case *events.Disconnected:
@@ -151,7 +156,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 //
 // This must be called *before* Connect(). It will then listen to all the relevant events from the client.
 //
-// The last value to be emitted will be a special string, either "success", "timeout" or "err-already-have-id",
+// The last value to be emitted will be a special event like "success", "timeout" or another error code
 // depending on the result of the pairing. The channel will be closed immediately after one of those.
 func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, error) {
 	if cli.IsConnected() {

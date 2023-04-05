@@ -8,7 +8,7 @@ const addPrefix = (lines, prefix) => lines.map(line => prefix + line)
 async function findAppModules(mods) {
     const ua = {
         headers: {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:111.0) Gecko/20100101 Firefox/111.0",
             "Sec-Fetch-Dest": "script",
             "Sec-Fetch-Mode": "no-cors",
             "Sec-Fetch-Site": "same-origin",
@@ -44,13 +44,13 @@ async function findAppModules(mods) {
         412744, // PollEncValue, MsgOpaqueData, MsgRowOpaqueData
         229479, // ServerErrorReceipt, MediaRetryNotification, MediaRetryNotificationResult
         933734, // MessageKey
-        313815, // Duplicate of MessageKey
-        715739, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
-        370625,   // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
+        150715, // Duplicate of MessageKey
+        984084, // SyncdVersion, SyncdValue, ..., SyncdPatch, SyncdMutation, ..., ExitCode
+        517244, // SyncActionValue, ..., UnarchiveChatsSetting, SyncActionData, StarAction, ...
         759089, // VerifiedNameCertificate, LocalizedName, ..., BizIdentityInfo, BizAccountLinkInfo, ...
         614806, // HandshakeMessage, ..., ClientPayload, ..., AppVersion, UserAgent, WebdPayload ...
         968923, // Reaction, UserReceipt, ..., PhotoChange, ..., WebFeatures, ..., WebMessageInfoStatus, ...
-        294075, // NoiseCertificate, CertChain
+        698723, // NoiseCertificate, CertChain
     ]
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
     const unnestName = name => name.replace("Message$", "").replace("SyncActionValue$", "") // Don't nest messages into Message, that's too much nesting
@@ -222,19 +222,26 @@ async function findAppModules(mods) {
 
 
     for (const mod of modules) {
+        let hasMore = true
+        let loops = 0
         const idents = modulesInfo[mod.key.value].identifiers
-        for (const ident of Object.values(idents)) {
-            if (!ident.name.includes("$")) {
-                continue
+        while (hasMore && loops < 5) {
+            hasMore = false
+            loops++
+            for (const ident of Object.values(idents)) {
+                if (!ident.name.includes("$")) {
+                    continue
+                }
+                const parts = ident.name.split("$")
+                const parent = findNested(Object.values(idents), parts.slice(0, -1))
+                if (!parent) {
+                    hasMore = true
+                    continue
+                }
+                parent.children.push(ident)
+                delete idents[ident.name]
+                ident.unnestedName = parts[parts.length-1]
             }
-            const parts = ident.name.split("$")
-            const parent = findNested(Object.values(idents), parts.slice(0, -1))
-            if (!parent) {
-                continue
-            }
-            parent.children.push(ident)
-            delete idents[ident.name]
-            ident.unnestedName = parts[parts.length-1]
         }
     }
 

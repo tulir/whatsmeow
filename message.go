@@ -51,8 +51,8 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 }
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
-	clientID := cli.Store.ID
-	if clientID == nil {
+	clientID := cli.getOwnID()
+	if clientID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
 	}
@@ -101,6 +101,7 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	info.Timestamp = ag.UnixTime("t")
 	info.PushName = ag.OptionalString("notify")
 	info.Category = ag.OptionalString("category")
+	info.Type = ag.OptionalString("type")
 	if !ag.OK() {
 		return nil, ag.Error()
 	}
@@ -345,7 +346,7 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 			cli.Log.Errorf("Failed to store app state sync key %X: %v", key.GetKeyId().GetKeyId(), err)
 			continue
 		}
-		cli.Log.Debugf("Received app state sync key %X", key.GetKeyId().GetKeyId())
+		cli.Log.Debugf("Received app state sync key %X (ts: %d)", key.GetKeyId().GetKeyId(), key.GetKeyData().GetTimestamp())
 	}
 	cli.appStateKeyRequestsLock.RUnlock()
 
@@ -406,18 +407,33 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 
 func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conversation) {
 	var secrets []store.MessageSecretInsert
-	me := cli.Store.ID.ToNonAD()
+	var privacyTokens []store.PrivacyToken
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		return
+	}
 	for _, conv := range conversations {
 		chatJID, _ := types.ParseJID(conv.GetId())
 		if chatJID.IsEmpty() {
 			continue
+		}
+		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
+			ts := conv.GetTcTokenSenderTimestamp()
+			if ts == 0 {
+				ts = conv.GetTcTokenTimestamp()
+			}
+			privacyTokens = append(privacyTokens, store.PrivacyToken{
+				User:      chatJID,
+				Token:     conv.GetTcToken(),
+				Timestamp: time.Unix(int64(ts), 0),
+			})
 		}
 		for _, msg := range conv.GetMessages() {
 			if secret := msg.GetMessage().GetMessageSecret(); secret != nil {
 				var senderJID types.JID
 				msgKey := msg.GetMessage().GetKey()
 				if msgKey.GetFromMe() {
-					senderJID = me
+					senderJID = ownID
 				} else if chatJID.Server == types.DefaultUserServer {
 					senderJID = chatJID
 				} else if msgKey.GetParticipant() != "" {
@@ -444,6 +460,15 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conver
 			cli.Log.Errorf("Failed to store message secret keys in history sync: %v", err)
 		} else {
 			cli.Log.Infof("Stored %d message secret keys from history sync", len(secrets))
+		}
+	}
+	if len(privacyTokens) > 0 {
+		cli.Log.Debugf("Storing %d privacy tokens in history sync", len(privacyTokens))
+		err := cli.Store.PrivacyTokens.PutPrivacyTokens(privacyTokens...)
+		if err != nil {
+			cli.Log.Errorf("Failed to store privacy tokens in history sync: %v", err)
+		} else {
+			cli.Log.Infof("Stored %d privacy tokens from history sync", len(privacyTokens))
 		}
 	}
 }

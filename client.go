@@ -114,10 +114,21 @@ type Client struct {
 	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
 	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waProto.Message) bool
 
+	// PrePairCallback is called before pairing is completed. If it returns false, the pairing will be cancelled and
+	// the client will disconnect.
+	PrePairCallback func(jid types.JID, platform, businessName string) bool
+
 	// Should untrusted identity errors be handled automatically? If true, the stored identity and existing signal
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
 	// If false, decrypting a message from untrusted devices will fail.
 	AutoTrustIdentity bool
+
+	// Should sending to own devices be skipped when sending broadcasts?
+	// This works around a bug in the WhatsApp android app where it crashes if you send a status message from a linked device.
+	DontSendSelfBroadcast bool
+
+	// Should SubscribePresence return an error if no privacy token is stored for the user?
+	ErrorOnSubscribePresenceWithoutToken bool
 
 	uniqueID  string
 	idCounter uint32
@@ -179,8 +190,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
 		appStateKeyRequests:    make(map[string]time.Time),
 
-		EnableAutoReconnect: true,
-		AutoTrustIdentity:   true,
+		EnableAutoReconnect:   true,
+		AutoTrustIdentity:     true,
+		DontSendSelfBroadcast: true,
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
@@ -248,6 +260,14 @@ func (cli *Client) closeSocketWaitChan() {
 	close(cli.socketWait)
 	cli.socketWait = make(chan struct{})
 	cli.socketLock.Unlock()
+}
+
+func (cli *Client) getOwnID() types.JID {
+	id := cli.Store.ID
+	if id == nil {
+		return types.EmptyJID
+	}
+	return *id
 }
 
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
@@ -392,7 +412,8 @@ func (cli *Client) unlockedDisconnect() {
 // Note that this will not emit any events. The LoggedOut event is only used for external logouts
 // (triggered by the user from the main device or by WhatsApp servers).
 func (cli *Client) Logout() error {
-	if cli.Store.ID == nil {
+	ownID := cli.getOwnID()
+	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
 	}
 	_, err := cli.sendIQ(infoQuery{
@@ -402,7 +423,7 @@ func (cli *Client) Logout() error {
 		Content: []waBinary.Node{{
 			Tag: "remove-companion-device",
 			Attrs: waBinary.Attrs{
-				"jid":    *cli.Store.ID,
+				"jid":    ownID,
 				"reason": "user_initiated",
 			},
 		}},
@@ -600,7 +621,10 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 	}
 	var err error
 	if info.IsFromMe {
-		info.Sender = cli.Store.ID.ToNonAD()
+		info.Sender = cli.getOwnID().ToNonAD()
+		if info.Sender.IsEmpty() {
+			return nil, ErrNotLoggedIn
+		}
 	} else if chatJID.Server == types.DefaultUserServer {
 		info.Sender = chatJID
 	} else if webMsg.GetParticipant() != "" {

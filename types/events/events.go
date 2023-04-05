@@ -92,16 +92,16 @@ type StreamReplaced struct{}
 type TempBanReason int
 
 const (
-	TempBanBlockedByUsers         TempBanReason = 101
-	TempBanSentToTooManyPeople    TempBanReason = 102
+	TempBanSentToTooManyPeople    TempBanReason = 101
+	TempBanBlockedByUsers         TempBanReason = 102
 	TempBanCreatedTooManyGroups   TempBanReason = 103
 	TempBanSentTooManySameMessage TempBanReason = 104
 	TempBanBroadcastList          TempBanReason = 106
 )
 
 var tempBanReasonMessage = map[TempBanReason]string{
-	TempBanBlockedByUsers:         "too many people blocked you",
 	TempBanSentToTooManyPeople:    "you sent too many messages to people who don't have you in their address books",
+	TempBanBlockedByUsers:         "too many people blocked you",
 	TempBanCreatedTooManyGroups:   "you created too many groups with people who don't have you in their address books",
 	TempBanSentTooManySameMessage: "you sent the same message to too many people",
 	TempBanBroadcastList:          "you sent too many messages to a broadcast list",
@@ -119,14 +119,14 @@ func (tbr TempBanReason) String() string {
 // TemporaryBan is emitted when there's a connection failure with the ConnectFailureTempBanned reason code.
 type TemporaryBan struct {
 	Code   TempBanReason
-	Expire time.Time
+	Expire time.Duration
 }
 
 func (tb *TemporaryBan) String() string {
-	if tb.Expire.IsZero() {
+	if tb.Expire == 0 {
 		return fmt.Sprintf("You've been temporarily banned: %v", tb.Code)
 	}
-	return fmt.Sprintf("You've been temporarily banned: %v. The ban expires at %v", tb.Code, tb.Expire)
+	return fmt.Sprintf("You've been temporarily banned: %v. The ban expires in %v", tb.Code, tb.Expire)
 }
 
 // ConnectFailureReason is an error code included in connection failure events.
@@ -142,6 +142,11 @@ const (
 	ConnectFailureBadUserAgent   ConnectFailureReason = 409
 
 	// 400, 500 and 501 are also existing codes, but the meaning is unknown
+
+	// 503 doesn't seem to be included in the web app JS with the other codes, and it's very rare,
+	// but does happen after a 503 stream error sometimes.
+
+	ConnectFailureServiceUnavailable ConnectFailureReason = 503
 )
 
 var connectFailureReasonMessage = map[ConnectFailureReason]string{

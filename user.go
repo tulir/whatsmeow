@@ -286,6 +286,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	attrs := waBinary.Attrs{
 		"query": "url",
 	}
+	var target, to types.JID
 	if params == nil {
 		params = &GetProfilePictureParams{}
 	}
@@ -297,27 +298,36 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	if params.ExistingID != "" {
 		attrs["id"] = params.ExistingID
 	}
-	var pictureContent []waBinary.Node
+	var expectWrapped bool
+	var content []waBinary.Node
 	namespace := "w:profile:picture"
 	if params.IsCommunity {
+		target = types.EmptyJID
 		namespace = "w:g2"
-		pictureContent = []waBinary.Node{{
-			Tag: "query_linked",
-			Attrs: waBinary.Attrs{
-				"type": "parent_group",
-				"jid":  jid,
-			},
+		to = jid
+		attrs["parent_group_jid"] = jid
+		expectWrapped = true
+		content = []waBinary.Node{{
+			Tag: "pictures",
+			Content: []waBinary.Node{{
+				Tag:   "picture",
+				Attrs: attrs,
+			}},
+		}}
+	} else {
+		to = types.ServerJID
+		target = jid
+		content = []waBinary.Node{{
+			Tag:   "picture",
+			Attrs: attrs,
 		}}
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: namespace,
 		Type:      "get",
-		To:        jid,
-		Content: []waBinary.Node{{
-			Tag:     "picture",
-			Attrs:   attrs,
-			Content: pictureContent,
-		}},
+		To:        to,
+		Target:    target,
+		Content:   content,
 	})
 	if errors.Is(err, ErrIQNotAuthorized) {
 		return nil, wrapIQError(ErrProfilePictureUnauthorized, err)
@@ -325,6 +335,13 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 		return nil, wrapIQError(ErrProfilePictureNotSet, err)
 	} else if err != nil {
 		return nil, err
+	}
+	if expectWrapped {
+		pics, ok := resp.GetOptionalChildByTag("pictures")
+		if !ok {
+			return nil, &ElementMissingError{Tag: "pictures", In: "response to profile picture query"}
+		}
+		resp = &pics
 	}
 	picture, ok := resp.GetOptionalChildByTag("picture")
 	if !ok {
@@ -335,6 +352,9 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	}
 	var info types.ProfilePictureInfo
 	ag := picture.AttrGetter()
+	if ag.OptionalInt("status") == 304 {
+		return nil, nil
+	}
 	info.ID = ag.String("id")
 	info.URL = ag.String("url")
 	info.Type = ag.String("type")

@@ -65,7 +65,12 @@ func New(dialect, address string, log waLog.Logger) (*Container, error) {
 //	if err != nil {
 //	    panic(err)
 //	}
-//	container, err := sqlstore.NewWithDB(db, "sqlite3", nil)
+//	container := sqlstore.NewWithDB(db, "sqlite3", nil)
+//
+// This method does not call Upgrade automatically like New does, so you must call it yourself:
+//
+//	container := sqlstore.NewWithDB(...)
+//	err := container.Upgrade()
 func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
 	if log == nil {
 		log = waLog.Noop
@@ -126,6 +131,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.Contacts = innerStore
 	device.ChatSettings = innerStore
 	device.MsgSecrets = innerStore
+	device.PrivacyTokens = innerStore
 	device.Container = c
 	device.Initialized = true
 
@@ -240,6 +246,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 		device.Contacts = innerStore
 		device.ChatSettings = innerStore
 		device.MsgSecrets = innerStore
+		device.PrivacyTokens = innerStore
 		device.Initialized = true
 	}
 	return err

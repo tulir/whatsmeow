@@ -282,6 +282,7 @@ const (
 		INSERT INTO whatsmeow_app_state_sync_keys (jid, key_id, key_data, timestamp, fingerprint) VALUES ($1, $2, $3, $4, $5)
 		ON CONFLICT (jid, key_id) DO UPDATE
 			SET key_data=excluded.key_data, timestamp=excluded.timestamp, fingerprint=excluded.fingerprint
+			WHERE excluded.timestamp > whatsmeow_app_state_sync_keys.timestamp
 	`
 	getAppStateSyncKeyQuery = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 AND key_id=$2`
 )
@@ -706,7 +707,7 @@ func (s *SQLStore) PutMessageSecrets(inserts []store.MessageSecretInsert) (err e
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	for _, insert := range inserts {
-		_, err = s.db.Exec(putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
+		_, err = tx.Exec(putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -726,4 +727,43 @@ func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) 
 		err = nil
 	}
 	return
+}
+
+const (
+	putPrivacyTokens = `
+		INSERT INTO whatsmeow_privacy_tokens (our_jid, their_jid, token, timestamp)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET token=EXCLUDED.token, timestamp=EXCLUDED.timestamp
+	`
+	getPrivacyToken = `SELECT token, timestamp FROM whatsmeow_privacy_tokens WHERE our_jid=$1 AND their_jid=$2`
+)
+
+func (s *SQLStore) PutPrivacyTokens(tokens ...store.PrivacyToken) error {
+	args := make([]any, 1+len(tokens)*3)
+	placeholders := make([]string, len(tokens))
+	args[0] = s.JID
+	for i, token := range tokens {
+		args[i*3+1] = token.User.ToNonAD().String()
+		args[i*3+2] = token.Token
+		args[i*3+3] = token.Timestamp.Unix()
+		placeholders[i] = fmt.Sprintf("($1, $%d, $%d, $%d)", i*3+2, i*3+3, i*3+4)
+	}
+	query := strings.ReplaceAll(putPrivacyTokens, "($1, $2, $3, $4)", strings.Join(placeholders, ","))
+	_, err := s.db.Exec(query, args...)
+	return err
+}
+
+func (s *SQLStore) GetPrivacyToken(user types.JID) (*store.PrivacyToken, error) {
+	var token store.PrivacyToken
+	token.User = user.ToNonAD()
+	var ts int64
+	err := s.db.QueryRow(getPrivacyToken, s.JID, token.User).Scan(&token.Token, &ts)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	} else {
+		token.Timestamp = time.Unix(ts, 0)
+		return &token, nil
+	}
 }

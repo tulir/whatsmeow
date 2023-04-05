@@ -23,6 +23,7 @@ const (
 	GroupServer       = "g.us"
 	LegacyUserServer  = "c.us"
 	BroadcastServer   = "broadcast"
+	HiddenUserServer  = "lid"
 )
 
 // Some JIDs that are contacted often.

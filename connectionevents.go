@@ -79,7 +79,10 @@ func (cli *Client) handleIB(node *waBinary.Node) {
 func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	reason := events.ConnectFailureReason(ag.Int("reason"))
-	cli.expectDisconnect()
+	// Let the auto-reconnect happen for 503s, for all other failures block it
+	if reason != events.ConnectFailureServiceUnavailable {
+		cli.expectDisconnect()
+	}
 	if reason.IsLoggedOut() {
 		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason)
 		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})
@@ -89,14 +92,15 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		}
 	} else if reason == events.ConnectFailureTempBanned {
 		cli.Log.Warnf("Temporary ban connect failure: %s", node.XMLString())
-		expiryTime := ag.UnixTime("expire")
 		go cli.dispatchEvent(&events.TemporaryBan{
 			Code:   events.TempBanReason(ag.Int("code")),
-			Expire: expiryTime,
+			Expire: time.Duration(ag.Int("expire")) * time.Second,
 		})
 	} else if reason == events.ConnectFailureClientOutdated {
 		cli.Log.Errorf("Client outdated (405) connect failure")
 		go cli.dispatchEvent(&events.ClientOutdated{})
+	} else if reason == events.ConnectFailureServiceUnavailable {
+		cli.Log.Warnf("Got 503 connect failure, assuming automatic reconnect will handle it")
 	} else {
 		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())
 		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Raw: node})

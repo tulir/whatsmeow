@@ -94,7 +94,10 @@ func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, 
 }
 
 func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
-	ownID := *cli.Store.ID
+	ownID := cli.getOwnID()
+	if ownID.IsEmpty() {
+		return nil, nil, ErrNotLoggedIn
+	}
 
 	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(chat, origSender, origMsgID)
 	if err != nil {
@@ -208,7 +211,7 @@ func HashPollOptions(optionNames []string) [][]byte {
 //			fmt.Println(":(", err)
 //			return
 //		}
-//		resp, err := cli.SendMessage(context.Background(), evt.Info.Chat, "", pollVoteMsg)
+//		resp, err := cli.SendMessage(context.Background(), evt.Info.Chat, pollVoteMsg)
 //	}
 func (cli *Client) BuildPollVote(pollInfo *types.MessageInfo, optionNames []string) (*waProto.Message, error) {
 	pollUpdate, err := cli.EncryptPollVote(pollInfo, &waProto.PollVoteMessage{
@@ -220,7 +223,7 @@ func (cli *Client) BuildPollVote(pollInfo *types.MessageInfo, optionNames []stri
 // BuildPollCreation builds a poll creation message with the given poll name, options and maximum number of selections.
 // The built message can be sent normally using Client.SendMessage.
 //
-//	resp, err := cli.SendMessage(context.Background(), chat, "", cli.BuildPollCreation("meow?", []string{"yes", "no"}, 1))
+//	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildPollCreation("meow?", []string{"yes", "no"}, 1))
 func (cli *Client) BuildPollCreation(name string, optionNames []string, selectableOptionCount int) *waProto.Message {
 	msgSecret := make([]byte, 32)
 	_, err := rand.Read(msgSecret)

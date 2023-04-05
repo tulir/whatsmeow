@@ -27,7 +27,44 @@ var (
 	ErrQRStoreContainsID  = errors.New("GetQRChannel can only be called when there's no user ID in the client's Store")
 
 	ErrNoPushName = errors.New("can't send presence without PushName set")
+
+	ErrNoPrivacyToken = errors.New("no privacy token stored")
 )
+
+// Errors that happen while confirming device pairing
+var (
+	ErrPairInvalidDeviceIdentityHMAC = errors.New("invalid device identity HMAC in pair success message")
+	ErrPairInvalidDeviceSignature    = errors.New("invalid device signature in pair success message")
+	ErrPairRejectedLocally           = errors.New("local PrePairCallback rejected pairing")
+)
+
+// PairProtoError is included in an events.PairError if the pairing failed due to a protobuf error.
+type PairProtoError struct {
+	Message  string
+	ProtoErr error
+}
+
+func (err *PairProtoError) Error() string {
+	return fmt.Sprintf("%s: %v", err.Message, err.ProtoErr)
+}
+
+func (err *PairProtoError) Unwrap() error {
+	return err.ProtoErr
+}
+
+// PairDatabaseError is included in an events.PairError if the pairing failed due to being unable to save the credentials to the device store.
+type PairDatabaseError struct {
+	Message string
+	DBErr   error
+}
+
+func (err *PairDatabaseError) Error() string {
+	return fmt.Sprintf("%s: %v", err.Message, err.DBErr)
+}
+
+func (err *PairDatabaseError) Unwrap() error {
+	return err.DBErr
+}
 
 var (
 	// ErrProfilePictureUnauthorized is returned by GetProfilePictureInfo when trying to get the profile picture of a user
@@ -65,6 +102,7 @@ var (
 	ErrBroadcastListUnsupported = errors.New("sending to non-status broadcast lists is not yet supported")
 	ErrUnknownServer            = errors.New("can't send message to unknown server")
 	ErrRecipientADJID           = errors.New("message recipient must be normal (non-AD) JID")
+	ErrServerReturnedError      = errors.New("server returned error")
 )
 
 // Some errors that Client.Download can return
@@ -118,12 +156,18 @@ type IQError struct {
 
 // Common errors returned by info queries for use with errors.Is
 var (
-	ErrIQBadRequest    error = &IQError{Code: 400, Text: "bad-request"}
-	ErrIQNotAuthorized error = &IQError{Code: 401, Text: "not-authorized"}
-	ErrIQForbidden     error = &IQError{Code: 403, Text: "forbidden"}
-	ErrIQNotFound      error = &IQError{Code: 404, Text: "item-not-found"}
-	ErrIQNotAcceptable error = &IQError{Code: 406, Text: "not-acceptable"}
-	ErrIQGone          error = &IQError{Code: 410, Text: "gone"}
+	ErrIQBadRequest          error = &IQError{Code: 400, Text: "bad-request"}
+	ErrIQNotAuthorized       error = &IQError{Code: 401, Text: "not-authorized"}
+	ErrIQForbidden           error = &IQError{Code: 403, Text: "forbidden"}
+	ErrIQNotFound            error = &IQError{Code: 404, Text: "item-not-found"}
+	ErrIQNotAllowed          error = &IQError{Code: 405, Text: "not-allowed"}
+	ErrIQNotAcceptable       error = &IQError{Code: 406, Text: "not-acceptable"}
+	ErrIQGone                error = &IQError{Code: 410, Text: "gone"}
+	ErrIQResourceLimit       error = &IQError{Code: 419, Text: "resource-limit"}
+	ErrIQLocked              error = &IQError{Code: 423, Text: "locked"}
+	ErrIQInternalServerError error = &IQError{Code: 500, Text: "internal-server-error"}
+	ErrIQServiceUnavailable  error = &IQError{Code: 503, Text: "service-unavailable"}
+	ErrIQPartialServerError  error = &IQError{Code: 530, Text: "partial-server-error"}
 )
 
 func parseIQError(node *waBinary.Node) error {

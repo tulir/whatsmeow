@@ -47,6 +47,7 @@ var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
+var pairRejectChan = make(chan bool, 1)
 
 func main() {
 	waBinary.IndentXML = true
@@ -73,6 +74,22 @@ func main() {
 	}
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
+	var isWaitingForPair atomic.Bool
+	cli.PrePairCallback = func(jid types.JID, platform, businessName string) bool {
+		isWaitingForPair.Store(true)
+		defer isWaitingForPair.Store(false)
+		log.Infof("Pairing %s (platform: %q, business name: %q). Type r within 3 seconds to reject pair", jid, platform, businessName)
+		select {
+		case reject := <-pairRejectChan:
+			if reject {
+				log.Infof("Rejecting pair")
+				return false
+			}
+		case <-time.After(3 * time.Second):
+		}
+		log.Infof("Accepting pair")
+		return true
+	}
 
 	ch, err := cli.GetQRChannel(context.Background())
 	if err != nil {
@@ -123,6 +140,14 @@ func main() {
 				log.Infof("Stdin closed, exiting")
 				cli.Disconnect()
 				return
+			}
+			if isWaitingForPair.Load() {
+				if cmd == "r" {
+					pairRejectChan <- true
+				} else if cmd == "a" {
+					pairRejectChan <- false
+				}
+				continue
 			}
 			args := strings.Fields(cmd)
 			cmd = args[0]
@@ -242,6 +267,10 @@ func handleCmd(cmd string, args []string) {
 			fmt.Println(err)
 		}
 	case "presence":
+		if len(args) == 0 {
+			log.Errorf("Usage: presence <available/unavailable>")
+			return
+		}
 		fmt.Println(cli.SendPresence(types.Presence(args[0])))
 	case "chatpresence":
 		if len(args) == 2 {
@@ -280,9 +309,16 @@ func handleCmd(cmd string, args []string) {
 				log.Infof("%s: %+v", jid, info)
 			}
 		}
+	case "mediaconn":
+		conn, err := cli.DangerousInternals().RefreshMediaConn(false)
+		if err != nil {
+			log.Errorf("Failed to get media connection: %v", err)
+		} else {
+			log.Infof("Media connection: %+v", conn)
+		}
 	case "getavatar":
 		if len(args) < 1 {
-			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview]")
+			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview] [--community]")
 			return
 		}
 		jid, ok := parseJID(args[0])
@@ -461,7 +497,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
 		} else {
@@ -488,7 +524,7 @@ func handleCmd(cmd string, args []string) {
 		for i, opt := range options {
 			options[i] = strings.TrimSpace(opt)
 		}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", cli.BuildPollCreation(question, options, maxAnswers))
+		resp, err := cli.SendMessage(context.Background(), recipient, cli.BuildPollCreation(question, options, maxAnswers))
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
 		} else {
@@ -515,7 +551,7 @@ func handleCmd(cmd string, args []string) {
 		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
 		for _, recipient := range recipients {
 			go func(recipient types.JID) {
-				resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+				resp, err := cli.SendMessage(context.Background(), recipient, msg)
 				if err != nil {
 					log.Errorf("Error sending message to %s: %v", recipient, err)
 				} else {
@@ -553,7 +589,7 @@ func handleCmd(cmd string, args []string) {
 				SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
 			},
 		}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending reaction: %v", err)
 		} else {
@@ -569,7 +605,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		messageID := args[1]
-		resp, err := cli.SendMessage(context.Background(), recipient, "", cli.BuildRevoke(recipient, types.EmptyJID, messageID))
+		resp, err := cli.SendMessage(context.Background(), recipient, cli.BuildRevoke(recipient, types.EmptyJID, messageID))
 		if err != nil {
 			log.Errorf("Error sending revocation: %v", err)
 		} else {
@@ -604,7 +640,7 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(data))),
 		}}
-		resp, err := cli.SendMessage(context.Background(), recipient, "", msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending image message: %v", err)
 		} else {
