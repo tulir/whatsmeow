@@ -563,7 +563,7 @@ func getButtonAttributes(msg *waProto.Message) waBinary.Attrs {
 	case msg.ListMessage != nil:
 		return waBinary.Attrs{
 			"v":    "2",
-			"type": waProto.ListMessage_ListType_name[int32(msg.ListMessage.GetListType())],
+			"type": strings.ToLower(waProto.ListMessage_ListType_name[int32(msg.ListMessage.GetListType())]),
 		}
 	default:
 		return waBinary.Attrs{}
