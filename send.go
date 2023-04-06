@@ -246,6 +246,9 @@ func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waPr
 	}
 }
 
+// EditWindow specifies how long a message can be edited for after it was sent.
+const EditWindow = 20 * time.Minute
+
 // BuildEdit builds a message edit message using the given variables.
 // The built message can be sent normally using Client.SendMessage.
 //
