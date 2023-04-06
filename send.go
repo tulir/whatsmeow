@@ -641,8 +641,8 @@ func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, mess
 	}, nil
 }
 
-func (cli *Client) getExtraMessageContent(message *waProto.Message, msgAttrs waBinary.Attrs, includeIdentity bool) []waBinary.Node {
-	var content []waBinary.Node
+func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waProto.Message, msgAttrs waBinary.Attrs, includeIdentity bool) []waBinary.Node {
+	content := []waBinary.Node{baseNode}
 	if includeIdentity {
 		content = append(content, cli.makeDeviceIdentityNode())
 	}
@@ -700,13 +700,14 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 	start = time.Now()
 	participantNodes, includeIdentity := cli.encryptMessageForDevices(ctx, allDevices, ownID, id, plaintext, dsmPlaintext, encAttrs)
 	timings.PeerEncrypt = time.Since(start)
+	participantNode := waBinary.Node{
+		Tag:     "participants",
+		Content: participantNodes,
+	}
 	return &waBinary.Node{
-		Tag:   "message",
-		Attrs: attrs,
-		Content: append([]waBinary.Node{{
-			Tag:     "participants",
-			Content: participantNodes,
-		}}, cli.getExtraMessageContent(message, attrs, includeIdentity)...),
+		Tag:     "message",
+		Attrs:   attrs,
+		Content: cli.getMessageContent(participantNode, message, attrs, includeIdentity),
 	}, allDevices, nil
 }
 
@@ -811,7 +812,13 @@ func (cli *Client) encryptMessageForDeviceAndWrap(plaintext []byte, to types.JID
 	}, includeDeviceIdentity, nil
 }
 
-func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
+func copyAttrs(from, to waBinary.Attrs) {
+	for k, v := range from {
+		to[k] = v
+	}
+}
+
+func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle, extraAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if bundle != nil {
 		cli.Log.Debugf("Processing prekey bundle for %s", to)
@@ -833,14 +840,14 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundl
 		return nil, false, fmt.Errorf("cipher encryption failed: %w", err)
 	}
 
-	if encAttrs == nil {
-		encAttrs = make(waBinary.Attrs, 2)
+	encAttrs := waBinary.Attrs{
+		"v":    "2",
+		"type": "msg",
 	}
-	encAttrs["v"] = "2"
-	encAttrs["type"] = "msg"
 	if ciphertext.Type() == protocol.PREKEY_TYPE {
 		encAttrs["type"] = "pkmsg"
 	}
+	copyAttrs(extraAttrs, encAttrs)
 
 	return &waBinary.Node{
 		Tag:     "enc",

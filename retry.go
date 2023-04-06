@@ -200,7 +200,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	err = cli.sendNode(waBinary.Node{
 		Tag:     "message",
 		Attrs:   attrs,
-		Content: append([]waBinary.Node{*encrypted}, cli.getExtraMessageContent(msg, attrs, includeDeviceIdentity)...),
+		Content: cli.getMessageContent(*encrypted, msg, attrs, includeDeviceIdentity),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to send retry message: %w", err)
