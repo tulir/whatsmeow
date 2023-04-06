@@ -257,15 +257,19 @@ const EditWindow = 20 * time.Minute
 //	})
 func (cli *Client) BuildEdit(chat types.JID, id types.MessageID, newContent *waProto.Message) *waProto.Message {
 	return &waProto.Message{
-		ProtocolMessage: &waProto.ProtocolMessage{
-			Key: &waProto.MessageKey{
-				FromMe:    proto.Bool(true),
-				Id:        proto.String(id),
-				RemoteJid: proto.String(chat.String()),
+		EditedMessage: &waProto.FutureProofMessage{
+			Message: &waProto.Message{
+				ProtocolMessage: &waProto.ProtocolMessage{
+					Key: &waProto.MessageKey{
+						FromMe:    proto.Bool(true),
+						Id:        proto.String(id),
+						RemoteJid: proto.String(chat.String()),
+					},
+					Type:          waProto.ProtocolMessage_MESSAGE_EDIT.Enum(),
+					EditedMessage: newContent,
+					TimestampMs:   proto.Int64(time.Now().UnixMilli()),
+				},
 			},
-			Type:          waProto.ProtocolMessage_MESSAGE_EDIT.Enum(),
-			EditedMessage: newContent,
-			TimestampMs:   proto.Int64(time.Now().UnixMilli()),
 		},
 	}
 }
@@ -589,7 +593,7 @@ func getEditAttribute(msg *waProto.Message) string {
 				return EditAttributeAdminRevoke
 			}
 		case waProto.ProtocolMessage_MESSAGE_EDIT:
-			if msg.ProtocolMessage.EditedMessage != nil {
+			if msg.EditedMessage != nil {
 				return EditAttributeMessageEdit
 			}
 		}
