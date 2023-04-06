@@ -595,7 +595,7 @@ func getEditAttribute(msg *waProto.Message) string {
 				return EditAttributeAdminRevoke
 			}
 		case waProto.ProtocolMessage_MESSAGE_EDIT:
-			if msg.EditedMessage != nil {
+			if msg.ProtocolMessage.EditedMessage != nil {
 				return EditAttributeMessageEdit
 			}
 		}
