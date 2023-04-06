@@ -169,7 +169,11 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", senderAD, len(keys))
 		}
 	}
-	encrypted, includeDeviceIdentity, err := cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle, getMediaTypeFromMessage(msg))
+	encAttrs := waBinary.Attrs{}
+	if mediaType := getMediaTypeFromMessage(msg); mediaType != "" {
+		encAttrs["mediatype"] = mediaType
+	}
+	encrypted, includeDeviceIdentity, err := cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle, encAttrs)
 	if err != nil {
 		return fmt.Errorf("failed to encrypt message for retry: %w", err)
 	}
