@@ -616,7 +616,7 @@ func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, mess
 		return nil, err
 	}
 	start = time.Now()
-	encrypted, isPreKey, err := cli.encryptMessageForDevice(plaintext, to, nil, "")
+	encrypted, isPreKey, err := cli.encryptMessageForDevice(plaintext, to, nil, nil)
 	timings.PeerEncrypt = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
@@ -670,10 +670,10 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 	}
 
 	msgType := getTypeFromMessage(message)
-	var encMediaType string
-	if dsmPlaintext != nil {
-		// Only include encMediaType for 1:1 messages (groups don't have a device-sent message plaintext)
-		encMediaType = getMediaTypeFromMessage(message)
+	encAttrs := waBinary.Attrs{}
+	// Only include encMediaType for 1:1 messages (groups don't have a device-sent message plaintext)
+	if encMediaType := getMediaTypeFromMessage(message); dsmPlaintext != nil && encMediaType != "" {
+		encAttrs["mediatype"] = encMediaType
 	}
 	attrs := waBinary.Attrs{
 		"id":   id,
@@ -682,10 +682,14 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 	}
 	if editAttr := getEditAttribute(message); editAttr != "" {
 		attrs["edit"] = editAttr
+		encAttrs["decrypt-fail"] = "hide"
+	}
+	if msgType == "reaction" {
+		encAttrs["decrypt-fail"] = "hide"
 	}
 
 	start = time.Now()
-	participantNodes, includeIdentity := cli.encryptMessageForDevices(ctx, allDevices, ownID, id, plaintext, dsmPlaintext, encMediaType)
+	participantNodes, includeIdentity := cli.encryptMessageForDevices(ctx, allDevices, ownID, id, plaintext, dsmPlaintext, encAttrs)
 	timings.PeerEncrypt = time.Since(start)
 	return &waBinary.Node{
 		Tag:   "message",
@@ -731,7 +735,7 @@ func (cli *Client) makeDeviceIdentityNode() waBinary.Node {
 	}
 }
 
-func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []types.JID, ownID types.JID, id string, msgPlaintext, dsmPlaintext []byte, mediaType string) ([]waBinary.Node, bool) {
+func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []types.JID, ownID types.JID, id string, msgPlaintext, dsmPlaintext []byte, encAttrs waBinary.Attrs) ([]waBinary.Node, bool) {
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
 	var retryDevices []types.JID
@@ -743,7 +747,7 @@ func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []ty
 			}
 			plaintext = dsmPlaintext
 		}
-		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(plaintext, jid, nil, mediaType)
+		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(plaintext, jid, nil, encAttrs)
 		if errors.Is(err, ErrNoSession) {
 			retryDevices = append(retryDevices, jid)
 			continue
@@ -771,7 +775,7 @@ func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []ty
 				if jid.User == ownID.User && dsmPlaintext != nil {
 					plaintext = dsmPlaintext
 				}
-				encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(plaintext, jid, resp.bundle, mediaType)
+				encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(plaintext, jid, resp.bundle, encAttrs)
 				if err != nil {
 					cli.Log.Warnf("Failed to encrypt %s for %s (retry): %v", id, jid, err)
 					continue
@@ -786,8 +790,8 @@ func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []ty
 	return participantNodes, includeIdentity
 }
 
-func (cli *Client) encryptMessageForDeviceAndWrap(plaintext []byte, to types.JID, bundle *prekey.Bundle, mediaType string) (*waBinary.Node, bool, error) {
-	node, includeDeviceIdentity, err := cli.encryptMessageForDevice(plaintext, to, bundle, mediaType)
+func (cli *Client) encryptMessageForDeviceAndWrap(plaintext []byte, to types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
+	node, includeDeviceIdentity, err := cli.encryptMessageForDevice(plaintext, to, bundle, encAttrs)
 	if err != nil {
 		return nil, false, err
 	}
@@ -798,7 +802,7 @@ func (cli *Client) encryptMessageForDeviceAndWrap(plaintext []byte, to types.JID
 	}, includeDeviceIdentity, nil
 }
 
-func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle, mediaType string) (*waBinary.Node, bool, error) {
+func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if bundle != nil {
 		cli.Log.Debugf("Processing prekey bundle for %s", to)
@@ -820,15 +824,13 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundl
 		return nil, false, fmt.Errorf("cipher encryption failed: %w", err)
 	}
 
-	encAttrs := waBinary.Attrs{
-		"v":    "2",
-		"type": "msg",
+	if encAttrs == nil {
+		encAttrs = make(waBinary.Attrs, 2)
 	}
+	encAttrs["v"] = "2"
+	encAttrs["type"] = "msg"
 	if ciphertext.Type() == protocol.PREKEY_TYPE {
 		encAttrs["type"] = "pkmsg"
-	}
-	if mediaType != "" {
-		encAttrs["mediatype"] = mediaType
 	}
 
 	return &waBinary.Node{
