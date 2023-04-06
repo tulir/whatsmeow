@@ -254,19 +254,15 @@ func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waPr
 //	})
 func (cli *Client) BuildEdit(chat types.JID, id types.MessageID, newContent *waProto.Message) *waProto.Message {
 	return &waProto.Message{
-		EditedMessage: &waProto.FutureProofMessage{
-			Message: &waProto.Message{
-				ProtocolMessage: &waProto.ProtocolMessage{
-					Key: &waProto.MessageKey{
-						FromMe:    proto.Bool(true),
-						Id:        proto.String(id),
-						RemoteJid: proto.String(chat.String()),
-					},
-					Type:          waProto.ProtocolMessage_MESSAGE_EDIT.Enum(),
-					EditedMessage: newContent,
-					TimestampMs:   proto.Int64(time.Now().UnixMilli()),
-				},
+		ProtocolMessage: &waProto.ProtocolMessage{
+			Key: &waProto.MessageKey{
+				FromMe:    proto.Bool(true),
+				Id:        proto.String(id),
+				RemoteJid: proto.String(chat.String()),
 			},
+			Type:          waProto.ProtocolMessage_MESSAGE_EDIT.Enum(),
+			EditedMessage: newContent,
+			TimestampMs:   proto.Int64(time.Now().UnixMilli()),
 		},
 	}
 }
@@ -590,7 +586,7 @@ func getEditAttribute(msg *waProto.Message) string {
 				return EditAttributeAdminRevoke
 			}
 		case waProto.ProtocolMessage_MESSAGE_EDIT:
-			if msg.EditedMessage != nil {
+			if msg.ProtocolMessage.EditedMessage != nil {
 				return EditAttributeMessageEdit
 			}
 		}
