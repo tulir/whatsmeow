@@ -584,6 +584,8 @@ const RemoveReactionText = ""
 
 func getEditAttribute(msg *waProto.Message) string {
 	switch {
+	case msg.EditedMessage != nil && msg.EditedMessage.Message != nil:
+		return getEditAttribute(msg.EditedMessage.Message)
 	case msg.ProtocolMessage != nil && msg.ProtocolMessage.GetKey() != nil:
 		switch msg.ProtocolMessage.GetType() {
 		case waProto.ProtocolMessage_REVOKE:
