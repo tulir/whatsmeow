@@ -301,3 +301,79 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 		cli.Log.Warnf("Failed to send app state key request: %v", err)
 	}
 }
+
+func (cli *Client) ArchiveChat(target types.JID, action bool) error {
+	patch, err := cli.appStateProc.NewArchivePatchInfo(target, action)
+	if err != nil {
+		return fmt.Errorf("failed to set archive to %v for chat %v: %w", action, target.String(), err)
+	}
+	if err := cli.UpdateChat(patch); err != nil {
+		return fmt.Errorf("failed to set archived to %v for chat %v: %w", action, target.String(), err)
+	}
+	return nil
+}
+
+func (cli *Client) MuteChat(target types.JID, action bool, muteTime int64) error {
+	patch := appstate.NewMutePatchInfo(target, action, &muteTime)
+	if err := cli.UpdateChat(patch); err != nil {
+		return fmt.Errorf("failed to set mute to %v for chat %v: %w", action, target.String(), err)
+	}
+	return nil
+}
+
+func (cli *Client) PinChat(target types.JID, action bool) error {
+	patch := appstate.NewPinPatchInfo(target, action)
+	if err := cli.UpdateChat(patch); err != nil {
+		return fmt.Errorf("failed to set pin to %v for chat %v: %w", action, target.String(), err)
+	}
+	return nil
+}
+
+func (cli *Client) UpdateChat(patch appstate.PatchInfo) error {
+	version, hash, err := cli.Store.AppState.GetAppStateVersion(string(patch.Type))
+	if err != nil {
+		return err
+	}
+
+	state := appstate.HashState{Version: version, Hash: hash}
+
+	encodedPatch, err := cli.appStateProc.EncodePatch(state, patch)
+	if err != nil {
+		return err
+	}
+
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:sync:app:state",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag:   "sync",
+			Attrs: waBinary.Attrs{},
+			Content: []waBinary.Node{{
+				Tag: "collection",
+				Attrs: waBinary.Attrs{
+					"name":            string(patch.Type),
+					"version":         fmt.Sprint(version),
+					"return_snapshot": "false",
+				},
+				Content: []waBinary.Node{{
+					Tag:     "patch",
+					Attrs:   waBinary.Attrs{},
+					Content: encodedPatch,
+				}},
+			}},
+		}},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	respCollection := resp.GetChildByTag("sync", "collection")
+	respCollectionAttr := respCollection.AttrGetter()
+	if t, ok := respCollectionAttr.GetString("type", false); ok && t == "error" {
+		return fmt.Errorf("unable to update chat, got error response from server")
+	}
+	
+	return cli.FetchAppState(patch.Type, false, false)
+}

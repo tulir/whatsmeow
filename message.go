@@ -315,6 +315,11 @@ func (cli *Client) handleHistorySyncNotification(notif *waProto.HistorySyncNotif
 			go cli.handleHistoricalPushNames(historySync.GetPushnames())
 		} else if len(historySync.GetConversations()) > 0 {
 			go cli.storeHistoricalMessageSecrets(historySync.GetConversations())
+
+			if historySync.GetSyncType() == waProto.HistorySync_INITIAL_BOOTSTRAP ||
+				(historySync.GetSyncType() == waProto.HistorySync_RECENT && historySync.GetChunkOrder() == 1) {
+				go cli.storeHistoricalMessages(historySync.GetConversations())
+			}
 		}
 		cli.dispatchEvent(&events.HistorySync{
 			Data: &historySync,
@@ -405,6 +410,54 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 	}
 }
 
+func (cli *Client) storeHistoricalMessages(conversations []*waProto.Conversation) {
+	cli.storeHistoricalMessagesLock.Lock()
+	defer cli.storeHistoricalMessagesLock.Unlock()
+
+	var historicMessages []store.HistoricMessage
+	for _, conv := range conversations {
+		chatJID, _ := types.ParseJID(conv.GetId())
+		if chatJID.IsEmpty() {
+			continue
+		}
+
+		historicMessage := store.HistoricMessage{
+			Chat: chatJID,
+		}
+
+		for _, msg := range conv.GetMessages() {
+			if msg.GetMessage().MessageStubType == nil {
+				// regular message
+				if historicMessage.LastMessageId == nil {
+					msgKey := msg.GetMessage().GetKey()
+					historicMessage.LastMessageId = msgKey.Id
+					historicMessage.LastMessageFromMe = msgKey.FromMe
+					lastMsgTs := int64(msg.GetMessage().GetMessageTimestamp())
+					historicMessage.LastMessageTimestamp = &lastMsgTs
+				}
+			} else {
+				// system message
+				if historicMessage.LastSystemMessageTimestamp == nil {
+					lastSystemMsgTs := int64(msg.GetMessage().GetMessageTimestamp())
+					historicMessage.LastSystemMessageTimestamp = &lastSystemMsgTs
+				}
+			}
+		}
+
+		historicMessages = append(historicMessages, historicMessage)
+	}
+
+	if len(historicMessages) > 0 {
+		cli.Log.Debugf("Storing %d historic messages in history sync", len(historicMessages))
+		err := cli.Store.HistoricMessages.PutHistoricMessages(historicMessages...)
+		if err != nil {
+			cli.Log.Errorf("Failed to store historic messages in history sync: %v", err)
+		} else {
+			cli.Log.Infof("Stored %d historic messages from history sync", len(historicMessages))
+		}
+	}
+}
+
 func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conversation) {
 	var secrets []store.MessageSecretInsert
 	var privacyTokens []store.PrivacyToken
@@ -476,6 +529,17 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conver
 func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
 	cli.processProtocolParts(info, msg)
 	evt := &events.Message{Info: *info, RawMessage: msg}
+
+	messageTs := info.Timestamp.UnixMilli()
+	if err := cli.Store.HistoricMessages.PutHistoricMessageLastMessage(store.HistoricMessage{
+		Chat:                 info.Chat,
+		LastMessageId:        &info.ID,
+		LastMessageFromMe:    &info.IsFromMe,
+		LastMessageTimestamp: &messageTs,
+	}); err != nil {
+		cli.Log.Warnf("unable to store last message: %v", err)
+	}
+
 	cli.dispatchEvent(evt.UnwrapRaw())
 }
 

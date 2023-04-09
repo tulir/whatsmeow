@@ -290,7 +290,7 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 			if err != nil {
 				return
 			}
-			patchMAC := generatePatchMAC(patch, list.Name, keys.PatchMAC)
+			patchMAC := generatePatchMAC(patch, list.Name, keys.PatchMAC, patch.GetVersion().GetVersion())
 			if !bytes.Equal(patchMAC, patch.GetPatchMac()) {
 				err = fmt.Errorf("failed to verify patch v%d: %w", version, ErrMismatchingPatchMAC)
 				return
