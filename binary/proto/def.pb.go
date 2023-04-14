@@ -3465,6 +3465,7 @@ const (
 	WebMessageInfo_SILENCED_UNKNOWN_CALLER_VIDEO                            WebMessageInfo_StubType = 170
 	WebMessageInfo_GROUP_MEMBER_ADD_MODE                                    WebMessageInfo_StubType = 171
 	WebMessageInfo_GROUP_MEMBERSHIP_JOIN_APPROVAL_REQUEST_NON_ADMIN_ADD     WebMessageInfo_StubType = 172
+	WebMessageInfo_COMMUNITY_CHANGE_DESCRIPTION                             WebMessageInfo_StubType = 173
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -3643,6 +3644,7 @@ var (
 		170: "SILENCED_UNKNOWN_CALLER_VIDEO",
 		171: "GROUP_MEMBER_ADD_MODE",
 		172: "GROUP_MEMBERSHIP_JOIN_APPROVAL_REQUEST_NON_ADMIN_ADD",
+		173: "COMMUNITY_CHANGE_DESCRIPTION",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -3818,6 +3820,7 @@ var (
 		"SILENCED_UNKNOWN_CALLER_VIDEO":                            170,
 		"GROUP_MEMBER_ADD_MODE":                                    171,
 		"GROUP_MEMBERSHIP_JOIN_APPROVAL_REQUEST_NON_ADMIN_ADD":     172,
+		"COMMUNITY_CHANGE_DESCRIPTION":                             173,
 	}
 )
 
