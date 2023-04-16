@@ -15,6 +15,7 @@ import (
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/store/sqlstore/query"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -25,6 +26,7 @@ type Container struct {
 	db      *sql.DB
 	dialect string
 	log     waLog.Logger
+	query   query.Adapter
 
 	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
@@ -34,6 +36,8 @@ var _ store.DeviceContainer = (*Container)(nil)
 // New connects to the given SQL database and wraps it in a Container.
 //
 // Only SQLite and Postgres are currently fully supported.
+//
+// You can support new drivers implementing query.Adapter and calling NewWithQueryAdapter.
 //
 // The logger can be nil and will default to a no-op logger.
 //
@@ -79,18 +83,22 @@ func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
 		db:      db,
 		dialect: dialect,
 		log:     log,
+		query:   query.NewByDialect(dialect),
 	}
 }
 
-const getAllDevicesQuery = `
-SELECT jid, registration_id, noise_key, identity_key,
-       signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
-       adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
-       platform, business_name, push_name
-FROM whatsmeow_device
-`
-
-const getDeviceQuery = getAllDevicesQuery + " WHERE jid=$1"
+// NewWithQueryAdapter is same as NewWithDB but you define the query adapter
+func NewWithQueryAdapter(db *sql.DB, dialect string, queryAdapter query.Adapter, log waLog.Logger) *Container {
+	if log == nil {
+		log = waLog.Noop
+	}
+	return &Container{
+		db:      db,
+		dialect: dialect,
+		log:     log,
+		query:   queryAdapter,
+	}
+}
 
 type scannable interface {
 	Scan(dest ...interface{}) error
@@ -140,7 +148,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 
 // GetAllDevices finds all the devices in the database.
 func (c *Container) GetAllDevices() ([]*store.Device, error) {
-	res, err := c.db.Query(getAllDevicesQuery)
+	res, err := c.db.Query(c.query.GetAllDevices())
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
@@ -176,25 +184,12 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 //
 // Note that the parameter usually must be an AD-JID.
 func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
-	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
+	sess, err := c.scanDevice(c.db.QueryRow(c.query.GetDevice(), jid))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	return sess, err
 }
-
-const (
-	insertDeviceQuery = `
-		INSERT INTO whatsmeow_device (jid, registration_id, noise_key, identity_key,
-									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
-									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
-									  platform, business_name, push_name)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-		ON CONFLICT (jid) DO UPDATE
-		    SET platform=excluded.platform, business_name=excluded.business_name, push_name=excluded.push_name
-	`
-	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=$1`
-)
 
 // NewDevice creates a new device in this database.
 //
@@ -229,7 +224,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(insertDeviceQuery,
+	_, err := c.db.Exec(c.query.InsertDevice(),
 		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
@@ -257,6 +252,6 @@ func (c *Container) DeleteDevice(store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(deleteDeviceQuery, store.ID.String())
+	_, err := c.db.Exec(c.query.DeleteDevice(), store.ID.String())
 	return err
 }
