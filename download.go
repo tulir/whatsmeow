@@ -268,7 +268,9 @@ func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, ma
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode == http.StatusNotFound {
+		if resp.StatusCode == http.StatusForbidden {
+			err = ErrMediaDownloadFailedWith403
+		} else if resp.StatusCode == http.StatusNotFound {
 			err = ErrMediaDownloadFailedWith404
 		} else if resp.StatusCode == http.StatusGone {
 			err = ErrMediaDownloadFailedWith410

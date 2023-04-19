@@ -107,6 +107,7 @@ var (
 
 // Some errors that Client.Download can return
 var (
+	ErrMediaDownloadFailedWith403 = errors.New("download failed with status code 403")
 	ErrMediaDownloadFailedWith404 = errors.New("download failed with status code 404")
 	ErrMediaDownloadFailedWith410 = errors.New("download failed with status code 410")
 	ErrNoURLPresent               = errors.New("no url present")
