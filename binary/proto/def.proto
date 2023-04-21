@@ -57,6 +57,7 @@ message DeviceProps {
         optional uint32 fullSyncSizeMbLimit = 2;
         optional uint32 storageQuotaMb = 3;
         optional bool inlineInitialPayloadInE2EeMsg = 4;
+        optional uint32 recentSyncDaysLimit = 5;
     }
     
     message AppVersion {
@@ -461,7 +462,6 @@ message ExtendedTextMessage {
         CALISTOGA_REGULAR = 8;
         EXO2_EXTRABOLD = 9;
         COURIERPRIME_BOLD = 10;
-        LOCAL_BREWERY = 11;
     }
     optional string text = 1;
     optional string matchedText = 2;
@@ -1309,6 +1309,15 @@ message PastParticipant {
     optional uint64 leaveTs = 3;
 }
 
+message NotificationSettings {
+    optional string messageVibrate = 1;
+    optional string messagePopup = 2;
+    optional string messageLight = 3;
+    optional bool lowPriorityNotifications = 4;
+    optional bool reactionsMuted = 5;
+    optional string callVibrate = 6;
+}
+
 enum MediaVisibility {
     DEFAULT = 0;
     OFF = 1;
@@ -1369,6 +1378,8 @@ message GlobalSettings {
     optional bool autoUnarchiveChats = 14;
     optional int32 videoQualityMode = 15;
     optional int32 photoQualityMode = 16;
+    optional NotificationSettings individualNotificationSettings = 17;
+    optional NotificationSettings groupNotificationSettings = 18;
 }
 
 message Conversation {
@@ -1966,6 +1977,7 @@ message ClientPayload {
             ARDEVICE = 30;
             VRDEVICE = 31;
             BLUE_WEB = 32;
+            IPAD = 33;
         }
         message AppVersion {
             optional uint32 primary = 1;
@@ -2053,6 +2065,7 @@ message ClientPayload {
         ERROR_RECONNECT = 3;
         NETWORK_SWITCH = 4;
         PING_RECONNECT = 5;
+        UNKNOWN = 6;
     }
     optional uint64 username = 1;
     optional bool passive = 3;
@@ -2266,6 +2279,8 @@ message WebMessageInfo {
         GROUP_MEMBER_ADD_MODE = 171;
         GROUP_MEMBERSHIP_JOIN_APPROVAL_REQUEST_NON_ADMIN_ADD = 172;
         COMMUNITY_CHANGE_DESCRIPTION = 173;
+        SENDER_INVITE = 174;
+        RECEIVER_INVITE = 175;
     }
     enum Status {
         ERROR = 0;
