@@ -55,6 +55,7 @@ type AppStateSyncKey struct {
 type AppStateSyncKeyStore interface {
 	PutAppStateSyncKey(id []byte, key AppStateSyncKey) error
 	GetAppStateSyncKey(id []byte) (*AppStateSyncKey, error)
+	GetLatestAppStateSyncKeyID() ([]byte, error)
 }
 
 type AppStateMutationMAC struct {
