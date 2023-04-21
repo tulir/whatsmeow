@@ -6,59 +6,55 @@ import (
 	"fmt"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/cbcutil"
-	"google.golang.org/protobuf/proto"
 )
 
-const (
-	MuteTime1Hour  = int64(60 * 60 * 1000)
-	MuteTime8Hours = int64(8 * MuteTime1Hour)
-	MuteTime1Week  = int64(7 * 24 * MuteTime1Hour)
-)
-
-var (
-	operation = waProto.SyncdMutation_SET
-)
-
+// MutationInfo contains information about a single mutation to the app state.
 type MutationInfo struct {
-	Index   []string
+	// Index contains the thing being mutated (like `mute` or `pin_v1`), followed by parameters like the target JID.
+	Index []string
+	// Version is a static number that depends on the thing being mutated.
 	Version int32
-	Value   *waProto.SyncActionValue
+	// Value contains the data for the mutation.
+	Value *waProto.SyncActionValue
 }
 
+// PatchInfo contains information about a patch to the app state.
+// A patch can contain multiple mutations, as long as all mutations are in the same app state type.
 type PatchInfo struct {
-	Timestamp int64
-	Type      WAPatchName
+	// Timestamp is the time when the patch was created. This will be filled automatically in EncodePatch if it's zero.
+	Timestamp time.Time
+	// Type is the app state type being mutated.
+	Type WAPatchName
+	// Mutations contains the individual mutations to apply to the app state in this patch.
 	Mutations []MutationInfo
 }
 
-func NewMutePatchInfo(target types.JID, mute bool, muteEndTimestamp *int64) PatchInfo {
-	ts := time.Now().UnixMilli()
-	if !mute {
-		muteEndTimestamp = nil
-	}
-
-	if muteEndTimestamp != nil {
-		*muteEndTimestamp += ts
+// BuildMute builds an app state patch for muting or unmuting a chat.
+//
+// If mute is true and the mute duration is zero, the chat is muted forever.
+func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInfo {
+	var muteEndTimestamp *int64
+	if muteDuration > 0 {
+		muteEndTimestamp = proto.Int64(time.Now().Add(muteDuration).Unix())
 	}
 
 	return PatchInfo{
-		Timestamp: ts,
-		Type:      WAPatchRegularHigh,
-		Mutations: []MutationInfo{
-			{
-				Index:   []string{"mute", target.String()},
-				Version: 2,
-				Value: &waProto.SyncActionValue{
-					MuteAction: &waProto.MuteAction{
-						Muted:            &mute,
-						MuteEndTimestamp: muteEndTimestamp,
-					},
+		Type: WAPatchRegularHigh,
+		Mutations: []MutationInfo{{
+			Index:   []string{"mute", target.String()},
+			Version: 2,
+			Value: &waProto.SyncActionValue{
+				MuteAction: &waProto.MuteAction{
+					Muted:            proto.Bool(mute),
+					MuteEndTimestamp: muteEndTimestamp,
 				},
 			},
-		},
+		}},
 	}
 }
 
@@ -74,28 +70,25 @@ func newPinMutationInfo(target types.JID, pin bool) MutationInfo {
 	}
 }
 
-func NewPinPatchInfo(target types.JID, pin bool) PatchInfo {
+// BuildPin builds an app state patch for pinning or unpinning a chat.
+func BuildPin(target types.JID, pin bool) PatchInfo {
 	return PatchInfo{
-		Timestamp: time.Now().UnixMilli(),
-		Type:      WAPatchRegularLow,
+		Type: WAPatchRegularLow,
 		Mutations: []MutationInfo{
 			newPinMutationInfo(target, pin),
 		},
 	}
 }
 
-func (proc *Processor) NewArchivePatchInfo(target types.JID, archive bool) (PatchInfo, error) {
-	// From the research, LastMessageTimestamp should be the LastMessageTimestamp that fromMe=false unless no such
-	// message. in that case the LastMessageTimestamp will be a message with fromMe=true.
-	// messages should include all messages since LastMessageTimestamp descending.
-	// LastSystemMessageTimestamp should be the LastSystemMessageTimestamp and should not be included in the messages
-	// array.
-	// Currently, this is working with just specifying the last message, but this might be unsafe in the future.
-	historicMessage, err := proc.Store.HistoricMessages.GetHistoricMessage(target)
-	if err != nil {
-		return PatchInfo{}, err
+// BuildArchive builds an app state patch for archiving or unarchiving a chat.
+//
+// The last message timestamp and last message key are optional and can be set to zero values (`time.Time{}` and `nil`).
+//
+// Archiving a chat will also unpin it automatically.
+func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time, lastMessageKey *waProto.MessageKey) PatchInfo {
+	if lastMessageTimestamp.IsZero() {
+		lastMessageTimestamp = time.Now()
 	}
-
 	archiveMutationInfo := MutationInfo{
 		Index:   []string{"archive", target.String()},
 		Version: 3,
@@ -103,26 +96,18 @@ func (proc *Processor) NewArchivePatchInfo(target types.JID, archive bool) (Patc
 			ArchiveChatAction: &waProto.ArchiveChatAction{
 				Archived: &archive,
 				MessageRange: &waProto.SyncActionMessageRange{
-					LastMessageTimestamp: historicMessage.LastMessageTimestamp,
-					//todo: currently not using this info because the pkg doesn't handle all system message
-					//LastSystemMessageTimestamp: historicMessage.LastSystemMessageTimestamp,
+					LastMessageTimestamp: proto.Int64(lastMessageTimestamp.Unix()),
+					// TODO set LastSystemMessageTimestamp?
 				},
 			},
 		},
 	}
 
-	if historicMessage.LastMessageId != nil {
-		chatStr := historicMessage.Chat.String()
-		archiveMutationInfo.Value.ArchiveChatAction.MessageRange.Messages = []*waProto.SyncActionMessage{
-			{
-				Key: &waProto.MessageKey{
-					RemoteJid: &chatStr,
-					FromMe:    historicMessage.LastMessageFromMe,
-					Id:        historicMessage.LastMessageId,
-				},
-				Timestamp: historicMessage.LastMessageTimestamp,
-			},
-		}
+	if lastMessageKey != nil {
+		archiveMutationInfo.Value.ArchiveChatAction.MessageRange.Messages = []*waProto.SyncActionMessage{{
+			Key:       lastMessageKey,
+			Timestamp: proto.Int64(lastMessageTimestamp.Unix()),
+		}}
 	}
 
 	mutations := []MutationInfo{archiveMutationInfo}
@@ -131,103 +116,84 @@ func (proc *Processor) NewArchivePatchInfo(target types.JID, archive bool) (Patc
 	}
 
 	result := PatchInfo{
-		Timestamp: time.Now().UnixMilli(),
 		Type:      WAPatchRegularLow,
 		Mutations: mutations,
 	}
 
-	return result, nil
+	return result
 }
 
-func (proc *Processor) EncodePatch(state HashState, patchInfo PatchInfo) ([]byte, error) {
-	latestKeyID, err := proc.Store.AppStateKeys.GetLatestAppStateSyncKeyID()
+func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo PatchInfo) ([]byte, error) {
+	keys, err := proc.getAppStateKey(keyID)
 	if err != nil {
-		proc.Log.Errorf("unable to encode archive patch: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to get app state key details with key ID %x: %w", keyID, err)
 	}
 
-	keys, err := proc.getAppStateKey(latestKeyID)
-	if err != nil {
-		proc.Log.Errorf("unable to encode archive patch: %v", err)
-		return nil, err
+	if patchInfo.Timestamp.IsZero() {
+		patchInfo.Timestamp = time.Now()
 	}
 
-	mutations := make([]*waProto.SyncdMutation, 0)
+	mutations := make([]*waProto.SyncdMutation, 0, len(patchInfo.Mutations))
 	for _, mutationInfo := range patchInfo.Mutations {
-		mutationInfo.Value.Timestamp = &patchInfo.Timestamp
+		mutationInfo.Value.Timestamp = proto.Int64(patchInfo.Timestamp.Unix())
 
 		indexBytes, err := json.Marshal(mutationInfo.Index)
 		if err != nil {
-			proc.Log.Errorf("unable to encode archive patch: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to marshal mutation index: %w", err)
 		}
 
 		pbObj := &waProto.SyncActionData{
 			Index:   indexBytes,
 			Value:   mutationInfo.Value,
-			Padding: make([]byte, 0),
+			Padding: []byte{},
 			Version: &mutationInfo.Version,
 		}
 
 		content, err := proto.Marshal(pbObj)
 		if err != nil {
-			proc.Log.Errorf("unable to encode archive patch: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to marshal mutation: %w", err)
 		}
 
 		encryptedContent, err := cbcutil.Encrypt(keys.ValueEncryption, nil, content)
 		if err != nil {
-			proc.Log.Errorf("unable to encode archive patch: %v", err)
-			return nil, err
+			return nil, fmt.Errorf("failed to encrypt mutation: %w", err)
 		}
 
-		valueMac := generateContentMAC(operation, encryptedContent, latestKeyID, keys.ValueMAC)
+		valueMac := generateContentMAC(waProto.SyncdMutation_SET, encryptedContent, keyID, keys.ValueMAC)
 		indexMac := concatAndHMAC(sha256.New, keys.Index, indexBytes)
 
 		mutations = append(mutations, &waProto.SyncdMutation{
-			Operation: &operation,
+			Operation: waProto.SyncdMutation_SET.Enum(),
 			Record: &waProto.SyncdRecord{
-				Index: &waProto.SyncdIndex{
-					Blob: indexMac,
-				},
-				Value: &waProto.SyncdValue{
-					Blob: append(encryptedContent, valueMac...),
-				},
-				KeyId: &waProto.KeyId{
-					Id: latestKeyID,
-				},
+				Index: &waProto.SyncdIndex{Blob: indexMac},
+				Value: &waProto.SyncdValue{Blob: append(encryptedContent, valueMac...)},
+				KeyId: &waProto.KeyId{Id: keyID},
 			},
 		})
 	}
 
-	var warn []error
-	warn, err = state.updateHash(mutations, func(indexMAC []byte, _ int) ([]byte, error) {
+	warn, err := state.updateHash(mutations, func(indexMAC []byte, _ int) ([]byte, error) {
 		return proc.Store.AppState.GetAppStateMutationMAC(string(patchInfo.Type), indexMAC)
 	})
 	if len(warn) > 0 {
-		proc.Log.Warnf("Warnings while updating hash for %s: %+v", patchInfo.Type, warn)
+		proc.Log.Warnf("Warnings while updating hash for %s (sending new app state): %+v", patchInfo.Type, warn)
 	}
 	if err != nil {
-		err = fmt.Errorf("failed to update state hash: %w", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to update state hash: %w", err)
 	}
 
 	state.Version += 1
 
 	syncdPatch := &waProto.SyncdPatch{
 		SnapshotMac: state.generateSnapshotMAC(patchInfo.Type, keys.SnapshotMAC),
-		KeyId: &waProto.KeyId{
-			Id: latestKeyID,
-		},
-		Mutations: mutations,
+		KeyId:       &waProto.KeyId{Id: keyID},
+		Mutations:   mutations,
 	}
-
 	syncdPatch.PatchMac = generatePatchMAC(syncdPatch, patchInfo.Type, keys.PatchMAC, state.Version)
 
 	result, err := proto.Marshal(syncdPatch)
 	if err != nil {
-		proc.Log.Errorf("unable to encode archive patch: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal compiled patch: %w", err)
 	}
 
 	return result, nil

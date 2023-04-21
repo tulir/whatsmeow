@@ -302,42 +302,26 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 	}
 }
 
-func (cli *Client) ArchiveChat(target types.JID, action bool) error {
-	patch, err := cli.appStateProc.NewArchivePatchInfo(target, action)
-	if err != nil {
-		return fmt.Errorf("failed to set archive to %v for chat %v: %w", action, target.String(), err)
-	}
-	if err := cli.UpdateChat(patch); err != nil {
-		return fmt.Errorf("failed to set archived to %v for chat %v: %w", action, target.String(), err)
-	}
-	return nil
-}
-
-func (cli *Client) MuteChat(target types.JID, action bool, muteTime int64) error {
-	patch := appstate.NewMutePatchInfo(target, action, &muteTime)
-	if err := cli.UpdateChat(patch); err != nil {
-		return fmt.Errorf("failed to set mute to %v for chat %v: %w", action, target.String(), err)
-	}
-	return nil
-}
-
-func (cli *Client) PinChat(target types.JID, action bool) error {
-	patch := appstate.NewPinPatchInfo(target, action)
-	if err := cli.UpdateChat(patch); err != nil {
-		return fmt.Errorf("failed to set pin to %v for chat %v: %w", action, target.String(), err)
-	}
-	return nil
-}
-
-func (cli *Client) UpdateChat(patch appstate.PatchInfo) error {
+// SendAppState sends the given app state patch, then resyncs that app state type from the server
+// to update local caches and send events for the updates.
+//
+// You can use the Build methods in the appstate package to build the parameter for this method, e.g.
+//
+//	cli.SendAppState(appstate.BuildMute(targetJID, true, 24 * time.Hour))
+func (cli *Client) SendAppState(patch appstate.PatchInfo) error {
 	version, hash, err := cli.Store.AppState.GetAppStateVersion(string(patch.Type))
 	if err != nil {
 		return err
 	}
+	// TODO create new key instead of reusing the primary client's keys
+	latestKeyID, err := cli.Store.AppStateKeys.GetLatestAppStateSyncKeyID()
+	if err != nil {
+		return fmt.Errorf("failed to get latest app state key ID: %w", err)
+	}
 
 	state := appstate.HashState{Version: version, Hash: hash}
 
-	encodedPatch, err := cli.appStateProc.EncodePatch(state, patch)
+	encodedPatch, err := cli.appStateProc.EncodePatch(latestKeyID, state, patch)
 	if err != nil {
 		return err
 	}
@@ -347,32 +331,30 @@ func (cli *Client) UpdateChat(patch appstate.PatchInfo) error {
 		Type:      iqSet,
 		To:        types.ServerJID,
 		Content: []waBinary.Node{{
-			Tag:   "sync",
-			Attrs: waBinary.Attrs{},
+			Tag: "sync",
 			Content: []waBinary.Node{{
 				Tag: "collection",
 				Attrs: waBinary.Attrs{
 					"name":            string(patch.Type),
-					"version":         fmt.Sprint(version),
-					"return_snapshot": "false",
+					"version":         version,
+					"return_snapshot": false,
 				},
 				Content: []waBinary.Node{{
 					Tag:     "patch",
-					Attrs:   waBinary.Attrs{},
 					Content: encodedPatch,
 				}},
 			}},
 		}},
 	})
-
 	if err != nil {
 		return err
 	}
 
 	respCollection := resp.GetChildByTag("sync", "collection")
 	respCollectionAttr := respCollection.AttrGetter()
-	if t, ok := respCollectionAttr.GetString("type", false); ok && t == "error" {
-		return fmt.Errorf("unable to update chat, got error response from server")
+	if respCollectionAttr.OptionalString("type") == "error" {
+		// TODO parse error properly
+		return fmt.Errorf("%w: %s", ErrAppStateUpdate, respCollection.XMLString())
 	}
 
 	return cli.FetchAppState(patch.Type, false, false)

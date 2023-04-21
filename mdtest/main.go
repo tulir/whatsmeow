@@ -672,7 +672,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 
-		err = cli.ArchiveChat(target, action)
+		err = cli.SendAppState(appstate.BuildArchive(target, action, time.Time{}, nil))
 		if err != nil {
 			log.Errorf("Error changing chat's archive state: %v", err)
 		}
@@ -691,7 +691,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 
-		err = cli.MuteChat(target, action, appstate.MuteTime1Hour)
+		err = cli.SendAppState(appstate.BuildMute(target, action, 1*time.Hour))
 		if err != nil {
 			log.Errorf("Error changing chat's mute state: %v", err)
 		}
@@ -710,7 +710,7 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 
-		err = cli.PinChat(target, action)
+		err = cli.SendAppState(appstate.BuildPin(target, action))
 		if err != nil {
 			log.Errorf("Error changing chat's pin state: %v", err)
 		}

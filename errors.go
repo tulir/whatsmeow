@@ -29,6 +29,8 @@ var (
 	ErrNoPushName = errors.New("can't send presence without PushName set")
 
 	ErrNoPrivacyToken = errors.New("no privacy token stored")
+
+	ErrAppStateUpdate = errors.New("server returned error updating app state")
 )
 
 // Errors that happen while confirming device pairing
