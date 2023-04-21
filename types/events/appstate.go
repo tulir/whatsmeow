@@ -99,6 +99,15 @@ type MarkChatAsRead struct {
 	FromFullSync bool                          // Whether the action is emitted because of a fullSync
 }
 
+// ClearChat is emitted when a chat is cleared on another device.
+type ClearChat struct {
+	JID       types.JID // The chat which was deleted.
+	Timestamp time.Time // The time when the deletion happened.
+
+	Action       *waProto.ClearChatAction // Information about the deletion.
+	FromFullSync bool                     // Whether the action is emitted because of a fullSync
+}
+
 // DeleteChat is emitted when a chat is deleted on another device.
 type DeleteChat struct {
 	JID       types.JID // The chat which was deleted.
