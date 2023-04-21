@@ -41,6 +41,7 @@ const (
 	IndexPin                   = "pin_v1"
 	IndexArchive               = "archive"
 	IndexContact               = "contact"
+	IndexClearChat             = "clearChat"
 	IndexDeleteChat            = "deleteChat"
 	IndexStar                  = "star"
 	IndexDeleteMessageForMe    = "deleteMessageForMe"

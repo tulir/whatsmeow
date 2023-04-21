@@ -154,6 +154,9 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 		if cli.Store.Contacts != nil {
 			storeUpdateError = cli.Store.Contacts.PutContactName(jid, act.GetFirstName(), act.GetFullName())
 		}
+	case appstate.IndexClearChat:
+		act := mutation.Action.GetClearChatAction()
+		eventToDispatch = &events.ClearChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 	case appstate.IndexDeleteChat:
 		act := mutation.Action.GetDeleteChatAction()
 		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
