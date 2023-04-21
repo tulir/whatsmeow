@@ -374,6 +374,6 @@ func (cli *Client) UpdateChat(patch appstate.PatchInfo) error {
 	if t, ok := respCollectionAttr.GetString("type", false); ok && t == "error" {
 		return fmt.Errorf("unable to update chat, got error response from server")
 	}
-	
+
 	return cli.FetchAppState(patch.Type, false, false)
 }

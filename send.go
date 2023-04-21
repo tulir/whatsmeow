@@ -14,7 +14,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"go.mau.fi/whatsmeow/store"
 	"sort"
 	"strconv"
 	"strings"
@@ -192,7 +191,6 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		}
 	}
 	ag := respNode.AttrGetter()
-	messageTimestamp := ag.Int64("t")
 	resp.Timestamp = ag.UnixTime("t")
 	if errorCode := ag.Int("error"); errorCode != 0 {
 		err = fmt.Errorf("%w %d", ErrServerReturnedError, errorCode)
@@ -205,13 +203,6 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		delete(cli.groupParticipantsCache, to)
 		cli.groupParticipantsCacheLock.Unlock()
 	}
-
-	err = cli.Store.HistoricMessages.PutHistoricMessageLastMessage(store.HistoricMessage{
-		Chat:                 to,
-		LastMessageId:        &req.ID,
-		LastMessageFromMe:    proto.Bool(true),
-		LastMessageTimestamp: &messageTimestamp,
-	})
 	return
 }
 

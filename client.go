@@ -68,8 +68,6 @@ type Client struct {
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 
-	storeHistoricalMessagesLock sync.Mutex
-
 	historySyncNotifications  chan *waProto.HistorySyncNotification
 	historySyncHandlerStarted uint32
 

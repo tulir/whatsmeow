@@ -132,7 +132,6 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.ChatSettings = innerStore
 	device.MsgSecrets = innerStore
 	device.PrivacyTokens = innerStore
-	device.HistoricMessages = innerStore
 	device.Container = c
 	device.Initialized = true
 
@@ -248,7 +247,6 @@ func (c *Container) PutDevice(device *store.Device) error {
 		device.ChatSettings = innerStore
 		device.MsgSecrets = innerStore
 		device.PrivacyTokens = innerStore
-		device.HistoricMessages = innerStore
 		device.Initialized = true
 	}
 	return err

@@ -124,21 +124,6 @@ type PrivacyTokenStore interface {
 	GetPrivacyToken(user types.JID) (*PrivacyToken, error)
 }
 
-type HistoricMessage struct {
-	Chat                       types.JID
-	LastMessageId              *string
-	LastMessageFromMe          *bool
-	LastMessageTimestamp       *int64
-	LastSystemMessageTimestamp *int64
-}
-
-type HistoricMessageStore interface {
-	PutHistoricMessages(message ...HistoricMessage) error
-	PutHistoricMessageLastMessage(message HistoricMessage) error
-	PutHistoricMessageLastSystemMessage(message HistoricMessage) error
-	GetHistoricMessage(chat types.JID) (*HistoricMessage, error)
-}
-
 type Device struct {
 	Log waLog.Logger
 
@@ -154,19 +139,18 @@ type Device struct {
 	BusinessName string
 	PushName     string
 
-	Initialized      bool
-	Identities       IdentityStore
-	Sessions         SessionStore
-	PreKeys          PreKeyStore
-	SenderKeys       SenderKeyStore
-	AppStateKeys     AppStateSyncKeyStore
-	AppState         AppStateStore
-	Contacts         ContactStore
-	ChatSettings     ChatSettingsStore
-	MsgSecrets       MsgSecretStore
-	PrivacyTokens    PrivacyTokenStore
-	HistoricMessages HistoricMessageStore
-	Container        DeviceContainer
+	Initialized   bool
+	Identities    IdentityStore
+	Sessions      SessionStore
+	PreKeys       PreKeyStore
+	SenderKeys    SenderKeyStore
+	AppStateKeys  AppStateSyncKeyStore
+	AppState      AppStateStore
+	Contacts      ContactStore
+	ChatSettings  ChatSettingsStore
+	MsgSecrets    MsgSecretStore
+	PrivacyTokens PrivacyTokenStore
+	Container     DeviceContainer
 
 	DatabaseErrorHandler func(device *Device, action string, attemptIndex int, err error) (retry bool)
 }

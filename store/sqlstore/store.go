@@ -43,8 +43,6 @@ type SQLStore struct {
 
 	contactCache     map[types.JID]*types.ContactInfo
 	contactCacheLock sync.Mutex
-
-	historicMessageLock sync.RWMutex
 }
 
 // NewSQLStore creates a new SQLStore with the given database container and user JID.
@@ -778,81 +776,4 @@ func (s *SQLStore) GetPrivacyToken(user types.JID) (*store.PrivacyToken, error) 
 		token.Timestamp = time.Unix(ts, 0)
 		return &token, nil
 	}
-}
-
-const (
-	putHistoricMessage = `
-		INSERT OR REPLACE INTO whatsmeow_historic_messages (their_jid, last_message_id, last_message_from_me, last_message_timestamp, last_system_message_timestamp)
-		VALUES ($1, $2, $3, $4, $5)
-	`
-	putHistoricMessageLastMessage = `
-		INSERT INTO whatsmeow_historic_messages (their_jid, last_message_id, last_message_from_me, last_message_timestamp)
-		VALUES ($1, $2, $3, $4) 
-		ON CONFLICT (their_jid) DO UPDATE SET last_message_id=EXCLUDED.last_message_id, last_message_from_me=EXCLUDED.last_message_from_me, last_message_timestamp=EXCLUDED.last_message_timestamp
-	`
-	putHistoricMessageLastSystemMessage = `
-		INSERT INTO whatsmeow_historic_messages (their_jid, last_system_message_timestamp)
-		VALUES ($1, $2) 
-		ON CONFLICT (their_jid) DO UPDATE SET last_system_message_timestamp=EXCLUDED.last_system_message_timestamp
-	`
-	getHistoricMessage = `SELECT last_message_id, last_message_from_me, last_message_timestamp, last_system_message_timestamp FROM whatsmeow_historic_messages WHERE their_jid=$1`
-)
-
-func (s *SQLStore) PutHistoricMessages(messages ...store.HistoricMessage) error {
-	s.historicMessageLock.Lock()
-	defer s.historicMessageLock.Unlock()
-
-	args := make([]any, len(messages)*5)
-	placeholders := make([]string, len(messages))
-	for i, message := range messages {
-		chatStr := message.Chat.ToNonAD().String()
-		args[i*5] = chatStr
-		args[i*5+1] = message.LastMessageId
-		args[i*5+2] = message.LastMessageFromMe
-		args[i*5+3] = message.LastMessageTimestamp
-		args[i*5+4] = message.LastSystemMessageTimestamp
-		placeholders[i] = fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", i*5+1, i*5+2, i*5+3, i*5+4, i*5+5)
-	}
-	query := strings.ReplaceAll(putHistoricMessage, "($1, $2, $3, $4, $5)", strings.Join(placeholders, ","))
-	_, err := s.db.Exec(query, args...)
-	return err
-}
-
-func (s *SQLStore) PutHistoricMessageLastMessage(message store.HistoricMessage) error {
-	s.historicMessageLock.Lock()
-	defer s.historicMessageLock.Unlock()
-
-	_, err := s.db.Exec(
-		putHistoricMessageLastMessage,
-		message.Chat.ToNonAD().String(),
-		message.LastMessageId,
-		message.LastMessageFromMe,
-		message.LastMessageTimestamp)
-	return err
-}
-
-func (s *SQLStore) PutHistoricMessageLastSystemMessage(message store.HistoricMessage) error {
-	s.historicMessageLock.Lock()
-	defer s.historicMessageLock.Unlock()
-
-	_, err := s.db.Exec(
-		putHistoricMessageLastSystemMessage,
-		message.Chat.ToNonAD().String(),
-		message.LastSystemMessageTimestamp)
-	return err
-}
-
-func (s *SQLStore) GetHistoricMessage(chat types.JID) (*store.HistoricMessage, error) {
-	s.historicMessageLock.RLock()
-	defer s.historicMessageLock.RUnlock()
-
-	var message store.HistoricMessage
-	message.Chat = chat
-	err := s.db.QueryRow(getHistoricMessage, chat.ToNonAD().String()).Scan(&message.LastMessageId, &message.LastMessageFromMe, &message.LastMessageTimestamp, &message.LastSystemMessageTimestamp)
-	if errors.Is(err, sql.ErrNoRows) {
-		return &message, nil
-	} else if err != nil {
-		return nil, err
-	}
-	return &message, nil
 }
