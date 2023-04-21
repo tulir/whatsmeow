@@ -46,7 +46,7 @@ func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInf
 	return PatchInfo{
 		Type: WAPatchRegularHigh,
 		Mutations: []MutationInfo{{
-			Index:   []string{"mute", target.String()},
+			Index:   []string{IndexMute, target.String()},
 			Version: 2,
 			Value: &waProto.SyncActionValue{
 				MuteAction: &waProto.MuteAction{
@@ -60,7 +60,7 @@ func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInf
 
 func newPinMutationInfo(target types.JID, pin bool) MutationInfo {
 	return MutationInfo{
-		Index:   []string{"pin_v1", target.String()},
+		Index:   []string{IndexPin, target.String()},
 		Version: 5,
 		Value: &waProto.SyncActionValue{
 			PinAction: &waProto.PinAction{
@@ -90,7 +90,7 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 		lastMessageTimestamp = time.Now()
 	}
 	archiveMutationInfo := MutationInfo{
-		Index:   []string{"archive", target.String()},
+		Index:   []string{IndexArchive, target.String()},
 		Version: 3,
 		Value: &waProto.SyncActionValue{
 			ArchiveChatAction: &waProto.ArchiveChatAction{
