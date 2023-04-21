@@ -317,6 +317,8 @@ func (cli *Client) SendAppState(patch appstate.PatchInfo) error {
 	latestKeyID, err := cli.Store.AppStateKeys.GetLatestAppStateSyncKeyID()
 	if err != nil {
 		return fmt.Errorf("failed to get latest app state key ID: %w", err)
+	} else if latestKeyID == nil {
+		return fmt.Errorf("no app state keys found, creating app state keys is not yet supported")
 	}
 
 	state := appstate.HashState{Version: version, Hash: hash}
