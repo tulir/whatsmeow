@@ -40,7 +40,7 @@ type PatchInfo struct {
 func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInfo {
 	var muteEndTimestamp *int64
 	if muteDuration > 0 {
-		muteEndTimestamp = proto.Int64(time.Now().Add(muteDuration).Unix())
+		muteEndTimestamp = proto.Int64(time.Now().Add(muteDuration).UnixMilli())
 	}
 
 	return PatchInfo{
@@ -135,7 +135,7 @@ func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo Patc
 
 	mutations := make([]*waProto.SyncdMutation, 0, len(patchInfo.Mutations))
 	for _, mutationInfo := range patchInfo.Mutations {
-		mutationInfo.Value.Timestamp = proto.Int64(patchInfo.Timestamp.Unix())
+		mutationInfo.Value.Timestamp = proto.Int64(patchInfo.Timestamp.UnixMilli())
 
 		indexBytes, err := json.Marshal(mutationInfo.Index)
 		if err != nil {

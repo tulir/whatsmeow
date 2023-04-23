@@ -121,7 +121,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 	if len(mutation.Index) > 1 {
 		jid, _ = types.ParseJID(mutation.Index[1])
 	}
-	ts := time.Unix(mutation.Action.GetTimestamp(), 0)
+	ts := time.UnixMilli(mutation.Action.GetTimestamp())
 
 	var storeUpdateError error
 	var eventToDispatch interface{}
@@ -131,7 +131,7 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 		eventToDispatch = &events.Mute{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		var mutedUntil time.Time
 		if act.GetMuted() {
-			mutedUntil = time.Unix(act.GetMuteEndTimestamp(), 0)
+			mutedUntil = time.UnixMilli(act.GetMuteEndTimestamp())
 		}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutMutedUntil(jid, mutedUntil)
