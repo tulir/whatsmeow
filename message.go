@@ -247,6 +247,9 @@ func isValidPadding(plaintext []byte) bool {
 }
 
 func unpadMessage(plaintext []byte) ([]byte, error) {
+	if len(plaintext) == 0 {
+		return nil, fmt.Errorf("plaintext is empty")
+	}
 	if checkPadding && !isValidPadding(plaintext) {
 		return nil, fmt.Errorf("plaintext doesn't have expected padding")
 	}
