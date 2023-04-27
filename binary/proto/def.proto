@@ -534,6 +534,12 @@ message ContactsArrayMessage {
     optional ContextInfo contextInfo = 17;
 }
 
+message ContactMessageV2 {
+    optional string displayName = 1;
+    optional string vcard = 2;
+    optional ContextInfo contextInfo = 3;
+}
+
 message ContactMessage {
     optional string displayName = 1;
     optional string vcard = 16;
@@ -1237,11 +1243,6 @@ message PeerDataOperationRequestResponseMessage {
 }
 
 message PeerDataOperationRequestMessage {
-    message RequestUrlPreview {
-        optional string url = 1;
-        optional bool includeHqThumbnail = 2;
-    }
-    
     message RequestStickerReupload {
         optional string fileSha256 = 1;
     }
@@ -1256,6 +1257,11 @@ message PeerDataOperationRequestMessage {
         optional bool oldestMsgFromMe = 3;
         optional int32 onDemandMsgCount = 4;
         optional int64 oldestMsgTimestampMs = 5;
+    }
+    
+    message RequestUrlPreview {
+        optional string url = 1;
+        optional bool includeHqThumbnail = 2;
     }
     
     optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -1622,6 +1628,7 @@ message SyncActionValue {
     optional MarketingMessageAction marketingMessageAction = 38;
     optional MarketingMessageBroadcastAction marketingMessageBroadcastAction = 39;
     optional ExternalWebBetaAction externalWebBetaAction = 40;
+    optional PrivacySettingRelayAllCalls privacySettingRelayAllCalls = 41;
 }
 
 message UserStatusMuteAction {
@@ -1694,6 +1701,10 @@ message PushNameSetting {
     optional string name = 1;
 }
 
+message PrivacySettingRelayAllCalls {
+    optional bool isEnabled = 1;
+}
+
 message PrimaryVersionAction {
     optional string version = 1;
 }
@@ -1725,17 +1736,16 @@ message MarketingMessageBroadcastAction {
 }
 
 message MarketingMessageAction {
-    enum MarketingMessageMsgType {
-        TEXT = 0;
-        IMAGE = 1;
-        VIDEO = 2;
+    enum MarketingMessagePrototypeType {
+        PERSONALIZED = 0;
     }
     optional string name = 1;
     optional string message = 2;
-    optional MarketingMessageMsgType msgType = 3;
+    optional MarketingMessagePrototypeType type = 3;
     optional int64 createdAt = 4;
     optional int64 lastSentAt = 5;
     optional bool isDeleted = 6;
+    optional string mediaId = 7;
 }
 
 message MarkChatAsReadAction {
@@ -2339,6 +2349,7 @@ message WebMessageInfo {
     optional KeepInChat keepInChat = 50;
     optional string originalSelfAuthorUserJidString = 51;
     optional uint64 revokeMessageTimestamp = 52;
+    optional PinInChat pinInChat = 54;
 }
 
 message WebFeatures {
@@ -2427,6 +2438,18 @@ message PollUpdate {
 
 message PollAdditionalMetadata {
     optional bool pollInvalidated = 1;
+}
+
+message PinInChat {
+    enum PinMessageType {
+        UNKNOWN_PIN_MESSAGE_TYPE = 0;
+        PIN_FOR_ALL = 1;
+        UNPIN_FOR_ALL = 2;
+    }
+    optional PinMessageType pinMessageType = 1;
+    optional MessageKey key = 2;
+    optional int64 senderTimestampMs = 3;
+    optional int64 serverTimestampMs = 4;
 }
 
 message PhotoChange {
