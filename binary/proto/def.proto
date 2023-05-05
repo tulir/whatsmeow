@@ -23,12 +23,19 @@ message ADVKeyIndexList {
     optional uint64 timestamp = 2;
     optional uint32 currentIndex = 3;
     repeated uint32 validIndexes = 4 [packed=true];
+    optional ADVEncryptionType accountType = 5;
 }
 
+enum ADVEncryptionType {
+    E2EE = 0;
+    HOSTED = 1;
+}
 message ADVDeviceIdentity {
     optional uint32 rawId = 1;
     optional uint64 timestamp = 2;
     optional uint32 keyIndex = 3;
+    optional ADVEncryptionType accountType = 4;
+    optional ADVEncryptionType deviceType = 5;
 }
 
 message DeviceProps {
@@ -359,6 +366,7 @@ message HistorySyncNotification {
     optional uint32 progress = 9;
     optional int64 oldestMsgInChunkTimestampSec = 10;
     optional bytes initialHistBootstrapInlinePayload = 11;
+    optional string peerDataRequestSessionId = 12;
 }
 
 message HighlyStructuredMessage {
@@ -532,12 +540,6 @@ message ContactsArrayMessage {
     optional string displayName = 1;
     repeated ContactMessage contacts = 2;
     optional ContextInfo contextInfo = 17;
-}
-
-message ContactMessageV2 {
-    optional string displayName = 1;
-    optional string vcard = 2;
-    optional ContextInfo contextInfo = 3;
 }
 
 message ContactMessage {
@@ -926,7 +928,7 @@ message Message {
     optional PollCreationMessage pollCreationMessageV2 = 60;
     optional ScheduledCallCreationMessage scheduledCallCreationMessage = 61;
     optional FutureProofMessage groupMentionedMessage = 62;
-    optional PinMessage pinMessage = 63;
+    optional PinInChatMessage pinInChatMessage = 63;
     optional PollCreationMessage pollCreationMessageV3 = 64;
     optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
     optional VideoMessage ptvMessage = 66;
@@ -1186,14 +1188,14 @@ message PollCreationMessage {
     optional ContextInfo contextInfo = 5;
 }
 
-message PinMessage {
-    enum PinMessageType {
-        UNKNOWN_PIN_MESSAGE_TYPE = 0;
+message PinInChatMessage {
+    enum Type {
+        UNKNOWN_TYPE = 0;
         PIN_FOR_ALL = 1;
         UNPIN_FOR_ALL = 2;
     }
     optional MessageKey key = 1;
-    optional PinMessageType pinMessageType = 2;
+    optional Type type = 2;
     optional int64 senderTimestampMs = 3;
 }
 
@@ -1243,6 +1245,11 @@ message PeerDataOperationRequestResponseMessage {
 }
 
 message PeerDataOperationRequestMessage {
+    message RequestUrlPreview {
+        optional string url = 1;
+        optional bool includeHqThumbnail = 2;
+    }
+    
     message RequestStickerReupload {
         optional string fileSha256 = 1;
     }
@@ -1257,11 +1264,6 @@ message PeerDataOperationRequestMessage {
         optional bool oldestMsgFromMe = 3;
         optional int32 onDemandMsgCount = 4;
         optional int64 oldestMsgTimestampMs = 5;
-    }
-    
-    message RequestUrlPreview {
-        optional string url = 1;
-        optional bool includeHqThumbnail = 2;
     }
     
     optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -2291,6 +2293,8 @@ message WebMessageInfo {
         COMMUNITY_CHANGE_DESCRIPTION = 173;
         SENDER_INVITE = 174;
         RECEIVER_INVITE = 175;
+        COMMUNITY_ALLOW_MEMBER_ADDED_GROUPS = 176;
+        PINNED_MESSAGE_IN_CHAT = 177;
     }
     enum Status {
         ERROR = 0;
@@ -2441,15 +2445,16 @@ message PollAdditionalMetadata {
 }
 
 message PinInChat {
-    enum PinMessageType {
-        UNKNOWN_PIN_MESSAGE_TYPE = 0;
+    enum Type {
+        UNKNOWN_TYPE = 0;
         PIN_FOR_ALL = 1;
         UNPIN_FOR_ALL = 2;
     }
-    optional PinMessageType pinMessageType = 1;
+    optional Type type = 1;
     optional MessageKey key = 2;
     optional int64 senderTimestampMs = 3;
     optional int64 serverTimestampMs = 4;
+    optional MessageAddOnContextInfo messageAddOnContextInfo = 5;
 }
 
 message PhotoChange {
@@ -2531,6 +2536,10 @@ message NotificationMessageInfo {
     optional Message message = 2;
     optional uint64 messageTimestamp = 3;
     optional string participant = 4;
+}
+
+message MessageAddOnContextInfo {
+    optional uint32 messageAddOnDurationInSecs = 1;
 }
 
 message MediaData {
