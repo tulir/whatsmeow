@@ -657,6 +657,63 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Status updated")
 		}
+	case "archive":
+		if len(args) < 2 {
+			log.Errorf("Usage: archive <jid> <action>")
+			return
+		}
+		target, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		action, err := strconv.ParseBool(args[1])
+		if err != nil {
+			log.Errorf("invalid second argument: %v", err)
+			return
+		}
+
+		err = cli.SendAppState(appstate.BuildArchive(target, action, time.Time{}, nil))
+		if err != nil {
+			log.Errorf("Error changing chat's archive state: %v", err)
+		}
+	case "mute":
+		if len(args) < 2 {
+			log.Errorf("Usage: mute <jid> <action>")
+			return
+		}
+		target, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		action, err := strconv.ParseBool(args[1])
+		if err != nil {
+			log.Errorf("invalid second argument: %v", err)
+			return
+		}
+
+		err = cli.SendAppState(appstate.BuildMute(target, action, 1*time.Hour))
+		if err != nil {
+			log.Errorf("Error changing chat's mute state: %v", err)
+		}
+	case "pin":
+		if len(args) < 2 {
+			log.Errorf("Usage: pin <jid> <action>")
+			return
+		}
+		target, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		action, err := strconv.ParseBool(args[1])
+		if err != nil {
+			log.Errorf("invalid second argument: %v", err)
+			return
+		}
+
+		err = cli.SendAppState(appstate.BuildPin(target, action))
+		if err != nil {
+			log.Errorf("Error changing chat's pin state: %v", err)
+		}
 	}
 }
 

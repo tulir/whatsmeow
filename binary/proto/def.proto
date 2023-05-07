@@ -23,12 +23,19 @@ message ADVKeyIndexList {
     optional uint64 timestamp = 2;
     optional uint32 currentIndex = 3;
     repeated uint32 validIndexes = 4 [packed=true];
+    optional ADVEncryptionType accountType = 5;
 }
 
+enum ADVEncryptionType {
+    E2EE = 0;
+    HOSTED = 1;
+}
 message ADVDeviceIdentity {
     optional uint32 rawId = 1;
     optional uint64 timestamp = 2;
     optional uint32 keyIndex = 3;
+    optional ADVEncryptionType accountType = 4;
+    optional ADVEncryptionType deviceType = 5;
 }
 
 message DeviceProps {
@@ -57,6 +64,7 @@ message DeviceProps {
         optional uint32 fullSyncSizeMbLimit = 2;
         optional uint32 storageQuotaMb = 3;
         optional bool inlineInitialPayloadInE2EeMsg = 4;
+        optional uint32 recentSyncDaysLimit = 5;
     }
     
     message AppVersion {
@@ -358,6 +366,7 @@ message HistorySyncNotification {
     optional uint32 progress = 9;
     optional int64 oldestMsgInChunkTimestampSec = 10;
     optional bytes initialHistBootstrapInlinePayload = 11;
+    optional string peerDataRequestSessionId = 12;
 }
 
 message HighlyStructuredMessage {
@@ -461,7 +470,6 @@ message ExtendedTextMessage {
         CALISTOGA_REGULAR = 8;
         EXO2_EXTRABOLD = 9;
         COURIERPRIME_BOLD = 10;
-        LOCAL_BREWERY = 11;
     }
     optional string text = 1;
     optional string matchedText = 2;
@@ -920,7 +928,7 @@ message Message {
     optional PollCreationMessage pollCreationMessageV2 = 60;
     optional ScheduledCallCreationMessage scheduledCallCreationMessage = 61;
     optional FutureProofMessage groupMentionedMessage = 62;
-    optional PinMessage pinMessage = 63;
+    optional PinInChatMessage pinInChatMessage = 63;
     optional PollCreationMessage pollCreationMessageV3 = 64;
     optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
     optional VideoMessage ptvMessage = 66;
@@ -1180,14 +1188,14 @@ message PollCreationMessage {
     optional ContextInfo contextInfo = 5;
 }
 
-message PinMessage {
-    enum PinMessageType {
-        UNKNOWN_PIN_MESSAGE_TYPE = 0;
+message PinInChatMessage {
+    enum Type {
+        UNKNOWN_TYPE = 0;
         PIN_FOR_ALL = 1;
         UNPIN_FOR_ALL = 2;
     }
     optional MessageKey key = 1;
-    optional PinMessageType pinMessageType = 2;
+    optional Type type = 2;
     optional int64 senderTimestampMs = 3;
 }
 
@@ -1309,6 +1317,15 @@ message PastParticipant {
     optional uint64 leaveTs = 3;
 }
 
+message NotificationSettings {
+    optional string messageVibrate = 1;
+    optional string messagePopup = 2;
+    optional string messageLight = 3;
+    optional bool lowPriorityNotifications = 4;
+    optional bool reactionsMuted = 5;
+    optional string callVibrate = 6;
+}
+
 enum MediaVisibility {
     DEFAULT = 0;
     OFF = 1;
@@ -1369,6 +1386,8 @@ message GlobalSettings {
     optional bool autoUnarchiveChats = 14;
     optional int32 videoQualityMode = 15;
     optional int32 photoQualityMode = 16;
+    optional NotificationSettings individualNotificationSettings = 17;
+    optional NotificationSettings groupNotificationSettings = 18;
 }
 
 message Conversation {
@@ -1611,6 +1630,7 @@ message SyncActionValue {
     optional MarketingMessageAction marketingMessageAction = 38;
     optional MarketingMessageBroadcastAction marketingMessageBroadcastAction = 39;
     optional ExternalWebBetaAction externalWebBetaAction = 40;
+    optional PrivacySettingRelayAllCalls privacySettingRelayAllCalls = 41;
 }
 
 message UserStatusMuteAction {
@@ -1683,6 +1703,10 @@ message PushNameSetting {
     optional string name = 1;
 }
 
+message PrivacySettingRelayAllCalls {
+    optional bool isEnabled = 1;
+}
+
 message PrimaryVersionAction {
     optional string version = 1;
 }
@@ -1714,17 +1738,16 @@ message MarketingMessageBroadcastAction {
 }
 
 message MarketingMessageAction {
-    enum MarketingMessageMsgType {
-        TEXT = 0;
-        IMAGE = 1;
-        VIDEO = 2;
+    enum MarketingMessagePrototypeType {
+        PERSONALIZED = 0;
     }
     optional string name = 1;
     optional string message = 2;
-    optional MarketingMessageMsgType msgType = 3;
+    optional MarketingMessagePrototypeType type = 3;
     optional int64 createdAt = 4;
     optional int64 lastSentAt = 5;
     optional bool isDeleted = 6;
+    optional string mediaId = 7;
 }
 
 message MarkChatAsReadAction {
@@ -1966,6 +1989,7 @@ message ClientPayload {
             ARDEVICE = 30;
             VRDEVICE = 31;
             BLUE_WEB = 32;
+            IPAD = 33;
         }
         message AppVersion {
             optional uint32 primary = 1;
@@ -2053,6 +2077,7 @@ message ClientPayload {
         ERROR_RECONNECT = 3;
         NETWORK_SWITCH = 4;
         PING_RECONNECT = 5;
+        UNKNOWN = 6;
     }
     optional uint64 username = 1;
     optional bool passive = 3;
@@ -2266,6 +2291,10 @@ message WebMessageInfo {
         GROUP_MEMBER_ADD_MODE = 171;
         GROUP_MEMBERSHIP_JOIN_APPROVAL_REQUEST_NON_ADMIN_ADD = 172;
         COMMUNITY_CHANGE_DESCRIPTION = 173;
+        SENDER_INVITE = 174;
+        RECEIVER_INVITE = 175;
+        COMMUNITY_ALLOW_MEMBER_ADDED_GROUPS = 176;
+        PINNED_MESSAGE_IN_CHAT = 177;
     }
     enum Status {
         ERROR = 0;
@@ -2324,6 +2353,7 @@ message WebMessageInfo {
     optional KeepInChat keepInChat = 50;
     optional string originalSelfAuthorUserJidString = 51;
     optional uint64 revokeMessageTimestamp = 52;
+    optional PinInChat pinInChat = 54;
 }
 
 message WebFeatures {
@@ -2414,6 +2444,19 @@ message PollAdditionalMetadata {
     optional bool pollInvalidated = 1;
 }
 
+message PinInChat {
+    enum Type {
+        UNKNOWN_TYPE = 0;
+        PIN_FOR_ALL = 1;
+        UNPIN_FOR_ALL = 2;
+    }
+    optional Type type = 1;
+    optional MessageKey key = 2;
+    optional int64 senderTimestampMs = 3;
+    optional int64 serverTimestampMs = 4;
+    optional MessageAddOnContextInfo messageAddOnContextInfo = 5;
+}
+
 message PhotoChange {
     optional bytes oldPhoto = 1;
     optional bytes newPhoto = 2;
@@ -2493,6 +2536,10 @@ message NotificationMessageInfo {
     optional Message message = 2;
     optional uint64 messageTimestamp = 3;
     optional string participant = 4;
+}
+
+message MessageAddOnContextInfo {
+    optional uint32 messageAddOnDurationInSecs = 1;
 }
 
 message MediaData {

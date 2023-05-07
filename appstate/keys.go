@@ -35,6 +35,22 @@ const (
 // AllPatchNames contains all currently known patch state names.
 var AllPatchNames = [...]WAPatchName{WAPatchCriticalBlock, WAPatchCriticalUnblockLow, WAPatchRegularHigh, WAPatchRegular, WAPatchRegularLow}
 
+// Constants for the first part of app state indexes.
+const (
+	IndexMute                  = "mute"
+	IndexPin                   = "pin_v1"
+	IndexArchive               = "archive"
+	IndexContact               = "contact"
+	IndexClearChat             = "clearChat"
+	IndexDeleteChat            = "deleteChat"
+	IndexStar                  = "star"
+	IndexDeleteMessageForMe    = "deleteMessageForMe"
+	IndexMarkChatAsRead        = "markChatAsRead"
+	IndexSettingPushName       = "setting_pushName"
+	IndexSettingUnarchiveChats = "setting_unarchiveChats"
+	IndexUserStatusMute        = "userStatusMute"
+)
+
 type Processor struct {
 	keyCache     map[string]ExpandedAppStateKeys
 	keyCacheLock sync.Mutex

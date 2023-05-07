@@ -77,14 +77,14 @@ func (hs *HashState) generateSnapshotMAC(name WAPatchName, key []byte) []byte {
 	return concatAndHMAC(sha256.New, key, hs.Hash[:], uint64ToBytes(hs.Version), []byte(name))
 }
 
-func generatePatchMAC(patch *waProto.SyncdPatch, name WAPatchName, key []byte) []byte {
+func generatePatchMAC(patch *waProto.SyncdPatch, name WAPatchName, key []byte, version uint64) []byte {
 	dataToHash := make([][]byte, len(patch.GetMutations())+3)
 	dataToHash[0] = patch.GetSnapshotMac()
 	for i, mutation := range patch.Mutations {
 		val := mutation.GetRecord().GetValue().GetBlob()
 		dataToHash[i+1] = val[len(val)-32:]
 	}
-	dataToHash[len(dataToHash)-2] = uint64ToBytes(patch.GetVersion().GetVersion())
+	dataToHash[len(dataToHash)-2] = uint64ToBytes(version)
 	dataToHash[len(dataToHash)-1] = []byte(name)
 	return concatAndHMAC(sha256.New, key, dataToHash...)
 }
