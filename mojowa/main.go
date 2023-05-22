@@ -771,8 +771,32 @@ func handler(rawEvt interface{}) {
 		}
 
 		log.Infof("Received message %s from %s (%s): %+v", evt.Info.ID, evt.Info.SourceString(), strings.Join(metaParts, ", "), evt.Message)
+		//get a string representation of the message
+		conversation := ""
+		if evt.Message.Conversation != nil {
+			conversation = *evt.Message.Conversation
+		}
 		
-		fileName := fmt.Sprintf("message.log")
+		textstring := fmt.Sprintf("msg_id: %s | %s | (%s) | %v | %+v", evt.Info.ID, evt.Info.SourceString(), strings.Join(metaParts, ", "), conversation, evt.Message)
+		//write textstring to messages.log
+
+		fileName := "messages.log"
+		file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+		if err != nil {
+			log.Errorf("Failed to open file to write message: %v", err)
+			
+			return
+		}
+		defer file.Close()
+
+		if _, err := file.WriteString(textstring + "\n"); err != nil {
+			log.Errorf("Failed to write message to file: %v", err)
+			return
+		}
+		log.Infof("Wrote message to %s", fileName)
+		
+        /*
+		fileName := fmt.Sprintf("messages.json")
 		file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 		if err != nil {
 			log.Errorf("Failed to open file to write log sync: %v", err)
@@ -780,14 +804,17 @@ func handler(rawEvt interface{}) {
 		}
 		enc := json.NewEncoder(file)
 		enc.SetIndent("", "  ")
-		err = enc.Encode(evt.Message)
+		
+		err = enc.Encode(evt)
+
+		//err = enc.Encode(evt.Message.Conversation)
 		if err != nil {
 			log.Errorf("Failed to write history sync: %v", err)
 			return
 		}
 		log.Infof("Wrote history sync to %s", fileName)
 		_ = file.Close()
-			
+			*/
 		if evt.Message.GetPollUpdateMessage() != nil {
 			decrypted, err := cli.DecryptPollVote(evt)
 			if err != nil {
