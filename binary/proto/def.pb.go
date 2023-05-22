@@ -282,6 +282,9 @@ const (
 	DeviceProps_IOS_CATALYST      DeviceProps_PlatformType = 15
 	DeviceProps_ANDROID_PHONE     DeviceProps_PlatformType = 16
 	DeviceProps_ANDROID_AMBIGUOUS DeviceProps_PlatformType = 17
+	DeviceProps_WEAR_OS           DeviceProps_PlatformType = 18
+	DeviceProps_AR_WRIST          DeviceProps_PlatformType = 19
+	DeviceProps_AR_DEVICE         DeviceProps_PlatformType = 20
 )
 
 // Enum value maps for DeviceProps_PlatformType.
@@ -305,6 +308,9 @@ var (
 		15: "IOS_CATALYST",
 		16: "ANDROID_PHONE",
 		17: "ANDROID_AMBIGUOUS",
+		18: "WEAR_OS",
+		19: "AR_WRIST",
+		20: "AR_DEVICE",
 	}
 	DeviceProps_PlatformType_value = map[string]int32{
 		"UNKNOWN":           0,
@@ -325,6 +331,9 @@ var (
 		"IOS_CATALYST":      15,
 		"ANDROID_PHONE":     16,
 		"ANDROID_AMBIGUOUS": 17,
+		"WEAR_OS":           18,
+		"AR_WRIST":          19,
+		"AR_DEVICE":         20,
 	}
 )
 
@@ -23217,6 +23226,7 @@ type ClientPayload_UserAgent struct {
 	LocaleLanguageIso6391       *string                                 `protobuf:"bytes,11,opt,name=localeLanguageIso6391" json:"localeLanguageIso6391,omitempty"`
 	LocaleCountryIso31661Alpha2 *string                                 `protobuf:"bytes,12,opt,name=localeCountryIso31661Alpha2" json:"localeCountryIso31661Alpha2,omitempty"`
 	DeviceBoard                 *string                                 `protobuf:"bytes,13,opt,name=deviceBoard" json:"deviceBoard,omitempty"`
+	DeviceExpId                 *string                                 `protobuf:"bytes,14,opt,name=deviceExpId" json:"deviceExpId,omitempty"`
 }
 
 func (x *ClientPayload_UserAgent) Reset() {
@@ -23338,6 +23348,13 @@ func (x *ClientPayload_UserAgent) GetLocaleCountryIso31661Alpha2() string {
 func (x *ClientPayload_UserAgent) GetDeviceBoard() string {
 	if x != nil && x.DeviceBoard != nil {
 		return *x.DeviceBoard
+	}
+	return ""
+}
+
+func (x *ClientPayload_UserAgent) GetDeviceExpId() string {
+	if x != nil && x.DeviceExpId != nil {
+		return *x.DeviceExpId
 	}
 	return ""
 }

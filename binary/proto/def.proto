@@ -58,6 +58,9 @@ message DeviceProps {
         IOS_CATALYST = 15;
         ANDROID_PHONE = 16;
         ANDROID_AMBIGUOUS = 17;
+        WEAR_OS = 18;
+        AR_WRIST = 19;
+        AR_DEVICE = 20;
     }
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
@@ -2012,6 +2015,7 @@ message ClientPayload {
         optional string localeLanguageIso6391 = 11;
         optional string localeCountryIso31661Alpha2 = 12;
         optional string deviceBoard = 13;
+        optional string deviceExpId = 14;
     }
     
     enum Product {
