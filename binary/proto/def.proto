@@ -287,6 +287,7 @@ message InteractiveMessage {
             ImageMessage imageMessage = 4;
             bytes jpegThumbnail = 6;
             VideoMessage videoMessage = 7;
+            LocationMessage locationMessage = 8;
         }
     }
     
@@ -767,6 +768,7 @@ message ContextInfo {
         optional bool renderLargerThumbnail = 11;
         optional bool showAdAttribution = 12;
         optional string ctwaClid = 13;
+        optional string ref = 14;
     }
     
     message AdReplyInfo {
@@ -2299,6 +2301,11 @@ message WebMessageInfo {
         RECEIVER_INVITE = 175;
         COMMUNITY_ALLOW_MEMBER_ADDED_GROUPS = 176;
         PINNED_MESSAGE_IN_CHAT = 177;
+        PAYMENT_INVITE_SETUP_INVITER = 178;
+        PAYMENT_INVITE_SETUP_INVITEE_RECEIVE_ONLY = 179;
+        PAYMENT_INVITE_SETUP_INVITEE_SEND_AND_RECEIVE = 180;
+        LINKED_GROUP_CALL_START = 181;
+        REPORT_TO_ADMIN_ENABLED_STATUS = 182;
     }
     enum Status {
         ERROR = 0;
