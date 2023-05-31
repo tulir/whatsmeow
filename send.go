@@ -246,6 +246,40 @@ func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waPr
 	}
 }
 
+// ReactionMessage sends an emoji as a reaction to a message
+//
+// To react your own messages, pass your JID or an empty JID as the second parameter (sender).
+//
+// To react someone else's messages when you are in a group, pass the message sender's JID as the second parameter.
+//
+// To remove a reaction, pass an empty reaction.
+func (cli *Client) ReactionMessage(chat, sender types.JID, id types.MessageID, reaction string) (SendResponse, error) {
+	return cli.SendMessage(context.TODO(), chat, cli.buildReaction(chat, sender, id, reaction))
+}
+
+func (cli *Client) buildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waProto.Message {
+	key := &waProto.MessageKey{
+		FromMe:    proto.Bool(true),
+		Id:        proto.String(id),
+		RemoteJid: proto.String(chat.String()),
+	}
+
+	if !sender.IsEmpty() && sender.User != cli.getOwnID().User {
+		key.FromMe = proto.Bool(false)
+		if chat.Server != types.DefaultUserServer {
+			key.Participant = proto.String(sender.ToNonAD().String())
+		}
+	}
+
+	return &waProto.Message{
+		ReactionMessage: &waProto.ReactionMessage{
+			Key:               key,
+			Text:              proto.String(reaction),
+			SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
+		},
+	}
+}
+
 // EditWindow specifies how long a message can be edited for after it was sent.
 const EditWindow = 20 * time.Minute
 
