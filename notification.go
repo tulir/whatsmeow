@@ -173,6 +173,11 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 			cli.handlePrivacySettingsNotification(&child)
 		case "devices":
 			cli.handleOwnDevicesNotification(&child)
+		case "picture":
+			cli.dispatchEvent(&events.Picture{
+				Timestamp: node.AttrGetter().UnixTime("t"),
+				JID:       cli.getOwnID().ToNonAD(),
+			})
 		default:
 			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
 		}
