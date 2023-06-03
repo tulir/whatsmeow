@@ -562,7 +562,7 @@ func stopAndDrainTimer(timer *time.Timer) {
 }
 
 func (cli *Client) handlerQueueLoop(ctx context.Context) {
-	timer := time.NewTimer(0)
+	timer := time.NewTimer(5 * time.Minute)
 	stopAndDrainTimer(timer)
 	cli.Log.Debugf("Starting handler queue loop")
 	for {
