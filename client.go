@@ -547,7 +547,7 @@ func (cli *Client) handleFrame(data []byte) {
 				cli.handlerQueue <- node
 			}()
 		}
-	} else {
+	} else if node.Tag != "ack" {
 		cli.Log.Debugf("Didn't handle WhatsApp node %s", node.Tag)
 	}
 }
