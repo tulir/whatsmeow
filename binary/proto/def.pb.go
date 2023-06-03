@@ -282,6 +282,9 @@ const (
 	DeviceProps_IOS_CATALYST      DeviceProps_PlatformType = 15
 	DeviceProps_ANDROID_PHONE     DeviceProps_PlatformType = 16
 	DeviceProps_ANDROID_AMBIGUOUS DeviceProps_PlatformType = 17
+	DeviceProps_WEAR_OS           DeviceProps_PlatformType = 18
+	DeviceProps_AR_WRIST          DeviceProps_PlatformType = 19
+	DeviceProps_AR_DEVICE         DeviceProps_PlatformType = 20
 )
 
 // Enum value maps for DeviceProps_PlatformType.
@@ -305,6 +308,9 @@ var (
 		15: "IOS_CATALYST",
 		16: "ANDROID_PHONE",
 		17: "ANDROID_AMBIGUOUS",
+		18: "WEAR_OS",
+		19: "AR_WRIST",
+		20: "AR_DEVICE",
 	}
 	DeviceProps_PlatformType_value = map[string]int32{
 		"UNKNOWN":           0,
@@ -325,6 +331,9 @@ var (
 		"IOS_CATALYST":      15,
 		"ANDROID_PHONE":     16,
 		"ANDROID_AMBIGUOUS": 17,
+		"WEAR_OS":           18,
+		"AR_WRIST":          19,
+		"AR_DEVICE":         20,
 	}
 )
 
@@ -3523,6 +3532,11 @@ const (
 	WebMessageInfo_RECEIVER_INVITE                                          WebMessageInfo_StubType = 175
 	WebMessageInfo_COMMUNITY_ALLOW_MEMBER_ADDED_GROUPS                      WebMessageInfo_StubType = 176
 	WebMessageInfo_PINNED_MESSAGE_IN_CHAT                                   WebMessageInfo_StubType = 177
+	WebMessageInfo_PAYMENT_INVITE_SETUP_INVITER                             WebMessageInfo_StubType = 178
+	WebMessageInfo_PAYMENT_INVITE_SETUP_INVITEE_RECEIVE_ONLY                WebMessageInfo_StubType = 179
+	WebMessageInfo_PAYMENT_INVITE_SETUP_INVITEE_SEND_AND_RECEIVE            WebMessageInfo_StubType = 180
+	WebMessageInfo_LINKED_GROUP_CALL_START                                  WebMessageInfo_StubType = 181
+	WebMessageInfo_REPORT_TO_ADMIN_ENABLED_STATUS                           WebMessageInfo_StubType = 182
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -3706,6 +3720,11 @@ var (
 		175: "RECEIVER_INVITE",
 		176: "COMMUNITY_ALLOW_MEMBER_ADDED_GROUPS",
 		177: "PINNED_MESSAGE_IN_CHAT",
+		178: "PAYMENT_INVITE_SETUP_INVITER",
+		179: "PAYMENT_INVITE_SETUP_INVITEE_RECEIVE_ONLY",
+		180: "PAYMENT_INVITE_SETUP_INVITEE_SEND_AND_RECEIVE",
+		181: "LINKED_GROUP_CALL_START",
+		182: "REPORT_TO_ADMIN_ENABLED_STATUS",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -3886,6 +3905,11 @@ var (
 		"RECEIVER_INVITE":                                          175,
 		"COMMUNITY_ALLOW_MEMBER_ADDED_GROUPS":                      176,
 		"PINNED_MESSAGE_IN_CHAT":                                   177,
+		"PAYMENT_INVITE_SETUP_INVITER":                             178,
+		"PAYMENT_INVITE_SETUP_INVITEE_RECEIVE_ONLY":                179,
+		"PAYMENT_INVITE_SETUP_INVITEE_SEND_AND_RECEIVE":            180,
+		"LINKED_GROUP_CALL_START":                                  181,
+		"REPORT_TO_ADMIN_ENABLED_STATUS":                           182,
 	}
 )
 
@@ -20355,6 +20379,7 @@ type InteractiveMessage_Header struct {
 	//	*InteractiveMessage_Header_ImageMessage
 	//	*InteractiveMessage_Header_JpegThumbnail
 	//	*InteractiveMessage_Header_VideoMessage
+	//	*InteractiveMessage_Header_LocationMessage
 	Media isInteractiveMessage_Header_Media `protobuf_oneof:"media"`
 }
 
@@ -20446,6 +20471,13 @@ func (x *InteractiveMessage_Header) GetVideoMessage() *VideoMessage {
 	return nil
 }
 
+func (x *InteractiveMessage_Header) GetLocationMessage() *LocationMessage {
+	if x, ok := x.GetMedia().(*InteractiveMessage_Header_LocationMessage); ok {
+		return x.LocationMessage
+	}
+	return nil
+}
+
 type isInteractiveMessage_Header_Media interface {
 	isInteractiveMessage_Header_Media()
 }
@@ -20466,6 +20498,10 @@ type InteractiveMessage_Header_VideoMessage struct {
 	VideoMessage *VideoMessage `protobuf:"bytes,7,opt,name=videoMessage,oneof"`
 }
 
+type InteractiveMessage_Header_LocationMessage struct {
+	LocationMessage *LocationMessage `protobuf:"bytes,8,opt,name=locationMessage,oneof"`
+}
+
 func (*InteractiveMessage_Header_DocumentMessage) isInteractiveMessage_Header_Media() {}
 
 func (*InteractiveMessage_Header_ImageMessage) isInteractiveMessage_Header_Media() {}
@@ -20473,6 +20509,8 @@ func (*InteractiveMessage_Header_ImageMessage) isInteractiveMessage_Header_Media
 func (*InteractiveMessage_Header_JpegThumbnail) isInteractiveMessage_Header_Media() {}
 
 func (*InteractiveMessage_Header_VideoMessage) isInteractiveMessage_Header_Media() {}
+
+func (*InteractiveMessage_Header_LocationMessage) isInteractiveMessage_Header_Media() {}
 
 type InteractiveMessage_Footer struct {
 	state         protoimpl.MessageState
@@ -21470,6 +21508,7 @@ type ContextInfo_ExternalAdReplyInfo struct {
 	RenderLargerThumbnail *bool                                      `protobuf:"varint,11,opt,name=renderLargerThumbnail" json:"renderLargerThumbnail,omitempty"`
 	ShowAdAttribution     *bool                                      `protobuf:"varint,12,opt,name=showAdAttribution" json:"showAdAttribution,omitempty"`
 	CtwaClid              *string                                    `protobuf:"bytes,13,opt,name=ctwaClid" json:"ctwaClid,omitempty"`
+	Ref                   *string                                    `protobuf:"bytes,14,opt,name=ref" json:"ref,omitempty"`
 }
 
 func (x *ContextInfo_ExternalAdReplyInfo) Reset() {
@@ -21591,6 +21630,13 @@ func (x *ContextInfo_ExternalAdReplyInfo) GetShowAdAttribution() bool {
 func (x *ContextInfo_ExternalAdReplyInfo) GetCtwaClid() string {
 	if x != nil && x.CtwaClid != nil {
 		return *x.CtwaClid
+	}
+	return ""
+}
+
+func (x *ContextInfo_ExternalAdReplyInfo) GetRef() string {
+	if x != nil && x.Ref != nil {
+		return *x.Ref
 	}
 	return ""
 }
@@ -23217,6 +23263,7 @@ type ClientPayload_UserAgent struct {
 	LocaleLanguageIso6391       *string                                 `protobuf:"bytes,11,opt,name=localeLanguageIso6391" json:"localeLanguageIso6391,omitempty"`
 	LocaleCountryIso31661Alpha2 *string                                 `protobuf:"bytes,12,opt,name=localeCountryIso31661Alpha2" json:"localeCountryIso31661Alpha2,omitempty"`
 	DeviceBoard                 *string                                 `protobuf:"bytes,13,opt,name=deviceBoard" json:"deviceBoard,omitempty"`
+	DeviceExpId                 *string                                 `protobuf:"bytes,14,opt,name=deviceExpId" json:"deviceExpId,omitempty"`
 }
 
 func (x *ClientPayload_UserAgent) Reset() {
@@ -23338,6 +23385,13 @@ func (x *ClientPayload_UserAgent) GetLocaleCountryIso31661Alpha2() string {
 func (x *ClientPayload_UserAgent) GetDeviceBoard() string {
 	if x != nil && x.DeviceBoard != nil {
 		return *x.DeviceBoard
+	}
+	return ""
+}
+
+func (x *ClientPayload_UserAgent) GetDeviceExpId() string {
+	if x != nil && x.DeviceExpId != nil {
+		return *x.DeviceExpId
 	}
 	return ""
 }
@@ -24692,55 +24746,56 @@ var file_binary_proto_def_proto_depIdxs = []int32{
 	84,  // 389: proto.InteractiveMessage.Header.documentMessage:type_name -> proto.DocumentMessage
 	77,  // 390: proto.InteractiveMessage.Header.imageMessage:type_name -> proto.ImageMessage
 	116, // 391: proto.InteractiveMessage.Header.videoMessage:type_name -> proto.VideoMessage
-	255, // 392: proto.HighlyStructuredMessage.HSMLocalizableParameter.currency:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMCurrency
-	254, // 393: proto.HighlyStructuredMessage.HSMLocalizableParameter.dateTime:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime
-	257, // 394: proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.component:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent
-	256, // 395: proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.unixEpoch:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeUnixEpoch
-	14,  // 396: proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.dayOfWeek:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.DayOfWeekType
-	15,  // 397: proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.calendar:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.CalendarType
-	260, // 398: proto.ButtonsMessage.Button.buttonText:type_name -> proto.ButtonsMessage.Button.ButtonText
-	22,  // 399: proto.ButtonsMessage.Button.type:type_name -> proto.ButtonsMessage.Button.Type
-	259, // 400: proto.ButtonsMessage.Button.nativeFlowInfo:type_name -> proto.ButtonsMessage.Button.NativeFlowInfo
-	24,  // 401: proto.ContextInfo.ExternalAdReplyInfo.mediaType:type_name -> proto.ContextInfo.ExternalAdReplyInfo.MediaType
-	25,  // 402: proto.ContextInfo.AdReplyInfo.mediaType:type_name -> proto.ContextInfo.AdReplyInfo.MediaType
-	79,  // 403: proto.TemplateButton.URLButton.displayText:type_name -> proto.HighlyStructuredMessage
-	79,  // 404: proto.TemplateButton.URLButton.url:type_name -> proto.HighlyStructuredMessage
-	79,  // 405: proto.TemplateButton.QuickReplyButton.displayText:type_name -> proto.HighlyStructuredMessage
-	79,  // 406: proto.TemplateButton.CallButton.displayText:type_name -> proto.HighlyStructuredMessage
-	79,  // 407: proto.TemplateButton.CallButton.phoneNumber:type_name -> proto.HighlyStructuredMessage
-	104, // 408: proto.TemplateMessage.HydratedFourRowTemplate.hydratedButtons:type_name -> proto.HydratedTemplateButton
-	84,  // 409: proto.TemplateMessage.HydratedFourRowTemplate.documentMessage:type_name -> proto.DocumentMessage
-	77,  // 410: proto.TemplateMessage.HydratedFourRowTemplate.imageMessage:type_name -> proto.ImageMessage
-	116, // 411: proto.TemplateMessage.HydratedFourRowTemplate.videoMessage:type_name -> proto.VideoMessage
-	68,  // 412: proto.TemplateMessage.HydratedFourRowTemplate.locationMessage:type_name -> proto.LocationMessage
-	79,  // 413: proto.TemplateMessage.FourRowTemplate.content:type_name -> proto.HighlyStructuredMessage
-	79,  // 414: proto.TemplateMessage.FourRowTemplate.footer:type_name -> proto.HighlyStructuredMessage
-	110, // 415: proto.TemplateMessage.FourRowTemplate.buttons:type_name -> proto.TemplateButton
-	84,  // 416: proto.TemplateMessage.FourRowTemplate.documentMessage:type_name -> proto.DocumentMessage
-	79,  // 417: proto.TemplateMessage.FourRowTemplate.highlyStructuredMessage:type_name -> proto.HighlyStructuredMessage
-	77,  // 418: proto.TemplateMessage.FourRowTemplate.imageMessage:type_name -> proto.ImageMessage
-	116, // 419: proto.TemplateMessage.FourRowTemplate.videoMessage:type_name -> proto.VideoMessage
-	68,  // 420: proto.TemplateMessage.FourRowTemplate.locationMessage:type_name -> proto.LocationMessage
-	77,  // 421: proto.ProductMessage.ProductSnapshot.productImage:type_name -> proto.ImageMessage
-	77,  // 422: proto.ProductMessage.CatalogSnapshot.catalogImage:type_name -> proto.ImageMessage
-	36,  // 423: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.mediaUploadResult:type_name -> proto.MediaRetryNotification.ResultType
-	120, // 424: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.stickerMessage:type_name -> proto.StickerMessage
-	278, // 425: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.linkPreviewResponse:type_name -> proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse
-	277, // 426: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.placeholderMessageResendResponse:type_name -> proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.PlaceholderMessageResendResponse
-	279, // 427: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.hqThumbnail:type_name -> proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.LinkPreviewHighQualityThumbnail
-	156, // 428: proto.PeerDataOperationRequestMessage.PlaceholderMessageResendRequest.messageKey:type_name -> proto.MessageKey
-	209, // 429: proto.VerifiedNameCertificate.Details.localizedNames:type_name -> proto.LocalizedName
-	291, // 430: proto.ClientPayload.WebInfo.webdPayload:type_name -> proto.ClientPayload.WebInfo.WebdPayload
-	48,  // 431: proto.ClientPayload.WebInfo.webSubPlatform:type_name -> proto.ClientPayload.WebInfo.WebSubPlatform
-	50,  // 432: proto.ClientPayload.UserAgent.platform:type_name -> proto.ClientPayload.UserAgent.Platform
-	292, // 433: proto.ClientPayload.UserAgent.appVersion:type_name -> proto.ClientPayload.UserAgent.AppVersion
-	49,  // 434: proto.ClientPayload.UserAgent.releaseChannel:type_name -> proto.ClientPayload.UserAgent.ReleaseChannel
-	51,  // 435: proto.ClientPayload.DNSSource.dnsMethod:type_name -> proto.ClientPayload.DNSSource.DNSResolutionMethod
-	436, // [436:436] is the sub-list for method output_type
-	436, // [436:436] is the sub-list for method input_type
-	436, // [436:436] is the sub-list for extension type_name
-	436, // [436:436] is the sub-list for extension extendee
-	0,   // [0:436] is the sub-list for field type_name
+	68,  // 392: proto.InteractiveMessage.Header.locationMessage:type_name -> proto.LocationMessage
+	255, // 393: proto.HighlyStructuredMessage.HSMLocalizableParameter.currency:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMCurrency
+	254, // 394: proto.HighlyStructuredMessage.HSMLocalizableParameter.dateTime:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime
+	257, // 395: proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.component:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent
+	256, // 396: proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.unixEpoch:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeUnixEpoch
+	14,  // 397: proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.dayOfWeek:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.DayOfWeekType
+	15,  // 398: proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.calendar:type_name -> proto.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.CalendarType
+	260, // 399: proto.ButtonsMessage.Button.buttonText:type_name -> proto.ButtonsMessage.Button.ButtonText
+	22,  // 400: proto.ButtonsMessage.Button.type:type_name -> proto.ButtonsMessage.Button.Type
+	259, // 401: proto.ButtonsMessage.Button.nativeFlowInfo:type_name -> proto.ButtonsMessage.Button.NativeFlowInfo
+	24,  // 402: proto.ContextInfo.ExternalAdReplyInfo.mediaType:type_name -> proto.ContextInfo.ExternalAdReplyInfo.MediaType
+	25,  // 403: proto.ContextInfo.AdReplyInfo.mediaType:type_name -> proto.ContextInfo.AdReplyInfo.MediaType
+	79,  // 404: proto.TemplateButton.URLButton.displayText:type_name -> proto.HighlyStructuredMessage
+	79,  // 405: proto.TemplateButton.URLButton.url:type_name -> proto.HighlyStructuredMessage
+	79,  // 406: proto.TemplateButton.QuickReplyButton.displayText:type_name -> proto.HighlyStructuredMessage
+	79,  // 407: proto.TemplateButton.CallButton.displayText:type_name -> proto.HighlyStructuredMessage
+	79,  // 408: proto.TemplateButton.CallButton.phoneNumber:type_name -> proto.HighlyStructuredMessage
+	104, // 409: proto.TemplateMessage.HydratedFourRowTemplate.hydratedButtons:type_name -> proto.HydratedTemplateButton
+	84,  // 410: proto.TemplateMessage.HydratedFourRowTemplate.documentMessage:type_name -> proto.DocumentMessage
+	77,  // 411: proto.TemplateMessage.HydratedFourRowTemplate.imageMessage:type_name -> proto.ImageMessage
+	116, // 412: proto.TemplateMessage.HydratedFourRowTemplate.videoMessage:type_name -> proto.VideoMessage
+	68,  // 413: proto.TemplateMessage.HydratedFourRowTemplate.locationMessage:type_name -> proto.LocationMessage
+	79,  // 414: proto.TemplateMessage.FourRowTemplate.content:type_name -> proto.HighlyStructuredMessage
+	79,  // 415: proto.TemplateMessage.FourRowTemplate.footer:type_name -> proto.HighlyStructuredMessage
+	110, // 416: proto.TemplateMessage.FourRowTemplate.buttons:type_name -> proto.TemplateButton
+	84,  // 417: proto.TemplateMessage.FourRowTemplate.documentMessage:type_name -> proto.DocumentMessage
+	79,  // 418: proto.TemplateMessage.FourRowTemplate.highlyStructuredMessage:type_name -> proto.HighlyStructuredMessage
+	77,  // 419: proto.TemplateMessage.FourRowTemplate.imageMessage:type_name -> proto.ImageMessage
+	116, // 420: proto.TemplateMessage.FourRowTemplate.videoMessage:type_name -> proto.VideoMessage
+	68,  // 421: proto.TemplateMessage.FourRowTemplate.locationMessage:type_name -> proto.LocationMessage
+	77,  // 422: proto.ProductMessage.ProductSnapshot.productImage:type_name -> proto.ImageMessage
+	77,  // 423: proto.ProductMessage.CatalogSnapshot.catalogImage:type_name -> proto.ImageMessage
+	36,  // 424: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.mediaUploadResult:type_name -> proto.MediaRetryNotification.ResultType
+	120, // 425: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.stickerMessage:type_name -> proto.StickerMessage
+	278, // 426: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.linkPreviewResponse:type_name -> proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse
+	277, // 427: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.placeholderMessageResendResponse:type_name -> proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.PlaceholderMessageResendResponse
+	279, // 428: proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.hqThumbnail:type_name -> proto.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.LinkPreviewHighQualityThumbnail
+	156, // 429: proto.PeerDataOperationRequestMessage.PlaceholderMessageResendRequest.messageKey:type_name -> proto.MessageKey
+	209, // 430: proto.VerifiedNameCertificate.Details.localizedNames:type_name -> proto.LocalizedName
+	291, // 431: proto.ClientPayload.WebInfo.webdPayload:type_name -> proto.ClientPayload.WebInfo.WebdPayload
+	48,  // 432: proto.ClientPayload.WebInfo.webSubPlatform:type_name -> proto.ClientPayload.WebInfo.WebSubPlatform
+	50,  // 433: proto.ClientPayload.UserAgent.platform:type_name -> proto.ClientPayload.UserAgent.Platform
+	292, // 434: proto.ClientPayload.UserAgent.appVersion:type_name -> proto.ClientPayload.UserAgent.AppVersion
+	49,  // 435: proto.ClientPayload.UserAgent.releaseChannel:type_name -> proto.ClientPayload.UserAgent.ReleaseChannel
+	51,  // 436: proto.ClientPayload.DNSSource.dnsMethod:type_name -> proto.ClientPayload.DNSSource.DNSResolutionMethod
+	437, // [437:437] is the sub-list for method output_type
+	437, // [437:437] is the sub-list for method input_type
+	437, // [437:437] is the sub-list for extension type_name
+	437, // [437:437] is the sub-list for extension extendee
+	0,   // [0:437] is the sub-list for field type_name
 }
 
 func init() { file_binary_proto_def_proto_init() }
@@ -27623,6 +27678,7 @@ func file_binary_proto_def_proto_init() {
 		(*InteractiveMessage_Header_ImageMessage)(nil),
 		(*InteractiveMessage_Header_JpegThumbnail)(nil),
 		(*InteractiveMessage_Header_VideoMessage)(nil),
+		(*InteractiveMessage_Header_LocationMessage)(nil),
 	}
 	file_binary_proto_def_proto_msgTypes[193].OneofWrappers = []interface{}{
 		(*HighlyStructuredMessage_HSMLocalizableParameter_Currency)(nil),

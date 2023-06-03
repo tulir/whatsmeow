@@ -58,6 +58,9 @@ message DeviceProps {
         IOS_CATALYST = 15;
         ANDROID_PHONE = 16;
         ANDROID_AMBIGUOUS = 17;
+        WEAR_OS = 18;
+        AR_WRIST = 19;
+        AR_DEVICE = 20;
     }
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
@@ -284,6 +287,7 @@ message InteractiveMessage {
             ImageMessage imageMessage = 4;
             bytes jpegThumbnail = 6;
             VideoMessage videoMessage = 7;
+            LocationMessage locationMessage = 8;
         }
     }
     
@@ -764,6 +768,7 @@ message ContextInfo {
         optional bool renderLargerThumbnail = 11;
         optional bool showAdAttribution = 12;
         optional string ctwaClid = 13;
+        optional string ref = 14;
     }
     
     message AdReplyInfo {
@@ -2012,6 +2017,7 @@ message ClientPayload {
         optional string localeLanguageIso6391 = 11;
         optional string localeCountryIso31661Alpha2 = 12;
         optional string deviceBoard = 13;
+        optional string deviceExpId = 14;
     }
     
     enum Product {
@@ -2295,6 +2301,11 @@ message WebMessageInfo {
         RECEIVER_INVITE = 175;
         COMMUNITY_ALLOW_MEMBER_ADDED_GROUPS = 176;
         PINNED_MESSAGE_IN_CHAT = 177;
+        PAYMENT_INVITE_SETUP_INVITER = 178;
+        PAYMENT_INVITE_SETUP_INVITEE_RECEIVE_ONLY = 179;
+        PAYMENT_INVITE_SETUP_INVITEE_SEND_AND_RECEIVE = 180;
+        LINKED_GROUP_CALL_START = 181;
+        REPORT_TO_ADMIN_ENABLED_STATUS = 182;
     }
     enum Status {
         ERROR = 0;
