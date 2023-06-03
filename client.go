@@ -552,11 +552,38 @@ func (cli *Client) handleFrame(data []byte) {
 	}
 }
 
+func stopAndDrainTimer(timer *time.Timer) {
+	if !timer.Stop() {
+		select {
+		case <-timer.C:
+		default:
+		}
+	}
+}
+
 func (cli *Client) handlerQueueLoop(ctx context.Context) {
+	timer := time.NewTimer(0)
+	stopAndDrainTimer(timer)
 	for {
 		select {
 		case node := <-cli.handlerQueue:
-			cli.nodeHandlers[node.Tag](node)
+			doneChan := make(chan struct{}, 1)
+			go func() {
+				start := time.Now()
+				cli.nodeHandlers[node.Tag](node)
+				duration := time.Since(start)
+				doneChan <- struct{}{}
+				if duration > 5*time.Second {
+					cli.Log.Warnf("Node handling took %s for %s", duration, node.XMLString())
+				}
+			}()
+			timer.Reset(5 * time.Minute)
+			select {
+			case <-doneChan:
+				stopAndDrainTimer(timer)
+			case <-timer.C:
+				cli.Log.Warnf("Node handling is taking long for %s - continuing in background", node.XMLString())
+			}
 		case <-ctx.Done():
 			return
 		}
