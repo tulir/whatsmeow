@@ -564,6 +564,7 @@ func stopAndDrainTimer(timer *time.Timer) {
 func (cli *Client) handlerQueueLoop(ctx context.Context) {
 	timer := time.NewTimer(0)
 	stopAndDrainTimer(timer)
+	cli.Log.Debugf("Starting handler queue loop")
 	for {
 		select {
 		case node := <-cli.handlerQueue:
@@ -585,6 +586,7 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 				cli.Log.Warnf("Node handling is taking long for %s - continuing in background", node.XMLString())
 			}
 		case <-ctx.Done():
+			cli.Log.Debugf("Closing handler queue loop")
 			return
 		}
 	}
