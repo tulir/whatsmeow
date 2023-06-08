@@ -1457,50 +1457,6 @@ message AutoDownloadSettings {
     optional bool downloadDocuments = 4;
 }
 
-// Duplicate type omitted
-//message PollEncValue {
-//    optional bytes encPayload = 1;
-//    optional bytes encIv = 2;
-//}
-
-message MsgRowOpaqueData {
-    optional MsgOpaqueData currentMsg = 1;
-    optional MsgOpaqueData quotedMsg = 2;
-}
-
-message MsgOpaqueData {
-    message PollOption {
-        optional string name = 1;
-    }
-    
-    optional string body = 1;
-    optional string caption = 3;
-    optional double lng = 5;
-    optional bool isLive = 6;
-    optional double lat = 7;
-    optional int32 paymentAmount1000 = 8;
-    optional string paymentNoteMsgBody = 9;
-    optional string canonicalUrl = 10;
-    optional string matchedText = 11;
-    optional string title = 12;
-    optional string description = 13;
-    optional bytes futureproofBuffer = 14;
-    optional string clientUrl = 15;
-    optional string loc = 16;
-    optional string pollName = 17;
-    repeated PollOption pollOptions = 18;
-    optional uint32 pollSelectableOptionsCount = 20;
-    optional bytes messageSecret = 21;
-    optional string originalSelfAuthor = 51;
-    optional int64 senderTimestampMs = 22;
-    optional string pollUpdateParentKey = 23;
-    optional PollEncValue encPollVote = 24;
-    optional bool isSentCagPollCreation = 28;
-    optional string encReactionTargetMessageKey = 25;
-    optional bytes encReactionEncPayload = 26;
-    optional bytes encReactionEncIv = 27;
-}
-
 message ServerErrorReceipt {
     optional string stanzaId = 1;
 }
