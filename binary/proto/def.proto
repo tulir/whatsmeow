@@ -61,6 +61,7 @@ message DeviceProps {
         WEAR_OS = 18;
         AR_WRIST = 19;
         AR_DEVICE = 20;
+        UWP = 21;
     }
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
@@ -626,6 +627,21 @@ message ButtonsMessage {
     }
 }
 
+message BotFeedbackMessage {
+    enum BotFeedbackKind {
+        BOT_FEEDBACK_POSITIVE = 0;
+        BOT_FEEDBACK_NEGATIVE_GENERIC = 1;
+        BOT_FEEDBACK_NEGATIVE_HELPFUL = 2;
+        BOT_FEEDBACK_NEGATIVE_INTERESTING = 3;
+        BOT_FEEDBACK_NEGATIVE_ACCURATE = 4;
+        BOT_FEEDBACK_NEGATIVE_SAFE = 5;
+        BOT_FEEDBACK_NEGATIVE_OTHER = 6;
+    }
+    optional MessageKey messageKey = 1;
+    optional BotFeedbackKind kind = 2;
+    optional string text = 3;
+}
+
 message AudioMessage {
     optional string url = 1;
     optional string mimetype = 2;
@@ -937,6 +953,13 @@ message Message {
     optional PollCreationMessage pollCreationMessageV3 = 64;
     optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
     optional VideoMessage ptvMessage = 66;
+    optional FutureProofMessage botInvokeMessage = 67;
+}
+
+message MessageSecretMessage {
+    optional sfixed32 version = 1;
+    optional bytes encIv = 2;
+    optional bytes encPayload = 3;
 }
 
 message MessageContextInfo {
@@ -945,6 +968,7 @@ message MessageContextInfo {
     optional bytes messageSecret = 3;
     optional bytes paddingBytes = 4;
     optional uint32 messageAddOnDurationInSecs = 5;
+    optional bytes botMessageSecret = 6;
 }
 
 message VideoMessage {
@@ -1116,6 +1140,8 @@ message ProtocolMessage {
         MESSAGE_EDIT = 14;
         PEER_DATA_OPERATION_REQUEST_MESSAGE = 16;
         PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE = 17;
+        REQUEST_WELCOME_MESSAGE = 18;
+        BOT_FEEDBACK_MESSAGE = 19;
     }
     optional MessageKey key = 1;
     optional Type type = 2;
@@ -1131,6 +1157,7 @@ message ProtocolMessage {
     optional int64 timestampMs = 15;
     optional PeerDataOperationRequestMessage peerDataOperationRequestMessage = 16;
     optional PeerDataOperationRequestResponseMessage peerDataOperationRequestResponseMessage = 17;
+    optional BotFeedbackMessage botFeedbackMessage = 18;
 }
 
 message ProductMessage {
@@ -1250,15 +1277,6 @@ message PeerDataOperationRequestResponseMessage {
 }
 
 message PeerDataOperationRequestMessage {
-    message RequestUrlPreview {
-        optional string url = 1;
-        optional bool includeHqThumbnail = 2;
-    }
-    
-    message RequestStickerReupload {
-        optional string fileSha256 = 1;
-    }
-    
     message PlaceholderMessageResendRequest {
         optional MessageKey messageKey = 1;
     }
@@ -1269,6 +1287,15 @@ message PeerDataOperationRequestMessage {
         optional bool oldestMsgFromMe = 3;
         optional int32 onDemandMsgCount = 4;
         optional int64 oldestMsgTimestampMs = 5;
+    }
+    
+    message RequestUrlPreview {
+        optional string url = 1;
+        optional bool includeHqThumbnail = 2;
+    }
+    
+    message RequestStickerReupload {
+        optional string fileSha256 = 1;
     }
     
     optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -1952,6 +1979,13 @@ message ClientPayload {
             BLUE_WEB = 32;
             IPAD = 33;
         }
+        enum DeviceType {
+            PHONE = 0;
+            TABLET = 1;
+            DESKTOP = 2;
+            WEARABLE = 3;
+            VR = 4;
+        }
         message AppVersion {
             optional uint32 primary = 1;
             optional uint32 secondary = 2;
@@ -1974,6 +2008,7 @@ message ClientPayload {
         optional string localeCountryIso31661Alpha2 = 12;
         optional string deviceBoard = 13;
         optional string deviceExpId = 14;
+        optional DeviceType deviceType = 15;
     }
     
     enum Product {
