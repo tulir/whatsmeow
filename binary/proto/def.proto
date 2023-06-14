@@ -61,6 +61,7 @@ message DeviceProps {
         WEAR_OS = 18;
         AR_WRIST = 19;
         AR_DEVICE = 20;
+        UWP = 21;
     }
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
@@ -83,17 +84,6 @@ message DeviceProps {
     optional PlatformType platformType = 3;
     optional bool requireFullSync = 4;
     optional HistorySyncConfig historySyncConfig = 5;
-}
-
-message PaymentInviteMessage {
-    enum ServiceType {
-        UNKNOWN = 0;
-        FBPAY = 1;
-        NOVI = 2;
-        UPI = 3;
-    }
-    optional ServiceType serviceType = 1;
-    optional int64 expiryTimestamp = 2;
 }
 
 message OrderMessage {
@@ -301,6 +291,10 @@ message InteractiveMessage {
         optional int32 messageVersion = 3;
     }
     
+    message CarouselMessage {
+        repeated InteractiveMessage cards = 1;
+    }
+    
     message Body {
         optional string text = 1;
     }
@@ -313,6 +307,7 @@ message InteractiveMessage {
         ShopMessage shopStorefrontMessage = 4;
         CollectionMessage collectionMessage = 5;
         NativeFlowMessage nativeFlowMessage = 6;
+        CarouselMessage carouselMessage = 7;
     }
 }
 
@@ -626,6 +621,21 @@ message ButtonsMessage {
     }
 }
 
+message BotFeedbackMessage {
+    enum BotFeedbackKind {
+        BOT_FEEDBACK_POSITIVE = 0;
+        BOT_FEEDBACK_NEGATIVE_GENERIC = 1;
+        BOT_FEEDBACK_NEGATIVE_HELPFUL = 2;
+        BOT_FEEDBACK_NEGATIVE_INTERESTING = 3;
+        BOT_FEEDBACK_NEGATIVE_ACCURATE = 4;
+        BOT_FEEDBACK_NEGATIVE_SAFE = 5;
+        BOT_FEEDBACK_NEGATIVE_OTHER = 6;
+    }
+    optional MessageKey messageKey = 1;
+    optional BotFeedbackKind kind = 2;
+    optional string text = 3;
+}
+
 message AudioMessage {
     optional string url = 1;
     optional string mimetype = 2;
@@ -813,6 +823,24 @@ message ContextInfo {
     optional UTMInfo utm = 41;
 }
 
+message BotMetadata {
+    optional BotAvatarMetadata avatarMetadata = 1;
+}
+
+message BotAvatarMetadata {
+    message PlaybackMetadata {
+        optional string sdProgressiveUrl = 1;
+        optional string hdProgressiveUrl = 2;
+        optional string dashManifest = 3;
+        optional uint32 sentiment = 4;
+        optional uint32 durationMs = 5;
+        optional int64 videoID = 6;
+    }
+    
+    optional uint32 sentiment = 1;
+    repeated PlaybackMetadata dynamicVideoList = 2;
+}
+
 message ActionLink {
     optional string url = 1;
     optional string buttonTitle = 2;
@@ -937,6 +965,13 @@ message Message {
     optional PollCreationMessage pollCreationMessageV3 = 64;
     optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
     optional VideoMessage ptvMessage = 66;
+    optional FutureProofMessage botInvokeMessage = 67;
+}
+
+message MessageSecretMessage {
+    optional sfixed32 version = 1;
+    optional bytes encIv = 2;
+    optional bytes encPayload = 3;
 }
 
 message MessageContextInfo {
@@ -945,6 +980,8 @@ message MessageContextInfo {
     optional bytes messageSecret = 3;
     optional bytes paddingBytes = 4;
     optional uint32 messageAddOnDurationInSecs = 5;
+    optional bytes botMessageSecret = 6;
+    optional BotMetadata botMetadata = 7;
 }
 
 message VideoMessage {
@@ -1116,6 +1153,8 @@ message ProtocolMessage {
         MESSAGE_EDIT = 14;
         PEER_DATA_OPERATION_REQUEST_MESSAGE = 16;
         PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE = 17;
+        REQUEST_WELCOME_MESSAGE = 18;
+        BOT_FEEDBACK_MESSAGE = 19;
     }
     optional MessageKey key = 1;
     optional Type type = 2;
@@ -1131,6 +1170,7 @@ message ProtocolMessage {
     optional int64 timestampMs = 15;
     optional PeerDataOperationRequestMessage peerDataOperationRequestMessage = 16;
     optional PeerDataOperationRequestResponseMessage peerDataOperationRequestResponseMessage = 17;
+    optional BotFeedbackMessage botFeedbackMessage = 18;
 }
 
 message ProductMessage {
@@ -1276,6 +1316,17 @@ message PeerDataOperationRequestMessage {
     repeated RequestUrlPreview requestUrlPreview = 3;
     optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
     repeated PlaceholderMessageResendRequest placeholderMessageResendRequest = 5;
+}
+
+message PaymentInviteMessage {
+    enum ServiceType {
+        UNKNOWN = 0;
+        FBPAY = 1;
+        NOVI = 2;
+        UPI = 3;
+    }
+    optional ServiceType serviceType = 1;
+    optional int64 expiryTimestamp = 2;
 }
 
 message EphemeralSetting {
@@ -1455,50 +1506,6 @@ message AutoDownloadSettings {
     optional bool downloadAudio = 2;
     optional bool downloadVideo = 3;
     optional bool downloadDocuments = 4;
-}
-
-// Duplicate type omitted
-//message PollEncValue {
-//    optional bytes encPayload = 1;
-//    optional bytes encIv = 2;
-//}
-
-message MsgRowOpaqueData {
-    optional MsgOpaqueData currentMsg = 1;
-    optional MsgOpaqueData quotedMsg = 2;
-}
-
-message MsgOpaqueData {
-    message PollOption {
-        optional string name = 1;
-    }
-    
-    optional string body = 1;
-    optional string caption = 3;
-    optional double lng = 5;
-    optional bool isLive = 6;
-    optional double lat = 7;
-    optional int32 paymentAmount1000 = 8;
-    optional string paymentNoteMsgBody = 9;
-    optional string canonicalUrl = 10;
-    optional string matchedText = 11;
-    optional string title = 12;
-    optional string description = 13;
-    optional bytes futureproofBuffer = 14;
-    optional string clientUrl = 15;
-    optional string loc = 16;
-    optional string pollName = 17;
-    repeated PollOption pollOptions = 18;
-    optional uint32 pollSelectableOptionsCount = 20;
-    optional bytes messageSecret = 21;
-    optional string originalSelfAuthor = 51;
-    optional int64 senderTimestampMs = 22;
-    optional string pollUpdateParentKey = 23;
-    optional PollEncValue encPollVote = 24;
-    optional bool isSentCagPollCreation = 28;
-    optional string encReactionTargetMessageKey = 25;
-    optional bytes encReactionEncPayload = 26;
-    optional bytes encReactionEncIv = 27;
 }
 
 message ServerErrorReceipt {
@@ -1996,6 +2003,13 @@ message ClientPayload {
             BLUE_WEB = 32;
             IPAD = 33;
         }
+        enum DeviceType {
+            PHONE = 0;
+            TABLET = 1;
+            DESKTOP = 2;
+            WEARABLE = 3;
+            VR = 4;
+        }
         message AppVersion {
             optional uint32 primary = 1;
             optional uint32 secondary = 2;
@@ -2018,6 +2032,7 @@ message ClientPayload {
         optional string localeCountryIso31661Alpha2 = 12;
         optional string deviceBoard = 13;
         optional string deviceExpId = 14;
+        optional DeviceType deviceType = 15;
     }
     
     enum Product {
@@ -2306,6 +2321,7 @@ message WebMessageInfo {
         PAYMENT_INVITE_SETUP_INVITEE_SEND_AND_RECEIVE = 180;
         LINKED_GROUP_CALL_START = 181;
         REPORT_TO_ADMIN_ENABLED_STATUS = 182;
+        EMPTY_SUBGROUP_CREATE = 183;
     }
     enum Status {
         ERROR = 0;
@@ -2365,6 +2381,7 @@ message WebMessageInfo {
     optional string originalSelfAuthorUserJidString = 51;
     optional uint64 revokeMessageTimestamp = 52;
     optional PinInChat pinInChat = 54;
+    optional FutureproofMessageSecretMessage futureproofMessageSecretMessage = 55;
 }
 
 message WebFeatures {
@@ -2564,6 +2581,19 @@ message KeepInChat {
     optional string deviceJid = 4;
     optional int64 clientTimestampMs = 5;
     optional int64 serverTimestampMs = 6;
+}
+
+message FutureproofMessageSecretMessage {
+    required MessageSecretMessage messageSecretMessage = 1;
+    required FutureMessageData futureMessageData = 2;
+}
+
+message FutureMessageData {
+    optional BotData botData = 1;
+}
+
+message BotData {
+    required MessageKey targetMessageKey = 1;
 }
 
 message NoiseCertificate {

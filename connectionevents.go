@@ -11,6 +11,7 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -97,7 +98,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 			Expire: time.Duration(ag.Int("expire")) * time.Second,
 		})
 	} else if reason == events.ConnectFailureClientOutdated {
-		cli.Log.Errorf("Client outdated (405) connect failure")
+		cli.Log.Errorf("Client outdated (405) connect failure (client version: %s)", store.GetWAVersion().String())
 		go cli.dispatchEvent(&events.ClientOutdated{})
 	} else if reason == events.ConnectFailureServiceUnavailable {
 		cli.Log.Warnf("Got 503 connect failure, assuming automatic reconnect will handle it")
