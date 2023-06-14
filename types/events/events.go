@@ -199,6 +199,13 @@ type HistorySync struct {
 	Data *waProto.HistorySync
 }
 
+type DecryptFailMode string
+
+const (
+	DecryptFailShow DecryptFailMode = ""
+	DecryptFailHide DecryptFailMode = "hide"
+)
+
 // UndecryptableMessage is emitted when receiving a new message that failed to decrypt.
 //
 // The library will automatically ask the sender to retry. If the sender resends the message,
@@ -211,6 +218,8 @@ type UndecryptableMessage struct {
 	// IsUnavailable is true if the recipient device didn't send a ciphertext to this device at all
 	// (as opposed to sending a ciphertext, but the ciphertext not being decryptable).
 	IsUnavailable bool
+
+	DecryptFailMode DecryptFailMode
 }
 
 // Message is emitted when receiving a new message.

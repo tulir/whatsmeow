@@ -30,6 +30,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 )
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
@@ -691,10 +692,10 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 	}
 	if editAttr := getEditAttribute(message); editAttr != "" {
 		attrs["edit"] = editAttr
-		encAttrs["decrypt-fail"] = "hide"
+		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
 	}
 	if msgType == "reaction" {
-		encAttrs["decrypt-fail"] = "hide"
+		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
 	}
 
 	start = time.Now()

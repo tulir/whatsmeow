@@ -157,7 +157,12 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
 			go cli.sendRetryReceipt(node, isUnavailable)
-			cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: isUnavailable})
+			decryptFailMode, _ := child.Attrs["decrypt-fail"].(string)
+			cli.dispatchEvent(&events.UndecryptableMessage{
+				Info:            *info,
+				IsUnavailable:   isUnavailable,
+				DecryptFailMode: events.DecryptFailMode(decryptFailMode),
+			})
 			return
 		}
 
