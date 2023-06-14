@@ -86,17 +86,6 @@ message DeviceProps {
     optional HistorySyncConfig historySyncConfig = 5;
 }
 
-message PaymentInviteMessage {
-    enum ServiceType {
-        UNKNOWN = 0;
-        FBPAY = 1;
-        NOVI = 2;
-        UPI = 3;
-    }
-    optional ServiceType serviceType = 1;
-    optional int64 expiryTimestamp = 2;
-}
-
 message OrderMessage {
     enum OrderSurface {
         CATALOG = 1;
@@ -302,6 +291,10 @@ message InteractiveMessage {
         optional int32 messageVersion = 3;
     }
     
+    message CarouselMessage {
+        repeated InteractiveMessage cards = 1;
+    }
+    
     message Body {
         optional string text = 1;
     }
@@ -314,6 +307,7 @@ message InteractiveMessage {
         ShopMessage shopStorefrontMessage = 4;
         CollectionMessage collectionMessage = 5;
         NativeFlowMessage nativeFlowMessage = 6;
+        CarouselMessage carouselMessage = 7;
     }
 }
 
@@ -829,6 +823,24 @@ message ContextInfo {
     optional UTMInfo utm = 41;
 }
 
+message BotMetadata {
+    optional BotAvatarMetadata avatarMetadata = 1;
+}
+
+message BotAvatarMetadata {
+    message PlaybackMetadata {
+        optional string sdProgressiveUrl = 1;
+        optional string hdProgressiveUrl = 2;
+        optional string dashManifest = 3;
+        optional uint32 sentiment = 4;
+        optional uint32 durationMs = 5;
+        optional int64 videoID = 6;
+    }
+    
+    optional uint32 sentiment = 1;
+    repeated PlaybackMetadata dynamicVideoList = 2;
+}
+
 message ActionLink {
     optional string url = 1;
     optional string buttonTitle = 2;
@@ -969,6 +981,7 @@ message MessageContextInfo {
     optional bytes paddingBytes = 4;
     optional uint32 messageAddOnDurationInSecs = 5;
     optional bytes botMessageSecret = 6;
+    optional BotMetadata botMetadata = 7;
 }
 
 message VideoMessage {
@@ -1277,6 +1290,15 @@ message PeerDataOperationRequestResponseMessage {
 }
 
 message PeerDataOperationRequestMessage {
+    message RequestUrlPreview {
+        optional string url = 1;
+        optional bool includeHqThumbnail = 2;
+    }
+    
+    message RequestStickerReupload {
+        optional string fileSha256 = 1;
+    }
+    
     message PlaceholderMessageResendRequest {
         optional MessageKey messageKey = 1;
     }
@@ -1289,20 +1311,22 @@ message PeerDataOperationRequestMessage {
         optional int64 oldestMsgTimestampMs = 5;
     }
     
-    message RequestUrlPreview {
-        optional string url = 1;
-        optional bool includeHqThumbnail = 2;
-    }
-    
-    message RequestStickerReupload {
-        optional string fileSha256 = 1;
-    }
-    
     optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
     repeated RequestStickerReupload requestStickerReupload = 2;
     repeated RequestUrlPreview requestUrlPreview = 3;
     optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
     repeated PlaceholderMessageResendRequest placeholderMessageResendRequest = 5;
+}
+
+message PaymentInviteMessage {
+    enum ServiceType {
+        UNKNOWN = 0;
+        FBPAY = 1;
+        NOVI = 2;
+        UPI = 3;
+    }
+    optional ServiceType serviceType = 1;
+    optional int64 expiryTimestamp = 2;
 }
 
 message EphemeralSetting {
@@ -2297,6 +2321,7 @@ message WebMessageInfo {
         PAYMENT_INVITE_SETUP_INVITEE_SEND_AND_RECEIVE = 180;
         LINKED_GROUP_CALL_START = 181;
         REPORT_TO_ADMIN_ENABLED_STATUS = 182;
+        EMPTY_SUBGROUP_CREATE = 183;
     }
     enum Status {
         ERROR = 0;
@@ -2356,6 +2381,7 @@ message WebMessageInfo {
     optional string originalSelfAuthorUserJidString = 51;
     optional uint64 revokeMessageTimestamp = 52;
     optional PinInChat pinInChat = 54;
+    optional FutureproofMessageSecretMessage futureproofMessageSecretMessage = 55;
 }
 
 message WebFeatures {
@@ -2555,6 +2581,19 @@ message KeepInChat {
     optional string deviceJid = 4;
     optional int64 clientTimestampMs = 5;
     optional int64 serverTimestampMs = 6;
+}
+
+message FutureproofMessageSecretMessage {
+    required MessageSecretMessage messageSecretMessage = 1;
+    required FutureMessageData futureMessageData = 2;
+}
+
+message FutureMessageData {
+    optional BotData botData = 1;
+}
+
+message BotData {
+    required MessageKey targetMessageKey = 1;
 }
 
 message NoiseCertificate {
