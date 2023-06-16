@@ -12,8 +12,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -233,7 +235,7 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 func (cli *Client) downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSha256, fileSha256 []byte) (data []byte, err error) {
 	iv, cipherKey, macKey, _ := getMediaKeys(mediaKey, appInfo)
 	var ciphertext, mac []byte
-	if ciphertext, mac, err = cli.downloadEncryptedMedia(url, fileEncSha256); err != nil {
+	if ciphertext, mac, err = cli.downloadEncryptedMediaWithRetries(url, fileEncSha256); err != nil {
 
 	} else if err = validateMedia(iv, ciphertext, macKey, mac); err != nil {
 
@@ -250,6 +252,23 @@ func (cli *Client) downloadAndDecrypt(url string, mediaKey []byte, appInfo Media
 func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, refKey []byte) {
 	mediaKeyExpanded := hkdfutil.SHA256(mediaKey, nil, []byte(appInfo), 112)
 	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:]
+}
+
+func (cli *Client) downloadEncryptedMediaWithRetries(url string, checksum []byte) (file, mac []byte, err error) {
+	for retryNum := 0; retryNum < 5; retryNum++ {
+		file, mac, err = cli.downloadEncryptedMedia(url, checksum)
+		if err == nil {
+			return
+		}
+		netErr, ok := err.(net.Error)
+		if !ok {
+			// Not a network error, don't retry
+			return
+		}
+		cli.Log.Warnf("Failed to download media due to network error: %w, retrying...", netErr)
+		time.Sleep(time.Duration(retryNum+1) * time.Second)
+	}
+	return
 }
 
 func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
