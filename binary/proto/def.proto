@@ -2381,7 +2381,6 @@ message WebMessageInfo {
     optional string originalSelfAuthorUserJidString = 51;
     optional uint64 revokeMessageTimestamp = 52;
     optional PinInChat pinInChat = 54;
-    optional FutureproofMessageSecretMessage futureproofMessageSecretMessage = 55;
 }
 
 message WebFeatures {
@@ -2581,19 +2580,6 @@ message KeepInChat {
     optional string deviceJid = 4;
     optional int64 clientTimestampMs = 5;
     optional int64 serverTimestampMs = 6;
-}
-
-message FutureproofMessageSecretMessage {
-    required MessageSecretMessage messageSecretMessage = 1;
-    required FutureMessageData futureMessageData = 2;
-}
-
-message FutureMessageData {
-    optional BotData botData = 1;
-}
-
-message BotData {
-    required MessageKey targetMessageKey = 1;
 }
 
 message NoiseCertificate {
