@@ -62,6 +62,7 @@ message DeviceProps {
         AR_WRIST = 19;
         AR_DEVICE = 20;
         UWP = 21;
+        VR = 22;
     }
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
@@ -84,27 +85,6 @@ message DeviceProps {
     optional PlatformType platformType = 3;
     optional bool requireFullSync = 4;
     optional HistorySyncConfig historySyncConfig = 5;
-}
-
-message OrderMessage {
-    enum OrderSurface {
-        CATALOG = 1;
-    }
-    enum OrderStatus {
-        INQUIRY = 1;
-    }
-    optional string orderId = 1;
-    optional bytes thumbnail = 2;
-    optional int32 itemCount = 3;
-    optional OrderStatus status = 4;
-    optional OrderSurface surface = 5;
-    optional string message = 6;
-    optional string orderTitle = 7;
-    optional string sellerJid = 8;
-    optional string token = 9;
-    optional int64 totalAmount1000 = 10;
-    optional string totalCurrencyCode = 11;
-    optional ContextInfo contextInfo = 17;
 }
 
 message LocationMessage {
@@ -736,12 +716,20 @@ message GroupMention {
 }
 
 message DisappearingMode {
+    enum Trigger {
+        UNKNOWN = 0;
+        CHAT_SETTING = 1;
+        ACCOUNT_SETTING = 2;
+        BULK_CHANGE = 3;
+    }
     enum Initiator {
         CHANGED_IN_CHAT = 0;
         INITIATED_BY_ME = 1;
         INITIATED_BY_OTHER = 2;
     }
     optional Initiator initiator = 1;
+    optional Trigger trigger = 2;
+    optional string initiatorDeviceJid = 3;
 }
 
 message DeviceListMetadata {
@@ -757,6 +745,11 @@ message ContextInfo {
     message UTMInfo {
         optional string utmSource = 1;
         optional string utmCampaign = 2;
+    }
+    
+    message ForwardedNewsletterMessageInfo {
+        optional string newsletterJid = 1;
+        optional int32 serverMessageId = 2;
     }
     
     message ExternalAdReplyInfo {
@@ -821,6 +814,7 @@ message ContextInfo {
     optional bool isSampled = 39;
     repeated GroupMention groupMentions = 40;
     optional UTMInfo utm = 41;
+    optional ForwardedNewsletterMessageInfo forwardedNewsletterMessageInfo = 43;
 }
 
 message BotMetadata {
@@ -828,17 +822,8 @@ message BotMetadata {
 }
 
 message BotAvatarMetadata {
-    message PlaybackMetadata {
-        optional string sdProgressiveUrl = 1;
-        optional string hdProgressiveUrl = 2;
-        optional string dashManifest = 3;
-        optional uint32 sentiment = 4;
-        optional uint32 durationMs = 5;
-        optional int64 videoID = 6;
-    }
-    
     optional uint32 sentiment = 1;
-    repeated PlaybackMetadata dynamicVideoList = 2;
+    optional string behaviorGraph = 2;
 }
 
 message ActionLink {
@@ -1327,6 +1312,27 @@ message PaymentInviteMessage {
     }
     optional ServiceType serviceType = 1;
     optional int64 expiryTimestamp = 2;
+}
+
+message OrderMessage {
+    enum OrderSurface {
+        CATALOG = 1;
+    }
+    enum OrderStatus {
+        INQUIRY = 1;
+    }
+    optional string orderId = 1;
+    optional bytes thumbnail = 2;
+    optional int32 itemCount = 3;
+    optional OrderStatus status = 4;
+    optional OrderSurface surface = 5;
+    optional string message = 6;
+    optional string orderTitle = 7;
+    optional string sellerJid = 8;
+    optional string token = 9;
+    optional int64 totalAmount1000 = 10;
+    optional string totalCurrencyCode = 11;
+    optional ContextInfo contextInfo = 17;
 }
 
 message EphemeralSetting {
