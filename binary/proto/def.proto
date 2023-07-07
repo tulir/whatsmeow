@@ -273,6 +273,7 @@ message InteractiveMessage {
     
     message CarouselMessage {
         repeated InteractiveMessage cards = 1;
+        optional int32 messageVersion = 2;
     }
     
     message Body {
@@ -774,6 +775,10 @@ message ContextInfo {
         optional string ref = 14;
     }
     
+    message BusinessMessageForwardInfo {
+        optional string businessOwnerJid = 1;
+    }
+    
     message AdReplyInfo {
         enum MediaType {
             NONE = 0;
@@ -815,6 +820,7 @@ message ContextInfo {
     repeated GroupMention groupMentions = 40;
     optional UTMInfo utm = 41;
     optional ForwardedNewsletterMessageInfo forwardedNewsletterMessageInfo = 43;
+    optional BusinessMessageForwardInfo businessMessageForwardInfo = 44;
 }
 
 message BotMetadata {
@@ -1315,11 +1321,11 @@ message PaymentInviteMessage {
 }
 
 message OrderMessage {
-    enum OrderSurface {
-        CATALOG = 1;
-    }
     enum OrderStatus {
         INQUIRY = 1;
+    }
+    enum OrderSurface {
+        CATALOG = 1;
     }
     optional string orderId = 1;
     optional bytes thumbnail = 2;
