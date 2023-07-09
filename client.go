@@ -130,6 +130,8 @@ type Client struct {
 	// Should SubscribePresence return an error if no privacy token is stored for the user?
 	ErrorOnSubscribePresenceWithoutToken bool
 
+	phoneLinkingCache *phoneLinkingCache
+
 	uniqueID  string
 	idCounter uint32
 
