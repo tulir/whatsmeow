@@ -132,7 +132,7 @@ func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.
 //	}
 func (cli *Client) DecryptReaction(reaction *events.Message) (*waProto.ReactionMessage, error) {
 	encReaction := reaction.Message.GetEncReactionMessage()
-	if encReaction != nil {
+	if encReaction == nil {
 		return nil, ErrNotEncryptedReactionMessage
 	}
 	plaintext, err := cli.decryptMsgSecret(reaction, EncSecretReaction, encReaction, encReaction.GetTargetMessageKey())
