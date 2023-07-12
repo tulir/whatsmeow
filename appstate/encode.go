@@ -80,7 +80,7 @@ func BuildPin(target types.JID, pin bool) PatchInfo {
 	}
 }
 
-// BuildPushNameSetting builds an app state patch for alter profile name
+// BuildPushNameSetting builds an app state patch for changing the user's push name (the name shown to people who don't have you in contacts).
 func BuildPushNameSetting(name string) PatchInfo {
 	return PatchInfo{
 		Type: WAPatchCriticalBlock,
@@ -96,7 +96,7 @@ func BuildPushNameSetting(name string) PatchInfo {
 	}
 }
 
-// BuildChatLabel builds an app state patch for alter chat label
+// BuildChatLabel builds an app state patch for modifying a chat label. This is only for business accounts.
 func BuildChatLabel(target types.JID, labelId string, labeled bool) PatchInfo {
 	return PatchInfo{
 		Type: WAPatchRegular,
@@ -112,12 +112,12 @@ func BuildChatLabel(target types.JID, labelId string, labeled bool) PatchInfo {
 	}
 }
 
-// BuildMessageLabel builds an app state patch for alter message label
-func BuildMessageLabel(target types.JID, labelId, messageId string, labeled bool) PatchInfo {
+// BuildMessageLabel builds an app state patch for modifying a message label. This is only for business accounts.
+func BuildMessageLabel(target types.JID, labelID, messageID string, labeled bool) PatchInfo {
 	return PatchInfo{
 		Type: WAPatchRegular,
 		Mutations: []MutationInfo{{
-			Index:   []string{IndexLabelAssociationTypeMessage, labelId, target.String(), messageId, "0", "0"},
+			Index:   []string{IndexLabelAssociationTypeMessage, labelID, target.String(), messageID, "0", "0"},
 			Version: 3,
 			Value: &waProto.SyncActionValue{
 				LabelAssociationAction: &waProto.LabelAssociationAction{
