@@ -176,11 +176,13 @@ func (cli *Client) handleContactBlockedStatusChangeNotification(node *waBinary.N
 			return
 		}
 		if action == "modify" {
-			cli.SyncAllBlockedContacts()
+			cli.GetAllBlockedContacts()
 			return
 		}
 	}
 
+	cli.blockedContactsCacheLock.Lock()
+	defer cli.blockedContactsCacheLock.Unlock()
 	for _, child := range childArray {
 		ag := child.AttrGetter()
 		var evt events.ContactBlockedStatusChange
@@ -191,9 +193,10 @@ func (cli *Client) handleContactBlockedStatusChangeNotification(node *waBinary.N
 			continue
 		}
 
-		err := cli.Store.Contacts.PutBlocked(evt.From, evt.Blocked)
-		if err != nil {
-			cli.Log.Warnf("Failed to update blocked status of %s from store after blocked status change notification: %v", evt.From, err)
+		if evt.Blocked {
+			cli.blockedContactsCache[evt.From] = true
+		} else if _, exists := cli.blockedContactsCache[evt.From]; exists {
+			delete(cli.blockedContactsCache, evt.From)
 		}
 		cli.dispatchEvent(&evt)
 	}

@@ -105,6 +105,7 @@ var (
 	ErrUnknownServer            = errors.New("can't send message to unknown server")
 	ErrRecipientADJID           = errors.New("message recipient must be normal (non-AD) JID")
 	ErrServerReturnedError      = errors.New("server returned error")
+	ErrBlockedContact           = errors.New("contact is blocked")
 )
 
 // Some errors that Client.Download can return

@@ -520,10 +520,13 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 	}
 }
 
-// formatBlockedContactList format whatsapp blocked list response into array of JIDs
-func (cli *Client) formatBlockedContactList(blockedContactsResp *waBinary.Node) []types.JID {
+// cacheBlockedContacts sync the cache with blocked contacts
+func (cli *Client) cacheBlockedContacts(blockedContactsResp *waBinary.Node) []types.JID {
 	blockedContacts := []types.JID{}
 	if blockedList, ok := blockedContactsResp.GetOptionalChildByTag("list"); ok {
+		cli.blockedContactsCacheLock.Lock()
+		defer cli.blockedContactsCacheLock.Unlock()
+		cli.blockedContactsCache = make(map[types.JID]bool)
 		for _, child := range blockedList.GetChildren() {
 			ag := child.AttrGetter()
 			blockedJID := ag.JID("jid")
@@ -532,30 +535,7 @@ func (cli *Client) formatBlockedContactList(blockedContactsResp *waBinary.Node) 
 				continue
 			}
 
-			blockedContacts = append(blockedContacts, blockedJID)
-		}
-	}
-
-	return blockedContacts
-}
-
-// storeBlockedContacts store or update the contact with blocked flag
-func (cli *Client) storeBlockedContacts(blockedContactsResp *waBinary.Node) []types.JID {
-	blockedContacts := []types.JID{}
-	if blockedList, ok := blockedContactsResp.GetOptionalChildByTag("list"); ok {
-		cli.Store.Contacts.PutAllUnblocked()
-		for _, child := range blockedList.GetChildren() {
-			ag := child.AttrGetter()
-			blockedJID := ag.JID("jid")
-			if !ag.OK() {
-				cli.Log.Debugf("Ignoring contact blocked data with unexpected attributes: %v", ag.Error())
-				continue
-			}
-
-			err := cli.Store.Contacts.PutBlocked(blockedJID, true)
-			if err != nil {
-				cli.Log.Warnf("Failed to update blocked status of %s from store after blocked status change notification: %v", blockedJID, err)
-			}
+			cli.blockedContactsCache[blockedJID] = true
 			blockedContacts = append(blockedContacts, blockedJID)
 		}
 	}
@@ -574,23 +554,7 @@ func (cli *Client) GetAllBlockedContacts() ([]types.JID, error) {
 		return nil, err
 	}
 
-	blockedContacts := cli.formatBlockedContactList(resp)
-
-	return blockedContacts, nil
-}
-
-// SyncAllBlockedContacts sync whatsapp blocked list in the local database
-func (cli *Client) SyncAllBlockedContacts() ([]types.JID, error) {
-	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "blocklist",
-		Type:      iqGet,
-		To:        types.ServerJID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	blockedContacts := cli.storeBlockedContacts(resp)
+	blockedContacts := cli.cacheBlockedContacts(resp)
 
 	return blockedContacts, nil
 }
@@ -618,7 +582,7 @@ func (cli *Client) setContactBlockedStatus(user types.JID, block bool) ([]types.
 		return nil, err
 	}
 
-	blockedContacts := cli.formatBlockedContactList(resp)
+	blockedContacts := cli.cacheBlockedContacts(resp)
 
 	return blockedContacts, nil
 }

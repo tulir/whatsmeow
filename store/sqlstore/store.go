@@ -454,18 +454,11 @@ const (
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, business_name) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_jid) DO UPDATE SET business_name=excluded.business_name
 	`
-	putBlockedQuery = `
-		INSERT INTO whatsmeow_contacts (our_jid, their_jid, blocked) VALUES ($1, $2, $3)
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET blocked=excluded.blocked
-	`
-	putAllUnblockedQuery = `
-		UPDATE whatsmeow_contacts SET blocked = false WHERE our_jid = $1
-	`
 	getContactQuery = `
-		SELECT first_name, full_name, push_name, business_name, blocked FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
+		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
 	`
 	getAllContactsQuery = `
-		SELECT their_jid, first_name, full_name, push_name, business_name, blocked FROM whatsmeow_contacts WHERE our_jid=$1
+		SELECT their_jid, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1
 	`
 )
 
@@ -602,34 +595,6 @@ func (s *SQLStore) PutAllContactNames(contacts []store.ContactEntry) error {
 	return nil
 }
 
-func (s *SQLStore) PutBlocked(user types.JID, blocked bool) error {
-	s.contactCacheLock.Lock()
-	defer s.contactCacheLock.Unlock()
-
-	cached, err := s.getContact(user)
-	if err != nil {
-		return err
-	}
-	if cached.Blocked != blocked {
-		_, err = s.db.Exec(putBlockedQuery, s.JID, user, blocked)
-		if err != nil {
-			return err
-		}
-		cached.Blocked = blocked
-		cached.Found = true
-	}
-	return nil
-}
-
-func (s *SQLStore) PutAllUnblocked() error {
-	_, err := s.db.Exec(putAllUnblockedQuery, s.JID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
 	cached, ok := s.contactCache[user]
 	if ok {
@@ -637,8 +602,7 @@ func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
 	}
 
 	var first, full, push, business sql.NullString
-	blocked := false
-	err := s.db.QueryRow(getContactQuery, s.JID, user).Scan(&first, &full, &push, &business, &blocked)
+	err := s.db.QueryRow(getContactQuery, s.JID, user).Scan(&first, &full, &push, &business)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
@@ -648,7 +612,6 @@ func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
 		FullName:     full.String,
 		PushName:     push.String,
 		BusinessName: business.String,
-		Blocked:      blocked,
 	}
 	s.contactCache[user] = info
 	return info, nil
@@ -675,8 +638,7 @@ func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
 	for rows.Next() {
 		var jid types.JID
 		var first, full, push, business sql.NullString
-		blocked := false
-		err = rows.Scan(&jid, &first, &full, &push, &business, &blocked)
+		err = rows.Scan(&jid, &first, &full, &push, &business)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
@@ -686,7 +648,6 @@ func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
 			FullName:     full.String,
 			PushName:     push.String,
 			BusinessName: business.String,
-			Blocked:      blocked,
 		}
 		output[jid] = info
 		s.contactCache[jid] = &info

@@ -723,15 +723,6 @@ func handleCmd(cmd string, args []string) {
 				log.Infof("%+v", blockedContact)
 			}
 		}
-	case "syncblockedlist":
-		blockedContacts, err := cli.SyncAllBlockedContacts()
-		if err != nil {
-			log.Errorf("Failed to update blocked contacts list: %v", err)
-		} else {
-			for _, blockedContact := range blockedContacts {
-				log.Infof("%+v", blockedContact)
-			}
-		}
 	case "block":
 		if len(args) < 1 {
 			log.Errorf("Usage: block <jid>")
