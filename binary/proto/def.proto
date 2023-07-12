@@ -62,6 +62,7 @@ message DeviceProps {
         AR_WRIST = 19;
         AR_DEVICE = 20;
         UWP = 21;
+        VR = 22;
     }
     message HistorySyncConfig {
         optional uint32 fullSyncDaysLimit = 1;
@@ -84,38 +85,6 @@ message DeviceProps {
     optional PlatformType platformType = 3;
     optional bool requireFullSync = 4;
     optional HistorySyncConfig historySyncConfig = 5;
-}
-
-message PaymentInviteMessage {
-    enum ServiceType {
-        UNKNOWN = 0;
-        FBPAY = 1;
-        NOVI = 2;
-        UPI = 3;
-    }
-    optional ServiceType serviceType = 1;
-    optional int64 expiryTimestamp = 2;
-}
-
-message OrderMessage {
-    enum OrderSurface {
-        CATALOG = 1;
-    }
-    enum OrderStatus {
-        INQUIRY = 1;
-    }
-    optional string orderId = 1;
-    optional bytes thumbnail = 2;
-    optional int32 itemCount = 3;
-    optional OrderStatus status = 4;
-    optional OrderSurface surface = 5;
-    optional string message = 6;
-    optional string orderTitle = 7;
-    optional string sellerJid = 8;
-    optional string token = 9;
-    optional int64 totalAmount1000 = 10;
-    optional string totalCurrencyCode = 11;
-    optional ContextInfo contextInfo = 17;
 }
 
 message LocationMessage {
@@ -302,6 +271,11 @@ message InteractiveMessage {
         optional int32 messageVersion = 3;
     }
     
+    message CarouselMessage {
+        repeated InteractiveMessage cards = 1;
+        optional int32 messageVersion = 2;
+    }
+    
     message Body {
         optional string text = 1;
     }
@@ -314,6 +288,7 @@ message InteractiveMessage {
         ShopMessage shopStorefrontMessage = 4;
         CollectionMessage collectionMessage = 5;
         NativeFlowMessage nativeFlowMessage = 6;
+        CarouselMessage carouselMessage = 7;
     }
 }
 
@@ -742,12 +717,20 @@ message GroupMention {
 }
 
 message DisappearingMode {
+    enum Trigger {
+        UNKNOWN = 0;
+        CHAT_SETTING = 1;
+        ACCOUNT_SETTING = 2;
+        BULK_CHANGE = 3;
+    }
     enum Initiator {
         CHANGED_IN_CHAT = 0;
         INITIATED_BY_ME = 1;
         INITIATED_BY_OTHER = 2;
     }
     optional Initiator initiator = 1;
+    optional Trigger trigger = 2;
+    optional string initiatorDeviceJid = 3;
 }
 
 message DeviceListMetadata {
@@ -763,6 +746,11 @@ message ContextInfo {
     message UTMInfo {
         optional string utmSource = 1;
         optional string utmCampaign = 2;
+    }
+    
+    message ForwardedNewsletterMessageInfo {
+        optional string newsletterJid = 1;
+        optional int32 serverMessageId = 2;
     }
     
     message ExternalAdReplyInfo {
@@ -785,6 +773,10 @@ message ContextInfo {
         optional bool showAdAttribution = 12;
         optional string ctwaClid = 13;
         optional string ref = 14;
+    }
+    
+    message BusinessMessageForwardInfo {
+        optional string businessOwnerJid = 1;
     }
     
     message AdReplyInfo {
@@ -827,6 +819,17 @@ message ContextInfo {
     optional bool isSampled = 39;
     repeated GroupMention groupMentions = 40;
     optional UTMInfo utm = 41;
+    optional ForwardedNewsletterMessageInfo forwardedNewsletterMessageInfo = 43;
+    optional BusinessMessageForwardInfo businessMessageForwardInfo = 44;
+}
+
+message BotMetadata {
+    optional BotAvatarMetadata avatarMetadata = 1;
+}
+
+message BotAvatarMetadata {
+    optional uint32 sentiment = 1;
+    optional string behaviorGraph = 2;
 }
 
 message ActionLink {
@@ -969,6 +972,7 @@ message MessageContextInfo {
     optional bytes paddingBytes = 4;
     optional uint32 messageAddOnDurationInSecs = 5;
     optional bytes botMessageSecret = 6;
+    optional BotMetadata botMetadata = 7;
 }
 
 message VideoMessage {
@@ -1277,6 +1281,15 @@ message PeerDataOperationRequestResponseMessage {
 }
 
 message PeerDataOperationRequestMessage {
+    message RequestUrlPreview {
+        optional string url = 1;
+        optional bool includeHqThumbnail = 2;
+    }
+    
+    message RequestStickerReupload {
+        optional string fileSha256 = 1;
+    }
+    
     message PlaceholderMessageResendRequest {
         optional MessageKey messageKey = 1;
     }
@@ -1289,20 +1302,43 @@ message PeerDataOperationRequestMessage {
         optional int64 oldestMsgTimestampMs = 5;
     }
     
-    message RequestUrlPreview {
-        optional string url = 1;
-        optional bool includeHqThumbnail = 2;
-    }
-    
-    message RequestStickerReupload {
-        optional string fileSha256 = 1;
-    }
-    
     optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
     repeated RequestStickerReupload requestStickerReupload = 2;
     repeated RequestUrlPreview requestUrlPreview = 3;
     optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
     repeated PlaceholderMessageResendRequest placeholderMessageResendRequest = 5;
+}
+
+message PaymentInviteMessage {
+    enum ServiceType {
+        UNKNOWN = 0;
+        FBPAY = 1;
+        NOVI = 2;
+        UPI = 3;
+    }
+    optional ServiceType serviceType = 1;
+    optional int64 expiryTimestamp = 2;
+}
+
+message OrderMessage {
+    enum OrderStatus {
+        INQUIRY = 1;
+    }
+    enum OrderSurface {
+        CATALOG = 1;
+    }
+    optional string orderId = 1;
+    optional bytes thumbnail = 2;
+    optional int32 itemCount = 3;
+    optional OrderStatus status = 4;
+    optional OrderSurface surface = 5;
+    optional string message = 6;
+    optional string orderTitle = 7;
+    optional string sellerJid = 8;
+    optional string token = 9;
+    optional int64 totalAmount1000 = 10;
+    optional string totalCurrencyCode = 11;
+    optional ContextInfo contextInfo = 17;
 }
 
 message EphemeralSetting {
@@ -2297,6 +2333,7 @@ message WebMessageInfo {
         PAYMENT_INVITE_SETUP_INVITEE_SEND_AND_RECEIVE = 180;
         LINKED_GROUP_CALL_START = 181;
         REPORT_TO_ADMIN_ENABLED_STATUS = 182;
+        EMPTY_SUBGROUP_CREATE = 183;
     }
     enum Status {
         ERROR = 0;
