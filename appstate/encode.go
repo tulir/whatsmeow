@@ -80,6 +80,54 @@ func BuildPin(target types.JID, pin bool) PatchInfo {
 	}
 }
 
+// BuildPushNameSetting builds an app state patch for alter profile name
+func BuildPushNameSetting(name string) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchCriticalBlock,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexSettingPushName},
+			Version: 1,
+			Value: &waProto.SyncActionValue{
+				PushNameSetting: &waProto.PushNameSetting{
+					Name: &name,
+				},
+			},
+		}},
+	}
+}
+
+// BuildChatLabel builds an app state patch for alter chat label
+func BuildChatLabel(target types.JID, labelId string, labeled bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegular,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexLabelAssociationType, labelId, target.String()},
+			Version: 3,
+			Value: &waProto.SyncActionValue{
+				LabelAssociationAction: &waProto.LabelAssociationAction{
+					Labeled: &labeled,
+				},
+			},
+		}},
+	}
+}
+
+// BuildMessageLabel builds an app state patch for alter message label
+func BuildMessageLabel(target types.JID, labelId, messageId string, labeled bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegular,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexLabelAssociationTypeMessage, labelId, target.String(), messageId, "0", "0"},
+			Version: 3,
+			Value: &waProto.SyncActionValue{
+				LabelAssociationAction: &waProto.LabelAssociationAction{
+					Labeled: &labeled,
+				},
+			},
+		}},
+	}
+}
+
 // BuildArchive builds an app state patch for archiving or unarchiving a chat.
 //
 // The last message timestamp and last message key are optional and can be set to zero values (`time.Time{}` and `nil`).
