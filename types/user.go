@@ -43,6 +43,7 @@ type ContactInfo struct {
 	FullName     string
 	PushName     string
 	BusinessName string
+	Blocked      bool
 }
 
 // LocalChatSettings contains the cached local settings for a chat.

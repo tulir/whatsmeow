@@ -166,6 +166,39 @@ func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	}
 }
 
+func (cli *Client) handleContactBlockedStatusChangeNotification(node *waBinary.Node) {
+	childArray := node.GetChildren()
+	if len(childArray) == 0 {
+		ag := node.AttrGetter()
+		action := ag.String("action")
+		if !ag.OK() {
+			cli.Log.Debugf("Ignoring contact blocked status change notification with unexpected attributes: %v", ag.Error())
+			return
+		}
+		if action == "modify" {
+			cli.SyncAllBlockedContacts()
+			return
+		}
+	}
+
+	for _, child := range childArray {
+		ag := child.AttrGetter()
+		var evt events.ContactBlockedStatusChange
+		evt.From = ag.JID("jid")
+		evt.Blocked = ag.String("action") == "block"
+		if !ag.OK() {
+			cli.Log.Debugf("Ignoring contact blocked status change notification with unexpected attributes: %v", ag.Error())
+			continue
+		}
+
+		err := cli.Store.Contacts.PutBlocked(evt.From, evt.Blocked)
+		if err != nil {
+			cli.Log.Warnf("Failed to update blocked status of %s from store after blocked status change notification: %v", evt.From, err)
+		}
+		cli.dispatchEvent(&evt)
+	}
+}
+
 func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		switch child.Tag {
@@ -178,6 +211,8 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 				Timestamp: node.AttrGetter().UnixTime("t"),
 				JID:       cli.getOwnID().ToNonAD(),
 			})
+		case "blocklist":
+			cli.handleContactBlockedStatusChangeNotification(&child)
 		default:
 			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
 		}

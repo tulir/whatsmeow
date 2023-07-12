@@ -714,6 +714,56 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Error changing chat's pin state: %v", err)
 		}
+	case "listblocked":
+		blockedContacts, err := cli.GetAllBlockedContacts()
+		if err != nil {
+			log.Errorf("Failed to get blocked contacts list: %v", err)
+		} else {
+			for _, blockedContact := range blockedContacts {
+				log.Infof("%+v", blockedContact)
+			}
+		}
+	case "syncblockedlist":
+		blockedContacts, err := cli.SyncAllBlockedContacts()
+		if err != nil {
+			log.Errorf("Failed to update blocked contacts list: %v", err)
+		} else {
+			for _, blockedContact := range blockedContacts {
+				log.Infof("%+v", blockedContact)
+			}
+		}
+	case "block":
+		if len(args) < 1 {
+			log.Errorf("Usage: block <jid>")
+			return
+		}
+		target, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+
+		blockedList, err := cli.BlockContact(target)
+		if err != nil {
+			log.Errorf("Error blocking contact: %v", err)
+		}
+
+		log.Infof("%+v", blockedList)
+	case "unblock":
+		if len(args) < 1 {
+			log.Errorf("Usage: unblock <jid>")
+			return
+		}
+		target, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+
+		blockedList, err := cli.UnblockContact(target)
+		if err != nil {
+			log.Errorf("Error unblocking contact: %v", err)
+		}
+
+		log.Infof("%+v", blockedList)
 	}
 }
 
@@ -845,5 +895,7 @@ func handler(rawEvt interface{}) {
 		log.Debugf("Keepalive timeout event: %+v", evt)
 	case *events.KeepAliveRestored:
 		log.Debugf("Keepalive restored")
+	case *events.ContactBlockedStatusChange:
+		log.Infof("ContactBlockedStatusChange event: %+v", evt)
 	}
 }
