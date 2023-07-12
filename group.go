@@ -176,20 +176,19 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map
 	return resp, nil
 }
 
-// GroupRequestParticipantsList get the list of participants waiting to join the specified group in WhatsApp.
-func (cli *Client) GroupRequestParticipantsList(jid types.JID) []*types.JID {
+// GetGroupParticipantRequests get the list of participants waiting to join the specified group in WhatsApp.
+func (cli *Client) GetGroupParticipantRequests(jid types.JID) ([]*types.JID, error) {
 	res, err := cli.sendGroupIQ(context.TODO(), iqGet, jid, waBinary.Node{
 		Tag: "membership_approval_requests",
 	})
 	if err != nil {
-		fmt.Printf("Possibly failed to sendGroupIQ request for GroupRequestParticipantsList: %+v", err)
-		return nil
+		return nil, err
 	}
-	participantsnode, ok := res.GetOptionalChildByTag("membership_approval_requests")
+	participantsNode, ok := res.GetOptionalChildByTag("membership_approval_requests")
 	if !ok {
-		return nil
+		return nil, &ElementMissingError{Tag: "membership_approval_requests", In: "response to group participants requests"}
 	}
-	children := participantsnode.GetChildren()
+	children := participantsNode.GetChildren()
 	participants := make([]*types.JID, 0, len(children))
 	for _, child := range children {
 		childAG := child.AttrGetter()
@@ -197,16 +196,16 @@ func (cli *Client) GroupRequestParticipantsList(jid types.JID) []*types.JID {
 		case "membership_approval_request":
 			part := childAG.JID("jid")
 			if !childAG.OK() {
-				fmt.Printf("Possibly failed to parse %s element in membership_approval_request node: %+v", child.Tag, childAG.Errors)
+				return nil, &ElementMissingError{Tag: "jid", In: "membership_approval_request"}
 			}
 			participants = append(participants, &part)
 		}
 	}
-	return participants
+	return participants, nil
 }
 
-// UpdateGroupRequestParticipants can be used to accept or reject requests to join WhatsApp groups.
-func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges map[types.JID]ParticipantChange) (*waBinary.Node, error) {
+// UpdateGroupParticipantRequests can be used to accept or reject requests to join WhatsApp groups.
+func (cli *Client) UpdateGroupParticipantRequests(jid types.JID, participantChanges map[types.JID]ParticipantChange) (*waBinary.Node, error) {
 	content := make([]waBinary.Node, len(participantChanges))
 	i := 0
 	for participantJID, change := range participantChanges {
