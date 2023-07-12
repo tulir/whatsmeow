@@ -145,6 +145,8 @@ const (
 	ParticipantChangeRemove  ParticipantChange = "remove"
 	ParticipantChangePromote ParticipantChange = "promote"
 	ParticipantChangeDemote  ParticipantChange = "demote"
+	ParticipantChangeApprove ParticipantChange = "approve"
+	ParticipantChangeReject  ParticipantChange = "reject"
 )
 
 // UpdateGroupParticipants can be used to add, remove, promote and demote members in a WhatsApp group.
@@ -172,6 +174,59 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map
 	}
 	// TODO proper return value?
 	return resp, nil
+}
+
+// GroupRequestParticipantsList get the list of participants waiting to join the specified group in WhatsApp.
+func (cli *Client) GroupRequestParticipantsList(jid types.JID) []*types.JID {
+	res, err := cli.sendGroupIQ(context.TODO(), iqGet, jid, waBinary.Node{
+		Tag: "membership_approval_requests",
+	})
+	if err != nil {
+		fmt.Printf("Possibly failed to sendGroupIQ request for GroupRequestParticipantsList: %+v", err)
+		return nil
+	}
+	participantsnode, ok := res.GetOptionalChildByTag("membership_approval_requests")
+	if !ok {
+		return nil
+	}
+	children := participantsnode.GetChildren()
+	participants := make([]*types.JID, 0, len(children))
+	for _, child := range children {
+		childAG := child.AttrGetter()
+		switch child.Tag {
+		case "membership_approval_request":
+			part := childAG.JID("jid")
+			if !childAG.OK() {
+				fmt.Printf("Possibly failed to parse %s element in membership_approval_request node: %+v", child.Tag, childAG.Errors)
+			}
+			participants = append(participants, &part)
+		}
+	}
+	return participants
+}
+
+// UpdateGroupRequestParticipants can be used to accept or reject requests to join WhatsApp groups.
+func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges map[types.JID]ParticipantChange) (*waBinary.Node, error) {
+	content := make([]waBinary.Node, len(participantChanges))
+	i := 0
+	for participantJID, change := range participantChanges {
+		content[i] = waBinary.Node{
+			Tag: string(change),
+			Content: []waBinary.Node{{
+				Tag:   "participant",
+				Attrs: waBinary.Attrs{"jid": participantJID},
+			}},
+		}
+		i++
+	}
+	res, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+		Tag:     "membership_requests_action",
+		Content: content,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 // SetGroupPhoto updates the group picture/icon of the given group on WhatsApp.
