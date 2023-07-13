@@ -151,17 +151,23 @@ const (
 
 // UpdateGroupParticipants can be used to add, remove, promote and demote members in a WhatsApp group.
 func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map[types.JID]ParticipantChange) (*waBinary.Node, error) {
-	content := make([]waBinary.Node, len(participantChanges))
-	i := 0
+	changesByAction := make(map[ParticipantChange][]types.JID)
 	for participantJID, change := range participantChanges {
-		content[i] = waBinary.Node{
-			Tag: string(change),
-			Content: []waBinary.Node{{
+		changesByAction[change] = append(changesByAction[change], participantJID)
+	}
+	content := make([]waBinary.Node, 0, len(changesByAction))
+	for change, jids := range changesByAction {
+		participants := make([]waBinary.Node, len(jids))
+		for i, jid := range jids {
+			participants[i] = waBinary.Node{
 				Tag:   "participant",
-				Attrs: waBinary.Attrs{"jid": participantJID},
-			}},
+				Attrs: waBinary.Attrs{"jid": jid},
+			}
 		}
-		i++
+		content = append(content, waBinary.Node{
+			Tag:     string(change),
+			Content: participants,
+		})
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
@@ -172,7 +178,6 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map
 	if err != nil {
 		return nil, err
 	}
-	// TODO proper return value?
 	return resp, nil
 }
 
@@ -206,17 +211,23 @@ func (cli *Client) GetGroupParticipantRequests(jid types.JID) ([]*types.JID, err
 
 // UpdateGroupParticipantRequests can be used to accept or reject requests to join WhatsApp groups.
 func (cli *Client) UpdateGroupParticipantRequests(jid types.JID, participantChanges map[types.JID]ParticipantChange) (*waBinary.Node, error) {
-	content := make([]waBinary.Node, len(participantChanges))
-	i := 0
+	changesByAction := make(map[ParticipantChange][]types.JID)
 	for participantJID, change := range participantChanges {
-		content[i] = waBinary.Node{
-			Tag: string(change),
-			Content: []waBinary.Node{{
+		changesByAction[change] = append(changesByAction[change], participantJID)
+	}
+	content := make([]waBinary.Node, 0, len(changesByAction))
+	for change, jids := range changesByAction {
+		participants := make([]waBinary.Node, len(jids))
+		for i, jid := range jids {
+			participants[i] = waBinary.Node{
 				Tag:   "participant",
-				Attrs: waBinary.Attrs{"jid": participantJID},
-			}},
+				Attrs: waBinary.Attrs{"jid": jid},
+			}
 		}
-		i++
+		content = append(content, waBinary.Node{
+			Tag:     string(change),
+			Content: participants,
+		})
 	}
 	res, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
 		Tag:     "membership_requests_action",
