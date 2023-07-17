@@ -181,7 +181,7 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 				"stage": "companion_finish",
 			},
 			Content: []waBinary.Node{
-				{Tag: "link_coed_pairing_wrapped_key_bundle", Content: wrappedKeyBundle},
+				{Tag: "link_code_pairing_wrapped_key_bundle", Content: wrappedKeyBundle},
 				{Tag: "companion_identity_public", Content: cli.Store.IdentityKey.Pub[:]},
 				{Tag: "link_code_pairing_ref", Content: linkCodePairingRef},
 			},
