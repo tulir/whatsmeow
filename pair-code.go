@@ -61,17 +61,17 @@ func pairingRandom(length int) []byte {
 
 func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralKey []byte, encodedLinkingCode string) {
 	ephemeralKeyPair = keys.NewKeyPair()
-	firstRandom := pairingRandom(32)
-	secondRandom := pairingRandom(16)
+	salt := pairingRandom(32)
+	iv := pairingRandom(16)
 	linkingCode := pairingRandom(5)
 	encodedLinkingCode = linkingBase32.EncodeToString(linkingCode)
-	linkCodeKey := pbkdf2.Key([]byte(encodedLinkingCode), firstRandom, 2<<16, 32, sha256.New)
+	linkCodeKey := pbkdf2.Key([]byte(encodedLinkingCode), salt, 2<<16, 32, sha256.New)
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
 	encryptedPubkey := ephemeralKeyPair.Pub[:]
-	cipher.NewCTR(linkCipherBlock, secondRandom).XORKeyStream(encryptedPubkey, encryptedPubkey)
+	cipher.NewCTR(linkCipherBlock, iv).XORKeyStream(encryptedPubkey, encryptedPubkey)
 	ephemeralKey = make([]byte, 80)
-	copy(ephemeralKey[0:32], firstRandom)
-	copy(ephemeralKey[32:48], secondRandom)
+	copy(ephemeralKey[0:32], salt)
+	copy(ephemeralKey[32:48], iv)
 	copy(ephemeralKey[48:80], encryptedPubkey)
 	return
 }
@@ -141,27 +141,27 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 	primaryIdentityPub, ok := node.GetChildByTag("primary_identity_pub").Content.([]byte)
 
 	newRandom1 := pairingRandom(32)
-	newRandom2 := pairingRandom(32)
-	newRandom3 := pairingRandom(12)
+	keyBundleSalt := pairingRandom(32)
+	keyBundleNonce := pairingRandom(12)
 
-	primaryFirstRandom := wrappedPrimaryEphemeralPub[0:32]
-	primarySecondRandom := wrappedPrimaryEphemeralPub[32:48]
+	primarySalt := wrappedPrimaryEphemeralPub[0:32]
+	primaryIV := wrappedPrimaryEphemeralPub[32:48]
 	primaryEncryptedPubkey := wrappedPrimaryEphemeralPub[48:80]
 
-	linkCodeKey := pbkdf2.Key([]byte(linkCache.linkingCode), primaryFirstRandom, 2<<16, 32, sha256.New)
+	linkCodeKey := pbkdf2.Key([]byte(linkCache.linkingCode), primarySalt, 2<<16, 32, sha256.New)
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
 	primaryDecryptedPubkey := make([]byte, 32)
-	cipher.NewCTR(linkCipherBlock, primarySecondRandom).XORKeyStream(primaryDecryptedPubkey, primaryEncryptedPubkey)
+	cipher.NewCTR(linkCipherBlock, primaryIV).XORKeyStream(primaryDecryptedPubkey, primaryEncryptedPubkey)
 	ephemeralSharedSecret, err := curve25519.X25519(primaryDecryptedPubkey, linkCache.keyPair.Priv[:])
 	if err != nil {
 		panic(err)
 	}
-	expanded := hkdfutil.SHA256(ephemeralSharedSecret, newRandom2, []byte("link_code_pairing_key_bundle_encryption_key"), 32)
+	expanded := hkdfutil.SHA256(ephemeralSharedSecret, keyBundleSalt, []byte("link_code_pairing_key_bundle_encryption_key"), 32)
 	concattedKeys := append(append(cli.Store.IdentityKey.Pub[:], primaryIdentityPub...), newRandom1...)
 	expandedBlock, _ := aes.NewCipher(expanded)
 	expandedGCM, _ := cipher.NewGCM(expandedBlock)
-	encryptedKeyBundle := expandedGCM.Seal(nil, newRandom3, concattedKeys, nil)
-	wrappedKeyBundle := append(append(newRandom2, newRandom3...), encryptedKeyBundle...)
+	encryptedKeyBundle := expandedGCM.Seal(nil, keyBundleNonce, concattedKeys, nil)
+	wrappedKeyBundle := append(append(keyBundleSalt, keyBundleNonce...), encryptedKeyBundle...)
 	anotherSharedSecret, err := curve25519.X25519(primaryIdentityPub, cli.Store.IdentityKey.Priv[:])
 	if err != nil {
 		panic(err)
