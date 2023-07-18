@@ -50,20 +50,20 @@ type phoneLinkingCache struct {
 	pairingRef  string
 }
 
-func pairingRandom(length int) []byte {
+func randomBytes(length int) []byte {
 	random := make([]byte, length)
 	_, err := rand.Read(random)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to get random bytes: %w", err))
 	}
 	return random
 }
 
 func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralKey []byte, encodedLinkingCode string) {
 	ephemeralKeyPair = keys.NewKeyPair()
-	salt := pairingRandom(32)
-	iv := pairingRandom(16)
-	linkingCode := pairingRandom(5)
+	salt := randomBytes(32)
+	iv := randomBytes(16)
+	linkingCode := randomBytes(5)
 	encodedLinkingCode = linkingBase32.EncodeToString(linkingCode)
 	linkCodeKey := pbkdf2.Key([]byte(encodedLinkingCode), salt, 2<<16, 32, sha256.New)
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
@@ -121,6 +121,13 @@ func (cli *Client) PairPhone(phone string, showPushNotification bool, clientType
 	return encodedLinkingCode[0:4] + "-" + encodedLinkingCode[4:], nil
 }
 
+func (cli *Client) tryHandleCodePairNotification(parentNode *waBinary.Node) {
+	err := cli.handleCodePairNotification(parentNode)
+	if err != nil {
+		cli.Log.Errorf("Failed to handle code pair notification: %s", err)
+	}
+}
+
 func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 	node, ok := parentNode.GetOptionalChildByTag("link_code_companion_reg")
 	if !ok {
@@ -138,36 +145,62 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 		return fmt.Errorf("pairing ref mismatch in code pair notification")
 	}
 	wrappedPrimaryEphemeralPub, ok := node.GetChildByTag("link_code_pairing_wrapped_primary_ephemeral_pub").Content.([]byte)
+	if !ok {
+		return &ElementMissingError{
+			Tag: "link_code_pairing_wrapped_primary_ephemeral_pub",
+			In:  "notification",
+		}
+	}
 	primaryIdentityPub, ok := node.GetChildByTag("primary_identity_pub").Content.([]byte)
+	if !ok {
+		return &ElementMissingError{
+			Tag: "primary_identity_pub",
+			In:  "notification",
+		}
+	}
 
-	newRandom1 := pairingRandom(32)
-	keyBundleSalt := pairingRandom(32)
-	keyBundleNonce := pairingRandom(12)
+	advSecretRandom := randomBytes(32)
+	keyBundleSalt := randomBytes(32)
+	keyBundleNonce := randomBytes(12)
 
+	// Decrypt the primary device's ephemeral public key, which was encrypted with the 8-character pairing code,
+	// then compute the DH shared secret using our ephemeral private key we generated earlier.
 	primarySalt := wrappedPrimaryEphemeralPub[0:32]
 	primaryIV := wrappedPrimaryEphemeralPub[32:48]
 	primaryEncryptedPubkey := wrappedPrimaryEphemeralPub[48:80]
-
 	linkCodeKey := pbkdf2.Key([]byte(linkCache.linkingCode), primarySalt, 2<<16, 32, sha256.New)
-	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
+	linkCipherBlock, err := aes.NewCipher(linkCodeKey)
+	if err != nil {
+		return fmt.Errorf("failed to create link cipher: %w", err)
+	}
 	primaryDecryptedPubkey := make([]byte, 32)
 	cipher.NewCTR(linkCipherBlock, primaryIV).XORKeyStream(primaryDecryptedPubkey, primaryEncryptedPubkey)
 	ephemeralSharedSecret, err := curve25519.X25519(linkCache.keyPair.Priv[:], primaryDecryptedPubkey)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to compute ephemeral shared secret: %w", err)
 	}
-	expanded := hkdfutil.SHA256(ephemeralSharedSecret, keyBundleSalt, []byte("link_code_pairing_key_bundle_encryption_key"), 32)
-	concattedKeys := append(append(cli.Store.IdentityKey.Pub[:], primaryIdentityPub...), newRandom1...)
-	expandedBlock, _ := aes.NewCipher(expanded)
-	expandedGCM, _ := cipher.NewGCM(expandedBlock)
-	encryptedKeyBundle := expandedGCM.Seal(nil, keyBundleNonce, concattedKeys, nil)
-	wrappedKeyBundle := append(append(keyBundleSalt, keyBundleNonce...), encryptedKeyBundle...)
-	anotherSharedSecret, err := curve25519.X25519(cli.Store.IdentityKey.Priv[:], primaryIdentityPub)
+
+	// Encrypt and wrap key bundle containing our identity key, the primary device's identity key and the randomness used for the adv key.
+	keyBundleEncryptionKey := hkdfutil.SHA256(ephemeralSharedSecret, keyBundleSalt, []byte("link_code_pairing_key_bundle_encryption_key"), 32)
+	keyBundleCipherBlock, err := aes.NewCipher(keyBundleEncryptionKey)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to create key bundle cipher: %w", err)
 	}
-	concattedBuffers := append(append(ephemeralSharedSecret, anotherSharedSecret...), newRandom1...)
-	advSecret := hkdfutil.SHA256(concattedBuffers, nil, []byte("adv_secret"), 32)
+	keyBundleGCM, err := cipher.NewGCM(keyBundleCipherBlock)
+	if err != nil {
+		return fmt.Errorf("failed to create key bundle GCM: %w", err)
+	}
+	plaintextKeyBundle := concatBytes(cli.Store.IdentityKey.Pub[:], primaryIdentityPub, advSecretRandom)
+	encryptedKeyBundle := keyBundleGCM.Seal(nil, keyBundleNonce, plaintextKeyBundle, nil)
+	wrappedKeyBundle := concatBytes(keyBundleSalt, keyBundleNonce, encryptedKeyBundle)
+
+	// Compute the adv secret key (which is used to authenticate the pair-success event later)
+	identitySharedKey, err := curve25519.X25519(cli.Store.IdentityKey.Priv[:], primaryIdentityPub)
+	if err != nil {
+		return fmt.Errorf("failed to compute identity shared key: %w", err)
+	}
+	advSecretInput := append(append(ephemeralSharedSecret, identitySharedKey...), advSecretRandom...)
+	advSecret := hkdfutil.SHA256(advSecretInput, nil, []byte("adv_secret"), 32)
 	cli.Store.AdvSecretKey = advSecret
 
 	_, err = cli.sendIQ(infoQuery{

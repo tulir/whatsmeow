@@ -260,7 +260,7 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	case "privacy_token":
 		go cli.handlePrivacyTokenNotification(node)
 	case "link_code_companion_reg":
-		go cli.handleCodePairNotification(node)
+		go cli.tryHandleCodePairNotification(node)
 	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)
