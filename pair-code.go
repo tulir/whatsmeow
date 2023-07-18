@@ -19,6 +19,8 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
 	"go.mau.fi/whatsmeow/util/keys"
@@ -39,6 +41,29 @@ const (
 	PairClientUWP
 	PairClientOtherWebClient
 )
+
+func platformTypeToPairClientType(platformType waProto.DeviceProps_PlatformType) PairClientType {
+	switch platformType {
+	case waProto.DeviceProps_CHROME:
+		return PairClientChrome
+	case waProto.DeviceProps_EDGE:
+		return PairClientEdge
+	case waProto.DeviceProps_FIREFOX:
+		return PairClientFirefox
+	case waProto.DeviceProps_IE:
+		return PairClientIE
+	case waProto.DeviceProps_OPERA:
+		return PairClientOpera
+	case waProto.DeviceProps_SAFARI:
+		return PairClientSafari
+	case waProto.DeviceProps_DESKTOP:
+		return PairClientElectron
+	case waProto.DeviceProps_UWP:
+		return PairClientUWP
+	default:
+		return PairClientOtherWebClient
+	}
+}
 
 var notNumbers = regexp.MustCompile("[^0-9]")
 var linkingBase32 = base32.NewEncoding("123456789ABCDEFGHJKLMNPQRSTVWXYZ")
@@ -67,7 +92,10 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 	return
 }
 
-func (cli *Client) PairPhone(phone string, showPushNotification bool, clientType PairClientType, clientDisplayName string) (string, error) {
+func (cli *Client) PairPhone(phone string, showPushNotification bool) (string, error) {
+	clientType := platformTypeToPairClientType(store.DeviceProps.GetPlatformType())
+	clientDisplayName := store.DeviceProps.GetOs()
+
 	ephemeralKeyPair, ephemeralKey, encodedLinkingCode := generateCompanionEphemeralKey()
 	phone = notNumbers.ReplaceAllString(phone, "")
 	jid := types.NewJID(phone, types.DefaultUserServer)
