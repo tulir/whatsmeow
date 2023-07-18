@@ -9,7 +9,6 @@ package whatsmeow
 
 import (
 	"context"
-	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -29,6 +28,7 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
+	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 // EventHandler is a function that can handle events from WhatsApp.
@@ -163,8 +163,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	if log == nil {
 		log = waLog.Noop
 	}
-	randomBytes := make([]byte, 2)
-	_, _ = rand.Read(randomBytes)
+	uniqueIDPrefix := randbytes.Make(2)
 	cli := &Client{
 		http: &http.Client{
 			Transport: (http.DefaultTransport.(*http.Transport)).Clone(),
@@ -174,7 +173,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		Log:             log,
 		recvLog:         log.Sub("Recv"),
 		sendLog:         log.Sub("Send"),
-		uniqueID:        fmt.Sprintf("%d.%d-", randomBytes[0], randomBytes[1]),
+		uniqueID:        fmt.Sprintf("%d.%d-", uniqueIDPrefix[0], uniqueIDPrefix[1]),
 		responseWaiters: make(map[string]chan<- *waBinary.Node),
 		eventHandlers:   make([]wrappedEventHandler, 0, 1),
 		messageRetries:  make(map[string]int),

@@ -9,7 +9,6 @@ package whatsmeow
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
 	"fmt"
@@ -23,6 +22,7 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
 	"go.mau.fi/whatsmeow/util/keys"
+	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 type PairClientType int
@@ -50,20 +50,11 @@ type phoneLinkingCache struct {
 	pairingRef  string
 }
 
-func randomBytes(length int) []byte {
-	random := make([]byte, length)
-	_, err := rand.Read(random)
-	if err != nil {
-		panic(fmt.Errorf("failed to get random bytes: %w", err))
-	}
-	return random
-}
-
 func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralKey []byte, encodedLinkingCode string) {
 	ephemeralKeyPair = keys.NewKeyPair()
-	salt := randomBytes(32)
-	iv := randomBytes(16)
-	linkingCode := randomBytes(5)
+	salt := randbytes.Make(32)
+	iv := randbytes.Make(16)
+	linkingCode := randbytes.Make(5)
 	encodedLinkingCode = linkingBase32.EncodeToString(linkingCode)
 	linkCodeKey := pbkdf2.Key([]byte(encodedLinkingCode), salt, 2<<16, 32, sha256.New)
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
@@ -159,9 +150,9 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 		}
 	}
 
-	advSecretRandom := randomBytes(32)
-	keyBundleSalt := randomBytes(32)
-	keyBundleNonce := randomBytes(12)
+	advSecretRandom := randbytes.Make(32)
+	keyBundleSalt := randbytes.Make(32)
+	keyBundleNonce := randbytes.Make(12)
 
 	// Decrypt the primary device's ephemeral public key, which was encrypted with the 8-character pairing code,
 	// then compute the DH shared secret using our ephemeral private key we generated earlier.

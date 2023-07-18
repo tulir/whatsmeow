@@ -9,7 +9,6 @@ package whatsmeow
 import (
 	"bytes"
 	"compress/zlib"
-	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -31,6 +30,7 @@ import (
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 var pbSerializer = store.SignalProtobufSerializer
@@ -262,11 +262,7 @@ func unpadMessage(plaintext []byte) ([]byte, error) {
 }
 
 func padMessage(plaintext []byte) []byte {
-	var pad [1]byte
-	_, err := rand.Read(pad[:])
-	if err != nil {
-		panic(err)
-	}
+	pad := randbytes.Make(1)
 	pad[0] &= 0xf
 	if pad[0] == 0 {
 		pad[0] = 0xf
