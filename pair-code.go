@@ -152,7 +152,7 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
 	primaryDecryptedPubkey := make([]byte, 32)
 	cipher.NewCTR(linkCipherBlock, primaryIV).XORKeyStream(primaryDecryptedPubkey, primaryEncryptedPubkey)
-	ephemeralSharedSecret, err := curve25519.X25519(primaryDecryptedPubkey, linkCache.keyPair.Priv[:])
+	ephemeralSharedSecret, err := curve25519.X25519(linkCache.keyPair.Priv[:], primaryDecryptedPubkey)
 	if err != nil {
 		panic(err)
 	}
@@ -162,7 +162,7 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 	expandedGCM, _ := cipher.NewGCM(expandedBlock)
 	encryptedKeyBundle := expandedGCM.Seal(nil, keyBundleNonce, concattedKeys, nil)
 	wrappedKeyBundle := append(append(keyBundleSalt, keyBundleNonce...), encryptedKeyBundle...)
-	anotherSharedSecret, err := curve25519.X25519(primaryIdentityPub, cli.Store.IdentityKey.Priv[:])
+	anotherSharedSecret, err := curve25519.X25519(cli.Store.IdentityKey.Priv[:], primaryIdentityPub)
 	if err != nil {
 		panic(err)
 	}
