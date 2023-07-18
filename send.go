@@ -8,7 +8,6 @@ package whatsmeow
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -31,6 +30,7 @@ import (
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
@@ -38,13 +38,7 @@ import (
 //	msgID := whatsmeow.GenerateMessageID()
 //	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
 func GenerateMessageID() types.MessageID {
-	id := make([]byte, 8)
-	_, err := rand.Read(id)
-	if err != nil {
-		// Out of entropy
-		panic(err)
-	}
-	return "3EB0" + strings.ToUpper(hex.EncodeToString(id))
+	return "3EB0" + strings.ToUpper(hex.EncodeToString(randbytes.Make(8)))
 }
 
 type MessageDebugTimings struct {

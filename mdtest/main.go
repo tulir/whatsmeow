@@ -178,6 +178,16 @@ func parseJID(arg string) (types.JID, bool) {
 
 func handleCmd(cmd string, args []string) {
 	switch cmd {
+	case "pair-phone":
+		if len(args) < 1 {
+			log.Errorf("Usage: pair-phone <number>")
+			return
+		}
+		linkingCode, err := cli.PairPhone(args[0], true)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("Linking code:", linkingCode)
 	case "reconnect":
 		cli.Disconnect()
 		err := cli.Connect()
