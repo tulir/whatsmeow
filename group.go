@@ -155,19 +155,21 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map
 	for participantJID, change := range participantChanges {
 		changesByAction[change] = append(changesByAction[change], participantJID)
 	}
-	content := make([]waBinary.Node, 0, len(changesByAction))
+	content := make([]waBinary.Node, len(changesByAction))
+	ci := 0
 	for change, jids := range changesByAction {
 		participants := make([]waBinary.Node, len(jids))
-		for i, jid := range jids {
+		for i, memberJid := range jids {
 			participants[i] = waBinary.Node{
 				Tag:   "participant",
-				Attrs: waBinary.Attrs{"jid": jid},
+				Attrs: waBinary.Attrs{"jid": memberJid},
 			}
 		}
-		content = append(content, waBinary.Node{
+		content[ci] = waBinary.Node{
 			Tag:     string(change),
 			Content: participants,
-		})
+		}
+		ci++
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:g2",
@@ -215,19 +217,21 @@ func (cli *Client) UpdateGroupParticipantRequests(jid types.JID, participantChan
 	for participantJID, change := range participantChanges {
 		changesByAction[change] = append(changesByAction[change], participantJID)
 	}
-	content := make([]waBinary.Node, 0, len(changesByAction))
+	content := make([]waBinary.Node, len(changesByAction))
+	ci := 0
 	for change, jids := range changesByAction {
 		participants := make([]waBinary.Node, len(jids))
-		for i, jid := range jids {
+		for i, memberJid := range jids {
 			participants[i] = waBinary.Node{
 				Tag:   "participant",
-				Attrs: waBinary.Attrs{"jid": jid},
+				Attrs: waBinary.Attrs{"jid": memberJid},
 			}
 		}
-		content = append(content, waBinary.Node{
+		content[ci] = waBinary.Node{
 			Tag:     string(change),
 			Content: participants,
-		})
+		}
+		ci++
 	}
 	res, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
 		Tag:     "membership_requests_action",
