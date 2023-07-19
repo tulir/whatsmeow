@@ -63,11 +63,14 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 	for {
 		if len(evt.Codes) == 0 {
 			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
-				qrc.log.Debugf("Ran out of QR codes, closing channel with status %s and disconnecting client", QRChannelTimeout)
+				qrc.log.Debugf("Ran out of QR codes, closing channel with status %s", QRChannelTimeout)
 				qrc.output <- QRChannelTimeout
 				close(qrc.output)
 				go qrc.cli.RemoveEventHandler(qrc.handlerID)
-				qrc.cli.Disconnect()
+				if qrc.cli.phoneLinkingCache == nil {
+					qrc.log.Debugf("Disconnecting client")
+					qrc.cli.Disconnect()
+				}
 			} else {
 				qrc.log.Debugf("Ran out of QR codes, but channel is already closed")
 			}
