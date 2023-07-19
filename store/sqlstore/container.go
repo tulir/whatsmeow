@@ -7,7 +7,6 @@
 package sqlstore
 
 import (
-	"crypto/rand"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -18,6 +17,7 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
+	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 // Container is a wrapper for a SQL database that can contain multiple whatsmeow sessions.
@@ -210,11 +210,7 @@ func (c *Container) NewDevice() *store.Device {
 		NoiseKey:       keys.NewKeyPair(),
 		IdentityKey:    keys.NewKeyPair(),
 		RegistrationID: mathRand.Uint32(),
-		AdvSecretKey:   make([]byte, 32),
-	}
-	_, err := rand.Read(device.AdvSecretKey)
-	if err != nil {
-		panic(err)
+		AdvSecretKey:   randbytes.Make(32),
 	}
 	device.SignedPreKey = device.IdentityKey.CreateSignedPreKey(1)
 	return device
