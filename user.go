@@ -20,10 +20,12 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-const BusinessMessageLinkPrefix = "https://wa.me/message/"
-const ContactQRLinkPrefix = "https://wa.me/qr/"
-const BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
-const ContactQRLinkDirectPrefix = "https://api.whatsapp.com/qr/"
+const (
+	BusinessMessageLinkPrefix       = "https://wa.me/message/"
+	ContactQRLinkPrefix             = "https://wa.me/qr/"
+	BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
+	ContactQRLinkDirectPrefix       = "https://api.whatsapp.com/qr/"
+)
 
 // ResolveBusinessMessageLink resolves a business message short link and returns the target JID, business name and
 // text to prefill in the input field (if any).

@@ -599,7 +599,7 @@ func parseParticipantList(node *waBinary.Node) (participants []types.JID) {
 	participants = make([]types.JID, 0, len(children))
 	for _, child := range children {
 		jid, ok := child.Attrs["jid"].(types.JID)
-		if child.Tag != "participant" || !ok {
+		if (child.Tag != "participant" && child.Tag != "to") || !ok {
 			continue
 		}
 		participants = append(participants, jid)
