@@ -126,7 +126,11 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	go cli.sendAck(node)
 	if len(node.GetChildrenByTag("unavailable")) > 0 && len(node.GetChildrenByTag("enc")) == 0 {
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
-		go cli.sendRetryReceipt(node, true)
+		// Add a delay of 5 seconds before calling the sendRetryReceipt function in a goroutine
+		go func() {
+			time.Sleep(5 * time.Second)
+			cli.sendRetryReceipt(node, true)
+		}()
 		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true})
 		return
 	}
