@@ -99,7 +99,7 @@ func (cli *Client) CreateGroup(req ReqCreateGroup) (*types.GroupInfo, error) {
 func (cli *Client) UnlinkGroup(parent, child types.JID) error {
 	_, err := cli.sendGroupIQ(context.TODO(), iqSet, parent, waBinary.Node{
 		Tag:   "unlink",
-		Attrs: waBinary.Attrs{"unlink_type": types.GroupLinkChangeTypeSub},
+		Attrs: waBinary.Attrs{"unlink_type": string(types.GroupLinkChangeTypeSub)},
 		Content: []waBinary.Node{{
 			Tag:   "group",
 			Attrs: waBinary.Attrs{"jid": child},
@@ -116,7 +116,7 @@ func (cli *Client) LinkGroup(parent, child types.JID) error {
 		Tag: "links",
 		Content: []waBinary.Node{{
 			Tag:   "link",
-			Attrs: waBinary.Attrs{"link_type": types.GroupLinkChangeTypeSub},
+			Attrs: waBinary.Attrs{"link_type": string(types.GroupLinkChangeTypeSub)},
 			Content: []waBinary.Node{{
 				Tag:   "group",
 				Attrs: waBinary.Attrs{"jid": child},
