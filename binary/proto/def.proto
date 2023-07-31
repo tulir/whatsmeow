@@ -16,6 +16,7 @@ message ADVSignedDeviceIdentity {
 message ADVSignedDeviceIdentityHMAC {
     optional bytes details = 1;
     optional bytes hmac = 2;
+    optional ADVEncryptionType accountType = 3;
 }
 
 message ADVKeyIndexList {
@@ -85,21 +86,6 @@ message DeviceProps {
     optional PlatformType platformType = 3;
     optional bool requireFullSync = 4;
     optional HistorySyncConfig historySyncConfig = 5;
-}
-
-message LocationMessage {
-    optional double degreesLatitude = 1;
-    optional double degreesLongitude = 2;
-    optional string name = 3;
-    optional string address = 4;
-    optional string url = 5;
-    optional bool isLive = 6;
-    optional uint32 accuracyInMeters = 7;
-    optional float speedInMps = 8;
-    optional uint32 degreesClockwiseFromMagneticNorth = 9;
-    optional string comment = 11;
-    optional bytes jpegThumbnail = 16;
-    optional ContextInfo contextInfo = 17;
 }
 
 message LiveLocationMessage {
@@ -439,12 +425,9 @@ message ExtendedTextMessage {
         DEFAULT_SUB = 3;
     }
     enum FontType {
-        SANS_SERIF = 0;
-        SERIF = 1;
-        NORICAN_REGULAR = 2;
-        BRYNDAN_WRITE = 3;
-        BEBASNEUE_REGULAR = 4;
-        OSWALD_HEAVY = 5;
+        SYSTEM = 0;
+        SYSTEM_TEXT = 1;
+        FB_SCRIPT = 2;
         SYSTEM_BOLD = 6;
         MORNINGBREEZE_REGULAR = 7;
         CALISTOGA_REGULAR = 8;
@@ -478,6 +461,12 @@ message ExtendedTextMessage {
 }
 
 message EncReactionMessage {
+    optional MessageKey targetMessageKey = 1;
+    optional bytes encPayload = 2;
+    optional bytes encIv = 3;
+}
+
+message EncCommentMessage {
     optional MessageKey targetMessageKey = 1;
     optional bytes encPayload = 2;
     optional bytes encIv = 3;
@@ -751,6 +740,7 @@ message ContextInfo {
     message ForwardedNewsletterMessageInfo {
         optional string newsletterJid = 1;
         optional int32 serverMessageId = 2;
+        optional string newsletterName = 3;
     }
     
     message ExternalAdReplyInfo {
@@ -821,15 +811,25 @@ message ContextInfo {
     optional UTMInfo utm = 41;
     optional ForwardedNewsletterMessageInfo forwardedNewsletterMessageInfo = 43;
     optional BusinessMessageForwardInfo businessMessageForwardInfo = 44;
+    optional string smbClientCampaignId = 45;
+}
+
+message BotPluginMetadata {
+    optional bool isPlaceholder = 1;
 }
 
 message BotMetadata {
     optional BotAvatarMetadata avatarMetadata = 1;
+    optional string personaId = 2;
+    optional BotPluginMetadata pluginMetadata = 3;
 }
 
 message BotAvatarMetadata {
     optional uint32 sentiment = 1;
     optional string behaviorGraph = 2;
+    optional uint32 action = 3;
+    optional uint32 intensity = 4;
+    optional uint32 wordCount = 5;
 }
 
 message ActionLink {
@@ -957,6 +957,7 @@ message Message {
     optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
     optional VideoMessage ptvMessage = 66;
     optional FutureProofMessage botInvokeMessage = 67;
+    optional EncCommentMessage encCommentMessage = 68;
 }
 
 message MessageSecretMessage {
@@ -1075,6 +1076,7 @@ message StickerMessage {
     optional ContextInfo contextInfo = 17;
     optional int64 stickerSentTs = 18;
     optional bool isAvatar = 19;
+    optional bool isAiSticker = 20;
 }
 
 message SenderKeyDistributionMessage {
@@ -1321,11 +1323,11 @@ message PaymentInviteMessage {
 }
 
 message OrderMessage {
-    enum OrderStatus {
-        INQUIRY = 1;
-    }
     enum OrderSurface {
         CATALOG = 1;
+    }
+    enum OrderStatus {
+        INQUIRY = 1;
     }
     optional string orderId = 1;
     optional bytes thumbnail = 2;
@@ -1338,6 +1340,21 @@ message OrderMessage {
     optional string token = 9;
     optional int64 totalAmount1000 = 10;
     optional string totalCurrencyCode = 11;
+    optional ContextInfo contextInfo = 17;
+}
+
+message LocationMessage {
+    optional double degreesLatitude = 1;
+    optional double degreesLongitude = 2;
+    optional string name = 3;
+    optional string address = 4;
+    optional string url = 5;
+    optional bool isLive = 6;
+    optional uint32 accuracyInMeters = 7;
+    optional float speedInMps = 8;
+    optional uint32 degreesClockwiseFromMagneticNorth = 9;
+    optional string comment = 11;
+    optional bytes jpegThumbnail = 16;
     optional ContextInfo contextInfo = 17;
 }
 
@@ -2334,6 +2351,8 @@ message WebMessageInfo {
         LINKED_GROUP_CALL_START = 181;
         REPORT_TO_ADMIN_ENABLED_STATUS = 182;
         EMPTY_SUBGROUP_CREATE = 183;
+        SCHEDULED_CALL_CANCEL = 184;
+        SUBGROUP_ADMIN_TRIGGERED_AUTO_ADD_RICH = 185;
     }
     enum Status {
         ERROR = 0;
