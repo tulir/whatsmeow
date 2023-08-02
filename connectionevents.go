@@ -109,10 +109,10 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		cli.Log.Errorf("Client outdated (405) connect failure (client version: %s)", store.GetWAVersion().String())
 		go cli.dispatchEvent(&events.ClientOutdated{})
 	} else if willAutoReconnect {
-		cli.Log.Warnf("Got random connect failure, assuming automatic reconnect will handle it")
+		cli.Log.Warnf("Got %d/%s connect failure, assuming automatic reconnect will handle it", int(reason), message)
 	} else {
 		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())
-		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Raw: node})
+		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Message: message, Raw: node})
 	}
 }
 

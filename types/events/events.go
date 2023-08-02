@@ -176,8 +176,9 @@ func (cfr ConnectFailureReason) String() string {
 //
 // Known reasons are handled internally and emitted as different events (e.g. LoggedOut and TemporaryBan).
 type ConnectFailure struct {
-	Reason ConnectFailureReason
-	Raw    *waBinary.Node
+	Reason  ConnectFailureReason
+	Message string
+	Raw     *waBinary.Node
 }
 
 // ClientOutdated is emitted when the WhatsApp server rejects the connection with the ConnectFailureClientOutdated code.
