@@ -209,8 +209,63 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	return nil
 }
 
+func (cli *Client) cancelDelayedRequestFromPhone(msgID types.MessageID) {
+	if !cli.AutomaticMessageRerequestFromPhone {
+		return
+	}
+	cli.pendingPhoneRerequestsLock.RLock()
+	cancelPendingRequest, ok := cli.pendingPhoneRerequests[msgID]
+	if ok {
+		cancelPendingRequest()
+	}
+	cli.pendingPhoneRerequestsLock.RUnlock()
+}
+
+// RequestFromPhoneDelay specifies how long to wait for the sender to resend the message before requesting from your phone.
+// This is only used if Client.AutomaticMessageRerequestFromPhone is true.
+var RequestFromPhoneDelay = 5 * time.Second
+
+func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
+	if !cli.AutomaticMessageRerequestFromPhone {
+		return
+	}
+	cli.pendingPhoneRerequestsLock.Lock()
+	_, alreadyRequesting := cli.pendingPhoneRerequests[info.ID]
+	if !alreadyRequesting {
+		cli.pendingPhoneRerequestsLock.Unlock()
+		return
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	cli.pendingPhoneRerequests[info.ID] = cancel
+	cli.pendingPhoneRerequestsLock.Unlock()
+
+	defer func() {
+		cli.pendingPhoneRerequestsLock.Lock()
+		delete(cli.pendingPhoneRerequests, info.ID)
+		cli.pendingPhoneRerequestsLock.Unlock()
+	}()
+	select {
+	case <-time.After(RequestFromPhoneDelay):
+	case <-ctx.Done():
+		cli.Log.Debugf("Cancelled delayed request for message %s from phone", info.ID)
+		return
+	}
+	_, err := cli.SendMessage(
+		ctx,
+		cli.Store.ID.ToNonAD(),
+		cli.BuildUnavailableMessageRequest(info.Chat, info.Sender, info.ID),
+		SendRequestExtra{Peer: true},
+	)
+	if err != nil {
+		cli.Log.Warnf("Failed to send request for unavailable message %s to phone", info.ID)
+	} else {
+		cli.Log.Debugf("Requested message %s from phone", info.ID)
+	}
+}
+
 // sendRetryReceipt sends a retry receipt for an incoming message.
-func (cli *Client) sendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bool) {
+func (cli *Client) sendRetryReceipt(node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
 	id, _ := node.Attrs["id"].(string)
 	children := node.GetChildren()
 	var retryCountInMsg int
@@ -230,6 +285,9 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bo
 	if retryCount >= 5 {
 		cli.Log.Warnf("Not sending any more retry receipts for %s", id)
 		return
+	}
+	if retryCount == 1 {
+		cli.delayedRequestMessageFromPhone(info)
 	}
 
 	var registrationIDBytes [4]byte

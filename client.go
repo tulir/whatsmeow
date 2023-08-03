@@ -65,6 +65,10 @@ type Client struct {
 	// even when re-syncing the whole state.
 	EmitAppStateEventsOnFullSync bool
 
+	AutomaticMessageRerequestFromPhone bool
+	pendingPhoneRerequests             map[types.MessageID]func()
+	pendingPhoneRerequestsLock         sync.RWMutex
+
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 

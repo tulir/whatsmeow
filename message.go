@@ -126,7 +126,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	go cli.sendAck(node)
 	if len(node.GetChildrenByTag("unavailable")) > 0 && len(node.GetChildrenByTag("enc")) == 0 {
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
-		go cli.sendRetryReceipt(node, true)
+		go cli.sendRetryReceipt(node, info, true)
 		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true})
 		return
 	}
@@ -157,7 +157,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 		if err != nil {
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
-			go cli.sendRetryReceipt(node, isUnavailable)
+			go cli.sendRetryReceipt(node, info, isUnavailable)
 			decryptFailMode, _ := child.Attrs["decrypt-fail"].(string)
 			cli.dispatchEvent(&events.UndecryptableMessage{
 				Info:            *info,
@@ -174,6 +174,9 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			continue
 		}
 		retryCount := ag.OptionalInt("count")
+		if retryCount > 0 {
+			cli.cancelDelayedRequestFromPhone(info.ID)
+		}
 
 		cli.handleDecryptedMessage(info, &msg, retryCount)
 		handled = true
