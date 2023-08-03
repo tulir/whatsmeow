@@ -281,6 +281,50 @@ func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, rea
 	}
 }
 
+// BuildUnavailableMessageRequest builds a message to request the user's primary device to send
+// the copy of a message that this client was unable to decrypt.
+//
+// The built message can be sent normally using Client.SendMessage.
+// The response will come as a ProtocolMessage with type `PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE`.
+func (cli *Client) BuildUnavailableMessageRequest(chat, sender types.JID, id string) *waProto.Message {
+	return &waProto.Message{
+		ProtocolMessage: &waProto.ProtocolMessage{
+			Type: waProto.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
+			PeerDataOperationRequestMessage: &waProto.PeerDataOperationRequestMessage{
+				PeerDataOperationRequestType: waProto.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND.Enum(),
+				PlaceholderMessageResendRequest: []*waProto.PeerDataOperationRequestMessage_PlaceholderMessageResendRequest{{
+					MessageKey: cli.BuildMessageKey(chat, sender, id),
+				}},
+			},
+		},
+	}
+}
+
+// BuildHistorySyncRequest builds a message to request additional history from the user's primary device.
+//
+// The built message can be sent normally using Client.SendMessage.
+// The response will come as an *events.HistorySync with type `ON_DEMAND`.
+//
+// The response will contain to `count` messages immediately before the given message.
+// The recommended number of messages to request at a time is 50.
+func (cli *Client) BuildHistorySyncRequest(lastKnownMessageInfo *types.MessageInfo, count int) *waProto.Message {
+	return &waProto.Message{
+		ProtocolMessage: &waProto.ProtocolMessage{
+			Type: waProto.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
+			PeerDataOperationRequestMessage: &waProto.PeerDataOperationRequestMessage{
+				PeerDataOperationRequestType: waProto.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND.Enum(),
+				HistorySyncOnDemandRequest: &waProto.PeerDataOperationRequestMessage_HistorySyncOnDemandRequest{
+					ChatJid:              proto.String(lastKnownMessageInfo.Chat.String()),
+					OldestMsgId:          proto.String(lastKnownMessageInfo.ID),
+					OldestMsgFromMe:      proto.Bool(lastKnownMessageInfo.IsFromMe),
+					OnDemandMsgCount:     proto.Int32(int32(count)),
+					OldestMsgTimestampMs: proto.Int64(lastKnownMessageInfo.Timestamp.UnixMilli()),
+				},
+			},
+		},
+	}
+}
+
 // EditWindow specifies how long a message can be edited for after it was sent.
 const EditWindow = 20 * time.Minute
 
