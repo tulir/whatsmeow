@@ -674,8 +674,9 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		return nil, fmt.Errorf("failed to parse sender of message %s: %v", info.ID, err)
 	}
 	evt := &events.Message{
-		RawMessage: webMsg.GetMessage(),
-		Info:       info,
+		RawMessage:   webMsg.GetMessage(),
+		SourceWebMsg: webMsg,
+		Info:         info,
 	}
 	evt.UnwrapRaw()
 	return evt, nil

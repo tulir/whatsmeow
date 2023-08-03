@@ -285,7 +285,8 @@ func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, rea
 // the copy of a message that this client was unable to decrypt.
 //
 // The built message can be sent normally using Client.SendMessage.
-// The response will come as a ProtocolMessage with type `PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE`.
+// The full response will come as a ProtocolMessage with type `PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE`.
+// The response events will also be dispatched as normal *events.Message's with UnavailableRequestID set to the request message ID.
 func (cli *Client) BuildUnavailableMessageRequest(chat, sender types.JID, id string) *waProto.Message {
 	return &waProto.Message{
 		ProtocolMessage: &waProto.ProtocolMessage{

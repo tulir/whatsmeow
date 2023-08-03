@@ -362,6 +362,25 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 	}
 }
 
+func (cli *Client) handlePlaceholderResendResponse(msg *waProto.PeerDataOperationRequestResponseMessage) {
+	reqID := msg.GetStanzaId()
+	parts := msg.GetPeerDataOperationResult()
+	cli.Log.Debugf("Handling response to placeholder resend request %s with %d items", reqID, len(parts))
+	for i, part := range parts {
+		var webMsg waProto.WebMessageInfo
+		if resp := part.GetPlaceholderMessageResendResponse(); resp == nil {
+			cli.Log.Warnf("Missing response in item #%d of response to %s", i+1, reqID)
+		} else if err := proto.Unmarshal(resp.GetWebMessageInfoBytes(), &webMsg); err != nil {
+			cli.Log.Warnf("Failed to unmarshal protobuf web message in item #%d of response to %s: %v", i+1, reqID, err)
+		} else if msgEvt, err := cli.ParseWebMessage(types.EmptyJID, &webMsg); err != nil {
+			cli.Log.Warnf("Failed to parse web message info in item #%d of response to %s: %v", i+1, reqID, err)
+		} else {
+			msgEvt.UnavailableRequestID = reqID
+			cli.dispatchEvent(msgEvt)
+		}
+	}
+}
+
 func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.Message) {
 	protoMsg := msg.GetProtocolMessage()
 
@@ -371,6 +390,10 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 			go cli.handleHistorySyncNotificationLoop()
 		}
 		go cli.sendProtocolMessageReceipt(info.ID, "hist_sync")
+	}
+
+	if protoMsg.GetPeerDataOperationRequestResponseMessage().GetPeerDataOperationRequestType() == waProto.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND {
+		go cli.handlePlaceholderResendResponse(protoMsg.GetPeerDataOperationRequestResponseMessage())
 	}
 
 	if protoMsg.GetAppStateSyncKeyShare() != nil && info.IsFromMe {
