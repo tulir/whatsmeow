@@ -138,7 +138,8 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 		if child.Tag != "enc" {
 			continue
 		}
-		encType, ok := child.Attrs["type"].(string)
+		ag := child.AttrGetter()
+		encType, ok := ag.GetString("type", false)
 		if !ok {
 			continue
 		}
@@ -172,8 +173,9 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
 			continue
 		}
+		retryCount := ag.OptionalInt("count")
 
-		cli.handleDecryptedMessage(info, &msg)
+		cli.handleDecryptedMessage(info, &msg, retryCount)
 		handled = true
 	}
 	if handled {
@@ -500,9 +502,9 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conver
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message) {
+func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.Message, retryCount int) {
 	cli.processProtocolParts(info, msg)
-	evt := &events.Message{Info: *info, RawMessage: msg}
+	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount}
 	cli.dispatchEvent(evt.UnwrapRaw())
 }
 

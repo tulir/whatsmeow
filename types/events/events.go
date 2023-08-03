@@ -236,9 +236,10 @@ type Message struct {
 
 	// If this event was parsed from a WebMessageInfo (i.e. from a history sync or unavailable message request), the source data is here.
 	SourceWebMsg *waProto.WebMessageInfo
-
 	// If this event is a response to an unavailable message request, the request ID is here.
 	UnavailableRequestID types.MessageID
+	// If the message was re-requested from the sender, this is the number of retries it took.
+	RetryCount int
 
 	// The raw message struct. This is the raw unmodified data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
