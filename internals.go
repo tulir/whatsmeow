@@ -10,6 +10,7 @@ import (
 	"context"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/types"
 )
 
 type DangerousInternalClient struct {
@@ -62,6 +63,6 @@ func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, key
 	int.c.requestAppStateKeys(ctx, keyIDs)
 }
 
-func (int *DangerousInternalClient) SendRetryReceipt(node *waBinary.Node, forceIncludeIdentity bool) {
-	int.c.sendRetryReceipt(node, forceIncludeIdentity)
+func (int *DangerousInternalClient) SendRetryReceipt(node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
+	int.c.sendRetryReceipt(node, info, forceIncludeIdentity)
 }

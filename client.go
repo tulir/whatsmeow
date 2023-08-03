@@ -65,6 +65,10 @@ type Client struct {
 	// even when re-syncing the whole state.
 	EmitAppStateEventsOnFullSync bool
 
+	AutomaticMessageRerequestFromPhone bool
+	pendingPhoneRerequests             map[types.MessageID]func()
+	pendingPhoneRerequestsLock         sync.RWMutex
+
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 
@@ -642,6 +646,13 @@ func (cli *Client) dispatchEvent(evt interface{}) {
 //		yourNormalEventHandler(evt)
 //	}
 func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessageInfo) (*events.Message, error) {
+	var err error
+	if chatJID.IsEmpty() {
+		chatJID, err = types.ParseJID(webMsg.GetKey().GetRemoteJid())
+		if err != nil {
+			return nil, fmt.Errorf("no chat JID provided and failed to parse remote JID: %w", err)
+		}
+	}
 	info := types.MessageInfo{
 		MessageSource: types.MessageSource{
 			Chat:     chatJID,
@@ -652,7 +663,6 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		PushName:  webMsg.GetPushName(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
-	var err error
 	if info.IsFromMe {
 		info.Sender = cli.getOwnID().ToNonAD()
 		if info.Sender.IsEmpty() {
@@ -671,8 +681,9 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		return nil, fmt.Errorf("failed to parse sender of message %s: %v", info.ID, err)
 	}
 	evt := &events.Message{
-		RawMessage: webMsg.GetMessage(),
-		Info:       info,
+		RawMessage:   webMsg.GetMessage(),
+		SourceWebMsg: webMsg,
+		Info:         info,
 	}
 	evt.UnwrapRaw()
 	return evt, nil
