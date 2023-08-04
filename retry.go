@@ -287,7 +287,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node, info *types.MessageInfo
 		return
 	}
 	if retryCount == 1 {
-		cli.delayedRequestMessageFromPhone(info)
+		go cli.delayedRequestMessageFromPhone(info)
 	}
 
 	var registrationIDBytes [4]byte
