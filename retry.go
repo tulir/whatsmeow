@@ -231,7 +231,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 	}
 	cli.pendingPhoneRerequestsLock.Lock()
 	_, alreadyRequesting := cli.pendingPhoneRerequests[info.ID]
-	if !alreadyRequesting {
+	if alreadyRequesting {
 		cli.pendingPhoneRerequestsLock.Unlock()
 		return
 	}
