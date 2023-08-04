@@ -66,7 +66,7 @@ type Client struct {
 	EmitAppStateEventsOnFullSync bool
 
 	AutomaticMessageRerequestFromPhone bool
-	pendingPhoneRerequests             map[types.MessageID]func()
+	pendingPhoneRerequests             map[types.MessageID]context.CancelFunc
 	pendingPhoneRerequestsLock         sync.RWMutex
 
 	appStateProc     *appstate.Processor
@@ -194,6 +194,8 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		sessionRecreateHistory: make(map[types.JID]time.Time),
 		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
 		appStateKeyRequests:    make(map[string]time.Time),
+
+		pendingPhoneRerequests: make(map[types.MessageID]context.CancelFunc),
 
 		EnableAutoReconnect:   true,
 		AutoTrustIdentity:     true,
