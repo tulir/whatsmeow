@@ -80,9 +80,17 @@ func (cli *Client) handleIB(node *waBinary.Node) {
 func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	reason := events.ConnectFailureReason(ag.Int("reason"))
-	// Let the auto-reconnect happen for 503s, for all other failures block it
-	if reason != events.ConnectFailureServiceUnavailable {
+	message := ag.OptionalString("message")
+	willAutoReconnect := true
+	switch {
+	default:
+		// By default, expect a disconnect (i.e. prevent auto-reconnect)
 		cli.expectDisconnect()
+		willAutoReconnect = false
+	case reason == events.ConnectFailureServiceUnavailable:
+		// Auto-reconnect for 503s
+	case reason == 500 && message == "biz vname fetch error":
+		// These happen for business accounts randomly, also auto-reconnect
 	}
 	if reason.IsLoggedOut() {
 		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason)
@@ -100,11 +108,11 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	} else if reason == events.ConnectFailureClientOutdated {
 		cli.Log.Errorf("Client outdated (405) connect failure (client version: %s)", store.GetWAVersion().String())
 		go cli.dispatchEvent(&events.ClientOutdated{})
-	} else if reason == events.ConnectFailureServiceUnavailable {
-		cli.Log.Warnf("Got 503 connect failure, assuming automatic reconnect will handle it")
+	} else if willAutoReconnect {
+		cli.Log.Warnf("Got %d/%s connect failure, assuming automatic reconnect will handle it", int(reason), message)
 	} else {
 		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())
-		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Raw: node})
+		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Message: message, Raw: node})
 	}
 }
 

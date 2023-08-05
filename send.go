@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -35,8 +36,27 @@ import (
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
 //
+//	msgID := cli.GenerateMessageID()
+//	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
+func (cli *Client) GenerateMessageID() types.MessageID {
+	data := make([]byte, 8, 8+20+16)
+	binary.BigEndian.PutUint64(data, uint64(time.Now().Unix()))
+	ownID := cli.getOwnID()
+	if !ownID.IsEmpty() {
+		data = append(data, []byte(ownID.User)...)
+		data = append(data, []byte("@c.us")...)
+	}
+	data = append(data, randbytes.Make(16)...)
+	hash := sha256.Sum256(data)
+	return "3EB0" + strings.ToUpper(hex.EncodeToString(hash[:9]))
+}
+
+// GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
+//
 //	msgID := whatsmeow.GenerateMessageID()
 //	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
+//
+// Deprecated: WhatsApp web has switched to using a hash of the current timestamp, user id and random bytes. Use Client.GenerateMessageID instead.
 func GenerateMessageID() types.MessageID {
 	return "3EB0" + strings.ToUpper(hex.EncodeToString(randbytes.Make(8)))
 }
@@ -127,7 +147,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	}
 
 	if len(req.ID) == 0 {
-		req.ID = GenerateMessageID()
+		req.ID = cli.GenerateMessageID()
 	}
 	resp.ID = req.ID
 
@@ -211,17 +231,9 @@ func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (SendRespon
 	return cli.SendMessage(context.TODO(), chat, cli.BuildRevoke(chat, types.EmptyJID, id))
 }
 
-// BuildRevoke builds a message revocation message using the given variables.
-// The built message can be sent normally using Client.SendMessage.
-//
-// To revoke your own messages, pass your JID or an empty JID as the second parameter (sender).
-//
-//	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildRevoke(chat, types.EmptyJID, originalMessageID)
-//
-// To revoke someone else's messages when you are group admin, pass the message sender's JID as the second parameter.
-//
-//	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildRevoke(chat, senderJID, originalMessageID)
-func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waProto.Message {
+// BuildMessageKey builds a MessageKey object, which is used to refer to previous messages
+// for things such as replies, revocations and reactions.
+func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *waProto.MessageKey {
 	key := &waProto.MessageKey{
 		FromMe:    proto.Bool(true),
 		Id:        proto.String(id),
@@ -233,10 +245,83 @@ func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waPr
 			key.Participant = proto.String(sender.ToNonAD().String())
 		}
 	}
+	return key
+}
+
+// BuildRevoke builds a message revocation message using the given variables.
+// The built message can be sent normally using Client.SendMessage.
+//
+// To revoke your own messages, pass your JID or an empty JID as the second parameter (sender).
+//
+//	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildRevoke(chat, types.EmptyJID, originalMessageID)
+//
+// To revoke someone else's messages when you are group admin, pass the message sender's JID as the second parameter.
+//
+//	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildRevoke(chat, senderJID, originalMessageID)
+func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waProto.Message {
 	return &waProto.Message{
 		ProtocolMessage: &waProto.ProtocolMessage{
 			Type: waProto.ProtocolMessage_REVOKE.Enum(),
-			Key:  key,
+			Key:  cli.BuildMessageKey(chat, sender, id),
+		},
+	}
+}
+
+// BuildReaction builds a message reaction message using the given variables.
+// The built message can be sent normally using Client.SendMessage.
+//
+//	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildReaction(chat, senderJID, targetMessageID, "🐈️")
+func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waProto.Message {
+	return &waProto.Message{
+		ReactionMessage: &waProto.ReactionMessage{
+			Key:               cli.BuildMessageKey(chat, sender, id),
+			Text:              proto.String(reaction),
+			SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
+		},
+	}
+}
+
+// BuildUnavailableMessageRequest builds a message to request the user's primary device to send
+// the copy of a message that this client was unable to decrypt.
+//
+// The built message can be sent using Client.SendMessage, but you must pass whatsmeow.SendRequestExtra{Peer: true} as the last parameter.
+// The full response will come as a ProtocolMessage with type `PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE`.
+// The response events will also be dispatched as normal *events.Message's with UnavailableRequestID set to the request message ID.
+func (cli *Client) BuildUnavailableMessageRequest(chat, sender types.JID, id string) *waProto.Message {
+	return &waProto.Message{
+		ProtocolMessage: &waProto.ProtocolMessage{
+			Type: waProto.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
+			PeerDataOperationRequestMessage: &waProto.PeerDataOperationRequestMessage{
+				PeerDataOperationRequestType: waProto.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND.Enum(),
+				PlaceholderMessageResendRequest: []*waProto.PeerDataOperationRequestMessage_PlaceholderMessageResendRequest{{
+					MessageKey: cli.BuildMessageKey(chat, sender, id),
+				}},
+			},
+		},
+	}
+}
+
+// BuildHistorySyncRequest builds a message to request additional history from the user's primary device.
+//
+// The built message can be sent using Client.SendMessage, but you must pass whatsmeow.SendRequestExtra{Peer: true} as the last parameter.
+// The response will come as an *events.HistorySync with type `ON_DEMAND`.
+//
+// The response will contain to `count` messages immediately before the given message.
+// The recommended number of messages to request at a time is 50.
+func (cli *Client) BuildHistorySyncRequest(lastKnownMessageInfo *types.MessageInfo, count int) *waProto.Message {
+	return &waProto.Message{
+		ProtocolMessage: &waProto.ProtocolMessage{
+			Type: waProto.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
+			PeerDataOperationRequestMessage: &waProto.PeerDataOperationRequestMessage{
+				PeerDataOperationRequestType: waProto.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND.Enum(),
+				HistorySyncOnDemandRequest: &waProto.PeerDataOperationRequestMessage_HistorySyncOnDemandRequest{
+					ChatJid:              proto.String(lastKnownMessageInfo.Chat.String()),
+					OldestMsgId:          proto.String(lastKnownMessageInfo.ID),
+					OldestMsgFromMe:      proto.Bool(lastKnownMessageInfo.IsFromMe),
+					OnDemandMsgCount:     proto.Int32(int32(count)),
+					OldestMsgTimestampMs: proto.Int64(lastKnownMessageInfo.Timestamp.UnixMilli()),
+				},
+			},
 		},
 	}
 }

@@ -27,6 +27,8 @@ import (
 	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
+// PairClientType is the type of client to use with PairCode.
+// The type is automatically filled based on store.DeviceProps.PlatformType (which is what QR login uses).
 type PairClientType int
 
 const (
@@ -92,6 +94,13 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 	return
 }
 
+// PairPhone generates a pairing code that can be used to link to a phone without scanning a QR code.
+//
+// The exact expiry of pairing codes is unknown, but QR codes are always generated and the login websocket is closed
+// after the QR codes run out, which means there's a 160-second time limit. It is recommended to generate the pairing
+// code immediately after connecting to the websocket to have the maximum time.
+//
+// See https://faq.whatsapp.com/1324084875126592 for more info
 func (cli *Client) PairPhone(phone string, showPushNotification bool) (string, error) {
 	clientType := platformTypeToPairClientType(store.DeviceProps.GetPlatformType())
 	clientDisplayName := store.DeviceProps.GetOs()
