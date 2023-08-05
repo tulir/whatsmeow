@@ -258,7 +258,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 		SendRequestExtra{Peer: true},
 	)
 	if err != nil {
-		cli.Log.Warnf("Failed to send request for unavailable message %s to phone", info.ID)
+		cli.Log.Warnf("Failed to send request for unavailable message %s to phone: %v", info.ID, err)
 	} else {
 		cli.Log.Debugf("Requested message %s from phone", info.ID)
 	}
