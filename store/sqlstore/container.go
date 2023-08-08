@@ -13,6 +13,7 @@ import (
 	mathRand "math/rand"
 
 	"go.mau.fi/util/random"
+
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"

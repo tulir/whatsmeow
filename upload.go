@@ -18,6 +18,7 @@ import (
 	"net/url"
 
 	"go.mau.fi/util/random"
+
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 )
