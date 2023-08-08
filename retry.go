@@ -160,13 +160,11 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if err != nil {
 			return err
 		}
-		senderAD := receipt.Sender
-		senderAD.AD = true
-		bundle, err = keys[senderAD].bundle, keys[senderAD].err
+		bundle, err = keys[receipt.Sender].bundle, keys[receipt.Sender].err
 		if err != nil {
 			return fmt.Errorf("failed to fetch prekeys: %w", err)
 		} else if bundle == nil {
-			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", senderAD, len(keys))
+			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", receipt.Sender, len(keys))
 		}
 	}
 	encAttrs := waBinary.Attrs{}

@@ -135,7 +135,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	} else if len(extra) == 1 {
 		req = extra[0]
 	}
-	if to.AD && !req.Peer {
+	if to.Device > 0 && !req.Peer {
 		err = ErrRecipientADJID
 		return
 	}
@@ -416,7 +416,7 @@ func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (er
 func participantListHashV2(participants []types.JID) string {
 	participantsStrings := make([]string, len(participants))
 	for i, part := range participants {
-		participantsStrings[i] = part.String()
+		participantsStrings[i] = part.ADString()
 	}
 
 	sort.Strings(participantsStrings)

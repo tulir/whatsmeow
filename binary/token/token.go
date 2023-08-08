@@ -74,6 +74,8 @@ const (
 	Dictionary1 = 237
 	Dictionary2 = 238
 	Dictionary3 = 239
+	InteropJID  = 245
+	FBJID       = 246
 	ADJID       = 247
 	List8       = 248
 	List16      = 249
