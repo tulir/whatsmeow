@@ -103,7 +103,7 @@ var (
 var (
 	ErrBroadcastListUnsupported = errors.New("sending to non-status broadcast lists is not yet supported")
 	ErrUnknownServer            = errors.New("can't send message to unknown server")
-	ErrRecipientADJID           = errors.New("message recipient must be normal (non-AD) JID")
+	ErrRecipientADJID           = errors.New("message recipient must be a user JID with no device part")
 	ErrServerReturnedError      = errors.New("server returned error")
 )
 

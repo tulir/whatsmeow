@@ -19,19 +19,18 @@ import (
 	"strings"
 	"time"
 
-	"go.mau.fi/libsignal/signalerror"
-	"google.golang.org/protobuf/proto"
-
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/keys/prekey"
 	"go.mau.fi/libsignal/protocol"
 	"go.mau.fi/libsignal/session"
+	"go.mau.fi/libsignal/signalerror"
+	"go.mau.fi/util/random"
+	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
-	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
@@ -46,7 +45,7 @@ func (cli *Client) GenerateMessageID() types.MessageID {
 		data = append(data, []byte(ownID.User)...)
 		data = append(data, []byte("@c.us")...)
 	}
-	data = append(data, randbytes.Make(16)...)
+	data = append(data, random.Bytes(16)...)
 	hash := sha256.Sum256(data)
 	return "3EB0" + strings.ToUpper(hex.EncodeToString(hash[:9]))
 }
@@ -58,7 +57,7 @@ func (cli *Client) GenerateMessageID() types.MessageID {
 //
 // Deprecated: WhatsApp web has switched to using a hash of the current timestamp, user id and random bytes. Use Client.GenerateMessageID instead.
 func GenerateMessageID() types.MessageID {
-	return "3EB0" + strings.ToUpper(hex.EncodeToString(randbytes.Make(8)))
+	return "3EB0" + strings.ToUpper(hex.EncodeToString(random.Bytes(8)))
 }
 
 type MessageDebugTimings struct {
@@ -136,7 +135,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	} else if len(extra) == 1 {
 		req = extra[0]
 	}
-	if to.AD && !req.Peer {
+	if to.Device > 0 && !req.Peer {
 		err = ErrRecipientADJID
 		return
 	}
@@ -417,7 +416,7 @@ func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (er
 func participantListHashV2(participants []types.JID) string {
 	participantsStrings := make([]string, len(participants))
 	for i, part := range participants {
-		participantsStrings[i] = part.String()
+		participantsStrings[i] = part.ADString()
 	}
 
 	sort.Strings(participantsStrings)

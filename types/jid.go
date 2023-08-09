@@ -24,6 +24,10 @@ const (
 	LegacyUserServer  = "c.us"
 	BroadcastServer   = "broadcast"
 	HiddenUserServer  = "lid"
+	MessengerServer   = "msgr"
+	InteropServer     = "interop"
+	NewsletterServer  = "newsletter"
+	HostedServer      = "hosted"
 )
 
 // Some JIDs that are contacted often.
@@ -46,11 +50,22 @@ type MessageID = string
 // AD JIDs are only used to refer to specific devices of users, so the server is always s.whatsapp.net (DefaultUserServer).
 // Regular JIDs can be used for entities on any servers (users, groups, broadcasts).
 type JID struct {
-	User   string
-	Agent  uint8
-	Device uint8
-	Server string
-	AD     bool
+	User       string
+	RawAgent   uint8
+	Device     uint16
+	Integrator uint16
+	Server     string
+}
+
+func (jid JID) ActualAgent() uint8 {
+	switch jid.Server {
+	case DefaultUserServer:
+		return 0
+	case HiddenUserServer:
+		return 1
+	default:
+		return jid.RawAgent
+	}
 }
 
 // UserInt returns the user as an integer. This is only safe to run on normal users, not on groups or broadcast lists.
@@ -61,23 +76,27 @@ func (jid JID) UserInt() uint64 {
 
 // ToNonAD returns a version of the JID struct that doesn't have the agent and device set.
 func (jid JID) ToNonAD() JID {
-	if jid.AD {
-		return JID{
-			User:   jid.User,
-			Server: DefaultUserServer,
-		}
-	} else {
-		return jid
+	return JID{
+		User:       jid.User,
+		Server:     jid.Server,
+		Integrator: jid.Integrator,
 	}
 }
 
 // SignalAddress returns the Signal protocol address for the user.
 func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
 	user := jid.User
-	if jid.Agent != 0 {
-		user = fmt.Sprintf("%s_%d", jid.User, jid.Agent)
+	agent := jid.ActualAgent()
+	if agent != 0 {
+		user = fmt.Sprintf("%s_%d", jid.User, agent)
 	}
 	return signalProtocol.NewSignalAddress(user, uint32(jid.Device))
+	// TODO use @lid suffix instead of agent?
+	//suffix := ""
+	//if jid.Server == HiddenUserServer {
+	//	suffix = "@lid"
+	//}
+	//return signalProtocol.NewSignalAddress(user, uint32(jid.Device), suffix)
 }
 
 // IsBroadcastList returns true if the JID is a broadcast list, but not the status broadcast.
@@ -87,42 +106,25 @@ func (jid JID) IsBroadcastList() bool {
 
 // NewADJID creates a new AD JID.
 func NewADJID(user string, agent, device uint8) JID {
+	var server string
+	switch agent {
+	case 0:
+		server = DefaultUserServer
+	case 1:
+		server = HiddenUserServer
+		agent = 0
+	default:
+		if (agent&0x01) != 0 || (agent&0x80) == 0 { // agent % 2 == 0 || agent < 128?
+			// TODO invalid JID?
+		}
+		server = HostedServer
+	}
 	return JID{
-		User:   user,
-		Agent:  agent,
-		Device: device,
-		Server: DefaultUserServer,
-		AD:     true,
+		User:     user,
+		RawAgent: agent,
+		Device:   uint16(device),
+		Server:   server,
 	}
-}
-
-func parseADJID(user string) (JID, error) {
-	var fullJID JID
-	fullJID.AD = true
-	fullJID.Server = DefaultUserServer
-
-	dotIndex := strings.IndexRune(user, '.')
-	colonIndex := strings.IndexRune(user, ':')
-	if dotIndex < 0 || colonIndex < 0 || colonIndex+1 <= dotIndex {
-		return fullJID, fmt.Errorf("failed to parse ADJID: missing separators")
-	}
-
-	fullJID.User = user[:dotIndex]
-	agent, err := strconv.Atoi(user[dotIndex+1 : colonIndex])
-	if err != nil {
-		return fullJID, fmt.Errorf("failed to parse agent from JID: %w", err)
-	} else if agent < 0 || agent > 255 {
-		return fullJID, fmt.Errorf("failed to parse agent from JID: invalid value (%d)", agent)
-	}
-	device, err := strconv.Atoi(user[colonIndex+1:])
-	if err != nil {
-		return fullJID, fmt.Errorf("failed to parse device from JID: %w", err)
-	} else if device < 0 || device > 255 {
-		return fullJID, fmt.Errorf("failed to parse device from JID: invalid value (%d)", device)
-	}
-	fullJID.Agent = uint8(agent)
-	fullJID.Device = uint8(device)
-	return fullJID, nil
 }
 
 // ParseJID parses a JID out of the given string. It supports both regular and AD JIDs.
@@ -130,10 +132,44 @@ func ParseJID(jid string) (JID, error) {
 	parts := strings.Split(jid, "@")
 	if len(parts) == 1 {
 		return NewJID("", parts[0]), nil
-	} else if strings.ContainsRune(parts[0], ':') && strings.ContainsRune(parts[0], '.') && parts[1] == DefaultUserServer {
-		return parseADJID(parts[0])
 	}
-	return NewJID(parts[0], parts[1]), nil
+	parsedJID := JID{User: parts[0], Server: parts[1]}
+	if strings.ContainsRune(parsedJID.User, '.') {
+		parts = strings.Split(parsedJID.User, ".")
+		if len(parts) != 2 {
+			return parsedJID, fmt.Errorf("unexpected number of dots in JID")
+		}
+		parsedJID.User = parts[0]
+		ad := parts[1]
+		parts = strings.Split(ad, ":")
+		if len(parts) > 2 {
+			return parsedJID, fmt.Errorf("unexpected number of colons in JID")
+		}
+		agent, err := strconv.Atoi(parts[0])
+		if err != nil {
+			return parsedJID, fmt.Errorf("failed to parse device from JID: %w", err)
+		}
+		parsedJID.RawAgent = uint8(agent)
+		if len(parts) == 2 {
+			device, err := strconv.Atoi(parts[1])
+			if err != nil {
+				return parsedJID, fmt.Errorf("failed to parse device from JID: %w", err)
+			}
+			parsedJID.Device = uint16(device)
+		}
+	} else if strings.ContainsRune(parsedJID.User, ':') {
+		parts = strings.Split(parsedJID.User, ":")
+		if len(parts) != 2 {
+			return parsedJID, fmt.Errorf("unexpected number of colons in JID")
+		}
+		parsedJID.User = parts[0]
+		device, err := strconv.Atoi(parts[1])
+		if err != nil {
+			return parsedJID, fmt.Errorf("failed to parse device from JID: %w", err)
+		}
+		parsedJID.Device = uint16(device)
+	}
+	return parsedJID, nil
 }
 
 // NewJID creates a new regular JID.
@@ -144,11 +180,17 @@ func NewJID(user, server string) JID {
 	}
 }
 
+func (jid JID) ADString() string {
+	return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.RawAgent, jid.Device, jid.Server)
+}
+
 // String converts the JID to a string representation.
-// The output string can be parsed with ParseJID, except for JIDs with no User part specified.
+// The output string can be parsed with ParseJID.
 func (jid JID) String() string {
-	if jid.AD {
-		return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.Agent, jid.Device, jid.Server)
+	if jid.RawAgent > 0 {
+		return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.RawAgent, jid.Device, jid.Server)
+	} else if jid.Device > 0 {
+		return fmt.Sprintf("%s:%d@%s", jid.User, jid.Device, jid.Server)
 	} else if len(jid.User) > 0 {
 		return fmt.Sprintf("%s@%s", jid.User, jid.Server)
 	} else {

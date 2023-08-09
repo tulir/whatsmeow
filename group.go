@@ -526,6 +526,12 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 				IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
 				IsSuperAdmin: pcpType == "superadmin",
 				JID:          childAG.JID("jid"),
+				LID:          childAG.OptionalJIDOrEmpty("lid"),
+				DisplayName:  childAG.OptionalString("display_name"),
+			}
+			if participant.JID.Server == types.HiddenUserServer && participant.LID.IsEmpty() {
+				participant.LID = participant.JID
+				//participant.JID = types.EmptyJID
 			}
 			if errorCode := childAG.OptionalInt("error"); errorCode != 0 {
 				participant.Error = errorCode
@@ -565,6 +571,9 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		case "parent":
 			group.IsParent = true
 			group.DefaultMembershipApprovalMode = childAG.OptionalString("default_membership_approval_mode")
+		case "incognito":
+			group.IsIncognito = true
+		// TODO: membership_approval_mode
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}

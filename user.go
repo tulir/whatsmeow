@@ -476,9 +476,7 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 	userList := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		userList[i].Tag = "user"
-		if jid.AD {
-			jid.AD = false
-		}
+		jid = jid.ToNonAD()
 		switch jid.Server {
 		case types.LegacyUserServer:
 			userList[i].Content = []waBinary.Node{{

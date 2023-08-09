@@ -12,12 +12,13 @@ import (
 	"fmt"
 	mathRand "math/rand"
 
+	"go.mau.fi/util/random"
+
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
-	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 // Container is a wrapper for a SQL database that can contain multiple whatsmeow sessions.
@@ -210,7 +211,7 @@ func (c *Container) NewDevice() *store.Device {
 		NoiseKey:       keys.NewKeyPair(),
 		IdentityKey:    keys.NewKeyPair(),
 		RegistrationID: mathRand.Uint32(),
-		AdvSecretKey:   randbytes.Make(32),
+		AdvSecretKey:   random.Bytes(32),
 	}
 	device.SignedPreKey = device.IdentityKey.CreateSignedPreKey(1)
 	return device

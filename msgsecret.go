@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
 	waProto "go.mau.fi/whatsmeow/binary/proto"
@@ -18,7 +19,6 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/gcmutil"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
-	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 type MsgSecretType string
@@ -107,7 +107,7 @@ func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.
 	}
 	secretKey, additionalData := generateMsgSecretKey(useCase, ownID, origMsgID, origSender, baseEncKey)
 
-	iv = randbytes.Make(12)
+	iv = random.Bytes(12)
 	ciphertext, err = gcmutil.Encrypt(secretKey, iv, plaintext, additionalData)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt secret message: %w", err)
@@ -221,7 +221,7 @@ func (cli *Client) BuildPollVote(pollInfo *types.MessageInfo, optionNames []stri
 //
 //	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildPollCreation("meow?", []string{"yes", "no"}, 1))
 func (cli *Client) BuildPollCreation(name string, optionNames []string, selectableOptionCount int) *waProto.Message {
-	msgSecret := randbytes.Make(32)
+	msgSecret := random.Bytes(32)
 	if selectableOptionCount < 0 || selectableOptionCount > len(optionNames) {
 		selectableOptionCount = 0
 	}

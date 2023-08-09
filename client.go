@@ -19,6 +19,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"go.mau.fi/util/random"
+
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
@@ -28,7 +30,6 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
-	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 // EventHandler is a function that can handle events from WhatsApp.
@@ -167,7 +168,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	if log == nil {
 		log = waLog.Noop
 	}
-	uniqueIDPrefix := randbytes.Make(2)
+	uniqueIDPrefix := random.Bytes(2)
 	cli := &Client{
 		http: &http.Client{
 			Transport: (http.DefaultTransport.(*http.Transport)).Clone(),

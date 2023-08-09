@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"go.mau.fi/util/random"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/pbkdf2"
 
@@ -24,7 +25,6 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
 	"go.mau.fi/whatsmeow/util/keys"
-	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 // PairClientType is the type of client to use with PairCode.
@@ -79,9 +79,9 @@ type phoneLinkingCache struct {
 
 func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralKey []byte, encodedLinkingCode string) {
 	ephemeralKeyPair = keys.NewKeyPair()
-	salt := randbytes.Make(32)
-	iv := randbytes.Make(16)
-	linkingCode := randbytes.Make(5)
+	salt := random.Bytes(32)
+	iv := random.Bytes(16)
+	linkingCode := random.Bytes(5)
 	encodedLinkingCode = linkingBase32.EncodeToString(linkingCode)
 	linkCodeKey := pbkdf2.Key([]byte(encodedLinkingCode), salt, 2<<16, 32, sha256.New)
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
@@ -187,9 +187,9 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 		}
 	}
 
-	advSecretRandom := randbytes.Make(32)
-	keyBundleSalt := randbytes.Make(32)
-	keyBundleNonce := randbytes.Make(12)
+	advSecretRandom := random.Bytes(32)
+	keyBundleSalt := random.Bytes(32)
+	keyBundleNonce := random.Bytes(12)
 
 	// Decrypt the primary device's ephemeral public key, which was encrypted with the 8-character pairing code,
 	// then compute the DH shared secret using our ephemeral private key we generated earlier.

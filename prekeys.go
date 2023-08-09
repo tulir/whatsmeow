@@ -125,7 +125,6 @@ func (cli *Client) fetchPreKeys(ctx context.Context, users []types.JID) (map[typ
 			continue
 		}
 		jid := child.AttrGetter().JID("jid")
-		jid.AD = true
 		bundle, err := nodeToPreKeyBundle(uint32(jid.Device), child)
 		respData[jid] = preKeyResp{bundle, err}
 	}
