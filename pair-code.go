@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 
+	"go.mau.fi/util/random"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/pbkdf2"
 
@@ -24,9 +25,10 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
 	"go.mau.fi/whatsmeow/util/keys"
-	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
+// PairClientType is the type of client to use with PairCode.
+// The type is automatically filled based on store.DeviceProps.PlatformType (which is what QR login uses).
 type PairClientType int
 
 const (
@@ -77,9 +79,9 @@ type phoneLinkingCache struct {
 
 func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralKey []byte, encodedLinkingCode string) {
 	ephemeralKeyPair = keys.NewKeyPair()
-	salt := randbytes.Make(32)
-	iv := randbytes.Make(16)
-	linkingCode := randbytes.Make(5)
+	salt := random.Bytes(32)
+	iv := random.Bytes(16)
+	linkingCode := random.Bytes(5)
 	encodedLinkingCode = linkingBase32.EncodeToString(linkingCode)
 	linkCodeKey := pbkdf2.Key([]byte(encodedLinkingCode), salt, 2<<16, 32, sha256.New)
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
@@ -92,6 +94,13 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 	return
 }
 
+// PairPhone generates a pairing code that can be used to link to a phone without scanning a QR code.
+//
+// The exact expiry of pairing codes is unknown, but QR codes are always generated and the login websocket is closed
+// after the QR codes run out, which means there's a 160-second time limit. It is recommended to generate the pairing
+// code immediately after connecting to the websocket to have the maximum time.
+//
+// See https://faq.whatsapp.com/1324084875126592 for more info
 func (cli *Client) PairPhone(phone string, showPushNotification bool) (string, error) {
 	clientType := platformTypeToPairClientType(store.DeviceProps.GetPlatformType())
 	clientDisplayName := store.DeviceProps.GetOs()
@@ -178,9 +187,9 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 		}
 	}
 
-	advSecretRandom := randbytes.Make(32)
-	keyBundleSalt := randbytes.Make(32)
-	keyBundleNonce := randbytes.Make(12)
+	advSecretRandom := random.Bytes(32)
+	keyBundleSalt := random.Bytes(32)
+	keyBundleNonce := random.Bytes(12)
 
 	// Decrypt the primary device's ephemeral public key, which was encrypted with the 8-character pairing code,
 	// then compute the DH shared secret using our ephemeral private key we generated earlier.

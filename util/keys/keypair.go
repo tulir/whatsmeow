@@ -9,9 +9,8 @@ package keys
 
 import (
 	"go.mau.fi/libsignal/ecc"
+	"go.mau.fi/util/random"
 	"golang.org/x/crypto/curve25519"
-
-	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 type KeyPair struct {
@@ -31,7 +30,7 @@ func NewKeyPairFromPrivateKey(priv [32]byte) *KeyPair {
 }
 
 func NewKeyPair() *KeyPair {
-	priv := *(*[32]byte)(randbytes.Make(32))
+	priv := *(*[32]byte)(random.Bytes(32))
 
 	priv[0] &= 248
 	priv[31] &= 127

@@ -160,13 +160,11 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if err != nil {
 			return err
 		}
-		senderAD := receipt.Sender
-		senderAD.AD = true
-		bundle, err = keys[senderAD].bundle, keys[senderAD].err
+		bundle, err = keys[receipt.Sender].bundle, keys[receipt.Sender].err
 		if err != nil {
 			return fmt.Errorf("failed to fetch prekeys: %w", err)
 		} else if bundle == nil {
-			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", senderAD, len(keys))
+			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", receipt.Sender, len(keys))
 		}
 	}
 	encAttrs := waBinary.Attrs{}
@@ -231,7 +229,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 	}
 	cli.pendingPhoneRerequestsLock.Lock()
 	_, alreadyRequesting := cli.pendingPhoneRerequests[info.ID]
-	if !alreadyRequesting {
+	if alreadyRequesting {
 		cli.pendingPhoneRerequestsLock.Unlock()
 		return
 	}
@@ -258,7 +256,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 		SendRequestExtra{Peer: true},
 	)
 	if err != nil {
-		cli.Log.Warnf("Failed to send request for unavailable message %s to phone", info.ID)
+		cli.Log.Warnf("Failed to send request for unavailable message %s to phone: %v", info.ID, err)
 	} else {
 		cli.Log.Debugf("Requested message %s from phone", info.ID)
 	}
@@ -287,7 +285,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node, info *types.MessageInfo
 		return
 	}
 	if retryCount == 1 {
-		cli.delayedRequestMessageFromPhone(info)
+		go cli.delayedRequestMessageFromPhone(info)
 	}
 
 	var registrationIDBytes [4]byte

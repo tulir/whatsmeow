@@ -17,12 +17,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.mau.fi/libsignal/signalerror"
-	"google.golang.org/protobuf/proto"
-
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/protocol"
 	"go.mau.fi/libsignal/session"
+	"go.mau.fi/libsignal/signalerror"
+	"go.mau.fi/util/random"
+	"google.golang.org/protobuf/proto"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -30,7 +30,6 @@ import (
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
-	"go.mau.fi/whatsmeow/util/randbytes"
 )
 
 var pbSerializer = store.SignalProtobufSerializer
@@ -267,7 +266,7 @@ func unpadMessage(plaintext []byte) ([]byte, error) {
 }
 
 func padMessage(plaintext []byte) []byte {
-	pad := randbytes.Make(1)
+	pad := random.Bytes(1)
 	pad[0] &= 0xf
 	if pad[0] == 0 {
 		pad[0] = 0xf

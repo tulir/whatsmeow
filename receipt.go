@@ -124,6 +124,9 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 //
 // The first JID parameter (chat) must always be set to the chat ID (user ID in DMs and group ID in group chats).
 // The second JID parameter (sender) must be set in group chats and must be the user ID who sent the message.
+//
+// You can mark multiple messages as read at the same time, but only if the messages were sent by the same user.
+// To mark messages by different users as read, you must call MarkRead multiple times (once for each user).
 func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, sender types.JID) error {
 	node := waBinary.Node{
 		Tag: "receipt",

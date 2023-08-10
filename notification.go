@@ -152,7 +152,6 @@ func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		jid := child.AttrGetter().JID("jid")
 		if child.Tag == "device" && !jid.IsEmpty() {
-			jid.AD = true
 			newDeviceList = append(newDeviceList, jid)
 		}
 	}

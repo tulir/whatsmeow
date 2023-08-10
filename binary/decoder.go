@@ -204,6 +204,10 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 		}
 
 		return token.GetDoubleToken(tag-token.Dictionary0, i)
+	case token.FBJID:
+		return r.readFBJID()
+	case token.InteropJID:
+		return r.readInteropJID()
 	case token.JIDPair:
 		return r.readJIDPair()
 	case token.ADJID:
@@ -232,6 +236,43 @@ func (r *binaryDecoder) readJIDPair() (interface{}, error) {
 		return types.NewJID("", server.(string)), nil
 	}
 	return types.NewJID(user.(string), server.(string)), nil
+}
+
+func (r *binaryDecoder) readInteropJID() (interface{}, error) {
+	user, err := r.read(true)
+	if err != nil {
+		return nil, err
+	}
+	device, err := r.readInt16(false)
+	if err != nil {
+		return nil, err
+	}
+	integrator, err := r.readInt16(false)
+	if err != nil {
+		return nil, err
+	}
+	return types.JID{
+		User:       user.(string),
+		Device:     uint16(device),
+		Integrator: uint16(integrator),
+		Server:     types.InteropServer,
+	}, nil
+}
+
+func (r *binaryDecoder) readFBJID() (interface{}, error) {
+	user, err := r.read(true)
+	if err != nil {
+		return nil, err
+	}
+	device, err := r.readInt16(false)
+	if err != nil {
+		return nil, err
+	}
+	return types.JID{
+		User:   user.(string),
+		Device: uint16(device),
+		Server: types.MessengerServer,
+	}, nil
 }
 
 func (r *binaryDecoder) readADJID() (interface{}, error) {
