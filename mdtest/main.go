@@ -183,7 +183,7 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Usage: pair-phone <number>")
 			return
 		}
-		linkingCode, err := cli.PairPhone(args[0], true)
+		linkingCode, err := cli.PairPhone(args[0], true, whatsmeow.PairClientFirefox, "Firefox (Linux)")
 		if err != nil {
 			panic(err)
 		}
