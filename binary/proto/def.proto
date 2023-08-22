@@ -71,6 +71,7 @@ message DeviceProps {
         optional uint32 storageQuotaMb = 3;
         optional bool inlineInitialPayloadInE2EeMsg = 4;
         optional uint32 recentSyncDaysLimit = 5;
+        optional bool supportCallLogHistory = 6;
     }
     
     message AppVersion {
@@ -86,53 +87,6 @@ message DeviceProps {
     optional PlatformType platformType = 3;
     optional bool requireFullSync = 4;
     optional HistorySyncConfig historySyncConfig = 5;
-}
-
-message ListMessage {
-    message Section {
-        optional string title = 1;
-        repeated Row rows = 2;
-    }
-    
-    message Row {
-        optional string title = 1;
-        optional string description = 2;
-        optional string rowId = 3;
-    }
-    
-    message Product {
-        optional string productId = 1;
-    }
-    
-    message ProductSection {
-        optional string title = 1;
-        repeated Product products = 2;
-    }
-    
-    message ProductListInfo {
-        repeated ProductSection productSections = 1;
-        optional ProductListHeaderImage headerImage = 2;
-        optional string businessOwnerJid = 3;
-    }
-    
-    message ProductListHeaderImage {
-        optional string productId = 1;
-        optional bytes jpegThumbnail = 2;
-    }
-    
-    enum ListType {
-        UNKNOWN = 0;
-        SINGLE_SELECT = 1;
-        PRODUCT_LIST = 2;
-    }
-    optional string title = 1;
-    optional string description = 2;
-    optional string buttonText = 3;
-    optional ListType listType = 4;
-    repeated Section sections = 5;
-    optional ProductListInfo productListInfo = 6;
-    optional string footerText = 7;
-    optional ContextInfo contextInfo = 8;
 }
 
 message KeepInChatMessage {
@@ -431,6 +385,7 @@ message ExtendedTextMessage {
     optional bytes inviteLinkParentGroupThumbnailV2 = 28;
     optional InviteLinkGroupType inviteLinkGroupTypeV2 = 29;
     optional bool viewOnce = 30;
+    optional string thumbnailCdnUrl = 31;
 }
 
 message EncReactionMessage {
@@ -814,11 +769,20 @@ message ContextInfo {
     optional ForwardedNewsletterMessageInfo forwardedNewsletterMessageInfo = 43;
     optional BusinessMessageForwardInfo businessMessageForwardInfo = 44;
     optional string smbClientCampaignId = 45;
+    optional string smbServerCampaignId = 46;
+}
+
+message BotPluginMetadata {
+    enum SearchProvider {
+        BING = 1;
+    }
+    optional SearchProvider provider = 1;
 }
 
 message BotMetadata {
     optional BotAvatarMetadata avatarMetadata = 1;
     optional string personaId = 2;
+    optional BotPluginMetadata pluginMetadata = 3;
 }
 
 message BotAvatarMetadata {
@@ -1326,6 +1290,8 @@ message OrderMessage {
     }
     enum OrderStatus {
         INQUIRY = 1;
+        ACCEPTED = 2;
+        DECLINED = 3;
     }
     optional string orderId = 1;
     optional bytes thumbnail = 2;
@@ -1370,19 +1336,66 @@ message LiveLocationMessage {
 }
 
 message ListResponseMessage {
-    enum ListType {
-        UNKNOWN = 0;
-        SINGLE_SELECT = 1;
-    }
     message SingleSelectReply {
         optional string selectedRowId = 1;
     }
     
+    enum ListType {
+        UNKNOWN = 0;
+        SINGLE_SELECT = 1;
+    }
     optional string title = 1;
     optional ListType listType = 2;
     optional SingleSelectReply singleSelectReply = 3;
     optional ContextInfo contextInfo = 4;
     optional string description = 5;
+}
+
+message ListMessage {
+    message Section {
+        optional string title = 1;
+        repeated Row rows = 2;
+    }
+    
+    message Row {
+        optional string title = 1;
+        optional string description = 2;
+        optional string rowId = 3;
+    }
+    
+    message Product {
+        optional string productId = 1;
+    }
+    
+    message ProductSection {
+        optional string title = 1;
+        repeated Product products = 2;
+    }
+    
+    message ProductListInfo {
+        repeated ProductSection productSections = 1;
+        optional ProductListHeaderImage headerImage = 2;
+        optional string businessOwnerJid = 3;
+    }
+    
+    message ProductListHeaderImage {
+        optional string productId = 1;
+        optional bytes jpegThumbnail = 2;
+    }
+    
+    enum ListType {
+        UNKNOWN = 0;
+        SINGLE_SELECT = 1;
+        PRODUCT_LIST = 2;
+    }
+    optional string title = 1;
+    optional string description = 2;
+    optional string buttonText = 3;
+    optional ListType listType = 4;
+    repeated Section sections = 5;
+    optional ProductListInfo productListInfo = 6;
+    optional string footerText = 7;
+    optional ContextInfo contextInfo = 8;
 }
 
 message EphemeralSetting {
@@ -1464,6 +1477,7 @@ message HistorySync {
     optional uint32 threadDsTimeframeOffset = 10;
     repeated StickerMetadata recentStickers = 11;
     repeated PastParticipants pastParticipants = 12;
+    repeated CallLogRecord callLogRecords = 13;
 }
 
 message HistorySyncMsg {
@@ -1699,6 +1713,7 @@ message SyncActionValue {
     optional MarketingMessageBroadcastAction marketingMessageBroadcastAction = 39;
     optional ExternalWebBetaAction externalWebBetaAction = 40;
     optional PrivacySettingRelayAllCalls privacySettingRelayAllCalls = 41;
+    optional CallLogAction callLogAction = 42;
 }
 
 message UserStatusMuteAction {
@@ -1873,6 +1888,10 @@ message ChatAssignmentAction {
     optional string deviceAgentID = 1;
 }
 
+message CallLogAction {
+    optional CallLogRecord callLogRecord = 1;
+}
+
 message ArchiveChatAction {
     optional bool archived = 1;
     optional SyncActionMessageRange messageRange = 2;
@@ -1898,6 +1917,47 @@ message SyncActionData {
 message RecentEmojiWeight {
     optional string emoji = 1;
     optional float weight = 2;
+}
+
+message CallLogRecord {
+    enum SilenceReason {
+        NONE = 0;
+        SCHEDULED = 1;
+        PRIVACY = 2;
+        LIGHTWEIGHT = 3;
+    }
+    message ParticipantInfo {
+        optional string userJid = 1;
+        optional CallResult callResult = 2;
+    }
+    
+    enum CallResult {
+        CONNECTED = 0;
+        REJECTED = 1;
+        CANCELLED = 2;
+        ACCEPTEDELSEWHERE = 3;
+        MISSED = 4;
+        INVALID = 5;
+        UNAVAILABLE = 6;
+        UPCOMING = 7;
+        FAILED = 8;
+        ABANDONED = 9;
+        ONGOING = 10;
+    }
+    optional CallResult callResult = 1;
+    optional bool isDndMode = 2;
+    optional SilenceReason silenceReason = 3;
+    optional int64 duration = 4;
+    optional int64 startTime = 5;
+    optional bool isIncoming = 6;
+    optional bool isVideo = 7;
+    optional bool isCallLink = 8;
+    optional string callLinkToken = 9;
+    optional string scheduledCallId = 10;
+    optional string callId = 11;
+    optional string callCreatorJid = 12;
+    optional string groupJid = 13;
+    repeated ParticipantInfo participants = 14;
 }
 
 message VerifiedNameCertificate {
@@ -2099,8 +2159,7 @@ message ClientPayload {
     }
     message InteropData {
         optional uint64 accountId = 1;
-        optional uint32 integratorId = 2;
-        optional bytes token = 3;
+        optional bytes token = 2;
     }
     
     enum IOSAppExtension {
@@ -2381,6 +2440,8 @@ message WebMessageInfo {
         EMPTY_SUBGROUP_CREATE = 183;
         SCHEDULED_CALL_CANCEL = 184;
         SUBGROUP_ADMIN_TRIGGERED_AUTO_ADD_RICH = 185;
+        GROUP_CHANGE_RECENT_HISTORY_SHARING = 186;
+        PAID_MESSAGE_SERVER_CAMPAIGN_ID = 187;
     }
     enum Status {
         ERROR = 0;
