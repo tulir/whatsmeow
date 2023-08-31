@@ -385,7 +385,6 @@ message ExtendedTextMessage {
     optional bytes inviteLinkParentGroupThumbnailV2 = 28;
     optional InviteLinkGroupType inviteLinkGroupTypeV2 = 29;
     optional bool viewOnce = 30;
-    optional string thumbnailCdnUrl = 31;
 }
 
 message EncReactionMessage {
@@ -676,7 +675,7 @@ message DisappearingMode {
     }
     optional Initiator initiator = 1;
     optional Trigger trigger = 2;
-    optional string initiatorDeviceJid = 3;
+    optional bool initiatedByMe = 3;
 }
 
 message DeviceListMetadata {
@@ -776,7 +775,14 @@ message BotPluginMetadata {
     enum SearchProvider {
         BING = 1;
     }
+    enum PluginType {
+        REELS = 1;
+        SEARCH = 2;
+    }
     optional SearchProvider provider = 1;
+    optional PluginType pluginType = 2;
+    optional string thumbnailCdnUrl = 3;
+    optional string profilePhotoCdnUrl = 4;
 }
 
 message BotMetadata {
@@ -920,6 +926,7 @@ message Message {
     optional FutureProofMessage botInvokeMessage = 67;
     optional EncCommentMessage encCommentMessage = 68;
     optional CallLogMessage callLogMesssage = 69;
+    optional MessageHistoryBundle messageHistoryBundle = 70;
 }
 
 message MessageSecretMessage {
@@ -1307,6 +1314,17 @@ message OrderMessage {
     optional ContextInfo contextInfo = 17;
 }
 
+message MessageHistoryBundle {
+    optional string url = 1;
+    optional string mimetype = 2;
+    optional bytes fileSha256 = 3;
+    optional bytes mediaKey = 5;
+    optional bytes fileEncSha256 = 6;
+    optional string directPath = 7;
+    optional int64 mediaKeyTimestamp = 8;
+    optional ContextInfo contextInfo = 9;
+}
+
 message LocationMessage {
     optional double degreesLatitude = 1;
     optional double degreesLongitude = 2;
@@ -1352,11 +1370,6 @@ message ListResponseMessage {
 }
 
 message ListMessage {
-    message Section {
-        optional string title = 1;
-        repeated Row rows = 2;
-    }
-    
     message Row {
         optional string title = 1;
         optional string description = 2;
@@ -1388,6 +1401,11 @@ message ListMessage {
         SINGLE_SELECT = 1;
         PRODUCT_LIST = 2;
     }
+    message Section {
+        optional string title = 1;
+        repeated Row rows = 2;
+    }
+    
     optional string title = 1;
     optional string description = 2;
     optional string buttonText = 3;
@@ -2442,6 +2460,10 @@ message WebMessageInfo {
         SUBGROUP_ADMIN_TRIGGERED_AUTO_ADD_RICH = 185;
         GROUP_CHANGE_RECENT_HISTORY_SHARING = 186;
         PAID_MESSAGE_SERVER_CAMPAIGN_ID = 187;
+        GENERAL_CHAT_CREATE = 188;
+        GENERAL_CHAT_ADD = 189;
+        GENERAL_CHAT_AUTO_ADD_DISABLED = 190;
+        SUGGESTED_SUBGROUP_ANNOUNCE = 191;
     }
     enum Status {
         ERROR = 0;
@@ -2501,6 +2523,7 @@ message WebMessageInfo {
     optional string originalSelfAuthorUserJidString = 51;
     optional uint64 revokeMessageTimestamp = 52;
     optional PinInChat pinInChat = 54;
+    optional PremiumMessageInfo premiumMessageInfo = 55;
 }
 
 message WebFeatures {
@@ -2577,6 +2600,10 @@ message Reaction {
     optional string groupingKey = 3;
     optional int64 senderTimestampMs = 4;
     optional bool unread = 5;
+}
+
+message PremiumMessageInfo {
+    optional string serverCampaignId = 1;
 }
 
 message PollUpdate {
