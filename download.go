@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"go.mau.fi/util/retryafter"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
@@ -258,7 +259,8 @@ func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, re
 func shouldRetryMediaDownload(err error) bool {
 	var netErr net.Error
 	var httpErr DownloadHTTPError
-	return errors.As(err, &netErr) || (errors.As(err, &httpErr) && (httpErr.StatusCode == http.StatusBadGateway || httpErr.StatusCode == http.StatusServiceUnavailable || httpErr.StatusCode == http.StatusGatewayTimeout))
+	return errors.As(err, &netErr) ||
+		(errors.As(err, &httpErr) && retryafter.Should(httpErr.StatusCode, true))
 }
 
 func (cli *Client) downloadEncryptedMediaWithRetries(url string, checksum []byte) (file, mac []byte, err error) {
@@ -267,8 +269,13 @@ func (cli *Client) downloadEncryptedMediaWithRetries(url string, checksum []byte
 		if err == nil || !shouldRetryMediaDownload(err) {
 			return
 		}
-		cli.Log.Warnf("Failed to download media due to network error: %w, retrying...", err)
-		time.Sleep(time.Duration(retryNum+1) * time.Second)
+		retryDuration := time.Duration(retryNum+1) * time.Second
+		var httpErr DownloadHTTPError
+		if errors.As(err, &httpErr) {
+			retryDuration = retryafter.Parse(httpErr.Response.Header.Get("Retry-After"), retryDuration)
+		}
+		cli.Log.Warnf("Failed to download media due to network error: %w, retrying in %s...", err, retryDuration)
+		time.Sleep(retryDuration)
 	}
 	return
 }
