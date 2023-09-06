@@ -72,6 +72,7 @@ message DeviceProps {
         optional bool inlineInitialPayloadInE2EeMsg = 4;
         optional uint32 recentSyncDaysLimit = 5;
         optional bool supportCallLogHistory = 6;
+        optional bool supportBotUserAgentChatHistory = 7;
     }
     
     message AppVersion {
@@ -555,7 +556,7 @@ message BotFeedbackMessage {
         BOT_FEEDBACK_NEGATIVE_ACCURATE = 4;
         BOT_FEEDBACK_NEGATIVE_SAFE = 5;
         BOT_FEEDBACK_NEGATIVE_OTHER = 6;
-        BOT_FEEDBACK_NEGATIVE_CAUTIOUS = 7;
+        BOT_FEEDBACK_NEGATIVE_REFUSED = 7;
     }
     optional MessageKey messageKey = 1;
     optional BotFeedbackKind kind = 2;
@@ -774,6 +775,7 @@ message ContextInfo {
 message BotPluginMetadata {
     enum SearchProvider {
         BING = 1;
+        GOOGLE = 2;
     }
     enum PluginType {
         REELS = 1;
@@ -783,6 +785,8 @@ message BotPluginMetadata {
     optional PluginType pluginType = 2;
     optional string thumbnailCdnUrl = 3;
     optional string profilePhotoCdnUrl = 4;
+    optional string searchProviderUrl = 5;
+    optional uint32 referenceIndex = 6;
 }
 
 message BotMetadata {
@@ -924,9 +928,9 @@ message Message {
     optional ScheduledCallEditMessage scheduledCallEditMessage = 65;
     optional VideoMessage ptvMessage = 66;
     optional FutureProofMessage botInvokeMessage = 67;
-    optional EncCommentMessage encCommentMessage = 68;
     optional CallLogMessage callLogMesssage = 69;
     optional MessageHistoryBundle messageHistoryBundle = 70;
+    optional EncCommentMessage encCommentMessage = 71;
 }
 
 message MessageSecretMessage {
@@ -1312,6 +1316,7 @@ message OrderMessage {
     optional int64 totalAmount1000 = 10;
     optional string totalCurrencyCode = 11;
     optional ContextInfo contextInfo = 17;
+    optional int32 messageVersion = 12;
 }
 
 message MessageHistoryBundle {
@@ -1582,6 +1587,7 @@ message Conversation {
     optional bool shareOwnPn = 40;
     optional bool pnhDuplicateLidThread = 41;
     optional string lidJid = 42;
+    optional string username = 43;
 }
 
 message AvatarUserSettings {
@@ -1732,6 +1738,7 @@ message SyncActionValue {
     optional ExternalWebBetaAction externalWebBetaAction = 40;
     optional PrivacySettingRelayAllCalls privacySettingRelayAllCalls = 41;
     optional CallLogAction callLogAction = 42;
+    optional StatusPrivacyAction statusPrivacy = 44;
 }
 
 message UserStatusMuteAction {
@@ -1774,6 +1781,16 @@ message StickerAction {
     optional uint64 fileLength = 8;
     optional bool isFavorite = 9;
     optional uint32 deviceIdHint = 10;
+}
+
+message StatusPrivacyAction {
+    enum StatusDistributionMode {
+        ALLOW_LIST = 0;
+        DENY_LIST = 1;
+        CONTACTS = 2;
+    }
+    optional StatusDistributionMode mode = 1;
+    repeated string userJid = 2;
 }
 
 message StarAction {
@@ -2464,6 +2481,7 @@ message WebMessageInfo {
         GENERAL_CHAT_ADD = 189;
         GENERAL_CHAT_AUTO_ADD_DISABLED = 190;
         SUGGESTED_SUBGROUP_ANNOUNCE = 191;
+        BIZ_BOT_1P_MESSAGING_ENABLED = 192;
     }
     enum Status {
         ERROR = 0;
@@ -2524,6 +2542,7 @@ message WebMessageInfo {
     optional uint64 revokeMessageTimestamp = 52;
     optional PinInChat pinInChat = 54;
     optional PremiumMessageInfo premiumMessageInfo = 55;
+    optional bool is1PBizBotMessage = 56;
 }
 
 message WebFeatures {
