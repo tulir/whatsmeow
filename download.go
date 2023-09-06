@@ -10,6 +10,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -254,18 +255,19 @@ func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, re
 	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:]
 }
 
+func shouldRetryMediaDownload(err error) bool {
+	var netErr net.Error
+	var httpErr DownloadHTTPError
+	return errors.As(err, &netErr) || (errors.As(err, &httpErr) && (httpErr.StatusCode == http.StatusBadGateway || httpErr.StatusCode == http.StatusServiceUnavailable || httpErr.StatusCode == http.StatusGatewayTimeout))
+}
+
 func (cli *Client) downloadEncryptedMediaWithRetries(url string, checksum []byte) (file, mac []byte, err error) {
 	for retryNum := 0; retryNum < 5; retryNum++ {
 		file, mac, err = cli.downloadEncryptedMedia(url, checksum)
-		if err == nil {
+		if err == nil || !shouldRetryMediaDownload(err) {
 			return
 		}
-		netErr, ok := err.(net.Error)
-		if !ok {
-			// Not a network error, don't retry
-			return
-		}
-		cli.Log.Warnf("Failed to download media due to network error: %w, retrying...", netErr)
+		cli.Log.Warnf("Failed to download media due to network error: %w, retrying...", err)
 		time.Sleep(time.Duration(retryNum+1) * time.Second)
 	}
 	return
@@ -287,15 +289,7 @@ func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, ma
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode == http.StatusForbidden {
-			err = ErrMediaDownloadFailedWith403
-		} else if resp.StatusCode == http.StatusNotFound {
-			err = ErrMediaDownloadFailedWith404
-		} else if resp.StatusCode == http.StatusGone {
-			err = ErrMediaDownloadFailedWith410
-		} else {
-			err = fmt.Errorf("download failed with status code %d", resp.StatusCode)
-		}
+		err = DownloadHTTPError{Response: resp}
 		return
 	}
 	var data []byte
