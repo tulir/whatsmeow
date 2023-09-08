@@ -145,6 +145,14 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		return
 	}
 
+	cli.blockedContactsCacheLock.Lock()
+	_, isBlockedContact := cli.blockedContactsCache[to]
+	cli.blockedContactsCacheLock.Unlock()
+	if isBlockedContact {
+		err = ErrBlockedContact
+		return
+	}
+
 	if len(req.ID) == 0 {
 		req.ID = cli.GenerateMessageID()
 	}

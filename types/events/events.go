@@ -460,3 +460,11 @@ type MediaRetry struct {
 	SenderID  types.JID       // The user who sent the message. Only present in groups.
 	FromMe    bool            // Whether the message was sent by the current user or someone else.
 }
+
+// ContactBlockedStatusChange is emitted when the contact blocked status change is received.
+type ContactBlockedStatusChange struct {
+	// The user whose blocked state change event this is
+	From types.JID
+	// True if the user is blocked
+	Blocked bool
+}

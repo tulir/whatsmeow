@@ -517,3 +517,90 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 		return &list, err
 	}
 }
+
+// cacheBlockedContacts sync the cache with blocked contacts
+func (cli *Client) cacheBlockedContacts(blockedContactsResp *waBinary.Node) []types.JID {
+	blockedContacts := []types.JID{}
+	if blockedList, ok := blockedContactsResp.GetOptionalChildByTag("list"); ok {
+		cli.blockedContactsCacheLock.Lock()
+		defer cli.blockedContactsCacheLock.Unlock()
+		cli.blockedContactsCache = make(map[types.JID]bool)
+		for _, child := range blockedList.GetChildren() {
+			ag := child.AttrGetter()
+			blockedJID := ag.JID("jid")
+			if !ag.OK() {
+				cli.Log.Debugf("Ignoring contact blocked data with unexpected attributes: %v", ag.Error())
+				continue
+			}
+
+			cli.blockedContactsCache[blockedJID] = true
+			blockedContacts = append(blockedContacts, blockedJID)
+		}
+	}
+
+	return blockedContacts
+}
+
+// GetAllBlockedContacts gets all the contacts that was blocked on connected Whatsapp user phone
+func (cli *Client) GetAllBlockedContacts() ([]types.JID, error) {
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "blocklist",
+		Type:      iqGet,
+		To:        types.ServerJID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	blockedContacts := cli.cacheBlockedContacts(resp)
+
+	return blockedContacts, nil
+}
+
+// setContactBlockedStatus updates the contact blocked status
+func (cli *Client) setContactBlockedStatus(user types.JID, block bool) ([]types.JID, error) {
+	blockAction := "unblock"
+	if block {
+		blockAction = "block"
+	}
+
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "blocklist",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "item",
+			Attrs: waBinary.Attrs{
+				"action": blockAction,
+				"jid":    user,
+			},
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	blockedContacts := cli.cacheBlockedContacts(resp)
+
+	return blockedContacts, nil
+}
+
+// BlockContact updates the contact blocked status to true
+func (cli *Client) BlockContact(user types.JID) ([]types.JID, error) {
+	blockedList, err := cli.setContactBlockedStatus(user, true)
+	if err != nil {
+		return nil, err
+	}
+
+	return blockedList, nil
+}
+
+// UnblockContact updates the contact blocked status to false
+func (cli *Client) UnblockContact(user types.JID) ([]types.JID, error) {
+	blockedList, err := cli.setContactBlockedStatus(user, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return blockedList, nil
+}
