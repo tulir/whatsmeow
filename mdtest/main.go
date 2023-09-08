@@ -745,6 +745,43 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Error changing chat's pin state: %v", err)
 		}
+	case "sendlist":
+		if len(args) < 1 {
+			log.Errorf("Usage: sendlist <jid>")
+			return
+		}
+		recipient, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		msg := &waProto.Message{
+			ListMessage: &waProto.ListMessage{
+				Description: proto.String("Description"),
+				ButtonText:  proto.String("ButtonText"),
+				ListType:    waProto.ListMessage_SINGLE_SELECT.Enum(),
+				Sections: []*waProto.ListMessage_Section{
+					{
+						Title: proto.String(""),
+						Rows: []*waProto.ListMessage_Row{
+							{
+								Title: proto.String("Row 1 title"),
+								RowId: proto.String("Row1"),
+							},
+							{
+								Title: proto.String("Row 2 title"),
+								RowId: proto.String("Row2"),
+							},
+						},
+					},
+				},
+			},
+		}
+		resp, err := cli.SendMessage(context.Background(), recipient, msg)
+		if err != nil {
+			log.Errorf("Error sending message: %v", err)
+		} else {
+			log.Infof("Message sent (server timestamp: %s)", resp.Timestamp)
+		}
 	}
 }
 
