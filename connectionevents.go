@@ -138,7 +138,6 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
-		cli.GetAllBlockedContacts()
 		cli.dispatchEvent(&events.Connected{})
 		cli.closeSocketWaitChan()
 	}()

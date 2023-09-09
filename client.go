@@ -105,9 +105,6 @@ type Client struct {
 	userDevicesCache           map[types.JID][]types.JID
 	userDevicesCacheLock       sync.Mutex
 
-	blockedContactsCache     map[types.JID]bool
-	blockedContactsCacheLock sync.Mutex
-
 	recentMessagesMap  map[recentMessageKey]*waProto.Message
 	recentMessagesList [recentMessagesSize]recentMessageKey
 	recentMessagesPtr  int
@@ -193,8 +190,6 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		groupParticipantsCache: make(map[types.JID][]types.JID),
 		userDevicesCache:       make(map[types.JID][]types.JID),
-
-		blockedContactsCache: make(map[types.JID]bool),
 
 		recentMessagesMap:      make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),

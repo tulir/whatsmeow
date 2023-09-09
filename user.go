@@ -518,31 +518,25 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 	}
 }
 
-// cacheBlockedContacts sync the cache with blocked contacts
-func (cli *Client) cacheBlockedContacts(blockedContactsResp *waBinary.Node) []types.JID {
-	blockedContacts := []types.JID{}
-	if blockedList, ok := blockedContactsResp.GetOptionalChildByTag("list"); ok {
-		cli.blockedContactsCacheLock.Lock()
-		defer cli.blockedContactsCacheLock.Unlock()
-		cli.blockedContactsCache = make(map[types.JID]bool)
-		for _, child := range blockedList.GetChildren() {
-			ag := child.AttrGetter()
-			blockedJID := ag.JID("jid")
-			if !ag.OK() {
-				cli.Log.Debugf("Ignoring contact blocked data with unexpected attributes: %v", ag.Error())
-				continue
-			}
-
-			cli.blockedContactsCache[blockedJID] = true
-			blockedContacts = append(blockedContacts, blockedJID)
-		}
+func (cli *Client) parseBlocklist(node *waBinary.Node) *types.Blocklist {
+	output := &types.Blocklist{
+		DHash: node.AttrGetter().String("dhash"),
 	}
+	for _, child := range node.GetChildren() {
+		ag := child.AttrGetter()
+		blockedJID := ag.JID("jid")
+		if !ag.OK() {
+			cli.Log.Debugf("Ignoring contact blocked data with unexpected attributes: %v", ag.Error())
+			continue
+		}
 
-	return blockedContacts
+		output.JIDs = append(output.JIDs, blockedJID)
+	}
+	return output
 }
 
-// GetAllBlockedContacts gets all the contacts that was blocked on connected Whatsapp user phone
-func (cli *Client) GetAllBlockedContacts() ([]types.JID, error) {
+// GetBlocklist gets the list of users that this user has blocked.
+func (cli *Client) GetBlocklist() (*types.Blocklist, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "blocklist",
 		Type:      iqGet,
@@ -551,19 +545,15 @@ func (cli *Client) GetAllBlockedContacts() ([]types.JID, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	blockedContacts := cli.cacheBlockedContacts(resp)
-
-	return blockedContacts, nil
+	list, ok := resp.GetOptionalChildByTag("list")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "list", In: "response to blocklist query"}
+	}
+	return cli.parseBlocklist(&list), nil
 }
 
-// setContactBlockedStatus updates the contact blocked status
-func (cli *Client) setContactBlockedStatus(user types.JID, block bool) ([]types.JID, error) {
-	blockAction := "unblock"
-	if block {
-		blockAction = "block"
-	}
-
+// UpdateBlocklist updates the user's block list and returns the updated list.
+func (cli *Client) UpdateBlocklist(jid types.JID, action events.BlocklistChangeAction) (*types.Blocklist, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "blocklist",
 		Type:      iqSet,
@@ -571,36 +561,14 @@ func (cli *Client) setContactBlockedStatus(user types.JID, block bool) ([]types.
 		Content: []waBinary.Node{{
 			Tag: "item",
 			Attrs: waBinary.Attrs{
-				"action": blockAction,
-				"jid":    user,
+				"jid":    jid,
+				"action": string(action),
 			},
 		}},
 	})
-	if err != nil {
-		return nil, err
+	list, ok := resp.GetOptionalChildByTag("list")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "list", In: "response to blocklist update"}
 	}
-
-	blockedContacts := cli.cacheBlockedContacts(resp)
-
-	return blockedContacts, nil
-}
-
-// BlockContact updates the contact blocked status to true
-func (cli *Client) BlockContact(user types.JID) ([]types.JID, error) {
-	blockedList, err := cli.setContactBlockedStatus(user, true)
-	if err != nil {
-		return nil, err
-	}
-
-	return blockedList, nil
-}
-
-// UnblockContact updates the contact blocked status to false
-func (cli *Client) UnblockContact(user types.JID) ([]types.JID, error) {
-	blockedList, err := cli.setContactBlockedStatus(user, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return blockedList, nil
+	return cli.parseBlocklist(&list), err
 }

@@ -461,10 +461,31 @@ type MediaRetry struct {
 	FromMe    bool            // Whether the message was sent by the current user or someone else.
 }
 
-// ContactBlockedStatusChange is emitted when the contact blocked status change is received.
-type ContactBlockedStatusChange struct {
-	// The user whose blocked state change event this is
-	From types.JID
-	// True if the user is blocked
-	Blocked bool
+type BlocklistAction string
+
+const (
+	BlocklistActionDefault BlocklistAction = ""
+	BlocklistActionModify  BlocklistAction = "modify"
+)
+
+// Blocklist is emitted when the user's blocked user list is changed.
+type Blocklist struct {
+	// Action specifies what happened. If it's empty, there should be a list of changes in the Changes list.
+	// If it's "modify", then the Changes list will be empty and the whole blocklist should be re-requested.
+	Action    BlocklistAction
+	DHash     string
+	PrevDHash string
+	Changes   []BlocklistChange
+}
+
+type BlocklistChangeAction string
+
+const (
+	BlocklistChangeActionBlock   BlocklistChangeAction = "block"
+	BlocklistChangeActionUnblock BlocklistChangeAction = "unblock"
+)
+
+type BlocklistChange struct {
+	JID    types.JID
+	Action BlocklistChangeAction
 }

@@ -165,40 +165,26 @@ func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleContactBlockedStatusChangeNotification(node *waBinary.Node) {
-	childArray := node.GetChildren()
-	if len(childArray) == 0 {
-		ag := node.AttrGetter()
-		action := ag.String("action")
-		if !ag.OK() {
-			cli.Log.Debugf("Ignoring contact blocked status change notification with unexpected attributes: %v", ag.Error())
-			return
-		}
-		if action == "modify" {
-			cli.GetAllBlockedContacts()
-			return
-		}
+func (cli *Client) handleBlocklist(node *waBinary.Node) {
+	ag := node.AttrGetter()
+	evt := events.Blocklist{
+		Action:    events.BlocklistAction(ag.OptionalString("action")),
+		DHash:     ag.String("dhash"),
+		PrevDHash: ag.OptionalString("prev_dhash"),
 	}
-
-	cli.blockedContactsCacheLock.Lock()
-	defer cli.blockedContactsCacheLock.Unlock()
-	for _, child := range childArray {
+	for _, child := range node.GetChildren() {
 		ag := child.AttrGetter()
-		var evt events.ContactBlockedStatusChange
-		evt.From = ag.JID("jid")
-		evt.Blocked = ag.String("action") == "block"
+		change := events.BlocklistChange{
+			JID:    ag.JID("jid"),
+			Action: events.BlocklistChangeAction(ag.String("action")),
+		}
 		if !ag.OK() {
-			cli.Log.Debugf("Ignoring contact blocked status change notification with unexpected attributes: %v", ag.Error())
+			cli.Log.Warnf("Unexpected data in blocklist event child %v: %v", child.XMLString(), ag.Error())
 			continue
 		}
-
-		if evt.Blocked {
-			cli.blockedContactsCache[evt.From] = true
-		} else if _, exists := cli.blockedContactsCache[evt.From]; exists {
-			delete(cli.blockedContactsCache, evt.From)
-		}
-		cli.dispatchEvent(&evt)
+		evt.Changes = append(evt.Changes, change)
 	}
+	cli.dispatchEvent(&evt)
 }
 
 func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
@@ -214,7 +200,7 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 				JID:       cli.getOwnID().ToNonAD(),
 			})
 		case "blocklist":
-			cli.handleContactBlockedStatusChangeNotification(&child)
+			cli.handleBlocklist(&child)
 		default:
 			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
 		}

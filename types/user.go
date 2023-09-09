@@ -121,3 +121,9 @@ type StatusPrivacy struct {
 
 	IsDefault bool
 }
+
+// Blocklist contains the user's current list of blocked users.
+type Blocklist struct {
+	DHash string // TODO is this just a timestamp?
+	JIDs  []JID
+}
