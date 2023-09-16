@@ -563,6 +563,17 @@ message BotFeedbackMessage {
     optional string text = 3;
 }
 
+message BCallMessage {
+    enum MediaType {
+        UNKNOWN = 0;
+        AUDIO = 1;
+        VIDEO = 2;
+    }
+    optional string sessionId = 1;
+    optional MediaType mediaType = 2;
+    optional bytes masterKey = 3;
+}
+
 message AudioMessage {
     optional string url = 1;
     optional string mimetype = 2;
@@ -931,6 +942,7 @@ message Message {
     optional CallLogMessage callLogMesssage = 69;
     optional MessageHistoryBundle messageHistoryBundle = 70;
     optional EncCommentMessage encCommentMessage = 71;
+    optional BCallMessage bcallMessage = 72;
 }
 
 message MessageSecretMessage {
@@ -1375,16 +1387,6 @@ message ListResponseMessage {
 }
 
 message ListMessage {
-    message Row {
-        optional string title = 1;
-        optional string description = 2;
-        optional string rowId = 3;
-    }
-    
-    message Product {
-        optional string productId = 1;
-    }
-    
     message ProductSection {
         optional string title = 1;
         repeated Product products = 2;
@@ -1409,6 +1411,16 @@ message ListMessage {
     message Section {
         optional string title = 1;
         repeated Row rows = 2;
+    }
+    
+    message Row {
+        optional string title = 1;
+        optional string description = 2;
+        optional string rowId = 3;
+    }
+    
+    message Product {
+        optional string productId = 1;
     }
     
     optional string title = 1;
@@ -1489,6 +1501,10 @@ message HistorySync {
         NON_BLOCKING_DATA = 5;
         ON_DEMAND = 6;
     }
+    enum BotAIWaitListState {
+        IN_WAITLIST = 0;
+        AI_AVAILABLE = 1;
+    }
     required HistorySyncType syncType = 1;
     repeated Conversation conversations = 2;
     repeated WebMessageInfo statusV3Messages = 3;
@@ -1501,6 +1517,7 @@ message HistorySync {
     repeated StickerMetadata recentStickers = 11;
     repeated PastParticipants pastParticipants = 12;
     repeated CallLogRecord callLogRecords = 13;
+    optional BotAIWaitListState aiWaitListState = 14;
 }
 
 message HistorySyncMsg {
@@ -2543,6 +2560,7 @@ message WebMessageInfo {
     optional PinInChat pinInChat = 54;
     optional PremiumMessageInfo premiumMessageInfo = 55;
     optional bool is1PBizBotMessage = 56;
+    optional bool isGroupHistoryMessage = 57;
 }
 
 message WebFeatures {
@@ -2777,5 +2795,40 @@ message CertChain {
     
     optional NoiseCertificate leaf = 1;
     optional NoiseCertificate intermediate = 2;
+}
+
+message QP {
+    message Filter {
+        required string filterName = 1;
+        repeated FilterParameters parameters = 2;
+        optional FilterResult filterResult = 3;
+        required FilterClientNotSupportedConfig clientNotSupportedConfig = 4;
+    }
+    
+    enum FilterResult {
+        TRUE = 1;
+        FALSE = 2;
+        UNKNOWN = 3;
+    }
+    message FilterParameters {
+        optional string key = 1;
+        optional string value = 2;
+    }
+    
+    enum FilterClientNotSupportedConfig {
+        PASS_BY_DEFAULT = 1;
+        FAIL_BY_DEFAULT = 2;
+    }
+    message FilterClause {
+        required ClauseType clauseType = 1;
+        repeated FilterClause clauses = 2;
+        repeated Filter filters = 3;
+    }
+    
+    enum ClauseType {
+        AND = 1;
+        OR = 2;
+        NOR = 3;
+    }
 }
 
