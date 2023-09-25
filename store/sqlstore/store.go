@@ -81,17 +81,20 @@ const (
 )
 
 func (s *SQLStore) PutIdentity(address string, key [32]byte) error {
-	_, err := s.dbPool.Query(context.Background(), putIdentityQuery, s.businessId, s.JID, address, key[:])
+	row, err := s.dbPool.Query(context.Background(), putIdentityQuery, s.businessId, s.JID, address, key[:])
+	defer row.Close()
 	return err
 }
 
 func (s *SQLStore) DeleteAllIdentities(phone string) error {
-	_, err := s.dbPool.Query(context.Background(), deleteAllIdentitiesQuery, s.businessId, s.JID, phone+":%")
+	row, err := s.dbPool.Query(context.Background(), deleteAllIdentitiesQuery, s.businessId, s.JID, phone+":%")
+	defer row.Close()
 	return err
 }
 
 func (s *SQLStore) DeleteIdentity(address string) error {
-	_, err := s.dbPool.Query(context.Background(), deleteAllIdentitiesQuery, s.businessId, s.JID, address)
+	row, err := s.dbPool.Query(context.Background(), deleteAllIdentitiesQuery, s.businessId, s.JID, address)
+	defer row.Close()
 	return err
 }
 
@@ -141,17 +144,20 @@ func (s *SQLStore) HasSession(address string) (has bool, err error) {
 }
 
 func (s *SQLStore) PutSession(address string, session []byte) error {
-	_, err := s.dbPool.Query(context.Background(), putSessionQuery, s.businessId, s.JID, address, session)
+	row, err := s.dbPool.Query(context.Background(), putSessionQuery, s.businessId, s.JID, address, session)
+	defer row.Close()
 	return err
 }
 
 func (s *SQLStore) DeleteAllSessions(phone string) error {
-	_, err := s.dbPool.Query(context.Background(), deleteAllSessionsQuery, s.businessId, s.JID, phone+":%")
+	row, err := s.dbPool.Query(context.Background(), deleteAllSessionsQuery, s.businessId, s.JID, phone+":%")
+	defer row.Close()
 	return err
 }
 
 func (s *SQLStore) DeleteSession(address string) error {
-	_, err := s.dbPool.Query(context.Background(), deleteSessionQuery, s.businessId, s.JID, address)
+	row, err := s.dbPool.Query(context.Background(), deleteSessionQuery, s.businessId, s.JID, address)
+	defer row.Close()
 	return err
 }
 
@@ -167,7 +173,8 @@ const (
 
 func (s *SQLStore) genOnePreKey(id uint32, markUploaded bool) (*keys.PreKey, error) {
 	key := keys.NewPreKey(id)
-	_, err := s.dbPool.Query(context.Background(), insertPreKeyQuery, s.businessId, s.JID, key.KeyID, key.Priv[:], markUploaded)
+	row, err := s.dbPool.Query(context.Background(), insertPreKeyQuery, s.businessId, s.JID, key.KeyID, key.Priv[:], markUploaded)
+	defer row.Close()
 	return key, err
 }
 
@@ -196,6 +203,7 @@ func (s *SQLStore) GetOrGenPreKeys(count uint32) ([]*keys.PreKey, error) {
 	defer s.preKeyLock.Unlock()
 
 	res, err := s.dbPool.Query(context.Background(), getUnuploadedPreKeysQuery, s.businessId, s.JID, count)
+	defer res.Close()
 	if err != nil {
 		return nil, fmt.Errorf("failed to query existing prekeys: %w", err)
 	}
@@ -252,12 +260,14 @@ func (s *SQLStore) GetPreKey(id uint32) (*keys.PreKey, error) {
 }
 
 func (s *SQLStore) RemovePreKey(id uint32) error {
-	_, err := s.dbPool.Query(context.Background(), deletePreKeyQuery, s.businessId, s.JID, id)
+	row, err := s.dbPool.Query(context.Background(), deletePreKeyQuery, s.businessId, s.JID, id)
+	defer row.Close()
 	return err
 }
 
 func (s *SQLStore) MarkPreKeysAsUploaded(upToID uint32) error {
-	_, err := s.dbPool.Query(context.Background(), markPreKeysAsUploadedQuery, s.businessId, s.JID, upToID)
+	row, err := s.dbPool.Query(context.Background(), markPreKeysAsUploadedQuery, s.businessId, s.JID, upToID)
+	defer row.Close()
 	return err
 }
 
@@ -276,7 +286,8 @@ const (
 )
 
 func (s *SQLStore) PutSenderKey(group, user string, session []byte) error {
-	_, err := s.dbPool.Query(context.Background(), putSenderKeyQuery, s.businessId, s.JID, group, user, session)
+	row, err := s.dbPool.Query(context.Background(), putSenderKeyQuery, s.businessId, s.JID, group, user, session)
+	defer row.Close()
 	return err
 }
 
@@ -301,7 +312,8 @@ const (
 )
 
 func (s *SQLStore) PutAppStateSyncKey(id []byte, key store.AppStateSyncKey) error {
-	_, err := s.dbPool.Query(context.Background(), putAppStateSyncKeyQuery, s.businessId, s.JID, id, key.Data, key.Timestamp, key.Fingerprint)
+	row, err := s.dbPool.Query(context.Background(), putAppStateSyncKeyQuery, s.businessId, s.JID, id, key.Data, key.Timestamp, key.Fingerprint)
+	defer row.Close()
 	return err
 }
 
@@ -339,7 +351,8 @@ const (
 )
 
 func (s *SQLStore) PutAppStateVersion(name string, version uint64, hash [128]byte) error {
-	_, err := s.dbPool.Query(context.Background(), putAppStateVersionQuery, s.businessId, s.JID, name, version, hash[:])
+	row, err := s.dbPool.Query(context.Background(), putAppStateVersionQuery, s.businessId, s.JID, name, version, hash[:])
+	defer row.Close()
 	return err
 }
 
@@ -363,7 +376,8 @@ func (s *SQLStore) GetAppStateVersion(name string) (version uint64, hash [128]by
 }
 
 func (s *SQLStore) DeleteAppStateVersion(name string) error {
-	_, err := s.dbPool.Query(context.Background(), deleteAppStateVersionQuery, s.businessId, s.JID, name)
+	row, err := s.dbPool.Query(context.Background(), deleteAppStateVersionQuery, s.businessId, s.JID, name)
+	defer row.Close()
 	return err
 }
 
@@ -423,7 +437,9 @@ func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (
 	if len(indexMACs) == 0 {
 		return
 	}
-	_, err = s.dbPool.Query(context.Background(), deleteAppStateMutationMACsQueryPostgres, s.businessId, s.JID, name, PostgresArrayWrapper(indexMACs))
+	var row pgx.Rows = nil
+	row, err = s.dbPool.Query(context.Background(), deleteAppStateMutationMACsQueryPostgres, s.businessId, s.JID, name, PostgresArrayWrapper(indexMACs))
+	defer row.Close()
 	return
 }
 
@@ -471,7 +487,9 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 		return false, "", err
 	}
 	if cached.PushName != pushName {
-		_, err = s.dbPool.Query(context.Background(), putPushNameQuery, s.businessId, s.JID, user, pushName)
+		var row pgx.Rows = nil
+		row, err = s.dbPool.Query(context.Background(), putPushNameQuery, s.businessId, s.JID, user, pushName)
+		defer row.Close()
 		if err != nil {
 			return false, "", err
 		}
@@ -492,7 +510,9 @@ func (s *SQLStore) PutBusinessName(user types.JID, businessName string) (bool, s
 		return false, "", err
 	}
 	if cached.BusinessName != businessName {
-		_, err = s.dbPool.Query(context.Background(), putBusinessNameQuery, s.businessId, s.JID, user, businessName)
+		var row pgx.Rows = nil
+		row, err = s.dbPool.Query(context.Background(), putBusinessNameQuery, s.businessId, s.JID, user, businessName)
+		defer row.Close()
 		if err != nil {
 			return false, "", err
 		}
@@ -513,7 +533,9 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 		return err
 	}
 	if cached.FirstName != firstName || cached.FullName != fullName {
-		_, err = s.dbPool.Query(context.Background(), putContactNameQuery, s.businessId, s.JID, user, firstName, fullName)
+		var row pgx.Rows = nil
+		row, err = s.dbPool.Query(context.Background(), putContactNameQuery, s.businessId, s.JID, user, firstName, fullName)
+		defer row.Close()
 		if err != nil {
 			return err
 		}
@@ -625,6 +647,7 @@ func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
 	s.contactCacheLock.Lock()
 	defer s.contactCacheLock.Unlock()
 	rows, err := s.dbPool.Query(context.Background(), getAllContactsQuery, s.businessId, s.JID)
+	defer rows.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -664,17 +687,20 @@ func (s *SQLStore) PutMutedUntil(chat types.JID, mutedUntil time.Time) error {
 	if !mutedUntil.IsZero() {
 		val = mutedUntil.Unix()
 	}
-	_, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "muted_until"), s.businessId, s.JID, chat, val)
+	row, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "muted_until"), s.businessId, s.JID, chat, val)
+	defer row.Close()
 	return err
 }
 
 func (s *SQLStore) PutPinned(chat types.JID, pinned bool) error {
-	_, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "pinned"), s.businessId, s.JID, chat, pinned)
+	row, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "pinned"), s.businessId, s.JID, chat, pinned)
+	defer row.Close()
 	return err
 }
 
 func (s *SQLStore) PutArchived(chat types.JID, archived bool) error {
-	_, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "archived"), s.businessId, s.JID, chat, archived)
+	row, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "archived"), s.businessId, s.JID, chat, archived)
+	defer row.Close()
 	return err
 }
 
@@ -722,7 +748,9 @@ func (s *SQLStore) PutMessageSecrets(inserts []store.MessageSecretInsert) (err e
 }
 
 func (s *SQLStore) PutMessageSecret(chat, sender types.JID, id types.MessageID, secret []byte) (err error) {
-	_, err = s.dbPool.Query(context.Background(), putMsgSecret, s.businessId, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, secret)
+	var row pgx.Rows = nil
+	row, err = s.dbPool.Query(context.Background(), putMsgSecret, s.businessId, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, secret)
+	defer row.Close()
 	return
 }
 
@@ -756,7 +784,8 @@ func (s *SQLStore) PutPrivacyTokens(tokens ...store.PrivacyToken) error {
 		placeholders[i] = fmt.Sprintf("($1, $2, $%d, $%d, $%d)", i*3+3, i*3+4, i*3+5)
 	}
 	query := strings.ReplaceAll(putPrivacyTokens, "($1, $2, $3, $4, $5)", strings.Join(placeholders, ","))
-	_, err := s.dbPool.Query(context.Background(), query, args...)
+	row, err := s.dbPool.Query(context.Background(), query, args...)
+	defer row.Close()
 	return err
 }
 

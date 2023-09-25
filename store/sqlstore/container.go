@@ -103,6 +103,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 // GetAllDevices finds all the devices in the database.
 func (c *Container) GetAllDevices() ([]*store.Device, error) {
 	res, err := c.dbPool.Query(context.Background(), getAllDevicesQuery, c.businessId)
+	defer res.Close()
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
