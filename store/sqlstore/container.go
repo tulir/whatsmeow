@@ -7,13 +7,16 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgxpool"
 	mathRand "math/rand"
 
 	"go.mau.fi/util/random"
 
+	_ "context"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -23,64 +26,22 @@ import (
 
 // Container is a wrapper for a SQL database that can contain multiple whatsmeow sessions.
 type Container struct {
-	db      *sql.DB
-	dialect string
-	log     waLog.Logger
+	dbPool     *pgxpool.Pool
+	businessId string
+	log        waLog.Logger
 
 	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
 
 var _ store.DeviceContainer = (*Container)(nil)
 
-// New connects to the given SQL database and wraps it in a Container.
-//
-// Only SQLite and Postgres are currently fully supported.
-//
-// The logger can be nil and will default to a no-op logger.
-//
-// When using SQLite, it's strongly recommended to enable foreign keys by adding `?_foreign_keys=true`:
-//
-//	container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
-func New(dialect, address string, log waLog.Logger) (*Container, error) {
-	db, err := sql.Open(dialect, address)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+func NewContainer(dbPool *pgxpool.Pool, businessId string, log waLog.Logger) *Container {
+	var container = &Container{
+		dbPool:     dbPool,
+		businessId: businessId,
+		log:        log,
 	}
-	container := NewWithDB(db, dialect, log)
-	err = container.Upgrade()
-	if err != nil {
-		return nil, fmt.Errorf("failed to upgrade database: %w", err)
-	}
-	return container, nil
-}
-
-// NewWithDB wraps an existing SQL connection in a Container.
-//
-// Only SQLite and Postgres are currently fully supported.
-//
-// The logger can be nil and will default to a no-op logger.
-//
-// When using SQLite, it's strongly recommended to enable foreign keys by adding `?_foreign_keys=true`:
-//
-//	db, err := sql.Open("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on")
-//	if err != nil {
-//	    panic(err)
-//	}
-//	container := sqlstore.NewWithDB(db, "sqlite3", nil)
-//
-// This method does not call Upgrade automatically like New does, so you must call it yourself:
-//
-//	container := sqlstore.NewWithDB(...)
-//	err := container.Upgrade()
-func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
-	if log == nil {
-		log = waLog.Noop
-	}
-	return &Container{
-		db:      db,
-		dialect: dialect,
-		log:     log,
-	}
+	return container
 }
 
 const getAllDevicesQuery = `
@@ -88,10 +49,10 @@ SELECT jid, registration_id, noise_key, identity_key,
        signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
        adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
        platform, business_name, push_name
-FROM whatsmeow_device
+FROM whatsmeow_device WHERE business_id=$1
 `
 
-const getDeviceQuery = getAllDevicesQuery + " WHERE jid=$1"
+const getDeviceQuery = getAllDevicesQuery + " AND jid=$2"
 
 type scannable interface {
 	Scan(dest ...interface{}) error
@@ -141,7 +102,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 
 // GetAllDevices finds all the devices in the database.
 func (c *Container) GetAllDevices() ([]*store.Device, error) {
-	res, err := c.db.Query(getAllDevicesQuery)
+	res, err := c.dbPool.Query(context.Background(), getAllDevicesQuery, c.businessId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
@@ -177,7 +138,7 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 //
 // Note that the parameter usually must be an AD-JID.
 func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
-	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
+	sess, err := c.scanDevice(c.dbPool.QueryRow(context.Background(), getDeviceQuery, c.businessId, jid))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -186,15 +147,15 @@ func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 
 const (
 	insertDeviceQuery = `
-		INSERT INTO whatsmeow_device (jid, registration_id, noise_key, identity_key,
+		INSERT INTO whatsmeow_device (business_id, jid, registration_id, noise_key, identity_key,
 									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
 									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
 									  platform, business_name, push_name)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-		ON CONFLICT (jid) DO UPDATE
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+		ON CONFLICT (business_id, jid) DO UPDATE
 		    SET platform=excluded.platform, business_name=excluded.business_name, push_name=excluded.push_name
 	`
-	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=$1`
+	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE business_id=$1 AND jid=$2`
 )
 
 // NewDevice creates a new device in this database.
@@ -226,7 +187,8 @@ func (c *Container) PutDevice(device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(insertDeviceQuery,
+	_, err := c.dbPool.Exec(context.Background(), insertDeviceQuery,
+		c.businessId,
 		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
@@ -254,6 +216,6 @@ func (c *Container) DeleteDevice(store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(deleteDeviceQuery, store.ID.String())
+	_, err := c.dbPool.Exec(context.Background(), deleteDeviceQuery, c.businessId, store.ID.String())
 	return err
 }

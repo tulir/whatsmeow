@@ -8,6 +8,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"database/sql/driver"
 	"errors"
@@ -16,9 +17,12 @@ import (
 	"sync"
 	"time"
 
+	_ "context"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
+
+	"github.com/jackc/pgx/v5"
 )
 
 // ErrInvalidLength is returned by some database getters if the database returned a byte array with an unexpected length.
@@ -37,7 +41,8 @@ var PostgresArrayWrapper func(interface{}) interface {
 
 type SQLStore struct {
 	*Container
-	JID string
+	businessId string
+	JID        string
 
 	preKeyLock sync.Mutex
 
@@ -52,6 +57,7 @@ type SQLStore struct {
 func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 	return &SQLStore{
 		Container:    c,
+		businessId:   c.businessId,
 		JID:          jid.String(),
 		contactCache: make(map[types.JID]*types.ContactInfo),
 	}
@@ -67,33 +73,34 @@ var _ store.ContactStore = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `
-		INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity) VALUES ($1, $2, $3)
-		ON CONFLICT (our_jid, their_id) DO UPDATE SET identity=excluded.identity
+		INSERT INTO whatsmeow_identity_keys (business_id, our_jid, their_id, identity) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET identity=excluded.identity
 	`
-	deleteAllIdentitiesQuery = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id LIKE $2`
-	deleteIdentityQuery      = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
-	getIdentityQuery         = `SELECT identity FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id=$2`
+	deleteAllIdentitiesQuery = `DELETE FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3`
+	deleteIdentityQuery      = `DELETE FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
+	getIdentityQuery         = `SELECT identity FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
 )
 
 func (s *SQLStore) PutIdentity(address string, key [32]byte) error {
-	_, err := s.db.Exec(putIdentityQuery, s.JID, address, key[:])
+	_, err := s.dbPool.Query(context.Background(), putIdentityQuery, s.businessId, s.JID, address, key[:])
 	return err
 }
 
 func (s *SQLStore) DeleteAllIdentities(phone string) error {
-	_, err := s.db.Exec(deleteAllIdentitiesQuery, s.JID, phone+":%")
+	_, err := s.dbPool.Query(context.Background(), deleteAllIdentitiesQuery, s.businessId, s.JID, phone+":%")
 	return err
 }
 
 func (s *SQLStore) DeleteIdentity(address string) error {
-	_, err := s.db.Exec(deleteAllIdentitiesQuery, s.JID, address)
+	_, err := s.dbPool.Query(context.Background(), deleteAllIdentitiesQuery, s.businessId, s.JID, address)
 	return err
 }
 
 func (s *SQLStore) IsTrustedIdentity(address string, key [32]byte) (bool, error) {
 	var existingIdentity []byte
-	err := s.db.QueryRow(getIdentityQuery, s.JID, address).Scan(&existingIdentity)
-	if errors.Is(err, sql.ErrNoRows) {
+
+	err := s.dbPool.QueryRow(context.Background(), getIdentityQuery, s.businessId, s.JID, address).Scan(&existingIdentity)
+	if errors.Is(err, pgx.ErrNoRows) {
 		// Trust if not known, it'll be saved automatically later
 		return true, nil
 	} else if err != nil {
@@ -105,66 +112,66 @@ func (s *SQLStore) IsTrustedIdentity(address string, key [32]byte) (bool, error)
 }
 
 const (
-	getSessionQuery = `SELECT session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
-	hasSessionQuery = `SELECT true FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
+	getSessionQuery = `SELECT session FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
+	hasSessionQuery = `SELECT true FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
 	putSessionQuery = `
-		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES ($1, $2, $3)
-		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
+		INSERT INTO whatsmeow_sessions (business_id, our_jid, their_id, session) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET session=excluded.session
 	`
-	deleteAllSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id LIKE $2`
-	deleteSessionQuery     = `DELETE FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
+	deleteAllSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3`
+	deleteSessionQuery     = `DELETE FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
 )
 
 func (s *SQLStore) GetSession(address string) (session []byte, err error) {
-	err = s.db.QueryRow(getSessionQuery, s.JID, address).Scan(&session)
-	if errors.Is(err, sql.ErrNoRows) {
+	err = s.dbPool.QueryRow(context.Background(), getSessionQuery, s.businessId, s.JID, address).Scan(&session)
+	if errors.Is(err, pgx.ErrNoRows) {
 		err = nil
 	}
 	return
 }
 
 func (s *SQLStore) HasSession(address string) (has bool, err error) {
-	err = s.db.QueryRow(hasSessionQuery, s.JID, address).Scan(&has)
-	if errors.Is(err, sql.ErrNoRows) {
+	err = s.dbPool.QueryRow(context.Background(), hasSessionQuery, s.businessId, s.JID, address).Scan(&has)
+	if errors.Is(err, pgx.ErrNoRows) {
 		err = nil
 	}
 	return
 }
 
 func (s *SQLStore) PutSession(address string, session []byte) error {
-	_, err := s.db.Exec(putSessionQuery, s.JID, address, session)
+	_, err := s.dbPool.Query(context.Background(), putSessionQuery, s.businessId, s.JID, address, session)
 	return err
 }
 
 func (s *SQLStore) DeleteAllSessions(phone string) error {
-	_, err := s.db.Exec(deleteAllSessionsQuery, s.JID, phone+":%")
+	_, err := s.dbPool.Query(context.Background(), deleteAllSessionsQuery, s.businessId, s.JID, phone+":%")
 	return err
 }
 
 func (s *SQLStore) DeleteSession(address string) error {
-	_, err := s.db.Exec(deleteSessionQuery, s.JID, address)
+	_, err := s.dbPool.Query(context.Background(), deleteSessionQuery, s.businessId, s.JID, address)
 	return err
 }
 
 const (
-	getLastPreKeyIDQuery        = `SELECT MAX(key_id) FROM whatsmeow_pre_keys WHERE jid=$1`
-	insertPreKeyQuery           = `INSERT INTO whatsmeow_pre_keys (jid, key_id, key, uploaded) VALUES ($1, $2, $3, $4)`
-	getUnuploadedPreKeysQuery   = `SELECT key_id, key FROM whatsmeow_pre_keys WHERE jid=$1 AND uploaded=false ORDER BY key_id LIMIT $2`
-	getPreKeyQuery              = `SELECT key_id, key FROM whatsmeow_pre_keys WHERE jid=$1 AND key_id=$2`
-	deletePreKeyQuery           = `DELETE FROM whatsmeow_pre_keys WHERE jid=$1 AND key_id=$2`
-	markPreKeysAsUploadedQuery  = `UPDATE whatsmeow_pre_keys SET uploaded=true WHERE jid=$1 AND key_id<=$2`
-	getUploadedPreKeyCountQuery = `SELECT COUNT(*) FROM whatsmeow_pre_keys WHERE jid=$1 AND uploaded=true`
+	getLastPreKeyIDQuery        = `SELECT MAX(key_id) FROM whatsmeow_pre_keys WHERE business_id=$1 AND jid=$2`
+	insertPreKeyQuery           = `INSERT INTO whatsmeow_pre_keys (business_id, jid, key_id, key, uploaded) VALUES ($1, $2, $3, $4, $5)`
+	getUnuploadedPreKeysQuery   = `SELECT key_id, key FROM whatsmeow_pre_keys WHERE business_id=$1 AND jid=$2 AND uploaded=false ORDER BY key_id LIMIT $3`
+	getPreKeyQuery              = `SELECT key_id, key FROM whatsmeow_pre_keys WHERE business_id=$1 AND jid=$2 AND key_id=$3`
+	deletePreKeyQuery           = `DELETE FROM whatsmeow_pre_keys WHERE business_id=$1 AND jid=$2 AND key_id=$3`
+	markPreKeysAsUploadedQuery  = `UPDATE whatsmeow_pre_keys SET uploaded=true WHERE business_id=$1 AND jid=$2 AND key_id<=$3`
+	getUploadedPreKeyCountQuery = `SELECT COUNT(*) FROM whatsmeow_pre_keys WHERE business_id=$1 AND jid=$2 AND uploaded=true`
 )
 
 func (s *SQLStore) genOnePreKey(id uint32, markUploaded bool) (*keys.PreKey, error) {
 	key := keys.NewPreKey(id)
-	_, err := s.db.Exec(insertPreKeyQuery, s.JID, key.KeyID, key.Priv[:], markUploaded)
+	_, err := s.dbPool.Query(context.Background(), insertPreKeyQuery, s.businessId, s.JID, key.KeyID, key.Priv[:], markUploaded)
 	return key, err
 }
 
 func (s *SQLStore) getNextPreKeyID() (uint32, error) {
 	var lastKeyID sql.NullInt32
-	err := s.db.QueryRow(getLastPreKeyIDQuery, s.JID).Scan(&lastKeyID)
+	err := s.dbPool.QueryRow(context.Background(), getLastPreKeyIDQuery, s.businessId, s.JID).Scan(&lastKeyID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to query next prekey ID: %w", err)
 	}
@@ -185,7 +192,7 @@ func (s *SQLStore) GetOrGenPreKeys(count uint32) ([]*keys.PreKey, error) {
 	s.preKeyLock.Lock()
 	defer s.preKeyLock.Unlock()
 
-	res, err := s.db.Query(getUnuploadedPreKeysQuery, s.JID, count)
+	res, err := s.dbPool.Query(context.Background(), getUnuploadedPreKeysQuery, s.businessId, s.JID, count)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query existing prekeys: %w", err)
 	}
@@ -224,7 +231,7 @@ func scanPreKey(row scannable) (*keys.PreKey, error) {
 	var priv []byte
 	var id uint32
 	err := row.Scan(&id, &priv)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
@@ -238,40 +245,40 @@ func scanPreKey(row scannable) (*keys.PreKey, error) {
 }
 
 func (s *SQLStore) GetPreKey(id uint32) (*keys.PreKey, error) {
-	return scanPreKey(s.db.QueryRow(getPreKeyQuery, s.JID, id))
+	return scanPreKey(s.dbPool.QueryRow(context.Background(), getPreKeyQuery, s.businessId, s.JID, id))
 }
 
 func (s *SQLStore) RemovePreKey(id uint32) error {
-	_, err := s.db.Exec(deletePreKeyQuery, s.JID, id)
+	_, err := s.dbPool.Query(context.Background(), deletePreKeyQuery, s.businessId, s.JID, id)
 	return err
 }
 
 func (s *SQLStore) MarkPreKeysAsUploaded(upToID uint32) error {
-	_, err := s.db.Exec(markPreKeysAsUploadedQuery, s.JID, upToID)
+	_, err := s.dbPool.Query(context.Background(), markPreKeysAsUploadedQuery, s.businessId, s.JID, upToID)
 	return err
 }
 
 func (s *SQLStore) UploadedPreKeyCount() (count int, err error) {
-	err = s.db.QueryRow(getUploadedPreKeyCountQuery, s.JID).Scan(&count)
+	err = s.dbPool.QueryRow(context.Background(), getUploadedPreKeyCountQuery, s.businessId, s.JID).Scan(&count)
 	return
 }
 
 const (
-	getSenderKeyQuery = `SELECT sender_key FROM whatsmeow_sender_keys WHERE our_jid=$1 AND chat_id=$2 AND sender_id=$3`
+	getSenderKeyQuery = `SELECT sender_key FROM whatsmeow_sender_keys WHERE business_id=$1 AND our_jid=$2 AND chat_id=$3 AND sender_id=$4`
 	putSenderKeyQuery = `
-		INSERT INTO whatsmeow_sender_keys (our_jid, chat_id, sender_id, sender_key) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
+		INSERT INTO whatsmeow_sender_keys (business_id, our_jid, chat_id, sender_id, sender_key) VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (business_id, our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
 	`
 )
 
 func (s *SQLStore) PutSenderKey(group, user string, session []byte) error {
-	_, err := s.db.Exec(putSenderKeyQuery, s.JID, group, user, session)
+	_, err := s.dbPool.Query(context.Background(), putSenderKeyQuery, s.businessId, s.JID, group, user, session)
 	return err
 }
 
 func (s *SQLStore) GetSenderKey(group, user string) (key []byte, err error) {
-	err = s.db.QueryRow(getSenderKeyQuery, s.JID, group, user).Scan(&key)
-	if errors.Is(err, sql.ErrNoRows) {
+	err = s.dbPool.QueryRow(context.Background(), getSenderKeyQuery, s.businessId, s.JID, group, user).Scan(&key)
+	if errors.Is(err, pgx.ErrNoRows) {
 		err = nil
 	}
 	return
@@ -279,24 +286,24 @@ func (s *SQLStore) GetSenderKey(group, user string) (key []byte, err error) {
 
 const (
 	putAppStateSyncKeyQuery = `
-		INSERT INTO whatsmeow_app_state_sync_keys (jid, key_id, key_data, timestamp, fingerprint) VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (jid, key_id) DO UPDATE
+		INSERT INTO whatsmeow_app_state_sync_keys (business_id, jid, key_id, key_data, timestamp, fingerprint) VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (business_id, jid, key_id) DO UPDATE
 			SET key_data=excluded.key_data, timestamp=excluded.timestamp, fingerprint=excluded.fingerprint
 			WHERE excluded.timestamp > whatsmeow_app_state_sync_keys.timestamp
 	`
-	getAppStateSyncKeyQuery         = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 AND key_id=$2`
-	getLatestAppStateSyncKeyIDQuery = `SELECT key_id FROM whatsmeow_app_state_sync_keys WHERE jid=$1 ORDER BY timestamp DESC LIMIT 1`
+	getAppStateSyncKeyQuery         = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE business_id=$1 AND jid=$2 AND key_id=$3`
+	getLatestAppStateSyncKeyIDQuery = `SELECT key_id FROM whatsmeow_app_state_sync_keys WHERE business_id=$1 AND jid=$2 ORDER BY timestamp DESC LIMIT 1`
 )
 
 func (s *SQLStore) PutAppStateSyncKey(id []byte, key store.AppStateSyncKey) error {
-	_, err := s.db.Exec(putAppStateSyncKeyQuery, s.JID, id, key.Data, key.Timestamp, key.Fingerprint)
+	_, err := s.dbPool.Query(context.Background(), putAppStateSyncKeyQuery, s.businessId, s.JID, id, key.Data, key.Timestamp, key.Fingerprint)
 	return err
 }
 
 func (s *SQLStore) GetAppStateSyncKey(id []byte) (*store.AppStateSyncKey, error) {
 	var key store.AppStateSyncKey
-	err := s.db.QueryRow(getAppStateSyncKeyQuery, s.JID, id).Scan(&key.Data, &key.Timestamp, &key.Fingerprint)
-	if errors.Is(err, sql.ErrNoRows) {
+	err := s.dbPool.QueryRow(context.Background(), getAppStateSyncKeyQuery, s.businessId, s.JID, id).Scan(&key.Data, &key.Timestamp, &key.Fingerprint)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	return &key, err
@@ -304,8 +311,8 @@ func (s *SQLStore) GetAppStateSyncKey(id []byte) (*store.AppStateSyncKey, error)
 
 func (s *SQLStore) GetLatestAppStateSyncKeyID() ([]byte, error) {
 	var keyID []byte
-	err := s.db.QueryRow(getLatestAppStateSyncKeyIDQuery, s.JID).Scan(&keyID)
-	if errors.Is(err, sql.ErrNoRows) {
+	err := s.dbPool.QueryRow(context.Background(), getLatestAppStateSyncKeyIDQuery, s.businessId, s.JID).Scan(&keyID)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	}
 	return keyID, err
@@ -313,26 +320,26 @@ func (s *SQLStore) GetLatestAppStateSyncKeyID() ([]byte, error) {
 
 const (
 	putAppStateVersionQuery = `
-		INSERT INTO whatsmeow_app_state_version (jid, name, version, hash) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (jid, name) DO UPDATE SET version=excluded.version, hash=excluded.hash
+		INSERT INTO whatsmeow_app_state_version (business_id, jid, name, version, hash) VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (business_id, jid, name) DO UPDATE SET version=excluded.version, hash=excluded.hash
 	`
-	getAppStateVersionQuery                 = `SELECT version, hash FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
-	deleteAppStateVersionQuery              = `DELETE FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
-	putAppStateMutationMACsQuery            = `INSERT INTO whatsmeow_app_state_mutation_macs (jid, name, version, index_mac, value_mac) VALUES `
-	deleteAppStateMutationMACsQueryPostgres = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=ANY($3::bytea[])`
-	deleteAppStateMutationMACsQueryGeneric  = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac IN `
-	getAppStateMutationMACQuery             = `SELECT value_mac FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=$3 ORDER BY version DESC LIMIT 1`
+	getAppStateVersionQuery                 = `SELECT version, hash FROM whatsmeow_app_state_version WHERE business_id=$1 AND jid=$2 AND name=$3`
+	deleteAppStateVersionQuery              = `DELETE FROM whatsmeow_app_state_version WHERE business_id=$1 AND jid=$2 AND name=$3`
+	putAppStateMutationMACsQuery            = `INSERT INTO whatsmeow_app_state_mutation_macs (business_id, jid, name, version, index_mac, value_mac) VALUES `
+	deleteAppStateMutationMACsQueryPostgres = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE business_id=$1 AND jid=$2 AND name=$3 AND index_mac=ANY($4::bytea[])`
+	deleteAppStateMutationMACsQueryGeneric  = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE business_id=$1 AND jid=$2 AND name=$3 AND index_mac IN `
+	getAppStateMutationMACQuery             = `SELECT value_mac FROM whatsmeow_app_state_mutation_macs WHERE business_id=$1 AND jid=$2 AND name=$3 AND index_mac=$4 ORDER BY version DESC LIMIT 1`
 )
 
 func (s *SQLStore) PutAppStateVersion(name string, version uint64, hash [128]byte) error {
-	_, err := s.db.Exec(putAppStateVersionQuery, s.JID, name, version, hash[:])
+	_, err := s.dbPool.Query(context.Background(), putAppStateVersionQuery, s.businessId, s.JID, name, version, hash[:])
 	return err
 }
 
 func (s *SQLStore) GetAppStateVersion(name string) (version uint64, hash [128]byte, err error) {
 	var uncheckedHash []byte
-	err = s.db.QueryRow(getAppStateVersionQuery, s.JID, name).Scan(&version, &uncheckedHash)
-	if errors.Is(err, sql.ErrNoRows) {
+	err = s.dbPool.QueryRow(context.Background(), getAppStateVersionQuery, s.businessId, s.JID, name).Scan(&version, &uncheckedHash)
+	if errors.Is(err, pgx.ErrNoRows) {
 		// version will be 0 and hash will be an empty array, which is the correct initial state
 		err = nil
 	} else if err != nil {
@@ -348,7 +355,7 @@ func (s *SQLStore) GetAppStateVersion(name string) (version uint64, hash [128]by
 }
 
 func (s *SQLStore) DeleteAppStateVersion(name string) error {
-	_, err := s.db.Exec(deleteAppStateVersionQuery, s.JID, name)
+	_, err := s.dbPool.Query(context.Background(), deleteAppStateVersionQuery, s.businessId, s.JID, name)
 	return err
 }
 
@@ -356,31 +363,29 @@ type execable interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 }
 
-func (s *SQLStore) putAppStateMutationMACs(tx execable, name string, version uint64, mutations []store.AppStateMutationMAC) error {
-	values := make([]interface{}, 3+len(mutations)*2)
+func (s *SQLStore) putAppStateMutationMACs(tx pgx.Tx, name string, version uint64, mutations []store.AppStateMutationMAC) error {
+	values := make([]interface{}, 4+len(mutations)*2)
 	queryParts := make([]string, len(mutations))
-	values[0] = s.JID
-	values[1] = name
-	values[2] = version
-	placeholderSyntax := "($1, $2, $3, $%d, $%d)"
-	if s.dialect == "sqlite3" {
-		placeholderSyntax = "(?1, ?2, ?3, ?%d, ?%d)"
-	}
+	values[0] = s.businessId
+	values[1] = s.JID
+	values[2] = name
+	values[3] = version
+	placeholderSyntax := "($1, $2, $3, $4, $%d, $%d)"
 	for i, mutation := range mutations {
-		baseIndex := 3 + i*2
+		baseIndex := 4 + i*2
 		values[baseIndex] = mutation.IndexMAC
 		values[baseIndex+1] = mutation.ValueMAC
 		queryParts[i] = fmt.Sprintf(placeholderSyntax, baseIndex+1, baseIndex+2)
 	}
-	_, err := tx.Exec(putAppStateMutationMACsQuery+strings.Join(queryParts, ","), values...)
+	_, err := tx.Exec(context.Background(), putAppStateMutationMACsQuery+strings.Join(queryParts, ","), values...)
 	return err
 }
 
 const mutationBatchSize = 400
 
 func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutations []store.AppStateMutationMAC) error {
-	if len(mutations) > mutationBatchSize {
-		tx, err := s.db.Begin()
+	if len(mutations) > 0 {
+		tx, err := s.dbPool.Begin(context.Background())
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
 		}
@@ -393,17 +398,15 @@ func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutation
 			}
 			err = s.putAppStateMutationMACs(tx, name, version, mutationSlice)
 			if err != nil {
-				_ = tx.Rollback()
+				_ = tx.Rollback(context.Background())
 				return err
 			}
 		}
-		err = tx.Commit()
+		err = tx.Commit(context.Background())
 		if err != nil {
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 		return nil
-	} else if len(mutations) > 0 {
-		return s.putAppStateMutationMACs(s.db, name, version, mutations)
 	}
 	return nil
 }
@@ -412,25 +415,13 @@ func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (
 	if len(indexMACs) == 0 {
 		return
 	}
-	if s.dialect == "postgres" && PostgresArrayWrapper != nil {
-		_, err = s.db.Exec(deleteAppStateMutationMACsQueryPostgres, s.JID, name, PostgresArrayWrapper(indexMACs))
-	} else {
-		args := make([]interface{}, 2+len(indexMACs))
-		args[0] = s.JID
-		args[1] = name
-		queryParts := make([]string, len(indexMACs))
-		for i, item := range indexMACs {
-			args[2+i] = item
-			queryParts[i] = fmt.Sprintf("$%d", i+3)
-		}
-		_, err = s.db.Exec(deleteAppStateMutationMACsQueryGeneric+"("+strings.Join(queryParts, ",")+")", args...)
-	}
+	_, err = s.dbPool.Query(context.Background(), deleteAppStateMutationMACsQueryPostgres, s.businessId, s.JID, name, PostgresArrayWrapper(indexMACs))
 	return
 }
 
 func (s *SQLStore) GetAppStateMutationMAC(name string, indexMAC []byte) (valueMAC []byte, err error) {
-	err = s.db.QueryRow(getAppStateMutationMACQuery, s.JID, name, indexMAC).Scan(&valueMAC)
-	if errors.Is(err, sql.ErrNoRows) {
+	err = s.dbPool.QueryRow(context.Background(), getAppStateMutationMACQuery, s.businessId, s.JID, name, indexMAC).Scan(&valueMAC)
+	if errors.Is(err, pgx.ErrNoRows) {
 		err = nil
 	}
 	return
@@ -438,27 +429,27 @@ func (s *SQLStore) GetAppStateMutationMAC(name string, indexMAC []byte) (valueMA
 
 const (
 	putContactNameQuery = `
-		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
+		INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, first_name, full_name) VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
 	`
 	putManyContactNamesQuery = `
-		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name)
-		VALUES %s
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
+		INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, first_name, full_name)
+		VALUES (%s)
+		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
 	`
 	putPushNameQuery = `
-		INSERT INTO whatsmeow_contacts (our_jid, their_jid, push_name) VALUES ($1, $2, $3)
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET push_name=excluded.push_name
+		INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, push_name) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET push_name=excluded.push_name
 	`
 	putBusinessNameQuery = `
-		INSERT INTO whatsmeow_contacts (our_jid, their_jid, business_name) VALUES ($1, $2, $3)
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET business_name=excluded.business_name
+		INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, business_name) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET business_name=excluded.business_name
 	`
 	getContactQuery = `
-		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
+		SELECT business_id, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE business_id=$1 AND our_jid=$2 AND their_jid=$3
 	`
 	getAllContactsQuery = `
-		SELECT their_jid, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1
+		SELECT business_id, their_jid, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE business_id=$1 our_jid=$2
 	`
 )
 
@@ -471,7 +462,7 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 		return false, "", err
 	}
 	if cached.PushName != pushName {
-		_, err = s.db.Exec(putPushNameQuery, s.JID, user, pushName)
+		_, err = s.dbPool.Query(context.Background(), putPushNameQuery, s.businessId, s.JID, user, pushName)
 		if err != nil {
 			return false, "", err
 		}
@@ -492,7 +483,7 @@ func (s *SQLStore) PutBusinessName(user types.JID, businessName string) (bool, s
 		return false, "", err
 	}
 	if cached.BusinessName != businessName {
-		_, err = s.db.Exec(putBusinessNameQuery, s.JID, user, businessName)
+		_, err = s.dbPool.Query(context.Background(), putBusinessNameQuery, s.businessId, s.JID, user, businessName)
 		if err != nil {
 			return false, "", err
 		}
@@ -513,7 +504,7 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 		return err
 	}
 	if cached.FirstName != firstName || cached.FullName != fullName {
-		_, err = s.db.Exec(putContactNameQuery, s.JID, user, firstName, fullName)
+		_, err = s.dbPool.Query(context.Background(), putContactNameQuery, s.businessId, s.JID, user, firstName, fullName)
 		if err != nil {
 			return err
 		}
@@ -526,14 +517,12 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 
 const contactBatchSize = 300
 
-func (s *SQLStore) putContactNamesBatch(tx execable, contacts []store.ContactEntry) error {
-	values := make([]interface{}, 1, 1+len(contacts)*3)
+func (s *SQLStore) putContactNamesBatch(tx pgx.Tx, contacts []store.ContactEntry) error {
+	values := make([]interface{}, 1, 2+len(contacts)*3)
 	queryParts := make([]string, 0, len(contacts))
-	values[0] = s.JID
-	placeholderSyntax := "($1, $%d, $%d, $%d)"
-	if s.dialect == "sqlite3" {
-		placeholderSyntax = "(?1, ?%d, ?%d, ?%d)"
-	}
+	values[0] = s.businessId
+	values[1] = s.JID
+	placeholderSyntax := "($1, $2, $%d, $%d, $%d)"
 	i := 0
 	handledContacts := make(map[types.JID]struct{}, len(contacts))
 	for _, contact := range contacts {
@@ -548,18 +537,18 @@ func (s *SQLStore) putContactNamesBatch(tx execable, contacts []store.ContactEnt
 			continue
 		}
 		handledContacts[contact.JID] = struct{}{}
-		baseIndex := i*3 + 1
+		baseIndex := i*3 + 2
 		values = append(values, contact.JID.String(), contact.FirstName, contact.FullName)
 		queryParts = append(queryParts, fmt.Sprintf(placeholderSyntax, baseIndex+1, baseIndex+2, baseIndex+3))
 		i++
 	}
-	_, err := tx.Exec(fmt.Sprintf(putManyContactNamesQuery, strings.Join(queryParts, ",")), values...)
+	_, err := tx.Exec(context.Background(), fmt.Sprintf(putManyContactNamesQuery, strings.Join(queryParts, ",")), values...)
 	return err
 }
 
 func (s *SQLStore) PutAllContactNames(contacts []store.ContactEntry) error {
 	if len(contacts) > contactBatchSize {
-		tx, err := s.db.Begin()
+		tx, err := s.dbPool.Begin(context.Background())
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
 		}
@@ -572,18 +561,13 @@ func (s *SQLStore) PutAllContactNames(contacts []store.ContactEntry) error {
 			}
 			err = s.putContactNamesBatch(tx, contactSlice)
 			if err != nil {
-				_ = tx.Rollback()
+				_ = tx.Rollback(context.Background())
 				return err
 			}
 		}
-		err = tx.Commit()
+		err = tx.Commit(context.Background())
 		if err != nil {
 			return fmt.Errorf("failed to commit transaction: %w", err)
-		}
-	} else if len(contacts) > 0 {
-		err := s.putContactNamesBatch(s.db, contacts)
-		if err != nil {
-			return err
 		}
 	} else {
 		return nil
@@ -602,8 +586,8 @@ func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
 	}
 
 	var first, full, push, business sql.NullString
-	err := s.db.QueryRow(getContactQuery, s.JID, user).Scan(&first, &full, &push, &business)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	err := s.dbPool.QueryRow(context.Background(), getContactQuery, s.businessId, s.JID, user).Scan(&first, &full, &push, &business)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
 	info := &types.ContactInfo{
@@ -630,7 +614,7 @@ func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
 func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
 	s.contactCacheLock.Lock()
 	defer s.contactCacheLock.Unlock()
-	rows, err := s.db.Query(getAllContactsQuery, s.JID)
+	rows, err := s.dbPool.Query(context.Background(), getAllContactsQuery, s.businessId, s.JID)
 	if err != nil {
 		return nil, err
 	}
@@ -657,11 +641,11 @@ func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
 
 const (
 	putChatSettingQuery = `
-		INSERT INTO whatsmeow_chat_settings (our_jid, chat_jid, %[1]s) VALUES ($1, $2, $3)
-		ON CONFLICT (our_jid, chat_jid) DO UPDATE SET %[1]s=excluded.%[1]s
+		INSERT INTO whatsmeow_chat_settings (business_id, our_jid, chat_jid, %[1]s) VALUES ($1, $2, $3, $4)
+		ON CONFLICT (business_id, our_jid, chat_jid) DO UPDATE SET %[1]s=excluded.%[1]s
 	`
 	getChatSettingsQuery = `
-		SELECT muted_until, pinned, archived FROM whatsmeow_chat_settings WHERE our_jid=$1 AND chat_jid=$2
+		SELECT muted_until, pinned, archived FROM whatsmeow_chat_settings WHERE business_id=$1 AND our_jid=$2 AND chat_jid=$3
 	`
 )
 
@@ -670,24 +654,24 @@ func (s *SQLStore) PutMutedUntil(chat types.JID, mutedUntil time.Time) error {
 	if !mutedUntil.IsZero() {
 		val = mutedUntil.Unix()
 	}
-	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "muted_until"), s.JID, chat, val)
+	_, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "muted_until"), s.businessId, s.JID, chat, val)
 	return err
 }
 
 func (s *SQLStore) PutPinned(chat types.JID, pinned bool) error {
-	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "pinned"), s.JID, chat, pinned)
+	_, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "pinned"), s.businessId, s.JID, chat, pinned)
 	return err
 }
 
 func (s *SQLStore) PutArchived(chat types.JID, archived bool) error {
-	_, err := s.db.Exec(fmt.Sprintf(putChatSettingQuery, "archived"), s.JID, chat, archived)
+	_, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "archived"), s.businessId, s.JID, chat, archived)
 	return err
 }
 
 func (s *SQLStore) GetChatSettings(chat types.JID) (settings types.LocalChatSettings, err error) {
 	var mutedUntil int64
-	err = s.db.QueryRow(getChatSettingsQuery, s.JID, chat).Scan(&mutedUntil, &settings.Pinned, &settings.Archived)
-	if errors.Is(err, sql.ErrNoRows) {
+	err = s.dbPool.QueryRow(context.Background(), getChatSettingsQuery, s.businessId, s.JID, chat).Scan(&mutedUntil, &settings.Pinned, &settings.Archived)
+	if errors.Is(err, pgx.ErrNoRows) {
 		err = nil
 	} else if err != nil {
 		return
@@ -702,24 +686,24 @@ func (s *SQLStore) GetChatSettings(chat types.JID) (settings types.LocalChatSett
 
 const (
 	putMsgSecret = `
-		INSERT INTO whatsmeow_message_secrets (our_jid, chat_jid, sender_jid, message_id, key)
-		VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (our_jid, chat_jid, sender_jid, message_id) DO NOTHING
+		INSERT INTO whatsmeow_message_secrets (business_id, our_jid, chat_jid, sender_jid, message_id, key)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (business_id, our_jid, chat_jid, sender_jid, message_id) DO NOTHING
 	`
 	getMsgSecret = `
-		SELECT key FROM whatsmeow_message_secrets WHERE our_jid=$1 AND chat_jid=$2 AND sender_jid=$3 AND message_id=$4
+		SELECT key FROM whatsmeow_message_secrets WHERE business_id=$1 AND our_jid=$2 AND chat_jid=$3 AND sender_jid=$4 AND message_id=$5
 	`
 )
 
 func (s *SQLStore) PutMessageSecrets(inserts []store.MessageSecretInsert) (err error) {
-	tx, err := s.db.Begin()
+	tx, err := s.dbPool.Begin(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	for _, insert := range inserts {
-		_, err = tx.Exec(putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
+		_, err = tx.Exec(context.Background(), putMsgSecret, s.businessId, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
 	}
-	err = tx.Commit()
+	err = tx.Commit(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
@@ -727,13 +711,13 @@ func (s *SQLStore) PutMessageSecrets(inserts []store.MessageSecretInsert) (err e
 }
 
 func (s *SQLStore) PutMessageSecret(chat, sender types.JID, id types.MessageID, secret []byte) (err error) {
-	_, err = s.db.Exec(putMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, secret)
+	_, err = s.dbPool.Query(context.Background(), putMsgSecret, s.businessId, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, secret)
 	return
 }
 
 func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) (secret []byte, err error) {
-	err = s.db.QueryRow(getMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&secret)
-	if errors.Is(err, sql.ErrNoRows) {
+	err = s.dbPool.QueryRow(context.Background(), getMsgSecret, s.businessId, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&secret)
+	if errors.Is(err, pgx.ErrNoRows) {
 		err = nil
 	}
 	return
@@ -741,25 +725,26 @@ func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) 
 
 const (
 	putPrivacyTokens = `
-		INSERT INTO whatsmeow_privacy_tokens (our_jid, their_jid, token, timestamp)
-		VALUES ($1, $2, $3, $4)
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET token=EXCLUDED.token, timestamp=EXCLUDED.timestamp
+		INSERT INTO whatsmeow_privacy_tokens (business_id, our_jid, their_jid, token, timestamp)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET token=EXCLUDED.token, timestamp=EXCLUDED.timestamp
 	`
-	getPrivacyToken = `SELECT token, timestamp FROM whatsmeow_privacy_tokens WHERE our_jid=$1 AND their_jid=$2`
+	getPrivacyToken = `SELECT token, timestamp FROM whatsmeow_privacy_tokens WHERE business_id=$1 AND our_jid=$2 AND their_jid=$3`
 )
 
 func (s *SQLStore) PutPrivacyTokens(tokens ...store.PrivacyToken) error {
-	args := make([]any, 1+len(tokens)*3)
+	args := make([]any, 2+len(tokens)*3)
 	placeholders := make([]string, len(tokens))
-	args[0] = s.JID
+	args[0] = s.businessId
+	args[1] = s.JID
 	for i, token := range tokens {
-		args[i*3+1] = token.User.ToNonAD().String()
-		args[i*3+2] = token.Token
-		args[i*3+3] = token.Timestamp.Unix()
-		placeholders[i] = fmt.Sprintf("($1, $%d, $%d, $%d)", i*3+2, i*3+3, i*3+4)
+		args[i*3+2] = token.User.ToNonAD().String()
+		args[i*3+3] = token.Token
+		args[i*3+4] = token.Timestamp.Unix()
+		placeholders[i] = fmt.Sprintf("($1, $2, $%d, $%d, $%d)", i*3+3, i*3+4, i*3+5)
 	}
-	query := strings.ReplaceAll(putPrivacyTokens, "($1, $2, $3, $4)", strings.Join(placeholders, ","))
-	_, err := s.db.Exec(query, args...)
+	query := strings.ReplaceAll(putPrivacyTokens, "($1, $2, $3, $4, $5)", strings.Join(placeholders, ","))
+	_, err := s.dbPool.Query(context.Background(), query, args...)
 	return err
 }
 
@@ -767,8 +752,8 @@ func (s *SQLStore) GetPrivacyToken(user types.JID) (*store.PrivacyToken, error) 
 	var token store.PrivacyToken
 	token.User = user.ToNonAD()
 	var ts int64
-	err := s.db.QueryRow(getPrivacyToken, s.JID, token.User).Scan(&token.Token, &ts)
-	if errors.Is(err, sql.ErrNoRows) {
+	err := s.dbPool.QueryRow(context.Background(), getPrivacyToken, s.businessId, s.JID, token.User).Scan(&token.Token, &ts)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
