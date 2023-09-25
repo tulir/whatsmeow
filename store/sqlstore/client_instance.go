@@ -7,7 +7,7 @@ import (
 )
 
 type ClientInstance struct {
-	clients map[string]*whatsmeow.Client
-	dbPool  *pgxpool.Pool
-	log     waLog.Logger
+	Clients map[string]*whatsmeow.Client
+	DbPool  *pgxpool.Pool
+	Log     waLog.Logger
 }

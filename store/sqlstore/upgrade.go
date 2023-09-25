@@ -8,7 +8,6 @@ package sqlstore
 
 import (
 	"context"
-	"github.com/jackc/pgx/v5"
 )
 
 type upgradeFunc func(pgx.Tx, *ClientInstance) error
@@ -20,13 +19,13 @@ type upgradeFunc func(pgx.Tx, *ClientInstance) error
 var Upgrades = [...]upgradeFunc{upgradeV1, upgradeV2, upgradeV3, upgradeV4, upgradeV5}
 
 func (clientInstance *ClientInstance) getVersion() (int, error) {
-	_, err := clientInstance.dbPool.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS whatsmeow_version (version INTEGER)")
+	_, err := clientInstance.DbPool.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS whatsmeow_version (version INTEGER)")
 	if err != nil {
 		return -1, err
 	}
 
 	version := 0
-	row := clientInstance.dbPool.QueryRow(context.Background(), "SELECT version FROM whatsmeow_version LIMIT 1")
+	row := clientInstance.DbPool.QueryRow(context.Background(), "SELECT version FROM whatsmeow_version LIMIT 1")
 	if row != nil {
 		_ = row.Scan(&version)
 	}
@@ -50,13 +49,13 @@ func (clientInstance *ClientInstance) Upgrade() error {
 	}
 
 	for ; version < len(Upgrades); version++ {
-		tx, err := clientInstance.dbPool.Begin(context.Background())
+		tx, err := clientInstance.DbPool.Begin(context.Background())
 		if err != nil {
 			return err
 		}
 
 		migrateFunc := Upgrades[version]
-		clientInstance.log.Infof("Upgrading database to v%d", version+1)
+		clientInstance.Log.Infof("Upgrading database to v%d", version+1)
 		err = migrateFunc(tx, clientInstance)
 		if err != nil {
 			_ = tx.Rollback(context.Background())
