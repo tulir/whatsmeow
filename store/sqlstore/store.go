@@ -13,6 +13,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"strings"
 	"sync"
 	"time"

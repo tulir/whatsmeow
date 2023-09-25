@@ -8,6 +8,7 @@ package sqlstore
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5"
 )
 
 type upgradeFunc func(pgx.Tx, *ClientInstance) error
