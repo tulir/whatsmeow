@@ -10,10 +10,10 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/lib/pq"
 	"strings"
 	"sync"
 	"time"
@@ -33,10 +33,10 @@ var ErrInvalidLength = errors.New("database returned byte array with illegal len
 // When using github.com/lib/pq, you should set
 //
 //	whatsmeow.PostgresArrayWrapper = pq.Array
-var PostgresArrayWrapper func(interface{}) interface {
-	driver.Valuer
-	sql.Scanner
-}
+//var PostgresArrayWrapper func(interface{}) interface {
+//	driver.Valuer
+//	sql.Scanner
+//}
 
 type SQLStore struct {
 	*Container
@@ -438,7 +438,7 @@ func (s *SQLStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) (
 		return
 	}
 	var row pgx.Rows = nil
-	row, err = s.dbPool.Query(context.Background(), deleteAppStateMutationMACsQueryPostgres, s.businessId, s.JID, name, PostgresArrayWrapper(indexMACs))
+	row, err = s.dbPool.Query(context.Background(), deleteAppStateMutationMACsQueryPostgres, s.businessId, s.JID, name, pq.Array(indexMACs))
 	defer row.Close()
 	return
 }
