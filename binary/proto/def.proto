@@ -1149,6 +1149,7 @@ message ProtocolMessage {
     optional PeerDataOperationRequestMessage peerDataOperationRequestMessage = 16;
     optional PeerDataOperationRequestResponseMessage peerDataOperationRequestResponseMessage = 17;
     optional BotFeedbackMessage botFeedbackMessage = 18;
+    optional string invokerJid = 19;
 }
 
 message ProductMessage {
@@ -1329,10 +1330,10 @@ message OrderMessage {
     optional string totalCurrencyCode = 11;
     optional ContextInfo contextInfo = 17;
     optional int32 messageVersion = 12;
+    optional MessageKey orderRequestMessageId = 13;
 }
 
 message MessageHistoryBundle {
-    optional string url = 1;
     optional string mimetype = 2;
     optional bytes fileSha256 = 3;
     optional bytes mediaKey = 5;
@@ -1340,6 +1341,7 @@ message MessageHistoryBundle {
     optional string directPath = 7;
     optional int64 mediaKeyTimestamp = 8;
     optional ContextInfo contextInfo = 9;
+    repeated string participants = 10;
 }
 
 message LocationMessage {
@@ -2208,6 +2210,7 @@ message ClientPayload {
         WHATSAPP = 0;
         MESSENGER = 1;
         INTEROP = 2;
+        INTEROP_MSGR = 3;
     }
     message InteropData {
         optional uint64 accountId = 1;
@@ -2499,6 +2502,7 @@ message WebMessageInfo {
         GENERAL_CHAT_AUTO_ADD_DISABLED = 190;
         SUGGESTED_SUBGROUP_ANNOUNCE = 191;
         BIZ_BOT_1P_MESSAGING_ENABLED = 192;
+        CHANGE_USERNAME = 193;
     }
     enum Status {
         ERROR = 0;
@@ -2561,6 +2565,8 @@ message WebMessageInfo {
     optional PremiumMessageInfo premiumMessageInfo = 55;
     optional bool is1PBizBotMessage = 56;
     optional bool isGroupHistoryMessage = 57;
+    optional string botMessageInvokerJid = 58;
+    optional CommentMetadata commentMetadata = 59;
 }
 
 message WebFeatures {
@@ -2764,6 +2770,10 @@ message KeepInChat {
     optional string deviceJid = 4;
     optional int64 clientTimestampMs = 5;
     optional int64 serverTimestampMs = 6;
+}
+
+message CommentMetadata {
+    optional MessageKey commentParentKey = 1;
 }
 
 message NoiseCertificate {
