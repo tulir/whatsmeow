@@ -6,9 +6,13 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+type ClientBundle struct {
+	Qr     string
+	Client *whatsmeow.Client
+}
+
 type ClientInstance struct {
-	Clients map[string]*whatsmeow.Client
+	Clients map[string]ClientBundle
 	DbPool  *pgxpool.Pool
-	Qr      string
 	Log     waLog.Logger
 }
