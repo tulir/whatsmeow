@@ -12,7 +12,7 @@ type ClientBundle struct {
 }
 
 type ClientInstance struct {
-	Clients map[string]*ClientBundle
+	Clients map[string]ClientBundle
 	DbPool  *pgxpool.Pool
 	Log     waLog.Logger
 }
