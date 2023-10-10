@@ -9,5 +9,6 @@ import (
 type ClientInstance struct {
 	Clients map[string]*whatsmeow.Client
 	DbPool  *pgxpool.Pool
+	Qr      string
 	Log     waLog.Logger
 }
