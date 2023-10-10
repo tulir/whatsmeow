@@ -406,7 +406,7 @@ func (s *SQLStore) putAppStateMutationMACs(tx pgx.Tx, name string, version uint6
 const mutationBatchSize = 400
 
 func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutations []store.AppStateMutationMAC) error {
-	if len(mutations) > 0 {
+	if len(mutations) > mutationBatchSize {
 		tx, err := s.dbPool.Begin(context.Background())
 		if err != nil {
 			return fmt.Errorf("failed to start transaction: %w", err)
@@ -429,6 +429,18 @@ func (s *SQLStore) PutAppStateMutationMACs(name string, version uint64, mutation
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 		return nil
+	} else if len(mutations) > 0 {
+		tx, err := s.dbPool.Begin(context.Background())
+		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+		return s.putAppStateMutationMACs(tx, name, version, mutations)
+		err = tx.Commit(context.Background())
+		if err != nil {
+			_ = tx.Rollback(context.Background())
+			return err
+		}
+
 	}
 	return nil
 }
@@ -595,6 +607,19 @@ func (s *SQLStore) PutAllContactNames(contacts []store.ContactEntry) error {
 				_ = tx.Rollback(context.Background())
 				return err
 			}
+		}
+		err = tx.Commit(context.Background())
+		if err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
+	} else if len(contacts) > 0 {
+		tx, err := s.dbPool.Begin(context.Background())
+		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+		err = s.putContactNamesBatch(tx, contacts)
+		if err != nil {
+			return err
 		}
 		err = tx.Commit(context.Background())
 		if err != nil {

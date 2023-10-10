@@ -388,6 +388,16 @@ message ExtendedTextMessage {
     optional bool viewOnce = 30;
 }
 
+message EventMessage {
+    optional ContextInfo contextInfo = 1;
+    optional bool isCanceled = 2;
+    optional string name = 3;
+    optional string description = 4;
+    optional LocationMessage location = 5;
+    optional string joinLink = 6;
+    optional int64 startTime = 7;
+}
+
 message EncReactionMessage {
     optional MessageKey targetMessageKey = 1;
     optional bytes encPayload = 2;
@@ -557,6 +567,8 @@ message BotFeedbackMessage {
         BOT_FEEDBACK_NEGATIVE_SAFE = 5;
         BOT_FEEDBACK_NEGATIVE_OTHER = 6;
         BOT_FEEDBACK_NEGATIVE_REFUSED = 7;
+        BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING = 8;
+        BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT = 9;
     }
     optional MessageKey messageKey = 1;
     optional BotFeedbackKind kind = 2;
@@ -648,6 +660,7 @@ message HydratedTemplateButton {
     message HydratedURLButton {
         optional string displayText = 1;
         optional string url = 2;
+        optional string consentedUsersUrl = 3;
     }
     
     message HydratedQuickReplyButton {
@@ -687,7 +700,8 @@ message DisappearingMode {
     }
     optional Initiator initiator = 1;
     optional Trigger trigger = 2;
-    optional bool initiatedByMe = 3;
+    optional string initiatorDeviceJid = 3;
+    optional bool initiatedByMe = 4;
 }
 
 message DeviceListMetadata {
@@ -731,6 +745,10 @@ message ContextInfo {
         optional bool showAdAttribution = 12;
         optional string ctwaClid = 13;
         optional string ref = 14;
+    }
+    
+    message DataSharingContext {
+        optional bool showMmDisclosure = 1;
     }
     
     message BusinessMessageForwardInfo {
@@ -781,6 +799,7 @@ message ContextInfo {
     optional BusinessMessageForwardInfo businessMessageForwardInfo = 44;
     optional string smbClientCampaignId = 45;
     optional string smbServerCampaignId = 46;
+    optional DataSharingContext dataSharingContext = 47;
 }
 
 message BotPluginMetadata {
@@ -943,6 +962,9 @@ message Message {
     optional MessageHistoryBundle messageHistoryBundle = 70;
     optional EncCommentMessage encCommentMessage = 71;
     optional BCallMessage bcallMessage = 72;
+    optional FutureProofMessage commentMessage = 73;
+    optional FutureProofMessage lottieStickerMessage = 74;
+    optional EventMessage eventMessage = 75;
 }
 
 message MessageSecretMessage {
@@ -1149,6 +1171,7 @@ message ProtocolMessage {
     optional PeerDataOperationRequestMessage peerDataOperationRequestMessage = 16;
     optional PeerDataOperationRequestResponseMessage peerDataOperationRequestResponseMessage = 17;
     optional BotFeedbackMessage botFeedbackMessage = 18;
+    optional string invokerJid = 19;
 }
 
 message ProductMessage {
@@ -1329,10 +1352,10 @@ message OrderMessage {
     optional string totalCurrencyCode = 11;
     optional ContextInfo contextInfo = 17;
     optional int32 messageVersion = 12;
+    optional MessageKey orderRequestMessageId = 13;
 }
 
 message MessageHistoryBundle {
-    optional string url = 1;
     optional string mimetype = 2;
     optional bytes fileSha256 = 3;
     optional bytes mediaKey = 5;
@@ -1340,6 +1363,7 @@ message MessageHistoryBundle {
     optional string directPath = 7;
     optional int64 mediaKeyTimestamp = 8;
     optional ContextInfo contextInfo = 9;
+    repeated string participants = 10;
 }
 
 message LocationMessage {
@@ -1387,17 +1411,6 @@ message ListResponseMessage {
 }
 
 message ListMessage {
-    message ProductSection {
-        optional string title = 1;
-        repeated Product products = 2;
-    }
-    
-    message ProductListInfo {
-        repeated ProductSection productSections = 1;
-        optional ProductListHeaderImage headerImage = 2;
-        optional string businessOwnerJid = 3;
-    }
-    
     message ProductListHeaderImage {
         optional string productId = 1;
         optional bytes jpegThumbnail = 2;
@@ -1421,6 +1434,17 @@ message ListMessage {
     
     message Product {
         optional string productId = 1;
+    }
+    
+    message ProductSection {
+        optional string title = 1;
+        repeated Product products = 2;
+    }
+    
+    message ProductListInfo {
+        repeated ProductSection productSections = 1;
+        optional ProductListHeaderImage headerImage = 2;
+        optional string businessOwnerJid = 3;
     }
     
     optional string title = 1;
@@ -1605,6 +1629,7 @@ message Conversation {
     optional bool pnhDuplicateLidThread = 41;
     optional string lidJid = 42;
     optional string username = 43;
+    optional string lidOriginType = 44;
 }
 
 message AvatarUserSettings {
@@ -2208,6 +2233,7 @@ message ClientPayload {
         WHATSAPP = 0;
         MESSENGER = 1;
         INTEROP = 2;
+        INTEROP_MSGR = 3;
     }
     message InteropData {
         optional uint64 accountId = 1;
@@ -2499,6 +2525,11 @@ message WebMessageInfo {
         GENERAL_CHAT_AUTO_ADD_DISABLED = 190;
         SUGGESTED_SUBGROUP_ANNOUNCE = 191;
         BIZ_BOT_1P_MESSAGING_ENABLED = 192;
+        CHANGE_USERNAME = 193;
+        BIZ_COEX_PRIVACY_INIT_SELF = 194;
+        BIZ_COEX_PRIVACY_TRANSITION_SELF = 195;
+        SUPPORT_AI_EDUCATION = 196;
+        BIZ_BOT_3P_MESSAGING_ENABLED = 197;
     }
     enum Status {
         ERROR = 0;
@@ -2561,6 +2592,8 @@ message WebMessageInfo {
     optional PremiumMessageInfo premiumMessageInfo = 55;
     optional bool is1PBizBotMessage = 56;
     optional bool isGroupHistoryMessage = 57;
+    optional string botMessageInvokerJid = 58;
+    optional CommentMetadata commentMetadata = 59;
 }
 
 message WebFeatures {
@@ -2764,6 +2797,11 @@ message KeepInChat {
     optional string deviceJid = 4;
     optional int64 clientTimestampMs = 5;
     optional int64 serverTimestampMs = 6;
+}
+
+message CommentMetadata {
+    optional MessageKey commentParentKey = 1;
+    optional uint32 replyCount = 2;
 }
 
 message NoiseCertificate {

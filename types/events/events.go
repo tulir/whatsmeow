@@ -133,20 +133,18 @@ func (tb *TemporaryBan) String() string {
 type ConnectFailureReason int
 
 const (
+	ConnectFailureGeneric        ConnectFailureReason = 400
 	ConnectFailureLoggedOut      ConnectFailureReason = 401
 	ConnectFailureTempBanned     ConnectFailureReason = 402
-	ConnectFailureMainDeviceGone ConnectFailureReason = 403
-	ConnectFailureUnknownLogout  ConnectFailureReason = 406
+	ConnectFailureMainDeviceGone ConnectFailureReason = 403 // this is now called LOCKED in the whatsapp web code
+	ConnectFailureUnknownLogout  ConnectFailureReason = 406 // this is now called BANNED in the whatsapp web code
 
 	ConnectFailureClientOutdated ConnectFailureReason = 405
 	ConnectFailureBadUserAgent   ConnectFailureReason = 409
 
-	// 400, 500 and 501 are also existing codes, but the meaning is unknown
-
-	// 503 doesn't seem to be included in the web app JS with the other codes, and it's very rare,
-	// but does happen after a 503 stream error sometimes.
-
-	ConnectFailureServiceUnavailable ConnectFailureReason = 503
+	ConnectFailureInternalServerError ConnectFailureReason = 500
+	ConnectFailureExperimental        ConnectFailureReason = 501
+	ConnectFailureServiceUnavailable  ConnectFailureReason = 503
 )
 
 var connectFailureReasonMessage = map[ConnectFailureReason]string{
