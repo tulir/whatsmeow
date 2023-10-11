@@ -561,7 +561,7 @@ func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) er
 const contactBatchSize = 300
 
 func (s *SQLStore) putContactNamesBatch(tx pgx.Tx, contacts []store.ContactEntry) error {
-	values := make([]interface{}, 1, 2+len(contacts)*3)
+	values := make([]interface{}, 2, 2+len(contacts)*3)
 	queryParts := make([]string, 0, len(contacts))
 	values[0] = s.businessId
 	values[1] = s.JID
