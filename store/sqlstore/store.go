@@ -600,6 +600,13 @@ func (s *SQLStore) PutAllContactNames(contacts []store.ContactEntry) error {
 		if err != nil {
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
+	} else if len(contacts) > 0 {
+		tx, _ := s.dbPool.Begin(context.Background())
+		err := s.putContactNamesBatch(tx, contacts)
+		if err != nil {
+			return err
+		}
+		tx.Commit(context.Background())
 	} else {
 		return nil
 	}
