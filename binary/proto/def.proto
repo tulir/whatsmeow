@@ -73,6 +73,7 @@ message DeviceProps {
         optional uint32 recentSyncDaysLimit = 5;
         optional bool supportCallLogHistory = 6;
         optional bool supportBotUserAgentChatHistory = 7;
+        optional bool supportCagReactionsAndPolls = 8;
     }
     
     message AppVersion {

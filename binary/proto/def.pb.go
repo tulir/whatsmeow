@@ -21744,6 +21744,7 @@ type DeviceProps_HistorySyncConfig struct {
 	RecentSyncDaysLimit            *uint32 `protobuf:"varint,5,opt,name=recentSyncDaysLimit" json:"recentSyncDaysLimit,omitempty"`
 	SupportCallLogHistory          *bool   `protobuf:"varint,6,opt,name=supportCallLogHistory" json:"supportCallLogHistory,omitempty"`
 	SupportBotUserAgentChatHistory *bool   `protobuf:"varint,7,opt,name=supportBotUserAgentChatHistory" json:"supportBotUserAgentChatHistory,omitempty"`
+	SupportCagReactionsAndPolls    *bool   `protobuf:"varint,8,opt,name=supportCagReactionsAndPolls" json:"supportCagReactionsAndPolls,omitempty"`
 }
 
 func (x *DeviceProps_HistorySyncConfig) Reset() {
@@ -21823,6 +21824,13 @@ func (x *DeviceProps_HistorySyncConfig) GetSupportCallLogHistory() bool {
 func (x *DeviceProps_HistorySyncConfig) GetSupportBotUserAgentChatHistory() bool {
 	if x != nil && x.SupportBotUserAgentChatHistory != nil {
 		return *x.SupportBotUserAgentChatHistory
+	}
+	return false
+}
+
+func (x *DeviceProps_HistorySyncConfig) GetSupportCagReactionsAndPolls() bool {
+	if x != nil && x.SupportCagReactionsAndPolls != nil {
+		return *x.SupportCagReactionsAndPolls
 	}
 	return false
 }
