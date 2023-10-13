@@ -39,7 +39,8 @@ type DeviceSentMeta struct {
 // MessageInfo contains metadata about an incoming message.
 type MessageInfo struct {
 	MessageSource
-	ID        string
+	ID        MessageID
+	ServerID  MessageServerID
 	Type      string
 	PushName  string
 	Timestamp time.Time

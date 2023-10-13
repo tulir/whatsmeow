@@ -28,11 +28,11 @@ type UserInfo struct {
 
 // ProfilePictureInfo contains the ID and URL for a WhatsApp user's profile picture or group's photo.
 type ProfilePictureInfo struct {
-	URL  string // The full URL for the image, can be downloaded with a simple HTTP request.
-	ID   string // The ID of the image. This is the same as UserInfo.PictureID.
-	Type string // The type of image. Known types include "image" (full res) and "preview" (thumbnail).
+	URL  string `json:"url"`  // The full URL for the image, can be downloaded with a simple HTTP request.
+	ID   string `json:"id"`   // The ID of the image. This is the same as UserInfo.PictureID.
+	Type string `json:"type"` // The type of image. Known types include "image" (full res) and "preview" (thumbnail).
 
-	DirectPath string // The path to the image, probably not very useful
+	DirectPath string `json:"direct_path"` // The path to the image, probably not very useful
 }
 
 // ContactInfo contains the cached names of a WhatsApp user.

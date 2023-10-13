@@ -356,6 +356,77 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Node sent")
 		}
+	case "getnewsletter":
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		meta, err := cli.GetNewsletterInfo(jid)
+		if err != nil {
+			log.Errorf("Failed to get info: %v", err)
+		} else {
+			log.Infof("Got info: %+v", meta)
+		}
+	case "livesubscribenewsletter":
+		if len(args) < 1 {
+			log.Errorf("Usage: livesubscribenewsletter <jid>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		dur, err := cli.SubscribeNewsletterLiveUpdates(context.TODO(), jid)
+		if err != nil {
+			log.Errorf("Failed to subscribe to live updates: %v", err)
+		} else {
+			log.Infof("Subscribed to live updates for %s for %s", jid, dur)
+		}
+	case "getnewslettermessages":
+		if len(args) < 1 {
+			log.Errorf("Usage: getnewslettermessages <jid> [count] [before id]")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		count := 100
+		var err error
+		if len(args) > 1 {
+			count, err = strconv.Atoi(args[1])
+			if err != nil {
+				log.Errorf("Invalid count: %v", err)
+				return
+			}
+		}
+		var before types.MessageServerID
+		if len(args) > 2 {
+			before, err = strconv.Atoi(args[2])
+			if err != nil {
+				log.Errorf("Invalid message ID: %v", err)
+				return
+			}
+		}
+		messages, err := cli.GetNewsletterMessages(jid, &whatsmeow.GetNewsletterMessagesParams{Count: count, Before: before})
+		if err != nil {
+			log.Errorf("Failed to get messages: %v", err)
+		} else {
+			for _, msg := range messages {
+				log.Infof("%d: %+v (viewed %d times)", msg.MessageServerID, msg.Message, msg.ViewsCount)
+			}
+		}
+	case "createnewsletter":
+		if len(args) < 1 {
+			log.Errorf("Usage: createnewsletter <name>")
+			return
+		}
+		err := cli.CreateNewsletter(strings.Join(args, " "), "")
+		if err != nil {
+			log.Errorf("Failed to create newsletter: %v", err)
+		} else {
+			log.Infof("Created newsletter?")
+		}
 	case "getavatar":
 		if len(args) < 1 {
 			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview] [--community]")
