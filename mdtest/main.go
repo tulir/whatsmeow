@@ -570,35 +570,6 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Message sent (server timestamp: %s)", resp.Timestamp)
 		}
-	case "multisend":
-		if len(args) < 3 {
-			log.Errorf("Usage: multisend <jids...> -- <text>")
-			return
-		}
-		var recipients []types.JID
-		for len(args) > 0 && args[0] != "--" {
-			recipient, ok := parseJID(args[0])
-			args = args[1:]
-			if !ok {
-				return
-			}
-			recipients = append(recipients, recipient)
-		}
-		if len(args) == 0 {
-			log.Errorf("Usage: multisend <jids...> -- <text> (the -- is required)")
-			return
-		}
-		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		for _, recipient := range recipients {
-			go func(recipient types.JID) {
-				resp, err := cli.SendMessage(context.Background(), recipient, msg)
-				if err != nil {
-					log.Errorf("Error sending message to %s: %v", recipient, err)
-				} else {
-					log.Infof("Message sent to %s (server timestamp: %s)", recipient, resp.Timestamp)
-				}
-			}(recipient)
-		}
 	case "react":
 		if len(args) < 3 {
 			log.Errorf("Usage: react <jid> <message ID> <reaction>")
