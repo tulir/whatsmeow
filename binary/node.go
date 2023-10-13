@@ -8,17 +8,67 @@
 package binary
 
 import (
+	"encoding/json"
 	"fmt"
+
+	"go.mau.fi/whatsmeow/types"
 )
 
 // Attrs is a type alias for the attributes of an XML element (Node).
-type Attrs = map[string]interface{}
+type Attrs = map[string]any
 
 // Node represents an XML element.
 type Node struct {
 	Tag     string      // The tag of the element.
 	Attrs   Attrs       // The attributes of the element.
 	Content interface{} // The content inside the element. Can be nil, a list of Nodes, or a byte array.
+}
+
+type marshalableNode struct {
+	Tag     string
+	Attrs   Attrs
+	Content json.RawMessage
+}
+
+func (n *Node) UnmarshalJSON(data []byte) error {
+	var mn marshalableNode
+	err := json.Unmarshal(data, &mn)
+	if err != nil {
+		return err
+	}
+	for key, val := range mn.Attrs {
+		switch typedVal := val.(type) {
+		case string:
+			parsed, err := types.ParseJID(typedVal)
+			if err == nil && parsed.Server == types.DefaultUserServer || parsed.Server == types.NewsletterServer || parsed.Server == types.GroupServer || parsed.Server == types.BroadcastServer {
+				mn.Attrs[key] = parsed
+			}
+		case float64:
+			mn.Attrs[key] = int64(typedVal)
+		}
+	}
+	n.Tag = mn.Tag
+	n.Attrs = mn.Attrs
+	if len(mn.Content) > 0 {
+		if mn.Content[0] == '[' {
+			var nodes []Node
+			err = json.Unmarshal(mn.Content, &nodes)
+			if err != nil {
+				return err
+			}
+			n.Content = nodes
+		} else if mn.Content[0] == '"' {
+			var binaryContent []byte
+			err = json.Unmarshal(mn.Content, &binaryContent)
+			if err != nil {
+				return err
+			}
+			n.Content = binaryContent
+		} else {
+			return fmt.Errorf("node content must be an array of nodes or a base64 string")
+		}
+	}
+	return nil
 }
 
 // GetChildren returns the Content of the node as a list of nodes. If the content is not a list of nodes, this returns nil.
