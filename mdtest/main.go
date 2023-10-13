@@ -347,6 +347,15 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Media connection: %+v", conn)
 		}
+	case "raw":
+		var node waBinary.Node
+		if err := json.Unmarshal([]byte(strings.Join(args, " ")), &node); err != nil {
+			log.Errorf("Failed to parse args as JSON into XML node: %v", err)
+		} else if err = cli.DangerousInternals().SendNode(node); err != nil {
+			log.Errorf("Error sending node: %v", err)
+		} else {
+			log.Infof("Node sent")
+		}
 	case "getavatar":
 		if len(args) < 1 {
 			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview] [--community]")
