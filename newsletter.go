@@ -281,15 +281,3 @@ func (cli *Client) GetNewsletterMessageUpdates(jid types.JID, params *GetNewslet
 	}
 	return cli.parseNewsletterMessages(&messages), nil
 }
-
-// SEND <iq to="s.whatsapp.net" xmlns="newsletter" id="18.32935-149" type="get"><messages type="invite" key="0029VaAQ0dF7T8bcL5yjvq1s" count="100" /></iq>
-// RECV ???
-
-// SEND <iq to="120363169319669622@newsletter" xmlns="newsletter" id="18.32935-176" type="get"><message_updates count="100" since="1697185360" after="216" /></iq>
-// RECV ???
-
-// SEND <iq to="s.whatsapp.net" xmlns="newsletter" id="18.32935-178" type="get"><messages type="jid" jid="120363169319669622@newsletter" count="1" /></iq>
-// RECV <iq from="s.whatsapp.net" type="result" id="18.32935-178"><messages jid="120363169319669622@newsletter"><message server_id="316" id="3EB0AFFD26FD964A321DC7" type="text" t="1697168163"><views_count count="62065" /><reactions><reaction code="❤️" count="64" /><reaction code="👍" count="135" /><reaction code="😂" count="95" /><reaction code="😢" count="447" /><reaction code="😮" count="105" /><reaction code="🙏" count="56" /></reactions><plaintext><!-- 2565 bytes --></plaintext></message></messages></iq>
-
-// SEND <iq to="s.whatsapp.net" xmlns="newsletter" id="18.32935-179" type="get"><my_reactions limit="5000" jid="120363169319669622@newsletter" /></iq>
-// RECV <iq from="s.whatsapp.net" type="result" id="18.32935-179"><my_reactions><messages jid="120363169319669622@newsletter" /></my_reactions></iq>
