@@ -130,7 +130,7 @@ type NewsletterThreadMetadata struct {
 	Description       NewsletterText              `json:"description"`
 	SubscriberCount   int                         `json:"subscribers_count,string"`
 	VerificationState NewsletterVerificationState `json:"verification"`
-	Picture           *ProfilePictureInfo         `json:"image"`
+	Picture           *ProfilePictureInfo         `json:"picture"`
 	Preview           ProfilePictureInfo          `json:"preview"`
 	Settings          NewsletterSettings          `json:"settings"`
 
