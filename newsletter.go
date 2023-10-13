@@ -105,6 +105,8 @@ const (
 	mutationUnmuteNewsletter       = "6068417879924485"
 	mutationUpdateNewsletter       = "7150902998257522"
 	mutationCreateNewsletter       = "6234210096708695"
+	mutationUnfollowNewsletter     = "6392786840836363"
+	mutationFollowNewsletter       = "9926858900719341"
 )
 
 func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables map[string]any) (json.RawMessage, error) {
@@ -200,6 +202,20 @@ func (cli *Client) ToggleNewsletterMute(jid types.JID, mute bool) error {
 		query = mutationMuteNewsletter
 	}
 	_, err := cli.sendMexIQ(context.TODO(), query, map[string]any{
+		"newsletter_id": jid.String(),
+	})
+	return err
+}
+
+func (cli *Client) FollowNewsletter(jid types.JID) error {
+	_, err := cli.sendMexIQ(context.TODO(), mutationFollowNewsletter, map[string]any{
+		"newsletter_id": jid.String(),
+	})
+	return err
+}
+
+func (cli *Client) UnfollowNewsletter(jid types.JID) error {
+	_, err := cli.sendMexIQ(context.TODO(), mutationUnfollowNewsletter, map[string]any{
 		"newsletter_id": jid.String(),
 	})
 	return err
