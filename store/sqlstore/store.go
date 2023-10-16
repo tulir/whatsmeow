@@ -491,6 +491,7 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 		row, err = s.dbPool.Query(context.Background(), putPushNameQuery, s.businessId, s.JID, user, pushName)
 		defer row.Close()
 		if err != nil {
+			s.log.Warnf("PutPushName Query(%s) Params(%s, %s, %s, %s)", putPushNameQuery, s.businessId, s.JID, user.String(), pushName)
 			return false, "", err
 		}
 		previousName := cached.PushName
