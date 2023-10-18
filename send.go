@@ -81,6 +81,9 @@ type SendResponse struct {
 	// The ID of the sent message
 	ID types.MessageID
 
+	// The server-specified ID of the sent message. Only present for newsletter messages.
+	ServerID types.MessageServerID
+
 	// Message handling duration, used for debugging
 	DebugTimings MessageDebugTimings
 }
@@ -180,6 +183,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		} else {
 			data, err = cli.sendDM(ctx, to, ownID, req.ID, message, &resp.DebugTimings)
 		}
+	case types.NewsletterServer:
+		data, err = cli.sendNewsletter(to, req.ID, message, &resp.DebugTimings)
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
@@ -205,6 +210,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		}
 	}
 	ag := respNode.AttrGetter()
+	resp.ServerID = types.MessageServerID(ag.OptionalInt("server_id"))
 	resp.Timestamp = ag.UnixTime("t")
 	if errorCode := ag.Int("error"); errorCode != 0 {
 		err = fmt.Errorf("%w %d", ErrServerReturnedError, errorCode)
@@ -422,6 +428,43 @@ func participantListHashV2(participants []types.JID) string {
 	sort.Strings(participantsStrings)
 	hash := sha256.Sum256([]byte(strings.Join(participantsStrings, "")))
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
+}
+
+func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) ([]byte, error) {
+	attrs := waBinary.Attrs{
+		"to":   to,
+		"id":   id,
+		"type": getTypeFromMessage(message),
+	}
+	if message.EditedMessage != nil {
+		message = message.GetEditedMessage().GetMessage().GetProtocolMessage().GetEditedMessage()
+		attrs["edit"] = EditAttributeAdminEdit
+	} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waProto.ProtocolMessage_REVOKE {
+		attrs["edit"] = EditAttributeAdminRevoke
+		attrs["id"] = types.MessageID(message.ProtocolMessage.GetKey().GetId())
+		message = nil
+	}
+	start := time.Now()
+	plaintext, _, err := marshalMessage(to, message)
+	timings.Marshal = time.Since(start)
+	if err != nil {
+		return nil, err
+	}
+	node := waBinary.Node{
+		Tag:   "message",
+		Attrs: attrs,
+		Content: []waBinary.Node{{
+			Tag:     "plaintext",
+			Content: plaintext,
+		}},
+	}
+	start = time.Now()
+	data, err := cli.sendNodeAndGetData(node)
+	timings.Send = time.Since(start)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send message node: %w", err)
+	}
+	return data, nil
 }
 
 func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) (string, []byte, error) {
@@ -655,6 +698,8 @@ func getButtonAttributes(msg *waProto.Message) waBinary.Attrs {
 const (
 	EditAttributeEmpty        = ""
 	EditAttributeMessageEdit  = "1"
+	EditAttributePinInChat    = "2"
+	EditAttributeAdminEdit    = "3"
 	EditAttributeSenderRevoke = "7"
 	EditAttributeAdminRevoke  = "8"
 )
@@ -791,13 +836,16 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 }
 
 func marshalMessage(to types.JID, message *waProto.Message) (plaintext, dsmPlaintext []byte, err error) {
+	if message == nil && to.Server == types.NewsletterServer {
+		return
+	}
 	plaintext, err = proto.Marshal(message)
 	if err != nil {
 		err = fmt.Errorf("failed to marshal message: %w", err)
 		return
 	}
 
-	if to.Server != types.GroupServer {
+	if to.Server != types.GroupServer && to.Server != types.NewsletterServer {
 		dsmPlaintext, err = proto.Marshal(&waProto.Message{
 			DeviceSentMessage: &waProto.DeviceSentMessage{
 				DestinationJid: proto.String(to.String()),
