@@ -151,6 +151,14 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	if len(req.ID) == 0 {
 		req.ID = cli.GenerateMessageID()
 	}
+	if to.Server == types.NewsletterServer {
+		// TODO somehow deduplicate this with the code in sendNewsletter?
+		if message.EditedMessage != nil {
+			req.ID = types.MessageID(message.GetEditedMessage().GetMessage().GetProtocolMessage().GetKey().GetId())
+		} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waProto.ProtocolMessage_REVOKE {
+			req.ID = types.MessageID(message.GetProtocolMessage().GetKey().GetId())
+		}
+	}
 	resp.ID = req.ID
 
 	start := time.Now()
@@ -439,12 +447,10 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 		"type": getTypeFromMessage(message),
 	}
 	if message.EditedMessage != nil {
-		attrs["id"] = types.MessageID(message.GetEditedMessage().GetMessage().GetProtocolMessage().GetKey().GetId())
 		attrs["edit"] = string(types.EditAttributeAdminEdit)
 		message = message.GetEditedMessage().GetMessage().GetProtocolMessage().GetEditedMessage()
 	} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waProto.ProtocolMessage_REVOKE {
 		attrs["edit"] = string(types.EditAttributeAdminRevoke)
-		attrs["id"] = types.MessageID(message.GetProtocolMessage().GetKey().GetId())
 		message = nil
 	}
 	start := time.Now()
