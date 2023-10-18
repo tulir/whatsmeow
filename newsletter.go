@@ -90,7 +90,7 @@ func (cli *Client) NewsletterSendReaction(jid types.JID, serverID types.MessageS
 	if reaction != "" {
 		reactionAttrs["code"] = reaction
 	} else {
-		messageAttrs["edit"] = EditAttributeSenderRevoke
+		messageAttrs["edit"] = string(types.EditAttributeSenderRevoke)
 	}
 	return cli.sendNode(waBinary.Node{
 		Tag:   "message",

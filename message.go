@@ -111,6 +111,7 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	info.PushName = ag.OptionalString("notify")
 	info.Category = ag.OptionalString("category")
 	info.Type = ag.OptionalString("type")
+	info.Edit = types.EditAttribute(ag.OptionalString("edit"))
 	if !ag.OK() {
 		return nil, ag.Error()
 	}
@@ -149,9 +150,19 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 		cli.Log.Warnf("Error unmarshaling plaintext message from %s: %v", info.SourceString(), err)
 		return
 	}
-	cli.handleDecryptedMessage(info, &msg, 0)
-	// TODO do these need receipts?
-	//go cli.sendMessageReceipt(info)
+	cli.storeMessageSecret(info, &msg)
+	evt := &events.Message{
+		Info:       *info,
+		RawMessage: &msg,
+	}
+	meta, ok := node.GetOptionalChildByTag("meta")
+	if ok {
+		evt.NewsletterMeta = &events.NewsletterMessageMeta{
+			EditTS:     meta.AttrGetter().UnixMilli("msg_edit_t"),
+			OriginalTS: meta.AttrGetter().UnixTime("original_msg_t"),
+		}
+	}
+	cli.dispatchEvent(evt.UnwrapRaw())
 	return
 }
 
@@ -460,6 +471,10 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
+	cli.storeMessageSecret(info, msg)
+}
+
+func (cli *Client) storeMessageSecret(info *types.MessageInfo, msg *waProto.Message) {
 	if msgSecret := msg.GetMessageContextInfo().GetMessageSecret(); len(msgSecret) > 0 {
 		err := cli.Store.MsgSecrets.PutMessageSecret(info.Chat, info.Sender, info.ID, msgSecret)
 		if err != nil {

@@ -440,10 +440,10 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 	}
 	if message.EditedMessage != nil {
 		attrs["id"] = types.MessageID(message.GetEditedMessage().GetMessage().GetProtocolMessage().GetKey().GetId())
-		attrs["edit"] = EditAttributeAdminEdit
+		attrs["edit"] = string(types.EditAttributeAdminEdit)
 		message = message.GetEditedMessage().GetMessage().GetProtocolMessage().GetEditedMessage()
 	} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waProto.ProtocolMessage_REVOKE {
-		attrs["edit"] = EditAttributeAdminRevoke
+		attrs["edit"] = string(types.EditAttributeAdminRevoke)
 		attrs["id"] = types.MessageID(message.GetProtocolMessage().GetKey().GetId())
 		message = nil
 	}
@@ -698,18 +698,9 @@ func getButtonAttributes(msg *waProto.Message) waBinary.Attrs {
 	}
 }
 
-const (
-	EditAttributeEmpty        = ""
-	EditAttributeMessageEdit  = "1"
-	EditAttributePinInChat    = "2"
-	EditAttributeAdminEdit    = "3"
-	EditAttributeSenderRevoke = "7"
-	EditAttributeAdminRevoke  = "8"
-)
-
 const RemoveReactionText = ""
 
-func getEditAttribute(msg *waProto.Message) string {
+func getEditAttribute(msg *waProto.Message) types.EditAttribute {
 	switch {
 	case msg.EditedMessage != nil && msg.EditedMessage.Message != nil:
 		return getEditAttribute(msg.EditedMessage.Message)
@@ -717,21 +708,21 @@ func getEditAttribute(msg *waProto.Message) string {
 		switch msg.ProtocolMessage.GetType() {
 		case waProto.ProtocolMessage_REVOKE:
 			if msg.ProtocolMessage.GetKey().GetFromMe() {
-				return EditAttributeSenderRevoke
+				return types.EditAttributeSenderRevoke
 			} else {
-				return EditAttributeAdminRevoke
+				return types.EditAttributeAdminRevoke
 			}
 		case waProto.ProtocolMessage_MESSAGE_EDIT:
 			if msg.ProtocolMessage.EditedMessage != nil {
-				return EditAttributeMessageEdit
+				return types.EditAttributeMessageEdit
 			}
 		}
 	case msg.ReactionMessage != nil && msg.ReactionMessage.GetText() == RemoveReactionText:
-		return EditAttributeSenderRevoke
+		return types.EditAttributeSenderRevoke
 	case msg.KeepInChatMessage != nil && msg.KeepInChatMessage.GetKey().GetFromMe() && msg.KeepInChatMessage.GetKeepType() == waProto.KeepType_UNDO_KEEP_FOR_ALL:
-		return EditAttributeSenderRevoke
+		return types.EditAttributeSenderRevoke
 	}
-	return EditAttributeEmpty
+	return types.EditAttributeEmpty
 }
 
 func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) (*waBinary.Node, error) {
@@ -817,7 +808,7 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 		"to":   to,
 	}
 	if editAttr := getEditAttribute(message); editAttr != "" {
-		attrs["edit"] = editAttr
+		attrs["edit"] = string(editAttr)
 		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
 	}
 	if msgType == "reaction" {
