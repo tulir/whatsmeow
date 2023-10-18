@@ -17,8 +17,8 @@ import (
 	"go.mau.fi/whatsmeow/types"
 )
 
-// SubscribeNewsletterLiveUpdates subscribes to receive live updates from a newsletter temporarily (for the duration returned).
-func (cli *Client) SubscribeNewsletterLiveUpdates(ctx context.Context, jid types.JID) (time.Duration, error) {
+// NewsletterSubscribeLiveUpdates subscribes to receive live updates from a WhatsApp channel temporarily (for the duration returned).
+func (cli *Client) NewsletterSubscribeLiveUpdates(ctx context.Context, jid types.JID) (time.Duration, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Context:   ctx,
 		Namespace: "newsletter",
@@ -36,6 +36,9 @@ func (cli *Client) SubscribeNewsletterLiveUpdates(ctx context.Context, jid types
 	return time.Duration(dur) * time.Second, nil
 }
 
+// NewsletterMarkViewed marks a channel message as viewed, incrementing the view counter.
+//
+// This is not the same as marking the channel as read on your other devices, use the usual MarkRead function for that.
 func (cli *Client) NewsletterMarkViewed(jid types.JID, serverIDs []types.MessageServerID) error {
 	items := make([]waBinary.Node, len(serverIDs))
 	for i, id := range serverIDs {
@@ -69,7 +72,7 @@ func (cli *Client) NewsletterMarkViewed(jid types.JID, serverIDs []types.Message
 	return nil
 }
 
-// NewsletterSendReaction sends a reaction to a newsletter message.
+// NewsletterSendReaction sends a reaction to a channel message.
 // To remove a reaction sent earlier, set reaction to an empty string.
 //
 // The last parameter is the message ID of the reaction itself. It can be left empty to let whatsmeow generate a random one.
@@ -174,6 +177,7 @@ func (cli *Client) getNewsletterInfo(input map[string]any) (*types.NewsletterMet
 	return respData.Newsletter, nil
 }
 
+// GetNewsletterInfo gets the info of a newsletter that you're joined to.
 func (cli *Client) GetNewsletterInfo(jid types.JID) (*types.NewsletterMetadata, error) {
 	return cli.getNewsletterInfo(map[string]any{
 		"key":  jid.String(),
@@ -181,6 +185,9 @@ func (cli *Client) GetNewsletterInfo(jid types.JID) (*types.NewsletterMetadata, 
 	})
 }
 
+// GetNewsletterInfoWithInvite gets the info of a newsletter with an invite link.
+//
+// You can either pass the full link (https://whatsapp.com/channel/...) or just the `...` part.
 func (cli *Client) GetNewsletterInfoWithInvite(key string) (*types.NewsletterMetadata, error) {
 	return cli.getNewsletterInfo(map[string]any{
 		"key":  strings.TrimPrefix(key, NewsletterLinkPrefix),
@@ -198,6 +205,7 @@ type respCreateNewsletter struct {
 	Newsletter *types.NewsletterMetadata `json:"xwa2_newsletter_create"`
 }
 
+// CreateNewsletter creates a new WhatsApp channel.
 func (cli *Client) CreateNewsletter(params CreateNewsletterParams) (*types.NewsletterMetadata, error) {
 	resp, err := cli.sendMexIQ(context.TODO(), mutationCreateNewsletter, map[string]any{
 		"newsletter_input": &params,
@@ -234,7 +242,8 @@ func (cli *Client) AcceptTOSNotice(noticeID, stage string) error {
 	return err
 }
 
-func (cli *Client) ToggleNewsletterMute(jid types.JID, mute bool) error {
+// NewsletterToggleMute changes the mute status of a newsletter.
+func (cli *Client) NewsletterToggleMute(jid types.JID, mute bool) error {
 	query := mutationUnmuteNewsletter
 	if mute {
 		query = mutationMuteNewsletter
@@ -245,6 +254,7 @@ func (cli *Client) ToggleNewsletterMute(jid types.JID, mute bool) error {
 	return err
 }
 
+// FollowNewsletter makes the user follow (join) a WhatsApp channel.
 func (cli *Client) FollowNewsletter(jid types.JID) error {
 	_, err := cli.sendMexIQ(context.TODO(), mutationFollowNewsletter, map[string]any{
 		"newsletter_id": jid.String(),
@@ -252,6 +262,7 @@ func (cli *Client) FollowNewsletter(jid types.JID) error {
 	return err
 }
 
+// UnfollowNewsletter makes the user unfollow (leave) a WhatsApp channel.
 func (cli *Client) UnfollowNewsletter(jid types.JID) error {
 	_, err := cli.sendMexIQ(context.TODO(), mutationUnfollowNewsletter, map[string]any{
 		"newsletter_id": jid.String(),
@@ -264,6 +275,7 @@ type GetNewsletterMessagesParams struct {
 	Before types.MessageServerID
 }
 
+// GetNewsletterMessages gets messages in a WhatsApp channel.
 func (cli *Client) GetNewsletterMessages(jid types.JID, params *GetNewsletterMessagesParams) ([]*types.NewsletterMessage, error) {
 	attrs := waBinary.Attrs{
 		"type": "jid",
@@ -303,6 +315,9 @@ type GetNewsletterUpdatesParams struct {
 	After types.MessageServerID
 }
 
+// GetNewsletterMessageUpdates gets updates in a WhatsApp channel.
+//
+// These are the same kind of updates that NewsletterSubscribeLiveUpdates triggers (reaction and view counts).
 func (cli *Client) GetNewsletterMessageUpdates(jid types.JID, params *GetNewsletterUpdatesParams) ([]*types.NewsletterMessage, error) {
 	attrs := waBinary.Attrs{}
 	if params != nil {

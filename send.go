@@ -276,6 +276,8 @@ func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waPr
 // The built message can be sent normally using Client.SendMessage.
 //
 //	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildReaction(chat, senderJID, targetMessageID, "🐈️")
+//
+// Note that for newsletter messages, you need to use NewsletterSendReaction instead of BuildReaction + SendMessage.
 func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waProto.Message {
 	return &waProto.Message{
 		ReactionMessage: &waProto.ReactionMessage{
