@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -101,7 +102,8 @@ func (cli *Client) NewsletterSendReaction(jid types.JID, serverID types.MessageS
 const (
 	queryFetchNewsletter           = "6563316087068696"
 	queryFetchNewsletterDehydrated = "7272540469429201"
-	mutationMuteNewsletter         = "6274038279359549"
+	queryNewsletterSubscribers     = "9800646650009898" //variables -> input -> {newsletter_id, count}, output: xwa2_newsletter_subscribers -> subscribers -> edges
+	mutationMuteNewsletter         = "6274038279359549" //variables -> {newsletter_id, updates->{description, settings}}, output: xwa2_newsletter_update -> NewsletterMetadata without viewer meta
 	mutationUnmuteNewsletter       = "6068417879924485"
 	mutationUpdateNewsletter       = "7150902998257522"
 	mutationCreateNewsletter       = "6234210096708695"
@@ -109,7 +111,7 @@ const (
 	mutationFollowNewsletter       = "9926858900719341"
 )
 
-func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables map[string]any) (json.RawMessage, error) {
+func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any) (json.RawMessage, error) {
 	payload, err := json.Marshal(map[string]any{
 		"variables": variables,
 	})
@@ -181,17 +183,53 @@ func (cli *Client) GetNewsletterInfo(jid types.JID) (*types.NewsletterMetadata, 
 
 func (cli *Client) GetNewsletterInfoWithInvite(key string) (*types.NewsletterMetadata, error) {
 	return cli.getNewsletterInfo(map[string]any{
-		"key":  key,
+		"key":  strings.TrimPrefix(key, NewsletterLinkPrefix),
 		"type": types.NewsletterKeyTypeInvite,
 	})
 }
 
-func (cli *Client) CreateNewsletter(name, description string) error {
-	_, err := cli.sendMexIQ(context.TODO(), mutationCreateNewsletter, map[string]any{
-		"newsletter_input": map[string]any{
-			"name":        name,
-			"description": description,
-		},
+type CreateNewsletterParams struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Picture     []byte `json:"picture,omitempty"`
+}
+
+type respCreateNewsletter struct {
+	Newsletter *types.NewsletterMetadata `json:"xwa2_newsletter_create"`
+}
+
+func (cli *Client) CreateNewsletter(params CreateNewsletterParams) (*types.NewsletterMetadata, error) {
+	resp, err := cli.sendMexIQ(context.TODO(), mutationCreateNewsletter, map[string]any{
+		"newsletter_input": &params,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var respData respCreateNewsletter
+	err = json.Unmarshal(resp, &respData)
+	if err != nil {
+		return nil, err
+	}
+	return respData.Newsletter, nil
+}
+
+// AcceptTOSNotice accepts a ToS notice.
+//
+// To accept the terms for creating newsletters, use
+//
+//	cli.AcceptTOSNotice("20601218", "5")
+func (cli *Client) AcceptTOSNotice(noticeID, stage string) error {
+	_, err := cli.sendIQ(infoQuery{
+		Namespace: "tos",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "notice",
+			Attrs: waBinary.Attrs{
+				"id":    noticeID,
+				"stage": stage,
+			},
+		}},
 	})
 	return err
 }
