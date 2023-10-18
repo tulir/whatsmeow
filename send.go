@@ -439,11 +439,12 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 		"type": getTypeFromMessage(message),
 	}
 	if message.EditedMessage != nil {
-		message = message.GetEditedMessage().GetMessage().GetProtocolMessage().GetEditedMessage()
+		attrs["id"] = types.MessageID(message.GetEditedMessage().GetMessage().GetProtocolMessage().GetKey().GetId())
 		attrs["edit"] = EditAttributeAdminEdit
+		message = message.GetEditedMessage().GetMessage().GetProtocolMessage().GetEditedMessage()
 	} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waProto.ProtocolMessage_REVOKE {
 		attrs["edit"] = EditAttributeAdminRevoke
-		attrs["id"] = types.MessageID(message.ProtocolMessage.GetKey().GetId())
+		attrs["id"] = types.MessageID(message.GetProtocolMessage().GetKey().GetId())
 		message = nil
 	}
 	start := time.Now()
