@@ -251,7 +251,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 	}
 	_, err := cli.SendMessage(
 		ctx,
-		cli.Store.ID.ToNonAD(),
+		cli.getOwnID().ToNonAD(),
 		cli.BuildUnavailableMessageRequest(info.Chat, info.Sender, info.ID),
 		SendRequestExtra{Peer: true},
 	)

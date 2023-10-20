@@ -133,20 +133,18 @@ func (tb *TemporaryBan) String() string {
 type ConnectFailureReason int
 
 const (
+	ConnectFailureGeneric        ConnectFailureReason = 400
 	ConnectFailureLoggedOut      ConnectFailureReason = 401
 	ConnectFailureTempBanned     ConnectFailureReason = 402
-	ConnectFailureMainDeviceGone ConnectFailureReason = 403
-	ConnectFailureUnknownLogout  ConnectFailureReason = 406
+	ConnectFailureMainDeviceGone ConnectFailureReason = 403 // this is now called LOCKED in the whatsapp web code
+	ConnectFailureUnknownLogout  ConnectFailureReason = 406 // this is now called BANNED in the whatsapp web code
 
 	ConnectFailureClientOutdated ConnectFailureReason = 405
 	ConnectFailureBadUserAgent   ConnectFailureReason = 409
 
-	// 400, 500 and 501 are also existing codes, but the meaning is unknown
-
-	// 503 doesn't seem to be included in the web app JS with the other codes, and it's very rare,
-	// but does happen after a 503 stream error sometimes.
-
-	ConnectFailureServiceUnavailable ConnectFailureReason = 503
+	ConnectFailureInternalServerError ConnectFailureReason = 500
+	ConnectFailureExperimental        ConnectFailureReason = 501
+	ConnectFailureServiceUnavailable  ConnectFailureReason = 503
 )
 
 var connectFailureReasonMessage = map[ConnectFailureReason]string{
@@ -223,6 +221,14 @@ type UndecryptableMessage struct {
 	DecryptFailMode DecryptFailMode
 }
 
+type NewsletterMessageMeta struct {
+	// When a newsletter message is edited, the message isn't wrapped in an EditedMessage like normal messages.
+	// Instead, the message is the new content, the ID is the original message ID, and the edit timestamp is here.
+	EditTS time.Time
+	// This is the timestamp of the original message for edits.
+	OriginalTS time.Time
+}
+
 // Message is emitted when receiving a new message.
 type Message struct {
 	Info    types.MessageInfo // Information about the message like the chat and sender IDs
@@ -240,6 +246,8 @@ type Message struct {
 	UnavailableRequestID types.MessageID
 	// If the message was re-requested from the sender, this is the number of retries it took.
 	RetryCount int
+
+	NewsletterMeta *NewsletterMessageMeta
 
 	// The raw message struct. This is the raw unmodified data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
@@ -462,4 +470,53 @@ type MediaRetry struct {
 	ChatID    types.JID       // The chat ID where the message was sent.
 	SenderID  types.JID       // The user who sent the message. Only present in groups.
 	FromMe    bool            // Whether the message was sent by the current user or someone else.
+}
+
+type BlocklistAction string
+
+const (
+	BlocklistActionDefault BlocklistAction = ""
+	BlocklistActionModify  BlocklistAction = "modify"
+)
+
+// Blocklist is emitted when the user's blocked user list is changed.
+type Blocklist struct {
+	// Action specifies what happened. If it's empty, there should be a list of changes in the Changes list.
+	// If it's "modify", then the Changes list will be empty and the whole blocklist should be re-requested.
+	Action    BlocklistAction
+	DHash     string
+	PrevDHash string
+	Changes   []BlocklistChange
+}
+
+type BlocklistChangeAction string
+
+const (
+	BlocklistChangeActionBlock   BlocklistChangeAction = "block"
+	BlocklistChangeActionUnblock BlocklistChangeAction = "unblock"
+)
+
+type BlocklistChange struct {
+	JID    types.JID
+	Action BlocklistChangeAction
+}
+
+type NewsletterJoin struct {
+	types.NewsletterMetadata
+}
+
+type NewsletterLeave struct {
+	ID   types.JID            `json:"id"`
+	Role types.NewsletterRole `json:"role"`
+}
+
+type NewsletterMuteChange struct {
+	ID   types.JID                 `json:"id"`
+	Mute types.NewsletterMuteState `json:"mute"`
+}
+
+type NewsletterLiveUpdate struct {
+	JID      types.JID
+	Time     time.Time
+	Messages []*types.NewsletterMessage
 }

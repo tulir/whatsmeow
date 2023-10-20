@@ -137,7 +137,7 @@ func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, se
 			"t":    timestamp.Unix(),
 		},
 	}
-	if cli.GetPrivacySettings().ReadReceipts == types.PrivacySettingNone {
+	if chat.Server == types.NewsletterServer || cli.GetPrivacySettings().ReadReceipts == types.PrivacySettingNone {
 		node.Attrs["type"] = "read-self"
 	}
 	if !sender.IsEmpty() && chat.Server != types.DefaultUserServer {

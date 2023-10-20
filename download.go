@@ -10,6 +10,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -17,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"go.mau.fi/util/retryafter"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
@@ -219,6 +221,7 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 		mmsType = mediaTypeToMMSType[mediaType]
 	}
 	for i, host := range mediaConn.Hosts {
+		// TODO omit hash for unencrypted media?
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
 		data, err = cli.downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
 		// TODO there are probably some errors that shouldn't retry
@@ -235,8 +238,11 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 func (cli *Client) downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSha256, fileSha256 []byte) (data []byte, err error) {
 	iv, cipherKey, macKey, _ := getMediaKeys(mediaKey, appInfo)
 	var ciphertext, mac []byte
-	if ciphertext, mac, err = cli.downloadEncryptedMediaWithRetries(url, fileEncSha256); err != nil {
+	if ciphertext, mac, err = cli.downloadPossiblyEncryptedMediaWithRetries(url, fileEncSha256); err != nil {
 
+	} else if mediaKey == nil && fileEncSha256 == nil && mac == nil {
+		// Unencrypted media, just return the downloaded data
+		data = ciphertext
 	} else if err = validateMedia(iv, ciphertext, macKey, mac); err != nil {
 
 	} else if data, err = cbcutil.Decrypt(cipherKey, iv, ciphertext); err != nil {
@@ -254,55 +260,55 @@ func getMediaKeys(mediaKey []byte, appInfo MediaType) (iv, cipherKey, macKey, re
 	return mediaKeyExpanded[:16], mediaKeyExpanded[16:48], mediaKeyExpanded[48:80], mediaKeyExpanded[80:]
 }
 
-func (cli *Client) downloadEncryptedMediaWithRetries(url string, checksum []byte) (file, mac []byte, err error) {
+func shouldRetryMediaDownload(err error) bool {
+	var netErr net.Error
+	var httpErr DownloadHTTPError
+	return errors.As(err, &netErr) ||
+		(errors.As(err, &httpErr) && retryafter.Should(httpErr.StatusCode, true))
+}
+
+func (cli *Client) downloadPossiblyEncryptedMediaWithRetries(url string, checksum []byte) (file, mac []byte, err error) {
 	for retryNum := 0; retryNum < 5; retryNum++ {
-		file, mac, err = cli.downloadEncryptedMedia(url, checksum)
-		if err == nil {
+		if checksum == nil {
+			file, err = cli.downloadMedia(url)
+		} else {
+			file, mac, err = cli.downloadEncryptedMedia(url, checksum)
+		}
+		if err == nil || !shouldRetryMediaDownload(err) {
 			return
 		}
-		netErr, ok := err.(net.Error)
-		if !ok {
-			// Not a network error, don't retry
-			return
+		retryDuration := time.Duration(retryNum+1) * time.Second
+		var httpErr DownloadHTTPError
+		if errors.As(err, &httpErr) {
+			retryDuration = retryafter.Parse(httpErr.Response.Header.Get("Retry-After"), retryDuration)
 		}
-		cli.Log.Warnf("Failed to download media due to network error: %w, retrying...", netErr)
-		time.Sleep(time.Duration(retryNum+1) * time.Second)
+		cli.Log.Warnf("Failed to download media due to network error: %w, retrying in %s...", err, retryDuration)
+		time.Sleep(retryDuration)
 	}
 	return
 }
 
-func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
-	var req *http.Request
-	req, err = http.NewRequest(http.MethodGet, url, nil)
+func (cli *Client) downloadMedia(url string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		err = fmt.Errorf("failed to prepare request: %w", err)
-		return
+		return nil, fmt.Errorf("failed to prepare request: %w", err)
 	}
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
-	var resp *http.Response
-	resp, err = cli.http.Do(req)
+	resp, err := cli.http.Do(req)
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode == http.StatusForbidden {
-			err = ErrMediaDownloadFailedWith403
-		} else if resp.StatusCode == http.StatusNotFound {
-			err = ErrMediaDownloadFailedWith404
-		} else if resp.StatusCode == http.StatusGone {
-			err = ErrMediaDownloadFailedWith410
-		} else {
-			err = fmt.Errorf("download failed with status code %d", resp.StatusCode)
-		}
-		return
+		return nil, DownloadHTTPError{Response: resp}
 	}
-	var data []byte
-	data, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return
-	} else if len(data) <= 10 {
+	return io.ReadAll(resp.Body)
+}
+
+func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
+	data, err := cli.downloadMedia(url)
+	if len(data) <= 10 {
 		err = ErrTooShortFile
 		return
 	}

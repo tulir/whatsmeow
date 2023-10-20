@@ -92,6 +92,13 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	case reason == 500 && message == "biz vname fetch error":
 		// These happen for business accounts randomly, also auto-reconnect
 	}
+	if reason == 403 {
+		cli.Log.Debugf(
+			"Message for 403 connect failure: %s / %s",
+			ag.OptionalString("logout_message_header"),
+			ag.OptionalString("logout_message_subtext"),
+		)
+	}
 	if reason.IsLoggedOut() {
 		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason)
 		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})

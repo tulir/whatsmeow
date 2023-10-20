@@ -183,7 +183,7 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Usage: pair-phone <number>")
 			return
 		}
-		linkingCode, err := cli.PairPhone(args[0], true)
+		linkingCode, err := cli.PairPhone(args[0], true, whatsmeow.PairClientChrome, "Chrome (Linux)")
 		if err != nil {
 			panic(err)
 		}
@@ -346,6 +346,86 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to get media connection: %v", err)
 		} else {
 			log.Infof("Media connection: %+v", conn)
+		}
+	case "raw":
+		var node waBinary.Node
+		if err := json.Unmarshal([]byte(strings.Join(args, " ")), &node); err != nil {
+			log.Errorf("Failed to parse args as JSON into XML node: %v", err)
+		} else if err = cli.DangerousInternals().SendNode(node); err != nil {
+			log.Errorf("Error sending node: %v", err)
+		} else {
+			log.Infof("Node sent")
+		}
+	case "getnewsletter":
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		meta, err := cli.GetNewsletterInfo(jid)
+		if err != nil {
+			log.Errorf("Failed to get info: %v", err)
+		} else {
+			log.Infof("Got info: %+v", meta)
+		}
+	case "livesubscribenewsletter":
+		if len(args) < 1 {
+			log.Errorf("Usage: livesubscribenewsletter <jid>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		dur, err := cli.SubscribeNewsletterLiveUpdates(context.TODO(), jid)
+		if err != nil {
+			log.Errorf("Failed to subscribe to live updates: %v", err)
+		} else {
+			log.Infof("Subscribed to live updates for %s for %s", jid, dur)
+		}
+	case "getnewslettermessages":
+		if len(args) < 1 {
+			log.Errorf("Usage: getnewslettermessages <jid> [count] [before id]")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		count := 100
+		var err error
+		if len(args) > 1 {
+			count, err = strconv.Atoi(args[1])
+			if err != nil {
+				log.Errorf("Invalid count: %v", err)
+				return
+			}
+		}
+		var before types.MessageServerID
+		if len(args) > 2 {
+			before, err = strconv.Atoi(args[2])
+			if err != nil {
+				log.Errorf("Invalid message ID: %v", err)
+				return
+			}
+		}
+		messages, err := cli.GetNewsletterMessages(jid, &whatsmeow.GetNewsletterMessagesParams{Count: count, Before: before})
+		if err != nil {
+			log.Errorf("Failed to get messages: %v", err)
+		} else {
+			for _, msg := range messages {
+				log.Infof("%d: %+v (viewed %d times)", msg.MessageServerID, msg.Message, msg.ViewsCount)
+			}
+		}
+	case "createnewsletter":
+		if len(args) < 1 {
+			log.Errorf("Usage: createnewsletter <name>")
+			return
+		}
+		err := cli.CreateNewsletter(strings.Join(args, " "), "")
+		if err != nil {
+			log.Errorf("Failed to create newsletter: %v", err)
+		} else {
+			log.Infof("Created newsletter?")
 		}
 	case "getavatar":
 		if len(args) < 1 {
@@ -561,35 +641,6 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Message sent (server timestamp: %s)", resp.Timestamp)
 		}
-	case "multisend":
-		if len(args) < 3 {
-			log.Errorf("Usage: multisend <jids...> -- <text>")
-			return
-		}
-		var recipients []types.JID
-		for len(args) > 0 && args[0] != "--" {
-			recipient, ok := parseJID(args[0])
-			args = args[1:]
-			if !ok {
-				return
-			}
-			recipients = append(recipients, recipient)
-		}
-		if len(args) == 0 {
-			log.Errorf("Usage: multisend <jids...> -- <text> (the -- is required)")
-			return
-		}
-		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
-		for _, recipient := range recipients {
-			go func(recipient types.JID) {
-				resp, err := cli.SendMessage(context.Background(), recipient, msg)
-				if err != nil {
-					log.Errorf("Error sending message to %s: %v", recipient, err)
-				} else {
-					log.Infof("Message sent to %s (server timestamp: %s)", recipient, resp.Timestamp)
-				}
-			}(recipient)
-		}
 	case "react":
 		if len(args) < 3 {
 			log.Errorf("Usage: react <jid> <message ID> <reaction>")
@@ -745,6 +796,43 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Error changing chat's pin state: %v", err)
 		}
+	case "getblocklist":
+		blocklist, err := cli.GetBlocklist()
+		if err != nil {
+			log.Errorf("Failed to get blocked contacts list: %v", err)
+		} else {
+			log.Infof("Blocklist: %+v", blocklist)
+		}
+	case "block":
+		if len(args) < 1 {
+			log.Errorf("Usage: block <jid>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		resp, err := cli.UpdateBlocklist(jid, events.BlocklistChangeActionBlock)
+		if err != nil {
+			log.Errorf("Error updating blocklist: %v", err)
+		} else {
+			log.Infof("Blocklist updated: %+v", resp)
+		}
+	case "unblock":
+		if len(args) < 1 {
+			log.Errorf("Usage: unblock <jid>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		resp, err := cli.UpdateBlocklist(jid, events.BlocklistChangeActionUnblock)
+		if err != nil {
+			log.Errorf("Error updating blocklist: %v", err)
+		} else {
+			log.Infof("Blocklist updated: %+v", resp)
+		}
 	}
 }
 
@@ -876,5 +964,7 @@ func handler(rawEvt interface{}) {
 		log.Debugf("Keepalive timeout event: %+v", evt)
 	case *events.KeepAliveRestored:
 		log.Debugf("Keepalive restored")
+	case *events.Blocklist:
+		log.Infof("Blocklist event: %+v", evt)
 	}
 }

@@ -7,10 +7,14 @@
 package whatsmeow
 
 import (
+	"encoding/json"
 	"errors"
+
+	"google.golang.org/protobuf/proto"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -165,6 +169,28 @@ func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	}
 }
 
+func (cli *Client) handleBlocklist(node *waBinary.Node) {
+	ag := node.AttrGetter()
+	evt := events.Blocklist{
+		Action:    events.BlocklistAction(ag.OptionalString("action")),
+		DHash:     ag.String("dhash"),
+		PrevDHash: ag.OptionalString("prev_dhash"),
+	}
+	for _, child := range node.GetChildren() {
+		ag := child.AttrGetter()
+		change := events.BlocklistChange{
+			JID:    ag.JID("jid"),
+			Action: events.BlocklistChangeAction(ag.String("action")),
+		}
+		if !ag.OK() {
+			cli.Log.Warnf("Unexpected data in blocklist event child %v: %v", child.XMLString(), ag.Error())
+			continue
+		}
+		evt.Changes = append(evt.Changes, change)
+	}
+	cli.dispatchEvent(&evt)
+}
+
 func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		switch child.Tag {
@@ -177,6 +203,8 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 				Timestamp: node.AttrGetter().UnixTime("t"),
 				JID:       cli.getOwnID().ToNonAD(),
 			})
+		case "blocklist":
+			cli.handleBlocklist(&child)
 		default:
 			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
 		}
@@ -229,6 +257,93 @@ func (cli *Client) handlePrivacyTokenNotification(node *waBinary.Node) {
 	}
 }
 
+func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.NewsletterMessage {
+	children := node.GetChildren()
+	output := make([]*types.NewsletterMessage, 0, len(children))
+	for _, child := range children {
+		if child.Tag != "message" {
+			continue
+		}
+		msg := types.NewsletterMessage{
+			MessageServerID: child.AttrGetter().Int("server_id"),
+			ViewsCount:      0,
+			ReactionCounts:  nil,
+		}
+		for _, subchild := range child.GetChildren() {
+			switch subchild.Tag {
+			case "plaintext":
+				byteContent, ok := subchild.Content.([]byte)
+				if ok {
+					msg.Message = new(waProto.Message)
+					err := proto.Unmarshal(byteContent, msg.Message)
+					if err != nil {
+						cli.Log.Warnf("Failed to unmarshal newsletter message: %v", err)
+						msg.Message = nil
+					}
+				}
+			case "views_count":
+				msg.ViewsCount = subchild.AttrGetter().Int("count")
+			case "reactions":
+				msg.ReactionCounts = make(map[string]int)
+				for _, reaction := range subchild.GetChildren() {
+					rag := reaction.AttrGetter()
+					msg.ReactionCounts[rag.String("code")] = rag.Int("count")
+				}
+			}
+		}
+		output = append(output, &msg)
+	}
+	return output
+}
+
+func (cli *Client) handleNewsletterNotification(node *waBinary.Node) {
+	ag := node.AttrGetter()
+	liveUpdates := node.GetChildByTag("live_updates")
+	cli.dispatchEvent(&events.NewsletterLiveUpdate{
+		JID:      ag.JID("from"),
+		Time:     ag.UnixTime("t"),
+		Messages: cli.parseNewsletterMessages(&liveUpdates),
+	})
+}
+
+type newsLetterEventWrapper struct {
+	Data newsletterEvent `json:"data"`
+}
+
+type newsletterEvent struct {
+	Join       *events.NewsletterJoin       `json:"xwa2_notify_newsletter_on_join"`
+	Leave      *events.NewsletterLeave      `json:"xwa2_notify_newsletter_on_leave"`
+	MuteChange *events.NewsletterMuteChange `json:"xwa2_notify_newsletter_on_mute_change"`
+	// _on_admin_metadata_update -> id, thread_metadata, messages
+	// _on_metadata_update
+	// _on_state_change -> id, is_requestor, state
+}
+
+func (cli *Client) handleMexNotification(node *waBinary.Node) {
+	for _, child := range node.GetChildren() {
+		if child.Tag != "update" {
+			continue
+		}
+		childData, ok := child.Content.([]byte)
+		if !ok {
+			continue
+		}
+		var wrapper newsLetterEventWrapper
+		err := json.Unmarshal(childData, &wrapper)
+		if err != nil {
+			cli.Log.Errorf("Failed to unmarshal JSON in mex event: %v", err)
+			continue
+		}
+		if wrapper.Data.Join != nil {
+			cli.dispatchEvent(wrapper.Data.Join)
+		} else if wrapper.Data.Leave != nil {
+			cli.dispatchEvent(wrapper.Data.Leave)
+		} else if wrapper.Data.MuteChange != nil {
+			cli.dispatchEvent(wrapper.Data.MuteChange)
+		}
+	}
+}
+
 func (cli *Client) handleNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
@@ -260,6 +375,10 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		go cli.handlePrivacyTokenNotification(node)
 	case "link_code_companion_reg":
 		go cli.tryHandleCodePairNotification(node)
+	case "newsletter":
+		go cli.handleNewsletterNotification(node)
+	case "mex":
+		go cli.handleMexNotification(node)
 	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)
