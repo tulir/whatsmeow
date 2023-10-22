@@ -376,7 +376,7 @@ func handleCmd(cmd string, args []string) {
 		if !ok {
 			return
 		}
-		dur, err := cli.SubscribeNewsletterLiveUpdates(context.TODO(), jid)
+		dur, err := cli.NewsletterSubscribeLiveUpdates(context.TODO(), jid)
 		if err != nil {
 			log.Errorf("Failed to subscribe to live updates: %v", err)
 		} else {
@@ -421,11 +421,13 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Usage: createnewsletter <name>")
 			return
 		}
-		err := cli.CreateNewsletter(strings.Join(args, " "), "")
+		resp, err := cli.CreateNewsletter(whatsmeow.CreateNewsletterParams{
+			Name: strings.Join(args, " "),
+		})
 		if err != nil {
 			log.Errorf("Failed to create newsletter: %v", err)
 		} else {
-			log.Infof("Created newsletter?")
+			log.Infof("Created newsletter %+v", resp)
 		}
 	case "getavatar":
 		if len(args) < 1 {
