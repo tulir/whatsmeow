@@ -166,15 +166,14 @@ func (cli *Client) getNewsletterInfo(input map[string]any, fetchViewerMeta bool)
 		"fetch_viewer_metadata": fetchViewerMeta,
 		"input":                 input,
 	})
-	if err != nil {
-		return nil, err
-	}
 	var respData respGetNewsletterInfo
-	err = json.Unmarshal(data, &respData)
-	if err != nil {
-		return nil, err
+	if data != nil {
+		jsonErr := json.Unmarshal(data, &respData)
+		if err == nil && jsonErr != nil {
+			err = jsonErr
+		}
 	}
-	return respData.Newsletter, nil
+	return respData.Newsletter, err
 }
 
 // GetNewsletterInfo gets the info of a newsletter that you're joined to.
