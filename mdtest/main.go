@@ -367,6 +367,13 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Got info: %+v", meta)
 		}
+	case "getnewsletterinvite":
+		meta, err := cli.GetNewsletterInfoWithInvite(args[0])
+		if err != nil {
+			log.Errorf("Failed to get info: %v", err)
+		} else {
+			log.Infof("Got info: %+v", meta)
+		}
 	case "livesubscribenewsletter":
 		if len(args) < 1 {
 			log.Errorf("Usage: livesubscribenewsletter <jid>")
