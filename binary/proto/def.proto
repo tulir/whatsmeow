@@ -4,6 +4,7 @@ package proto;
 message ADVSignedKeyIndexList {
     optional bytes details = 1;
     optional bytes accountSignature = 2;
+    optional bytes accountSignatureKey = 3;
 }
 
 message ADVSignedDeviceIdentity {
@@ -426,6 +427,11 @@ message ContactMessage {
     optional ContextInfo contextInfo = 17;
 }
 
+message CommentMessage {
+    optional Message message = 1;
+    optional MessageKey targetMessageKey = 2;
+}
+
 message Chat {
     optional string displayName = 1;
     optional string id = 2;
@@ -571,6 +577,7 @@ message BCallMessage {
     optional string sessionId = 1;
     optional MediaType mediaType = 2;
     optional bytes masterKey = 3;
+    optional string caption = 4;
 }
 
 message AudioMessage {
@@ -640,6 +647,7 @@ message InteractiveAnnotation {
     repeated Point polygonVertices = 1;
     oneof action {
         Location location = 2;
+        ForwardedNewsletterMessageInfo newsletter = 3;
     }
 }
 
@@ -712,12 +720,6 @@ message ContextInfo {
     message UTMInfo {
         optional string utmSource = 1;
         optional string utmCampaign = 2;
-    }
-    
-    message ForwardedNewsletterMessageInfo {
-        optional string newsletterJid = 1;
-        optional int32 serverMessageId = 2;
-        optional string newsletterName = 3;
     }
     
     message ExternalAdReplyInfo {
@@ -795,6 +797,12 @@ message ContextInfo {
     optional string smbClientCampaignId = 45;
     optional string smbServerCampaignId = 46;
     optional DataSharingContext dataSharingContext = 47;
+}
+
+message ForwardedNewsletterMessageInfo {
+    optional string newsletterJid = 1;
+    optional int32 serverMessageId = 2;
+    optional string newsletterName = 3;
 }
 
 message BotPluginMetadata {
@@ -957,10 +965,11 @@ message Message {
     optional MessageHistoryBundle messageHistoryBundle = 70;
     optional EncCommentMessage encCommentMessage = 71;
     optional BCallMessage bcallMessage = 72;
-    optional FutureProofMessage commentMessage = 73;
     optional FutureProofMessage lottieStickerMessage = 74;
     optional EventMessage eventMessage = 75;
     optional EncEventResponseMessage encEventResponseMessage = 76;
+    optional CommentMessage commentMessage = 77;
+    optional NewsletterAdminInviteMessage newsletterAdminInviteMessage = 78;
 }
 
 message MessageSecretMessage {
@@ -1361,6 +1370,14 @@ message OrderMessage {
     optional MessageKey orderRequestMessageId = 13;
 }
 
+message NewsletterAdminInviteMessage {
+    optional string newsletterJid = 1;
+    optional string newsletterName = 2;
+    optional bytes jpegThumbnail = 3;
+    optional string caption = 4;
+    optional int64 inviteExpiration = 5;
+}
+
 message MessageHistoryBundle {
     optional string mimetype = 2;
     optional bytes fileSha256 = 3;
@@ -1487,12 +1504,6 @@ message InvoiceMessage {
 }
 
 message InteractiveResponseMessage {
-    message NativeFlowResponseMessage {
-        optional string name = 1;
-        optional string paramsJson = 2;
-        optional int32 version = 3;
-    }
-    
     message Body {
         enum Format {
             DEFAULT = 0;
@@ -1500,6 +1511,12 @@ message InteractiveResponseMessage {
         }
         optional string text = 1;
         optional Format format = 2;
+    }
+    
+    message NativeFlowResponseMessage {
+        optional string name = 1;
+        optional string paramsJson = 2;
+        optional int32 version = 3;
     }
     
     optional Body body = 1;
@@ -1835,6 +1852,7 @@ message SyncActionValue {
     optional CallLogAction callLogAction = 42;
     optional StatusPrivacyAction statusPrivacy = 44;
     optional BotWelcomeRequestAction botWelcomeRequestAction = 45;
+    optional DeleteIndividualCallLogAction deleteIndividualCallLog = 46;
 }
 
 message UserStatusMuteAction {
@@ -1997,6 +2015,11 @@ message DeleteMessageForMeAction {
     optional int64 messageTimestamp = 2;
 }
 
+message DeleteIndividualCallLogAction {
+    optional string peerJid = 1;
+    optional bool isIncoming = 2;
+}
+
 message DeleteChatAction {
     optional SyncActionMessageRange messageRange = 1;
 }
@@ -2066,6 +2089,11 @@ message CallLogRecord {
         optional CallResult callResult = 2;
     }
     
+    enum CallType {
+        REGULAR = 0;
+        SCHEDULED_CALL = 1;
+        VOICE_CHAT = 2;
+    }
     enum CallResult {
         CONNECTED = 0;
         REJECTED = 1;
@@ -2093,6 +2121,7 @@ message CallLogRecord {
     optional string callCreatorJid = 12;
     optional string groupJid = 13;
     repeated ParticipantInfo participants = 14;
+    optional CallType callType = 15;
 }
 
 message VerifiedNameCertificate {
@@ -2652,7 +2681,6 @@ message WebMessageInfo {
     optional bool isGroupHistoryMessage = 57;
     optional string botMessageInvokerJid = 58;
     optional CommentMetadata commentMetadata = 59;
-    repeated WebMessageInfo commentMessages = 60;
 }
 
 message WebFeatures {
