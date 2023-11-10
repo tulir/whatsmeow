@@ -484,6 +484,7 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 
 	cached, err := s.getContact(user)
 	if err != nil {
+		s.log.Errorf("Error querying contact (PutPushName): %s", user, pushName)
 		return false, "", err
 	}
 	if cached.PushName != pushName {
@@ -624,9 +625,9 @@ func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
 		return cached, nil
 	}
 
-	var first, full, push, business sql.NullString
+	var businessId, first, full, push, business sql.NullString
 	row := s.dbPool.QueryRow(context.Background(), getContactQuery, s.businessId, s.JID, user)
-	err := row.Scan(&first, &full, &push, &business)
+	err := row.Scan(&businessId, &first, &full, &push, &business)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}

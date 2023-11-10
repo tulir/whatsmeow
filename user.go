@@ -393,7 +393,7 @@ func (cli *Client) updatePushName(user types.JID, messageInfo *types.MessageInfo
 	user = user.ToNonAD()
 	changed, previousName, err := cli.Store.Contacts.PutPushName(user, name)
 	if err != nil {
-		cli.Log.Errorf("Failed to save push name of %s in device store: %v", user, err)
+		cli.Log.Errorf("Failed to save push name of (%s, %s) in device store: %v", user, name, err)
 	} else if changed {
 		cli.Log.Debugf("Push name of %s changed from %s to %s, dispatching event", user, previousName, name)
 		cli.dispatchEvent(&events.PushName{
