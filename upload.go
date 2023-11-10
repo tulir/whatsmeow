@@ -11,16 +11,16 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
-	"go.mau.fi/util/random"
+	"github.com/cristalhq/base64"
+	"github.com/go-whatsapp/go-util/random"
+	"github.com/goccy/go-json"
 
-	"go.mau.fi/whatsmeow/socket"
-	"go.mau.fi/whatsmeow/util/cbcutil"
+	"github.com/go-whatsapp/whatsmeow/socket"
+	"github.com/go-whatsapp/whatsmeow/util/cbcutil"
 )
 
 // UploadResponse contains the data from the attachment upload, which can be put into a message to send the attachment.

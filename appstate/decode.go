@@ -9,15 +9,15 @@ package appstate
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 
+	"github.com/goccy/go-json"
 	"google.golang.org/protobuf/proto"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/store"
-	"go.mau.fi/whatsmeow/util/cbcutil"
+	waBinary "github.com/go-whatsapp/whatsmeow/binary"
+	waProto "github.com/go-whatsapp/whatsmeow/binary/proto"
+	"github.com/go-whatsapp/whatsmeow/store"
+	"github.com/go-whatsapp/whatsmeow/util/cbcutil"
 )
 
 // PatchList represents a decoded response to getting app state patches from the WhatsApp servers.

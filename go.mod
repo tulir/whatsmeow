@@ -1,11 +1,13 @@
-module go.mau.fi/whatsmeow
+module github.com/go-whatsapp/whatsmeow
 
 go 1.20
 
 require (
+	github.com/cristalhq/base64 v0.1.2
+	github.com/go-whatsapp/go-util v0.1.0
+	github.com/goccy/go-json v0.10.2
 	github.com/gorilla/websocket v1.5.0
 	go.mau.fi/libsignal v0.1.0
-	go.mau.fi/util v0.2.0
 	golang.org/x/crypto v0.14.0
 	google.golang.org/protobuf v1.31.0
 )

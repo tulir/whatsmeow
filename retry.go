@@ -18,10 +18,10 @@ import (
 	"go.mau.fi/libsignal/protocol"
 	"google.golang.org/protobuf/proto"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/types/events"
+	waBinary "github.com/go-whatsapp/whatsmeow/binary"
+	waProto "github.com/go-whatsapp/whatsmeow/binary/proto"
+	"github.com/go-whatsapp/whatsmeow/types"
+	"github.com/go-whatsapp/whatsmeow/types/events"
 )
 
 // Number of sent messages to cache in memory for handling retry receipts.

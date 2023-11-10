@@ -9,7 +9,6 @@ package whatsmeow
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -18,14 +17,15 @@ import (
 	"strings"
 	"time"
 
-	"go.mau.fi/util/retryafter"
+	"github.com/cristalhq/base64"
+	"github.com/go-whatsapp/go-util/retryafter"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/socket"
-	"go.mau.fi/whatsmeow/util/cbcutil"
-	"go.mau.fi/whatsmeow/util/hkdfutil"
+	waProto "github.com/go-whatsapp/whatsmeow/binary/proto"
+	"github.com/go-whatsapp/whatsmeow/socket"
+	"github.com/go-whatsapp/whatsmeow/util/cbcutil"
+	"github.com/go-whatsapp/whatsmeow/util/hkdfutil"
 )
 
 // MediaType represents a type of uploaded file on WhatsApp.

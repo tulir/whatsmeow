@@ -12,13 +12,13 @@ import (
 	"fmt"
 	mathRand "math/rand"
 
-	"go.mau.fi/util/random"
+	"github.com/go-whatsapp/go-util/random"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/store"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/util/keys"
-	waLog "go.mau.fi/whatsmeow/util/log"
+	waProto "github.com/go-whatsapp/whatsmeow/binary/proto"
+	"github.com/go-whatsapp/whatsmeow/store"
+	"github.com/go-whatsapp/whatsmeow/types"
+	"github.com/go-whatsapp/whatsmeow/util/keys"
+	waLog "github.com/go-whatsapp/whatsmeow/util/log"
 )
 
 // Container is a wrapper for a SQL database that can contain multiple whatsmeow sessions.

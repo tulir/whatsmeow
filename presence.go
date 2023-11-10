@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/types/events"
+	waBinary "github.com/go-whatsapp/whatsmeow/binary"
+	"github.com/go-whatsapp/whatsmeow/types"
+	"github.com/go-whatsapp/whatsmeow/types/events"
 )
 
 func (cli *Client) handleChatState(node *waBinary.Node) {

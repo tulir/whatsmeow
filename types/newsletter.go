@@ -8,12 +8,12 @@ package types
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 
-	"go.mau.fi/util/jsontime"
+	"github.com/go-whatsapp/go-util/jsontime"
+	"github.com/goccy/go-json"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	waProto "github.com/go-whatsapp/whatsmeow/binary/proto"
 )
 
 type NewsletterVerificationState string

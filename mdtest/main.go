@@ -10,7 +10,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -24,19 +23,20 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/goccy/go-json"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mdp/qrterminal/v3"
 	"google.golang.org/protobuf/proto"
 
-	"go.mau.fi/whatsmeow"
-	"go.mau.fi/whatsmeow/appstate"
-	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/store"
-	"go.mau.fi/whatsmeow/store/sqlstore"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/types/events"
-	waLog "go.mau.fi/whatsmeow/util/log"
+	"github.com/go-whatsapp/whatsmeow"
+	"github.com/go-whatsapp/whatsmeow/appstate"
+	waBinary "github.com/go-whatsapp/whatsmeow/binary"
+	waProto "github.com/go-whatsapp/whatsmeow/binary/proto"
+	"github.com/go-whatsapp/whatsmeow/store"
+	"github.com/go-whatsapp/whatsmeow/store/sqlstore"
+	"github.com/go-whatsapp/whatsmeow/types"
+	"github.com/go-whatsapp/whatsmeow/types/events"
+	waLog "github.com/go-whatsapp/whatsmeow/util/log"
 )
 
 var cli *whatsmeow.Client

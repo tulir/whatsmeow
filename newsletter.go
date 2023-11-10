@@ -8,13 +8,14 @@ package whatsmeow
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/types"
+	"github.com/goccy/go-json"
+
+	waBinary "github.com/go-whatsapp/whatsmeow/binary"
+	"github.com/go-whatsapp/whatsmeow/types"
 )
 
 // NewsletterSubscribeLiveUpdates subscribes to receive live updates from a WhatsApp channel temporarily (for the duration returned).

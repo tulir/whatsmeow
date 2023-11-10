@@ -8,10 +8,11 @@
 package binary
 
 import (
-	"encoding/json"
 	"fmt"
 
-	"go.mau.fi/whatsmeow/types"
+	"github.com/goccy/go-json"
+
+	"github.com/go-whatsapp/whatsmeow/types"
 )
 
 // Attrs is a type alias for the attributes of an XML element (Node).

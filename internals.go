@@ -9,8 +9,8 @@ package whatsmeow
 import (
 	"context"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/types"
+	waBinary "github.com/go-whatsapp/whatsmeow/binary"
+	"github.com/go-whatsapp/whatsmeow/types"
 )
 
 type DangerousInternalClient struct {

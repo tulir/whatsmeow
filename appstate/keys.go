@@ -8,12 +8,13 @@
 package appstate
 
 import (
-	"encoding/base64"
 	"sync"
 
-	"go.mau.fi/whatsmeow/store"
-	"go.mau.fi/whatsmeow/util/hkdfutil"
-	waLog "go.mau.fi/whatsmeow/util/log"
+	"github.com/cristalhq/base64"
+
+	"github.com/go-whatsapp/whatsmeow/store"
+	"github.com/go-whatsapp/whatsmeow/util/hkdfutil"
+	waLog "github.com/go-whatsapp/whatsmeow/util/log"
 )
 
 // WAPatchName represents a type of app state patch.
