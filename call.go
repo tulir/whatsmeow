@@ -69,3 +69,36 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
 	}
 }
+
+func (cli *Client) RejectCall(callId string, callFrom types.JID, messageID ...types.MessageID) error {
+	clientID := cli.getOwnID()
+	if clientID.IsEmpty() {
+		return ErrNotLoggedIn
+	}
+	callID := cli.GenerateMessageID()
+	if len(messageID) != 0 {
+		callID = messageID[0]
+	}
+	clientID = clientID.ToNonAD()
+	callFrom = callFrom.ToNonAD()
+
+	return cli.sendNode(waBinary.Node{
+		Tag: "call",
+		Attrs: waBinary.Attrs{
+			"id":   callID,
+			"from": clientID,
+			"to":   callFrom,
+		},
+		Content: []waBinary.Node{
+			{
+				Tag: "reject",
+				Attrs: waBinary.Attrs{
+					"call-id":      callId,
+					"call-creator": callFrom,
+					"count":        "0",
+				},
+				Content: nil,
+			},
+		},
+	})
+}
