@@ -7,8 +7,8 @@ require (
 	github.com/jackc/pgx/v5 v5.4.3
 	github.com/lib/pq v1.10.9
 	go.mau.fi/libsignal v0.1.0
-	go.mau.fi/util v0.1.0
-	golang.org/x/crypto v0.13.0
+	go.mau.fi/util v0.2.0
+	golang.org/x/crypto v0.14.0
 	google.golang.org/protobuf v1.31.0
 )
 
