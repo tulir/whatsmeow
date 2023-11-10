@@ -221,6 +221,7 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 		mmsType = mediaTypeToMMSType[mediaType]
 	}
 	for i, host := range mediaConn.Hosts {
+		// TODO omit hash for unencrypted media?
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
 		data, err = cli.downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
 		// TODO there are probably some errors that shouldn't retry
@@ -237,8 +238,11 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 func (cli *Client) downloadAndDecrypt(url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSha256, fileSha256 []byte) (data []byte, err error) {
 	iv, cipherKey, macKey, _ := getMediaKeys(mediaKey, appInfo)
 	var ciphertext, mac []byte
-	if ciphertext, mac, err = cli.downloadEncryptedMediaWithRetries(url, fileEncSha256); err != nil {
+	if ciphertext, mac, err = cli.downloadPossiblyEncryptedMediaWithRetries(url, fileEncSha256); err != nil {
 
+	} else if mediaKey == nil && fileEncSha256 == nil && mac == nil {
+		// Unencrypted media, just return the downloaded data
+		data = ciphertext
 	} else if err = validateMedia(iv, ciphertext, macKey, mac); err != nil {
 
 	} else if data, err = cbcutil.Decrypt(cipherKey, iv, ciphertext); err != nil {
@@ -263,9 +267,13 @@ func shouldRetryMediaDownload(err error) bool {
 		(errors.As(err, &httpErr) && retryafter.Should(httpErr.StatusCode, true))
 }
 
-func (cli *Client) downloadEncryptedMediaWithRetries(url string, checksum []byte) (file, mac []byte, err error) {
+func (cli *Client) downloadPossiblyEncryptedMediaWithRetries(url string, checksum []byte) (file, mac []byte, err error) {
 	for retryNum := 0; retryNum < 5; retryNum++ {
-		file, mac, err = cli.downloadEncryptedMedia(url, checksum)
+		if checksum == nil {
+			file, err = cli.downloadMedia(url)
+		} else {
+			file, mac, err = cli.downloadEncryptedMedia(url, checksum)
+		}
 		if err == nil || !shouldRetryMediaDownload(err) {
 			return
 		}
@@ -280,30 +288,27 @@ func (cli *Client) downloadEncryptedMediaWithRetries(url string, checksum []byte
 	return
 }
 
-func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
-	var req *http.Request
-	req, err = http.NewRequest(http.MethodGet, url, nil)
+func (cli *Client) downloadMedia(url string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		err = fmt.Errorf("failed to prepare request: %w", err)
-		return
+		return nil, fmt.Errorf("failed to prepare request: %w", err)
 	}
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
-	var resp *http.Response
-	resp, err = cli.http.Do(req)
+	resp, err := cli.http.Do(req)
 	if err != nil {
-		return
+		return nil, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		err = DownloadHTTPError{Response: resp}
-		return
+		return nil, DownloadHTTPError{Response: resp}
 	}
-	var data []byte
-	data, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return
-	} else if len(data) <= 10 {
+	return io.ReadAll(resp.Body)
+}
+
+func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
+	data, err := cli.downloadMedia(url)
+	if len(data) <= 10 {
 		err = ErrTooShortFile
 		return
 	}

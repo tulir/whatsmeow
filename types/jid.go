@@ -44,6 +44,9 @@ var (
 // MessageID is the internal ID of a WhatsApp message.
 type MessageID = string
 
+// MessageServerID is the server ID of a WhatsApp newsletter message.
+type MessageServerID = int
+
 // JID represents a WhatsApp user ID.
 //
 // There are two types of JIDs: regular JID pairs (user and server) and AD-JIDs (user, agent and device).

@@ -8,7 +8,7 @@ const addPrefix = (lines, prefix) => lines.map(line => prefix + line)
 async function findAppModules(mods) {
     const ua = {
         headers: {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
             "Sec-Fetch-Dest": "script",
             "Sec-Fetch-Mode": "no-cors",
             "Sec-Fetch-Site": "same-origin",
@@ -58,7 +58,9 @@ async function findAppModules(mods) {
         853721, // QP
     ]
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
-    const unnestName = name => name.replace("Message$", "").replace("SyncActionValue$", "") // Don't nest messages into Message, that's too much nesting
+    const unnestName = name => name
+        .replace("Message$", "").replace("SyncActionValue$", "") // Don't nest messages into Message, that's too much nesting
+        .replace("ContextInfo$ForwardedNewsletterMessageInfo", "ForwardedNewsletterMessageInfo") // Hack to unnest name used outside ContextInfo
     const rename = name => unnestName(unspecName(name))
     // The constructor IDs that can be used for enum types
     const enumConstructorIDs = [76672, 654302]
