@@ -842,6 +842,47 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Blocklist updated: %+v", resp)
 		}
+	case "labelchat":
+		if len(args) < 3 {
+			log.Errorf("Usage: labelchat <jid> <labelID> <action>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		labelID := args[1]
+		action, err := strconv.ParseBool(args[2])
+		if err != nil {
+			log.Errorf("invalid third argument: %v", err)
+			return
+		}
+
+		err = cli.SendAppState(appstate.BuildLabelChat(jid, labelID, action))
+		if err != nil {
+			log.Errorf("Error changing chat's label state: %v", err)
+		}
+	case "labelmessage":
+		if len(args) < 4 {
+			log.Errorf("Usage: labelmessage <jid> <labelID> <messageID> <action>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		labelID := args[1]
+		messageID := args[2]
+		action, err := strconv.ParseBool(args[3])
+		if err != nil {
+			log.Errorf("invalid fourth argument: %v", err)
+			return
+		}
+
+		err = cli.SendAppState(appstate.BuildLabelMessage(jid, labelID, messageID, action))
+		if err != nil {
+			log.Errorf("Error changing message's label state: %v", err)
+		}
 	}
 }
 
@@ -975,5 +1016,27 @@ func handler(rawEvt interface{}) {
 		log.Debugf("Keepalive restored")
 	case *events.Blocklist:
 		log.Infof("Blocklist event: %+v", evt)
+	case *events.CallOffer, *events.CallOfferNotice:
+		log.Infof("Call offer event: %+v", evt)
+		var callId string
+		var callFrom types.JID
+		if val, ok := evt.(*events.CallOffer); ok {
+			callId = val.CallID
+			callFrom = val.CallCreator
+			if callFrom.IsEmpty() {
+				callFrom = val.From
+			}
+		} else if val, ok := evt.(*events.CallOfferNotice); ok {
+			callId = val.CallID
+			callFrom = val.CallCreator
+			if callFrom.IsEmpty() {
+				callFrom = val.From
+			}
+		}
+		if err := cli.RejectCall(callId, callFrom, ""); err != nil {
+			log.Errorf("Failed to reject call: %v", err)
+		}
+	default:
+		log.Infof("Unhandled event: %+v", evt)
 	}
 }

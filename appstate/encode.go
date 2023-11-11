@@ -123,6 +123,38 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 	return result
 }
 
+// BuildLabelChat builds an app state patch for labeling or un(labeling) a chat.
+func BuildLabelChat(target types.JID, labelID string, labeled bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegular,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexLabelAssociationChat, labelID, target.String()},
+			Version: 3,
+			Value: &waProto.SyncActionValue{
+				LabelAssociationAction: &waProto.LabelAssociationAction{
+					Labeled: &labeled,
+				},
+			},
+		}},
+	}
+}
+
+// BuildLabelMessage builds an app state patch for labeling or un(labeling) a message.
+func BuildLabelMessage(target types.JID, labelID, messageID string, labeled bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegular,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexLabelAssociationMessage, labelID, target.String(), messageID, "0", "0"},
+			Version: 3,
+			Value: &waProto.SyncActionValue{
+				LabelAssociationAction: &waProto.LabelAssociationAction{
+					Labeled: &labeled,
+				},
+			},
+		}},
+	}
+}
+
 func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo PatchInfo) ([]byte, error) {
 	keys, err := proc.getAppStateKey(keyID)
 	if err != nil {

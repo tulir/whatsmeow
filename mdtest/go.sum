@@ -5,8 +5,6 @@ github.com/cristalhq/base64 v0.1.2/go.mod h1:sy4+2Hale2KbtSqkzpdMeYTP/IrB+HCvxVH
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/go-whatsapp/go-util v0.1.0 h1:ZBR4W5QsLYa8aCx2NDZoxn/npUz9PoSInC0Obt7JTqU=
 github.com/go-whatsapp/go-util v0.1.0/go.mod h1:nhLIsNlwzHVaQJO+yNHuKa9Ho+CRuXC8ZNetWjPYav8=
-github.com/go-whatsapp/whatsmeow v0.0.0-20231110091704-2fc3d5ed939a h1:CzH4FKXAsbgvkGnZB//tDIHPtQ27CPRo6gn6hPecLog=
-github.com/go-whatsapp/whatsmeow v0.0.0-20231110091704-2fc3d5ed939a/go.mod h1:KPVe39MIX/1SRHuQfvaY//Easu0OwPbyAGJOYX8U+dw=
 github.com/goccy/go-json v0.10.2 h1:CrxCmQqYDkv1z7lO7Wbh2HN93uovUHgrECaO5ZrCXAU=
 github.com/goccy/go-json v0.10.2/go.mod h1:6MelG93GURQebXPDq3khkgXZkazVtN9CRI+MGFi0w8I=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=

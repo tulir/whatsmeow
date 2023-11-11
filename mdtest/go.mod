@@ -1,9 +1,9 @@
-module go.mau.fi/whatsmeow/mdtest
+module github.com/go-whatsapp/whatsmeow/mdtest
 
-go 1.19
+go 1.20
 
 require (
-	github.com/go-whatsapp/whatsmeow v0.0.0-20231110091704-2fc3d5ed939a
+	github.com/go-whatsapp/whatsmeow v0.0.0-00010101000000-000000000000
 	github.com/goccy/go-json v0.10.2
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/mdp/qrterminal/v3 v3.2.0
@@ -23,4 +23,4 @@ require (
 	rsc.io/qr v0.2.0 // indirect
 )
 
-replace go.mau.fi/whatsmeow => ../
+replace github.com/go-whatsapp/whatsmeow => ../

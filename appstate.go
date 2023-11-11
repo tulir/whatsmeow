@@ -117,16 +117,13 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 		cli.dispatchEvent(&events.AppState{Index: mutation.Index, SyncActionValue: mutation.Action})
 	}
 
-	var jid types.JID
-	if len(mutation.Index) > 1 {
-		jid, _ = types.ParseJID(mutation.Index[1])
-	}
 	ts := time.UnixMilli(mutation.Action.GetTimestamp())
 
 	var storeUpdateError error
 	var eventToDispatch interface{}
 	switch mutation.Index[0] {
 	case appstate.IndexMute:
+		jid, _ := types.ParseJID(mutation.Index[1])
 		act := mutation.Action.GetMuteAction()
 		eventToDispatch = &events.Mute{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		var mutedUntil time.Time
@@ -137,41 +134,41 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 			storeUpdateError = cli.Store.ChatSettings.PutMutedUntil(jid, mutedUntil)
 		}
 	case appstate.IndexPin:
+		jid, _ := types.ParseJID(mutation.Index[1])
 		act := mutation.Action.GetPinAction()
 		eventToDispatch = &events.Pin{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutPinned(jid, act.GetPinned())
 		}
 	case appstate.IndexArchive:
+		jid, _ := types.ParseJID(mutation.Index[1])
 		act := mutation.Action.GetArchiveChatAction()
 		eventToDispatch = &events.Archive{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutArchived(jid, act.GetArchived())
 		}
 	case appstate.IndexContact:
+		jid, _ := types.ParseJID(mutation.Index[1])
 		act := mutation.Action.GetContactAction()
 		eventToDispatch = &events.Contact{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.Contacts != nil {
 			storeUpdateError = cli.Store.Contacts.PutContactName(jid, act.GetFirstName(), act.GetFullName())
 		}
 	case appstate.IndexClearChat:
+		jid, _ := types.ParseJID(mutation.Index[1])
 		act := mutation.Action.GetClearChatAction()
 		eventToDispatch = &events.ClearChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 	case appstate.IndexDeleteChat:
+		jid, _ := types.ParseJID(mutation.Index[1])
 		act := mutation.Action.GetDeleteChatAction()
 		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 	case appstate.IndexStar:
 		if len(mutation.Index) < 5 {
 			return
 		}
-		evt := events.Star{
-			ChatJID:      jid,
-			MessageID:    mutation.Index[2],
-			Timestamp:    ts,
-			Action:       mutation.Action.GetStarAction(),
-			IsFromMe:     mutation.Index[3] == "1",
-			FromFullSync: fullSync,
-		}
+		jid, _ := types.ParseJID(mutation.Index[1])
+		act := mutation.Action.GetStarAction()
+		evt := events.Star{ChatJID: jid, MessageID: mutation.Index[2], Timestamp: ts, Action: act, IsFromMe: mutation.Index[3] == "1", FromFullSync: fullSync}
 		if mutation.Index[4] != "0" {
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
@@ -180,49 +177,43 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 		if len(mutation.Index) < 5 {
 			return
 		}
-		evt := events.DeleteForMe{
-			ChatJID:      jid,
-			MessageID:    mutation.Index[2],
-			Timestamp:    ts,
-			Action:       mutation.Action.GetDeleteMessageForMeAction(),
-			IsFromMe:     mutation.Index[3] == "1",
-			FromFullSync: fullSync,
-		}
+		jid, _ := types.ParseJID(mutation.Index[1])
+		act := mutation.Action.GetDeleteMessageForMeAction()
+		evt := events.DeleteForMe{ChatJID: jid, MessageID: mutation.Index[2], Timestamp: ts, Action: act, IsFromMe: mutation.Index[3] == "1", FromFullSync: fullSync}
 		if mutation.Index[4] != "0" {
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		eventToDispatch = &evt
 	case appstate.IndexMarkChatAsRead:
-		eventToDispatch = &events.MarkChatAsRead{
-			JID:          jid,
-			Timestamp:    ts,
-			Action:       mutation.Action.GetMarkChatAsReadAction(),
-			FromFullSync: fullSync,
-		}
+		jid, _ := types.ParseJID(mutation.Index[1])
+		act := mutation.Action.GetMarkChatAsReadAction()
+		eventToDispatch = &events.MarkChatAsRead{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 	case appstate.IndexSettingPushName:
-		eventToDispatch = &events.PushNameSetting{
-			Timestamp:    ts,
-			Action:       mutation.Action.GetPushNameSetting(),
-			FromFullSync: fullSync,
-		}
-		cli.Store.PushName = mutation.Action.GetPushNameSetting().GetName()
+		act := mutation.Action.GetPushNameSetting()
+		eventToDispatch = &events.PushNameSetting{Timestamp: ts, Action: act, FromFullSync: fullSync}
+		cli.Store.PushName = act.GetName()
 		err := cli.Store.Save()
 		if err != nil {
 			cli.Log.Errorf("Failed to save device store after updating push name: %v", err)
 		}
 	case appstate.IndexSettingUnarchiveChats:
-		eventToDispatch = &events.UnarchiveChatsSetting{
-			Timestamp:    ts,
-			Action:       mutation.Action.GetUnarchiveChatsSetting(),
-			FromFullSync: fullSync,
-		}
+		act := mutation.Action.GetUnarchiveChatsSetting()
+		eventToDispatch = &events.UnarchiveChatsSetting{Timestamp: ts, Action: act, FromFullSync: fullSync}
 	case appstate.IndexUserStatusMute:
-		eventToDispatch = &events.UserStatusMute{
-			JID:          jid,
-			Timestamp:    ts,
-			Action:       mutation.Action.GetUserStatusMuteAction(),
-			FromFullSync: fullSync,
-		}
+		jid, _ := types.ParseJID(mutation.Index[1])
+		act := mutation.Action.GetUserStatusMuteAction()
+		eventToDispatch = &events.UserStatusMute{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
+	case appstate.IndexLabelEdit:
+		act := mutation.Action.GetLabelEditAction()
+		eventToDispatch = &events.LabelEdit{Timestamp: ts, LabelID: mutation.Index[1], Action: act, FromFullSync: fullSync}
+	case appstate.IndexLabelAssociationChat:
+		jid, _ := types.ParseJID(mutation.Index[2])
+		act := mutation.Action.GetLabelAssociationAction()
+		eventToDispatch = &events.LabelAssociationChat{JID: jid, Timestamp: ts, LabelID: mutation.Index[1], Action: act, FromFullSync: fullSync}
+	case appstate.IndexLabelAssociationMessage:
+		jid, _ := types.ParseJID(mutation.Index[2])
+		act := mutation.Action.GetLabelAssociationAction()
+		eventToDispatch = &events.LabelAssociationMessage{JID: jid, Timestamp: ts, LabelID: mutation.Index[1], MessageID: mutation.Index[3], Action: act, FromFullSync: fullSync}
 	}
 	if storeUpdateError != nil {
 		cli.Log.Errorf("Failed to update device store after app state mutation: %v", storeUpdateError)
