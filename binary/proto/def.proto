@@ -986,6 +986,7 @@ message MessageContextInfo {
     optional uint32 messageAddOnDurationInSecs = 5;
     optional bytes botMessageSecret = 6;
     optional BotMetadata botMetadata = 7;
+    optional int32 reportingTokenVersion = 8;
 }
 
 message VideoMessage {
@@ -1062,6 +1063,7 @@ message TemplateButtonReplyMessage {
     optional string selectedDisplayText = 2;
     optional ContextInfo contextInfo = 3;
     optional uint32 selectedIndex = 4;
+    optional uint32 selectedCarouselCardIndex = 5;
 }
 
 message StickerSyncRMRMessage {
@@ -1853,6 +1855,7 @@ message SyncActionValue {
     optional StatusPrivacyAction statusPrivacy = 44;
     optional BotWelcomeRequestAction botWelcomeRequestAction = 45;
     optional DeleteIndividualCallLogAction deleteIndividualCallLog = 46;
+    optional LabelReorderingAction labelReorderingAction = 47;
 }
 
 message UserStatusMuteAction {
@@ -1991,6 +1994,10 @@ message LocaleSetting {
     optional string locale = 1;
 }
 
+message LabelReorderingAction {
+    repeated int32 data = 1;
+}
+
 message LabelEditAction {
     optional string name = 1;
     optional int32 color = 2;
@@ -2075,6 +2082,14 @@ message SyncActionData {
 message RecentEmojiWeight {
     optional string emoji = 1;
     optional float weight = 2;
+}
+
+message PatchDebugData {
+    optional bytes currentLthash = 1;
+    optional bytes newLthash = 2;
+    optional uint64 patchVersion = 3;
+    optional string collectionName = 4;
+    optional bytes firstTwoBytesFromAHashOfSnapshotMacKey = 5;
 }
 
 message CallLogRecord {
@@ -2617,6 +2632,7 @@ message WebMessageInfo {
         BIZ_COEX_PRIVACY_TRANSITION_SELF = 195;
         SUPPORT_AI_EDUCATION = 196;
         BIZ_BOT_3P_MESSAGING_ENABLED = 197;
+        REMINDER_SETUP_MESSAGE = 198;
     }
     enum Status {
         ERROR = 0;
