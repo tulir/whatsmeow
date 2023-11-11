@@ -313,7 +313,20 @@ func handleCmd(cmd string, args []string) {
 		jid, _ := types.ParseJID(args[0])
 		fmt.Println(cli.SendChatPresence(jid, types.ChatPresence(args[1]), types.ChatPresenceMedia(args[2])))
 	case "privacysettings":
-		resp, err := cli.TryFetchPrivacySettings(false)
+		resp, err := cli.TryFetchPrivacySettings(true)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Printf("%+v\n", resp)
+		}
+	case "setprivacysetting":
+		if len(args) < 2 {
+			log.Errorf("Usage: setprivacysetting <setting> <value>")
+			return
+		}
+		setting := types.PrivacySettingType(args[0])
+		value := types.PrivacySetting(args[1])
+		resp, err := cli.SetPrivacySetting(setting, value)
 		if err != nil {
 			fmt.Println(err)
 		} else {

@@ -87,20 +87,38 @@ type PrivacySetting string
 
 // Possible privacy setting values.
 const (
-	PrivacySettingUndefined PrivacySetting = ""
-	PrivacySettingAll       PrivacySetting = "all"
-	PrivacySettingContacts  PrivacySetting = "contacts"
-	PrivacySettingNone      PrivacySetting = "none"
+	PrivacySettingUndefined        PrivacySetting = ""
+	PrivacySettingAll              PrivacySetting = "all"
+	PrivacySettingContacts         PrivacySetting = "contacts"
+	PrivacySettingContactBlacklist PrivacySetting = "contact_blacklist"
+	PrivacySettingMatchLastSeen    PrivacySetting = "match_last_seen"
+	PrivacySettingKnown            PrivacySetting = "known"
+	PrivacySettingNone             PrivacySetting = "none"
 )
 
 // PrivacySettings contains the user's privacy settings.
 type PrivacySettings struct {
-	GroupAdd     PrivacySetting
-	LastSeen     PrivacySetting
-	Status       PrivacySetting
-	Profile      PrivacySetting
-	ReadReceipts PrivacySetting
+	ReadReceipts PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingNone
+	Profile      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	Status       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	Online       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
+	LastSeen     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	GroupAdd     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	CallAdd      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingKnown
 }
+
+// PrivacySettingType is the type of privacy setting.
+type PrivacySettingType string
+
+const (
+	PrivacySettingTypeReadReceipts PrivacySettingType = "readreceipts" // Valid values: PrivacySettingAll, PrivacySettingNone
+	PrivacySettingTypeProfile      PrivacySettingType = "profile"      // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	PrivacySettingTypeStatus       PrivacySettingType = "status"       // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	PrivacySettingTypeOnline       PrivacySettingType = "online"       // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
+	PrivacySettingTypeLastSeen     PrivacySettingType = "last"         // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	PrivacySettingTypeGroupAdd     PrivacySettingType = "groupadd"     // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	PrivacySettingTypeCallAdd      PrivacySettingType = "calladd"      // Valid values: PrivacySettingAll, PrivacySettingKnown
+)
 
 // StatusPrivacyType is the type of list in StatusPrivacy.
 type StatusPrivacyType string

@@ -21,7 +21,9 @@ func (cli *Client) TryFetchPrivacySettings(ignoreCache bool) (*types.PrivacySett
 		Namespace: "privacy",
 		Type:      iqGet,
 		To:        types.ServerJID,
-		Content:   []waBinary.Node{{Tag: "privacy"}},
+		Content: []waBinary.Node{{
+			Tag: "privacy",
+		}},
 	})
 	if err != nil {
 		return nil, err
@@ -48,6 +50,53 @@ func (cli *Client) GetPrivacySettings() (settings types.PrivacySettings) {
 	return
 }
 
+// SetPrivacySetting will set the given privacy setting to the given value.
+// The privacy settings will be fetched from the server after the change and the new settings will be returned.
+// If an error occurs while fetching the new settings, will return an empty struct.
+func (cli *Client) SetPrivacySetting(name types.PrivacySettingType, value types.PrivacySetting) (settings types.PrivacySettings, err error) {
+	settingsPtr, err := cli.TryFetchPrivacySettings(false)
+	if err != nil {
+		return settings, err
+	}
+	_, err = cli.sendIQ(infoQuery{
+		Namespace: "privacy",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "privacy",
+			Content: []waBinary.Node{{
+				Tag: "category",
+				Attrs: waBinary.Attrs{
+					"name":  string(name),
+					"value": string(value),
+				},
+			}},
+		}},
+	})
+	if err != nil {
+		return settings, err
+	}
+	settings = *settingsPtr
+	switch name {
+	case types.PrivacySettingTypeReadReceipts:
+		settings.ReadReceipts = value
+	case types.PrivacySettingTypeProfile:
+		settings.Profile = value
+	case types.PrivacySettingTypeStatus:
+		settings.Status = value
+	case types.PrivacySettingTypeOnline:
+		settings.Online = value
+	case types.PrivacySettingTypeLastSeen:
+		settings.LastSeen = value
+	case types.PrivacySettingTypeGroupAdd:
+		settings.GroupAdd = value
+	case types.PrivacySettingTypeCallAdd:
+		settings.CallAdd = value
+	}
+	cli.privacySettingsCache.Store(&settings)
+	return
+}
+
 func (cli *Client) parsePrivacySettings(privacyNode *waBinary.Node, settings *types.PrivacySettings) *events.PrivacySettings {
 	var evt events.PrivacySettings
 	for _, child := range privacyNode.GetChildren() {
@@ -55,24 +104,30 @@ func (cli *Client) parsePrivacySettings(privacyNode *waBinary.Node, settings *ty
 			continue
 		}
 		ag := child.AttrGetter()
-		name := ag.String("name")
+		name := types.PrivacySettingType(ag.String("name"))
 		value := types.PrivacySetting(ag.String("value"))
 		switch name {
-		case "groupadd":
-			settings.GroupAdd = value
-			evt.GroupAddChanged = true
-		case "last":
-			settings.LastSeen = value
-			evt.LastSeenChanged = true
-		case "status":
-			settings.Status = value
-			evt.StatusChanged = true
-		case "profile":
-			settings.Profile = value
-			evt.ProfileChanged = true
-		case "readreceipts":
+		case types.PrivacySettingTypeReadReceipts:
 			settings.ReadReceipts = value
 			evt.ReadReceiptsChanged = true
+		case types.PrivacySettingTypeProfile:
+			settings.Profile = value
+			evt.ProfileChanged = true
+		case types.PrivacySettingTypeStatus:
+			settings.Status = value
+			evt.StatusChanged = true
+		case types.PrivacySettingTypeOnline:
+			settings.Online = value
+			evt.OnlineChanged = true
+		case types.PrivacySettingTypeLastSeen:
+			settings.LastSeen = value
+			evt.LastSeenChanged = true
+		case types.PrivacySettingTypeGroupAdd:
+			settings.GroupAdd = value
+			evt.GroupAddChanged = true
+		case types.PrivacySettingTypeCallAdd:
+			settings.CallAdd = value
+			evt.CallAddChanged = true
 		}
 	}
 	return &evt
