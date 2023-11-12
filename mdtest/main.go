@@ -23,11 +23,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/goccy/go-json"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/mdp/qrterminal/v3"
-	"google.golang.org/protobuf/proto"
-
 	"github.com/go-whatsapp/whatsmeow"
 	"github.com/go-whatsapp/whatsmeow/appstate"
 	waBinary "github.com/go-whatsapp/whatsmeow/binary"
@@ -37,6 +32,9 @@ import (
 	"github.com/go-whatsapp/whatsmeow/types"
 	"github.com/go-whatsapp/whatsmeow/types/events"
 	waLog "github.com/go-whatsapp/whatsmeow/util/log"
+	"github.com/goccy/go-json"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/mdp/qrterminal/v3"
 )
 
 var cli *whatsmeow.Client
@@ -45,9 +43,13 @@ var log waLog.Logger
 var logLevel = "INFO"
 var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
-var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
+var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on&_journal_mode=WAL", "Database address")
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
 var pairRejectChan = make(chan bool, 1)
+
+func init() {
+	store.SetOSInfo("Windows", [3]uint32{10, 0, 22621})
+}
 
 func main() {
 	waBinary.IndentXML = true
@@ -57,7 +59,7 @@ func main() {
 		logLevel = "DEBUG"
 	}
 	if *requestFullSync {
-		store.DeviceProps.RequireFullSync = proto.Bool(true)
+		store.DeviceProps.RequireFullSync = waProto.Bool(true)
 	}
 	log = waLog.Stdout("Main", logLevel, true)
 
@@ -74,6 +76,7 @@ func main() {
 	}
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
+	cli.DontSendSelfBroadcast = false // Send broadcasts to self
 	var isWaitingForPair atomic.Bool
 	cli.PrePairCallback = func(jid types.JID, platform, businessName string) bool {
 		isWaitingForPair.Store(true)
@@ -629,7 +632,7 @@ func handleCmd(cmd string, args []string) {
 		if !ok {
 			return
 		}
-		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
+		msg := &waProto.Message{Conversation: waProto.String(strings.Join(args[1:], " "))}
 		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
@@ -685,12 +688,12 @@ func handleCmd(cmd string, args []string) {
 		msg := &waProto.Message{
 			ReactionMessage: &waProto.ReactionMessage{
 				Key: &waProto.MessageKey{
-					RemoteJid: proto.String(recipient.String()),
-					FromMe:    proto.Bool(fromMe),
-					Id:        proto.String(messageID),
+					RemoteJid: waProto.String(recipient.String()),
+					FromMe:    waProto.Bool(fromMe),
+					Id:        waProto.String(messageID),
 				},
-				Text:              proto.String(reaction),
-				SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
+				Text:              waProto.String(reaction),
+				SenderTimestampMs: waProto.Int64(time.Now().UnixMilli()),
 			},
 		}
 		resp, err := cli.SendMessage(context.Background(), recipient, msg)
@@ -735,14 +738,14 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		msg := &waProto.Message{ImageMessage: &waProto.ImageMessage{
-			Caption:       proto.String(strings.Join(args[2:], " ")),
-			Url:           proto.String(uploaded.URL),
-			DirectPath:    proto.String(uploaded.DirectPath),
+			Caption:       waProto.String(strings.Join(args[2:], " ")),
+			Url:           waProto.String(uploaded.URL),
+			DirectPath:    waProto.String(uploaded.DirectPath),
 			MediaKey:      uploaded.MediaKey,
-			Mimetype:      proto.String(http.DetectContentType(data)),
+			Mimetype:      waProto.String(http.DetectContentType(data)),
 			FileEncSha256: uploaded.FileEncSHA256,
 			FileSha256:    uploaded.FileSHA256,
-			FileLength:    proto.Uint64(uint64(len(data))),
+			FileLength:    waProto.Uint64(uint64(len(data))),
 		}}
 		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
@@ -775,7 +778,6 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid second argument: %v", err)
 			return
 		}
-
 		err = cli.SendAppState(appstate.BuildArchive(target, action, time.Time{}, nil))
 		if err != nil {
 			log.Errorf("Error changing chat's archive state: %v", err)
@@ -794,7 +796,6 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid second argument: %v", err)
 			return
 		}
-
 		err = cli.SendAppState(appstate.BuildMute(target, action, 1*time.Hour))
 		if err != nil {
 			log.Errorf("Error changing chat's mute state: %v", err)
@@ -813,7 +814,6 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid second argument: %v", err)
 			return
 		}
-
 		err = cli.SendAppState(appstate.BuildPin(target, action))
 		if err != nil {
 			log.Errorf("Error changing chat's pin state: %v", err)
@@ -870,7 +870,6 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid third argument: %v", err)
 			return
 		}
-
 		err = cli.SendAppState(appstate.BuildLabelChat(jid, labelID, action))
 		if err != nil {
 			log.Errorf("Error changing chat's label state: %v", err)
@@ -891,10 +890,28 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid fourth argument: %v", err)
 			return
 		}
-
 		err = cli.SendAppState(appstate.BuildLabelMessage(jid, labelID, messageID, action))
 		if err != nil {
 			log.Errorf("Error changing message's label state: %v", err)
+		}
+	case "broadcast":
+		if len(args) < 1 {
+			log.Errorf("Usage: broadcast <text>")
+			return
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		msg := &waProto.Message{ExtendedTextMessage: &waProto.ExtendedTextMessage{
+			Text:           waProto.String(strings.Join(args, " ")),
+			Font:           waProto.ExtendedTextMessage_COURIERPRIME_BOLD.Enum(),
+			BackgroundArgb: waProto.HexArgb("#B0EB57"),
+			ViewOnce:       waProto.Bool(true),
+		}}
+		resp, err := cli.SendMessage(ctx, types.StatusBroadcastJID, msg)
+		if err != nil {
+			log.Errorf("Error sending broadcast: %v", err)
+		} else {
+			log.Infof("Broadcast sent (server timestamp: %s)", resp.Timestamp)
 		}
 	}
 }

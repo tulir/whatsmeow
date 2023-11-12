@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -14,38 +15,58 @@ import (
 	"github.com/go-whatsapp/whatsmeow/types"
 )
 
-func (cli *Client) getBroadcastListParticipants(jid types.JID) ([]types.JID, error) {
-	var list []types.JID
-	var err error
-	if jid == types.StatusBroadcastJID {
-		list, err = cli.getStatusBroadcastRecipients()
-	} else {
-		return nil, ErrBroadcastListUnsupported
-	}
-	if err != nil {
-		return nil, err
-	}
-	ownID := cli.getOwnID().ToNonAD()
-	if ownID.IsEmpty() {
-		return nil, ErrNotLoggedIn
-	}
-
-	selfIndex := -1
-	for i, participant := range list {
-		if participant.User == ownID.User {
-			selfIndex = i
-			break
+func (cli *Client) getBroadcastListParticipants(ctx context.Context, jid types.JID) ([]types.JID, error) {
+	resultCh := make(chan struct {
+		list []types.JID
+		err  error
+	}, 1)
+	go func() {
+		appendResult := func(list []types.JID, err error) {
+			resultCh <- struct {
+				list []types.JID
+				err  error
+			}{list, err}
 		}
-	}
-	if selfIndex >= 0 {
-		if cli.DontSendSelfBroadcast {
-			list[selfIndex] = list[len(list)-1]
-			list = list[:len(list)-1]
+		if jid != types.StatusBroadcastJID {
+			appendResult(nil, ErrBroadcastListUnsupported)
+			return
 		}
-	} else if !cli.DontSendSelfBroadcast {
-		list = append(list, ownID)
+		ownID := cli.getOwnID().ToNonAD()
+		if ownID.IsEmpty() {
+			appendResult(nil, ErrNotLoggedIn)
+			return
+		}
+		list, err := cli.getStatusBroadcastRecipients()
+		if err != nil {
+			appendResult(nil, err)
+			return
+		}
+		selfIndex := -1
+		for i, participant := range list {
+			if participant.User == ownID.User {
+				selfIndex = i
+				break
+			}
+		}
+		if selfIndex >= 0 {
+			if cli.DontSendSelfBroadcast {
+				list[selfIndex] = list[len(list)-1]
+				list = list[:len(list)-1]
+			}
+		} else if !cli.DontSendSelfBroadcast {
+			list = append(list, ownID)
+		}
+		appendResult(list, nil)
+	}()
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case result := <-resultCh:
+		if result.err != nil {
+			return nil, result.err
+		}
+		return result.list, nil
 	}
-	return list, nil
 }
 
 func (cli *Client) getStatusBroadcastRecipients() ([]types.JID, error) {

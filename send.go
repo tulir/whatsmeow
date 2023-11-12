@@ -104,8 +104,6 @@ type SendRequestExtra struct {
 	ID types.MessageID
 	// Should the message be sent as a peer message (protocol messages to your own devices, e.g. app state key requests)
 	Peer bool
-	// Cached Participants, use to prevent redundant requests to WA & speed up msg sending
-	CachedParticipants func(ctx context.Context, to types.JID) ([]types.JID, error)
 }
 
 // SendMessage sends the given message.
@@ -186,7 +184,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	var data []byte
 	switch to.Server {
 	case types.GroupServer, types.BroadcastServer:
-		phash, data, err = cli.sendGroup(ctx, to, ownID, req.ID, message, &resp.DebugTimings, req.CachedParticipants)
+		phash, data, err = cli.sendGroup(ctx, to, ownID, req.ID, message, &resp.DebugTimings)
 	case types.DefaultUserServer:
 		if req.Peer {
 			data, err = cli.sendPeerMessage(to, req.ID, message, &resp.DebugTimings)
@@ -478,29 +476,20 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 	return data, nil
 }
 
-func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings, cachedParticipants func(ctx context.Context, to types.JID) ([]types.JID, error)) (string, []byte, error) {
+func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) (string, []byte, error) {
 	var participants []types.JID
 	var err error
 	start := time.Now()
-	if cachedParticipants != nil {
-		participants, err = cachedParticipants(ctx, to)
+	if to.Server == types.GroupServer {
+		participants, err = cli.getGroupMembers(ctx, to)
 		if err != nil {
-			return "", nil, fmt.Errorf("failed to get cached participants: %w", err)
+			return "", nil, fmt.Errorf("failed to get group members: %w", err)
 		}
 	} else {
-		if to.Server == types.GroupServer {
-			participants, err = cli.getGroupMembers(ctx, to)
-			if err != nil {
-				return "", nil, fmt.Errorf("failed to get group members: %w", err)
-			}
-		} else {
-			// TODO use context
-			participants, err = cli.getBroadcastListParticipants(to)
-			if err != nil {
-				return "", nil, fmt.Errorf("failed to get broadcast list members: %w", err)
-			}
+		participants, err = cli.getBroadcastListParticipants(ctx, to)
+		if err != nil {
+			return "", nil, fmt.Errorf("failed to get broadcast list members: %w", err)
 		}
-
 	}
 
 	timings.GetParticipants = time.Since(start)

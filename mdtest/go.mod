@@ -7,7 +7,6 @@ require (
 	github.com/goccy/go-json v0.10.2
 	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/mdp/qrterminal/v3 v3.2.0
-	google.golang.org/protobuf v1.31.0
 )
 
 require (
@@ -20,6 +19,7 @@ require (
 	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/term v0.14.0 // indirect
+	google.golang.org/protobuf v1.31.0 // indirect
 	rsc.io/qr v0.2.0 // indirect
 )
 
