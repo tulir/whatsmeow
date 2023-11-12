@@ -254,19 +254,17 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 }
 
 func (cli *Client) requestMissingAppStateKeys(ctx context.Context, patches *appstate.PatchList) {
-	cli.appStateKeyRequestsLock.Lock()
 	rawKeyIDs := cli.appStateProc.GetMissingKeyIDs(patches)
 	filteredKeyIDs := make([][]byte, 0, len(rawKeyIDs))
 	now := time.Now()
 	for _, keyID := range rawKeyIDs {
 		stringKeyID := hex.EncodeToString(keyID)
-		lastRequestTime := cli.appStateKeyRequests[stringKeyID]
+		lastRequestTime, _ := cli.appStateKeyRequests.Load(stringKeyID)
 		if lastRequestTime.IsZero() || lastRequestTime.Add(24*time.Hour).Before(now) {
-			cli.appStateKeyRequests[stringKeyID] = now
+			cli.appStateKeyRequests.Store(stringKeyID, now)
 			filteredKeyIDs = append(filteredKeyIDs, keyID)
 		}
 	}
-	cli.appStateKeyRequestsLock.Unlock()
 	cli.requestAppStateKeys(ctx, filteredKeyIDs)
 }
 

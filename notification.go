@@ -95,11 +95,9 @@ func (cli *Client) handlePictureNotification(node *waBinary.Node) {
 }
 
 func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
-	cli.userDevicesCacheLock.Lock()
-	defer cli.userDevicesCacheLock.Unlock()
 	ag := node.AttrGetter()
 	from := ag.JID("from")
-	cached, ok := cli.userDevicesCache[from]
+	cached, ok := cli.userDevicesCache.Load(from)
 	if !ok {
 		cli.Log.Debugf("No device list cached for %s, ignoring device list notification", from)
 		return
@@ -129,23 +127,21 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 		newParticipantHash := participantListHashV2(cached)
 		if newParticipantHash == deviceHash {
 			cli.Log.Debugf("%s's device list hash changed from %s to %s (%s). New hash matches", from, cachedParticipantHash, deviceHash, child.Tag)
-			cli.userDevicesCache[from] = cached
+			cli.userDevicesCache.Store(from, cached)
 		} else {
 			cli.Log.Warnf("%s's device list hash changed from %s to %s (%s). New hash doesn't match (%s)", from, cachedParticipantHash, deviceHash, child.Tag, newParticipantHash)
-			delete(cli.userDevicesCache, from)
+			cli.userDevicesCache.Delete(from)
 		}
 	}
 }
 
 func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
-	cli.userDevicesCacheLock.Lock()
-	defer cli.userDevicesCacheLock.Unlock()
 	ownID := cli.getOwnID().ToNonAD()
 	if ownID.IsEmpty() {
 		cli.Log.Debugf("Ignoring own device change notification, session was deleted")
 		return
 	}
-	cached, ok := cli.userDevicesCache[ownID]
+	cached, ok := cli.userDevicesCache.Load(ownID)
 	if !ok {
 		cli.Log.Debugf("Ignoring own device change notification, device list not cached")
 		return
@@ -162,10 +158,10 @@ func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	newHash := participantListHashV2(newDeviceList)
 	if newHash != expectedNewHash {
 		cli.Log.Debugf("Received own device list change notification %s -> %s, but expected hash was %s", oldHash, newHash, expectedNewHash)
-		delete(cli.userDevicesCache, ownID)
+		cli.userDevicesCache.Delete(ownID)
 	} else {
 		cli.Log.Debugf("Received own device list change notification %s -> %s", oldHash, newHash)
-		cli.userDevicesCache[ownID] = newDeviceList
+		cli.userDevicesCache.Store(ownID, newDeviceList)
 	}
 }
 

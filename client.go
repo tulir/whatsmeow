@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/go-whatsapp/go-util/random"
+	"github.com/puzpuzpuz/xsync/v3"
 
 	"github.com/go-whatsapp/whatsmeow/appstate"
 	waBinary "github.com/go-whatsapp/whatsmeow/binary"
@@ -51,7 +52,7 @@ type Client struct {
 	sendLog waLog.Logger
 
 	socket     *socket.NoiseSocket
-	socketLock sync.RWMutex
+	socketLock xsync.RBMutex
 	socketWait chan struct{}
 
 	isLoggedIn            uint32
@@ -67,8 +68,7 @@ type Client struct {
 	EmitAppStateEventsOnFullSync bool
 
 	AutomaticMessageRerequestFromPhone bool
-	pendingPhoneRerequests             map[types.MessageID]context.CancelFunc
-	pendingPhoneRerequestsLock         sync.RWMutex
+	pendingPhoneRerequests             *xsync.MapOf[types.MessageID, context.CancelFunc]
 
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
@@ -82,39 +82,31 @@ type Client struct {
 	mediaConnCache *MediaConn
 	mediaConnLock  sync.Mutex
 
-	responseWaiters     map[string]chan<- *waBinary.Node
-	responseWaitersLock sync.Mutex
+	responseWaiters *xsync.MapOf[string, chan<- *waBinary.Node]
 
-	nodeHandlers      map[string]nodeHandler
+	nodeHandlers      *xsync.MapOf[string, nodeHandler]
 	handlerQueue      chan *waBinary.Node
 	eventHandlers     []wrappedEventHandler
-	eventHandlersLock sync.RWMutex
+	eventHandlersLock xsync.RBMutex
 
-	messageRetries     map[string]int
-	messageRetriesLock sync.Mutex
+	messageRetries *xsync.MapOf[string, int]
 
-	incomingRetryRequestCounter     map[incomingRetryKey]int
-	incomingRetryRequestCounterLock sync.Mutex
+	incomingRetryRequestCounter *xsync.MapOf[incomingRetryKey, int]
 
-	appStateKeyRequests     map[string]time.Time
-	appStateKeyRequestsLock sync.RWMutex
+	appStateKeyRequests *xsync.MapOf[string, time.Time]
 
 	messageSendLock sync.Mutex
 
 	privacySettingsCache atomic.Value
 
-	groupParticipantsCache     map[types.JID][]types.JID
-	groupParticipantsCacheLock sync.Mutex
-	userDevicesCache           map[types.JID][]types.JID
-	userDevicesCacheLock       sync.Mutex
+	groupParticipantsCache *xsync.MapOf[types.JID, []types.JID]
+	userDevicesCache       *xsync.MapOf[types.JID, []types.JID]
 
-	recentMessagesMap  map[recentMessageKey]*waProto.Message
+	recentMessagesMap  *xsync.MapOf[recentMessageKey, *waProto.Message]
 	recentMessagesList [recentMessagesSize]recentMessageKey
 	recentMessagesPtr  int
-	recentMessagesLock sync.RWMutex
 
-	sessionRecreateHistory     map[types.JID]time.Time
-	sessionRecreateHistoryLock sync.Mutex
+	sessionRecreateHistory *xsync.MapOf[types.JID, time.Time]
 	// GetMessageForRetry is used to find the source message for handling retry receipts
 	// when the message is not found in the recently sent message cache.
 	GetMessageForRetry func(requester, to types.JID, id types.MessageID) *waProto.Message
@@ -182,45 +174,44 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		recvLog:         log.Sub("Recv"),
 		sendLog:         log.Sub("Send"),
 		uniqueID:        fmt.Sprintf("%d.%d-", uniqueIDPrefix[0], uniqueIDPrefix[1]),
-		responseWaiters: make(map[string]chan<- *waBinary.Node),
+		responseWaiters: xsync.NewMapOf[string, chan<- *waBinary.Node](),
 		eventHandlers:   make([]wrappedEventHandler, 0, 1),
-		messageRetries:  make(map[string]int),
+		messageRetries:  xsync.NewMapOf[string, int](),
+		nodeHandlers:    xsync.NewMapOfPresized[string, nodeHandler](11),
 		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
 		socketWait:      make(chan struct{}),
 
-		incomingRetryRequestCounter: make(map[incomingRetryKey]int),
+		incomingRetryRequestCounter: xsync.NewMapOf[incomingRetryKey, int](),
 
 		historySyncNotifications: make(chan *waProto.HistorySyncNotification, 32),
 
-		groupParticipantsCache: make(map[types.JID][]types.JID),
-		userDevicesCache:       make(map[types.JID][]types.JID),
+		groupParticipantsCache: xsync.NewMapOf[types.JID, []types.JID](),
+		userDevicesCache:       xsync.NewMapOf[types.JID, []types.JID](),
 
-		recentMessagesMap:      make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
-		sessionRecreateHistory: make(map[types.JID]time.Time),
+		recentMessagesMap:      xsync.NewMapOfPresized[recentMessageKey, *waProto.Message](recentMessagesSize),
+		sessionRecreateHistory: xsync.NewMapOf[types.JID, time.Time](),
 		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
-		appStateKeyRequests:    make(map[string]time.Time),
+		appStateKeyRequests:    xsync.NewMapOf[string, time.Time](),
 
-		pendingPhoneRerequests: make(map[types.MessageID]context.CancelFunc),
+		pendingPhoneRerequests: xsync.NewMapOf[types.MessageID, context.CancelFunc](),
 
 		EnableAutoReconnect:   true,
 		AutoTrustIdentity:     true,
 		DontSendSelfBroadcast: true,
 	}
-	cli.nodeHandlers = map[string]nodeHandler{
-		"message":      cli.handleEncryptedMessage,
-		"receipt":      cli.handleReceipt,
-		"call":         cli.handleCallEvent,
-		"chatstate":    cli.handleChatState,
-		"presence":     cli.handlePresence,
-		"notification": cli.handleNotification,
-		"success":      cli.handleConnectSuccess,
-		"failure":      cli.handleConnectFailure,
-		"stream:error": cli.handleStreamError,
-		"iq":           cli.handleIQ,
-		"ib":           cli.handleIB,
-		// Apparently there's also an <error> node which can have a code=479 and means "Invalid stanza sent (smax-invalid)"
-	}
+	cli.nodeHandlers.Store("message", cli.handleEncryptedMessage)
+	cli.nodeHandlers.Store("receipt", cli.handleReceipt)
+	cli.nodeHandlers.Store("call", cli.handleCallEvent)
+	cli.nodeHandlers.Store("chatstate", cli.handleChatState)
+	cli.nodeHandlers.Store("presence", cli.handlePresence)
+	cli.nodeHandlers.Store("notification", cli.handleNotification)
+	cli.nodeHandlers.Store("success", cli.handleConnectSuccess)
+	cli.nodeHandlers.Store("failure", cli.handleConnectFailure)
+	cli.nodeHandlers.Store("stream:error", cli.handleStreamError)
+	cli.nodeHandlers.Store("iq", cli.handleIQ)
+	cli.nodeHandlers.Store("ib", cli.handleIB)
+	// Apparently there's also an <error> node which can have a code=479 and means "Invalid stanza sent (smax-invalid)"
 	return cli
 }
 
@@ -262,9 +253,9 @@ func (cli *Client) SetProxy(proxy socket.Proxy) {
 }
 
 func (cli *Client) getSocketWaitChan() <-chan struct{} {
-	cli.socketLock.RLock()
+	t := cli.socketLock.RLock()
 	ch := cli.socketWait
-	cli.socketLock.RUnlock()
+	cli.socketLock.RUnlock(t)
 	return ch
 }
 
@@ -285,18 +276,18 @@ func (cli *Client) getOwnID() types.JID {
 
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	timeoutChan := time.After(timeout)
-	cli.socketLock.RLock()
+	t := cli.socketLock.RLock()
 	for cli.socket == nil || !cli.socket.IsConnected() || !cli.IsLoggedIn() {
 		ch := cli.socketWait
-		cli.socketLock.RUnlock()
+		cli.socketLock.RUnlock(t)
 		select {
 		case <-ch:
 		case <-timeoutChan:
 			return false
 		}
-		cli.socketLock.RLock()
+		t = cli.socketLock.RLock()
 	}
-	cli.socketLock.RUnlock()
+	cli.socketLock.RUnlock(t)
 	return true
 }
 
@@ -389,9 +380,9 @@ func (cli *Client) autoReconnect() {
 // IsConnected checks if the client is connected to the WhatsApp web websocket.
 // Note that this doesn't check if the client is authenticated. See the IsLoggedIn field for that.
 func (cli *Client) IsConnected() bool {
-	cli.socketLock.RLock()
+	t := cli.socketLock.RLock()
 	connected := cli.socket != nil && cli.socket.IsConnected()
-	cli.socketLock.RUnlock()
+	cli.socketLock.RUnlock(t)
 	return connected
 }
 
@@ -551,7 +542,7 @@ func (cli *Client) handleFrame(data []byte) {
 		// TODO should we do something else?
 	} else if cli.receiveResponse(node) {
 		// handled
-	} else if _, ok := cli.nodeHandlers[node.Tag]; ok {
+	} else if _, ok := cli.nodeHandlers.Load(node.Tag); ok {
 		select {
 		case cli.handlerQueue <- node:
 		default:
@@ -584,7 +575,10 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 			doneChan := make(chan struct{}, 1)
 			go func() {
 				start := time.Now()
-				cli.nodeHandlers[node.Tag](node)
+				f, ok := cli.nodeHandlers.Load(node.Tag)
+				if ok {
+					f(node)
+				}
 				duration := time.Since(start)
 				doneChan <- struct{}{}
 				if duration > 5*time.Second {
@@ -606,9 +600,9 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 }
 
 func (cli *Client) sendNodeAndGetData(node waBinary.Node) ([]byte, error) {
-	cli.socketLock.RLock()
+	t := cli.socketLock.RLock()
 	sock := cli.socket
-	cli.socketLock.RUnlock()
+	cli.socketLock.RUnlock(t)
 	if sock == nil {
 		return nil, ErrNotConnected
 	}
@@ -628,9 +622,9 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 }
 
 func (cli *Client) dispatchEvent(evt interface{}) {
-	cli.eventHandlersLock.RLock()
+	t := cli.eventHandlersLock.RLock()
 	defer func() {
-		cli.eventHandlersLock.RUnlock()
+		cli.eventHandlersLock.RUnlock(t)
 		err := recover()
 		if err != nil {
 			cli.Log.Errorf("Event handler panicked while handling a %T: %v\n%s", evt, err, debug.Stack())

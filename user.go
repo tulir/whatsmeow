@@ -235,12 +235,9 @@ func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 }
 
 func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) ([]types.JID, error) {
-	cli.userDevicesCacheLock.Lock()
-	defer cli.userDevicesCacheLock.Unlock()
-
 	var devices, jidsToSync []types.JID
 	for _, jid := range jids {
-		cached, ok := cli.userDevicesCache[jid]
+		cached, ok := cli.userDevicesCache.Load(jid)
 		if ok && len(cached) > 0 {
 			devices = append(devices, cached...)
 		} else {
@@ -264,7 +261,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 			continue
 		}
 		userDevices := parseDeviceList(jid.User, user.GetChildByTag("devices"))
-		cli.userDevicesCache[jid] = userDevices
+		cli.userDevicesCache.Store(jid, userDevices)
 		devices = append(devices, userDevices...)
 	}
 

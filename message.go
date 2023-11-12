@@ -379,14 +379,13 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 	onlyResyncIfNotSynced := true
 
 	cli.Log.Debugf("Got %d new app state keys", len(keys.GetKeys()))
-	cli.appStateKeyRequestsLock.RLock()
 	for _, key := range keys.GetKeys() {
 		marshaledFingerprint, err := proto.Marshal(key.GetKeyData().GetFingerprint())
 		if err != nil {
 			cli.Log.Errorf("Failed to marshal fingerprint of app state sync key %X", key.GetKeyId().GetKeyId())
 			continue
 		}
-		_, isReRequest := cli.appStateKeyRequests[hex.EncodeToString(key.GetKeyId().GetKeyId())]
+		_, isReRequest := cli.appStateKeyRequests.Load(hex.EncodeToString(key.GetKeyId().GetKeyId()))
 		if isReRequest {
 			onlyResyncIfNotSynced = false
 		}
@@ -401,7 +400,6 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 		}
 		cli.Log.Debugf("Received app state sync key %X (ts: %d)", key.GetKeyId().GetKeyId(), key.GetKeyData().GetTimestamp())
 	}
-	cli.appStateKeyRequestsLock.RUnlock()
 
 	for _, name := range appstate.AllPatchNames {
 		err := cli.FetchAppState(name, false, onlyResyncIfNotSynced)

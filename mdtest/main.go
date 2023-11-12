@@ -23,6 +23,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/goccy/go-json"
+	_ "github.com/mattn/go-sqlite3"
+	"github.com/mdp/qrterminal/v3"
+
 	"github.com/go-whatsapp/whatsmeow"
 	"github.com/go-whatsapp/whatsmeow/appstate"
 	waBinary "github.com/go-whatsapp/whatsmeow/binary"
@@ -32,9 +36,6 @@ import (
 	"github.com/go-whatsapp/whatsmeow/types"
 	"github.com/go-whatsapp/whatsmeow/types/events"
 	waLog "github.com/go-whatsapp/whatsmeow/util/log"
-	"github.com/goccy/go-json"
-	_ "github.com/mattn/go-sqlite3"
-	"github.com/mdp/qrterminal/v3"
 )
 
 var cli *whatsmeow.Client
@@ -632,7 +633,9 @@ func handleCmd(cmd string, args []string) {
 		if !ok {
 			return
 		}
-		msg := &waProto.Message{Conversation: waProto.String(strings.Join(args[1:], " "))}
+		msg := &waProto.Message{ExtendedTextMessage: &waProto.ExtendedTextMessage{
+			Text: waProto.String(strings.Join(args[1:], " ")),
+		}}
 		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)

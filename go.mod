@@ -12,4 +12,7 @@ require (
 	google.golang.org/protobuf v1.31.0
 )
 
-require filippo.io/edwards25519 v1.0.0 // indirect
+require (
+	filippo.io/edwards25519 v1.0.0 // indirect
+	github.com/puzpuzpuz/xsync/v3 v3.0.1 // indirect
+)

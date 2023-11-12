@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/puzpuzpuz/xsync/v3"
+
 	waBinary "github.com/go-whatsapp/whatsmeow/binary"
 	"github.com/go-whatsapp/whatsmeow/types"
 )
@@ -42,31 +44,27 @@ func isAuthErrorDisconnect(node *waBinary.Node) bool {
 }
 
 func (cli *Client) clearResponseWaiters(node *waBinary.Node) {
-	cli.responseWaitersLock.Lock()
-	for _, waiter := range cli.responseWaiters {
+	cli.responseWaiters.Range(func(_ string, waiter chan<- *waBinary.Node) bool {
 		select {
 		case waiter <- node:
+			return true
 		default:
 			close(waiter)
+			return true
 		}
-	}
-	cli.responseWaiters = make(map[string]chan<- *waBinary.Node)
-	cli.responseWaitersLock.Unlock()
+	})
+	cli.responseWaiters = xsync.NewMapOf[string, chan<- *waBinary.Node]()
 }
 
 func (cli *Client) waitResponse(reqID string) chan *waBinary.Node {
 	ch := make(chan *waBinary.Node, 1)
-	cli.responseWaitersLock.Lock()
-	cli.responseWaiters[reqID] = ch
-	cli.responseWaitersLock.Unlock()
+	cli.responseWaiters.Store(reqID, ch)
 	return ch
 }
 
 func (cli *Client) cancelResponse(reqID string, ch chan *waBinary.Node) {
-	cli.responseWaitersLock.Lock()
 	close(ch)
-	delete(cli.responseWaiters, reqID)
-	cli.responseWaitersLock.Unlock()
+	cli.responseWaiters.Delete(reqID)
 }
 
 func (cli *Client) receiveResponse(data *waBinary.Node) bool {
@@ -74,14 +72,11 @@ func (cli *Client) receiveResponse(data *waBinary.Node) bool {
 	if !ok || (data.Tag != "iq" && data.Tag != "ack") {
 		return false
 	}
-	cli.responseWaitersLock.Lock()
-	waiter, ok := cli.responseWaiters[id]
+	waiter, ok := cli.responseWaiters.Load(id)
 	if !ok {
-		cli.responseWaitersLock.Unlock()
 		return false
 	}
-	delete(cli.responseWaiters, id)
-	cli.responseWaitersLock.Unlock()
+	cli.responseWaiters.Delete(id)
 	waiter <- data
 	return true
 }
@@ -187,9 +182,9 @@ func (cli *Client) retryFrame(reqType, id string, data []byte, origResp *waBinar
 		return nil, &DisconnectedError{Action: reqType, Node: origResp}
 	}
 
-	cli.socketLock.RLock()
+	t := cli.socketLock.RLock()
 	sock := cli.socket
-	cli.socketLock.RUnlock()
+	cli.socketLock.RUnlock(t)
 	if sock == nil {
 		return nil, ErrNotConnected
 	}

@@ -8,9 +8,8 @@
 package appstate
 
 import (
-	"sync"
-
 	"github.com/cristalhq/base64"
+	"github.com/puzpuzpuz/xsync/v3"
 
 	"github.com/go-whatsapp/whatsmeow/store"
 	"github.com/go-whatsapp/whatsmeow/util/hkdfutil"
@@ -56,15 +55,14 @@ const (
 )
 
 type Processor struct {
-	keyCache     map[string]ExpandedAppStateKeys
-	keyCacheLock sync.Mutex
-	Store        *store.Device
-	Log          waLog.Logger
+	keyCache *xsync.MapOf[string, ExpandedAppStateKeys]
+	Store    *store.Device
+	Log      waLog.Logger
 }
 
 func NewProcessor(store *store.Device, log waLog.Logger) *Processor {
 	return &Processor{
-		keyCache: make(map[string]ExpandedAppStateKeys),
+		keyCache: xsync.NewMapOf[string, ExpandedAppStateKeys](),
 		Store:    store,
 		Log:      log,
 	}
@@ -87,16 +85,13 @@ func (proc *Processor) getAppStateKey(keyID []byte) (keys ExpandedAppStateKeys, 
 	keyCacheID := base64.RawStdEncoding.EncodeToString(keyID)
 	var ok bool
 
-	proc.keyCacheLock.Lock()
-	defer proc.keyCacheLock.Unlock()
-
-	keys, ok = proc.keyCache[keyCacheID]
+	keys, ok = proc.keyCache.Load(keyCacheID)
 	if !ok {
 		var keyData *store.AppStateSyncKey
 		keyData, err = proc.Store.AppStateKeys.GetAppStateSyncKey(keyID)
 		if keyData != nil {
 			keys = expandAppStateKeys(keyData.Data)
-			proc.keyCache[keyCacheID] = keys
+			proc.keyCache.Store(keyCacheID, keys)
 		} else if err == nil {
 			err = ErrKeyNotFound
 		}

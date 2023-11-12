@@ -39,24 +39,20 @@ type RecentMessage struct {
 }
 
 func (cli *Client) addRecentMessage(to types.JID, id types.MessageID, message *waProto.Message) {
-	cli.recentMessagesLock.Lock()
 	key := recentMessageKey{to, id}
 	if cli.recentMessagesList[cli.recentMessagesPtr].ID != "" {
-		delete(cli.recentMessagesMap, cli.recentMessagesList[cli.recentMessagesPtr])
+		cli.recentMessagesMap.Delete(cli.recentMessagesList[cli.recentMessagesPtr])
 	}
-	cli.recentMessagesMap[key] = message
+	cli.recentMessagesMap.Store(key, message)
 	cli.recentMessagesList[cli.recentMessagesPtr] = key
 	cli.recentMessagesPtr++
 	if cli.recentMessagesPtr >= len(cli.recentMessagesList) {
 		cli.recentMessagesPtr = 0
 	}
-	cli.recentMessagesLock.Unlock()
 }
 
 func (cli *Client) getRecentMessage(to types.JID, id types.MessageID) *waProto.Message {
-	cli.recentMessagesLock.RLock()
-	msg, _ := cli.recentMessagesMap[recentMessageKey{to, id}]
-	cli.recentMessagesLock.RUnlock()
+	msg, _ := cli.recentMessagesMap.Load(recentMessageKey{to, id})
 	return msg
 }
 
@@ -78,17 +74,15 @@ func (cli *Client) getMessageForRetry(receipt *events.Receipt, messageID types.M
 const recreateSessionTimeout = 1 * time.Hour
 
 func (cli *Client) shouldRecreateSession(retryCount int, jid types.JID) (reason string, recreate bool) {
-	cli.sessionRecreateHistoryLock.Lock()
-	defer cli.sessionRecreateHistoryLock.Unlock()
 	if !cli.Store.ContainsSession(jid.SignalAddress()) {
-		cli.sessionRecreateHistory[jid] = time.Now()
+		cli.sessionRecreateHistory.Store(jid, time.Now())
 		return "we don't have a Signal session with them", true
 	} else if retryCount < 2 {
 		return "", false
 	}
-	prevTime, ok := cli.sessionRecreateHistory[jid]
+	prevTime, ok := cli.sessionRecreateHistory.Load(jid)
 	if !ok || prevTime.Add(recreateSessionTimeout).Before(time.Now()) {
-		cli.sessionRecreateHistory[jid] = time.Now()
+		cli.sessionRecreateHistory.Store(jid, time.Now())
 		return "retry count > 1 and over an hour since last recreation", true
 	}
 	return "", false
@@ -118,10 +112,9 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	}
 
 	retryKey := incomingRetryKey{receipt.Sender, messageID}
-	cli.incomingRetryRequestCounterLock.Lock()
-	cli.incomingRetryRequestCounter[retryKey]++
-	internalCounter := cli.incomingRetryRequestCounter[retryKey]
-	cli.incomingRetryRequestCounterLock.Unlock()
+	internalCounter, _ := cli.incomingRetryRequestCounter.Load(retryKey)
+	internalCounter++
+	cli.incomingRetryRequestCounter.Store(retryKey, internalCounter)
 	if internalCounter >= 10 {
 		cli.Log.Warnf("Dropping retry request from %s for %s: internal retry counter is %d", messageID, receipt.Sender, internalCounter)
 		return nil
@@ -227,12 +220,10 @@ func (cli *Client) cancelDelayedRequestFromPhone(msgID types.MessageID) {
 	if !cli.AutomaticMessageRerequestFromPhone {
 		return
 	}
-	cli.pendingPhoneRerequestsLock.RLock()
-	cancelPendingRequest, ok := cli.pendingPhoneRerequests[msgID]
+	cancelPendingRequest, ok := cli.pendingPhoneRerequests.Load(msgID)
 	if ok {
 		cancelPendingRequest()
 	}
-	cli.pendingPhoneRerequestsLock.RUnlock()
 }
 
 // RequestFromPhoneDelay specifies how long to wait for the sender to resend the message before requesting from your phone.
@@ -243,21 +234,16 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 	if !cli.AutomaticMessageRerequestFromPhone {
 		return
 	}
-	cli.pendingPhoneRerequestsLock.Lock()
-	_, alreadyRequesting := cli.pendingPhoneRerequests[info.ID]
+	_, alreadyRequesting := cli.pendingPhoneRerequests.Load(info.ID)
 	if alreadyRequesting {
-		cli.pendingPhoneRerequestsLock.Unlock()
 		return
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	cli.pendingPhoneRerequests[info.ID] = cancel
-	cli.pendingPhoneRerequestsLock.Unlock()
+	cli.pendingPhoneRerequests.Store(info.ID, cancel)
 
 	defer func() {
-		cli.pendingPhoneRerequestsLock.Lock()
-		delete(cli.pendingPhoneRerequests, info.ID)
-		cli.pendingPhoneRerequestsLock.Unlock()
+		cli.pendingPhoneRerequests.Delete(info.ID)
 	}()
 	select {
 	case <-time.After(RequestFromPhoneDelay):
@@ -286,16 +272,14 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node, info *types.MessageInfo
 	if len(children) == 1 && children[0].Tag == "enc" {
 		retryCountInMsg = children[0].AttrGetter().OptionalInt("count")
 	}
-
-	cli.messageRetriesLock.Lock()
-	cli.messageRetries[id]++
-	retryCount := cli.messageRetries[id]
+	retryCount, _ := cli.messageRetries.Load(id)
+	retryCount++
+	cli.messageRetries.Store(id, retryCount)
 	// In case the message is a retry response, and we restarted in between, find the count from the message
 	if retryCount == 1 && retryCountInMsg > 0 {
 		retryCount = retryCountInMsg + 1
-		cli.messageRetries[id] = retryCount
+		cli.messageRetries.Store(id, retryCount)
 	}
-	cli.messageRetriesLock.Unlock()
 	if retryCount >= 5 {
 		cli.Log.Warnf("Not sending any more retry receipts for %s", id)
 		return

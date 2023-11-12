@@ -16,6 +16,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/puzpuzpuz/xsync/v3"
+
 	"github.com/go-whatsapp/whatsmeow/store"
 	"github.com/go-whatsapp/whatsmeow/types"
 	"github.com/go-whatsapp/whatsmeow/util/keys"
@@ -41,8 +43,7 @@ type SQLStore struct {
 
 	preKeyLock sync.Mutex
 
-	contactCache     map[types.JID]*types.ContactInfo
-	contactCacheLock sync.Mutex
+	contactCache *xsync.MapOf[types.JID, *types.ContactInfo]
 }
 
 // NewSQLStore creates a new SQLStore with the given database container and user JID.
@@ -53,7 +54,7 @@ func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 	return &SQLStore{
 		Container:    c,
 		JID:          jid.String(),
-		contactCache: make(map[types.JID]*types.ContactInfo),
+		contactCache: xsync.NewMapOf[types.JID, *types.ContactInfo](),
 	}
 }
 
@@ -463,9 +464,6 @@ const (
 )
 
 func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, error) {
-	s.contactCacheLock.Lock()
-	defer s.contactCacheLock.Unlock()
-
 	cached, err := s.getContact(user)
 	if err != nil {
 		return false, "", err
@@ -484,9 +482,6 @@ func (s *SQLStore) PutPushName(user types.JID, pushName string) (bool, string, e
 }
 
 func (s *SQLStore) PutBusinessName(user types.JID, businessName string) (bool, string, error) {
-	s.contactCacheLock.Lock()
-	defer s.contactCacheLock.Unlock()
-
 	cached, err := s.getContact(user)
 	if err != nil {
 		return false, "", err
@@ -505,9 +500,6 @@ func (s *SQLStore) PutBusinessName(user types.JID, businessName string) (bool, s
 }
 
 func (s *SQLStore) PutContactName(user types.JID, firstName, fullName string) error {
-	s.contactCacheLock.Lock()
-	defer s.contactCacheLock.Unlock()
-
 	cached, err := s.getContact(user)
 	if err != nil {
 		return err
@@ -588,15 +580,13 @@ func (s *SQLStore) PutAllContactNames(contacts []store.ContactEntry) error {
 	} else {
 		return nil
 	}
-	s.contactCacheLock.Lock()
 	// Just clear the cache, fetching pushnames and business names would be too much effort
-	s.contactCache = make(map[types.JID]*types.ContactInfo)
-	s.contactCacheLock.Unlock()
+	s.contactCache = xsync.NewMapOf[types.JID, *types.ContactInfo]()
 	return nil
 }
 
 func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
-	cached, ok := s.contactCache[user]
+	cached, ok := s.contactCache.Load(user)
 	if ok {
 		return cached, nil
 	}
@@ -613,14 +603,12 @@ func (s *SQLStore) getContact(user types.JID) (*types.ContactInfo, error) {
 		PushName:     push.String,
 		BusinessName: business.String,
 	}
-	s.contactCache[user] = info
+	s.contactCache.Store(user, info)
 	return info, nil
 }
 
 func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
-	s.contactCacheLock.Lock()
 	info, err := s.getContact(user)
-	s.contactCacheLock.Unlock()
 	if err != nil {
 		return types.ContactInfo{}, err
 	}
@@ -628,13 +616,11 @@ func (s *SQLStore) GetContact(user types.JID) (types.ContactInfo, error) {
 }
 
 func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
-	s.contactCacheLock.Lock()
-	defer s.contactCacheLock.Unlock()
 	rows, err := s.db.Query(getAllContactsQuery, s.JID)
 	if err != nil {
 		return nil, err
 	}
-	output := make(map[types.JID]types.ContactInfo, len(s.contactCache))
+	output := make(map[types.JID]types.ContactInfo, s.contactCache.Size())
 	for rows.Next() {
 		var jid types.JID
 		var first, full, push, business sql.NullString
@@ -650,7 +636,7 @@ func (s *SQLStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
 			BusinessName: business.String,
 		}
 		output[jid] = info
-		s.contactCache[jid] = &info
+		s.contactCache.Store(jid, &info)
 	}
 	return output, nil
 }

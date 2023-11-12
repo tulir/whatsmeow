@@ -453,10 +453,10 @@ func (cli *Client) GetLinkedGroupsParticipants(community types.JID) ([]types.JID
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
 func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
-	return cli.getGroupInfo(context.TODO(), jid, true)
+	return cli.getGroupInfo(context.TODO(), jid)
 }
 
-func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticipantCache bool) (*types.GroupInfo, error) {
+func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID) (*types.GroupInfo, error) {
 	res, err := cli.sendGroupIQ(ctx, iqGet, jid, waBinary.Node{
 		Tag:   "query",
 		Attrs: waBinary.Attrs{"request": "interactive"},
@@ -477,28 +477,27 @@ func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticip
 	if err != nil {
 		return groupInfo, err
 	}
-	if lockParticipantCache {
-		cli.groupParticipantsCacheLock.Lock()
-		defer cli.groupParticipantsCacheLock.Unlock()
-	}
 	participants := make([]types.JID, len(groupInfo.Participants))
 	for i, part := range groupInfo.Participants {
 		participants[i] = part.JID
 	}
-	cli.groupParticipantsCache[jid] = participants
+	cli.groupParticipantsCache.Store(jid, participants)
 	return groupInfo, nil
 }
 
 func (cli *Client) getGroupMembers(ctx context.Context, jid types.JID) ([]types.JID, error) {
-	cli.groupParticipantsCacheLock.Lock()
-	defer cli.groupParticipantsCacheLock.Unlock()
-	if _, ok := cli.groupParticipantsCache[jid]; !ok {
-		_, err := cli.getGroupInfo(ctx, jid, false)
+	_, ok := cli.groupParticipantsCache.Load(jid)
+	if !ok {
+		_, err := cli.getGroupInfo(ctx, jid)
 		if err != nil {
 			return nil, err
 		}
 	}
-	return cli.groupParticipantsCache[jid], nil
+	jids, ok := cli.groupParticipantsCache.Load(jid)
+	if !ok {
+		cli.Log.Debugf("Failed to load group participants from cache for %s", jid)
+	}
+	return jids, nil
 }
 
 func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, error) {
@@ -757,9 +756,7 @@ func (cli *Client) updateGroupParticipantCache(evt *events.GroupInfo) {
 	if len(evt.Join) == 0 && len(evt.Leave) == 0 {
 		return
 	}
-	cli.groupParticipantsCacheLock.Lock()
-	defer cli.groupParticipantsCacheLock.Unlock()
-	cached, ok := cli.groupParticipantsCache[evt.JID]
+	cached, ok := cli.groupParticipantsCache.Load(evt.JID)
 	if !ok {
 		return
 	}
@@ -781,7 +778,7 @@ Outer:
 			}
 		}
 	}
-	cli.groupParticipantsCache[evt.JID] = cached
+	cli.groupParticipantsCache.Store(evt.JID, cached)
 }
 
 func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, error) {
