@@ -80,3 +80,7 @@ func (int *DangerousInternalClient) GetOwnID() types.JID {
 func (int *DangerousInternalClient) DecryptDM(child *waBinary.Node, from types.JID, isPreKey bool) ([]byte, error) {
 	return int.c.decryptDM(child, from, isPreKey)
 }
+
+func (int *DangerousInternalClient) MakeDeviceIdentityNode() waBinary.Node {
+	return int.c.makeDeviceIdentityNode()
+}
