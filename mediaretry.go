@@ -136,7 +136,7 @@ func parseMediaRetryNotification(node *waBinary.Node) (*events.MediaRetry, error
 	ag := node.AttrGetter()
 	var evt events.MediaRetry
 	evt.Timestamp = ag.UnixTime("t")
-	evt.MessageID = types.MessageID(ag.String("id"))
+	evt.MessageID = ag.String("id")
 	if !ag.OK() {
 		return nil, ag.Error()
 	}

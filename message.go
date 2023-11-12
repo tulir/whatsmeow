@@ -105,8 +105,8 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 		return nil, err
 	}
 	ag := node.AttrGetter()
-	info.ID = types.MessageID(ag.String("id"))
-	info.ServerID = types.MessageServerID(ag.OptionalInt("server_id"))
+	info.ID = ag.String("id")
+	info.ServerID = ag.OptionalInt("server_id")
 	info.Timestamp = ag.UnixTime("t")
 	info.PushName = ag.OptionalString("notify")
 	info.Category = ag.OptionalString("category")

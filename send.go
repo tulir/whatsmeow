@@ -154,9 +154,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	if to.Server == types.NewsletterServer {
 		// TODO somehow deduplicate this with the code in sendNewsletter?
 		if message.EditedMessage != nil {
-			req.ID = types.MessageID(message.GetEditedMessage().GetMessage().GetProtocolMessage().GetKey().GetId())
+			req.ID = message.GetEditedMessage().GetMessage().GetProtocolMessage().GetKey().GetId()
 		} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waProto.ProtocolMessage_REVOKE {
-			req.ID = types.MessageID(message.GetProtocolMessage().GetKey().GetId())
+			req.ID = message.GetProtocolMessage().GetKey().GetId()
 		}
 	}
 	resp.ID = req.ID
@@ -218,7 +218,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		}
 	}
 	ag := respNode.AttrGetter()
-	resp.ServerID = types.MessageServerID(ag.OptionalInt("server_id"))
+	resp.ServerID = ag.OptionalInt("server_id")
 	resp.Timestamp = ag.UnixTime("t")
 	if errorCode := ag.Int("error"); errorCode != 0 {
 		err = fmt.Errorf("%w %d", ErrServerReturnedError, errorCode)
