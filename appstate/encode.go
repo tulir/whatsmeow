@@ -40,7 +40,7 @@ type PatchInfo struct {
 func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInfo {
 	var muteEndTimestamp *int64
 	if muteDuration > 0 {
-		muteEndTimestamp = proto.Int64(time.Now().Add(muteDuration).UnixMilli())
+		muteEndTimestamp = waProto.Int64(time.Now().Add(muteDuration).UnixMilli())
 	}
 
 	return PatchInfo{
@@ -50,7 +50,7 @@ func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInf
 			Version: 2,
 			Value: &waProto.SyncActionValue{
 				MuteAction: &waProto.MuteAction{
-					Muted:            proto.Bool(mute),
+					Muted:            waProto.Bool(mute),
 					MuteEndTimestamp: muteEndTimestamp,
 				},
 			},
@@ -96,7 +96,7 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 			ArchiveChatAction: &waProto.ArchiveChatAction{
 				Archived: &archive,
 				MessageRange: &waProto.SyncActionMessageRange{
-					LastMessageTimestamp: proto.Int64(lastMessageTimestamp.Unix()),
+					LastMessageTimestamp: waProto.Int64(lastMessageTimestamp.Unix()),
 					// TODO set LastSystemMessageTimestamp?
 				},
 			},
@@ -106,7 +106,7 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 	if lastMessageKey != nil {
 		archiveMutationInfo.Value.ArchiveChatAction.MessageRange.Messages = []*waProto.SyncActionMessage{{
 			Key:       lastMessageKey,
-			Timestamp: proto.Int64(lastMessageTimestamp.Unix()),
+			Timestamp: waProto.Int64(lastMessageTimestamp.Unix()),
 		}}
 	}
 
@@ -167,7 +167,7 @@ func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo Patc
 
 	mutations := make([]*waProto.SyncdMutation, 0, len(patchInfo.Mutations))
 	for _, mutationInfo := range patchInfo.Mutations {
-		mutationInfo.Value.Timestamp = proto.Int64(patchInfo.Timestamp.UnixMilli())
+		mutationInfo.Value.Timestamp = waProto.Int64(patchInfo.Timestamp.UnixMilli())
 
 		indexBytes, err := json.Marshal(mutationInfo.Index)
 		if err != nil {

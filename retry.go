@@ -140,14 +140,14 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 			cli.Log.Warnf("Failed to create sender key distribution message to include in retry of %s in %s to %s: %v", messageID, receipt.Chat, receipt.Sender, err)
 		} else {
 			msg.SenderKeyDistributionMessage = &waProto.SenderKeyDistributionMessage{
-				GroupId:                             proto.String(receipt.Chat.String()),
+				GroupId:                             waProto.String(receipt.Chat.String()),
 				AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),
 			}
 		}
 	} else if receipt.IsFromMe {
 		msg = &waProto.Message{
 			DeviceSentMessage: &waProto.DeviceSentMessage{
-				DestinationJid: proto.String(receipt.Chat.String()),
+				DestinationJid: waProto.String(receipt.Chat.String()),
 				Message:        msg,
 			},
 		}

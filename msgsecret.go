@@ -175,12 +175,12 @@ func (cli *Client) DecryptPollVote(vote *events.Message) (*waProto.PollVoteMessa
 
 func getKeyFromInfo(msgInfo *types.MessageInfo) *waProto.MessageKey {
 	creationKey := &waProto.MessageKey{
-		RemoteJid: proto.String(msgInfo.Chat.String()),
-		FromMe:    proto.Bool(msgInfo.IsFromMe),
-		Id:        proto.String(msgInfo.ID),
+		RemoteJid: waProto.String(msgInfo.Chat.String()),
+		FromMe:    waProto.Bool(msgInfo.IsFromMe),
+		Id:        waProto.String(msgInfo.ID),
 	}
 	if msgInfo.IsGroup {
-		creationKey.Participant = proto.String(msgInfo.Sender.String())
+		creationKey.Participant = waProto.String(msgInfo.Sender.String())
 	}
 	return creationKey
 }
@@ -227,13 +227,13 @@ func (cli *Client) BuildPollCreation(name string, optionNames []string, selectab
 	}
 	options := make([]*waProto.PollCreationMessage_Option, len(optionNames))
 	for i, option := range optionNames {
-		options[i] = &waProto.PollCreationMessage_Option{OptionName: proto.String(option)}
+		options[i] = &waProto.PollCreationMessage_Option{OptionName: waProto.String(option)}
 	}
 	return &waProto.Message{
 		PollCreationMessage: &waProto.PollCreationMessage{
-			Name:                   proto.String(name),
+			Name:                   waProto.String(name),
 			Options:                options,
-			SelectableOptionsCount: proto.Uint32(uint32(selectableOptionCount)),
+			SelectableOptionsCount: waProto.Uint32(uint32(selectableOptionCount)),
 		},
 		MessageContextInfo: &waProto.MessageContextInfo{
 			MessageSecret: msgSecret,
@@ -257,6 +257,6 @@ func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waProto.Po
 			EncPayload: ciphertext,
 			EncIv:      iv,
 		},
-		SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
+		SenderTimestampMs: waProto.Int64(time.Now().UnixMilli()),
 	}, nil
 }

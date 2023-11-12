@@ -118,7 +118,7 @@ type SendRequestExtra struct {
 // e.g. for a simple text message, use the Conversation field:
 //
 //	cli.SendMessage(context.Background(), targetJID, &waProto.Message{
-//		Conversation: proto.String("Hello, World!"),
+//		Conversation: waProto.String("Hello, World!"),
 //	})
 //
 // Things like replies, mentioning users and the "forwarded" flag are stored in ContextInfo,
@@ -248,14 +248,14 @@ func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (SendRespon
 // for things such as replies, revocations and reactions.
 func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *waProto.MessageKey {
 	key := &waProto.MessageKey{
-		FromMe:    proto.Bool(true),
-		Id:        proto.String(id),
-		RemoteJid: proto.String(chat.String()),
+		FromMe:    waProto.Bool(true),
+		Id:        waProto.String(id),
+		RemoteJid: waProto.String(chat.String()),
 	}
 	if !sender.IsEmpty() && sender.User != cli.getOwnID().User {
-		key.FromMe = proto.Bool(false)
+		key.FromMe = waProto.Bool(false)
 		if chat.Server != types.DefaultUserServer {
-			key.Participant = proto.String(sender.ToNonAD().String())
+			key.Participant = waProto.String(sender.ToNonAD().String())
 		}
 	}
 	return key
@@ -290,8 +290,8 @@ func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, rea
 	return &waProto.Message{
 		ReactionMessage: &waProto.ReactionMessage{
 			Key:               cli.BuildMessageKey(chat, sender, id),
-			Text:              proto.String(reaction),
-			SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
+			Text:              waProto.String(reaction),
+			SenderTimestampMs: waProto.Int64(time.Now().UnixMilli()),
 		},
 	}
 }
@@ -330,11 +330,11 @@ func (cli *Client) BuildHistorySyncRequest(lastKnownMessageInfo *types.MessageIn
 			PeerDataOperationRequestMessage: &waProto.PeerDataOperationRequestMessage{
 				PeerDataOperationRequestType: waProto.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND.Enum(),
 				HistorySyncOnDemandRequest: &waProto.PeerDataOperationRequestMessage_HistorySyncOnDemandRequest{
-					ChatJid:              proto.String(lastKnownMessageInfo.Chat.String()),
-					OldestMsgId:          proto.String(lastKnownMessageInfo.ID),
-					OldestMsgFromMe:      proto.Bool(lastKnownMessageInfo.IsFromMe),
-					OnDemandMsgCount:     proto.Int32(int32(count)),
-					OldestMsgTimestampMs: proto.Int64(lastKnownMessageInfo.Timestamp.UnixMilli()),
+					ChatJid:              waProto.String(lastKnownMessageInfo.Chat.String()),
+					OldestMsgId:          waProto.String(lastKnownMessageInfo.ID),
+					OldestMsgFromMe:      waProto.Bool(lastKnownMessageInfo.IsFromMe),
+					OnDemandMsgCount:     waProto.Int32(int32(count)),
+					OldestMsgTimestampMs: waProto.Int64(lastKnownMessageInfo.Timestamp.UnixMilli()),
 				},
 			},
 		},
@@ -348,7 +348,7 @@ const EditWindow = 20 * time.Minute
 // The built message can be sent normally using Client.SendMessage.
 //
 //	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildEdit(chat, originalMessageID, &waProto.Message{
-//		Conversation: proto.String("edited message"),
+//		Conversation: waProto.String("edited message"),
 //	})
 func (cli *Client) BuildEdit(chat types.JID, id types.MessageID, newContent *waProto.Message) *waProto.Message {
 	return &waProto.Message{
@@ -356,13 +356,13 @@ func (cli *Client) BuildEdit(chat types.JID, id types.MessageID, newContent *waP
 			Message: &waProto.Message{
 				ProtocolMessage: &waProto.ProtocolMessage{
 					Key: &waProto.MessageKey{
-						FromMe:    proto.Bool(true),
-						Id:        proto.String(id),
-						RemoteJid: proto.String(chat.String()),
+						FromMe:    waProto.Bool(true),
+						Id:        waProto.String(id),
+						RemoteJid: waProto.String(chat.String()),
 					},
 					Type:          waProto.ProtocolMessage_MESSAGE_EDIT.Enum(),
 					EditedMessage: newContent,
-					TimestampMs:   proto.Int64(time.Now().UnixMilli()),
+					TimestampMs:   waProto.Int64(time.Now().UnixMilli()),
 				},
 			},
 		},
@@ -406,7 +406,7 @@ func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (er
 		_, err = cli.SendMessage(context.TODO(), chat, &waProto.Message{
 			ProtocolMessage: &waProto.ProtocolMessage{
 				Type:                waProto.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
-				EphemeralExpiration: proto.Uint32(uint32(timer.Seconds())),
+				EphemeralExpiration: waProto.Uint32(uint32(timer.Seconds())),
 			},
 		})
 	case types.GroupServer:
@@ -509,7 +509,7 @@ func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.
 	}
 	skdMessage := &waProto.Message{
 		SenderKeyDistributionMessage: &waProto.SenderKeyDistributionMessage{
-			GroupId:                             proto.String(to.String()),
+			GroupId:                             waProto.String(to.String()),
 			AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),
 		},
 	}
@@ -848,7 +848,7 @@ func marshalMessage(to types.JID, message *waProto.Message) (plaintext, dsmPlain
 	if to.Server != types.GroupServer && to.Server != types.NewsletterServer {
 		dsmPlaintext, err = proto.Marshal(&waProto.Message{
 			DeviceSentMessage: &waProto.DeviceSentMessage{
-				DestinationJid: proto.String(to.String()),
+				DestinationJid: waProto.String(to.String()),
 				Message:        message,
 			},
 		})

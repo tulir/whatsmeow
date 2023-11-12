@@ -105,15 +105,15 @@ var BaseClientPayload = &waProto.ClientPayload{
 		Platform:       waProto.ClientPayload_UserAgent_WEB.Enum(),
 		ReleaseChannel: waProto.ClientPayload_UserAgent_RELEASE.Enum(),
 		AppVersion:     waVersion.ProtoAppVersion(),
-		Mcc:            proto.String("000"),
-		Mnc:            proto.String("000"),
-		OsVersion:      proto.String("0.1.0"),
-		Manufacturer:   proto.String(""),
-		Device:         proto.String("Desktop"),
-		OsBuildNumber:  proto.String("0.1.0"),
+		Mcc:            waProto.String("000"),
+		Mnc:            waProto.String("000"),
+		OsVersion:      waProto.String("0.1.0"),
+		Manufacturer:   waProto.String(""),
+		Device:         waProto.String("Desktop"),
+		OsBuildNumber:  waProto.String("0.1.0"),
 
-		LocaleLanguageIso6391:       proto.String("en"),
-		LocaleCountryIso31661Alpha2: proto.String("en"),
+		LocaleLanguageIso6391:       waProto.String("en"),
+		LocaleCountryIso31661Alpha2: waProto.String("en"),
 	},
 	WebInfo: &waProto.ClientPayload_WebInfo{
 		WebSubPlatform: waProto.ClientPayload_WebInfo_WEB_BROWSER.Enum(),
@@ -123,14 +123,14 @@ var BaseClientPayload = &waProto.ClientPayload{
 }
 
 var DeviceProps = &waProto.DeviceProps{
-	Os: proto.String("whatsmeow"),
+	Os: waProto.String("whatsmeow"),
 	Version: &waProto.DeviceProps_AppVersion{
-		Primary:   proto.Uint32(0),
-		Secondary: proto.Uint32(1),
-		Tertiary:  proto.Uint32(0),
+		Primary:   waProto.Uint32(0),
+		Secondary: waProto.Uint32(1),
+		Tertiary:  waProto.Uint32(0),
 	},
 	PlatformType:    waProto.DeviceProps_UNKNOWN.Enum(),
-	RequireFullSync: proto.Bool(false),
+	RequireFullSync: waProto.Bool(false),
 }
 
 func SetOSInfo(name string, version [3]uint32) {
@@ -138,7 +138,7 @@ func SetOSInfo(name string, version [3]uint32) {
 	DeviceProps.Version.Primary = &version[0]
 	DeviceProps.Version.Secondary = &version[1]
 	DeviceProps.Version.Tertiary = &version[2]
-	BaseClientPayload.UserAgent.OsVersion = proto.String(fmt.Sprintf("%d.%d.%d", version[0], version[1], version[2]))
+	BaseClientPayload.UserAgent.OsVersion = waProto.String(fmt.Sprintf("%d.%d.%d", version[0], version[1], version[2]))
 	BaseClientPayload.UserAgent.OsBuildNumber = BaseClientPayload.UserAgent.OsVersion
 }
 
@@ -159,15 +159,15 @@ func (device *Device) getRegistrationPayload() *waProto.ClientPayload {
 		BuildHash:   waVersionHash[:],
 		DeviceProps: deviceProps,
 	}
-	payload.Passive = proto.Bool(false)
+	payload.Passive = waProto.Bool(false)
 	return payload
 }
 
 func (device *Device) getLoginPayload() *waProto.ClientPayload {
 	payload := proto.Clone(BaseClientPayload).(*waProto.ClientPayload)
-	payload.Username = proto.Uint64(device.ID.UserInt())
-	payload.Device = proto.Uint32(uint32(device.ID.Device))
-	payload.Passive = proto.Bool(true)
+	payload.Username = waProto.Uint64(device.ID.UserInt())
+	payload.Device = waProto.Uint32(uint32(device.ID.Device))
+	payload.Passive = waProto.Bool(true)
 	return payload
 }
 

@@ -44,8 +44,8 @@ type UploadResponse struct {
 //	// handle error
 //
 //	imageMsg := &waProto.ImageMessage{
-//		Caption:  proto.String("Hello, world!"),
-//		Mimetype: proto.String("image/png"), // replace this with the actual mime type
+//		Caption:  waProto.String("Hello, world!"),
+//		Mimetype: waProto.String("image/png"), // replace this with the actual mime type
 //		// you can also optionally add other fields like ContextInfo and JpegThumbnail here
 //
 //		Url:           &resp.URL,
