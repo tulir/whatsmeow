@@ -139,13 +139,15 @@ func (cli *Client) sendIQAsync(query infoQuery) (<-chan *waBinary.Node, error) {
 	return ch, err
 }
 
+const defaultRequestTimeout = 75 * time.Second
+
 func (cli *Client) sendIQ(query infoQuery) (*waBinary.Node, error) {
 	resChan, data, err := cli.sendIQAsyncAndGetData(&query)
 	if err != nil {
 		return nil, err
 	}
 	if query.Timeout == 0 {
-		query.Timeout = 75 * time.Second
+		query.Timeout = defaultRequestTimeout
 	}
 	if query.Context == nil {
 		query.Context = context.Background()
