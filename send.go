@@ -104,6 +104,10 @@ type SendRequestExtra struct {
 	ID types.MessageID
 	// Should the message be sent as a peer message (protocol messages to your own devices, e.g. app state key requests)
 	Peer bool
+	// A timeout for the send request. Unlike timeouts using the context parameter, this only applies
+	// to the actual response waiting and not preparing/encrypting the message.
+	// Defaults to 75 seconds. The timeout can be disabled by using a negative value.
+	Timeout time.Duration
 }
 
 // SendMessage sends the given message.
@@ -148,6 +152,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		return
 	}
 
+	if req.Timeout == 0 {
+		req.Timeout = defaultRequestTimeout
+	}
 	if len(req.ID) == 0 {
 		req.ID = cli.GenerateMessageID()
 	}
@@ -202,9 +209,20 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		return
 	}
 	var respNode *waBinary.Node
+	var timeoutChan <-chan time.Time
+	if req.Timeout > 0 {
+		timeoutChan = time.After(req.Timeout)
+	} else {
+		timeoutChan = make(<-chan time.Time)
+	}
 	select {
 	case respNode = <-respChan:
+	case <-timeoutChan:
+		cli.cancelResponse(req.ID, respChan)
+		err = ErrMessageTimedOut
+		return
 	case <-ctx.Done():
+		cli.cancelResponse(req.ID, respChan)
 		err = ctx.Err()
 		return
 	}
