@@ -266,8 +266,8 @@ func (cli *Client) closeSocketWaitChan() {
 	cli.socketLock.Unlock()
 }
 
-func (cli *Client) getOwnID() types.JID {
-	id := cli.Store.ID
+func (cli *Client) getOwnJID() types.JID {
+	id := cli.Store.JID
 	if id == nil {
 		return types.EmptyJID
 	}
@@ -357,7 +357,7 @@ func (cli *Client) isExpectedDisconnect() bool {
 }
 
 func (cli *Client) autoReconnect() {
-	if !cli.EnableAutoReconnect || cli.Store.ID == nil {
+	if !cli.EnableAutoReconnect || cli.Store.JID == nil {
 		return
 	}
 	for {
@@ -416,7 +416,7 @@ func (cli *Client) unlockedDisconnect() {
 // Note that this will not emit any events. The LoggedOut event is only used for external logouts
 // (triggered by the user from the main device or by WhatsApp servers).
 func (cli *Client) Logout() error {
-	ownID := cli.getOwnID()
+	ownID := cli.getOwnJID()
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
 	}
@@ -663,7 +663,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
 	if info.IsFromMe {
-		info.Sender = cli.getOwnID().ToNonAD()
+		info.Sender = cli.getOwnJID().ToNonAD()
 		if info.Sender.IsEmpty() {
 			return nil, ErrNotLoggedIn
 		}

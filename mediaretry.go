@@ -78,7 +78,7 @@ func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []
 	if err != nil {
 		return fmt.Errorf("failed to prepare encrypted retry receipt: %w", err)
 	}
-	ownID := cli.getOwnID().ToNonAD()
+	ownID := cli.getOwnJID().ToNonAD()
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
 	}

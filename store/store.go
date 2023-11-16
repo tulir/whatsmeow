@@ -133,7 +133,7 @@ type Device struct {
 	RegistrationID uint32
 	AdvSecretKey   []byte
 
-	ID           *types.JID
+	JID          *types.JID
 	Account      *waProto.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
@@ -172,6 +172,6 @@ func (device *Device) Delete() error {
 	if err != nil {
 		return err
 	}
-	device.ID = nil
+	device.JID = nil
 	return nil
 }

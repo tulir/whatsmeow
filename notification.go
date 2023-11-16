@@ -136,7 +136,7 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 }
 
 func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
-	ownID := cli.getOwnID().ToNonAD()
+	ownID := cli.getOwnJID().ToNonAD()
 	if ownID.IsEmpty() {
 		cli.Log.Debugf("Ignoring own device change notification, session was deleted")
 		return
@@ -197,7 +197,7 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 		case "picture":
 			cli.dispatchEvent(&events.Picture{
 				Timestamp: node.AttrGetter().UnixTime("t"),
-				JID:       cli.getOwnID().ToNonAD(),
+				JID:       cli.getOwnJID().ToNonAD(),
 			})
 		case "blocklist":
 			cli.handleBlocklist(&child)
@@ -208,7 +208,7 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 }
 
 func (cli *Client) handlePrivacyTokenNotification(node *waBinary.Node) {
-	ownID := cli.getOwnID().ToNonAD()
+	ownID := cli.getOwnJID().ToNonAD()
 	if ownID.IsEmpty() {
 		cli.Log.Debugf("Ignoring privacy token notification, session was deleted")
 		return

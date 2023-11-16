@@ -118,7 +118,7 @@ func (cli *Client) SubscribePresence(jid types.JID) error {
 //
 // The media parameter can be set to indicate the user is recording media (like a voice message) rather than typing a text message.
 func (cli *Client) SendChatPresence(jid types.JID, state types.ChatPresence, media types.ChatPresenceMedia) error {
-	ownID := cli.getOwnID()
+	ownID := cli.getOwnJID()
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
 	}

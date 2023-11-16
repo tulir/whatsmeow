@@ -238,7 +238,7 @@ func handleCmd(cmd string, args []string) {
 		cli.DangerousInternals().RequestAppStateKeys(context.Background(), keyIDs)
 	case "unavailable-request":
 		if len(args) < 3 {
-			log.Errorf("Usage: unavailable-request <chat JID> <sender JID> <message ID>")
+			log.Errorf("Usage: unavailable-request <chat JID> <sender JID> <message JID>")
 			return
 		}
 		chat, ok := parseJID(args[0])
@@ -251,7 +251,7 @@ func handleCmd(cmd string, args []string) {
 		}
 		resp, err := cli.SendMessage(
 			context.Background(),
-			cli.Store.ID.ToNonAD(),
+			cli.Store.JID.ToNonAD(),
 			cli.BuildUnavailableMessageRequest(chat, sender, args[2]),
 			whatsmeow.SendRequestExtra{Peer: true},
 		)
@@ -428,7 +428,7 @@ func handleCmd(cmd string, args []string) {
 		if len(args) > 2 {
 			before, err = strconv.Atoi(args[2])
 			if err != nil {
-				log.Errorf("Invalid message ID: %v", err)
+				log.Errorf("Invalid message JID: %v", err)
 				return
 			}
 		}
@@ -455,7 +455,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "getavatar":
 		if len(args) < 1 {
-			log.Errorf("Usage: getavatar <jid> [existing ID] [--preview] [--community]")
+			log.Errorf("Usage: getavatar <jid> [existing JID] [--preview] [--community]")
 			return
 		}
 		jid, ok := parseJID(args[0])
@@ -482,7 +482,7 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Failed to get avatar: %v", err)
 		} else if pic != nil {
-			log.Infof("Got avatar ID %s: %s", pic.ID, pic.URL)
+			log.Infof("Got avatar JID %s: %s", pic.ID, pic.URL)
 		} else {
 			log.Infof("No avatar found")
 		}
@@ -671,7 +671,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "react":
 		if len(args) < 3 {
-			log.Errorf("Usage: react <jid> <message ID> <reaction>")
+			log.Errorf("Usage: react <jid> <message JID> <reaction>")
 			return
 		}
 		recipient, ok := parseJID(args[0])
@@ -707,7 +707,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "revoke":
 		if len(args) < 2 {
-			log.Errorf("Usage: revoke <jid> <message ID>")
+			log.Errorf("Usage: revoke <jid> <message JID>")
 			return
 		}
 		recipient, ok := parseJID(args[0])

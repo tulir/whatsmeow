@@ -91,7 +91,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 			cli.Disconnect()
 			cli.dispatchEvent(&events.PairError{ID: jid, BusinessName: businessName, Platform: platform, Error: err})
 		} else {
-			cli.Log.Infof("Successfully paired %s", cli.Store.ID)
+			cli.Log.Infof("Successfully paired %s", cli.Store.JID)
 			cli.dispatchEvent(&events.PairSuccess{ID: jid, BusinessName: businessName, Platform: platform})
 		}
 	}()
@@ -152,7 +152,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return &PairProtoError{"failed to marshal self-signed device identity", err}
 	}
 
-	cli.Store.ID = &jid
+	cli.Store.JID = &jid
 	cli.Store.BusinessName = businessName
 	cli.Store.Platform = platform
 	err = cli.Store.Save()

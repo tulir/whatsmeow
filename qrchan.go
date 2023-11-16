@@ -161,7 +161,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, error) {
 	if cli.IsConnected() {
 		return nil, ErrQRAlreadyConnected
-	} else if cli.Store.ID != nil {
+	} else if cli.Store.JID != nil {
 		return nil, ErrQRStoreContainsID
 	}
 	ch := make(chan QRChannelItem, 8)

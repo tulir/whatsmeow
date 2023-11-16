@@ -285,6 +285,11 @@ func (evt *Message) UnwrapRaw() *Message {
 		evt.Message = evt.Message.GetEditedMessage().GetMessage()
 		evt.IsEdit = true
 	}
+	if evt.Message.GetViewOnceMessageV2Extension() != nil {
+		evt.Message = evt.Message.GetViewOnceMessageV2Extension().GetMessage()
+		evt.IsViewOnce = true
+		evt.IsViewOnceV2 = true
+	}
 	return evt
 }
 

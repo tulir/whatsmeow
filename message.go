@@ -55,7 +55,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 }
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
-	clientID := cli.getOwnID()
+	clientID := cli.getOwnJID()
 	if clientID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
@@ -486,7 +486,7 @@ func (cli *Client) storeMessageSecret(info *types.MessageInfo, msg *waProto.Mess
 func (cli *Client) storeHistoricalMessageSecrets(conversations []*waProto.Conversation) {
 	var secrets []store.MessageSecretInsert
 	var privacyTokens []store.PrivacyToken
-	ownID := cli.getOwnID().ToNonAD()
+	ownID := cli.getOwnJID().ToNonAD()
 	if ownID.IsEmpty() {
 		return
 	}
@@ -558,7 +558,7 @@ func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.
 }
 
 func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
-	clientID := cli.Store.ID
+	clientID := cli.Store.JID
 	if len(id) == 0 || clientID == nil {
 		return
 	}

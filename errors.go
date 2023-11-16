@@ -25,7 +25,7 @@ var (
 	ErrAlreadyConnected = errors.New("websocket is already connected")
 
 	ErrQRAlreadyConnected = errors.New("GetQRChannel must be called before connecting")
-	ErrQRStoreContainsID  = errors.New("GetQRChannel can only be called when there's no user ID in the client's Store")
+	ErrQRStoreContainsID  = errors.New("GetQRChannel can only be called when there's no user JID in the client's Store")
 
 	ErrNoPushName = errors.New("can't send presence without PushName set")
 

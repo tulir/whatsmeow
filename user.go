@@ -374,7 +374,7 @@ func (cli *Client) handleHistoricalPushNames(names []*waProto.Pushname) {
 		}
 		var changed bool
 		if jid, err := types.ParseJID(user.GetId()); err != nil {
-			cli.Log.Warnf("Failed to parse user ID '%s' in push name history sync: %v", user.GetId(), err)
+			cli.Log.Warnf("Failed to parse user JID '%s' in push name history sync: %v", user.GetId(), err)
 		} else if changed, _, err = cli.Store.Contacts.PutPushName(jid, user.GetPushname()); err != nil {
 			cli.Log.Warnf("Failed to store push name of %s from history sync: %v", err)
 		} else if changed {

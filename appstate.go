@@ -283,7 +283,7 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 			},
 		},
 	}
-	ownID := cli.getOwnID().ToNonAD()
+	ownID := cli.getOwnJID().ToNonAD()
 	if ownID.IsEmpty() || len(debugKeyIDs) == 0 {
 		return
 	}

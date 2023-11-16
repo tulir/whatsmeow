@@ -31,7 +31,7 @@ func (cli *Client) getBroadcastListParticipants(ctx context.Context, jid types.J
 			appendResult(nil, ErrBroadcastListUnsupported)
 			return
 		}
-		ownID := cli.getOwnID().ToNonAD()
+		ownID := cli.getOwnJID().ToNonAD()
 		if ownID.IsEmpty() {
 			appendResult(nil, ErrNotLoggedIn)
 			return

@@ -120,7 +120,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		return nil
 	}
 
-	ownID := cli.getOwnID()
+	ownID := cli.getOwnJID()
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
 	}
@@ -253,7 +253,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 	}
 	_, err := cli.SendMessage(
 		ctx,
-		cli.getOwnID().ToNonAD(),
+		cli.getOwnJID().ToNonAD(),
 		cli.BuildUnavailableMessageRequest(info.Chat, info.Sender, info.ID),
 		SendRequestExtra{Peer: true},
 	)

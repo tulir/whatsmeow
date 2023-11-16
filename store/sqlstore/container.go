@@ -106,7 +106,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	var account waProto.ADVSignedDeviceIdentity
 
 	err := row.Scan(
-		&device.ID, &device.RegistrationID, &noisePriv, &identityPriv,
+		&device.JID, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
 		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
 		&device.Platform, &device.BusinessName, &device.PushName)
@@ -122,7 +122,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.SignedPreKey.Signature = (*[64]byte)(preKeySig)
 	device.Account = &account
 
-	innerStore := NewSQLStore(c, *device.ID)
+	innerStore := NewSQLStore(c, *device.JID)
 	device.Identities = innerStore
 	device.Sessions = innerStore
 	device.PreKeys = innerStore
@@ -223,17 +223,17 @@ var ErrDeviceIDMustBeSet = errors.New("device JID must be known before accessing
 // PutDevice stores the given device in this database. This should be called through Device.Save()
 // (which usually doesn't need to be called manually, as the library does that automatically when relevant).
 func (c *Container) PutDevice(device *store.Device) error {
-	if device.ID == nil {
+	if device.JID == nil {
 		return ErrDeviceIDMustBeSet
 	}
 	_, err := c.db.Exec(insertDeviceQuery,
-		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
+		device.JID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
 		device.Platform, device.BusinessName, device.PushName)
 
 	if !device.Initialized {
-		innerStore := NewSQLStore(c, *device.ID)
+		innerStore := NewSQLStore(c, *device.JID)
 		device.Identities = innerStore
 		device.Sessions = innerStore
 		device.PreKeys = innerStore
@@ -251,9 +251,9 @@ func (c *Container) PutDevice(device *store.Device) error {
 
 // DeleteDevice deletes the given device from this database. This should be called through Device.Delete()
 func (c *Container) DeleteDevice(store *store.Device) error {
-	if store.ID == nil {
+	if store.JID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(deleteDeviceQuery, store.ID.String())
+	_, err := c.db.Exec(deleteDeviceQuery, store.JID.String())
 	return err
 }

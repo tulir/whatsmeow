@@ -71,7 +71,7 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 }
 
 func (cli *Client) RejectCall(callID string, callFrom types.JID, messageID types.MessageID) error {
-	clientID := cli.getOwnID()
+	clientID := cli.getOwnJID()
 	if clientID.IsEmpty() {
 		return ErrNotLoggedIn
 	}

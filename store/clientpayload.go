@@ -165,14 +165,14 @@ func (device *Device) getRegistrationPayload() *waProto.ClientPayload {
 
 func (device *Device) getLoginPayload() *waProto.ClientPayload {
 	payload := proto.Clone(BaseClientPayload).(*waProto.ClientPayload)
-	payload.Username = waProto.Uint64(device.ID.UserInt())
-	payload.Device = waProto.Uint32(uint32(device.ID.Device))
+	payload.Username = waProto.Uint64(device.JID.UserInt())
+	payload.Device = waProto.Uint32(uint32(device.JID.Device))
 	payload.Passive = waProto.Bool(true)
 	return payload
 }
 
 func (device *Device) GetClientPayload() *waProto.ClientPayload {
-	if device.ID != nil {
+	if device.JID != nil {
 		return device.getLoginPayload()
 	} else {
 		return device.getRegistrationPayload()

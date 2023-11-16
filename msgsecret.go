@@ -94,7 +94,7 @@ func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, 
 }
 
 func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
-	ownID := cli.getOwnID()
+	ownID := cli.getOwnJID()
 	if ownID.IsEmpty() {
 		return nil, nil, ErrNotLoggedIn
 	}

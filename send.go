@@ -40,7 +40,7 @@ import (
 func (cli *Client) GenerateMessageID() types.MessageID {
 	data := make([]byte, 8, 8+20+16)
 	binary.BigEndian.PutUint64(data, uint64(time.Now().Unix()))
-	ownID := cli.getOwnID()
+	ownID := cli.getOwnJID()
 	if !ownID.IsEmpty() {
 		data = append(data, []byte(ownID.User)...)
 		data = append(data, []byte("@c.us")...)
@@ -142,7 +142,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		err = ErrRecipientADJID
 		return
 	}
-	ownID := cli.getOwnID()
+	ownID := cli.getOwnJID()
 	if ownID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
@@ -250,7 +250,7 @@ func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *
 		Id:        waProto.String(id),
 		RemoteJid: waProto.String(chat.String()),
 	}
-	if !sender.IsEmpty() && sender.User != cli.getOwnID().User {
+	if !sender.IsEmpty() && sender.User != cli.getOwnJID().User {
 		key.FromMe = waProto.Bool(false)
 		if chat.Server != types.DefaultUserServer {
 			key.Participant = waProto.String(sender.ToNonAD().String())
