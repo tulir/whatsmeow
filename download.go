@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -303,7 +304,9 @@ func (cli *Client) downloadMedia(url string) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, DownloadHTTPError{Response: resp}
 	}
-	return io.ReadAll(resp.Body)
+	buf := &bytes.Buffer{}
+	_, err = io.Copy(buf, resp.Body)
+	return buf.Bytes(), err
 }
 
 func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
