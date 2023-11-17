@@ -191,6 +191,7 @@ message ImageMessage {
     optional bytes thumbnailSha256 = 27;
     optional bytes thumbnailEncSha256 = 28;
     optional string staticUrl = 29;
+    repeated InteractiveAnnotation annotations = 30;
 }
 
 message HistorySyncNotification {
@@ -805,6 +806,11 @@ message ForwardedNewsletterMessageInfo {
     optional string newsletterName = 3;
 }
 
+message BotSuggestedPromptMetadata {
+    repeated string suggestedPrompts = 1;
+    optional uint32 selectedPromptIndex = 2;
+}
+
 message BotPluginMetadata {
     enum SearchProvider {
         BING = 1;
@@ -826,6 +832,7 @@ message BotMetadata {
     optional BotAvatarMetadata avatarMetadata = 1;
     optional string personaId = 2;
     optional BotPluginMetadata pluginMetadata = 3;
+    optional BotSuggestedPromptMetadata suggestedPromptMetadata = 4;
 }
 
 message BotAvatarMetadata {
@@ -1018,6 +1025,7 @@ message VideoMessage {
     optional bytes thumbnailSha256 = 22;
     optional bytes thumbnailEncSha256 = 23;
     optional string staticUrl = 24;
+    repeated InteractiveAnnotation annotations = 25;
 }
 
 message TemplateMessage {
@@ -1506,6 +1514,12 @@ message InvoiceMessage {
 }
 
 message InteractiveResponseMessage {
+    message NativeFlowResponseMessage {
+        optional string name = 1;
+        optional string paramsJson = 2;
+        optional int32 version = 3;
+    }
+    
     message Body {
         enum Format {
             DEFAULT = 0;
@@ -1513,12 +1527,6 @@ message InteractiveResponseMessage {
         }
         optional string text = 1;
         optional Format format = 2;
-    }
-    
-    message NativeFlowResponseMessage {
-        optional string name = 1;
-        optional string paramsJson = 2;
-        optional int32 version = 3;
     }
     
     optional Body body = 1;
@@ -1777,6 +1785,7 @@ message SyncdPatch {
     optional KeyId keyId = 6;
     optional ExitCode exitCode = 7;
     optional uint32 deviceIndex = 8;
+    optional bytes clientDebugData = 9;
 }
 
 message SyncdMutations {
@@ -1995,7 +2004,7 @@ message LocaleSetting {
 }
 
 message LabelReorderingAction {
-    repeated int32 data = 1;
+    repeated int32 sortedLabelIds = 1;
 }
 
 message LabelEditAction {
@@ -2003,6 +2012,7 @@ message LabelEditAction {
     optional int32 color = 2;
     optional int32 predefinedId = 3;
     optional bool deleted = 4;
+    optional int32 orderIndex = 5;
 }
 
 message LabelAssociationAction {
@@ -2035,6 +2045,7 @@ message ContactAction {
     optional string fullName = 1;
     optional string firstName = 2;
     optional string lidJid = 3;
+    optional bool saveOnPrimaryAddressbook = 4;
 }
 
 message ClearChatAction {
@@ -2087,8 +2098,8 @@ message RecentEmojiWeight {
 message PatchDebugData {
     optional bytes currentLthash = 1;
     optional bytes newLthash = 2;
-    optional uint64 patchVersion = 3;
-    optional string collectionName = 4;
+    optional bytes patchVersion = 3;
+    optional bytes collectionName = 4;
     optional bytes firstTwoBytesFromAHashOfSnapshotMacKey = 5;
 }
 
@@ -2633,6 +2644,8 @@ message WebMessageInfo {
         SUPPORT_AI_EDUCATION = 196;
         BIZ_BOT_3P_MESSAGING_ENABLED = 197;
         REMINDER_SETUP_MESSAGE = 198;
+        REMINDER_SENT_MESSAGE = 199;
+        REMINDER_CANCEL_MESSAGE = 200;
     }
     enum Status {
         ERROR = 0;
@@ -2697,6 +2710,9 @@ message WebMessageInfo {
     optional bool isGroupHistoryMessage = 57;
     optional string botMessageInvokerJid = 58;
     optional CommentMetadata commentMetadata = 59;
+    repeated EventResponse eventResponses = 61;
+    optional ReportingTokenInfo reportingTokenInfo = 62;
+    optional uint64 newsletterServerId = 63;
 }
 
 message WebFeatures {
@@ -2765,6 +2781,10 @@ message UserReceipt {
 message StatusPSA {
     required uint64 campaignId = 44;
     optional uint64 campaignExpirationTimestamp = 45;
+}
+
+message ReportingTokenInfo {
+    optional bytes reportingTag = 1;
 }
 
 message Reaction {
@@ -2900,6 +2920,13 @@ message KeepInChat {
     optional string deviceJid = 4;
     optional int64 clientTimestampMs = 5;
     optional int64 serverTimestampMs = 6;
+}
+
+message EventResponse {
+    optional MessageKey eventResponseMessageKey = 1;
+    optional int64 timestampMs = 2;
+    optional EventResponseMessage eventResponseMessage = 3;
+    optional bool unread = 4;
 }
 
 message CommentMetadata {
