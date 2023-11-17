@@ -220,6 +220,14 @@ func (c *Container) NewDevice() *store.Device {
 // ErrDeviceIDMustBeSet is the error returned by PutDevice if you try to save a device before knowing its JID.
 var ErrDeviceIDMustBeSet = errors.New("device JID must be known before accessing database")
 
+// Close will close the container's database
+func (c *Container) Close() error {
+	if c != nil && c.db != nil {
+		return c.db.Close()
+	}
+	return nil
+}
+
 // PutDevice stores the given device in this database. This should be called through Device.Save()
 // (which usually doesn't need to be called manually, as the library does that automatically when relevant).
 func (c *Container) PutDevice(device *store.Device) error {
