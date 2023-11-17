@@ -232,6 +232,9 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 			FromFullSync: fullSync,
 		}
 	case appstate.IndexLabelAssociationChat:
+		if len(mutation.Index) < 3 {
+			return
+		}
 		jid, _ = types.ParseJID(mutation.Index[2])
 		act := mutation.Action.GetLabelAssociationAction()
 		eventToDispatch = &events.LabelAssociationChat{
@@ -242,14 +245,18 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 			FromFullSync: fullSync,
 		}
 	case appstate.IndexLabelAssociationMessage:
+		if len(mutation.Index) < 6 {
+			return
+		}
 		jid, _ = types.ParseJID(mutation.Index[2])
 		act := mutation.Action.GetLabelAssociationAction()
 		eventToDispatch = &events.LabelAssociationMessage{
-			JID:       jid,
-			Timestamp: ts,
-			LabelID:   mutation.Index[1],
-			MessageID: mutation.Index[3],
-			Action:    act, FromFullSync: fullSync,
+			JID:          jid,
+			Timestamp:    ts,
+			LabelID:      mutation.Index[1],
+			MessageID:    mutation.Index[3],
+			Action:       act,
+			FromFullSync: fullSync,
 		}
 	}
 	if storeUpdateError != nil {
