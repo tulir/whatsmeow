@@ -37,18 +37,21 @@ var AllPatchNames = [...]WAPatchName{WAPatchCriticalBlock, WAPatchCriticalUnbloc
 
 // Constants for the first part of app state indexes.
 const (
-	IndexMute                  = "mute"
-	IndexPin                   = "pin_v1"
-	IndexArchive               = "archive"
-	IndexContact               = "contact"
-	IndexClearChat             = "clearChat"
-	IndexDeleteChat            = "deleteChat"
-	IndexStar                  = "star"
-	IndexDeleteMessageForMe    = "deleteMessageForMe"
-	IndexMarkChatAsRead        = "markChatAsRead"
-	IndexSettingPushName       = "setting_pushName"
-	IndexSettingUnarchiveChats = "setting_unarchiveChats"
-	IndexUserStatusMute        = "userStatusMute"
+	IndexMute                    = "mute"
+	IndexPin                     = "pin_v1"
+	IndexArchive                 = "archive"
+	IndexContact                 = "contact"
+	IndexClearChat               = "clearChat"
+	IndexDeleteChat              = "deleteChat"
+	IndexStar                    = "star"
+	IndexDeleteMessageForMe      = "deleteMessageForMe"
+	IndexMarkChatAsRead          = "markChatAsRead"
+	IndexSettingPushName         = "setting_pushName"
+	IndexSettingUnarchiveChats   = "setting_unarchiveChats"
+	IndexUserStatusMute          = "userStatusMute"
+	IndexLabelEdit               = "label_edit"
+	IndexLabelAssociationChat    = "label_jid"
+	IndexLabelAssociationMessage = "label_message"
 )
 
 type Processor struct {

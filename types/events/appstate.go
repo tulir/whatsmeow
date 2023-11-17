@@ -142,6 +142,36 @@ type UserStatusMute struct {
 	FromFullSync bool                          // Whether the action is emitted because of a fullSync
 }
 
+// LabelEdit is emitted when a label is edited from any device.
+type LabelEdit struct {
+	Timestamp time.Time // The time when the label was edited.
+	LabelID   string    // The label id which was edited.
+
+	Action       *waProto.LabelEditAction // The new label info.
+	FromFullSync bool                     // Whether the action is emitted because of a fullSync
+}
+
+// LabelAssociationChat is emitted when a chat is labeled or unlabeled from any device.
+type LabelAssociationChat struct {
+	JID       types.JID // The chat which was labeled or unlabeled.
+	Timestamp time.Time // The time when the (un)labeling happened.
+	LabelID   string    // The label id which was added or removed.
+
+	Action       *waProto.LabelAssociationAction // The current label status of the chat.
+	FromFullSync bool                            // Whether the action is emitted because of a fullSync
+}
+
+// LabelAssociationMessage is emitted when a message is labeled or unlabeled from any device.
+type LabelAssociationMessage struct {
+	JID       types.JID // The chat which was labeled or unlabeled.
+	Timestamp time.Time // The time when the (un)labeling happened.
+	LabelID   string    // The label id which was added or removed.
+	MessageID string    // The message id which was labeled or unlabeled.
+
+	Action       *waProto.LabelAssociationAction // The current label status of the message.
+	FromFullSync bool                            // Whether the action is emitted because of a fullSync
+}
+
 // AppState is emitted directly for new data received from app state syncing.
 // You should generally use the higher-level events like events.Contact and events.Mute.
 type AppState struct {
