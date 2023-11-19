@@ -356,6 +356,15 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Node sent")
 		}
+	case "listnewsletters":
+		newsletters, err := cli.GetSubscribedNewsletters()
+		if err != nil {
+			log.Errorf("Failed to get subscribed newsletters: %v", err)
+			return
+		}
+		for _, newsletter := range newsletters {
+			log.Infof("* %s: %s", newsletter.ID, newsletter.ThreadMeta.Name.Text)
+		}
 	case "getnewsletter":
 		jid, ok := parseJID(args[0])
 		if !ok {
