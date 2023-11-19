@@ -123,6 +123,74 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 	return result
 }
 
+func newLabelChatMutation(target types.JID, labelID string, labeled bool) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexLabelAssociationChat, labelID, target.String()},
+		Version: 3,
+		Value: &waProto.SyncActionValue{
+			LabelAssociationAction: &waProto.LabelAssociationAction{
+				Labeled: &labeled,
+			},
+		},
+	}
+}
+
+// BuildLabelChat builds an app state patch for labeling or un(labeling) a chat.
+func BuildLabelChat(target types.JID, labelID string, labeled bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegular,
+		Mutations: []MutationInfo{
+			newLabelChatMutation(target, labelID, labeled),
+		},
+	}
+}
+
+func newLabelMessageMutation(target types.JID, labelID, messageID string, labeled bool) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexLabelAssociationMessage, labelID, target.String(), messageID, "0", "0"},
+		Version: 3,
+		Value: &waProto.SyncActionValue{
+			LabelAssociationAction: &waProto.LabelAssociationAction{
+				Labeled: &labeled,
+			},
+		},
+	}
+}
+
+// BuildLabelMessage builds an app state patch for labeling or un(labeling) a message.
+func BuildLabelMessage(target types.JID, labelID, messageID string, labeled bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegular,
+		Mutations: []MutationInfo{
+			newLabelMessageMutation(target, labelID, messageID, labeled),
+		},
+	}
+}
+
+func newLabelEditMutation(labelID string, labelName string, labelColor int32, deleted bool) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexLabelEdit, labelID},
+		Version: 3,
+		Value: &waProto.SyncActionValue{
+			LabelEditAction: &waProto.LabelEditAction{
+				Name:    &labelName,
+				Color:   &labelColor,
+				Deleted: &deleted,
+			},
+		},
+	}
+}
+
+// BuildLabelEdit builds an app state patch for editing a label.
+func BuildLabelEdit(labelID string, labelName string, labelColor int32, deleted bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegular,
+		Mutations: []MutationInfo{
+			newLabelEditMutation(labelID, labelName, labelColor, deleted),
+		},
+	}
+}
+
 func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo PatchInfo) ([]byte, error) {
 	keys, err := proc.getAppStateKey(keyID)
 	if err != nil {
