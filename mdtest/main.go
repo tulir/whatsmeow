@@ -725,7 +725,12 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to read %s: %v", args[0], err)
 			return
 		}
-		uploaded, err := cli.Upload(context.Background(), data, whatsmeow.MediaImage)
+		var uploaded whatsmeow.UploadResponse
+		if recipient.Server == types.NewsletterServer {
+			uploaded, err = cli.UploadNewsletter(context.Background(), data, whatsmeow.MediaImage)
+		} else {
+			uploaded, err = cli.Upload(context.Background(), data, whatsmeow.MediaImage)
+		}
 		if err != nil {
 			log.Errorf("Failed to upload file: %v", err)
 			return
@@ -740,7 +745,9 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    proto.Uint64(uint64(len(data))),
 		}}
-		resp, err := cli.SendMessage(context.Background(), recipient, msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg, whatsmeow.SendRequestExtra{
+			MediaHandle: uploaded.Handle,
+		})
 		if err != nil {
 			log.Errorf("Error sending image message: %v", err)
 		} else {
