@@ -629,6 +629,20 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Failed to set disappearing timer: %v", err)
 		}
+	case "setdefaultdisappeartimer":
+		if len(args) < 1 {
+			log.Errorf("Usage: setdefaultdisappeartimer <days>")
+			return
+		}
+		days, err := strconv.Atoi(args[0])
+		if err != nil {
+			log.Errorf("Invalid duration: %v", err)
+			return
+		}
+		err = cli.SetDefaultDisappearingTimer(time.Duration(days) * 24 * time.Hour)
+		if err != nil {
+			log.Errorf("Failed to set default disappearing timer: %v", err)
+		}
 	case "send":
 		if len(args) < 2 {
 			log.Errorf("Usage: send <jid> <text>")

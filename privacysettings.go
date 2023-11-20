@@ -7,6 +7,9 @@
 package whatsmeow
 
 import (
+	"strconv"
+	"time"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -92,6 +95,22 @@ func (cli *Client) SetPrivacySetting(name types.PrivacySettingType, value types.
 		settings.CallAdd = value
 	}
 	cli.privacySettingsCache.Store(&settings)
+	return
+}
+
+// SetDefaultDisappearingTimer will set the default disappearing message timer.
+func (cli *Client) SetDefaultDisappearingTimer(timer time.Duration) (err error) {
+	_, err = cli.sendIQ(infoQuery{
+		Namespace: "disappearing_mode",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "disappearing_mode",
+			Attrs: waBinary.Attrs{
+				"duration": strconv.Itoa(int(timer.Seconds())),
+			},
+		}},
+	})
 	return
 }
 
