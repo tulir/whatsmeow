@@ -319,6 +319,19 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			fmt.Printf("%+v\n", resp)
 		}
+	case "setprivacysetting":
+		if len(args) < 2 {
+			log.Errorf("Usage: setprivacysetting <setting> <value>")
+			return
+		}
+		setting := types.PrivacySettingType(args[0])
+		value := types.PrivacySetting(args[1])
+		resp, err := cli.SetPrivacySetting(setting, value)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Printf("%+v\n", resp)
+		}
 	case "getuser":
 		if len(args) < 1 {
 			log.Errorf("Usage: getuser <jids...>")

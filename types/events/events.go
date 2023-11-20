@@ -432,6 +432,8 @@ type PrivacySettings struct {
 	StatusChanged       bool
 	ProfileChanged      bool
 	ReadReceiptsChanged bool
+	OnlineChanged       bool
+	CallAddChanged      bool
 }
 
 // OfflineSyncPreview is emitted right after connecting if the server is going to send events that the client missed during downtime.
