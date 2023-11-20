@@ -167,6 +167,26 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []t
 	return resp, nil
 }
 
+// GetGroupRequestParticipants gets the list of participants that have requested to join the group.
+func (cli *Client) GetGroupRequestParticipants(jid types.JID) ([]types.JID, error) {
+	resp, err := cli.sendGroupIQ(context.TODO(), iqGet, jid, waBinary.Node{
+		Tag: "membership_approval_requests",
+	})
+	if err != nil {
+		return nil, err
+	}
+	request, ok := resp.GetOptionalChildByTag("membership_approval_requests")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "membership_approval_requests", In: "response to group request participants query"}
+	}
+	requestParticipants := request.GetChildrenByTag("membership_approval_request")
+	participants := make([]types.JID, len(requestParticipants))
+	for i, req := range requestParticipants {
+		participants[i] = req.AttrGetter().JID("jid")
+	}
+	return participants, nil
+}
+
 // SetGroupPhoto updates the group picture/icon of the given group on WhatsApp.
 // The avatar should be a JPEG photo, other formats may be rejected with ErrInvalidImageFormat.
 // The bytes can be nil to remove the photo. Returns the new picture ID.

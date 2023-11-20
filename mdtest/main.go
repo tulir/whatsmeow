@@ -607,6 +607,22 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Joined %s", groupID)
 		}
+	case "getrequestparticipant":
+		if len(args) < 1 {
+			log.Errorf("Usage: getrequestparticipant <jid>")
+			return
+		}
+		group, ok := parseJID(args[0])
+		if !ok {
+			log.Errorf("Invalid JID")
+			return
+		}
+		resp, err := cli.GetGroupRequestParticipants(group)
+		if err != nil {
+			log.Errorf("Failed to get request participants: %v", err)
+		} else {
+			log.Infof("Request participants: %+v", resp)
+		}
 	case "getstatusprivacy":
 		resp, err := cli.GetStatusPrivacy()
 		fmt.Println(err)
