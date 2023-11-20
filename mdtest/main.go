@@ -753,6 +753,17 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Image message sent (server timestamp: %s)", resp.Timestamp)
 		}
+	case "setpushname":
+		if len(args) == 0 {
+			log.Errorf("Usage: setpushname <name>")
+			return
+		}
+		err := cli.SendAppState(appstate.BuildSettingPushName(strings.Join(args, " ")))
+		if err != nil {
+			log.Errorf("Error setting push name: %v", err)
+		} else {
+			log.Infof("Push name updated")
+		}
 	case "setstatus":
 		if len(args) == 0 {
 			log.Errorf("Usage: setstatus <message>")
