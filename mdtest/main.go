@@ -319,6 +319,19 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			fmt.Printf("%+v\n", resp)
 		}
+	case "setprivacysetting":
+		if len(args) < 2 {
+			log.Errorf("Usage: setprivacysetting <setting> <value>")
+			return
+		}
+		setting := types.PrivacySettingType(args[0])
+		value := types.PrivacySetting(args[1])
+		resp, err := cli.SetPrivacySetting(setting, value)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Printf("%+v\n", resp)
+		}
 	case "getuser":
 		if len(args) < 1 {
 			log.Errorf("Usage: getuser <jids...>")
@@ -615,6 +628,20 @@ func handleCmd(cmd string, args []string) {
 		err = cli.SetDisappearingTimer(recipient, time.Duration(days)*24*time.Hour)
 		if err != nil {
 			log.Errorf("Failed to set disappearing timer: %v", err)
+		}
+	case "setdefaultdisappeartimer":
+		if len(args) < 1 {
+			log.Errorf("Usage: setdefaultdisappeartimer <days>")
+			return
+		}
+		days, err := strconv.Atoi(args[0])
+		if err != nil {
+			log.Errorf("Invalid duration: %v", err)
+			return
+		}
+		err = cli.SetDefaultDisappearingTimer(time.Duration(days) * 24 * time.Hour)
+		if err != nil {
+			log.Errorf("Failed to set default disappearing timer: %v", err)
 		}
 	case "send":
 		if len(args) < 2 {
