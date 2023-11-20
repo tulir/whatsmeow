@@ -138,6 +138,11 @@ func (cli *Client) LeaveGroup(jid types.JID) error {
 	return err
 }
 
+type ParticipantUpdate struct {
+	Status string    // "200" if successful, otherwise an error code
+	JID    types.JID // ID of the participant
+}
+
 type ParticipantChange string
 
 const (
@@ -148,7 +153,7 @@ const (
 )
 
 // UpdateGroupParticipants can be used to add, remove, promote and demote members in a WhatsApp group.
-func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []types.JID, action ParticipantChange) (*waBinary.Node, error) {
+func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []types.JID, action ParticipantChange) ([]ParticipantUpdate, error) {
 	content := make([]waBinary.Node, len(participantChanges))
 	for i, participantJID := range participantChanges {
 		content[i] = waBinary.Node{
@@ -163,8 +168,24 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []t
 	if err != nil {
 		return nil, err
 	}
-	// TODO proper return value?
-	return resp, nil
+	requestAction, ok := resp.GetOptionalChildByTag(string(action))
+	if !ok {
+		return nil, &ElementMissingError{Tag: string(action), In: "response to group participants update"}
+	}
+	requestParticipants := requestAction.GetChildrenByTag("participant")
+	participants := make([]ParticipantUpdate, len(requestParticipants))
+	for i, req := range requestParticipants {
+		nodeUtil := req.AttrGetter()
+		status := "200"
+		if code, notOk := nodeUtil.GetString("error", false); notOk {
+			status = code
+		}
+		participants[i] = ParticipantUpdate{
+			Status: status,
+			JID:    nodeUtil.JID("jid"),
+		}
+	}
+	return participants, nil
 }
 
 // GetGroupRequestParticipants gets the list of participants that have requested to join the group.
@@ -195,14 +216,12 @@ const (
 )
 
 // UpdateGroupRequestParticipants can be used to approve or reject requests to join the group.
-func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges []types.JID, action ParticipantRequestChange) (*waBinary.Node, error) {
+func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges []types.JID, action ParticipantRequestChange) ([]ParticipantUpdate, error) {
 	content := make([]waBinary.Node, len(participantChanges))
 	for i, participantJID := range participantChanges {
 		content[i] = waBinary.Node{
-			Content: []waBinary.Node{{
-				Tag:   "participant",
-				Attrs: waBinary.Attrs{"jid": participantJID},
-			}},
+			Tag:   "participant",
+			Attrs: waBinary.Attrs{"jid": participantJID},
 		}
 	}
 	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
@@ -215,8 +234,28 @@ func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChan
 	if err != nil {
 		return nil, err
 	}
-	// TODO proper return value?
-	return resp, nil
+	request, ok := resp.GetOptionalChildByTag("membership_requests_action")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "membership_requests_action", In: "response to group request participants update"}
+	}
+	requestAction, ok := request.GetOptionalChildByTag(string(action))
+	if !ok {
+		return nil, &ElementMissingError{Tag: string(action), In: "response to group request participants update"}
+	}
+	requestParticipants := requestAction.GetChildrenByTag("participant")
+	participants := make([]ParticipantUpdate, len(requestParticipants))
+	for i, req := range requestParticipants {
+		nodeUtil := req.AttrGetter()
+		status := "200"
+		if code, notOk := nodeUtil.GetString("error", false); notOk {
+			status = code
+		}
+		participants[i] = ParticipantUpdate{
+			Status: status,
+			JID:    nodeUtil.JID("jid"),
+		}
+	}
+	return participants, nil
 }
 
 // SetGroupPhoto updates the group picture/icon of the given group on WhatsApp.
