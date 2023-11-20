@@ -187,6 +187,38 @@ func (cli *Client) GetGroupRequestParticipants(jid types.JID) ([]types.JID, erro
 	return participants, nil
 }
 
+type ParticipantRequestChange string
+
+const (
+	ParticipantChangeApprove ParticipantRequestChange = "approve"
+	ParticipantChangeReject  ParticipantRequestChange = "reject"
+)
+
+// UpdateGroupRequestParticipants can be used to approve or reject requests to join the group.
+func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges []types.JID, action ParticipantRequestChange) (*waBinary.Node, error) {
+	content := make([]waBinary.Node, len(participantChanges))
+	for i, participantJID := range participantChanges {
+		content[i] = waBinary.Node{
+			Content: []waBinary.Node{{
+				Tag:   "participant",
+				Attrs: waBinary.Attrs{"jid": participantJID},
+			}},
+		}
+	}
+	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+		Tag: "membership_requests_action",
+		Content: []waBinary.Node{{
+			Tag:     string(action),
+			Content: content,
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	// TODO proper return value?
+	return resp, nil
+}
+
 // SetGroupPhoto updates the group picture/icon of the given group on WhatsApp.
 // The avatar should be a JPEG photo, other formats may be rejected with ErrInvalidImageFormat.
 // The bytes can be nil to remove the photo. Returns the new picture ID.
