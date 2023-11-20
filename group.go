@@ -148,24 +148,17 @@ const (
 )
 
 // UpdateGroupParticipants can be used to add, remove, promote and demote members in a WhatsApp group.
-func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map[types.JID]ParticipantChange) (*waBinary.Node, error) {
+func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []types.JID, action ParticipantChange) (*waBinary.Node, error) {
 	content := make([]waBinary.Node, len(participantChanges))
-	i := 0
-	for participantJID, change := range participantChanges {
+	for i, participantJID := range participantChanges {
 		content[i] = waBinary.Node{
-			Tag: string(change),
-			Content: []waBinary.Node{{
-				Tag:   "participant",
-				Attrs: waBinary.Attrs{"jid": participantJID},
-			}},
+			Tag:   "participant",
+			Attrs: waBinary.Attrs{"jid": participantJID},
 		}
-		i++
 	}
-	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      iqSet,
-		To:        jid,
-		Content:   content,
+	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+		Tag:     string(action),
+		Content: content,
 	})
 	if err != nil {
 		return nil, err
