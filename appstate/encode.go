@@ -191,6 +191,28 @@ func BuildLabelEdit(labelID string, labelName string, labelColor int32, deleted 
 	}
 }
 
+func newSettingPushNameMutation(pushName string) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexSettingPushName},
+		Version: 1,
+		Value: &waProto.SyncActionValue{
+			PushNameSetting: &waProto.PushNameSetting{
+				Name: &pushName,
+			},
+		},
+	}
+}
+
+// BuildSettingPushName builds an app state patch for setting the push name.
+func BuildSettingPushName(pushName string) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchCriticalBlock,
+		Mutations: []MutationInfo{
+			newSettingPushNameMutation(pushName),
+		},
+	}
+}
+
 func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo PatchInfo) ([]byte, error) {
 	keys, err := proc.getAppStateKey(keyID)
 	if err != nil {
