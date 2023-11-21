@@ -139,8 +139,9 @@ func (cli *Client) LeaveGroup(jid types.JID) error {
 }
 
 type ParticipantUpdate struct {
-	Status string    // "200" if successful, otherwise an error code
-	JID    types.JID // ID of the participant
+	Status  string         // "200" if successful, otherwise an error code
+	JID     types.JID      // ID of the participant
+	Content *waBinary.Node // Raw response content
 }
 
 type ParticipantChange string
@@ -180,9 +181,15 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []t
 		if code, notOk := nodeUtil.GetString("error", false); notOk {
 			status = code
 		}
+		var nodeContent *waBinary.Node
+		nodeReq, found := req.GetOptionalChildByTag("add_request")
+		if found {
+			nodeContent = &nodeReq
+		}
 		participants[i] = ParticipantUpdate{
-			Status: status,
-			JID:    nodeUtil.JID("jid"),
+			Status:  status,
+			JID:     nodeUtil.JID("jid"),
+			Content: nodeContent,
 		}
 	}
 	return participants, nil

@@ -607,6 +607,46 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Joined %s", groupID)
 		}
+	case "groupadd":
+		if len(args) < 2 {
+			log.Errorf("Usage: groupadd <groupJid> <number> <number> ...")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		listJid := make([]types.JID, len(args)-1)
+		for i, arg := range args[1:] {
+			listJid[i] = types.NewJID(arg, types.DefaultUserServer)
+		}
+		resp, err := cli.UpdateGroupParticipants(jid, listJid, whatsmeow.ParticipantChangeAdd)
+		if err != nil {
+			log.Errorf("Failed to add participant: %v", err)
+			return
+		}
+		for _, item := range resp {
+			if item.Status == "403" {
+				exp, _ := strconv.ParseInt(item.Content.Attrs["expiration"].(string), 10, 64)
+				log.Infof("Participant is private: %s %s %s %d", item.Status, item.JID, item.Content.Attrs["code"].(string), exp)
+				log.Infof("Participant is private: %s %s %s %d", item.Status, item.JID, item.Content.Attrs["code"].(string), exp)
+				cli.SendMessage(context.TODO(), item.JID, &waProto.Message{
+					GroupInviteMessage: &waProto.GroupInviteMessage{
+						InviteCode:       proto.String(item.Content.Attrs["code"].(string)),
+						InviteExpiration: proto.Int64(exp),
+						GroupJid:         proto.String(jid.String()),
+						GroupName:        proto.String("Test group"),
+						Caption:          proto.String("This is a test group"),
+					},
+				})
+			} else if item.Status == "409" {
+				log.Infof("Participant already in group: %s %s %+v", item.Status, item.JID, item.Content)
+			} else if item.Status == "200" {
+				log.Infof("Added participant: %s %s %+v", item.Status, item.JID, item.Content)
+			} else {
+				log.Infof("Unknown status: %s %s %+v", item.Status, item.JID, item.Content)
+			}
+		}
 	case "getrequestparticipant":
 		if len(args) < 1 {
 			log.Errorf("Usage: getrequestparticipant <jid>")
