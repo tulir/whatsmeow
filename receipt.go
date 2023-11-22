@@ -127,12 +127,19 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 //
 // You can mark multiple messages as read at the same time, but only if the messages were sent by the same user.
 // To mark messages by different users as read, you must call MarkRead multiple times (once for each user).
-func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, sender types.JID) error {
+func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, sender types.JID, receiptType string) error {
+	if len(ids) == 0 {
+		cli.Log.Warnf("MarkRead called with no message IDs")
+		return nil
+	}
+	if receiptType == "" {
+		receiptType = "read"
+	}
 	node := waBinary.Node{
 		Tag: "receipt",
 		Attrs: waBinary.Attrs{
 			"id":   ids[0],
-			"type": "read",
+			"type": receiptType,
 			"to":   chat,
 			"t":    timestamp.Unix(),
 		},
