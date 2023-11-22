@@ -24,6 +24,7 @@ const BusinessMessageLinkPrefix = "https://wa.me/message/"
 const ContactQRLinkPrefix = "https://wa.me/qr/"
 const BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
 const ContactQRLinkDirectPrefix = "https://api.whatsapp.com/qr/"
+const NewsletterLinkPrefix = "https://whatsapp.com/channel/"
 
 // ResolveBusinessMessageLink resolves a business message short link and returns the target JID, business name and
 // text to prefill in the input field (if any).

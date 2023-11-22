@@ -71,6 +71,9 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 
 // PairPhone generates a pairing code that can be used to link to a phone without scanning a QR code.
 //
+// You must connect the client normally before calling this (which means you'll also receive a QR code
+// event, but that can be ignored when doing code pairing).
+//
 // The exact expiry of pairing codes is unknown, but QR codes are always generated and the login websocket is closed
 // after the QR codes run out, which means there's a 160-second time limit. It is recommended to generate the pairing
 // code immediately after connecting to the websocket to have the maximum time.

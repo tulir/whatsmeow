@@ -97,10 +97,10 @@ const (
 )
 
 type NewsletterMetadata struct {
-	ID         JID                      `json:"id"`
-	State      WrappedNewsletterState   `json:"state"`
-	ThreadMeta NewsletterThreadMetadata `json:"thread_metadata"`
-	ViewerMeta NewsletterViewerMetadata `json:"viewer_metadata"`
+	ID         JID                       `json:"id"`
+	State      WrappedNewsletterState    `json:"state"`
+	ThreadMeta NewsletterThreadMetadata  `json:"thread_metadata"`
+	ViewerMeta *NewsletterViewerMetadata `json:"viewer_metadata"`
 }
 
 type NewsletterViewerMetadata struct {

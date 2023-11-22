@@ -221,6 +221,14 @@ type UndecryptableMessage struct {
 	DecryptFailMode DecryptFailMode
 }
 
+type NewsletterMessageMeta struct {
+	// When a newsletter message is edited, the message isn't wrapped in an EditedMessage like normal messages.
+	// Instead, the message is the new content, the ID is the original message ID, and the edit timestamp is here.
+	EditTS time.Time
+	// This is the timestamp of the original message for edits.
+	OriginalTS time.Time
+}
+
 // Message is emitted when receiving a new message.
 type Message struct {
 	Info    types.MessageInfo // Information about the message like the chat and sender IDs
@@ -238,6 +246,8 @@ type Message struct {
 	UnavailableRequestID types.MessageID
 	// If the message was re-requested from the sender, this is the number of retries it took.
 	RetryCount int
+
+	NewsletterMeta *NewsletterMessageMeta
 
 	// The raw message struct. This is the raw unmodified data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
@@ -422,6 +432,8 @@ type PrivacySettings struct {
 	StatusChanged       bool
 	ProfileChanged      bool
 	ReadReceiptsChanged bool
+	OnlineChanged       bool
+	CallAddChanged      bool
 }
 
 // OfflineSyncPreview is emitted right after connecting if the server is going to send events that the client missed during downtime.
