@@ -104,6 +104,12 @@ type SendRequestExtra struct {
 	ID types.MessageID
 	// Should the message be sent as a peer message (protocol messages to your own devices, e.g. app state key requests)
 	Peer bool
+	// A timeout for the send request. Unlike timeouts using the context parameter, this only applies
+	// to the actual response waiting and not preparing/encrypting the message.
+	// Defaults to 75 seconds. The timeout can be disabled by using a negative value.
+	Timeout time.Duration
+	// When sending media to newsletters, the Handle field returned by the file upload.
+	MediaHandle string
 }
 
 // SendMessage sends the given message.
@@ -148,6 +154,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		return
 	}
 
+	if req.Timeout == 0 {
+		req.Timeout = defaultRequestTimeout
+	}
 	if len(req.ID) == 0 {
 		req.ID = cli.GenerateMessageID()
 	}
@@ -192,7 +201,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 			data, err = cli.sendDM(ctx, to, ownID, req.ID, message, &resp.DebugTimings)
 		}
 	case types.NewsletterServer:
-		data, err = cli.sendNewsletter(to, req.ID, message, &resp.DebugTimings)
+		data, err = cli.sendNewsletter(to, req.ID, message, req.MediaHandle, &resp.DebugTimings)
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
@@ -202,9 +211,20 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		return
 	}
 	var respNode *waBinary.Node
+	var timeoutChan <-chan time.Time
+	if req.Timeout > 0 {
+		timeoutChan = time.After(req.Timeout)
+	} else {
+		timeoutChan = make(<-chan time.Time)
+	}
 	select {
 	case respNode = <-respChan:
+	case <-timeoutChan:
+		cli.cancelResponse(req.ID, respChan)
+		err = ErrMessageTimedOut
+		return
 	case <-ctx.Done():
+		cli.cancelResponse(req.ID, respChan)
 		err = ctx.Err()
 		return
 	}
@@ -440,11 +460,14 @@ func participantListHashV2(participants []types.JID) string {
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) ([]byte, error) {
+func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waProto.Message, mediaID string, timings *MessageDebugTimings) ([]byte, error) {
 	attrs := waBinary.Attrs{
 		"to":   to,
 		"id":   id,
 		"type": getTypeFromMessage(message),
+	}
+	if mediaID != "" {
+		attrs["media_id"] = mediaID
 	}
 	if message.EditedMessage != nil {
 		attrs["edit"] = string(types.EditAttributeAdminEdit)
@@ -459,13 +482,18 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 	if err != nil {
 		return nil, err
 	}
+	plaintextNode := waBinary.Node{
+		Tag:     "plaintext",
+		Content: plaintext,
+		Attrs:   waBinary.Attrs{},
+	}
+	if mediaType := getMediaTypeFromMessage(message); mediaType != "" {
+		plaintextNode.Attrs["mediatype"] = mediaType
+	}
 	node := waBinary.Node{
-		Tag:   "message",
-		Attrs: attrs,
-		Content: []waBinary.Node{{
-			Tag:     "plaintext",
-			Content: plaintext,
-		}},
+		Tag:     "message",
+		Attrs:   attrs,
+		Content: []waBinary.Node{plaintextNode},
 	}
 	start = time.Now()
 	data, err := cli.sendNodeAndGetData(node)
