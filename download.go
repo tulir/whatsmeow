@@ -308,7 +308,9 @@ func (cli *Client) downloadMedia(url string) ([]byte, error) {
 
 func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
 	data, err := cli.downloadMedia(url)
-	if len(data) <= 10 {
+	if err != nil {
+		return
+	} else if len(data) <= 10 {
 		err = ErrTooShortFile
 		return
 	}

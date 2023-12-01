@@ -7,6 +7,9 @@
 package whatsmeow
 
 import (
+	"strconv"
+	"time"
+
 	waBinary "github.com/go-whatsapp/whatsmeow/binary"
 	"github.com/go-whatsapp/whatsmeow/types"
 	"github.com/go-whatsapp/whatsmeow/types/events"
@@ -21,9 +24,7 @@ func (cli *Client) TryFetchPrivacySettings(ignoreCache bool) (*types.PrivacySett
 		Namespace: "privacy",
 		Type:      iqGet,
 		To:        types.ServerJID,
-		Content: []waBinary.Node{{
-			Tag: "privacy",
-		}},
+		Content:   []waBinary.Node{{Tag: "privacy"}},
 	})
 	if err != nil {
 		return nil, err
@@ -78,22 +79,38 @@ func (cli *Client) SetPrivacySetting(name types.PrivacySettingType, value types.
 	}
 	settings = *settingsPtr
 	switch name {
-	case types.PrivacySettingTypeReadReceipts:
-		settings.ReadReceipts = value
-	case types.PrivacySettingTypeProfile:
-		settings.Profile = value
-	case types.PrivacySettingTypeStatus:
-		settings.Status = value
-	case types.PrivacySettingTypeOnline:
-		settings.Online = value
-	case types.PrivacySettingTypeLastSeen:
-		settings.LastSeen = value
 	case types.PrivacySettingTypeGroupAdd:
 		settings.GroupAdd = value
+	case types.PrivacySettingTypeLastSeen:
+		settings.LastSeen = value
+	case types.PrivacySettingTypeStatus:
+		settings.Status = value
+	case types.PrivacySettingTypeProfile:
+		settings.Profile = value
+	case types.PrivacySettingTypeReadReceipts:
+		settings.ReadReceipts = value
+	case types.PrivacySettingTypeOnline:
+		settings.Online = value
 	case types.PrivacySettingTypeCallAdd:
 		settings.CallAdd = value
 	}
 	cli.privacySettingsCache.Store(&settings)
+	return
+}
+
+// SetDefaultDisappearingTimer will set the default disappearing message timer.
+func (cli *Client) SetDefaultDisappearingTimer(timer time.Duration) (err error) {
+	_, err = cli.sendIQ(infoQuery{
+		Namespace: "disappearing_mode",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "disappearing_mode",
+			Attrs: waBinary.Attrs{
+				"duration": strconv.Itoa(int(timer.Seconds())),
+			},
+		}},
+	})
 	return
 }
 
@@ -107,24 +124,24 @@ func (cli *Client) parsePrivacySettings(privacyNode *waBinary.Node, settings *ty
 		name := types.PrivacySettingType(ag.String("name"))
 		value := types.PrivacySetting(ag.String("value"))
 		switch name {
-		case types.PrivacySettingTypeReadReceipts:
-			settings.ReadReceipts = value
-			evt.ReadReceiptsChanged = true
-		case types.PrivacySettingTypeProfile:
-			settings.Profile = value
-			evt.ProfileChanged = true
-		case types.PrivacySettingTypeStatus:
-			settings.Status = value
-			evt.StatusChanged = true
-		case types.PrivacySettingTypeOnline:
-			settings.Online = value
-			evt.OnlineChanged = true
-		case types.PrivacySettingTypeLastSeen:
-			settings.LastSeen = value
-			evt.LastSeenChanged = true
 		case types.PrivacySettingTypeGroupAdd:
 			settings.GroupAdd = value
 			evt.GroupAddChanged = true
+		case types.PrivacySettingTypeLastSeen:
+			settings.LastSeen = value
+			evt.LastSeenChanged = true
+		case types.PrivacySettingTypeStatus:
+			settings.Status = value
+			evt.StatusChanged = true
+		case types.PrivacySettingTypeProfile:
+			settings.Profile = value
+			evt.ProfileChanged = true
+		case types.PrivacySettingTypeReadReceipts:
+			settings.ReadReceipts = value
+			evt.ReadReceiptsChanged = true
+		case types.PrivacySettingTypeOnline:
+			settings.Online = value
+			evt.OnlineChanged = true
 		case types.PrivacySettingTypeCallAdd:
 			settings.CallAdd = value
 			evt.CallAddChanged = true

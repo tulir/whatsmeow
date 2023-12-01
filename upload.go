@@ -27,6 +27,7 @@ import (
 type UploadResponse struct {
 	URL        string `json:"url"`
 	DirectPath string `json:"direct_path"`
+	Handle     string `json:"handle"`
 
 	MediaKey      []byte `json:"-"`
 	FileEncSHA256 []byte `json:"-"`
@@ -82,41 +83,85 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	h.Write(ciphertext)
 	dataToUpload := append(ciphertext, h.Sum(nil)[:10]...)
 
-	fileEncSHA256 := sha256.Sum256(dataToUpload)
-	resp.FileEncSHA256 = fileEncSHA256[:]
+	dataHash := sha256.Sum256(dataToUpload)
+	resp.FileEncSHA256 = dataHash[:]
 
-	var mediaConn *MediaConn
-	mediaConn, err = cli.refreshMediaConn(false)
+	err = cli.rawUpload(ctx, dataToUpload, resp.FileEncSHA256, appInfo, false, &resp)
+	return
+}
+
+// UploadNewsletter uploads the given attachment to WhatsApp servers without encrypting it first.
+//
+// Newsletter media works mostly the same way as normal media, with a few differences:
+// * Since it's unencrypted, there's no MediaKey or FileEncSha256 fields.
+// * There's a "media handle" that needs to be passed in SendRequestExtra.
+//
+// Example:
+//
+//	resp, err := cli.UploadNewsletter(context.Background(), yourImageBytes, whatsmeow.MediaImage)
+//	// handle error
+//
+//	imageMsg := &waProto.ImageMessage{
+//		// Caption, mime type and other such fields work like normal
+//		Caption:  proto.String("Hello, world!"),
+//		Mimetype: proto.String("image/png"),
+//
+//		// URL and direct path are also there like normal media
+//		Url:        &resp.URL,
+//		DirectPath: &resp.DirectPath,
+//		FileSha256: resp.FileSha256,
+//		FileLength: &resp.FileLength,
+//		// Newsletter media isn't encrypted, so the media key and file enc sha fields are not applicable
+//	}
+//	_, err = cli.SendMessage(context.Background(), newsletterJID, &waProto.Message{
+//		ImageMessage: imageMsg,
+//	}, whatsmeow.SendRequestExtra{
+//		// Unlike normal media, newsletters also include a "media handle" in the send request.
+//		MediaHandle: resp.Handle,
+//	})
+//	// handle error again
+
+func (cli *Client) UploadNewsletter(ctx context.Context, data []byte, appInfo MediaType) (resp UploadResponse, err error) {
+	resp.FileLength = uint64(len(data))
+	hash := sha256.Sum256(data)
+	resp.FileSHA256 = hash[:]
+	err = cli.rawUpload(ctx, data, resp.FileSHA256, appInfo, true, &resp)
+	return
+}
+
+func (cli *Client) rawUpload(ctx context.Context, dataToUpload, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {
+	mediaConn, err := cli.refreshMediaConn(false)
 	if err != nil {
-		err = fmt.Errorf("failed to refresh media connections: %w", err)
-		return
+		return fmt.Errorf("failed to refresh media connections: %w", err)
 	}
 
-	token := base64.URLEncoding.EncodeToString(resp.FileEncSHA256)
+	token := base64.URLEncoding.EncodeToString(fileHash)
 	q := url.Values{
 		"auth":  []string{mediaConn.Auth},
 		"token": []string{token},
 	}
 	mmsType := mediaTypeToMMSType[appInfo]
+	uploadPrefix := "mms"
+	if newsletter {
+		mmsType = fmt.Sprintf("newsletter-%s", mmsType)
+		uploadPrefix = "newsletter"
+	}
 	uploadURL := url.URL{
 		Scheme:   "https",
 		Host:     mediaConn.Hosts[0].Hostname,
-		Path:     fmt.Sprintf("/mms/%s/%s", mmsType, token),
+		Path:     fmt.Sprintf("/%s/%s/%s", uploadPrefix, mmsType, token),
 		RawQuery: q.Encode(),
 	}
 
-	var req *http.Request
-	req, err = http.NewRequestWithContext(ctx, http.MethodPost, uploadURL.String(), bytes.NewReader(dataToUpload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, uploadURL.String(), bytes.NewReader(dataToUpload))
 	if err != nil {
-		err = fmt.Errorf("failed to prepare request: %w", err)
-		return
+		return fmt.Errorf("failed to prepare request: %w", err)
 	}
 
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
 
-	var httpResp *http.Response
-	httpResp, err = cli.http.Do(req)
+	httpResp, err := cli.http.Do(req)
 	if err != nil {
 		err = fmt.Errorf("failed to execute request: %w", err)
 	} else if httpResp.StatusCode != http.StatusOK {
@@ -127,5 +172,5 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	if httpResp != nil {
 		_ = httpResp.Body.Close()
 	}
-	return
+	return err
 }

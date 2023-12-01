@@ -432,12 +432,12 @@ type IdentityChange struct {
 // PrivacySettings is emitted when the user changes their privacy settings.
 type PrivacySettings struct {
 	NewSettings         types.PrivacySettings
-	ReadReceiptsChanged bool
-	ProfileChanged      bool
-	StatusChanged       bool
-	OnlineChanged       bool
-	LastSeenChanged     bool
 	GroupAddChanged     bool
+	LastSeenChanged     bool
+	StatusChanged       bool
+	ProfileChanged      bool
+	ReadReceiptsChanged bool
+	OnlineChanged       bool
 	CallAddChanged      bool
 }
 

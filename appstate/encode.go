@@ -40,7 +40,7 @@ type PatchInfo struct {
 func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInfo {
 	var muteEndTimestamp *int64
 	if muteDuration > 0 {
-		muteEndTimestamp = waProto.Int64(time.Now().Add(muteDuration).UnixMilli())
+		muteEndTimestamp = proto.Int64(time.Now().Add(muteDuration).UnixMilli())
 	}
 
 	return PatchInfo{
@@ -50,7 +50,7 @@ func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInf
 			Version: 2,
 			Value: &waProto.SyncActionValue{
 				MuteAction: &waProto.MuteAction{
-					Muted:            waProto.Bool(mute),
+					Muted:            proto.Bool(mute),
 					MuteEndTimestamp: muteEndTimestamp,
 				},
 			},
@@ -96,7 +96,7 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 			ArchiveChatAction: &waProto.ArchiveChatAction{
 				Archived: &archive,
 				MessageRange: &waProto.SyncActionMessageRange{
-					LastMessageTimestamp: waProto.Int64(lastMessageTimestamp.Unix()),
+					LastMessageTimestamp: proto.Int64(lastMessageTimestamp.Unix()),
 					// TODO set LastSystemMessageTimestamp?
 				},
 			},
@@ -106,7 +106,7 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 	if lastMessageKey != nil {
 		archiveMutationInfo.Value.ArchiveChatAction.MessageRange.Messages = []*waProto.SyncActionMessage{{
 			Key:       lastMessageKey,
-			Timestamp: waProto.Int64(lastMessageTimestamp.Unix()),
+			Timestamp: proto.Int64(lastMessageTimestamp.Unix()),
 		}}
 	}
 
@@ -123,19 +123,37 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 	return result
 }
 
+func newLabelChatMutation(target types.JID, labelID string, labeled bool) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexLabelAssociationChat, labelID, target.String()},
+		Version: 3,
+		Value: &waProto.SyncActionValue{
+			LabelAssociationAction: &waProto.LabelAssociationAction{
+				Labeled: &labeled,
+			},
+		},
+	}
+}
+
 // BuildLabelChat builds an app state patch for labeling or un(labeling) a chat.
 func BuildLabelChat(target types.JID, labelID string, labeled bool) PatchInfo {
 	return PatchInfo{
 		Type: WAPatchRegular,
-		Mutations: []MutationInfo{{
-			Index:   []string{IndexLabelAssociationChat, labelID, target.String()},
-			Version: 3,
-			Value: &waProto.SyncActionValue{
-				LabelAssociationAction: &waProto.LabelAssociationAction{
-					Labeled: &labeled,
-				},
+		Mutations: []MutationInfo{
+			newLabelChatMutation(target, labelID, labeled),
+		},
+	}
+}
+
+func newLabelMessageMutation(target types.JID, labelID, messageID string, labeled bool) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexLabelAssociationMessage, labelID, target.String(), messageID, "0", "0"},
+		Version: 3,
+		Value: &waProto.SyncActionValue{
+			LabelAssociationAction: &waProto.LabelAssociationAction{
+				Labeled: &labeled,
 			},
-		}},
+		},
 	}
 }
 
@@ -143,15 +161,55 @@ func BuildLabelChat(target types.JID, labelID string, labeled bool) PatchInfo {
 func BuildLabelMessage(target types.JID, labelID, messageID string, labeled bool) PatchInfo {
 	return PatchInfo{
 		Type: WAPatchRegular,
-		Mutations: []MutationInfo{{
-			Index:   []string{IndexLabelAssociationMessage, labelID, target.String(), messageID, "0", "0"},
-			Version: 3,
-			Value: &waProto.SyncActionValue{
-				LabelAssociationAction: &waProto.LabelAssociationAction{
-					Labeled: &labeled,
-				},
+		Mutations: []MutationInfo{
+			newLabelMessageMutation(target, labelID, messageID, labeled),
+		},
+	}
+}
+
+func newLabelEditMutation(labelID string, labelName string, labelColor int32, deleted bool) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexLabelEdit, labelID},
+		Version: 3,
+		Value: &waProto.SyncActionValue{
+			LabelEditAction: &waProto.LabelEditAction{
+				Name:    &labelName,
+				Color:   &labelColor,
+				Deleted: &deleted,
 			},
-		}},
+		},
+	}
+}
+
+// BuildLabelEdit builds an app state patch for editing a label.
+func BuildLabelEdit(labelID string, labelName string, labelColor int32, deleted bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegular,
+		Mutations: []MutationInfo{
+			newLabelEditMutation(labelID, labelName, labelColor, deleted),
+		},
+	}
+}
+
+func newSettingPushNameMutation(pushName string) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexSettingPushName},
+		Version: 1,
+		Value: &waProto.SyncActionValue{
+			PushNameSetting: &waProto.PushNameSetting{
+				Name: &pushName,
+			},
+		},
+	}
+}
+
+// BuildSettingPushName builds an app state patch for setting the push name.
+func BuildSettingPushName(pushName string) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchCriticalBlock,
+		Mutations: []MutationInfo{
+			newSettingPushNameMutation(pushName),
+		},
 	}
 }
 

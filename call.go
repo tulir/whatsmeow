@@ -59,6 +59,24 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 			},
 			Data: &child,
 		})
+	case "preaccept":
+		cli.dispatchEvent(&events.CallPreAccept{
+			BasicCallMeta: basicMeta,
+			CallRemoteMeta: types.CallRemoteMeta{
+				RemotePlatform: ag.String("platform"),
+				RemoteVersion:  ag.String("version"),
+			},
+			Data: &child,
+		})
+	case "transport":
+		cli.dispatchEvent(&events.CallTransport{
+			BasicCallMeta: basicMeta,
+			CallRemoteMeta: types.CallRemoteMeta{
+				RemotePlatform: ag.String("platform"),
+				RemoteVersion:  ag.String("version"),
+			},
+			Data: &child,
+		})
 	case "terminate":
 		cli.dispatchEvent(&events.CallTerminate{
 			BasicCallMeta: basicMeta,
