@@ -317,7 +317,7 @@ func handleCmd(cmd string, args []string) {
 		jid, _ := types.ParseJID(args[0])
 		fmt.Println(cli.SendChatPresence(jid, types.ChatPresence(args[1]), types.ChatPresenceMedia(args[2])))
 	case "privacysettings":
-		resp, err := cli.TryFetchPrivacySettings(true)
+		resp, err := cli.TryFetchPrivacySettings(false)
 		if err != nil {
 			fmt.Println(err)
 		} else {
@@ -372,6 +372,15 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Error sending node: %v", err)
 		} else {
 			log.Infof("Node sent")
+		}
+	case "listnewsletters":
+		newsletters, err := cli.GetSubscribedNewsletters()
+		if err != nil {
+			log.Errorf("Failed to get subscribed newsletters: %v", err)
+			return
+		}
+		for _, newsletter := range newsletters {
+			log.Infof("* %s: %s", newsletter.ID, newsletter.ThreadMeta.Name.Text)
 		}
 	case "getnewsletter":
 		jid, ok := parseJID(args[0])
@@ -482,7 +491,7 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Failed to get avatar: %v", err)
 		} else if pic != nil {
-			log.Infof("Got avatar JID %s: %s", pic.ID, pic.URL)
+			log.Infof("Got avatar ID %s: %s", pic.ID, pic.URL)
 		} else {
 			log.Infof("No avatar found")
 		}
@@ -624,6 +633,20 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Failed to set disappearing timer: %v", err)
 		}
+	case "setdefaultdisappeartimer":
+		if len(args) < 1 {
+			log.Errorf("Usage: setdefaultdisappeartimer <days>")
+			return
+		}
+		days, err := strconv.Atoi(args[0])
+		if err != nil {
+			log.Errorf("Invalid duration: %v", err)
+			return
+		}
+		err = cli.SetDefaultDisappearingTimer(time.Duration(days) * 24 * time.Hour)
+		if err != nil {
+			log.Errorf("Failed to set default disappearing timer: %v", err)
+		}
 	case "send":
 		if len(args) < 2 {
 			log.Errorf("Usage: send <jid> <text>")
@@ -671,7 +694,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "react":
 		if len(args) < 3 {
-			log.Errorf("Usage: react <jid> <message JID> <reaction>")
+			log.Errorf("Usage: react <jid> <message ID> <reaction>")
 			return
 		}
 		recipient, ok := parseJID(args[0])
@@ -707,7 +730,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "revoke":
 		if len(args) < 2 {
-			log.Errorf("Usage: revoke <jid> <message JID>")
+			log.Errorf("Usage: revoke <jid> <message ID>")
 			return
 		}
 		recipient, ok := parseJID(args[0])
@@ -735,7 +758,12 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to read %s: %v", args[0], err)
 			return
 		}
-		uploaded, err := cli.Upload(context.Background(), data, whatsmeow.MediaImage)
+		var uploaded whatsmeow.UploadResponse
+		if recipient.Server == types.NewsletterServer {
+			uploaded, err = cli.UploadNewsletter(context.Background(), data, whatsmeow.MediaImage)
+		} else {
+			uploaded, err = cli.Upload(context.Background(), data, whatsmeow.MediaImage)
+		}
 		if err != nil {
 			log.Errorf("Failed to upload file: %v", err)
 			return
@@ -750,11 +778,24 @@ func handleCmd(cmd string, args []string) {
 			FileSha256:    uploaded.FileSHA256,
 			FileLength:    waProto.Uint64(uint64(len(data))),
 		}}
-		resp, err := cli.SendMessage(context.Background(), recipient, msg)
+		resp, err := cli.SendMessage(context.Background(), recipient, msg, whatsmeow.SendRequestExtra{
+			MediaHandle: uploaded.Handle,
+		})
 		if err != nil {
 			log.Errorf("Error sending image message: %v", err)
 		} else {
 			log.Infof("Image message sent (server timestamp: %s)", resp.Timestamp)
+		}
+	case "setpushname":
+		if len(args) == 0 {
+			log.Errorf("Usage: setpushname <name>")
+			return
+		}
+		err := cli.SendAppState(appstate.BuildSettingPushName(strings.Join(args, " ")))
+		if err != nil {
+			log.Errorf("Error setting push name: %v", err)
+		} else {
+			log.Infof("Push name updated")
 		}
 	case "setstatus":
 		if len(args) == 0 {
@@ -781,6 +822,7 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid second argument: %v", err)
 			return
 		}
+
 		err = cli.SendAppState(appstate.BuildArchive(target, action, time.Time{}, nil))
 		if err != nil {
 			log.Errorf("Error changing chat's archive state: %v", err)
@@ -799,6 +841,7 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid second argument: %v", err)
 			return
 		}
+
 		err = cli.SendAppState(appstate.BuildMute(target, action, 1*time.Hour))
 		if err != nil {
 			log.Errorf("Error changing chat's mute state: %v", err)
@@ -817,6 +860,7 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid second argument: %v", err)
 			return
 		}
+
 		err = cli.SendAppState(appstate.BuildPin(target, action))
 		if err != nil {
 			log.Errorf("Error changing chat's pin state: %v", err)
@@ -873,6 +917,7 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid third argument: %v", err)
 			return
 		}
+
 		err = cli.SendAppState(appstate.BuildLabelChat(jid, labelID, action))
 		if err != nil {
 			log.Errorf("Error changing chat's label state: %v", err)
@@ -893,9 +938,32 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("invalid fourth argument: %v", err)
 			return
 		}
+
 		err = cli.SendAppState(appstate.BuildLabelMessage(jid, labelID, messageID, action))
 		if err != nil {
 			log.Errorf("Error changing message's label state: %v", err)
+		}
+	case "editlabel":
+		if len(args) < 4 {
+			log.Errorf("Usage: editlabel <labelID> <name> <color> <action>")
+			return
+		}
+		labelID := args[0]
+		name := args[1]
+		color, err := strconv.Atoi(args[2])
+		if err != nil {
+			log.Errorf("invalid third argument: %v", err)
+			return
+		}
+		action, err := strconv.ParseBool(args[3])
+		if err != nil {
+			log.Errorf("invalid fourth argument: %v", err)
+			return
+		}
+
+		err = cli.SendAppState(appstate.BuildLabelEdit(labelID, name, int32(color), action))
+		if err != nil {
+			log.Errorf("Error editing label: %v", err)
 		}
 	case "broadcast":
 		if len(args) < 1 {
