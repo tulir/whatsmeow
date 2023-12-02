@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unsafe"
 
 	"google.golang.org/protobuf/proto"
 
@@ -62,7 +63,8 @@ func (vc WAVersionContainer) String() string {
 
 // Hash returns the md5 hash of the String representation of this version.
 func (vc WAVersionContainer) Hash() [16]byte {
-	return md5.Sum([]byte(vc.String()))
+	v := vc.String()
+	return md5.Sum(unsafe.Slice(unsafe.StringData(v), len(v)))
 }
 
 func (vc WAVersionContainer) ProtoAppVersion() *waProto.ClientPayload_UserAgent_AppVersion {
@@ -102,7 +104,7 @@ func SetWAVersion(version WAVersionContainer) {
 
 var BaseClientPayload = &waProto.ClientPayload{
 	UserAgent: &waProto.ClientPayload_UserAgent{
-		Platform:       waProto.ClientPayload_UserAgent_WEB.Enum(),
+		Platform:       waProto.ClientPayload_UserAgent_MACOS.Enum(),
 		ReleaseChannel: waProto.ClientPayload_UserAgent_RELEASE.Enum(),
 		AppVersion:     waVersion.ProtoAppVersion(),
 		Mcc:            waProto.String("000"),
@@ -113,23 +115,20 @@ var BaseClientPayload = &waProto.ClientPayload{
 		OsBuildNumber:  waProto.String("0.1.0"),
 
 		LocaleLanguageIso6391:       waProto.String("en"),
-		LocaleCountryIso31661Alpha2: waProto.String("en"),
-	},
-	WebInfo: &waProto.ClientPayload_WebInfo{
-		WebSubPlatform: waProto.ClientPayload_WebInfo_WEB_BROWSER.Enum(),
+		LocaleCountryIso31661Alpha2: waProto.String("US"),
 	},
 	ConnectType:   waProto.ClientPayload_WIFI_UNKNOWN.Enum(),
 	ConnectReason: waProto.ClientPayload_USER_ACTIVATED.Enum(),
 }
 
 var DeviceProps = &waProto.DeviceProps{
-	Os: waProto.String("whatsmeow"),
+	Os: waProto.String("botopia"),
 	Version: &waProto.DeviceProps_AppVersion{
 		Primary:   waProto.Uint32(0),
 		Secondary: waProto.Uint32(1),
 		Tertiary:  waProto.Uint32(0),
 	},
-	PlatformType:    waProto.DeviceProps_UNKNOWN.Enum(),
+	PlatformType:    waProto.DeviceProps_DESKTOP.Enum(),
 	RequireFullSync: waProto.Bool(false),
 }
 

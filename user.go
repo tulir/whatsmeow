@@ -322,7 +322,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: namespace,
-		Type:      "get",
+		Type:      iqGet,
 		To:        to,
 		Target:    target,
 		Content:   content,
@@ -490,7 +490,7 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 	resp, err := cli.sendIQ(infoQuery{
 		Context:   ctx,
 		Namespace: "usync",
-		Type:      "get",
+		Type:      iqGet,
 		To:        types.ServerJID,
 		Content: []waBinary.Node{{
 			Tag: "usync",

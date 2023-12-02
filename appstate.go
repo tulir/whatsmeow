@@ -265,7 +265,7 @@ func (cli *Client) fetchAppStatePatches(name appstate.WAPatchName, fromVersion u
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:sync:app:state",
-		Type:      "set",
+		Type:      iqSet,
 		To:        types.ServerJID,
 		Content: []waBinary.Node{{
 			Tag: "sync",

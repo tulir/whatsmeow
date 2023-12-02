@@ -689,6 +689,8 @@ func getMediaTypeFromMessage(msg *waProto.Message) string {
 
 func getButtonTypeFromMessage(msg *waProto.Message) string {
 	switch {
+	case msg == nil:
+		return ""
 	case msg.ViewOnceMessage != nil:
 		return getButtonTypeFromMessage(msg.ViewOnceMessage.Message)
 	case msg.ViewOnceMessageV2 != nil:

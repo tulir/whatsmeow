@@ -32,7 +32,7 @@ const (
 func (cli *Client) getServerPreKeyCount() (int, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "encrypt",
-		Type:      "get",
+		Type:      iqGet,
 		To:        types.ServerJID,
 		Content: []waBinary.Node{
 			{Tag: "count"},
@@ -67,7 +67,7 @@ func (cli *Client) uploadPreKeys() {
 	cli.Log.Infof("Uploading %d new prekeys to server", len(preKeys))
 	_, err = cli.sendIQ(infoQuery{
 		Namespace: "encrypt",
-		Type:      "set",
+		Type:      iqSet,
 		To:        types.ServerJID,
 		Content: []waBinary.Node{
 			{Tag: "registration", Content: registrationIDBytes[:]},
@@ -106,7 +106,7 @@ func (cli *Client) fetchPreKeys(ctx context.Context, users []types.JID) (map[typ
 	resp, err := cli.sendIQ(infoQuery{
 		Context:   ctx,
 		Namespace: "encrypt",
-		Type:      "get",
+		Type:      iqGet,
 		To:        types.ServerJID,
 		Content: []waBinary.Node{{
 			Tag:     "key",

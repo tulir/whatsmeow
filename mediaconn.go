@@ -56,7 +56,7 @@ func (cli *Client) refreshMediaConn(force bool) (*MediaConn, error) {
 func (cli *Client) queryMediaConn() (*MediaConn, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "w:m",
-		Type:      "set",
+		Type:      iqSet,
 		To:        types.ServerJID,
 		Content:   []waBinary.Node{{Tag: "media_conn"}},
 	})

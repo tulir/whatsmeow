@@ -48,10 +48,6 @@ var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on&_jour
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
 var pairRejectChan = make(chan bool, 1)
 
-func init() {
-	store.SetOSInfo("Windows", [3]uint32{10, 0, 22621})
-}
-
 func main() {
 	waBinary.IndentXML = true
 	flag.Parse()
@@ -665,6 +661,26 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Message sent (server timestamp: %s)", resp.Timestamp)
 		}
+	case "sendcall":
+		if len(args) < 2 {
+			log.Errorf("Usage: sendcall <jid> <action>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		asvideo, err := strconv.ParseBool(args[1])
+		if err != nil {
+			log.Errorf("Invalid asvideo: %v", err)
+			return
+		}
+		err = cli.OfferCall(jid, asvideo)
+		if err != nil {
+			log.Errorf("Error sending call: %v", err)
+		} else {
+			log.Infof("Call sent")
+		}
 	case "sendpoll":
 		if len(args) < 7 {
 			log.Errorf("Usage: sendpoll <jid> <max answers> <question> -- <option 1> / <option 2> / ...")
@@ -970,15 +986,12 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Usage: broadcast <text>")
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
 		msg := &waProto.Message{ExtendedTextMessage: &waProto.ExtendedTextMessage{
 			Text:           waProto.String(strings.Join(args, " ")),
 			Font:           waProto.ExtendedTextMessage_COURIERPRIME_BOLD.Enum(),
 			BackgroundArgb: waProto.HexArgb("#B0EB57"),
-			ViewOnce:       waProto.Bool(true),
 		}}
-		resp, err := cli.SendMessage(ctx, types.StatusBroadcastJID, msg)
+		resp, err := cli.SendMessage(context.Background(), types.StatusBroadcastJID, msg)
 		if err != nil {
 			log.Errorf("Error sending broadcast: %v", err)
 		} else {
@@ -1134,7 +1147,7 @@ func handler(rawEvt interface{}) {
 				callFrom = val.From
 			}
 		}
-		if err := cli.RejectCall(callId, callFrom, ""); err != nil {
+		if err := cli.RejectCall(callFrom, callId); err != nil {
 			log.Errorf("Failed to reject call: %v", err)
 		}
 	default:

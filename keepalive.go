@@ -65,7 +65,7 @@ func (cli *Client) keepAliveLoop(ctx context.Context) {
 func (cli *Client) sendKeepAlive(ctx context.Context) (isSuccess, shouldContinue bool) {
 	respCh, err := cli.sendIQAsync(infoQuery{
 		Namespace: "w:p",
-		Type:      "get",
+		Type:      iqGet,
 		To:        types.ServerJID,
 		Content:   []waBinary.Node{{Tag: "ping"}},
 	})

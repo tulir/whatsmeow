@@ -161,7 +161,7 @@ func (cli *Client) SetPassive(passive bool) error {
 	}
 	_, err := cli.sendIQ(infoQuery{
 		Namespace: "passive",
-		Type:      "set",
+		Type:      iqSet,
 		To:        types.ServerJID,
 		Content:   []waBinary.Node{{Tag: tag}},
 	})

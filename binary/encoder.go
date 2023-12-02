@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"unsafe"
 
 	"github.com/go-whatsapp/whatsmeow/binary/token"
 	"github.com/go-whatsapp/whatsmeow/types"
@@ -58,7 +59,7 @@ func (w *binaryEncoder) pushInt32(value int) {
 }
 
 func (w *binaryEncoder) pushString(value string) {
-	w.pushBytes([]byte(value))
+	w.pushBytes(unsafe.Slice(unsafe.StringData(value), len(value)))
 }
 
 func (w *binaryEncoder) writeByteLength(length int) {

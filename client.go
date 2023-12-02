@@ -422,7 +422,7 @@ func (cli *Client) Logout() error {
 	}
 	_, err := cli.sendIQ(infoQuery{
 		Namespace: "md",
-		Type:      "set",
+		Type:      iqSet,
 		To:        types.ServerJID,
 		Content: []waBinary.Node{{
 			Tag: "remove-companion-device",

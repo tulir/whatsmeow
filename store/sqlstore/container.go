@@ -92,6 +92,7 @@ FROM whatsmeow_device
 `
 
 const getDeviceQuery = getAllDevicesQuery + " WHERE jid=$1"
+const getDeviceLikeQuery = getAllDevicesQuery + " WHERE jid LIKE $1"
 
 type scannable interface {
 	Scan(dest ...interface{}) error
@@ -171,15 +172,28 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 	}
 }
 
-// GetDevice finds the device with the specified JID in the database.
+// GetDevice finds the device with the given JID in the database.
 //
-// If the device is not found, nil is returned instead.
+// If the device doesn't exist, a new device will be created and returned.
 //
 // Note that the parameter usually must be an AD-JID.
 func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, nil
+		sess = c.NewDevice()
+		err = nil
+	}
+	return sess, err
+}
+
+// GetDeviceLike finds the device with like the specified JID in the database.
+//
+// If the device doesn't exist, a new device will be created and returned.
+func (c *Container) GetDeviceLike(jid types.JID) (*store.Device, error) {
+	sess, err := c.scanDevice(c.db.QueryRow(getDeviceLikeQuery, jid.User+"%@"+jid.Server))
+	if errors.Is(err, sql.ErrNoRows) {
+		sess = c.NewDevice()
+		err = nil
 	}
 	return sess, err
 }

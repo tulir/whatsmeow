@@ -14,6 +14,7 @@ require (
 	github.com/cristalhq/base64 v0.1.2 // indirect
 	github.com/go-whatsapp/go-util v0.1.0 // indirect
 	github.com/gorilla/websocket v1.5.1 // indirect
+	github.com/puzpuzpuz/xsync/v3 v3.0.2 // indirect
 	go.mau.fi/libsignal v0.1.0 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
 	golang.org/x/net v0.18.0 // indirect
