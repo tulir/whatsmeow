@@ -652,9 +652,19 @@ func handleCmd(cmd string, args []string) {
 		if !ok {
 			return
 		}
-		msg := &waProto.Message{ExtendedTextMessage: &waProto.ExtendedTextMessage{
-			Text: waProto.String(strings.Join(args[1:], " ")),
-		}}
+		msg := &waProto.Message{
+			ExtendedTextMessage: &waProto.ExtendedTextMessage{
+				Text: waProto.String(strings.Join(args[1:], " ")),
+				ContextInfo: &waProto.ContextInfo{
+					ForwardedNewsletterMessageInfo: &waProto.ForwardedNewsletterMessageInfo{
+						NewsletterJid:   waProto.String("120363151921302028@newsletter"),
+						ServerMessageId: waProto.Int32(104),
+						NewsletterName:  waProto.String("galer"),
+					},
+					ForwardingScore: waProto.Uint32(200),
+				},
+			},
+		}
 		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
@@ -880,6 +890,37 @@ func handleCmd(cmd string, args []string) {
 		err = cli.SendAppState(appstate.BuildPin(target, action))
 		if err != nil {
 			log.Errorf("Error changing chat's pin state: %v", err)
+		}
+	case "star":
+		if len(args) < 5 {
+			log.Errorf("Usage: star <jid> <sender> <message ID> <fromMe> <action>")
+			return
+		}
+		target, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		sender, ok := parseJID(args[1])
+		if !ok {
+			return
+		}
+		messageID := args[2]
+		fromMe, err := strconv.ParseBool(args[3])
+		if err != nil {
+			log.Errorf("invalid fourth argument: %v", err)
+			return
+		}
+		action, err := strconv.ParseBool(args[4])
+		if err != nil {
+			log.Errorf("invalid fifth argument: %v", err)
+			return
+		}
+		err = cli.SendAppState(appstate.BuildStar(target, sender, messageID, fromMe, action))
+		if err != nil {
+			log.Errorf("Error changing message's star state: %v", err)
+			return
+		} else {
+			log.Infof("Star state updated")
 		}
 	case "getblocklist":
 		blocklist, err := cli.GetBlocklist()

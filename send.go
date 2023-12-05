@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/cristalhq/base64"
 	"github.com/go-whatsapp/go-util/random"
@@ -38,16 +39,15 @@ import (
 //	msgID := cli.GenerateMessageID()
 //	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
 func (cli *Client) GenerateMessageID() types.MessageID {
-	data := make([]byte, 8, 8+20+16)
+	jid := cli.getOwnJID().LegacyString()
+	data := make([]byte, 8, 8+len(jid)+16)
 	binary.BigEndian.PutUint64(data, uint64(time.Now().Unix()))
-	ownID := cli.getOwnJID()
-	if !ownID.IsEmpty() {
-		data = append(data, []byte(ownID.User)...)
-		data = append(data, []byte("@c.us")...)
+	if jid != "" {
+		data = append(data, unsafe.Slice(unsafe.StringData(jid), len(jid))...)
 	}
 	data = append(data, random.Bytes(16)...)
 	hash := sha256.Sum256(data)
-	return "3EB0" + strings.ToUpper(hex.EncodeToString(hash[:9]))
+	return strings.ToUpper(hex.EncodeToString(hash[:9]))
 }
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
@@ -57,7 +57,7 @@ func (cli *Client) GenerateMessageID() types.MessageID {
 //
 // Deprecated: WhatsApp web has switched to using a hash of the current timestamp, user id and random bytes. Use Client.GenerateMessageID instead.
 func GenerateMessageID() types.MessageID {
-	return "3EB0" + strings.ToUpper(hex.EncodeToString(random.Bytes(8)))
+	return strings.ToUpper(hex.EncodeToString(random.Bytes(9)))
 }
 
 type MessageDebugTimings struct {

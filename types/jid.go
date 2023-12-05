@@ -195,10 +195,19 @@ func (jid JID) String() string {
 	} else if jid.Device > 0 {
 		return fmt.Sprintf("%s:%d@%s", jid.User, jid.Device, jid.Server)
 	} else if len(jid.User) > 0 {
-		return fmt.Sprintf("%s@%s", jid.User, jid.Server)
+		return jid.User + "@" + jid.Server
 	} else {
 		return jid.Server
 	}
+}
+
+// Deprecated: LegacyString converts the JID to a string representation that is compatible with the legacy WhatsApp protocol.
+// Use String instead.
+func (jid JID) LegacyString() string {
+	if len(jid.User) == 0 {
+		return ""
+	}
+	return jid.User + "@" + LegacyUserServer
 }
 
 // MarshalText implements encoding.TextMarshaler for JID

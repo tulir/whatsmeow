@@ -7,7 +7,15 @@
 package whatsmeow
 
 import (
+	"context"
+	"encoding/hex"
+	"fmt"
+	"strings"
+
+	"github.com/go-whatsapp/go-util/random"
+
 	waBinary "github.com/go-whatsapp/whatsmeow/binary"
+	waProto "github.com/go-whatsapp/whatsmeow/binary/proto"
 	"github.com/go-whatsapp/whatsmeow/types"
 	"github.com/go-whatsapp/whatsmeow/types/events"
 )
@@ -88,34 +96,66 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) RejectCall(callID string, callFrom types.JID, messageID types.MessageID) error {
+// OfferCall offers a call to a user.
+func (cli *Client) OfferCall(callTo types.JID, video bool) error {
 	clientID := cli.getOwnJID()
 	if clientID.IsEmpty() {
 		return ErrNotLoggedIn
 	}
-	if messageID == "" {
-		messageID = cli.GenerateMessageID()
+	var offerLen uint8 = 6
+	if video {
+		offerLen++
 	}
-	clientID = clientID.ToNonAD()
-	callFrom = callFrom.ToNonAD()
-
+	callID := strings.ToUpper(hex.EncodeToString(random.Bytes(16)))
+	plaintext, dsmPlaintext, err := marshalMessage(callTo, &waProto.Message{Call: &waProto.Call{CallKey: random.Bytes(32)}})
+	if err != nil {
+		return fmt.Errorf("failed to marshal call: %w", err)
+	}
+	destinationNode, includeIdentity := cli.encryptMessageForDevices(context.TODO(), []types.JID{clientID, callTo}, clientID, callID, plaintext, dsmPlaintext, nil)
+	if includeIdentity {
+		destinationNode = append(destinationNode, cli.makeDeviceIdentityNode())
+	}
+	offerContent := make([]waBinary.Node, 0, offerLen)
+	offerContent = append(offerContent,
+		waBinary.Node{Tag: "audio", Attrs: waBinary.Attrs{"enc": "opus", "rate": "16000"}},
+		waBinary.Node{Tag: "audio", Attrs: waBinary.Attrs{"enc": "opus", "rate": "8000"}},
+	)
+	if video {
+		offerContent = append(offerContent,
+			waBinary.Node{Tag: "video", Attrs: waBinary.Attrs{"orientation": "0", "screen_width": "1080", "screen_height": "2340", "device_orientation": "0", "enc": "vp8", "dec": "vp8"}},
+		)
+	}
+	offerContent = append(offerContent,
+		waBinary.Node{Tag: "capability", Attrs: waBinary.Attrs{"ver": "1"}, Content: []byte{1, 4, 255, 131, 207, 4}},
+		waBinary.Node{Tag: "destination", Content: destinationNode},
+		waBinary.Node{Tag: "encopt", Attrs: waBinary.Attrs{"keygen": "2"}},
+		waBinary.Node{Tag: "net", Attrs: waBinary.Attrs{"medium": "3"}},
+	)
 	return cli.sendNode(waBinary.Node{
-		Tag: "call",
-		Attrs: waBinary.Attrs{
-			"id":   messageID,
-			"from": clientID,
-			"to":   callFrom,
-		},
-		Content: []waBinary.Node{
-			{
-				Tag: "reject",
-				Attrs: waBinary.Attrs{
-					"call-id":      callID,
-					"call-creator": callFrom,
-					"count":        "0",
-				},
-				Content: nil,
-			},
-		},
+		Tag:   "call",
+		Attrs: waBinary.Attrs{"id": cli.GenerateMessageID(), "to": callTo},
+		Content: []waBinary.Node{{
+			Tag:     "offer",
+			Attrs:   waBinary.Attrs{"call-id": callID, "call-creator": clientID},
+			Content: offerContent,
+		}},
+	})
+}
+
+// RejectCall rejects an incoming call.
+func (cli *Client) RejectCall(callFrom types.JID, callID string) error {
+	ownID := cli.getOwnJID()
+	if ownID.IsEmpty() {
+		return ErrNotLoggedIn
+	}
+	ownID, callFrom = ownID.ToNonAD(), callFrom.ToNonAD()
+	return cli.sendNode(waBinary.Node{
+		Tag:   "call",
+		Attrs: waBinary.Attrs{"id": cli.GenerateMessageID(), "from": ownID, "to": callFrom},
+		Content: []waBinary.Node{{
+			Tag:     "reject",
+			Attrs:   waBinary.Attrs{"call-id": callID, "call-creator": callFrom, "count": "0"},
+			Content: nil,
+		}},
 	})
 }

@@ -180,8 +180,7 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
 	if errors.Is(err, sql.ErrNoRows) {
-		sess = c.NewDevice()
-		err = nil
+		sess, err = c.GetDeviceLike(jid)
 	}
 	return sess, err
 }
