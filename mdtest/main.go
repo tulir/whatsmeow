@@ -73,6 +73,7 @@ func main() {
 	}
 
 	cli = whatsmeow.NewClient(device, waLog.Stdout("Client", logLevel, true))
+	cli.EmitAppStateEventsOnFullSync = true
 	cli.DontSendSelfBroadcast = false // Send broadcasts to self
 	var isWaitingForPair atomic.Bool
 	cli.PrePairCallback = func(jid types.JID, platform, businessName string) bool {
