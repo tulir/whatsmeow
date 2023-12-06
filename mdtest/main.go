@@ -626,25 +626,23 @@ func handleCmd(cmd string, args []string) {
 			return
 		}
 		for _, item := range resp {
-			if item.Status == "403" {
-				exp, _ := strconv.ParseInt(item.Content.Attrs["expiration"].(string), 10, 64)
-				log.Infof("Participant is private: %s %s %s %d", item.Status, item.JID, item.Content.Attrs["code"].(string), exp)
-				log.Infof("Participant is private: %s %s %s %d", item.Status, item.JID, item.Content.Attrs["code"].(string), exp)
+			if item.Error == 403 && item.AddRequest != nil {
+				log.Infof("Participant is private: %d %s %s %v", item.Error, item.JID, item.AddRequest.Code, item.AddRequest.Expiration)
 				cli.SendMessage(context.TODO(), item.JID, &waProto.Message{
 					GroupInviteMessage: &waProto.GroupInviteMessage{
-						InviteCode:       proto.String(item.Content.Attrs["code"].(string)),
-						InviteExpiration: proto.Int64(exp),
+						InviteCode:       proto.String(item.AddRequest.Code),
+						InviteExpiration: proto.Int64(item.AddRequest.Expiration.Unix()),
 						GroupJid:         proto.String(jid.String()),
 						GroupName:        proto.String("Test group"),
 						Caption:          proto.String("This is a test group"),
 					},
 				})
-			} else if item.Status == "409" {
-				log.Infof("Participant already in group: %s %s %+v", item.Status, item.JID, item.Content)
-			} else if item.Status == "200" {
-				log.Infof("Added participant: %s %s %+v", item.Status, item.JID, item.Content)
+			} else if item.Error == 409 {
+				log.Infof("Participant already in group: %d %s %+v", item.Error, item.JID)
+			} else if item.Error == 0 {
+				log.Infof("Added participant: %d %s %+v", item.Error, item.JID)
 			} else {
-				log.Infof("Unknown status: %s %s %+v", item.Status, item.JID, item.Content)
+				log.Infof("Unknown status: %d %s %+v", item.Error, item.JID)
 			}
 		}
 	case "getrequestparticipant":

@@ -138,12 +138,6 @@ func (cli *Client) LeaveGroup(jid types.JID) error {
 	return err
 }
 
-type ParticipantUpdate struct {
-	Status  string         // "200" if successful, otherwise an error code
-	JID     types.JID      // ID of the participant
-	Content *waBinary.Node // Raw response content
-}
-
 type ParticipantChange string
 
 const (
@@ -154,7 +148,7 @@ const (
 )
 
 // UpdateGroupParticipants can be used to add, remove, promote and demote members in a WhatsApp group.
-func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []types.JID, action ParticipantChange) ([]ParticipantUpdate, error) {
+func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []types.JID, action ParticipantChange) ([]types.GroupParticipant, error) {
 	content := make([]waBinary.Node, len(participantChanges))
 	for i, participantJID := range participantChanges {
 		content[i] = waBinary.Node{
@@ -174,23 +168,9 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []t
 		return nil, &ElementMissingError{Tag: string(action), In: "response to group participants update"}
 	}
 	requestParticipants := requestAction.GetChildrenByTag("participant")
-	participants := make([]ParticipantUpdate, len(requestParticipants))
-	for i, req := range requestParticipants {
-		nodeUtil := req.AttrGetter()
-		status := "200"
-		if code, notOk := nodeUtil.GetString("error", false); notOk {
-			status = code
-		}
-		var nodeContent *waBinary.Node
-		nodeReq, found := req.GetOptionalChildByTag("add_request")
-		if found {
-			nodeContent = &nodeReq
-		}
-		participants[i] = ParticipantUpdate{
-			Status:  status,
-			JID:     nodeUtil.JID("jid"),
-			Content: nodeContent,
-		}
+	participants := make([]types.GroupParticipant, len(requestParticipants))
+	for i, child := range requestParticipants {
+		participants[i] = parseParticipant(child.AttrGetter(), &child)
 	}
 	return participants, nil
 }
@@ -223,7 +203,7 @@ const (
 )
 
 // UpdateGroupRequestParticipants can be used to approve or reject requests to join the group.
-func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges []types.JID, action ParticipantRequestChange) ([]ParticipantUpdate, error) {
+func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges []types.JID, action ParticipantRequestChange) ([]types.GroupParticipant, error) {
 	content := make([]waBinary.Node, len(participantChanges))
 	for i, participantJID := range participantChanges {
 		content[i] = waBinary.Node{
@@ -250,17 +230,9 @@ func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChan
 		return nil, &ElementMissingError{Tag: string(action), In: "response to group request participants update"}
 	}
 	requestParticipants := requestAction.GetChildrenByTag("participant")
-	participants := make([]ParticipantUpdate, len(requestParticipants))
-	for i, req := range requestParticipants {
-		nodeUtil := req.AttrGetter()
-		status := "200"
-		if code, notOk := nodeUtil.GetString("error", false); notOk {
-			status = code
-		}
-		participants[i] = ParticipantUpdate{
-			Status: status,
-			JID:    nodeUtil.JID("jid"),
-		}
+	participants := make([]types.GroupParticipant, len(requestParticipants))
+	for i, child := range requestParticipants {
+		participants[i] = parseParticipant(child.AttrGetter(), &child)
 	}
 	return participants, nil
 }
@@ -592,6 +564,33 @@ func (cli *Client) getGroupMembers(ctx context.Context, jid types.JID) ([]types.
 	return cli.groupParticipantsCache[jid], nil
 }
 
+func parseParticipant(childAG *waBinary.AttrUtility, child *waBinary.Node) types.GroupParticipant {
+	pcpType := childAG.OptionalString("type")
+	participant := types.GroupParticipant{
+		IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
+		IsSuperAdmin: pcpType == "superadmin",
+		JID:          childAG.JID("jid"),
+		LID:          childAG.OptionalJIDOrEmpty("lid"),
+		DisplayName:  childAG.OptionalString("display_name"),
+	}
+	if participant.JID.Server == types.HiddenUserServer && participant.LID.IsEmpty() {
+		participant.LID = participant.JID
+		//participant.JID = types.EmptyJID
+	}
+	if errorCode := childAG.OptionalInt("error"); errorCode != 0 {
+		participant.Error = errorCode
+		addRequest, ok := child.GetOptionalChildByTag("add_request")
+		if ok {
+			addAG := addRequest.AttrGetter()
+			participant.AddRequest = &types.GroupParticipantAddRequest{
+				Code:       addAG.String("code"),
+				Expiration: addAG.UnixTime("expiration"),
+			}
+		}
+	}
+	return participant
+}
+
 func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, error) {
 	var group types.GroupInfo
 	ag := groupNode.AttrGetter()
@@ -612,30 +611,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		childAG := child.AttrGetter()
 		switch child.Tag {
 		case "participant":
-			pcpType := childAG.OptionalString("type")
-			participant := types.GroupParticipant{
-				IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
-				IsSuperAdmin: pcpType == "superadmin",
-				JID:          childAG.JID("jid"),
-				LID:          childAG.OptionalJIDOrEmpty("lid"),
-				DisplayName:  childAG.OptionalString("display_name"),
-			}
-			if participant.JID.Server == types.HiddenUserServer && participant.LID.IsEmpty() {
-				participant.LID = participant.JID
-				//participant.JID = types.EmptyJID
-			}
-			if errorCode := childAG.OptionalInt("error"); errorCode != 0 {
-				participant.Error = errorCode
-				addRequest, ok := child.GetOptionalChildByTag("add_request")
-				if ok {
-					addAG := addRequest.AttrGetter()
-					participant.AddRequest = &types.GroupParticipantAddRequest{
-						Code:       addAG.String("code"),
-						Expiration: addAG.UnixTime("expiration"),
-					}
-				}
-			}
-			group.Participants = append(group.Participants, participant)
+			group.Participants = append(group.Participants, parseParticipant(childAG, &child))
 		case "description":
 			body, bodyOK := child.GetOptionalChildByTag("body")
 			if bodyOK {
