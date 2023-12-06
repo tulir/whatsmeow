@@ -607,26 +607,36 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Joined %s", groupID)
 		}
-	case "groupadd":
-		if len(args) < 2 {
-			log.Errorf("Usage: groupadd <groupJid> <number> <number> ...")
+	case "updateparticipant":
+		if len(args) < 3 {
+			log.Errorf("Usage: updateparticipant <jid> <action> <numbers...>")
 			return
 		}
 		jid, ok := parseJID(args[0])
 		if !ok {
 			return
 		}
-		listJid := make([]types.JID, len(args)-1)
-		for i, arg := range args[1:] {
-			listJid[i] = types.NewJID(arg, types.DefaultUserServer)
+		action := whatsmeow.ParticipantChange(args[1])
+		switch action {
+		case whatsmeow.ParticipantChangeAdd, whatsmeow.ParticipantChangeRemove, whatsmeow.ParticipantChangePromote, whatsmeow.ParticipantChangeDemote:
+		default:
+			log.Errorf("Valid actions: add, remove, promote, demote")
+			return
 		}
-		resp, err := cli.UpdateGroupParticipants(jid, listJid, whatsmeow.ParticipantChangeAdd)
+		users := make([]types.JID, len(args)-2)
+		for i, arg := range args[2:] {
+			users[i], ok = parseJID(arg)
+			if !ok {
+				return
+			}
+		}
+		resp, err := cli.UpdateGroupParticipants(jid, users, action)
 		if err != nil {
 			log.Errorf("Failed to add participant: %v", err)
 			return
 		}
 		for _, item := range resp {
-			if item.Error == 403 && item.AddRequest != nil {
+			if action == whatsmeow.ParticipantChangeAdd && item.Error == 403 && item.AddRequest != nil {
 				log.Infof("Participant is private: %d %s %s %v", item.Error, item.JID, item.AddRequest.Code, item.AddRequest.Expiration)
 				cli.SendMessage(context.TODO(), item.JID, &waProto.Message{
 					GroupInviteMessage: &waProto.GroupInviteMessage{
