@@ -646,6 +646,7 @@ enum KeepType {
 }
 message InteractiveAnnotation {
     repeated Point polygonVertices = 1;
+    optional bool shouldSkipConfirmation = 4;
     oneof action {
         Location location = 2;
         ForwardedNewsletterMessageInfo newsletter = 3;
@@ -801,9 +802,16 @@ message ContextInfo {
 }
 
 message ForwardedNewsletterMessageInfo {
+    enum ContentType {
+        UPDATE = 1;
+        UPDATE_CARD = 2;
+        LINK_CARD = 3;
+    }
     optional string newsletterJid = 1;
     optional int32 serverMessageId = 2;
     optional string newsletterName = 3;
+    optional ContentType contentType = 4;
+    optional string accessibilityText = 5;
 }
 
 message BotSuggestedPromptMetadata {
@@ -1565,6 +1573,11 @@ message Pushname {
     optional string pushname = 2;
 }
 
+message PhoneNumberToLIDMapping {
+    optional string pnJid = 1;
+    optional string lidJid = 2;
+}
+
 message PastParticipants {
     optional string groupJid = 1;
     repeated PastParticipant pastParticipants = 2;
@@ -1621,6 +1634,7 @@ message HistorySync {
     repeated PastParticipants pastParticipants = 12;
     repeated CallLogRecord callLogRecords = 13;
     optional BotAIWaitListState aiWaitListState = 14;
+    repeated PhoneNumberToLIDMapping phoneNumberToLidMappings = 15;
 }
 
 message HistorySyncMsg {
@@ -1865,6 +1879,7 @@ message SyncActionValue {
     optional BotWelcomeRequestAction botWelcomeRequestAction = 45;
     optional DeleteIndividualCallLogAction deleteIndividualCallLog = 46;
     optional LabelReorderingAction labelReorderingAction = 47;
+    optional PaymentInfoAction paymentInfoAction = 48;
 }
 
 message UserStatusMuteAction {
@@ -1965,6 +1980,10 @@ message PnForLidChatAction {
 
 message PinAction {
     optional bool pinned = 1;
+}
+
+message PaymentInfoAction {
+    optional string cpi = 1;
 }
 
 message NuxAction {
@@ -2096,11 +2115,26 @@ message RecentEmojiWeight {
 }
 
 message PatchDebugData {
+    enum Platform {
+        ANDROID = 0;
+        SMBA = 1;
+        IPHONE = 2;
+        SMBI = 3;
+        WEB = 4;
+        UWP = 5;
+        DARWIN = 6;
+    }
     optional bytes currentLthash = 1;
     optional bytes newLthash = 2;
     optional bytes patchVersion = 3;
     optional bytes collectionName = 4;
-    optional bytes firstTwoBytesFromAHashOfSnapshotMacKey = 5;
+    optional bytes firstFourBytesFromAHashOfSnapshotMacKey = 5;
+    optional bytes newLthashSubtract = 6;
+    optional int32 numberAdd = 7;
+    optional int32 numberRemove = 8;
+    optional int32 numberOverride = 9;
+    optional Platform senderPlatform = 10;
+    optional bool isSenderPrimary = 11;
 }
 
 message CallLogRecord {
