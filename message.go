@@ -438,7 +438,7 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 		if atomic.CompareAndSwapUint32(&cli.historySyncHandlerStarted, 0, 1) {
 			go cli.handleHistorySyncNotificationLoop()
 		}
-		go cli.sendProtocolMessageReceipt(info.ID, "hist_sync")
+		go cli.sendProtocolMessageReceipt(info.ID, types.ReceiptTypeHistorySync)
 	}
 
 	if protoMsg.GetPeerDataOperationRequestResponseMessage().GetPeerDataOperationRequestType() == waProto.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND {
@@ -450,7 +450,7 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 	}
 
 	if info.Category == "peer" {
-		go cli.sendProtocolMessageReceipt(info.ID, "peer_msg")
+		go cli.sendProtocolMessageReceipt(info.ID, types.ReceiptTypePeerMsg)
 	}
 }
 
@@ -559,7 +559,7 @@ func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waProto.
 	cli.dispatchEvent(evt.UnwrapRaw())
 }
 
-func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
+func (cli *Client) sendProtocolMessageReceipt(id types.MessageID, msgType types.ReceiptType) {
 	clientID := cli.Store.ID
 	if len(id) == 0 || clientID == nil {
 		return
@@ -567,8 +567,8 @@ func (cli *Client) sendProtocolMessageReceipt(id, msgType string) {
 	err := cli.sendNode(waBinary.Node{
 		Tag: "receipt",
 		Attrs: waBinary.Attrs{
-			"id":   id,
-			"type": msgType,
+			"id":   string(id),
+			"type": string(msgType),
 			"to":   types.NewJID(clientID.User, types.LegacyUserServer),
 		},
 		Content: nil,

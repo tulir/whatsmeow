@@ -288,43 +288,18 @@ func (evt *Message) UnwrapRaw() *Message {
 	return evt
 }
 
-// ReceiptType represents the type of a Receipt event.
-type ReceiptType string
+// Deprecated: use types.ReceiptType directly
+type ReceiptType = types.ReceiptType
 
+// Deprecated: use types.ReceiptType* constants directly
 const (
-	// ReceiptTypeDelivered means the message was delivered to the device (but the user might not have noticed).
-	ReceiptTypeDelivered ReceiptType = ""
-	// ReceiptTypeSender is sent by your other devices when a message you sent is delivered to them.
-	ReceiptTypeSender ReceiptType = "sender"
-	// ReceiptTypeRetry means the message was delivered to the device, but decrypting the message failed.
-	ReceiptTypeRetry ReceiptType = "retry"
-	// ReceiptTypeRead means the user opened the chat and saw the message.
-	ReceiptTypeRead ReceiptType = "read"
-	// ReceiptTypeReadSelf means the current user read a message from a different device, and has read receipts disabled in privacy settings.
-	ReceiptTypeReadSelf ReceiptType = "read-self"
-	// ReceiptTypePlayed means the user opened a view-once media message.
-	//
-	// This is dispatched for both incoming and outgoing messages when played. If the current user opened the media,
-	// it means the media should be removed from all devices. If a recipient opened the media, it's just a notification
-	// for the sender that the media was viewed.
-	ReceiptTypePlayed ReceiptType = "played"
+	ReceiptTypeDelivered = types.ReceiptTypeDelivered
+	ReceiptTypeSender    = types.ReceiptTypeSender
+	ReceiptTypeRetry     = types.ReceiptTypeRetry
+	ReceiptTypeRead      = types.ReceiptTypeRead
+	ReceiptTypeReadSelf  = types.ReceiptTypeReadSelf
+	ReceiptTypePlayed    = types.ReceiptTypePlayed
 )
-
-// GoString returns the name of the Go constant for the ReceiptType value.
-func (rt ReceiptType) GoString() string {
-	switch rt {
-	case ReceiptTypeRead:
-		return "events.ReceiptTypeRead"
-	case ReceiptTypeReadSelf:
-		return "events.ReceiptTypeReadSelf"
-	case ReceiptTypeDelivered:
-		return "events.ReceiptTypeDelivered"
-	case ReceiptTypePlayed:
-		return "events.ReceiptTypePlayed"
-	default:
-		return fmt.Sprintf("events.ReceiptType(%#v)", string(rt))
-	}
-}
 
 // Receipt is emitted when an outgoing message is delivered to or read by another user, or when another device reads an incoming message.
 //
@@ -333,7 +308,7 @@ type Receipt struct {
 	types.MessageSource
 	MessageIDs []types.MessageID
 	Timestamp  time.Time
-	Type       ReceiptType
+	Type       types.ReceiptType
 }
 
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
