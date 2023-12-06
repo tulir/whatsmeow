@@ -28,6 +28,7 @@ import (
 	"github.com/mdp/qrterminal/v3"
 	"google.golang.org/protobuf/proto"
 
+	"go.mau.fi/util/random"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -716,7 +717,12 @@ func handleCmd(cmd string, args []string) {
 		if !ok {
 			return
 		}
-		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
+		msg := &waProto.Message{
+			Conversation: proto.String(strings.Join(args[1:], " ")),
+			MessageContextInfo: &waProto.MessageContextInfo{
+				MessageSecret: random.Bytes(32),
+			},
+		}
 		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
@@ -826,16 +832,21 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to upload file: %v", err)
 			return
 		}
-		msg := &waProto.Message{ImageMessage: &waProto.ImageMessage{
-			Caption:       proto.String(strings.Join(args[2:], " ")),
-			Url:           proto.String(uploaded.URL),
-			DirectPath:    proto.String(uploaded.DirectPath),
-			MediaKey:      uploaded.MediaKey,
-			Mimetype:      proto.String(http.DetectContentType(data)),
-			FileEncSha256: uploaded.FileEncSHA256,
-			FileSha256:    uploaded.FileSHA256,
-			FileLength:    proto.Uint64(uint64(len(data))),
-		}}
+		msg := &waProto.Message{
+			ImageMessage: &waProto.ImageMessage{
+				Caption:       proto.String(strings.Join(args[2:], " ")),
+				Url:           proto.String(uploaded.URL),
+				DirectPath:    proto.String(uploaded.DirectPath),
+				MediaKey:      uploaded.MediaKey,
+				Mimetype:      proto.String(http.DetectContentType(data)),
+				FileEncSha256: uploaded.FileEncSHA256,
+				FileSha256:    uploaded.FileSHA256,
+				FileLength:    proto.Uint64(uint64(len(data))),
+			},
+			MessageContextInfo: &waProto.MessageContextInfo{
+				MessageSecret: random.Bytes(32),
+			},
+		}
 		resp, err := cli.SendMessage(context.Background(), recipient, msg, whatsmeow.SendRequestExtra{
 			MediaHandle: uploaded.Handle,
 		})
