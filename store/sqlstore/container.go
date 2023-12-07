@@ -265,3 +265,10 @@ func (c *Container) DeleteDevice(store *store.Device) error {
 	_, err := c.db.Exec(deleteDeviceQuery, store.ID.String())
 	return err
 }
+
+// EnableForeignKeys enables foreign key constraints on the SQLite database.
+func (c *Container) EnableForeignKeys() error {
+    _, err := c.db.Exec("PRAGMA foreign_keys = ON")
+    return err
+}
+
