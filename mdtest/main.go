@@ -58,6 +58,11 @@ func main() {
 	}
 	if *requestFullSync {
 		store.DeviceProps.RequireFullSync = proto.Bool(true)
+		store.DeviceProps.HistorySyncConfig = &waProto.DeviceProps_HistorySyncConfig{
+			FullSyncDaysLimit:   proto.Uint32(3650),
+			FullSyncSizeMbLimit: proto.Uint32(102400),
+			StorageQuotaMb:      proto.Uint32(102400),
+		}
 	}
 	log = waLog.Stdout("Main", logLevel, true)
 
