@@ -44,6 +44,16 @@ func (c *Container) setVersion(tx *sql.Tx, version int) error {
 
 // Upgrade upgrades the database from the current to the latest version available.
 func (c *Container) Upgrade() error {
+	if c.dialect == "sqlite" {
+		var foreignKeysEnabled bool
+		err := c.db.QueryRow("PRAGMA foreign_keys").Scan(&foreignKeysEnabled)
+		if err != nil {
+			return fmt.Errorf("failed to check if foreign keys are enabled: %w", err)
+		} else if !foreignKeysEnabled {
+			return fmt.Errorf("foreign keys are not enabled")
+		}
+	}
+
 	version, err := c.getVersion()
 	if err != nil {
 		return err
@@ -274,15 +284,6 @@ func upgradeV4(tx *sql.Tx, container *Container) error {
 }
 
 func upgradeV5(tx *sql.Tx, container *Container) error {
-	if container.dialect == "sqlite" {
-		var foreignKeysEnabled bool
-		err := tx.QueryRow("PRAGMA foreign_keys").Scan(&foreignKeysEnabled)
-		if err != nil {
-			return fmt.Errorf("failed to check if foreign keys are enabled: %w", err)
-		} else if !foreignKeysEnabled {
-			return fmt.Errorf("foreign keys are not enabled")
-		}
-	}
 	_, err := tx.Exec("UPDATE whatsmeow_device SET jid=REPLACE(jid, '.0', '')")
 	return err
 }
