@@ -1830,6 +1830,8 @@ message ExternalBlobReference {
     optional uint64 fileSizeBytes = 4;
     optional bytes fileSha256 = 5;
     optional bytes fileEncSha256 = 6;
+    
+    optional uint64 fileLength = 10;
 }
 
 message ExitCode {

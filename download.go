@@ -54,6 +54,7 @@ type DownloadableMessage interface {
 	GetMediaKey() []byte
 	GetFileSha256() []byte
 	GetFileEncSha256() []byte
+	GetFileLength() uint64
 }
 
 // DownloadableThumbnail represents a protobuf message that contains a thumbnail attachment.
