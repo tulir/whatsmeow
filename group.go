@@ -148,30 +148,93 @@ const (
 )
 
 // UpdateGroupParticipants can be used to add, remove, promote and demote members in a WhatsApp group.
-func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges map[types.JID]ParticipantChange) (*waBinary.Node, error) {
+func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []types.JID, action ParticipantChange) ([]types.GroupParticipant, error) {
 	content := make([]waBinary.Node, len(participantChanges))
-	i := 0
-	for participantJID, change := range participantChanges {
+	for i, participantJID := range participantChanges {
 		content[i] = waBinary.Node{
-			Tag: string(change),
-			Content: []waBinary.Node{{
-				Tag:   "participant",
-				Attrs: waBinary.Attrs{"jid": participantJID},
-			}},
+			Tag:   "participant",
+			Attrs: waBinary.Attrs{"jid": participantJID},
 		}
-		i++
 	}
-	resp, err := cli.sendIQ(infoQuery{
-		Namespace: "w:g2",
-		Type:      iqSet,
-		To:        jid,
-		Content:   content,
+	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+		Tag:     string(action),
+		Content: content,
 	})
 	if err != nil {
 		return nil, err
 	}
-	// TODO proper return value?
-	return resp, nil
+	requestAction, ok := resp.GetOptionalChildByTag(string(action))
+	if !ok {
+		return nil, &ElementMissingError{Tag: string(action), In: "response to group participants update"}
+	}
+	requestParticipants := requestAction.GetChildrenByTag("participant")
+	participants := make([]types.GroupParticipant, len(requestParticipants))
+	for i, child := range requestParticipants {
+		participants[i] = parseParticipant(child.AttrGetter(), &child)
+	}
+	return participants, nil
+}
+
+// GetGroupRequestParticipants gets the list of participants that have requested to join the group.
+func (cli *Client) GetGroupRequestParticipants(jid types.JID) ([]types.JID, error) {
+	resp, err := cli.sendGroupIQ(context.TODO(), iqGet, jid, waBinary.Node{
+		Tag: "membership_approval_requests",
+	})
+	if err != nil {
+		return nil, err
+	}
+	request, ok := resp.GetOptionalChildByTag("membership_approval_requests")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "membership_approval_requests", In: "response to group request participants query"}
+	}
+	requestParticipants := request.GetChildrenByTag("membership_approval_request")
+	participants := make([]types.JID, len(requestParticipants))
+	for i, req := range requestParticipants {
+		participants[i] = req.AttrGetter().JID("jid")
+	}
+	return participants, nil
+}
+
+type ParticipantRequestChange string
+
+const (
+	ParticipantChangeApprove ParticipantRequestChange = "approve"
+	ParticipantChangeReject  ParticipantRequestChange = "reject"
+)
+
+// UpdateGroupRequestParticipants can be used to approve or reject requests to join the group.
+func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges []types.JID, action ParticipantRequestChange) ([]types.GroupParticipant, error) {
+	content := make([]waBinary.Node, len(participantChanges))
+	for i, participantJID := range participantChanges {
+		content[i] = waBinary.Node{
+			Tag:   "participant",
+			Attrs: waBinary.Attrs{"jid": participantJID},
+		}
+	}
+	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+		Tag: "membership_requests_action",
+		Content: []waBinary.Node{{
+			Tag:     string(action),
+			Content: content,
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	request, ok := resp.GetOptionalChildByTag("membership_requests_action")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "membership_requests_action", In: "response to group request participants update"}
+	}
+	requestAction, ok := request.GetOptionalChildByTag(string(action))
+	if !ok {
+		return nil, &ElementMissingError{Tag: string(action), In: "response to group request participants update"}
+	}
+	requestParticipants := requestAction.GetChildrenByTag("participant")
+	participants := make([]types.GroupParticipant, len(requestParticipants))
+	for i, child := range requestParticipants {
+		participants[i] = parseParticipant(child.AttrGetter(), &child)
+	}
+	return participants, nil
 }
 
 // SetGroupPhoto updates the group picture/icon of the given group on WhatsApp.
@@ -501,6 +564,33 @@ func (cli *Client) getGroupMembers(ctx context.Context, jid types.JID) ([]types.
 	return cli.groupParticipantsCache[jid], nil
 }
 
+func parseParticipant(childAG *waBinary.AttrUtility, child *waBinary.Node) types.GroupParticipant {
+	pcpType := childAG.OptionalString("type")
+	participant := types.GroupParticipant{
+		IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
+		IsSuperAdmin: pcpType == "superadmin",
+		JID:          childAG.JID("jid"),
+		LID:          childAG.OptionalJIDOrEmpty("lid"),
+		DisplayName:  childAG.OptionalString("display_name"),
+	}
+	if participant.JID.Server == types.HiddenUserServer && participant.LID.IsEmpty() {
+		participant.LID = participant.JID
+		//participant.JID = types.EmptyJID
+	}
+	if errorCode := childAG.OptionalInt("error"); errorCode != 0 {
+		participant.Error = errorCode
+		addRequest, ok := child.GetOptionalChildByTag("add_request")
+		if ok {
+			addAG := addRequest.AttrGetter()
+			participant.AddRequest = &types.GroupParticipantAddRequest{
+				Code:       addAG.String("code"),
+				Expiration: addAG.UnixTime("expiration"),
+			}
+		}
+	}
+	return participant
+}
+
 func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, error) {
 	var group types.GroupInfo
 	ag := groupNode.AttrGetter()
@@ -521,30 +611,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		childAG := child.AttrGetter()
 		switch child.Tag {
 		case "participant":
-			pcpType := childAG.OptionalString("type")
-			participant := types.GroupParticipant{
-				IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
-				IsSuperAdmin: pcpType == "superadmin",
-				JID:          childAG.JID("jid"),
-				LID:          childAG.OptionalJIDOrEmpty("lid"),
-				DisplayName:  childAG.OptionalString("display_name"),
-			}
-			if participant.JID.Server == types.HiddenUserServer && participant.LID.IsEmpty() {
-				participant.LID = participant.JID
-				//participant.JID = types.EmptyJID
-			}
-			if errorCode := childAG.OptionalInt("error"); errorCode != 0 {
-				participant.Error = errorCode
-				addRequest, ok := child.GetOptionalChildByTag("add_request")
-				if ok {
-					addAG := addRequest.AttrGetter()
-					participant.AddRequest = &types.GroupParticipantAddRequest{
-						Code:       addAG.String("code"),
-						Expiration: addAG.UnixTime("expiration"),
-					}
-				}
-			}
-			group.Participants = append(group.Participants, participant)
+			group.Participants = append(group.Participants, parseParticipant(childAG, &child))
 		case "description":
 			body, bodyOK := child.GetOptionalChildByTag("body")
 			if bodyOK {

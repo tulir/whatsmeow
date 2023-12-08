@@ -58,6 +58,11 @@ func main() {
 	}
 	if *requestFullSync {
 		store.DeviceProps.RequireFullSync = proto.Bool(true)
+		store.DeviceProps.HistorySyncConfig = &waProto.DeviceProps_HistorySyncConfig{
+			FullSyncDaysLimit:   proto.Uint32(3650),
+			FullSyncSizeMbLimit: proto.Uint32(102400),
+			StorageQuotaMb:      proto.Uint32(102400),
+		}
 	}
 	log = waLog.Stdout("Main", logLevel, true)
 
@@ -607,6 +612,70 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Joined %s", groupID)
 		}
+	case "updateparticipant":
+		if len(args) < 3 {
+			log.Errorf("Usage: updateparticipant <jid> <action> <numbers...>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		action := whatsmeow.ParticipantChange(args[1])
+		switch action {
+		case whatsmeow.ParticipantChangeAdd, whatsmeow.ParticipantChangeRemove, whatsmeow.ParticipantChangePromote, whatsmeow.ParticipantChangeDemote:
+		default:
+			log.Errorf("Valid actions: add, remove, promote, demote")
+			return
+		}
+		users := make([]types.JID, len(args)-2)
+		for i, arg := range args[2:] {
+			users[i], ok = parseJID(arg)
+			if !ok {
+				return
+			}
+		}
+		resp, err := cli.UpdateGroupParticipants(jid, users, action)
+		if err != nil {
+			log.Errorf("Failed to add participant: %v", err)
+			return
+		}
+		for _, item := range resp {
+			if action == whatsmeow.ParticipantChangeAdd && item.Error == 403 && item.AddRequest != nil {
+				log.Infof("Participant is private: %d %s %s %v", item.Error, item.JID, item.AddRequest.Code, item.AddRequest.Expiration)
+				cli.SendMessage(context.TODO(), item.JID, &waProto.Message{
+					GroupInviteMessage: &waProto.GroupInviteMessage{
+						InviteCode:       proto.String(item.AddRequest.Code),
+						InviteExpiration: proto.Int64(item.AddRequest.Expiration.Unix()),
+						GroupJid:         proto.String(jid.String()),
+						GroupName:        proto.String("Test group"),
+						Caption:          proto.String("This is a test group"),
+					},
+				})
+			} else if item.Error == 409 {
+				log.Infof("Participant already in group: %d %s %+v", item.Error, item.JID)
+			} else if item.Error == 0 {
+				log.Infof("Added participant: %d %s %+v", item.Error, item.JID)
+			} else {
+				log.Infof("Unknown status: %d %s %+v", item.Error, item.JID)
+			}
+		}
+	case "getrequestparticipant":
+		if len(args) < 1 {
+			log.Errorf("Usage: getrequestparticipant <jid>")
+			return
+		}
+		group, ok := parseJID(args[0])
+		if !ok {
+			log.Errorf("Invalid JID")
+			return
+		}
+		resp, err := cli.GetGroupRequestParticipants(group)
+		if err != nil {
+			log.Errorf("Failed to get request participants: %v", err)
+		} else {
+			log.Infof("Request participants: %+v", resp)
+		}
 	case "getstatusprivacy":
 		resp, err := cli.GetStatusPrivacy()
 		fmt.Println(err)
@@ -1052,9 +1121,9 @@ func handler(rawEvt interface{}) {
 			log.Infof("Saved image in message to %s", path)
 		}
 	case *events.Receipt:
-		if evt.Type == events.ReceiptTypeRead || evt.Type == events.ReceiptTypeReadSelf {
+		if evt.Type == types.ReceiptTypeRead || evt.Type == types.ReceiptTypeReadSelf {
 			log.Infof("%v was read by %s at %s", evt.MessageIDs, evt.SourceString(), evt.Timestamp)
-		} else if evt.Type == events.ReceiptTypeDelivered {
+		} else if evt.Type == types.ReceiptTypeDelivered {
 			log.Infof("%s was delivered to %s at %s", evt.MessageIDs[0], evt.SourceString(), evt.Timestamp)
 		}
 	case *events.Presence:
