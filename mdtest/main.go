@@ -57,6 +57,11 @@ func main() {
 	}
 	if *requestFullSync {
 		store.DeviceProps.RequireFullSync = waProto.Bool(true)
+		store.DeviceProps.HistorySyncConfig = &waProto.DeviceProps_HistorySyncConfig{
+			FullSyncDaysLimit:   waProto.Uint32(3650),
+			FullSyncSizeMbLimit: waProto.Uint32(102400),
+			StorageQuotaMb:      waProto.Uint32(102400),
+		}
 	}
 	log = waLog.Stdout("Main", logLevel, true)
 
@@ -235,7 +240,7 @@ func handleCmd(cmd string, args []string) {
 		cli.DangerousInternals().RequestAppStateKeys(context.Background(), keyIDs)
 	case "unavailable-request":
 		if len(args) < 3 {
-			log.Errorf("Usage: unavailable-request <chat JID> <sender JID> <message JID>")
+			log.Errorf("Usage: unavailable-request <chat JID> <sender JID> <message ID>")
 			return
 		}
 		chat, ok := parseJID(args[0])
@@ -434,7 +439,7 @@ func handleCmd(cmd string, args []string) {
 		if len(args) > 2 {
 			before, err = strconv.Atoi(args[2])
 			if err != nil {
-				log.Errorf("Invalid message JID: %v", err)
+				log.Errorf("Invalid message ID: %v", err)
 				return
 			}
 		}
