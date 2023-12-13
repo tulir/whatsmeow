@@ -845,7 +845,7 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 		attrs["edit"] = string(editAttr)
 		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
 	}
-	if msgType == "reaction" {
+	if msgType == "reaction" || message.GetPollUpdateMessage() != nil {
 		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
 	}
 
