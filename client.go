@@ -148,6 +148,8 @@ type Client struct {
 
 	proxy socket.Proxy
 	http  *http.Client
+
+	gotConnectionFailureCounter uint32
 }
 
 // Size of buffer for the channel that all incoming XML nodes go through.
@@ -218,7 +220,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"presence":     cli.handlePresence,
 		"notification": cli.handleNotification,
 		"success":      cli.handleConnectSuccess,
-		"failure":      cli.handleConnectFailure,
+		// STP: got 403 here: Got 403: primary device was logged out connect failure,
+		"failure": cli.handleConnectFailure,
+		// STP: got 503 here :: checking code != 401
 		"stream:error": cli.handleStreamError,
 		"iq":           cli.handleIQ,
 		"ib":           cli.handleIB,

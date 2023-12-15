@@ -17,6 +17,8 @@ import (
 )
 
 func (cli *Client) handleStreamError(node *waBinary.Node) {
+	cli.Log.Warnf("[LXP] %s got a stream error event: %s", cli.getOwnID().String(), node.XMLString())
+
 	atomic.StoreUint32(&cli.isLoggedIn, 0)
 	cli.clearResponseWaiters(node)
 	code, _ := node.Attrs["code"].(string)
@@ -78,6 +80,8 @@ func (cli *Client) handleIB(node *waBinary.Node) {
 }
 
 func (cli *Client) handleConnectFailure(node *waBinary.Node) {
+	cli.Log.Warnf("[LXP] %s got a connection failure event: %s", cli.getOwnID().String(), node.XMLString())
+
 	ag := node.AttrGetter()
 	reason := events.ConnectFailureReason(ag.Int("reason"))
 	message := ag.OptionalString("message")
@@ -100,8 +104,14 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		)
 	}
 	if reason.IsLoggedOut() {
-		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason)
-		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})
+		if cli.gotConnectionFailureCounter < 3 {
+			cli.gotConnectionFailureCounter++
+			cli.Log.Warnf("Got %s connect failure, ignoring it because we haven't received 3 yet", reason)
+			return
+		}
+		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason) // STP:  go here
+		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})                      // return to upper level
+		cli.Log.Infof("Deleting user device")
 		err := cli.Store.Delete()
 		if err != nil {
 			cli.Log.Warnf("Failed to delete store after %d failure: %v", int(reason), err)
