@@ -17,7 +17,7 @@ import (
 )
 
 func (cli *Client) handleStreamError(node *waBinary.Node) {
-	cli.Log.Warnf("[LXP] %s got a stream error event: %s", cli.getOwnID().String(), node.XMLString())
+	cli.Log.Warnf("[LXP-LIB] %s got a stream error event: %s", cli.getOwnID().String(), node.XMLString())
 
 	atomic.StoreUint32(&cli.isLoggedIn, 0)
 	cli.clearResponseWaiters(node)
@@ -80,7 +80,7 @@ func (cli *Client) handleIB(node *waBinary.Node) {
 }
 
 func (cli *Client) handleConnectFailure(node *waBinary.Node) {
-	cli.Log.Warnf("[LXP] %s got a connection failure event: %s", cli.getOwnID().String(), node.XMLString())
+	cli.Log.Warnf("[LXP-LIB] %s got a connection failure event: %s", cli.getOwnID().String(), node.XMLString())
 
 	ag := node.AttrGetter()
 	reason := events.ConnectFailureReason(ag.Int("reason"))

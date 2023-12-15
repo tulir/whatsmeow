@@ -35,6 +35,8 @@ import (
 var pbSerializer = store.SignalProtobufSerializer
 
 func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
+	cli.Log.Debugf("[LXP-LIB] %s got a encrypted message event: %s", cli.getOwnID().String(), node.XMLString())
+
 	info, err := cli.parseMessageInfo(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
