@@ -8,9 +8,9 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/util/cbcutil"
+	waProto "github.com/matias-carpintini/whatsmeow/binary/proto"
+	"github.com/matias-carpintini/whatsmeow/types"
+	"github.com/matias-carpintini/whatsmeow/util/cbcutil"
 )
 
 // MutationInfo contains information about a single mutation to the app state.
