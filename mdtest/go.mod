@@ -1,4 +1,4 @@
-module go.mau.fi/whatsmeow/mdtest
+module github.com/matias-carpintini/whatsmeow/mdtest
 
 go 1.19
 

@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"net/http"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
+	waBinary "github.com/matias-carpintini/whatsmeow/binary"
 )
 
 // Miscellaneous errors
