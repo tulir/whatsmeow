@@ -104,17 +104,12 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		)
 	}
 	if reason.IsLoggedOut() {
-		if cli.gotConnectionFailureCounter < 3 {
-			cli.gotConnectionFailureCounter++
-			cli.Log.Warnf("Got %s connect failure, ignoring it because we haven't received 3 yet", reason)
-			return
-		}
-		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason) // STP:  go here
-		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})                      // return to upper level
-		cli.Log.Infof("Deleting user device")
+		cli.Log.Infof("[LXP-LIB] Got %s connect failure, sending LoggedOut event and deleting session", reason)
+		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})
+		cli.Log.Infof("[LXP-LIB] Deleting user device")
 		err := cli.Store.Delete()
 		if err != nil {
-			cli.Log.Warnf("Failed to delete store after %d failure: %v", int(reason), err)
+			cli.Log.Warnf("[LXP-LIB] Failed to delete store after %d failure: %v", int(reason), err)
 		}
 	} else if reason == events.ConnectFailureTempBanned {
 		cli.Log.Warnf("Temporary ban connect failure: %s", node.XMLString())
