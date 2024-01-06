@@ -120,7 +120,6 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 //		MediaHandle: resp.Handle,
 //	})
 //	// handle error again
-
 func (cli *Client) UploadNewsletter(ctx context.Context, data []byte, appInfo MediaType) (resp UploadResponse, err error) {
 	resp.FileLength = uint64(len(data))
 	hash := sha256.Sum256(data)
