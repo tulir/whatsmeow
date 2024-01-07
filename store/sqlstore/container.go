@@ -176,8 +176,10 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 // If the device is not found, nil is returned instead.
 //
 // Note that the parameter usually must be an AD-JID.
+//
+// Ex.: deviceStore, err := container.GetDevice(types.JID{User: "553199999999:11@s.whatsapp.net"})
 func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
-	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
+	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid.User))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
