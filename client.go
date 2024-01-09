@@ -673,6 +673,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		},
 		ID:        webMsg.GetKey().GetId(),
 		PushName:  webMsg.GetPushName(),
+		Broadcast: webMsg.GetBroadcast(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
 	if info.IsFromMe {
