@@ -248,10 +248,14 @@ func (cli *Client) downloadAndDecrypt(url string, mediaKey []byte, appInfo Media
 
 	} else if data, err = cbcutil.Decrypt(cipherKey, iv, ciphertext); err != nil {
 		err = fmt.Errorf("failed to decrypt file: %w", err)
-	} else if fileLength >= 0 && len(data) != fileLength {
-		err = fmt.Errorf("%w: expected %d, got %d", ErrFileLengthMismatch, fileLength, len(data))
 	} else if len(fileSha256) == 32 && sha256.Sum256(data) != *(*[32]byte)(fileSha256) {
 		err = ErrInvalidMediaSHA256
+	}
+	if err != nil {
+		return
+	}
+	if fileLength >= 0 && len(data) != fileLength {
+		cli.Log.Warnf("Downloaded a file with different size: expected %d got %d url %s", fileLength, len(data), url)
 	}
 	return
 }
