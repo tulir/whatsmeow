@@ -92,74 +92,6 @@ message DeviceProps {
     optional HistorySyncConfig historySyncConfig = 5;
 }
 
-message InteractiveMessage {
-    message ShopMessage {
-        enum Surface {
-            UNKNOWN_SURFACE = 0;
-            FB = 1;
-            IG = 2;
-            WA = 3;
-        }
-        optional string id = 1;
-        optional Surface surface = 2;
-        optional int32 messageVersion = 3;
-    }
-    
-    message NativeFlowMessage {
-        message NativeFlowButton {
-            optional string name = 1;
-            optional string buttonParamsJson = 2;
-        }
-        
-        repeated NativeFlowButton buttons = 1;
-        optional string messageParamsJson = 2;
-        optional int32 messageVersion = 3;
-    }
-    
-    message Header {
-        optional string title = 1;
-        optional string subtitle = 2;
-        optional bool hasMediaAttachment = 5;
-        oneof media {
-            DocumentMessage documentMessage = 3;
-            ImageMessage imageMessage = 4;
-            bytes jpegThumbnail = 6;
-            VideoMessage videoMessage = 7;
-            LocationMessage locationMessage = 8;
-        }
-    }
-    
-    message Footer {
-        optional string text = 1;
-    }
-    
-    message CollectionMessage {
-        optional string bizJid = 1;
-        optional string id = 2;
-        optional int32 messageVersion = 3;
-    }
-    
-    message CarouselMessage {
-        repeated InteractiveMessage cards = 1;
-        optional int32 messageVersion = 2;
-    }
-    
-    message Body {
-        optional string text = 1;
-    }
-    
-    optional Header header = 1;
-    optional Body body = 2;
-    optional Footer footer = 3;
-    optional ContextInfo contextInfo = 15;
-    oneof interactiveMessage {
-        ShopMessage shopStorefrontMessage = 4;
-        CollectionMessage collectionMessage = 5;
-        NativeFlowMessage nativeFlowMessage = 6;
-        CarouselMessage carouselMessage = 7;
-    }
-}
-
 message InitialSecurityNotificationSettingSync {
     optional bool securityNotificationEnabled = 1;
 }
@@ -294,6 +226,11 @@ message GroupInviteMessage {
 
 message FutureProofMessage {
     optional Message message = 1;
+}
+
+message ExtendedTextMessageWithParentKey {
+    optional MessageKey key = 1;
+    optional ExtendedTextMessage extendedTextMessage = 2;
 }
 
 message ExtendedTextMessage {
@@ -633,6 +570,12 @@ message AppStateFatalExceptionNotification {
     optional int64 timestamp = 2;
 }
 
+message MediaNotifyMessage {
+    optional string expressPathUrl = 1;
+    optional bytes fileEncSha256 = 2;
+    optional uint64 fileLength = 3;
+}
+
 message Location {
     optional double degreesLatitude = 1;
     optional double degreesLongitude = 2;
@@ -695,11 +638,13 @@ message DisappearingMode {
         CHAT_SETTING = 1;
         ACCOUNT_SETTING = 2;
         BULK_CHANGE = 3;
+        BIZ_SUPPORTS_FB_HOSTING = 4;
     }
     enum Initiator {
         CHANGED_IN_CHAT = 0;
         INITIATED_BY_ME = 1;
         INITIATED_BY_OTHER = 2;
+        BIZ_UPGRADE_FB_HOSTING = 3;
     }
     optional Initiator initiator = 1;
     optional Trigger trigger = 2;
@@ -834,6 +779,8 @@ message BotPluginMetadata {
     optional string profilePhotoCdnUrl = 4;
     optional string searchProviderUrl = 5;
     optional uint32 referenceIndex = 6;
+    optional uint32 expectedLinksCount = 7;
+    optional uint32 pluginVersion = 8;
 }
 
 message BotMetadata {
@@ -841,6 +788,7 @@ message BotMetadata {
     optional string personaId = 2;
     optional BotPluginMetadata pluginMetadata = 3;
     optional BotSuggestedPromptMetadata suggestedPromptMetadata = 4;
+    optional string invokerJid = 5;
 }
 
 message BotAvatarMetadata {
@@ -985,6 +933,8 @@ message Message {
     optional EncEventResponseMessage encEventResponseMessage = 76;
     optional CommentMessage commentMessage = 77;
     optional NewsletterAdminInviteMessage newsletterAdminInviteMessage = 78;
+    optional ExtendedTextMessageWithParentKey extendedTextMessageWithParentKey = 79;
+    optional PlaceholderMessage placeholderMessage = 80;
 }
 
 message MessageSecretMessage {
@@ -1042,6 +992,7 @@ message TemplateMessage {
         optional string hydratedFooterText = 7;
         repeated HydratedTemplateButton hydratedButtons = 8;
         optional string templateId = 9;
+        optional bool maskLinkedDevices = 10;
         oneof title {
             DocumentMessage documentMessage = 1;
             string hydratedTitleText = 2;
@@ -1187,6 +1138,7 @@ message ProtocolMessage {
         PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE = 17;
         REQUEST_WELCOME_MESSAGE = 18;
         BOT_FEEDBACK_MESSAGE = 19;
+        MEDIA_NOTIFY_MESSAGE = 20;
     }
     optional MessageKey key = 1;
     optional Type type = 2;
@@ -1205,6 +1157,7 @@ message ProtocolMessage {
     optional BotFeedbackMessage botFeedbackMessage = 18;
     optional string invokerJid = 19;
     optional RequestWelcomeMessageMetadata requestWelcomeMessageMetadata = 20;
+    optional MediaNotifyMessage mediaNotifyMessage = 21;
 }
 
 message ProductMessage {
@@ -1265,6 +1218,13 @@ message PollCreationMessage {
     repeated Option options = 3;
     optional uint32 selectableOptionsCount = 4;
     optional ContextInfo contextInfo = 5;
+}
+
+message PlaceholderMessage {
+    enum PlaceholderType {
+        MASK_LINKED_DEVICES = 0;
+    }
+    optional PlaceholderType type = 1;
 }
 
 message PinInChatMessage {
@@ -1541,6 +1501,74 @@ message InteractiveResponseMessage {
     optional ContextInfo contextInfo = 15;
     oneof interactiveResponseMessage {
         NativeFlowResponseMessage nativeFlowResponseMessage = 2;
+    }
+}
+
+message InteractiveMessage {
+    message NativeFlowMessage {
+        message NativeFlowButton {
+            optional string name = 1;
+            optional string buttonParamsJson = 2;
+        }
+        
+        repeated NativeFlowButton buttons = 1;
+        optional string messageParamsJson = 2;
+        optional int32 messageVersion = 3;
+    }
+    
+    message Header {
+        optional string title = 1;
+        optional string subtitle = 2;
+        optional bool hasMediaAttachment = 5;
+        oneof media {
+            DocumentMessage documentMessage = 3;
+            ImageMessage imageMessage = 4;
+            bytes jpegThumbnail = 6;
+            VideoMessage videoMessage = 7;
+            LocationMessage locationMessage = 8;
+        }
+    }
+    
+    message Footer {
+        optional string text = 1;
+    }
+    
+    message CollectionMessage {
+        optional string bizJid = 1;
+        optional string id = 2;
+        optional int32 messageVersion = 3;
+    }
+    
+    message CarouselMessage {
+        repeated InteractiveMessage cards = 1;
+        optional int32 messageVersion = 2;
+    }
+    
+    message Body {
+        optional string text = 1;
+    }
+    
+    message ShopMessage {
+        enum Surface {
+            UNKNOWN_SURFACE = 0;
+            FB = 1;
+            IG = 2;
+            WA = 3;
+        }
+        optional string id = 1;
+        optional Surface surface = 2;
+        optional int32 messageVersion = 3;
+    }
+    
+    optional Header header = 1;
+    optional Body body = 2;
+    optional Footer footer = 3;
+    optional ContextInfo contextInfo = 15;
+    oneof interactiveMessage {
+        ShopMessage shopStorefrontMessage = 4;
+        CollectionMessage collectionMessage = 5;
+        NativeFlowMessage nativeFlowMessage = 6;
+        CarouselMessage carouselMessage = 7;
     }
 }
 
@@ -1880,6 +1908,7 @@ message SyncActionValue {
     optional DeleteIndividualCallLogAction deleteIndividualCallLog = 46;
     optional LabelReorderingAction labelReorderingAction = 47;
     optional PaymentInfoAction paymentInfoAction = 48;
+    optional CustomPaymentMethodsAction customPaymentMethodsAction = 49;
 }
 
 message UserStatusMuteAction {
@@ -2058,6 +2087,22 @@ message DeleteIndividualCallLogAction {
 
 message DeleteChatAction {
     optional SyncActionMessageRange messageRange = 1;
+}
+
+message CustomPaymentMethodsAction {
+    repeated CustomPaymentMethod customPaymentMethods = 1;
+}
+
+message CustomPaymentMethod {
+    required string credentialId = 1;
+    required string country = 2;
+    required string type = 3;
+    repeated CustomPaymentMethodMetadata metadata = 4;
+}
+
+message CustomPaymentMethodMetadata {
+    required string key = 1;
+    required string value = 2;
 }
 
 message ContactAction {
@@ -2343,6 +2388,7 @@ message ClientPayload {
             BLUE_WEB = 32;
             IPAD = 33;
             TEST = 34;
+            SMART_GLASSES = 35;
         }
         enum DeviceType {
             PHONE = 0;
