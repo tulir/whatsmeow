@@ -77,23 +77,31 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	if err != nil {
 		return fmt.Errorf("failed to decrypt noise certificate ciphertext: %w", err)
 	}
-	var cert waProto.NoiseCertificate
-	err = proto.Unmarshal(certDecrypted, &cert)
+	var certChain waProto.CertChain
+	err = proto.Unmarshal(certDecrypted, &certChain)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal noise certificate: %w", err)
 	}
-	certDetailsRaw := cert.GetDetails()
-	certSignature := cert.GetSignature()
-	if certDetailsRaw == nil || certSignature == nil {
+	intermediateCertDetailsRaw := certChain.GetIntermediate().GetDetails()
+	intermediateCertSignature := certChain.GetIntermediate().GetSignature()
+	leafCertDetailsRaw := certChain.GetLeaf().GetDetails()
+	leafCertSignature := certChain.GetLeaf().GetSignature()
+	if intermediateCertDetailsRaw == nil || intermediateCertSignature == nil || leafCertDetailsRaw == nil || leafCertSignature == nil {
 		return fmt.Errorf("missing parts of noise certificate")
 	}
-	var certDetails waProto.NoiseCertificate_Details
-	err = proto.Unmarshal(certDetailsRaw, &certDetails)
+	var leafCertDetails waProto.CertChain_NoiseCertificate_Details
+	err = proto.Unmarshal(leafCertDetailsRaw, &leafCertDetails)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal noise certificate details: %w", err)
-	} else if !bytes.Equal(certDetails.GetKey(), staticDecrypted) {
+	} else if !bytes.Equal(leafCertDetails.GetKey(), staticDecrypted) {
 		return fmt.Errorf("cert key doesn't match decrypted static")
 	}
+	var intermediateCertDetails waProto.CertChain_NoiseCertificate_Details
+	err = proto.Unmarshal(intermediateCertDetailsRaw, &intermediateCertDetails)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal noise certificate details: %w", err)
+	}
+	// TODO check cert signatures?
 
 	encryptedPubkey := nh.Encrypt(cli.Store.NoiseKey.Pub[:])
 	err = nh.MixSharedSecretIntoKey(*cli.Store.NoiseKey.Priv, serverEphemeralArr)
