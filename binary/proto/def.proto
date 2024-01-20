@@ -282,11 +282,6 @@ message ExtendedTextMessage {
     optional bool viewOnce = 30;
 }
 
-message EventUpdateMessage {
-    optional EventResponseMessage response = 1;
-    optional EventEditMessage edit = 2;
-}
-
 message EventResponseMessage {
     enum EventResponseType {
         UNKNOWN = 0;
@@ -307,18 +302,13 @@ message EventMessage {
     optional int64 startTime = 7;
 }
 
-message EventEditMessage {
-    optional EventMessage eventEditMessage = 1;
-    optional int64 editTimestampMs = 2;
-}
-
 message EncReactionMessage {
     optional MessageKey targetMessageKey = 1;
     optional bytes encPayload = 2;
     optional bytes encIv = 3;
 }
 
-message EncEventUpdateMessage {
+message EncEventResponseMessage {
     optional MessageKey eventCreationMessageKey = 1;
     optional bytes encPayload = 2;
     optional bytes encIv = 3;
@@ -791,6 +781,7 @@ message BotPluginMetadata {
     optional uint32 referenceIndex = 6;
     optional uint32 expectedLinksCount = 7;
     optional uint32 pluginVersion = 8;
+    optional string searchQuery = 9;
 }
 
 message BotMetadata {
@@ -940,11 +931,12 @@ message Message {
     optional BCallMessage bcallMessage = 72;
     optional FutureProofMessage lottieStickerMessage = 74;
     optional EventMessage eventMessage = 75;
+    optional EncEventResponseMessage encEventResponseMessage = 76;
     optional CommentMessage commentMessage = 77;
     optional NewsletterAdminInviteMessage newsletterAdminInviteMessage = 78;
     optional ExtendedTextMessageWithParentKey extendedTextMessageWithParentKey = 79;
     optional PlaceholderMessage placeholderMessage = 80;
-    optional EncEventUpdateMessage encEventUpdateMessage = 81;
+    optional SecretEncryptedMessage secretEncryptedMessage = 82;
 }
 
 message MessageSecretMessage {
@@ -1080,6 +1072,18 @@ message SendPaymentMessage {
     optional Message noteMessage = 2;
     optional MessageKey requestMessageKey = 3;
     optional PaymentBackground background = 4;
+}
+
+message SecretEncryptedMessage {
+    enum SecretEncType {
+        UNKNOWN = 0;
+        EVENT_RESPONSE = 1;
+        EVENT_EDIT = 2;
+    }
+    optional MessageKey targetMessageKey = 1;
+    optional bytes encPayload = 2;
+    optional bytes encIv = 3;
+    optional SecretEncType secretEncType = 4;
 }
 
 message ScheduledCallEditMessage {
@@ -1515,6 +1519,17 @@ message InteractiveResponseMessage {
 }
 
 message InteractiveMessage {
+    message NativeFlowMessage {
+        message NativeFlowButton {
+            optional string name = 1;
+            optional string buttonParamsJson = 2;
+        }
+        
+        repeated NativeFlowButton buttons = 1;
+        optional string messageParamsJson = 2;
+        optional int32 messageVersion = 3;
+    }
+    
     message Header {
         optional string title = 1;
         optional string subtitle = 2;
@@ -1525,6 +1540,7 @@ message InteractiveMessage {
             bytes jpegThumbnail = 6;
             VideoMessage videoMessage = 7;
             LocationMessage locationMessage = 8;
+            ProductMessage productMessage = 9;
         }
     }
     
@@ -1556,17 +1572,6 @@ message InteractiveMessage {
         }
         optional string id = 1;
         optional Surface surface = 2;
-        optional int32 messageVersion = 3;
-    }
-    
-    message NativeFlowMessage {
-        message NativeFlowButton {
-            optional string name = 1;
-            optional string buttonParamsJson = 2;
-        }
-        
-        repeated NativeFlowButton buttons = 1;
-        optional string messageParamsJson = 2;
         optional int32 messageVersion = 3;
     }
     
