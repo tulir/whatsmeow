@@ -317,7 +317,7 @@ func (cli *Client) Connect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader, cli.proxy)
+	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), cli.proxy)
 	if err := fs.Connect(); err != nil {
 		fs.Close(0)
 		return err
