@@ -251,6 +251,12 @@ func (r *binaryDecoder) readInteropJID() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	server, err := r.read(true)
+	if err != nil {
+		return nil, err
+	} else if server != types.InteropServer {
+		return nil, fmt.Errorf("%w: expected %q, got %q", ErrInvalidJIDType, types.InteropServer, server)
+	}
 	return types.JID{
 		User:       user.(string),
 		Device:     uint16(device),
@@ -268,10 +274,16 @@ func (r *binaryDecoder) readFBJID() (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+	server, err := r.read(true)
+	if err != nil {
+		return nil, err
+	} else if server != types.MessengerServer {
+		return nil, fmt.Errorf("%w: expected %q, got %q", ErrInvalidJIDType, types.MessengerServer, server)
+	}
 	return types.JID{
 		User:   user.(string),
 		Device: uint16(device),
-		Server: types.MessengerServer,
+		Server: server.(string),
 	}, nil
 }
 
