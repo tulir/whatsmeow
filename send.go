@@ -783,7 +783,7 @@ func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, mess
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
 	}
 	content := []waBinary.Node{*encrypted}
-	if isPreKey {
+	if isPreKey && cli.MessengerConfig == nil {
 		content = append(content, cli.makeDeviceIdentityNode())
 	}
 	return &waBinary.Node{
@@ -1004,9 +1004,10 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundl
 	}
 	copyAttrs(extraAttrs, encAttrs)
 
+	includeDeviceIdentity := encAttrs["type"] == "pkmsg" && cli.MessengerConfig == nil
 	return &waBinary.Node{
 		Tag:     "enc",
 		Attrs:   encAttrs,
 		Content: ciphertext.Serialize(),
-	}, encAttrs["type"] == "pkmsg", nil
+	}, includeDeviceIdentity, nil
 }

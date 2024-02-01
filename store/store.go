@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
@@ -138,6 +140,8 @@ type Device struct {
 	Platform     string
 	BusinessName string
 	PushName     string
+
+	FacebookUUID uuid.UUID
 
 	Initialized   bool
 	Identities    IdentityStore
