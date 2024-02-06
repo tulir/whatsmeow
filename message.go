@@ -117,15 +117,22 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	}
 
 	for _, child := range node.GetChildren() {
-		if child.Tag == "multicast" {
+		switch child.Tag {
+		case "multicast":
 			info.Multicast = true
-		} else if child.Tag == "verified_name" {
+		case "verified_name":
 			info.VerifiedName, err = parseVerifiedNameContent(child)
 			if err != nil {
 				cli.Log.Warnf("Failed to parse verified_name node in %s: %v", info.ID, err)
 			}
-		} else if mediaType, ok := child.AttrGetter().GetString("mediatype", false); ok {
-			info.MediaType = mediaType
+		case "franking":
+			// TODO
+		case "trace":
+			// TODO
+		default:
+			if mediaType, ok := child.AttrGetter().GetString("mediatype", false); ok {
+				info.MediaType = mediaType
+			}
 		}
 	}
 
@@ -175,7 +182,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	}
 
 	children := node.GetChildren()
-	cli.Log.Debugf("Decrypting %d messages from %s", len(children), info.SourceString())
+	cli.Log.Debugf("Decrypting message from %s", info.SourceString())
 	handled := false
 	containsDirectMsg := false
 	for _, child := range children {
@@ -202,28 +209,33 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
 			go cli.sendRetryReceipt(node, info, isUnavailable)
-			decryptFailMode, _ := child.Attrs["decrypt-fail"].(string)
 			cli.dispatchEvent(&events.UndecryptableMessage{
 				Info:            *info,
 				IsUnavailable:   isUnavailable,
-				DecryptFailMode: events.DecryptFailMode(decryptFailMode),
+				DecryptFailMode: events.DecryptFailMode(ag.OptionalString("decrypt-fail")),
 			})
 			return
-		}
-
-		var msg waProto.Message
-		err = proto.Unmarshal(decrypted, &msg)
-		if err != nil {
-			cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
-			continue
 		}
 		retryCount := ag.OptionalInt("count")
 		if retryCount > 0 {
 			cli.cancelDelayedRequestFromPhone(info.ID)
 		}
 
-		cli.handleDecryptedMessage(info, &msg, retryCount)
-		handled = true
+		var msg waProto.Message
+		switch ag.Int("v") {
+		case 2:
+			err = proto.Unmarshal(decrypted, &msg)
+			if err != nil {
+				cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
+				continue
+			}
+			cli.handleDecryptedMessage(info, &msg, retryCount)
+			handled = true
+		case 3:
+			handled = cli.handleDecryptedArmadillo(info, decrypted, retryCount)
+		default:
+			cli.Log.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
+		}
 	}
 	if handled {
 		go cli.sendMessageReceipt(info)
@@ -272,6 +284,9 @@ func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool
 			return nil, fmt.Errorf("failed to decrypt normal message: %w", err)
 		}
 	}
+	if child.AttrGetter().Int("v") == 3 {
+		return plaintext, nil
+	}
 	return unpadMessage(plaintext)
 }
 
@@ -288,6 +303,9 @@ func (cli *Client) decryptGroupMsg(child *waBinary.Node, from types.JID, chat ty
 	plaintext, err := cipher.Decrypt(msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt group message: %w", err)
+	}
+	if child.AttrGetter().Int("v") == 3 {
+		return plaintext, nil
 	}
 	return unpadMessage(plaintext)
 }
@@ -320,10 +338,10 @@ func padMessage(plaintext []byte) []byte {
 	return plaintext
 }
 
-func (cli *Client) handleSenderKeyDistributionMessage(chat, from types.JID, rawSKDMsg *waProto.SenderKeyDistributionMessage) {
+func (cli *Client) handleSenderKeyDistributionMessage(chat, from types.JID, axolotlSKDM []byte) {
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
-	sdkMsg, err := protocol.NewSenderKeyDistributionMessageFromBytes(rawSKDMsg.AxolotlSenderKeyDistributionMessage, pbSerializer.SenderKeyDistributionMessage)
+	sdkMsg, err := protocol.NewSenderKeyDistributionMessageFromBytes(axolotlSKDM, pbSerializer.SenderKeyDistributionMessage)
 	if err != nil {
 		cli.Log.Errorf("Failed to parse sender key distribution message from %s for %s: %v", from, chat, err)
 		return
@@ -461,9 +479,9 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waProto.Me
 	}
 	if msg.GetSenderKeyDistributionMessage() != nil {
 		if !info.IsGroup {
-			cli.Log.Warnf("Got sender key distribution message in non-group chat from", info.Sender)
+			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
 		} else {
-			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, msg.SenderKeyDistributionMessage)
+			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, msg.SenderKeyDistributionMessage.AxolotlSenderKeyDistributionMessage)
 		}
 	}
 	// N.B. Edits are protocol messages, but they're also wrapped inside EditedMessage,

@@ -1,0 +1,227 @@
+syntax = "proto3";
+package WAWa5;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waWa5";
+
+message ClientPayload {
+	enum Product {
+		WHATSAPP = 0;
+		MESSENGER = 1;
+	}
+
+	enum ConnectType {
+		CELLULAR_UNKNOWN = 0;
+		WIFI_UNKNOWN = 1;
+		CELLULAR_EDGE = 100;
+		CELLULAR_IDEN = 101;
+		CELLULAR_UMTS = 102;
+		CELLULAR_EVDO = 103;
+		CELLULAR_GPRS = 104;
+		CELLULAR_HSDPA = 105;
+		CELLULAR_HSUPA = 106;
+		CELLULAR_HSPA = 107;
+		CELLULAR_CDMA = 108;
+		CELLULAR_1XRTT = 109;
+		CELLULAR_EHRPD = 110;
+		CELLULAR_LTE = 111;
+		CELLULAR_HSPAP = 112;
+	}
+
+	enum ConnectReason {
+		PUSH = 0;
+		USER_ACTIVATED = 1;
+		SCHEDULED = 2;
+		ERROR_RECONNECT = 3;
+		NETWORK_SWITCH = 4;
+		PING_RECONNECT = 5;
+		UNKNOWN = 6;
+	}
+
+	enum IOSAppExtension {
+		SHARE_EXTENSION = 0;
+		SERVICE_EXTENSION = 1;
+		INTENTS_EXTENSION = 2;
+	}
+
+	message DNSSource {
+		enum DNSResolutionMethod {
+			SYSTEM = 0;
+			GOOGLE = 1;
+			HARDCODED = 2;
+			OVERRIDE = 3;
+			FALLBACK = 4;
+		}
+
+		DNSResolutionMethod dnsMethod = 15;
+		bool appCached = 16;
+	}
+
+	message WebInfo {
+		enum WebSubPlatform {
+			WEB_BROWSER = 0;
+			APP_STORE = 1;
+			WIN_STORE = 2;
+			DARWIN = 3;
+			WIN32 = 4;
+		}
+
+		message WebdPayload {
+			bool usesParticipantInKey = 1;
+			bool supportsStarredMessages = 2;
+			bool supportsDocumentMessages = 3;
+			bool supportsURLMessages = 4;
+			bool supportsMediaRetry = 5;
+			bool supportsE2EImage = 6;
+			bool supportsE2EVideo = 7;
+			bool supportsE2EAudio = 8;
+			bool supportsE2EDocument = 9;
+			string documentTypes = 10;
+			bytes features = 11;
+		}
+
+		string refToken = 1;
+		string version = 2;
+		WebdPayload webdPayload = 3;
+		WebSubPlatform webSubPlatform = 4;
+	}
+
+	message UserAgent {
+		enum DeviceType {
+			PHONE = 0;
+			TABLET = 1;
+			DESKTOP = 2;
+			WEARABLE = 3;
+			VR = 4;
+		}
+
+		enum ReleaseChannel {
+			RELEASE = 0;
+			BETA = 1;
+			ALPHA = 2;
+			DEBUG = 3;
+		}
+
+		enum Platform {
+			ANDROID = 0;
+			IOS = 1;
+			WINDOWS_PHONE = 2;
+			BLACKBERRY = 3;
+			BLACKBERRYX = 4;
+			S40 = 5;
+			S60 = 6;
+			PYTHON_CLIENT = 7;
+			TIZEN = 8;
+			ENTERPRISE = 9;
+			SMB_ANDROID = 10;
+			KAIOS = 11;
+			SMB_IOS = 12;
+			WINDOWS = 13;
+			WEB = 14;
+			PORTAL = 15;
+			GREEN_ANDROID = 16;
+			GREEN_IPHONE = 17;
+			BLUE_ANDROID = 18;
+			BLUE_IPHONE = 19;
+			FBLITE_ANDROID = 20;
+			MLITE_ANDROID = 21;
+			IGLITE_ANDROID = 22;
+			PAGE = 23;
+			MACOS = 24;
+			OCULUS_MSG = 25;
+			OCULUS_CALL = 26;
+			MILAN = 27;
+			CAPI = 28;
+			WEAROS = 29;
+			ARDEVICE = 30;
+			VRDEVICE = 31;
+			BLUE_WEB = 32;
+			IPAD = 33;
+			TEST = 34;
+			SMART_GLASSES = 35;
+		}
+
+		message AppVersion {
+			uint32 primary = 1;
+			uint32 secondary = 2;
+			uint32 tertiary = 3;
+			uint32 quaternary = 4;
+			uint32 quinary = 5;
+		}
+
+		Platform platform = 1;
+		AppVersion appVersion = 2;
+		string mcc = 3;
+		string mnc = 4;
+		string osVersion = 5;
+		string manufacturer = 6;
+		string device = 7;
+		string osBuildNumber = 8;
+		string phoneID = 9;
+		ReleaseChannel releaseChannel = 10;
+		string localeLanguageIso6391 = 11;
+		string localeCountryIso31661Alpha2 = 12;
+		string deviceBoard = 13;
+		string deviceExpID = 14;
+		DeviceType deviceType = 15;
+	}
+
+	message DevicePairingRegistrationData {
+		bytes eRegid = 1;
+		bytes eKeytype = 2;
+		bytes eIdent = 3;
+		bytes eSkeyID = 4;
+		bytes eSkeyVal = 5;
+		bytes eSkeySig = 6;
+		bytes buildHash = 7;
+		bytes deviceProps = 8;
+	}
+
+	uint64 username = 1;
+	bool passive = 3;
+	UserAgent userAgent = 5;
+	WebInfo webInfo = 6;
+	string pushName = 7;
+	sfixed32 sessionID = 9;
+	bool shortConnect = 10;
+	ConnectType connectType = 12;
+	ConnectReason connectReason = 13;
+	repeated int32 shards = 14;
+	DNSSource dnsSource = 15;
+	uint32 connectAttemptCount = 16;
+	uint32 device = 18;
+	DevicePairingRegistrationData devicePairingData = 19;
+	Product product = 20;
+	bytes fbCat = 21;
+	bytes fbUserAgent = 22;
+	bool oc = 23;
+	int32 lc = 24;
+	IOSAppExtension iosAppExtension = 30;
+	uint64 fbAppID = 31;
+	bytes fbDeviceID = 32;
+	bool pull = 33;
+	bytes paddingBytes = 34;
+	int32 yearClass = 36;
+	int32 memClass = 37;
+}
+
+message HandshakeMessage {
+	message ClientFinish {
+		bytes static = 1;
+		bytes payload = 2;
+	}
+
+	message ServerHello {
+		bytes ephemeral = 1;
+		bytes static = 2;
+		bytes payload = 3;
+	}
+
+	message ClientHello {
+		bytes ephemeral = 1;
+		bytes static = 2;
+		bytes payload = 3;
+	}
+
+	ClientHello clientHello = 2;
+	ServerHello serverHello = 3;
+	ClientFinish clientFinish = 4;
+}

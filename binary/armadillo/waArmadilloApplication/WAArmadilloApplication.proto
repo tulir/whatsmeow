@@ -1,0 +1,245 @@
+syntax = "proto3";
+package WAArmadilloApplication;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waArmadilloApplication";
+
+import "waArmadilloXMA/WAArmadilloXMA.proto";
+import "waCommon/WACommon.proto";
+
+message Armadillo {
+	message Metadata {
+	}
+
+	message Payload {
+		oneof payload {
+			Content content = 1;
+			ApplicationData applicationData = 2;
+			Signal signal = 3;
+			SubProtocolPayload subProtocol = 4;
+		}
+	}
+
+	message SubProtocolPayload {
+		WACommon.FutureProofBehavior futureProof = 1;
+	}
+
+	message Signal {
+		message EncryptedBackupsSecrets {
+			message Epoch {
+				enum EpochStatus {
+					EPOCHSTATUS_UNKNOWN = 0;
+					ES_OPEN = 1;
+					ES_CLOSE = 2;
+				}
+
+				uint64 ID = 1;
+				bytes anonID = 2;
+				bytes rootKey = 3;
+				EpochStatus status = 4;
+			}
+
+			uint64 backupID = 1;
+			uint64 serverDataID = 2;
+			repeated Epoch epoch = 3;
+			bytes tempOcmfClientState = 4;
+			bytes mailboxRootKey = 5;
+			bytes obliviousValidationToken = 6;
+		}
+
+		oneof signal {
+			EncryptedBackupsSecrets encryptedBackupsSecrets = 1;
+		}
+	}
+
+	message ApplicationData {
+		message AIBotResponseMessage {
+			string summonToken = 1;
+			string messageText = 2;
+			string serializedExtras = 3;
+		}
+
+		message MetadataSyncAction {
+			message SyncMessageAction {
+				message ActionMessageDelete {
+				}
+
+				oneof action {
+					ActionMessageDelete messageDelete = 101;
+				}
+
+				WACommon.MessageKey key = 1;
+			}
+
+			message SyncChatAction {
+				message ActionChatRead {
+					SyncActionMessageRange messageRange = 1;
+					bool read = 2;
+				}
+
+				message ActionChatDelete {
+					SyncActionMessageRange messageRange = 1;
+				}
+
+				message ActionChatArchive {
+					SyncActionMessageRange messageRange = 1;
+					bool archived = 2;
+				}
+
+				oneof action {
+					ActionChatArchive chatArchive = 101;
+					ActionChatDelete chatDelete = 102;
+					ActionChatRead chatRead = 103;
+				}
+
+				string chatID = 1;
+			}
+
+			message SyncActionMessage {
+				WACommon.MessageKey key = 1;
+				int64 timestamp = 2;
+			}
+
+			message SyncActionMessageRange {
+				int64 lastMessageTimestamp = 1;
+				int64 lastSystemMessageTimestamp = 2;
+				repeated SyncActionMessage messages = 3;
+			}
+
+			oneof actionType {
+				SyncChatAction chatAction = 101;
+				SyncMessageAction messageAction = 102;
+			}
+
+			int64 actionTimestamp = 1;
+		}
+
+		message MetadataSyncNotification {
+			repeated MetadataSyncAction actions = 2;
+		}
+
+		oneof applicationData {
+			MetadataSyncNotification metadataSync = 1;
+			AIBotResponseMessage aiBotResponse = 2;
+		}
+	}
+
+	message Content {
+		message PaymentsTransactionMessage {
+			enum PaymentStatus {
+				PAYMENT_UNKNOWN = 0;
+				REQUEST_INITED = 4;
+				REQUEST_DECLINED = 5;
+				REQUEST_TRANSFER_INITED = 6;
+				REQUEST_TRANSFER_COMPLETED = 7;
+				REQUEST_TRANSFER_FAILED = 8;
+				REQUEST_CANCELED = 9;
+				REQUEST_EXPIRED = 10;
+				TRANSFER_INITED = 11;
+				TRANSFER_PENDING = 12;
+				TRANSFER_PENDING_RECIPIENT_VERIFICATION = 13;
+				TRANSFER_CANCELED = 14;
+				TRANSFER_COMPLETED = 15;
+				TRANSFER_NO_RECEIVER_CREDENTIAL_NO_RTS_PENDING_CANCELED = 16;
+				TRANSFER_NO_RECEIVER_CREDENTIAL_NO_RTS_PENDING_OTHER = 17;
+				TRANSFER_REFUNDED = 18;
+				TRANSFER_PARTIAL_REFUND = 19;
+				TRANSFER_CHARGED_BACK = 20;
+				TRANSFER_EXPIRED = 21;
+				TRANSFER_DECLINED = 22;
+				TRANSFER_UNAVAILABLE = 23;
+			}
+
+			uint64 transactionID = 1;
+			string amount = 2;
+			string currency = 3;
+			PaymentStatus paymentStatus = 4;
+			WAArmadilloXMA.ExtendedContentMessage extendedContentMessage = 5;
+		}
+
+		message NoteReplyMessage {
+			string noteID = 1;
+			WACommon.MessageText noteText = 2;
+			int64 noteTimestampMS = 3;
+			WACommon.MessageText noteReplyText = 4;
+		}
+
+		message BumpExistingMessage {
+			WACommon.MessageKey key = 1;
+		}
+
+		message ImageGalleryMessage {
+			repeated WACommon.SubProtocol images = 1;
+		}
+
+		message ScreenshotAction {
+			enum ScreenshotType {
+				SCREENSHOTTYPE_UNKNOWN = 0;
+				SCREENSHOT_IMAGE = 1;
+				SCREEN_RECORDING = 2;
+			}
+
+			ScreenshotType screenshotType = 1;
+		}
+
+		message ExtendedContentMessageWithSear {
+			string searID = 1;
+			bytes payload = 2;
+			string nativeURL = 3;
+			WACommon.SubProtocol searAssociatedMessage = 4;
+			string searSentWithMessageID = 5;
+		}
+
+		message RavenActionNotifMessage {
+			enum ActionType {
+				PLAYED = 0;
+				SCREENSHOT = 1;
+				FORCE_DISABLE = 2;
+			}
+
+			WACommon.MessageKey key = 1;
+			int64 actionTimestamp = 2;
+			ActionType actionType = 3;
+		}
+
+		message RavenMessage {
+			enum EphemeralType {
+				VIEW_ONCE = 0;
+				ALLOW_REPLAY = 1;
+				KEEP_IN_CHAT = 2;
+			}
+
+			oneof mediaContent {
+				WACommon.SubProtocol imageMessage = 2;
+				WACommon.SubProtocol videoMessage = 3;
+			}
+
+			EphemeralType ephemeralType = 1;
+		}
+
+		message CommonSticker {
+			enum StickerType {
+				STICKERTYPE_UNKNOWN = 0;
+				SMALL_LIKE = 1;
+				MEDIUM_LIKE = 2;
+				LARGE_LIKE = 3;
+			}
+
+			StickerType stickerType = 1;
+		}
+
+		oneof content {
+			CommonSticker commonSticker = 1;
+			ScreenshotAction screenshotAction = 3;
+			WAArmadilloXMA.ExtendedContentMessage extendedContentMessage = 4;
+			RavenMessage ravenMessage = 5;
+			RavenActionNotifMessage ravenActionNotifMessage = 6;
+			ExtendedContentMessageWithSear extendedMessageContentWithSear = 7;
+			ImageGalleryMessage imageGalleryMessage = 8;
+			PaymentsTransactionMessage paymentsTransactionMessage = 10;
+			BumpExistingMessage bumpExistingMessage = 11;
+			NoteReplyMessage noteReplyMessage = 13;
+		}
+	}
+
+	Payload payload = 1;
+	Metadata metadata = 2;
+}

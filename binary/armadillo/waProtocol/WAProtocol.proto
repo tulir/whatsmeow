@@ -1,0 +1,10 @@
+syntax = "proto3";
+package WAProtocol;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waProtocol";
+
+message MessageKey {
+	string remoteJID = 1;
+	bool fromMe = 2;
+	string ID = 3;
+	string participant = 4;
+}
