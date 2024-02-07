@@ -101,6 +101,11 @@ type incomingRetryKey struct {
 
 // handleRetryReceipt handles an incoming retry receipt for an outgoing message.
 func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.Node) error {
+	// TODO implement replying to retry receipts in messenger mode
+	if cli.MessengerConfig != nil {
+		return nil
+	}
+
 	retryChild, ok := node.GetOptionalChildByTag("retry")
 	if !ok {
 		return &ElementMissingError{Tag: "retry", In: "retry receipt"}
@@ -224,7 +229,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 }
 
 func (cli *Client) cancelDelayedRequestFromPhone(msgID types.MessageID) {
-	if !cli.AutomaticMessageRerequestFromPhone {
+	if !cli.AutomaticMessageRerequestFromPhone || cli.MessengerConfig != nil {
 		return
 	}
 	cli.pendingPhoneRerequestsLock.RLock()
@@ -240,7 +245,7 @@ func (cli *Client) cancelDelayedRequestFromPhone(msgID types.MessageID) {
 var RequestFromPhoneDelay = 5 * time.Second
 
 func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
-	if !cli.AutomaticMessageRerequestFromPhone {
+	if !cli.AutomaticMessageRerequestFromPhone || cli.MessengerConfig != nil {
 		return
 	}
 	cli.pendingPhoneRerequestsLock.Lock()

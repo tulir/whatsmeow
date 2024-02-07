@@ -334,7 +334,7 @@ func padMessage(plaintext []byte) []byte {
 	if pad[0] == 0 {
 		pad[0] = 0xf
 	}
-	plaintext = append(plaintext, bytes.Repeat(pad[:], int(pad[0]))...)
+	plaintext = append(plaintext, bytes.Repeat(pad, int(pad[0]))...)
 	return plaintext
 }
 

@@ -38,6 +38,9 @@ import (
 //	msgID := cli.GenerateMessageID()
 //	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
 func (cli *Client) GenerateMessageID() types.MessageID {
+	if cli.MessengerConfig != nil {
+		return types.MessageID(strconv.FormatInt(GenerateFacebookMessageID(), 10))
+	}
 	data := make([]byte, 8, 8+20+16)
 	binary.BigEndian.PutUint64(data, uint64(time.Now().Unix()))
 	ownID := cli.getOwnID()
@@ -48,6 +51,11 @@ func (cli *Client) GenerateMessageID() types.MessageID {
 	data = append(data, random.Bytes(16)...)
 	hash := sha256.Sum256(data)
 	return "3EB0" + strings.ToUpper(hex.EncodeToString(hash[:9]))
+}
+
+func GenerateFacebookMessageID() int64 {
+	const randomMask = (1 << 22) - 1
+	return (time.Now().UnixMilli() << 22) | (int64(binary.BigEndian.Uint32(random.Bytes(4))) & randomMask)
 }
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
@@ -274,7 +282,7 @@ func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *
 	}
 	if !sender.IsEmpty() && sender.User != cli.getOwnID().User {
 		key.FromMe = proto.Bool(false)
-		if chat.Server != types.DefaultUserServer {
+		if chat.Server != types.DefaultUserServer && chat.Server != types.MessengerServer {
 			key.Participant = proto.String(sender.ToNonAD().String())
 		}
 	}
