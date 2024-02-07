@@ -22,6 +22,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	"go.mau.fi/whatsmeow/binary/armadillo/waMediaTransport"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/util/cbcutil"
@@ -208,6 +209,10 @@ func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 		}
 		return nil, ErrNoURLPresent
 	}
+}
+
+func (cli *Client) DownloadFB(transport *waMediaTransport.WAMediaTransport_Integral, mediaType MediaType) ([]byte, error) {
+	return cli.DownloadMediaWithPath(transport.GetDirectPath(), transport.GetFileEncSHA256(), transport.GetFileSHA256(), transport.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType])
 }
 
 // DownloadMediaWithPath downloads an attachment by manually specifying the path and encryption details.
