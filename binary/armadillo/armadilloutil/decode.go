@@ -13,7 +13,7 @@ var ErrUnsupportedVersion = errors.New("unsupported subprotocol version")
 
 func Unmarshal[T proto.Message](into T, msg *waCommon.SubProtocol, expectedVersion int32) (T, error) {
 	if msg.GetVersion() != expectedVersion {
-		return into, fmt.Errorf("%w %d in %T (expected %d)", ErrUnsupportedVersion, msg.GetVersion(), expectedVersion, into)
+		return into, fmt.Errorf("%w %d in %T (expected %d)", ErrUnsupportedVersion, msg.GetVersion(), into, expectedVersion)
 	}
 
 	err := proto.Unmarshal(msg.GetPayload(), into)
