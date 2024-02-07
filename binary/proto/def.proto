@@ -1077,8 +1077,7 @@ message SendPaymentMessage {
 message SecretEncryptedMessage {
     enum SecretEncType {
         UNKNOWN = 0;
-        EVENT_RESPONSE = 1;
-        EVENT_EDIT = 2;
+        EVENT_EDIT = 1;
     }
     optional MessageKey targetMessageKey = 1;
     optional bytes encPayload = 2;
@@ -2741,6 +2740,8 @@ message WebMessageInfo {
         REMINDER_SETUP_MESSAGE = 198;
         REMINDER_SENT_MESSAGE = 199;
         REMINDER_CANCEL_MESSAGE = 200;
+        BIZ_COEX_PRIVACY_INIT = 201;
+        BIZ_COEX_PRIVACY_TRANSITION = 202;
     }
     enum Status {
         ERROR = 0;

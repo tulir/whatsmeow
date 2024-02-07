@@ -2072,22 +2072,19 @@ func (VideoMessage_Attribution) EnumDescriptor() ([]byte, []int) {
 type SecretEncryptedMessage_SecretEncType int32
 
 const (
-	SecretEncryptedMessage_UNKNOWN        SecretEncryptedMessage_SecretEncType = 0
-	SecretEncryptedMessage_EVENT_RESPONSE SecretEncryptedMessage_SecretEncType = 1
-	SecretEncryptedMessage_EVENT_EDIT     SecretEncryptedMessage_SecretEncType = 2
+	SecretEncryptedMessage_UNKNOWN    SecretEncryptedMessage_SecretEncType = 0
+	SecretEncryptedMessage_EVENT_EDIT SecretEncryptedMessage_SecretEncType = 1
 )
 
 // Enum value maps for SecretEncryptedMessage_SecretEncType.
 var (
 	SecretEncryptedMessage_SecretEncType_name = map[int32]string{
 		0: "UNKNOWN",
-		1: "EVENT_RESPONSE",
-		2: "EVENT_EDIT",
+		1: "EVENT_EDIT",
 	}
 	SecretEncryptedMessage_SecretEncType_value = map[string]int32{
-		"UNKNOWN":        0,
-		"EVENT_RESPONSE": 1,
-		"EVENT_EDIT":     2,
+		"UNKNOWN":    0,
+		"EVENT_EDIT": 1,
 	}
 )
 
@@ -4964,6 +4961,8 @@ const (
 	WebMessageInfo_REMINDER_SETUP_MESSAGE                                   WebMessageInfo_StubType = 198
 	WebMessageInfo_REMINDER_SENT_MESSAGE                                    WebMessageInfo_StubType = 199
 	WebMessageInfo_REMINDER_CANCEL_MESSAGE                                  WebMessageInfo_StubType = 200
+	WebMessageInfo_BIZ_COEX_PRIVACY_INIT                                    WebMessageInfo_StubType = 201
+	WebMessageInfo_BIZ_COEX_PRIVACY_TRANSITION                              WebMessageInfo_StubType = 202
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -5170,6 +5169,8 @@ var (
 		198: "REMINDER_SETUP_MESSAGE",
 		199: "REMINDER_SENT_MESSAGE",
 		200: "REMINDER_CANCEL_MESSAGE",
+		201: "BIZ_COEX_PRIVACY_INIT",
+		202: "BIZ_COEX_PRIVACY_TRANSITION",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -5373,6 +5374,8 @@ var (
 		"REMINDER_SETUP_MESSAGE":                                   198,
 		"REMINDER_SENT_MESSAGE":                                    199,
 		"REMINDER_CANCEL_MESSAGE":                                  200,
+		"BIZ_COEX_PRIVACY_INIT":                                    201,
+		"BIZ_COEX_PRIVACY_TRANSITION":                              202,
 	}
 )
 
