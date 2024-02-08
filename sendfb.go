@@ -450,10 +450,7 @@ func (cli *Client) prepareMessageNodeV3(
 		Content: []waBinary.Node{{
 			Tag:     "franking_tag",
 			Content: frankingTag,
-		}, /*, {
-			Tag:     "reporting_tag",
-			Content: reportingTag,
-		}*/},
+		}},
 	}, waBinary.Node{
 		Tag: "trace",
 		Content: []waBinary.Node{{
