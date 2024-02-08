@@ -5,6 +5,8 @@ import (
 	"go.mau.fi/whatsmeow/binary/armadillo/waMediaTransport"
 )
 
+type ConsumerApplication_Content_Content = isConsumerApplication_Content_Content
+
 func (*ConsumerApplication) IsMessageApplicationSub() {}
 
 const (
