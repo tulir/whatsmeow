@@ -234,13 +234,13 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 			mediaURL = fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
 		}
 		data, err = cli.downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
-		// TODO there are probably some errors that shouldn't retry
-		if err != nil {
-			if i >= len(mediaConn.Hosts)-1 {
-				return nil, fmt.Errorf("failed to download media from last host: %w", err)
-			}
-			cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
+		if err == nil {
+			return
+		} else if i >= len(mediaConn.Hosts)-1 {
+			return nil, fmt.Errorf("failed to download media from last host: %w", err)
 		}
+		// TODO there are probably some errors that shouldn't retry
+		cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
 	}
 	return
 }
@@ -305,6 +305,10 @@ func (cli *Client) downloadMedia(url string) ([]byte, error) {
 	}
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
+	if cli.MessengerConfig != nil {
+		req.Header.Set("User-Agent", cli.MessengerConfig.UserAgent)
+	}
+	// TODO user agent for whatsapp downloads?
 	resp, err := cli.http.Do(req)
 	if err != nil {
 		return nil, err
