@@ -227,12 +227,7 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 	}
 	for i, host := range mediaConn.Hosts {
 		// TODO omit hash for unencrypted media?
-		var mediaURL string
-		if cli.MessengerConfig != nil {
-			mediaURL = fmt.Sprintf("https://%s%s", host.Hostname, directPath)
-		} else {
-			mediaURL = fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
-		}
+		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
 		data, err = cli.downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
 		if err == nil {
 			return
