@@ -9,7 +9,7 @@ import (
 
 const (
 	ConsumerApplicationVersion    = 1
-	ArmadilloApplicationVersion   = 2
+	ArmadilloApplicationVersion   = 1
 	MultiDeviceApplicationVersion = 1 // TODO: check
 )
 
