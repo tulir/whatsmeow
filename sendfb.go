@@ -62,7 +62,7 @@ func (cli *Client) SendFBMessage(
 	metadata.FrankingVersion = 0
 	metadata.FrankingKey = random.Bytes(32)
 	msgAttrs := getAttrsFromFBMessage(message)
-	messageApp, err := proto.Marshal(&waMsgApplication.MessageApplication{
+	messageAppProto := &waMsgApplication.MessageApplication{
 		Payload: &waMsgApplication.MessageApplication_Payload{
 			Content: &waMsgApplication.MessageApplication_Payload_SubProtocol{
 				SubProtocol: &waMsgApplication.MessageApplication_SubProtocolPayload{
@@ -77,7 +77,8 @@ func (cli *Client) SendFBMessage(
 			},
 		},
 		Metadata: metadata,
-	})
+	}
+	messageApp, err := proto.Marshal(messageAppProto)
 	if err != nil {
 		return resp, fmt.Errorf("failed to marshal message application: %w", err)
 	}
@@ -109,9 +110,9 @@ func (cli *Client) SendFBMessage(
 	defer cli.messageSendLock.Unlock()
 
 	respChan := cli.waitResponse(req.ID)
-	//if !req.Peer {
-	//	cli.addRecentMessage(to, req.ID, message)
-	//}
+	if !req.Peer {
+		cli.addRecentMessage(to, req.ID, nil, messageAppProto)
+	}
 	var phash string
 	var data []byte
 	switch to.Server {

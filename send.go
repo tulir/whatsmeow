@@ -187,7 +187,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	respChan := cli.waitResponse(req.ID)
 	// Peer message retries aren't implemented yet
 	if !req.Peer {
-		cli.addRecentMessage(to, req.ID, message)
+		cli.addRecentMessage(to, req.ID, message, nil)
 	}
 	if message.GetMessageContextInfo().GetMessageSecret() != nil {
 		err = cli.Store.MsgSecrets.PutMessageSecret(to, ownID, req.ID, message.GetMessageContextInfo().GetMessageSecret())
