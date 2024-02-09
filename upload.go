@@ -144,6 +144,10 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload, fileHash []byte,
 	uploadPrefix := "mms"
 	if cli.MessengerConfig != nil {
 		uploadPrefix = "wa-msgr/mms"
+		// Messenger upload only allows voice messages, not audio files
+		if mmsType == "audio" {
+			mmsType = "ptt"
+		}
 	}
 	if newsletter {
 		mmsType = fmt.Sprintf("newsletter-%s", mmsType)
