@@ -241,8 +241,8 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 	var devices, jidsToSync, fbJIDsToSync []types.JID
 	for _, jid := range jids {
 		cached, ok := cli.userDevicesCache[jid]
-		if ok && len(cached) > 0 {
-			devices = append(devices, cached...)
+		if ok && len(cached.devices) > 0 {
+			devices = append(devices, cached.devices...)
 		} else if jid.Server == types.MessengerServer {
 			fbJIDsToSync = append(fbJIDsToSync, jid)
 		} else {
@@ -263,7 +263,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 				continue
 			}
 			userDevices := parseDeviceList(jid.User, user.GetChildByTag("devices"))
-			cli.userDevicesCache[jid] = userDevices
+			cli.userDevicesCache[jid] = deviceCache{devices: userDevices, dhash: participantListHashV2(userDevices)}
 			devices = append(devices, userDevices...)
 		}
 	}
@@ -280,7 +280,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 			}
 			userDevices := parseFBDeviceList(jid, user.GetChildByTag("devices"))
 			cli.userDevicesCache[jid] = userDevices
-			devices = append(devices, userDevices...)
+			devices = append(devices, userDevices.devices...)
 		}
 	}
 
@@ -489,7 +489,7 @@ func parseDeviceList(user string, deviceNode waBinary.Node) []types.JID {
 	return devices
 }
 
-func parseFBDeviceList(user types.JID, deviceList waBinary.Node) []types.JID {
+func parseFBDeviceList(user types.JID, deviceList waBinary.Node) deviceCache {
 	children := deviceList.GetChildren()
 	devices := make([]types.JID, 0, len(children))
 	for _, device := range children {
@@ -502,7 +502,10 @@ func parseFBDeviceList(user types.JID, deviceList waBinary.Node) []types.JID {
 		// TODO take identities here too?
 	}
 	// TODO do something with the icdc blob?
-	return devices
+	return deviceCache{
+		devices: devices,
+		dhash:   deviceList.AttrGetter().String("dhash"),
+	}
 }
 
 func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
@@ -510,6 +513,7 @@ func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) (*waBin
 	for i, jid := range jids {
 		users[i].Tag = "user"
 		users[i].Attrs = waBinary.Attrs{"jid": jid}
+		// TODO include dhash for users
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Context:   ctx,

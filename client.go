@@ -43,6 +43,11 @@ type wrappedEventHandler struct {
 	id uint32
 }
 
+type deviceCache struct {
+	devices []types.JID
+	dhash   string
+}
+
 // Client contains everything necessary to connect to and interact with the WhatsApp web API.
 type Client struct {
 	Store   *store.Device
@@ -108,7 +113,7 @@ type Client struct {
 
 	groupParticipantsCache     map[types.JID][]types.JID
 	groupParticipantsCacheLock sync.Mutex
-	userDevicesCache           map[types.JID][]types.JID
+	userDevicesCache           map[types.JID]deviceCache
 	userDevicesCacheLock       sync.Mutex
 
 	recentMessagesMap  map[recentMessageKey]*waProto.Message
@@ -213,7 +218,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		historySyncNotifications: make(chan *waProto.HistorySyncNotification, 32),
 
 		groupParticipantsCache: make(map[types.JID][]types.JID),
-		userDevicesCache:       make(map[types.JID][]types.JID),
+		userDevicesCache:       make(map[types.JID]deviceCache),
 
 		recentMessagesMap:      make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
