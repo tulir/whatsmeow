@@ -245,7 +245,7 @@ func (cli *Client) sendGroupV3(
 	ciphertext := encrypted.SignedSerialize()
 	timings.GroupEncrypt = time.Since(start)
 
-	node, allDevices, err := cli.prepareMessageNodeV3(ctx, to, ownID, id, nil, skdm, nil, msgAttrs, frankingTag, participants, timings)
+	node, allDevices, err := cli.prepareMessageNodeV3(ctx, to, ownID, id, nil, skdm, msgAttrs, frankingTag, participants, timings)
 	if err != nil {
 		return "", nil, err
 	}
@@ -281,10 +281,6 @@ func (cli *Client) sendDMV3(
 	frankingTag []byte,
 	timings *MessageDebugTimings,
 ) ([]byte, string, error) {
-	dsm := &waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage{
-		DestinationJID: to.String(),
-		Phash:          "",
-	}
 	payload := &waMsgTransport.MessageTransport_Payload{
 		ApplicationPayload: &waCommon.SubProtocol{
 			Payload: messageApp,
@@ -293,7 +289,7 @@ func (cli *Client) sendDMV3(
 		FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER,
 	}
 
-	node, allDevices, err := cli.prepareMessageNodeV3(ctx, to, ownID, id, payload, nil, dsm, msgAttrs, frankingTag, []types.JID{to, ownID.ToNonAD()}, timings)
+	node, allDevices, err := cli.prepareMessageNodeV3(ctx, to, ownID, id, payload, nil, msgAttrs, frankingTag, []types.JID{to, ownID.ToNonAD()}, timings)
 	if err != nil {
 		return nil, "", err
 	}
@@ -394,7 +390,6 @@ func (cli *Client) prepareMessageNodeV3(
 	id types.MessageID,
 	payload *waMsgTransport.MessageTransport_Payload,
 	skdm *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage,
-	dsm *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage,
 	msgAttrs messageAttrs,
 	frankingTag []byte,
 	participants []types.JID,
@@ -422,6 +417,11 @@ func (cli *Client) prepareMessageNodeV3(
 	}
 	if msgAttrs.DecryptFail != "" {
 		encAttrs["decrypt-fail"] = string(msgAttrs.DecryptFail)
+	}
+
+	dsm := &waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage{
+		DestinationJID: to.String(),
+		Phash:          "",
 	}
 
 	start = time.Now()
