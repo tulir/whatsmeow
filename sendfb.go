@@ -122,7 +122,7 @@ func (cli *Client) SendFBMessage(
 			err = fmt.Errorf("peer messages to fb are not yet supported")
 			//data, err = cli.sendPeerMessage(to, req.ID, message, &resp.DebugTimings)
 		} else {
-			data, err = cli.sendDMV3(ctx, to, ownID, req.ID, messageApp, msgAttrs, frankingTag, &resp.DebugTimings)
+			data, phash, err = cli.sendDMV3(ctx, to, ownID, req.ID, messageApp, msgAttrs, frankingTag, &resp.DebugTimings)
 		}
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
@@ -279,7 +279,7 @@ func (cli *Client) sendDMV3(
 	msgAttrs messageAttrs,
 	frankingTag []byte,
 	timings *MessageDebugTimings,
-) ([]byte, error) {
+) ([]byte, string, error) {
 	dsm := &waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage{
 		DestinationJID: to.String(),
 		Phash:          "",
@@ -292,17 +292,17 @@ func (cli *Client) sendDMV3(
 		FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER,
 	}
 
-	node, _, err := cli.prepareMessageNodeV3(ctx, to, ownID, id, payload, nil, dsm, msgAttrs, frankingTag, []types.JID{to, ownID.ToNonAD()}, timings)
+	node, allDevices, err := cli.prepareMessageNodeV3(ctx, to, ownID, id, payload, nil, dsm, msgAttrs, frankingTag, []types.JID{to, ownID.ToNonAD()}, timings)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	start := time.Now()
 	data, err := cli.sendNodeAndGetData(*node)
 	timings.Send = time.Since(start)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send message node: %w", err)
+		return nil, "", fmt.Errorf("failed to send message node: %w", err)
 	}
-	return data, nil
+	return data, participantListHashV2(allDevices), nil
 }
 
 type messageAttrs struct {
