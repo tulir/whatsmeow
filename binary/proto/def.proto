@@ -97,6 +97,10 @@ message InitialSecurityNotificationSettingSync {
 }
 
 message ImageMessage {
+    enum ImageSourceType {
+        USER_IMAGE = 0;
+        AI_GENERATED = 1;
+    }
     optional string url = 1;
     optional string mimetype = 2;
     optional string caption = 3;
@@ -124,6 +128,7 @@ message ImageMessage {
     optional bytes thumbnailEncSha256 = 28;
     optional string staticUrl = 29;
     repeated InteractiveAnnotation annotations = 30;
+    optional ImageSourceType imageSourceType = 31;
 }
 
 message HistorySyncNotification {
