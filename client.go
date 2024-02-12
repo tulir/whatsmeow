@@ -164,6 +164,7 @@ type Client struct {
 	// separate library for all the non-e2ee-related stuff like logging in.
 	// The library is currently embedded in mautrix-meta (https://github.com/mautrix/meta), but may be separated later.
 	MessengerConfig *MessengerConfig
+	RefreshCAT      func() error
 }
 
 type MessengerConfig struct {

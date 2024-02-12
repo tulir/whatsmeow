@@ -9,6 +9,7 @@ package events
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -145,6 +146,10 @@ const (
 	ConnectFailureClientOutdated ConnectFailureReason = 405
 	ConnectFailureBadUserAgent   ConnectFailureReason = 409
 
+	ConnectFailureCATExpired ConnectFailureReason = 413
+	ConnectFailureCATInvalid ConnectFailureReason = 414
+	ConnectFailureNotFound   ConnectFailureReason = 415
+
 	ConnectFailureInternalServerError ConnectFailureReason = 500
 	ConnectFailureExperimental        ConnectFailureReason = 501
 	ConnectFailureServiceUnavailable  ConnectFailureReason = 503
@@ -157,11 +162,17 @@ var connectFailureReasonMessage = map[ConnectFailureReason]string{
 	ConnectFailureUnknownLogout:  "logged out for unknown reason",
 	ConnectFailureClientOutdated: "client is out of date",
 	ConnectFailureBadUserAgent:   "client user agent was rejected",
+	ConnectFailureCATExpired:     "messenger crypto auth token has expired",
+	ConnectFailureCATInvalid:     "messenger crypto auth token is invalid",
 }
 
 // IsLoggedOut returns true if the client should delete session data due to this connect failure.
 func (cfr ConnectFailureReason) IsLoggedOut() bool {
 	return cfr == ConnectFailureLoggedOut || cfr == ConnectFailureMainDeviceGone || cfr == ConnectFailureUnknownLogout
+}
+
+func (cfr ConnectFailureReason) NumberString() string {
+	return strconv.Itoa(int(cfr))
 }
 
 // String returns the reason code and a short human-readable description of the error.
@@ -184,6 +195,8 @@ type ConnectFailure struct {
 
 // ClientOutdated is emitted when the WhatsApp server rejects the connection with the ConnectFailureClientOutdated code.
 type ClientOutdated struct{}
+
+type CATRefreshError struct{}
 
 // StreamError is emitted when the WhatsApp server sends a <stream:error> node with an unknown code.
 //

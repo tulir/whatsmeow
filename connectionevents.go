@@ -48,6 +48,15 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		// This seems to happen when the server wants to restart or something.
 		// The disconnection will be emitted as an events.Disconnected and then the auto-reconnect will do its thing.
 		cli.Log.Warnf("Got 503 stream error, assuming automatic reconnect will handle it")
+	case cli.RefreshCAT != nil && (code == events.ConnectFailureCATInvalid.NumberString() || code == events.ConnectFailureCATExpired.NumberString()):
+		cli.Log.Infof("Got %s stream error, refreshing CAT before reconnecting...", code)
+		// TODO find out if reconnection actually waits for this
+		err := cli.RefreshCAT()
+		if err != nil {
+			cli.Log.Errorf("Failed to refresh CAT: %v", err)
+			cli.expectDisconnect()
+			go cli.dispatchEvent(&events.CATRefreshError{})
+		}
 	default:
 		cli.Log.Errorf("Unknown stream error: %s", node.XMLString())
 		go cli.dispatchEvent(&events.StreamError{Code: code, Raw: node})
@@ -89,6 +98,8 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		willAutoReconnect = false
 	case reason == events.ConnectFailureServiceUnavailable:
 		// Auto-reconnect for 503s
+	case reason == events.ConnectFailureCATInvalid || reason == events.ConnectFailureCATExpired:
+		// Auto-reconnect when rotating CAT
 	case reason == 500 && message == "biz vname fetch error":
 		// These happen for business accounts randomly, also auto-reconnect
 	}
@@ -115,6 +126,16 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	} else if reason == events.ConnectFailureClientOutdated {
 		cli.Log.Errorf("Client outdated (405) connect failure (client version: %s)", store.GetWAVersion().String())
 		go cli.dispatchEvent(&events.ClientOutdated{})
+	} else if reason == events.ConnectFailureCATInvalid || reason == events.ConnectFailureCATExpired {
+		cli.Log.Infof("Got %d/%s connect failure, refreshing CAT before reconnecting...", int(reason), message)
+		// TODO find out if reconnection actually waits for this
+		err := cli.RefreshCAT()
+		if err != nil {
+			cli.Log.Errorf("Failed to refresh CAT: %v", err)
+			cli.expectDisconnect()
+			willAutoReconnect = false
+			go cli.dispatchEvent(&events.CATRefreshError{})
+		}
 	} else if willAutoReconnect {
 		cli.Log.Warnf("Got %d/%s connect failure, assuming automatic reconnect will handle it", int(reason), message)
 	} else {
