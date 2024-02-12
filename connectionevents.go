@@ -49,7 +49,8 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		cli.Log.Warnf("Got 503 stream error, assuming automatic reconnect will handle it")
 	case cli.RefreshCAT != nil && (code == events.ConnectFailureCATInvalid.NumberString() || code == events.ConnectFailureCATExpired.NumberString()):
 		cli.Log.Infof("Got %s stream error, refreshing CAT before reconnecting...", code)
-		// TODO find out if reconnection actually waits for this
+		cli.socketLock.RLock()
+		defer cli.socketLock.RUnlock()
 		err := cli.RefreshCAT()
 		if err != nil {
 			cli.Log.Errorf("Failed to refresh CAT: %v", err)
@@ -98,7 +99,9 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	case reason == events.ConnectFailureServiceUnavailable:
 		// Auto-reconnect for 503s
 	case reason == events.ConnectFailureCATInvalid || reason == events.ConnectFailureCATExpired:
-		// Auto-reconnect when rotating CAT
+		// Auto-reconnect when rotating CAT, lock socket to ensure refresh goes through before reconnect
+		cli.socketLock.RLock()
+		defer cli.socketLock.RUnlock()
 	case reason == 500 && message == "biz vname fetch error":
 		// These happen for business accounts randomly, also auto-reconnect
 	}
@@ -127,12 +130,10 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		go cli.dispatchEvent(&events.ClientOutdated{})
 	} else if reason == events.ConnectFailureCATInvalid || reason == events.ConnectFailureCATExpired {
 		cli.Log.Infof("Got %d/%s connect failure, refreshing CAT before reconnecting...", int(reason), message)
-		// TODO find out if reconnection actually waits for this
 		err := cli.RefreshCAT()
 		if err != nil {
 			cli.Log.Errorf("Failed to refresh CAT: %v", err)
 			cli.expectDisconnect()
-			willAutoReconnect = false
 			go cli.dispatchEvent(&events.CATRefreshError{})
 		}
 	} else if willAutoReconnect {
