@@ -59,8 +59,8 @@ type Client struct {
 	socketLock sync.RWMutex
 	socketWait chan struct{}
 
-	isLoggedIn            uint32
-	expectedDisconnectVal uint32
+	isLoggedIn            atomic.Bool
+	expectedDisconnect    atomic.Bool
 	EnableAutoReconnect   bool
 	LastSuccessfulConnect time.Time
 	AutoReconnectErrors   int
@@ -68,7 +68,7 @@ type Client struct {
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
 
-	sendActiveReceipts uint32
+	sendActiveReceipts atomic.Uint32
 
 	// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
 	// even when re-syncing the whole state.
@@ -82,7 +82,7 @@ type Client struct {
 	appStateSyncLock sync.Mutex
 
 	historySyncNotifications  chan *waProto.HistorySyncNotification
-	historySyncHandlerStarted uint32
+	historySyncHandlerStarted atomic.Bool
 
 	uploadPreKeysLock sync.Mutex
 	lastPreKeyUpload  time.Time
@@ -153,7 +153,7 @@ type Client struct {
 	phoneLinkingCache *phoneLinkingCache
 
 	uniqueID  string
-	idCounter uint32
+	idCounter atomic.Uint64
 
 	proxy socket.Proxy
 	http  *http.Client
@@ -362,7 +362,7 @@ func (cli *Client) Connect() error {
 
 // IsLoggedIn returns true after the client is successfully connected and authenticated on WhatsApp.
 func (cli *Client) IsLoggedIn() bool {
-	return atomic.LoadUint32(&cli.isLoggedIn) == 1
+	return cli.isLoggedIn.Load()
 }
 
 func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
@@ -387,15 +387,15 @@ func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
 }
 
 func (cli *Client) expectDisconnect() {
-	atomic.StoreUint32(&cli.expectedDisconnectVal, 1)
+	cli.expectedDisconnect.Store(true)
 }
 
 func (cli *Client) resetExpectedDisconnect() {
-	atomic.StoreUint32(&cli.expectedDisconnectVal, 0)
+	cli.expectedDisconnect.Store(false)
 }
 
 func (cli *Client) isExpectedDisconnect() bool {
-	return atomic.LoadUint32(&cli.expectedDisconnectVal) == 1
+	return cli.expectedDisconnect.Load()
 }
 
 func (cli *Client) autoReconnect() {

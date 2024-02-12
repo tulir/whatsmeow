@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"io"
 	"runtime/debug"
-	"sync/atomic"
 	"time"
 
 	"go.mau.fi/libsignal/groups"
@@ -352,7 +351,7 @@ func (cli *Client) handleSenderKeyDistributionMessage(chat, from types.JID, axol
 
 func (cli *Client) handleHistorySyncNotificationLoop() {
 	defer func() {
-		atomic.StoreUint32(&cli.historySyncHandlerStarted, 0)
+		cli.historySyncHandlerStarted.Store(false)
 		err := recover()
 		if err != nil {
 			cli.Log.Errorf("History sync handler panicked: %v\n%s", err, debug.Stack())
@@ -360,7 +359,7 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 
 		// Check in case something new appeared in the channel between the loop stopping
 		// and the atomic variable being updated. If yes, restart the loop.
-		if len(cli.historySyncNotifications) > 0 && atomic.CompareAndSwapUint32(&cli.historySyncHandlerStarted, 0, 1) {
+		if len(cli.historySyncNotifications) > 0 && cli.historySyncHandlerStarted.CompareAndSwap(false, true) {
 			cli.Log.Warnf("New history sync notifications appeared after loop stopped, restarting loop...")
 			go cli.handleHistorySyncNotificationLoop()
 		}
@@ -453,7 +452,7 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waProto.M
 
 	if protoMsg.GetHistorySyncNotification() != nil && info.IsFromMe {
 		cli.historySyncNotifications <- protoMsg.HistorySyncNotification
-		if atomic.CompareAndSwapUint32(&cli.historySyncHandlerStarted, 0, 1) {
+		if cli.historySyncHandlerStarted.CompareAndSwap(false, true) {
 			go cli.handleHistorySyncNotificationLoop()
 		}
 		go cli.sendProtocolMessageReceipt(info.ID, types.ReceiptTypeHistorySync)
