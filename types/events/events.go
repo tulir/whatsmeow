@@ -73,6 +73,22 @@ type KeepAliveTimeout struct {
 // Note that if the websocket disconnects before the pings start working, this event will not be emitted.
 type KeepAliveRestored struct{}
 
+// PermanentDisconnect is a class of events emitted when the client will not auto-reconnect by default.
+type PermanentDisconnect interface {
+	PermanentDisconnectDescription() string
+}
+
+func (l *LoggedOut) PermanentDisconnectDescription() string     { return l.Reason.String() }
+func (*StreamReplaced) PermanentDisconnectDescription() string  { return "stream replaced" }
+func (*ClientOutdated) PermanentDisconnectDescription() string  { return "client outdated" }
+func (*CATRefreshError) PermanentDisconnectDescription() string { return "CAT refresh failed" }
+func (tb *TemporaryBan) PermanentDisconnectDescription() string {
+	return fmt.Sprintf("temporarily banned: %s", tb.String())
+}
+func (cf *ConnectFailure) PermanentDisconnectDescription() string {
+	return fmt.Sprintf("connect failure: %s", cf.Reason.String())
+}
+
 // LoggedOut is emitted when the client has been unpaired from the phone.
 //
 // This can happen while connected (stream:error messages) or right after connecting (connect failure messages).
