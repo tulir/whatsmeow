@@ -439,6 +439,10 @@ func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
 	} else if err != nil {
 		return types.EmptyJID, err
 	}
+	membershipApprovalModeNode, ok := resp.GetOptionalChildByTag("membership_approval_request")
+	if ok {
+		return membershipApprovalModeNode.AttrGetter().JID("jid"), nil
+	}
 	groupNode, ok := resp.GetOptionalChildByTag("group")
 	if !ok {
 		return types.EmptyJID, &ElementMissingError{Tag: "group", In: "response to group link join query"}
