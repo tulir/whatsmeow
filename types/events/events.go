@@ -13,7 +13,7 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/binary/armadillo/waConsumerApplication"
+	"go.mau.fi/whatsmeow/binary/armadillo"
 	"go.mau.fi/whatsmeow/binary/armadillo/waMsgApplication"
 	"go.mau.fi/whatsmeow/binary/armadillo/waMsgTransport"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
@@ -286,9 +286,9 @@ type Message struct {
 	RawMessage *waProto.Message
 }
 
-type FBConsumerMessage struct {
-	Info    types.MessageInfo                          // Information about the message like the chat and sender IDs
-	Message *waConsumerApplication.ConsumerApplication // The actual message struct
+type FBMessage struct {
+	Info    types.MessageInfo               // Information about the message like the chat and sender IDs
+	Message armadillo.MessageApplicationSub // The actual message struct
 
 	// If the message was re-requested from the sender, this is the number of retries it took.
 	RetryCount int
