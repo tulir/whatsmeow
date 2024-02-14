@@ -815,6 +815,10 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse group unlink node in group change: %w", err)
 			}
+		case "membership_approval_mode":
+			evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
+				IsApprovalRequired: true,
+			}
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
