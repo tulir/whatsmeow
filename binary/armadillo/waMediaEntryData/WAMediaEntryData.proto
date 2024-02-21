@@ -1,0 +1,35 @@
+syntax = "proto3";
+package WAMediaEntryData;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waMediaEntryData";
+
+message MediaEntry {
+	message ProgressiveJpegDetails {
+		repeated int64 scanLengths = 1;
+		bytes sidecar = 2;
+	}
+
+	message DownloadableThumbnail {
+		bytes fileSHA256 = 1;
+		bytes fileEncSHA256 = 2;
+		string directPath = 3;
+		bytes mediaKey = 4;
+		int64 mediaKeyTimestamp = 5;
+		string objectID = 6;
+	}
+
+	bytes fileSHA256 = 1;
+	bytes mediaKey = 2;
+	bytes fileEncSHA256 = 3;
+	string directPath = 4;
+	int64 mediaKeyTimestamp = 5;
+	string serverMediaType = 6;
+	bytes uploadToken = 7;
+	bytes validatedTimestamp = 8;
+	bytes sidecar = 9;
+	string objectID = 10;
+	string FBID = 11;
+	DownloadableThumbnail downloadableThumbnail = 12;
+	string handle = 13;
+	string filename = 14;
+	ProgressiveJpegDetails progressiveJPEGDetails = 15;
+}

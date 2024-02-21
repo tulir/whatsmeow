@@ -22,6 +22,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
+	"go.mau.fi/whatsmeow/binary/armadillo/waMediaTransport"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/util/cbcutil"
@@ -210,6 +211,10 @@ func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
 	}
 }
 
+func (cli *Client) DownloadFB(transport *waMediaTransport.WAMediaTransport_Integral, mediaType MediaType) ([]byte, error) {
+	return cli.DownloadMediaWithPath(transport.GetDirectPath(), transport.GetFileEncSHA256(), transport.GetFileSHA256(), transport.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType])
+}
+
 // DownloadMediaWithPath downloads an attachment by manually specifying the path and encryption details.
 func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHash, mediaKey []byte, fileLength int, mediaType MediaType, mmsType string) (data []byte, err error) {
 	var mediaConn *MediaConn
@@ -224,13 +229,13 @@ func (cli *Client) DownloadMediaWithPath(directPath string, encFileHash, fileHas
 		// TODO omit hash for unencrypted media?
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
 		data, err = cli.downloadAndDecrypt(mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash)
-		// TODO there are probably some errors that shouldn't retry
-		if err != nil {
-			if i >= len(mediaConn.Hosts)-1 {
-				return nil, fmt.Errorf("failed to download media from last host: %w", err)
-			}
-			cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
+		if err == nil {
+			return
+		} else if i >= len(mediaConn.Hosts)-1 {
+			return nil, fmt.Errorf("failed to download media from last host: %w", err)
 		}
+		// TODO there are probably some errors that shouldn't retry
+		cli.Log.Warnf("Failed to download media: %s, trying with next host...", err)
 	}
 	return
 }
@@ -295,6 +300,10 @@ func (cli *Client) downloadMedia(url string) ([]byte, error) {
 	}
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
+	if cli.MessengerConfig != nil {
+		req.Header.Set("User-Agent", cli.MessengerConfig.UserAgent)
+	}
+	// TODO user agent for whatsapp downloads?
 	resp, err := cli.http.Do(req)
 	if err != nil {
 		return nil, err

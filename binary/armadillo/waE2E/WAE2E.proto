@@ -1,0 +1,1552 @@
+syntax = "proto3";
+package WAE2E;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waE2E";
+
+import "waAdv/WAAdv.proto";
+import "waMmsRetry/WAMmsRetry.proto";
+import "waCommon/WACommon.proto";
+
+enum KeepType {
+	UNKNOWN = 0;
+	KEEP_FOR_ALL = 1;
+	UNDO_KEEP_FOR_ALL = 2;
+}
+
+message Message {
+	enum PeerDataOperationRequestType {
+		UPLOAD_STICKER = 0;
+		SEND_RECENT_STICKER_BOOTSTRAP = 1;
+		GENERATE_LINK_PREVIEW = 2;
+		HISTORY_SYNC_ON_DEMAND = 3;
+		PLACEHOLDER_MESSAGE_RESEND = 4;
+	}
+
+	message PlaceholderMessage {
+		enum PlaceholderType {
+			MASK_LINKED_DEVICES = 0;
+		}
+
+		PlaceholderType type = 1;
+	}
+
+	message BCallMessage {
+		enum MediaType {
+			UNKNOWN = 0;
+			AUDIO = 1;
+			VIDEO = 2;
+		}
+
+		string sessionID = 1;
+		MediaType mediaType = 2;
+		bytes masterKey = 3;
+		string caption = 4;
+	}
+
+	message CallLogMessage {
+		enum CallOutcome {
+			CONNECTED = 0;
+			MISSED = 1;
+			FAILED = 2;
+			REJECTED = 3;
+			ACCEPTED_ELSEWHERE = 4;
+			ONGOING = 5;
+			SILENCED_BY_DND = 6;
+			SILENCED_UNKNOWN_CALLER = 7;
+		}
+
+		enum CallType {
+			REGULAR = 0;
+			SCHEDULED_CALL = 1;
+			VOICE_CHAT = 2;
+		}
+
+		message CallParticipant {
+			string JID = 1;
+			CallOutcome callOutcome = 2;
+		}
+
+		bool isVideo = 1;
+		CallOutcome callOutcome = 2;
+		int64 durationSecs = 3;
+		CallType callType = 4;
+		repeated CallParticipant participants = 5;
+	}
+
+	message ScheduledCallEditMessage {
+		enum EditType {
+			UNKNOWN = 0;
+			CANCEL = 1;
+		}
+
+		WACommon.MessageKey key = 1;
+		EditType editType = 2;
+	}
+
+	message ScheduledCallCreationMessage {
+		enum CallType {
+			UNKNOWN = 0;
+			VOICE = 1;
+			VIDEO = 2;
+		}
+
+		int64 scheduledTimestampMS = 1;
+		CallType callType = 2;
+		string title = 3;
+	}
+
+	message EventResponseMessage {
+		enum EventResponseType {
+			UNKNOWN = 0;
+			GOING = 1;
+			NOT_GOING = 2;
+		}
+
+		EventResponseType response = 1;
+		int64 timestampMS = 2;
+	}
+
+	message PinInChatMessage {
+		enum Type {
+			UNKNOWN_TYPE = 0;
+			PIN_FOR_ALL = 1;
+			UNPIN_FOR_ALL = 2;
+		}
+
+		WACommon.MessageKey key = 1;
+		Type type = 2;
+		int64 senderTimestampMS = 3;
+	}
+
+	message ButtonsResponseMessage {
+		enum Type {
+			UNKNOWN = 0;
+			DISPLAY_TEXT = 1;
+		}
+
+		oneof response {
+			string selectedDisplayText = 2;
+		}
+
+		string selectedButtonID = 1;
+		ContextInfo contextInfo = 3;
+		Type type = 4;
+	}
+
+	message ButtonsMessage {
+		enum HeaderType {
+			UNKNOWN = 0;
+			EMPTY = 1;
+			TEXT = 2;
+			DOCUMENT = 3;
+			IMAGE = 4;
+			VIDEO = 5;
+			LOCATION = 6;
+		}
+
+		message Button {
+			enum Type {
+				UNKNOWN = 0;
+				RESPONSE = 1;
+				NATIVE_FLOW = 2;
+			}
+
+			message NativeFlowInfo {
+				string name = 1;
+				string paramsJSON = 2;
+			}
+
+			message ButtonText {
+				string displayText = 1;
+			}
+
+			string buttonID = 1;
+			ButtonText buttonText = 2;
+			Type type = 3;
+			NativeFlowInfo nativeFlowInfo = 4;
+		}
+
+		oneof header {
+			string text = 1;
+			DocumentMessage documentMessage = 2;
+			ImageMessage imageMessage = 3;
+			VideoMessage videoMessage = 4;
+			LocationMessage locationMessage = 5;
+		}
+
+		string contentText = 6;
+		string footerText = 7;
+		ContextInfo contextInfo = 8;
+		repeated Button buttons = 9;
+		HeaderType headerType = 10;
+	}
+
+	message GroupInviteMessage {
+		enum GroupType {
+			DEFAULT = 0;
+			PARENT = 1;
+		}
+
+		string groupJID = 1;
+		string inviteCode = 2;
+		int64 inviteExpiration = 3;
+		string groupName = 4;
+		bytes JPEGThumbnail = 5;
+		string caption = 6;
+		ContextInfo contextInfo = 7;
+		GroupType groupType = 8;
+	}
+
+	message InteractiveResponseMessage {
+		message Body {
+			enum Format {
+				DEFAULT = 0;
+				EXTENSIONS_1 = 1;
+			}
+
+			string text = 1;
+			Format format = 2;
+		}
+
+		message NativeFlowResponseMessage {
+			string name = 1;
+			string paramsJSON = 2;
+			int32 version = 3;
+		}
+
+		oneof interactiveResponseMessage {
+			NativeFlowResponseMessage nativeFlowResponseMessage = 2;
+		}
+
+		Body body = 1;
+		ContextInfo contextInfo = 15;
+	}
+
+	message InteractiveMessage {
+		message ShopMessage {
+			enum Surface {
+				UNKNOWN_SURFACE = 0;
+				FB = 1;
+				IG = 2;
+				WA = 3;
+			}
+
+			string ID = 1;
+			Surface surface = 2;
+			int32 messageVersion = 3;
+		}
+
+		message CarouselMessage {
+			repeated InteractiveMessage cards = 1;
+			int32 messageVersion = 2;
+		}
+
+		message NativeFlowMessage {
+			message NativeFlowButton {
+				string name = 1;
+				string buttonParamsJSON = 2;
+			}
+
+			repeated NativeFlowButton buttons = 1;
+			string messageParamsJSON = 2;
+			int32 messageVersion = 3;
+		}
+
+		message CollectionMessage {
+			string bizJID = 1;
+			string ID = 2;
+			int32 messageVersion = 3;
+		}
+
+		message Footer {
+			string text = 1;
+		}
+
+		message Body {
+			string text = 1;
+		}
+
+		message Header {
+			oneof media {
+				DocumentMessage documentMessage = 3;
+				ImageMessage imageMessage = 4;
+				bytes JPEGThumbnail = 6;
+				VideoMessage videoMessage = 7;
+				LocationMessage locationMessage = 8;
+			}
+
+			string title = 1;
+			string subtitle = 2;
+			bool hasMediaAttachment = 5;
+		}
+
+		oneof interactiveMessage {
+			ShopMessage shopStorefrontMessage = 4;
+			CollectionMessage collectionMessage = 5;
+			NativeFlowMessage nativeFlowMessage = 6;
+			CarouselMessage carouselMessage = 7;
+		}
+
+		Header header = 1;
+		Body body = 2;
+		Footer footer = 3;
+		ContextInfo contextInfo = 15;
+	}
+
+	message ListResponseMessage {
+		enum ListType {
+			UNKNOWN = 0;
+			SINGLE_SELECT = 1;
+		}
+
+		message SingleSelectReply {
+			string selectedRowID = 1;
+		}
+
+		string title = 1;
+		ListType listType = 2;
+		SingleSelectReply singleSelectReply = 3;
+		ContextInfo contextInfo = 4;
+		string description = 5;
+	}
+
+	message ListMessage {
+		enum ListType {
+			UNKNOWN = 0;
+			SINGLE_SELECT = 1;
+			PRODUCT_LIST = 2;
+		}
+
+		message ProductListInfo {
+			repeated ProductSection productSections = 1;
+			ProductListHeaderImage headerImage = 2;
+			string businessOwnerJID = 3;
+		}
+
+		message ProductListHeaderImage {
+			string productID = 1;
+			bytes JPEGThumbnail = 2;
+		}
+
+		message ProductSection {
+			string title = 1;
+			repeated Product products = 2;
+		}
+
+		message Product {
+			string productID = 1;
+		}
+
+		message Section {
+			string title = 1;
+			repeated Row rows = 2;
+		}
+
+		message Row {
+			string title = 1;
+			string description = 2;
+			string rowID = 3;
+		}
+
+		string title = 1;
+		string description = 2;
+		string buttonText = 3;
+		ListType listType = 4;
+		repeated Section sections = 5;
+		ProductListInfo productListInfo = 6;
+		string footerText = 7;
+		ContextInfo contextInfo = 8;
+	}
+
+	message OrderMessage {
+		enum OrderSurface {
+			ORDERSURFACE_UNKNOWN = 0;
+			CATALOG = 1;
+		}
+
+		enum OrderStatus {
+			ORDERSTATUS_UNKNOWN = 0;
+			INQUIRY = 1;
+			ACCEPTED = 2;
+			DECLINED = 3;
+		}
+
+		string orderID = 1;
+		bytes thumbnail = 2;
+		int32 itemCount = 3;
+		OrderStatus status = 4;
+		OrderSurface surface = 5;
+		string message = 6;
+		string orderTitle = 7;
+		string sellerJID = 8;
+		string token = 9;
+		int64 totalAmount1000 = 10;
+		string totalCurrencyCode = 11;
+		ContextInfo contextInfo = 17;
+		int32 messageVersion = 12;
+		WACommon.MessageKey orderRequestMessageID = 13;
+	}
+
+	message PaymentInviteMessage {
+		enum ServiceType {
+			UNKNOWN = 0;
+			FBPAY = 1;
+			NOVI = 2;
+			UPI = 3;
+		}
+
+		ServiceType serviceType = 1;
+		int64 expiryTimestamp = 2;
+	}
+
+	message HighlyStructuredMessage {
+		message HSMLocalizableParameter {
+			message HSMDateTime {
+				message HSMDateTimeComponent {
+					enum CalendarType {
+						CALENDARTYPE_UNKNOWN = 0;
+						GREGORIAN = 1;
+						SOLAR_HIJRI = 2;
+					}
+
+					enum DayOfWeekType {
+						DAYOFWEEKTYPE_UNKNOWN = 0;
+						MONDAY = 1;
+						TUESDAY = 2;
+						WEDNESDAY = 3;
+						THURSDAY = 4;
+						FRIDAY = 5;
+						SATURDAY = 6;
+						SUNDAY = 7;
+					}
+
+					DayOfWeekType dayOfWeek = 1;
+					uint32 year = 2;
+					uint32 month = 3;
+					uint32 dayOfMonth = 4;
+					uint32 hour = 5;
+					uint32 minute = 6;
+					CalendarType calendar = 7;
+				}
+
+				message HSMDateTimeUnixEpoch {
+					int64 timestamp = 1;
+				}
+
+				oneof datetimeOneof {
+					HSMDateTimeComponent component = 1;
+					HSMDateTimeUnixEpoch unixEpoch = 2;
+				}
+			}
+
+			message HSMCurrency {
+				string currencyCode = 1;
+				int64 amount1000 = 2;
+			}
+
+			oneof paramOneof {
+				HSMCurrency currency = 2;
+				HSMDateTime dateTime = 3;
+			}
+
+			string default = 1;
+		}
+
+		string namespace = 1;
+		string elementName = 2;
+		repeated string params = 3;
+		string fallbackLg = 4;
+		string fallbackLc = 5;
+		repeated HSMLocalizableParameter localizableParams = 6;
+		string deterministicLg = 7;
+		string deterministicLc = 8;
+		TemplateMessage hydratedHsm = 9;
+	}
+
+	message HistorySyncNotification {
+		enum HistorySyncType {
+			INITIAL_BOOTSTRAP = 0;
+			INITIAL_STATUS_V3 = 1;
+			FULL = 2;
+			RECENT = 3;
+			PUSH_NAME = 4;
+			NON_BLOCKING_DATA = 5;
+			ON_DEMAND = 6;
+		}
+
+		bytes fileSHA256 = 1;
+		uint64 fileLength = 2;
+		bytes mediaKey = 3;
+		bytes fileEncSHA256 = 4;
+		string directPath = 5;
+		HistorySyncType syncType = 6;
+		uint32 chunkOrder = 7;
+		string originalMessageID = 8;
+		uint32 progress = 9;
+		int64 oldestMsgInChunkTimestampSec = 10;
+		bytes initialHistBootstrapInlinePayload = 11;
+		string peerDataRequestSessionID = 12;
+	}
+
+	message RequestWelcomeMessageMetadata {
+		enum LocalChatState {
+			EMPTY = 0;
+			NON_EMPTY = 1;
+		}
+
+		LocalChatState localChatState = 1;
+	}
+
+	message ProtocolMessage {
+		enum Type {
+			REVOKE = 0;
+			EPHEMERAL_SETTING = 3;
+			EPHEMERAL_SYNC_RESPONSE = 4;
+			HISTORY_SYNC_NOTIFICATION = 5;
+			APP_STATE_SYNC_KEY_SHARE = 6;
+			APP_STATE_SYNC_KEY_REQUEST = 7;
+			MSG_FANOUT_BACKFILL_REQUEST = 8;
+			INITIAL_SECURITY_NOTIFICATION_SETTING_SYNC = 9;
+			APP_STATE_FATAL_EXCEPTION_NOTIFICATION = 10;
+			SHARE_PHONE_NUMBER = 11;
+			MESSAGE_EDIT = 14;
+			PEER_DATA_OPERATION_REQUEST_MESSAGE = 16;
+			PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE = 17;
+			REQUEST_WELCOME_MESSAGE = 18;
+			BOT_FEEDBACK_MESSAGE = 19;
+			MEDIA_NOTIFY_MESSAGE = 20;
+		}
+
+		WACommon.MessageKey key = 1;
+		Type type = 2;
+		uint32 ephemeralExpiration = 4;
+		int64 ephemeralSettingTimestamp = 5;
+		HistorySyncNotification historySyncNotification = 6;
+		AppStateSyncKeyShare appStateSyncKeyShare = 7;
+		AppStateSyncKeyRequest appStateSyncKeyRequest = 8;
+		InitialSecurityNotificationSettingSync initialSecurityNotificationSettingSync = 9;
+		AppStateFatalExceptionNotification appStateFatalExceptionNotification = 10;
+		DisappearingMode disappearingMode = 11;
+		Message editedMessage = 14;
+		int64 timestampMS = 15;
+		PeerDataOperationRequestMessage peerDataOperationRequestMessage = 16;
+		PeerDataOperationRequestResponseMessage peerDataOperationRequestResponseMessage = 17;
+		BotFeedbackMessage botFeedbackMessage = 18;
+		string invokerJID = 19;
+		RequestWelcomeMessageMetadata requestWelcomeMessageMetadata = 20;
+		MediaNotifyMessage mediaNotifyMessage = 21;
+	}
+
+	message BotFeedbackMessage {
+		enum BotFeedbackKindMultiplePositive {
+			BOTFEEDBACKKINDMULTIPLEPOSITIVE_UNKNOWN = 0;
+			BOT_FEEDBACK_MULTIPLE_POSITIVE_GENERIC = 1;
+		}
+
+		enum BotFeedbackKindMultipleNegative {
+			BOTFEEDBACKKINDMULTIPLENEGATIVE_UNKNOWN = 0;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_GENERIC = 1;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_HELPFUL = 2;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_INTERESTING = 4;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_ACCURATE = 8;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_SAFE = 16;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_OTHER = 32;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_REFUSED = 64;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_VISUALLY_APPEALING = 128;
+			BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_RELEVANT_TO_TEXT = 256;
+		}
+
+		enum BotFeedbackKind {
+			BOT_FEEDBACK_POSITIVE = 0;
+			BOT_FEEDBACK_NEGATIVE_GENERIC = 1;
+			BOT_FEEDBACK_NEGATIVE_HELPFUL = 2;
+			BOT_FEEDBACK_NEGATIVE_INTERESTING = 3;
+			BOT_FEEDBACK_NEGATIVE_ACCURATE = 4;
+			BOT_FEEDBACK_NEGATIVE_SAFE = 5;
+			BOT_FEEDBACK_NEGATIVE_OTHER = 6;
+			BOT_FEEDBACK_NEGATIVE_REFUSED = 7;
+			BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING = 8;
+			BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT = 9;
+		}
+
+		WACommon.MessageKey messageKey = 1;
+		BotFeedbackKind kind = 2;
+		string text = 3;
+		uint64 kindNegative = 4;
+		uint64 kindPositive = 5;
+	}
+
+	message VideoMessage {
+		enum Attribution {
+			NONE = 0;
+			GIPHY = 1;
+			TENOR = 2;
+		}
+
+		string URL = 1;
+		string mimetype = 2;
+		bytes fileSHA256 = 3;
+		uint64 fileLength = 4;
+		uint32 seconds = 5;
+		bytes mediaKey = 6;
+		string caption = 7;
+		bool gifPlayback = 8;
+		uint32 height = 9;
+		uint32 width = 10;
+		bytes fileEncSHA256 = 11;
+		repeated InteractiveAnnotation interactiveAnnotations = 12;
+		string directPath = 13;
+		int64 mediaKeyTimestamp = 14;
+		bytes JPEGThumbnail = 16;
+		ContextInfo contextInfo = 17;
+		bytes streamingSidecar = 18;
+		Attribution gifAttribution = 19;
+		bool viewOnce = 20;
+		string thumbnailDirectPath = 21;
+		bytes thumbnailSHA256 = 22;
+		bytes thumbnailEncSHA256 = 23;
+		string staticURL = 24;
+		repeated InteractiveAnnotation annotations = 25;
+	}
+
+	message ExtendedTextMessage {
+		enum InviteLinkGroupType {
+			DEFAULT = 0;
+			PARENT = 1;
+			SUB = 2;
+			DEFAULT_SUB = 3;
+		}
+
+		enum PreviewType {
+			NONE = 0;
+			VIDEO = 1;
+			PLACEHOLDER = 4;
+			IMAGE = 5;
+		}
+
+		enum FontType {
+			SYSTEM = 0;
+			SYSTEM_TEXT = 1;
+			FB_SCRIPT = 2;
+			SYSTEM_BOLD = 6;
+			MORNINGBREEZE_REGULAR = 7;
+			CALISTOGA_REGULAR = 8;
+			EXO2_EXTRABOLD = 9;
+			COURIERPRIME_BOLD = 10;
+		}
+
+		string text = 1;
+		string matchedText = 2;
+		string canonicalURL = 4;
+		string description = 5;
+		string title = 6;
+		fixed32 textArgb = 7;
+		fixed32 backgroundArgb = 8;
+		FontType font = 9;
+		PreviewType previewType = 10;
+		bytes JPEGThumbnail = 16;
+		ContextInfo contextInfo = 17;
+		bool doNotPlayInline = 18;
+		string thumbnailDirectPath = 19;
+		bytes thumbnailSHA256 = 20;
+		bytes thumbnailEncSHA256 = 21;
+		bytes mediaKey = 22;
+		int64 mediaKeyTimestamp = 23;
+		uint32 thumbnailHeight = 24;
+		uint32 thumbnailWidth = 25;
+		InviteLinkGroupType inviteLinkGroupType = 26;
+		string inviteLinkParentGroupSubjectV2 = 27;
+		bytes inviteLinkParentGroupThumbnailV2 = 28;
+		InviteLinkGroupType inviteLinkGroupTypeV2 = 29;
+		bool viewOnce = 30;
+	}
+
+	message InvoiceMessage {
+		enum AttachmentType {
+			IMAGE = 0;
+			PDF = 1;
+		}
+
+		string note = 1;
+		string token = 2;
+		AttachmentType attachmentType = 3;
+		string attachmentMimetype = 4;
+		bytes attachmentMediaKey = 5;
+		int64 attachmentMediaKeyTimestamp = 6;
+		bytes attachmentFileSHA256 = 7;
+		bytes attachmentFileEncSHA256 = 8;
+		string attachmentDirectPath = 9;
+		bytes attachmentJPEGThumbnail = 10;
+	}
+
+	message ExtendedTextMessageWithParentKey {
+		WACommon.MessageKey key = 1;
+		ExtendedTextMessage linkMessage = 2;
+	}
+
+	message MessageHistoryBundle {
+		string mimetype = 2;
+		bytes fileSHA256 = 3;
+		bytes mediaKey = 5;
+		bytes fileEncSHA256 = 6;
+		string directPath = 7;
+		int64 mediaKeyTimestamp = 8;
+		ContextInfo contextInfo = 9;
+		repeated string participants = 10;
+	}
+
+	message EncEventResponseMessage {
+		WACommon.MessageKey eventCreationMessageKey = 1;
+		bytes encPayload = 2;
+		bytes encIV = 3;
+	}
+
+	message EventMessage {
+		ContextInfo contextInfo = 1;
+		bool isCanceled = 2;
+		string name = 3;
+		string description = 4;
+		LocationMessage location = 5;
+		string joinLink = 6;
+		int64 startTime = 7;
+	}
+
+	message CommentMessage {
+		Message message = 1;
+		WACommon.MessageKey targetMessageKey = 2;
+	}
+
+	message EncCommentMessage {
+		WACommon.MessageKey targetMessageKey = 1;
+		bytes encPayload = 2;
+		bytes encIV = 3;
+	}
+
+	message EncReactionMessage {
+		WACommon.MessageKey targetMessageKey = 1;
+		bytes encPayload = 2;
+		bytes encIV = 3;
+	}
+
+	message KeepInChatMessage {
+		WACommon.MessageKey key = 1;
+		KeepType keepType = 2;
+		int64 timestampMS = 3;
+	}
+
+	message PollVoteMessage {
+		repeated bytes selectedOptions = 1;
+	}
+
+	message PollEncValue {
+		bytes encPayload = 1;
+		bytes encIV = 2;
+	}
+
+	message PollUpdateMessageMetadata {
+	}
+
+	message PollUpdateMessage {
+		WACommon.MessageKey pollCreationMessageKey = 1;
+		PollEncValue vote = 2;
+		PollUpdateMessageMetadata metadata = 3;
+		int64 senderTimestampMS = 4;
+	}
+
+	message PollCreationMessage {
+		message Option {
+			string optionName = 1;
+		}
+
+		bytes encKey = 1;
+		string name = 2;
+		repeated Option options = 3;
+		uint32 selectableOptionsCount = 4;
+		ContextInfo contextInfo = 5;
+	}
+
+	message StickerSyncRMRMessage {
+		repeated string filehash = 1;
+		string rmrSource = 2;
+		int64 requestTimestamp = 3;
+	}
+
+	message ReactionMessage {
+		WACommon.MessageKey key = 1;
+		string text = 2;
+		string groupingKey = 3;
+		int64 senderTimestampMS = 4;
+	}
+
+	message FutureProofMessage {
+		Message message = 1;
+	}
+
+	message DeviceSentMessage {
+		string destinationJID = 1;
+		Message message = 2;
+		string phash = 3;
+	}
+
+	message RequestPhoneNumberMessage {
+		ContextInfo contextInfo = 1;
+	}
+
+	message NewsletterAdminInviteMessage {
+		string newsletterJID = 1;
+		string newsletterName = 2;
+		bytes JPEGThumbnail = 3;
+		string caption = 4;
+		int64 inviteExpiration = 5;
+	}
+
+	message ProductMessage {
+		message ProductSnapshot {
+			ImageMessage productImage = 1;
+			string productID = 2;
+			string title = 3;
+			string description = 4;
+			string currencyCode = 5;
+			int64 priceAmount1000 = 6;
+			string retailerID = 7;
+			string URL = 8;
+			uint32 productImageCount = 9;
+			string firstImageID = 11;
+			int64 salePriceAmount1000 = 12;
+		}
+
+		message CatalogSnapshot {
+			ImageMessage catalogImage = 1;
+			string title = 2;
+			string description = 3;
+		}
+
+		ProductSnapshot product = 1;
+		string businessOwnerJID = 2;
+		CatalogSnapshot catalog = 4;
+		string body = 5;
+		string footer = 6;
+		ContextInfo contextInfo = 17;
+	}
+
+	message TemplateButtonReplyMessage {
+		string selectedID = 1;
+		string selectedDisplayText = 2;
+		ContextInfo contextInfo = 3;
+		uint32 selectedIndex = 4;
+		uint32 selectedCarouselCardIndex = 5;
+	}
+
+	message TemplateMessage {
+		message HydratedFourRowTemplate {
+			oneof title {
+				DocumentMessage documentMessage = 1;
+				string hydratedTitleText = 2;
+				ImageMessage imageMessage = 3;
+				VideoMessage videoMessage = 4;
+				LocationMessage locationMessage = 5;
+			}
+
+			string hydratedContentText = 6;
+			string hydratedFooterText = 7;
+			repeated HydratedTemplateButton hydratedButtons = 8;
+			string templateID = 9;
+			bool maskLinkedDevices = 10;
+		}
+
+		message FourRowTemplate {
+			oneof title {
+				DocumentMessage documentMessage = 1;
+				HighlyStructuredMessage highlyStructuredMessage = 2;
+				ImageMessage imageMessage = 3;
+				VideoMessage videoMessage = 4;
+				LocationMessage locationMessage = 5;
+			}
+
+			HighlyStructuredMessage content = 6;
+			HighlyStructuredMessage footer = 7;
+			repeated TemplateButton buttons = 8;
+		}
+
+		oneof format {
+			FourRowTemplate fourRowTemplate = 1;
+			HydratedFourRowTemplate hydratedFourRowTemplate = 2;
+			InteractiveMessage interactiveMessageTemplate = 5;
+		}
+
+		ContextInfo contextInfo = 3;
+		HydratedFourRowTemplate hydratedTemplate = 4;
+		string templateID = 9;
+	}
+
+	message StickerMessage {
+		string URL = 1;
+		bytes fileSHA256 = 2;
+		bytes fileEncSHA256 = 3;
+		bytes mediaKey = 4;
+		string mimetype = 5;
+		uint32 height = 6;
+		uint32 width = 7;
+		string directPath = 8;
+		uint64 fileLength = 9;
+		int64 mediaKeyTimestamp = 10;
+		uint32 firstFrameLength = 11;
+		bytes firstFrameSidecar = 12;
+		bool isAnimated = 13;
+		bytes pngThumbnail = 16;
+		ContextInfo contextInfo = 17;
+		int64 stickerSentTS = 18;
+		bool isAvatar = 19;
+		bool isAiSticker = 20;
+		bool isLottie = 21;
+	}
+
+	message LiveLocationMessage {
+		double degreesLatitude = 1;
+		double degreesLongitude = 2;
+		uint32 accuracyInMeters = 3;
+		float speedInMps = 4;
+		uint32 degreesClockwiseFromMagneticNorth = 5;
+		string caption = 6;
+		int64 sequenceNumber = 7;
+		uint32 timeOffset = 8;
+		bytes JPEGThumbnail = 16;
+		ContextInfo contextInfo = 17;
+	}
+
+	message CancelPaymentRequestMessage {
+		WACommon.MessageKey key = 1;
+	}
+
+	message DeclinePaymentRequestMessage {
+		WACommon.MessageKey key = 1;
+	}
+
+	message RequestPaymentMessage {
+		Message noteMessage = 4;
+		string currencyCodeIso4217 = 1;
+		uint64 amount1000 = 2;
+		string requestFrom = 3;
+		int64 expiryTimestamp = 5;
+		Money amount = 6;
+		PaymentBackground background = 7;
+	}
+
+	message SendPaymentMessage {
+		Message noteMessage = 2;
+		WACommon.MessageKey requestMessageKey = 3;
+		PaymentBackground background = 4;
+	}
+
+	message ContactsArrayMessage {
+		string displayName = 1;
+		repeated ContactMessage contacts = 2;
+		ContextInfo contextInfo = 17;
+	}
+
+	message InitialSecurityNotificationSettingSync {
+		bool securityNotificationEnabled = 1;
+	}
+
+	message PeerDataOperationRequestResponseMessage {
+		message PeerDataOperationResult {
+			message PlaceholderMessageResendResponse {
+				bytes webMessageInfoBytes = 1;
+			}
+
+			message LinkPreviewResponse {
+				message LinkPreviewHighQualityThumbnail {
+					string directPath = 1;
+					string thumbHash = 2;
+					string encThumbHash = 3;
+					bytes mediaKey = 4;
+					int64 mediaKeyTimestampMS = 5;
+					int32 thumbWidth = 6;
+					int32 thumbHeight = 7;
+				}
+
+				string URL = 1;
+				string title = 2;
+				string description = 3;
+				bytes thumbData = 4;
+				string canonicalURL = 5;
+				string matchText = 6;
+				string previewType = 7;
+				LinkPreviewHighQualityThumbnail hqThumbnail = 8;
+			}
+
+			WAMmsRetry.MediaRetryNotification.ResultType mediaUploadResult = 1;
+			StickerMessage stickerMessage = 2;
+			LinkPreviewResponse linkPreviewResponse = 3;
+			PlaceholderMessageResendResponse placeholderMessageResendResponse = 4;
+		}
+
+		PeerDataOperationRequestType peerDataOperationRequestType = 1;
+		string stanzaID = 2;
+		repeated PeerDataOperationResult peerDataOperationResult = 3;
+	}
+
+	message PeerDataOperationRequestMessage {
+		message PlaceholderMessageResendRequest {
+			WACommon.MessageKey messageKey = 1;
+		}
+
+		message HistorySyncOnDemandRequest {
+			string chatJID = 1;
+			string oldestMsgID = 2;
+			bool oldestMsgFromMe = 3;
+			int32 onDemandMsgCount = 4;
+			int64 oldestMsgTimestampMS = 5;
+		}
+
+		message RequestUrlPreview {
+			string URL = 1;
+			bool includeHqThumbnail = 2;
+		}
+
+		message RequestStickerReupload {
+			string fileSHA256 = 1;
+		}
+
+		PeerDataOperationRequestType peerDataOperationRequestType = 1;
+		repeated RequestStickerReupload requestStickerReupload = 2;
+		repeated RequestUrlPreview requestURLPreview = 3;
+		HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
+		repeated PlaceholderMessageResendRequest placeholderMessageResendRequest = 5;
+	}
+
+	message AppStateFatalExceptionNotification {
+		repeated string collectionNames = 1;
+		int64 timestamp = 2;
+	}
+
+	message AppStateSyncKeyRequest {
+		repeated AppStateSyncKeyId keyIDs = 1;
+	}
+
+	message AppStateSyncKeyShare {
+		repeated AppStateSyncKey keys = 1;
+	}
+
+	message AppStateSyncKeyData {
+		bytes keyData = 1;
+		AppStateSyncKeyFingerprint fingerprint = 2;
+		int64 timestamp = 3;
+	}
+
+	message AppStateSyncKeyFingerprint {
+		uint32 rawID = 1;
+		uint32 currentIndex = 2;
+		repeated uint32 deviceIndexes = 3 [packed=true];
+	}
+
+	message AppStateSyncKeyId {
+		bytes keyID = 1;
+	}
+
+	message AppStateSyncKey {
+		AppStateSyncKeyId keyID = 1;
+		AppStateSyncKeyData keyData = 2;
+	}
+
+	message Chat {
+		string displayName = 1;
+		string ID = 2;
+	}
+
+	message Call {
+		bytes callKey = 1;
+		string conversionSource = 2;
+		bytes conversionData = 3;
+		uint32 conversionDelaySeconds = 4;
+	}
+
+	message AudioMessage {
+		string URL = 1;
+		string mimetype = 2;
+		bytes fileSHA256 = 3;
+		uint64 fileLength = 4;
+		uint32 seconds = 5;
+		bool PTT = 6;
+		bytes mediaKey = 7;
+		bytes fileEncSHA256 = 8;
+		string directPath = 9;
+		int64 mediaKeyTimestamp = 10;
+		ContextInfo contextInfo = 17;
+		bytes streamingSidecar = 18;
+		bytes waveform = 19;
+		fixed32 backgroundArgb = 20;
+		bool viewOnce = 21;
+	}
+
+	message DocumentMessage {
+		string URL = 1;
+		string mimetype = 2;
+		string title = 3;
+		bytes fileSHA256 = 4;
+		uint64 fileLength = 5;
+		uint32 pageCount = 6;
+		bytes mediaKey = 7;
+		string fileName = 8;
+		bytes fileEncSHA256 = 9;
+		string directPath = 10;
+		int64 mediaKeyTimestamp = 11;
+		bool contactVcard = 12;
+		string thumbnailDirectPath = 13;
+		bytes thumbnailSHA256 = 14;
+		bytes thumbnailEncSHA256 = 15;
+		bytes JPEGThumbnail = 16;
+		ContextInfo contextInfo = 17;
+		uint32 thumbnailHeight = 18;
+		uint32 thumbnailWidth = 19;
+		string caption = 20;
+	}
+
+	message LocationMessage {
+		double degreesLatitude = 1;
+		double degreesLongitude = 2;
+		string name = 3;
+		string address = 4;
+		string URL = 5;
+		bool isLive = 6;
+		uint32 accuracyInMeters = 7;
+		float speedInMps = 8;
+		uint32 degreesClockwiseFromMagneticNorth = 9;
+		string comment = 11;
+		bytes JPEGThumbnail = 16;
+		ContextInfo contextInfo = 17;
+	}
+
+	message ContactMessage {
+		string displayName = 1;
+		string vcard = 16;
+		ContextInfo contextInfo = 17;
+	}
+
+	message ImageMessage {
+		string URL = 1;
+		string mimetype = 2;
+		string caption = 3;
+		bytes fileSHA256 = 4;
+		uint64 fileLength = 5;
+		uint32 height = 6;
+		uint32 width = 7;
+		bytes mediaKey = 8;
+		bytes fileEncSHA256 = 9;
+		repeated InteractiveAnnotation interactiveAnnotations = 10;
+		string directPath = 11;
+		int64 mediaKeyTimestamp = 12;
+		bytes JPEGThumbnail = 16;
+		ContextInfo contextInfo = 17;
+		bytes firstScanSidecar = 18;
+		uint32 firstScanLength = 19;
+		uint32 experimentGroupID = 20;
+		bytes scansSidecar = 21;
+		repeated uint32 scanLengths = 22;
+		bytes midQualityFileSHA256 = 23;
+		bytes midQualityFileEncSHA256 = 24;
+		bool viewOnce = 25;
+		string thumbnailDirectPath = 26;
+		bytes thumbnailSHA256 = 27;
+		bytes thumbnailEncSHA256 = 28;
+		string staticURL = 29;
+		repeated InteractiveAnnotation annotations = 30;
+	}
+
+	message SenderKeyDistributionMessage {
+		string groupID = 1;
+		bytes axolotlSenderKeyDistributionMessage = 2;
+	}
+
+	string conversation = 1;
+	SenderKeyDistributionMessage senderKeyDistributionMessage = 2;
+	ImageMessage imageMessage = 3;
+	ContactMessage contactMessage = 4;
+	LocationMessage locationMessage = 5;
+	ExtendedTextMessage extendedTextMessage = 6;
+	DocumentMessage documentMessage = 7;
+	AudioMessage audioMessage = 8;
+	VideoMessage videoMessage = 9;
+	Call call = 10;
+	Chat chat = 11;
+	ProtocolMessage protocolMessage = 12;
+	ContactsArrayMessage contactsArrayMessage = 13;
+	HighlyStructuredMessage highlyStructuredMessage = 14;
+	SenderKeyDistributionMessage fastRatchetKeySenderKeyDistributionMessage = 15;
+	SendPaymentMessage sendPaymentMessage = 16;
+	LiveLocationMessage liveLocationMessage = 18;
+	RequestPaymentMessage requestPaymentMessage = 22;
+	DeclinePaymentRequestMessage declinePaymentRequestMessage = 23;
+	CancelPaymentRequestMessage cancelPaymentRequestMessage = 24;
+	TemplateMessage templateMessage = 25;
+	StickerMessage stickerMessage = 26;
+	GroupInviteMessage groupInviteMessage = 28;
+	TemplateButtonReplyMessage templateButtonReplyMessage = 29;
+	ProductMessage productMessage = 30;
+	DeviceSentMessage deviceSentMessage = 31;
+	MessageContextInfo messageContextInfo = 35;
+	ListMessage listMessage = 36;
+	FutureProofMessage viewOnceMessage = 37;
+	OrderMessage orderMessage = 38;
+	ListResponseMessage listResponseMessage = 39;
+	FutureProofMessage ephemeralMessage = 40;
+	InvoiceMessage invoiceMessage = 41;
+	ButtonsMessage buttonsMessage = 42;
+	ButtonsResponseMessage buttonsResponseMessage = 43;
+	PaymentInviteMessage paymentInviteMessage = 44;
+	InteractiveMessage interactiveMessage = 45;
+	ReactionMessage reactionMessage = 46;
+	StickerSyncRMRMessage stickerSyncRmrMessage = 47;
+	InteractiveResponseMessage interactiveResponseMessage = 48;
+	PollCreationMessage pollCreationMessage = 49;
+	PollUpdateMessage pollUpdateMessage = 50;
+	KeepInChatMessage keepInChatMessage = 51;
+	FutureProofMessage documentWithCaptionMessage = 53;
+	RequestPhoneNumberMessage requestPhoneNumberMessage = 54;
+	FutureProofMessage viewOnceMessageV2 = 55;
+	EncReactionMessage encReactionMessage = 56;
+	FutureProofMessage editedMessage = 58;
+	FutureProofMessage viewOnceMessageV2Extension = 59;
+	PollCreationMessage pollCreationMessageV2 = 60;
+	ScheduledCallCreationMessage scheduledCallCreationMessage = 61;
+	FutureProofMessage groupMentionedMessage = 62;
+	PinInChatMessage pinInChatMessage = 63;
+	PollCreationMessage pollCreationMessageV3 = 64;
+	ScheduledCallEditMessage scheduledCallEditMessage = 65;
+	VideoMessage ptvMessage = 66;
+	FutureProofMessage botInvokeMessage = 67;
+	CallLogMessage callLogMesssage = 69;
+	MessageHistoryBundle messageHistoryBundle = 70;
+	EncCommentMessage encCommentMessage = 71;
+	BCallMessage bcallMessage = 72;
+	FutureProofMessage lottieStickerMessage = 74;
+	EventMessage eventMessage = 75;
+	EncEventResponseMessage encEventResponseMessage = 76;
+	CommentMessage commentMessage = 77;
+	NewsletterAdminInviteMessage newsletterAdminInviteMessage = 78;
+	ExtendedTextMessageWithParentKey extendedTextMessageWithParentKey = 79;
+	PlaceholderMessage placeholderMessage = 80;
+}
+
+message ContextInfo {
+	message ForwardedNewsletterMessageInfo {
+		enum ContentType {
+			CONTENTTYPE_UNKNOWN = 0;
+			UPDATE = 1;
+			UPDATE_CARD = 2;
+			LINK_CARD = 3;
+		}
+
+		string newsletterJID = 1;
+		int32 serverMessageID = 2;
+		string newsletterName = 3;
+		ContentType contentType = 4;
+		string accessibilityText = 5;
+	}
+
+	message ExternalAdReplyInfo {
+		enum MediaType {
+			NONE = 0;
+			IMAGE = 1;
+			VIDEO = 2;
+		}
+
+		string title = 1;
+		string body = 2;
+		MediaType mediaType = 3;
+		string thumbnailURL = 4;
+		string mediaURL = 5;
+		bytes thumbnail = 6;
+		string sourceType = 7;
+		string sourceID = 8;
+		string sourceURL = 9;
+		bool containsAutoReply = 10;
+		bool renderLargerThumbnail = 11;
+		bool showAdAttribution = 12;
+		string ctwaClid = 13;
+		string ref = 14;
+	}
+
+	message AdReplyInfo {
+		enum MediaType {
+			NONE = 0;
+			IMAGE = 1;
+			VIDEO = 2;
+		}
+
+		string advertiserName = 1;
+		MediaType mediaType = 2;
+		bytes JPEGThumbnail = 16;
+		string caption = 17;
+	}
+
+	message DataSharingContext {
+		bool showMmDisclosure = 1;
+	}
+
+	message UTMInfo {
+		string utmSource = 1;
+		string utmCampaign = 2;
+	}
+
+	message BusinessMessageForwardInfo {
+		string businessOwnerJID = 1;
+	}
+
+	string stanzaID = 1;
+	string participant = 2;
+	Message quotedMessage = 3;
+	string remoteJID = 4;
+	repeated string mentionedJID = 15;
+	string conversionSource = 18;
+	bytes conversionData = 19;
+	uint32 conversionDelaySeconds = 20;
+	uint32 forwardingScore = 21;
+	bool isForwarded = 22;
+	AdReplyInfo quotedAd = 23;
+	WACommon.MessageKey placeholderKey = 24;
+	uint32 expiration = 25;
+	int64 ephemeralSettingTimestamp = 26;
+	bytes ephemeralSharedSecret = 27;
+	ExternalAdReplyInfo externalAdReply = 28;
+	string entryPointConversionSource = 29;
+	string entryPointConversionApp = 30;
+	uint32 entryPointConversionDelaySeconds = 31;
+	DisappearingMode disappearingMode = 32;
+	ActionLink actionLink = 33;
+	string groupSubject = 34;
+	string parentGroupJID = 35;
+	string trustBannerType = 37;
+	uint32 trustBannerAction = 38;
+	bool isSampled = 39;
+	repeated GroupMention groupMentions = 40;
+	UTMInfo utm = 41;
+	ForwardedNewsletterMessageInfo forwardedNewsletterMessageInfo = 43;
+	BusinessMessageForwardInfo businessMessageForwardInfo = 44;
+	string smbClientCampaignID = 45;
+	string smbServerCampaignID = 46;
+	DataSharingContext dataSharingContext = 47;
+}
+
+message BotPluginMetadata {
+	enum PluginType {
+		PLUGINTYPE_UNKNOWN = 0;
+		REELS = 1;
+		SEARCH = 2;
+	}
+
+	enum SearchProvider {
+		SEARCHPROVIDER_UNKNOWN = 0;
+		BING = 1;
+		GOOGLE = 2;
+	}
+
+	SearchProvider provider = 1;
+	PluginType pluginType = 2;
+	string thumbnailCDNURL = 3;
+	string profilePhotoCDNURL = 4;
+	string searchProviderURL = 5;
+	uint32 referenceIndex = 6;
+	uint32 expectedLinksCount = 7;
+	uint32 pluginVersion = 8;
+}
+
+message HydratedTemplateButton {
+	message HydratedURLButton {
+		enum WebviewPresentationType {
+			WEBVIEWPRESENTATIONTYPE_UNKNOWN = 0;
+			FULL = 1;
+			TALL = 2;
+			COMPACT = 3;
+		}
+
+		string displayText = 1;
+		string URL = 2;
+		string consentedUsersURL = 3;
+		WebviewPresentationType webviewPresentation = 4;
+	}
+
+	message HydratedCallButton {
+		string displayText = 1;
+		string phoneNumber = 2;
+	}
+
+	message HydratedQuickReplyButton {
+		string displayText = 1;
+		string ID = 2;
+	}
+
+	oneof hydratedButton {
+		HydratedQuickReplyButton quickReplyButton = 1;
+		HydratedURLButton urlButton = 2;
+		HydratedCallButton callButton = 3;
+	}
+
+	uint32 index = 4;
+}
+
+message PaymentBackground {
+	enum Type {
+		UNKNOWN = 0;
+		DEFAULT = 1;
+	}
+
+	message MediaData {
+		bytes mediaKey = 1;
+		int64 mediaKeyTimestamp = 2;
+		bytes fileSHA256 = 3;
+		bytes fileEncSHA256 = 4;
+		string directPath = 5;
+	}
+
+	string ID = 1;
+	uint64 fileLength = 2;
+	uint32 width = 3;
+	uint32 height = 4;
+	string mimetype = 5;
+	fixed32 placeholderArgb = 6;
+	fixed32 textArgb = 7;
+	fixed32 subtextArgb = 8;
+	MediaData mediaData = 9;
+	Type type = 10;
+}
+
+message DisappearingMode {
+	enum Trigger {
+		UNKNOWN = 0;
+		CHAT_SETTING = 1;
+		ACCOUNT_SETTING = 2;
+		BULK_CHANGE = 3;
+		TRIGGER_CHANGED_TO_COEX = 4;
+	}
+
+	enum Initiator {
+		CHANGED_IN_CHAT = 0;
+		INITIATED_BY_ME = 1;
+		INITIATED_BY_OTHER = 2;
+		CHANGED_TO_COEX = 3;
+	}
+
+	Initiator initiator = 1;
+	Trigger trigger = 2;
+	string initiatorDeviceJID = 3;
+	bool initiatedByMe = 4;
+}
+
+message BotAvatarMetadata {
+	uint32 sentiment = 1;
+	string behaviorGraph = 2;
+	uint32 action = 3;
+	uint32 intensity = 4;
+	uint32 wordCount = 5;
+}
+
+message BotSuggestedPromptMetadata {
+	repeated string suggestedPrompts = 1;
+	uint32 selectedPromptIndex = 2;
+}
+
+message BotMetadata {
+	BotAvatarMetadata avatarMetadata = 1;
+	string personaID = 2;
+	BotPluginMetadata pluginMetadata = 3;
+	BotSuggestedPromptMetadata suggestedPromptMetadata = 4;
+	string invokerJID = 5;
+}
+
+message MessageContextInfo {
+	DeviceListMetadata deviceListMetadata = 1;
+	int32 deviceListMetadataVersion = 2;
+	bytes messageSecret = 3;
+	bytes paddingBytes = 4;
+	uint32 messageAddOnDurationInSecs = 5;
+	bytes botMessageSecret = 6;
+	BotMetadata botMetadata = 7;
+	int32 reportingTokenVersion = 8;
+}
+
+message DeviceListMetadata {
+	bytes senderKeyHash = 1;
+	uint64 senderTimestamp = 2;
+	repeated uint32 senderKeyIndexes = 3 [packed=true];
+	WAAdv.ADVEncryptionType senderAccountType = 4;
+	WAAdv.ADVEncryptionType receiverAccountType = 5;
+	bytes recipientKeyHash = 8;
+	uint64 recipientTimestamp = 9;
+	repeated uint32 recipientKeyIndexes = 10 [packed=true];
+}
+
+message InteractiveAnnotation {
+	oneof action {
+		Location location = 2;
+		ContextInfo.ForwardedNewsletterMessageInfo newsletter = 3;
+	}
+
+	repeated Point polygonVertices = 1;
+	bool shouldSkipConfirmation = 4;
+}
+
+message Point {
+	int32 xDeprecated = 1;
+	int32 yDeprecated = 2;
+	double x = 3;
+	double y = 4;
+}
+
+message Location {
+	double degreesLatitude = 1;
+	double degreesLongitude = 2;
+	string name = 3;
+}
+
+message TemplateButton {
+	message CallButton {
+		Message.HighlyStructuredMessage displayText = 1;
+		Message.HighlyStructuredMessage phoneNumber = 2;
+	}
+
+	message URLButton {
+		Message.HighlyStructuredMessage displayText = 1;
+		Message.HighlyStructuredMessage URL = 2;
+	}
+
+	message QuickReplyButton {
+		Message.HighlyStructuredMessage displayText = 1;
+		string ID = 2;
+	}
+
+	oneof button {
+		QuickReplyButton quickReplyButton = 1;
+		URLButton urlButton = 2;
+		CallButton callButton = 3;
+	}
+
+	uint32 index = 4;
+}
+
+message Money {
+	int64 value = 1;
+	uint32 offset = 2;
+	string currencyCode = 3;
+}
+
+message ActionLink {
+	string URL = 1;
+	string buttonTitle = 2;
+}
+
+message GroupMention {
+	string groupJID = 1;
+	string groupSubject = 2;
+}
+
+message MessageSecretMessage {
+	sfixed32 version = 1;
+	bytes encIV = 2;
+	bytes encPayload = 3;
+}
+
+message MediaNotifyMessage {
+	string expressPathURL = 1;
+	bytes fileEncSHA256 = 2;
+	uint64 fileLength = 3;
+}

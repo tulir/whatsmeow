@@ -168,11 +168,13 @@ func (w *binaryEncoder) writeJID(jid types.JID) {
 		w.pushByte(token.FBJID)
 		w.write(jid.User)
 		w.pushInt16(int(jid.Device))
+		w.write(jid.Server)
 	} else if jid.Server == types.InteropServer {
 		w.pushByte(token.InteropJID)
 		w.write(jid.User)
 		w.pushInt16(int(jid.Device))
 		w.pushInt16(int(jid.Integrator))
+		w.write(jid.Server)
 	} else {
 		w.pushByte(token.JIDPair)
 		if len(jid.User) == 0 {

@@ -1,0 +1,57 @@
+syntax = "proto3";
+package WAMultiDevice;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waMultiDevice";
+
+message MultiDevice {
+	message Metadata {
+	}
+
+	message Payload {
+		oneof payload {
+			ApplicationData applicationData = 1;
+			Signal signal = 2;
+		}
+	}
+
+	message ApplicationData {
+		message AppStateSyncKeyRequestMessage {
+			repeated AppStateSyncKeyId keyIDs = 1;
+		}
+
+		message AppStateSyncKeyShareMessage {
+			repeated AppStateSyncKey keys = 1;
+		}
+
+		message AppStateSyncKey {
+			message AppStateSyncKeyData {
+				message AppStateSyncKeyFingerprint {
+					uint32 rawID = 1;
+					uint32 currentIndex = 2;
+					repeated uint32 deviceIndexes = 3 [packed=true];
+				}
+
+				bytes keyData = 1;
+				AppStateSyncKeyFingerprint fingerprint = 2;
+				int64 timestamp = 3;
+			}
+
+			AppStateSyncKeyId keyID = 1;
+			AppStateSyncKeyData keyData = 2;
+		}
+
+		message AppStateSyncKeyId {
+			bytes keyID = 1;
+		}
+
+		oneof applicationData {
+			AppStateSyncKeyShareMessage appStateSyncKeyShare = 1;
+			AppStateSyncKeyRequestMessage appStateSyncKeyRequest = 2;
+		}
+	}
+
+	message Signal {
+	}
+
+	Payload payload = 1;
+	Metadata metadata = 2;
+}

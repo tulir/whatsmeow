@@ -121,7 +121,7 @@ func main() {
 		return
 	}
 
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	input := make(chan string)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {

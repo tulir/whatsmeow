@@ -43,6 +43,11 @@ type wrappedEventHandler struct {
 	id uint32
 }
 
+type deviceCache struct {
+	devices []types.JID
+	dhash   string
+}
+
 // Client contains everything necessary to connect to and interact with the WhatsApp web API.
 type Client struct {
 	Store   *store.Device
@@ -54,8 +59,8 @@ type Client struct {
 	socketLock sync.RWMutex
 	socketWait chan struct{}
 
-	isLoggedIn            uint32
-	expectedDisconnectVal uint32
+	isLoggedIn            atomic.Bool
+	expectedDisconnect    atomic.Bool
 	EnableAutoReconnect   bool
 	LastSuccessfulConnect time.Time
 	AutoReconnectErrors   int
@@ -63,7 +68,7 @@ type Client struct {
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
 
-	sendActiveReceipts uint32
+	sendActiveReceipts atomic.Uint32
 
 	// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
 	// even when re-syncing the whole state.
@@ -77,7 +82,7 @@ type Client struct {
 	appStateSyncLock sync.Mutex
 
 	historySyncNotifications  chan *waProto.HistorySyncNotification
-	historySyncHandlerStarted uint32
+	historySyncHandlerStarted atomic.Bool
 
 	uploadPreKeysLock sync.Mutex
 	lastPreKeyUpload  time.Time
@@ -108,10 +113,10 @@ type Client struct {
 
 	groupParticipantsCache     map[types.JID][]types.JID
 	groupParticipantsCacheLock sync.Mutex
-	userDevicesCache           map[types.JID][]types.JID
+	userDevicesCache           map[types.JID]deviceCache
 	userDevicesCacheLock       sync.Mutex
 
-	recentMessagesMap  map[recentMessageKey]*waProto.Message
+	recentMessagesMap  map[recentMessageKey]RecentMessage
 	recentMessagesList [recentMessagesSize]recentMessageKey
 	recentMessagesPtr  int
 	recentMessagesLock sync.RWMutex
@@ -129,6 +134,10 @@ type Client struct {
 	// the client will disconnect.
 	PrePairCallback func(jid types.JID, platform, businessName string) bool
 
+	// GetClientPayload is called to get the client payload for connecting to the server.
+	// This should NOT be used for WhatsApp (to change the OS name, update fields in store.BaseClientPayload directly).
+	GetClientPayload func() *waProto.ClientPayload
+
 	// Should untrusted identity errors be handled automatically? If true, the stored identity and existing signal
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
 	// If false, decrypting a message from untrusted devices will fail.
@@ -144,10 +153,23 @@ type Client struct {
 	phoneLinkingCache *phoneLinkingCache
 
 	uniqueID  string
-	idCounter uint32
+	idCounter atomic.Uint64
 
 	proxy socket.Proxy
 	http  *http.Client
+
+	// This field changes the client to act like a Messenger client instead of a WhatsApp one.
+	//
+	// Note that you cannot use a Messenger account just by setting this field, you must use a
+	// separate library for all the non-e2ee-related stuff like logging in.
+	// The library is currently embedded in mautrix-meta (https://github.com/mautrix/meta), but may be separated later.
+	MessengerConfig *MessengerConfig
+	RefreshCAT      func() error
+}
+
+type MessengerConfig struct {
+	UserAgent string
+	BaseURL   string
 }
 
 // Size of buffer for the channel that all incoming XML nodes go through.
@@ -197,9 +219,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		historySyncNotifications: make(chan *waProto.HistorySyncNotification, 32),
 
 		groupParticipantsCache: make(map[types.JID][]types.JID),
-		userDevicesCache:       make(map[types.JID][]types.JID),
+		userDevicesCache:       make(map[types.JID]deviceCache),
 
-		recentMessagesMap:      make(map[recentMessageKey]*waProto.Message, recentMessagesSize),
+		recentMessagesMap:      make(map[recentMessageKey]RecentMessage, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
 		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
 		appStateKeyRequests:    make(map[string]time.Time),
@@ -317,7 +339,15 @@ func (cli *Client) Connect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), socket.WAConnHeader, cli.proxy)
+	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), cli.proxy)
+	if cli.MessengerConfig != nil {
+		fs.URL = "wss://web-chat-e2ee.facebook.com/ws/chat"
+		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
+		fs.HTTPHeaders.Set("User-Agent", cli.MessengerConfig.UserAgent)
+		fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
+		fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
+		fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
+	}
 	if err := fs.Connect(); err != nil {
 		fs.Close(0)
 		return err
@@ -332,7 +362,7 @@ func (cli *Client) Connect() error {
 
 // IsLoggedIn returns true after the client is successfully connected and authenticated on WhatsApp.
 func (cli *Client) IsLoggedIn() bool {
-	return atomic.LoadUint32(&cli.isLoggedIn) == 1
+	return cli.isLoggedIn.Load()
 }
 
 func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
@@ -357,15 +387,15 @@ func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
 }
 
 func (cli *Client) expectDisconnect() {
-	atomic.StoreUint32(&cli.expectedDisconnectVal, 1)
+	cli.expectedDisconnect.Store(true)
 }
 
 func (cli *Client) resetExpectedDisconnect() {
-	atomic.StoreUint32(&cli.expectedDisconnectVal, 0)
+	cli.expectedDisconnect.Store(false)
 }
 
 func (cli *Client) isExpectedDisconnect() bool {
-	return atomic.LoadUint32(&cli.expectedDisconnectVal) == 1
+	return cli.expectedDisconnect.Load()
 }
 
 func (cli *Client) autoReconnect() {
@@ -432,6 +462,9 @@ func (cli *Client) unlockedDisconnect() {
 // Note that this will not emit any events. The LoggedOut event is only used for external logouts
 // (triggered by the user from the main device or by WhatsApp servers).
 func (cli *Client) Logout() error {
+	if cli.MessengerConfig != nil {
+		return errors.New("can't logout with Messenger credentials")
+	}
 	ownID := cli.getOwnID()
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn

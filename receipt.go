@@ -8,7 +8,6 @@ package whatsmeow
 
 import (
 	"fmt"
-	"sync/atomic"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -156,7 +155,7 @@ func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, se
 			// TODO change played to played-self?
 		}
 	}
-	if !sender.IsEmpty() && chat.Server != types.DefaultUserServer {
+	if !sender.IsEmpty() && chat.Server != types.DefaultUserServer && chat.Server != types.MessengerServer {
 		node.Attrs["participant"] = sender.ToNonAD()
 	}
 	if len(ids) > 1 {
@@ -190,9 +189,9 @@ func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, se
 // receipts will act like the client is offline until SendPresence is called again.
 func (cli *Client) SetForceActiveDeliveryReceipts(active bool) {
 	if active {
-		atomic.StoreUint32(&cli.sendActiveReceipts, 2)
+		cli.sendActiveReceipts.Store(2)
 	} else {
-		atomic.StoreUint32(&cli.sendActiveReceipts, 0)
+		cli.sendActiveReceipts.Store(0)
 	}
 }
 
@@ -202,7 +201,7 @@ func (cli *Client) sendMessageReceipt(info *types.MessageInfo) {
 	}
 	if info.IsFromMe {
 		attrs["type"] = string(types.ReceiptTypeSender)
-	} else if atomic.LoadUint32(&cli.sendActiveReceipts) == 0 {
+	} else if cli.sendActiveReceipts.Load() == 0 {
 		attrs["type"] = string(types.ReceiptTypeInactive)
 	}
 	attrs["to"] = info.Chat

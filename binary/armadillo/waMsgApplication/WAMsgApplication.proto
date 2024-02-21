@@ -1,0 +1,87 @@
+syntax = "proto3";
+package WAMsgApplication;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waMsgApplication";
+
+import "waCommon/WACommon.proto";
+
+message MessageApplication {
+	message Metadata {
+		enum ThreadType {
+			DEFAULT = 0;
+			VANISH_MODE = 1;
+			DISAPPEARING_MESSAGES = 2;
+		}
+
+		message QuotedMessage {
+			string stanzaID = 1;
+			string remoteJID = 2;
+			string participant = 3;
+			Payload payload = 4;
+		}
+
+		message EphemeralSettingMap {
+			string chatJID = 1;
+			EphemeralSetting ephemeralSetting = 2;
+		}
+
+		oneof ephemeral {
+			EphemeralSetting chatEphemeralSetting = 1;
+			EphemeralSettingMap ephemeralSettingList = 2;
+			bytes ephemeralSharedSecret = 3;
+		}
+
+		uint32 forwardingScore = 5;
+		bool isForwarded = 6;
+		WACommon.SubProtocol businessMetadata = 7;
+		bytes frankingKey = 8;
+		int32 frankingVersion = 9;
+		QuotedMessage quotedMessage = 10;
+		ThreadType threadType = 11;
+		string readonlyMetadataDataclass = 12;
+		string groupID = 13;
+		uint32 groupSize = 14;
+		uint32 groupIndex = 15;
+		string botResponseID = 16;
+		string collapsibleID = 17;
+	}
+
+	message Payload {
+		oneof content {
+			Content coreContent = 1;
+			Signal signal = 2;
+			ApplicationData applicationData = 3;
+			SubProtocolPayload subProtocol = 4;
+		}
+	}
+
+	message SubProtocolPayload {
+		oneof subProtocol {
+			WACommon.SubProtocol consumerMessage = 2;
+			WACommon.SubProtocol businessMessage = 3;
+			WACommon.SubProtocol paymentMessage = 4;
+			WACommon.SubProtocol multiDevice = 5;
+			WACommon.SubProtocol voip = 6;
+			WACommon.SubProtocol armadillo = 7;
+		}
+
+		WACommon.FutureProofBehavior futureProof = 1;
+	}
+
+	message ApplicationData {
+	}
+
+	message Signal {
+	}
+
+	message Content {
+	}
+
+	message EphemeralSetting {
+		uint32 ephemeralExpiration = 2;
+		int64 ephemeralSettingTimestamp = 3;
+		bool isEphemeralSettingReset = 4;
+	}
+
+	Payload payload = 1;
+	Metadata metadata = 2;
+}

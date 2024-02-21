@@ -1,0 +1,154 @@
+syntax = "proto3";
+package WAMediaTransport;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waMediaTransport";
+
+import "waCommon/WACommon.proto";
+
+message WAMediaTransport {
+	message Ancillary {
+		message Thumbnail {
+			message DownloadableThumbnail {
+				bytes fileSHA256 = 1;
+				bytes fileEncSHA256 = 2;
+				string directPath = 3;
+				bytes mediaKey = 4;
+				int64 mediaKeyTimestamp = 5;
+				string objectID = 6;
+			}
+
+			bytes JPEGThumbnail = 1;
+			DownloadableThumbnail downloadableThumbnail = 2;
+			uint32 thumbnailWidth = 3;
+			uint32 thumbnailHeight = 4;
+		}
+
+		uint64 fileLength = 1;
+		string mimetype = 2;
+		Thumbnail thumbnail = 3;
+		string objectID = 4;
+	}
+
+	message Integral {
+		bytes fileSHA256 = 1;
+		bytes mediaKey = 2;
+		bytes fileEncSHA256 = 3;
+		string directPath = 4;
+		int64 mediaKeyTimestamp = 5;
+	}
+
+	Integral integral = 1;
+	Ancillary ancillary = 2;
+}
+
+message ImageTransport {
+	message Ancillary {
+		enum HdType {
+			NONE = 0;
+			LQ_4K = 1;
+			HQ_4K = 2;
+		}
+
+		uint32 height = 1;
+		uint32 width = 2;
+		bytes scansSidecar = 3;
+		repeated uint32 scanLengths = 4;
+		bytes midQualityFileSHA256 = 5;
+		HdType hdType = 6;
+	}
+
+	message Integral {
+		WAMediaTransport transport = 1;
+	}
+
+	Integral integral = 1;
+	Ancillary ancillary = 2;
+}
+
+message VideoTransport {
+	message Ancillary {
+		enum Attribution {
+			NONE = 0;
+			GIPHY = 1;
+			TENOR = 2;
+		}
+
+		uint32 seconds = 1;
+		WACommon.MessageText caption = 2;
+		bool gifPlayback = 3;
+		uint32 height = 4;
+		uint32 width = 5;
+		bytes sidecar = 6;
+		Attribution gifAttribution = 7;
+	}
+
+	message Integral {
+		WAMediaTransport transport = 1;
+	}
+
+	Integral integral = 1;
+	Ancillary ancillary = 2;
+}
+
+message AudioTransport {
+	message Ancillary {
+		uint32 seconds = 1;
+	}
+
+	message Integral {
+		WAMediaTransport transport = 1;
+	}
+
+	Integral integral = 1;
+	Ancillary ancillary = 2;
+}
+
+message DocumentTransport {
+	message Ancillary {
+		uint32 pageCount = 1;
+	}
+
+	message Integral {
+		WAMediaTransport transport = 1;
+	}
+
+	Integral integral = 1;
+	Ancillary ancillary = 2;
+}
+
+message StickerTransport {
+	message Ancillary {
+		uint32 pageCount = 1;
+		uint32 height = 2;
+		uint32 width = 3;
+		uint32 firstFrameLength = 4;
+		bytes firstFrameSidecar = 5;
+		string mustacheText = 6;
+		bool isThirdParty = 7;
+		string receiverFetchID = 8;
+	}
+
+	message Integral {
+		WAMediaTransport transport = 1;
+		bool isAnimated = 2;
+		string receiverFetchID = 3;
+	}
+
+	Integral integral = 1;
+	Ancillary ancillary = 2;
+}
+
+message ContactTransport {
+	message Ancillary {
+		string displayName = 1;
+	}
+
+	message Integral {
+		oneof contact {
+			string vcard = 1;
+			WAMediaTransport downloadableVcard = 2;
+		}
+	}
+
+	Integral integral = 1;
+	Ancillary ancillary = 2;
+}

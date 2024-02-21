@@ -90,7 +90,14 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		return fmt.Errorf("failed to mix noise private key in: %w", err)
 	}
 
-	clientFinishPayloadBytes, err := proto.Marshal(cli.Store.GetClientPayload())
+	var clientPayload *waProto.ClientPayload
+	if cli.GetClientPayload != nil {
+		clientPayload = cli.GetClientPayload()
+	} else {
+		clientPayload = cli.Store.GetClientPayload()
+	}
+
+	clientFinishPayloadBytes, err := proto.Marshal(clientPayload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal client finish payload: %w", err)
 	}
