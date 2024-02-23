@@ -233,11 +233,6 @@ message FutureProofMessage {
     optional Message message = 1;
 }
 
-message ExtendedTextMessageWithParentKey {
-    optional MessageKey key = 1;
-    optional ExtendedTextMessage extendedTextMessage = 2;
-}
-
 message ExtendedTextMessage {
     enum PreviewType {
         NONE = 0;
@@ -787,6 +782,7 @@ message BotPluginMetadata {
     optional uint32 expectedLinksCount = 7;
     optional uint32 pluginVersion = 8;
     optional string searchQuery = 9;
+    optional MessageKey parentPluginMessageKey = 10;
 }
 
 message BotMetadata {
@@ -939,7 +935,6 @@ message Message {
     optional EncEventResponseMessage encEventResponseMessage = 76;
     optional CommentMessage commentMessage = 77;
     optional NewsletterAdminInviteMessage newsletterAdminInviteMessage = 78;
-    optional ExtendedTextMessageWithParentKey extendedTextMessageWithParentKey = 79;
     optional PlaceholderMessage placeholderMessage = 80;
     optional SecretEncryptedMessage secretEncryptedMessage = 82;
 }
