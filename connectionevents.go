@@ -55,7 +55,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Errorf("Failed to refresh CAT: %v", err)
 			cli.expectDisconnect()
-			go cli.dispatchEvent(&events.CATRefreshError{})
+			go cli.dispatchEvent(&events.CATRefreshError{Error: err})
 		}
 	default:
 		cli.Log.Errorf("Unknown stream error: %s", node.XMLString())
@@ -134,7 +134,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Errorf("Failed to refresh CAT: %v", err)
 			cli.expectDisconnect()
-			go cli.dispatchEvent(&events.CATRefreshError{})
+			go cli.dispatchEvent(&events.CATRefreshError{Error: err})
 		}
 	} else if willAutoReconnect {
 		cli.Log.Warnf("Got %d/%s connect failure, assuming automatic reconnect will handle it", int(reason), message)

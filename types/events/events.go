@@ -212,7 +212,9 @@ type ConnectFailure struct {
 // ClientOutdated is emitted when the WhatsApp server rejects the connection with the ConnectFailureClientOutdated code.
 type ClientOutdated struct{}
 
-type CATRefreshError struct{}
+type CATRefreshError struct {
+	Error error
+}
 
 // StreamError is emitted when the WhatsApp server sends a <stream:error> node with an unknown code.
 //
