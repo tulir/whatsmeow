@@ -744,6 +744,7 @@ message ContextInfo {
     optional string smbClientCampaignId = 45;
     optional string smbServerCampaignId = 46;
     optional DataSharingContext dataSharingContext = 47;
+    optional bool alwaysShowAdAttribution = 48;
 }
 
 message ForwardedNewsletterMessageInfo {
@@ -780,7 +781,6 @@ message BotPluginMetadata {
     optional string searchProviderUrl = 5;
     optional uint32 referenceIndex = 6;
     optional uint32 expectedLinksCount = 7;
-    optional uint32 pluginVersion = 8;
     optional string searchQuery = 9;
     optional MessageKey parentPluginMessageKey = 10;
 }
