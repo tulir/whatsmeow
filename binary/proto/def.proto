@@ -100,6 +100,7 @@ message ImageMessage {
     enum ImageSourceType {
         USER_IMAGE = 0;
         AI_GENERATED = 1;
+        AI_MODIFIED = 2;
     }
     optional string url = 1;
     optional string mimetype = 2;
@@ -765,6 +766,10 @@ message BotSuggestedPromptMetadata {
     optional uint32 selectedPromptIndex = 2;
 }
 
+message BotSearchMetadata {
+    optional string sessionId = 1;
+}
+
 message BotPluginMetadata {
     enum SearchProvider {
         BING = 1;
@@ -791,6 +796,7 @@ message BotMetadata {
     optional BotPluginMetadata pluginMetadata = 3;
     optional BotSuggestedPromptMetadata suggestedPromptMetadata = 4;
     optional string invokerJid = 5;
+    optional BotSearchMetadata searchMetadata = 6;
 }
 
 message BotAvatarMetadata {
@@ -1367,6 +1373,7 @@ message NewsletterAdminInviteMessage {
     optional bytes jpegThumbnail = 3;
     optional string caption = 4;
     optional int64 inviteExpiration = 5;
+    optional ContextInfo contextInfo = 6;
 }
 
 message MessageHistoryBundle {
@@ -2742,6 +2749,7 @@ message WebMessageInfo {
         REMINDER_CANCEL_MESSAGE = 200;
         BIZ_COEX_PRIVACY_INIT = 201;
         BIZ_COEX_PRIVACY_TRANSITION = 202;
+        GROUP_DEACTIVATED = 203;
     }
     enum Status {
         ERROR = 0;
