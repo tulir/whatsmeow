@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog"
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/keys/prekey"
 	"go.mau.fi/libsignal/protocol"
@@ -80,6 +81,24 @@ type MessageDebugTimings struct {
 	Send  time.Duration
 	Resp  time.Duration
 	Retry time.Duration
+}
+
+func (mdt MessageDebugTimings) MarshalZerologObject(evt *zerolog.Event) {
+	evt.Dur("queue", mdt.Queue)
+	evt.Dur("marshal", mdt.Marshal)
+	if mdt.GetParticipants != 0 {
+		evt.Dur("get_participants", mdt.GetParticipants)
+	}
+	evt.Dur("get_devices", mdt.GetDevices)
+	if mdt.GroupEncrypt != 0 {
+		evt.Dur("group_encrypt", mdt.GroupEncrypt)
+	}
+	evt.Dur("peer_encrypt", mdt.PeerEncrypt)
+	evt.Dur("send", mdt.Send)
+	evt.Dur("resp", mdt.Resp)
+	if mdt.Retry != 0 {
+		evt.Dur("retry", mdt.Retry)
+	}
 }
 
 type SendResponse struct {
