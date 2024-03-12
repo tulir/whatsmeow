@@ -75,6 +75,8 @@ message DeviceProps {
         optional bool supportCallLogHistory = 6;
         optional bool supportBotUserAgentChatHistory = 7;
         optional bool supportCagReactionsAndPolls = 8;
+        optional bool supportBizHostedMsg = 9;
+        optional bool supportRecentSyncChunkMessageCountTuning = 10;
     }
     
     message AppVersion {
@@ -1720,6 +1722,7 @@ message GlobalSettings {
     optional int32 photoQualityMode = 16;
     optional NotificationSettings individualNotificationSettings = 17;
     optional NotificationSettings groupNotificationSettings = 18;
+    optional ChatLockSettings chatLockSettings = 19;
 }
 
 message Conversation {
@@ -1773,6 +1776,7 @@ message Conversation {
     optional string username = 43;
     optional string lidOriginType = 44;
     optional uint32 commentsCount = 45;
+    optional bool locked = 46;
 }
 
 message AvatarUserSettings {
@@ -1930,6 +1934,11 @@ message SyncActionValue {
     optional LabelReorderingAction labelReorderingAction = 47;
     optional PaymentInfoAction paymentInfoAction = 48;
     optional CustomPaymentMethodsAction customPaymentMethodsAction = 49;
+    optional LockChatAction lockChatAction = 50;
+    optional ChatLockSettings chatLockSettings = 51;
+    optional PromoUserIdentifierAction promoUserIdentifierAction = 52;
+    optional PrivacySettingDisableLinkPreviewsAction privacySettingDisableLinkPreviewsAction = 53;
+    optional DeviceCapabilities deviceCapabilities = 54;
 }
 
 message UserStatusMuteAction {
@@ -2012,8 +2021,16 @@ message PushNameSetting {
     optional string name = 1;
 }
 
+message PromoUserIdentifierAction {
+    optional string identifier = 1;
+}
+
 message PrivacySettingRelayAllCalls {
     optional bool isEnabled = 1;
+}
+
+message PrivacySettingDisableLinkPreviewsAction {
+    optional bool isPreviewsDisabled = 1;
 }
 
 message PrimaryVersionAction {
@@ -2066,6 +2083,10 @@ message MarketingMessageAction {
 message MarkChatAsReadAction {
     optional bool read = 1;
     optional SyncActionMessageRange messageRange = 2;
+}
+
+message LockChatAction {
+    optional bool locked = 1;
 }
 
 message LocaleSetting {
@@ -2817,6 +2838,7 @@ message WebMessageInfo {
     repeated EventResponse eventResponses = 61;
     optional ReportingTokenInfo reportingTokenInfo = 62;
     optional uint64 newsletterServerId = 63;
+    optional EventAdditionalMetadata eventAdditionalMetadata = 64;
 }
 
 message WebFeatures {
@@ -3033,6 +3055,10 @@ message EventResponse {
     optional bool unread = 4;
 }
 
+message EventAdditionalMetadata {
+    optional bool isStale = 1;
+}
+
 message CommentMetadata {
     optional MessageKey commentParentKey = 1;
     optional uint32 replyCount = 2;
@@ -3102,5 +3128,46 @@ message QP {
         OR = 2;
         NOR = 3;
     }
+}
+
+message ChatLockSettings {
+    optional bool hideLockedChats = 1;
+    optional UserPassword secretCode = 2;
+}
+
+message DeviceCapabilities {
+    enum ChatLockSupportLevel {
+        NONE = 0;
+        MINIMAL = 1;
+        FULL = 2;
+    }
+    optional ChatLockSupportLevel chatLockSupportLevel = 1;
+}
+
+message UserPassword {
+    message TransformerArg {
+        message Value {
+            oneof value {
+                bytes asBlob = 1;
+                uint32 asUnsignedInteger = 2;
+            }
+        }
+        
+        optional string key = 1;
+        optional Value value = 2;
+    }
+    
+    enum Transformer {
+        NONE = 0;
+        PBKDF2_HMAC_SHA512 = 1;
+        PBKDF2_HMAC_SHA384 = 2;
+    }
+    enum Encoding {
+        UTF8 = 0;
+    }
+    optional Encoding encoding = 1;
+    optional Transformer transformer = 2;
+    repeated TransformerArg transformerArg = 3;
+    optional bytes transformedData = 4;
 }
 
