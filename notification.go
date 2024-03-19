@@ -138,6 +138,8 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 }
 
 func (cli *Client) handleFBDeviceNotification(node *waBinary.Node) {
+	cli.userDevicesCacheLock.Lock()
+	defer cli.userDevicesCacheLock.Unlock()
 	jid := node.AttrGetter().JID("from")
 	userDevices := parseFBDeviceList(jid, node.GetChildByTag("devices"))
 	cli.userDevicesCache[jid] = userDevices
