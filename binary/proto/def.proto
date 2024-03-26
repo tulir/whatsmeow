@@ -1936,9 +1936,13 @@ message SyncActionValue {
     optional CustomPaymentMethodsAction customPaymentMethodsAction = 49;
     optional LockChatAction lockChatAction = 50;
     optional ChatLockSettings chatLockSettings = 51;
-    optional PromoUserIdentifierAction promoUserIdentifierAction = 52;
+    optional WamoUserIdentifierAction wamoUserIdentifierAction = 52;
     optional PrivacySettingDisableLinkPreviewsAction privacySettingDisableLinkPreviewsAction = 53;
     optional DeviceCapabilities deviceCapabilities = 54;
+}
+
+message WamoUserIdentifierAction {
+    optional string identifier = 1;
 }
 
 message UserStatusMuteAction {
@@ -2019,10 +2023,6 @@ message QuickReplyAction {
 
 message PushNameSetting {
     optional string name = 1;
-}
-
-message PromoUserIdentifierAction {
-    optional string identifier = 1;
 }
 
 message PrivacySettingRelayAllCalls {
@@ -2462,6 +2462,7 @@ message ClientPayload {
         optional string deviceBoard = 13;
         optional string deviceExpId = 14;
         optional DeviceType deviceType = 15;
+        optional string deviceModelType = 16;
     }
     
     enum Product {
@@ -2771,6 +2772,7 @@ message WebMessageInfo {
         BIZ_COEX_PRIVACY_INIT = 201;
         BIZ_COEX_PRIVACY_TRANSITION = 202;
         GROUP_DEACTIVATED = 203;
+        COMMUNITY_DEACTIVATE_SIBLING_GROUP = 204;
     }
     enum Status {
         ERROR = 0;
