@@ -269,6 +269,7 @@ func shouldRetryMediaDownload(err error) bool {
 	var netErr net.Error
 	var httpErr DownloadHTTPError
 	return errors.As(err, &netErr) ||
+		strings.HasPrefix(err.Error(), "stream error:") || // hacky check for http2 errors
 		(errors.As(err, &httpErr) && retryafter.Should(httpErr.StatusCode, true))
 }
 
