@@ -928,6 +928,37 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Error changing chat's pin state: %v", err)
 		}
+	case "star":
+		if len(args) < 5 {
+			log.Errorf("Usage: star <target> <sender> <messageID> <fromMe> <action>")
+			return
+		}
+		target, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		sender, ok := parseJID(args[1])
+		if !ok {
+			return
+		}
+		messageID := args[2]
+		fromMe, err := strconv.ParseBool(args[3])
+		if err != nil {
+			log.Errorf("invalid fourth argument: %v", err)
+			return
+		}
+		action, err := strconv.ParseBool(args[4])
+		if err != nil {
+			log.Errorf("invalid fifth argument: %v", err)
+			return
+		}
+		err = cli.SendAppState(appstate.BuildStar(target, sender, messageID, fromMe, action))
+		if err != nil {
+			log.Errorf("Error changing message's star state: %v", err)
+			return
+		} else {
+			log.Infof("Star state updated")
+		}
 	case "getblocklist":
 		blocklist, err := cli.GetBlocklist()
 		if err != nil {
