@@ -7,16 +7,17 @@
 package waE2E
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	waAdv "go.mau.fi/whatsmeow/binary/armadillo/waAdv"
 	waCommon "go.mau.fi/whatsmeow/binary/armadillo/waCommon"
 	waMmsRetry "go.mau.fi/whatsmeow/binary/armadillo/waMmsRetry"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
-)
 
-import _ "embed"
+	_ "embed"
+)
 
 const (
 	// Verify that this generated code is sufficiently up-to-date.

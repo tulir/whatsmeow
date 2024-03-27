@@ -7,14 +7,15 @@
 package waMsgApplication
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	waCommon "go.mau.fi/whatsmeow/binary/armadillo/waCommon"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
-)
 
-import _ "embed"
+	_ "embed"
+)
 
 const (
 	// Verify that this generated code is sufficiently up-to-date.

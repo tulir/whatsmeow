@@ -7,13 +7,14 @@
 package waCert
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
-)
 
-import _ "embed"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	_ "embed"
+)
 
 const (
 	// Verify that this generated code is sufficiently up-to-date.
