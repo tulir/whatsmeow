@@ -145,3 +145,28 @@ type Blocklist struct {
 	DHash string // TODO is this just a timestamp?
 	JIDs  []JID
 }
+
+// BusinessHoursConfig contains business operating hours of a WhatsApp business.
+type BusinessHoursConfig struct {
+	DayOfWeek string
+	Mode      string
+	OpenTime  string
+	CloseTime string
+}
+
+// Category contains a WhatsApp business category.
+type Category struct {
+	ID   string
+	Name string
+}
+
+// BusinessProfile contains the profile information of a WhatsApp business.
+type BusinessProfile struct {
+	JID                   JID
+	Address               string
+	Email                 string
+	Categories            []Category
+	ProfileOptions        map[string]string
+	BusinessHoursTimeZone string
+	BusinessHours         []BusinessHoursConfig
+}
