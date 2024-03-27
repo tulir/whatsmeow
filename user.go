@@ -227,6 +227,91 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 	return respData, nil
 }
 
+func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessProfile, error) {
+	profileNode := node.GetChildByTag("profile")
+	jid, ok := profileNode.AttrGetter().GetJID("jid", true)
+	if !ok {
+		return nil, errors.New("missing jid in business profile")
+	}
+	address := string(profileNode.GetChildByTag("address").Content.([]byte))
+	email := string(profileNode.GetChildByTag("email").Content.([]byte))
+	businessHour := profileNode.GetChildByTag("business_hours")
+	businessHourTimezone := businessHour.AttrGetter().String("timezone")
+	businessHoursConfigs := businessHour.GetChildren()
+	businessHours := make([]types.BusinessHoursConfig, 0)
+	for _, config := range businessHoursConfigs {
+		if config.Tag != "business_hours_config" {
+			continue
+		}
+		dow := config.AttrGetter().String("dow")
+		mode := config.AttrGetter().String("mode")
+		openTime := config.AttrGetter().String("open_time")
+		closeTime := config.AttrGetter().String("close_time")
+		businessHours = append(businessHours, types.BusinessHoursConfig{
+			DayOfWeek: dow,
+			Mode:      mode,
+			OpenTime:  openTime,
+			CloseTime: closeTime,
+		})
+	}
+	categoriesNode := profileNode.GetChildByTag("categories")
+	categories := make([]types.Category, 0)
+	for _, category := range categoriesNode.GetChildren() {
+		if category.Tag != "category" {
+			continue
+		}
+		id := category.AttrGetter().String("id")
+		name := string(category.Content.([]byte))
+		categories = append(categories, types.Category{
+			ID:   id,
+			Name: name,
+		})
+	}
+	profileOptionsNode := profileNode.GetChildByTag("profile_options")
+	profileOptions := make(map[string]string)
+	for _, option := range profileOptionsNode.GetChildren() {
+		profileOptions[option.Tag] = string(option.Content.([]byte))
+	}
+	return &types.BusinessProfile{
+		JID:                   jid,
+		Email:                 email,
+		Address:               address,
+		Categories:            categories,
+		ProfileOptions:        profileOptions,
+		BusinessHoursTimeZone: businessHourTimezone,
+		BusinessHours:         businessHours,
+	}, nil
+}
+
+// GetBusinessProfile gets the profile info of a WhatsApp business account
+func (cli *Client) GetBusinessProfile(jid types.JID) (*types.BusinessProfile, error) {
+	resp, err := cli.sendIQ(infoQuery{
+		Type:      iqGet,
+		To:        types.ServerJID,
+		Namespace: "w:biz",
+		Content: []waBinary.Node{{
+			Tag: "business_profile",
+			Attrs: waBinary.Attrs{
+				"v": "244",
+			},
+			Content: []waBinary.Node{{
+				Tag: "profile",
+				Attrs: waBinary.Attrs{
+					"jid": jid,
+				},
+			}},
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	node, ok := resp.GetOptionalChildByTag("business_profile")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "business_profile", In: "response to business profile query"}
+	}
+	return cli.parseBusinessProfile(&node)
+}
+
 // GetUserDevices gets the list of devices that the given user has. The input should be a list of
 // regular JIDs, and the output will be a list of AD JIDs. The local device will not be included in
 // the output even if the user's JID is included in the input. All other devices will be included.
