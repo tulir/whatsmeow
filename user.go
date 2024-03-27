@@ -283,7 +283,7 @@ func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessPro
 	}, nil
 }
 
-// GetBusinessProfile gets profile info of business whatsapp account
+// GetBusinessProfile gets the profile info of a WhatsApp business account
 func (cli *Client) GetBusinessProfile(jid types.JID) (*types.BusinessProfile, error) {
 	resp, err := cli.sendIQ(infoQuery{
 		Type:      iqGet,
@@ -307,7 +307,7 @@ func (cli *Client) GetBusinessProfile(jid types.JID) (*types.BusinessProfile, er
 	}
 	node, ok := resp.GetOptionalChildByTag("business_profile")
 	if !ok {
-		return nil, &ElementMissingError{Tag: "business_profile", In: "response empty"}
+		return nil, &ElementMissingError{Tag: "business_profile", In: "response to business profile query"}
 	}
 	return cli.parseBusinessProfile(&node)
 }
