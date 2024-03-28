@@ -338,6 +338,23 @@ func (cli *Client) SetGroupAnnounce(jid types.JID, announce bool) error {
 	return err
 }
 
+// SetGroupAddMemberMode changes who can add member to this group
+func (cli *Client) SetGroupAddMemberMode(jid types.JID, isMemberCouldAdd bool) error {
+	tag := "member_add_mode"
+	var addMemberMode types.GroupMemberAddMode
+	if isMemberCouldAdd {
+		addMemberMode = types.GroupMemberAddModeAllMember
+	} else {
+		addMemberMode = types.GroupMemberAddModeAdmin
+	}
+
+	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+		Tag:     tag,
+		Content: []byte(addMemberMode),
+	})
+	return err
+}
+
 // GetGroupInviteLink requests the invite link to the group from the WhatsApp servers.
 //
 // If reset is true, then the old invite link will be revoked and a new one generated.

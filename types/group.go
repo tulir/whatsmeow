@@ -13,7 +13,8 @@ import (
 type GroupMemberAddMode string
 
 const (
-	GroupMemberAddModeAdmin GroupMemberAddMode = "admin_add"
+	GroupMemberAddModeAdmin     GroupMemberAddMode = "admin_add"
+	GroupMemberAddModeAllMember GroupMemberAddMode = "all_member_add"
 )
 
 // GroupInfo contains basic information about a group chat on WhatsApp.

@@ -561,6 +561,41 @@ func handleCmd(cmd string, args []string) {
 				log.Infof("%+v", group)
 			}
 		}
+	case "setgrouppermissions":
+		if len(args) < 3 {
+			log.Errorf("Usage: setgrouppermissions <jid> <action> <status>")
+			return
+		}
+		jid, ok := parseJID(args[0])
+		if !ok {
+			return
+		}
+		action := args[1]
+
+		status, err := strconv.ParseBool(args[2])
+		if err != nil {
+			log.Errorf("Valid status: ture, false")
+			return
+		}
+
+		switch action {
+		case "edit":
+			err = cli.SetGroupLocked(jid, status)
+		case "send":
+			err = cli.SetGroupAnnounce(jid, status)
+		case "add":
+			err = cli.SetGroupAddMemberMode(jid, status)
+		default:
+			log.Errorf("Valid actions: edit, send, add")
+			return
+		}
+
+		if err != nil {
+			log.Errorf("Failed to Setgrouppermissions, action: %v, status:%v, err:%v", action, args[2], err)
+		} else {
+			log.Infof("Setgrouppermissions action: %s to status:%s", action, args[2])
+		}
+
 	case "getinvitelink":
 		if len(args) < 1 {
 			log.Errorf("Usage: getinvitelink <jid> [--reset]")
