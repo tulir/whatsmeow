@@ -74,6 +74,9 @@ type Client struct {
 	// even when re-syncing the whole state.
 	EmitAppStateEventsOnFullSync bool
 
+	// can be set to true if want to skip MAC validation
+	DisableMACsValidationOnFetchAppState bool
+
 	AutomaticMessageRerequestFromPhone bool
 	pendingPhoneRerequests             map[types.MessageID]context.CancelFunc
 	pendingPhoneRerequestsLock         sync.RWMutex
