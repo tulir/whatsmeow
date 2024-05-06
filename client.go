@@ -74,7 +74,7 @@ type Client struct {
 	// even when re-syncing the whole state.
 	EmitAppStateEventsOnFullSync bool
 
-	// DisableMACsValidationOnFetchAppState cah be set to true if want to skip MAC validation
+	// can be set to true if want to skip MAC validation
 	DisableMACsValidationOnFetchAppState bool
 
 	AutomaticMessageRerequestFromPhone bool
