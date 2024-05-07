@@ -158,6 +158,7 @@ func (cli *Client) handlePrivacySettingsNotification(privacyNode *waBinary.Node)
 	settings, err := cli.TryFetchPrivacySettings(false)
 	if err != nil {
 		cli.Log.Errorf("Failed to fetch privacy settings when handling change: %v", err)
+		return
 	}
 	evt := cli.parsePrivacySettings(privacyNode, settings)
 	// The data isn't be reliable if the fetch failed, so only cache if it didn't fail
