@@ -19,7 +19,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"go.mau.fi/util/random"
+	"golang.org/x/net/proxy"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -155,8 +157,10 @@ type Client struct {
 	uniqueID  string
 	idCounter atomic.Uint64
 
-	proxy socket.Proxy
-	http  *http.Client
+	proxy          Proxy
+	socksProxy     proxy.Dialer
+	proxyOnlyLogin bool
+	http           *http.Client
 
 	// This field changes the client to act like a Messenger client instead of a WhatsApp one.
 	//
@@ -249,19 +253,35 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	return cli
 }
 
-// SetProxyAddress is a helper method that parses a URL string and calls SetProxy.
+// SetProxyAddress is a helper method that parses a URL string and calls SetProxy or SetSOCKSProxy based on the URL scheme.
 //
 // Returns an error if url.Parse fails to parse the given address.
 func (cli *Client) SetProxyAddress(addr string) error {
+	if addr == "" {
+		cli.SetProxy(nil)
+		return nil
+	}
 	parsed, err := url.Parse(addr)
 	if err != nil {
 		return err
 	}
-	cli.SetProxy(http.ProxyURL(parsed))
+	if parsed.Scheme == "http" || parsed.Scheme == "https" {
+		cli.SetProxy(http.ProxyURL(parsed))
+	} else if parsed.Scheme == "socks5" {
+		px, err := proxy.FromURL(parsed, proxy.Direct)
+		if err != nil {
+			return err
+		}
+		cli.SetSOCKSProxy(px)
+	} else {
+		return fmt.Errorf("unsupported proxy scheme %q", parsed.Scheme)
+	}
 	return nil
 }
 
-// SetProxy sets the proxy to use for WhatsApp web websocket connections and media uploads/downloads.
+type Proxy = func(*http.Request) (*url.URL, error)
+
+// SetProxy sets a HTTP proxy to use for WhatsApp web websocket connections and media uploads/downloads.
 //
 // Must be called before Connect() to take effect in the websocket connection.
 // If you want to change the proxy after connecting, you must call Disconnect() and then Connect() again manually.
@@ -281,9 +301,51 @@ func (cli *Client) SetProxyAddress(addr string) error {
 //			return mediaProxyURL, nil
 //		}
 //	})
-func (cli *Client) SetProxy(proxy socket.Proxy) {
+func (cli *Client) SetProxy(proxy Proxy) {
 	cli.proxy = proxy
-	cli.http.Transport.(*http.Transport).Proxy = proxy
+	cli.socksProxy = nil
+	transport := cli.http.Transport.(*http.Transport)
+	transport.Proxy = proxy
+	transport.Dial = nil
+	transport.DialContext = nil
+}
+
+type SetProxyOptions struct {
+	// If NoWebsocket is true, the proxy won't be used for the websocket
+	NoWebsocket bool
+	// If NoMedia is true, the proxy won't be used for media uploads/downloads
+	NoMedia bool
+}
+
+// SetSOCKSProxy sets a SOCKS5 proxy to use for WhatsApp web websocket connections and media uploads/downloads.
+//
+// Same details as SetProxy apply, but using a different proxy for the websocket and media is not currently supported.
+func (cli *Client) SetSOCKSProxy(px proxy.Dialer, opts ...SetProxyOptions) {
+	var opt SetProxyOptions
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+	if !opt.NoWebsocket {
+		cli.socksProxy = px
+		cli.proxy = nil
+	}
+	if !opt.NoMedia {
+		transport := cli.http.Transport.(*http.Transport)
+		transport.Proxy = nil
+		transport.Dial = cli.socksProxy.Dial
+		contextDialer, ok := cli.socksProxy.(proxy.ContextDialer)
+		if ok {
+			transport.DialContext = contextDialer.DialContext
+		} else {
+			transport.DialContext = nil
+		}
+	}
+}
+
+// ToggleProxyOnlyForLogin changes whether the proxy set with SetProxy or related methods
+// is only used for the pre-login websocket and not authenticated websockets.
+func (cli *Client) ToggleProxyOnlyForLogin(only bool) {
+	cli.proxyOnlyLogin = only
 }
 
 func (cli *Client) getSocketWaitChan() <-chan struct{} {
@@ -339,7 +401,19 @@ func (cli *Client) Connect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), cli.proxy)
+	wsDialer := websocket.Dialer{}
+	if !cli.proxyOnlyLogin || cli.Store.ID == nil {
+		if cli.proxy != nil {
+			wsDialer.Proxy = cli.proxy
+		} else if cli.socksProxy != nil {
+			wsDialer.NetDial = cli.socksProxy.Dial
+			contextDialer, ok := cli.socksProxy.(proxy.ContextDialer)
+			if ok {
+				wsDialer.NetDialContext = contextDialer.DialContext
+			}
+		}
+	}
+	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), wsDialer)
 	if cli.MessengerConfig != nil {
 		fs.URL = "wss://web-chat-e2ee.facebook.com/ws/chat"
 		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
