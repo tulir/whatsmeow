@@ -256,9 +256,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 // SetProxyAddress is a helper method that parses a URL string and calls SetProxy or SetSOCKSProxy based on the URL scheme.
 //
 // Returns an error if url.Parse fails to parse the given address.
-func (cli *Client) SetProxyAddress(addr string) error {
+func (cli *Client) SetProxyAddress(addr string, opts ...SetProxyOptions) error {
 	if addr == "" {
-		cli.SetProxy(nil)
+		cli.SetProxy(nil, opts...)
 		return nil
 	}
 	parsed, err := url.Parse(addr)
@@ -266,13 +266,13 @@ func (cli *Client) SetProxyAddress(addr string) error {
 		return err
 	}
 	if parsed.Scheme == "http" || parsed.Scheme == "https" {
-		cli.SetProxy(http.ProxyURL(parsed))
+		cli.SetProxy(http.ProxyURL(parsed), opts...)
 	} else if parsed.Scheme == "socks5" {
 		px, err := proxy.FromURL(parsed, proxy.Direct)
 		if err != nil {
 			return err
 		}
-		cli.SetSOCKSProxy(px)
+		cli.SetSOCKSProxy(px, opts...)
 	} else {
 		return fmt.Errorf("unsupported proxy scheme %q", parsed.Scheme)
 	}
@@ -301,13 +301,21 @@ type Proxy = func(*http.Request) (*url.URL, error)
 //			return mediaProxyURL, nil
 //		}
 //	})
-func (cli *Client) SetProxy(proxy Proxy) {
-	cli.proxy = proxy
-	cli.socksProxy = nil
-	transport := cli.http.Transport.(*http.Transport)
-	transport.Proxy = proxy
-	transport.Dial = nil
-	transport.DialContext = nil
+func (cli *Client) SetProxy(proxy Proxy, opts ...SetProxyOptions) {
+	var opt SetProxyOptions
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+	if !opt.NoWebsocket {
+		cli.proxy = proxy
+		cli.socksProxy = nil
+	}
+	if !opt.NoMedia {
+		transport := cli.http.Transport.(*http.Transport)
+		transport.Proxy = proxy
+		transport.Dial = nil
+		transport.DialContext = nil
+	}
 }
 
 type SetProxyOptions struct {
