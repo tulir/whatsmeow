@@ -278,3 +278,8 @@ func upgradeV5(tx pgx.Tx, _ *ClientInstance) error {
 	_, err := tx.Exec(context.Background(), "UPDATE whatsmeow_device SET jid=REPLACE(jid, '.0', '')")
 	return err
 }
+
+func upgradeV6(tx pgx.Tx, _ *ClientInstance) error {
+	_, err := tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN facebook_uuid uuid")
+	return err
+}

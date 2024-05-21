@@ -1,0 +1,38 @@
+
+'waMediaEntryData/WAMediaEntryData.protoWAMediaEntryData"É
+
+MediaEntry
+
+fileSHA256 (R
+fileSHA256
+mediaKey (RmediaKey$
+fileEncSHA256 (RfileEncSHA256
+
+directPath (	R
+directPath,
+mediaKeyTimestamp (RmediaKeyTimestamp(
+serverMediaType (	RserverMediaType 
+uploadToken (RuploadToken.
+validatedTimestamp (RvalidatedTimestamp
+sidecar	 (Rsidecar
+objectID
+ (	RobjectID
+FBID (	RFBIDh
+downloadableThumbnail (22.WAMediaEntryData.MediaEntry.DownloadableThumbnailRdownloadableThumbnail
+handle (	Rhandle
+filename (	Rfilenamek
+progressiveJPEGDetails (23.WAMediaEntryData.MediaEntry.ProgressiveJpegDetailsRprogressiveJPEGDetailsT
+ProgressiveJpegDetails 
+scanLengths (RscanLengths
+sidecar (Rsidecarã
+DownloadableThumbnail
+
+fileSHA256 (R
+fileSHA256$
+fileEncSHA256 (RfileEncSHA256
+
+directPath (	R
+directPath
+mediaKey (RmediaKey,
+mediaKeyTimestamp (RmediaKeyTimestamp
+objectID (	RobjectIDB7Z5go.mau.fi/whatsmeow/binary/armadillo/waMediaEntryDatabproto3

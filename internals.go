@@ -9,6 +9,8 @@ package whatsmeow
 import (
 	"context"
 
+	"go.mau.fi/libsignal/keys/prekey"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 )
@@ -65,4 +67,20 @@ func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, key
 
 func (int *DangerousInternalClient) SendRetryReceipt(node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
 	int.c.sendRetryReceipt(node, info, forceIncludeIdentity)
+}
+
+func (int *DangerousInternalClient) EncryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle, extraAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
+	return int.c.encryptMessageForDevice(plaintext, to, bundle, extraAttrs)
+}
+
+func (int *DangerousInternalClient) GetOwnID() types.JID {
+	return int.c.getOwnID()
+}
+
+func (int *DangerousInternalClient) DecryptDM(child *waBinary.Node, from types.JID, isPreKey bool) ([]byte, error) {
+	return int.c.decryptDM(child, from, isPreKey)
+}
+
+func (int *DangerousInternalClient) MakeDeviceIdentityNode() waBinary.Node {
+	return int.c.makeDeviceIdentityNode()
 }

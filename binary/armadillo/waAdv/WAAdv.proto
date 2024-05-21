@@ -1,0 +1,43 @@
+syntax = "proto3";
+package WAAdv;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waAdv";
+
+enum ADVEncryptionType {
+	E2EE = 0;
+	HOSTED = 1;
+}
+
+message ADVKeyIndexList {
+	uint32 rawID = 1;
+	uint64 timestamp = 2;
+	uint32 currentIndex = 3;
+	repeated uint32 validIndexes = 4 [packed=true];
+	ADVEncryptionType accountType = 5;
+}
+
+message ADVSignedKeyIndexList {
+	bytes details = 1;
+	bytes accountSignature = 2;
+	bytes accountSignatureKey = 3;
+}
+
+message ADVDeviceIdentity {
+	uint32 rawID = 1;
+	uint64 timestamp = 2;
+	uint32 keyIndex = 3;
+	ADVEncryptionType accountType = 4;
+	ADVEncryptionType deviceType = 5;
+}
+
+message ADVSignedDeviceIdentity {
+	bytes details = 1;
+	bytes accountSignatureKey = 2;
+	bytes accountSignature = 3;
+	bytes deviceSignature = 4;
+}
+
+message ADVSignedDeviceIdentityHMAC {
+	bytes details = 1;
+	bytes HMAC = 2;
+	ADVEncryptionType accountType = 3;
+}

@@ -9,9 +9,13 @@ package events
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/binary/armadillo"
+	"go.mau.fi/whatsmeow/binary/armadillo/waMsgApplication"
+	"go.mau.fi/whatsmeow/binary/armadillo/waMsgTransport"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 )
@@ -68,6 +72,22 @@ type KeepAliveTimeout struct {
 // KeepAliveRestored is emitted if the keepalive pings start working again after some KeepAliveTimeout events.
 // Note that if the websocket disconnects before the pings start working, this event will not be emitted.
 type KeepAliveRestored struct{}
+
+// PermanentDisconnect is a class of events emitted when the client will not auto-reconnect by default.
+type PermanentDisconnect interface {
+	PermanentDisconnectDescription() string
+}
+
+func (l *LoggedOut) PermanentDisconnectDescription() string     { return l.Reason.String() }
+func (*StreamReplaced) PermanentDisconnectDescription() string  { return "stream replaced" }
+func (*ClientOutdated) PermanentDisconnectDescription() string  { return "client outdated" }
+func (*CATRefreshError) PermanentDisconnectDescription() string { return "CAT refresh failed" }
+func (tb *TemporaryBan) PermanentDisconnectDescription() string {
+	return fmt.Sprintf("temporarily banned: %s", tb.String())
+}
+func (cf *ConnectFailure) PermanentDisconnectDescription() string {
+	return fmt.Sprintf("connect failure: %s", cf.Reason.String())
+}
 
 // LoggedOut is emitted when the client has been unpaired from the phone.
 //
@@ -142,6 +162,10 @@ const (
 	ConnectFailureClientOutdated ConnectFailureReason = 405
 	ConnectFailureBadUserAgent   ConnectFailureReason = 409
 
+	ConnectFailureCATExpired ConnectFailureReason = 413
+	ConnectFailureCATInvalid ConnectFailureReason = 414
+	ConnectFailureNotFound   ConnectFailureReason = 415
+
 	ConnectFailureInternalServerError ConnectFailureReason = 500
 	ConnectFailureExperimental        ConnectFailureReason = 501
 	ConnectFailureServiceUnavailable  ConnectFailureReason = 503
@@ -154,11 +178,17 @@ var connectFailureReasonMessage = map[ConnectFailureReason]string{
 	ConnectFailureUnknownLogout:  "logged out for unknown reason",
 	ConnectFailureClientOutdated: "client is out of date",
 	ConnectFailureBadUserAgent:   "client user agent was rejected",
+	ConnectFailureCATExpired:     "messenger crypto auth token has expired",
+	ConnectFailureCATInvalid:     "messenger crypto auth token is invalid",
 }
 
 // IsLoggedOut returns true if the client should delete session data due to this connect failure.
 func (cfr ConnectFailureReason) IsLoggedOut() bool {
 	return cfr == ConnectFailureLoggedOut || cfr == ConnectFailureMainDeviceGone || cfr == ConnectFailureUnknownLogout
+}
+
+func (cfr ConnectFailureReason) NumberString() string {
+	return strconv.Itoa(int(cfr))
 }
 
 // String returns the reason code and a short human-readable description of the error.
@@ -181,6 +211,10 @@ type ConnectFailure struct {
 
 // ClientOutdated is emitted when the WhatsApp server rejects the connection with the ConnectFailureClientOutdated code.
 type ClientOutdated struct{}
+
+type CATRefreshError struct {
+	Error error
+}
 
 // StreamError is emitted when the WhatsApp server sends a <stream:error> node with an unknown code.
 //
@@ -254,6 +288,17 @@ type Message struct {
 	RawMessage *waProto.Message
 }
 
+type FBMessage struct {
+	Info    types.MessageInfo               // Information about the message like the chat and sender IDs
+	Message armadillo.MessageApplicationSub // The actual message struct
+
+	// If the message was re-requested from the sender, this is the number of retries it took.
+	RetryCount int
+
+	Transport   *waMsgTransport.MessageTransport     // The first level of wrapping the message was in
+	Application *waMsgApplication.MessageApplication // The second level of wrapping the message was in
+}
+
 // UnwrapRaw fills the Message, IsEphemeral and IsViewOnce fields based on the raw message in the RawMessage field.
 func (evt *Message) UnwrapRaw() *Message {
 	evt.Message = evt.RawMessage
@@ -288,43 +333,18 @@ func (evt *Message) UnwrapRaw() *Message {
 	return evt
 }
 
-// ReceiptType represents the type of a Receipt event.
-type ReceiptType string
+// Deprecated: use types.ReceiptType directly
+type ReceiptType = types.ReceiptType
 
+// Deprecated: use types.ReceiptType* constants directly
 const (
-	// ReceiptTypeDelivered means the message was delivered to the device (but the user might not have noticed).
-	ReceiptTypeDelivered ReceiptType = ""
-	// ReceiptTypeSender is sent by your other devices when a message you sent is delivered to them.
-	ReceiptTypeSender ReceiptType = "sender"
-	// ReceiptTypeRetry means the message was delivered to the device, but decrypting the message failed.
-	ReceiptTypeRetry ReceiptType = "retry"
-	// ReceiptTypeRead means the user opened the chat and saw the message.
-	ReceiptTypeRead ReceiptType = "read"
-	// ReceiptTypeReadSelf means the current user read a message from a different device, and has read receipts disabled in privacy settings.
-	ReceiptTypeReadSelf ReceiptType = "read-self"
-	// ReceiptTypePlayed means the user opened a view-once media message.
-	//
-	// This is dispatched for both incoming and outgoing messages when played. If the current user opened the media,
-	// it means the media should be removed from all devices. If a recipient opened the media, it's just a notification
-	// for the sender that the media was viewed.
-	ReceiptTypePlayed ReceiptType = "played"
+	ReceiptTypeDelivered = types.ReceiptTypeDelivered
+	ReceiptTypeSender    = types.ReceiptTypeSender
+	ReceiptTypeRetry     = types.ReceiptTypeRetry
+	ReceiptTypeRead      = types.ReceiptTypeRead
+	ReceiptTypeReadSelf  = types.ReceiptTypeReadSelf
+	ReceiptTypePlayed    = types.ReceiptTypePlayed
 )
-
-// GoString returns the name of the Go constant for the ReceiptType value.
-func (rt ReceiptType) GoString() string {
-	switch rt {
-	case ReceiptTypeRead:
-		return "events.ReceiptTypeRead"
-	case ReceiptTypeReadSelf:
-		return "events.ReceiptTypeReadSelf"
-	case ReceiptTypeDelivered:
-		return "events.ReceiptTypeDelivered"
-	case ReceiptTypePlayed:
-		return "events.ReceiptTypePlayed"
-	default:
-		return fmt.Sprintf("events.ReceiptType(%#v)", string(rt))
-	}
-}
 
 // Receipt is emitted when an outgoing message is delivered to or read by another user, or when another device reads an incoming message.
 //
@@ -333,7 +353,7 @@ type Receipt struct {
 	types.MessageSource
 	MessageIDs []types.MessageID
 	Timestamp  time.Time
-	Type       ReceiptType
+	Type       types.ReceiptType
 }
 
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
@@ -432,6 +452,8 @@ type PrivacySettings struct {
 	StatusChanged       bool
 	ProfileChanged      bool
 	ReadReceiptsChanged bool
+	OnlineChanged       bool
+	CallAddChanged      bool
 }
 
 // OfflineSyncPreview is emitted right after connecting if the server is going to send events that the client missed during downtime.

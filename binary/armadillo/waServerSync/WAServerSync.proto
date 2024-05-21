@@ -1,0 +1,72 @@
+syntax = "proto3";
+package WAServerSync;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waServerSync";
+
+message SyncdMutation {
+	enum SyncdOperation {
+		SET = 0;
+		REMOVE = 1;
+	}
+
+	SyncdOperation operation = 1;
+	SyncdRecord record = 2;
+}
+
+message SyncdVersion {
+	uint64 version = 1;
+}
+
+message ExitCode {
+	uint64 code = 1;
+	string text = 2;
+}
+
+message SyncdIndex {
+	bytes blob = 1;
+}
+
+message SyncdValue {
+	bytes blob = 1;
+}
+
+message KeyId {
+	bytes ID = 1;
+}
+
+message SyncdRecord {
+	SyncdIndex index = 1;
+	SyncdValue value = 2;
+	KeyId keyID = 3;
+}
+
+message ExternalBlobReference {
+	bytes mediaKey = 1;
+	string directPath = 2;
+	string handle = 3;
+	uint64 fileSizeBytes = 4;
+	bytes fileSHA256 = 5;
+	bytes fileEncSHA256 = 6;
+}
+
+message SyncdSnapshot {
+	SyncdVersion version = 1;
+	repeated SyncdRecord records = 2;
+	bytes mac = 3;
+	KeyId keyID = 4;
+}
+
+message SyncdMutations {
+	repeated SyncdMutation mutations = 1;
+}
+
+message SyncdPatch {
+	SyncdVersion version = 1;
+	repeated SyncdMutation mutations = 2;
+	ExternalBlobReference externalMutations = 3;
+	bytes snapshotMAC = 4;
+	bytes patchMAC = 5;
+	KeyId keyID = 6;
+	ExitCode exitCode = 7;
+	uint32 deviceIndex = 8;
+	bytes clientDebugData = 9;
+}

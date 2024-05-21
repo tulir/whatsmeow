@@ -1,0 +1,75 @@
+syntax = "proto3";
+package WAMsgTransport;
+option go_package = "go.mau.fi/whatsmeow/binary/armadillo/waMsgTransport";
+
+import "waCommon/WACommon.proto";
+
+message MessageTransport {
+	message Payload {
+		WACommon.SubProtocol applicationPayload = 1;
+		WACommon.FutureProofBehavior futureProof = 3;
+	}
+
+	message Protocol {
+		message Ancillary {
+			message BackupDirective {
+				enum ActionType {
+					NOOP = 0;
+					UPSERT = 1;
+					DELETE = 2;
+					UPSERT_AND_DELETE = 3;
+				}
+
+				string messageID = 1;
+				ActionType actionType = 2;
+				string supplementalKey = 3;
+			}
+
+			message ICDCParticipantDevices {
+				message ICDCIdentityListDescription {
+					int32 seq = 1;
+					bytes signingDevice = 2;
+					repeated bytes unknownDevices = 3;
+					repeated int32 unknownDeviceIDs = 4;
+				}
+
+				ICDCIdentityListDescription senderIdentity = 1;
+				repeated ICDCIdentityListDescription recipientIdentities = 2;
+				repeated string recipientUserJIDs = 3;
+			}
+
+			message SenderKeyDistributionMessage {
+				string groupID = 1;
+				bytes axolotlSenderKeyDistributionMessage = 2;
+			}
+
+			SenderKeyDistributionMessage skdm = 2;
+			DeviceListMetadata deviceListMetadata = 3;
+			ICDCParticipantDevices icdc = 4;
+			BackupDirective backupDirective = 5;
+		}
+
+		message Integral {
+			message DeviceSentMessage {
+				string destinationJID = 1;
+				string phash = 2;
+			}
+
+			bytes padding = 1;
+			DeviceSentMessage DSM = 2;
+		}
+
+		Integral integral = 1;
+		Ancillary ancillary = 2;
+	}
+
+	Payload payload = 1;
+	Protocol protocol = 2;
+}
+
+message DeviceListMetadata {
+	bytes senderKeyHash = 1;
+	uint64 senderTimestamp = 2;
+	bytes recipientKeyHash = 8;
+	uint64 recipientTimestamp = 9;
+}

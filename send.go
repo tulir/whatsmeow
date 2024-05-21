@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog"
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/keys/prekey"
 	"go.mau.fi/libsignal/protocol"
@@ -38,6 +39,9 @@ import (
 //	msgID := cli.GenerateMessageID()
 //	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
 func (cli *Client) GenerateMessageID() types.MessageID {
+	if cli.MessengerConfig != nil {
+		return types.MessageID(strconv.FormatInt(GenerateFacebookMessageID(), 10))
+	}
 	data := make([]byte, 8, 8+20+16)
 	binary.BigEndian.PutUint64(data, uint64(time.Now().Unix()))
 	ownID := cli.getOwnID()
@@ -48,6 +52,11 @@ func (cli *Client) GenerateMessageID() types.MessageID {
 	data = append(data, random.Bytes(16)...)
 	hash := sha256.Sum256(data)
 	return "3EB0" + strings.ToUpper(hex.EncodeToString(hash[:9]))
+}
+
+func GenerateFacebookMessageID() int64 {
+	const randomMask = (1 << 22) - 1
+	return (time.Now().UnixMilli() << 22) | (int64(binary.BigEndian.Uint32(random.Bytes(4))) & randomMask)
 }
 
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
@@ -72,6 +81,24 @@ type MessageDebugTimings struct {
 	Send  time.Duration
 	Resp  time.Duration
 	Retry time.Duration
+}
+
+func (mdt MessageDebugTimings) MarshalZerologObject(evt *zerolog.Event) {
+	evt.Dur("queue", mdt.Queue)
+	evt.Dur("marshal", mdt.Marshal)
+	if mdt.GetParticipants != 0 {
+		evt.Dur("get_participants", mdt.GetParticipants)
+	}
+	evt.Dur("get_devices", mdt.GetDevices)
+	if mdt.GroupEncrypt != 0 {
+		evt.Dur("group_encrypt", mdt.GroupEncrypt)
+	}
+	evt.Dur("peer_encrypt", mdt.PeerEncrypt)
+	evt.Dur("send", mdt.Send)
+	evt.Dur("resp", mdt.Resp)
+	if mdt.Retry != 0 {
+		evt.Dur("retry", mdt.Retry)
+	}
 }
 
 type SendResponse struct {
@@ -104,6 +131,12 @@ type SendRequestExtra struct {
 	ID types.MessageID
 	// Should the message be sent as a peer message (protocol messages to your own devices, e.g. app state key requests)
 	Peer bool
+	// A timeout for the send request. Unlike timeouts using the context parameter, this only applies
+	// to the actual response waiting and not preparing/encrypting the message.
+	// Defaults to 75 seconds. The timeout can be disabled by using a negative value.
+	Timeout time.Duration
+	// When sending media to newsletters, the Handle field returned by the file upload.
+	MediaHandle string
 }
 
 // SendMessage sends the given message.
@@ -148,6 +181,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		return
 	}
 
+	if req.Timeout == 0 {
+		req.Timeout = defaultRequestTimeout
+	}
 	if len(req.ID) == 0 {
 		req.ID = cli.GenerateMessageID()
 	}
@@ -170,7 +206,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	respChan := cli.waitResponse(req.ID)
 	// Peer message retries aren't implemented yet
 	if !req.Peer {
-		cli.addRecentMessage(to, req.ID, message)
+		cli.addRecentMessage(to, req.ID, message, nil)
 	}
 	if message.GetMessageContextInfo().GetMessageSecret() != nil {
 		err = cli.Store.MsgSecrets.PutMessageSecret(to, ownID, req.ID, message.GetMessageContextInfo().GetMessageSecret())
@@ -192,7 +228,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 			data, err = cli.sendDM(ctx, to, ownID, req.ID, message, &resp.DebugTimings)
 		}
 	case types.NewsletterServer:
-		data, err = cli.sendNewsletter(to, req.ID, message, &resp.DebugTimings)
+		data, err = cli.sendNewsletter(to, req.ID, message, req.MediaHandle, &resp.DebugTimings)
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
@@ -202,9 +238,20 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 		return
 	}
 	var respNode *waBinary.Node
+	var timeoutChan <-chan time.Time
+	if req.Timeout > 0 {
+		timeoutChan = time.After(req.Timeout)
+	} else {
+		timeoutChan = make(<-chan time.Time)
+	}
 	select {
 	case respNode = <-respChan:
+	case <-timeoutChan:
+		cli.cancelResponse(req.ID, respChan)
+		err = ErrMessageTimedOut
+		return
 	case <-ctx.Done():
+		cli.cancelResponse(req.ID, respChan)
 		err = ctx.Err()
 		return
 	}
@@ -254,7 +301,7 @@ func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *
 	}
 	if !sender.IsEmpty() && sender.User != cli.getOwnID().User {
 		key.FromMe = proto.Bool(false)
-		if chat.Server != types.DefaultUserServer {
+		if chat.Server != types.DefaultUserServer && chat.Server != types.MessengerServer {
 			key.Participant = proto.String(sender.ToNonAD().String())
 		}
 	}
@@ -440,11 +487,14 @@ func participantListHashV2(participants []types.JID) string {
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) ([]byte, error) {
+func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waProto.Message, mediaID string, timings *MessageDebugTimings) ([]byte, error) {
 	attrs := waBinary.Attrs{
 		"to":   to,
 		"id":   id,
 		"type": getTypeFromMessage(message),
+	}
+	if mediaID != "" {
+		attrs["media_id"] = mediaID
 	}
 	if message.EditedMessage != nil {
 		attrs["edit"] = string(types.EditAttributeAdminEdit)
@@ -459,13 +509,18 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 	if err != nil {
 		return nil, err
 	}
+	plaintextNode := waBinary.Node{
+		Tag:     "plaintext",
+		Content: plaintext,
+		Attrs:   waBinary.Attrs{},
+	}
+	if mediaType := getMediaTypeFromMessage(message); mediaType != "" {
+		plaintextNode.Attrs["mediatype"] = mediaType
+	}
 	node := waBinary.Node{
-		Tag:   "message",
-		Attrs: attrs,
-		Content: []waBinary.Node{{
-			Tag:     "plaintext",
-			Content: plaintext,
-		}},
+		Tag:     "message",
+		Attrs:   attrs,
+		Content: []waBinary.Node{plaintextNode},
 	}
 	start = time.Now()
 	data, err := cli.sendNodeAndGetData(node)
@@ -755,7 +810,7 @@ func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, mess
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
 	}
 	content := []waBinary.Node{*encrypted}
-	if isPreKey {
+	if isPreKey && cli.MessengerConfig == nil {
 		content = append(content, cli.makeDeviceIdentityNode())
 	}
 	return &waBinary.Node{
@@ -817,7 +872,7 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 		attrs["edit"] = string(editAttr)
 		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
 	}
-	if msgType == "reaction" {
+	if msgType == "reaction" || message.GetPollUpdateMessage() != nil {
 		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
 	}
 
@@ -976,9 +1031,10 @@ func (cli *Client) encryptMessageForDevice(plaintext []byte, to types.JID, bundl
 	}
 	copyAttrs(extraAttrs, encAttrs)
 
+	includeDeviceIdentity := encAttrs["type"] == "pkmsg" && cli.MessengerConfig == nil
 	return &waBinary.Node{
 		Tag:     "enc",
 		Attrs:   encAttrs,
 		Content: ciphertext.Serialize(),
-	}, encAttrs["type"] == "pkmsg", nil
+	}, includeDeviceIdentity, nil
 }

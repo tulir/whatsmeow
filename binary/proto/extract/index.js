@@ -56,6 +56,12 @@ async function findAppModules(mods) {
         //2336, // SignalMessage, ...
         //984661, // SessionStructure, ...
         853721, // QP
+        //281698, // Duplicate of ChatLockSettings
+        913628, // ChatLockSettings
+        //144132, // Duplicate of DeviceCapabilities
+        988521, // DeviceCapabilities
+        //691721, // Duplicate of UserPassword
+        700584, // UserPassword
     ]
     const unspecName = name => name.endsWith("Spec") ? name.slice(0, -4) : name
     const unnestName = name => name

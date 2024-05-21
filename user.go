@@ -227,6 +227,91 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 	return respData, nil
 }
 
+func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessProfile, error) {
+	profileNode := node.GetChildByTag("profile")
+	jid, ok := profileNode.AttrGetter().GetJID("jid", true)
+	if !ok {
+		return nil, errors.New("missing jid in business profile")
+	}
+	address := string(profileNode.GetChildByTag("address").Content.([]byte))
+	email := string(profileNode.GetChildByTag("email").Content.([]byte))
+	businessHour := profileNode.GetChildByTag("business_hours")
+	businessHourTimezone := businessHour.AttrGetter().String("timezone")
+	businessHoursConfigs := businessHour.GetChildren()
+	businessHours := make([]types.BusinessHoursConfig, 0)
+	for _, config := range businessHoursConfigs {
+		if config.Tag != "business_hours_config" {
+			continue
+		}
+		dow := config.AttrGetter().String("dow")
+		mode := config.AttrGetter().String("mode")
+		openTime := config.AttrGetter().String("open_time")
+		closeTime := config.AttrGetter().String("close_time")
+		businessHours = append(businessHours, types.BusinessHoursConfig{
+			DayOfWeek: dow,
+			Mode:      mode,
+			OpenTime:  openTime,
+			CloseTime: closeTime,
+		})
+	}
+	categoriesNode := profileNode.GetChildByTag("categories")
+	categories := make([]types.Category, 0)
+	for _, category := range categoriesNode.GetChildren() {
+		if category.Tag != "category" {
+			continue
+		}
+		id := category.AttrGetter().String("id")
+		name := string(category.Content.([]byte))
+		categories = append(categories, types.Category{
+			ID:   id,
+			Name: name,
+		})
+	}
+	profileOptionsNode := profileNode.GetChildByTag("profile_options")
+	profileOptions := make(map[string]string)
+	for _, option := range profileOptionsNode.GetChildren() {
+		profileOptions[option.Tag] = string(option.Content.([]byte))
+	}
+	return &types.BusinessProfile{
+		JID:                   jid,
+		Email:                 email,
+		Address:               address,
+		Categories:            categories,
+		ProfileOptions:        profileOptions,
+		BusinessHoursTimeZone: businessHourTimezone,
+		BusinessHours:         businessHours,
+	}, nil
+}
+
+// GetBusinessProfile gets the profile info of a WhatsApp business account
+func (cli *Client) GetBusinessProfile(jid types.JID) (*types.BusinessProfile, error) {
+	resp, err := cli.sendIQ(infoQuery{
+		Type:      iqGet,
+		To:        types.ServerJID,
+		Namespace: "w:biz",
+		Content: []waBinary.Node{{
+			Tag: "business_profile",
+			Attrs: waBinary.Attrs{
+				"v": "244",
+			},
+			Content: []waBinary.Node{{
+				Tag: "profile",
+				Attrs: waBinary.Attrs{
+					"jid": jid,
+				},
+			}},
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	node, ok := resp.GetOptionalChildByTag("business_profile")
+	if !ok {
+		return nil, &ElementMissingError{Tag: "business_profile", In: "response to business profile query"}
+	}
+	return cli.parseBusinessProfile(&node)
+}
+
 // GetUserDevices gets the list of devices that the given user has. The input should be a list of
 // regular JIDs, and the output will be a list of AD JIDs. The local device will not be included in
 // the output even if the user's JID is included in the input. All other devices will be included.
@@ -238,34 +323,50 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 
-	var devices, jidsToSync []types.JID
+	var devices, jidsToSync, fbJIDsToSync []types.JID
 	for _, jid := range jids {
 		cached, ok := cli.userDevicesCache[jid]
-		if ok && len(cached) > 0 {
-			devices = append(devices, cached...)
+		if ok && len(cached.devices) > 0 {
+			devices = append(devices, cached.devices...)
+		} else if jid.Server == types.MessengerServer {
+			fbJIDsToSync = append(fbJIDsToSync, jid)
 		} else {
 			jidsToSync = append(jidsToSync, jid)
 		}
 	}
-	if len(jidsToSync) == 0 {
-		return devices, nil
-	}
-
-	list, err := cli.usync(ctx, jidsToSync, "query", "message", []waBinary.Node{
-		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, user := range list.GetChildren() {
-		jid, jidOK := user.Attrs["jid"].(types.JID)
-		if user.Tag != "user" || !jidOK {
-			continue
+	if len(jidsToSync) > 0 {
+		list, err := cli.usync(ctx, jidsToSync, "query", "message", []waBinary.Node{
+			{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
+		})
+		if err != nil {
+			return nil, err
 		}
-		userDevices := parseDeviceList(jid.User, user.GetChildByTag("devices"))
-		cli.userDevicesCache[jid] = userDevices
-		devices = append(devices, userDevices...)
+
+		for _, user := range list.GetChildren() {
+			jid, jidOK := user.Attrs["jid"].(types.JID)
+			if user.Tag != "user" || !jidOK {
+				continue
+			}
+			userDevices := parseDeviceList(jid.User, user.GetChildByTag("devices"))
+			cli.userDevicesCache[jid] = deviceCache{devices: userDevices, dhash: participantListHashV2(userDevices)}
+			devices = append(devices, userDevices...)
+		}
+	}
+
+	if len(fbJIDsToSync) > 0 {
+		list, err := cli.getFBIDDevices(ctx, fbJIDsToSync)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range list.GetChildren() {
+			jid, jidOK := user.Attrs["jid"].(types.JID)
+			if user.Tag != "user" || !jidOK {
+				continue
+			}
+			userDevices := parseFBDeviceList(jid, user.GetChildByTag("devices"))
+			cli.userDevicesCache[jid] = userDevices
+			devices = append(devices, userDevices.devices...)
+		}
 	}
 
 	return devices, nil
@@ -393,7 +494,7 @@ func (cli *Client) updatePushName(user types.JID, messageInfo *types.MessageInfo
 	user = user.ToNonAD()
 	changed, previousName, err := cli.Store.Contacts.PutPushName(user, name)
 	if err != nil {
-		cli.Log.Errorf("Failed to save push name of (%s, %s) in device store: %v", user, name, err)
+		cli.Log.Errorf("Failed to save push name of %s in device store: %v", user, err)
 	} else if changed {
 		cli.Log.Debugf("Push name of %s changed from %s to %s, dispatching event", user, previousName, name)
 		cli.dispatchEvent(&events.PushName{
@@ -471,6 +572,51 @@ func parseDeviceList(user string, deviceNode waBinary.Node) []types.JID {
 		devices = append(devices, types.NewADJID(user, 0, byte(deviceID)))
 	}
 	return devices
+}
+
+func parseFBDeviceList(user types.JID, deviceList waBinary.Node) deviceCache {
+	children := deviceList.GetChildren()
+	devices := make([]types.JID, 0, len(children))
+	for _, device := range children {
+		deviceID, ok := device.AttrGetter().GetInt64("id", true)
+		if device.Tag != "device" || !ok {
+			continue
+		}
+		user.Device = uint16(deviceID)
+		devices = append(devices, user)
+		// TODO take identities here too?
+	}
+	// TODO do something with the icdc blob?
+	return deviceCache{
+		devices: devices,
+		dhash:   deviceList.AttrGetter().String("dhash"),
+	}
+}
+
+func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
+	users := make([]waBinary.Node, len(jids))
+	for i, jid := range jids {
+		users[i].Tag = "user"
+		users[i].Attrs = waBinary.Attrs{"jid": jid}
+		// TODO include dhash for users
+	}
+	resp, err := cli.sendIQ(infoQuery{
+		Context:   ctx,
+		Namespace: "fbid:devices",
+		Type:      iqGet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag:     "users",
+			Content: users,
+		}},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to send usync query: %w", err)
+	} else if list, ok := resp.GetOptionalChildByTag("users"); !ok {
+		return nil, &ElementMissingError{Tag: "users", In: "response to fbid devices query"}
+	} else {
+		return &list, err
+	}
 }
 
 func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context string, query []waBinary.Node) (*waBinary.Node, error) {
