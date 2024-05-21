@@ -1,0 +1,13 @@
+syntax = "proto2";
+package WAProtobufsDeviceCapabilities;
+option go_package = "go.mau.fi/whatsmeow/proto/waDeviceCapabilities";
+
+message DeviceCapabilities {
+	enum ChatLockSupportLevel {
+		NONE = 0;
+		MINIMAL = 1;
+		FULL = 2;
+	}
+
+	optional ChatLockSupportLevel chatLockSupportLevel = 1;
+}

@@ -107,7 +107,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 
 	h := hmac.New(sha256.New, cli.Store.AdvSecretKey)
 	h.Write(deviceIdentityContainer.Details)
-	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.Hmac) {
+	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.HMAC) {
 		cli.Log.Warnf("Invalid HMAC from pair success message")
 		cli.sendPairError(reqID, 401, "not-authorized")
 		return ErrPairInvalidDeviceIdentityHMAC

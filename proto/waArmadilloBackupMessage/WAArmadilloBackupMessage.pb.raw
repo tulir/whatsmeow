@@ -1,0 +1,15 @@
+
+7waArmadilloBackupMessage/WAArmadilloBackupMessage.protoWAArmadilloBackupMessage"ƒ
+BackupMessageL
+metadata (20.WAArmadilloBackupMessage.BackupMessage.MetadataRmetadata
+payload (Rpayload‰
+Metadata
+senderID (	RsenderID
+	messageID (	R	messageID 
+timestampMS (RtimestampMSm
+frankingMetadata (2A.WAArmadilloBackupMessage.BackupMessage.Metadata.FrankingMetadataRfrankingMetadata&
+payloadVersion (RpayloadVersion0
+futureProofBehavior (RfutureProofBehaviorX
+FrankingMetadata 
+frankingTag (RfrankingTag"
+reportingTag (RreportingTagB4Z2go.mau.fi/whatsmeow/proto/waArmadilloBackupMessage

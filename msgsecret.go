@@ -70,7 +70,7 @@ func getOrigSenderFromKey(msg *events.Message, key *waProto.MessageKey) (types.J
 }
 
 type messageEncryptedSecret interface {
-	GetEncIv() []byte
+	GetEncIV() []byte
 	GetEncPayload() []byte
 }
 
@@ -86,7 +86,7 @@ func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, 
 		return nil, ErrOriginalMessageSecretNotFound
 	}
 	secretKey, additionalData := generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetId(), pollSender, baseEncKey)
-	plaintext, err := gcmutil.Decrypt(secretKey, encrypted.GetEncIv(), encrypted.GetEncPayload(), additionalData)
+	plaintext, err := gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
 	}
@@ -175,9 +175,9 @@ func (cli *Client) DecryptPollVote(vote *events.Message) (*waProto.PollVoteMessa
 
 func getKeyFromInfo(msgInfo *types.MessageInfo) *waProto.MessageKey {
 	creationKey := &waProto.MessageKey{
-		RemoteJid: proto.String(msgInfo.Chat.String()),
+		RemoteJID: proto.String(msgInfo.Chat.String()),
 		FromMe:    proto.Bool(msgInfo.IsFromMe),
-		Id:        proto.String(msgInfo.ID),
+		ID:        proto.String(msgInfo.ID),
 	}
 	if msgInfo.IsGroup {
 		creationKey.Participant = proto.String(msgInfo.Sender.String())
@@ -255,8 +255,8 @@ func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waProto.Po
 		PollCreationMessageKey: getKeyFromInfo(pollInfo),
 		Vote: &waProto.PollEncValue{
 			EncPayload: ciphertext,
-			EncIv:      iv,
+			EncIV:      iv,
 		},
-		SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
+		SenderTimestampMS: proto.Int64(time.Now().UnixMilli()),
 	}, nil
 }
