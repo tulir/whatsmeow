@@ -275,20 +275,6 @@ func handleCmd(cmd string, args []string) {
 				}
 			}
 		}
-	case "checkupdate":
-		resp, err := cli.CheckUpdate()
-		if err != nil {
-			log.Errorf("Failed to check for updates: %v", err)
-		} else {
-			log.Debugf("Version data: %#v", resp)
-			if resp.ParsedVersion == store.GetWAVersion() {
-				log.Infof("Client is up to date")
-			} else if store.GetWAVersion().LessThan(resp.ParsedVersion) {
-				log.Warnf("Client is outdated")
-			} else {
-				log.Infof("Client is newer than latest")
-			}
-		}
 	case "subscribepresence":
 		if len(args) < 1 {
 			log.Errorf("Usage: subscribepresence <jid>")

@@ -12,6 +12,7 @@ enum PeerDataOperationRequestType {
 	GENERATE_LINK_PREVIEW = 2;
 	HISTORY_SYNC_ON_DEMAND = 3;
 	PLACEHOLDER_MESSAGE_RESEND = 4;
+	WAFFLE_LINKING_NONCE_FETCH = 5;
 }
 
 enum KeepType {
@@ -563,6 +564,10 @@ message CloudAPIThreadControlNotification {
 }
 
 message BotFeedbackMessage {
+	enum ReportKind {
+		GENERIC = 0;
+	}
+
 	enum BotFeedbackKindMultiplePositive {
 		BOT_FEEDBACK_MULTIPLE_POSITIVE_GENERIC = 1;
 	}
@@ -597,6 +602,7 @@ message BotFeedbackMessage {
 	optional string text = 3;
 	optional uint64 kindNegative = 4;
 	optional uint64 kindPositive = 5;
+	optional ReportKind kindReport = 6;
 }
 
 message VideoMessage {
@@ -631,6 +637,7 @@ message VideoMessage {
 	optional string staticURL = 24;
 	repeated InteractiveAnnotation annotations = 25;
 	optional string accessibilityLabel = 26;
+	repeated ProcessedVideo processedVideos = 27;
 }
 
 message ExtendedTextMessage {
@@ -868,7 +875,8 @@ message BotPluginMetadata {
 	optional uint32 referenceIndex = 6;
 	optional uint32 expectedLinksCount = 7;
 	optional string searchQuery = 9;
-	optional PluginType parentPluginType = 10;
+	optional WACommon.MessageKey parentPluginMessageKey = 10;
+	optional PluginType parentPluginType = 11;
 }
 
 message BotSearchMetadata {
@@ -992,6 +1000,24 @@ message DisappearingMode {
 	optional Trigger trigger = 2;
 	optional string initiatorDeviceJID = 3;
 	optional bool initiatedByMe = 4;
+}
+
+message ProcessedVideo {
+	enum VideoQuality {
+		UNDEFINED = 0;
+		LOW = 1;
+		MID = 2;
+		HIGH = 3;
+	}
+
+	optional string directPath = 1;
+	optional bytes fileSHA256 = 2;
+	optional uint32 height = 3;
+	optional uint32 width = 4;
+	optional uint64 fileLength = 5;
+	optional uint32 bitrate = 6;
+	optional VideoQuality quality = 7;
+	repeated string capabilities = 8;
 }
 
 message Message {
