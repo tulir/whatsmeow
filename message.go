@@ -169,7 +169,6 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 		}
 	}
 	cli.dispatchEvent(evt.UnwrapRaw())
-	return
 }
 
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
