@@ -395,9 +395,16 @@ func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	return true
 }
 
+// Connect connects the client to the WhatsApp web websocket with the specified context.
+// After connection, it will either authenticate if there's data in the device store,
+// or emit a QREvent to set up a new link.
+func (cli *Client) Connect() error {
+	return cli.ConnectWithTimeout(context.Background())
+}
+
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
-func (cli *Client) Connect(timeCtx context.Context) error {
+func (cli *Client) ConnectWithTimeout(timeCtx context.Context) error {
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
 	if cli.socket != nil {
@@ -489,7 +496,7 @@ func (cli *Client) autoReconnect() {
 		cli.Log.Debugf("Automatically reconnecting after %v", autoReconnectDelay)
 		cli.AutoReconnectErrors++
 		time.Sleep(autoReconnectDelay)
-		err := cli.Connect(context.Background())
+		err := cli.Connect()
 		if errors.Is(err, ErrAlreadyConnected) {
 			cli.Log.Debugf("Connect() said we're already connected after autoreconnect sleep")
 			return

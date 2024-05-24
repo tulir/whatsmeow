@@ -7,7 +7,6 @@
 package whatsmeow
 
 import (
-	"context"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -27,7 +26,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		cli.Log.Infof("Got 515 code, reconnecting...")
 		go func() {
 			cli.Disconnect()
-			err := cli.Connect(context.Background())
+			err := cli.Connect()
 			if err != nil {
 				cli.Log.Errorf("Failed to reconnect after 515 code: %v", err)
 			}

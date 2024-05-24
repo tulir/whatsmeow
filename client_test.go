@@ -45,7 +45,7 @@ func Example() {
 	if client.Store.ID == nil {
 		// No ID stored, new login
 		qrChan, _ := client.GetQRChannel(context.Background())
-		err = client.Connect(context.Background())
+		err = client.Connect()
 		if err != nil {
 			panic(err)
 		}
@@ -61,7 +61,7 @@ func Example() {
 		}
 	} else {
 		// Already logged in, just connect
-		err = client.Connect(context.Background())
+		err = client.Connect()
 		if err != nil {
 			panic(err)
 		}
