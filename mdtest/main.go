@@ -31,7 +31,9 @@ import (
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waCommon"
+	"go.mau.fi/whatsmeow/proto/waCompanionReg"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
@@ -58,7 +60,7 @@ func main() {
 	}
 	if *requestFullSync {
 		store.DeviceProps.RequireFullSync = proto.Bool(true)
-		store.DeviceProps.HistorySyncConfig = &waProto.DeviceProps_HistorySyncConfig{
+		store.DeviceProps.HistorySyncConfig = &waCompanionReg.DeviceProps_HistorySyncConfig{
 			FullSyncDaysLimit:   proto.Uint32(3650),
 			FullSyncSizeMbLimit: proto.Uint32(102400),
 			StorageQuotaMb:      proto.Uint32(102400),
@@ -265,7 +267,7 @@ func handleCmd(cmd string, args []string) {
 		}
 		resp, err := cli.IsOnWhatsApp(args)
 		if err != nil {
-			log.Errorf("Failed to check if users are on WhatsApp:", err)
+			log.Errorf("Failed to check if users are on WhatsApp: %s", err.Error())
 		} else {
 			for _, item := range resp {
 				if item.VerifiedName != nil {
@@ -346,6 +348,7 @@ func handleCmd(cmd string, args []string) {
 		}
 	case "mediaconn":
 		conn, err := cli.DangerousInternals().RefreshMediaConn(false)
+
 		if err != nil {
 			log.Errorf("Failed to get media connection: %v", err)
 		} else {
@@ -629,8 +632,8 @@ func handleCmd(cmd string, args []string) {
 		for _, item := range resp {
 			if action == whatsmeow.ParticipantChangeAdd && item.Error == 403 && item.AddRequest != nil {
 				log.Infof("Participant is private: %d %s %s %v", item.Error, item.JID, item.AddRequest.Code, item.AddRequest.Expiration)
-				cli.SendMessage(context.TODO(), item.JID, &waProto.Message{
-					GroupInviteMessage: &waProto.GroupInviteMessage{
+				resp, err := cli.SendMessage(context.TODO(), item.JID, &waE2E.Message{
+					GroupInviteMessage: &waE2E.GroupInviteMessage{
 						InviteCode:       proto.String(item.AddRequest.Code),
 						InviteExpiration: proto.Int64(item.AddRequest.Expiration.Unix()),
 						GroupJID:         proto.String(jid.String()),
@@ -638,12 +641,17 @@ func handleCmd(cmd string, args []string) {
 						Caption:          proto.String("This is a test group"),
 					},
 				})
+				if err != nil {
+					log.Errorf("Error sending group invite: %v", err)
+				} else {
+					log.Infof("Group Invite sent (server timestamp: %s)", resp.Timestamp)
+				}
 			} else if item.Error == 409 {
-				log.Infof("Participant already in group: %d %s %+v", item.Error, item.JID)
+				log.Infof("Participant already in group: %d %s", item.Error, item.JID)
 			} else if item.Error == 0 {
-				log.Infof("Added participant: %d %s %+v", item.Error, item.JID)
+				log.Infof("Added participant: %d %s", item.Error, item.JID)
 			} else {
-				log.Infof("Unknown status: %d %s %+v", item.Error, item.JID)
+				log.Infof("Unknown status: %d %s", item.Error, item.JID)
 			}
 		}
 	case "getrequestparticipant":
@@ -707,7 +715,7 @@ func handleCmd(cmd string, args []string) {
 		if !ok {
 			return
 		}
-		msg := &waProto.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
+		msg := &waE2E.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
 		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
@@ -760,9 +768,9 @@ func handleCmd(cmd string, args []string) {
 		if reaction == "remove" {
 			reaction = ""
 		}
-		msg := &waProto.Message{
-			ReactionMessage: &waProto.ReactionMessage{
-				Key: &waProto.MessageKey{
+		msg := &waE2E.Message{
+			ReactionMessage: &waE2E.ReactionMessage{
+				Key: &waCommon.MessageKey{
 					RemoteJID: proto.String(recipient.String()),
 					FromMe:    proto.Bool(fromMe),
 					ID:        proto.String(messageID),
@@ -817,7 +825,7 @@ func handleCmd(cmd string, args []string) {
 			log.Errorf("Failed to upload file: %v", err)
 			return
 		}
-		msg := &waProto.Message{ImageMessage: &waProto.ImageMessage{
+		msg := &waE2E.Message{ImageMessage: &waE2E.ImageMessage{
 			Caption:       proto.String(strings.Join(args[2:], " ")),
 			URL:           proto.String(uploaded.URL),
 			DirectPath:    proto.String(uploaded.DirectPath),
