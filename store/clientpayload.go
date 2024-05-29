@@ -74,7 +74,7 @@ func (vc WAVersionContainer) ProtoAppVersion() *waProto.ClientPayload_UserAgent_
 }
 
 // waVersion is the WhatsApp web client version
-var waVersion = WAVersionContainer{2, 2412, 50}
+var waVersion = WAVersionContainer{2, 3000, 1013684012}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
 var waVersionHash [16]byte
@@ -153,7 +153,7 @@ func (device *Device) getRegistrationPayload() *waProto.ClientPayload {
 		ERegid:      regID,
 		EKeytype:    []byte{ecc.DjbType},
 		EIdent:      device.IdentityKey.Pub[:],
-		ESkeyId:     preKeyID[1:],
+		ESkeyID:     preKeyID[1:],
 		ESkeyVal:    device.SignedPreKey.Pub[:],
 		ESkeySig:    device.SignedPreKey.Signature[:],
 		BuildHash:   waVersionHash[:],

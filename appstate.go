@@ -318,14 +318,14 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 	keyIDs := make([]*waProto.AppStateSyncKeyId, len(rawKeyIDs))
 	debugKeyIDs := make([]string, len(rawKeyIDs))
 	for i, keyID := range rawKeyIDs {
-		keyIDs[i] = &waProto.AppStateSyncKeyId{KeyId: keyID}
+		keyIDs[i] = &waProto.AppStateSyncKeyId{KeyID: keyID}
 		debugKeyIDs[i] = hex.EncodeToString(keyID)
 	}
 	msg := &waProto.Message{
 		ProtocolMessage: &waProto.ProtocolMessage{
 			Type: waProto.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST.Enum(),
 			AppStateSyncKeyRequest: &waProto.AppStateSyncKeyRequest{
-				KeyIds: keyIDs,
+				KeyIDs: keyIDs,
 			},
 		},
 	}

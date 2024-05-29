@@ -28,7 +28,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 			cli.Disconnect()
 			err := cli.Connect()
 			if err != nil {
-				cli.Log.Errorf("Failed to reconnect after 515 code:", err)
+				cli.Log.Errorf("Failed to reconnect after 515 code: %v", err)
 			}
 		}()
 	case code == "401" && conflictType == "device_removed":

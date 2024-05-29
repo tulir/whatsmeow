@@ -1,0 +1,233 @@
+syntax = "proto2";
+package WAConsumerApplication;
+option go_package = "go.mau.fi/whatsmeow/proto/waConsumerApplication";
+
+import "waCommon/WACommon.proto";
+
+message ConsumerApplication {
+	message Payload {
+		oneof payload {
+			Content content = 1;
+			ApplicationData applicationData = 2;
+			Signal signal = 3;
+			SubProtocolPayload subProtocol = 4;
+		}
+	}
+
+	message SubProtocolPayload {
+		optional WACommon.FutureProofBehavior futureProof = 1;
+	}
+
+	message Metadata {
+		enum SpecialTextSize {
+			SMALL = 1;
+			MEDIUM = 2;
+			LARGE = 3;
+		}
+
+		optional SpecialTextSize specialTextSize = 1;
+	}
+
+	message Signal {
+	}
+
+	message ApplicationData {
+		oneof applicationContent {
+			RevokeMessage revoke = 1;
+		}
+	}
+
+	message Content {
+		oneof content {
+			WACommon.MessageText messageText = 1;
+			ImageMessage imageMessage = 2;
+			ContactMessage contactMessage = 3;
+			LocationMessage locationMessage = 4;
+			ExtendedTextMessage extendedTextMessage = 5;
+			StatusTextMesage statusTextMessage = 6;
+			DocumentMessage documentMessage = 7;
+			AudioMessage audioMessage = 8;
+			VideoMessage videoMessage = 9;
+			ContactsArrayMessage contactsArrayMessage = 10;
+			LiveLocationMessage liveLocationMessage = 11;
+			StickerMessage stickerMessage = 12;
+			GroupInviteMessage groupInviteMessage = 13;
+			ViewOnceMessage viewOnceMessage = 14;
+			ReactionMessage reactionMessage = 16;
+			PollCreationMessage pollCreationMessage = 17;
+			PollUpdateMessage pollUpdateMessage = 18;
+			EditMessage editMessage = 19;
+		}
+	}
+
+	message EditMessage {
+		optional WACommon.MessageKey key = 1;
+		optional WACommon.MessageText message = 2;
+		optional int64 timestampMS = 3;
+	}
+
+	message PollAddOptionMessage {
+		repeated Option pollOption = 1;
+	}
+
+	message PollVoteMessage {
+		repeated bytes selectedOptions = 1;
+		optional int64 senderTimestampMS = 2;
+	}
+
+	message PollEncValue {
+		optional bytes encPayload = 1;
+		optional bytes encIV = 2;
+	}
+
+	message PollUpdateMessage {
+		optional WACommon.MessageKey pollCreationMessageKey = 1;
+		optional PollEncValue vote = 2;
+		optional PollEncValue addOption = 3;
+	}
+
+	message PollCreationMessage {
+		optional bytes encKey = 1;
+		optional string name = 2;
+		repeated Option options = 3;
+		optional uint32 selectableOptionsCount = 4;
+	}
+
+	message Option {
+		optional string optionName = 1;
+	}
+
+	message ReactionMessage {
+		optional WACommon.MessageKey key = 1;
+		optional string text = 2;
+		optional string groupingKey = 3;
+		optional int64 senderTimestampMS = 4;
+		optional string reactionMetadataDataclassData = 5;
+		optional int32 style = 6;
+	}
+
+	message RevokeMessage {
+		optional WACommon.MessageKey key = 1;
+	}
+
+	message ViewOnceMessage {
+		oneof viewOnceContent {
+			ImageMessage imageMessage = 1;
+			VideoMessage videoMessage = 2;
+		}
+	}
+
+	message GroupInviteMessage {
+		optional string groupJID = 1;
+		optional string inviteCode = 2;
+		optional int64 inviteExpiration = 3;
+		optional string groupName = 4;
+		optional bytes JPEGThumbnail = 5;
+		optional WACommon.MessageText caption = 6;
+	}
+
+	message LiveLocationMessage {
+		optional Location location = 1;
+		optional uint32 accuracyInMeters = 2;
+		optional float speedInMps = 3;
+		optional uint32 degreesClockwiseFromMagneticNorth = 4;
+		optional WACommon.MessageText caption = 5;
+		optional int64 sequenceNumber = 6;
+		optional uint32 timeOffset = 7;
+	}
+
+	message ContactsArrayMessage {
+		optional string displayName = 1;
+		repeated ContactMessage contacts = 2;
+	}
+
+	message ContactMessage {
+		optional WACommon.SubProtocol contact = 1;
+	}
+
+	message StatusTextMesage {
+		enum FontType {
+			SANS_SERIF = 0;
+			SERIF = 1;
+			NORICAN_REGULAR = 2;
+			BRYNDAN_WRITE = 3;
+			BEBASNEUE_REGULAR = 4;
+			OSWALD_HEAVY = 5;
+		}
+
+		optional ExtendedTextMessage text = 1;
+		optional fixed32 textArgb = 6;
+		optional fixed32 backgroundArgb = 7;
+		optional FontType font = 8;
+	}
+
+	message ExtendedTextMessage {
+		enum PreviewType {
+			NONE = 0;
+			VIDEO = 1;
+		}
+
+		optional WACommon.MessageText text = 1;
+		optional string matchedText = 2;
+		optional string canonicalURL = 3;
+		optional string description = 4;
+		optional string title = 5;
+		optional WACommon.SubProtocol thumbnail = 6;
+		optional PreviewType previewType = 7;
+	}
+
+	message LocationMessage {
+		optional Location location = 1;
+		optional string address = 2;
+	}
+
+	message StickerMessage {
+		optional WACommon.SubProtocol sticker = 1;
+	}
+
+	message DocumentMessage {
+		optional WACommon.SubProtocol document = 1;
+		optional string fileName = 2;
+	}
+
+	message VideoMessage {
+		optional WACommon.SubProtocol video = 1;
+		optional WACommon.MessageText caption = 2;
+	}
+
+	message AudioMessage {
+		optional WACommon.SubProtocol audio = 1;
+		optional bool PTT = 2;
+	}
+
+	message ImageMessage {
+		optional WACommon.SubProtocol image = 1;
+		optional WACommon.MessageText caption = 2;
+	}
+
+	message InteractiveAnnotation {
+		oneof action {
+			Location location = 2;
+		}
+
+		repeated Point polygonVertices = 1;
+	}
+
+	message Point {
+		optional double x = 1;
+		optional double y = 2;
+	}
+
+	message Location {
+		optional double degreesLatitude = 1;
+		optional double degreesLongitude = 2;
+		optional string name = 3;
+	}
+
+	message MediaPayload {
+		optional WACommon.SubProtocol protocol = 1;
+	}
+
+	optional Payload payload = 1;
+	optional Metadata metadata = 2;
+}

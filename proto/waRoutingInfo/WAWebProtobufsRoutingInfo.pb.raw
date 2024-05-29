@@ -1,0 +1,9 @@
+
+-waRoutingInfo/WAWebProtobufsRoutingInfo.protoWAWebProtobufsRoutingInfo"±
+RoutingInfo
+regionID (RregionID
+	clusterID (R	clusterID
+taskID (RtaskID
+debug (Rdebug
+tcpBbr (RtcpBbr"
+tcpKeepalive (RtcpKeepaliveB)Z'go.mau.fi/whatsmeow/proto/waRoutingInfo

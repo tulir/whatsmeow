@@ -1,0 +1,35 @@
+syntax = "proto2";
+package WAMediaEntryData;
+option go_package = "go.mau.fi/whatsmeow/proto/waMediaEntryData";
+
+message MediaEntry {
+	message ProgressiveJpegDetails {
+		repeated uint32 scanLengths = 1;
+		optional bytes sidecar = 2;
+	}
+
+	message DownloadableThumbnail {
+		optional bytes fileSHA256 = 1;
+		optional bytes fileEncSHA256 = 2;
+		optional string directPath = 3;
+		optional bytes mediaKey = 4;
+		optional int64 mediaKeyTimestamp = 5;
+		optional string objectID = 6;
+	}
+
+	optional bytes fileSHA256 = 1;
+	optional bytes mediaKey = 2;
+	optional bytes fileEncSHA256 = 3;
+	optional string directPath = 4;
+	optional int64 mediaKeyTimestamp = 5;
+	optional string serverMediaType = 6;
+	optional bytes uploadToken = 7;
+	optional bytes validatedTimestamp = 8;
+	optional bytes sidecar = 9;
+	optional string objectID = 10;
+	optional string FBID = 11;
+	optional DownloadableThumbnail downloadableThumbnail = 12;
+	optional string handle = 13;
+	optional string filename = 14;
+	optional ProgressiveJpegDetails progressiveJPEGDetails = 15;
+}
