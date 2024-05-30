@@ -144,8 +144,8 @@ type UserStatusMute struct {
 
 // LabelEdit is emitted when a label is edited from any device.
 type LabelEdit struct {
-	PatchName    string
-	PatchVersion uint64
+	PatchName    string    // The name of patch where this event is stated
+	PatchVersion uint64    // The version of patch where this event is stated
 	Timestamp    time.Time // The time when the label was edited.
 	LabelID      string    // The label id which was edited.
 
@@ -155,8 +155,8 @@ type LabelEdit struct {
 
 // LabelAssociationChat is emitted when a chat is labeled or unlabeled from any device.
 type LabelAssociationChat struct {
-	PatchName    string
-	PatchVersion uint64
+	PatchName    string    // The name of patch where this event is stated
+	PatchVersion uint64    // The version of patch where this event is stated
 	JID          types.JID // The chat which was labeled or unlabeled.
 	Timestamp    time.Time // The time when the (un)labeling happened.
 	LabelID      string    // The label id which was added or removed.
