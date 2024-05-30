@@ -226,6 +226,8 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 	case appstate.IndexLabelEdit:
 		act := mutation.Action.GetLabelEditAction()
 		eventToDispatch = &events.LabelEdit{
+			PatchVersion: mutation.PatchVersion,
+			PatchName:    mutation.PatchName,
 			Timestamp:    ts,
 			LabelID:      mutation.Index[1],
 			Action:       act,
@@ -238,6 +240,8 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 		jid, _ = types.ParseJID(mutation.Index[2])
 		act := mutation.Action.GetLabelAssociationAction()
 		eventToDispatch = &events.LabelAssociationChat{
+			PatchVersion: mutation.PatchVersion,
+			PatchName:    mutation.PatchName,
 			JID:          jid,
 			Timestamp:    ts,
 			LabelID:      mutation.Index[1],
