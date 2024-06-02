@@ -110,7 +110,7 @@ global.self = global
 global.__d = defineModule
 global.window = {}
 
-const neededFiles = new Map()
+/*const neededFiles = new Map()
 require("child_process").spawnSync("grep", ["-Er", `^__d\\("([A-Za-z0-9]+\\.pb|WAProtoConst)",`, 'js'])
 	.stdout
 	.toString()
@@ -143,7 +143,8 @@ for (const [file, modules] of neededFilesList) {
 		console.log("Requiring", file, "for", modules)
 		require(`./${file}`)
 	}
-}
+}*/
+require("./protos.js")
 console.log("Requirements loaded, evaluating...")
 loadLazyModules()
 console.log("Everything required")

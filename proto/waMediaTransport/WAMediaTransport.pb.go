@@ -207,6 +207,62 @@ func (AudioTransport_Ancillary_AvatarAudio_AnimationsType) EnumDescriptor() ([]b
 	return file_waMediaTransport_WAMediaTransport_proto_rawDescGZIP(), []int{3, 0, 0, 0}
 }
 
+type AudioTransport_Integral_AudioFormat int32
+
+const (
+	AudioTransport_Integral_UNKNOWN AudioTransport_Integral_AudioFormat = 0
+	AudioTransport_Integral_OPUS    AudioTransport_Integral_AudioFormat = 1
+)
+
+// Enum value maps for AudioTransport_Integral_AudioFormat.
+var (
+	AudioTransport_Integral_AudioFormat_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "OPUS",
+	}
+	AudioTransport_Integral_AudioFormat_value = map[string]int32{
+		"UNKNOWN": 0,
+		"OPUS":    1,
+	}
+)
+
+func (x AudioTransport_Integral_AudioFormat) Enum() *AudioTransport_Integral_AudioFormat {
+	p := new(AudioTransport_Integral_AudioFormat)
+	*p = x
+	return p
+}
+
+func (x AudioTransport_Integral_AudioFormat) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AudioTransport_Integral_AudioFormat) Descriptor() protoreflect.EnumDescriptor {
+	return file_waMediaTransport_WAMediaTransport_proto_enumTypes[3].Descriptor()
+}
+
+func (AudioTransport_Integral_AudioFormat) Type() protoreflect.EnumType {
+	return &file_waMediaTransport_WAMediaTransport_proto_enumTypes[3]
+}
+
+func (x AudioTransport_Integral_AudioFormat) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *AudioTransport_Integral_AudioFormat) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = AudioTransport_Integral_AudioFormat(num)
+	return nil
+}
+
+// Deprecated: Use AudioTransport_Integral_AudioFormat.Descriptor instead.
+func (AudioTransport_Integral_AudioFormat) EnumDescriptor() ([]byte, []int) {
+	return file_waMediaTransport_WAMediaTransport_proto_rawDescGZIP(), []int{3, 1, 0}
+}
+
 type WAMediaTransport struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -818,12 +874,14 @@ type WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FileSHA256        []byte  `protobuf:"bytes,1,opt,name=fileSHA256" json:"fileSHA256,omitempty"`
-	FileEncSHA256     []byte  `protobuf:"bytes,2,opt,name=fileEncSHA256" json:"fileEncSHA256,omitempty"`
-	DirectPath        *string `protobuf:"bytes,3,opt,name=directPath" json:"directPath,omitempty"`
-	MediaKey          []byte  `protobuf:"bytes,4,opt,name=mediaKey" json:"mediaKey,omitempty"`
-	MediaKeyTimestamp *int64  `protobuf:"varint,5,opt,name=mediaKeyTimestamp" json:"mediaKeyTimestamp,omitempty"`
-	ObjectID          *string `protobuf:"bytes,6,opt,name=objectID" json:"objectID,omitempty"`
+	FileSHA256            []byte   `protobuf:"bytes,1,opt,name=fileSHA256" json:"fileSHA256,omitempty"`
+	FileEncSHA256         []byte   `protobuf:"bytes,2,opt,name=fileEncSHA256" json:"fileEncSHA256,omitempty"`
+	DirectPath            *string  `protobuf:"bytes,3,opt,name=directPath" json:"directPath,omitempty"`
+	MediaKey              []byte   `protobuf:"bytes,4,opt,name=mediaKey" json:"mediaKey,omitempty"`
+	MediaKeyTimestamp     *int64   `protobuf:"varint,5,opt,name=mediaKeyTimestamp" json:"mediaKeyTimestamp,omitempty"`
+	ObjectID              *string  `protobuf:"bytes,6,opt,name=objectID" json:"objectID,omitempty"`
+	ThumbnailScansSidecar []byte   `protobuf:"bytes,7,opt,name=thumbnailScansSidecar" json:"thumbnailScansSidecar,omitempty"`
+	ThumbnailScanLengths  []uint32 `protobuf:"varint,8,rep,name=thumbnailScanLengths" json:"thumbnailScanLengths,omitempty"`
 }
 
 func (x *WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail) Reset() {
@@ -898,6 +956,20 @@ func (x *WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail) GetObjectID
 		return *x.ObjectID
 	}
 	return ""
+}
+
+func (x *WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail) GetThumbnailScansSidecar() []byte {
+	if x != nil {
+		return x.ThumbnailScansSidecar
+	}
+	return nil
+}
+
+func (x *WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail) GetThumbnailScanLengths() []uint32 {
+	if x != nil {
+		return x.ThumbnailScanLengths
+	}
+	return nil
 }
 
 type ImageTransport_Ancillary struct {
@@ -1236,7 +1308,8 @@ type AudioTransport_Integral struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Transport *WAMediaTransport `protobuf:"bytes,1,opt,name=transport" json:"transport,omitempty"`
+	Transport   *WAMediaTransport                    `protobuf:"bytes,1,opt,name=transport" json:"transport,omitempty"`
+	AudioFormat *AudioTransport_Integral_AudioFormat `protobuf:"varint,2,opt,name=audioFormat,enum=WAMediaTransport.AudioTransport_Integral_AudioFormat" json:"audioFormat,omitempty"`
 }
 
 func (x *AudioTransport_Integral) Reset() {
@@ -1276,6 +1349,13 @@ func (x *AudioTransport_Integral) GetTransport() *WAMediaTransport {
 		return x.Transport
 	}
 	return nil
+}
+
+func (x *AudioTransport_Integral) GetAudioFormat() AudioTransport_Integral_AudioFormat {
+	if x != nil && x.AudioFormat != nil {
+		return *x.AudioFormat
+	}
+	return AudioTransport_Integral_UNKNOWN
 }
 
 type AudioTransport_Ancillary_AvatarAudio struct {
@@ -1833,73 +1913,75 @@ func file_waMediaTransport_WAMediaTransport_proto_rawDescGZIP() []byte {
 	return file_waMediaTransport_WAMediaTransport_proto_rawDescData
 }
 
-var file_waMediaTransport_WAMediaTransport_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_waMediaTransport_WAMediaTransport_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
 var file_waMediaTransport_WAMediaTransport_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_waMediaTransport_WAMediaTransport_proto_goTypes = []interface{}{
 	(ImageTransport_Ancillary_HdType)(0),                                      // 0: WAMediaTransport.ImageTransport.Ancillary.HdType
 	(VideoTransport_Ancillary_Attribution)(0),                                 // 1: WAMediaTransport.VideoTransport.Ancillary.Attribution
 	(AudioTransport_Ancillary_AvatarAudio_AnimationsType)(0),                  // 2: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.AnimationsType
-	(*WAMediaTransport)(nil),                                                  // 3: WAMediaTransport.WAMediaTransport
-	(*ImageTransport)(nil),                                                    // 4: WAMediaTransport.ImageTransport
-	(*VideoTransport)(nil),                                                    // 5: WAMediaTransport.VideoTransport
-	(*AudioTransport)(nil),                                                    // 6: WAMediaTransport.AudioTransport
-	(*DocumentTransport)(nil),                                                 // 7: WAMediaTransport.DocumentTransport
-	(*StickerTransport)(nil),                                                  // 8: WAMediaTransport.StickerTransport
-	(*ContactTransport)(nil),                                                  // 9: WAMediaTransport.ContactTransport
-	(*WAMediaTransport_Ancillary)(nil),                                        // 10: WAMediaTransport.WAMediaTransport.Ancillary
-	(*WAMediaTransport_Integral)(nil),                                         // 11: WAMediaTransport.WAMediaTransport.Integral
-	(*WAMediaTransport_Ancillary_Thumbnail)(nil),                              // 12: WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail
-	(*WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail)(nil),        // 13: WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail.DownloadableThumbnail
-	(*ImageTransport_Ancillary)(nil),                                          // 14: WAMediaTransport.ImageTransport.Ancillary
-	(*ImageTransport_Integral)(nil),                                           // 15: WAMediaTransport.ImageTransport.Integral
-	(*VideoTransport_Ancillary)(nil),                                          // 16: WAMediaTransport.VideoTransport.Ancillary
-	(*VideoTransport_Integral)(nil),                                           // 17: WAMediaTransport.VideoTransport.Integral
-	(*AudioTransport_Ancillary)(nil),                                          // 18: WAMediaTransport.AudioTransport.Ancillary
-	(*AudioTransport_Integral)(nil),                                           // 19: WAMediaTransport.AudioTransport.Integral
-	(*AudioTransport_Ancillary_AvatarAudio)(nil),                              // 20: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio
-	(*AudioTransport_Ancillary_AvatarAudio_DownloadableAvatarAnimations)(nil), // 21: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.DownloadableAvatarAnimations
-	(*DocumentTransport_Ancillary)(nil),                                       // 22: WAMediaTransport.DocumentTransport.Ancillary
-	(*DocumentTransport_Integral)(nil),                                        // 23: WAMediaTransport.DocumentTransport.Integral
-	(*StickerTransport_Ancillary)(nil),                                        // 24: WAMediaTransport.StickerTransport.Ancillary
-	(*StickerTransport_Integral)(nil),                                         // 25: WAMediaTransport.StickerTransport.Integral
-	(*ContactTransport_Ancillary)(nil),                                        // 26: WAMediaTransport.ContactTransport.Ancillary
-	(*ContactTransport_Integral)(nil),                                         // 27: WAMediaTransport.ContactTransport.Integral
-	(*waCommon.MessageText)(nil),                                              // 28: WACommon.MessageText
+	(AudioTransport_Integral_AudioFormat)(0),                                  // 3: WAMediaTransport.AudioTransport.Integral.AudioFormat
+	(*WAMediaTransport)(nil),                                                  // 4: WAMediaTransport.WAMediaTransport
+	(*ImageTransport)(nil),                                                    // 5: WAMediaTransport.ImageTransport
+	(*VideoTransport)(nil),                                                    // 6: WAMediaTransport.VideoTransport
+	(*AudioTransport)(nil),                                                    // 7: WAMediaTransport.AudioTransport
+	(*DocumentTransport)(nil),                                                 // 8: WAMediaTransport.DocumentTransport
+	(*StickerTransport)(nil),                                                  // 9: WAMediaTransport.StickerTransport
+	(*ContactTransport)(nil),                                                  // 10: WAMediaTransport.ContactTransport
+	(*WAMediaTransport_Ancillary)(nil),                                        // 11: WAMediaTransport.WAMediaTransport.Ancillary
+	(*WAMediaTransport_Integral)(nil),                                         // 12: WAMediaTransport.WAMediaTransport.Integral
+	(*WAMediaTransport_Ancillary_Thumbnail)(nil),                              // 13: WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail
+	(*WAMediaTransport_Ancillary_Thumbnail_DownloadableThumbnail)(nil),        // 14: WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail.DownloadableThumbnail
+	(*ImageTransport_Ancillary)(nil),                                          // 15: WAMediaTransport.ImageTransport.Ancillary
+	(*ImageTransport_Integral)(nil),                                           // 16: WAMediaTransport.ImageTransport.Integral
+	(*VideoTransport_Ancillary)(nil),                                          // 17: WAMediaTransport.VideoTransport.Ancillary
+	(*VideoTransport_Integral)(nil),                                           // 18: WAMediaTransport.VideoTransport.Integral
+	(*AudioTransport_Ancillary)(nil),                                          // 19: WAMediaTransport.AudioTransport.Ancillary
+	(*AudioTransport_Integral)(nil),                                           // 20: WAMediaTransport.AudioTransport.Integral
+	(*AudioTransport_Ancillary_AvatarAudio)(nil),                              // 21: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio
+	(*AudioTransport_Ancillary_AvatarAudio_DownloadableAvatarAnimations)(nil), // 22: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.DownloadableAvatarAnimations
+	(*DocumentTransport_Ancillary)(nil),                                       // 23: WAMediaTransport.DocumentTransport.Ancillary
+	(*DocumentTransport_Integral)(nil),                                        // 24: WAMediaTransport.DocumentTransport.Integral
+	(*StickerTransport_Ancillary)(nil),                                        // 25: WAMediaTransport.StickerTransport.Ancillary
+	(*StickerTransport_Integral)(nil),                                         // 26: WAMediaTransport.StickerTransport.Integral
+	(*ContactTransport_Ancillary)(nil),                                        // 27: WAMediaTransport.ContactTransport.Ancillary
+	(*ContactTransport_Integral)(nil),                                         // 28: WAMediaTransport.ContactTransport.Integral
+	(*waCommon.MessageText)(nil),                                              // 29: WACommon.MessageText
 }
 var file_waMediaTransport_WAMediaTransport_proto_depIdxs = []int32{
-	11, // 0: WAMediaTransport.WAMediaTransport.integral:type_name -> WAMediaTransport.WAMediaTransport.Integral
-	10, // 1: WAMediaTransport.WAMediaTransport.ancillary:type_name -> WAMediaTransport.WAMediaTransport.Ancillary
-	15, // 2: WAMediaTransport.ImageTransport.integral:type_name -> WAMediaTransport.ImageTransport.Integral
-	14, // 3: WAMediaTransport.ImageTransport.ancillary:type_name -> WAMediaTransport.ImageTransport.Ancillary
-	17, // 4: WAMediaTransport.VideoTransport.integral:type_name -> WAMediaTransport.VideoTransport.Integral
-	16, // 5: WAMediaTransport.VideoTransport.ancillary:type_name -> WAMediaTransport.VideoTransport.Ancillary
-	19, // 6: WAMediaTransport.AudioTransport.integral:type_name -> WAMediaTransport.AudioTransport.Integral
-	18, // 7: WAMediaTransport.AudioTransport.ancillary:type_name -> WAMediaTransport.AudioTransport.Ancillary
-	23, // 8: WAMediaTransport.DocumentTransport.integral:type_name -> WAMediaTransport.DocumentTransport.Integral
-	22, // 9: WAMediaTransport.DocumentTransport.ancillary:type_name -> WAMediaTransport.DocumentTransport.Ancillary
-	25, // 10: WAMediaTransport.StickerTransport.integral:type_name -> WAMediaTransport.StickerTransport.Integral
-	24, // 11: WAMediaTransport.StickerTransport.ancillary:type_name -> WAMediaTransport.StickerTransport.Ancillary
-	27, // 12: WAMediaTransport.ContactTransport.integral:type_name -> WAMediaTransport.ContactTransport.Integral
-	26, // 13: WAMediaTransport.ContactTransport.ancillary:type_name -> WAMediaTransport.ContactTransport.Ancillary
-	12, // 14: WAMediaTransport.WAMediaTransport.Ancillary.thumbnail:type_name -> WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail
-	13, // 15: WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail.downloadableThumbnail:type_name -> WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail.DownloadableThumbnail
+	12, // 0: WAMediaTransport.WAMediaTransport.integral:type_name -> WAMediaTransport.WAMediaTransport.Integral
+	11, // 1: WAMediaTransport.WAMediaTransport.ancillary:type_name -> WAMediaTransport.WAMediaTransport.Ancillary
+	16, // 2: WAMediaTransport.ImageTransport.integral:type_name -> WAMediaTransport.ImageTransport.Integral
+	15, // 3: WAMediaTransport.ImageTransport.ancillary:type_name -> WAMediaTransport.ImageTransport.Ancillary
+	18, // 4: WAMediaTransport.VideoTransport.integral:type_name -> WAMediaTransport.VideoTransport.Integral
+	17, // 5: WAMediaTransport.VideoTransport.ancillary:type_name -> WAMediaTransport.VideoTransport.Ancillary
+	20, // 6: WAMediaTransport.AudioTransport.integral:type_name -> WAMediaTransport.AudioTransport.Integral
+	19, // 7: WAMediaTransport.AudioTransport.ancillary:type_name -> WAMediaTransport.AudioTransport.Ancillary
+	24, // 8: WAMediaTransport.DocumentTransport.integral:type_name -> WAMediaTransport.DocumentTransport.Integral
+	23, // 9: WAMediaTransport.DocumentTransport.ancillary:type_name -> WAMediaTransport.DocumentTransport.Ancillary
+	26, // 10: WAMediaTransport.StickerTransport.integral:type_name -> WAMediaTransport.StickerTransport.Integral
+	25, // 11: WAMediaTransport.StickerTransport.ancillary:type_name -> WAMediaTransport.StickerTransport.Ancillary
+	28, // 12: WAMediaTransport.ContactTransport.integral:type_name -> WAMediaTransport.ContactTransport.Integral
+	27, // 13: WAMediaTransport.ContactTransport.ancillary:type_name -> WAMediaTransport.ContactTransport.Ancillary
+	13, // 14: WAMediaTransport.WAMediaTransport.Ancillary.thumbnail:type_name -> WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail
+	14, // 15: WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail.downloadableThumbnail:type_name -> WAMediaTransport.WAMediaTransport.Ancillary.Thumbnail.DownloadableThumbnail
 	0,  // 16: WAMediaTransport.ImageTransport.Ancillary.hdType:type_name -> WAMediaTransport.ImageTransport.Ancillary.HdType
-	3,  // 17: WAMediaTransport.ImageTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
-	28, // 18: WAMediaTransport.VideoTransport.Ancillary.caption:type_name -> WACommon.MessageText
+	4,  // 17: WAMediaTransport.ImageTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
+	29, // 18: WAMediaTransport.VideoTransport.Ancillary.caption:type_name -> WACommon.MessageText
 	1,  // 19: WAMediaTransport.VideoTransport.Ancillary.gifAttribution:type_name -> WAMediaTransport.VideoTransport.Ancillary.Attribution
-	3,  // 20: WAMediaTransport.VideoTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
-	20, // 21: WAMediaTransport.AudioTransport.Ancillary.avatarAudio:type_name -> WAMediaTransport.AudioTransport.Ancillary.AvatarAudio
-	3,  // 22: WAMediaTransport.AudioTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
-	21, // 23: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.avatarAnimations:type_name -> WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.DownloadableAvatarAnimations
-	2,  // 24: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.DownloadableAvatarAnimations.animationsType:type_name -> WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.AnimationsType
-	3,  // 25: WAMediaTransport.DocumentTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
-	3,  // 26: WAMediaTransport.StickerTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
-	3,  // 27: WAMediaTransport.ContactTransport.Integral.downloadableVcard:type_name -> WAMediaTransport.WAMediaTransport
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	4,  // 20: WAMediaTransport.VideoTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
+	21, // 21: WAMediaTransport.AudioTransport.Ancillary.avatarAudio:type_name -> WAMediaTransport.AudioTransport.Ancillary.AvatarAudio
+	4,  // 22: WAMediaTransport.AudioTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
+	3,  // 23: WAMediaTransport.AudioTransport.Integral.audioFormat:type_name -> WAMediaTransport.AudioTransport.Integral.AudioFormat
+	22, // 24: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.avatarAnimations:type_name -> WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.DownloadableAvatarAnimations
+	2,  // 25: WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.DownloadableAvatarAnimations.animationsType:type_name -> WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.AnimationsType
+	4,  // 26: WAMediaTransport.DocumentTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
+	4,  // 27: WAMediaTransport.StickerTransport.Integral.transport:type_name -> WAMediaTransport.WAMediaTransport
+	4,  // 28: WAMediaTransport.ContactTransport.Integral.downloadableVcard:type_name -> WAMediaTransport.WAMediaTransport
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_waMediaTransport_WAMediaTransport_proto_init() }
@@ -2218,7 +2300,7 @@ func file_waMediaTransport_WAMediaTransport_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_waMediaTransport_WAMediaTransport_proto_rawDesc,
-			NumEnums:      3,
+			NumEnums:      4,
 			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   0,
