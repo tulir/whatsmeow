@@ -77,6 +77,9 @@ type Client struct {
 	// can be set to true if want to skip MAC validation
 	DisableMACsValidationOnFetchAppState bool
 
+	// set up the maximum patch count when performing FetchAppState
+	MaximumPatchCountOnFetch map[appstate.WAPatchName]uint64
+
 	AutomaticMessageRerequestFromPhone bool
 	pendingPhoneRerequests             map[types.MessageID]context.CancelFunc
 	pendingPhoneRerequestsLock         sync.RWMutex
@@ -735,4 +738,16 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 	}
 	evt.UnwrapRaw()
 	return evt, nil
+}
+
+// ClearMaximumPatchCountOnFetch for remove all MaximumPatchCountOnFetch on current client
+func (cli *Client) ClearMaximumPatchCountOnFetch() {
+	cli.MaximumPatchCountOnFetch = make(map[appstate.WAPatchName]uint64)
+}
+
+// RemoveMaximumPatchCountOnFetch for remove specific MaximumPatchCountOnFetch by Appstate Patch Name
+func (cli *Client) RemoveMaximumPatchCountOnFetch(willRemoveAppstateName ...appstate.WAPatchName) {
+	for _, appstateName := range willRemoveAppstateName {
+		delete(cli.MaximumPatchCountOnFetch, appstateName)
+	}
 }
