@@ -13,10 +13,10 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/binary/armadillo"
-	"go.mau.fi/whatsmeow/binary/armadillo/waMsgApplication"
-	"go.mau.fi/whatsmeow/binary/armadillo/waMsgTransport"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	armadillo "go.mau.fi/whatsmeow/proto"
+	"go.mau.fi/whatsmeow/proto/waMsgApplication"
+	"go.mau.fi/whatsmeow/proto/waMsgTransport"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -304,7 +304,7 @@ func (evt *Message) UnwrapRaw() *Message {
 	evt.Message = evt.RawMessage
 	if evt.Message.GetDeviceSentMessage().GetMessage() != nil {
 		evt.Info.DeviceSentMeta = &types.DeviceSentMeta{
-			DestinationJID: evt.Message.GetDeviceSentMessage().GetDestinationJid(),
+			DestinationJID: evt.Message.GetDeviceSentMessage().GetDestinationJID(),
 			Phash:          evt.Message.GetDeviceSentMessage().GetPhash(),
 		}
 		evt.Message = evt.Message.GetDeviceSentMessage().GetMessage()

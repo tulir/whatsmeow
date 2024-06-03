@@ -1,0 +1,10 @@
+
+%waArmadilloICDC/WAArmadilloICDC.protoWAArmadilloICDC"Œ
+ICDCIdentityList
+seq (Rseq
+	timestamp (R	timestamp
+devices (Rdevices.
+signingDeviceIndex (RsigningDeviceIndex"P
+SignedICDCIdentityList
+details (Rdetails
+	signature (R	signatureB+Z)go.mau.fi/whatsmeow/proto/waArmadilloICDC

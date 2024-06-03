@@ -1,0 +1,40 @@
+syntax = "proto2";
+package WAWebProtobufsQuickPromotionSurfaces;
+option go_package = "go.mau.fi/whatsmeow/proto/waQuickPromotionSurfaces";
+
+message QP {
+	enum FilterResult {
+		TRUE = 1;
+		FALSE = 2;
+		UNKNOWN = 3;
+	}
+
+	enum FilterClientNotSupportedConfig {
+		PASS_BY_DEFAULT = 1;
+		FAIL_BY_DEFAULT = 2;
+	}
+
+	enum ClauseType {
+		AND = 1;
+		OR = 2;
+		NOR = 3;
+	}
+
+	message FilterClause {
+		required ClauseType clauseType = 1;
+		repeated FilterClause clauses = 2;
+		repeated Filter filters = 3;
+	}
+
+	message Filter {
+		required string filterName = 1;
+		repeated FilterParameters parameters = 2;
+		optional FilterResult filterResult = 3;
+		required FilterClientNotSupportedConfig clientNotSupportedConfig = 4;
+	}
+
+	message FilterParameters {
+		optional string key = 1;
+		optional string value = 2;
+	}
+}

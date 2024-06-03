@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
@@ -19,8 +18,6 @@ import (
 
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
-
-type Proxy = func(*http.Request) (*url.URL, error)
 
 type FrameSocket struct {
 	conn   *websocket.Conn
@@ -37,7 +34,7 @@ type FrameSocket struct {
 	WriteTimeout time.Duration
 
 	Header []byte
-	Proxy  Proxy
+	Dialer websocket.Dialer
 
 	incomingLength int
 	receivedLength int
@@ -45,7 +42,7 @@ type FrameSocket struct {
 	partialHeader  []byte
 }
 
-func NewFrameSocket(log waLog.Logger, proxy Proxy) *FrameSocket {
+func NewFrameSocket(log waLog.Logger, dialer websocket.Dialer) *FrameSocket {
 	return &FrameSocket{
 		conn:   nil,
 		log:    log,
@@ -55,7 +52,7 @@ func NewFrameSocket(log waLog.Logger, proxy Proxy) *FrameSocket {
 		URL:         URL,
 		HTTPHeaders: http.Header{"Origin": {Origin}},
 
-		Proxy: proxy,
+		Dialer: dialer,
 	}
 }
 
@@ -104,12 +101,9 @@ func (fs *FrameSocket) Connect() error {
 		return ErrSocketAlreadyOpen
 	}
 	ctx, cancel := context.WithCancel(context.Background())
-	dialer := websocket.Dialer{
-		Proxy: fs.Proxy,
-	}
 
 	fs.log.Debugf("Dialing %s", fs.URL)
-	conn, _, err := dialer.Dial(fs.URL, fs.HTTPHeaders)
+	conn, _, err := fs.Dialer.Dial(fs.URL, fs.HTTPHeaders)
 	if err != nil {
 		cancel()
 		return fmt.Errorf("couldn't dial whatsapp web websocket: %w", err)

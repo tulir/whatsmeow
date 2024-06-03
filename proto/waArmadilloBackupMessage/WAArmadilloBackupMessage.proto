@@ -1,0 +1,22 @@
+syntax = "proto2";
+package WAArmadilloBackupMessage;
+option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloBackupMessage";
+
+message BackupMessage {
+	message Metadata {
+		message FrankingMetadata {
+			optional bytes frankingTag = 3;
+			optional bytes reportingTag = 4;
+		}
+
+		optional string senderID = 1;
+		optional string messageID = 2;
+		optional int64 timestampMS = 3;
+		optional FrankingMetadata frankingMetadata = 4;
+		optional int32 payloadVersion = 5;
+		optional int32 futureProofBehavior = 6;
+	}
+
+	optional Metadata metadata = 1;
+	optional bytes payload = 2;
+}
