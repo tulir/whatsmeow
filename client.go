@@ -79,8 +79,8 @@ type Client struct {
 	// can be set to true if want to skip MAC validation
 	DisableMACsValidationOnFetchAppState bool
 
-	// set up the maximum patch count when performing FetchAppState
-	MaximumPatchCountOnFetch map[appstate.WAPatchName]uint64
+	// set up the maximum patch version when performing FetchAppState
+	LatestPatchVersionOnFetch map[appstate.WAPatchName]uint64
 
 	AutomaticMessageRerequestFromPhone bool
 	pendingPhoneRerequests             map[types.MessageID]context.CancelFunc
@@ -822,14 +822,18 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 	return evt, nil
 }
 
-// ClearMaximumPatchCountOnFetch for remove all MaximumPatchCountOnFetch on current client
-func (cli *Client) ClearMaximumPatchCountOnFetch() {
-	cli.MaximumPatchCountOnFetch = make(map[appstate.WAPatchName]uint64)
+// ClearLatestPatchVersionOnFetch for remove all LatestPatchVersionOnFetch on current client
+func (cli *Client) ClearLatestPatchVersionOnFetch() {
+	cli.LatestPatchVersionOnFetch = make(map[appstate.WAPatchName]uint64)
 }
 
-// RemoveMaximumPatchCountOnFetch for remove specific MaximumPatchCountOnFetch by Appstate Patch Name
-func (cli *Client) RemoveMaximumPatchCountOnFetch(willRemoveAppstateName ...appstate.WAPatchName) {
-	for _, appstateName := range willRemoveAppstateName {
-		delete(cli.MaximumPatchCountOnFetch, appstateName)
+// SetLatestPatchVersionOnFetch for set specific LatestPatchVersionOnFetch by Appstate Patch Name
+func (cli *Client) SetLatestPatchVersionOnFetch(name appstate.WAPatchName, count uint64) {
+	if cli.LatestPatchVersionOnFetch == nil {
+		cli.LatestPatchVersionOnFetch = make(map[appstate.WAPatchName]uint64)
+		cli.LatestPatchVersionOnFetch[name] = count
 	}
+
+	cli.LatestPatchVersionOnFetch[name] = count
+	return
 }

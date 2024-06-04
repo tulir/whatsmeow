@@ -46,7 +46,6 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 
 	hasMore := true
 	wantSnapshot := fullSync
-	patchCount := uint64(0)
 	for hasMore {
 		patches, err := cli.fetchAppStatePatches(name, state.Version, wantSnapshot)
 		wantSnapshot = false
@@ -55,10 +54,13 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 		}
 		hasMore = patches.HasMorePatches
 
-		patchCount += uint64(len(patches.Patches))
-		if maxCount, exist := cli.MaximumPatchCountOnFetch[name]; exist {
-			if patchCount >= maxCount {
-				hasMore = false
+		if latestAllowedVersion, exist := cli.LatestPatchVersionOnFetch[name]; exist {
+			for patchIdx, patch := range patches.Patches {
+				if patch.GetVersion().GetVersion() >= latestAllowedVersion {
+					patches.Patches = patches.Patches[:patchIdx]
+					hasMore = false
+					break
+				}
 			}
 		}
 
