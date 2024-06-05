@@ -165,6 +165,7 @@ const (
 	ExtendedContentMessage_PORTRAIT      ExtendedContentMessage_XmaLayoutType = 3
 	ExtendedContentMessage_STANDARD_DXMA ExtendedContentMessage_XmaLayoutType = 12
 	ExtendedContentMessage_LIST_DXMA     ExtendedContentMessage_XmaLayoutType = 15
+	ExtendedContentMessage_GRID          ExtendedContentMessage_XmaLayoutType = 16
 )
 
 // Enum value maps for ExtendedContentMessage_XmaLayoutType.
@@ -175,6 +176,7 @@ var (
 		3:  "PORTRAIT",
 		12: "STANDARD_DXMA",
 		15: "LIST_DXMA",
+		16: "GRID",
 	}
 	ExtendedContentMessage_XmaLayoutType_value = map[string]int32{
 		"SINGLE":        0,
@@ -182,6 +184,7 @@ var (
 		"PORTRAIT":      3,
 		"STANDARD_DXMA": 12,
 		"LIST_DXMA":     15,
+		"GRID":          16,
 	}
 )
 
@@ -271,6 +274,7 @@ const (
 	ExtendedContentMessage_MSG_AVATAR_DETAILS                      ExtendedContentMessage_ExtendedContentType = 2013
 	ExtendedContentMessage_MSG_AI_CONTACT                          ExtendedContentMessage_ExtendedContentType = 2014
 	ExtendedContentMessage_MSG_MEMORIES_SHARE                      ExtendedContentMessage_ExtendedContentType = 2015
+	ExtendedContentMessage_MSG_SHARED_ALBUM_REPLY                  ExtendedContentMessage_ExtendedContentType = 2016
 	ExtendedContentMessage_RTC_AUDIO_CALL                          ExtendedContentMessage_ExtendedContentType = 3000
 	ExtendedContentMessage_RTC_VIDEO_CALL                          ExtendedContentMessage_ExtendedContentType = 3001
 	ExtendedContentMessage_RTC_MISSED_AUDIO_CALL                   ExtendedContentMessage_ExtendedContentType = 3002
@@ -331,6 +335,7 @@ var (
 		2013: "MSG_AVATAR_DETAILS",
 		2014: "MSG_AI_CONTACT",
 		2015: "MSG_MEMORIES_SHARE",
+		2016: "MSG_SHARED_ALBUM_REPLY",
 		3000: "RTC_AUDIO_CALL",
 		3001: "RTC_VIDEO_CALL",
 		3002: "RTC_MISSED_AUDIO_CALL",
@@ -388,6 +393,7 @@ var (
 		"MSG_AVATAR_DETAILS":                      2013,
 		"MSG_AI_CONTACT":                          2014,
 		"MSG_MEMORIES_SHARE":                      2015,
+		"MSG_SHARED_ALBUM_REPLY":                  2016,
 		"RTC_AUDIO_CALL":                          3000,
 		"RTC_VIDEO_CALL":                          3001,
 		"RTC_MISSED_AUDIO_CALL":                   3002,

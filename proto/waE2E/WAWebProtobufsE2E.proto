@@ -99,6 +99,7 @@ message EventResponseMessage {
 		UNKNOWN = 0;
 		GOING = 1;
 		NOT_GOING = 2;
+		MAYBE = 3;
 	}
 
 	optional EventResponseType response = 1;
@@ -481,6 +482,7 @@ message HistorySyncNotification {
 		PUSH_NAME = 4;
 		NON_BLOCKING_DATA = 5;
 		ON_DEMAND = 6;
+		NO_HISTORY = 7;
 	}
 
 	optional bytes fileSHA256 = 1;
@@ -653,6 +655,7 @@ message ExtendedTextMessage {
 		VIDEO = 1;
 		PLACEHOLDER = 4;
 		IMAGE = 5;
+		PAYMENT_LINKS = 6;
 	}
 
 	enum FontType {
@@ -1366,6 +1369,11 @@ message InitialSecurityNotificationSettingSync {
 
 message PeerDataOperationRequestResponseMessage {
 	message PeerDataOperationResult {
+		message WaffleNonceFetchResponse {
+			optional string nonce = 1;
+			optional string waEntFbid = 2;
+		}
+
 		message PlaceholderMessageResendResponse {
 			optional bytes webMessageInfoBytes = 1;
 		}
@@ -1395,6 +1403,7 @@ message PeerDataOperationRequestResponseMessage {
 		optional StickerMessage stickerMessage = 2;
 		optional LinkPreviewResponse linkPreviewResponse = 3;
 		optional PlaceholderMessageResendResponse placeholderMessageResendResponse = 4;
+		optional WaffleNonceFetchResponse waffleNonceFetchRequestResponse = 5;
 	}
 
 	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -1559,6 +1568,19 @@ message BotSuggestedPromptMetadata {
 	optional uint32 selectedPromptIndex = 2;
 }
 
+message BotMediaMetadata {
+	optional bytes fileSHA256 = 1;
+	optional bytes mediaKey = 2;
+	optional bytes fileEncSHA256 = 3;
+	optional string directPath = 4;
+	optional int64 mediaKeyTimestamp = 5;
+	optional string mimetype = 6;
+}
+
+message BotMemuMetadata {
+	repeated BotMediaMetadata faceImages = 1;
+}
+
 message BotMetadata {
 	optional BotAvatarMetadata avatarMetadata = 1;
 	optional string personaID = 2;
@@ -1566,6 +1588,7 @@ message BotMetadata {
 	optional BotSuggestedPromptMetadata suggestedPromptMetadata = 4;
 	optional string invokerJID = 5;
 	optional BotSearchMetadata searchMetadata = 6;
+	optional BotMemuMetadata memuMetadata = 7;
 }
 
 message DeviceListMetadata {

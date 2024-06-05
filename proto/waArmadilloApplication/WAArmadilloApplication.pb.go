@@ -841,6 +841,7 @@ type Armadillo_Content struct {
 	//	*Armadillo_Content_PaymentsTransactionMessage_
 	//	*Armadillo_Content_BumpExistingMessage_
 	//	*Armadillo_Content_NoteReplyMessage_
+	//	*Armadillo_Content_RavenMessageMsgr
 	Content isArmadillo_Content_Content `protobuf_oneof:"content"`
 }
 
@@ -953,6 +954,13 @@ func (x *Armadillo_Content) GetNoteReplyMessage() *Armadillo_Content_NoteReplyMe
 	return nil
 }
 
+func (x *Armadillo_Content) GetRavenMessageMsgr() *Armadillo_Content_RavenMessage {
+	if x, ok := x.GetContent().(*Armadillo_Content_RavenMessageMsgr); ok {
+		return x.RavenMessageMsgr
+	}
+	return nil
+}
+
 type isArmadillo_Content_Content interface {
 	isArmadillo_Content_Content()
 }
@@ -997,6 +1005,10 @@ type Armadillo_Content_NoteReplyMessage_ struct {
 	NoteReplyMessage *Armadillo_Content_NoteReplyMessage `protobuf:"bytes,13,opt,name=noteReplyMessage,oneof"`
 }
 
+type Armadillo_Content_RavenMessageMsgr struct {
+	RavenMessageMsgr *Armadillo_Content_RavenMessage `protobuf:"bytes,14,opt,name=ravenMessageMsgr,oneof"`
+}
+
 func (*Armadillo_Content_CommonSticker_) isArmadillo_Content_Content() {}
 
 func (*Armadillo_Content_ScreenshotAction_) isArmadillo_Content_Content() {}
@@ -1016,6 +1028,8 @@ func (*Armadillo_Content_PaymentsTransactionMessage_) isArmadillo_Content_Conten
 func (*Armadillo_Content_BumpExistingMessage_) isArmadillo_Content_Content() {}
 
 func (*Armadillo_Content_NoteReplyMessage_) isArmadillo_Content_Content() {}
+
+func (*Armadillo_Content_RavenMessageMsgr) isArmadillo_Content_Content() {}
 
 type Armadillo_Signal_EncryptedBackupsSecrets struct {
 	state         protoimpl.MessageState
@@ -2575,42 +2589,43 @@ var file_waArmadilloApplication_WAArmadilloApplication_proto_depIdxs = []int32{
 	26, // 17: WAArmadilloApplication.Armadillo.Content.paymentsTransactionMessage:type_name -> WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage
 	28, // 18: WAArmadilloApplication.Armadillo.Content.bumpExistingMessage:type_name -> WAArmadilloApplication.Armadillo.Content.BumpExistingMessage
 	27, // 19: WAArmadilloApplication.Armadillo.Content.noteReplyMessage:type_name -> WAArmadilloApplication.Armadillo.Content.NoteReplyMessage
-	14, // 20: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.epoch:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch
-	0,  // 21: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch.status:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch.EpochStatus
-	19, // 22: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.chatAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction
-	18, // 23: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.messageAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction
-	16, // 24: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotification.actions:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction
-	22, // 25: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.messageDelete:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.ActionMessageDelete
-	37, // 26: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.key:type_name -> WACommon.MessageKey
-	25, // 27: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatArchive:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive
-	24, // 28: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatDelete:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete
-	23, // 29: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatRead:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead
-	37, // 30: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage.key:type_name -> WACommon.MessageKey
-	20, // 31: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange.messages:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage
-	21, // 32: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
-	21, // 33: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
-	21, // 34: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
-	1,  // 35: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.paymentStatus:type_name -> WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.PaymentStatus
-	36, // 36: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.extendedContentMessage:type_name -> WAArmadilloXMA.ExtendedContentMessage
-	38, // 37: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.textContent:type_name -> WACommon.MessageText
-	39, // 38: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.stickerContent:type_name -> WACommon.SubProtocol
-	39, // 39: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.videoContent:type_name -> WACommon.SubProtocol
-	38, // 40: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.noteText:type_name -> WACommon.MessageText
-	37, // 41: WAArmadilloApplication.Armadillo.Content.BumpExistingMessage.key:type_name -> WACommon.MessageKey
-	39, // 42: WAArmadilloApplication.Armadillo.Content.ImageGalleryMessage.images:type_name -> WACommon.SubProtocol
-	2,  // 43: WAArmadilloApplication.Armadillo.Content.ScreenshotAction.screenshotType:type_name -> WAArmadilloApplication.Armadillo.Content.ScreenshotAction.ScreenshotType
-	39, // 44: WAArmadilloApplication.Armadillo.Content.ExtendedContentMessageWithSear.searAssociatedMessage:type_name -> WACommon.SubProtocol
-	37, // 45: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.key:type_name -> WACommon.MessageKey
-	3,  // 46: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.actionType:type_name -> WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.ActionType
-	39, // 47: WAArmadilloApplication.Armadillo.Content.RavenMessage.imageMessage:type_name -> WACommon.SubProtocol
-	39, // 48: WAArmadilloApplication.Armadillo.Content.RavenMessage.videoMessage:type_name -> WACommon.SubProtocol
-	4,  // 49: WAArmadilloApplication.Armadillo.Content.RavenMessage.ephemeralType:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage.EphemeralType
-	5,  // 50: WAArmadilloApplication.Armadillo.Content.CommonSticker.stickerType:type_name -> WAArmadilloApplication.Armadillo.Content.CommonSticker.StickerType
-	51, // [51:51] is the sub-list for method output_type
-	51, // [51:51] is the sub-list for method input_type
-	51, // [51:51] is the sub-list for extension type_name
-	51, // [51:51] is the sub-list for extension extendee
-	0,  // [0:51] is the sub-list for field type_name
+	33, // 20: WAArmadilloApplication.Armadillo.Content.ravenMessageMsgr:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage
+	14, // 21: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.epoch:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch
+	0,  // 22: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch.status:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch.EpochStatus
+	19, // 23: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.chatAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction
+	18, // 24: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.messageAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction
+	16, // 25: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotification.actions:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction
+	22, // 26: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.messageDelete:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.ActionMessageDelete
+	37, // 27: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.key:type_name -> WACommon.MessageKey
+	25, // 28: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatArchive:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive
+	24, // 29: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatDelete:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete
+	23, // 30: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatRead:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead
+	37, // 31: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage.key:type_name -> WACommon.MessageKey
+	20, // 32: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange.messages:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage
+	21, // 33: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
+	21, // 34: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
+	21, // 35: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
+	1,  // 36: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.paymentStatus:type_name -> WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.PaymentStatus
+	36, // 37: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.extendedContentMessage:type_name -> WAArmadilloXMA.ExtendedContentMessage
+	38, // 38: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.textContent:type_name -> WACommon.MessageText
+	39, // 39: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.stickerContent:type_name -> WACommon.SubProtocol
+	39, // 40: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.videoContent:type_name -> WACommon.SubProtocol
+	38, // 41: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.noteText:type_name -> WACommon.MessageText
+	37, // 42: WAArmadilloApplication.Armadillo.Content.BumpExistingMessage.key:type_name -> WACommon.MessageKey
+	39, // 43: WAArmadilloApplication.Armadillo.Content.ImageGalleryMessage.images:type_name -> WACommon.SubProtocol
+	2,  // 44: WAArmadilloApplication.Armadillo.Content.ScreenshotAction.screenshotType:type_name -> WAArmadilloApplication.Armadillo.Content.ScreenshotAction.ScreenshotType
+	39, // 45: WAArmadilloApplication.Armadillo.Content.ExtendedContentMessageWithSear.searAssociatedMessage:type_name -> WACommon.SubProtocol
+	37, // 46: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.key:type_name -> WACommon.MessageKey
+	3,  // 47: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.actionType:type_name -> WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.ActionType
+	39, // 48: WAArmadilloApplication.Armadillo.Content.RavenMessage.imageMessage:type_name -> WACommon.SubProtocol
+	39, // 49: WAArmadilloApplication.Armadillo.Content.RavenMessage.videoMessage:type_name -> WACommon.SubProtocol
+	4,  // 50: WAArmadilloApplication.Armadillo.Content.RavenMessage.ephemeralType:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage.EphemeralType
+	5,  // 51: WAArmadilloApplication.Armadillo.Content.CommonSticker.stickerType:type_name -> WAArmadilloApplication.Armadillo.Content.CommonSticker.StickerType
+	52, // [52:52] is the sub-list for method output_type
+	52, // [52:52] is the sub-list for method input_type
+	52, // [52:52] is the sub-list for extension type_name
+	52, // [52:52] is the sub-list for extension extendee
+	0,  // [0:52] is the sub-list for field type_name
 }
 
 func init() { file_waArmadilloApplication_WAArmadilloApplication_proto_init() }
@@ -2992,6 +3007,7 @@ func file_waArmadilloApplication_WAArmadilloApplication_proto_init() {
 		(*Armadillo_Content_PaymentsTransactionMessage_)(nil),
 		(*Armadillo_Content_BumpExistingMessage_)(nil),
 		(*Armadillo_Content_NoteReplyMessage_)(nil),
+		(*Armadillo_Content_RavenMessageMsgr)(nil),
 	}
 	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[10].OneofWrappers = []interface{}{
 		(*Armadillo_ApplicationData_MetadataSyncAction_ChatAction)(nil),
