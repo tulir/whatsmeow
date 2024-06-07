@@ -54,6 +54,16 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 		}
 		hasMore = patches.HasMorePatches
 
+		if latestAllowedVersion, exist := cli.LatestPatchVersionOnFetch[name]; exist {
+			for patchIdx, patch := range patches.Patches {
+				if patch.GetVersion().GetVersion() >= latestAllowedVersion {
+					patches.Patches = patches.Patches[:patchIdx]
+					hasMore = false
+					break
+				}
+			}
+		}
+
 		mutations, newState, err := cli.appStateProc.DecodePatches(patches, state, !cli.DisableMACsValidationOnFetchAppState)
 		if err != nil {
 			if errors.Is(err, appstate.ErrKeyNotFound) {
@@ -226,6 +236,8 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 	case appstate.IndexLabelEdit:
 		act := mutation.Action.GetLabelEditAction()
 		eventToDispatch = &events.LabelEdit{
+			PatchVersion: mutation.PatchVersion,
+			PatchName:    mutation.PatchName,
 			Timestamp:    ts,
 			LabelID:      mutation.Index[1],
 			Action:       act,
@@ -238,6 +250,8 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 		jid, _ = types.ParseJID(mutation.Index[2])
 		act := mutation.Action.GetLabelAssociationAction()
 		eventToDispatch = &events.LabelAssociationChat{
+			PatchVersion: mutation.PatchVersion,
+			PatchName:    mutation.PatchName,
 			JID:          jid,
 			Timestamp:    ts,
 			LabelID:      mutation.Index[1],

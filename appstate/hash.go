@@ -19,11 +19,13 @@ import (
 )
 
 type Mutation struct {
-	Operation waProto.SyncdMutation_SyncdOperation
-	Action    *waProto.SyncActionValue
-	Index     []string
-	IndexMAC  []byte
-	ValueMAC  []byte
+	PatchName    string
+	PatchVersion uint64
+	Operation    waProto.SyncdMutation_SyncdOperation
+	Action       *waProto.SyncActionValue
+	Index        []string
+	IndexMAC     []byte
+	ValueMAC     []byte
 }
 
 type HashState struct {

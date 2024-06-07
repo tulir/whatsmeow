@@ -79,6 +79,9 @@ type Client struct {
 	// can be set to true if want to skip MAC validation
 	DisableMACsValidationOnFetchAppState bool
 
+	// set up the maximum patch version when performing FetchAppState
+	LatestPatchVersionOnFetch map[appstate.WAPatchName]uint64
+
 	AutomaticMessageRerequestFromPhone bool
 	pendingPhoneRerequests             map[types.MessageID]context.CancelFunc
 	pendingPhoneRerequestsLock         sync.RWMutex
@@ -817,4 +820,20 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 	}
 	evt.UnwrapRaw()
 	return evt, nil
+}
+
+// ClearLatestPatchVersionOnFetch for remove all LatestPatchVersionOnFetch on current client
+func (cli *Client) ClearLatestPatchVersionOnFetch() {
+	cli.LatestPatchVersionOnFetch = make(map[appstate.WAPatchName]uint64)
+}
+
+// SetLatestPatchVersionOnFetch for set specific LatestPatchVersionOnFetch by Appstate Patch Name
+func (cli *Client) SetLatestPatchVersionOnFetch(name appstate.WAPatchName, count uint64) {
+	if cli.LatestPatchVersionOnFetch == nil {
+		cli.LatestPatchVersionOnFetch = make(map[appstate.WAPatchName]uint64)
+		cli.LatestPatchVersionOnFetch[name] = count
+	}
+
+	cli.LatestPatchVersionOnFetch[name] = count
+	return
 }
