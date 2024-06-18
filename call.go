@@ -83,6 +83,11 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 			Reason:        cag.String("reason"),
 			Data:          &child,
 		})
+	case "reject":
+		cli.dispatchEvent(&events.CallReject{
+			BasicCallMeta: basicMeta,
+			Data:          &child,
+		})
 	default:
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
 	}
