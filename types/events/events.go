@@ -269,9 +269,11 @@ type Message struct {
 	Message *waProto.Message  // The actual message struct
 
 	IsEphemeral           bool // True if the message was unwrapped from an EphemeralMessage
-	IsViewOnce            bool // True if the message was unwrapped from a ViewOnceMessage or ViewOnceMessageV2
-	IsViewOnceV2          bool // True if the message was unwrapped from a ViewOnceMessage
+	IsViewOnce            bool // True if the message was unwrapped from a ViewOnceMessage, ViewOnceMessageV2 or ViewOnceMessageV2Extension
+	IsViewOnceV2          bool // True if the message was unwrapped from a ViewOnceMessageV2 or ViewOnceMessageV2Extension
+	IsViewOnceV2Extension bool // True if the message was unwrapped from a ViewOnceMessageV2Extension
 	IsDocumentWithCaption bool // True if the message was unwrapped from a DocumentWithCaptionMessage
+	IsLottieSticker       bool // True if the message was unwrapped from a LottieStickerMessage
 	IsEdit                bool // True if the message was unwrapped from an EditedMessage
 
 	// If this event was parsed from a WebMessageInfo (i.e. from a history sync or unavailable message request), the source data is here.
@@ -321,6 +323,16 @@ func (evt *Message) UnwrapRaw() *Message {
 		evt.Message = evt.Message.GetViewOnceMessageV2().GetMessage()
 		evt.IsViewOnce = true
 		evt.IsViewOnceV2 = true
+	}
+	if evt.Message.GetViewOnceMessageV2Extension().GetMessage() != nil {
+		evt.Message = evt.Message.GetViewOnceMessageV2Extension().GetMessage()
+		evt.IsViewOnce = true
+		evt.IsViewOnceV2 = true
+		evt.IsViewOnceV2Extension = true
+	}
+	if evt.Message.GetLottieStickerMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetLottieStickerMessage().GetMessage()
+		evt.IsLottieSticker = true
 	}
 	if evt.Message.GetDocumentWithCaptionMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetDocumentWithCaptionMessage().GetMessage()
