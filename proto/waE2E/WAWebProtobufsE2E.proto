@@ -528,6 +528,8 @@ message ProtocolMessage {
 		MEDIA_NOTIFY_MESSAGE = 20;
 		CLOUD_API_THREAD_CONTROL_NOTIFICATION = 21;
 		LID_MIGRATION_MAPPING_SYNC = 22;
+		REMINDER_MESSAGE = 23;
+		BOT_MEMU_ONBOARDING_MESSAGE = 24;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -789,6 +791,8 @@ message ContextInfo {
 		optional bool showAdAttribution = 12;
 		optional string ctwaClid = 13;
 		optional string ref = 14;
+		optional bool clickToWhatsappCall = 15;
+		optional bool adContextPreviewDismissed = 16;
 	}
 
 	message AdReplyInfo {
@@ -811,6 +815,7 @@ message ContextInfo {
 
 	message DataSharingContext {
 		optional bool showMmDisclosure = 1;
+		optional string encryptedSignalTokenConsented = 2;
 	}
 
 	message UTMInfo {
@@ -893,6 +898,28 @@ message BotSearchMetadata {
 
 	optional string sessionID = 1;
 	optional SessionSource sessionSource = 2;
+}
+
+message BotReminderMetadata {
+	enum ReminderFrequency {
+		ONCE = 1;
+		DAILY = 2;
+		WEEKLY = 3;
+		BIWEEKLY = 4;
+		MONTHLY = 5;
+	}
+
+	enum ReminderAction {
+		NOTIFY = 1;
+		CREATE = 2;
+		DELETE = 3;
+	}
+
+	optional WACommon.MessageKey requestMessageKey = 1;
+	optional ReminderAction action = 2;
+	optional string name = 3;
+	optional uint64 nextTriggerTimestamp = 4;
+	optional ReminderFrequency frequency = 5;
 }
 
 message MessageAssociation {
@@ -1093,6 +1120,8 @@ message Message {
 	optional PlaceholderMessage placeholderMessage = 80;
 	optional SecretEncryptedMessage secretEncryptedMessage = 82;
 	optional AlbumMessage albumMessage = 83;
+	optional PollResultSnapshotMessage pollResultSnapshotMessage = 84;
+	optional FutureProofMessage eventCoverImage = 85;
 }
 
 message AlbumMessage {
@@ -1149,6 +1178,17 @@ message KeepInChatMessage {
 	optional WACommon.MessageKey key = 1;
 	optional KeepType keepType = 2;
 	optional int64 timestampMS = 3;
+}
+
+message PollResultSnapshotMessage {
+	message PollVote {
+		optional string optionName = 1;
+		optional int64 optionVoteCount = 2;
+	}
+
+	optional string name = 1;
+	repeated PollVote pollVotes = 2;
+	optional ContextInfo contextInfo = 3;
 }
 
 message PollVoteMessage {
@@ -1589,6 +1629,8 @@ message BotMetadata {
 	optional string invokerJID = 5;
 	optional BotSearchMetadata searchMetadata = 6;
 	optional BotMemuMetadata memuMetadata = 7;
+	optional string timezone = 8;
+	optional BotReminderMetadata reminderMetadata = 9;
 }
 
 message DeviceListMetadata {
