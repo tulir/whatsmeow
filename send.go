@@ -649,6 +649,10 @@ func getTypeFromMessage(msg *waProto.Message) string {
 		return getTypeFromMessage(msg.ViewOnceMessage.Message)
 	case msg.ViewOnceMessageV2 != nil:
 		return getTypeFromMessage(msg.ViewOnceMessageV2.Message)
+	case msg.ViewOnceMessageV2Extension != nil:
+		return getTypeFromMessage(msg.ViewOnceMessageV2Extension.Message)
+	case msg.LottieStickerMessage != nil:
+		return getTypeFromMessage(msg.LottieStickerMessage.Message)
 	case msg.EphemeralMessage != nil:
 		return getTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.DocumentWithCaptionMessage != nil:
@@ -672,6 +676,10 @@ func getMediaTypeFromMessage(msg *waProto.Message) string {
 		return getMediaTypeFromMessage(msg.ViewOnceMessage.Message)
 	case msg.ViewOnceMessageV2 != nil:
 		return getMediaTypeFromMessage(msg.ViewOnceMessageV2.Message)
+	case msg.ViewOnceMessageV2Extension != nil:
+		return getMediaTypeFromMessage(msg.ViewOnceMessageV2Extension.Message)
+	case msg.LottieStickerMessage != nil:
+		return getMediaTypeFromMessage(msg.LottieStickerMessage.Message)
 	case msg.EphemeralMessage != nil:
 		return getMediaTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.DocumentWithCaptionMessage != nil:

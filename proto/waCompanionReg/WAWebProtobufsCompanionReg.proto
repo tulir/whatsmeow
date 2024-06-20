@@ -41,6 +41,8 @@ message DeviceProps {
 		optional bool supportCagReactionsAndPolls = 8;
 		optional bool supportBizHostedMsg = 9;
 		optional bool supportRecentSyncChunkMessageCountTuning = 10;
+		optional bool supportHostedGroupMsg = 11;
+		optional bool supportFbidBotChatHistory = 12;
 	}
 
 	message AppVersion {
@@ -56,4 +58,19 @@ message DeviceProps {
 	optional PlatformType platformType = 3;
 	optional bool requireFullSync = 4;
 	optional HistorySyncConfig historySyncConfig = 5;
+}
+
+message CompanionEphemeralIdentity {
+	optional bytes publicKey = 1;
+	optional DeviceProps.PlatformType deviceType = 2;
+	optional string ref = 3;
+}
+
+message PrimaryEphemeralIdentity {
+	optional bytes publicKey = 1;
+}
+
+message EncryptedPairingRequest {
+	optional bytes encryptedPayload = 1;
+	optional bytes IV = 2;
 }

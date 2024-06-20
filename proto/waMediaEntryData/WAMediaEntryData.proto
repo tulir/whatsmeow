@@ -32,4 +32,5 @@ message MediaEntry {
 	optional string handle = 13;
 	optional string filename = 14;
 	optional ProgressiveJpegDetails progressiveJPEGDetails = 15;
+	optional int64 size = 16;
 }

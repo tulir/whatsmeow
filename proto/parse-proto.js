@@ -260,10 +260,10 @@ function flattenWithBlankLines(...items) {
 		.flatMap(item => item)
 }
 
-function protoifyChildren(container) {
+function protoifyChildren(container, proto3) {
 	return flattenWithBlankLines(
 		...Object.values(container.enums).map(protoifyEnum),
-		...Object.values(container.messages).map(protoifyMessage),
+		...Object.values(container.messages).map(msg => protoifyMessage(msg, proto3)),
 	)
 }
 
@@ -288,6 +288,14 @@ function protoifyEnum(enumDef) {
 }
 
 const {TYPES, TYPE_MASK, FLAGS} = requireModule("WAProtoConst")
+
+function mapFieldTypeName(ref, parentModule, parentPath) {
+	if (typeof ref === "object") {
+		return fieldTypeName(TYPES.MESSAGE, ref, parentModule, parentPath)
+	} else {
+		return fieldTypeName(ref, undefined, parentModule, parentPath)
+	}
+}
 
 function fieldTypeName(typeID, typeRef, parentModule, parentPath) {
 	switch (typeID) {
@@ -323,6 +331,8 @@ function fieldTypeName(typeID, typeRef, parentModule, parentPath) {
 			namePath.push(...typeRef.__path__.slice(pathStartIndex))
 			namePath.push(typeRef.__name__)
 			return namePath.join(".")
+		case TYPES.MAP:
+			return `map<${mapFieldTypeName(typeRef[0], parentModule, parentPath)}, ${mapFieldTypeName(typeRef[1], parentModule, parentPath)}>`
 		case TYPES.FIXED64:
 			return "fixed64"
 		case TYPES.SFIXED64:
@@ -374,16 +384,19 @@ function fixFieldName(name) {
 		.replace("Sha256", "SHA256")
 }
 
-function protoifyField(name, [index, flags, typeRef], parentModule, parentPath, isOneOf) {
+function protoifyField(name, [index, flags, typeRef], parentModule, parentPath, isOneOf, proto3) {
 	const preflags = []
 	const postflags = [""]
+	const isMap = (flags & TYPE_MASK) === TYPES.MAP
 	if (!isOneOf) {
 		if ((flags & FLAGS.REPEATED) !== 0) {
 			preflags.push("repeated")
-		} else if ((flags & FLAGS.REQUIRED) === 0) {
-			preflags.push("optional")
-		} else {
-			preflags.push("required")
+		} else if (!proto3) {
+			if ((flags & FLAGS.REQUIRED) === 0) {
+				preflags.push("optional")
+			} else {
+				preflags.push("required")
+			}
 		}
 	}
 	preflags.push(fieldTypeName(flags & TYPE_MASK, typeRef, parentModule, parentPath))
@@ -393,12 +406,12 @@ function protoifyField(name, [index, flags, typeRef], parentModule, parentPath, 
 	return `${preflags.join(" ")} ${fixFieldName(name)} = ${index}${postflags.join(" ")};`
 }
 
-function protoifyFields(fields, parentModule, parentPath, isOneOf) {
-	return Object.entries(fields).map(([name, definition]) => protoifyField(name, definition, parentModule, parentPath, isOneOf))
+function protoifyFields(fields, parentModule, parentPath, isOneOf, proto3) {
+	return Object.entries(fields).map(([name, definition]) => protoifyField(name, definition, parentModule, parentPath, isOneOf, proto3))
 }
 
-function protoifyMessage(message) {
-	const sections = [protoifyChildren(message)]
+function protoifyMessage(message, proto3) {
+	const sections = [protoifyChildren(message, proto3)]
 	const spec = message.message
 	const fullMessagePath = message.__path__.concat([message.__name__])
 	for (const [name, fieldNames] of Object.entries(spec.__oneofs__ ?? {})) {
@@ -407,14 +420,14 @@ function protoifyMessage(message) {
 			delete spec[fieldName]
 			return [fieldName, def]
 		}))
-		sections.push([`oneof ${name} ` + "{", ...indent(protoifyFields(fields, message.__module__, fullMessagePath, true)), "}"])
+		sections.push([`oneof ${name} ` + "{", ...indent(protoifyFields(fields, message.__module__, fullMessagePath, true, proto3)), "}"])
 	}
 	if (spec.__reserved__) {
 		console.warn("Found reserved keys:", message.__name__, spec.__reserved__)
 	}
 	delete spec.__oneofs__
 	delete spec.__reserved__
-	sections.push(protoifyFields(spec, message.__module__, fullMessagePath, false))
+	sections.push(protoifyFields(spec, message.__module__, fullMessagePath, false, proto3))
 	return [`message ${message.__name__} ` + "{", ...indent(flattenWithBlankLines(...sections)), "}"]
 }
 
@@ -422,9 +435,18 @@ function goPackageName(name) {
 	return name.replace(/^WA/, "wa").replace("WebProtobufs", "").replace("Protobufs", "")
 }
 
+const needsProto3 = {
+	"WAWebProtobufsReporting": true
+}
+
 function protoifyModule(module) {
 	const output = []
-	output.push(`syntax = "proto2";`)
+	const proto3 = needsProto3[module.__name__]
+	if (proto3) {
+		output.push(`syntax = "proto3";`)
+	} else {
+		output.push(`syntax = "proto2";`)
+	}
 	output.push(`package ${module.__name__};`)
 	output.push(`option go_package = "go.mau.fi/whatsmeow/proto/${goPackageName(module.__name__)}";`)
 	output.push("")
@@ -434,7 +456,7 @@ function protoifyModule(module) {
 		}
 		output.push("")
 	}
-	const children = protoifyChildren(module)
+	const children = protoifyChildren(module, proto3)
 	children.push("")
 	return output.concat(children)
 }
