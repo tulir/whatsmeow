@@ -13,6 +13,12 @@ enum MediaVisibility {
 	ON = 2;
 }
 
+enum PrivacySystemMessage {
+	E2EE_MSG = 1;
+	NE2EE_SELF = 2;
+	NE2EE_OTHER = 3;
+}
+
 message HistorySync {
 	enum BotAIWaitListState {
 		IN_WAITLIST = 0;
@@ -98,6 +104,7 @@ message Conversation {
 	optional string lidOriginType = 44;
 	optional uint32 commentsCount = 45;
 	optional bool locked = 46;
+	optional PrivacySystemMessage systemMessageToInsert = 47;
 }
 
 message GroupParticipant {

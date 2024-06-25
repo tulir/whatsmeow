@@ -43,6 +43,7 @@ type MediaEntry struct {
 	Handle                 *string                            `protobuf:"bytes,13,opt,name=handle" json:"handle,omitempty"`
 	Filename               *string                            `protobuf:"bytes,14,opt,name=filename" json:"filename,omitempty"`
 	ProgressiveJPEGDetails *MediaEntry_ProgressiveJpegDetails `protobuf:"bytes,15,opt,name=progressiveJPEGDetails" json:"progressiveJPEGDetails,omitempty"`
+	Size                   *int64                             `protobuf:"varint,16,opt,name=size" json:"size,omitempty"`
 }
 
 func (x *MediaEntry) Reset() {
@@ -180,6 +181,13 @@ func (x *MediaEntry) GetProgressiveJPEGDetails() *MediaEntry_ProgressiveJpegDeta
 		return x.ProgressiveJPEGDetails
 	}
 	return nil
+}
+
+func (x *MediaEntry) GetSize() int64 {
+	if x != nil && x.Size != nil {
+		return *x.Size
+	}
+	return 0
 }
 
 type MediaEntry_ProgressiveJpegDetails struct {

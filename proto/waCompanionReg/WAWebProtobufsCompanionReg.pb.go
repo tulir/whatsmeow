@@ -224,6 +224,171 @@ func (x *DeviceProps) GetHistorySyncConfig() *DeviceProps_HistorySyncConfig {
 	return nil
 }
 
+type CompanionEphemeralIdentity struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PublicKey  []byte                    `protobuf:"bytes,1,opt,name=publicKey" json:"publicKey,omitempty"`
+	DeviceType *DeviceProps_PlatformType `protobuf:"varint,2,opt,name=deviceType,enum=WAWebProtobufsCompanionReg.DeviceProps_PlatformType" json:"deviceType,omitempty"`
+	Ref        *string                   `protobuf:"bytes,3,opt,name=ref" json:"ref,omitempty"`
+}
+
+func (x *CompanionEphemeralIdentity) Reset() {
+	*x = CompanionEphemeralIdentity{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CompanionEphemeralIdentity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompanionEphemeralIdentity) ProtoMessage() {}
+
+func (x *CompanionEphemeralIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompanionEphemeralIdentity.ProtoReflect.Descriptor instead.
+func (*CompanionEphemeralIdentity) Descriptor() ([]byte, []int) {
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CompanionEphemeralIdentity) GetPublicKey() []byte {
+	if x != nil {
+		return x.PublicKey
+	}
+	return nil
+}
+
+func (x *CompanionEphemeralIdentity) GetDeviceType() DeviceProps_PlatformType {
+	if x != nil && x.DeviceType != nil {
+		return *x.DeviceType
+	}
+	return DeviceProps_UNKNOWN
+}
+
+func (x *CompanionEphemeralIdentity) GetRef() string {
+	if x != nil && x.Ref != nil {
+		return *x.Ref
+	}
+	return ""
+}
+
+type PrimaryEphemeralIdentity struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PublicKey []byte `protobuf:"bytes,1,opt,name=publicKey" json:"publicKey,omitempty"`
+}
+
+func (x *PrimaryEphemeralIdentity) Reset() {
+	*x = PrimaryEphemeralIdentity{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PrimaryEphemeralIdentity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PrimaryEphemeralIdentity) ProtoMessage() {}
+
+func (x *PrimaryEphemeralIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PrimaryEphemeralIdentity.ProtoReflect.Descriptor instead.
+func (*PrimaryEphemeralIdentity) Descriptor() ([]byte, []int) {
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *PrimaryEphemeralIdentity) GetPublicKey() []byte {
+	if x != nil {
+		return x.PublicKey
+	}
+	return nil
+}
+
+type EncryptedPairingRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	EncryptedPayload []byte `protobuf:"bytes,1,opt,name=encryptedPayload" json:"encryptedPayload,omitempty"`
+	IV               []byte `protobuf:"bytes,2,opt,name=IV" json:"IV,omitempty"`
+}
+
+func (x *EncryptedPairingRequest) Reset() {
+	*x = EncryptedPairingRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *EncryptedPairingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EncryptedPairingRequest) ProtoMessage() {}
+
+func (x *EncryptedPairingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EncryptedPairingRequest.ProtoReflect.Descriptor instead.
+func (*EncryptedPairingRequest) Descriptor() ([]byte, []int) {
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *EncryptedPairingRequest) GetEncryptedPayload() []byte {
+	if x != nil {
+		return x.EncryptedPayload
+	}
+	return nil
+}
+
+func (x *EncryptedPairingRequest) GetIV() []byte {
+	if x != nil {
+		return x.IV
+	}
+	return nil
+}
+
 type DeviceProps_HistorySyncConfig struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -239,12 +404,14 @@ type DeviceProps_HistorySyncConfig struct {
 	SupportCagReactionsAndPolls              *bool   `protobuf:"varint,8,opt,name=supportCagReactionsAndPolls" json:"supportCagReactionsAndPolls,omitempty"`
 	SupportBizHostedMsg                      *bool   `protobuf:"varint,9,opt,name=supportBizHostedMsg" json:"supportBizHostedMsg,omitempty"`
 	SupportRecentSyncChunkMessageCountTuning *bool   `protobuf:"varint,10,opt,name=supportRecentSyncChunkMessageCountTuning" json:"supportRecentSyncChunkMessageCountTuning,omitempty"`
+	SupportHostedGroupMsg                    *bool   `protobuf:"varint,11,opt,name=supportHostedGroupMsg" json:"supportHostedGroupMsg,omitempty"`
+	SupportFbidBotChatHistory                *bool   `protobuf:"varint,12,opt,name=supportFbidBotChatHistory" json:"supportFbidBotChatHistory,omitempty"`
 }
 
 func (x *DeviceProps_HistorySyncConfig) Reset() {
 	*x = DeviceProps_HistorySyncConfig{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[1]
+		mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -257,7 +424,7 @@ func (x *DeviceProps_HistorySyncConfig) String() string {
 func (*DeviceProps_HistorySyncConfig) ProtoMessage() {}
 
 func (x *DeviceProps_HistorySyncConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[1]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -343,6 +510,20 @@ func (x *DeviceProps_HistorySyncConfig) GetSupportRecentSyncChunkMessageCountTun
 	return false
 }
 
+func (x *DeviceProps_HistorySyncConfig) GetSupportHostedGroupMsg() bool {
+	if x != nil && x.SupportHostedGroupMsg != nil {
+		return *x.SupportHostedGroupMsg
+	}
+	return false
+}
+
+func (x *DeviceProps_HistorySyncConfig) GetSupportFbidBotChatHistory() bool {
+	if x != nil && x.SupportFbidBotChatHistory != nil {
+		return *x.SupportFbidBotChatHistory
+	}
+	return false
+}
+
 type DeviceProps_AppVersion struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -358,7 +539,7 @@ type DeviceProps_AppVersion struct {
 func (x *DeviceProps_AppVersion) Reset() {
 	*x = DeviceProps_AppVersion{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2]
+		mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -371,7 +552,7 @@ func (x *DeviceProps_AppVersion) String() string {
 func (*DeviceProps_AppVersion) ProtoMessage() {}
 
 func (x *DeviceProps_AppVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -440,22 +621,26 @@ func file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP() []byte {
 }
 
 var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_goTypes = []interface{}{
 	(DeviceProps_PlatformType)(0),         // 0: WAWebProtobufsCompanionReg.DeviceProps.PlatformType
 	(*DeviceProps)(nil),                   // 1: WAWebProtobufsCompanionReg.DeviceProps
-	(*DeviceProps_HistorySyncConfig)(nil), // 2: WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig
-	(*DeviceProps_AppVersion)(nil),        // 3: WAWebProtobufsCompanionReg.DeviceProps.AppVersion
+	(*CompanionEphemeralIdentity)(nil),    // 2: WAWebProtobufsCompanionReg.CompanionEphemeralIdentity
+	(*PrimaryEphemeralIdentity)(nil),      // 3: WAWebProtobufsCompanionReg.PrimaryEphemeralIdentity
+	(*EncryptedPairingRequest)(nil),       // 4: WAWebProtobufsCompanionReg.EncryptedPairingRequest
+	(*DeviceProps_HistorySyncConfig)(nil), // 5: WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig
+	(*DeviceProps_AppVersion)(nil),        // 6: WAWebProtobufsCompanionReg.DeviceProps.AppVersion
 }
 var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_depIdxs = []int32{
-	3, // 0: WAWebProtobufsCompanionReg.DeviceProps.version:type_name -> WAWebProtobufsCompanionReg.DeviceProps.AppVersion
+	6, // 0: WAWebProtobufsCompanionReg.DeviceProps.version:type_name -> WAWebProtobufsCompanionReg.DeviceProps.AppVersion
 	0, // 1: WAWebProtobufsCompanionReg.DeviceProps.platformType:type_name -> WAWebProtobufsCompanionReg.DeviceProps.PlatformType
-	2, // 2: WAWebProtobufsCompanionReg.DeviceProps.historySyncConfig:type_name -> WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	5, // 2: WAWebProtobufsCompanionReg.DeviceProps.historySyncConfig:type_name -> WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig
+	0, // 3: WAWebProtobufsCompanionReg.CompanionEphemeralIdentity.deviceType:type_name -> WAWebProtobufsCompanionReg.DeviceProps.PlatformType
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_waCompanionReg_WAWebProtobufsCompanionReg_proto_init() }
@@ -477,7 +662,7 @@ func file_waCompanionReg_WAWebProtobufsCompanionReg_proto_init() {
 			}
 		}
 		file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DeviceProps_HistorySyncConfig); i {
+			switch v := v.(*CompanionEphemeralIdentity); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -489,6 +674,42 @@ func file_waCompanionReg_WAWebProtobufsCompanionReg_proto_init() {
 			}
 		}
 		file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PrimaryEphemeralIdentity); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*EncryptedPairingRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DeviceProps_HistorySyncConfig); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DeviceProps_AppVersion); i {
 			case 0:
 				return &v.state
@@ -507,7 +728,7 @@ func file_waCompanionReg_WAWebProtobufsCompanionReg_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   3,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

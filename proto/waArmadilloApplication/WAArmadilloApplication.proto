@@ -239,6 +239,7 @@ message Armadillo {
 			PaymentsTransactionMessage paymentsTransactionMessage = 10;
 			BumpExistingMessage bumpExistingMessage = 11;
 			NoteReplyMessage noteReplyMessage = 13;
+			RavenMessage ravenMessageMsgr = 14;
 		}
 	}
 
