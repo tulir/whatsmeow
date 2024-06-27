@@ -94,9 +94,9 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		source.Sender = from
 		meta := node.GetChildByTag("meta")
 		ag = meta.AttrGetter()
-		targetChatJid := ag.JID("target_chat_jid")
-		if targetChatJid.User != "" {
-			source.Chat = targetChatJid.ToNonAD()
+		targetChatJID := ag.OptionalJIDOrEmpty("target_chat_jid")
+		if targetChatJID.User != "" {
+			source.Chat = targetChatJID.ToNonAD()
 		} else {
 			source.Chat = from
 		}
@@ -115,7 +115,7 @@ func (cli *Client) parseMsgBotInfo(node waBinary.Node) (botInfo types.MsgBotInfo
 	ag := botNode.AttrGetter()
 	botInfo.EditType = types.BotEditType(ag.String("edit"))
 	if botInfo.EditType == types.EditTypeInner || botInfo.EditType == types.EditTypeLast {
-		botInfo.EditTargetId = types.MessageID(ag.String("edit_target_id"))
+		botInfo.EditTargetID = types.MessageID(ag.String("edit_target_id"))
 		botInfo.EditSenderTimestampMS = ag.UnixMilli("sender_timestamp_ms")
 	}
 	err = ag.Error()
@@ -126,8 +126,11 @@ func (cli *Client) parseMsgMetaInfo(node waBinary.Node) (metaInfo types.MsgMetaI
 	metaNode := node.GetChildByTag("meta")
 
 	ag := metaNode.AttrGetter()
-	metaInfo.TargetId = types.MessageID(ag.String("target_id"))
-	metaInfo.TargetSender = ag.JID("target_sender_jid")
+	metaInfo.TargetID = types.MessageID(ag.String("target_id"))
+	targetSenderJID := ag.OptionalJIDOrEmpty("target_sender_jid")
+	if targetSenderJID.User != "" {
+		metaInfo.TargetSender = targetSenderJID
+	}
 	err = ag.Error()
 	return
 }
@@ -250,13 +253,13 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			// Meta AI / other bots (biz?):
 
 			// step 1: get message secret
-			targetSenderJid := info.MsgMetaInfo.TargetSender
-			if targetSenderJid.User == "" {
-				// if no targetSenderJid in <meta> this must be ourselves (one-one-one mode)
-				targetSenderJid = cli.getOwnID()
+			targetSenderJID := info.MsgMetaInfo.TargetSender
+			if targetSenderJID.User == "" {
+				// if no targetSenderJID in <meta> this must be ourselves (one-one-one mode)
+				targetSenderJID = cli.getOwnID()
 			}
 
-			messageSecret, err := cli.Store.MsgSecrets.GetMessageSecret(info.Chat, targetSenderJid, info.MsgMetaInfo.TargetId)
+			messageSecret, err := cli.Store.MsgSecrets.GetMessageSecret(info.Chat, targetSenderJID, info.MsgMetaInfo.TargetID)
 			if err != nil || messageSecret == nil {
 				cli.Log.Warnf("Error getting message secret for bot msg with id %s", node.Attrs["id"].(types.MessageID))
 				continue
@@ -273,15 +276,15 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			}
 
 			// step 3: determine best message id for decryption
-			var messageId string
+			var messageID string
 			if info.MsgBotInfo.EditType == types.EditTypeInner || info.MsgBotInfo.EditType == types.EditTypeLast {
-				messageId = info.MsgBotInfo.EditTargetId
+				messageID = info.MsgBotInfo.EditTargetID
 			} else {
-				messageId = info.ID
+				messageID = info.ID
 			}
 
 			// step 4: decrypt and voila
-			decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, messageId, targetSenderJid, info)
+			decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, messageID, targetSenderJID, info)
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
 			continue

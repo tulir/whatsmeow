@@ -32,6 +32,10 @@ const (
 	EncSecretBotMsg   MsgSecretType = "Bot Message"
 )
 
+func applyBotMessageHKDF(messageSecret []byte) []byte {
+	return hkdfutil.SHA256(messageSecret, nil, []byte(EncSecretBotMsg), 32)
+}
+
 func generateMsgSecretKey(
 	modificationType MsgSecretType, modificationSender types.JID,
 	origMsgID types.MessageID, origMsgSender types.JID, origMsgSecret []byte,
@@ -119,29 +123,9 @@ func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.
 	return ciphertext, iv, nil
 }
 
-func (cli *Client) applyBotMessageHKDF(messageSecret []byte) []byte {
-	return hkdfutil.SHA256(messageSecret, nil, []byte(EncSecretBotMsg), 32)
-}
-
-func (cli *Client) createIncomingBotMessageSecret(messageId types.MessageID, targetJid types.JID, botJid types.JID, messageSecret []byte) []byte {
-	targetJidStr := targetJid.ToNonAD().String()
-	botJidStr := botJid.ToNonAD().String()
-
-	hkdfSecret := make([]byte, 0, len(messageId)+len(targetJidStr)+len(botJidStr))
-	hkdfSecret = append(hkdfSecret, messageId...)
-	hkdfSecret = append(hkdfSecret, targetJidStr...)
-	hkdfSecret = append(hkdfSecret, botJidStr...)
-
-	secretKey := hkdfutil.SHA256(cli.applyBotMessageHKDF(messageSecret), nil, hkdfSecret, 32)
-
-	return secretKey
-}
-
 func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageId types.MessageID, targetSenderJid types.JID, info *types.MessageInfo) ([]byte, error) {
 	// gcm decrypt key generation
-	newKey := cli.createIncomingBotMessageSecret(messageId, targetSenderJid, info.Sender, messageSecret)
-
-	additionalData := []byte(fmt.Sprintf("%s\x00%s", messageId, info.Sender))
+	newKey, additionalData := generateMsgSecretKey("", info.Sender, messageId, targetSenderJid, applyBotMessageHKDF(messageSecret))
 
 	plaintext, err := gcmutil.Decrypt(newKey, msMsg.GetEncIV(), msMsg.GetEncPayload(), additionalData)
 	if err != nil {

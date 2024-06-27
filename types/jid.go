@@ -109,9 +109,10 @@ func (jid JID) IsBroadcastList() bool {
 	return jid.Server == BroadcastServer && jid.User != StatusBroadcastJID.User
 }
 
+var botUserRegex = regexp.MustCompile(`^1313555\d{4}$|^131655500\d{2}$`)
+
 func (jid JID) IsBot() bool {
-	match, _ := regexp.MatchString(`^1313555\d{4}$|^131655500\d{2}$`, jid.User)
-	return jid.Server == DefaultUserServer && match && jid.Device == 0
+	return jid.Server == DefaultUserServer && botUserRegex.MatchString(jid.User) && jid.Device == 0
 }
 
 // NewADJID creates a new AD JID.

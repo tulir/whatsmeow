@@ -58,13 +58,13 @@ const (
 // MsgBotInfo targets <bot>
 type MsgBotInfo struct {
 	EditType              BotEditType
-	EditTargetId          MessageID
+	EditTargetID          MessageID
 	EditSenderTimestampMS time.Time
 }
 
 // MsgMetaInfo targets <meta>
 type MsgMetaInfo struct {
-	TargetId     MessageID
+	TargetID     MessageID
 	TargetSender JID
 }
 
