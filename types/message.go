@@ -71,15 +71,16 @@ type MsgMetaInfo struct {
 // MessageInfo contains metadata about an incoming message.
 type MessageInfo struct {
 	MessageSource
-	ID          MessageID
-	ServerID    MessageServerID
-	Type        string
-	PushName    string
-	Timestamp   time.Time
-	Category    string
-	Multicast   bool
-	MediaType   string
-	Edit        EditAttribute
+	ID        MessageID
+	ServerID  MessageServerID
+	Type      string
+	PushName  string
+	Timestamp time.Time
+	Category  string
+	Multicast bool
+	MediaType string
+	Edit      EditAttribute
+
 	MsgBotInfo  MsgBotInfo
 	MsgMetaInfo MsgMetaInfo
 

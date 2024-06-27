@@ -16,7 +16,6 @@ import (
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mdp/qrterminal/v3"
-	"go.mau.fi/util/random"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -44,7 +43,7 @@ var cli *whatsmeow.Client
 var log waLog.Logger
 
 var logLevel = "INFO"
-var debugLogs = flag.Bool("debug", true, "Enable debug logs?")
+var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
@@ -1029,14 +1028,14 @@ func handleCmd(cmd string, args []string) {
 		text := strings.Join(args, " ")
 		personaID := "867051314767696$760019659443059"
 		msg := &waE2E.Message{
-			ExtendedTextMessage: &waE2E.ExtendedTextMessage{
-				Text: &text,
-			},
+			Conversation: &text,
+
+			// todo: make all of this as part of extras, and hide message secret generation
 			MessageContextInfo: &waE2E.MessageContextInfo{
 				BotMetadata: &waE2E.BotMetadata{
 					PersonaID: &personaID,
 				},
-				MessageSecret: random.Bytes(32),
+				//MessageSecret: random.Bytes(32),
 			},
 		}
 		resp, err := cli.SendMessage(context.Background(), types.MetaAIJID, msg)
