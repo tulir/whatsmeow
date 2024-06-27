@@ -118,13 +118,11 @@ func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.
 	return ciphertext, iv, nil
 }
 
-func (cli *Client) CreateOutgoingBotMessageSecret() []byte {
-	randomBytes := random.Bytes(32)
-	secretKey := hkdfutil.SHA256(randomBytes, nil, []byte(EncSecretBotMsg), 32)
-	return secretKey
+func (cli *Client) applyBotMessageHKDF(messageSecret []byte) []byte {
+	return hkdfutil.SHA256(messageSecret, nil, []byte(EncSecretBotMsg), 32)
 }
 
-func (cli *Client) CreateIncomingBotMessageSecret(messageId types.MessageID, targetJid types.JID, botJid types.JID, messageSecret []byte) []byte {
+func (cli *Client) createIncomingBotMessageSecret(messageId types.MessageID, targetJid types.JID, botJid types.JID, messageSecret []byte) []byte {
 	targetJidStr := targetJid.ToNonAD().String()
 	botJidStr := botJid.ToNonAD().String()
 
@@ -133,13 +131,14 @@ func (cli *Client) CreateIncomingBotMessageSecret(messageId types.MessageID, tar
 	hkdfSecret = append(hkdfSecret, targetJidStr...)
 	hkdfSecret = append(hkdfSecret, botJidStr...)
 
-	secretKey := hkdfutil.SHA256(messageSecret, nil, hkdfSecret, 32)
+	secretKey := hkdfutil.SHA256(cli.applyBotMessageHKDF(messageSecret), nil, hkdfSecret, 32)
 
 	return secretKey
 }
 
-func (cli *Client) DecryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageId types.MessageID, targetSenderJid types.JID, info *types.MessageInfo) ([]byte, error) {
-	newKey := cli.CreateIncomingBotMessageSecret(messageId, targetSenderJid, info.Sender, messageSecret)
+func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageId types.MessageID, targetSenderJid types.JID, info *types.MessageInfo) ([]byte, error) {
+	// gcm decrypt key generation
+	newKey := cli.createIncomingBotMessageSecret(messageId, targetSenderJid, info.Sender, messageSecret)
 
 	additionalData := []byte(fmt.Sprintf("%s\x00%s", messageId, info.Sender))
 
@@ -147,7 +146,7 @@ func (cli *Client) DecryptBotMessage(messageSecret []byte, msMsg messageEncrypte
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
 	}
-	cli.Log.Debugf(string(plaintext))
+
 	return plaintext, nil
 }
 

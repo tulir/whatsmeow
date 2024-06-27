@@ -16,6 +16,7 @@ import (
 	"fmt"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mdp/qrterminal/v3"
+	"go.mau.fi/util/random"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -43,7 +44,7 @@ var cli *whatsmeow.Client
 var log waLog.Logger
 
 var logLevel = "INFO"
-var debugLogs = flag.Bool("debug", false, "Enable debug logs?")
+var debugLogs = flag.Bool("debug", true, "Enable debug logs?")
 var dbDialect = flag.String("db-dialect", "sqlite3", "Database dialect (sqlite3 or postgres)")
 var dbAddress = flag.String("db-address", "file:mdtest.db?_foreign_keys=on", "Database address")
 var requestFullSync = flag.Bool("request-full-sync", false, "Request full (1 year) history sync when logging in?")
@@ -1035,7 +1036,7 @@ func handleCmd(cmd string, args []string) {
 				BotMetadata: &waE2E.BotMetadata{
 					PersonaID: &personaID,
 				},
-				MessageSecret: cli.CreateOutgoingBotMessageSecret(),
+				MessageSecret: random.Bytes(32),
 			},
 		}
 		resp, err := cli.SendMessage(context.Background(), types.MetaAIJID, msg)
@@ -1099,7 +1100,7 @@ func handler(rawEvt interface{}) {
 			metaParts = append(metaParts, "edit")
 		}
 
-		log.Infof("Received message %s from %s (%s): %+v", evt.Info.ID, evt.Info.SourceString(), strings.Join(metaParts, ", "), evt.Message)
+		log.Infof("Received message %s from %s (%s): %+v", evt.Info.ID, evt.Info.SourceString(), strings.Join(metaParts, ", "), evt.RawMessage)
 
 		if evt.Message.GetPollUpdateMessage() != nil {
 			decrypted, err := cli.DecryptPollVote(evt)
