@@ -14,20 +14,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"mime"
-	"net/http"
-	"os"
-	"os/signal"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"syscall"
-	"time"
-
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/mdp/qrterminal/v3"
-	"google.golang.org/protobuf/proto"
-
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -39,6 +27,16 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	waLog "go.mau.fi/whatsmeow/util/log"
+	"google.golang.org/protobuf/proto"
+	"mime"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"syscall"
+	"time"
 )
 
 var cli *whatsmeow.Client
@@ -1021,6 +1019,30 @@ func handleCmd(cmd string, args []string) {
 		err = cli.SendAppState(appstate.BuildLabelEdit(labelID, name, int32(color), action))
 		if err != nil {
 			log.Errorf("Error editing label: %v", err)
+		}
+	case "sendbotmsg":
+		if len(args) < 1 {
+			log.Errorf("Usage: sendBotMsg <text>")
+			return
+		}
+		text := strings.Join(args, " ")
+		personaID := "867051314767696$760019659443059"
+		msg := &waE2E.Message{
+			ExtendedTextMessage: &waE2E.ExtendedTextMessage{
+				Text: &text,
+			},
+			MessageContextInfo: &waE2E.MessageContextInfo{
+				BotMetadata: &waE2E.BotMetadata{
+					PersonaID: &personaID,
+				},
+				MessageSecret: cli.CreateOutgoingBotMessageSecret(),
+			},
+		}
+		resp, err := cli.SendMessage(context.Background(), types.MetaAIJID, msg)
+		if err != nil {
+			log.Errorf("Error sending bot message: %v", err)
+		} else {
+			log.Infof("Bot message sent (server timestamp: %s)", resp.Timestamp)
 		}
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -39,6 +40,7 @@ var (
 	StatusBroadcastJID  = NewJID("status", BroadcastServer)
 	PSAJID              = NewJID("0", LegacyUserServer)
 	OfficialBusinessJID = NewJID("16505361212", LegacyUserServer)
+	MetaAIJID           = NewJID("13135550002", DefaultUserServer)
 )
 
 // MessageID is the internal ID of a WhatsApp message.
@@ -105,6 +107,11 @@ func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
 // IsBroadcastList returns true if the JID is a broadcast list, but not the status broadcast.
 func (jid JID) IsBroadcastList() bool {
 	return jid.Server == BroadcastServer && jid.User != StatusBroadcastJID.User
+}
+
+func (jid JID) IsBot() bool {
+	match, _ := regexp.MatchString(`^1313555\d{4}$|^131655500\d{2}$`, jid.User)
+	return jid.Server == DefaultUserServer && match && jid.Device == 0
 }
 
 // NewADJID creates a new AD JID.
