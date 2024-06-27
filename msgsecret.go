@@ -9,9 +9,10 @@ package whatsmeow
 import (
 	"crypto/sha256"
 	"fmt"
+	"time"
+
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
-	"time"
 
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"

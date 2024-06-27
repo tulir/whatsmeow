@@ -12,10 +12,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"go.mau.fi/whatsmeow/proto/waE2E"
 	"io"
 	"runtime/debug"
 	"time"
+
+	"go.mau.fi/whatsmeow/proto/waE2E"
 
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/protocol"
