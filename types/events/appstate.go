@@ -187,3 +187,14 @@ type AppState struct {
 type AppStateSyncComplete struct {
 	Name appstate.WAPatchName
 }
+
+// AppStateVersion is emitted when a app state event occurs.
+type AppStateVersion struct {
+	JID               types.JID // The chat which was labeled or unlabeled.
+	Timestamp         time.Time // The time when the (un)labeling happened.
+	AppStateEventType string    // Type of running appstate event.
+	AppStateName      string    // The message id which was labeled or unlabeled.
+	Version           uint64    // The version of appstate on current event
+
+	FromFullSync bool // Whether the action is emitted because of a fullSync
+}
