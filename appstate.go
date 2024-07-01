@@ -116,7 +116,6 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 }
 
 func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, emitOnFullSync bool) {
-
 	dispatchEvts := !fullSync || emitOnFullSync
 
 	if mutation.Operation != waProto.SyncdMutation_SET {
@@ -135,6 +134,8 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 
 	var storeUpdateError error
 	var eventToDispatch interface{}
+	var appstateEventToDispatch interface{}
+
 	switch mutation.Index[0] {
 	case appstate.IndexMute:
 		act := mutation.Action.GetMuteAction()
@@ -272,6 +273,19 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, e
 			Action:       act,
 			FromFullSync: fullSync,
 		}
+	}
+	if cli.EnableSentAppstateEventVersioning && mutation.PatchVersion > 0 && !jid.IsEmpty() {
+		appstateEventToDispatch = &events.AppStateVersion{
+			JID:               jid,
+			Timestamp:         ts,
+			AppStateEventType: mutation.Index[0],
+			AppStateName:      mutation.PatchName,
+			Version:           mutation.PatchVersion,
+			FromFullSync:      fullSync,
+		}
+	}
+	if appstateEventToDispatch != nil {
+		cli.dispatchEvent(appstateEventToDispatch)
 	}
 	if storeUpdateError != nil {
 		cli.Log.Errorf("Failed to update device store after app state mutation: %v", storeUpdateError)

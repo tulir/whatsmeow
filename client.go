@@ -82,6 +82,9 @@ type Client struct {
 	// set up the maximum patch version when performing FetchAppState
 	LatestPatchVersionOnFetch map[appstate.WAPatchName]uint64
 
+	// set up config for enable sent appstate event versioning
+	EnableSentAppstateEventVersioning bool
+
 	AutomaticMessageRerequestFromPhone bool
 	pendingPhoneRerequests             map[types.MessageID]context.CancelFunc
 	pendingPhoneRerequestsLock         sync.RWMutex
