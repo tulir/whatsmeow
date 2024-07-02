@@ -123,9 +123,9 @@ func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.
 	return ciphertext, iv, nil
 }
 
-func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageId types.MessageID, targetSenderJid types.JID, info *types.MessageInfo) ([]byte, error) {
+func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageID types.MessageID, targetSenderJID types.JID, info *types.MessageInfo) ([]byte, error) {
 	// gcm decrypt key generation
-	newKey, additionalData := generateMsgSecretKey("", info.Sender, messageId, targetSenderJid, applyBotMessageHKDF(messageSecret))
+	newKey, additionalData := generateMsgSecretKey("", info.Sender, messageID, targetSenderJID, applyBotMessageHKDF(messageSecret))
 
 	plaintext, err := gcmutil.Decrypt(newKey, msMsg.GetEncIV(), msMsg.GetEncPayload(), additionalData)
 	if err != nil {

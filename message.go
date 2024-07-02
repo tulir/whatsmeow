@@ -94,13 +94,12 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		source.Sender = from
 		meta := node.GetChildByTag("meta")
 		ag = meta.AttrGetter()
-		targetChatJID := ag.OptionalJIDOrEmpty("target_chat_jid")
-		if targetChatJID.User != "" {
+		targetChatJID := ag.OptionalJID("target_chat_jid")
+		if targetChatJID != nil {
 			source.Chat = targetChatJID.ToNonAD()
 		} else {
 			source.Chat = from
 		}
-		source.IsFromMe = false
 	} else {
 		source.Chat = from.ToNonAD()
 		source.Sender = from
@@ -261,7 +260,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 
 			messageSecret, err := cli.Store.MsgSecrets.GetMessageSecret(info.Chat, targetSenderJID, info.MsgMetaInfo.TargetID)
 			if err != nil || messageSecret == nil {
-				cli.Log.Warnf("Error getting message secret for bot msg with id %s", node.Attrs["id"].(types.MessageID))
+				cli.Log.Warnf("Error getting message secret for bot msg with id %s", node.AttrGetter().String("id"))
 				continue
 			}
 
