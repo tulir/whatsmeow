@@ -1022,6 +1022,53 @@ func handleCmd(cmd string, args []string) {
 		if err != nil {
 			log.Errorf("Error editing label: %v", err)
 		}
+	case "sendbotmsg":
+		if len(args) < 1 {
+			log.Errorf("Usage: sendBotMsg <inline jid (optional)> <text>")
+			return
+		}
+		var inlineJID types.JID
+		if len(args) > 1 {
+			jid, ok := parseJID(args[0])
+			if ok {
+				inlineJID = jid
+			} else {
+				inlineJID = types.EmptyJID
+			}
+		}
+
+		personaID := "867051314767696$760019659443059" // default meta bot personality: "Assistant"
+
+		var resp, err = whatsmeow.SendResponse{}, error(nil)
+		if !inlineJID.IsEmpty() {
+			text := fmt.Sprintf("@%s %s", types.MetaAIJID.User, strings.Join(args[1:], " "))
+			msg := &waE2E.Message{
+				ExtendedTextMessage: &waE2E.ExtendedTextMessage{
+					Text: &text,
+					ContextInfo: &waE2E.ContextInfo{
+						MentionedJID: []string{types.MetaAIJID.String()},
+					},
+				},
+			}
+
+			resp, err = cli.SendMessage(context.Background(), inlineJID, msg, whatsmeow.SendRequestExtra{
+				BotPersonaID: personaID,
+				InlineBotJID: types.MetaAIJID,
+			})
+		} else {
+			text := strings.Join(args, " ")
+			msg := &waE2E.Message{
+				Conversation: &text,
+			}
+			resp, err = cli.SendMessage(context.Background(), types.MetaAIJID, msg, whatsmeow.SendRequestExtra{
+				BotPersonaID: personaID,
+			})
+		}
+		if err != nil {
+			log.Errorf("Error sending bot message: %v", err)
+		} else {
+			log.Infof("Bot message sent (server timestamp: %s)", resp.Timestamp)
+		}
 	}
 }
 

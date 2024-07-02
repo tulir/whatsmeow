@@ -3,3 +3,4 @@
 *.json
 *.png
 *.jpe
+vendor/

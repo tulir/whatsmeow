@@ -174,19 +174,34 @@ func nodeToPreKeyBundle(deviceID uint32, node waBinary.Node) (*prekey.Bundle, er
 	}
 	identityKeyPub := *(*[32]byte)(identityKeyRaw)
 
-	preKey, err := nodeToPreKey(keysNode.GetChildByTag("key"))
-	if err != nil {
-		return nil, fmt.Errorf("invalid prekey in prekey response: %w", err)
+	preKeyNode, ok := keysNode.GetOptionalChildByTag("key")
+	preKey := &keys.PreKey{}
+	if ok {
+		var err error
+		preKey, err = nodeToPreKey(preKeyNode)
+		if err != nil {
+			return nil, fmt.Errorf("invalid prekey in prekey response: %w", err)
+		}
 	}
+
 	signedPreKey, err := nodeToPreKey(keysNode.GetChildByTag("skey"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid signed prekey in prekey response: %w", err)
 	}
 
-	return prekey.NewBundle(registrationID, deviceID,
-		optional.NewOptionalUint32(preKey.KeyID), signedPreKey.KeyID,
-		ecc.NewDjbECPublicKey(*preKey.Pub), ecc.NewDjbECPublicKey(*signedPreKey.Pub), *signedPreKey.Signature,
-		identity.NewKey(ecc.NewDjbECPublicKey(identityKeyPub))), nil
+	var bundle *prekey.Bundle
+	if ok {
+		bundle = prekey.NewBundle(registrationID, deviceID,
+			optional.NewOptionalUint32(preKey.KeyID), signedPreKey.KeyID,
+			ecc.NewDjbECPublicKey(*preKey.Pub), ecc.NewDjbECPublicKey(*signedPreKey.Pub), *signedPreKey.Signature,
+			identity.NewKey(ecc.NewDjbECPublicKey(identityKeyPub)))
+	} else {
+		bundle = prekey.NewBundle(registrationID, deviceID, optional.NewEmptyUint32(), signedPreKey.KeyID,
+			nil, ecc.NewDjbECPublicKey(*signedPreKey.Pub), *signedPreKey.Signature,
+			identity.NewKey(ecc.NewDjbECPublicKey(identityKeyPub)))
+	}
+
+	return bundle, nil
 }
 
 func nodeToPreKey(node waBinary.Node) (*keys.PreKey, error) {
