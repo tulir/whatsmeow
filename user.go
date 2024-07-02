@@ -330,6 +330,9 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 			devices = append(devices, cached.devices...)
 		} else if jid.Server == types.MessengerServer {
 			fbJIDsToSync = append(fbJIDsToSync, jid)
+		} else if jid.IsBot() {
+			// Bot JIDs do not have devices, the usync query is empty
+			devices = append(devices, jid)
 		} else {
 			jidsToSync = append(jidsToSync, jid)
 		}
