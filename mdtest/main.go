@@ -1069,6 +1069,11 @@ func handleCmd(cmd string, args []string) {
 		} else {
 			log.Infof("Bot message sent (server timestamp: %s)", resp.Timestamp)
 		}
+	case "fetchbotprofiles":
+		list, _ := cli.GetBotListV2()
+		log.Infof("Bots list: %+v", list)
+		profiles, _ := cli.GetBotProfiles(list)
+		log.Infof("Bots profiles: %+v", profiles)
 	}
 }
 

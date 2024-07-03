@@ -26,6 +26,29 @@ type UserInfo struct {
 	Devices      []JID
 }
 
+type BotListInfo struct {
+	BotJID    JID
+	PersonaID string
+}
+
+type BotProfileInfo struct {
+	JID                 JID
+	Name                string
+	Attributes          string
+	Description         string
+	Category            string
+	IsDefault           bool
+	Prompts             []string
+	PersonaID           string
+	Commands            []BotProfileCommand
+	CommandsDescription string
+}
+
+type BotProfileCommand struct {
+	Name        string
+	Description string
+}
+
 // ProfilePictureInfo contains the ID and URL for a WhatsApp user's profile picture or group's photo.
 type ProfilePictureInfo struct {
 	URL  string `json:"url"`  // The full URL for the image, can be downloaded with a simple HTTP request.
