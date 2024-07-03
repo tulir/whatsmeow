@@ -175,7 +175,7 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
 	if len(node.GetChildrenByTag("unavailable")) > 0 && len(node.GetChildrenByTag("enc")) == 0 {
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
-		go cli.sendRetryReceipt(node, info, true)
+		go cli.sendAck(node)
 		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true})
 		return
 	}
