@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -1029,15 +1030,16 @@ func handleCmd(cmd string, args []string) {
 		}
 		var inlineJID types.JID
 		if len(args) > 1 {
+			var numbersRegex = regexp.MustCompile(`^[0-9]+$`)
 			jid, ok := parseJID(args[0])
-			if ok {
+			if ok && numbersRegex.MatchString(jid.User) {
 				inlineJID = jid
 			} else {
 				inlineJID = types.EmptyJID
 			}
 		}
 
-		personaID := "867051314767696$760019659443059" // default meta bot personality: "Assistant"
+		personaID := proto.String("867051314767696$760019659443059") // default meta bot personality: "Assistant"
 
 		var resp, err = whatsmeow.SendResponse{}, error(nil)
 		if !inlineJID.IsEmpty() {
@@ -1049,20 +1051,27 @@ func handleCmd(cmd string, args []string) {
 						MentionedJID: []string{types.MetaAIJID.String()},
 					},
 				},
+				MessageContextInfo: &waE2E.MessageContextInfo{
+					BotMetadata: &waE2E.BotMetadata{
+						PersonaID: personaID,
+					},
+				},
 			}
 
 			resp, err = cli.SendMessage(context.Background(), inlineJID, msg, whatsmeow.SendRequestExtra{
-				BotPersonaID: personaID,
 				InlineBotJID: types.MetaAIJID,
 			})
 		} else {
 			text := strings.Join(args, " ")
 			msg := &waE2E.Message{
 				Conversation: &text,
+				MessageContextInfo: &waE2E.MessageContextInfo{
+					BotMetadata: &waE2E.BotMetadata{
+						PersonaID: personaID,
+					},
+				},
 			}
-			resp, err = cli.SendMessage(context.Background(), types.MetaAIJID, msg, whatsmeow.SendRequestExtra{
-				BotPersonaID: personaID,
-			})
+			resp, err = cli.SendMessage(context.Background(), types.MetaAIJID, msg)
 		}
 		if err != nil {
 			log.Errorf("Error sending bot message: %v", err)

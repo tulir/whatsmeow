@@ -132,8 +132,6 @@ type SendRequestExtra struct {
 	ID types.MessageID
 	// JID of the bot to be invoked (optional)
 	InlineBotJID types.JID
-	// Persona ID for the bot if you are accessing a bot (optional)
-	BotPersonaID string
 	// Should the message be sent as a peer message (protocol messages to your own devices, e.g. app state key requests)
 	Peer bool
 	// A timeout for the send request. Unlike timeouts using the context parameter, this only applies
@@ -218,12 +216,18 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	if isBotMode {
-		// common code for both inline and not inline modes
-		message.MessageContextInfo = &waE2E.MessageContextInfo{
-			BotMetadata: &waE2E.BotMetadata{
-				PersonaID: &req.BotPersonaID,
-			},
-			MessageSecret: random.Bytes(32),
+		if message.MessageContextInfo == nil {
+			message.MessageContextInfo = &waE2E.MessageContextInfo{}
+		}
+
+		if message.MessageContextInfo.MessageSecret == nil {
+			message.MessageContextInfo.MessageSecret = random.Bytes(32)
+		}
+
+		if message.MessageContextInfo.BotMetadata == nil {
+			message.MessageContextInfo.BotMetadata = &waE2E.BotMetadata{
+				PersonaID: proto.String("867051314767696$760019659443059"),
+			}
 		}
 
 		if isInlineBotMode {
@@ -249,13 +253,13 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 				},
 			}
 
-			messagePlaintext, deviceSentMessagePlaintext, marshalErr := marshalMessage(req.InlineBotJID, botMessage)
+			messagePlaintext, _, marshalErr := marshalMessage(req.InlineBotJID, botMessage)
 			if marshalErr != nil {
 				err = marshalErr
 				return
 			}
 
-			participantNodes, _ := cli.encryptMessageForDevices(ctx, []types.JID{req.InlineBotJID}, ownID, resp.ID, messagePlaintext, deviceSentMessagePlaintext, waBinary.Attrs{})
+			participantNodes, _ := cli.encryptMessageForDevices(ctx, []types.JID{req.InlineBotJID}, ownID, resp.ID, messagePlaintext, nil, waBinary.Attrs{})
 			botNode.Content = participantNodes
 		}
 	}
@@ -910,9 +914,10 @@ func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waE2E.Mess
 		})
 	}
 
-	if botNode.Tag == "bot" && len(botNode.Content.([]waBinary.Node)) > 0 {
+	if botNode.Tag == "bot" && botNode.Content != nil {
 		content = append(content, botNode)
 	}
+
 	if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
 		content = append(content, waBinary.Node{
 			Tag: "biz",
