@@ -45,19 +45,19 @@ type UploadResponse struct {
 //	resp, err := cli.Upload(context.Background(), yourImageBytes, whatsmeow.MediaImage)
 //	// handle error
 //
-//	imageMsg := &waProto.ImageMessage{
+//	imageMsg := &waE2E.ImageMessage{
 //		Caption:  proto.String("Hello, world!"),
 //		Mimetype: proto.String("image/png"), // replace this with the actual mime type
 //		// you can also optionally add other fields like ContextInfo and JpegThumbnail here
 //
-//		Url:           &resp.URL,
+//		URL:           &resp.URL,
 //		DirectPath:    &resp.DirectPath,
 //		MediaKey:      resp.MediaKey,
-//		FileEncSha256: resp.FileEncSHA256,
-//		FileSha256:    resp.FileSha256,
+//		FileEncSHA256: resp.FileEncSHA256,
+//		FileSHA256:    resp.FileSHA256,
 //		FileLength:    &resp.FileLength,
 //	}
-//	_, err = cli.SendMessage(context.Background(), targetJID, &waProto.Message{
+//	_, err = cli.SendMessage(context.Background(), targetJID, &waE2E.Message{
 //		ImageMessage: imageMsg,
 //	})
 //	// handle error again
@@ -94,7 +94,7 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 // UploadNewsletter uploads the given attachment to WhatsApp servers without encrypting it first.
 //
 // Newsletter media works mostly the same way as normal media, with a few differences:
-// * Since it's unencrypted, there's no MediaKey or FileEncSha256 fields.
+// * Since it's unencrypted, there's no MediaKey or FileEncSHA256 fields.
 // * There's a "media handle" that needs to be passed in SendRequestExtra.
 //
 // Example:
@@ -102,19 +102,19 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 //	resp, err := cli.UploadNewsletter(context.Background(), yourImageBytes, whatsmeow.MediaImage)
 //	// handle error
 //
-//	imageMsg := &waProto.ImageMessage{
+//	imageMsg := &waE2E.ImageMessage{
 //		// Caption, mime type and other such fields work like normal
 //		Caption:  proto.String("Hello, world!"),
 //		Mimetype: proto.String("image/png"),
 //
 //		// URL and direct path are also there like normal media
-//		Url:        &resp.URL,
+//		URL:        &resp.URL,
 //		DirectPath: &resp.DirectPath,
-//		FileSha256: resp.FileSha256,
+//		FileSHA256: resp.FileSHA256,
 //		FileLength: &resp.FileLength,
 //		// Newsletter media isn't encrypted, so the media key and file enc sha fields are not applicable
 //	}
-//	_, err = cli.SendMessage(context.Background(), newsletterJID, &waProto.Message{
+//	_, err = cli.SendMessage(context.Background(), newsletterJID, &waE2E.Message{
 //		ImageMessage: imageMsg,
 //	}, whatsmeow.SendRequestExtra{
 //		// Unlike normal media, newsletters also include a "media handle" in the send request.
