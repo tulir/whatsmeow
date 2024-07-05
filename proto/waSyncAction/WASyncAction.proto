@@ -59,8 +59,6 @@ message CallLogRecord {
 message WaffleAccountLinkStateAction {
 	enum AccountLinkState {
 		ACTIVE = 0;
-		PAUSED = 1;
-		UNLINKED = 2;
 	}
 
 	optional AccountLinkState linkState = 2;
@@ -195,7 +193,7 @@ message SyncActionValue {
 	optional PrivacySettingDisableLinkPreviewsAction privacySettingDisableLinkPreviewsAction = 53;
 	optional WAProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilities = 54;
 	optional NoteEditAction noteEditAction = 55;
-	optional FavoritesAction favorites = 56;
+	optional FavoritesAction favoritesAction = 56;
 	optional MerchantPaymentPartnerAction merchantPaymentPartnerAction = 57;
 	optional WaffleAccountLinkStateAction waffleAccountLinkStateAction = 58;
 }

@@ -530,6 +530,7 @@ message ProtocolMessage {
 		LID_MIGRATION_MAPPING_SYNC = 22;
 		REMINDER_MESSAGE = 23;
 		BOT_MEMU_ONBOARDING_MESSAGE = 24;
+		STATUS_MENTION_MESSAGE = 25;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -823,6 +824,10 @@ message ContextInfo {
 		optional string utmCampaign = 2;
 	}
 
+	message GroupInfoMetadata {
+		optional bool createdByCapi = 1;
+	}
+
 	message BusinessMessageForwardInfo {
 		optional string businessOwnerJID = 1;
 	}
@@ -862,6 +867,9 @@ message ContextInfo {
 	optional DataSharingContext dataSharingContext = 47;
 	optional bool alwaysShowAdAttribution = 48;
 	optional FeatureEligibilities featureEligibilities = 49;
+	optional string entryPointConversionExternalSource = 50;
+	optional string entryPointConversionExternalMedium = 51;
+	optional GroupInfoMetadata groupInfoMetadata = 52;
 }
 
 message BotPluginMetadata {
@@ -922,8 +930,24 @@ message BotReminderMetadata {
 	optional ReminderFrequency frequency = 5;
 }
 
+message BotModelMetadata {
+	enum PremiumModelStatus {
+		AVAILABLE = 1;
+		QUOTA_EXCEED_LIMIT = 2;
+	}
+
+	enum ModelType {
+		LLAMA_PROD = 1;
+		LLAMA_PROD_PREMIUM = 2;
+	}
+
+	optional ModelType modelType = 1;
+	optional PremiumModelStatus premiumModelStatus = 2;
+}
+
 message MessageAssociation {
 	enum AssociationType {
+		UNKNOWN = 0;
 		MEDIA_ALBUM = 1;
 		BOT_PLUGIN = 2;
 		EVENT_COVER_IMAGE = 3;
@@ -1017,6 +1041,7 @@ message DisappearingMode {
 		ACCOUNT_SETTING = 2;
 		BULK_CHANGE = 3;
 		BIZ_SUPPORTS_FB_HOSTING = 4;
+		UNKNOWN_GROUPS = 5;
 	}
 
 	enum Initiator {
@@ -1609,9 +1634,9 @@ message BotSuggestedPromptMetadata {
 }
 
 message BotMediaMetadata {
-	optional bytes fileSHA256 = 1;
-	optional bytes mediaKey = 2;
-	optional bytes fileEncSHA256 = 3;
+	optional string fileSHA256 = 1;
+	optional string mediaKey = 2;
+	optional string fileEncSHA256 = 3;
 	optional string directPath = 4;
 	optional int64 mediaKeyTimestamp = 5;
 	optional string mimetype = 6;
@@ -1631,6 +1656,7 @@ message BotMetadata {
 	optional BotMemuMetadata memuMetadata = 7;
 	optional string timezone = 8;
 	optional BotReminderMetadata reminderMetadata = 9;
+	optional BotModelMetadata modelMetadata = 10;
 }
 
 message DeviceListMetadata {

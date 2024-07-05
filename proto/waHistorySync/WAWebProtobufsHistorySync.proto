@@ -105,6 +105,7 @@ message Conversation {
 	optional uint32 commentsCount = 45;
 	optional bool locked = 46;
 	optional PrivacySystemMessage systemMessageToInsert = 47;
+	optional bool capiCreatedGroup = 48;
 }
 
 message GroupParticipant {
