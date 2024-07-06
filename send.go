@@ -211,9 +211,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	isBotMode := isInlineBotMode || to.IsBot()
-	var botNode = waBinary.Node{
-		Tag: "bot",
-	}
+	var botNode *waBinary.Node
 
 	if isBotMode {
 		if message.MessageContextInfo == nil {
@@ -260,7 +258,11 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 			}
 
 			participantNodes, _ := cli.encryptMessageForDevices(ctx, []types.JID{req.InlineBotJID}, ownID, resp.ID, messagePlaintext, nil, waBinary.Attrs{})
-			botNode.Content = participantNodes
+			botNode = &waBinary.Node{
+				Tag:     "bot",
+				Attrs:   nil,
+				Content: participantNodes,
+			}
 		}
 	}
 
@@ -599,7 +601,7 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 	return data, nil
 }
 
-func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings, botNode waBinary.Node) (string, []byte, error) {
+func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings, botNode *waBinary.Node) (string, []byte, error) {
 	var participants []types.JID
 	var err error
 	start := time.Now()
@@ -689,7 +691,7 @@ func (cli *Client) sendPeerMessage(to types.JID, id types.MessageID, message *wa
 	return data, nil
 }
 
-func (cli *Client) sendDM(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings, botNode waBinary.Node) ([]byte, error) {
+func (cli *Client) sendDM(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings, botNode *waBinary.Node) ([]byte, error) {
 	start := time.Now()
 	messagePlaintext, deviceSentMessagePlaintext, err := marshalMessage(to, message)
 	timings.Marshal = time.Since(start)
@@ -896,7 +898,7 @@ func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, mess
 	}, nil
 }
 
-func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waE2E.Message, msgAttrs waBinary.Attrs, includeIdentity bool, botNode waBinary.Node) []waBinary.Node {
+func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waE2E.Message, msgAttrs waBinary.Attrs, includeIdentity bool, botNode *waBinary.Node) []waBinary.Node {
 	content := []waBinary.Node{baseNode}
 	if includeIdentity {
 		content = append(content, cli.makeDeviceIdentityNode())
@@ -914,8 +916,8 @@ func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waE2E.Mess
 		})
 	}
 
-	if botNode.Tag == "bot" && botNode.Content != nil {
-		content = append(content, botNode)
+	if botNode != nil {
+		content = append(content, *botNode)
 	}
 
 	if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
@@ -930,7 +932,7 @@ func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waE2E.Mess
 	return content
 }
 
-func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, participants []types.JID, plaintext, dsmPlaintext []byte, timings *MessageDebugTimings, botNode waBinary.Node) (*waBinary.Node, []types.JID, error) {
+func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, participants []types.JID, plaintext, dsmPlaintext []byte, timings *MessageDebugTimings, botNode *waBinary.Node) (*waBinary.Node, []types.JID, error) {
 	start := time.Now()
 	allDevices, err := cli.GetUserDevicesContext(ctx, participants)
 	timings.GetDevices = time.Since(start)
