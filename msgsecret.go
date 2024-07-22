@@ -11,6 +11,9 @@ import (
 	"fmt"
 	"time"
 
+	"go.mau.fi/whatsmeow/proto/waCommon"
+	"go.mau.fi/whatsmeow/proto/waE2E"
+
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
@@ -26,7 +29,12 @@ type MsgSecretType string
 const (
 	EncSecretPollVote MsgSecretType = "Poll Vote"
 	EncSecretReaction MsgSecretType = "Enc Reaction"
+	EncSecretBotMsg   MsgSecretType = "Bot Message"
 )
+
+func applyBotMessageHKDF(messageSecret []byte) []byte {
+	return hkdfutil.SHA256(messageSecret, nil, []byte(EncSecretBotMsg), 32)
+}
 
 func generateMsgSecretKey(
 	modificationType MsgSecretType, modificationSender types.JID,
@@ -47,7 +55,7 @@ func generateMsgSecretKey(
 	return secretKey, additionalData
 }
 
-func getOrigSenderFromKey(msg *events.Message, key *waProto.MessageKey) (types.JID, error) {
+func getOrigSenderFromKey(msg *events.Message, key *waCommon.MessageKey) (types.JID, error) {
 	if key.GetFromMe() {
 		// fromMe always means the poll and vote were sent by the same user
 		return msg.Info.Sender, nil
@@ -70,23 +78,23 @@ func getOrigSenderFromKey(msg *events.Message, key *waProto.MessageKey) (types.J
 }
 
 type messageEncryptedSecret interface {
-	GetEncIv() []byte
+	GetEncIV() []byte
 	GetEncPayload() []byte
 }
 
-func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waProto.MessageKey) ([]byte, error) {
+func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waCommon.MessageKey) ([]byte, error) {
 	pollSender, err := getOrigSenderFromKey(msg, origMsgKey)
 	if err != nil {
 		return nil, err
 	}
-	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(msg.Info.Chat, pollSender, origMsgKey.GetId())
+	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(msg.Info.Chat, pollSender, origMsgKey.GetID())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get original message secret key: %w", err)
 	} else if baseEncKey == nil {
 		return nil, ErrOriginalMessageSecretNotFound
 	}
-	secretKey, additionalData := generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetId(), pollSender, baseEncKey)
-	plaintext, err := gcmutil.Decrypt(secretKey, encrypted.GetEncIv(), encrypted.GetEncPayload(), additionalData)
+	secretKey, additionalData := generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), pollSender, baseEncKey)
+	plaintext, err := gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
 	}
@@ -115,6 +123,18 @@ func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.
 	return ciphertext, iv, nil
 }
 
+func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageID types.MessageID, targetSenderJID types.JID, info *types.MessageInfo) ([]byte, error) {
+	// gcm decrypt key generation
+	newKey, additionalData := generateMsgSecretKey("", info.Sender, messageID, targetSenderJID, applyBotMessageHKDF(messageSecret))
+
+	plaintext, err := gcmutil.Decrypt(newKey, msMsg.GetEncIV(), msMsg.GetEncPayload(), additionalData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
+	}
+
+	return plaintext, nil
+}
+
 // DecryptReaction decrypts a reaction update message. This form of reactions hasn't been rolled out yet,
 // so this function is likely not of much use.
 //
@@ -126,7 +146,7 @@ func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.
 //		}
 //		fmt.Printf("Reaction message: %+v\n", reaction)
 //	}
-func (cli *Client) DecryptReaction(reaction *events.Message) (*waProto.ReactionMessage, error) {
+func (cli *Client) DecryptReaction(reaction *events.Message) (*waE2E.ReactionMessage, error) {
 	encReaction := reaction.Message.GetEncReactionMessage()
 	if encReaction == nil {
 		return nil, ErrNotEncryptedReactionMessage
@@ -135,7 +155,7 @@ func (cli *Client) DecryptReaction(reaction *events.Message) (*waProto.ReactionM
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt reaction: %w", err)
 	}
-	var msg waProto.ReactionMessage
+	var msg waE2E.ReactionMessage
 	err = proto.Unmarshal(plaintext, &msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode reaction protobuf: %w", err)
@@ -156,7 +176,7 @@ func (cli *Client) DecryptReaction(reaction *events.Message) (*waProto.ReactionM
 //			fmt.Printf("- %X\n", hash)
 //		}
 //	}
-func (cli *Client) DecryptPollVote(vote *events.Message) (*waProto.PollVoteMessage, error) {
+func (cli *Client) DecryptPollVote(vote *events.Message) (*waE2E.PollVoteMessage, error) {
 	pollUpdate := vote.Message.GetPollUpdateMessage()
 	if pollUpdate == nil {
 		return nil, ErrNotPollUpdateMessage
@@ -165,7 +185,7 @@ func (cli *Client) DecryptPollVote(vote *events.Message) (*waProto.PollVoteMessa
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt poll vote: %w", err)
 	}
-	var msg waProto.PollVoteMessage
+	var msg waE2E.PollVoteMessage
 	err = proto.Unmarshal(plaintext, &msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode poll vote protobuf: %w", err)
@@ -173,11 +193,11 @@ func (cli *Client) DecryptPollVote(vote *events.Message) (*waProto.PollVoteMessa
 	return &msg, nil
 }
 
-func getKeyFromInfo(msgInfo *types.MessageInfo) *waProto.MessageKey {
-	creationKey := &waProto.MessageKey{
-		RemoteJid: proto.String(msgInfo.Chat.String()),
+func getKeyFromInfo(msgInfo *types.MessageInfo) *waCommon.MessageKey {
+	creationKey := &waCommon.MessageKey{
+		RemoteJID: proto.String(msgInfo.Chat.String()),
 		FromMe:    proto.Bool(msgInfo.IsFromMe),
-		Id:        proto.String(msgInfo.ID),
+		ID:        proto.String(msgInfo.ID),
 	}
 	if msgInfo.IsGroup {
 		creationKey.Participant = proto.String(msgInfo.Sender.String())
@@ -255,8 +275,8 @@ func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waProto.Po
 		PollCreationMessageKey: getKeyFromInfo(pollInfo),
 		Vote: &waProto.PollEncValue{
 			EncPayload: ciphertext,
-			EncIv:      iv,
+			EncIV:      iv,
 		},
-		SenderTimestampMs: proto.Int64(time.Now().UnixMilli()),
+		SenderTimestampMS: proto.Int64(time.Now().UnixMilli()),
 	}, nil
 }

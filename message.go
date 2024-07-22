@@ -16,6 +16,8 @@ import (
 	"runtime/debug"
 	"time"
 
+	"go.mau.fi/whatsmeow/proto/waE2E"
+
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/protocol"
 	"go.mau.fi/libsignal/session"
@@ -88,9 +90,45 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		} else {
 			source.Chat = from.ToNonAD()
 		}
+	} else if from.IsBot() {
+		source.Sender = from
+		meta := node.GetChildByTag("meta")
+		ag = meta.AttrGetter()
+		targetChatJID := ag.OptionalJID("target_chat_jid")
+		if targetChatJID != nil {
+			source.Chat = targetChatJID.ToNonAD()
+		} else {
+			source.Chat = from
+		}
 	} else {
 		source.Chat = from.ToNonAD()
 		source.Sender = from
+	}
+	err = ag.Error()
+	return
+}
+
+func (cli *Client) parseMsgBotInfo(node waBinary.Node) (botInfo types.MsgBotInfo, err error) {
+	botNode := node.GetChildByTag("bot")
+
+	ag := botNode.AttrGetter()
+	botInfo.EditType = types.BotEditType(ag.String("edit"))
+	if botInfo.EditType == types.EditTypeInner || botInfo.EditType == types.EditTypeLast {
+		botInfo.EditTargetID = types.MessageID(ag.String("edit_target_id"))
+		botInfo.EditSenderTimestampMS = ag.UnixMilli("sender_timestamp_ms")
+	}
+	err = ag.Error()
+	return
+}
+
+func (cli *Client) parseMsgMetaInfo(node waBinary.Node) (metaInfo types.MsgMetaInfo, err error) {
+	metaNode := node.GetChildByTag("meta")
+
+	ag := metaNode.AttrGetter()
+	metaInfo.TargetID = types.MessageID(ag.String("target_id"))
+	targetSenderJID := ag.OptionalJIDOrEmpty("target_sender_jid")
+	if targetSenderJID.User != "" {
+		metaInfo.TargetSender = targetSenderJID
 	}
 	err = ag.Error()
 	return
@@ -123,6 +161,16 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 			info.VerifiedName, err = parseVerifiedNameContent(child)
 			if err != nil {
 				cli.Log.Warnf("Failed to parse verified_name node in %s: %v", info.ID, err)
+			}
+		case "bot":
+			info.MsgBotInfo, err = cli.parseMsgBotInfo(child)
+			if err != nil {
+				cli.Log.Warnf("Failed to parse <bot> node in %s: %v", info.ID, err)
+			}
+		case "meta":
+			info.MsgMetaInfo, err = cli.parseMsgMetaInfo(child)
+			if err != nil {
+				cli.Log.Warnf("Failed to parse <meta> node in %s: %v", info.ID, err)
 			}
 		case "franking":
 			// TODO
@@ -175,7 +223,7 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
 	if len(node.GetChildrenByTag("unavailable")) > 0 && len(node.GetChildrenByTag("enc")) == 0 {
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
-		go cli.sendRetryReceipt(node, info, true)
+		go cli.sendAck(node)
 		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true})
 		return
 	}
@@ -200,10 +248,47 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			containsDirectMsg = true
 		} else if info.IsGroup && encType == "skmsg" {
 			decrypted, err = cli.decryptGroupMsg(&child, info.Sender, info.Chat)
+		} else if encType == "msmsg" && info.Sender.IsBot() {
+			// Meta AI / other bots (biz?):
+
+			// step 1: get message secret
+			targetSenderJID := info.MsgMetaInfo.TargetSender
+			if targetSenderJID.User == "" {
+				// if no targetSenderJID in <meta> this must be ourselves (one-one-one mode)
+				targetSenderJID = cli.getOwnID()
+			}
+
+			messageSecret, err := cli.Store.MsgSecrets.GetMessageSecret(info.Chat, targetSenderJID, info.MsgMetaInfo.TargetID)
+			if err != nil || messageSecret == nil {
+				cli.Log.Warnf("Error getting message secret for bot msg with id %s", node.AttrGetter().String("id"))
+				continue
+			}
+
+			// step 2: get MessageSecretMessage
+			byteContents := child.Content.([]byte) // <enc> contents
+			var msMsg waE2E.MessageSecretMessage
+
+			err = proto.Unmarshal(byteContents, &msMsg)
+			if err != nil {
+				cli.Log.Warnf("Error decoding MessageSecretMesage protobuf %v", err)
+				continue
+			}
+
+			// step 3: determine best message id for decryption
+			var messageID string
+			if info.MsgBotInfo.EditType == types.EditTypeInner || info.MsgBotInfo.EditType == types.EditTypeLast {
+				messageID = info.MsgBotInfo.EditTargetID
+			} else {
+				messageID = info.ID
+			}
+
+			// step 4: decrypt and voila
+			decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, messageID, targetSenderJID, info)
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
 			continue
 		}
+
 		if err != nil {
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
@@ -220,7 +305,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			cli.cancelDelayedRequestFromPhone(info.ID)
 		}
 
-		var msg waProto.Message
+		var msg waE2E.Message
 		switch ag.Int("v") {
 		case 2:
 			err = proto.Unmarshal(decrypted, &msg)

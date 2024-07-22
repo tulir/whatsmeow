@@ -1,0 +1,186 @@
+syntax = "proto2";
+package WAMediaTransport;
+option go_package = "go.mau.fi/whatsmeow/proto/waMediaTransport";
+
+import "waCommon/WACommon.proto";
+
+message WAMediaTransport {
+	message Ancillary {
+		message Thumbnail {
+			message DownloadableThumbnail {
+				optional bytes fileSHA256 = 1;
+				optional bytes fileEncSHA256 = 2;
+				optional string directPath = 3;
+				optional bytes mediaKey = 4;
+				optional int64 mediaKeyTimestamp = 5;
+				optional string objectID = 6;
+				optional bytes thumbnailScansSidecar = 7;
+				repeated uint32 thumbnailScanLengths = 8;
+			}
+
+			optional bytes JPEGThumbnail = 1;
+			optional DownloadableThumbnail downloadableThumbnail = 2;
+			optional uint32 thumbnailWidth = 3;
+			optional uint32 thumbnailHeight = 4;
+		}
+
+		optional uint64 fileLength = 1;
+		optional string mimetype = 2;
+		optional Thumbnail thumbnail = 3;
+		optional string objectID = 4;
+	}
+
+	message Integral {
+		optional bytes fileSHA256 = 1;
+		optional bytes mediaKey = 2;
+		optional bytes fileEncSHA256 = 3;
+		optional string directPath = 4;
+		optional int64 mediaKeyTimestamp = 5;
+	}
+
+	optional Integral integral = 1;
+	optional Ancillary ancillary = 2;
+}
+
+message ImageTransport {
+	message Ancillary {
+		enum HdType {
+			NONE = 0;
+			LQ_4K = 1;
+			HQ_4K = 2;
+		}
+
+		optional uint32 height = 1;
+		optional uint32 width = 2;
+		optional bytes scansSidecar = 3;
+		repeated uint32 scanLengths = 4;
+		optional bytes midQualityFileSHA256 = 5;
+		optional HdType hdType = 6;
+	}
+
+	message Integral {
+		optional WAMediaTransport transport = 1;
+	}
+
+	optional Integral integral = 1;
+	optional Ancillary ancillary = 2;
+}
+
+message VideoTransport {
+	message Ancillary {
+		enum Attribution {
+			NONE = 0;
+			GIPHY = 1;
+			TENOR = 2;
+		}
+
+		optional uint32 seconds = 1;
+		optional WACommon.MessageText caption = 2;
+		optional bool gifPlayback = 3;
+		optional uint32 height = 4;
+		optional uint32 width = 5;
+		optional bytes sidecar = 6;
+		optional Attribution gifAttribution = 7;
+	}
+
+	message Integral {
+		optional WAMediaTransport transport = 1;
+	}
+
+	optional Integral integral = 1;
+	optional Ancillary ancillary = 2;
+}
+
+message AudioTransport {
+	message Ancillary {
+		message AvatarAudio {
+			enum AnimationsType {
+				TALKING_A = 0;
+				IDLE_A = 1;
+				TALKING_B = 2;
+				IDLE_B = 3;
+				BACKGROUND = 4;
+			}
+
+			message DownloadableAvatarAnimations {
+				optional bytes fileSHA256 = 1;
+				optional bytes fileEncSHA256 = 2;
+				optional string directPath = 3;
+				optional bytes mediaKey = 4;
+				optional int64 mediaKeyTimestamp = 5;
+				optional string objectID = 6;
+				optional AnimationsType animationsType = 7;
+			}
+
+			optional uint32 poseID = 1;
+			repeated DownloadableAvatarAnimations avatarAnimations = 2;
+		}
+
+		optional uint32 seconds = 1;
+		optional AvatarAudio avatarAudio = 2;
+	}
+
+	message Integral {
+		enum AudioFormat {
+			UNKNOWN = 0;
+			OPUS = 1;
+		}
+
+		optional WAMediaTransport transport = 1;
+		optional AudioFormat audioFormat = 2;
+	}
+
+	optional Integral integral = 1;
+	optional Ancillary ancillary = 2;
+}
+
+message DocumentTransport {
+	message Ancillary {
+		optional uint32 pageCount = 1;
+	}
+
+	message Integral {
+		optional WAMediaTransport transport = 1;
+	}
+
+	optional Integral integral = 1;
+	optional Ancillary ancillary = 2;
+}
+
+message StickerTransport {
+	message Ancillary {
+		optional uint32 pageCount = 1;
+		optional uint32 height = 2;
+		optional uint32 width = 3;
+		optional uint32 firstFrameLength = 4;
+		optional bytes firstFrameSidecar = 5;
+		optional string mustacheText = 6;
+		optional bool isThirdParty = 7;
+		optional string receiverFetchID = 8;
+	}
+
+	message Integral {
+		optional WAMediaTransport transport = 1;
+		optional bool isAnimated = 2;
+		optional string receiverFetchID = 3;
+	}
+
+	optional Integral integral = 1;
+	optional Ancillary ancillary = 2;
+}
+
+message ContactTransport {
+	message Ancillary {
+		optional string displayName = 1;
+	}
+
+	message Integral {
+		oneof contact {
+			string vcard = 1;
+			WAMediaTransport downloadableVcard = 2;
+		}
+	}
+
+	optional Integral integral = 1;
+	optional Ancillary ancillary = 2;
+}

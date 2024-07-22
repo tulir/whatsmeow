@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Tulir Asokan
+// Copyright (c) 2024 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,75 +7,57 @@
 package whatsmeow
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
+	"regexp"
+	"strconv"
 
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
 )
 
-// CheckUpdateResponse is the data returned by CheckUpdate.
-type CheckUpdateResponse struct {
-	IsBroken       bool
-	IsBelowSoft    bool
-	IsBelowHard    bool
-	CurrentVersion string
+var clientVersionRegex = regexp.MustCompile(`"client_revision":(\d+),`)
 
-	ParsedVersion store.WAVersionContainer `json:"-"`
-}
-
-// CheckUpdateURL is the base URL to check for WhatsApp web updates.
-const CheckUpdateURL = "https://web.whatsapp.com/check-update"
-
-// CheckUpdate asks the WhatsApp servers if there is an update available
-// (using the HTTP client and proxy settings of this whatsmeow Client instance).
-func (cli *Client) CheckUpdate() (respData CheckUpdateResponse, err error) {
-	return CheckUpdate(cli.http)
-}
-
-// CheckUpdate asks the WhatsApp servers if there is an update available.
-func CheckUpdate(httpClient *http.Client) (respData CheckUpdateResponse, err error) {
-	var reqURL *url.URL
-	reqURL, err = url.Parse(CheckUpdateURL)
+// GetLatestVersion returns the latest version number from web.whatsapp.com.
+//
+// After fetching, you can update the version to use using store.SetWAVersion, e.g.
+//
+//	latestVer, err := GetLatestVersion(nil)
+//	if err != nil {
+//		return err
+//	}
+//	store.SetWAVersion(*latestVer)
+func GetLatestVersion(httpClient *http.Client) (*store.WAVersionContainer, error) {
+	req, err := http.NewRequest(http.MethodGet, socket.Origin, nil)
 	if err != nil {
-		err = fmt.Errorf("failed to parse check update URL: %w", err)
-		return
+		return nil, fmt.Errorf("failed to prepare request: %w", err)
 	}
-	q := reqURL.Query()
-	q.Set("version", store.GetWAVersion().String())
-	q.Set("platform", "web")
-	reqURL.RawQuery = q.Encode()
-	var req *http.Request
-	req, err = http.NewRequest(http.MethodGet, reqURL.String(), nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36")
+	req.Header.Set("Sec-Fetch-Dest", "document")
+	req.Header.Set("Sec-Fetch-Mode", "navigate")
+	req.Header.Set("Sec-Fetch-Site", "none")
+	req.Header.Set("Sec-Fetch-User", "?1")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+	resp, err := httpClient.Do(req)
 	if err != nil {
-		err = fmt.Errorf("failed to prepare request: %w", err)
-		return
+		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
-	req.Header.Set("Origin", socket.Origin)
-	req.Header.Set("Referer", socket.Origin+"/")
-	var resp *http.Response
-	resp, err = httpClient.Do(req)
+	data, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
 	if err != nil {
-		err = fmt.Errorf("failed to send request: %w", err)
-		return
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	} else if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("unexpected response with status %d: %s", resp.StatusCode, data)
+	} else if match := clientVersionRegex.FindSubmatch(data); len(match) == 0 {
+		return nil, fmt.Errorf("version number not found")
+	} else if parsedVer, err := strconv.ParseInt(string(match[1]), 10, 64); err != nil {
+		return nil, fmt.Errorf("failed to parse version number: %w", err)
+	} else {
+		return &store.WAVersionContainer{2, 3000, uint32(parsedVer)}, nil
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		body, _ := io.ReadAll(resp.Body)
-		err = fmt.Errorf("unexpected response with status %d: %s", resp.StatusCode, body)
-		return
-	}
-	err = json.NewDecoder(resp.Body).Decode(&respData)
-	if err != nil {
-		err = fmt.Errorf("failed to decode response body (status %d): %w", resp.StatusCode, err)
-		return
-	}
-	respData.ParsedVersion, err = store.ParseVersion(respData.CurrentVersion)
-	if err != nil {
-		err = fmt.Errorf("failed to parse version string: %w", err)
-	}
-	return
 }

@@ -1,0 +1,15 @@
+syntax = "proto2";
+package WAArmadilloICDC;
+option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloICDC";
+
+message ICDCIdentityList {
+	optional int32 seq = 1;
+	optional int64 timestamp = 2;
+	repeated bytes devices = 3;
+	optional int32 signingDeviceIndex = 4;
+}
+
+message SignedICDCIdentityList {
+	optional bytes details = 1;
+	optional bytes signature = 2;
+}

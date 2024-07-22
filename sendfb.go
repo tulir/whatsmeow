@@ -24,10 +24,10 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/binary/armadillo/waCommon"
-	"go.mau.fi/whatsmeow/binary/armadillo/waConsumerApplication"
-	"go.mau.fi/whatsmeow/binary/armadillo/waMsgApplication"
-	"go.mau.fi/whatsmeow/binary/armadillo/waMsgTransport"
+	"go.mau.fi/whatsmeow/proto/waCommon"
+	"go.mau.fi/whatsmeow/proto/waConsumerApplication"
+	"go.mau.fi/whatsmeow/proto/waMsgApplication"
+	"go.mau.fi/whatsmeow/proto/waMsgTransport"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -59,7 +59,7 @@ func (cli *Client) SendFBMessage(
 	if metadata == nil {
 		metadata = &waMsgApplication.MessageApplication_Metadata{}
 	}
-	metadata.FrankingVersion = 0
+	metadata.FrankingVersion = proto.Int32(0)
 	metadata.FrankingKey = random.Bytes(32)
 	msgAttrs := getAttrsFromFBMessage(message)
 	messageAppProto := &waMsgApplication.MessageApplication{
@@ -69,10 +69,10 @@ func (cli *Client) SendFBMessage(
 					SubProtocol: &waMsgApplication.MessageApplication_SubProtocolPayload_ConsumerMessage{
 						ConsumerMessage: &waCommon.SubProtocol{
 							Payload: consumerMessage,
-							Version: FBConsumerMessageVersion,
+							Version: proto.Int32(FBConsumerMessageVersion),
 						},
 					},
-					FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER,
+					FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER.Enum(),
 				},
 			},
 		},
@@ -206,7 +206,7 @@ func (cli *Client) sendGroupV3(
 		return "", nil, fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
 	}
 	skdm := &waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage{
-		GroupID:                             to.String(),
+		GroupID:                             proto.String(to.String()),
 		AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),
 	}
 
@@ -215,9 +215,9 @@ func (cli *Client) sendGroupV3(
 		Payload: &waMsgTransport.MessageTransport_Payload{
 			ApplicationPayload: &waCommon.SubProtocol{
 				Payload: messageApp,
-				Version: FBMessageApplicationVersion,
+				Version: proto.Int32(FBMessageApplicationVersion),
 			},
-			FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER,
+			FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER.Enum(),
 		},
 		Protocol: &waMsgTransport.MessageTransport_Protocol{
 			Integral: &waMsgTransport.MessageTransport_Protocol_Integral{
@@ -229,8 +229,8 @@ func (cli *Client) sendGroupV3(
 				DeviceListMetadata: nil,
 				Icdc:               nil,
 				BackupDirective: &waMsgTransport.MessageTransport_Protocol_Ancillary_BackupDirective{
-					MessageID:  id,
-					ActionType: waMsgTransport.MessageTransport_Protocol_Ancillary_BackupDirective_UPSERT,
+					MessageID:  &id,
+					ActionType: waMsgTransport.MessageTransport_Protocol_Ancillary_BackupDirective_UPSERT.Enum(),
 				},
 			},
 		},
@@ -284,9 +284,9 @@ func (cli *Client) sendDMV3(
 	payload := &waMsgTransport.MessageTransport_Payload{
 		ApplicationPayload: &waCommon.SubProtocol{
 			Payload: messageApp,
-			Version: FBMessageApplicationVersion,
+			Version: proto.Int32(FBMessageApplicationVersion),
 		},
-		FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER,
+		FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER.Enum(),
 	}
 
 	node, allDevices, err := cli.prepareMessageNodeV3(ctx, to, ownID, id, payload, nil, msgAttrs, frankingTag, []types.JID{to, ownID.ToNonAD()}, timings)
@@ -420,8 +420,8 @@ func (cli *Client) prepareMessageNodeV3(
 	}
 
 	dsm := &waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage{
-		DestinationJID: to.String(),
-		Phash:          "",
+		DestinationJID: proto.String(to.String()),
+		Phash:          proto.String(""),
 	}
 
 	start = time.Now()

@@ -257,7 +257,7 @@ func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo Patc
 			Record: &waProto.SyncdRecord{
 				Index: &waProto.SyncdIndex{Blob: indexMac},
 				Value: &waProto.SyncdValue{Blob: append(encryptedContent, valueMac...)},
-				KeyId: &waProto.KeyId{Id: keyID},
+				KeyID: &waProto.KeyId{ID: keyID},
 			},
 		})
 	}
@@ -275,11 +275,11 @@ func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo Patc
 	state.Version += 1
 
 	syncdPatch := &waProto.SyncdPatch{
-		SnapshotMac: state.generateSnapshotMAC(patchInfo.Type, keys.SnapshotMAC),
-		KeyId:       &waProto.KeyId{Id: keyID},
+		SnapshotMAC: state.generateSnapshotMAC(patchInfo.Type, keys.SnapshotMAC),
+		KeyID:       &waProto.KeyId{ID: keyID},
 		Mutations:   mutations,
 	}
-	syncdPatch.PatchMac = generatePatchMAC(syncdPatch, patchInfo.Type, keys.PatchMAC, state.Version)
+	syncdPatch.PatchMAC = generatePatchMAC(syncdPatch, patchInfo.Type, keys.PatchMAC, state.Version)
 
 	result, err := proto.Marshal(syncdPatch)
 	if err != nil {

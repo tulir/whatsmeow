@@ -21,11 +21,11 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/binary/armadillo/waCommon"
-	"go.mau.fi/whatsmeow/binary/armadillo/waConsumerApplication"
-	"go.mau.fi/whatsmeow/binary/armadillo/waMsgApplication"
-	"go.mau.fi/whatsmeow/binary/armadillo/waMsgTransport"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waCommon"
+	"go.mau.fi/whatsmeow/proto/waConsumerApplication"
+	"go.mau.fi/whatsmeow/proto/waMsgApplication"
+	"go.mau.fi/whatsmeow/proto/waMsgTransport"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -163,12 +163,12 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		}
 		if msg.wa != nil {
 			msg.wa.SenderKeyDistributionMessage = &waProto.SenderKeyDistributionMessage{
-				GroupId:                             proto.String(receipt.Chat.String()),
+				GroupID:                             proto.String(receipt.Chat.String()),
 				AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),
 			}
 		} else {
 			fbSKDM = &waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage{
-				GroupID:                             receipt.Chat.String(),
+				GroupID:                             proto.String(receipt.Chat.String()),
 				AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),
 			}
 		}
@@ -176,13 +176,13 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if msg.wa != nil {
 			msg.wa = &waProto.Message{
 				DeviceSentMessage: &waProto.DeviceSentMessage{
-					DestinationJid: proto.String(receipt.Chat.String()),
+					DestinationJID: proto.String(receipt.Chat.String()),
 					Message:        msg.wa,
 				},
 			}
 		} else {
 			fbDSM = &waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage{
-				DestinationJID: receipt.Chat.String(),
+				DestinationJID: proto.String(receipt.Chat.String()),
 			}
 		}
 	}
@@ -250,9 +250,9 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		encrypted, err = cli.encryptMessageForDeviceV3(&waMsgTransport.MessageTransport_Payload{
 			ApplicationPayload: &waCommon.SubProtocol{
 				Payload: plaintext,
-				Version: FBMessageApplicationVersion,
+				Version: proto.Int32(FBMessageApplicationVersion),
 			},
-			FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER,
+			FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER.Enum(),
 		}, fbSKDM, fbDSM, receipt.Sender, bundle, encAttrs)
 	}
 	if err != nil {
@@ -280,7 +280,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	}
 	var content []waBinary.Node
 	if msg.wa != nil {
-		content = cli.getMessageContent(*encrypted, msg.wa, attrs, includeDeviceIdentity)
+		content = cli.getMessageContent(*encrypted, msg.wa, attrs, includeDeviceIdentity, nil)
 	} else {
 		content = []waBinary.Node{
 			*encrypted,

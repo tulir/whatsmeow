@@ -1,0 +1,33 @@
+
+CwaQuickPromotionSurfaces/WAWebProtobufsQuickPromotionSurfaces.proto$WAWebProtobufsQuickPromotionSurfaces"Ï
+QPÿ
+FilterClauseS
+
+clauseType (23.WAWebProtobufsQuickPromotionSurfaces.QP.ClauseTypeR
+clauseTypeO
+clauses (25.WAWebProtobufsQuickPromotionSurfaces.QP.FilterClauseRclausesI
+filters (2/.WAWebProtobufsQuickPromotionSurfaces.QP.FilterRfiltersä
+Filter
+
+filterName (	R
+filterNameY
+
+parameters (29.WAWebProtobufsQuickPromotionSurfaces.QP.FilterParametersR
+parametersY
+filterResult (25.WAWebProtobufsQuickPromotionSurfaces.QP.FilterResultRfilterResultƒ
+clientNotSupportedConfig (2G.WAWebProtobufsQuickPromotionSurfaces.QP.FilterClientNotSupportedConfigRclientNotSupportedConfig:
+FilterParameters
+key (	Rkey
+value (	Rvalue"0
+FilterResult
+TRUE	
+FALSE
+UNKNOWN"J
+FilterClientNotSupportedConfig
+PASS_BY_DEFAULT
+FAIL_BY_DEFAULT"&
+
+ClauseType
+AND
+OR
+NORB4Z2go.mau.fi/whatsmeow/proto/waQuickPromotionSurfaces
