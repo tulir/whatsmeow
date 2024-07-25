@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 )
@@ -27,7 +28,46 @@ var (
 	ErrQRStoreContainsID  = errors.New("GetQRChannel can only be called when there's no user ID in the client's Store")
 
 	ErrNoPushName = errors.New("can't send presence without PushName set")
+
+	ErrNoPrivacyToken = errors.New("no privacy token stored")
+
+	ErrAppStateUpdate = errors.New("server returned error updating app state")
 )
+
+// Errors that happen while confirming device pairing
+var (
+	ErrPairInvalidDeviceIdentityHMAC = errors.New("invalid device identity HMAC in pair success message")
+	ErrPairInvalidDeviceSignature    = errors.New("invalid device signature in pair success message")
+	ErrPairRejectedLocally           = errors.New("local PrePairCallback rejected pairing")
+)
+
+// PairProtoError is included in an events.PairError if the pairing failed due to a protobuf error.
+type PairProtoError struct {
+	Message  string
+	ProtoErr error
+}
+
+func (err *PairProtoError) Error() string {
+	return fmt.Sprintf("%s: %v", err.Message, err.ProtoErr)
+}
+
+func (err *PairProtoError) Unwrap() error {
+	return err.ProtoErr
+}
+
+// PairDatabaseError is included in an events.PairError if the pairing failed due to being unable to save the credentials to the device store.
+type PairDatabaseError struct {
+	Message string
+	DBErr   error
+}
+
+func (err *PairDatabaseError) Error() string {
+	return fmt.Sprintf("%s: %v", err.Message, err.DBErr)
+}
+
+func (err *PairDatabaseError) Unwrap() error {
+	return err.DBErr
+}
 
 var (
 	// ErrProfilePictureUnauthorized is returned by GetProfilePictureInfo when trying to get the profile picture of a user
@@ -48,6 +88,8 @@ var (
 	ErrInviteLinkRevoked = errors.New("that group invite link has been revoked")
 	// ErrBusinessMessageLinkNotFound is returned by ResolveBusinessMessageLink if the link doesn't exist or has been revoked.
 	ErrBusinessMessageLinkNotFound = errors.New("that business message link does not exist or has been revoked")
+	// ErrContactQRLinkNotFound is returned by ResolveContactQRLink if the link doesn't exist or has been revoked.
+	ErrContactQRLinkNotFound = errors.New("that contact QR link does not exist or has been revoked")
 	// ErrInvalidImageFormat is returned by SetGroupPhoto if the given photo is not in the correct format.
 	ErrInvalidImageFormat = errors.New("the given data is not a valid image")
 	// ErrMediaNotAvailableOnPhone is returned by DecryptMediaRetryNotification if the given event contains error code 2.
@@ -62,13 +104,29 @@ var (
 var (
 	ErrBroadcastListUnsupported = errors.New("sending to non-status broadcast lists is not yet supported")
 	ErrUnknownServer            = errors.New("can't send message to unknown server")
-	ErrRecipientADJID           = errors.New("message recipient must be normal (non-AD) JID")
+	ErrRecipientADJID           = errors.New("message recipient must be a user JID with no device part")
+	ErrServerReturnedError      = errors.New("server returned error")
+	ErrInvalidInlineBotID       = errors.New("invalid inline bot ID")
 )
+
+type DownloadHTTPError struct {
+	*http.Response
+}
+
+func (dhe DownloadHTTPError) Error() string {
+	return fmt.Sprintf("download failed with status code %d", dhe.StatusCode)
+}
+
+func (dhe DownloadHTTPError) Is(other error) bool {
+	var otherDHE DownloadHTTPError
+	return errors.As(other, &otherDHE) && dhe.StatusCode == otherDHE.StatusCode
+}
 
 // Some errors that Client.Download can return
 var (
-	ErrMediaDownloadFailedWith404 = errors.New("download failed with status code 404")
-	ErrMediaDownloadFailedWith410 = errors.New("download failed with status code 410")
+	ErrMediaDownloadFailedWith403 = DownloadHTTPError{Response: &http.Response{StatusCode: 403}}
+	ErrMediaDownloadFailedWith404 = DownloadHTTPError{Response: &http.Response{StatusCode: 404}}
+	ErrMediaDownloadFailedWith410 = DownloadHTTPError{Response: &http.Response{StatusCode: 410}}
 	ErrNoURLPresent               = errors.New("no url present")
 	ErrFileLengthMismatch         = errors.New("file length does not match")
 	ErrTooShortFile               = errors.New("file too short")
@@ -77,6 +135,12 @@ var (
 	ErrInvalidMediaSHA256         = errors.New("hash of media plaintext doesn't match")
 	ErrUnknownMediaType           = errors.New("unknown media type")
 	ErrNothingDownloadableFound   = errors.New("didn't find any attachments in message")
+)
+
+var (
+	ErrOriginalMessageSecretNotFound = errors.New("original message secret key not found")
+	ErrNotEncryptedReactionMessage   = errors.New("given message isn't an encrypted reaction message")
+	ErrNotPollUpdateMessage          = errors.New("given message isn't a poll update message")
 )
 
 type wrappedIQError struct {
@@ -110,12 +174,18 @@ type IQError struct {
 
 // Common errors returned by info queries for use with errors.Is
 var (
-	ErrIQBadRequest    error = &IQError{Code: 400, Text: "bad-request"}
-	ErrIQNotAuthorized error = &IQError{Code: 401, Text: "not-authorized"}
-	ErrIQForbidden     error = &IQError{Code: 403, Text: "forbidden"}
-	ErrIQNotFound      error = &IQError{Code: 404, Text: "item-not-found"}
-	ErrIQNotAcceptable error = &IQError{Code: 406, Text: "not-acceptable"}
-	ErrIQGone          error = &IQError{Code: 410, Text: "gone"}
+	ErrIQBadRequest          error = &IQError{Code: 400, Text: "bad-request"}
+	ErrIQNotAuthorized       error = &IQError{Code: 401, Text: "not-authorized"}
+	ErrIQForbidden           error = &IQError{Code: 403, Text: "forbidden"}
+	ErrIQNotFound            error = &IQError{Code: 404, Text: "item-not-found"}
+	ErrIQNotAllowed          error = &IQError{Code: 405, Text: "not-allowed"}
+	ErrIQNotAcceptable       error = &IQError{Code: 406, Text: "not-acceptable"}
+	ErrIQGone                error = &IQError{Code: 410, Text: "gone"}
+	ErrIQResourceLimit       error = &IQError{Code: 419, Text: "resource-limit"}
+	ErrIQLocked              error = &IQError{Code: 423, Text: "locked"}
+	ErrIQInternalServerError error = &IQError{Code: 500, Text: "internal-server-error"}
+	ErrIQServiceUnavailable  error = &IQError{Code: 503, Text: "service-unavailable"}
+	ErrIQPartialServerError  error = &IQError{Code: 530, Text: "partial-server-error"}
 )
 
 func parseIQError(node *waBinary.Node) error {

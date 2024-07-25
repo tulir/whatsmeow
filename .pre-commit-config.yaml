@@ -1,0 +1,18 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+        exclude_types: [markdown]
+        exclude: LICENSE|def.proto
+      - id: end-of-file-fixer
+        exclude: LICENSE|def.proto
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/tekwizely/pre-commit-golang
+    rev: v1.0.0-rc.1
+    hooks:
+      - id: go-imports-repo
+        args: ["-w"]
+      - id: go-vet-repo-mod

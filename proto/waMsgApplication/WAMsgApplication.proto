@@ -1,0 +1,87 @@
+syntax = "proto2";
+package WAMsgApplication;
+option go_package = "go.mau.fi/whatsmeow/proto/waMsgApplication";
+
+import "waCommon/WACommon.proto";
+
+message MessageApplication {
+	message Metadata {
+		enum ThreadType {
+			DEFAULT = 0;
+			VANISH_MODE = 1;
+			DISAPPEARING_MESSAGES = 2;
+		}
+
+		message QuotedMessage {
+			optional string stanzaID = 1;
+			optional string remoteJID = 2;
+			optional string participant = 3;
+			optional Payload payload = 4;
+		}
+
+		message EphemeralSettingMap {
+			optional string chatJID = 1;
+			optional EphemeralSetting ephemeralSetting = 2;
+		}
+
+		oneof ephemeral {
+			EphemeralSetting chatEphemeralSetting = 1;
+			EphemeralSettingMap ephemeralSettingList = 2;
+			bytes ephemeralSharedSecret = 3;
+		}
+
+		optional uint32 forwardingScore = 5;
+		optional bool isForwarded = 6;
+		optional WACommon.SubProtocol businessMetadata = 7;
+		optional bytes frankingKey = 8;
+		optional int32 frankingVersion = 9;
+		optional QuotedMessage quotedMessage = 10;
+		optional ThreadType threadType = 11;
+		optional string readonlyMetadataDataclass = 12;
+		optional string groupID = 13;
+		optional uint32 groupSize = 14;
+		optional uint32 groupIndex = 15;
+		optional string botResponseID = 16;
+		optional string collapsibleID = 17;
+	}
+
+	message Payload {
+		oneof content {
+			Content coreContent = 1;
+			Signal signal = 2;
+			ApplicationData applicationData = 3;
+			SubProtocolPayload subProtocol = 4;
+		}
+	}
+
+	message SubProtocolPayload {
+		oneof subProtocol {
+			WACommon.SubProtocol consumerMessage = 2;
+			WACommon.SubProtocol businessMessage = 3;
+			WACommon.SubProtocol paymentMessage = 4;
+			WACommon.SubProtocol multiDevice = 5;
+			WACommon.SubProtocol voip = 6;
+			WACommon.SubProtocol armadillo = 7;
+		}
+
+		optional WACommon.FutureProofBehavior futureProof = 1;
+	}
+
+	message ApplicationData {
+	}
+
+	message Signal {
+	}
+
+	message Content {
+	}
+
+	message EphemeralSetting {
+		optional uint32 ephemeralExpiration = 2;
+		optional int64 ephemeralSettingTimestamp = 3;
+		optional bool isEphemeralSettingReset = 4;
+	}
+
+	optional Payload payload = 1;
+	optional Metadata metadata = 2;
+}

@@ -1,0 +1,12 @@
+syntax = "proto2";
+package WAWebProtobufsRoutingInfo;
+option go_package = "go.mau.fi/whatsmeow/proto/waRoutingInfo";
+
+message RoutingInfo {
+	repeated int32 regionID = 1;
+	repeated int32 clusterID = 2;
+	optional int32 taskID = 3;
+	optional bool debug = 4;
+	optional bool tcpBbr = 5;
+	optional bool tcpKeepalive = 6;
+}

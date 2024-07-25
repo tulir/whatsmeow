@@ -74,7 +74,7 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 			}
 		}
 		for _, mutation := range mutations {
-			cli.dispatchAppState(mutation, !fullSync || cli.EmitAppStateEventsOnFullSync)
+			cli.dispatchAppState(mutation, fullSync, cli.EmitAppStateEventsOnFullSync)
 		}
 	}
 	if fullSync {
@@ -105,7 +105,10 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 	return filteredMutations, contacts
 }
 
-func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts bool) {
+func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, emitOnFullSync bool) {
+
+	dispatchEvts := !fullSync || emitOnFullSync
+
 	if mutation.Operation != waProto.SyncdMutation_SET {
 		return
 	}
@@ -118,87 +121,143 @@ func (cli *Client) dispatchAppState(mutation appstate.Mutation, dispatchEvts boo
 	if len(mutation.Index) > 1 {
 		jid, _ = types.ParseJID(mutation.Index[1])
 	}
-	ts := time.Unix(mutation.Action.GetTimestamp(), 0)
+	ts := time.UnixMilli(mutation.Action.GetTimestamp())
 
 	var storeUpdateError error
 	var eventToDispatch interface{}
 	switch mutation.Index[0] {
-	case "mute":
+	case appstate.IndexMute:
 		act := mutation.Action.GetMuteAction()
-		eventToDispatch = &events.Mute{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.Mute{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		var mutedUntil time.Time
 		if act.GetMuted() {
-			mutedUntil = time.Unix(act.GetMuteEndTimestamp(), 0)
+			mutedUntil = time.UnixMilli(act.GetMuteEndTimestamp())
 		}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutMutedUntil(jid, mutedUntil)
 		}
-	case "pin_v1":
+	case appstate.IndexPin:
 		act := mutation.Action.GetPinAction()
-		eventToDispatch = &events.Pin{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.Pin{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutPinned(jid, act.GetPinned())
 		}
-	case "archive":
+	case appstate.IndexArchive:
 		act := mutation.Action.GetArchiveChatAction()
-		eventToDispatch = &events.Archive{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.Archive{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutArchived(jid, act.GetArchived())
 		}
-	case "contact":
+	case appstate.IndexContact:
 		act := mutation.Action.GetContactAction()
-		eventToDispatch = &events.Contact{JID: jid, Timestamp: ts, Action: act}
+		eventToDispatch = &events.Contact{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		if cli.Store.Contacts != nil {
 			storeUpdateError = cli.Store.Contacts.PutContactName(jid, act.GetFirstName(), act.GetFullName())
 		}
-	case "deleteChat":
+	case appstate.IndexClearChat:
+		act := mutation.Action.GetClearChatAction()
+		eventToDispatch = &events.ClearChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
+	case appstate.IndexDeleteChat:
 		act := mutation.Action.GetDeleteChatAction()
-		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act}
-	case "star":
+		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
+	case appstate.IndexStar:
 		if len(mutation.Index) < 5 {
 			return
 		}
 		evt := events.Star{
-			ChatJID:   jid,
-			MessageID: mutation.Index[2],
-			Timestamp: ts,
-			Action:    mutation.Action.GetStarAction(),
-			IsFromMe:  mutation.Index[3] == "1",
+			ChatJID:      jid,
+			MessageID:    mutation.Index[2],
+			Timestamp:    ts,
+			Action:       mutation.Action.GetStarAction(),
+			IsFromMe:     mutation.Index[3] == "1",
+			FromFullSync: fullSync,
 		}
 		if mutation.Index[4] != "0" {
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		eventToDispatch = &evt
-	case "deleteMessageForMe":
+	case appstate.IndexDeleteMessageForMe:
 		if len(mutation.Index) < 5 {
 			return
 		}
 		evt := events.DeleteForMe{
-			ChatJID:   jid,
-			MessageID: mutation.Index[2],
-			Timestamp: ts,
-			Action:    mutation.Action.GetDeleteMessageForMeAction(),
-			IsFromMe:  mutation.Index[3] == "1",
+			ChatJID:      jid,
+			MessageID:    mutation.Index[2],
+			Timestamp:    ts,
+			Action:       mutation.Action.GetDeleteMessageForMeAction(),
+			IsFromMe:     mutation.Index[3] == "1",
+			FromFullSync: fullSync,
 		}
 		if mutation.Index[4] != "0" {
 			evt.SenderJID, _ = types.ParseJID(mutation.Index[4])
 		}
 		eventToDispatch = &evt
-	case "markChatAsRead":
+	case appstate.IndexMarkChatAsRead:
 		eventToDispatch = &events.MarkChatAsRead{
-			JID:       jid,
-			Timestamp: ts,
-			Action:    mutation.Action.GetMarkChatAsReadAction(),
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       mutation.Action.GetMarkChatAsReadAction(),
+			FromFullSync: fullSync,
 		}
-	case "setting_pushName":
-		eventToDispatch = &events.PushNameSetting{Timestamp: ts, Action: mutation.Action.GetPushNameSetting()}
+	case appstate.IndexSettingPushName:
+		eventToDispatch = &events.PushNameSetting{
+			Timestamp:    ts,
+			Action:       mutation.Action.GetPushNameSetting(),
+			FromFullSync: fullSync,
+		}
 		cli.Store.PushName = mutation.Action.GetPushNameSetting().GetName()
 		err := cli.Store.Save()
 		if err != nil {
 			cli.Log.Errorf("Failed to save device store after updating push name: %v", err)
 		}
-	case "setting_unarchiveChats":
-		eventToDispatch = &events.UnarchiveChatsSetting{Timestamp: ts, Action: mutation.Action.GetUnarchiveChatsSetting()}
+	case appstate.IndexSettingUnarchiveChats:
+		eventToDispatch = &events.UnarchiveChatsSetting{
+			Timestamp:    ts,
+			Action:       mutation.Action.GetUnarchiveChatsSetting(),
+			FromFullSync: fullSync,
+		}
+	case appstate.IndexUserStatusMute:
+		eventToDispatch = &events.UserStatusMute{
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       mutation.Action.GetUserStatusMuteAction(),
+			FromFullSync: fullSync,
+		}
+	case appstate.IndexLabelEdit:
+		act := mutation.Action.GetLabelEditAction()
+		eventToDispatch = &events.LabelEdit{
+			Timestamp:    ts,
+			LabelID:      mutation.Index[1],
+			Action:       act,
+			FromFullSync: fullSync,
+		}
+	case appstate.IndexLabelAssociationChat:
+		if len(mutation.Index) < 3 {
+			return
+		}
+		jid, _ = types.ParseJID(mutation.Index[2])
+		act := mutation.Action.GetLabelAssociationAction()
+		eventToDispatch = &events.LabelAssociationChat{
+			JID:          jid,
+			Timestamp:    ts,
+			LabelID:      mutation.Index[1],
+			Action:       act,
+			FromFullSync: fullSync,
+		}
+	case appstate.IndexLabelAssociationMessage:
+		if len(mutation.Index) < 6 {
+			return
+		}
+		jid, _ = types.ParseJID(mutation.Index[2])
+		act := mutation.Action.GetLabelAssociationAction()
+		eventToDispatch = &events.LabelAssociationMessage{
+			JID:          jid,
+			Timestamp:    ts,
+			LabelID:      mutation.Index[1],
+			MessageID:    mutation.Index[3],
+			Action:       act,
+			FromFullSync: fullSync,
+		}
 	}
 	if storeUpdateError != nil {
 		cli.Log.Errorf("Failed to update device store after app state mutation: %v", storeUpdateError)
@@ -259,23 +318,84 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 	keyIDs := make([]*waProto.AppStateSyncKeyId, len(rawKeyIDs))
 	debugKeyIDs := make([]string, len(rawKeyIDs))
 	for i, keyID := range rawKeyIDs {
-		keyIDs[i] = &waProto.AppStateSyncKeyId{KeyId: keyID}
+		keyIDs[i] = &waProto.AppStateSyncKeyId{KeyID: keyID}
 		debugKeyIDs[i] = hex.EncodeToString(keyID)
 	}
 	msg := &waProto.Message{
 		ProtocolMessage: &waProto.ProtocolMessage{
 			Type: waProto.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST.Enum(),
 			AppStateSyncKeyRequest: &waProto.AppStateSyncKeyRequest{
-				KeyIds: keyIDs,
+				KeyIDs: keyIDs,
 			},
 		},
 	}
-	if cli.Store.ID == nil {
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() || len(debugKeyIDs) == 0 {
 		return
 	}
 	cli.Log.Infof("Sending key request for app state keys %+v", debugKeyIDs)
-	_, err := cli.SendMessage(ctx, cli.Store.ID.ToNonAD(), "", msg)
+	_, err := cli.SendMessage(ctx, ownID, msg, SendRequestExtra{Peer: true})
 	if err != nil {
 		cli.Log.Warnf("Failed to send app state key request: %v", err)
 	}
+}
+
+// SendAppState sends the given app state patch, then resyncs that app state type from the server
+// to update local caches and send events for the updates.
+//
+// You can use the Build methods in the appstate package to build the parameter for this method, e.g.
+//
+//	cli.SendAppState(appstate.BuildMute(targetJID, true, 24 * time.Hour))
+func (cli *Client) SendAppState(patch appstate.PatchInfo) error {
+	version, hash, err := cli.Store.AppState.GetAppStateVersion(string(patch.Type))
+	if err != nil {
+		return err
+	}
+	// TODO create new key instead of reusing the primary client's keys
+	latestKeyID, err := cli.Store.AppStateKeys.GetLatestAppStateSyncKeyID()
+	if err != nil {
+		return fmt.Errorf("failed to get latest app state key ID: %w", err)
+	} else if latestKeyID == nil {
+		return fmt.Errorf("no app state keys found, creating app state keys is not yet supported")
+	}
+
+	state := appstate.HashState{Version: version, Hash: hash}
+
+	encodedPatch, err := cli.appStateProc.EncodePatch(latestKeyID, state, patch)
+	if err != nil {
+		return err
+	}
+
+	resp, err := cli.sendIQ(infoQuery{
+		Namespace: "w:sync:app:state",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "sync",
+			Content: []waBinary.Node{{
+				Tag: "collection",
+				Attrs: waBinary.Attrs{
+					"name":            string(patch.Type),
+					"version":         version,
+					"return_snapshot": false,
+				},
+				Content: []waBinary.Node{{
+					Tag:     "patch",
+					Content: encodedPatch,
+				}},
+			}},
+		}},
+	})
+	if err != nil {
+		return err
+	}
+
+	respCollection := resp.GetChildByTag("sync", "collection")
+	respCollectionAttr := respCollection.AttrGetter()
+	if respCollectionAttr.OptionalString("type") == "error" {
+		// TODO parse error properly
+		return fmt.Errorf("%w: %s", ErrAppStateUpdate, respCollection.XMLString())
+	}
+
+	return cli.FetchAppState(patch.Type, false, false)
 }

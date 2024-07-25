@@ -26,13 +26,36 @@ type UserInfo struct {
 	Devices      []JID
 }
 
+type BotListInfo struct {
+	BotJID    JID
+	PersonaID string
+}
+
+type BotProfileInfo struct {
+	JID                 JID
+	Name                string
+	Attributes          string
+	Description         string
+	Category            string
+	IsDefault           bool
+	Prompts             []string
+	PersonaID           string
+	Commands            []BotProfileCommand
+	CommandsDescription string
+}
+
+type BotProfileCommand struct {
+	Name        string
+	Description string
+}
+
 // ProfilePictureInfo contains the ID and URL for a WhatsApp user's profile picture or group's photo.
 type ProfilePictureInfo struct {
-	URL  string // The full URL for the image, can be downloaded with a simple HTTP request.
-	ID   string // The ID of the image. This is the same as UserInfo.PictureID.
-	Type string // The type of image. Known types include "image" (full res) and "preview" (thumbnail).
+	URL  string `json:"url"`  // The full URL for the image, can be downloaded with a simple HTTP request.
+	ID   string `json:"id"`   // The ID of the image. This is the same as UserInfo.PictureID.
+	Type string `json:"type"` // The type of image. Known types include "image" (full res) and "preview" (thumbnail).
 
-	DirectPath string // The path to the image, probably not very useful
+	DirectPath string `json:"direct_path"` // The path to the image, probably not very useful
 }
 
 // ContactInfo contains the cached names of a WhatsApp user.
@@ -75,24 +98,49 @@ type BusinessMessageLinkTarget struct {
 	Message string // The message that WhatsApp clients will pre-fill in the input box when clicking the link.
 }
 
+// ContactQRLinkTarget contains the info that is found using a contact QR link (see Client.ResolveContactQRLink)
+type ContactQRLinkTarget struct {
+	JID      JID    // The JID of the user.
+	Type     string // Might always be "contact".
+	PushName string // The notify / push name of the user.
+}
+
 // PrivacySetting is an individual setting value in the user's privacy settings.
 type PrivacySetting string
 
 // Possible privacy setting values.
 const (
-	PrivacySettingUndefined PrivacySetting = ""
-	PrivacySettingAll       PrivacySetting = "all"
-	PrivacySettingContacts  PrivacySetting = "contacts"
-	PrivacySettingNone      PrivacySetting = "none"
+	PrivacySettingUndefined        PrivacySetting = ""
+	PrivacySettingAll              PrivacySetting = "all"
+	PrivacySettingContacts         PrivacySetting = "contacts"
+	PrivacySettingContactBlacklist PrivacySetting = "contact_blacklist"
+	PrivacySettingMatchLastSeen    PrivacySetting = "match_last_seen"
+	PrivacySettingKnown            PrivacySetting = "known"
+	PrivacySettingNone             PrivacySetting = "none"
+)
+
+// PrivacySettingType is the type of privacy setting.
+type PrivacySettingType string
+
+const (
+	PrivacySettingTypeGroupAdd     PrivacySettingType = "groupadd"     // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	PrivacySettingTypeLastSeen     PrivacySettingType = "last"         // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	PrivacySettingTypeStatus       PrivacySettingType = "status"       // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	PrivacySettingTypeProfile      PrivacySettingType = "profile"      // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	PrivacySettingTypeReadReceipts PrivacySettingType = "readreceipts" // Valid values: PrivacySettingAll, PrivacySettingNone
+	PrivacySettingTypeOnline       PrivacySettingType = "online"       // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
+	PrivacySettingTypeCallAdd      PrivacySettingType = "calladd"      // Valid values: PrivacySettingAll, PrivacySettingKnown
 )
 
 // PrivacySettings contains the user's privacy settings.
 type PrivacySettings struct {
-	GroupAdd     PrivacySetting
-	LastSeen     PrivacySetting
-	Status       PrivacySetting
-	Profile      PrivacySetting
-	ReadReceipts PrivacySetting
+	GroupAdd     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	LastSeen     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	Status       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	Profile      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	ReadReceipts PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingNone
+	CallAdd      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingKnown
+	Online       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
 }
 
 // StatusPrivacyType is the type of list in StatusPrivacy.
@@ -113,4 +161,35 @@ type StatusPrivacy struct {
 	List []JID
 
 	IsDefault bool
+}
+
+// Blocklist contains the user's current list of blocked users.
+type Blocklist struct {
+	DHash string // TODO is this just a timestamp?
+	JIDs  []JID
+}
+
+// BusinessHoursConfig contains business operating hours of a WhatsApp business.
+type BusinessHoursConfig struct {
+	DayOfWeek string
+	Mode      string
+	OpenTime  string
+	CloseTime string
+}
+
+// Category contains a WhatsApp business category.
+type Category struct {
+	ID   string
+	Name string
+}
+
+// BusinessProfile contains the profile information of a WhatsApp business.
+type BusinessProfile struct {
+	JID                   JID
+	Address               string
+	Email                 string
+	Categories            []Category
+	ProfileOptions        map[string]string
+	BusinessHoursTimeZone string
+	BusinessHours         []BusinessHoursConfig
 }

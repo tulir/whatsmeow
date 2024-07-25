@@ -1,0 +1,248 @@
+syntax = "proto2";
+package WAArmadilloApplication;
+option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloApplication";
+
+import "waArmadilloXMA/WAArmadilloXMA.proto";
+import "waCommon/WACommon.proto";
+
+message Armadillo {
+	message Metadata {
+	}
+
+	message Payload {
+		oneof payload {
+			Content content = 1;
+			ApplicationData applicationData = 2;
+			Signal signal = 3;
+			SubProtocolPayload subProtocol = 4;
+		}
+	}
+
+	message SubProtocolPayload {
+		optional WACommon.FutureProofBehavior futureProof = 1;
+	}
+
+	message Signal {
+		message EncryptedBackupsSecrets {
+			message Epoch {
+				enum EpochStatus {
+					ES_OPEN = 1;
+					ES_CLOSE = 2;
+				}
+
+				optional uint64 ID = 1;
+				optional bytes anonID = 2;
+				optional bytes rootKey = 3;
+				optional EpochStatus status = 4;
+			}
+
+			optional uint64 backupID = 1;
+			optional uint64 serverDataID = 2;
+			repeated Epoch epoch = 3;
+			optional bytes tempOcmfClientState = 4;
+			optional bytes mailboxRootKey = 5;
+			optional bytes obliviousValidationToken = 6;
+		}
+
+		oneof signal {
+			EncryptedBackupsSecrets encryptedBackupsSecrets = 1;
+		}
+	}
+
+	message ApplicationData {
+		message AIBotResponseMessage {
+			optional string summonToken = 1;
+			optional string messageText = 2;
+			optional string serializedExtras = 3;
+		}
+
+		message MetadataSyncAction {
+			message SyncMessageAction {
+				message ActionMessageDelete {
+				}
+
+				oneof action {
+					ActionMessageDelete messageDelete = 101;
+				}
+
+				optional WACommon.MessageKey key = 1;
+			}
+
+			message SyncChatAction {
+				message ActionChatRead {
+					optional SyncActionMessageRange messageRange = 1;
+					optional bool read = 2;
+				}
+
+				message ActionChatDelete {
+					optional SyncActionMessageRange messageRange = 1;
+				}
+
+				message ActionChatArchive {
+					optional SyncActionMessageRange messageRange = 1;
+					optional bool archived = 2;
+				}
+
+				oneof action {
+					ActionChatArchive chatArchive = 101;
+					ActionChatDelete chatDelete = 102;
+					ActionChatRead chatRead = 103;
+				}
+
+				optional string chatID = 1;
+			}
+
+			message SyncActionMessage {
+				optional WACommon.MessageKey key = 1;
+				optional int64 timestamp = 2;
+			}
+
+			message SyncActionMessageRange {
+				optional int64 lastMessageTimestamp = 1;
+				optional int64 lastSystemMessageTimestamp = 2;
+				repeated SyncActionMessage messages = 3;
+			}
+
+			oneof actionType {
+				SyncChatAction chatAction = 101;
+				SyncMessageAction messageAction = 102;
+			}
+
+			optional int64 actionTimestamp = 1;
+		}
+
+		message MetadataSyncNotification {
+			repeated MetadataSyncAction actions = 2;
+		}
+
+		oneof applicationData {
+			MetadataSyncNotification metadataSync = 1;
+			AIBotResponseMessage aiBotResponse = 2;
+		}
+	}
+
+	message Content {
+		message PaymentsTransactionMessage {
+			enum PaymentStatus {
+				PAYMENT_UNKNOWN = 0;
+				REQUEST_INITED = 4;
+				REQUEST_DECLINED = 5;
+				REQUEST_TRANSFER_INITED = 6;
+				REQUEST_TRANSFER_COMPLETED = 7;
+				REQUEST_TRANSFER_FAILED = 8;
+				REQUEST_CANCELED = 9;
+				REQUEST_EXPIRED = 10;
+				TRANSFER_INITED = 11;
+				TRANSFER_PENDING = 12;
+				TRANSFER_PENDING_RECIPIENT_VERIFICATION = 13;
+				TRANSFER_CANCELED = 14;
+				TRANSFER_COMPLETED = 15;
+				TRANSFER_NO_RECEIVER_CREDENTIAL_NO_RTS_PENDING_CANCELED = 16;
+				TRANSFER_NO_RECEIVER_CREDENTIAL_NO_RTS_PENDING_OTHER = 17;
+				TRANSFER_REFUNDED = 18;
+				TRANSFER_PARTIAL_REFUND = 19;
+				TRANSFER_CHARGED_BACK = 20;
+				TRANSFER_EXPIRED = 21;
+				TRANSFER_DECLINED = 22;
+				TRANSFER_UNAVAILABLE = 23;
+			}
+
+			optional uint64 transactionID = 1;
+			optional string amount = 2;
+			optional string currency = 3;
+			optional PaymentStatus paymentStatus = 4;
+			optional WAArmadilloXMA.ExtendedContentMessage extendedContentMessage = 5;
+		}
+
+		message NoteReplyMessage {
+			oneof noteReplyContent {
+				WACommon.MessageText textContent = 4;
+				WACommon.SubProtocol stickerContent = 5;
+				WACommon.SubProtocol videoContent = 6;
+			}
+
+			optional string noteID = 1;
+			optional WACommon.MessageText noteText = 2;
+			optional int64 noteTimestampMS = 3;
+		}
+
+		message BumpExistingMessage {
+			optional WACommon.MessageKey key = 1;
+		}
+
+		message ImageGalleryMessage {
+			repeated WACommon.SubProtocol images = 1;
+		}
+
+		message ScreenshotAction {
+			enum ScreenshotType {
+				SCREENSHOT_IMAGE = 1;
+				SCREEN_RECORDING = 2;
+			}
+
+			optional ScreenshotType screenshotType = 1;
+		}
+
+		message ExtendedContentMessageWithSear {
+			optional string searID = 1;
+			optional bytes payload = 2;
+			optional string nativeURL = 3;
+			optional WACommon.SubProtocol searAssociatedMessage = 4;
+			optional string searSentWithMessageID = 5;
+		}
+
+		message RavenActionNotifMessage {
+			enum ActionType {
+				PLAYED = 0;
+				SCREENSHOT = 1;
+				FORCE_DISABLE = 2;
+			}
+
+			optional WACommon.MessageKey key = 1;
+			optional int64 actionTimestamp = 2;
+			optional ActionType actionType = 3;
+		}
+
+		message RavenMessage {
+			enum EphemeralType {
+				VIEW_ONCE = 0;
+				ALLOW_REPLAY = 1;
+				KEEP_IN_CHAT = 2;
+			}
+
+			oneof mediaContent {
+				WACommon.SubProtocol imageMessage = 2;
+				WACommon.SubProtocol videoMessage = 3;
+			}
+
+			optional EphemeralType ephemeralType = 1;
+		}
+
+		message CommonSticker {
+			enum StickerType {
+				SMALL_LIKE = 1;
+				MEDIUM_LIKE = 2;
+				LARGE_LIKE = 3;
+			}
+
+			optional StickerType stickerType = 1;
+		}
+
+		oneof content {
+			CommonSticker commonSticker = 1;
+			ScreenshotAction screenshotAction = 3;
+			WAArmadilloXMA.ExtendedContentMessage extendedContentMessage = 4;
+			RavenMessage ravenMessage = 5;
+			RavenActionNotifMessage ravenActionNotifMessage = 6;
+			ExtendedContentMessageWithSear extendedMessageContentWithSear = 7;
+			ImageGalleryMessage imageGalleryMessage = 8;
+			PaymentsTransactionMessage paymentsTransactionMessage = 10;
+			BumpExistingMessage bumpExistingMessage = 11;
+			NoteReplyMessage noteReplyMessage = 13;
+			RavenMessage ravenMessageMsgr = 14;
+		}
+	}
+
+	optional Payload payload = 1;
+	optional Metadata metadata = 2;
+}

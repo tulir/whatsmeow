@@ -1,0 +1,41 @@
+syntax = "proto2";
+package WACommon;
+option go_package = "go.mau.fi/whatsmeow/proto/waCommon";
+
+enum FutureProofBehavior {
+	PLACEHOLDER = 0;
+	NO_PLACEHOLDER = 1;
+	IGNORE = 2;
+}
+
+message MessageKey {
+	optional string remoteJID = 1;
+	optional bool fromMe = 2;
+	optional string ID = 3;
+	optional string participant = 4;
+}
+
+message Command {
+	enum CommandType {
+		EVERYONE = 1;
+		SILENT = 2;
+		AI = 3;
+		AI_IMAGINE = 4;
+	}
+
+	optional CommandType commandType = 1;
+	optional uint32 offset = 2;
+	optional uint32 length = 3;
+	optional string validationToken = 4;
+}
+
+message MessageText {
+	optional string text = 1;
+	repeated string mentionedJID = 2;
+	repeated Command commands = 3;
+}
+
+message SubProtocol {
+	optional bytes payload = 1;
+	optional int32 version = 2;
+}

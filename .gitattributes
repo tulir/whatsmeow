@@ -1,0 +1,2 @@
+*.pb.go linguist-generated=true
+*.pb.raw binary linguist-generated=true

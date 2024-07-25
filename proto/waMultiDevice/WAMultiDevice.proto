@@ -1,0 +1,57 @@
+syntax = "proto2";
+package WAMultiDevice;
+option go_package = "go.mau.fi/whatsmeow/proto/waMultiDevice";
+
+message MultiDevice {
+	message Metadata {
+	}
+
+	message Payload {
+		oneof payload {
+			ApplicationData applicationData = 1;
+			Signal signal = 2;
+		}
+	}
+
+	message ApplicationData {
+		message AppStateSyncKeyRequestMessage {
+			repeated AppStateSyncKeyId keyIDs = 1;
+		}
+
+		message AppStateSyncKeyShareMessage {
+			repeated AppStateSyncKey keys = 1;
+		}
+
+		message AppStateSyncKey {
+			message AppStateSyncKeyData {
+				message AppStateSyncKeyFingerprint {
+					optional uint32 rawID = 1;
+					optional uint32 currentIndex = 2;
+					repeated uint32 deviceIndexes = 3 [packed=true];
+				}
+
+				optional bytes keyData = 1;
+				optional AppStateSyncKeyFingerprint fingerprint = 2;
+				optional int64 timestamp = 3;
+			}
+
+			optional AppStateSyncKeyId keyID = 1;
+			optional AppStateSyncKeyData keyData = 2;
+		}
+
+		message AppStateSyncKeyId {
+			optional bytes keyID = 1;
+		}
+
+		oneof applicationData {
+			AppStateSyncKeyShareMessage appStateSyncKeyShare = 1;
+			AppStateSyncKeyRequestMessage appStateSyncKeyRequest = 2;
+		}
+	}
+
+	message Signal {
+	}
+
+	optional Payload payload = 1;
+	optional Metadata metadata = 2;
+}
