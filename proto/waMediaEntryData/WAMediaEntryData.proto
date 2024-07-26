@@ -33,4 +33,5 @@ message MediaEntry {
 	optional string filename = 14;
 	optional ProgressiveJpegDetails progressiveJPEGDetails = 15;
 	optional int64 size = 16;
+	optional int64 lastDownloadAttemptTimestamp = 17;
 }

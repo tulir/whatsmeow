@@ -28,22 +28,23 @@ type MediaEntry struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FileSHA256             []byte                             `protobuf:"bytes,1,opt,name=fileSHA256" json:"fileSHA256,omitempty"`
-	MediaKey               []byte                             `protobuf:"bytes,2,opt,name=mediaKey" json:"mediaKey,omitempty"`
-	FileEncSHA256          []byte                             `protobuf:"bytes,3,opt,name=fileEncSHA256" json:"fileEncSHA256,omitempty"`
-	DirectPath             *string                            `protobuf:"bytes,4,opt,name=directPath" json:"directPath,omitempty"`
-	MediaKeyTimestamp      *int64                             `protobuf:"varint,5,opt,name=mediaKeyTimestamp" json:"mediaKeyTimestamp,omitempty"`
-	ServerMediaType        *string                            `protobuf:"bytes,6,opt,name=serverMediaType" json:"serverMediaType,omitempty"`
-	UploadToken            []byte                             `protobuf:"bytes,7,opt,name=uploadToken" json:"uploadToken,omitempty"`
-	ValidatedTimestamp     []byte                             `protobuf:"bytes,8,opt,name=validatedTimestamp" json:"validatedTimestamp,omitempty"`
-	Sidecar                []byte                             `protobuf:"bytes,9,opt,name=sidecar" json:"sidecar,omitempty"`
-	ObjectID               *string                            `protobuf:"bytes,10,opt,name=objectID" json:"objectID,omitempty"`
-	FBID                   *string                            `protobuf:"bytes,11,opt,name=FBID" json:"FBID,omitempty"`
-	DownloadableThumbnail  *MediaEntry_DownloadableThumbnail  `protobuf:"bytes,12,opt,name=downloadableThumbnail" json:"downloadableThumbnail,omitempty"`
-	Handle                 *string                            `protobuf:"bytes,13,opt,name=handle" json:"handle,omitempty"`
-	Filename               *string                            `protobuf:"bytes,14,opt,name=filename" json:"filename,omitempty"`
-	ProgressiveJPEGDetails *MediaEntry_ProgressiveJpegDetails `protobuf:"bytes,15,opt,name=progressiveJPEGDetails" json:"progressiveJPEGDetails,omitempty"`
-	Size                   *int64                             `protobuf:"varint,16,opt,name=size" json:"size,omitempty"`
+	FileSHA256                   []byte                             `protobuf:"bytes,1,opt,name=fileSHA256" json:"fileSHA256,omitempty"`
+	MediaKey                     []byte                             `protobuf:"bytes,2,opt,name=mediaKey" json:"mediaKey,omitempty"`
+	FileEncSHA256                []byte                             `protobuf:"bytes,3,opt,name=fileEncSHA256" json:"fileEncSHA256,omitempty"`
+	DirectPath                   *string                            `protobuf:"bytes,4,opt,name=directPath" json:"directPath,omitempty"`
+	MediaKeyTimestamp            *int64                             `protobuf:"varint,5,opt,name=mediaKeyTimestamp" json:"mediaKeyTimestamp,omitempty"`
+	ServerMediaType              *string                            `protobuf:"bytes,6,opt,name=serverMediaType" json:"serverMediaType,omitempty"`
+	UploadToken                  []byte                             `protobuf:"bytes,7,opt,name=uploadToken" json:"uploadToken,omitempty"`
+	ValidatedTimestamp           []byte                             `protobuf:"bytes,8,opt,name=validatedTimestamp" json:"validatedTimestamp,omitempty"`
+	Sidecar                      []byte                             `protobuf:"bytes,9,opt,name=sidecar" json:"sidecar,omitempty"`
+	ObjectID                     *string                            `protobuf:"bytes,10,opt,name=objectID" json:"objectID,omitempty"`
+	FBID                         *string                            `protobuf:"bytes,11,opt,name=FBID" json:"FBID,omitempty"`
+	DownloadableThumbnail        *MediaEntry_DownloadableThumbnail  `protobuf:"bytes,12,opt,name=downloadableThumbnail" json:"downloadableThumbnail,omitempty"`
+	Handle                       *string                            `protobuf:"bytes,13,opt,name=handle" json:"handle,omitempty"`
+	Filename                     *string                            `protobuf:"bytes,14,opt,name=filename" json:"filename,omitempty"`
+	ProgressiveJPEGDetails       *MediaEntry_ProgressiveJpegDetails `protobuf:"bytes,15,opt,name=progressiveJPEGDetails" json:"progressiveJPEGDetails,omitempty"`
+	Size                         *int64                             `protobuf:"varint,16,opt,name=size" json:"size,omitempty"`
+	LastDownloadAttemptTimestamp *int64                             `protobuf:"varint,17,opt,name=lastDownloadAttemptTimestamp" json:"lastDownloadAttemptTimestamp,omitempty"`
 }
 
 func (x *MediaEntry) Reset() {
@@ -186,6 +187,13 @@ func (x *MediaEntry) GetProgressiveJPEGDetails() *MediaEntry_ProgressiveJpegDeta
 func (x *MediaEntry) GetSize() int64 {
 	if x != nil && x.Size != nil {
 		return *x.Size
+	}
+	return 0
+}
+
+func (x *MediaEntry) GetLastDownloadAttemptTimestamp() int64 {
+	if x != nil && x.LastDownloadAttemptTimestamp != nil {
+		return *x.LastDownloadAttemptTimestamp
 	}
 	return 0
 }
