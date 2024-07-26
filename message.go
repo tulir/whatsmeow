@@ -223,7 +223,7 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
 	if len(node.GetChildrenByTag("unavailable")) > 0 && len(node.GetChildrenByTag("enc")) == 0 {
 		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
-		go cli.sendAck(node)
+		go cli.delayedRequestMessageFromPhone(info)
 		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true})
 		return
 	}
@@ -301,9 +301,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			return
 		}
 		retryCount := ag.OptionalInt("count")
-		if retryCount > 0 {
-			cli.cancelDelayedRequestFromPhone(info.ID)
-		}
+		cli.cancelDelayedRequestFromPhone(info.ID)
 
 		var msg waE2E.Message
 		switch ag.Int("v") {
