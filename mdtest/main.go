@@ -124,6 +124,23 @@ func main() {
 		return
 	}
 
+	// Check if stdin is available
+	if isStdinAvailable() {
+		handleStdin()
+	} else {
+		waitForInterrupt()
+	}
+}
+
+func isStdinAvailable() bool {
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		return false
+	}
+	return (stat.Mode() & os.ModeCharDevice) == 0
+}
+
+func handleStdin() {
 	c := make(chan os.Signal, 1)
 	input := make(chan string)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -149,20 +166,24 @@ func main() {
 				cli.Disconnect()
 				return
 			}
-			if isWaitingForPair.Load() {
-				if cmd == "r" {
-					pairRejectChan <- true
-				} else if cmd == "a" {
-					pairRejectChan <- false
-				}
-				continue
-			}
-			args := strings.Fields(cmd)
-			cmd = args[0]
-			args = args[1:]
-			go handleCmd(strings.ToLower(cmd), args)
+			handleCommand(cmd)
 		}
 	}
+}
+
+func waitForInterrupt() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	<-c
+	log.Infof("Interrupt received, exiting")
+	cli.Disconnect()
+}
+
+func handleCommand(cmd string) {
+	args := strings.Fields(cmd)
+	cmd = args[0]
+	args = args[1:]
+	go handleCmd(strings.ToLower(cmd), args)
 }
 
 func parseJID(arg string) (types.JID, bool) {
