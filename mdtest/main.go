@@ -716,7 +716,9 @@ func handleCmd(cmd string, args []string) {
 		if !ok {
 			return
 		}
-		msg := &waE2E.Message{Conversation: proto.String(strings.Join(args[1:], " "))}
+
+		msg := &waE2E.Message{Conversation: proto.String(strings.ReplaceAll(strings.Join(args[1:], " "), `\n`, "\n"))}
+
 		resp, err := cli.SendMessage(context.Background(), recipient, msg)
 		if err != nil {
 			log.Errorf("Error sending message: %v", err)
