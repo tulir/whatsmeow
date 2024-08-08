@@ -3,6 +3,7 @@ package WAWebProtobufsE2E;
 option go_package = "go.mau.fi/whatsmeow/proto/waE2E";
 
 import "waAdv/WAAdv.proto";
+import "waCompanionReg/WAWebProtobufsCompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
 
@@ -565,6 +566,7 @@ message HistorySyncNotification {
 	optional bytes initialHistBootstrapInlinePayload = 11;
 	optional string peerDataRequestSessionID = 12;
 	optional FullHistorySyncOnDemandRequestMetadata fullHistorySyncOnDemandRequestMetadata = 13;
+	optional string encHandle = 14;
 }
 
 message RequestWelcomeMessageMetadata {
@@ -879,7 +881,8 @@ message ContextInfo {
 
 	message FeatureEligibilities {
 		optional bool cannotBeReactedTo = 1;
-		optional bool canRequestFeedback = 2;
+		optional bool cannotBeRanked = 2;
+		optional bool canRequestFeedback = 3;
 	}
 
 	message DataSharingContext {
@@ -942,7 +945,6 @@ message ContextInfo {
 	optional FeatureEligibilities featureEligibilities = 49;
 	optional string entryPointConversionExternalSource = 50;
 	optional string entryPointConversionExternalMedium = 51;
-	optional string supportPayload = 53;
 }
 
 message BotPluginMetadata {
@@ -965,7 +967,24 @@ message BotPluginMetadata {
 	optional uint32 expectedLinksCount = 7;
 	optional string searchQuery = 9;
 	optional WACommon.MessageKey parentPluginMessageKey = 10;
-	optional PluginType parentPluginType = 11;
+	optional PluginType deprecatedField = 11;
+	optional PluginType parentPluginType = 12;
+}
+
+message BotMediaMetadata {
+	enum OrientationType {
+		CENTER = 1;
+		LEFT = 2;
+		RIGHT = 3;
+	}
+
+	optional string fileSHA256 = 1;
+	optional string mediaKey = 2;
+	optional string fileEncSHA256 = 3;
+	optional string directPath = 4;
+	optional int64 mediaKeyTimestamp = 5;
+	optional string mimetype = 6;
+	optional OrientationType orientationType = 7;
 }
 
 message BotReminderMetadata {
@@ -1012,6 +1031,7 @@ message MessageAssociation {
 		MEDIA_ALBUM = 1;
 		BOT_PLUGIN = 2;
 		EVENT_COVER_IMAGE = 3;
+		STATUS_POLL = 4;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1035,6 +1055,7 @@ message MessageContextInfo {
 	optional MessageAddonExpiryType messageAddOnExpiryType = 9;
 	optional MessageAssociation messageAssociation = 10;
 	optional bool capiCreatedGroup = 11;
+	optional string supportPayload = 12;
 }
 
 message HydratedTemplateButton {
@@ -1207,9 +1228,10 @@ message Message {
 	optional PlaceholderMessage placeholderMessage = 80;
 	optional SecretEncryptedMessage secretEncryptedMessage = 82;
 	optional AlbumMessage albumMessage = 83;
-	optional PollResultSnapshotMessage pollResultSnapshotMessage = 84;
 	optional FutureProofMessage eventCoverImage = 85;
 	optional StickerPackMessage stickerPackMessage = 86;
+	optional FutureProofMessage statusMentionMessage = 87;
+	optional PollResultSnapshotMessage pollResultSnapshotMessage = 88;
 }
 
 message StickerPackMessage {
@@ -1218,6 +1240,8 @@ message StickerPackMessage {
 		optional bool isAnimated = 2;
 		repeated string emojis = 3;
 		optional string accessibilityLabel = 4;
+		optional bool isLottie = 5;
+		optional string mimetype = 6;
 	}
 
 	optional string stickerPackID = 1;
@@ -1230,6 +1254,10 @@ message StickerPackMessage {
 	optional bytes mediaKey = 8;
 	optional string directPath = 9;
 	optional string caption = 10;
+	optional ContextInfo contextInfo = 11;
+	optional string packDescription = 12;
+	optional int64 mediaKeyTimestamp = 13;
+	optional string trayIconFileName = 14;
 }
 
 message AlbumMessage {
@@ -1523,7 +1551,7 @@ message PeerDataOperationRequestMessage {
 
 	message FullHistorySyncOnDemandRequest {
 		optional FullHistorySyncOnDemandRequestMetadata requestMetadata = 1;
-		optional int32 numOfDays = 2;
+		optional WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig historySyncConfig = 2;
 	}
 
 	message HistorySyncOnDemandRequest {
@@ -1688,15 +1716,6 @@ message BotSessionMetadata {
 	optional SessionSource sessionSource = 2;
 }
 
-message BotMediaMetadata {
-	optional string fileSHA256 = 1;
-	optional string mediaKey = 2;
-	optional string fileEncSHA256 = 3;
-	optional string directPath = 4;
-	optional int64 mediaKeyTimestamp = 5;
-	optional string mimetype = 6;
-}
-
 message BotMemuMetadata {
 	repeated BotMediaMetadata faceImages = 1;
 }
@@ -1725,6 +1744,17 @@ message DeviceListMetadata {
 	repeated uint32 recipientKeyIndexes = 10 [packed=true];
 }
 
+message EmbeddedMessage {
+	optional string stanzaID = 1;
+	optional Message message = 2;
+}
+
+message EmbeddedContent {
+	oneof content {
+		EmbeddedMessage embeddedMessage = 1;
+	}
+}
+
 message InteractiveAnnotation {
 	oneof action {
 		Location location = 2;
@@ -1733,6 +1763,7 @@ message InteractiveAnnotation {
 
 	repeated Point polygonVertices = 1;
 	optional bool shouldSkipConfirmation = 4;
+	optional EmbeddedContent embeddedContent = 5;
 }
 
 message Point {
