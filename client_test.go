@@ -27,8 +27,11 @@ func eventHandler(evt interface{}) {
 }
 
 func Example() {
+	// |------------------------------------------------------------------------------------------------------|
+	// | NOTE: You must also import the appropriate DB connector, e.g. github.com/mattn/go-sqlite3 for SQLite |
+	// |------------------------------------------------------------------------------------------------------|
+
 	dbLog := waLog.Stdout("Database", "DEBUG", true)
-	// Make sure you add appropriate DB connector imports, e.g. github.com/mattn/go-sqlite3 for SQLite
 	container, err := sqlstore.New("sqlite3", "file:examplestore.db?_foreign_keys=on", dbLog)
 	if err != nil {
 		panic(err)
