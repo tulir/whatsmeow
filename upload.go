@@ -107,12 +107,10 @@ func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFi
 			err = fmt.Errorf("failed to create temporary file: %w", err)
 			return
 		}
-		fmt.Println("OPENED TEMPFILE", tempFile.(*os.File).Name())
 		defer func() {
 			tempFileFile := tempFile.(*os.File)
 			_ = tempFileFile.Close()
 			_ = os.Remove(tempFileFile.Name())
-			fmt.Println("REMOVED TEMPFILE", tempFile.(*os.File).Name())
 		}()
 	}
 	resp.FileSHA256, resp.FileEncSHA256, resp.FileLength, err = cbcutil.EncryptStream(cipherKey, iv, macKey, plaintext, tempFile)
