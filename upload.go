@@ -169,7 +169,7 @@ func (cli *Client) UploadNewsletter(ctx context.Context, data []byte, appInfo Me
 
 // UploadNewsletterReader uploads the given attachment to WhatsApp servers without encrypting it first.
 //
-// This is otherwise identical to [Upload], but it reads the plaintext from an [io.Reader] instead of a byte slice.
+// This is otherwise identical to [UploadNewsletter], but it reads the plaintext from an [io.Reader] instead of a byte slice.
 // Unlike [UploadReader], this does not require a temporary file. However, the data needs to be hashed first,
 // so an [io.ReadSeeker] is required to be able to read the data twice.
 func (cli *Client) UploadNewsletterReader(ctx context.Context, data io.ReadSeeker, appInfo MediaType) (resp UploadResponse, err error) {
