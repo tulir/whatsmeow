@@ -1258,6 +1258,11 @@ message StickerPackMessage {
 	optional string packDescription = 12;
 	optional int64 mediaKeyTimestamp = 13;
 	optional string trayIconFileName = 14;
+	optional string thumbnailDirectPath = 15;
+	optional bytes thumbnailSHA256 = 16;
+	optional bytes thumbnailEncSHA256 = 17;
+	optional uint32 thumbnailHeight = 18;
+	optional uint32 thumbnailWidth = 19;
 }
 
 message AlbumMessage {
@@ -1749,9 +1754,22 @@ message EmbeddedMessage {
 	optional Message message = 2;
 }
 
+message EmbeddedMusic {
+	optional string musicContentMediaID = 1;
+	optional string songID = 2;
+	optional string author = 3;
+	optional string title = 4;
+	optional string artworkDirectPath = 5;
+	optional bytes artworkSHA256 = 6;
+	optional bytes artworkEncSHA256 = 7;
+	optional string artistAttribution = 8;
+	optional bytes countryBlocklist = 9;
+}
+
 message EmbeddedContent {
 	oneof content {
 		EmbeddedMessage embeddedMessage = 1;
+		EmbeddedMusic embeddedMusic = 2;
 	}
 }
 
@@ -1759,6 +1777,7 @@ message InteractiveAnnotation {
 	oneof action {
 		Location location = 2;
 		ContextInfo.ForwardedNewsletterMessageInfo newsletter = 3;
+		bool embeddedAction = 6;
 	}
 
 	repeated Point polygonVertices = 1;
