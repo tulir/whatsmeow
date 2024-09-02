@@ -36,7 +36,7 @@ type Container struct {
 
 var _ store.DeviceContainer = (*Container)(nil)
 
-func NewWithDB(dbPool *pgxpool.Pool, businessId string, log waLog.Logger) *Container {
+func NewContainer(dbPool *pgxpool.Pool, businessId string, log waLog.Logger) *Container {
 	if log == nil {
 		log = waLog.Noop
 	}
