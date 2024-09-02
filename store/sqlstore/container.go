@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	mathRand "math/rand"
 
+	"github.com/google/uuid"
 	"go.mau.fi/util/random"
 
 	_ "context"
@@ -35,7 +36,10 @@ type Container struct {
 
 var _ store.DeviceContainer = (*Container)(nil)
 
-func NewContainer(dbPool *pgxpool.Pool, businessId string, log waLog.Logger) *Container {
+func NewWithDB(dbPool *pgxpool.Pool, businessId string, log waLog.Logger) *Container {
+	if log == nil {
+		log = waLog.Noop
+	}
 	var container = &Container{
 		dbPool:     dbPool,
 		businessId: businessId,
@@ -48,7 +52,7 @@ const getAllDevicesQuery = `
 SELECT jid, registration_id, noise_key, identity_key,
        signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
        adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
-       platform, business_name, push_name
+       platform, business_name, push_name, facebook_uuid
 FROM whatsmeow_device WHERE business_id=$1
 `
 
@@ -65,12 +69,13 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.SignedPreKey = &keys.PreKey{}
 	var noisePriv, identityPriv, preKeyPriv, preKeySig []byte
 	var account waProto.ADVSignedDeviceIdentity
+	var fbUUID uuid.NullUUID
 
 	err := row.Scan(
 		&device.ID, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
 		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
-		&device.Platform, &device.BusinessName, &device.PushName)
+		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan session: %w", err)
 	} else if len(noisePriv) != 32 || len(identityPriv) != 32 || len(preKeyPriv) != 32 || len(preKeySig) != 64 {
@@ -82,6 +87,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.SignedPreKey.KeyPair = *keys.NewKeyPairFromPrivateKey(*(*[32]byte)(preKeyPriv))
 	device.SignedPreKey.Signature = (*[64]byte)(preKeySig)
 	device.Account = &account
+	device.FacebookUUID = fbUUID.UUID
 
 	innerStore := NewSQLStore(c, *device.ID)
 	device.Identities = innerStore
@@ -151,8 +157,8 @@ const (
 		INSERT INTO whatsmeow_device (business_id, jid, registration_id, noise_key, identity_key,
 									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
 									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
-									  platform, business_name, push_name)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+									  platform, business_name, push_name, facebook_uuid)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		ON CONFLICT (business_id, jid) DO UPDATE
 		    SET platform=excluded.platform, business_name=excluded.business_name, push_name=excluded.push_name
 	`
@@ -193,7 +199,7 @@ func (c *Container) PutDevice(device *store.Device) error {
 		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
-		device.Platform, device.BusinessName, device.PushName)
+		device.Platform, device.BusinessName, device.PushName, uuid.NullUUID{UUID: device.FacebookUUID, Valid: device.FacebookUUID != uuid.Nil})
 
 	if !device.Initialized {
 		innerStore := NewSQLStore(c, *device.ID)

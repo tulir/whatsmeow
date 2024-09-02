@@ -465,6 +465,7 @@ type HistorySync struct {
 	CallLogRecords           []*waSyncAction.CallLogRecord   `protobuf:"bytes,13,rep,name=callLogRecords" json:"callLogRecords,omitempty"`
 	AiWaitListState          *HistorySync_BotAIWaitListState `protobuf:"varint,14,opt,name=aiWaitListState,enum=WAWebProtobufsHistorySync.HistorySync_BotAIWaitListState" json:"aiWaitListState,omitempty"`
 	PhoneNumberToLidMappings []*PhoneNumberToLIDMapping      `protobuf:"bytes,15,rep,name=phoneNumberToLidMappings" json:"phoneNumberToLidMappings,omitempty"`
+	CompanionMetaNonce       *string                         `protobuf:"bytes,16,opt,name=companionMetaNonce" json:"companionMetaNonce,omitempty"`
 }
 
 func (x *HistorySync) Reset() {
@@ -595,6 +596,13 @@ func (x *HistorySync) GetPhoneNumberToLidMappings() []*PhoneNumberToLIDMapping {
 		return x.PhoneNumberToLidMappings
 	}
 	return nil
+}
+
+func (x *HistorySync) GetCompanionMetaNonce() string {
+	if x != nil && x.CompanionMetaNonce != nil {
+		return *x.CompanionMetaNonce
+	}
+	return ""
 }
 
 type Conversation struct {

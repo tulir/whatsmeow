@@ -1,5 +1,5 @@
 
-'waMediaEntryData/WAMediaEntryData.protoWAMediaEntryData"Ý
+'waMediaEntryData/WAMediaEntryData.protoWAMediaEntryData"¡
 
 MediaEntry
 
@@ -22,7 +22,8 @@ directPath,
 handle (	Rhandle
 filename (	Rfilenamek
 progressiveJPEGDetails (23.WAMediaEntryData.MediaEntry.ProgressiveJpegDetailsRprogressiveJPEGDetails
-size (RsizeT
+size (RsizeB
+lastDownloadAttemptTimestamp (RlastDownloadAttemptTimestampT
 ProgressiveJpegDetails 
 scanLengths (RscanLengths
 sidecar (Rsidecarã

@@ -74,3 +74,7 @@ message EncryptedPairingRequest {
 	optional bytes encryptedPayload = 1;
 	optional bytes IV = 2;
 }
+
+message ClientPairingProps {
+	optional bool isChatDbLidMigrated = 1;
+}

@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2024 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,8 +14,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 
 	"go.mau.fi/util/random"
 
@@ -87,7 +89,41 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	dataHash := sha256.Sum256(dataToUpload)
 	resp.FileEncSHA256 = dataHash[:]
 
-	err = cli.rawUpload(ctx, dataToUpload, resp.FileEncSHA256, appInfo, false, &resp)
+	err = cli.rawUpload(ctx, bytes.NewReader(dataToUpload), resp.FileEncSHA256, appInfo, false, &resp)
+	return
+}
+
+// UploadReader uploads the given attachment to WhatsApp servers.
+//
+// This is otherwise identical to [Upload], but it reads the plaintext from an [io.Reader] instead of a byte slice.
+// A temporary file is required for the encryption process. If tempFile is nil, a temporary file will be created
+// and deleted after the upload.
+func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFile io.ReadWriteSeeker, appInfo MediaType) (resp UploadResponse, err error) {
+	resp.MediaKey = random.Bytes(32)
+	iv, cipherKey, macKey, _ := getMediaKeys(resp.MediaKey, appInfo)
+	if tempFile == nil {
+		tempFile, err = os.CreateTemp("", "whatsmeow-upload-*")
+		if err != nil {
+			err = fmt.Errorf("failed to create temporary file: %w", err)
+			return
+		}
+		defer func() {
+			tempFileFile := tempFile.(*os.File)
+			_ = tempFileFile.Close()
+			_ = os.Remove(tempFileFile.Name())
+		}()
+	}
+	resp.FileSHA256, resp.FileEncSHA256, resp.FileLength, err = cbcutil.EncryptStream(cipherKey, iv, macKey, plaintext, tempFile)
+	if err != nil {
+		err = fmt.Errorf("failed to encrypt file: %w", err)
+		return
+	}
+	_, err = tempFile.Seek(0, io.SeekStart)
+	if err != nil {
+		err = fmt.Errorf("failed to seek to start of temporary file: %w", err)
+		return
+	}
+	err = cli.rawUpload(ctx, tempFile, resp.FileEncSHA256, appInfo, false, &resp)
 	return
 }
 
@@ -125,11 +161,31 @@ func (cli *Client) UploadNewsletter(ctx context.Context, data []byte, appInfo Me
 	resp.FileLength = uint64(len(data))
 	hash := sha256.Sum256(data)
 	resp.FileSHA256 = hash[:]
+	err = cli.rawUpload(ctx, bytes.NewReader(data), resp.FileSHA256, appInfo, true, &resp)
+	return
+}
+
+// UploadNewsletterReader uploads the given attachment to WhatsApp servers without encrypting it first.
+//
+// This is otherwise identical to [UploadNewsletter], but it reads the plaintext from an [io.Reader] instead of a byte slice.
+// Unlike [UploadReader], this does not require a temporary file. However, the data needs to be hashed first,
+// so an [io.ReadSeeker] is required to be able to read the data twice.
+func (cli *Client) UploadNewsletterReader(ctx context.Context, data io.ReadSeeker, appInfo MediaType) (resp UploadResponse, err error) {
+	hasher := sha256.New()
+	var fileLength int64
+	fileLength, err = io.Copy(hasher, data)
+	resp.FileLength = uint64(fileLength)
+	resp.FileSHA256 = hasher.Sum(nil)
+	_, err = data.Seek(0, io.SeekStart)
+	if err != nil {
+		err = fmt.Errorf("failed to seek to start of data: %w", err)
+		return
+	}
 	err = cli.rawUpload(ctx, data, resp.FileSHA256, appInfo, true, &resp)
 	return
 }
 
-func (cli *Client) rawUpload(ctx context.Context, dataToUpload, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {
+func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {
 	mediaConn, err := cli.refreshMediaConn(false)
 	if err != nil {
 		return fmt.Errorf("failed to refresh media connections: %w", err)
@@ -168,7 +224,7 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload, fileHash []byte,
 		RawQuery: q.Encode(),
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, uploadURL.String(), bytes.NewReader(dataToUpload))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, uploadURL.String(), dataToUpload)
 	if err != nil {
 		return fmt.Errorf("failed to prepare request: %w", err)
 	}
