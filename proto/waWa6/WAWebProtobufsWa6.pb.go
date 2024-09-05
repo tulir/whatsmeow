@@ -1349,8 +1349,9 @@ type ClientPayload_InteropData struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	AccountID *uint64 `protobuf:"varint,1,opt,name=accountID" json:"accountID,omitempty"`
-	Token     []byte  `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
+	AccountID          *uint64 `protobuf:"varint,1,opt,name=accountID" json:"accountID,omitempty"`
+	Token              []byte  `protobuf:"bytes,2,opt,name=token" json:"token,omitempty"`
+	EnableReadReceipts *bool   `protobuf:"varint,3,opt,name=enableReadReceipts" json:"enableReadReceipts,omitempty"`
 }
 
 func (x *ClientPayload_InteropData) Reset() {
@@ -1397,6 +1398,13 @@ func (x *ClientPayload_InteropData) GetToken() []byte {
 		return x.Token
 	}
 	return nil
+}
+
+func (x *ClientPayload_InteropData) GetEnableReadReceipts() bool {
+	if x != nil && x.EnableReadReceipts != nil {
+		return *x.EnableReadReceipts
+	}
+	return false
 }
 
 type ClientPayload_DevicePairingRegistrationData struct {

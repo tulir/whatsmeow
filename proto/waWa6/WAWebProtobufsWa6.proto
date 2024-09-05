@@ -170,6 +170,7 @@ message ClientPayload {
 	message InteropData {
 		optional uint64 accountID = 1;
 		optional bytes token = 2;
+		optional bool enableReadReceipts = 3;
 	}
 
 	message DevicePairingRegistrationData {

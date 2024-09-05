@@ -98,20 +98,20 @@ func (PeerDataOperationRequestType) EnumDescriptor() ([]byte, []int) {
 	return file_waE2E_WAWebProtobufsE2E_proto_rawDescGZIP(), []int{0}
 }
 
-type SessionSource int32
+type BotSessionSource int32
 
 const (
-	SessionSource_NULL_STATE         SessionSource = 1
-	SessionSource_TYPEAHEAD          SessionSource = 2
-	SessionSource_USER_INPUT         SessionSource = 3
-	SessionSource_EMU_FLASH          SessionSource = 4
-	SessionSource_EMU_FLASH_FOLLOWUP SessionSource = 5
-	SessionSource_VOICE              SessionSource = 6
+	BotSessionSource_NULL_STATE         BotSessionSource = 1
+	BotSessionSource_TYPEAHEAD          BotSessionSource = 2
+	BotSessionSource_USER_INPUT         BotSessionSource = 3
+	BotSessionSource_EMU_FLASH          BotSessionSource = 4
+	BotSessionSource_EMU_FLASH_FOLLOWUP BotSessionSource = 5
+	BotSessionSource_VOICE              BotSessionSource = 6
 )
 
-// Enum value maps for SessionSource.
+// Enum value maps for BotSessionSource.
 var (
-	SessionSource_name = map[int32]string{
+	BotSessionSource_name = map[int32]string{
 		1: "NULL_STATE",
 		2: "TYPEAHEAD",
 		3: "USER_INPUT",
@@ -119,7 +119,7 @@ var (
 		5: "EMU_FLASH_FOLLOWUP",
 		6: "VOICE",
 	}
-	SessionSource_value = map[string]int32{
+	BotSessionSource_value = map[string]int32{
 		"NULL_STATE":         1,
 		"TYPEAHEAD":          2,
 		"USER_INPUT":         3,
@@ -129,40 +129,40 @@ var (
 	}
 )
 
-func (x SessionSource) Enum() *SessionSource {
-	p := new(SessionSource)
+func (x BotSessionSource) Enum() *BotSessionSource {
+	p := new(BotSessionSource)
 	*p = x
 	return p
 }
 
-func (x SessionSource) String() string {
+func (x BotSessionSource) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (SessionSource) Descriptor() protoreflect.EnumDescriptor {
+func (BotSessionSource) Descriptor() protoreflect.EnumDescriptor {
 	return file_waE2E_WAWebProtobufsE2E_proto_enumTypes[1].Descriptor()
 }
 
-func (SessionSource) Type() protoreflect.EnumType {
+func (BotSessionSource) Type() protoreflect.EnumType {
 	return &file_waE2E_WAWebProtobufsE2E_proto_enumTypes[1]
 }
 
-func (x SessionSource) Number() protoreflect.EnumNumber {
+func (x BotSessionSource) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
 // Deprecated: Do not use.
-func (x *SessionSource) UnmarshalJSON(b []byte) error {
+func (x *BotSessionSource) UnmarshalJSON(b []byte) error {
 	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
 	if err != nil {
 		return err
 	}
-	*x = SessionSource(num)
+	*x = BotSessionSource(num)
 	return nil
 }
 
-// Deprecated: Use SessionSource.Descriptor instead.
-func (SessionSource) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use BotSessionSource.Descriptor instead.
+func (BotSessionSource) EnumDescriptor() ([]byte, []int) {
 	return file_waE2E_WAWebProtobufsE2E_proto_rawDescGZIP(), []int{1}
 }
 
@@ -1541,10 +1541,13 @@ func (HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeCom
 type PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode int32
 
 const (
-	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_REQUEST_SUCCESS          PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 0
-	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_REQUEST_TIME_EXPIRED     PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 1
-	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_DECLINED_SHARING_HISTORY PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 2
-	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_GENERIC_ERROR            PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 3
+	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_REQUEST_SUCCESS                        PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 0
+	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_REQUEST_TIME_EXPIRED                   PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 1
+	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_DECLINED_SHARING_HISTORY               PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 2
+	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_GENERIC_ERROR                          PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 3
+	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ERROR_REQUEST_ON_NON_SMB_PRIMARY       PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 4
+	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ERROR_HOSTED_DEVICE_NOT_CONNECTED      PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 5
+	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ERROR_HOSTED_DEVICE_LOGIN_TIME_NOT_SET PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode = 6
 )
 
 // Enum value maps for PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode.
@@ -1554,12 +1557,18 @@ var (
 		1: "REQUEST_TIME_EXPIRED",
 		2: "DECLINED_SHARING_HISTORY",
 		3: "GENERIC_ERROR",
+		4: "ERROR_REQUEST_ON_NON_SMB_PRIMARY",
+		5: "ERROR_HOSTED_DEVICE_NOT_CONNECTED",
+		6: "ERROR_HOSTED_DEVICE_LOGIN_TIME_NOT_SET",
 	}
 	PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FullHistorySyncOnDemandResponseCode_value = map[string]int32{
-		"REQUEST_SUCCESS":          0,
-		"REQUEST_TIME_EXPIRED":     1,
-		"DECLINED_SHARING_HISTORY": 2,
-		"GENERIC_ERROR":            3,
+		"REQUEST_SUCCESS":                        0,
+		"REQUEST_TIME_EXPIRED":                   1,
+		"DECLINED_SHARING_HISTORY":               2,
+		"GENERIC_ERROR":                          3,
+		"ERROR_REQUEST_ON_NON_SMB_PRIMARY":       4,
+		"ERROR_HOSTED_DEVICE_NOT_CONNECTED":      5,
+		"ERROR_HOSTED_DEVICE_LOGIN_TIME_NOT_SET": 6,
 	}
 )
 
@@ -8746,8 +8755,10 @@ type AlbumMessage struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Caption     *string      `protobuf:"bytes,1,opt,name=caption" json:"caption,omitempty"`
-	ContextInfo *ContextInfo `protobuf:"bytes,17,opt,name=contextInfo" json:"contextInfo,omitempty"`
+	Caption            *string      `protobuf:"bytes,1,opt,name=caption" json:"caption,omitempty"`
+	ExpectedImageCount *uint32      `protobuf:"varint,2,opt,name=expectedImageCount" json:"expectedImageCount,omitempty"`
+	ExpectedVideoCount *uint32      `protobuf:"varint,3,opt,name=expectedVideoCount" json:"expectedVideoCount,omitempty"`
+	ContextInfo        *ContextInfo `protobuf:"bytes,17,opt,name=contextInfo" json:"contextInfo,omitempty"`
 }
 
 func (x *AlbumMessage) Reset() {
@@ -8787,6 +8798,20 @@ func (x *AlbumMessage) GetCaption() string {
 		return *x.Caption
 	}
 	return ""
+}
+
+func (x *AlbumMessage) GetExpectedImageCount() uint32 {
+	if x != nil && x.ExpectedImageCount != nil {
+		return *x.ExpectedImageCount
+	}
+	return 0
+}
+
+func (x *AlbumMessage) GetExpectedVideoCount() uint32 {
+	if x != nil && x.ExpectedVideoCount != nil {
+		return *x.ExpectedVideoCount
+	}
+	return 0
 }
 
 func (x *AlbumMessage) GetContextInfo() *ContextInfo {
@@ -12416,8 +12441,8 @@ type BotSessionMetadata struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SessionID     *string        `protobuf:"bytes,1,opt,name=sessionID" json:"sessionID,omitempty"`
-	SessionSource *SessionSource `protobuf:"varint,2,opt,name=sessionSource,enum=WAWebProtobufsE2E.SessionSource" json:"sessionSource,omitempty"`
+	SessionID     *string           `protobuf:"bytes,1,opt,name=sessionID" json:"sessionID,omitempty"`
+	SessionSource *BotSessionSource `protobuf:"varint,2,opt,name=sessionSource,enum=WAWebProtobufsE2E.BotSessionSource" json:"sessionSource,omitempty"`
 }
 
 func (x *BotSessionMetadata) Reset() {
@@ -12459,11 +12484,11 @@ func (x *BotSessionMetadata) GetSessionID() string {
 	return ""
 }
 
-func (x *BotSessionMetadata) GetSessionSource() SessionSource {
+func (x *BotSessionMetadata) GetSessionSource() BotSessionSource {
 	if x != nil && x.SessionSource != nil {
 		return *x.SessionSource
 	}
-	return SessionSource_NULL_STATE
+	return BotSessionSource_NULL_STATE
 }
 
 type BotMemuMetadata struct {
@@ -12523,11 +12548,12 @@ type BotMetadata struct {
 	PluginMetadata          *BotPluginMetadata          `protobuf:"bytes,3,opt,name=pluginMetadata" json:"pluginMetadata,omitempty"`
 	SuggestedPromptMetadata *BotSuggestedPromptMetadata `protobuf:"bytes,4,opt,name=suggestedPromptMetadata" json:"suggestedPromptMetadata,omitempty"`
 	InvokerJID              *string                     `protobuf:"bytes,5,opt,name=invokerJID" json:"invokerJID,omitempty"`
-	SearchMetadata          *BotSessionMetadata         `protobuf:"bytes,6,opt,name=searchMetadata" json:"searchMetadata,omitempty"`
+	SessionMetadata         *BotSessionMetadata         `protobuf:"bytes,6,opt,name=sessionMetadata" json:"sessionMetadata,omitempty"`
 	MemuMetadata            *BotMemuMetadata            `protobuf:"bytes,7,opt,name=memuMetadata" json:"memuMetadata,omitempty"`
 	Timezone                *string                     `protobuf:"bytes,8,opt,name=timezone" json:"timezone,omitempty"`
 	ReminderMetadata        *BotReminderMetadata        `protobuf:"bytes,9,opt,name=reminderMetadata" json:"reminderMetadata,omitempty"`
 	ModelMetadata           *BotModelMetadata           `protobuf:"bytes,10,opt,name=modelMetadata" json:"modelMetadata,omitempty"`
+	MessageDisclaimerText   *string                     `protobuf:"bytes,11,opt,name=messageDisclaimerText" json:"messageDisclaimerText,omitempty"`
 }
 
 func (x *BotMetadata) Reset() {
@@ -12597,9 +12623,9 @@ func (x *BotMetadata) GetInvokerJID() string {
 	return ""
 }
 
-func (x *BotMetadata) GetSearchMetadata() *BotSessionMetadata {
+func (x *BotMetadata) GetSessionMetadata() *BotSessionMetadata {
 	if x != nil {
-		return x.SearchMetadata
+		return x.SessionMetadata
 	}
 	return nil
 }
@@ -12630,6 +12656,13 @@ func (x *BotMetadata) GetModelMetadata() *BotModelMetadata {
 		return x.ModelMetadata
 	}
 	return nil
+}
+
+func (x *BotMetadata) GetMessageDisclaimerText() string {
+	if x != nil && x.MessageDisclaimerText != nil {
+		return *x.MessageDisclaimerText
+	}
+	return ""
 }
 
 type DeviceListMetadata struct {
@@ -17837,7 +17870,7 @@ var file_waE2E_WAWebProtobufsE2E_proto_enumTypes = make([]protoimpl.EnumInfo, 57
 var file_waE2E_WAWebProtobufsE2E_proto_msgTypes = make([]protoimpl.MessageInfo, 166)
 var file_waE2E_WAWebProtobufsE2E_proto_goTypes = []any{
 	(PeerDataOperationRequestType)(0),           // 0: WAWebProtobufsE2E.PeerDataOperationRequestType
-	(SessionSource)(0),                          // 1: WAWebProtobufsE2E.SessionSource
+	(BotSessionSource)(0),                       // 1: WAWebProtobufsE2E.BotSessionSource
 	(KeepType)(0),                               // 2: WAWebProtobufsE2E.KeepType
 	(PlaceholderMessage_PlaceholderType)(0),     // 3: WAWebProtobufsE2E.PlaceholderMessage.PlaceholderType
 	(BCallMessage_MediaType)(0),                 // 4: WAWebProtobufsE2E.BCallMessage.MediaType
@@ -18324,12 +18357,12 @@ var file_waE2E_WAWebProtobufsE2E_proto_depIdxs = []int32{
 	85,  // 256: WAWebProtobufsE2E.DocumentMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
 	85,  // 257: WAWebProtobufsE2E.LocationMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
 	85,  // 258: WAWebProtobufsE2E.ContactMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	1,   // 259: WAWebProtobufsE2E.BotSessionMetadata.sessionSource:type_name -> WAWebProtobufsE2E.SessionSource
+	1,   // 259: WAWebProtobufsE2E.BotSessionMetadata.sessionSource:type_name -> WAWebProtobufsE2E.BotSessionSource
 	87,  // 260: WAWebProtobufsE2E.BotMemuMetadata.faceImages:type_name -> WAWebProtobufsE2E.BotMediaMetadata
 	145, // 261: WAWebProtobufsE2E.BotMetadata.avatarMetadata:type_name -> WAWebProtobufsE2E.BotAvatarMetadata
 	86,  // 262: WAWebProtobufsE2E.BotMetadata.pluginMetadata:type_name -> WAWebProtobufsE2E.BotPluginMetadata
 	146, // 263: WAWebProtobufsE2E.BotMetadata.suggestedPromptMetadata:type_name -> WAWebProtobufsE2E.BotSuggestedPromptMetadata
-	147, // 264: WAWebProtobufsE2E.BotMetadata.searchMetadata:type_name -> WAWebProtobufsE2E.BotSessionMetadata
+	147, // 264: WAWebProtobufsE2E.BotMetadata.sessionMetadata:type_name -> WAWebProtobufsE2E.BotSessionMetadata
 	148, // 265: WAWebProtobufsE2E.BotMetadata.memuMetadata:type_name -> WAWebProtobufsE2E.BotMemuMetadata
 	88,  // 266: WAWebProtobufsE2E.BotMetadata.reminderMetadata:type_name -> WAWebProtobufsE2E.BotReminderMetadata
 	89,  // 267: WAWebProtobufsE2E.BotMetadata.modelMetadata:type_name -> WAWebProtobufsE2E.BotModelMetadata

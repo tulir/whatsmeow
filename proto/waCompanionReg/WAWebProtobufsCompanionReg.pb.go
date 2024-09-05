@@ -453,6 +453,7 @@ type DeviceProps_HistorySyncConfig struct {
 	SupportRecentSyncChunkMessageCountTuning *bool   `protobuf:"varint,10,opt,name=supportRecentSyncChunkMessageCountTuning" json:"supportRecentSyncChunkMessageCountTuning,omitempty"`
 	SupportHostedGroupMsg                    *bool   `protobuf:"varint,11,opt,name=supportHostedGroupMsg" json:"supportHostedGroupMsg,omitempty"`
 	SupportFbidBotChatHistory                *bool   `protobuf:"varint,12,opt,name=supportFbidBotChatHistory" json:"supportFbidBotChatHistory,omitempty"`
+	SupportAddOnHistorySyncMigration         *bool   `protobuf:"varint,13,opt,name=supportAddOnHistorySyncMigration" json:"supportAddOnHistorySyncMigration,omitempty"`
 }
 
 func (x *DeviceProps_HistorySyncConfig) Reset() {
@@ -567,6 +568,13 @@ func (x *DeviceProps_HistorySyncConfig) GetSupportHostedGroupMsg() bool {
 func (x *DeviceProps_HistorySyncConfig) GetSupportFbidBotChatHistory() bool {
 	if x != nil && x.SupportFbidBotChatHistory != nil {
 		return *x.SupportFbidBotChatHistory
+	}
+	return false
+}
+
+func (x *DeviceProps_HistorySyncConfig) GetSupportAddOnHistorySyncMigration() bool {
+	if x != nil && x.SupportAddOnHistorySyncMigration != nil {
+		return *x.SupportAddOnHistorySyncMigration
 	}
 	return false
 }

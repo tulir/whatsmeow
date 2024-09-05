@@ -17,7 +17,7 @@ enum PeerDataOperationRequestType {
 	FULL_HISTORY_SYNC_ON_DEMAND = 6;
 }
 
-enum SessionSource {
+enum BotSessionSource {
 	NULL_STATE = 1;
 	TYPEAHEAD = 2;
 	USER_INPUT = 3;
@@ -491,6 +491,9 @@ message PeerDataOperationRequestResponseMessage {
 			REQUEST_TIME_EXPIRED = 1;
 			DECLINED_SHARING_HISTORY = 2;
 			GENERIC_ERROR = 3;
+			ERROR_REQUEST_ON_NON_SMB_PRIMARY = 4;
+			ERROR_HOSTED_DEVICE_NOT_CONNECTED = 5;
+			ERROR_HOSTED_DEVICE_LOGIN_TIME_NOT_SET = 6;
 		}
 
 		message WaffleNonceFetchResponse {
@@ -1267,6 +1270,8 @@ message StickerPackMessage {
 
 message AlbumMessage {
 	optional string caption = 1;
+	optional uint32 expectedImageCount = 2;
+	optional uint32 expectedVideoCount = 3;
 	optional ContextInfo contextInfo = 17;
 }
 
@@ -1718,7 +1723,7 @@ message BotSuggestedPromptMetadata {
 
 message BotSessionMetadata {
 	optional string sessionID = 1;
-	optional SessionSource sessionSource = 2;
+	optional BotSessionSource sessionSource = 2;
 }
 
 message BotMemuMetadata {
@@ -1731,11 +1736,12 @@ message BotMetadata {
 	optional BotPluginMetadata pluginMetadata = 3;
 	optional BotSuggestedPromptMetadata suggestedPromptMetadata = 4;
 	optional string invokerJID = 5;
-	optional BotSessionMetadata searchMetadata = 6;
+	optional BotSessionMetadata sessionMetadata = 6;
 	optional BotMemuMetadata memuMetadata = 7;
 	optional string timezone = 8;
 	optional BotReminderMetadata reminderMetadata = 9;
 	optional BotModelMetadata modelMetadata = 10;
+	optional string messageDisclaimerText = 11;
 }
 
 message DeviceListMetadata {
