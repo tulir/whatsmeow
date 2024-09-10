@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 )
 
 /*
@@ -31,24 +32,76 @@ Decrypt is a function that decrypts a given cipher text with a provided key and 
 */
 func Decrypt(key, iv, ciphertext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
-
 	if err != nil {
 		return nil, err
-	}
-
-	if len(ciphertext) < aes.BlockSize {
+	} else if len(ciphertext) < aes.BlockSize {
 		return nil, fmt.Errorf("ciphertext is shorter then block size: %d / %d", len(ciphertext), aes.BlockSize)
-	}
-
-	if iv == nil {
-		iv = ciphertext[:aes.BlockSize]
-		ciphertext = ciphertext[aes.BlockSize:]
 	}
 
 	cbc := cipher.NewCBCDecrypter(block, iv)
 	cbc.CryptBlocks(ciphertext, ciphertext)
 
 	return unpad(ciphertext)
+}
+
+type File interface {
+	io.Reader
+	io.WriterAt
+	Truncate(size int64) error
+	Stat() (os.FileInfo, error)
+}
+
+func DecryptFile(key, iv []byte, file File) error {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return err
+	}
+	cbc := cipher.NewCBCDecrypter(block, iv)
+	stat, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to stat file: %w", err)
+	}
+	fileSize := stat.Size()
+	if fileSize%aes.BlockSize != 0 {
+		return fmt.Errorf("file size is not a multiple of the block size: %d / %d", fileSize, aes.BlockSize)
+	}
+
+	var bufSize int64 = 32 * 1024
+	if fileSize < bufSize {
+		bufSize = fileSize
+	}
+	buf := make([]byte, bufSize)
+	var writePtr int64
+	var lastByte byte
+	for writePtr < fileSize {
+		if writePtr+bufSize > fileSize {
+			buf = buf[:fileSize-writePtr]
+		}
+		var n int
+		n, err = io.ReadFull(file, buf)
+		if err != nil {
+			return fmt.Errorf("failed to read file: %w", err)
+		} else if n != len(buf) {
+			return fmt.Errorf("failed to read full buffer: %d / %d", n, len(buf))
+		}
+		cbc.CryptBlocks(buf, buf)
+		n, err = file.WriteAt(buf, writePtr)
+		if err != nil {
+			return fmt.Errorf("failed to write file: %w", err)
+		} else if n != len(buf) {
+			return fmt.Errorf("failed to write full buffer: %d / %d", n, len(buf))
+		}
+		writePtr += int64(len(buf))
+		lastByte = buf[len(buf)-1]
+	}
+	if int64(lastByte) > fileSize {
+		return fmt.Errorf("padding is greater then the length: %d / %d", lastByte, fileSize)
+	}
+	err = file.Truncate(fileSize - int64(lastByte))
+	if err != nil {
+		return fmt.Errorf("failed to truncate file to remove padding: %w", err)
+	}
+	return nil
 }
 
 /*

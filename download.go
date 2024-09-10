@@ -288,13 +288,13 @@ func (cli *Client) downloadPossiblyEncryptedMediaWithRetries(url string, checksu
 		if errors.As(err, &httpErr) {
 			retryDuration = retryafter.Parse(httpErr.Response.Header.Get("Retry-After"), retryDuration)
 		}
-		cli.Log.Warnf("Failed to download media due to network error: %w, retrying in %s...", err, retryDuration)
+		cli.Log.Warnf("Failed to download media due to network error: %v, retrying in %s...", err, retryDuration)
 		time.Sleep(retryDuration)
 	}
 	return
 }
 
-func (cli *Client) downloadMedia(url string) ([]byte, error) {
+func (cli *Client) doMediaDownloadRequest(url string) (*http.Response, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare request: %w", err)
@@ -309,22 +309,34 @@ func (cli *Client) downloadMedia(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
+		_ = resp.Body.Close()
 		return nil, DownloadHTTPError{Response: resp}
 	}
-	return io.ReadAll(resp.Body)
+	return resp, nil
 }
+
+func (cli *Client) downloadMedia(url string) ([]byte, error) {
+	resp, err := cli.doMediaDownloadRequest(url)
+	if err != nil {
+		return nil, err
+	}
+	data, err := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	return data, err
+}
+
+const mediaHMACLength = 10
 
 func (cli *Client) downloadEncryptedMedia(url string, checksum []byte) (file, mac []byte, err error) {
 	data, err := cli.downloadMedia(url)
 	if err != nil {
 		return
-	} else if len(data) <= 10 {
+	} else if len(data) <= mediaHMACLength {
 		err = ErrTooShortFile
 		return
 	}
-	file, mac = data[:len(data)-10], data[len(data)-10:]
+	file, mac = data[:len(data)-mediaHMACLength], data[len(data)-mediaHMACLength:]
 	if len(checksum) == 32 && sha256.Sum256(data) != *(*[32]byte)(checksum) {
 		err = ErrInvalidMediaEncSHA256
 	}
@@ -335,7 +347,7 @@ func validateMedia(iv, file, macKey, mac []byte) error {
 	h := hmac.New(sha256.New, macKey)
 	h.Write(iv)
 	h.Write(file)
-	if !hmac.Equal(h.Sum(nil)[:10], mac) {
+	if !hmac.Equal(h.Sum(nil)[:mediaHMACLength], mac) {
 		return ErrInvalidMediaHMAC
 	}
 	return nil
