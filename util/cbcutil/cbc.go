@@ -168,8 +168,11 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 	cipherMAC := hmac.New(sha256.New, macKey)
 	cipherMAC.Write(iv)
 
+	writerAt, hasWriterAt := ciphertext.(io.WriterAt)
+
 	buf := make([]byte, 32*1024)
 	var size int
+	var writePtr int64
 	hasMore := true
 	for hasMore {
 		var n int
@@ -186,14 +189,23 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 		cbc.CryptBlocks(buf, buf)
 		cipherMAC.Write(buf)
 		cipherHasher.Write(buf)
-		_, err = ciphertext.Write(buf)
+		if hasWriterAt {
+			_, err = writerAt.WriteAt(buf, writePtr)
+			writePtr += int64(len(buf))
+		} else {
+			_, err = ciphertext.Write(buf)
+		}
 		if err != nil {
 			return nil, nil, 0, fmt.Errorf("failed to write file: %w", err)
 		}
 	}
 	mac := cipherMAC.Sum(nil)[:10]
 	cipherHasher.Write(mac)
-	_, err = ciphertext.Write(mac)
+	if hasWriterAt {
+		_, err = writerAt.WriteAt(mac, writePtr)
+	} else {
+		_, err = ciphertext.Write(mac)
+	}
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("failed to write checksum to file: %w", err)
 	}

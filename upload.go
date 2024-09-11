@@ -98,6 +98,8 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 // This is otherwise identical to [Upload], but it reads the plaintext from an [io.Reader] instead of a byte slice.
 // A temporary file is required for the encryption process. If tempFile is nil, a temporary file will be created
 // and deleted after the upload.
+//
+// To use only one file, pass the same file as both plaintext and tempFile. This will cause the file to be overwritten with encrypted data.
 func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFile io.ReadWriteSeeker, appInfo MediaType) (resp UploadResponse, err error) {
 	resp.MediaKey = random.Bytes(32)
 	iv, cipherKey, macKey, _ := getMediaKeys(resp.MediaKey, appInfo)
