@@ -206,14 +206,14 @@ func (w *binaryEncoder) countAttributes(attributes Attrs) int {
 		return 0
 	}
 
-    var count = 0
+	var count = 0
 	for _, val := range attributes {
 		if val == "" || val == nil {
 			continue
 		}
-        count += 1
+		count += 1
 	}
-    return count
+	return count
 }
 
 func (w *binaryEncoder) writeListStart(listSize int) {
