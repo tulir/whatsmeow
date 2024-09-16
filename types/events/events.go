@@ -110,6 +110,9 @@ type LoggedOut struct {
 // or otherwise try to connect twice with the same session.
 type StreamReplaced struct{}
 
+// ManualLoginReconnect is emitted after login if DisableLoginAutoReconnect is set.
+type ManualLoginReconnect struct{}
+
 // TempBanReason is an error code included in temp ban error events.
 type TempBanReason int
 

@@ -70,6 +70,8 @@ type Client struct {
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
 
+	DisableLoginAutoReconnect bool
+
 	sendActiveReceipts atomic.Uint32
 
 	// EmitAppStateEventsOnFullSync can be set to true if you want to get app state events emitted
