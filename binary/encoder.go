@@ -187,10 +187,6 @@ func (w *binaryEncoder) writeJID(jid types.JID) {
 }
 
 func (w *binaryEncoder) writeAttributes(attributes Attrs) {
-	if attributes == nil {
-		return
-	}
-
 	for key, val := range attributes {
 		if val == "" || val == nil {
 			continue
@@ -201,19 +197,14 @@ func (w *binaryEncoder) writeAttributes(attributes Attrs) {
 	}
 }
 
-func (w *binaryEncoder) countAttributes(attributes Attrs) int {
-	if attributes == nil {
-		return 0
-	}
-
-	var count = 0
+func (w *binaryEncoder) countAttributes(attributes Attrs) (count int) {
 	for _, val := range attributes {
 		if val == "" || val == nil {
 			continue
 		}
 		count += 1
 	}
-	return count
+	return
 }
 
 func (w *binaryEncoder) writeListStart(listSize int) {
