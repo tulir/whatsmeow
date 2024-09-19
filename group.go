@@ -868,7 +868,7 @@ func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, err
 // GroupJoinApprovalMode sets the group join approval mode to 'on' or 'off'.
 func (cli *Client) GroupJoinApprovalMode(jid types.JID, mode string) error {
 	if mode != "on" && mode != "off" {
-		return fmt.Errorf("invalid mode %q", mode)
+		return errors.New("invalid mode, must be 'on' or 'off'")
 	}
 
 	content := waBinary.Node{
