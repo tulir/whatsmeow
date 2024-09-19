@@ -1,4 +1,4 @@
-module github.com/gustavorafaeldev/whatsmeow
+module go.mau.fi/whatsmeow
 
 go 1.21
 
@@ -8,7 +8,6 @@ require (
 	github.com/rs/zerolog v1.33.0
 	go.mau.fi/libsignal v0.1.1
 	go.mau.fi/util v0.6.0
-	go.mau.fi/whatsmeow v0.0.0-20240917093958-061c065cc1ee
 	golang.org/x/crypto v0.25.0
 	golang.org/x/net v0.27.0
 	google.golang.org/protobuf v1.34.2
