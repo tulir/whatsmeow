@@ -56,6 +56,26 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message WaffleAccountLinkStateAction {
+	enum AccountLinkState {
+		ACTIVE = 0;
+	}
+
+	optional AccountLinkState linkState = 2;
+}
+
+message MerchantPaymentPartnerAction {
+	enum Status {
+		ACTIVE = 0;
+		INACTIVE = 1;
+	}
+
+	required Status status = 1;
+	required string country = 2;
+	optional string gatewayName = 3;
+	optional string credentialID = 4;
+}
+
 message NoteEditAction {
 	enum NoteType {
 		UNSTRUCTURED = 1;
@@ -173,7 +193,9 @@ message SyncActionValue {
 	optional PrivacySettingDisableLinkPreviewsAction privacySettingDisableLinkPreviewsAction = 53;
 	optional WAProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilities = 54;
 	optional NoteEditAction noteEditAction = 55;
-	optional FavoritesAction favorites = 56;
+	optional FavoritesAction favoritesAction = 56;
+	optional MerchantPaymentPartnerAction merchantPaymentPartnerAction = 57;
+	optional WaffleAccountLinkStateAction waffleAccountLinkStateAction = 58;
 }
 
 message FavoritesAction {

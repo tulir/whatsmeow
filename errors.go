@@ -106,6 +106,7 @@ var (
 	ErrUnknownServer            = errors.New("can't send message to unknown server")
 	ErrRecipientADJID           = errors.New("message recipient must be a user JID with no device part")
 	ErrServerReturnedError      = errors.New("server returned error")
+	ErrInvalidInlineBotID       = errors.New("invalid inline bot ID")
 )
 
 type DownloadHTTPError struct {

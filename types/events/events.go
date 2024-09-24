@@ -15,6 +15,8 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
 	armadillo "go.mau.fi/whatsmeow/proto"
+	"go.mau.fi/whatsmeow/proto/waArmadilloApplication"
+	"go.mau.fi/whatsmeow/proto/waConsumerApplication"
 	"go.mau.fi/whatsmeow/proto/waMsgApplication"
 	"go.mau.fi/whatsmeow/proto/waMsgTransport"
 	"go.mau.fi/whatsmeow/types"
@@ -107,6 +109,9 @@ type LoggedOut struct {
 // This can happen if you accidentally start another process with the same session
 // or otherwise try to connect twice with the same session.
 type StreamReplaced struct{}
+
+// ManualLoginReconnect is emitted after login if DisableLoginAutoReconnect is set.
+type ManualLoginReconnect struct{}
 
 // TempBanReason is an error code included in temp ban error events.
 type TempBanReason int
@@ -269,9 +274,11 @@ type Message struct {
 	Message *waProto.Message  // The actual message struct
 
 	IsEphemeral           bool // True if the message was unwrapped from an EphemeralMessage
-	IsViewOnce            bool // True if the message was unwrapped from a ViewOnceMessage or ViewOnceMessageV2
-	IsViewOnceV2          bool // True if the message was unwrapped from a ViewOnceMessage
+	IsViewOnce            bool // True if the message was unwrapped from a ViewOnceMessage, ViewOnceMessageV2 or ViewOnceMessageV2Extension
+	IsViewOnceV2          bool // True if the message was unwrapped from a ViewOnceMessageV2 or ViewOnceMessageV2Extension
+	IsViewOnceV2Extension bool // True if the message was unwrapped from a ViewOnceMessageV2Extension
 	IsDocumentWithCaption bool // True if the message was unwrapped from a DocumentWithCaptionMessage
+	IsLottieSticker       bool // True if the message was unwrapped from a LottieStickerMessage
 	IsEdit                bool // True if the message was unwrapped from an EditedMessage
 
 	// If this event was parsed from a WebMessageInfo (i.e. from a history sync or unavailable message request), the source data is here.
@@ -299,6 +306,20 @@ type FBMessage struct {
 	Application *waMsgApplication.MessageApplication // The second level of wrapping the message was in
 }
 
+func (evt *FBMessage) GetConsumerApplication() *waConsumerApplication.ConsumerApplication {
+	if consumerApp, ok := evt.Message.(*waConsumerApplication.ConsumerApplication); ok {
+		return consumerApp
+	}
+	return nil
+}
+
+func (evt *FBMessage) GetArmadillo() *waArmadilloApplication.Armadillo {
+	if armadillo, ok := evt.Message.(*waArmadilloApplication.Armadillo); ok {
+		return armadillo
+	}
+	return nil
+}
+
 // UnwrapRaw fills the Message, IsEphemeral and IsViewOnce fields based on the raw message in the RawMessage field.
 func (evt *Message) UnwrapRaw() *Message {
 	evt.Message = evt.RawMessage
@@ -321,6 +342,16 @@ func (evt *Message) UnwrapRaw() *Message {
 		evt.Message = evt.Message.GetViewOnceMessageV2().GetMessage()
 		evt.IsViewOnce = true
 		evt.IsViewOnceV2 = true
+	}
+	if evt.Message.GetViewOnceMessageV2Extension().GetMessage() != nil {
+		evt.Message = evt.Message.GetViewOnceMessageV2Extension().GetMessage()
+		evt.IsViewOnce = true
+		evt.IsViewOnceV2 = true
+		evt.IsViewOnceV2Extension = true
+	}
+	if evt.Message.GetLottieStickerMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetLottieStickerMessage().GetMessage()
+		evt.IsLottieSticker = true
 	}
 	if evt.Message.GetDocumentWithCaptionMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetDocumentWithCaptionMessage().GetMessage()

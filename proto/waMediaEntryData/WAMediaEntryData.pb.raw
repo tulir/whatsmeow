@@ -1,5 +1,5 @@
 
-'waMediaEntryData/WAMediaEntryData.protoWAMediaEntryData"É
+'waMediaEntryData/WAMediaEntryData.protoWAMediaEntryData"¡
 
 MediaEntry
 
@@ -21,7 +21,9 @@ directPath,
 downloadableThumbnail (22.WAMediaEntryData.MediaEntry.DownloadableThumbnailRdownloadableThumbnail
 handle (	Rhandle
 filename (	Rfilenamek
-progressiveJPEGDetails (23.WAMediaEntryData.MediaEntry.ProgressiveJpegDetailsRprogressiveJPEGDetailsT
+progressiveJPEGDetails (23.WAMediaEntryData.MediaEntry.ProgressiveJpegDetailsRprogressiveJPEGDetails
+size (RsizeB
+lastDownloadAttemptTimestamp (RlastDownloadAttemptTimestampT
 ProgressiveJpegDetails 
 scanLengths (RscanLengths
 sidecar (Rsidecarã
