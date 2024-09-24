@@ -865,8 +865,8 @@ func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, err
 	}
 }
 
-// GroupJoinApprovalMode sets the group join approval mode to 'on' or 'off'.
-func (cli *Client) GroupJoinApprovalMode(jid types.JID, mode bool) error {
+// SetGroupJoinApprovalMode sets the group join approval mode to 'on' or 'off'.
+func (cli *Client) SetGroupJoinApprovalMode(jid types.JID, mode bool) error {
 	modeStr := "off"
 	if mode {
 		modeStr = "on"
@@ -886,8 +886,8 @@ func (cli *Client) GroupJoinApprovalMode(jid types.JID, mode bool) error {
 	return err
 }
 
-// GroupMemberAddMode sets the group member add mode to 'admin_add' or 'all_member_add'.
-func (cli *Client) GroupMemberAddMode(jid types.JID, mode types.GroupMemberAddMode) error {
+// SetGroupMemberAddMode sets the group member add mode to 'admin_add' or 'all_member_add'.
+func (cli *Client) SetGroupMemberAddMode(jid types.JID, mode types.GroupMemberAddMode) error {
 	if mode != types.GroupMemberAddModeAdmin && mode != types.GroupMemberAddModeAllMember {
 		return errors.New("invalid mode, must be 'admin_add' or 'all_member_add'")
 	}
@@ -901,8 +901,8 @@ func (cli *Client) GroupMemberAddMode(jid types.JID, mode types.GroupMemberAddMo
 	return err
 }
 
-// GroupUpdateDescription updates the group description.
-func (cli *Client) GroupUpdateDescription(jid types.JID, description string) error {
+// SetGroupDescription updates the group description.
+func (cli *Client) SetGroupDescription(jid types.JID, description string) error {
 	content := waBinary.Node{
 		Tag: "description",
 		Content: []waBinary.Node{
