@@ -132,6 +132,10 @@ func (cli *Client) downloadPossiblyEncryptedMediaWithRetriesToFile(url string, c
 			retryDuration = retryafter.Parse(httpErr.Response.Header.Get("Retry-After"), retryDuration)
 		}
 		cli.Log.Warnf("Failed to download media due to network error: %v, retrying in %s...", err, retryDuration)
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return nil, fmt.Errorf("failed to seek to start of file to retry download: %w", err)
+		}
 		time.Sleep(retryDuration)
 	}
 	return
