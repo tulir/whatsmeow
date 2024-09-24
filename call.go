@@ -88,8 +88,8 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 	}
 }
 
-// CallReject reject an incoming call.
-func (cli *Client) CallReject(callFrom types.JID, callID string) error {
+// RejectCall reject an incoming call.
+func (cli *Client) RejectCall(callFrom types.JID, callID string) error {
 	ownID := cli.getOwnID()
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
