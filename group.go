@@ -645,7 +645,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		case "incognito":
 			group.IsIncognito = true
 		case "membership_approval_mode":
-			group.IsApprovalRequired = true
+			group.IsJoinApprovalRequired = true
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
@@ -817,7 +817,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			}
 		case "membership_approval_mode":
 			evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
-				IsApprovalRequired: true,
+				IsJoinApprovalRequired: true,
 			}
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
