@@ -439,6 +439,10 @@ func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
 	} else if err != nil {
 		return types.EmptyJID, err
 	}
+	membershipApprovalModeNode, ok := resp.GetOptionalChildByTag("membership_approval_request")
+	if ok {
+		return membershipApprovalModeNode.AttrGetter().JID("jid"), nil
+	}
 	groupNode, ok := resp.GetOptionalChildByTag("group")
 	if !ok {
 		return types.EmptyJID, &ElementMissingError{Tag: "group", In: "response to group link join query"}
@@ -640,7 +644,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 			group.DefaultMembershipApprovalMode = childAG.OptionalString("default_membership_approval_mode")
 		case "incognito":
 			group.IsIncognito = true
-		// TODO: membership_approval_mode
+		case "membership_approval_mode":
+			group.IsJoinApprovalRequired = true
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
@@ -809,6 +814,10 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			evt.Unlink.Group, err = parseGroupLinkTargetNode(&groupNode)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse group unlink node in group change: %w", err)
+			}
+		case "membership_approval_mode":
+			evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
+				IsJoinApprovalRequired: true,
 			}
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
