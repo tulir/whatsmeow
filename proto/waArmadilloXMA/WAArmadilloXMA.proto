@@ -28,6 +28,7 @@ message ExtendedContentMessage {
 		PORTRAIT = 3;
 		STANDARD_DXMA = 12;
 		LIST_DXMA = 15;
+		GRID = 16;
 	}
 
 	enum ExtendedContentType {
@@ -77,6 +78,7 @@ message ExtendedContentMessage {
 		MSG_AVATAR_DETAILS = 2013;
 		MSG_AI_CONTACT = 2014;
 		MSG_MEMORIES_SHARE = 2015;
+		MSG_SHARED_ALBUM_REPLY = 2016;
 		RTC_AUDIO_CALL = 3000;
 		RTC_VIDEO_CALL = 3001;
 		RTC_MISSED_AUDIO_CALL = 3002;

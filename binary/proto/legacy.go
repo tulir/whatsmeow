@@ -175,7 +175,6 @@ type (
 	ContextInfo                                                                                                         = waE2E.ContextInfo
 	ForwardedNewsletterMessageInfo                                                                                      = waE2E.ContextInfo_ForwardedNewsletterMessageInfo
 	BotSuggestedPromptMetadata                                                                                          = waE2E.BotSuggestedPromptMetadata
-	BotSearchMetadata                                                                                                   = waE2E.BotSearchMetadata
 	BotPluginMetadata                                                                                                   = waE2E.BotPluginMetadata
 	BotMetadata                                                                                                         = waE2E.BotMetadata
 	BotAvatarMetadata                                                                                                   = waE2E.BotAvatarMetadata

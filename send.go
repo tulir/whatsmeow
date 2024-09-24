@@ -130,6 +130,8 @@ type SendResponse struct {
 type SendRequestExtra struct {
 	// The message ID to use when sending. If this is not provided, a random message ID will be generated
 	ID types.MessageID
+	// JID of the bot to be invoked (optional)
+	InlineBotJID types.JID
 	// Should the message be sent as a peer message (protocol messages to your own devices, e.g. app state key requests)
 	Peer bool
 	// A timeout for the send request. Unlike timeouts using the context parameter, this only applies
@@ -164,7 +166,7 @@ type SendRequestExtra struct {
 // in binary/proto/def.proto may be useful to find out all the allowed fields. Printing the RawMessage
 // field in incoming message events to figure out what it contains is also a good way to learn how to
 // send the same kind of message.
-func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waProto.Message, extra ...SendRequestExtra) (resp SendResponse, err error) {
+func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.Message, extra ...SendRequestExtra) (resp SendResponse, err error) {
 	var req SendRequestExtra
 	if len(extra) > 1 {
 		err = errors.New("only one extra parameter may be provided to SendMessage")
@@ -198,6 +200,72 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	}
 	resp.ID = req.ID
 
+	isInlineBotMode := false
+
+	if !req.InlineBotJID.IsEmpty() {
+		if !req.InlineBotJID.IsBot() {
+			err = ErrInvalidInlineBotID
+			return
+		}
+		isInlineBotMode = true
+	}
+
+	isBotMode := isInlineBotMode || to.IsBot()
+	var botNode *waBinary.Node
+
+	if isBotMode {
+		if message.MessageContextInfo == nil {
+			message.MessageContextInfo = &waE2E.MessageContextInfo{}
+		}
+
+		if message.MessageContextInfo.MessageSecret == nil {
+			message.MessageContextInfo.MessageSecret = random.Bytes(32)
+		}
+
+		if message.MessageContextInfo.BotMetadata == nil {
+			message.MessageContextInfo.BotMetadata = &waE2E.BotMetadata{
+				PersonaID: proto.String("867051314767696$760019659443059"),
+			}
+		}
+
+		if isInlineBotMode {
+			// inline mode specific code
+			messageSecret := message.GetMessageContextInfo().GetMessageSecret()
+			message = &waE2E.Message{
+				BotInvokeMessage: &waE2E.FutureProofMessage{
+					Message: &waE2E.Message{
+						ExtendedTextMessage: message.ExtendedTextMessage,
+						MessageContextInfo: &waE2E.MessageContextInfo{
+							BotMetadata: message.MessageContextInfo.BotMetadata,
+						},
+					},
+				},
+				MessageContextInfo: message.MessageContextInfo,
+			}
+
+			botMessage := &waE2E.Message{
+				BotInvokeMessage: message.BotInvokeMessage,
+				MessageContextInfo: &waE2E.MessageContextInfo{
+					BotMetadata:      message.MessageContextInfo.BotMetadata,
+					BotMessageSecret: applyBotMessageHKDF(messageSecret),
+				},
+			}
+
+			messagePlaintext, _, marshalErr := marshalMessage(req.InlineBotJID, botMessage)
+			if marshalErr != nil {
+				err = marshalErr
+				return
+			}
+
+			participantNodes, _ := cli.encryptMessageForDevices(ctx, []types.JID{req.InlineBotJID}, ownID, resp.ID, messagePlaintext, nil, waBinary.Attrs{})
+			botNode = &waBinary.Node{
+				Tag:     "bot",
+				Attrs:   nil,
+				Content: participantNodes,
+			}
+		}
+	}
+
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely
 	cli.messageSendLock.Lock()
@@ -209,6 +277,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	if !req.Peer {
 		cli.addRecentMessage(to, req.ID, message, nil)
 	}
+
 	if message.GetMessageContextInfo().GetMessageSecret() != nil {
 		err = cli.Store.MsgSecrets.PutMessageSecret(to, ownID, req.ID, message.GetMessageContextInfo().GetMessageSecret())
 		if err != nil {
@@ -221,12 +290,12 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waPro
 	var data []byte
 	switch to.Server {
 	case types.GroupServer, types.BroadcastServer:
-		phash, data, err = cli.sendGroup(ctx, to, ownID, req.ID, message, &resp.DebugTimings)
+		phash, data, err = cli.sendGroup(ctx, to, ownID, req.ID, message, &resp.DebugTimings, botNode)
 	case types.DefaultUserServer:
 		if req.Peer {
 			data, err = cli.sendPeerMessage(to, req.ID, message, &resp.DebugTimings)
 		} else {
-			data, err = cli.sendDM(ctx, to, ownID, req.ID, message, &resp.DebugTimings)
+			data, err = cli.sendDM(ctx, to, ownID, req.ID, message, &resp.DebugTimings, botNode)
 		}
 	case types.NewsletterServer:
 		data, err = cli.sendNewsletter(to, req.ID, message, req.MediaHandle, &resp.DebugTimings)
@@ -532,7 +601,7 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 	return data, nil
 }
 
-func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) (string, []byte, error) {
+func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings, botNode *waBinary.Node) (string, []byte, error) {
 	var participants []types.JID
 	var err error
 	start := time.Now()
@@ -563,8 +632,8 @@ func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
 	}
-	skdMessage := &waProto.Message{
-		SenderKeyDistributionMessage: &waProto.SenderKeyDistributionMessage{
+	skdMessage := &waE2E.Message{
+		SenderKeyDistributionMessage: &waE2E.SenderKeyDistributionMessage{
 			GroupID:                             proto.String(to.String()),
 			AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),
 		},
@@ -582,7 +651,7 @@ func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.
 	ciphertext := encrypted.SignedSerialize()
 	timings.GroupEncrypt = time.Since(start)
 
-	node, allDevices, err := cli.prepareMessageNode(ctx, to, ownID, id, message, participants, skdPlaintext, nil, timings)
+	node, allDevices, err := cli.prepareMessageNode(ctx, to, ownID, id, message, participants, skdPlaintext, nil, timings, botNode)
 	if err != nil {
 		return "", nil, err
 	}
@@ -608,7 +677,7 @@ func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.
 	return phash, data, nil
 }
 
-func (cli *Client) sendPeerMessage(to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) ([]byte, error) {
+func (cli *Client) sendPeerMessage(to types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings) ([]byte, error) {
 	node, err := cli.preparePeerMessageNode(to, id, message, timings)
 	if err != nil {
 		return nil, err
@@ -622,7 +691,7 @@ func (cli *Client) sendPeerMessage(to types.JID, id types.MessageID, message *wa
 	return data, nil
 }
 
-func (cli *Client) sendDM(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) ([]byte, error) {
+func (cli *Client) sendDM(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings, botNode *waBinary.Node) ([]byte, error) {
 	start := time.Now()
 	messagePlaintext, deviceSentMessagePlaintext, err := marshalMessage(to, message)
 	timings.Marshal = time.Since(start)
@@ -630,7 +699,7 @@ func (cli *Client) sendDM(ctx context.Context, to, ownID types.JID, id types.Mes
 		return nil, err
 	}
 
-	node, _, err := cli.prepareMessageNode(ctx, to, ownID, id, message, []types.JID{to, ownID.ToNonAD()}, messagePlaintext, deviceSentMessagePlaintext, timings)
+	node, _, err := cli.prepareMessageNode(ctx, to, ownID, id, message, []types.JID{to, ownID.ToNonAD()}, messagePlaintext, deviceSentMessagePlaintext, timings, botNode)
 	if err != nil {
 		return nil, err
 	}
@@ -649,6 +718,10 @@ func getTypeFromMessage(msg *waProto.Message) string {
 		return getTypeFromMessage(msg.ViewOnceMessage.Message)
 	case msg.ViewOnceMessageV2 != nil:
 		return getTypeFromMessage(msg.ViewOnceMessageV2.Message)
+	case msg.ViewOnceMessageV2Extension != nil:
+		return getTypeFromMessage(msg.ViewOnceMessageV2Extension.Message)
+	case msg.LottieStickerMessage != nil:
+		return getTypeFromMessage(msg.LottieStickerMessage.Message)
 	case msg.EphemeralMessage != nil:
 		return getTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.DocumentWithCaptionMessage != nil:
@@ -672,6 +745,10 @@ func getMediaTypeFromMessage(msg *waProto.Message) string {
 		return getMediaTypeFromMessage(msg.ViewOnceMessage.Message)
 	case msg.ViewOnceMessageV2 != nil:
 		return getMediaTypeFromMessage(msg.ViewOnceMessageV2.Message)
+	case msg.ViewOnceMessageV2Extension != nil:
+		return getMediaTypeFromMessage(msg.ViewOnceMessageV2Extension.Message)
+	case msg.LottieStickerMessage != nil:
+		return getMediaTypeFromMessage(msg.LottieStickerMessage.Message)
 	case msg.EphemeralMessage != nil:
 		return getMediaTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.DocumentWithCaptionMessage != nil:
@@ -821,7 +898,7 @@ func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, mess
 	}, nil
 }
 
-func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waProto.Message, msgAttrs waBinary.Attrs, includeIdentity bool) []waBinary.Node {
+func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waE2E.Message, msgAttrs waBinary.Attrs, includeIdentity bool, botNode *waBinary.Node) []waBinary.Node {
 	content := []waBinary.Node{baseNode}
 	if includeIdentity {
 		content = append(content, cli.makeDeviceIdentityNode())
@@ -838,6 +915,11 @@ func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waProto.Me
 			},
 		})
 	}
+
+	if botNode != nil {
+		content = append(content, *botNode)
+	}
+
 	if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
 		content = append(content, waBinary.Node{
 			Tag: "biz",
@@ -850,7 +932,7 @@ func (cli *Client) getMessageContent(baseNode waBinary.Node, message *waProto.Me
 	return content
 }
 
-func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, participants []types.JID, plaintext, dsmPlaintext []byte, timings *MessageDebugTimings) (*waBinary.Node, []types.JID, error) {
+func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, participants []types.JID, plaintext, dsmPlaintext []byte, timings *MessageDebugTimings, botNode *waBinary.Node) (*waBinary.Node, []types.JID, error) {
 	start := time.Now()
 	allDevices, err := cli.GetUserDevicesContext(ctx, participants)
 	timings.GetDevices = time.Since(start)
@@ -887,7 +969,7 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 	return &waBinary.Node{
 		Tag:     "message",
 		Attrs:   attrs,
-		Content: cli.getMessageContent(participantNode, message, attrs, includeIdentity),
+		Content: cli.getMessageContent(participantNode, message, attrs, includeIdentity, botNode),
 	}, allDevices, nil
 }
 
@@ -948,6 +1030,7 @@ func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []ty
 			cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
 			continue
 		}
+
 		participantNodes = append(participantNodes, *encrypted)
 		if isPreKey {
 			includeIdentity = true

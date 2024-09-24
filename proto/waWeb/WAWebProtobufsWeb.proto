@@ -222,6 +222,9 @@ message WebMessageInfo {
 		EVENT_UPDATED = 205;
 		EVENT_CANCELED = 206;
 		COMMUNITY_OWNER_UPDATED = 207;
+		COMMUNITY_SUB_GROUP_VISIBILITY_HIDDEN = 208;
+		CAPI_GROUP_NE2EE_SYSTEM_MESSAGE = 209;
+		STATUS_MENTION = 210;
 	}
 
 	enum Status {
@@ -290,6 +293,7 @@ message WebMessageInfo {
 	repeated string statusMentions = 66;
 	optional WACommon.MessageKey targetMessageID = 67;
 	repeated MessageAddOn messageAddOns = 68;
+	optional StatusMentionMessage statusMentionMessageInfo = 69;
 }
 
 message PaymentInfo {
@@ -447,6 +451,8 @@ message MessageAddOn {
 	optional int64 serverTimestampMS = 4;
 	optional WebMessageInfo.Status status = 5;
 	optional MessageAddOnContextInfo addOnContextInfo = 6;
+	optional WACommon.MessageKey messageAddOnKey = 7;
+	optional LegacyMessage legacyMessage = 8;
 }
 
 message CommentMetadata {
@@ -543,4 +549,13 @@ message EventResponse {
 	optional int64 timestampMS = 2;
 	optional WAWebProtobufsE2E.EventResponseMessage eventResponseMessage = 3;
 	optional bool unread = 4;
+}
+
+message LegacyMessage {
+	optional WAWebProtobufsE2E.EventResponseMessage eventResponseMessage = 1;
+	optional WAWebProtobufsE2E.PollVoteMessage pollVote = 2;
+}
+
+message StatusMentionMessage {
+	optional WAWebProtobufsE2E.Message quotedStatus = 1;
 }
