@@ -866,9 +866,10 @@ func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, err
 }
 
 // GroupJoinApprovalMode sets the group join approval mode to 'on' or 'off'.
-func (cli *Client) GroupJoinApprovalMode(jid types.JID, mode string) error {
-	if mode != "on" && mode != "off" {
-		return errors.New("invalid mode, must be 'on' or 'off'")
+func (cli *Client) GroupJoinApprovalMode(jid types.JID, mode bool) error {
+	modeStr := "off"
+	if mode {
+		modeStr = "on"
 	}
 
 	content := waBinary.Node{
@@ -876,7 +877,7 @@ func (cli *Client) GroupJoinApprovalMode(jid types.JID, mode string) error {
 		Content: []waBinary.Node{
 			{
 				Tag:   "group_join",
-				Attrs: waBinary.Attrs{"state": mode},
+				Attrs: waBinary.Attrs{"state": modeStr},
 			},
 		},
 	}
@@ -886,8 +887,8 @@ func (cli *Client) GroupJoinApprovalMode(jid types.JID, mode string) error {
 }
 
 // GroupMemberAddMode sets the group member add mode to 'admin_add' or 'all_member_add'.
-func (cli *Client) GroupMemberAddMode(jid types.JID, mode string) error {
-	if mode != "admin_add" && mode != "all_member_add" {
+func (cli *Client) GroupMemberAddMode(jid types.JID, mode types.GroupMemberAddMode) error {
+	if mode != types.GroupMemberAddModeAdmin && mode != types.GroupMemberAddModeAllMember {
 		return errors.New("invalid mode, must be 'admin_add' or 'all_member_add'")
 	}
 
