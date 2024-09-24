@@ -1,0 +1,19 @@
+
+waWinUIApi/WAWinUIApi.proto
+WAWinUIApi"Õ
+WinUIMessage
+	timestamp (R	timestamp
+type (	Rtype
+body (	Rbody/
+ID (2.WAWinUIApi.WinUIMessage.MsgKeyRID¦
+MsgKey
+fromMe (RfromMe4
+remote (2.WAWinUIApi.WinUIMessage.WIDRremote
+ID (	RID>
+participant (2.WAWinUIApi.WinUIMessage.WIDRparticipant%
+WID
+
+serialized (	R
+serialized"J
+WinUIMessagesArray4
+messages (2.WAWinUIApi.WinUIMessageRmessagesB&Z$go.mau.fi/whatsmeow/proto/waWinUIApi

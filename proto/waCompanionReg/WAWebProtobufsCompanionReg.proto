@@ -28,6 +28,7 @@ message DeviceProps {
 		UWP = 21;
 		VR = 22;
 		CLOUD_API = 23;
+		SMARTGLASSES = 24;
 	}
 
 	message HistorySyncConfig {
@@ -44,6 +45,7 @@ message DeviceProps {
 		optional bool supportHostedGroupMsg = 11;
 		optional bool supportFbidBotChatHistory = 12;
 		optional bool supportAddOnHistorySyncMigration = 13;
+		optional bool supportMessageAssociation = 14;
 	}
 
 	message AppVersion {

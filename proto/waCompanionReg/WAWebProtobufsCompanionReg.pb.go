@@ -50,6 +50,7 @@ const (
 	DeviceProps_UWP               DeviceProps_PlatformType = 21
 	DeviceProps_VR                DeviceProps_PlatformType = 22
 	DeviceProps_CLOUD_API         DeviceProps_PlatformType = 23
+	DeviceProps_SMARTGLASSES      DeviceProps_PlatformType = 24
 )
 
 // Enum value maps for DeviceProps_PlatformType.
@@ -79,6 +80,7 @@ var (
 		21: "UWP",
 		22: "VR",
 		23: "CLOUD_API",
+		24: "SMARTGLASSES",
 	}
 	DeviceProps_PlatformType_value = map[string]int32{
 		"UNKNOWN":           0,
@@ -105,6 +107,7 @@ var (
 		"UWP":               21,
 		"VR":                22,
 		"CLOUD_API":         23,
+		"SMARTGLASSES":      24,
 	}
 )
 
@@ -454,6 +457,7 @@ type DeviceProps_HistorySyncConfig struct {
 	SupportHostedGroupMsg                    *bool   `protobuf:"varint,11,opt,name=supportHostedGroupMsg" json:"supportHostedGroupMsg,omitempty"`
 	SupportFbidBotChatHistory                *bool   `protobuf:"varint,12,opt,name=supportFbidBotChatHistory" json:"supportFbidBotChatHistory,omitempty"`
 	SupportAddOnHistorySyncMigration         *bool   `protobuf:"varint,13,opt,name=supportAddOnHistorySyncMigration" json:"supportAddOnHistorySyncMigration,omitempty"`
+	SupportMessageAssociation                *bool   `protobuf:"varint,14,opt,name=supportMessageAssociation" json:"supportMessageAssociation,omitempty"`
 }
 
 func (x *DeviceProps_HistorySyncConfig) Reset() {
@@ -575,6 +579,13 @@ func (x *DeviceProps_HistorySyncConfig) GetSupportFbidBotChatHistory() bool {
 func (x *DeviceProps_HistorySyncConfig) GetSupportAddOnHistorySyncMigration() bool {
 	if x != nil && x.SupportAddOnHistorySyncMigration != nil {
 		return *x.SupportAddOnHistorySyncMigration
+	}
+	return false
+}
+
+func (x *DeviceProps_HistorySyncConfig) GetSupportMessageAssociation() bool {
+	if x != nil && x.SupportMessageAssociation != nil {
+		return *x.SupportMessageAssociation
 	}
 	return false
 }

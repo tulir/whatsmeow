@@ -867,6 +867,11 @@ message ContextInfo {
 		optional string ref = 14;
 		optional bool clickToWhatsappCall = 15;
 		optional bool adContextPreviewDismissed = 16;
+		optional string sourceApp = 17;
+		optional bool automatedGreetingMessageShown = 18;
+		optional string greetingMessageBody = 19;
+		optional string ctaPayload = 20;
+		optional bool disableNudge = 21;
 	}
 
 	message AdReplyInfo {
@@ -948,6 +953,8 @@ message ContextInfo {
 	optional FeatureEligibilities featureEligibilities = 49;
 	optional string entryPointConversionExternalSource = 50;
 	optional string entryPointConversionExternalMedium = 51;
+	optional string ctwaSignals = 54;
+	optional bytes ctwaPayload = 55;
 }
 
 message BotPluginMetadata {
@@ -959,6 +966,7 @@ message BotPluginMetadata {
 	enum SearchProvider {
 		BING = 1;
 		GOOGLE = 2;
+		SUPPORT = 3;
 	}
 
 	optional SearchProvider provider = 1;
@@ -1251,7 +1259,7 @@ message StickerPackMessage {
 	optional string name = 2;
 	optional string publisher = 3;
 	repeated Sticker stickers = 4;
-	optional uint64 fileSize = 5;
+	optional uint64 fileLength = 5;
 	optional bytes fileSHA256 = 6;
 	optional bytes fileEncSHA256 = 7;
 	optional bytes mediaKey = 8;
@@ -1266,6 +1274,7 @@ message StickerPackMessage {
 	optional bytes thumbnailEncSHA256 = 17;
 	optional uint32 thumbnailHeight = 18;
 	optional uint32 thumbnailWidth = 19;
+	optional string imageDataHash = 20;
 }
 
 message AlbumMessage {
@@ -1637,6 +1646,8 @@ message Call {
 	optional string conversionSource = 2;
 	optional bytes conversionData = 3;
 	optional uint32 conversionDelaySeconds = 4;
+	optional string ctwaSignals = 5;
+	optional bytes ctwaPayload = 6;
 }
 
 message AudioMessage {
@@ -1730,6 +1741,10 @@ message BotMemuMetadata {
 	repeated BotMediaMetadata faceImages = 1;
 }
 
+message BotProgressIndicatorMetadata {
+	optional string progressDescription = 1;
+}
+
 message BotMetadata {
 	optional BotAvatarMetadata avatarMetadata = 1;
 	optional string personaID = 2;
@@ -1742,6 +1757,7 @@ message BotMetadata {
 	optional BotReminderMetadata reminderMetadata = 9;
 	optional BotModelMetadata modelMetadata = 10;
 	optional string messageDisclaimerText = 11;
+	optional BotProgressIndicatorMetadata progressIndicatorMetadata = 12;
 }
 
 message DeviceListMetadata {
@@ -1768,8 +1784,10 @@ message EmbeddedMusic {
 	optional string artworkDirectPath = 5;
 	optional bytes artworkSHA256 = 6;
 	optional bytes artworkEncSHA256 = 7;
+	optional bytes artworkMediaKey = 11;
 	optional string artistAttribution = 8;
 	optional bytes countryBlocklist = 9;
+	optional bool isExplicit = 10;
 }
 
 message EmbeddedContent {

@@ -977,12 +977,14 @@ type ImageTransport_Ancillary struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Height               *uint32                          `protobuf:"varint,1,opt,name=height" json:"height,omitempty"`
-	Width                *uint32                          `protobuf:"varint,2,opt,name=width" json:"width,omitempty"`
-	ScansSidecar         []byte                           `protobuf:"bytes,3,opt,name=scansSidecar" json:"scansSidecar,omitempty"`
-	ScanLengths          []uint32                         `protobuf:"varint,4,rep,name=scanLengths" json:"scanLengths,omitempty"`
-	MidQualityFileSHA256 []byte                           `protobuf:"bytes,5,opt,name=midQualityFileSHA256" json:"midQualityFileSHA256,omitempty"`
-	HdType               *ImageTransport_Ancillary_HdType `protobuf:"varint,6,opt,name=hdType,enum=WAMediaTransport.ImageTransport_Ancillary_HdType" json:"hdType,omitempty"`
+	Height                *uint32                          `protobuf:"varint,1,opt,name=height" json:"height,omitempty"`
+	Width                 *uint32                          `protobuf:"varint,2,opt,name=width" json:"width,omitempty"`
+	ScansSidecar          []byte                           `protobuf:"bytes,3,opt,name=scansSidecar" json:"scansSidecar,omitempty"`
+	ScanLengths           []uint32                         `protobuf:"varint,4,rep,name=scanLengths" json:"scanLengths,omitempty"`
+	MidQualityFileSHA256  []byte                           `protobuf:"bytes,5,opt,name=midQualityFileSHA256" json:"midQualityFileSHA256,omitempty"`
+	HdType                *ImageTransport_Ancillary_HdType `protobuf:"varint,6,opt,name=hdType,enum=WAMediaTransport.ImageTransport_Ancillary_HdType" json:"hdType,omitempty"`
+	MemoriesConceptScores []float32                        `protobuf:"fixed32,7,rep,packed,name=memoriesConceptScores" json:"memoriesConceptScores,omitempty"`
+	MemoriesConceptIDs    []uint32                         `protobuf:"varint,8,rep,packed,name=memoriesConceptIDs" json:"memoriesConceptIDs,omitempty"`
 }
 
 func (x *ImageTransport_Ancillary) Reset() {
@@ -1057,6 +1059,20 @@ func (x *ImageTransport_Ancillary) GetHdType() ImageTransport_Ancillary_HdType {
 		return *x.HdType
 	}
 	return ImageTransport_Ancillary_NONE
+}
+
+func (x *ImageTransport_Ancillary) GetMemoriesConceptScores() []float32 {
+	if x != nil {
+		return x.MemoriesConceptScores
+	}
+	return nil
+}
+
+func (x *ImageTransport_Ancillary) GetMemoriesConceptIDs() []uint32 {
+	if x != nil {
+		return x.MemoriesConceptIDs
+	}
+	return nil
 }
 
 type ImageTransport_Integral struct {

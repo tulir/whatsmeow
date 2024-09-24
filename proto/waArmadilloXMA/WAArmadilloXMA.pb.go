@@ -228,6 +228,7 @@ func (ExtendedContentMessage_XmaLayoutType) EnumDescriptor() ([]byte, []int) {
 type ExtendedContentMessage_ExtendedContentType int32
 
 const (
+	ExtendedContentMessage_UNSUPPORTED                             ExtendedContentMessage_ExtendedContentType = 0
 	ExtendedContentMessage_IG_STORY_PHOTO_MENTION                  ExtendedContentMessage_ExtendedContentType = 4
 	ExtendedContentMessage_IG_SINGLE_IMAGE_POST_SHARE              ExtendedContentMessage_ExtendedContentType = 9
 	ExtendedContentMessage_IG_MULTIPOST_SHARE                      ExtendedContentMessage_ExtendedContentType = 10
@@ -275,6 +276,13 @@ const (
 	ExtendedContentMessage_MSG_AI_CONTACT                          ExtendedContentMessage_ExtendedContentType = 2014
 	ExtendedContentMessage_MSG_MEMORIES_SHARE                      ExtendedContentMessage_ExtendedContentType = 2015
 	ExtendedContentMessage_MSG_SHARED_ALBUM_REPLY                  ExtendedContentMessage_ExtendedContentType = 2016
+	ExtendedContentMessage_MSG_SHARED_ALBUM                        ExtendedContentMessage_ExtendedContentType = 2017
+	ExtendedContentMessage_MSG_OCCAMADILLO_XMA                     ExtendedContentMessage_ExtendedContentType = 2018
+	ExtendedContentMessage_MSG_GEN_AI_SUBSCRIPTION                 ExtendedContentMessage_ExtendedContentType = 2021
+	ExtendedContentMessage_MSG_GEN_AI_REMINDER                     ExtendedContentMessage_ExtendedContentType = 2022
+	ExtendedContentMessage_MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE     ExtendedContentMessage_ExtendedContentType = 2023
+	ExtendedContentMessage_MSG_NOTE_REPLY                          ExtendedContentMessage_ExtendedContentType = 2024
+	ExtendedContentMessage_MSG_NOTE_MENTION                        ExtendedContentMessage_ExtendedContentType = 2025
 	ExtendedContentMessage_RTC_AUDIO_CALL                          ExtendedContentMessage_ExtendedContentType = 3000
 	ExtendedContentMessage_RTC_VIDEO_CALL                          ExtendedContentMessage_ExtendedContentType = 3001
 	ExtendedContentMessage_RTC_MISSED_AUDIO_CALL                   ExtendedContentMessage_ExtendedContentType = 3002
@@ -289,6 +297,7 @@ const (
 // Enum value maps for ExtendedContentMessage_ExtendedContentType.
 var (
 	ExtendedContentMessage_ExtendedContentType_name = map[int32]string{
+		0:    "UNSUPPORTED",
 		4:    "IG_STORY_PHOTO_MENTION",
 		9:    "IG_SINGLE_IMAGE_POST_SHARE",
 		10:   "IG_MULTIPOST_SHARE",
@@ -336,6 +345,13 @@ var (
 		2014: "MSG_AI_CONTACT",
 		2015: "MSG_MEMORIES_SHARE",
 		2016: "MSG_SHARED_ALBUM_REPLY",
+		2017: "MSG_SHARED_ALBUM",
+		2018: "MSG_OCCAMADILLO_XMA",
+		2021: "MSG_GEN_AI_SUBSCRIPTION",
+		2022: "MSG_GEN_AI_REMINDER",
+		2023: "MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE",
+		2024: "MSG_NOTE_REPLY",
+		2025: "MSG_NOTE_MENTION",
 		3000: "RTC_AUDIO_CALL",
 		3001: "RTC_VIDEO_CALL",
 		3002: "RTC_MISSED_AUDIO_CALL",
@@ -347,6 +363,7 @@ var (
 		4000: "DATACLASS_SENDER_COPY",
 	}
 	ExtendedContentMessage_ExtendedContentType_value = map[string]int32{
+		"UNSUPPORTED":                             0,
 		"IG_STORY_PHOTO_MENTION":                  4,
 		"IG_SINGLE_IMAGE_POST_SHARE":              9,
 		"IG_MULTIPOST_SHARE":                      10,
@@ -394,6 +411,13 @@ var (
 		"MSG_AI_CONTACT":                          2014,
 		"MSG_MEMORIES_SHARE":                      2015,
 		"MSG_SHARED_ALBUM_REPLY":                  2016,
+		"MSG_SHARED_ALBUM":                        2017,
+		"MSG_OCCAMADILLO_XMA":                     2018,
+		"MSG_GEN_AI_SUBSCRIPTION":                 2021,
+		"MSG_GEN_AI_REMINDER":                     2022,
+		"MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE":     2023,
+		"MSG_NOTE_REPLY":                          2024,
+		"MSG_NOTE_MENTION":                        2025,
 		"RTC_AUDIO_CALL":                          3000,
 		"RTC_VIDEO_CALL":                          3001,
 		"RTC_MISSED_AUDIO_CALL":                   3002,
@@ -471,6 +495,8 @@ type ExtendedContentMessage struct {
 	HeaderSubtitle        *string                                     `protobuf:"bytes,21,opt,name=headerSubtitle" json:"headerSubtitle,omitempty"`
 	XmaDataclass          *string                                     `protobuf:"bytes,22,opt,name=xmaDataclass" json:"xmaDataclass,omitempty"`
 	ContentRef            *string                                     `protobuf:"bytes,23,opt,name=contentRef" json:"contentRef,omitempty"`
+	MentionedJID          []string                                    `protobuf:"bytes,24,rep,name=mentionedJID" json:"mentionedJID,omitempty"`
+	Commands              []*waCommon.Command                         `protobuf:"bytes,25,rep,name=commands" json:"commands,omitempty"`
 }
 
 func (x *ExtendedContentMessage) Reset() {
@@ -516,7 +542,7 @@ func (x *ExtendedContentMessage) GetTargetType() ExtendedContentMessage_Extended
 	if x != nil && x.TargetType != nil {
 		return *x.TargetType
 	}
-	return ExtendedContentMessage_IG_STORY_PHOTO_MENTION
+	return ExtendedContentMessage_UNSUPPORTED
 }
 
 func (x *ExtendedContentMessage) GetTargetUsername() string {
@@ -666,6 +692,20 @@ func (x *ExtendedContentMessage) GetContentRef() string {
 	return ""
 }
 
+func (x *ExtendedContentMessage) GetMentionedJID() []string {
+	if x != nil {
+		return x.MentionedJID
+	}
+	return nil
+}
+
+func (x *ExtendedContentMessage) GetCommands() []*waCommon.Command {
+	if x != nil {
+		return x.Commands
+	}
+	return nil
+}
+
 type ExtendedContentMessage_CTA struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -780,22 +820,24 @@ var file_waArmadilloXMA_WAArmadilloXMA_proto_goTypes = []any{
 	(*ExtendedContentMessage)(nil),                  // 4: WAArmadilloXMA.ExtendedContentMessage
 	(*ExtendedContentMessage_CTA)(nil),              // 5: WAArmadilloXMA.ExtendedContentMessage.CTA
 	(*waCommon.SubProtocol)(nil),                    // 6: WACommon.SubProtocol
+	(*waCommon.Command)(nil),                        // 7: WACommon.Command
 }
 var file_waArmadilloXMA_WAArmadilloXMA_proto_depIdxs = []int32{
-	6, // 0: WAArmadilloXMA.ExtendedContentMessage.associatedMessage:type_name -> WACommon.SubProtocol
-	3, // 1: WAArmadilloXMA.ExtendedContentMessage.targetType:type_name -> WAArmadilloXMA.ExtendedContentMessage.ExtendedContentType
-	2, // 2: WAArmadilloXMA.ExtendedContentMessage.xmaLayoutType:type_name -> WAArmadilloXMA.ExtendedContentMessage.XmaLayoutType
-	5, // 3: WAArmadilloXMA.ExtendedContentMessage.ctas:type_name -> WAArmadilloXMA.ExtendedContentMessage.CTA
-	6, // 4: WAArmadilloXMA.ExtendedContentMessage.previews:type_name -> WACommon.SubProtocol
-	6, // 5: WAArmadilloXMA.ExtendedContentMessage.favicon:type_name -> WACommon.SubProtocol
-	6, // 6: WAArmadilloXMA.ExtendedContentMessage.headerImage:type_name -> WACommon.SubProtocol
-	0, // 7: WAArmadilloXMA.ExtendedContentMessage.overlayIconGlyph:type_name -> WAArmadilloXMA.ExtendedContentMessage.OverlayIconGlyph
-	1, // 8: WAArmadilloXMA.ExtendedContentMessage.CTA.buttonType:type_name -> WAArmadilloXMA.ExtendedContentMessage.CtaButtonType
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	6,  // 0: WAArmadilloXMA.ExtendedContentMessage.associatedMessage:type_name -> WACommon.SubProtocol
+	3,  // 1: WAArmadilloXMA.ExtendedContentMessage.targetType:type_name -> WAArmadilloXMA.ExtendedContentMessage.ExtendedContentType
+	2,  // 2: WAArmadilloXMA.ExtendedContentMessage.xmaLayoutType:type_name -> WAArmadilloXMA.ExtendedContentMessage.XmaLayoutType
+	5,  // 3: WAArmadilloXMA.ExtendedContentMessage.ctas:type_name -> WAArmadilloXMA.ExtendedContentMessage.CTA
+	6,  // 4: WAArmadilloXMA.ExtendedContentMessage.previews:type_name -> WACommon.SubProtocol
+	6,  // 5: WAArmadilloXMA.ExtendedContentMessage.favicon:type_name -> WACommon.SubProtocol
+	6,  // 6: WAArmadilloXMA.ExtendedContentMessage.headerImage:type_name -> WACommon.SubProtocol
+	0,  // 7: WAArmadilloXMA.ExtendedContentMessage.overlayIconGlyph:type_name -> WAArmadilloXMA.ExtendedContentMessage.OverlayIconGlyph
+	7,  // 8: WAArmadilloXMA.ExtendedContentMessage.commands:type_name -> WACommon.Command
+	1,  // 9: WAArmadilloXMA.ExtendedContentMessage.CTA.buttonType:type_name -> WAArmadilloXMA.ExtendedContentMessage.CtaButtonType
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_waArmadilloXMA_WAArmadilloXMA_proto_init() }

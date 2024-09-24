@@ -162,6 +162,7 @@ type MessageApplication_Metadata struct {
 	GroupIndex                *uint32                                    `protobuf:"varint,15,opt,name=groupIndex" json:"groupIndex,omitempty"`
 	BotResponseID             *string                                    `protobuf:"bytes,16,opt,name=botResponseID" json:"botResponseID,omitempty"`
 	CollapsibleID             *string                                    `protobuf:"bytes,17,opt,name=collapsibleID" json:"collapsibleID,omitempty"`
+	SecondaryOtid             *string                                    `protobuf:"bytes,18,opt,name=secondaryOtid" json:"secondaryOtid,omitempty"`
 }
 
 func (x *MessageApplication_Metadata) Reset() {
@@ -311,6 +312,13 @@ func (x *MessageApplication_Metadata) GetBotResponseID() string {
 func (x *MessageApplication_Metadata) GetCollapsibleID() string {
 	if x != nil && x.CollapsibleID != nil {
 		return *x.CollapsibleID
+	}
+	return ""
+}
+
+func (x *MessageApplication_Metadata) GetSecondaryOtid() string {
+	if x != nil && x.SecondaryOtid != nil {
+		return *x.SecondaryOtid
 	}
 	return ""
 }

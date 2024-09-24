@@ -1,0 +1,25 @@
+syntax = "proto2";
+package WAWinUIApi;
+option go_package = "go.mau.fi/whatsmeow/proto/waWinUIApi";
+
+message WinUIMessage {
+	message MsgKey {
+		optional bool fromMe = 1;
+		optional WID remote = 2;
+		optional string ID = 3;
+		optional WID participant = 4;
+	}
+
+	message WID {
+		optional string serialized = 1;
+	}
+
+	optional int64 timestamp = 1;
+	optional string type = 2;
+	optional string body = 3;
+	optional MsgKey ID = 4;
+}
+
+message WinUIMessagesArray {
+	repeated WinUIMessage messages = 1;
+}
