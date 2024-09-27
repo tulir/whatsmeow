@@ -385,6 +385,10 @@ type Receipt struct {
 	MessageIDs []types.MessageID
 	Timestamp  time.Time
 	Type       types.ReceiptType
+
+	// When you read the message of another user in a group, this field contains the sender of the message.
+	// For receipts from other users, the message sender is always you.
+	MessageSender types.JID
 }
 
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
