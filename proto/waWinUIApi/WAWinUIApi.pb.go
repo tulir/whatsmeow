@@ -23,19 +23,85 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type WinUIMessage struct {
+type PositronDataSource int32
+
+const (
+	PositronDataSource_MESSAGES           PositronDataSource = 1
+	PositronDataSource_CHATS              PositronDataSource = 2
+	PositronDataSource_CONTACTS           PositronDataSource = 3
+	PositronDataSource_GROUP_METADATA     PositronDataSource = 4
+	PositronDataSource_GROUP_PARTICIPANTS PositronDataSource = 5
+)
+
+// Enum value maps for PositronDataSource.
+var (
+	PositronDataSource_name = map[int32]string{
+		1: "MESSAGES",
+		2: "CHATS",
+		3: "CONTACTS",
+		4: "GROUP_METADATA",
+		5: "GROUP_PARTICIPANTS",
+	}
+	PositronDataSource_value = map[string]int32{
+		"MESSAGES":           1,
+		"CHATS":              2,
+		"CONTACTS":           3,
+		"GROUP_METADATA":     4,
+		"GROUP_PARTICIPANTS": 5,
+	}
+)
+
+func (x PositronDataSource) Enum() *PositronDataSource {
+	p := new(PositronDataSource)
+	*p = x
+	return p
+}
+
+func (x PositronDataSource) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PositronDataSource) Descriptor() protoreflect.EnumDescriptor {
+	return file_waWinUIApi_WAWinUIApi_proto_enumTypes[0].Descriptor()
+}
+
+func (PositronDataSource) Type() protoreflect.EnumType {
+	return &file_waWinUIApi_WAWinUIApi_proto_enumTypes[0]
+}
+
+func (x PositronDataSource) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *PositronDataSource) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = PositronDataSource(num)
+	return nil
+}
+
+// Deprecated: Use PositronDataSource.Descriptor instead.
+func (PositronDataSource) EnumDescriptor() ([]byte, []int) {
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{0}
+}
+
+type PositronMessage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Timestamp *int64               `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
-	Type      *string              `protobuf:"bytes,2,opt,name=type" json:"type,omitempty"`
-	Body      *string              `protobuf:"bytes,3,opt,name=body" json:"body,omitempty"`
-	ID        *WinUIMessage_MsgKey `protobuf:"bytes,4,opt,name=ID" json:"ID,omitempty"`
+	Timestamp *int64                  `protobuf:"varint,1,opt,name=timestamp" json:"timestamp,omitempty"`
+	Type      *string                 `protobuf:"bytes,2,opt,name=type" json:"type,omitempty"`
+	Body      *string                 `protobuf:"bytes,3,opt,name=body" json:"body,omitempty"`
+	ID        *PositronMessage_MsgKey `protobuf:"bytes,4,opt,name=ID" json:"ID,omitempty"`
+	JSON      *string                 `protobuf:"bytes,99,opt,name=JSON" json:"JSON,omitempty"`
 }
 
-func (x *WinUIMessage) Reset() {
-	*x = WinUIMessage{}
+func (x *PositronMessage) Reset() {
+	*x = PositronMessage{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -43,13 +109,13 @@ func (x *WinUIMessage) Reset() {
 	}
 }
 
-func (x *WinUIMessage) String() string {
+func (x *PositronMessage) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WinUIMessage) ProtoMessage() {}
+func (*PositronMessage) ProtoMessage() {}
 
-func (x *WinUIMessage) ProtoReflect() protoreflect.Message {
+func (x *PositronMessage) ProtoReflect() protoreflect.Message {
 	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -61,49 +127,56 @@ func (x *WinUIMessage) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WinUIMessage.ProtoReflect.Descriptor instead.
-func (*WinUIMessage) Descriptor() ([]byte, []int) {
+// Deprecated: Use PositronMessage.ProtoReflect.Descriptor instead.
+func (*PositronMessage) Descriptor() ([]byte, []int) {
 	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *WinUIMessage) GetTimestamp() int64 {
+func (x *PositronMessage) GetTimestamp() int64 {
 	if x != nil && x.Timestamp != nil {
 		return *x.Timestamp
 	}
 	return 0
 }
 
-func (x *WinUIMessage) GetType() string {
+func (x *PositronMessage) GetType() string {
 	if x != nil && x.Type != nil {
 		return *x.Type
 	}
 	return ""
 }
 
-func (x *WinUIMessage) GetBody() string {
+func (x *PositronMessage) GetBody() string {
 	if x != nil && x.Body != nil {
 		return *x.Body
 	}
 	return ""
 }
 
-func (x *WinUIMessage) GetID() *WinUIMessage_MsgKey {
+func (x *PositronMessage) GetID() *PositronMessage_MsgKey {
 	if x != nil {
 		return x.ID
 	}
 	return nil
 }
 
-type WinUIMessagesArray struct {
+func (x *PositronMessage) GetJSON() string {
+	if x != nil && x.JSON != nil {
+		return *x.JSON
+	}
+	return ""
+}
+
+type WinMessages struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Messages []*WinUIMessage `protobuf:"bytes,1,rep,name=messages" json:"messages,omitempty"`
+	Messages []*PositronMessage `protobuf:"bytes,1,rep,name=messages" json:"messages,omitempty"`
 }
 
-func (x *WinUIMessagesArray) Reset() {
-	*x = WinUIMessagesArray{}
+func (x *WinMessages) Reset() {
+	*x = WinMessages{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -111,13 +184,13 @@ func (x *WinUIMessagesArray) Reset() {
 	}
 }
 
-func (x *WinUIMessagesArray) String() string {
+func (x *WinMessages) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WinUIMessagesArray) ProtoMessage() {}
+func (*WinMessages) ProtoMessage() {}
 
-func (x *WinUIMessagesArray) ProtoReflect() protoreflect.Message {
+func (x *WinMessages) ProtoReflect() protoreflect.Message {
 	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -129,31 +202,32 @@ func (x *WinUIMessagesArray) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WinUIMessagesArray.ProtoReflect.Descriptor instead.
-func (*WinUIMessagesArray) Descriptor() ([]byte, []int) {
+// Deprecated: Use WinMessages.ProtoReflect.Descriptor instead.
+func (*WinMessages) Descriptor() ([]byte, []int) {
 	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *WinUIMessagesArray) GetMessages() []*WinUIMessage {
+func (x *WinMessages) GetMessages() []*PositronMessage {
 	if x != nil {
 		return x.Messages
 	}
 	return nil
 }
 
-type WinUIMessage_MsgKey struct {
+type PositronChat struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FromMe      *bool             `protobuf:"varint,1,opt,name=fromMe" json:"fromMe,omitempty"`
-	Remote      *WinUIMessage_WID `protobuf:"bytes,2,opt,name=remote" json:"remote,omitempty"`
-	ID          *string           `protobuf:"bytes,3,opt,name=ID" json:"ID,omitempty"`
-	Participant *WinUIMessage_WID `protobuf:"bytes,4,opt,name=participant" json:"participant,omitempty"`
+	ID          *string `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	Name        *string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	Timestamp   *int64  `protobuf:"varint,3,opt,name=timestamp" json:"timestamp,omitempty"`
+	UnreadCount *int64  `protobuf:"varint,4,opt,name=unreadCount" json:"unreadCount,omitempty"`
+	JSON        *string `protobuf:"bytes,99,opt,name=JSON" json:"JSON,omitempty"`
 }
 
-func (x *WinUIMessage_MsgKey) Reset() {
-	*x = WinUIMessage_MsgKey{}
+func (x *PositronChat) Reset() {
+	*x = PositronChat{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -161,13 +235,13 @@ func (x *WinUIMessage_MsgKey) Reset() {
 	}
 }
 
-func (x *WinUIMessage_MsgKey) String() string {
+func (x *PositronChat) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WinUIMessage_MsgKey) ProtoMessage() {}
+func (*PositronChat) ProtoMessage() {}
 
-func (x *WinUIMessage_MsgKey) ProtoReflect() protoreflect.Message {
+func (x *PositronChat) ProtoReflect() protoreflect.Message {
 	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -179,49 +253,60 @@ func (x *WinUIMessage_MsgKey) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WinUIMessage_MsgKey.ProtoReflect.Descriptor instead.
-func (*WinUIMessage_MsgKey) Descriptor() ([]byte, []int) {
-	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{0, 0}
+// Deprecated: Use PositronChat.ProtoReflect.Descriptor instead.
+func (*PositronChat) Descriptor() ([]byte, []int) {
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *WinUIMessage_MsgKey) GetFromMe() bool {
-	if x != nil && x.FromMe != nil {
-		return *x.FromMe
-	}
-	return false
-}
-
-func (x *WinUIMessage_MsgKey) GetRemote() *WinUIMessage_WID {
-	if x != nil {
-		return x.Remote
-	}
-	return nil
-}
-
-func (x *WinUIMessage_MsgKey) GetID() string {
+func (x *PositronChat) GetID() string {
 	if x != nil && x.ID != nil {
 		return *x.ID
 	}
 	return ""
 }
 
-func (x *WinUIMessage_MsgKey) GetParticipant() *WinUIMessage_WID {
-	if x != nil {
-		return x.Participant
+func (x *PositronChat) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
-	return nil
+	return ""
 }
 
-type WinUIMessage_WID struct {
+func (x *PositronChat) GetTimestamp() int64 {
+	if x != nil && x.Timestamp != nil {
+		return *x.Timestamp
+	}
+	return 0
+}
+
+func (x *PositronChat) GetUnreadCount() int64 {
+	if x != nil && x.UnreadCount != nil {
+		return *x.UnreadCount
+	}
+	return 0
+}
+
+func (x *PositronChat) GetJSON() string {
+	if x != nil && x.JSON != nil {
+		return *x.JSON
+	}
+	return ""
+}
+
+type PositronContact struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Serialized *string `protobuf:"bytes,1,opt,name=serialized" json:"serialized,omitempty"`
+	ID                   *string `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	PhoneNumber          *string `protobuf:"bytes,2,opt,name=phoneNumber" json:"phoneNumber,omitempty"`
+	Name                 *string `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
+	IsAddressBookContact *bool   `protobuf:"varint,4,opt,name=isAddressBookContact" json:"isAddressBookContact,omitempty"`
+	JSON                 *string `protobuf:"bytes,99,opt,name=JSON" json:"JSON,omitempty"`
 }
 
-func (x *WinUIMessage_WID) Reset() {
-	*x = WinUIMessage_WID{}
+func (x *PositronContact) Reset() {
+	*x = PositronContact{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -229,13 +314,13 @@ func (x *WinUIMessage_WID) Reset() {
 	}
 }
 
-func (x *WinUIMessage_WID) String() string {
+func (x *PositronContact) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*WinUIMessage_WID) ProtoMessage() {}
+func (*PositronContact) ProtoMessage() {}
 
-func (x *WinUIMessage_WID) ProtoReflect() protoreflect.Message {
+func (x *PositronContact) ProtoReflect() protoreflect.Message {
 	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -247,12 +332,371 @@ func (x *WinUIMessage_WID) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use WinUIMessage_WID.ProtoReflect.Descriptor instead.
-func (*WinUIMessage_WID) Descriptor() ([]byte, []int) {
+// Deprecated: Use PositronContact.ProtoReflect.Descriptor instead.
+func (*PositronContact) Descriptor() ([]byte, []int) {
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *PositronContact) GetID() string {
+	if x != nil && x.ID != nil {
+		return *x.ID
+	}
+	return ""
+}
+
+func (x *PositronContact) GetPhoneNumber() string {
+	if x != nil && x.PhoneNumber != nil {
+		return *x.PhoneNumber
+	}
+	return ""
+}
+
+func (x *PositronContact) GetName() string {
+	if x != nil && x.Name != nil {
+		return *x.Name
+	}
+	return ""
+}
+
+func (x *PositronContact) GetIsAddressBookContact() bool {
+	if x != nil && x.IsAddressBookContact != nil {
+		return *x.IsAddressBookContact
+	}
+	return false
+}
+
+func (x *PositronContact) GetJSON() string {
+	if x != nil && x.JSON != nil {
+		return *x.JSON
+	}
+	return ""
+}
+
+type PositronGroupMetadata struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ID      *string `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	Subject *string `protobuf:"bytes,2,opt,name=subject" json:"subject,omitempty"`
+	JSON    *string `protobuf:"bytes,99,opt,name=JSON" json:"JSON,omitempty"`
+}
+
+func (x *PositronGroupMetadata) Reset() {
+	*x = PositronGroupMetadata{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PositronGroupMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositronGroupMetadata) ProtoMessage() {}
+
+func (x *PositronGroupMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PositronGroupMetadata.ProtoReflect.Descriptor instead.
+func (*PositronGroupMetadata) Descriptor() ([]byte, []int) {
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *PositronGroupMetadata) GetID() string {
+	if x != nil && x.ID != nil {
+		return *x.ID
+	}
+	return ""
+}
+
+func (x *PositronGroupMetadata) GetSubject() string {
+	if x != nil && x.Subject != nil {
+		return *x.Subject
+	}
+	return ""
+}
+
+func (x *PositronGroupMetadata) GetJSON() string {
+	if x != nil && x.JSON != nil {
+		return *x.JSON
+	}
+	return ""
+}
+
+type PositronGroupParticipants struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ID           *string  `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	Participants []string `protobuf:"bytes,2,rep,name=participants" json:"participants,omitempty"`
+	JSON         *string  `protobuf:"bytes,99,opt,name=JSON" json:"JSON,omitempty"`
+}
+
+func (x *PositronGroupParticipants) Reset() {
+	*x = PositronGroupParticipants{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PositronGroupParticipants) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositronGroupParticipants) ProtoMessage() {}
+
+func (x *PositronGroupParticipants) ProtoReflect() protoreflect.Message {
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PositronGroupParticipants.ProtoReflect.Descriptor instead.
+func (*PositronGroupParticipants) Descriptor() ([]byte, []int) {
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PositronGroupParticipants) GetID() string {
+	if x != nil && x.ID != nil {
+		return *x.ID
+	}
+	return ""
+}
+
+func (x *PositronGroupParticipants) GetParticipants() []string {
+	if x != nil {
+		return x.Participants
+	}
+	return nil
+}
+
+func (x *PositronGroupParticipants) GetJSON() string {
+	if x != nil && x.JSON != nil {
+		return *x.JSON
+	}
+	return ""
+}
+
+type PositronData struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	DataSource        *PositronDataSource          `protobuf:"varint,1,opt,name=dataSource,enum=WAWinUIApi.PositronDataSource" json:"dataSource,omitempty"`
+	Messages          []*PositronMessage           `protobuf:"bytes,2,rep,name=messages" json:"messages,omitempty"`
+	Chats             []*PositronChat              `protobuf:"bytes,3,rep,name=chats" json:"chats,omitempty"`
+	Contacts          []*PositronContact           `protobuf:"bytes,4,rep,name=contacts" json:"contacts,omitempty"`
+	GroupMetadata     []*PositronGroupMetadata     `protobuf:"bytes,5,rep,name=groupMetadata" json:"groupMetadata,omitempty"`
+	GroupParticipants []*PositronGroupParticipants `protobuf:"bytes,6,rep,name=groupParticipants" json:"groupParticipants,omitempty"`
+}
+
+func (x *PositronData) Reset() {
+	*x = PositronData{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PositronData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositronData) ProtoMessage() {}
+
+func (x *PositronData) ProtoReflect() protoreflect.Message {
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PositronData.ProtoReflect.Descriptor instead.
+func (*PositronData) Descriptor() ([]byte, []int) {
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *PositronData) GetDataSource() PositronDataSource {
+	if x != nil && x.DataSource != nil {
+		return *x.DataSource
+	}
+	return PositronDataSource_MESSAGES
+}
+
+func (x *PositronData) GetMessages() []*PositronMessage {
+	if x != nil {
+		return x.Messages
+	}
+	return nil
+}
+
+func (x *PositronData) GetChats() []*PositronChat {
+	if x != nil {
+		return x.Chats
+	}
+	return nil
+}
+
+func (x *PositronData) GetContacts() []*PositronContact {
+	if x != nil {
+		return x.Contacts
+	}
+	return nil
+}
+
+func (x *PositronData) GetGroupMetadata() []*PositronGroupMetadata {
+	if x != nil {
+		return x.GroupMetadata
+	}
+	return nil
+}
+
+func (x *PositronData) GetGroupParticipants() []*PositronGroupParticipants {
+	if x != nil {
+		return x.GroupParticipants
+	}
+	return nil
+}
+
+type PositronMessage_MsgKey struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	FromMe      *bool                `protobuf:"varint,1,opt,name=fromMe" json:"fromMe,omitempty"`
+	Remote      *PositronMessage_WID `protobuf:"bytes,2,opt,name=remote" json:"remote,omitempty"`
+	ID          *string              `protobuf:"bytes,3,opt,name=ID" json:"ID,omitempty"`
+	Participant *PositronMessage_WID `protobuf:"bytes,4,opt,name=participant" json:"participant,omitempty"`
+}
+
+func (x *PositronMessage_MsgKey) Reset() {
+	*x = PositronMessage_MsgKey{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PositronMessage_MsgKey) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositronMessage_MsgKey) ProtoMessage() {}
+
+func (x *PositronMessage_MsgKey) ProtoReflect() protoreflect.Message {
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PositronMessage_MsgKey.ProtoReflect.Descriptor instead.
+func (*PositronMessage_MsgKey) Descriptor() ([]byte, []int) {
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *PositronMessage_MsgKey) GetFromMe() bool {
+	if x != nil && x.FromMe != nil {
+		return *x.FromMe
+	}
+	return false
+}
+
+func (x *PositronMessage_MsgKey) GetRemote() *PositronMessage_WID {
+	if x != nil {
+		return x.Remote
+	}
+	return nil
+}
+
+func (x *PositronMessage_MsgKey) GetID() string {
+	if x != nil && x.ID != nil {
+		return *x.ID
+	}
+	return ""
+}
+
+func (x *PositronMessage_MsgKey) GetParticipant() *PositronMessage_WID {
+	if x != nil {
+		return x.Participant
+	}
+	return nil
+}
+
+type PositronMessage_WID struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Serialized *string `protobuf:"bytes,1,opt,name=serialized" json:"serialized,omitempty"`
+}
+
+func (x *PositronMessage_WID) Reset() {
+	*x = PositronMessage_WID{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PositronMessage_WID) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositronMessage_WID) ProtoMessage() {}
+
+func (x *PositronMessage_WID) ProtoReflect() protoreflect.Message {
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PositronMessage_WID.ProtoReflect.Descriptor instead.
+func (*PositronMessage_WID) Descriptor() ([]byte, []int) {
 	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{0, 1}
 }
 
-func (x *WinUIMessage_WID) GetSerialized() string {
+func (x *PositronMessage_WID) GetSerialized() string {
 	if x != nil && x.Serialized != nil {
 		return *x.Serialized
 	}
@@ -276,23 +720,36 @@ func file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP() []byte {
 	return file_waWinUIApi_WAWinUIApi_proto_rawDescData
 }
 
-var file_waWinUIApi_WAWinUIApi_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_waWinUIApi_WAWinUIApi_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_waWinUIApi_WAWinUIApi_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_waWinUIApi_WAWinUIApi_proto_goTypes = []any{
-	(*WinUIMessage)(nil),        // 0: WAWinUIApi.WinUIMessage
-	(*WinUIMessagesArray)(nil),  // 1: WAWinUIApi.WinUIMessagesArray
-	(*WinUIMessage_MsgKey)(nil), // 2: WAWinUIApi.WinUIMessage.MsgKey
-	(*WinUIMessage_WID)(nil),    // 3: WAWinUIApi.WinUIMessage.WID
+	(PositronDataSource)(0),           // 0: WAWinUIApi.PositronDataSource
+	(*PositronMessage)(nil),           // 1: WAWinUIApi.PositronMessage
+	(*WinMessages)(nil),               // 2: WAWinUIApi.WinMessages
+	(*PositronChat)(nil),              // 3: WAWinUIApi.PositronChat
+	(*PositronContact)(nil),           // 4: WAWinUIApi.PositronContact
+	(*PositronGroupMetadata)(nil),     // 5: WAWinUIApi.PositronGroupMetadata
+	(*PositronGroupParticipants)(nil), // 6: WAWinUIApi.PositronGroupParticipants
+	(*PositronData)(nil),              // 7: WAWinUIApi.PositronData
+	(*PositronMessage_MsgKey)(nil),    // 8: WAWinUIApi.PositronMessage.MsgKey
+	(*PositronMessage_WID)(nil),       // 9: WAWinUIApi.PositronMessage.WID
 }
 var file_waWinUIApi_WAWinUIApi_proto_depIdxs = []int32{
-	2, // 0: WAWinUIApi.WinUIMessage.ID:type_name -> WAWinUIApi.WinUIMessage.MsgKey
-	0, // 1: WAWinUIApi.WinUIMessagesArray.messages:type_name -> WAWinUIApi.WinUIMessage
-	3, // 2: WAWinUIApi.WinUIMessage.MsgKey.remote:type_name -> WAWinUIApi.WinUIMessage.WID
-	3, // 3: WAWinUIApi.WinUIMessage.MsgKey.participant:type_name -> WAWinUIApi.WinUIMessage.WID
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	8,  // 0: WAWinUIApi.PositronMessage.ID:type_name -> WAWinUIApi.PositronMessage.MsgKey
+	1,  // 1: WAWinUIApi.WinMessages.messages:type_name -> WAWinUIApi.PositronMessage
+	0,  // 2: WAWinUIApi.PositronData.dataSource:type_name -> WAWinUIApi.PositronDataSource
+	1,  // 3: WAWinUIApi.PositronData.messages:type_name -> WAWinUIApi.PositronMessage
+	3,  // 4: WAWinUIApi.PositronData.chats:type_name -> WAWinUIApi.PositronChat
+	4,  // 5: WAWinUIApi.PositronData.contacts:type_name -> WAWinUIApi.PositronContact
+	5,  // 6: WAWinUIApi.PositronData.groupMetadata:type_name -> WAWinUIApi.PositronGroupMetadata
+	6,  // 7: WAWinUIApi.PositronData.groupParticipants:type_name -> WAWinUIApi.PositronGroupParticipants
+	9,  // 8: WAWinUIApi.PositronMessage.MsgKey.remote:type_name -> WAWinUIApi.PositronMessage.WID
+	9,  // 9: WAWinUIApi.PositronMessage.MsgKey.participant:type_name -> WAWinUIApi.PositronMessage.WID
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_waWinUIApi_WAWinUIApi_proto_init() }
@@ -302,7 +759,7 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_waWinUIApi_WAWinUIApi_proto_msgTypes[0].Exporter = func(v any, i int) any {
-			switch v := v.(*WinUIMessage); i {
+			switch v := v.(*PositronMessage); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -314,7 +771,7 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 			}
 		}
 		file_waWinUIApi_WAWinUIApi_proto_msgTypes[1].Exporter = func(v any, i int) any {
-			switch v := v.(*WinUIMessagesArray); i {
+			switch v := v.(*WinMessages); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -326,7 +783,7 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 			}
 		}
 		file_waWinUIApi_WAWinUIApi_proto_msgTypes[2].Exporter = func(v any, i int) any {
-			switch v := v.(*WinUIMessage_MsgKey); i {
+			switch v := v.(*PositronChat); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -338,7 +795,67 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 			}
 		}
 		file_waWinUIApi_WAWinUIApi_proto_msgTypes[3].Exporter = func(v any, i int) any {
-			switch v := v.(*WinUIMessage_WID); i {
+			switch v := v.(*PositronContact); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[4].Exporter = func(v any, i int) any {
+			switch v := v.(*PositronGroupMetadata); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[5].Exporter = func(v any, i int) any {
+			switch v := v.(*PositronGroupParticipants); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[6].Exporter = func(v any, i int) any {
+			switch v := v.(*PositronData); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[7].Exporter = func(v any, i int) any {
+			switch v := v.(*PositronMessage_MsgKey); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[8].Exporter = func(v any, i int) any {
+			switch v := v.(*PositronMessage_WID); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -355,13 +872,14 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_waWinUIApi_WAWinUIApi_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   4,
+			NumEnums:      1,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_waWinUIApi_WAWinUIApi_proto_goTypes,
 		DependencyIndexes: file_waWinUIApi_WAWinUIApi_proto_depIdxs,
+		EnumInfos:         file_waWinUIApi_WAWinUIApi_proto_enumTypes,
 		MessageInfos:      file_waWinUIApi_WAWinUIApi_proto_msgTypes,
 	}.Build()
 	File_waWinUIApi_WAWinUIApi_proto = out.File

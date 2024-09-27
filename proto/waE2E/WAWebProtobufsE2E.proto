@@ -907,6 +907,12 @@ message ContextInfo {
 		repeated Parameters parameters = 3;
 	}
 
+	message ForwardedAIBotMessageInfo {
+		optional string botName = 1;
+		optional string botJID = 2;
+		optional string creatorName = 3;
+	}
+
 	message UTMInfo {
 		optional string utmSource = 1;
 		optional string utmCampaign = 2;
@@ -955,6 +961,7 @@ message ContextInfo {
 	optional string entryPointConversionExternalMedium = 51;
 	optional string ctwaSignals = 54;
 	optional bytes ctwaPayload = 55;
+	optional ForwardedAIBotMessageInfo forwardedAiBotMessageInfo = 56;
 }
 
 message BotPluginMetadata {
@@ -1034,6 +1041,16 @@ message BotModelMetadata {
 
 	optional ModelType modelType = 1;
 	optional PremiumModelStatus premiumModelStatus = 2;
+}
+
+message BotCapabilityMetadata {
+	enum BotCapabilityType {
+		PROGRESS_INDICATOR = 1;
+		RICH_RESPONSE_HEADING = 2;
+		RICH_RESPONSE_NESTED_LIST = 3;
+	}
+
+	repeated BotCapabilityType capabilities = 1;
 }
 
 message MessageAssociation {
@@ -1275,6 +1292,7 @@ message StickerPackMessage {
 	optional uint32 thumbnailHeight = 18;
 	optional uint32 thumbnailWidth = 19;
 	optional string imageDataHash = 20;
+	optional uint64 stickerPackSize = 21;
 }
 
 message AlbumMessage {
@@ -1758,6 +1776,7 @@ message BotMetadata {
 	optional BotModelMetadata modelMetadata = 10;
 	optional string messageDisclaimerText = 11;
 	optional BotProgressIndicatorMetadata progressIndicatorMetadata = 12;
+	optional BotCapabilityMetadata capabilityMetadata = 13;
 }
 
 message DeviceListMetadata {

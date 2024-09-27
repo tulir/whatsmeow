@@ -2,7 +2,15 @@ syntax = "proto2";
 package WAWinUIApi;
 option go_package = "go.mau.fi/whatsmeow/proto/waWinUIApi";
 
-message WinUIMessage {
+enum PositronDataSource {
+	MESSAGES = 1;
+	CHATS = 2;
+	CONTACTS = 3;
+	GROUP_METADATA = 4;
+	GROUP_PARTICIPANTS = 5;
+}
+
+message PositronMessage {
 	message MsgKey {
 		optional bool fromMe = 1;
 		optional WID remote = 2;
@@ -18,8 +26,46 @@ message WinUIMessage {
 	optional string type = 2;
 	optional string body = 3;
 	optional MsgKey ID = 4;
+	optional string JSON = 99;
 }
 
-message WinUIMessagesArray {
-	repeated WinUIMessage messages = 1;
+message WinMessages {
+	repeated PositronMessage messages = 1;
+}
+
+message PositronChat {
+	optional string ID = 1;
+	optional string name = 2;
+	optional int64 timestamp = 3;
+	optional int64 unreadCount = 4;
+	optional string JSON = 99;
+}
+
+message PositronContact {
+	optional string ID = 1;
+	optional string phoneNumber = 2;
+	optional string name = 3;
+	optional bool isAddressBookContact = 4;
+	optional string JSON = 99;
+}
+
+message PositronGroupMetadata {
+	optional string ID = 1;
+	optional string subject = 2;
+	optional string JSON = 99;
+}
+
+message PositronGroupParticipants {
+	optional string ID = 1;
+	repeated string participants = 2;
+	optional string JSON = 99;
+}
+
+message PositronData {
+	optional PositronDataSource dataSource = 1;
+	repeated PositronMessage messages = 2;
+	repeated PositronChat chats = 3;
+	repeated PositronContact contacts = 4;
+	repeated PositronGroupMetadata groupMetadata = 5;
+	repeated PositronGroupParticipants groupParticipants = 6;
 }
