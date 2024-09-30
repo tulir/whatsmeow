@@ -156,10 +156,10 @@ func unpad(src []byte) ([]byte, error) {
 	return src[:(length - padLen)], nil
 }
 
-func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Writer) ([]byte, []byte, uint64, error) {
+func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Writer) ([]byte, []byte, uint64, uint64, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, nil, 0, fmt.Errorf("failed to create cipher: %w", err)
+		return nil, nil, 0, 0, fmt.Errorf("failed to create cipher: %w", err)
 	}
 	cbc := cipher.NewCBCEncrypter(block, iv)
 
@@ -171,7 +171,7 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 	writerAt, hasWriterAt := ciphertext.(io.WriterAt)
 
 	buf := make([]byte, 32*1024)
-	var size int
+	var size, extraSize int
 	var writePtr int64
 	hasMore := true
 	for hasMore {
@@ -182,9 +182,10 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 			padding := aes.BlockSize - size%aes.BlockSize
 			buf = append(buf[:n], bytes.Repeat([]byte{byte(padding)}, padding)...)
+			extraSize = padding
 			hasMore = false
 		} else if err != nil {
-			return nil, nil, 0, fmt.Errorf("failed to read file: %w", err)
+			return nil, nil, 0, 0, fmt.Errorf("failed to read file: %w", err)
 		}
 		cbc.CryptBlocks(buf, buf)
 		cipherMAC.Write(buf)
@@ -196,10 +197,11 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 			_, err = ciphertext.Write(buf)
 		}
 		if err != nil {
-			return nil, nil, 0, fmt.Errorf("failed to write file: %w", err)
+			return nil, nil, 0, 0, fmt.Errorf("failed to write file: %w", err)
 		}
 	}
 	mac := cipherMAC.Sum(nil)[:10]
+	extraSize += 10
 	cipherHasher.Write(mac)
 	if hasWriterAt {
 		_, err = writerAt.WriteAt(mac, writePtr)
@@ -207,7 +209,7 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 		_, err = ciphertext.Write(mac)
 	}
 	if err != nil {
-		return nil, nil, 0, fmt.Errorf("failed to write checksum to file: %w", err)
+		return nil, nil, 0, 0, fmt.Errorf("failed to write checksum to file: %w", err)
 	}
-	return plainHasher.Sum(nil), cipherHasher.Sum(nil), uint64(size), nil
+	return plainHasher.Sum(nil), cipherHasher.Sum(nil), uint64(size), uint64(size + extraSize), nil
 }
