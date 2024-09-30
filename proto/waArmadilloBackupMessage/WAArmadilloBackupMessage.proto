@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAArmadilloBackupMessage;
-option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloBackupMessage";
+option go_package = "github.com/snaril/whatsmeow/proto/waArmadilloBackupMessage";
 
 message BackupMessage {
 	message Metadata {

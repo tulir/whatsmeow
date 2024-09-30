@@ -20,4 +20,4 @@
 issuerSerial (RissuerSerial
 key (Rkey
 	notBefore (R	notBefore
-notAfter (RnotAfterB"Z go.mau.fi/whatsmeow/proto/waCert
+notAfter (RnotAfterB"Z github.com/snaril/whatsmeow/proto/waCert

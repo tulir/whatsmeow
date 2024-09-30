@@ -6,4 +6,4 @@
 taskID (RtaskID
 debug (Rdebug
 tcpBbr (RtcpBbr"
-tcpKeepalive (RtcpKeepaliveB)Z'go.mau.fi/whatsmeow/proto/waRoutingInfo
+tcpKeepalive (RtcpKeepaliveB)Z'github.com/snaril/whatsmeow/proto/waRoutingInfo

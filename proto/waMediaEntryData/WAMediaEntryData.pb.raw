@@ -37,4 +37,4 @@ directPath (	R
 directPath
 mediaKey (RmediaKey,
 mediaKeyTimestamp (RmediaKeyTimestamp
-objectID (	RobjectIDB,Z*go.mau.fi/whatsmeow/proto/waMediaEntryData
+objectID (	RobjectIDB,Z*github.com/snaril/whatsmeow/proto/waMediaEntryData

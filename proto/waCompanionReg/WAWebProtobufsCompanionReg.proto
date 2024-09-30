@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAWebProtobufsCompanionReg;
-option go_package = "go.mau.fi/whatsmeow/proto/waCompanionReg";
+option go_package = "github.com/snaril/whatsmeow/proto/waCompanionReg";
 
 message DeviceProps {
 	enum PlatformType {

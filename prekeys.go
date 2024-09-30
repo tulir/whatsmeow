@@ -12,14 +12,14 @@ import (
 	"fmt"
 	"time"
 
-	"go.mau.fi/libsignal/ecc"
-	"go.mau.fi/libsignal/keys/identity"
-	"go.mau.fi/libsignal/keys/prekey"
-	"go.mau.fi/libsignal/util/optional"
+	"github.com/snaril/libsignal/ecc"
+	"github.com/snaril/libsignal/keys/identity"
+	"github.com/snaril/libsignal/keys/prekey"
+	"github.com/snaril/libsignal/util/optional"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/util/keys"
+	waBinary "github.com/snaril/whatsmeow/binary"
+	"github.com/snaril/whatsmeow/types"
+	"github.com/snaril/whatsmeow/util/keys"
 )
 
 const (
