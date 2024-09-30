@@ -7,8 +7,10 @@
     <list default="true" id="365c89af-e22a-4ab9-be18-89d14f135683" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../hotgo/sdk/whatsapp/main.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../hotgo/server/internal/library/whatsapp/container.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hotgo/server/internal/library/whatsapp/container.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hotgo/server/internal/library/whatsapp/whatsapp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hotgo/server/internal/library/whatsapp/whatsapp.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hotgo/server/internal/websocket/router.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hotgo/server/internal/websocket/router.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prekeys.go" beforeDir="false" afterPath="$PROJECT_DIR$/prekeys.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -17,7 +19,7 @@
   </component>
   <component name="GOROOT" url="file://$PROJECT_DIR$/../../go/pkg/mod/golang.org/toolchain@v0.0.1-go1.23.1.windows-amd64" />
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3

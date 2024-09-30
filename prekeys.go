@@ -12,10 +12,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/snaril/libsignal/ecc"
-	"github.com/snaril/libsignal/keys/identity"
-	"github.com/snaril/libsignal/keys/prekey"
-	"github.com/snaril/libsignal/util/optional"
+	"go.mau.fi/libsignal/ecc"
+	"go.mau.fi/libsignal/keys/identity"
+	"go.mau.fi/libsignal/keys/prekey"
+	"go.mau.fi/libsignal/util/optional"
 
 	waBinary "github.com/snaril/whatsmeow/binary"
 	"github.com/snaril/whatsmeow/types"
