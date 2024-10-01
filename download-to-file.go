@@ -38,15 +38,15 @@ type File interface {
 //
 // This is otherwise identical to [Download], but writes the attachment to a file instead of returning it as a byte slice.
 func (cli *Client) DownloadToFile(msg DownloadableMessage, file File) error {
-	mediaType, ok := classToMediaType[msg.ProtoReflect().Descriptor().Name()]
-	if !ok {
-		return fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
+	mediaType := GetMediaType(msg)
+	if mediaType == "" {
+		return fmt.Errorf("%w %T", ErrUnknownMediaType, msg)
 	}
 	urlable, ok := msg.(downloadableMessageWithURL)
 	var url string
 	var isWebWhatsappNetURL bool
 	if ok {
-		url = urlable.GetUrl()
+		url = urlable.GetURL()
 		isWebWhatsappNetURL = strings.HasPrefix(url, "https://web.whatsapp.net")
 	}
 	if len(url) > 0 && !isWebWhatsappNetURL {
