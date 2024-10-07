@@ -10,12 +10,13 @@ import (
 	reflect "reflect"
 	sync "sync"
 
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
 	waAdv "go.mau.fi/whatsmeow/proto/waAdv"
 	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
 	waCompanionReg "go.mau.fi/whatsmeow/proto/waCompanionReg"
 	waMmsRetry "go.mau.fi/whatsmeow/proto/waMmsRetry"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
 	_ "embed"
 )

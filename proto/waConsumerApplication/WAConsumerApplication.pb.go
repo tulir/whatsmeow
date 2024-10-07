@@ -10,9 +10,10 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
 
 	_ "embed"
 )

@@ -10,9 +10,10 @@ import (
 	reflect "reflect"
 	sync "sync"
 
-	waUserPassword "go.mau.fi/whatsmeow/proto/waUserPassword"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	waUserPassword "go.mau.fi/whatsmeow/proto/waUserPassword"
 
 	_ "embed"
 )
