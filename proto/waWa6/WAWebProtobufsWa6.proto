@@ -216,7 +216,6 @@ message ClientPayload {
 	optional int32 yearClass = 36;
 	optional int32 memClass = 37;
 	optional InteropData interopData = 38;
-	optional bool isPcr = 39;
 	optional TrafficAnonymization trafficAnonymization = 40;
 }
 

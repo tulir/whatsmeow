@@ -31,6 +31,7 @@ const (
 	PositronDataSource_CONTACTS           PositronDataSource = 3
 	PositronDataSource_GROUP_METADATA     PositronDataSource = 4
 	PositronDataSource_GROUP_PARTICIPANTS PositronDataSource = 5
+	PositronDataSource_REACTIONS          PositronDataSource = 6
 )
 
 // Enum value maps for PositronDataSource.
@@ -41,6 +42,7 @@ var (
 		3: "CONTACTS",
 		4: "GROUP_METADATA",
 		5: "GROUP_PARTICIPANTS",
+		6: "REACTIONS",
 	}
 	PositronDataSource_value = map[string]int32{
 		"MESSAGES":           1,
@@ -48,6 +50,7 @@ var (
 		"CONTACTS":           3,
 		"GROUP_METADATA":     4,
 		"GROUP_PARTICIPANTS": 5,
+		"REACTIONS":          6,
 	}
 )
 
@@ -167,53 +170,6 @@ func (x *PositronMessage) GetJSON() string {
 	return ""
 }
 
-type WinMessages struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	Messages []*PositronMessage `protobuf:"bytes,1,rep,name=messages" json:"messages,omitempty"`
-}
-
-func (x *WinMessages) Reset() {
-	*x = WinMessages{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *WinMessages) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*WinMessages) ProtoMessage() {}
-
-func (x *WinMessages) ProtoReflect() protoreflect.Message {
-	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use WinMessages.ProtoReflect.Descriptor instead.
-func (*WinMessages) Descriptor() ([]byte, []int) {
-	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *WinMessages) GetMessages() []*PositronMessage {
-	if x != nil {
-		return x.Messages
-	}
-	return nil
-}
-
 type PositronChat struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -229,7 +185,7 @@ type PositronChat struct {
 func (x *PositronChat) Reset() {
 	*x = PositronChat{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[2]
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -242,7 +198,7 @@ func (x *PositronChat) String() string {
 func (*PositronChat) ProtoMessage() {}
 
 func (x *PositronChat) ProtoReflect() protoreflect.Message {
-	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[2]
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -255,7 +211,7 @@ func (x *PositronChat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PositronChat.ProtoReflect.Descriptor instead.
 func (*PositronChat) Descriptor() ([]byte, []int) {
-	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{2}
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PositronChat) GetID() string {
@@ -308,7 +264,7 @@ type PositronContact struct {
 func (x *PositronContact) Reset() {
 	*x = PositronContact{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[3]
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -321,7 +277,7 @@ func (x *PositronContact) String() string {
 func (*PositronContact) ProtoMessage() {}
 
 func (x *PositronContact) ProtoReflect() protoreflect.Message {
-	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[3]
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -334,7 +290,7 @@ func (x *PositronContact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PositronContact.ProtoReflect.Descriptor instead.
 func (*PositronContact) Descriptor() ([]byte, []int) {
-	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{3}
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *PositronContact) GetID() string {
@@ -385,7 +341,7 @@ type PositronGroupMetadata struct {
 func (x *PositronGroupMetadata) Reset() {
 	*x = PositronGroupMetadata{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[4]
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -398,7 +354,7 @@ func (x *PositronGroupMetadata) String() string {
 func (*PositronGroupMetadata) ProtoMessage() {}
 
 func (x *PositronGroupMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[4]
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -411,7 +367,7 @@ func (x *PositronGroupMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PositronGroupMetadata.ProtoReflect.Descriptor instead.
 func (*PositronGroupMetadata) Descriptor() ([]byte, []int) {
-	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{4}
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *PositronGroupMetadata) GetID() string {
@@ -448,7 +404,7 @@ type PositronGroupParticipants struct {
 func (x *PositronGroupParticipants) Reset() {
 	*x = PositronGroupParticipants{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[5]
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -461,7 +417,7 @@ func (x *PositronGroupParticipants) String() string {
 func (*PositronGroupParticipants) ProtoMessage() {}
 
 func (x *PositronGroupParticipants) ProtoReflect() protoreflect.Message {
-	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[5]
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -474,7 +430,7 @@ func (x *PositronGroupParticipants) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PositronGroupParticipants.ProtoReflect.Descriptor instead.
 func (*PositronGroupParticipants) Descriptor() ([]byte, []int) {
-	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{5}
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *PositronGroupParticipants) GetID() string {
@@ -498,6 +454,93 @@ func (x *PositronGroupParticipants) GetJSON() string {
 	return ""
 }
 
+type PositronReaction struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	ID            *string `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	ParentMsgKey  *string `protobuf:"bytes,2,opt,name=parentMsgKey" json:"parentMsgKey,omitempty"`
+	ReactionText  *string `protobuf:"bytes,3,opt,name=reactionText" json:"reactionText,omitempty"`
+	Timestamp     *int64  `protobuf:"varint,4,opt,name=timestamp" json:"timestamp,omitempty"`
+	SenderUserJID *string `protobuf:"bytes,5,opt,name=senderUserJID" json:"senderUserJID,omitempty"`
+	JSON          *string `protobuf:"bytes,99,opt,name=JSON" json:"JSON,omitempty"`
+}
+
+func (x *PositronReaction) Reset() {
+	*x = PositronReaction{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PositronReaction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PositronReaction) ProtoMessage() {}
+
+func (x *PositronReaction) ProtoReflect() protoreflect.Message {
+	mi := &file_waWinUIApi_WAWinUIApi_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PositronReaction.ProtoReflect.Descriptor instead.
+func (*PositronReaction) Descriptor() ([]byte, []int) {
+	return file_waWinUIApi_WAWinUIApi_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PositronReaction) GetID() string {
+	if x != nil && x.ID != nil {
+		return *x.ID
+	}
+	return ""
+}
+
+func (x *PositronReaction) GetParentMsgKey() string {
+	if x != nil && x.ParentMsgKey != nil {
+		return *x.ParentMsgKey
+	}
+	return ""
+}
+
+func (x *PositronReaction) GetReactionText() string {
+	if x != nil && x.ReactionText != nil {
+		return *x.ReactionText
+	}
+	return ""
+}
+
+func (x *PositronReaction) GetTimestamp() int64 {
+	if x != nil && x.Timestamp != nil {
+		return *x.Timestamp
+	}
+	return 0
+}
+
+func (x *PositronReaction) GetSenderUserJID() string {
+	if x != nil && x.SenderUserJID != nil {
+		return *x.SenderUserJID
+	}
+	return ""
+}
+
+func (x *PositronReaction) GetJSON() string {
+	if x != nil && x.JSON != nil {
+		return *x.JSON
+	}
+	return ""
+}
+
 type PositronData struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -509,6 +552,7 @@ type PositronData struct {
 	Contacts          []*PositronContact           `protobuf:"bytes,4,rep,name=contacts" json:"contacts,omitempty"`
 	GroupMetadata     []*PositronGroupMetadata     `protobuf:"bytes,5,rep,name=groupMetadata" json:"groupMetadata,omitempty"`
 	GroupParticipants []*PositronGroupParticipants `protobuf:"bytes,6,rep,name=groupParticipants" json:"groupParticipants,omitempty"`
+	Reactions         []*PositronReaction          `protobuf:"bytes,7,rep,name=reactions" json:"reactions,omitempty"`
 }
 
 func (x *PositronData) Reset() {
@@ -581,6 +625,13 @@ func (x *PositronData) GetGroupMetadata() []*PositronGroupMetadata {
 func (x *PositronData) GetGroupParticipants() []*PositronGroupParticipants {
 	if x != nil {
 		return x.GroupParticipants
+	}
+	return nil
+}
+
+func (x *PositronData) GetReactions() []*PositronReaction {
+	if x != nil {
+		return x.Reactions
 	}
 	return nil
 }
@@ -725,24 +776,24 @@ var file_waWinUIApi_WAWinUIApi_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_waWinUIApi_WAWinUIApi_proto_goTypes = []any{
 	(PositronDataSource)(0),           // 0: WAWinUIApi.PositronDataSource
 	(*PositronMessage)(nil),           // 1: WAWinUIApi.PositronMessage
-	(*WinMessages)(nil),               // 2: WAWinUIApi.WinMessages
-	(*PositronChat)(nil),              // 3: WAWinUIApi.PositronChat
-	(*PositronContact)(nil),           // 4: WAWinUIApi.PositronContact
-	(*PositronGroupMetadata)(nil),     // 5: WAWinUIApi.PositronGroupMetadata
-	(*PositronGroupParticipants)(nil), // 6: WAWinUIApi.PositronGroupParticipants
+	(*PositronChat)(nil),              // 2: WAWinUIApi.PositronChat
+	(*PositronContact)(nil),           // 3: WAWinUIApi.PositronContact
+	(*PositronGroupMetadata)(nil),     // 4: WAWinUIApi.PositronGroupMetadata
+	(*PositronGroupParticipants)(nil), // 5: WAWinUIApi.PositronGroupParticipants
+	(*PositronReaction)(nil),          // 6: WAWinUIApi.PositronReaction
 	(*PositronData)(nil),              // 7: WAWinUIApi.PositronData
 	(*PositronMessage_MsgKey)(nil),    // 8: WAWinUIApi.PositronMessage.MsgKey
 	(*PositronMessage_WID)(nil),       // 9: WAWinUIApi.PositronMessage.WID
 }
 var file_waWinUIApi_WAWinUIApi_proto_depIdxs = []int32{
 	8,  // 0: WAWinUIApi.PositronMessage.ID:type_name -> WAWinUIApi.PositronMessage.MsgKey
-	1,  // 1: WAWinUIApi.WinMessages.messages:type_name -> WAWinUIApi.PositronMessage
-	0,  // 2: WAWinUIApi.PositronData.dataSource:type_name -> WAWinUIApi.PositronDataSource
-	1,  // 3: WAWinUIApi.PositronData.messages:type_name -> WAWinUIApi.PositronMessage
-	3,  // 4: WAWinUIApi.PositronData.chats:type_name -> WAWinUIApi.PositronChat
-	4,  // 5: WAWinUIApi.PositronData.contacts:type_name -> WAWinUIApi.PositronContact
-	5,  // 6: WAWinUIApi.PositronData.groupMetadata:type_name -> WAWinUIApi.PositronGroupMetadata
-	6,  // 7: WAWinUIApi.PositronData.groupParticipants:type_name -> WAWinUIApi.PositronGroupParticipants
+	0,  // 1: WAWinUIApi.PositronData.dataSource:type_name -> WAWinUIApi.PositronDataSource
+	1,  // 2: WAWinUIApi.PositronData.messages:type_name -> WAWinUIApi.PositronMessage
+	2,  // 3: WAWinUIApi.PositronData.chats:type_name -> WAWinUIApi.PositronChat
+	3,  // 4: WAWinUIApi.PositronData.contacts:type_name -> WAWinUIApi.PositronContact
+	4,  // 5: WAWinUIApi.PositronData.groupMetadata:type_name -> WAWinUIApi.PositronGroupMetadata
+	5,  // 6: WAWinUIApi.PositronData.groupParticipants:type_name -> WAWinUIApi.PositronGroupParticipants
+	6,  // 7: WAWinUIApi.PositronData.reactions:type_name -> WAWinUIApi.PositronReaction
 	9,  // 8: WAWinUIApi.PositronMessage.MsgKey.remote:type_name -> WAWinUIApi.PositronMessage.WID
 	9,  // 9: WAWinUIApi.PositronMessage.MsgKey.participant:type_name -> WAWinUIApi.PositronMessage.WID
 	10, // [10:10] is the sub-list for method output_type
@@ -771,18 +822,6 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 			}
 		}
 		file_waWinUIApi_WAWinUIApi_proto_msgTypes[1].Exporter = func(v any, i int) any {
-			switch v := v.(*WinMessages); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_waWinUIApi_WAWinUIApi_proto_msgTypes[2].Exporter = func(v any, i int) any {
 			switch v := v.(*PositronChat); i {
 			case 0:
 				return &v.state
@@ -794,7 +833,7 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 				return nil
 			}
 		}
-		file_waWinUIApi_WAWinUIApi_proto_msgTypes[3].Exporter = func(v any, i int) any {
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[2].Exporter = func(v any, i int) any {
 			switch v := v.(*PositronContact); i {
 			case 0:
 				return &v.state
@@ -806,7 +845,7 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 				return nil
 			}
 		}
-		file_waWinUIApi_WAWinUIApi_proto_msgTypes[4].Exporter = func(v any, i int) any {
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[3].Exporter = func(v any, i int) any {
 			switch v := v.(*PositronGroupMetadata); i {
 			case 0:
 				return &v.state
@@ -818,8 +857,20 @@ func file_waWinUIApi_WAWinUIApi_proto_init() {
 				return nil
 			}
 		}
-		file_waWinUIApi_WAWinUIApi_proto_msgTypes[5].Exporter = func(v any, i int) any {
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[4].Exporter = func(v any, i int) any {
 			switch v := v.(*PositronGroupParticipants); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_waWinUIApi_WAWinUIApi_proto_msgTypes[5].Exporter = func(v any, i int) any {
+			switch v := v.(*PositronReaction); i {
 			case 0:
 				return &v.state
 			case 1:

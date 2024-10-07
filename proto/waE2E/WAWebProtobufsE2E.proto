@@ -32,6 +32,46 @@ enum KeepType {
 	UNDO_KEEP_FOR_ALL = 2;
 }
 
+message StickerPackMessage {
+	enum StickerPackOrigin {
+		FIRST_PARTY = 0;
+		THIRD_PARTY = 1;
+		USER_CREATED = 2;
+	}
+
+	message Sticker {
+		optional string fileName = 1;
+		optional bool isAnimated = 2;
+		repeated string emojis = 3;
+		optional string accessibilityLabel = 4;
+		optional bool isLottie = 5;
+		optional string mimetype = 6;
+	}
+
+	optional string stickerPackID = 1;
+	optional string name = 2;
+	optional string publisher = 3;
+	repeated Sticker stickers = 4;
+	optional uint64 fileLength = 5;
+	optional bytes fileSHA256 = 6;
+	optional bytes fileEncSHA256 = 7;
+	optional bytes mediaKey = 8;
+	optional string directPath = 9;
+	optional string caption = 10;
+	optional ContextInfo contextInfo = 11;
+	optional string packDescription = 12;
+	optional int64 mediaKeyTimestamp = 13;
+	optional string trayIconFileName = 14;
+	optional string thumbnailDirectPath = 15;
+	optional bytes thumbnailSHA256 = 16;
+	optional bytes thumbnailEncSHA256 = 17;
+	optional uint32 thumbnailHeight = 18;
+	optional uint32 thumbnailWidth = 19;
+	optional string imageDataHash = 20;
+	optional uint64 stickerPackSize = 21;
+	optional StickerPackOrigin stickerPackOrigin = 22;
+}
+
 message PlaceholderMessage {
 	enum PlaceholderType {
 		MASK_LINKED_DEVICES = 0;
@@ -732,6 +772,7 @@ message ExtendedTextMessage {
 		PLACEHOLDER = 4;
 		IMAGE = 5;
 		PAYMENT_LINKS = 6;
+		PROFILE = 7;
 	}
 
 	enum FontType {
@@ -872,6 +913,7 @@ message ContextInfo {
 		optional string greetingMessageBody = 19;
 		optional string ctaPayload = 20;
 		optional bool disableNudge = 21;
+		optional string originalImageURL = 22;
 	}
 
 	message AdReplyInfo {
@@ -1053,6 +1095,18 @@ message BotCapabilityMetadata {
 	repeated BotCapabilityType capabilities = 1;
 }
 
+message BotImagineMetadata {
+	enum ImagineType {
+		UNKNOWN = 0;
+		IMAGINE = 1;
+		MEMU = 2;
+		FLASH = 3;
+		EDIT = 4;
+	}
+
+	optional ImagineType imagineType = 1;
+}
+
 message MessageAssociation {
 	enum AssociationType {
 		UNKNOWN = 0;
@@ -1060,6 +1114,8 @@ message MessageAssociation {
 		BOT_PLUGIN = 2;
 		EVENT_COVER_IMAGE = 3;
 		STATUS_POLL = 4;
+		HD_VIDEO_DUAL_UPLOAD = 5;
+		STATUS_TAPPABLE_MESSAGE = 6;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1262,41 +1318,7 @@ message Message {
 	optional PollResultSnapshotMessage pollResultSnapshotMessage = 88;
 }
 
-message StickerPackMessage {
-	message Sticker {
-		optional string fileName = 1;
-		optional bool isAnimated = 2;
-		repeated string emojis = 3;
-		optional string accessibilityLabel = 4;
-		optional bool isLottie = 5;
-		optional string mimetype = 6;
-	}
-
-	optional string stickerPackID = 1;
-	optional string name = 2;
-	optional string publisher = 3;
-	repeated Sticker stickers = 4;
-	optional uint64 fileLength = 5;
-	optional bytes fileSHA256 = 6;
-	optional bytes fileEncSHA256 = 7;
-	optional bytes mediaKey = 8;
-	optional string directPath = 9;
-	optional string caption = 10;
-	optional ContextInfo contextInfo = 11;
-	optional string packDescription = 12;
-	optional int64 mediaKeyTimestamp = 13;
-	optional string trayIconFileName = 14;
-	optional string thumbnailDirectPath = 15;
-	optional bytes thumbnailSHA256 = 16;
-	optional bytes thumbnailEncSHA256 = 17;
-	optional uint32 thumbnailHeight = 18;
-	optional uint32 thumbnailWidth = 19;
-	optional string imageDataHash = 20;
-	optional uint64 stickerPackSize = 21;
-}
-
 message AlbumMessage {
-	optional string caption = 1;
 	optional uint32 expectedImageCount = 2;
 	optional uint32 expectedVideoCount = 3;
 	optional ContextInfo contextInfo = 17;
@@ -1597,6 +1619,7 @@ message PeerDataOperationRequestMessage {
 		optional bool oldestMsgFromMe = 3;
 		optional int32 onDemandMsgCount = 4;
 		optional int64 oldestMsgTimestampMS = 5;
+		optional string accountLid = 6;
 	}
 
 	message RequestUrlPreview {
@@ -1777,6 +1800,7 @@ message BotMetadata {
 	optional string messageDisclaimerText = 11;
 	optional BotProgressIndicatorMetadata progressIndicatorMetadata = 12;
 	optional BotCapabilityMetadata capabilityMetadata = 13;
+	optional BotImagineMetadata imagineMetadata = 14;
 }
 
 message DeviceListMetadata {
@@ -1816,11 +1840,17 @@ message EmbeddedContent {
 	}
 }
 
+message TapLinkAction {
+	optional string title = 1;
+	optional string tapURL = 2;
+}
+
 message InteractiveAnnotation {
 	oneof action {
 		Location location = 2;
 		ContextInfo.ForwardedNewsletterMessageInfo newsletter = 3;
 		bool embeddedAction = 6;
+		TapLinkAction tapAction = 7;
 	}
 
 	repeated Point polygonVertices = 1;

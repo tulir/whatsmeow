@@ -813,7 +813,6 @@ type ClientPayload struct {
 	YearClass            *int32                                       `protobuf:"varint,36,opt,name=yearClass" json:"yearClass,omitempty"`
 	MemClass             *int32                                       `protobuf:"varint,37,opt,name=memClass" json:"memClass,omitempty"`
 	InteropData          *ClientPayload_InteropData                   `protobuf:"bytes,38,opt,name=interopData" json:"interopData,omitempty"`
-	IsPcr                *bool                                        `protobuf:"varint,39,opt,name=isPcr" json:"isPcr,omitempty"`
 	TrafficAnonymization *ClientPayload_TrafficAnonymization          `protobuf:"varint,40,opt,name=trafficAnonymization,enum=WAWebProtobufsWa6.ClientPayload_TrafficAnonymization" json:"trafficAnonymization,omitempty"`
 }
 
@@ -1036,13 +1035,6 @@ func (x *ClientPayload) GetInteropData() *ClientPayload_InteropData {
 		return x.InteropData
 	}
 	return nil
-}
-
-func (x *ClientPayload) GetIsPcr() bool {
-	if x != nil && x.IsPcr != nil {
-		return *x.IsPcr
-	}
-	return false
 }
 
 func (x *ClientPayload) GetTrafficAnonymization() ClientPayload_TrafficAnonymization {

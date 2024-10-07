@@ -15,9 +15,7 @@ WAWinUIApi"õ
 WID
 
 serialized (	R
-serialized"F
-WinMessages7
-messages (2.WAWinUIApi.PositronMessageRmessages"†
+serialized"†
 PositronChat
 ID (	RID
 name (	Rname
@@ -37,7 +35,14 @@ serialized"F
 PositronGroupParticipants
 ID (	RID"
 participants (	Rparticipants
-JSONc (	RJSON"Ž
+JSONc (	RJSON"Â
+PositronReaction
+ID (	RID"
+parentMsgKey (	RparentMsgKey"
+reactionText (	RreactionText
+	timestamp (R	timestamp$
+senderUserJID (	RsenderUserJID
+JSONc (	RJSON"Ê
 PositronData>
 
 dataSource (2.WAWinUIApi.PositronDataSourceR
@@ -46,10 +51,12 @@ dataSource7
 chats (2.WAWinUIApi.PositronChatRchats7
 contacts (2.WAWinUIApi.PositronContactRcontactsG
 groupMetadata (2!.WAWinUIApi.PositronGroupMetadataRgroupMetadataS
-groupParticipants (2%.WAWinUIApi.PositronGroupParticipantsRgroupParticipants*g
+groupParticipants (2%.WAWinUIApi.PositronGroupParticipantsRgroupParticipants:
+	reactions (2.WAWinUIApi.PositronReactionR	reactions*v
 PositronDataSource
 MESSAGES	
 CHATS
 CONTACTS
 GROUP_METADATA
-GROUP_PARTICIPANTSB&Z$go.mau.fi/whatsmeow/proto/waWinUIApi
+GROUP_PARTICIPANTS
+	REACTIONSB&Z$go.mau.fi/whatsmeow/proto/waWinUIApi

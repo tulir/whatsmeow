@@ -8,6 +8,7 @@ enum PositronDataSource {
 	CONTACTS = 3;
 	GROUP_METADATA = 4;
 	GROUP_PARTICIPANTS = 5;
+	REACTIONS = 6;
 }
 
 message PositronMessage {
@@ -27,10 +28,6 @@ message PositronMessage {
 	optional string body = 3;
 	optional MsgKey ID = 4;
 	optional string JSON = 99;
-}
-
-message WinMessages {
-	repeated PositronMessage messages = 1;
 }
 
 message PositronChat {
@@ -61,6 +58,15 @@ message PositronGroupParticipants {
 	optional string JSON = 99;
 }
 
+message PositronReaction {
+	optional string ID = 1;
+	optional string parentMsgKey = 2;
+	optional string reactionText = 3;
+	optional int64 timestamp = 4;
+	optional string senderUserJID = 5;
+	optional string JSON = 99;
+}
+
 message PositronData {
 	optional PositronDataSource dataSource = 1;
 	repeated PositronMessage messages = 2;
@@ -68,4 +74,5 @@ message PositronData {
 	repeated PositronContact contacts = 4;
 	repeated PositronGroupMetadata groupMetadata = 5;
 	repeated PositronGroupParticipants groupParticipants = 6;
+	repeated PositronReaction reactions = 7;
 }

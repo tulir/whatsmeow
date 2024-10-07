@@ -294,6 +294,7 @@ message WebMessageInfo {
 	optional WACommon.MessageKey targetMessageID = 67;
 	repeated MessageAddOn messageAddOns = 68;
 	optional StatusMentionMessage statusMentionMessageInfo = 69;
+	optional bool isSupportAiMessage = 70;
 }
 
 message PaymentInfo {

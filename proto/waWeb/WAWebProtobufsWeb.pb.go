@@ -1376,6 +1376,7 @@ type WebMessageInfo struct {
 	TargetMessageID                 *waCommon.MessageKey             `protobuf:"bytes,67,opt,name=targetMessageID" json:"targetMessageID,omitempty"`
 	MessageAddOns                   []*MessageAddOn                  `protobuf:"bytes,68,rep,name=messageAddOns" json:"messageAddOns,omitempty"`
 	StatusMentionMessageInfo        *StatusMentionMessage            `protobuf:"bytes,69,opt,name=statusMentionMessageInfo" json:"statusMentionMessageInfo,omitempty"`
+	IsSupportAiMessage              *bool                            `protobuf:"varint,70,opt,name=isSupportAiMessage" json:"isSupportAiMessage,omitempty"`
 }
 
 func (x *WebMessageInfo) Reset() {
@@ -1814,6 +1815,13 @@ func (x *WebMessageInfo) GetStatusMentionMessageInfo() *StatusMentionMessage {
 		return x.StatusMentionMessageInfo
 	}
 	return nil
+}
+
+func (x *WebMessageInfo) GetIsSupportAiMessage() bool {
+	if x != nil && x.IsSupportAiMessage != nil {
+		return *x.IsSupportAiMessage
+	}
+	return false
 }
 
 type PaymentInfo struct {
