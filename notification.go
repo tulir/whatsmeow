@@ -214,6 +214,7 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 		case "blocklist":
 			cli.handleBlocklist(&child)
 		default:
+			cli.Log.Debugf("XML: %s", node.XMLString())
 			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
 		}
 	}
@@ -352,6 +353,26 @@ func (cli *Client) handleMexNotification(node *waBinary.Node) {
 	}
 }
 
+func (cli *Client) handleStatusNotification(node *waBinary.Node) {
+	ag := node.AttrGetter()
+	for _, child := range node.GetChildren() {
+		if child.Tag != "set" {
+			cli.Log.Debugf("Unhandled status notification with type %s: %s", child.Tag, node.XMLString())
+			continue
+		}
+		status, ok := child.Content.([]byte)
+		if !ok {
+			cli.Log.Warnf("set status notification contained non-binary status")
+			continue
+		}
+		cli.dispatchEvent(&events.UserAbout{
+			JID:       ag.JID("from"),
+			Timestamp: ag.UnixTime("t"),
+			Status:    string(status),
+		})
+	}
+}
+
 func (cli *Client) handleNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
@@ -389,6 +410,8 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		go cli.handleNewsletterNotification(node)
 	case "mex":
 		go cli.handleMexNotification(node)
+	case "status":
+		go cli.handleStatusNotification(node)
 	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)

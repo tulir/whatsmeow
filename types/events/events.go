@@ -471,6 +471,13 @@ type Picture struct {
 	PictureID string    // The new picture ID if it was not removed.
 }
 
+// UserAbout is emitted when a user's about status is changed.
+type UserAbout struct {
+	JID       types.JID // The user whose status was changed
+	Status    string    // The new status
+	Timestamp time.Time // The timestamp when the status was changed.
+}
+
 // IdentityChange is emitted when another user changes their primary device.
 type IdentityChange struct {
 	JID       types.JID
