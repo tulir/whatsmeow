@@ -214,7 +214,6 @@ func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
 		case "blocklist":
 			cli.handleBlocklist(&child)
 		default:
-			cli.Log.Debugf("XML: %s", node.XMLString())
 			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
 		}
 	}
@@ -355,22 +354,21 @@ func (cli *Client) handleMexNotification(node *waBinary.Node) {
 
 func (cli *Client) handleStatusNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
-	for _, child := range node.GetChildren() {
-		if child.Tag != "set" {
-			cli.Log.Debugf("Unhandled status notification with type %s: %s", child.Tag, node.XMLString())
-			continue
-		}
-		status, ok := child.Content.([]byte)
-		if !ok {
-			cli.Log.Warnf("set status notification contained non-binary status")
-			continue
-		}
-		cli.dispatchEvent(&events.UserAbout{
-			JID:       ag.JID("from"),
-			Timestamp: ag.UnixTime("t"),
-			Status:    string(status),
-		})
+	child, found := node.GetOptionalChildByTag("set")
+	if !found {
+		cli.Log.Debugf("Status notifcation did not contain child with tag 'set'")
+		return
 	}
+	status, ok := child.Content.([]byte)
+	if !ok {
+		cli.Log.Warnf("Set status notification has unexpected content (%T)", child.Content)
+		return
+	}
+	cli.dispatchEvent(&events.UserAbout{
+		JID:       ag.JID("from"),
+		Timestamp: ag.UnixTime("t"),
+		Status:    string(status),
+	})
 }
 
 func (cli *Client) handleNotification(node *waBinary.Node) {
