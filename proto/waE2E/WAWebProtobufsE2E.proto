@@ -7,6 +7,11 @@ import "waCompanionReg/WAWebProtobufsCompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
 
+enum PollType {
+	TEXT = 1;
+	IMAGE = 2;
+}
+
 enum PeerDataOperationRequestType {
 	UPLOAD_STICKER = 0;
 	SEND_RECENT_STICKER_BOOTSTRAP = 1;
@@ -15,6 +20,7 @@ enum PeerDataOperationRequestType {
 	PLACEHOLDER_MESSAGE_RESEND = 4;
 	WAFFLE_LINKING_NONCE_FETCH = 5;
 	FULL_HISTORY_SYNC_ON_DEMAND = 6;
+	COMPANION_META_NONCE_FETCH = 7;
 }
 
 enum BotSessionSource {
@@ -536,6 +542,10 @@ message PeerDataOperationRequestResponseMessage {
 			ERROR_HOSTED_DEVICE_LOGIN_TIME_NOT_SET = 6;
 		}
 
+		message CompanionMetaNonceFetchResponse {
+			optional string nonce = 1;
+		}
+
 		message WaffleNonceFetchResponse {
 			optional string nonce = 1;
 			optional string waEntFbid = 2;
@@ -577,6 +587,7 @@ message PeerDataOperationRequestResponseMessage {
 		optional PlaceholderMessageResendResponse placeholderMessageResendResponse = 4;
 		optional WaffleNonceFetchResponse waffleNonceFetchRequestResponse = 5;
 		optional FullHistorySyncOnDemandRequestResponse fullHistorySyncOnDemandRequestResponse = 6;
+		optional CompanionMetaNonceFetchResponse companionMetaNonceFetchRequestResponse = 7;
 	}
 
 	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -1116,10 +1127,12 @@ message MessageAssociation {
 		STATUS_POLL = 4;
 		HD_VIDEO_DUAL_UPLOAD = 5;
 		STATUS_TAPPABLE_MESSAGE = 6;
+		MEDIA_POLL = 7;
 	}
 
 	optional AssociationType associationType = 1;
 	optional WACommon.MessageKey parentMessageKey = 2;
+	optional int32 messageIndex = 3;
 }
 
 message MessageContextInfo {
@@ -1316,6 +1329,8 @@ message Message {
 	optional StickerPackMessage stickerPackMessage = 86;
 	optional FutureProofMessage statusMentionMessage = 87;
 	optional PollResultSnapshotMessage pollResultSnapshotMessage = 88;
+	optional FutureProofMessage pollCreationMessageV4 = 89;
+	optional FutureProofMessage pollCreationOptionImageMessage = 90;
 }
 
 message AlbumMessage {
@@ -1409,6 +1424,7 @@ message PollUpdateMessage {
 message PollCreationMessage {
 	message Option {
 		optional string optionName = 1;
+		optional string optionHash = 2;
 	}
 
 	optional bytes encKey = 1;
@@ -1416,6 +1432,7 @@ message PollCreationMessage {
 	repeated Option options = 3;
 	optional uint32 selectableOptionsCount = 4;
 	optional ContextInfo contextInfo = 5;
+	optional PollType pollType = 6;
 }
 
 message StickerSyncRMRMessage {
@@ -1773,6 +1790,17 @@ message BotSuggestedPromptMetadata {
 	optional uint32 selectedPromptIndex = 2;
 }
 
+message BotMemoryMetadata {
+	repeated BotMemoryFact addedFacts = 1;
+	repeated BotMemoryFact removedFacts = 2;
+	optional string disclaimer = 3;
+}
+
+message BotMemoryFact {
+	optional string fact = 1;
+	optional string factID = 2;
+}
+
 message BotSessionMetadata {
 	optional string sessionID = 1;
 	optional BotSessionSource sessionSource = 2;
@@ -1801,6 +1829,7 @@ message BotMetadata {
 	optional BotProgressIndicatorMetadata progressIndicatorMetadata = 12;
 	optional BotCapabilityMetadata capabilityMetadata = 13;
 	optional BotImagineMetadata imagineMetadata = 14;
+	optional BotMemoryMetadata memoryMetadata = 15;
 }
 
 message DeviceListMetadata {
