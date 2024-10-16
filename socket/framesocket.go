@@ -93,14 +93,14 @@ func (fs *FrameSocket) Close(code int) {
 	}
 }
 
-func (fs *FrameSocket) Connect() error {
+func (fs *FrameSocket) Connect(timeCtx context.Context) error {
 	fs.lock.Lock()
 	defer fs.lock.Unlock()
 
 	if fs.conn != nil {
 		return ErrSocketAlreadyOpen
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(timeCtx)
 
 	fs.log.Debugf("Dialing %s", fs.URL)
 	conn, _, err := fs.Dialer.Dial(fs.URL, fs.HTTPHeaders)
