@@ -7,6 +7,11 @@ import "waCompanionReg/WAWebProtobufsCompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
 
+enum PollType {
+	TEXT = 1;
+	IMAGE = 2;
+}
+
 enum PeerDataOperationRequestType {
 	UPLOAD_STICKER = 0;
 	SEND_RECENT_STICKER_BOOTSTRAP = 1;
@@ -15,6 +20,7 @@ enum PeerDataOperationRequestType {
 	PLACEHOLDER_MESSAGE_RESEND = 4;
 	WAFFLE_LINKING_NONCE_FETCH = 5;
 	FULL_HISTORY_SYNC_ON_DEMAND = 6;
+	COMPANION_META_NONCE_FETCH = 7;
 }
 
 enum BotSessionSource {
@@ -30,6 +36,46 @@ enum KeepType {
 	UNKNOWN = 0;
 	KEEP_FOR_ALL = 1;
 	UNDO_KEEP_FOR_ALL = 2;
+}
+
+message StickerPackMessage {
+	enum StickerPackOrigin {
+		FIRST_PARTY = 0;
+		THIRD_PARTY = 1;
+		USER_CREATED = 2;
+	}
+
+	message Sticker {
+		optional string fileName = 1;
+		optional bool isAnimated = 2;
+		repeated string emojis = 3;
+		optional string accessibilityLabel = 4;
+		optional bool isLottie = 5;
+		optional string mimetype = 6;
+	}
+
+	optional string stickerPackID = 1;
+	optional string name = 2;
+	optional string publisher = 3;
+	repeated Sticker stickers = 4;
+	optional uint64 fileLength = 5;
+	optional bytes fileSHA256 = 6;
+	optional bytes fileEncSHA256 = 7;
+	optional bytes mediaKey = 8;
+	optional string directPath = 9;
+	optional string caption = 10;
+	optional ContextInfo contextInfo = 11;
+	optional string packDescription = 12;
+	optional int64 mediaKeyTimestamp = 13;
+	optional string trayIconFileName = 14;
+	optional string thumbnailDirectPath = 15;
+	optional bytes thumbnailSHA256 = 16;
+	optional bytes thumbnailEncSHA256 = 17;
+	optional uint32 thumbnailHeight = 18;
+	optional uint32 thumbnailWidth = 19;
+	optional string imageDataHash = 20;
+	optional uint64 stickerPackSize = 21;
+	optional StickerPackOrigin stickerPackOrigin = 22;
 }
 
 message PlaceholderMessage {
@@ -496,6 +542,10 @@ message PeerDataOperationRequestResponseMessage {
 			ERROR_HOSTED_DEVICE_LOGIN_TIME_NOT_SET = 6;
 		}
 
+		message CompanionMetaNonceFetchResponse {
+			optional string nonce = 1;
+		}
+
 		message WaffleNonceFetchResponse {
 			optional string nonce = 1;
 			optional string waEntFbid = 2;
@@ -537,6 +587,7 @@ message PeerDataOperationRequestResponseMessage {
 		optional PlaceholderMessageResendResponse placeholderMessageResendResponse = 4;
 		optional WaffleNonceFetchResponse waffleNonceFetchRequestResponse = 5;
 		optional FullHistorySyncOnDemandRequestResponse fullHistorySyncOnDemandRequestResponse = 6;
+		optional CompanionMetaNonceFetchResponse companionMetaNonceFetchRequestResponse = 7;
 	}
 
 	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -732,6 +783,7 @@ message ExtendedTextMessage {
 		PLACEHOLDER = 4;
 		IMAGE = 5;
 		PAYMENT_LINKS = 6;
+		PROFILE = 7;
 	}
 
 	enum FontType {
@@ -867,6 +919,12 @@ message ContextInfo {
 		optional string ref = 14;
 		optional bool clickToWhatsappCall = 15;
 		optional bool adContextPreviewDismissed = 16;
+		optional string sourceApp = 17;
+		optional bool automatedGreetingMessageShown = 18;
+		optional string greetingMessageBody = 19;
+		optional string ctaPayload = 20;
+		optional bool disableNudge = 21;
+		optional string originalImageURL = 22;
 	}
 
 	message AdReplyInfo {
@@ -900,6 +958,12 @@ message ContextInfo {
 		optional bool showMmDisclosure = 1;
 		optional string encryptedSignalTokenConsented = 2;
 		repeated Parameters parameters = 3;
+	}
+
+	message ForwardedAIBotMessageInfo {
+		optional string botName = 1;
+		optional string botJID = 2;
+		optional string creatorName = 3;
 	}
 
 	message UTMInfo {
@@ -948,6 +1012,9 @@ message ContextInfo {
 	optional FeatureEligibilities featureEligibilities = 49;
 	optional string entryPointConversionExternalSource = 50;
 	optional string entryPointConversionExternalMedium = 51;
+	optional string ctwaSignals = 54;
+	optional bytes ctwaPayload = 55;
+	optional ForwardedAIBotMessageInfo forwardedAiBotMessageInfo = 56;
 }
 
 message BotPluginMetadata {
@@ -959,6 +1026,7 @@ message BotPluginMetadata {
 	enum SearchProvider {
 		BING = 1;
 		GOOGLE = 2;
+		SUPPORT = 3;
 	}
 
 	optional SearchProvider provider = 1;
@@ -1028,6 +1096,28 @@ message BotModelMetadata {
 	optional PremiumModelStatus premiumModelStatus = 2;
 }
 
+message BotCapabilityMetadata {
+	enum BotCapabilityType {
+		PROGRESS_INDICATOR = 1;
+		RICH_RESPONSE_HEADING = 2;
+		RICH_RESPONSE_NESTED_LIST = 3;
+	}
+
+	repeated BotCapabilityType capabilities = 1;
+}
+
+message BotImagineMetadata {
+	enum ImagineType {
+		UNKNOWN = 0;
+		IMAGINE = 1;
+		MEMU = 2;
+		FLASH = 3;
+		EDIT = 4;
+	}
+
+	optional ImagineType imagineType = 1;
+}
+
 message MessageAssociation {
 	enum AssociationType {
 		UNKNOWN = 0;
@@ -1035,10 +1125,14 @@ message MessageAssociation {
 		BOT_PLUGIN = 2;
 		EVENT_COVER_IMAGE = 3;
 		STATUS_POLL = 4;
+		HD_VIDEO_DUAL_UPLOAD = 5;
+		STATUS_TAPPABLE_MESSAGE = 6;
+		MEDIA_POLL = 7;
 	}
 
 	optional AssociationType associationType = 1;
 	optional WACommon.MessageKey parentMessageKey = 2;
+	optional int32 messageIndex = 3;
 }
 
 message MessageContextInfo {
@@ -1235,41 +1329,11 @@ message Message {
 	optional StickerPackMessage stickerPackMessage = 86;
 	optional FutureProofMessage statusMentionMessage = 87;
 	optional PollResultSnapshotMessage pollResultSnapshotMessage = 88;
-}
-
-message StickerPackMessage {
-	message Sticker {
-		optional string fileName = 1;
-		optional bool isAnimated = 2;
-		repeated string emojis = 3;
-		optional string accessibilityLabel = 4;
-		optional bool isLottie = 5;
-		optional string mimetype = 6;
-	}
-
-	optional string stickerPackID = 1;
-	optional string name = 2;
-	optional string publisher = 3;
-	repeated Sticker stickers = 4;
-	optional uint64 fileSize = 5;
-	optional bytes fileSHA256 = 6;
-	optional bytes fileEncSHA256 = 7;
-	optional bytes mediaKey = 8;
-	optional string directPath = 9;
-	optional string caption = 10;
-	optional ContextInfo contextInfo = 11;
-	optional string packDescription = 12;
-	optional int64 mediaKeyTimestamp = 13;
-	optional string trayIconFileName = 14;
-	optional string thumbnailDirectPath = 15;
-	optional bytes thumbnailSHA256 = 16;
-	optional bytes thumbnailEncSHA256 = 17;
-	optional uint32 thumbnailHeight = 18;
-	optional uint32 thumbnailWidth = 19;
+	optional FutureProofMessage pollCreationMessageV4 = 89;
+	optional FutureProofMessage pollCreationOptionImageMessage = 90;
 }
 
 message AlbumMessage {
-	optional string caption = 1;
 	optional uint32 expectedImageCount = 2;
 	optional uint32 expectedVideoCount = 3;
 	optional ContextInfo contextInfo = 17;
@@ -1360,6 +1424,7 @@ message PollUpdateMessage {
 message PollCreationMessage {
 	message Option {
 		optional string optionName = 1;
+		optional string optionHash = 2;
 	}
 
 	optional bytes encKey = 1;
@@ -1367,6 +1432,7 @@ message PollCreationMessage {
 	repeated Option options = 3;
 	optional uint32 selectableOptionsCount = 4;
 	optional ContextInfo contextInfo = 5;
+	optional PollType pollType = 6;
 }
 
 message StickerSyncRMRMessage {
@@ -1570,6 +1636,7 @@ message PeerDataOperationRequestMessage {
 		optional bool oldestMsgFromMe = 3;
 		optional int32 onDemandMsgCount = 4;
 		optional int64 oldestMsgTimestampMS = 5;
+		optional string accountLid = 6;
 	}
 
 	message RequestUrlPreview {
@@ -1637,6 +1704,8 @@ message Call {
 	optional string conversionSource = 2;
 	optional bytes conversionData = 3;
 	optional uint32 conversionDelaySeconds = 4;
+	optional string ctwaSignals = 5;
+	optional bytes ctwaPayload = 6;
 }
 
 message AudioMessage {
@@ -1721,6 +1790,17 @@ message BotSuggestedPromptMetadata {
 	optional uint32 selectedPromptIndex = 2;
 }
 
+message BotMemoryMetadata {
+	repeated BotMemoryFact addedFacts = 1;
+	repeated BotMemoryFact removedFacts = 2;
+	optional string disclaimer = 3;
+}
+
+message BotMemoryFact {
+	optional string fact = 1;
+	optional string factID = 2;
+}
+
 message BotSessionMetadata {
 	optional string sessionID = 1;
 	optional BotSessionSource sessionSource = 2;
@@ -1728,6 +1808,10 @@ message BotSessionMetadata {
 
 message BotMemuMetadata {
 	repeated BotMediaMetadata faceImages = 1;
+}
+
+message BotProgressIndicatorMetadata {
+	optional string progressDescription = 1;
 }
 
 message BotMetadata {
@@ -1742,6 +1826,10 @@ message BotMetadata {
 	optional BotReminderMetadata reminderMetadata = 9;
 	optional BotModelMetadata modelMetadata = 10;
 	optional string messageDisclaimerText = 11;
+	optional BotProgressIndicatorMetadata progressIndicatorMetadata = 12;
+	optional BotCapabilityMetadata capabilityMetadata = 13;
+	optional BotImagineMetadata imagineMetadata = 14;
+	optional BotMemoryMetadata memoryMetadata = 15;
 }
 
 message DeviceListMetadata {
@@ -1768,8 +1856,10 @@ message EmbeddedMusic {
 	optional string artworkDirectPath = 5;
 	optional bytes artworkSHA256 = 6;
 	optional bytes artworkEncSHA256 = 7;
+	optional bytes artworkMediaKey = 11;
 	optional string artistAttribution = 8;
 	optional bytes countryBlocklist = 9;
+	optional bool isExplicit = 10;
 }
 
 message EmbeddedContent {
@@ -1779,11 +1869,17 @@ message EmbeddedContent {
 	}
 }
 
+message TapLinkAction {
+	optional string title = 1;
+	optional string tapURL = 2;
+}
+
 message InteractiveAnnotation {
 	oneof action {
 		Location location = 2;
 		ContextInfo.ForwardedNewsletterMessageInfo newsletter = 3;
 		bool embeddedAction = 6;
+		TapLinkAction tapAction = 7;
 	}
 
 	repeated Point polygonVertices = 1;

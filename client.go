@@ -26,6 +26,8 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -156,10 +158,6 @@ type Client struct {
 	// If false, decrypting a message from untrusted devices will fail.
 	AutoTrustIdentity bool
 
-	// Should sending to own devices be skipped when sending broadcasts?
-	// This works around a bug in the WhatsApp android app where it crashes if you send a status message from a linked device.
-	DontSendSelfBroadcast bool
-
 	// Should SubscribePresence return an error if no privacy token is stored for the user?
 	ErrorOnSubscribePresenceWithoutToken bool
 
@@ -243,9 +241,8 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		pendingPhoneRerequests: make(map[types.MessageID]context.CancelFunc),
 
-		EnableAutoReconnect:   true,
-		AutoTrustIdentity:     true,
-		DontSendSelfBroadcast: true,
+		EnableAutoReconnect: true,
+		AutoTrustIdentity:   true,
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
@@ -784,10 +781,10 @@ func (cli *Client) dispatchEvent(evt interface{}) {
 //		evt, err := cli.ParseWebMessage(chatJID, historyMsg.GetMessage())
 //		yourNormalEventHandler(evt)
 //	}
-func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessageInfo) (*events.Message, error) {
+func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageInfo) (*events.Message, error) {
 	var err error
 	if chatJID.IsEmpty() {
-		chatJID, err = types.ParseJID(webMsg.GetKey().GetRemoteJid())
+		chatJID, err = types.ParseJID(webMsg.GetKey().GetRemoteJID())
 		if err != nil {
 			return nil, fmt.Errorf("no chat JID provided and failed to parse remote JID: %w", err)
 		}
@@ -798,7 +795,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 			IsFromMe: webMsg.GetKey().GetFromMe(),
 			IsGroup:  chatJID.Server == types.GroupServer,
 		},
-		ID:        webMsg.GetKey().GetId(),
+		ID:        webMsg.GetKey().GetID(),
 		PushName:  webMsg.GetPushName(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
@@ -825,6 +822,10 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waProto.WebMessage
 		Info:         info,
 	}
 	evt.UnwrapRaw()
+	if evt.Message.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_MESSAGE_EDIT {
+		evt.Info.ID = evt.Message.GetProtocolMessage().GetKey().GetID()
+		evt.Message = evt.Message.GetProtocolMessage().GetEditedMessage()
+	}
 	return evt, nil
 }
 

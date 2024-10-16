@@ -213,6 +213,36 @@ func BuildSettingPushName(pushName string) PatchInfo {
 	}
 }
 
+func newStarMutation(targetJID, senderJID string, messageID types.MessageID, fromMe string, starred bool) MutationInfo {
+	return MutationInfo{
+		Index:   []string{IndexStar, targetJID, messageID, fromMe, senderJID},
+		Version: 2,
+		Value: &waProto.SyncActionValue{
+			StarAction: &waProto.StarAction{
+				Starred: &starred,
+			},
+		},
+	}
+}
+
+// BuildStar builds an app state patch for starring or unstarring a message.
+func BuildStar(target, sender types.JID, messageID types.MessageID, fromMe, starred bool) PatchInfo {
+	isFromMe := "0"
+	if fromMe {
+		isFromMe = "1"
+	}
+	targetJID, senderJID := target.String(), sender.String()
+	if target.User == sender.User {
+		senderJID = "0"
+	}
+	return PatchInfo{
+		Type: WAPatchRegularHigh,
+		Mutations: []MutationInfo{
+			newStarMutation(targetJID, senderJID, messageID, isFromMe, starred),
+		},
+	}
+}
+
 func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo PatchInfo) ([]byte, error) {
 	keys, err := proc.getAppStateKey(keyID)
 	if err != nil {

@@ -50,11 +50,14 @@ const (
 // All of the downloadable messages inside a Message struct implement this interface
 // (ImageMessage, VideoMessage, AudioMessage, DocumentMessage, StickerMessage).
 type DownloadableMessage interface {
-	proto.Message
 	GetDirectPath() string
 	GetMediaKey() []byte
 	GetFileSHA256() []byte
 	GetFileEncSHA256() []byte
+}
+
+type MediaTypeable interface {
+	GetMediaType() MediaType
 }
 
 // DownloadableThumbnail represents a protobuf message that contains a thumbnail attachment.
@@ -93,7 +96,7 @@ type downloadableMessageWithSizeBytes interface {
 
 type downloadableMessageWithURL interface {
 	DownloadableMessage
-	GetUrl() string
+	GetURL() string
 }
 
 var classToMediaType = map[protoreflect.Name]MediaType{
@@ -175,7 +178,15 @@ func (cli *Client) DownloadThumbnail(msg DownloadableThumbnail) ([]byte, error) 
 
 // GetMediaType returns the MediaType value corresponding to the given protobuf message.
 func GetMediaType(msg DownloadableMessage) MediaType {
-	return classToMediaType[msg.ProtoReflect().Descriptor().Name()]
+	protoReflecter, ok := msg.(proto.Message)
+	if !ok {
+		mediaTypeable, ok := msg.(MediaTypeable)
+		if !ok {
+			return ""
+		}
+		return mediaTypeable.GetMediaType()
+	}
+	return classToMediaType[protoReflecter.ProtoReflect().Descriptor().Name()]
 }
 
 // Download downloads the attachment from the given protobuf message.
@@ -188,15 +199,15 @@ func GetMediaType(msg DownloadableMessage) MediaType {
 //
 // You can also use DownloadAny to download the first non-nil sub-message.
 func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
-	mediaType, ok := classToMediaType[msg.ProtoReflect().Descriptor().Name()]
-	if !ok {
-		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
+	mediaType := GetMediaType(msg)
+	if mediaType == "" {
+		return nil, fmt.Errorf("%w %T", ErrUnknownMediaType, msg)
 	}
 	urlable, ok := msg.(downloadableMessageWithURL)
 	var url string
 	var isWebWhatsappNetURL bool
 	if ok {
-		url = urlable.GetUrl()
+		url = urlable.GetURL()
 		isWebWhatsappNetURL = strings.HasPrefix(url, "https://web.whatsapp.net")
 	}
 	if len(url) > 0 && !isWebWhatsappNetURL {
