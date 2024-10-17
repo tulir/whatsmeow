@@ -13,7 +13,8 @@ import (
 type GroupMemberAddMode string
 
 const (
-	GroupMemberAddModeAdmin GroupMemberAddMode = "admin_add"
+	GroupMemberAddModeAdmin     GroupMemberAddMode = "admin_add"
+	GroupMemberAddModeAllMember GroupMemberAddMode = "all_member_add"
 )
 
 // GroupInfo contains basic information about a group chat on WhatsApp.
@@ -31,6 +32,7 @@ type GroupInfo struct {
 	GroupParent
 	GroupLinkedParent
 	GroupIsDefaultSub
+	GroupMembershipApprovalMode
 
 	GroupCreated time.Time
 
@@ -38,6 +40,10 @@ type GroupInfo struct {
 	Participants         []GroupParticipant
 
 	MemberAddMode GroupMemberAddMode
+}
+
+type GroupMembershipApprovalMode struct {
+	IsJoinApprovalRequired bool
 }
 
 type GroupParent struct {

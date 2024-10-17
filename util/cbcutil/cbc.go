@@ -108,10 +108,16 @@ func DecryptFile(key, iv []byte, file File) error {
 Encrypt is a function that encrypts plaintext with a given key and an optional initialization vector(iv).
 */
 func Encrypt(key, iv, plaintext []byte) ([]byte, error) {
-	plaintext = pad(plaintext, aes.BlockSize)
+	sizeOfLastBlock := len(plaintext) % aes.BlockSize
+	paddingLen := aes.BlockSize - sizeOfLastBlock
+	plaintextStart := plaintext[:len(plaintext)-sizeOfLastBlock]
+	lastBlock := append(plaintext[len(plaintext)-sizeOfLastBlock:], bytes.Repeat([]byte{byte(paddingLen)}, paddingLen)...)
 
-	if len(plaintext)%aes.BlockSize != 0 {
-		return nil, fmt.Errorf("plaintext is not a multiple of the block size: %d / %d", len(plaintext), aes.BlockSize)
+	if len(plaintextStart)%aes.BlockSize != 0 {
+		panic(fmt.Errorf("plaintext is not the correct size: %d %% %d != 0", len(plaintextStart), aes.BlockSize))
+	}
+	if len(lastBlock) != aes.BlockSize {
+		panic(fmt.Errorf("last block is not the correct size: %d != %d", len(lastBlock), aes.BlockSize))
 	}
 
 	block, err := aes.NewCipher(key)
@@ -121,28 +127,24 @@ func Encrypt(key, iv, plaintext []byte) ([]byte, error) {
 
 	var ciphertext []byte
 	if iv == nil {
-		ciphertext = make([]byte, aes.BlockSize+len(plaintext))
+		ciphertext = make([]byte, aes.BlockSize+len(plaintext)+paddingLen)
 		iv := ciphertext[:aes.BlockSize]
 		if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 			return nil, err
 		}
 
 		cbc := cipher.NewCBCEncrypter(block, iv)
-		cbc.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
+		cbc.CryptBlocks(ciphertext[aes.BlockSize:], plaintextStart)
+		cbc.CryptBlocks(ciphertext[aes.BlockSize+len(plaintextStart):], lastBlock)
 	} else {
-		ciphertext = make([]byte, len(plaintext))
+		ciphertext = make([]byte, len(plaintext)+paddingLen, len(plaintext)+paddingLen+10)
 
 		cbc := cipher.NewCBCEncrypter(block, iv)
-		cbc.CryptBlocks(ciphertext, plaintext)
+		cbc.CryptBlocks(ciphertext, plaintextStart)
+		cbc.CryptBlocks(ciphertext[len(plaintextStart):], lastBlock)
 	}
 
 	return ciphertext, nil
-}
-
-func pad(ciphertext []byte, blockSize int) []byte {
-	padding := blockSize - len(ciphertext)%blockSize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
 }
 
 func unpad(src []byte) ([]byte, error) {
@@ -156,10 +158,10 @@ func unpad(src []byte) ([]byte, error) {
 	return src[:(length - padLen)], nil
 }
 
-func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Writer) ([]byte, []byte, uint64, error) {
+func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Writer) ([]byte, []byte, uint64, uint64, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, nil, 0, fmt.Errorf("failed to create cipher: %w", err)
+		return nil, nil, 0, 0, fmt.Errorf("failed to create cipher: %w", err)
 	}
 	cbc := cipher.NewCBCEncrypter(block, iv)
 
@@ -171,7 +173,7 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 	writerAt, hasWriterAt := ciphertext.(io.WriterAt)
 
 	buf := make([]byte, 32*1024)
-	var size int
+	var size, extraSize int
 	var writePtr int64
 	hasMore := true
 	for hasMore {
@@ -182,9 +184,10 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 			padding := aes.BlockSize - size%aes.BlockSize
 			buf = append(buf[:n], bytes.Repeat([]byte{byte(padding)}, padding)...)
+			extraSize = padding
 			hasMore = false
 		} else if err != nil {
-			return nil, nil, 0, fmt.Errorf("failed to read file: %w", err)
+			return nil, nil, 0, 0, fmt.Errorf("failed to read file: %w", err)
 		}
 		cbc.CryptBlocks(buf, buf)
 		cipherMAC.Write(buf)
@@ -196,10 +199,11 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 			_, err = ciphertext.Write(buf)
 		}
 		if err != nil {
-			return nil, nil, 0, fmt.Errorf("failed to write file: %w", err)
+			return nil, nil, 0, 0, fmt.Errorf("failed to write file: %w", err)
 		}
 	}
 	mac := cipherMAC.Sum(nil)[:10]
+	extraSize += 10
 	cipherHasher.Write(mac)
 	if hasWriterAt {
 		_, err = writerAt.WriteAt(mac, writePtr)
@@ -207,7 +211,7 @@ func EncryptStream(key, iv, macKey []byte, plaintext io.Reader, ciphertext io.Wr
 		_, err = ciphertext.Write(mac)
 	}
 	if err != nil {
-		return nil, nil, 0, fmt.Errorf("failed to write checksum to file: %w", err)
+		return nil, nil, 0, 0, fmt.Errorf("failed to write checksum to file: %w", err)
 	}
-	return plainHasher.Sum(nil), cipherHasher.Sum(nil), uint64(size), nil
+	return plainHasher.Sum(nil), cipherHasher.Sum(nil), uint64(size), uint64(size + extraSize), nil
 }

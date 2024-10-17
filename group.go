@@ -439,6 +439,10 @@ func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
 	} else if err != nil {
 		return types.EmptyJID, err
 	}
+	membershipApprovalModeNode, ok := resp.GetOptionalChildByTag("membership_approval_request")
+	if ok {
+		return membershipApprovalModeNode.AttrGetter().JID("jid"), nil
+	}
 	groupNode, ok := resp.GetOptionalChildByTag("group")
 	if !ok {
 		return types.EmptyJID, &ElementMissingError{Tag: "group", In: "response to group link join query"}
@@ -640,7 +644,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 			group.DefaultMembershipApprovalMode = childAG.OptionalString("default_membership_approval_mode")
 		case "incognito":
 			group.IsIncognito = true
-		// TODO: membership_approval_mode
+		case "membership_approval_mode":
+			group.IsJoinApprovalRequired = true
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
@@ -810,6 +815,10 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse group unlink node in group change: %w", err)
 			}
+		case "membership_approval_mode":
+			evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
+				IsJoinApprovalRequired: true,
+			}
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
@@ -863,4 +872,56 @@ func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, err
 		cli.updateGroupParticipantCache(groupChange)
 		return groupChange, nil
 	}
+}
+
+// SetGroupJoinApprovalMode sets the group join approval mode to 'on' or 'off'.
+func (cli *Client) SetGroupJoinApprovalMode(jid types.JID, mode bool) error {
+	modeStr := "off"
+	if mode {
+		modeStr = "on"
+	}
+
+	content := waBinary.Node{
+		Tag: "membership_approval_mode",
+		Content: []waBinary.Node{
+			{
+				Tag:   "group_join",
+				Attrs: waBinary.Attrs{"state": modeStr},
+			},
+		},
+	}
+
+	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
+	return err
+}
+
+// SetGroupMemberAddMode sets the group member add mode to 'admin_add' or 'all_member_add'.
+func (cli *Client) SetGroupMemberAddMode(jid types.JID, mode types.GroupMemberAddMode) error {
+	if mode != types.GroupMemberAddModeAdmin && mode != types.GroupMemberAddModeAllMember {
+		return errors.New("invalid mode, must be 'admin_add' or 'all_member_add'")
+	}
+
+	content := waBinary.Node{
+		Tag:     "member_add_mode",
+		Content: []byte(mode),
+	}
+
+	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
+	return err
+}
+
+// SetGroupDescription updates the group description.
+func (cli *Client) SetGroupDescription(jid types.JID, description string) error {
+	content := waBinary.Node{
+		Tag: "description",
+		Content: []waBinary.Node{
+			{
+				Tag:     "body",
+				Content: []byte(description),
+			},
+		},
+	}
+
+	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
+	return err
 }
