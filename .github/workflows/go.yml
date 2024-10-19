@@ -2,14 +2,17 @@ name: Go
 
 on: [push, pull_request]
 
+env:
+  GOTOOLCHAIN: local
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.21", "1.22"]
-    name: Build ${{ matrix.go-version == '1.22' && '(latest)' || '(old)' }}
+        go-version: ["1.22", "1.23"]
+    name: Build ${{ matrix.go-version == '1.23' && '(latest)' || '(old)' }}
 
     steps:
     - uses: actions/checkout@v4
