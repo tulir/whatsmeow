@@ -302,6 +302,7 @@ const (
 	WebMessageInfo_COMMUNITY_SUB_GROUP_VISIBILITY_HIDDEN                    WebMessageInfo_StubType = 208
 	WebMessageInfo_CAPI_GROUP_NE2EE_SYSTEM_MESSAGE                          WebMessageInfo_StubType = 209
 	WebMessageInfo_STATUS_MENTION                                           WebMessageInfo_StubType = 210
+	WebMessageInfo_USER_CONTROLS_SYSTEM_MESSAGE                             WebMessageInfo_StubType = 211
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -518,6 +519,7 @@ var (
 		208: "COMMUNITY_SUB_GROUP_VISIBILITY_HIDDEN",
 		209: "CAPI_GROUP_NE2EE_SYSTEM_MESSAGE",
 		210: "STATUS_MENTION",
+		211: "USER_CONTROLS_SYSTEM_MESSAGE",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -731,6 +733,7 @@ var (
 		"COMMUNITY_SUB_GROUP_VISIBILITY_HIDDEN":                    208,
 		"CAPI_GROUP_NE2EE_SYSTEM_MESSAGE":                          209,
 		"STATUS_MENTION":                                           210,
+		"USER_CONTROLS_SYSTEM_MESSAGE":                             211,
 	}
 )
 

@@ -7,7 +7,7 @@ import "waCompanionReg/WAWebProtobufsCompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
 
-enum PollType {
+enum PollMediaType {
 	TEXT = 1;
 	IMAGE = 2;
 }
@@ -823,6 +823,7 @@ message ExtendedTextMessage {
 	optional bool viewOnce = 30;
 	optional uint32 videoHeight = 31;
 	optional uint32 videoWidth = 32;
+	optional MMSThumbnailMetadata faviconMMSMetadata = 33;
 }
 
 message InvoiceMessage {
@@ -1040,6 +1041,7 @@ message BotPluginMetadata {
 	optional WACommon.MessageKey parentPluginMessageKey = 10;
 	optional PluginType deprecatedField = 11;
 	optional PluginType parentPluginType = 12;
+	optional string faviconCDNURL = 13;
 }
 
 message BotMediaMetadata {
@@ -1101,6 +1103,10 @@ message BotCapabilityMetadata {
 		PROGRESS_INDICATOR = 1;
 		RICH_RESPONSE_HEADING = 2;
 		RICH_RESPONSE_NESTED_LIST = 3;
+		AI_MEMORY = 4;
+		WA_IG_1P_PLUGIN_RANKING_CONTROL = 10;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_1 = 11;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_2 = 12;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1331,6 +1337,7 @@ message Message {
 	optional PollResultSnapshotMessage pollResultSnapshotMessage = 88;
 	optional FutureProofMessage pollCreationMessageV4 = 89;
 	optional FutureProofMessage pollCreationOptionImageMessage = 90;
+	optional FutureProofMessage associatedChildMessage = 91;
 }
 
 message AlbumMessage {
@@ -1432,7 +1439,7 @@ message PollCreationMessage {
 	repeated Option options = 3;
 	optional uint32 selectableOptionsCount = 4;
 	optional ContextInfo contextInfo = 5;
-	optional PollType pollType = 6;
+	optional PollMediaType pollMediaType = 6;
 }
 
 message StickerSyncRMRMessage {
@@ -1484,6 +1491,7 @@ message ProductMessage {
 		optional uint32 productImageCount = 9;
 		optional string firstImageID = 11;
 		optional int64 salePriceAmount1000 = 12;
+		optional string signedURL = 13;
 	}
 
 	message CatalogSnapshot {
@@ -1751,6 +1759,16 @@ message DocumentMessage {
 	optional string accessibilityLabel = 21;
 }
 
+message MMSThumbnailMetadata {
+	optional string thumbnailDirectPath = 1;
+	optional bytes thumbnailSHA256 = 2;
+	optional bytes thumbnailEncSHA256 = 3;
+	optional bytes mediaKey = 4;
+	optional int64 mediaKeyTimestamp = 5;
+	optional uint32 thumbnailHeight = 6;
+	optional uint32 thumbnailWidth = 7;
+}
+
 message LocationMessage {
 	optional double degreesLatitude = 1;
 	optional double degreesLongitude = 2;
@@ -1788,6 +1806,17 @@ message BotAvatarMetadata {
 message BotSuggestedPromptMetadata {
 	repeated string suggestedPrompts = 1;
 	optional uint32 selectedPromptIndex = 2;
+	optional BotPromptSuggestions promptSuggestions = 3;
+	optional string selectedPromptID = 4;
+}
+
+message BotPromptSuggestions {
+	repeated BotPromptSuggestion suggestions = 1;
+}
+
+message BotPromptSuggestion {
+	optional string prompt = 1;
+	optional string promptID = 2;
 }
 
 message BotMemoryMetadata {
