@@ -1,0 +1,62 @@
+
+waWinUIApi/WAWinUIApi.proto
+WAWinUIApi"õ
+PositronMessage
+	timestamp (R	timestamp
+type (	Rtype
+body (	Rbody2
+ID (2".WAWinUIApi.PositronMessage.MsgKeyRID
+JSONc (	RJSON¬
+MsgKey
+fromMe (RfromMe7
+remote (2.WAWinUIApi.PositronMessage.WIDRremote
+ID (	RIDA
+participant (2.WAWinUIApi.PositronMessage.WIDRparticipant%
+WID
+
+serialized (	R
+serialized"†
+PositronChat
+ID (	RID
+name (	Rname
+	timestamp (R	timestamp 
+unreadCount (RunreadCount
+JSONc (	RJSON"Ÿ
+PositronContact
+ID (	RID 
+phoneNumber (	RphoneNumber
+name (	Rname2
+isAddressBookContact (RisAddressBookContact
+JSONc (	RJSON"U
+PositronGroupMetadata
+ID (	RID
+subject (	Rsubject
+JSONc (	RJSON"c
+PositronGroupParticipants
+ID (	RID"
+participants (	Rparticipants
+JSONc (	RJSON"Â
+PositronReaction
+ID (	RID"
+parentMsgKey (	RparentMsgKey"
+reactionText (	RreactionText
+	timestamp (R	timestamp$
+senderUserJID (	RsenderUserJID
+JSONc (	RJSON"Ê
+PositronData>
+
+dataSource (2.WAWinUIApi.PositronDataSourceR
+dataSource7
+messages (2.WAWinUIApi.PositronMessageRmessages.
+chats (2.WAWinUIApi.PositronChatRchats7
+contacts (2.WAWinUIApi.PositronContactRcontactsG
+groupMetadata (2!.WAWinUIApi.PositronGroupMetadataRgroupMetadataS
+groupParticipants (2%.WAWinUIApi.PositronGroupParticipantsRgroupParticipants:
+	reactions (2.WAWinUIApi.PositronReactionR	reactions*v
+PositronDataSource
+MESSAGES	
+CHATS
+CONTACTS
+GROUP_METADATA
+GROUP_PARTICIPANTS
+	REACTIONSB&Z$go.mau.fi/whatsmeow/proto/waWinUIApi

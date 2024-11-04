@@ -65,6 +65,12 @@ type CallTerminate struct {
 	Data   *waBinary.Node
 }
 
+// CallReject is sent when the other party rejects the call on WhatsApp.
+type CallReject struct {
+	types.BasicCallMeta
+	Data *waBinary.Node
+}
+
 // UnknownCallEvent is emitted when a call element with unknown content is received.
 type UnknownCallEvent struct {
 	Node *waBinary.Node

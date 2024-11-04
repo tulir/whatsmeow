@@ -168,10 +168,8 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 				cli.Log.Warnf("Failed to parse <bot> node in %s: %v", info.ID, err)
 			}
 		case "meta":
-			info.MsgMetaInfo, err = cli.parseMsgMetaInfo(child)
-			if err != nil {
-				cli.Log.Warnf("Failed to parse <meta> node in %s: %v", info.ID, err)
-			}
+			// TODO parse non-bot metadata too
+			info.MsgMetaInfo, _ = cli.parseMsgMetaInfo(child)
 		case "franking":
 			// TODO
 		case "trace":

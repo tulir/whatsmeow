@@ -183,6 +183,7 @@ var (
 	ErrIQGone                error = &IQError{Code: 410, Text: "gone"}
 	ErrIQResourceLimit       error = &IQError{Code: 419, Text: "resource-limit"}
 	ErrIQLocked              error = &IQError{Code: 423, Text: "locked"}
+	ErrIQRateOverLimit       error = &IQError{Code: 429, Text: "rate-overlimit"}
 	ErrIQInternalServerError error = &IQError{Code: 500, Text: "internal-server-error"}
 	ErrIQServiceUnavailable  error = &IQError{Code: 503, Text: "service-unavailable"}
 	ErrIQPartialServerError  error = &IQError{Code: 530, Text: "partial-server-error"}

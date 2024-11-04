@@ -1,0 +1,78 @@
+syntax = "proto2";
+package WAWinUIApi;
+option go_package = "go.mau.fi/whatsmeow/proto/waWinUIApi";
+
+enum PositronDataSource {
+	MESSAGES = 1;
+	CHATS = 2;
+	CONTACTS = 3;
+	GROUP_METADATA = 4;
+	GROUP_PARTICIPANTS = 5;
+	REACTIONS = 6;
+}
+
+message PositronMessage {
+	message MsgKey {
+		optional bool fromMe = 1;
+		optional WID remote = 2;
+		optional string ID = 3;
+		optional WID participant = 4;
+	}
+
+	message WID {
+		optional string serialized = 1;
+	}
+
+	optional int64 timestamp = 1;
+	optional string type = 2;
+	optional string body = 3;
+	optional MsgKey ID = 4;
+	optional string JSON = 99;
+}
+
+message PositronChat {
+	optional string ID = 1;
+	optional string name = 2;
+	optional int64 timestamp = 3;
+	optional int64 unreadCount = 4;
+	optional string JSON = 99;
+}
+
+message PositronContact {
+	optional string ID = 1;
+	optional string phoneNumber = 2;
+	optional string name = 3;
+	optional bool isAddressBookContact = 4;
+	optional string JSON = 99;
+}
+
+message PositronGroupMetadata {
+	optional string ID = 1;
+	optional string subject = 2;
+	optional string JSON = 99;
+}
+
+message PositronGroupParticipants {
+	optional string ID = 1;
+	repeated string participants = 2;
+	optional string JSON = 99;
+}
+
+message PositronReaction {
+	optional string ID = 1;
+	optional string parentMsgKey = 2;
+	optional string reactionText = 3;
+	optional int64 timestamp = 4;
+	optional string senderUserJID = 5;
+	optional string JSON = 99;
+}
+
+message PositronData {
+	optional PositronDataSource dataSource = 1;
+	repeated PositronMessage messages = 2;
+	repeated PositronChat chats = 3;
+	repeated PositronContact contacts = 4;
+	repeated PositronGroupMetadata groupMetadata = 5;
+	repeated PositronGroupParticipants groupParticipants = 6;
+	repeated PositronReaction reactions = 7;
+}

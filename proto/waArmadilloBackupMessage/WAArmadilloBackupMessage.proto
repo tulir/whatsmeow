@@ -3,6 +3,11 @@ package WAArmadilloBackupMessage;
 option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloBackupMessage";
 
 message BackupMessage {
+	message Subprotocol {
+		optional bytes payload = 1;
+		optional int32 version = 2;
+	}
+
 	message Metadata {
 		message FrankingMetadata {
 			optional bytes frankingTag = 3;
@@ -15,8 +20,14 @@ message BackupMessage {
 		optional FrankingMetadata frankingMetadata = 4;
 		optional int32 payloadVersion = 5;
 		optional int32 futureProofBehavior = 6;
+		optional int32 threadTypeTag = 7;
+	}
+
+	oneof payload {
+		bytes encryptedTransportMessage = 2;
+		Subprotocol encryptedTransportEvent = 5;
+		Subprotocol encryptedTransportLocallyTransformedMessage = 6;
 	}
 
 	optional Metadata metadata = 1;
-	optional bytes payload = 2;
 }

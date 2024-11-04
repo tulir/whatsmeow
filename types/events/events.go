@@ -110,6 +110,9 @@ type LoggedOut struct {
 // or otherwise try to connect twice with the same session.
 type StreamReplaced struct{}
 
+// ManualLoginReconnect is emitted after login if DisableLoginAutoReconnect is set.
+type ManualLoginReconnect struct{}
+
 // TempBanReason is an error code included in temp ban error events.
 type TempBanReason int
 
@@ -382,6 +385,10 @@ type Receipt struct {
 	MessageIDs []types.MessageID
 	Timestamp  time.Time
 	Type       types.ReceiptType
+
+	// When you read the message of another user in a group, this field contains the sender of the message.
+	// For receipts from other users, the message sender is always you.
+	MessageSender types.JID
 }
 
 // ChatPresence is emitted when a chat state update (also known as typing notification) is received.
@@ -430,6 +437,8 @@ type GroupInfo struct {
 	Announce  *types.GroupAnnounce  // Group announce status change (can only admins send messages?)
 	Ephemeral *types.GroupEphemeral // Disappearing messages change
 
+	MembershipApprovalMode *types.GroupMembershipApprovalMode // Membership approval mode change
+
 	Delete *types.GroupDelete
 
 	Link   *types.GroupLinkChange
@@ -460,6 +469,13 @@ type Picture struct {
 	Timestamp time.Time // The timestamp when the picture was changed.
 	Remove    bool      // True if the picture was removed.
 	PictureID string    // The new picture ID if it was not removed.
+}
+
+// UserAbout is emitted when a user's about status is changed.
+type UserAbout struct {
+	JID       types.JID // The user whose status was changed
+	Status    string    // The new status
+	Timestamp time.Time // The timestamp when the status was changed.
 }
 
 // IdentityChange is emitted when another user changes their primary device.

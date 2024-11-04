@@ -3,6 +3,11 @@ package WAWebProtobufsWa6;
 option go_package = "go.mau.fi/whatsmeow/proto/waWa6";
 
 message ClientPayload {
+	enum TrafficAnonymization {
+		OFF = 0;
+		STANDARD = 1;
+	}
+
 	enum Product {
 		WHATSAPP = 0;
 		MESSENGER = 1;
@@ -170,6 +175,7 @@ message ClientPayload {
 	message InteropData {
 		optional uint64 accountID = 1;
 		optional bytes token = 2;
+		optional bool enableReadReceipts = 3;
 	}
 
 	message DevicePairingRegistrationData {
@@ -210,7 +216,7 @@ message ClientPayload {
 	optional int32 yearClass = 36;
 	optional int32 memClass = 37;
 	optional InteropData interopData = 38;
-	optional bool isPcr = 39;
+	optional TrafficAnonymization trafficAnonymization = 40;
 }
 
 message HandshakeMessage {

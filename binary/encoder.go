@@ -90,7 +90,7 @@ func (w *binaryEncoder) writeNode(n Node) {
 		hasContent = 1
 	}
 
-	w.writeListStart(2*len(n.Attrs) + tagSize + hasContent)
+	w.writeListStart(2*w.countAttributes(n.Attrs) + tagSize + hasContent)
 	w.writeString(n.Tag)
 	w.writeAttributes(n.Attrs)
 	if n.Content != nil {
@@ -187,10 +187,6 @@ func (w *binaryEncoder) writeJID(jid types.JID) {
 }
 
 func (w *binaryEncoder) writeAttributes(attributes Attrs) {
-	if attributes == nil {
-		return
-	}
-
 	for key, val := range attributes {
 		if val == "" || val == nil {
 			continue
@@ -199,6 +195,16 @@ func (w *binaryEncoder) writeAttributes(attributes Attrs) {
 		w.writeString(key)
 		w.write(val)
 	}
+}
+
+func (w *binaryEncoder) countAttributes(attributes Attrs) (count int) {
+	for _, val := range attributes {
+		if val == "" || val == nil {
+			continue
+		}
+		count += 1
+	}
+	return
 }
 
 func (w *binaryEncoder) writeListStart(listSize int) {

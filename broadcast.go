@@ -37,12 +37,7 @@ func (cli *Client) getBroadcastListParticipants(jid types.JID) ([]types.JID, err
 			break
 		}
 	}
-	if selfIndex >= 0 {
-		if cli.DontSendSelfBroadcast {
-			list[selfIndex] = list[len(list)-1]
-			list = list[:len(list)-1]
-		}
-	} else if !cli.DontSendSelfBroadcast {
+	if selfIndex < 0 {
 		list = append(list, ownID)
 	}
 	return list, nil

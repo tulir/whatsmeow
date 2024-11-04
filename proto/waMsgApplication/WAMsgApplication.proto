@@ -43,6 +43,7 @@ message MessageApplication {
 		optional uint32 groupIndex = 15;
 		optional string botResponseID = 16;
 		optional string collapsibleID = 17;
+		optional string secondaryOtid = 18;
 	}
 
 	message Payload {

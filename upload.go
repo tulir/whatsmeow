@@ -89,7 +89,7 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	dataHash := sha256.Sum256(dataToUpload)
 	resp.FileEncSHA256 = dataHash[:]
 
-	err = cli.rawUpload(ctx, bytes.NewReader(dataToUpload), resp.FileEncSHA256, appInfo, false, &resp)
+	err = cli.rawUpload(ctx, bytes.NewReader(dataToUpload), uint64(len(dataToUpload)), resp.FileEncSHA256, appInfo, false, &resp)
 	return
 }
 
@@ -98,6 +98,8 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 // This is otherwise identical to [Upload], but it reads the plaintext from an [io.Reader] instead of a byte slice.
 // A temporary file is required for the encryption process. If tempFile is nil, a temporary file will be created
 // and deleted after the upload.
+//
+// To use only one file, pass the same file as both plaintext and tempFile. This will cause the file to be overwritten with encrypted data.
 func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFile io.ReadWriteSeeker, appInfo MediaType) (resp UploadResponse, err error) {
 	resp.MediaKey = random.Bytes(32)
 	iv, cipherKey, macKey, _ := getMediaKeys(resp.MediaKey, appInfo)
@@ -113,7 +115,8 @@ func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFi
 			_ = os.Remove(tempFileFile.Name())
 		}()
 	}
-	resp.FileSHA256, resp.FileEncSHA256, resp.FileLength, err = cbcutil.EncryptStream(cipherKey, iv, macKey, plaintext, tempFile)
+	var uploadSize uint64
+	resp.FileSHA256, resp.FileEncSHA256, resp.FileLength, uploadSize, err = cbcutil.EncryptStream(cipherKey, iv, macKey, plaintext, tempFile)
 	if err != nil {
 		err = fmt.Errorf("failed to encrypt file: %w", err)
 		return
@@ -123,7 +126,7 @@ func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFi
 		err = fmt.Errorf("failed to seek to start of temporary file: %w", err)
 		return
 	}
-	err = cli.rawUpload(ctx, tempFile, resp.FileEncSHA256, appInfo, false, &resp)
+	err = cli.rawUpload(ctx, tempFile, uploadSize, resp.FileEncSHA256, appInfo, false, &resp)
 	return
 }
 
@@ -161,7 +164,7 @@ func (cli *Client) UploadNewsletter(ctx context.Context, data []byte, appInfo Me
 	resp.FileLength = uint64(len(data))
 	hash := sha256.Sum256(data)
 	resp.FileSHA256 = hash[:]
-	err = cli.rawUpload(ctx, bytes.NewReader(data), resp.FileSHA256, appInfo, true, &resp)
+	err = cli.rawUpload(ctx, bytes.NewReader(data), resp.FileLength, resp.FileSHA256, appInfo, true, &resp)
 	return
 }
 
@@ -181,11 +184,11 @@ func (cli *Client) UploadNewsletterReader(ctx context.Context, data io.ReadSeeke
 		err = fmt.Errorf("failed to seek to start of data: %w", err)
 		return
 	}
-	err = cli.rawUpload(ctx, data, resp.FileSHA256, appInfo, true, &resp)
+	err = cli.rawUpload(ctx, data, resp.FileLength, resp.FileSHA256, appInfo, true, &resp)
 	return
 }
 
-func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {
+func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, uploadSize uint64, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {
 	mediaConn, err := cli.refreshMediaConn(false)
 	if err != nil {
 		return fmt.Errorf("failed to refresh media connections: %w", err)
@@ -229,6 +232,7 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, fileHa
 		return fmt.Errorf("failed to prepare request: %w", err)
 	}
 
+	req.ContentLength = int64(uploadSize)
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
 
