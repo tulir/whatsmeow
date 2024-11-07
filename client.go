@@ -395,9 +395,16 @@ func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	return true
 }
 
+// Connect connects the client to the WhatsApp web websocket with the specified context.
+// After connection, it will either authenticate if there's data in the device store,
+// or emit a QREvent to set up a new link.
+func (cli *Client) Connect() error {
+	return cli.ConnectWithTimeout(context.Background())
+}
+
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
-func (cli *Client) Connect() error {
+func (cli *Client) ConnectWithTimeout(timeCtx context.Context) error {
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
 	if cli.socket != nil {
@@ -430,7 +437,7 @@ func (cli *Client) Connect() error {
 		fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
 		fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
 	}
-	if err := fs.Connect(); err != nil {
+	if err := fs.Connect(timeCtx); err != nil {
 		fs.Close(0)
 		return err
 	} else if err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
