@@ -286,17 +286,116 @@ func (x *CompanionEphemeralIdentity) GetRef() string {
 	return ""
 }
 
+type CompanionCommitment struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Hash []byte `protobuf:"bytes,1,opt,name=hash" json:"hash,omitempty"`
+}
+
+func (x *CompanionCommitment) Reset() {
+	*x = CompanionCommitment{}
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompanionCommitment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompanionCommitment) ProtoMessage() {}
+
+func (x *CompanionCommitment) ProtoReflect() protoreflect.Message {
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompanionCommitment.ProtoReflect.Descriptor instead.
+func (*CompanionCommitment) Descriptor() ([]byte, []int) {
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CompanionCommitment) GetHash() []byte {
+	if x != nil {
+		return x.Hash
+	}
+	return nil
+}
+
+type ProloguePayload struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CompanionEphemeralIdentity []byte               `protobuf:"bytes,1,opt,name=companionEphemeralIdentity" json:"companionEphemeralIdentity,omitempty"`
+	Commitment                 *CompanionCommitment `protobuf:"bytes,2,opt,name=commitment" json:"commitment,omitempty"`
+}
+
+func (x *ProloguePayload) Reset() {
+	*x = ProloguePayload{}
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProloguePayload) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProloguePayload) ProtoMessage() {}
+
+func (x *ProloguePayload) ProtoReflect() protoreflect.Message {
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProloguePayload.ProtoReflect.Descriptor instead.
+func (*ProloguePayload) Descriptor() ([]byte, []int) {
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ProloguePayload) GetCompanionEphemeralIdentity() []byte {
+	if x != nil {
+		return x.CompanionEphemeralIdentity
+	}
+	return nil
+}
+
+func (x *ProloguePayload) GetCommitment() *CompanionCommitment {
+	if x != nil {
+		return x.Commitment
+	}
+	return nil
+}
+
 type PrimaryEphemeralIdentity struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	PublicKey []byte `protobuf:"bytes,1,opt,name=publicKey" json:"publicKey,omitempty"`
+	Nonce     []byte `protobuf:"bytes,2,opt,name=nonce" json:"nonce,omitempty"`
 }
 
 func (x *PrimaryEphemeralIdentity) Reset() {
 	*x = PrimaryEphemeralIdentity{}
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -308,7 +407,7 @@ func (x *PrimaryEphemeralIdentity) String() string {
 func (*PrimaryEphemeralIdentity) ProtoMessage() {}
 
 func (x *PrimaryEphemeralIdentity) ProtoReflect() protoreflect.Message {
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[2]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -321,12 +420,80 @@ func (x *PrimaryEphemeralIdentity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrimaryEphemeralIdentity.ProtoReflect.Descriptor instead.
 func (*PrimaryEphemeralIdentity) Descriptor() ([]byte, []int) {
-	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{2}
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *PrimaryEphemeralIdentity) GetPublicKey() []byte {
 	if x != nil {
 		return x.PublicKey
+	}
+	return nil
+}
+
+func (x *PrimaryEphemeralIdentity) GetNonce() []byte {
+	if x != nil {
+		return x.Nonce
+	}
+	return nil
+}
+
+type PairingRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CompanionPublicKey   []byte `protobuf:"bytes,1,opt,name=companionPublicKey" json:"companionPublicKey,omitempty"`
+	CompanionIdentityKey []byte `protobuf:"bytes,2,opt,name=companionIdentityKey" json:"companionIdentityKey,omitempty"`
+	AdvSecret            []byte `protobuf:"bytes,3,opt,name=advSecret" json:"advSecret,omitempty"`
+}
+
+func (x *PairingRequest) Reset() {
+	*x = PairingRequest{}
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PairingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PairingRequest) ProtoMessage() {}
+
+func (x *PairingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PairingRequest.ProtoReflect.Descriptor instead.
+func (*PairingRequest) Descriptor() ([]byte, []int) {
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *PairingRequest) GetCompanionPublicKey() []byte {
+	if x != nil {
+		return x.CompanionPublicKey
+	}
+	return nil
+}
+
+func (x *PairingRequest) GetCompanionIdentityKey() []byte {
+	if x != nil {
+		return x.CompanionIdentityKey
+	}
+	return nil
+}
+
+func (x *PairingRequest) GetAdvSecret() []byte {
+	if x != nil {
+		return x.AdvSecret
 	}
 	return nil
 }
@@ -342,7 +509,7 @@ type EncryptedPairingRequest struct {
 
 func (x *EncryptedPairingRequest) Reset() {
 	*x = EncryptedPairingRequest{}
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[3]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -354,7 +521,7 @@ func (x *EncryptedPairingRequest) String() string {
 func (*EncryptedPairingRequest) ProtoMessage() {}
 
 func (x *EncryptedPairingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[3]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -367,7 +534,7 @@ func (x *EncryptedPairingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EncryptedPairingRequest.ProtoReflect.Descriptor instead.
 func (*EncryptedPairingRequest) Descriptor() ([]byte, []int) {
-	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{3}
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *EncryptedPairingRequest) GetEncryptedPayload() []byte {
@@ -394,7 +561,7 @@ type ClientPairingProps struct {
 
 func (x *ClientPairingProps) Reset() {
 	*x = ClientPairingProps{}
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[4]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -406,7 +573,7 @@ func (x *ClientPairingProps) String() string {
 func (*ClientPairingProps) ProtoMessage() {}
 
 func (x *ClientPairingProps) ProtoReflect() protoreflect.Message {
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[4]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -419,7 +586,7 @@ func (x *ClientPairingProps) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientPairingProps.ProtoReflect.Descriptor instead.
 func (*ClientPairingProps) Descriptor() ([]byte, []int) {
-	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{4}
+	return file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ClientPairingProps) GetIsChatDbLidMigrated() bool {
@@ -452,7 +619,7 @@ type DeviceProps_HistorySyncConfig struct {
 
 func (x *DeviceProps_HistorySyncConfig) Reset() {
 	*x = DeviceProps_HistorySyncConfig{}
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[5]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -464,7 +631,7 @@ func (x *DeviceProps_HistorySyncConfig) String() string {
 func (*DeviceProps_HistorySyncConfig) ProtoMessage() {}
 
 func (x *DeviceProps_HistorySyncConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[5]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -592,7 +759,7 @@ type DeviceProps_AppVersion struct {
 
 func (x *DeviceProps_AppVersion) Reset() {
 	*x = DeviceProps_AppVersion{}
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[6]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -604,7 +771,7 @@ func (x *DeviceProps_AppVersion) String() string {
 func (*DeviceProps_AppVersion) ProtoMessage() {}
 
 func (x *DeviceProps_AppVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[6]
+	mi := &file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -673,27 +840,31 @@ func file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDescGZIP() []byte {
 }
 
 var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_goTypes = []any{
 	(DeviceProps_PlatformType)(0),         // 0: WAWebProtobufsCompanionReg.DeviceProps.PlatformType
 	(*DeviceProps)(nil),                   // 1: WAWebProtobufsCompanionReg.DeviceProps
 	(*CompanionEphemeralIdentity)(nil),    // 2: WAWebProtobufsCompanionReg.CompanionEphemeralIdentity
-	(*PrimaryEphemeralIdentity)(nil),      // 3: WAWebProtobufsCompanionReg.PrimaryEphemeralIdentity
-	(*EncryptedPairingRequest)(nil),       // 4: WAWebProtobufsCompanionReg.EncryptedPairingRequest
-	(*ClientPairingProps)(nil),            // 5: WAWebProtobufsCompanionReg.ClientPairingProps
-	(*DeviceProps_HistorySyncConfig)(nil), // 6: WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig
-	(*DeviceProps_AppVersion)(nil),        // 7: WAWebProtobufsCompanionReg.DeviceProps.AppVersion
+	(*CompanionCommitment)(nil),           // 3: WAWebProtobufsCompanionReg.CompanionCommitment
+	(*ProloguePayload)(nil),               // 4: WAWebProtobufsCompanionReg.ProloguePayload
+	(*PrimaryEphemeralIdentity)(nil),      // 5: WAWebProtobufsCompanionReg.PrimaryEphemeralIdentity
+	(*PairingRequest)(nil),                // 6: WAWebProtobufsCompanionReg.PairingRequest
+	(*EncryptedPairingRequest)(nil),       // 7: WAWebProtobufsCompanionReg.EncryptedPairingRequest
+	(*ClientPairingProps)(nil),            // 8: WAWebProtobufsCompanionReg.ClientPairingProps
+	(*DeviceProps_HistorySyncConfig)(nil), // 9: WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig
+	(*DeviceProps_AppVersion)(nil),        // 10: WAWebProtobufsCompanionReg.DeviceProps.AppVersion
 }
 var file_waCompanionReg_WAWebProtobufsCompanionReg_proto_depIdxs = []int32{
-	7, // 0: WAWebProtobufsCompanionReg.DeviceProps.version:type_name -> WAWebProtobufsCompanionReg.DeviceProps.AppVersion
-	0, // 1: WAWebProtobufsCompanionReg.DeviceProps.platformType:type_name -> WAWebProtobufsCompanionReg.DeviceProps.PlatformType
-	6, // 2: WAWebProtobufsCompanionReg.DeviceProps.historySyncConfig:type_name -> WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig
-	0, // 3: WAWebProtobufsCompanionReg.CompanionEphemeralIdentity.deviceType:type_name -> WAWebProtobufsCompanionReg.DeviceProps.PlatformType
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	10, // 0: WAWebProtobufsCompanionReg.DeviceProps.version:type_name -> WAWebProtobufsCompanionReg.DeviceProps.AppVersion
+	0,  // 1: WAWebProtobufsCompanionReg.DeviceProps.platformType:type_name -> WAWebProtobufsCompanionReg.DeviceProps.PlatformType
+	9,  // 2: WAWebProtobufsCompanionReg.DeviceProps.historySyncConfig:type_name -> WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig
+	0,  // 3: WAWebProtobufsCompanionReg.CompanionEphemeralIdentity.deviceType:type_name -> WAWebProtobufsCompanionReg.DeviceProps.PlatformType
+	3,  // 4: WAWebProtobufsCompanionReg.ProloguePayload.commitment:type_name -> WAWebProtobufsCompanionReg.CompanionCommitment
+	5,  // [5:5] is the sub-list for method output_type
+	5,  // [5:5] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_waCompanionReg_WAWebProtobufsCompanionReg_proto_init() }
@@ -707,7 +878,7 @@ func file_waCompanionReg_WAWebProtobufsCompanionReg_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_waCompanionReg_WAWebProtobufsCompanionReg_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -176,6 +176,27 @@ message PinInChatMessage {
 	optional int64 senderTimestampMS = 3;
 }
 
+message PollCreationMessage {
+	enum PollType {
+		POLL = 0;
+		QUIZ = 1;
+	}
+
+	message Option {
+		optional string optionName = 1;
+		optional string optionHash = 2;
+	}
+
+	optional bytes encKey = 1;
+	optional string name = 2;
+	repeated Option options = 3;
+	optional uint32 selectableOptionsCount = 4;
+	optional ContextInfo contextInfo = 5;
+	optional PollMediaType pollMediaType = 6;
+	optional PollType pollType = 7;
+	optional Option correctAnswer = 8;
+}
+
 message ButtonsResponseMessage {
 	enum Type {
 		UNKNOWN = 0;
@@ -1020,11 +1041,13 @@ message ContextInfo {
 
 message BotPluginMetadata {
 	enum PluginType {
+		UNKNOWN_PLUGIN = 0;
 		REELS = 1;
 		SEARCH = 2;
 	}
 
 	enum SearchProvider {
+		UNKNOWN = 0;
 		BING = 1;
 		GOOGLE = 2;
 		SUPPORT = 3;
@@ -1085,11 +1108,13 @@ message BotReminderMetadata {
 
 message BotModelMetadata {
 	enum PremiumModelStatus {
+		UNKNOWN_STATUS = 0;
 		AVAILABLE = 1;
 		QUOTA_EXCEED_LIMIT = 2;
 	}
 
 	enum ModelType {
+		UNKNOWN_TYPE = 0;
 		LLAMA_PROD = 1;
 		LLAMA_PROD_PREMIUM = 2;
 	}
@@ -1107,6 +1132,14 @@ message BotCapabilityMetadata {
 		WA_IG_1P_PLUGIN_RANKING_CONTROL = 10;
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_1 = 11;
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_2 = 12;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_3 = 13;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_4 = 14;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_5 = 15;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_6 = 16;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_7 = 17;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_8 = 18;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_9 = 19;
+		WA_IG_1P_PLUGIN_RANKING_UPDATE_10 = 20;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1134,6 +1167,7 @@ message MessageAssociation {
 		HD_VIDEO_DUAL_UPLOAD = 5;
 		STATUS_TAPPABLE_MESSAGE = 6;
 		MEDIA_POLL = 7;
+		STATUS_ADD_YOURS = 8;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1335,9 +1369,12 @@ message Message {
 	optional StickerPackMessage stickerPackMessage = 86;
 	optional FutureProofMessage statusMentionMessage = 87;
 	optional PollResultSnapshotMessage pollResultSnapshotMessage = 88;
-	optional FutureProofMessage pollCreationMessageV4 = 89;
 	optional FutureProofMessage pollCreationOptionImageMessage = 90;
 	optional FutureProofMessage associatedChildMessage = 91;
+	optional FutureProofMessage groupStatusMentionMessage = 92;
+	optional FutureProofMessage pollCreationMessageV4 = 93;
+	optional FutureProofMessage pollCreationMessageV5 = 94;
+	optional FutureProofMessage statusAddYours = 95;
 }
 
 message AlbumMessage {
@@ -1426,20 +1463,6 @@ message PollUpdateMessage {
 	optional PollEncValue vote = 2;
 	optional PollUpdateMessageMetadata metadata = 3;
 	optional int64 senderTimestampMS = 4;
-}
-
-message PollCreationMessage {
-	message Option {
-		optional string optionName = 1;
-		optional string optionHash = 2;
-	}
-
-	optional bytes encKey = 1;
-	optional string name = 2;
-	repeated Option options = 3;
-	optional uint32 selectableOptionsCount = 4;
-	optional ContextInfo contextInfo = 5;
-	optional PollMediaType pollMediaType = 6;
 }
 
 message StickerSyncRMRMessage {
@@ -1830,6 +1853,15 @@ message BotMemoryFact {
 	optional string factID = 2;
 }
 
+message BotRenderingMetadata {
+	message Keyword {
+		optional string value = 1;
+		repeated string associatedPrompts = 2;
+	}
+
+	repeated Keyword keywords = 1;
+}
+
 message BotSessionMetadata {
 	optional string sessionID = 1;
 	optional BotSessionSource sessionSource = 2;
@@ -1859,6 +1891,7 @@ message BotMetadata {
 	optional BotCapabilityMetadata capabilityMetadata = 13;
 	optional BotImagineMetadata imagineMetadata = 14;
 	optional BotMemoryMetadata memoryMetadata = 15;
+	optional BotRenderingMetadata renderingMetadata = 16;
 }
 
 message DeviceListMetadata {

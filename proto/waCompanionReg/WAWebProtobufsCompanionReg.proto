@@ -69,8 +69,24 @@ message CompanionEphemeralIdentity {
 	optional string ref = 3;
 }
 
+message CompanionCommitment {
+	optional bytes hash = 1;
+}
+
+message ProloguePayload {
+	optional bytes companionEphemeralIdentity = 1;
+	optional CompanionCommitment commitment = 2;
+}
+
 message PrimaryEphemeralIdentity {
 	optional bytes publicKey = 1;
+	optional bytes nonce = 2;
+}
+
+message PairingRequest {
+	optional bytes companionPublicKey = 1;
+	optional bytes companionIdentityKey = 2;
+	optional bytes advSecret = 3;
 }
 
 message EncryptedPairingRequest {
