@@ -41,6 +41,9 @@ func (mc *MediaConn) Expiry() time.Time {
 }
 
 func (cli *Client) refreshMediaConn(force bool) (*MediaConn, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	cli.mediaConnLock.Lock()
 	defer cli.mediaConnLock.Unlock()
 	if cli.mediaConnCache == nil || force || time.Now().After(cli.mediaConnCache.Expiry()) {

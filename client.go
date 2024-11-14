@@ -371,6 +371,9 @@ func (cli *Client) closeSocketWaitChan() {
 }
 
 func (cli *Client) getOwnID() types.JID {
+	if cli == nil {
+		return types.EmptyJID
+	}
 	id := cli.Store.ID
 	if id == nil {
 		return types.EmptyJID
@@ -379,6 +382,9 @@ func (cli *Client) getOwnID() types.JID {
 }
 
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
+	if cli == nil {
+		return false
+	}
 	timeoutChan := time.After(timeout)
 	cli.socketLock.RLock()
 	for cli.socket == nil || !cli.socket.IsConnected() || !cli.IsLoggedIn() {
@@ -398,6 +404,9 @@ func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
 	if cli.socket != nil {
@@ -444,7 +453,7 @@ func (cli *Client) Connect() error {
 
 // IsLoggedIn returns true after the client is successfully connected and authenticated on WhatsApp.
 func (cli *Client) IsLoggedIn() bool {
-	return cli.isLoggedIn.Load()
+	return cli != nil && cli.isLoggedIn.Load()
 }
 
 func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
@@ -508,6 +517,9 @@ func (cli *Client) autoReconnect() {
 // IsConnected checks if the client is connected to the WhatsApp web websocket.
 // Note that this doesn't check if the client is authenticated. See the IsLoggedIn field for that.
 func (cli *Client) IsConnected() bool {
+	if cli == nil {
+		return false
+	}
 	cli.socketLock.RLock()
 	connected := cli.socket != nil && cli.socket.IsConnected()
 	cli.socketLock.RUnlock()
@@ -519,7 +531,7 @@ func (cli *Client) IsConnected() bool {
 // This will not emit any events, the Disconnected event is only used when the
 // connection is closed by the server or a network error.
 func (cli *Client) Disconnect() {
-	if cli.socket == nil {
+	if cli == nil || cli.socket == nil {
 		return
 	}
 	cli.socketLock.Lock()
@@ -544,7 +556,9 @@ func (cli *Client) unlockedDisconnect() {
 // Note that this will not emit any events. The LoggedOut event is only used for external logouts
 // (triggered by the user from the main device or by WhatsApp servers).
 func (cli *Client) Logout() error {
-	if cli.MessengerConfig != nil {
+	if cli == nil {
+		return ErrClientIsNil
+	} else if cli.MessengerConfig != nil {
 		return errors.New("can't logout with Messenger credentials")
 	}
 	ownID := cli.getOwnID()
@@ -728,6 +742,9 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 }
 
 func (cli *Client) sendNodeAndGetData(node waBinary.Node) ([]byte, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	cli.socketLock.RLock()
 	sock := cli.socket
 	cli.socketLock.RUnlock()

@@ -159,7 +159,9 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 // The last value to be emitted will be a special event like "success", "timeout" or another error code
 // depending on the result of the pairing. The channel will be closed immediately after one of those.
 func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, error) {
-	if cli.IsConnected() {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	} else if cli.IsConnected() {
 		return nil, ErrQRAlreadyConnected
 	} else if cli.Store.ID != nil {
 		return nil, ErrQRStoreContainsID

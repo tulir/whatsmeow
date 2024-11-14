@@ -87,6 +87,9 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 //
 // See https://faq.whatsapp.com/1324084875126592 for more info
 func (cli *Client) PairPhone(phone string, showPushNotification bool, clientType PairClientType, clientDisplayName string) (string, error) {
+	if cli == nil {
+		return "", ErrClientIsNil
+	}
 	ephemeralKeyPair, ephemeralKey, encodedLinkingCode := generateCompanionEphemeralKey()
 	phone = notNumbers.ReplaceAllString(phone, "")
 	if len(phone) <= 6 {
