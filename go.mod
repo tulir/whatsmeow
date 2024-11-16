@@ -9,10 +9,10 @@ require (
 	github.com/gorilla/websocket v1.5.0
 	github.com/rs/zerolog v1.33.0
 	go.mau.fi/libsignal v0.1.1
-	go.mau.fi/util v0.8.2-0.20241113135441-636f8643f367
+	go.mau.fi/util v0.8.2
 	golang.org/x/crypto v0.29.0
 	golang.org/x/net v0.31.0
-	google.golang.org/protobuf v1.35.1
+	google.golang.org/protobuf v1.35.2
 )
 
 require (

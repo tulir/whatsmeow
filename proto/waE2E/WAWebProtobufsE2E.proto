@@ -23,6 +23,25 @@ enum PeerDataOperationRequestType {
 	COMPANION_META_NONCE_FETCH = 7;
 }
 
+enum BotMetricsEntryPoint {
+	FAVICON = 1;
+	CHATLIST = 2;
+	AISEARCH_NULL_STATE_PAPER_PLANE = 3;
+	AISEARCH_NULL_STATE_SUGGESTION = 4;
+	AISEARCH_TYPE_AHEAD_SUGGESTION = 5;
+	AISEARCH_TYPE_AHEAD_PAPER_PLANE = 6;
+	AISEARCH_TYPE_AHEAD_RESULT_CHATLIST = 7;
+	AISEARCH_TYPE_AHEAD_RESULT_MESSAGES = 8;
+	AIVOICE_SEARCH_BAR = 9;
+	AIVOICE_FAVICON = 10;
+	AISTUDIO = 11;
+	DEEPLINK = 12;
+	NOTIFICATION = 13;
+	PROFILE_MESSAGE_BUTTON = 14;
+	FORWARD = 15;
+	APP_SHORTCUT = 16;
+}
+
 enum BotSessionSource {
 	NULL_STATE = 1;
 	TYPEAHEAD = 2;
@@ -904,6 +923,11 @@ message ImageMessage {
 }
 
 message ContextInfo {
+	enum StatusAttributionType {
+		NONE = 0;
+		RESHARED_FROM_MENTION = 1;
+	}
+
 	message ForwardedNewsletterMessageInfo {
 		enum ContentType {
 			UPDATE = 1;
@@ -1037,6 +1061,7 @@ message ContextInfo {
 	optional string ctwaSignals = 54;
 	optional bytes ctwaPayload = 55;
 	optional ForwardedAIBotMessageInfo forwardedAiBotMessageInfo = 56;
+	optional StatusAttributionType statusAttributionType = 57;
 }
 
 message BotPluginMetadata {
@@ -1129,6 +1154,9 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_HEADING = 2;
 		RICH_RESPONSE_NESTED_LIST = 3;
 		AI_MEMORY = 4;
+		RICH_RESPONSE_THREAD_SURFING = 5;
+		RICH_RESPONSE_TABLE = 6;
+		RICH_RESPONSE_CODE = 7;
 		WA_IG_1P_PLUGIN_RANKING_CONTROL = 10;
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_1 = 11;
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_2 = 12;
@@ -1862,6 +1890,11 @@ message BotRenderingMetadata {
 	repeated Keyword keywords = 1;
 }
 
+message BotMetricsMetadata {
+	optional string destinationID = 1;
+	optional BotMetricsEntryPoint destinationEntryPoint = 2;
+}
+
 message BotSessionMetadata {
 	optional string sessionID = 1;
 	optional BotSessionSource sessionSource = 2;
@@ -1892,6 +1925,7 @@ message BotMetadata {
 	optional BotImagineMetadata imagineMetadata = 14;
 	optional BotMemoryMetadata memoryMetadata = 15;
 	optional BotRenderingMetadata renderingMetadata = 16;
+	optional BotMetricsMetadata botMetricsMetadata = 17;
 }
 
 message DeviceListMetadata {

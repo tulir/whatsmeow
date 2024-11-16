@@ -296,6 +296,7 @@ message WebMessageInfo {
 	repeated MessageAddOn messageAddOns = 68;
 	optional StatusMentionMessage statusMentionMessageInfo = 69;
 	optional bool isSupportAiMessage = 70;
+	repeated string statusMentionSources = 71;
 }
 
 message PaymentInfo {
