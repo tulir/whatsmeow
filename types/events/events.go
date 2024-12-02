@@ -583,3 +583,7 @@ type NewsletterLiveUpdate struct {
 	Time     time.Time
 	Messages []*types.NewsletterMessage
 }
+
+type InitialDeviceAppStateSyncFinished struct {
+	IsFinished bool
+}
