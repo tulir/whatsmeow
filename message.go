@@ -219,10 +219,12 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 }
 
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
-	if len(node.GetChildrenByTag("unavailable")) > 0 && len(node.GetChildrenByTag("enc")) == 0 {
-		cli.Log.Warnf("Unavailable message %s from %s", info.ID, info.SourceString())
+	unavailableNode, ok := node.GetOptionalChildByTag("unavailable")
+	if ok && len(node.GetChildrenByTag("enc")) == 0 {
+		uType := events.UnavailableType(unavailableNode.AttrGetter().String("type"))
+		cli.Log.Warnf("Unavailable message %s from %s (type: %q)", info.ID, info.SourceString(), uType)
 		go cli.delayedRequestMessageFromPhone(info)
-		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true})
+		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true, UnavailableType: uType})
 		return
 	}
 
