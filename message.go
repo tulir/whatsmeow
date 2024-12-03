@@ -507,6 +507,10 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waProto.AppStateSyncKeyShare
 			cli.Log.Errorf("Failed to do initial fetch of app state %s: %v", name, err)
 		}
 	}
+
+	cli.dispatchEvent(&events.InitialDeviceAppStateSyncFinished{
+		IsFinished: true,
+	})
 }
 
 func (cli *Client) handlePlaceholderResendResponse(msg *waProto.PeerDataOperationRequestResponseMessage) {
