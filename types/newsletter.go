@@ -148,6 +148,7 @@ type NewsletterText struct {
 
 type NewsletterMessage struct {
 	MessageServerID MessageServerID
+	MessageID       MessageID
 	ViewsCount      int
 	ReactionCounts  map[string]int
 
