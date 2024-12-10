@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"go.mau.fi/util/jsontime"
 
@@ -149,6 +150,7 @@ type NewsletterText struct {
 type NewsletterMessage struct {
 	MessageServerID MessageServerID
 	MessageID       MessageID
+	TimeStamp       time.Time
 	ViewsCount      int
 	ReactionCounts  map[string]int
 

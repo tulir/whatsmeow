@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"encoding/json"
 	"errors"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -275,6 +276,7 @@ func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.Newslet
 		msg := types.NewsletterMessage{
 			MessageServerID: child.AttrGetter().Int("server_id"),
 			MessageID:       child.AttrGetter().String("id"),
+			TimeStamp:       time.Unix(child.AttrGetter().Int64("t"), 0),
 			ViewsCount:      0,
 			ReactionCounts:  nil,
 		}
