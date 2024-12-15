@@ -7,7 +7,8 @@ import "waCompanionReg/WAWebProtobufsCompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
 
-enum PollMediaType {
+enum PollContentType {
+	UNKNOWN_POLL_CONTENT_TYPE = 0;
 	TEXT = 1;
 	IMAGE = 2;
 }
@@ -52,7 +53,7 @@ enum BotSessionSource {
 }
 
 enum KeepType {
-	UNKNOWN = 0;
+	UNKNOWN_KEEP_TYPE = 0;
 	KEEP_FOR_ALL = 1;
 	UNDO_KEEP_FOR_ALL = 2;
 }
@@ -211,7 +212,7 @@ message PollCreationMessage {
 	repeated Option options = 3;
 	optional uint32 selectableOptionsCount = 4;
 	optional ContextInfo contextInfo = 5;
-	optional PollMediaType pollMediaType = 6;
+	optional PollContentType pollContentType = 6;
 	optional PollType pollType = 7;
 	optional Option correctAnswer = 8;
 }
@@ -346,6 +347,16 @@ message InteractiveMessage {
 		optional int32 messageVersion = 3;
 	}
 
+	message UrlTrackingMap {
+		message UrlTrackingMapElement {
+			optional string originalURL = 1;
+			optional string unconsentedUsersURL = 2;
+			optional string consentedUsersURL = 3;
+		}
+
+		repeated UrlTrackingMapElement urlTrackingMapElements = 1;
+	}
+
 	message CarouselMessage {
 		repeated InteractiveMessage cards = 1;
 		optional int32 messageVersion = 2;
@@ -402,6 +413,7 @@ message InteractiveMessage {
 	optional Body body = 2;
 	optional Footer footer = 3;
 	optional ContextInfo contextInfo = 15;
+	optional UrlTrackingMap urlTrackingMap = 16;
 }
 
 message ListResponseMessage {
@@ -1403,6 +1415,7 @@ message Message {
 	optional FutureProofMessage pollCreationMessageV4 = 93;
 	optional FutureProofMessage pollCreationMessageV5 = 94;
 	optional FutureProofMessage statusAddYours = 95;
+	optional FutureProofMessage groupStatusMessage = 96;
 }
 
 message AlbumMessage {
