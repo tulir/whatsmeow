@@ -665,6 +665,7 @@ type Conversation struct {
 	Locked                    *bool                                  `protobuf:"varint,46,opt,name=locked" json:"locked,omitempty"`
 	SystemMessageToInsert     *PrivacySystemMessage                  `protobuf:"varint,47,opt,name=systemMessageToInsert,enum=WAWebProtobufsHistorySync.PrivacySystemMessage" json:"systemMessageToInsert,omitempty"`
 	CapiCreatedGroup          *bool                                  `protobuf:"varint,48,opt,name=capiCreatedGroup" json:"capiCreatedGroup,omitempty"`
+	AccountLid                *string                                `protobuf:"bytes,49,opt,name=accountLid" json:"accountLid,omitempty"`
 }
 
 func (x *Conversation) Reset() {
@@ -1031,6 +1032,13 @@ func (x *Conversation) GetCapiCreatedGroup() bool {
 		return *x.CapiCreatedGroup
 	}
 	return false
+}
+
+func (x *Conversation) GetAccountLid() string {
+	if x != nil && x.AccountLid != nil {
+		return *x.AccountLid
+	}
+	return ""
 }
 
 type GroupParticipant struct {
