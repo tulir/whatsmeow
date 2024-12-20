@@ -223,7 +223,9 @@ func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 		if err != nil {
 			// Ignore the error if the context has been closed
 			if !errors.Is(ctx.Err(), context.Canceled) {
-				fs.log.Errorf("Error reading from websocket: %v", err)
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					fs.log.Errorf("Error reading from websocket: %v", err)
+				}
 			}
 			return
 		} else if msgType != websocket.BinaryMessage {
