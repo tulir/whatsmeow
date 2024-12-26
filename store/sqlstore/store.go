@@ -777,3 +777,112 @@ func (s *SQLStore) GetPrivacyToken(user types.JID) (*store.PrivacyToken, error) 
 		return &token, nil
 	}
 }
+
+const (
+	getCacheSessionsQuery     = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN `
+	getCacheIdentityKeysQuery = `SELECT their_id, identity_info FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id IN `
+	storeCacheSessionsQuery   = `
+		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES %s 
+		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
+	`
+	storeCacheIdentityKeysQuery = `
+		INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity_info) VALUES %s
+		ON CONFLICT (our_jid, their_id) DO UPDATE SET identity_info=excluded.identity_info
+	`
+)
+
+func (s *SQLStore) GetSessions(addresses []string) (final map[string][]byte) {
+	query := getCacheSessionsQuery + "("
+	queryParams := make([]interface{}, len(addresses)+1)
+	queryParams[0] = s.JID
+	final = make(map[string][]byte)
+	for index, address := range addresses {
+		if index > 0 {
+			query += ","
+		}
+		query += fmt.Sprintf("$%d", index+2)
+		queryParams[index+1] = address
+	}
+	query += ")"
+	rows, err := s.db.Query(query, queryParams...)
+	if err != nil {
+		s.log.Errorf(err.Error())
+		return
+	}
+	for rows.Next() {
+		var session []byte
+		var id string
+		rows.Scan(&id, &session)
+		final[id] = session
+	}
+	return
+}
+
+func (s *SQLStore) GetIdentityKeys(addresses []string) (final map[string][32]byte) {
+	query := getCacheIdentityKeysQuery + "("
+	queryParams := make([]interface{}, len(addresses)+1)
+	queryParams[0] = s.JID
+	final = make(map[string][32]byte)
+	for index, address := range addresses {
+		if index > 0 {
+			query += ","
+		}
+		query += fmt.Sprintf("$%d", index+2)
+		queryParams[index+1] = address
+	}
+	query += ")"
+	rows, err := s.db.Query(query, queryParams...)
+	if err != nil {
+		s.log.Errorf(err.Error())
+		return
+	}
+	for rows.Next() {
+		var session []byte
+		var id string
+		rows.Scan(&id, &session)
+		final[id] = *(*[32]byte)(session)
+	}
+	return
+}
+
+// This Could be better implemented with bulk insert approach
+func (s *SQLStore) StoreSessions(sessions map[string][]byte) error {
+	queryValues := ""
+	queryParams := make([]interface{}, len(sessions)*3)
+	cnt := 0
+	for address, session := range sessions {
+		if len(queryValues) > 0 {
+			queryValues += ","
+		}
+		counter := cnt * 3
+		queryValues += fmt.Sprintf("($%d, $%d, $%d)", counter+1, counter+2, counter+3)
+		queryParams[counter+1] = s.JID
+		queryParams[counter+2] = address
+		queryParams[counter+3] = session[:]
+		cnt++
+	}
+	query := fmt.Sprintf(storeCacheSessionsQuery, queryValues)
+	_, err := s.db.Exec(query, queryParams...)
+	return err
+}
+
+// This Could be better implemented with bulk insert approach
+func (s *SQLStore) StoreIdentityKeys(identityKeys map[string][32]byte) error {
+	queryValues := ""
+	queryParams := make([]interface{}, len(identityKeys)*3)
+	cnt := 0
+	for address, key := range identityKeys {
+		if len(queryValues) > 0 {
+			queryValues += ","
+		}
+		counter := cnt * 3
+		queryValues += fmt.Sprintf("($%d, $%d, $%d)", counter+1, counter+2, counter+3)
+		queryParams[counter+1] = s.JID
+		queryParams[counter+2] = address
+		queryParams[counter+3] = key[:]
+		cnt++
+	}
+	query := fmt.Sprintf(storeCacheIdentityKeysQuery, queryValues)
+	_, err := s.db.Exec(query, queryParams...)
+	return err
+}

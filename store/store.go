@@ -126,6 +126,13 @@ type PrivacyTokenStore interface {
 	GetPrivacyToken(user types.JID) (*PrivacyToken, error)
 }
 
+type CacheStore interface {
+	GetSessions(addresses []string) map[string][]byte
+	GetIdentityKeys(addresses []string) map[string][32]byte
+	StoreSessions(sessions map[string][]byte) error
+	StoreIdentityKeys(identityKeys map[string][32]byte) error
+}
+
 type Device struct {
 	Log waLog.Logger
 
@@ -154,9 +161,14 @@ type Device struct {
 	ChatSettings  ChatSettingsStore
 	MsgSecrets    MsgSecretStore
 	PrivacyTokens PrivacyTokenStore
+	Cache         CacheStore
 	Container     DeviceContainer
 
 	DatabaseErrorHandler func(device *Device, action string, attemptIndex int, err error) (retry bool)
+
+	//Cache to Temporary save sessions and identity keys for faster group send
+	SessionsCache     map[string][]byte
+	IdentityKeysCache map[string][32]byte
 }
 
 func (device *Device) handleDatabaseError(attemptIndex int, err error, action string, args ...interface{}) bool {
