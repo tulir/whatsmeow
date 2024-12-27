@@ -782,7 +782,7 @@ const (
 	getCacheSessionsQuery     = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN `
 	getCacheIdentityKeysQuery = `SELECT their_id, identity_info FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id IN `
 	storeCacheSessionsQuery   = `
-		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES %s 
+		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES %s
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
 	`
 	storeCacheIdentityKeysQuery = `
