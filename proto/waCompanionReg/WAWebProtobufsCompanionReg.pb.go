@@ -556,7 +556,8 @@ type ClientPairingProps struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	IsChatDbLidMigrated *bool `protobuf:"varint,1,opt,name=isChatDbLidMigrated" json:"isChatDbLidMigrated,omitempty"`
+	IsChatDbLidMigrated   *bool `protobuf:"varint,1,opt,name=isChatDbLidMigrated" json:"isChatDbLidMigrated,omitempty"`
+	IsSyncdPureLidSession *bool `protobuf:"varint,2,opt,name=isSyncdPureLidSession" json:"isSyncdPureLidSession,omitempty"`
 }
 
 func (x *ClientPairingProps) Reset() {
@@ -592,6 +593,13 @@ func (*ClientPairingProps) Descriptor() ([]byte, []int) {
 func (x *ClientPairingProps) GetIsChatDbLidMigrated() bool {
 	if x != nil && x.IsChatDbLidMigrated != nil {
 		return *x.IsChatDbLidMigrated
+	}
+	return false
+}
+
+func (x *ClientPairingProps) GetIsSyncdPureLidSession() bool {
+	if x != nil && x.IsSyncdPureLidSession != nil {
+		return *x.IsSyncdPureLidSession
 	}
 	return false
 }

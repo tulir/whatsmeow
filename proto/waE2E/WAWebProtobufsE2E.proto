@@ -347,16 +347,6 @@ message InteractiveMessage {
 		optional int32 messageVersion = 3;
 	}
 
-	message UrlTrackingMap {
-		message UrlTrackingMapElement {
-			optional string originalURL = 1;
-			optional string unconsentedUsersURL = 2;
-			optional string consentedUsersURL = 3;
-		}
-
-		repeated UrlTrackingMapElement urlTrackingMapElements = 1;
-	}
-
 	message CarouselMessage {
 		repeated InteractiveMessage cards = 1;
 		optional int32 messageVersion = 2;
@@ -1074,6 +1064,7 @@ message ContextInfo {
 	optional bytes ctwaPayload = 55;
 	optional ForwardedAIBotMessageInfo forwardedAiBotMessageInfo = 56;
 	optional StatusAttributionType statusAttributionType = 57;
+	optional UrlTrackingMap urlTrackingMap = 58;
 }
 
 message BotPluginMetadata {
@@ -1102,6 +1093,101 @@ message BotPluginMetadata {
 	optional PluginType deprecatedField = 11;
 	optional PluginType parentPluginType = 12;
 	optional string faviconCDNURL = 13;
+}
+
+message AIRichResponseMessage {
+	enum AIRichResponseSubMessageType {
+		AI_RICH_RESPONSE_UNKNOWN = 0;
+		AI_RICH_RESPONSE_GRID_IMAGE = 1;
+		AI_RICH_RESPONSE_TEXT = 2;
+		AI_RICH_RESPONSE_INLINE_IMAGE = 3;
+		AI_RICH_RESPONSE_TABLE = 4;
+		AI_RICH_RESPONSE_CODE = 5;
+		AI_RICH_RESPONSE_DYNAMIC = 6;
+	}
+
+	enum AIRichResponseMessageType {
+		AI_RICH_RESPONSE_TYPE_UNKNOWN = 0;
+		AI_RICH_RESPONSE_TYPE_STANDARD = 1;
+		AI_RICH_RESPONSE_TYPE_ARTIFACTS = 2;
+	}
+
+	message AIRichResponseDynamicMetadata {
+		enum AIRichResponseDynamicMetadataType {
+			AI_RICH_RESPONSE_DYNAMIC_METADATA_TYPE_UNKNOWN = 0;
+			AI_RICH_RESPONSE_DYNAMIC_METADATA_TYPE_IMAGE = 1;
+			AI_RICH_RESPONSE_DYNAMIC_METADATA_TYPE_GIF = 2;
+		}
+
+		optional AIRichResponseDynamicMetadataType type = 1;
+		optional uint64 version = 2;
+		optional string URL = 3;
+		optional uint32 loopCount = 4;
+	}
+
+	message AIRichResponseCodeMetadata {
+		enum AIRichResponseCodeHighlightType {
+			AI_RICH_RESPONSE_CODE_HIGHLIGHT_DEFAULT = 0;
+			AI_RICH_RESPONSE_CODE_HIGHLIGHT_KEYWORD = 1;
+			AI_RICH_RESPONSE_CODE_HIGHLIGHT_METHOD = 2;
+			AI_RICH_RESPONSE_CODE_HIGHLIGHT_STRING = 3;
+			AI_RICH_RESPONSE_CODE_HIGHLIGHT_NUMBER = 4;
+			AI_RICH_RESPONSE_CODE_HIGHLIGHT_COMMENT = 5;
+		}
+
+		message AIRichResponseCodeBlock {
+			optional AIRichResponseCodeHighlightType highlightType = 1;
+			optional string codeContent = 2;
+		}
+
+		optional string codeLanguage = 1;
+		repeated AIRichResponseCodeBlock codeBlocks = 2;
+	}
+
+	message AIRichResponseInlineImageMetadata {
+		enum AIRichResponseImageAlignment {
+			AI_RICH_RESPONSE_IMAGE_LAYOUT_LEADING_ALIGNED = 0;
+			AI_RICH_RESPONSE_IMAGE_LAYOUT_TRAILING_ALIGNED = 1;
+			AI_RICH_RESPONSE_IMAGE_LAYOUT_CENTER_ALIGNED = 2;
+		}
+
+		optional AIRichResponseImageURL imageURL = 1;
+		optional string imageText = 2;
+		optional AIRichResponseImageAlignment alignment = 3;
+		optional string tapLinkURL = 4;
+	}
+
+	message AIRichResponseSubMessage {
+		optional AIRichResponseSubMessageType messageType = 1;
+		optional AIRichResponseGridImageMetadata gridImageMetadata = 2;
+		optional string messageText = 3;
+		optional AIRichResponseInlineImageMetadata imageMetadata = 4;
+		optional AIRichResponseCodeMetadata codeMetadata = 5;
+		optional AIRichResponseTableMetadata tableMetadata = 6;
+		optional AIRichResponseDynamicMetadata dynamicMetadata = 7;
+	}
+
+	message AIRichResponseTableMetadata {
+		message AIRichResponseTableRow {
+			repeated string items = 1;
+			optional bool isHeading = 2;
+		}
+
+		repeated AIRichResponseTableRow rows = 1;
+	}
+
+	message AIRichResponseGridImageMetadata {
+		optional AIRichResponseImageURL gridImageURL = 1;
+		repeated AIRichResponseImageURL imageURLs = 2;
+	}
+
+	message AIRichResponseImageURL {
+		optional string imagePreviewURL = 1;
+		optional string imageHighResURL = 2;
+	}
+
+	optional AIRichResponseMessageType messageType = 1;
+	repeated AIRichResponseSubMessage submessages = 2;
 }
 
 message BotMediaMetadata {
@@ -1169,6 +1255,8 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_THREAD_SURFING = 5;
 		RICH_RESPONSE_TABLE = 6;
 		RICH_RESPONSE_CODE = 7;
+		RICH_RESPONSE_STRUCTURED_RESPONSE = 8;
+		RICH_RESPONSE_INLINE_IMAGE = 9;
 		WA_IG_1P_PLUGIN_RANKING_CONTROL = 10;
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_1 = 11;
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_2 = 12;
@@ -1416,6 +1504,7 @@ message Message {
 	optional FutureProofMessage pollCreationMessageV5 = 94;
 	optional FutureProofMessage statusAddYours = 95;
 	optional FutureProofMessage groupStatusMessage = 96;
+	optional AIRichResponseMessage richResponseMessage = 97;
 }
 
 message AlbumMessage {
@@ -2064,4 +2153,15 @@ message MediaNotifyMessage {
 
 message LIDMigrationMappingSyncMessage {
 	optional bytes encodedMappingPayload = 1;
+}
+
+message UrlTrackingMap {
+	message UrlTrackingMapElement {
+		optional string originalURL = 1;
+		optional string unconsentedUsersURL = 2;
+		optional string consentedUsersURL = 3;
+		optional uint32 cardIndex = 4;
+	}
+
+	repeated UrlTrackingMapElement urlTrackingMapElements = 1;
 }
