@@ -40,6 +40,9 @@ func (cli *Client) NewsletterSubscribeLiveUpdates(ctx context.Context, jid types
 //
 // This is not the same as marking the channel as read on your other devices, use the usual MarkRead function for that.
 func (cli *Client) NewsletterMarkViewed(jid types.JID, serverIDs []types.MessageServerID) error {
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	items := make([]waBinary.Node, len(serverIDs))
 	for i, id := range serverIDs {
 		items[i] = waBinary.Node{

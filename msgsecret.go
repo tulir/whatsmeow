@@ -83,6 +83,9 @@ type messageEncryptedSecret interface {
 }
 
 func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waCommon.MessageKey) ([]byte, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	pollSender, err := getOrigSenderFromKey(msg, origMsgKey)
 	if err != nil {
 		return nil, err
@@ -102,6 +105,9 @@ func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, 
 }
 
 func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
+	if cli == nil {
+		return nil, nil, ErrClientIsNil
+	}
 	ownID := cli.getOwnID()
 	if ownID.IsEmpty() {
 		return nil, nil, ErrNotLoggedIn
