@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"go.mau.fi/util/random"
 	"golang.org/x/crypto/curve25519"
@@ -72,7 +73,9 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 // PairPhone generates a pairing code that can be used to link to a phone without scanning a QR code.
 //
 // You must connect the client normally before calling this (which means you'll also receive a QR code
-// event, but that can be ignored when doing code pairing).
+// event, but that can be ignored when doing code pairing). You should also wait for `*events.QR` before
+// calling this to ensure the connection is fully established. If using [Client.GetQRChannel], wait for
+// the first item in the channel. Alternatively, sleeping for a second after calling Connect will probably work too.
 //
 // The exact expiry of pairing codes is unknown, but QR codes are always generated and the login websocket is closed
 // after the QR codes run out, which means there's a 160-second time limit. It is recommended to generate the pairing
@@ -84,8 +87,16 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 //
 // See https://faq.whatsapp.com/1324084875126592 for more info
 func (cli *Client) PairPhone(phone string, showPushNotification bool, clientType PairClientType, clientDisplayName string) (string, error) {
+	if cli == nil {
+		return "", ErrClientIsNil
+	}
 	ephemeralKeyPair, ephemeralKey, encodedLinkingCode := generateCompanionEphemeralKey()
 	phone = notNumbers.ReplaceAllString(phone, "")
+	if len(phone) <= 6 {
+		return "", fmt.Errorf("phone number too short")
+	} else if strings.HasPrefix(phone, "0") {
+		return "", fmt.Errorf("international phone number required (must not start with 0)")
+	}
 	jid := types.NewJID(phone, types.DefaultUserServer)
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "md",

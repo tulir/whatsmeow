@@ -352,6 +352,25 @@ func (cli *Client) handleMexNotification(node *waBinary.Node) {
 	}
 }
 
+func (cli *Client) handleStatusNotification(node *waBinary.Node) {
+	ag := node.AttrGetter()
+	child, found := node.GetOptionalChildByTag("set")
+	if !found {
+		cli.Log.Debugf("Status notifcation did not contain child with tag 'set'")
+		return
+	}
+	status, ok := child.Content.([]byte)
+	if !ok {
+		cli.Log.Warnf("Set status notification has unexpected content (%T)", child.Content)
+		return
+	}
+	cli.dispatchEvent(&events.UserAbout{
+		JID:       ag.JID("from"),
+		Timestamp: ag.UnixTime("t"),
+		Status:    string(status),
+	})
+}
+
 func (cli *Client) handleNotification(node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
@@ -389,6 +408,8 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		go cli.handleNewsletterNotification(node)
 	case "mex":
 		go cli.handleMexNotification(node)
+	case "status":
+		go cli.handleStatusNotification(node)
 	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)

@@ -40,7 +40,7 @@ import (
 //	msgID := cli.GenerateMessageID()
 //	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
 func (cli *Client) GenerateMessageID() types.MessageID {
-	if cli.MessengerConfig != nil {
+	if cli != nil && cli.MessengerConfig != nil {
 		return types.MessageID(strconv.FormatInt(GenerateFacebookMessageID(), 10))
 	}
 	data := make([]byte, 8, 8+20+16)
@@ -167,6 +167,10 @@ type SendRequestExtra struct {
 // field in incoming message events to figure out what it contains is also a good way to learn how to
 // send the same kind of message.
 func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E.Message, extra ...SendRequestExtra) (resp SendResponse, err error) {
+	if cli == nil {
+		err = ErrClientIsNil
+		return
+	}
 	var req SendRequestExtra
 	if len(extra) > 1 {
 		err = errors.New("only one extra parameter may be provided to SendMessage")

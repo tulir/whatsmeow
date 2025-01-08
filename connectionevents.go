@@ -23,6 +23,11 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 	conflictType := conflict.AttrGetter().OptionalString("type")
 	switch {
 	case code == "515":
+		if cli.DisableLoginAutoReconnect {
+			cli.Log.Infof("Got 515 code, but login autoreconnect is disabled, not reconnecting")
+			cli.dispatchEvent(&events.ManualLoginReconnect{})
+			return
+		}
 		cli.Log.Infof("Got 515 code, reconnecting...")
 		go func() {
 			cli.Disconnect()

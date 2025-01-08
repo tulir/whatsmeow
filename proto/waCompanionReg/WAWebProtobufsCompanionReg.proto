@@ -28,6 +28,7 @@ message DeviceProps {
 		UWP = 21;
 		VR = 22;
 		CLOUD_API = 23;
+		SMARTGLASSES = 24;
 	}
 
 	message HistorySyncConfig {
@@ -43,6 +44,8 @@ message DeviceProps {
 		optional bool supportRecentSyncChunkMessageCountTuning = 10;
 		optional bool supportHostedGroupMsg = 11;
 		optional bool supportFbidBotChatHistory = 12;
+		optional bool supportAddOnHistorySyncMigration = 13;
+		optional bool supportMessageAssociation = 14;
 	}
 
 	message AppVersion {
@@ -66,8 +69,24 @@ message CompanionEphemeralIdentity {
 	optional string ref = 3;
 }
 
+message CompanionCommitment {
+	optional bytes hash = 1;
+}
+
+message ProloguePayload {
+	optional bytes companionEphemeralIdentity = 1;
+	optional CompanionCommitment commitment = 2;
+}
+
 message PrimaryEphemeralIdentity {
 	optional bytes publicKey = 1;
+	optional bytes nonce = 2;
+}
+
+message PairingRequest {
+	optional bytes companionPublicKey = 1;
+	optional bytes companionIdentityKey = 2;
+	optional bytes advSecret = 3;
 }
 
 message EncryptedPairingRequest {
@@ -77,4 +96,5 @@ message EncryptedPairingRequest {
 
 message ClientPairingProps {
 	optional bool isChatDbLidMigrated = 1;
+	optional bool isSyncdPureLidSession = 2;
 }

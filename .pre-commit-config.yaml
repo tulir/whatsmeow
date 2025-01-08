@@ -1,12 +1,12 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
         exclude_types: [markdown]
-        exclude: LICENSE|def.proto
+        exclude: LICENSE
       - id: end-of-file-fixer
-        exclude: LICENSE|def.proto
+        exclude: LICENSE
       - id: check-yaml
       - id: check-added-large-files
 
@@ -14,5 +14,18 @@ repos:
     rev: v1.0.0-rc.1
     hooks:
       - id: go-imports-repo
-        args: ["-w"]
+        args:
+          - "-local"
+          - "go.mau.fi/whatsmeow"
+          - "-w"
       - id: go-vet-repo-mod
+      # TODO enable this
+      #- id: go-staticcheck-repo-mod
+      - id: go-mod-tidy
+
+  - repo: https://github.com/beeper/pre-commit-go
+    rev: v0.3.1
+    hooks:
+      # TODO enable this
+      #- id: zerolog-ban-msgf
+      - id: zerolog-use-stringer

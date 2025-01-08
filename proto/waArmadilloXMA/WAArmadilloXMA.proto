@@ -32,6 +32,7 @@ message ExtendedContentMessage {
 	}
 
 	enum ExtendedContentType {
+		UNSUPPORTED = 0;
 		IG_STORY_PHOTO_MENTION = 4;
 		IG_SINGLE_IMAGE_POST_SHARE = 9;
 		IG_MULTIPOST_SHARE = 10;
@@ -62,6 +63,7 @@ message ExtendedContentMessage {
 		FB_FEED_POST_PRIVATE_REPLY = 1008;
 		FB_SHORT = 1009;
 		FB_COMMENT_MENTION_SHARE = 1010;
+		FB_POST_MENTION = 1011;
 		MSG_EXTERNAL_LINK_SHARE = 2000;
 		MSG_P2P_PAYMENT = 2001;
 		MSG_LOCATION_SHARING = 2002;
@@ -79,6 +81,13 @@ message ExtendedContentMessage {
 		MSG_AI_CONTACT = 2014;
 		MSG_MEMORIES_SHARE = 2015;
 		MSG_SHARED_ALBUM_REPLY = 2016;
+		MSG_SHARED_ALBUM = 2017;
+		MSG_OCCAMADILLO_XMA = 2018;
+		MSG_GEN_AI_SUBSCRIPTION = 2021;
+		MSG_GEN_AI_REMINDER = 2022;
+		MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE = 2023;
+		MSG_NOTE_REPLY = 2024;
+		MSG_NOTE_MENTION = 2025;
 		RTC_AUDIO_CALL = 3000;
 		RTC_VIDEO_CALL = 3001;
 		RTC_MISSED_AUDIO_CALL = 3002;
@@ -87,6 +96,8 @@ message ExtendedContentMessage {
 		RTC_GROUP_VIDEO_CALL = 3005;
 		RTC_MISSED_GROUP_AUDIO_CALL = 3006;
 		RTC_MISSED_GROUP_VIDEO_CALL = 3007;
+		RTC_ONGOING_AUDIO_CALL = 3008;
+		RTC_ONGOING_VIDEO_CALL = 3009;
 		DATACLASS_SENDER_COPY = 4000;
 	}
 
@@ -122,4 +133,6 @@ message ExtendedContentMessage {
 	optional string headerSubtitle = 21;
 	optional string xmaDataclass = 22;
 	optional string contentRef = 23;
+	repeated string mentionedJID = 24;
+	repeated WACommon.Command commands = 25;
 }

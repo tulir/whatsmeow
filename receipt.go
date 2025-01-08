@@ -63,6 +63,7 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 		MessageSource: source,
 		Timestamp:     ag.UnixTime("t"),
 		Type:          types.ReceiptType(ag.OptionalString("type")),
+		MessageSender: ag.OptionalJIDOrEmpty("recipient"),
 	}
 	if source.IsGroup && source.Sender.IsEmpty() {
 		participantTags := node.GetChildrenByTag("participants")

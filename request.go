@@ -106,6 +106,9 @@ type infoQuery struct {
 }
 
 func (cli *Client) sendIQAsyncAndGetData(query *infoQuery) (<-chan *waBinary.Node, []byte, error) {
+	if cli == nil {
+		return nil, nil, ErrClientIsNil
+	}
 	if len(query.ID) == 0 {
 		query.ID = cli.generateRequestID()
 	}
