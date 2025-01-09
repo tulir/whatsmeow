@@ -108,6 +108,7 @@ message Conversation {
 	optional bool locked = 46;
 	optional PrivacySystemMessage systemMessageToInsert = 47;
 	optional bool capiCreatedGroup = 48;
+	optional string accountLid = 49;
 }
 
 message GroupParticipant {

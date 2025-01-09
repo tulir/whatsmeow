@@ -47,6 +47,10 @@ func (cli *Client) SendFBMessage(
 	metadata *waMsgApplication.MessageApplication_Metadata,
 	extra ...SendRequestExtra,
 ) (resp SendResponse, err error) {
+	if cli == nil {
+		err = ErrClientIsNil
+		return
+	}
 	var req SendRequestExtra
 	if len(extra) > 1 {
 		err = errors.New("only one extra parameter may be provided to SendMessage")

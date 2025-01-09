@@ -154,6 +154,10 @@ message Armadillo {
 			optional WAArmadilloXMA.ExtendedContentMessage extendedContentMessage = 5;
 		}
 
+		message NetworkVerificationMessage {
+			optional string codeText = 1;
+		}
+
 		message NoteReplyMessage {
 			oneof noteReplyContent {
 				WACommon.MessageText textContent = 4;
@@ -240,6 +244,7 @@ message Armadillo {
 			BumpExistingMessage bumpExistingMessage = 11;
 			NoteReplyMessage noteReplyMessage = 13;
 			RavenMessage ravenMessageMsgr = 14;
+			NetworkVerificationMessage networkVerificationMessage = 15;
 		}
 	}
 
