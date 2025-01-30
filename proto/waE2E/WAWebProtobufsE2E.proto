@@ -44,6 +44,7 @@ enum BotMetricsEntryPoint {
 }
 
 enum BotSessionSource {
+	NONE = 0;
 	NULL_STATE = 1;
 	TYPEAHEAD = 2;
 	USER_INPUT = 3;
@@ -617,7 +618,6 @@ message PeerDataOperationRequestResponseMessage {
 			optional string title = 2;
 			optional string description = 3;
 			optional bytes thumbData = 4;
-			optional string canonicalURL = 5;
 			optional string matchText = 6;
 			optional string previewType = 7;
 			optional LinkPreviewHighQualityThumbnail hqThumbnail = 8;
@@ -766,6 +766,9 @@ message BotFeedbackMessage {
 		BOT_FEEDBACK_NEGATIVE_REFUSED = 7;
 		BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING = 8;
 		BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT = 9;
+		BOT_FEEDBACK_NEGATIVE_PERSONALIZED = 10;
+		BOT_FEEDBACK_NEGATIVE_CLARITY = 11;
+		BOT_FEEDBACK_NEGATIVE_DOESNT_LOOK_LIKE_THE_PERSON = 12;
 	}
 
 	optional WACommon.MessageKey messageKey = 1;
@@ -841,7 +844,6 @@ message ExtendedTextMessage {
 
 	optional string text = 1;
 	optional string matchedText = 2;
-	optional string canonicalURL = 4;
 	optional string description = 5;
 	optional string title = 6;
 	optional fixed32 textArgb = 7;
@@ -928,6 +930,7 @@ message ContextInfo {
 	enum StatusAttributionType {
 		NONE = 0;
 		RESHARED_FROM_MENTION = 1;
+		RESHARED_FROM_POST = 2;
 	}
 
 	message ForwardedNewsletterMessageInfo {
@@ -992,6 +995,7 @@ message ContextInfo {
 		optional bool cannotBeReactedTo = 1;
 		optional bool cannotBeRanked = 2;
 		optional bool canRequestFeedback = 3;
+		optional bool canBeReshared = 4;
 	}
 
 	message DataSharingContext {
@@ -1184,6 +1188,7 @@ message AIRichResponseMessage {
 	message AIRichResponseImageURL {
 		optional string imagePreviewURL = 1;
 		optional string imageHighResURL = 2;
+		optional string sourceURL = 3;
 	}
 
 	optional AIRichResponseMessageType messageType = 1;
@@ -1268,6 +1273,8 @@ message BotCapabilityMetadata {
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_8 = 18;
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_9 = 19;
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_10 = 20;
+		RICH_RESPONSE_SUB_HEADING = 21;
+		RICH_RESPONSE_GRID_IMAGE = 22;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
