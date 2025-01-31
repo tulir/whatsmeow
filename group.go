@@ -176,7 +176,7 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []t
 }
 
 // GetGroupRequestParticipants gets the list of participants that have requested to join the group.
-func (cli *Client) GetGroupRequestParticipants(jid types.JID) ([]types.JID, error) {
+func (cli *Client) GetGroupRequestParticipants(jid types.JID) ([]types.GroupParticipantRequest, error) {
 	resp, err := cli.sendGroupIQ(context.TODO(), iqGet, jid, waBinary.Node{
 		Tag: "membership_approval_requests",
 	})
@@ -188,9 +188,12 @@ func (cli *Client) GetGroupRequestParticipants(jid types.JID) ([]types.JID, erro
 		return nil, &ElementMissingError{Tag: "membership_approval_requests", In: "response to group request participants query"}
 	}
 	requestParticipants := request.GetChildrenByTag("membership_approval_request")
-	participants := make([]types.JID, len(requestParticipants))
+	participants := make([]types.GroupParticipantRequest, len(requestParticipants))
 	for i, req := range requestParticipants {
-		participants[i] = req.AttrGetter().JID("jid")
+		participants[i] = types.GroupParticipantRequest{
+			JID:         req.AttrGetter().JID("jid"),
+			RequestedAt: req.AttrGetter().UnixTime("request_time"),
+		}
 	}
 	return participants, nil
 }
