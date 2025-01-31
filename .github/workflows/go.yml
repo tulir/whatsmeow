@@ -2,14 +2,17 @@ name: Go
 
 on: [push, pull_request]
 
+env:
+  GOTOOLCHAIN: local
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.21", "1.22"]
-    name: Build ${{ matrix.go-version == '1.22' && '(latest)' || '(old)' }}
+        go-version: ["1.22", "1.23"]
+    name: Build ${{ matrix.go-version == '1.23' && '(latest)' || '(old)' }}
 
     steps:
     - uses: actions/checkout@v4
@@ -30,8 +33,5 @@ jobs:
         go install golang.org/x/tools/cmd/goimports@latest
         export PATH="$HOME/go/bin:$PATH"
 
-    - name: Install pre-commit
-      run: pip install pre-commit
-
-    - name: Lint
-      run: pre-commit run -a
+    - name: Run pre-commit
+      uses: pre-commit/action@v3.0.1

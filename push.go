@@ -26,7 +26,7 @@ func (fpc *FCMPushConfig) GetPushConfigAttrs() waBinary.Attrs {
 	return waBinary.Attrs{
 		"id":       fpc.Token,
 		"num_acc":  1,
-		"platform": "fcm",
+		"platform": "gcm",
 	}
 }
 

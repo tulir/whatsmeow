@@ -24,6 +24,9 @@ import (
 // FetchAppState fetches updates to the given type of app state. If fullSync is true, the current
 // cached state will be removed and all app state patches will be re-fetched from the server.
 func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) error {
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	cli.appStateSyncLock.Lock()
 	defer cli.appStateSyncLock.Unlock()
 	if fullSync {
@@ -347,6 +350,9 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 //
 //	cli.SendAppState(appstate.BuildMute(targetJID, true, 24 * time.Hour))
 func (cli *Client) SendAppState(patch appstate.PatchInfo) error {
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	version, hash, err := cli.Store.AppState.GetAppStateVersion(string(patch.Type))
 	if err != nil {
 		return err
