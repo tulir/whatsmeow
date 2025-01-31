@@ -141,11 +141,11 @@ func (w *binaryEncoder) writeString(data string) {
 		w.pushByte(tokenIndex)
 	} else if validateNibble(data) {
 		w.writePackedBytes(data, token.Nibble8)
-	} else if validateHex(data) {
-		w.writePackedBytes(data, token.Hex8)
 	} else {
 		w.writeStringRaw(data)
-	}
+	} /* temp removed: else if validateHex(data) {
+		w.writePackedBytes(data, token.Hex8)
+	}*/
 }
 
 func (w *binaryEncoder) writeBytes(value []byte) {
@@ -281,7 +281,7 @@ func packNibble(value byte) byte {
 	}
 }
 
-func validateHex(value string) bool {
+/*func validateHex(value string) bool {
 	if len(value) > token.PackedMax {
 		return false
 	}
@@ -291,7 +291,7 @@ func validateHex(value string) bool {
 		}
 	}
 	return true
-}
+}*/
 
 func packHex(value byte) byte {
 	switch {
