@@ -59,9 +59,12 @@ type qrChannel struct {
 }
 
 func (qrc *qrChannel) emitQRs(evt *events.QR) {
+	// copy codes to avoid changing the original slice
+	codes := make([]string, len(evt.Codes))
+
 	var nextCode string
 	for {
-		if len(evt.Codes) == 0 {
+		if len(codes) == 0 {
 			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
 				qrc.log.Debugf("Ran out of QR codes, closing channel with status %s and disconnecting client", QRChannelTimeout)
 				qrc.output <- QRChannelTimeout
@@ -77,10 +80,10 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 			return
 		}
 		timeout := 20 * time.Second
-		if len(evt.Codes) == 6 {
+		if len(codes) == 6 {
 			timeout = 60 * time.Second
 		}
-		nextCode, evt.Codes = evt.Codes[0], evt.Codes[1:]
+		nextCode, codes = codes[0], codes[1:]
 		qrc.log.Debugf("Emitting QR code %s", nextCode)
 		select {
 		case qrc.output <- QRChannelItem{Code: nextCode, Timeout: timeout, Event: QRChannelEventCode}:
