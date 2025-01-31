@@ -244,6 +244,13 @@ const (
 	DecryptFailHide DecryptFailMode = "hide"
 )
 
+type UnavailableType string
+
+const (
+	UnavailableTypeUnknown  UnavailableType = ""
+	UnavailableTypeViewOnce UnavailableType = "view_once"
+)
+
 // UndecryptableMessage is emitted when receiving a new message that failed to decrypt.
 //
 // The library will automatically ask the sender to retry. If the sender resends the message,
@@ -256,6 +263,8 @@ type UndecryptableMessage struct {
 	// IsUnavailable is true if the recipient device didn't send a ciphertext to this device at all
 	// (as opposed to sending a ciphertext, but the ciphertext not being decryptable).
 	IsUnavailable bool
+	// Some message types are intentionally unavailable. Such types usually have a type specified here.
+	UnavailableType UnavailableType
 
 	DecryptFailMode DecryptFailMode
 }

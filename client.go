@@ -62,6 +62,7 @@ type Client struct {
 	socket     *socket.NoiseSocket
 	socketLock sync.RWMutex
 	socketWait chan struct{}
+	wsDialer   *websocket.Dialer
 
 	isLoggedIn            atomic.Bool
 	expectedDisconnect    atomic.Bool
@@ -172,8 +173,9 @@ type Client struct {
 }
 
 type MessengerConfig struct {
-	UserAgent string
-	BaseURL   string
+	UserAgent    string
+	BaseURL      string
+	WebsocketURL string
 }
 
 // Size of buffer for the channel that all incoming XML nodes go through.
@@ -401,6 +403,10 @@ func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	return true
 }
 
+func (cli *Client) SetWSDialer(dialer *websocket.Dialer) {
+	cli.wsDialer = dialer
+}
+
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
@@ -418,8 +424,10 @@ func (cli *Client) Connect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	wsDialer := websocket.Dialer{}
-	if !cli.proxyOnlyLogin || cli.Store.ID == nil {
+	var wsDialer websocket.Dialer
+	if cli.wsDialer != nil {
+		wsDialer = *cli.wsDialer
+	} else if !cli.proxyOnlyLogin || cli.Store.ID == nil {
 		if cli.proxy != nil {
 			wsDialer.Proxy = cli.proxy
 		} else if cli.socksProxy != nil {
@@ -432,12 +440,14 @@ func (cli *Client) Connect() error {
 	}
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), wsDialer)
 	if cli.MessengerConfig != nil {
-		fs.URL = "wss://web-chat-e2ee.facebook.com/ws/chat"
+		fs.URL = cli.MessengerConfig.WebsocketURL
 		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
 		fs.HTTPHeaders.Set("User-Agent", cli.MessengerConfig.UserAgent)
-		fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
-		fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
-		fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
+		fs.HTTPHeaders.Set("Cache-Control", "no-cache")
+		fs.HTTPHeaders.Set("Pragma", "no-cache")
+		//fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
+		//fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
+		//fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
 	}
 	if err := fs.Connect(); err != nil {
 		fs.Close(0)
