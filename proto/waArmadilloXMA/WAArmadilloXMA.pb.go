@@ -295,6 +295,7 @@ const (
 	ExtendedContentMessage_RTC_MISSED_GROUP_VIDEO_CALL             ExtendedContentMessage_ExtendedContentType = 3007
 	ExtendedContentMessage_RTC_ONGOING_AUDIO_CALL                  ExtendedContentMessage_ExtendedContentType = 3008
 	ExtendedContentMessage_RTC_ONGOING_VIDEO_CALL                  ExtendedContentMessage_ExtendedContentType = 3009
+	ExtendedContentMessage_MSG_RECEIVER_FETCH_FALLBACK             ExtendedContentMessage_ExtendedContentType = 3025
 	ExtendedContentMessage_DATACLASS_SENDER_COPY                   ExtendedContentMessage_ExtendedContentType = 4000
 )
 
@@ -367,6 +368,7 @@ var (
 		3007: "RTC_MISSED_GROUP_VIDEO_CALL",
 		3008: "RTC_ONGOING_AUDIO_CALL",
 		3009: "RTC_ONGOING_VIDEO_CALL",
+		3025: "MSG_RECEIVER_FETCH_FALLBACK",
 		4000: "DATACLASS_SENDER_COPY",
 	}
 	ExtendedContentMessage_ExtendedContentType_value = map[string]int32{
@@ -436,6 +438,7 @@ var (
 		"RTC_MISSED_GROUP_VIDEO_CALL":             3007,
 		"RTC_ONGOING_AUDIO_CALL":                  3008,
 		"RTC_ONGOING_VIDEO_CALL":                  3009,
+		"MSG_RECEIVER_FETCH_FALLBACK":             3025,
 		"DATACLASS_SENDER_COPY":                   4000,
 	}
 )

@@ -56,6 +56,7 @@ message ClientPayload {
 			HARDCODED = 2;
 			OVERRIDE = 3;
 			FALLBACK = 4;
+			MNS = 5;
 		}
 
 		optional DNSResolutionMethod dnsMethod = 15;
@@ -69,6 +70,7 @@ message ClientPayload {
 			WIN_STORE = 2;
 			DARWIN = 3;
 			WIN32 = 4;
+			WIN_HYBRID = 5;
 		}
 
 		message WebdPayload {

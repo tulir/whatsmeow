@@ -159,6 +159,7 @@ message StickerTransport {
 		optional string mustacheText = 6;
 		optional bool isThirdParty = 7;
 		optional string receiverFetchID = 8;
+		optional string accessibilityLabel = 9;
 	}
 
 	message Integral {

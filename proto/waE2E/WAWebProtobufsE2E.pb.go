@@ -262,6 +262,7 @@ func (BotMetricsEntryPoint) EnumDescriptor() ([]byte, []int) {
 type BotSessionSource int32
 
 const (
+	BotSessionSource_NONE               BotSessionSource = 0
 	BotSessionSource_NULL_STATE         BotSessionSource = 1
 	BotSessionSource_TYPEAHEAD          BotSessionSource = 2
 	BotSessionSource_USER_INPUT         BotSessionSource = 3
@@ -273,6 +274,7 @@ const (
 // Enum value maps for BotSessionSource.
 var (
 	BotSessionSource_name = map[int32]string{
+		0: "NONE",
 		1: "NULL_STATE",
 		2: "TYPEAHEAD",
 		3: "USER_INPUT",
@@ -281,6 +283,7 @@ var (
 		6: "VOICE",
 	}
 	BotSessionSource_value = map[string]int32{
+		"NONE":               0,
 		"NULL_STATE":         1,
 		"TYPEAHEAD":          2,
 		"USER_INPUT":         3,
@@ -2373,43 +2376,52 @@ func (BotFeedbackMessage_BotFeedbackKindMultipleNegative) EnumDescriptor() ([]by
 type BotFeedbackMessage_BotFeedbackKind int32
 
 const (
-	BotFeedbackMessage_BOT_FEEDBACK_POSITIVE                        BotFeedbackMessage_BotFeedbackKind = 0
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_GENERIC                BotFeedbackMessage_BotFeedbackKind = 1
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_HELPFUL                BotFeedbackMessage_BotFeedbackKind = 2
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_INTERESTING            BotFeedbackMessage_BotFeedbackKind = 3
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_ACCURATE               BotFeedbackMessage_BotFeedbackKind = 4
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_SAFE                   BotFeedbackMessage_BotFeedbackKind = 5
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_OTHER                  BotFeedbackMessage_BotFeedbackKind = 6
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_REFUSED                BotFeedbackMessage_BotFeedbackKind = 7
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING BotFeedbackMessage_BotFeedbackKind = 8
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT   BotFeedbackMessage_BotFeedbackKind = 9
+	BotFeedbackMessage_BOT_FEEDBACK_POSITIVE                             BotFeedbackMessage_BotFeedbackKind = 0
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_GENERIC                     BotFeedbackMessage_BotFeedbackKind = 1
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_HELPFUL                     BotFeedbackMessage_BotFeedbackKind = 2
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_INTERESTING                 BotFeedbackMessage_BotFeedbackKind = 3
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_ACCURATE                    BotFeedbackMessage_BotFeedbackKind = 4
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_SAFE                        BotFeedbackMessage_BotFeedbackKind = 5
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_OTHER                       BotFeedbackMessage_BotFeedbackKind = 6
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_REFUSED                     BotFeedbackMessage_BotFeedbackKind = 7
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING      BotFeedbackMessage_BotFeedbackKind = 8
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT        BotFeedbackMessage_BotFeedbackKind = 9
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_PERSONALIZED                BotFeedbackMessage_BotFeedbackKind = 10
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_CLARITY                     BotFeedbackMessage_BotFeedbackKind = 11
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_DOESNT_LOOK_LIKE_THE_PERSON BotFeedbackMessage_BotFeedbackKind = 12
 )
 
 // Enum value maps for BotFeedbackMessage_BotFeedbackKind.
 var (
 	BotFeedbackMessage_BotFeedbackKind_name = map[int32]string{
-		0: "BOT_FEEDBACK_POSITIVE",
-		1: "BOT_FEEDBACK_NEGATIVE_GENERIC",
-		2: "BOT_FEEDBACK_NEGATIVE_HELPFUL",
-		3: "BOT_FEEDBACK_NEGATIVE_INTERESTING",
-		4: "BOT_FEEDBACK_NEGATIVE_ACCURATE",
-		5: "BOT_FEEDBACK_NEGATIVE_SAFE",
-		6: "BOT_FEEDBACK_NEGATIVE_OTHER",
-		7: "BOT_FEEDBACK_NEGATIVE_REFUSED",
-		8: "BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING",
-		9: "BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT",
+		0:  "BOT_FEEDBACK_POSITIVE",
+		1:  "BOT_FEEDBACK_NEGATIVE_GENERIC",
+		2:  "BOT_FEEDBACK_NEGATIVE_HELPFUL",
+		3:  "BOT_FEEDBACK_NEGATIVE_INTERESTING",
+		4:  "BOT_FEEDBACK_NEGATIVE_ACCURATE",
+		5:  "BOT_FEEDBACK_NEGATIVE_SAFE",
+		6:  "BOT_FEEDBACK_NEGATIVE_OTHER",
+		7:  "BOT_FEEDBACK_NEGATIVE_REFUSED",
+		8:  "BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING",
+		9:  "BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT",
+		10: "BOT_FEEDBACK_NEGATIVE_PERSONALIZED",
+		11: "BOT_FEEDBACK_NEGATIVE_CLARITY",
+		12: "BOT_FEEDBACK_NEGATIVE_DOESNT_LOOK_LIKE_THE_PERSON",
 	}
 	BotFeedbackMessage_BotFeedbackKind_value = map[string]int32{
-		"BOT_FEEDBACK_POSITIVE":                        0,
-		"BOT_FEEDBACK_NEGATIVE_GENERIC":                1,
-		"BOT_FEEDBACK_NEGATIVE_HELPFUL":                2,
-		"BOT_FEEDBACK_NEGATIVE_INTERESTING":            3,
-		"BOT_FEEDBACK_NEGATIVE_ACCURATE":               4,
-		"BOT_FEEDBACK_NEGATIVE_SAFE":                   5,
-		"BOT_FEEDBACK_NEGATIVE_OTHER":                  6,
-		"BOT_FEEDBACK_NEGATIVE_REFUSED":                7,
-		"BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING": 8,
-		"BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT":   9,
+		"BOT_FEEDBACK_POSITIVE":                             0,
+		"BOT_FEEDBACK_NEGATIVE_GENERIC":                     1,
+		"BOT_FEEDBACK_NEGATIVE_HELPFUL":                     2,
+		"BOT_FEEDBACK_NEGATIVE_INTERESTING":                 3,
+		"BOT_FEEDBACK_NEGATIVE_ACCURATE":                    4,
+		"BOT_FEEDBACK_NEGATIVE_SAFE":                        5,
+		"BOT_FEEDBACK_NEGATIVE_OTHER":                       6,
+		"BOT_FEEDBACK_NEGATIVE_REFUSED":                     7,
+		"BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING":      8,
+		"BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT":        9,
+		"BOT_FEEDBACK_NEGATIVE_PERSONALIZED":                10,
+		"BOT_FEEDBACK_NEGATIVE_CLARITY":                     11,
+		"BOT_FEEDBACK_NEGATIVE_DOESNT_LOOK_LIKE_THE_PERSON": 12,
 	}
 )
 
@@ -2833,6 +2845,7 @@ type ContextInfo_StatusAttributionType int32
 const (
 	ContextInfo_NONE                  ContextInfo_StatusAttributionType = 0
 	ContextInfo_RESHARED_FROM_MENTION ContextInfo_StatusAttributionType = 1
+	ContextInfo_RESHARED_FROM_POST    ContextInfo_StatusAttributionType = 2
 )
 
 // Enum value maps for ContextInfo_StatusAttributionType.
@@ -2840,10 +2853,12 @@ var (
 	ContextInfo_StatusAttributionType_name = map[int32]string{
 		0: "NONE",
 		1: "RESHARED_FROM_MENTION",
+		2: "RESHARED_FROM_POST",
 	}
 	ContextInfo_StatusAttributionType_value = map[string]int32{
 		"NONE":                  0,
 		"RESHARED_FROM_MENTION": 1,
+		"RESHARED_FROM_POST":    2,
 	}
 )
 
@@ -3825,6 +3840,8 @@ const (
 	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_8  BotCapabilityMetadata_BotCapabilityType = 18
 	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_9  BotCapabilityMetadata_BotCapabilityType = 19
 	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_10 BotCapabilityMetadata_BotCapabilityType = 20
+	BotCapabilityMetadata_RICH_RESPONSE_SUB_HEADING         BotCapabilityMetadata_BotCapabilityType = 21
+	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE          BotCapabilityMetadata_BotCapabilityType = 22
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -3850,6 +3867,8 @@ var (
 		18: "WA_IG_1P_PLUGIN_RANKING_UPDATE_8",
 		19: "WA_IG_1P_PLUGIN_RANKING_UPDATE_9",
 		20: "WA_IG_1P_PLUGIN_RANKING_UPDATE_10",
+		21: "RICH_RESPONSE_SUB_HEADING",
+		22: "RICH_RESPONSE_GRID_IMAGE",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
 		"PROGRESS_INDICATOR":                1,
@@ -3872,6 +3891,8 @@ var (
 		"WA_IG_1P_PLUGIN_RANKING_UPDATE_8":  18,
 		"WA_IG_1P_PLUGIN_RANKING_UPDATE_9":  19,
 		"WA_IG_1P_PLUGIN_RANKING_UPDATE_10": 20,
+		"RICH_RESPONSE_SUB_HEADING":         21,
+		"RICH_RESPONSE_GRID_IMAGE":          22,
 	}
 )
 
@@ -7146,7 +7167,6 @@ type ExtendedTextMessage struct {
 	state                            protoimpl.MessageState                   `protogen:"open.v1"`
 	Text                             *string                                  `protobuf:"bytes,1,opt,name=text" json:"text,omitempty"`
 	MatchedText                      *string                                  `protobuf:"bytes,2,opt,name=matchedText" json:"matchedText,omitempty"`
-	CanonicalURL                     *string                                  `protobuf:"bytes,4,opt,name=canonicalURL" json:"canonicalURL,omitempty"`
 	Description                      *string                                  `protobuf:"bytes,5,opt,name=description" json:"description,omitempty"`
 	Title                            *string                                  `protobuf:"bytes,6,opt,name=title" json:"title,omitempty"`
 	TextArgb                         *uint32                                  `protobuf:"fixed32,7,opt,name=textArgb" json:"textArgb,omitempty"`
@@ -7215,13 +7235,6 @@ func (x *ExtendedTextMessage) GetText() string {
 func (x *ExtendedTextMessage) GetMatchedText() string {
 	if x != nil && x.MatchedText != nil {
 		return *x.MatchedText
-	}
-	return ""
-}
-
-func (x *ExtendedTextMessage) GetCanonicalURL() string {
-	if x != nil && x.CanonicalURL != nil {
-		return *x.CanonicalURL
 	}
 	return ""
 }
@@ -13847,7 +13860,7 @@ func (x *BotSessionMetadata) GetSessionSource() BotSessionSource {
 	if x != nil && x.SessionSource != nil {
 		return *x.SessionSource
 	}
-	return BotSessionSource_NULL_STATE
+	return BotSessionSource_NONE
 }
 
 type BotMemuMetadata struct {
@@ -17294,7 +17307,6 @@ type PeerDataOperationRequestResponseMessage_PeerDataOperationResult_LinkPreview
 	Title         *string                                                                                                              `protobuf:"bytes,2,opt,name=title" json:"title,omitempty"`
 	Description   *string                                                                                                              `protobuf:"bytes,3,opt,name=description" json:"description,omitempty"`
 	ThumbData     []byte                                                                                                               `protobuf:"bytes,4,opt,name=thumbData" json:"thumbData,omitempty"`
-	CanonicalURL  *string                                                                                                              `protobuf:"bytes,5,opt,name=canonicalURL" json:"canonicalURL,omitempty"`
 	MatchText     *string                                                                                                              `protobuf:"bytes,6,opt,name=matchText" json:"matchText,omitempty"`
 	PreviewType   *string                                                                                                              `protobuf:"bytes,7,opt,name=previewType" json:"previewType,omitempty"`
 	HqThumbnail   *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_LinkPreviewResponse_LinkPreviewHighQualityThumbnail `protobuf:"bytes,8,opt,name=hqThumbnail" json:"hqThumbnail,omitempty"`
@@ -17359,13 +17371,6 @@ func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_LinkPre
 		return x.ThumbData
 	}
 	return nil
-}
-
-func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_LinkPreviewResponse) GetCanonicalURL() string {
-	if x != nil && x.CanonicalURL != nil {
-		return *x.CanonicalURL
-	}
-	return ""
 }
 
 func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_LinkPreviewResponse) GetMatchText() string {
@@ -17843,6 +17848,7 @@ type ContextInfo_FeatureEligibilities struct {
 	CannotBeReactedTo  *bool                  `protobuf:"varint,1,opt,name=cannotBeReactedTo" json:"cannotBeReactedTo,omitempty"`
 	CannotBeRanked     *bool                  `protobuf:"varint,2,opt,name=cannotBeRanked" json:"cannotBeRanked,omitempty"`
 	CanRequestFeedback *bool                  `protobuf:"varint,3,opt,name=canRequestFeedback" json:"canRequestFeedback,omitempty"`
+	CanBeReshared      *bool                  `protobuf:"varint,4,opt,name=canBeReshared" json:"canBeReshared,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -17894,6 +17900,13 @@ func (x *ContextInfo_FeatureEligibilities) GetCannotBeRanked() bool {
 func (x *ContextInfo_FeatureEligibilities) GetCanRequestFeedback() bool {
 	if x != nil && x.CanRequestFeedback != nil {
 		return *x.CanRequestFeedback
+	}
+	return false
+}
+
+func (x *ContextInfo_FeatureEligibilities) GetCanBeReshared() bool {
+	if x != nil && x.CanBeReshared != nil {
+		return *x.CanBeReshared
 	}
 	return false
 }
@@ -18570,6 +18583,7 @@ type AIRichResponseMessage_AIRichResponseImageURL struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	ImagePreviewURL *string                `protobuf:"bytes,1,opt,name=imagePreviewURL" json:"imagePreviewURL,omitempty"`
 	ImageHighResURL *string                `protobuf:"bytes,2,opt,name=imageHighResURL" json:"imageHighResURL,omitempty"`
+	SourceURL       *string                `protobuf:"bytes,3,opt,name=sourceURL" json:"sourceURL,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -18614,6 +18628,13 @@ func (x *AIRichResponseMessage_AIRichResponseImageURL) GetImagePreviewURL() stri
 func (x *AIRichResponseMessage_AIRichResponseImageURL) GetImageHighResURL() string {
 	if x != nil && x.ImageHighResURL != nil {
 		return *x.ImageHighResURL
+	}
+	return ""
+}
+
+func (x *AIRichResponseMessage_AIRichResponseImageURL) GetSourceURL() string {
+	if x != nil && x.SourceURL != nil {
+		return *x.SourceURL
 	}
 	return ""
 }
