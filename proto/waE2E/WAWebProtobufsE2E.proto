@@ -870,6 +870,18 @@ message ExtendedTextMessage {
 	optional MMSThumbnailMetadata faviconMMSMetadata = 33;
 }
 
+message StatusNotificationMessage {
+	enum StatusNotificationType {
+		UNKNOWN = 0;
+		STATUS_ADD_YOURS = 1;
+		STATUS_RESHARE = 2;
+	}
+
+	optional WACommon.MessageKey responseMessageKey = 1;
+	optional WACommon.MessageKey originalMessageKey = 2;
+	optional StatusNotificationType type = 3;
+}
+
 message InvoiceMessage {
 	enum AttachmentType {
 		IMAGE = 0;
@@ -1099,6 +1111,14 @@ message BotPluginMetadata {
 	optional string faviconCDNURL = 13;
 }
 
+message BotLinkedAccount {
+	enum BotLinkedAccountType {
+		BOT_LINKED_ACCOUNT_TYPE_1P = 0;
+	}
+
+	optional BotLinkedAccountType type = 1;
+}
+
 message AIRichResponseMessage {
 	enum AIRichResponseSubMessageType {
 		AI_RICH_RESPONSE_UNKNOWN = 0;
@@ -1113,7 +1133,6 @@ message AIRichResponseMessage {
 	enum AIRichResponseMessageType {
 		AI_RICH_RESPONSE_TYPE_UNKNOWN = 0;
 		AI_RICH_RESPONSE_TYPE_STANDARD = 1;
-		AI_RICH_RESPONSE_TYPE_ARTIFACTS = 2;
 	}
 
 	message AIRichResponseDynamicMetadata {
@@ -1275,6 +1294,7 @@ message BotCapabilityMetadata {
 		WA_IG_1P_PLUGIN_RANKING_UPDATE_10 = 20;
 		RICH_RESPONSE_SUB_HEADING = 21;
 		RICH_RESPONSE_GRID_IMAGE = 22;
+		AI_STUDIO_UGC_MEMORY = 23;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1303,6 +1323,7 @@ message MessageAssociation {
 		STATUS_TAPPABLE_MESSAGE = 6;
 		MEDIA_POLL = 7;
 		STATUS_ADD_YOURS = 8;
+		STATUS_NOTIFICATION = 9;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1512,6 +1533,7 @@ message Message {
 	optional FutureProofMessage statusAddYours = 95;
 	optional FutureProofMessage groupStatusMessage = 96;
 	optional AIRichResponseMessage richResponseMessage = 97;
+	optional StatusNotificationMessage statusNotificationMessage = 98;
 }
 
 message AlbumMessage {
@@ -1979,6 +2001,10 @@ message BotPromptSuggestion {
 	optional string promptID = 2;
 }
 
+message BotLinkedAccountsMetadata {
+	repeated BotLinkedAccount accounts = 1;
+}
+
 message BotMemoryMetadata {
 	repeated BotMemoryFact addedFacts = 1;
 	repeated BotMemoryFact removedFacts = 2;
@@ -2035,6 +2061,7 @@ message BotMetadata {
 	optional BotMemoryMetadata memoryMetadata = 15;
 	optional BotRenderingMetadata renderingMetadata = 16;
 	optional BotMetricsMetadata botMetricsMetadata = 17;
+	optional BotLinkedAccountsMetadata botLinkedAccountsMetadata = 18;
 }
 
 message DeviceListMetadata {
