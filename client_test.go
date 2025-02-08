@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/skip2/go-qrcode"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types/events"
@@ -58,6 +59,7 @@ func Example() {
 				// e.g. qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
 				// or just manually `echo 2@... | qrencode -t ansiutf8` in a terminal
 				fmt.Println("QR code:", evt.Code)
+				_ = saveQRCodeImage(evt)
 			} else {
 				fmt.Println("Login event:", evt.Event)
 			}
@@ -76,4 +78,15 @@ func Example() {
 	<-c
 
 	client.Disconnect()
+}
+
+func saveQRCodeImage(evt whatsmeow.QRChannelItem) bool {
+	err := qrcode.WriteFile(evt.Code, qrcode.Medium, 256, "qrcode.png")
+	if err != nil {
+		fmt.Println("Error generating QR code:", err)
+		return true
+	}
+
+	fmt.Println("QR code successfully saved as qrcode.png")
+	return false
 }
