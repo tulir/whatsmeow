@@ -16,6 +16,7 @@ import (
 )
 
 func (cli *Client) handleReceipt(node *waBinary.Node) {
+	defer cli.maybeDeferredAck(node)
 	receipt, err := cli.parseReceipt(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse receipt: %v", err)
@@ -28,9 +29,8 @@ func (cli *Client) handleReceipt(node *waBinary.Node) {
 				}
 			}()
 		}
-		go cli.dispatchEvent(receipt)
+		cli.dispatchEvent(receipt)
 	}
-	go cli.sendAck(node)
 }
 
 func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participants *waBinary.Node) {
@@ -94,6 +94,17 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 		receipt.MessageIDs = []types.MessageID{mainMessageID}
 	}
 	return &receipt, nil
+}
+
+func (cli *Client) maybeDeferredAck(node *waBinary.Node) func() {
+	if cli.SynchronousAck {
+		return func() {
+			go cli.sendAck(node)
+		}
+	} else {
+		go cli.sendAck(node)
+		return func() {}
+	}
 }
 
 func (cli *Client) sendAck(node *waBinary.Node) {

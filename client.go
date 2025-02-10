@@ -72,6 +72,8 @@ type Client struct {
 	// AutoReconnectHook is called when auto-reconnection fails. If the function returns false,
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
+	// If SynchronousAck is set, acks for messages will only be sent after all event handlers return.
+	SynchronousAck bool
 
 	DisableLoginAutoReconnect bool
 
