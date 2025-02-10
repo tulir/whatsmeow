@@ -16,7 +16,7 @@ import (
 )
 
 func (cli *Client) handleReceipt(node *waBinary.Node) {
-	defer cli.maybeDeferredAck(node)
+	defer cli.maybeDeferredAck(node)()
 	receipt, err := cli.parseReceipt(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse receipt: %v", err)
