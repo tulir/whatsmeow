@@ -74,6 +74,9 @@ func encryptMediaRetryReceipt(messageID types.MessageID, mediaKey []byte) (ciphe
 //	  }
 //	}
 func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []byte) error {
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	ciphertext, iv, err := encryptMediaRetryReceipt(message.ID, mediaKey)
 	if err != nil {
 		return fmt.Errorf("failed to prepare encrypted retry receipt: %w", err)

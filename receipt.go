@@ -200,6 +200,9 @@ func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, se
 // Note that if you turn this off (i.e. call SetForceActiveDeliveryReceipts(false)),
 // receipts will act like the client is offline until SendPresence is called again.
 func (cli *Client) SetForceActiveDeliveryReceipts(active bool) {
+	if cli == nil {
+		return
+	}
 	if active {
 		cli.sendActiveReceipts.Store(2)
 	} else {

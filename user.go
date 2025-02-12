@@ -421,6 +421,9 @@ func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 }
 
 func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) ([]types.JID, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 

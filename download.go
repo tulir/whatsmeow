@@ -199,6 +199,9 @@ func GetMediaType(msg DownloadableMessage) MediaType {
 //
 // You can also use DownloadAny to download the first non-nil sub-message.
 func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	mediaType := GetMediaType(msg)
 	if mediaType == "" {
 		return nil, fmt.Errorf("%w %T", ErrUnknownMediaType, msg)
