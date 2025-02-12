@@ -41,6 +41,7 @@ enum BotMetricsEntryPoint {
 	PROFILE_MESSAGE_BUTTON = 14;
 	FORWARD = 15;
 	APP_SHORTCUT = 16;
+	FF_FAMILY = 17;
 }
 
 enum BotSessionSource {
@@ -939,6 +940,14 @@ message ImageMessage {
 }
 
 message ContextInfo {
+	enum PairedMediaType {
+		NOT_PAIRED_MEDIA = 0;
+		SD_VIDEO_PARENT = 1;
+		HD_VIDEO_CHILD = 2;
+		SD_IMAGE_PARENT = 3;
+		HD_IMAGE_CHILD = 4;
+	}
+
 	enum StatusAttributionType {
 		NONE = 0;
 		RESHARED_FROM_MENTION = 1;
@@ -1081,6 +1090,7 @@ message ContextInfo {
 	optional ForwardedAIBotMessageInfo forwardedAiBotMessageInfo = 56;
 	optional StatusAttributionType statusAttributionType = 57;
 	optional UrlTrackingMap urlTrackingMap = 58;
+	optional PairedMediaType pairedMediaType = 59;
 }
 
 message BotPluginMetadata {
@@ -1188,6 +1198,11 @@ message AIRichResponseMessage {
 		optional AIRichResponseCodeMetadata codeMetadata = 5;
 		optional AIRichResponseTableMetadata tableMetadata = 6;
 		optional AIRichResponseDynamicMetadata dynamicMetadata = 7;
+		optional AIRichResponseAbstractData abstractData = 8;
+	}
+
+	message AIRichResponseAbstractData {
+		optional bytes data = 1;
 	}
 
 	message AIRichResponseTableMetadata {
@@ -1324,6 +1339,8 @@ message MessageAssociation {
 		MEDIA_POLL = 7;
 		STATUS_ADD_YOURS = 8;
 		STATUS_NOTIFICATION = 9;
+		HD_IMAGE_DUAL_UPLOAD = 10;
+		STICKER_ANNOTATION = 11;
 	}
 
 	optional AssociationType associationType = 1;
@@ -2003,6 +2020,7 @@ message BotPromptSuggestion {
 
 message BotLinkedAccountsMetadata {
 	repeated BotLinkedAccount accounts = 1;
+	optional bytes acAuthTokens = 2;
 }
 
 message BotMemoryMetadata {
