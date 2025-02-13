@@ -272,8 +272,12 @@ func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.Newslet
 		if child.Tag != "message" {
 			continue
 		}
+		ag := child.AttrGetter()
 		msg := types.NewsletterMessage{
-			MessageServerID: child.AttrGetter().Int("server_id"),
+			MessageServerID: ag.Int("server_id"),
+			MessageID:       ag.String("id"),
+			Type:            ag.String("type"),
+			Timestamp:       ag.UnixTime("t"),
 			ViewsCount:      0,
 			ReactionCounts:  nil,
 		}
