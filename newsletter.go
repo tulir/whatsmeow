@@ -108,11 +108,11 @@ func (cli *Client) NewsletterSendReaction(jid types.JID, serverID types.MessageS
 const (
 	queryFetchNewsletter           = "6563316087068696"
 	queryFetchNewsletterDehydrated = "7272540469429201"
-	queryRecommendedNewsletters    = "7263823273662354" //variables -> input -> {limit: 20, country_codes: [string]}, output: xwa2_newsletters_recommended
+	queryRecommendedNewsletters    = "7263823273662354" // variables -> input -> {limit: 20, country_codes: [string]}, output: xwa2_newsletters_recommended
 	queryNewslettersDirectory      = "6190824427689257" // variables -> input -> {view: "RECOMMENDED", limit: 50, start_cursor: base64, filters: {country_codes: [string]}}
 	querySubscribedNewsletters     = "6388546374527196" // variables -> empty, output: xwa2_newsletter_subscribed
-	queryNewsletterSubscribers     = "9800646650009898" //variables -> input -> {newsletter_id, count}, output: xwa2_newsletter_subscribers -> subscribers -> edges
-	mutationMuteNewsletter         = "6274038279359549" //variables -> {newsletter_id, updates->{description, settings}}, output: xwa2_newsletter_update -> NewsletterMetadata without viewer meta
+	queryNewsletterSubscribers     = "9800646650009898" // variables -> input -> {newsletter_id, count}, output: xwa2_newsletter_subscribers -> subscribers -> edges
+	mutationMuteNewsletter         = "6274038279359549" // variables -> {newsletter_id, updates->{description, settings}}, output: xwa2_newsletter_update -> NewsletterMetadata without viewer meta
 	mutationUnmuteNewsletter       = "6068417879924485"
 	mutationUpdateNewsletter       = "7150902998257522"
 	mutationCreateNewsletter       = "6234210096708695"

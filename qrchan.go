@@ -29,8 +29,10 @@ type QRChannelItem struct {
 	Timeout time.Duration
 }
 
-const QRChannelEventCode = "code"
-const QRChannelEventError = "error"
+const (
+	QRChannelEventCode  = "code"
+	QRChannelEventError = "error"
+)
 
 // Possible final items in the QR channel. In addition to these, an `error` event may be emitted,
 // in which case the Error field will have the error that occurred during pairing.

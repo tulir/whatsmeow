@@ -8,9 +8,11 @@
 package keys
 
 import (
-	"go.mau.fi/libsignal/ecc"
-	"go.mau.fi/util/random"
 	"golang.org/x/crypto/curve25519"
+
+	"go.mau.fi/util/random"
+
+	"go.mau.fi/libsignal/ecc"
 )
 
 type KeyPair struct {

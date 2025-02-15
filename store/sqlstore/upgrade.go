@@ -9,6 +9,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 )
 
 type upgradeFunc func(*sql.Tx, *Container) error
@@ -250,7 +251,8 @@ func upgradeV2(tx *sql.Tx, container *Container) error {
 	if err != nil {
 		return err
 	}
-	if container.dialect == "postgres" || container.dialect == "pgx" {
+
+	if strings.Contains(container.dialect, "postgres") || container.dialect == "pgx" {
 		_, err = tx.Exec(fillSigKeyPostgres)
 	} else {
 		_, err = tx.Exec(fillSigKeySQLite)
@@ -258,7 +260,7 @@ func upgradeV2(tx *sql.Tx, container *Container) error {
 	return err
 }
 
-func upgradeV3(tx *sql.Tx, container *Container) error {
+func upgradeV3(tx *sql.Tx, _ *Container) error {
 	_, err := tx.Exec(`CREATE TABLE whatsmeow_message_secrets (
 		our_jid    TEXT,
 		chat_jid   TEXT,
@@ -272,7 +274,7 @@ func upgradeV3(tx *sql.Tx, container *Container) error {
 	return err
 }
 
-func upgradeV4(tx *sql.Tx, container *Container) error {
+func upgradeV4(tx *sql.Tx, _ *Container) error {
 	_, err := tx.Exec(`CREATE TABLE whatsmeow_privacy_tokens (
 		our_jid   TEXT,
 		their_jid TEXT,
@@ -283,12 +285,12 @@ func upgradeV4(tx *sql.Tx, container *Container) error {
 	return err
 }
 
-func upgradeV5(tx *sql.Tx, container *Container) error {
+func upgradeV5(tx *sql.Tx, _ *Container) error {
 	_, err := tx.Exec("UPDATE whatsmeow_device SET jid=REPLACE(jid, '.0', '')")
 	return err
 }
 
-func upgradeV6(tx *sql.Tx, container *Container) error {
+func upgradeV6(tx *sql.Tx, _ *Container) error {
 	_, err := tx.Exec("ALTER TABLE whatsmeow_device ADD COLUMN facebook_uuid uuid")
 	return err
 }

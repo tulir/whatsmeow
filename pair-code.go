@@ -16,9 +16,10 @@ import (
 	"strconv"
 	"strings"
 
-	"go.mau.fi/util/random"
 	"golang.org/x/crypto/curve25519"
 	"golang.org/x/crypto/pbkdf2"
+
+	"go.mau.fi/util/random"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
@@ -43,8 +44,10 @@ const (
 	PairClientOtherWebClient
 )
 
-var notNumbers = regexp.MustCompile("[^0-9]")
-var linkingBase32 = base32.NewEncoding("123456789ABCDEFGHJKLMNPQRSTVWXYZ")
+var (
+	notNumbers    = regexp.MustCompile("[^0-9]")
+	linkingBase32 = base32.NewEncoding("123456789ABCDEFGHJKLMNPQRSTVWXYZ")
+)
 
 type phoneLinkingCache struct {
 	jid         types.JID
@@ -97,6 +100,7 @@ func (cli *Client) PairPhone(phone string, showPushNotification bool, clientType
 	} else if strings.HasPrefix(phone, "0") {
 		return "", fmt.Errorf("international phone number required (must not start with 0)")
 	}
+
 	jid := types.NewJID(phone, types.DefaultUserServer)
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "md",

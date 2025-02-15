@@ -338,7 +338,6 @@ func (r *binaryDecoder) readList(tag int) ([]Node, error) {
 	ret := make([]Node, size)
 	for i := 0; i < size; i++ {
 		n, err := r.readNode()
-
 		if err != nil {
 			return nil, err
 		}

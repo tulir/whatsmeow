@@ -41,6 +41,7 @@ func (cli *Client) DownloadToFile(msg DownloadableMessage, file File) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
+
 	mediaType := GetMediaType(msg)
 	if mediaType == "" {
 		return fmt.Errorf("%w %T", ErrUnknownMediaType, msg)

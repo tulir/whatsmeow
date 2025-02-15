@@ -20,13 +20,14 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"go.mau.fi/util/random"
 	"golang.org/x/net/proxy"
+
+	"go.mau.fi/util/random"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/proto/waWa6"
 	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
@@ -37,8 +38,10 @@ import (
 )
 
 // EventHandler is a function that can handle events from WhatsApp.
-type EventHandler func(evt interface{})
-type nodeHandler func(node *waBinary.Node)
+type (
+	EventHandler func(evt interface{})
+	nodeHandler  func(node *waBinary.Node)
+)
 
 var nextHandlerID uint32
 
@@ -90,7 +93,7 @@ type Client struct {
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 
-	historySyncNotifications  chan *waProto.HistorySyncNotification
+	historySyncNotifications  chan *waE2E.HistorySyncNotification
 	historySyncHandlerStarted atomic.Bool
 
 	uploadPreKeysLock sync.Mutex
@@ -134,10 +137,10 @@ type Client struct {
 	sessionRecreateHistoryLock sync.Mutex
 	// GetMessageForRetry is used to find the source message for handling retry receipts
 	// when the message is not found in the recently sent message cache.
-	GetMessageForRetry func(requester, to types.JID, id types.MessageID) *waProto.Message
+	GetMessageForRetry func(requester, to types.JID, id types.MessageID) *waE2E.Message
 	// PreRetryCallback is called before a retry receipt is accepted.
 	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
-	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waProto.Message) bool
+	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waE2E.Message) bool
 
 	// PrePairCallback is called before pairing is completed. If it returns false, the pairing will be cancelled and
 	// the client will disconnect.
@@ -145,7 +148,7 @@ type Client struct {
 
 	// GetClientPayload is called to get the client payload for connecting to the server.
 	// This should NOT be used for WhatsApp (to change the OS name, update fields in store.BaseClientPayload directly).
-	GetClientPayload func() *waProto.ClientPayload
+	GetClientPayload func() *waWa6.ClientPayload
 
 	// Should untrusted identity errors be handled automatically? If true, the stored identity and existing signal
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
@@ -224,14 +227,14 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		incomingRetryRequestCounter: make(map[incomingRetryKey]int),
 
-		historySyncNotifications: make(chan *waProto.HistorySyncNotification, 32),
+		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
 		groupParticipantsCache: make(map[types.JID][]types.JID),
 		userDevicesCache:       make(map[types.JID]deviceCache),
 
 		recentMessagesMap:      make(map[recentMessageKey]RecentMessage, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
-		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
+		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waE2E.Message { return nil },
 		appStateKeyRequests:    make(map[string]time.Time),
 
 		pendingPhoneRerequests: make(map[types.MessageID]context.CancelFunc),
@@ -317,7 +320,6 @@ func (cli *Client) SetProxy(proxy Proxy, opts ...SetProxyOptions) {
 	if !opt.NoMedia {
 		transport := cli.http.Transport.(*http.Transport)
 		transport.Proxy = proxy
-		transport.Dial = nil
 		transport.DialContext = nil
 	}
 }
@@ -447,9 +449,9 @@ func (cli *Client) Connect() error {
 		fs.HTTPHeaders.Set("User-Agent", cli.MessengerConfig.UserAgent)
 		fs.HTTPHeaders.Set("Cache-Control", "no-cache")
 		fs.HTTPHeaders.Set("Pragma", "no-cache")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
+		// fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
+		// fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
+		// fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
 	}
 	if err := fs.Connect(); err != nil {
 		fs.Close(0)
@@ -815,7 +817,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 			IsFromMe: webMsg.GetKey().GetFromMe(),
 			IsGroup:  chatJID.Server == types.GroupServer,
 		},
-		ID:        webMsg.GetKey().GetID(),
+		ID:        webMsg.GetKey().GetId(),
 		PushName:  webMsg.GetPushName(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}

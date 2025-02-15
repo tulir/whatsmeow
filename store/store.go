@@ -13,7 +13,7 @@ import (
 
 	"github.com/google/uuid"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -136,7 +136,7 @@ type Device struct {
 	AdvSecretKey   []byte
 
 	ID           *types.JID
-	Account      *waProto.ADVSignedDeviceIdentity
+	Account      *waAdv.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
 	PushName     string

@@ -11,16 +11,20 @@ import (
 	"fmt"
 	"time"
 
-	"go.mau.fi/libsignal/ecc"
 	"google.golang.org/protobuf/proto"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/libsignal/ecc"
+
+	"go.mau.fi/whatsmeow/proto/waCert"
+	"go.mau.fi/whatsmeow/proto/waWa6"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
-const NoiseHandshakeResponseTimeout = 20 * time.Second
-const WACertIssuerSerial = 0
+const (
+	NoiseHandshakeResponseTimeout = 20 * time.Second
+	WACertIssuerSerial            = 0
+)
 
 var WACertPubKey = [...]byte{0x14, 0x23, 0x75, 0x57, 0x4d, 0xa, 0x58, 0x71, 0x66, 0xaa, 0xe7, 0x1e, 0xbe, 0x51, 0x64, 0x37, 0xc4, 0xa2, 0x8b, 0x73, 0xe3, 0x69, 0x5c, 0x6c, 0xe1, 0xf7, 0xf9, 0x54, 0x5d, 0xa8, 0xee, 0x6b}
 
@@ -29,8 +33,8 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	nh := socket.NewNoiseHandshake()
 	nh.Start(socket.NoiseStartPattern, fs.Header)
 	nh.Authenticate(ephemeralKP.Pub[:])
-	data, err := proto.Marshal(&waProto.HandshakeMessage{
-		ClientHello: &waProto.HandshakeClientHello{
+	data, err := proto.Marshal(&waWa6.HandshakeMessage{
+		ClientHello: &waWa6.HandshakeMessage_ClientHello{
 			Ephemeral: ephemeralKP.Pub[:],
 		},
 	})
@@ -47,7 +51,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	case <-time.After(NoiseHandshakeResponseTimeout):
 		return fmt.Errorf("timed out waiting for handshake response")
 	}
-	var handshakeResponse waProto.HandshakeMessage
+	var handshakeResponse waWa6.HandshakeMessage
 	err = proto.Unmarshal(resp, &handshakeResponse)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal handshake response: %w", err)
@@ -90,7 +94,7 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		return fmt.Errorf("failed to mix noise private key in: %w", err)
 	}
 
-	var clientPayload *waProto.ClientPayload
+	var clientPayload *waWa6.ClientPayload
 	if cli.GetClientPayload != nil {
 		clientPayload = cli.GetClientPayload()
 	} else {
@@ -102,8 +106,8 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 		return fmt.Errorf("failed to marshal client finish payload: %w", err)
 	}
 	encryptedClientFinishPayload := nh.Encrypt(clientFinishPayloadBytes)
-	data, err = proto.Marshal(&waProto.HandshakeMessage{
-		ClientFinish: &waProto.HandshakeClientFinish{
+	data, err = proto.Marshal(&waWa6.HandshakeMessage{
+		ClientFinish: &waWa6.HandshakeMessage_ClientFinish{
 			Static:  encryptedPubkey,
 			Payload: encryptedClientFinishPayload,
 		},
@@ -127,12 +131,12 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 }
 
 func verifyServerCert(certDecrypted, staticDecrypted []byte) error {
-	var certChain waProto.CertChain
+	var certChain waCert.CertChain
 	err := proto.Unmarshal(certDecrypted, &certChain)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal noise certificate: %w", err)
 	}
-	var intermediateCertDetails, leafCertDetails waProto.CertChain_NoiseCertificate_Details
+	var intermediateCertDetails, leafCertDetails waCert.CertChain_NoiseCertificate_Details
 	intermediateCertDetailsRaw := certChain.GetIntermediate().GetDetails()
 	intermediateCertSignature := certChain.GetIntermediate().GetSignature()
 	leafCertDetailsRaw := certChain.GetLeaf().GetDetails()

@@ -13,7 +13,7 @@ import (
 
 	"go.mau.fi/util/jsontime"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 )
 
 type NewsletterVerificationState string
@@ -134,10 +134,10 @@ type NewsletterThreadMetadata struct {
 	Preview           ProfilePictureInfo          `json:"preview"`
 	Settings          NewsletterSettings          `json:"settings"`
 
-	//NewsletterMuted `json:"-"`
-	//PrivacyType     NewsletterPrivacy       `json:"-"`
-	//ReactionsMode   NewsletterReactionsMode `json:"-"`
-	//State           NewsletterState         `json:"-"`
+	// NewsletterMuted `json:"-"`
+	// PrivacyType     NewsletterPrivacy       `json:"-"`
+	// ReactionsMode   NewsletterReactionsMode `json:"-"`
+	// State           NewsletterState         `json:"-"`
 }
 
 type NewsletterText struct {
@@ -152,7 +152,7 @@ type NewsletterMessage struct {
 	ReactionCounts  map[string]int
 
 	// This is only present when fetching messages, not in live updates
-	Message *waProto.Message
+	Message *waE2E.Message
 }
 
 type GraphQLErrorExtensions struct {

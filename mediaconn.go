@@ -22,7 +22,7 @@ import (
 // MediaConnHost represents a single host to download media from.
 type MediaConnHost struct {
 	Hostname string
-	//IPs      []MediaConnIP
+	// IPs      []MediaConnIP
 }
 
 // MediaConn contains a list of WhatsApp servers from which attachments can be downloaded from.

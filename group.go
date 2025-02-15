@@ -582,7 +582,7 @@ func parseParticipant(childAG *waBinary.AttrUtility, child *waBinary.Node) types
 	}
 	if participant.JID.Server == types.HiddenUserServer && participant.LID.IsEmpty() {
 		participant.LID = participant.JID
-		//participant.JID = types.EmptyJID
+		// participant.JID = types.EmptyJID
 	}
 	if errorCode := childAG.OptionalInt("error"); errorCode != 0 {
 		participant.Error = errorCode

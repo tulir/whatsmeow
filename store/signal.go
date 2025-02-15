@@ -95,17 +95,21 @@ func (device *Device) LoadSession(address *protocol.SignalAddress) *record.Sessi
 			break
 		}
 	}
+
 	if rawSess == nil {
 		if err != nil {
 			return nil
 		}
+
 		return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
 	}
+
 	sess, err := record.NewSessionFromBytes(rawSess, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
 	if err != nil {
 		device.Log.Errorf("Failed to deserialize session with %s: %v", address.String(), err)
 		return nil
 	}
+
 	return sess
 }
 

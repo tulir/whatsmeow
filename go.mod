@@ -1,12 +1,10 @@
 module go.mau.fi/whatsmeow
 
-go 1.23.0
-
-toolchain go1.24.0
+go 1.24
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/rs/zerolog v1.33.0
 	go.mau.fi/libsignal v0.1.2
 	go.mau.fi/util v0.8.4
@@ -17,7 +15,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	golang.org/x/sys v0.30.0 // indirect
 )

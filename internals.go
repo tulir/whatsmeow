@@ -26,8 +26,10 @@ func (cli *Client) DangerousInternals() *DangerousInternalClient {
 	return &DangerousInternalClient{cli}
 }
 
-type DangerousInfoQuery = infoQuery
-type DangerousInfoQueryType = infoQueryType
+type (
+	DangerousInfoQuery     = infoQuery
+	DangerousInfoQueryType = infoQueryType
+)
 
 func (int *DangerousInternalClient) SendIQ(query DangerousInfoQuery) (*waBinary.Node, error) {
 	return int.c.sendIQ(query)

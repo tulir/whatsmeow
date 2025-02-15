@@ -9,11 +9,12 @@ package whatsmeow
 import (
 	"fmt"
 
-	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
+	"go.mau.fi/util/random"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waMmsRetry"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/gcmutil"
@@ -25,7 +26,7 @@ func getMediaRetryKey(mediaKey []byte) (cipherKey []byte) {
 }
 
 func encryptMediaRetryReceipt(messageID types.MessageID, mediaKey []byte) (ciphertext, iv []byte, err error) {
-	receipt := &waProto.ServerErrorReceipt{
+	receipt := &waMmsRetry.ServerErrorReceipt{
 		StanzaID: proto.String(messageID),
 	}
 	var plaintext []byte
@@ -77,6 +78,7 @@ func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []
 	if cli == nil {
 		return ErrClientIsNil
 	}
+
 	ciphertext, iv, err := encryptMediaRetryReceipt(message.ID, mediaKey)
 	if err != nil {
 		return fmt.Errorf("failed to prepare encrypted retry receipt: %w", err)
@@ -119,8 +121,8 @@ func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []
 
 // DecryptMediaRetryNotification decrypts a media retry notification using the media key.
 // See Client.SendMediaRetryReceipt for more info on how to use this.
-func DecryptMediaRetryNotification(evt *events.MediaRetry, mediaKey []byte) (*waProto.MediaRetryNotification, error) {
-	var notif waProto.MediaRetryNotification
+func DecryptMediaRetryNotification(evt *events.MediaRetry, mediaKey []byte) (*waMmsRetry.MediaRetryNotification, error) {
+	var notif waMmsRetry.MediaRetryNotification
 	if evt.Error != nil && evt.Ciphertext == nil {
 		if evt.Error.Code == 2 {
 			return nil, ErrMediaNotAvailableOnPhone

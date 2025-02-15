@@ -29,8 +29,9 @@ func (cli *Client) handleReceipt(node *waBinary.Node) {
 				}
 			}()
 		}
-		cli.dispatchEvent(receipt)
+		go cli.dispatchEvent(receipt)
 	}
+	go cli.sendAck(node)
 }
 
 func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participants *waBinary.Node) {

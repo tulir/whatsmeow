@@ -40,6 +40,7 @@ func (cli *Client) getBroadcastListParticipants(jid types.JID) ([]types.JID, err
 	if selfIndex < 0 {
 		list = append(list, ownID)
 	}
+
 	return list, nil
 }
 

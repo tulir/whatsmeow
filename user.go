@@ -15,16 +15,19 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waHistorySync"
+	"go.mau.fi/whatsmeow/proto/waVnameCert"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-const BusinessMessageLinkPrefix = "https://wa.me/message/"
-const ContactQRLinkPrefix = "https://wa.me/qr/"
-const BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
-const ContactQRLinkDirectPrefix = "https://api.whatsapp.com/qr/"
-const NewsletterLinkPrefix = "https://whatsapp.com/channel/"
+const (
+	BusinessMessageLinkPrefix       = "https://wa.me/message/"
+	ContactQRLinkPrefix             = "https://wa.me/qr/"
+	BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
+	ContactQRLinkDirectPrefix       = "https://api.whatsapp.com/qr/"
+	NewsletterLinkPrefix            = "https://whatsapp.com/channel/"
+)
 
 // ResolveBusinessMessageLink resolves a business message short link and returns the target JID, business name and
 // text to prefill in the input field (if any).
@@ -272,7 +275,6 @@ func (cli *Client) GetBotProfiles(botInfo []types.BotListInfo) ([]types.BotProfi
 	}, UsyncQueryExtras{
 		BotListInfo: botInfo,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -424,6 +426,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 	if cli == nil {
 		return nil, ErrClientIsNil
 	}
+
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 
@@ -574,7 +577,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	return &info, nil
 }
 
-func (cli *Client) handleHistoricalPushNames(names []*waProto.Pushname) {
+func (cli *Client) handleHistoricalPushNames(names []*waHistorySync.Pushname) {
 	if cli.Store.Contacts == nil {
 		return
 	}
@@ -648,12 +651,12 @@ func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedNa
 		return nil, nil
 	}
 
-	var cert waProto.VerifiedNameCertificate
+	var cert waVnameCert.VerifiedNameCertificate
 	err := proto.Unmarshal(rawCert, &cert)
 	if err != nil {
 		return nil, err
 	}
-	var certDetails waProto.VerifiedNameCertificate_Details
+	var certDetails waVnameCert.VerifiedNameCertificate_Details
 	err = proto.Unmarshal(cert.GetDetails(), &certDetails)
 	if err != nil {
 		return nil, err
@@ -734,6 +737,7 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 	if cli == nil {
 		return nil, ErrClientIsNil
 	}
+
 	var extras UsyncQueryExtras
 	if len(extra) > 1 {
 		return nil, errors.New("only one extra parameter may be provided to usync()")

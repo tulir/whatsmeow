@@ -15,17 +15,17 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/proto"
+
+	"go.mau.fi/util/random"
+
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/keys/prekey"
 	"go.mau.fi/libsignal/protocol"
 	"go.mau.fi/libsignal/session"
 	"go.mau.fi/libsignal/signalerror"
-	"go.mau.fi/util/random"
-	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	armadillo "go.mau.fi/whatsmeow/proto"
-	"go.mau.fi/whatsmeow/proto/waArmadilloApplication"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waConsumerApplication"
 	"go.mau.fi/whatsmeow/proto/waMsgApplication"
@@ -34,16 +34,17 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-const FBMessageVersion = 3
-const FBMessageApplicationVersion = 2
-const FBConsumerMessageVersion = 1
-const FBArmadilloMessageVersion = 1
+const (
+	FBMessageVersion            = 3
+	FBMessageApplicationVersion = 2
+	FBConsumerMessageVersion    = 1
+)
 
 // SendFBMessage sends the given v3 message to the given JID.
 func (cli *Client) SendFBMessage(
 	ctx context.Context,
 	to types.JID,
-	message armadillo.RealMessageApplicationSub,
+	message *waConsumerApplication.ConsumerApplication,
 	metadata *waMsgApplication.MessageApplication_Metadata,
 	extra ...SendRequestExtra,
 ) (resp SendResponse, err error) {
@@ -51,6 +52,7 @@ func (cli *Client) SendFBMessage(
 		err = ErrClientIsNil
 		return
 	}
+
 	var req SendRequestExtra
 	if len(extra) > 1 {
 		err = errors.New("only one extra parameter may be provided to SendMessage")
@@ -58,37 +60,9 @@ func (cli *Client) SendFBMessage(
 	} else if len(extra) == 1 {
 		req = extra[0]
 	}
-	var subproto waMsgApplication.MessageApplication_SubProtocolPayload
-	subproto.FutureProof = waCommon.FutureProofBehavior_PLACEHOLDER.Enum()
-	switch typedMsg := message.(type) {
-	case *waConsumerApplication.ConsumerApplication:
-		var consumerMessage []byte
-		consumerMessage, err = proto.Marshal(typedMsg)
-		if err != nil {
-			err = fmt.Errorf("failed to marshal consumer message: %w", err)
-			return
-		}
-		subproto.SubProtocol = &waMsgApplication.MessageApplication_SubProtocolPayload_ConsumerMessage{
-			ConsumerMessage: &waCommon.SubProtocol{
-				Payload: consumerMessage,
-				Version: proto.Int32(FBConsumerMessageVersion),
-			},
-		}
-	case *waArmadilloApplication.Armadillo:
-		var armadilloMessage []byte
-		armadilloMessage, err = proto.Marshal(typedMsg)
-		if err != nil {
-			err = fmt.Errorf("failed to marshal armadillo message: %w", err)
-			return
-		}
-		subproto.SubProtocol = &waMsgApplication.MessageApplication_SubProtocolPayload_Armadillo{
-			Armadillo: &waCommon.SubProtocol{
-				Payload: armadilloMessage,
-				Version: proto.Int32(FBArmadilloMessageVersion),
-			},
-		}
-	default:
-		err = fmt.Errorf("unsupported message type %T", message)
+	consumerMessage, err := proto.Marshal(message)
+	if err != nil {
+		err = fmt.Errorf("failed to marshal consumer message: %w", err)
 		return
 	}
 	if metadata == nil {
@@ -100,7 +74,15 @@ func (cli *Client) SendFBMessage(
 	messageAppProto := &waMsgApplication.MessageApplication{
 		Payload: &waMsgApplication.MessageApplication_Payload{
 			Content: &waMsgApplication.MessageApplication_Payload_SubProtocol{
-				SubProtocol: &subproto,
+				SubProtocol: &waMsgApplication.MessageApplication_SubProtocolPayload{
+					SubProtocol: &waMsgApplication.MessageApplication_SubProtocolPayload_ConsumerMessage{
+						ConsumerMessage: &waCommon.SubProtocol{
+							Payload: consumerMessage,
+							Version: proto.Int32(FBConsumerMessageVersion),
+						},
+					},
+					FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER.Enum(),
+				},
 			},
 		},
 		Metadata: metadata,
@@ -148,7 +130,7 @@ func (cli *Client) SendFBMessage(
 	case types.DefaultUserServer, types.MessengerServer:
 		if req.Peer {
 			err = fmt.Errorf("peer messages to fb are not yet supported")
-			//data, err = cli.sendPeerMessage(to, req.ID, message, &resp.DebugTimings)
+			// data, err = cli.sendPeerMessage(to, req.ID, message, &resp.DebugTimings)
 		} else {
 			data, phash, err = cli.sendDMV3(ctx, to, ownID, req.ID, messageApp, msgAttrs, frankingTag, &resp.DebugTimings)
 		}
@@ -337,20 +319,7 @@ type messageAttrs struct {
 	PollType    string
 }
 
-func getAttrsFromFBMessage(msg armadillo.MessageApplicationSub) (attrs messageAttrs) {
-	switch typedMsg := msg.(type) {
-	case *waConsumerApplication.ConsumerApplication:
-		return getAttrsFromFBConsumerMessage(typedMsg)
-	case *waArmadilloApplication.Armadillo:
-		attrs.Type = "media"
-		attrs.MediaType = "document"
-	default:
-		attrs.Type = "text"
-	}
-	return
-}
-
-func getAttrsFromFBConsumerMessage(msg *waConsumerApplication.ConsumerApplication) (attrs messageAttrs) {
+func getAttrsFromFBMessage(msg *waConsumerApplication.ConsumerApplication) (attrs messageAttrs) {
 	switch payload := msg.GetPayload().GetPayload().(type) {
 	case *waConsumerApplication.ConsumerApplication_Payload_Content:
 		switch content := payload.Content.GetContent().(type) {
