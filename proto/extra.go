@@ -18,9 +18,11 @@ type RealMessageApplicationSub interface {
 	proto.Message
 }
 
-type Unsupported_BusinessApplication waCommon.SubProtocol
-type Unsupported_PaymentApplication waCommon.SubProtocol
-type Unsupported_Voip waCommon.SubProtocol
+type (
+	Unsupported_BusinessApplication waCommon.SubProtocol
+	Unsupported_PaymentApplication  waCommon.SubProtocol
+	Unsupported_Voip                waCommon.SubProtocol
+)
 
 var (
 	_ MessageApplicationSub = (*waConsumerApplication.ConsumerApplication)(nil) // 2
