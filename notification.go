@@ -14,7 +14,7 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -282,7 +282,7 @@ func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.Newslet
 			case "plaintext":
 				byteContent, ok := subchild.Content.([]byte)
 				if ok {
-					msg.Message = new(waProto.Message)
+					msg.Message = new(waE2E.Message)
 					err := proto.Unmarshal(byteContent, msg.Message)
 					if err != nil {
 						cli.Log.Warnf("Failed to unmarshal newsletter message: %v", err)

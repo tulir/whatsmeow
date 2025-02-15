@@ -17,7 +17,6 @@ import (
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/gcmutil"
@@ -60,9 +59,9 @@ func getOrigSenderFromKey(msg *events.Message, key *waCommon.MessageKey) (types.
 		// fromMe always means the poll and vote were sent by the same user
 		return msg.Info.Sender, nil
 	} else if msg.Info.Chat.Server == types.DefaultUserServer {
-		sender, err := types.ParseJID(key.GetRemoteJid())
+		sender, err := types.ParseJID(key.GetRemoteJID())
 		if err != nil {
-			return types.EmptyJID, fmt.Errorf("failed to parse JID %q of original message sender: %w", key.GetRemoteJid(), err)
+			return types.EmptyJID, fmt.Errorf("failed to parse JID %q of original message sender: %w", key.GetRemoteJID(), err)
 		}
 		return sender, nil
 	} else {
@@ -235,40 +234,40 @@ func HashPollOptions(optionNames []string) [][]byte {
 //		}
 //		resp, err := cli.SendMessage(context.Background(), evt.Info.Chat, pollVoteMsg)
 //	}
-func (cli *Client) BuildPollVote(pollInfo *types.MessageInfo, optionNames []string) (*waProto.Message, error) {
-	pollUpdate, err := cli.EncryptPollVote(pollInfo, &waProto.PollVoteMessage{
+func (cli *Client) BuildPollVote(pollInfo *types.MessageInfo, optionNames []string) (*waE2E.Message, error) {
+	pollUpdate, err := cli.EncryptPollVote(pollInfo, &waE2E.PollVoteMessage{
 		SelectedOptions: HashPollOptions(optionNames),
 	})
-	return &waProto.Message{PollUpdateMessage: pollUpdate}, err
+	return &waE2E.Message{PollUpdateMessage: pollUpdate}, err
 }
 
 // BuildPollCreation builds a poll creation message with the given poll name, options and maximum number of selections.
 // The built message can be sent normally using Client.SendMessage.
 //
 //	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildPollCreation("meow?", []string{"yes", "no"}, 1))
-func (cli *Client) BuildPollCreation(name string, optionNames []string, selectableOptionCount int) *waProto.Message {
+func (cli *Client) BuildPollCreation(name string, optionNames []string, selectableOptionCount int) *waE2E.Message {
 	msgSecret := random.Bytes(32)
 	if selectableOptionCount < 0 || selectableOptionCount > len(optionNames) {
 		selectableOptionCount = 0
 	}
-	options := make([]*waProto.PollCreationMessage_Option, len(optionNames))
+	options := make([]*waE2E.PollCreationMessage_Option, len(optionNames))
 	for i, option := range optionNames {
-		options[i] = &waProto.PollCreationMessage_Option{OptionName: proto.String(option)}
+		options[i] = &waE2E.PollCreationMessage_Option{OptionName: proto.String(option)}
 	}
-	return &waProto.Message{
-		PollCreationMessage: &waProto.PollCreationMessage{
+	return &waE2E.Message{
+		PollCreationMessage: &waE2E.PollCreationMessage{
 			Name:                   proto.String(name),
 			Options:                options,
 			SelectableOptionsCount: proto.Uint32(uint32(selectableOptionCount)),
 		},
-		MessageContextInfo: &waProto.MessageContextInfo{
+		MessageContextInfo: &waE2E.MessageContextInfo{
 			MessageSecret: msgSecret,
 		},
 	}
 }
 
 // EncryptPollVote encrypts a poll vote message. This is a slightly lower-level function, using BuildPollVote is recommended.
-func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waProto.PollVoteMessage) (*waProto.PollUpdateMessage, error) {
+func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waE2E.PollVoteMessage) (*waE2E.PollUpdateMessage, error) {
 	plaintext, err := proto.Marshal(vote)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal poll vote protobuf: %w", err)
@@ -277,9 +276,9 @@ func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waProto.Po
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt poll vote: %w", err)
 	}
-	return &waProto.PollUpdateMessage{
+	return &waE2E.PollUpdateMessage{
 		PollCreationMessageKey: getKeyFromInfo(pollInfo),
-		Vote: &waProto.PollEncValue{
+		Vote: &waE2E.PollEncValue{
 			EncPayload: ciphertext,
 			EncIV:      iv,
 		},
