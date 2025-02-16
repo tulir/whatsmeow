@@ -25,8 +25,8 @@ github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOf
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 go.mau.fi/libsignal v0.1.2 h1:Vs16DXWxSKyzVtI+EEXLCSy5pVWzzCzp/2eqFGvLyP0=
 go.mau.fi/libsignal v0.1.2/go.mod h1:JpnLSSJptn/s1sv7I56uEMywvz8x4YzxeF5OzdPb6PE=
-go.mau.fi/util v0.8.4 h1:mVKlJcXWfVo8ZW3f4vqtjGpqtZqJvX4ETekxawt2vnQ=
-go.mau.fi/util v0.8.4/go.mod h1:MOfGTs1CBuK6ERTcSL4lb5YU7/ujz09eOPVEDckuazY=
+go.mau.fi/util v0.8.5 h1:PwCAAtcfK0XxZ4sdErJyfBMkTEWoQU33aB7QqDDzQRI=
+go.mau.fi/util v0.8.5/go.mod h1:Ycug9mrbztlahHPEJ6H5r8Nu/xqZaWbE5vPHVWmfz6M=
 golang.org/x/crypto v0.33.0 h1:IOBPskki6Lysi0lo9qQvbxiQ+FvsCC/YWOecCHAixus=
 golang.org/x/crypto v0.33.0/go.mod h1:bVdXmD7IV/4GdElGPozy6U7lWdRXA4qyRVGJV57uQ5M=
 golang.org/x/net v0.35.0 h1:T5GQRQb2y08kTAByq9L4/bz8cipCdA8FbRTXewonqY8=
