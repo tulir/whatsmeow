@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 	"go.mau.fi/util/random"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
@@ -104,7 +104,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.Log = c.log
 	device.SignedPreKey = &keys.PreKey{}
 	var noisePriv, identityPriv, preKeyPriv, preKeySig []byte
-	var account waProto.ADVSignedDeviceIdentity
+	var account waAdv.ADVSignedDeviceIdentity
 	var fbUUID uuid.NullUUID
 
 	err := row.Scan(

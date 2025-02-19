@@ -9,13 +9,13 @@ package types
 import (
 	"time"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waVnameCert"
 )
 
 // VerifiedName contains verified WhatsApp business details.
 type VerifiedName struct {
-	Certificate *waProto.VerifiedNameCertificate
-	Details     *waProto.VerifiedNameCertificate_Details
+	Certificate *waVnameCert.VerifiedNameCertificate
+	Details     *waVnameCert.VerifiedNameCertificate_Details
 }
 
 // UserInfo contains info about a WhatsApp user.

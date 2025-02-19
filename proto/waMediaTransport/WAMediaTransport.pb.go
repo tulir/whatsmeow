@@ -1085,16 +1085,17 @@ func (x *ImageTransport_Integral) GetTransport() *WAMediaTransport {
 }
 
 type VideoTransport_Ancillary struct {
-	state          protoimpl.MessageState                `protogen:"open.v1"`
-	Seconds        *uint32                               `protobuf:"varint,1,opt,name=seconds" json:"seconds,omitempty"`
-	Caption        *waCommon.MessageText                 `protobuf:"bytes,2,opt,name=caption" json:"caption,omitempty"`
-	GifPlayback    *bool                                 `protobuf:"varint,3,opt,name=gifPlayback" json:"gifPlayback,omitempty"`
-	Height         *uint32                               `protobuf:"varint,4,opt,name=height" json:"height,omitempty"`
-	Width          *uint32                               `protobuf:"varint,5,opt,name=width" json:"width,omitempty"`
-	Sidecar        []byte                                `protobuf:"bytes,6,opt,name=sidecar" json:"sidecar,omitempty"`
-	GifAttribution *VideoTransport_Ancillary_Attribution `protobuf:"varint,7,opt,name=gifAttribution,enum=WAMediaTransport.VideoTransport_Ancillary_Attribution" json:"gifAttribution,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state              protoimpl.MessageState                `protogen:"open.v1"`
+	Seconds            *uint32                               `protobuf:"varint,1,opt,name=seconds" json:"seconds,omitempty"`
+	Caption            *waCommon.MessageText                 `protobuf:"bytes,2,opt,name=caption" json:"caption,omitempty"`
+	GifPlayback        *bool                                 `protobuf:"varint,3,opt,name=gifPlayback" json:"gifPlayback,omitempty"`
+	Height             *uint32                               `protobuf:"varint,4,opt,name=height" json:"height,omitempty"`
+	Width              *uint32                               `protobuf:"varint,5,opt,name=width" json:"width,omitempty"`
+	Sidecar            []byte                                `protobuf:"bytes,6,opt,name=sidecar" json:"sidecar,omitempty"`
+	GifAttribution     *VideoTransport_Ancillary_Attribution `protobuf:"varint,7,opt,name=gifAttribution,enum=WAMediaTransport.VideoTransport_Ancillary_Attribution" json:"gifAttribution,omitempty"`
+	AccessibilityLabel *string                               `protobuf:"bytes,8,opt,name=accessibilityLabel" json:"accessibilityLabel,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *VideoTransport_Ancillary) Reset() {
@@ -1174,6 +1175,13 @@ func (x *VideoTransport_Ancillary) GetGifAttribution() VideoTransport_Ancillary_
 		return *x.GifAttribution
 	}
 	return VideoTransport_Ancillary_NONE
+}
+
+func (x *VideoTransport_Ancillary) GetAccessibilityLabel() string {
+	if x != nil && x.AccessibilityLabel != nil {
+		return *x.AccessibilityLabel
+	}
+	return ""
 }
 
 type VideoTransport_Integral struct {
@@ -1557,17 +1565,18 @@ func (x *DocumentTransport_Integral) GetTransport() *WAMediaTransport {
 }
 
 type StickerTransport_Ancillary struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	PageCount         *uint32                `protobuf:"varint,1,opt,name=pageCount" json:"pageCount,omitempty"`
-	Height            *uint32                `protobuf:"varint,2,opt,name=height" json:"height,omitempty"`
-	Width             *uint32                `protobuf:"varint,3,opt,name=width" json:"width,omitempty"`
-	FirstFrameLength  *uint32                `protobuf:"varint,4,opt,name=firstFrameLength" json:"firstFrameLength,omitempty"`
-	FirstFrameSidecar []byte                 `protobuf:"bytes,5,opt,name=firstFrameSidecar" json:"firstFrameSidecar,omitempty"`
-	MustacheText      *string                `protobuf:"bytes,6,opt,name=mustacheText" json:"mustacheText,omitempty"`
-	IsThirdParty      *bool                  `protobuf:"varint,7,opt,name=isThirdParty" json:"isThirdParty,omitempty"`
-	ReceiverFetchID   *string                `protobuf:"bytes,8,opt,name=receiverFetchID" json:"receiverFetchID,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	PageCount          *uint32                `protobuf:"varint,1,opt,name=pageCount" json:"pageCount,omitempty"`
+	Height             *uint32                `protobuf:"varint,2,opt,name=height" json:"height,omitempty"`
+	Width              *uint32                `protobuf:"varint,3,opt,name=width" json:"width,omitempty"`
+	FirstFrameLength   *uint32                `protobuf:"varint,4,opt,name=firstFrameLength" json:"firstFrameLength,omitempty"`
+	FirstFrameSidecar  []byte                 `protobuf:"bytes,5,opt,name=firstFrameSidecar" json:"firstFrameSidecar,omitempty"`
+	MustacheText       *string                `protobuf:"bytes,6,opt,name=mustacheText" json:"mustacheText,omitempty"`
+	IsThirdParty       *bool                  `protobuf:"varint,7,opt,name=isThirdParty" json:"isThirdParty,omitempty"`
+	ReceiverFetchID    *string                `protobuf:"bytes,8,opt,name=receiverFetchID" json:"receiverFetchID,omitempty"`
+	AccessibilityLabel *string                `protobuf:"bytes,9,opt,name=accessibilityLabel" json:"accessibilityLabel,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *StickerTransport_Ancillary) Reset() {
@@ -1652,6 +1661,13 @@ func (x *StickerTransport_Ancillary) GetIsThirdParty() bool {
 func (x *StickerTransport_Ancillary) GetReceiverFetchID() string {
 	if x != nil && x.ReceiverFetchID != nil {
 		return *x.ReceiverFetchID
+	}
+	return ""
+}
+
+func (x *StickerTransport_Ancillary) GetAccessibilityLabel() string {
+	if x != nil && x.AccessibilityLabel != nil {
+		return *x.AccessibilityLabel
 	}
 	return ""
 }

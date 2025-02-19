@@ -13,12 +13,14 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
 	armadillo "go.mau.fi/whatsmeow/proto"
 	"go.mau.fi/whatsmeow/proto/waArmadilloApplication"
 	"go.mau.fi/whatsmeow/proto/waConsumerApplication"
+	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/proto/waHistorySync"
 	"go.mau.fi/whatsmeow/proto/waMsgApplication"
 	"go.mau.fi/whatsmeow/proto/waMsgTransport"
+	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -87,6 +89,7 @@ func (*CATRefreshError) PermanentDisconnectDescription() string { return "CAT re
 func (tb *TemporaryBan) PermanentDisconnectDescription() string {
 	return fmt.Sprintf("temporarily banned: %s", tb.String())
 }
+
 func (cf *ConnectFailure) PermanentDisconnectDescription() string {
 	return fmt.Sprintf("connect failure: %s", cf.Reason.String())
 }
@@ -234,7 +237,7 @@ type Disconnected struct{}
 
 // HistorySync is emitted when the phone has sent a blob of historical messages.
 type HistorySync struct {
-	Data *waProto.HistorySync
+	Data *waHistorySync.HistorySync
 }
 
 type DecryptFailMode string
@@ -280,7 +283,7 @@ type NewsletterMessageMeta struct {
 // Message is emitted when receiving a new message.
 type Message struct {
 	Info    types.MessageInfo // Information about the message like the chat and sender IDs
-	Message *waProto.Message  // The actual message struct
+	Message *waE2E.Message    // The actual message struct
 
 	IsEphemeral           bool // True if the message was unwrapped from an EphemeralMessage
 	IsViewOnce            bool // True if the message was unwrapped from a ViewOnceMessage, ViewOnceMessageV2 or ViewOnceMessageV2Extension
@@ -291,7 +294,7 @@ type Message struct {
 	IsEdit                bool // True if the message was unwrapped from an EditedMessage
 
 	// If this event was parsed from a WebMessageInfo (i.e. from a history sync or unavailable message request), the source data is here.
-	SourceWebMsg *waProto.WebMessageInfo
+	SourceWebMsg *waWeb.WebMessageInfo
 	// If this event is a response to an unavailable message request, the request ID is here.
 	UnavailableRequestID types.MessageID
 	// If the message was re-requested from the sender, this is the number of retries it took.
@@ -301,7 +304,7 @@ type Message struct {
 
 	// The raw message struct. This is the raw unmodified data, which means the actual message might
 	// be wrapped in DeviceSentMessage, EphemeralMessage or ViewOnceMessage.
-	RawMessage *waProto.Message
+	RawMessage *waE2E.Message
 }
 
 type FBMessage struct {

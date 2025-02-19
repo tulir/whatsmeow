@@ -29,7 +29,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -38,7 +38,7 @@ import (
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
 //
 //	msgID := cli.GenerateMessageID()
-//	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
+//	cli.SendMessage(context.Background(), targetJID, &waE2E.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
 func (cli *Client) GenerateMessageID() types.MessageID {
 	if cli != nil && cli.MessengerConfig != nil {
 		return types.MessageID(strconv.FormatInt(GenerateFacebookMessageID(), 10))
@@ -63,7 +63,7 @@ func GenerateFacebookMessageID() int64 {
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
 //
 //	msgID := whatsmeow.GenerateMessageID()
-//	cli.SendMessage(context.Background(), targetJID, &waProto.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
+//	cli.SendMessage(context.Background(), targetJID, &waE2E.Message{...}, whatsmeow.SendRequestExtra{ID: msgID})
 //
 // Deprecated: WhatsApp web has switched to using a hash of the current timestamp, user id and random bytes. Use Client.GenerateMessageID instead.
 func GenerateMessageID() types.MessageID {
@@ -153,7 +153,7 @@ type SendRequestExtra struct {
 // The message itself can contain anything you want (within the protobuf schema).
 // e.g. for a simple text message, use the Conversation field:
 //
-//	cli.SendMessage(context.Background(), targetJID, &waProto.Message{
+//	cli.SendMessage(context.Background(), targetJID, &waE2E.Message{
 //		Conversation: proto.String("Hello, World!"),
 //	})
 //
@@ -197,9 +197,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	if to.Server == types.NewsletterServer {
 		// TODO somehow deduplicate this with the code in sendNewsletter?
 		if message.EditedMessage != nil {
-			req.ID = types.MessageID(message.GetEditedMessage().GetMessage().GetProtocolMessage().GetKey().GetId())
-		} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waProto.ProtocolMessage_REVOKE {
-			req.ID = types.MessageID(message.GetProtocolMessage().GetKey().GetId())
+			req.ID = types.MessageID(message.GetEditedMessage().GetMessage().GetProtocolMessage().GetKey().GetID())
+		} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waE2E.ProtocolMessage_REVOKE {
+			req.ID = types.MessageID(message.GetProtocolMessage().GetKey().GetID())
 		}
 	}
 	resp.ID = req.ID
@@ -367,8 +367,8 @@ func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (SendRespon
 
 // BuildMessageKey builds a MessageKey object, which is used to refer to previous messages
 // for things such as replies, revocations and reactions.
-func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *waProto.MessageKey {
-	key := &waProto.MessageKey{
+func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *waCommon.MessageKey {
+	key := &waCommon.MessageKey{
 		FromMe:    proto.Bool(true),
 		ID:        proto.String(id),
 		RemoteJID: proto.String(chat.String()),
@@ -392,10 +392,10 @@ func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *
 // To revoke someone else's messages when you are group admin, pass the message sender's JID as the second parameter.
 //
 //	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildRevoke(chat, senderJID, originalMessageID)
-func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waProto.Message {
-	return &waProto.Message{
-		ProtocolMessage: &waProto.ProtocolMessage{
-			Type: waProto.ProtocolMessage_REVOKE.Enum(),
+func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2E.Message {
+	return &waE2E.Message{
+		ProtocolMessage: &waE2E.ProtocolMessage{
+			Type: waE2E.ProtocolMessage_REVOKE.Enum(),
 			Key:  cli.BuildMessageKey(chat, sender, id),
 		},
 	}
@@ -407,9 +407,9 @@ func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waPr
 //	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildReaction(chat, senderJID, targetMessageID, "🐈️")
 //
 // Note that for newsletter messages, you need to use NewsletterSendReaction instead of BuildReaction + SendMessage.
-func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waProto.Message {
-	return &waProto.Message{
-		ReactionMessage: &waProto.ReactionMessage{
+func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, reaction string) *waE2E.Message {
+	return &waE2E.Message{
+		ReactionMessage: &waE2E.ReactionMessage{
 			Key:               cli.BuildMessageKey(chat, sender, id),
 			Text:              proto.String(reaction),
 			SenderTimestampMS: proto.Int64(time.Now().UnixMilli()),
@@ -423,13 +423,13 @@ func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, rea
 // The built message can be sent using Client.SendMessage, but you must pass whatsmeow.SendRequestExtra{Peer: true} as the last parameter.
 // The full response will come as a ProtocolMessage with type `PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE`.
 // The response events will also be dispatched as normal *events.Message's with UnavailableRequestID set to the request message ID.
-func (cli *Client) BuildUnavailableMessageRequest(chat, sender types.JID, id string) *waProto.Message {
-	return &waProto.Message{
-		ProtocolMessage: &waProto.ProtocolMessage{
-			Type: waProto.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
-			PeerDataOperationRequestMessage: &waProto.PeerDataOperationRequestMessage{
-				PeerDataOperationRequestType: waProto.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND.Enum(),
-				PlaceholderMessageResendRequest: []*waProto.PeerDataOperationRequestMessage_PlaceholderMessageResendRequest{{
+func (cli *Client) BuildUnavailableMessageRequest(chat, sender types.JID, id string) *waE2E.Message {
+	return &waE2E.Message{
+		ProtocolMessage: &waE2E.ProtocolMessage{
+			Type: waE2E.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
+			PeerDataOperationRequestMessage: &waE2E.PeerDataOperationRequestMessage{
+				PeerDataOperationRequestType: waE2E.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND.Enum(),
+				PlaceholderMessageResendRequest: []*waE2E.PeerDataOperationRequestMessage_PlaceholderMessageResendRequest{{
 					MessageKey: cli.BuildMessageKey(chat, sender, id),
 				}},
 			},
@@ -444,13 +444,13 @@ func (cli *Client) BuildUnavailableMessageRequest(chat, sender types.JID, id str
 //
 // The response will contain to `count` messages immediately before the given message.
 // The recommended number of messages to request at a time is 50.
-func (cli *Client) BuildHistorySyncRequest(lastKnownMessageInfo *types.MessageInfo, count int) *waProto.Message {
-	return &waProto.Message{
-		ProtocolMessage: &waProto.ProtocolMessage{
-			Type: waProto.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
-			PeerDataOperationRequestMessage: &waProto.PeerDataOperationRequestMessage{
-				PeerDataOperationRequestType: waProto.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND.Enum(),
-				HistorySyncOnDemandRequest: &waProto.PeerDataOperationRequestMessage_HistorySyncOnDemandRequest{
+func (cli *Client) BuildHistorySyncRequest(lastKnownMessageInfo *types.MessageInfo, count int) *waE2E.Message {
+	return &waE2E.Message{
+		ProtocolMessage: &waE2E.ProtocolMessage{
+			Type: waE2E.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
+			PeerDataOperationRequestMessage: &waE2E.PeerDataOperationRequestMessage{
+				PeerDataOperationRequestType: waE2E.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND.Enum(),
+				HistorySyncOnDemandRequest: &waE2E.PeerDataOperationRequestMessage_HistorySyncOnDemandRequest{
 					ChatJID:              proto.String(lastKnownMessageInfo.Chat.String()),
 					OldestMsgID:          proto.String(lastKnownMessageInfo.ID),
 					OldestMsgFromMe:      proto.Bool(lastKnownMessageInfo.IsFromMe),
@@ -468,20 +468,20 @@ const EditWindow = 20 * time.Minute
 // BuildEdit builds a message edit message using the given variables.
 // The built message can be sent normally using Client.SendMessage.
 //
-//	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildEdit(chat, originalMessageID, &waProto.Message{
+//	resp, err := cli.SendMessage(context.Background(), chat, cli.BuildEdit(chat, originalMessageID, &waE2E.Message{
 //		Conversation: proto.String("edited message"),
 //	})
-func (cli *Client) BuildEdit(chat types.JID, id types.MessageID, newContent *waProto.Message) *waProto.Message {
-	return &waProto.Message{
-		EditedMessage: &waProto.FutureProofMessage{
-			Message: &waProto.Message{
-				ProtocolMessage: &waProto.ProtocolMessage{
-					Key: &waProto.MessageKey{
+func (cli *Client) BuildEdit(chat types.JID, id types.MessageID, newContent *waE2E.Message) *waE2E.Message {
+	return &waE2E.Message{
+		EditedMessage: &waE2E.FutureProofMessage{
+			Message: &waE2E.Message{
+				ProtocolMessage: &waE2E.ProtocolMessage{
+					Key: &waCommon.MessageKey{
 						FromMe:    proto.Bool(true),
 						ID:        proto.String(id),
 						RemoteJID: proto.String(chat.String()),
 					},
-					Type:          waProto.ProtocolMessage_MESSAGE_EDIT.Enum(),
+					Type:          waE2E.ProtocolMessage_MESSAGE_EDIT.Enum(),
 					EditedMessage: newContent,
 					TimestampMS:   proto.Int64(time.Now().UnixMilli()),
 				},
@@ -524,9 +524,9 @@ func ParseDisappearingTimerString(val string) (time.Duration, bool) {
 func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (err error) {
 	switch chat.Server {
 	case types.DefaultUserServer:
-		_, err = cli.SendMessage(context.TODO(), chat, &waProto.Message{
-			ProtocolMessage: &waProto.ProtocolMessage{
-				Type:                waProto.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
+		_, err = cli.SendMessage(context.TODO(), chat, &waE2E.Message{
+			ProtocolMessage: &waE2E.ProtocolMessage{
+				Type:                waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
 				EphemeralExpiration: proto.Uint32(uint32(timer.Seconds())),
 			},
 		})
@@ -561,7 +561,7 @@ func participantListHashV2(participants []types.JID) string {
 	return fmt.Sprintf("2:%s", base64.RawStdEncoding.EncodeToString(hash[:6]))
 }
 
-func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waProto.Message, mediaID string, timings *MessageDebugTimings) ([]byte, error) {
+func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waE2E.Message, mediaID string, timings *MessageDebugTimings) ([]byte, error) {
 	attrs := waBinary.Attrs{
 		"to":   to,
 		"id":   id,
@@ -573,7 +573,7 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 	if message.EditedMessage != nil {
 		attrs["edit"] = string(types.EditAttributeAdminEdit)
 		message = message.GetEditedMessage().GetMessage().GetProtocolMessage().GetEditedMessage()
-	} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waProto.ProtocolMessage_REVOKE {
+	} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waE2E.ProtocolMessage_REVOKE {
 		attrs["edit"] = string(types.EditAttributeAdminRevoke)
 		message = nil
 	}
@@ -605,7 +605,7 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waP
 	return data, nil
 }
 
-func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings, botNode *waBinary.Node) (string, []byte, error) {
+func (cli *Client) sendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings, botNode *waBinary.Node) (string, []byte, error) {
 	var participants []types.JID
 	var err error
 	start := time.Now()
@@ -716,7 +716,7 @@ func (cli *Client) sendDM(ctx context.Context, to, ownID types.JID, id types.Mes
 	return data, nil
 }
 
-func getTypeFromMessage(msg *waProto.Message) string {
+func getTypeFromMessage(msg *waE2E.Message) string {
 	switch {
 	case msg.ViewOnceMessage != nil:
 		return getTypeFromMessage(msg.ViewOnceMessage.Message)
@@ -743,7 +743,7 @@ func getTypeFromMessage(msg *waProto.Message) string {
 	}
 }
 
-func getMediaTypeFromMessage(msg *waProto.Message) string {
+func getMediaTypeFromMessage(msg *waE2E.Message) string {
 	switch {
 	case msg.ViewOnceMessage != nil:
 		return getMediaTypeFromMessage(msg.ViewOnceMessage.Message)
@@ -798,7 +798,7 @@ func getMediaTypeFromMessage(msg *waProto.Message) string {
 	}
 }
 
-func getButtonTypeFromMessage(msg *waProto.Message) string {
+func getButtonTypeFromMessage(msg *waE2E.Message) string {
 	switch {
 	case msg.ViewOnceMessage != nil:
 		return getButtonTypeFromMessage(msg.ViewOnceMessage.Message)
@@ -821,7 +821,7 @@ func getButtonTypeFromMessage(msg *waProto.Message) string {
 	}
 }
 
-func getButtonAttributes(msg *waProto.Message) waBinary.Attrs {
+func getButtonAttributes(msg *waE2E.Message) waBinary.Attrs {
 	switch {
 	case msg.ViewOnceMessage != nil:
 		return getButtonAttributes(msg.ViewOnceMessage.Message)
@@ -843,39 +843,39 @@ func getButtonAttributes(msg *waProto.Message) waBinary.Attrs {
 
 const RemoveReactionText = ""
 
-func getEditAttribute(msg *waProto.Message) types.EditAttribute {
+func getEditAttribute(msg *waE2E.Message) types.EditAttribute {
 	switch {
 	case msg.EditedMessage != nil && msg.EditedMessage.Message != nil:
 		return getEditAttribute(msg.EditedMessage.Message)
 	case msg.ProtocolMessage != nil && msg.ProtocolMessage.GetKey() != nil:
 		switch msg.ProtocolMessage.GetType() {
-		case waProto.ProtocolMessage_REVOKE:
+		case waE2E.ProtocolMessage_REVOKE:
 			if msg.ProtocolMessage.GetKey().GetFromMe() {
 				return types.EditAttributeSenderRevoke
 			} else {
 				return types.EditAttributeAdminRevoke
 			}
-		case waProto.ProtocolMessage_MESSAGE_EDIT:
+		case waE2E.ProtocolMessage_MESSAGE_EDIT:
 			if msg.ProtocolMessage.EditedMessage != nil {
 				return types.EditAttributeMessageEdit
 			}
 		}
 	case msg.ReactionMessage != nil && msg.ReactionMessage.GetText() == RemoveReactionText:
 		return types.EditAttributeSenderRevoke
-	case msg.KeepInChatMessage != nil && msg.KeepInChatMessage.GetKey().GetFromMe() && msg.KeepInChatMessage.GetKeepType() == waProto.KeepType_UNDO_KEEP_FOR_ALL:
+	case msg.KeepInChatMessage != nil && msg.KeepInChatMessage.GetKey().GetFromMe() && msg.KeepInChatMessage.GetKeepType() == waE2E.KeepType_UNDO_KEEP_FOR_ALL:
 		return types.EditAttributeSenderRevoke
 	}
 	return types.EditAttributeEmpty
 }
 
-func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, message *waProto.Message, timings *MessageDebugTimings) (*waBinary.Node, error) {
+func (cli *Client) preparePeerMessageNode(to types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings) (*waBinary.Node, error) {
 	attrs := waBinary.Attrs{
 		"id":       id,
 		"type":     "text",
 		"category": "peer",
 		"to":       to,
 	}
-	if message.GetProtocolMessage().GetType() == waProto.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST {
+	if message.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST {
 		attrs["push_priority"] = "high"
 	}
 	start := time.Now()
@@ -977,7 +977,7 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 	}, allDevices, nil
 }
 
-func marshalMessage(to types.JID, message *waProto.Message) (plaintext, dsmPlaintext []byte, err error) {
+func marshalMessage(to types.JID, message *waE2E.Message) (plaintext, dsmPlaintext []byte, err error) {
 	if message == nil && to.Server == types.NewsletterServer {
 		return
 	}
@@ -988,8 +988,8 @@ func marshalMessage(to types.JID, message *waProto.Message) (plaintext, dsmPlain
 	}
 
 	if to.Server != types.GroupServer && to.Server != types.NewsletterServer {
-		dsmPlaintext, err = proto.Marshal(&waProto.Message{
-			DeviceSentMessage: &waProto.DeviceSentMessage{
+		dsmPlaintext, err = proto.Marshal(&waE2E.Message{
+			DeviceSentMessage: &waE2E.DeviceSentMessage{
 				DestinationJID: proto.String(to.String()),
 				Message:        message,
 			},

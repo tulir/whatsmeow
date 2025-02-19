@@ -154,6 +154,10 @@ message Armadillo {
 			optional WAArmadilloXMA.ExtendedContentMessage extendedContentMessage = 5;
 		}
 
+		message MessageHistoryDocumentMessage {
+			optional WACommon.SubProtocol document = 1;
+		}
+
 		message NetworkVerificationMessage {
 			optional string codeText = 1;
 		}
@@ -245,6 +249,7 @@ message Armadillo {
 			NoteReplyMessage noteReplyMessage = 13;
 			RavenMessage ravenMessageMsgr = 14;
 			NetworkVerificationMessage networkVerificationMessage = 15;
+			MessageHistoryDocumentMessage messageHistoryDocumentMessage = 16;
 		}
 	}
 
