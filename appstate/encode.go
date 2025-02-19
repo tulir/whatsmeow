@@ -63,22 +63,32 @@ func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInf
 	}
 }
 
-func BuildContact(target types.JID, fullName string, add bool) PatchInfo {
-	operation := waServerSync.SyncdMutation_SET
-	if !add {
-		operation = waServerSync.SyncdMutation_REMOVE
-	}
+func BuildContact(target types.JID, fullName string) PatchInfo {
 	return PatchInfo{
 		Type:      WAPatchCriticalUnblockLow,
-		Operation: operation,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: []MutationInfo{{
 			Index:   []string{IndexContact, target.String()},
 			Version: 2,
 			Value: &waSyncAction.SyncActionValue{
 				ContactAction: &waSyncAction.ContactAction{
 					FullName:                 &fullName,
-					SaveOnPrimaryAddressbook: proto.Bool(add),
+					SaveOnPrimaryAddressbook: proto.Bool(true),
 				},
+			},
+		}},
+	}
+}
+
+func RemoveContact(target types.JID) PatchInfo {
+	return PatchInfo{
+		Type:      WAPatchCriticalUnblockLow,
+		Operation: waServerSync.SyncdMutation_REMOVE,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexContact, target.String()},
+			Version: 2,
+			Value: &waSyncAction.SyncActionValue{
+				ContactAction: &waSyncAction.ContactAction{},
 			},
 		}},
 	}
