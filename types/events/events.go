@@ -174,6 +174,9 @@ const (
 	ConnectFailureCATInvalid ConnectFailureReason = 414
 	ConnectFailureNotFound   ConnectFailureReason = 415
 
+	// Status code unknown (not in WA web)
+	ConnectFailureClientUnknown ConnectFailureReason = 418
+
 	ConnectFailureInternalServerError ConnectFailureReason = 500
 	ConnectFailureExperimental        ConnectFailureReason = 501
 	ConnectFailureServiceUnavailable  ConnectFailureReason = 503
