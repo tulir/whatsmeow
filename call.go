@@ -7,7 +7,14 @@
 package whatsmeow
 
 import (
+	"context"
+	"encoding/hex"
+	"fmt"
+	"strings"
+
+	"go.mau.fi/util/random"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -107,6 +114,52 @@ func (cli *Client) RejectCall(callFrom types.JID, callID string) error {
 			Tag:     "reject",
 			Attrs:   waBinary.Attrs{"call-id": callID, "call-creator": callFrom, "count": "0"},
 			Content: nil,
+		}},
+	})
+}
+
+// OfferCall initiate a call to a JID.
+func (cli *Client) OfferCall(callTo types.JID, video bool) error {
+	clientID := cli.getOwnID()
+	if clientID.IsEmpty() {
+		return ErrNotLoggedIn
+	}
+	var offerLen uint8 = 6
+	if video {
+		offerLen++
+	}
+	callID := strings.ToUpper(hex.EncodeToString(random.Bytes(16)))
+	plaintext, dsmPlaintext, err := marshalMessage(callTo, &waE2E.Message{Call: &waE2E.Call{CallKey: random.Bytes(32)}})
+	if err != nil {
+		return fmt.Errorf("failed to marshal call: %w", err)
+	}
+	destinationNode, includeIdentity := cli.encryptMessageForDevices(context.TODO(), []types.JID{clientID, callTo}, clientID, callID, plaintext, dsmPlaintext, nil)
+	if includeIdentity {
+		destinationNode = append(destinationNode, cli.makeDeviceIdentityNode())
+	}
+	offerContent := make([]waBinary.Node, 0, offerLen)
+	offerContent = append(offerContent,
+		waBinary.Node{Tag: "audio", Attrs: waBinary.Attrs{"enc": "opus", "rate": "16000"}},
+		waBinary.Node{Tag: "audio", Attrs: waBinary.Attrs{"enc": "opus", "rate": "8000"}},
+	)
+	if video {
+		offerContent = append(offerContent,
+			waBinary.Node{Tag: "video", Attrs: waBinary.Attrs{"orientation": "0", "screen_width": "1080", "screen_height": "2340", "device_orientation": "0", "enc": "vp8", "dec": "vp8"}},
+		)
+	}
+	offerContent = append(offerContent,
+		waBinary.Node{Tag: "capability", Attrs: waBinary.Attrs{"ver": "1"}, Content: []byte{1, 4, 255, 131, 207, 4}},
+		waBinary.Node{Tag: "destination", Content: destinationNode},
+		waBinary.Node{Tag: "encopt", Attrs: waBinary.Attrs{"keygen": "2"}},
+		waBinary.Node{Tag: "net", Attrs: waBinary.Attrs{"medium": "3"}},
+	)
+	return cli.sendNode(waBinary.Node{
+		Tag:   "call",
+		Attrs: waBinary.Attrs{"id": cli.GenerateMessageID(), "to": callTo},
+		Content: []waBinary.Node{{
+			Tag:     "offer",
+			Attrs:   waBinary.Attrs{"call-id": callID, "call-creator": clientID},
+			Content: offerContent,
 		}},
 	})
 }
