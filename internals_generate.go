@@ -32,7 +32,7 @@ type DangerousInternalClient struct {
         c *Client
 }
 
-// DangerousInternals allows access to some unexported methods in Client.
+// DangerousInternals allows access to all unexported methods in Client.
 //
 // Deprecated: dangerous
 func (cli *Client) DangerousInternals() *DangerousInternalClient {
