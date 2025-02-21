@@ -73,6 +73,10 @@ func (int *DangerousInternalClient) EncryptMessageForDevice(plaintext []byte, to
 	return int.c.encryptMessageForDevice(plaintext, to, bundle, extraAttrs)
 }
 
+func (int *DangerousInternalClient) EncryptMessageForDevices(ctx context.Context, allDevices []types.JID, ownID types.JID, id string, msgPlaintext, dsmPlaintext []byte, encAttrs waBinary.Attrs) ([]waBinary.Node, bool) {
+	return int.c.encryptMessageForDevices(ctx, allDevices, ownID, id, msgPlaintext, dsmPlaintext, encAttrs)
+}
+
 func (int *DangerousInternalClient) GetOwnID() types.JID {
 	return int.c.getOwnID()
 }
