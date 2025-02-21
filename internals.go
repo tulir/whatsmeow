@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	"context"
+	"encoding/json"
 
 	"go.mau.fi/libsignal/keys/prekey"
 
@@ -35,6 +36,10 @@ func (int *DangerousInternalClient) SendIQ(query DangerousInfoQuery) (*waBinary.
 
 func (int *DangerousInternalClient) SendIQAsync(query DangerousInfoQuery) (<-chan *waBinary.Node, error) {
 	return int.c.sendIQAsync(query)
+}
+
+func (int *DangerousInternalClient) SendMexIQ(ctx context.Context, queryID string, variables any) (json.RawMessage, error) {
+	return int.c.sendMexIQ(ctx, queryID, variables)
 }
 
 func (int *DangerousInternalClient) SendNode(node waBinary.Node) error {
