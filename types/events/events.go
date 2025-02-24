@@ -100,6 +100,7 @@ func (cf *ConnectFailure) PermanentDisconnectDescription() string {
 //
 // This will not be emitted when the logout is initiated by this client (using Client.LogOut()).
 type LoggedOut struct {
+	Jid *types.JID
 	// OnConnect is true if the event was triggered by a connect failure message.
 	// If it's false, the event was triggered by a stream:error message.
 	OnConnect bool
