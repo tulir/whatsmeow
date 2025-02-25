@@ -99,7 +99,7 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 func (cli *Client) maybeDeferredAck(node *waBinary.Node) func() {
 	if cli.SynchronousAck {
 		return func() {
-			go cli.sendAck(node)
+			cli.sendAck(node)
 		}
 	} else {
 		go cli.sendAck(node)
