@@ -14,7 +14,7 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -272,8 +272,12 @@ func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.Newslet
 		if child.Tag != "message" {
 			continue
 		}
+		ag := child.AttrGetter()
 		msg := types.NewsletterMessage{
-			MessageServerID: child.AttrGetter().Int("server_id"),
+			MessageServerID: ag.Int("server_id"),
+			MessageID:       ag.String("id"),
+			Type:            ag.String("type"),
+			Timestamp:       ag.UnixTime("t"),
 			ViewsCount:      0,
 			ReactionCounts:  nil,
 		}
@@ -282,7 +286,7 @@ func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.Newslet
 			case "plaintext":
 				byteContent, ok := subchild.Content.([]byte)
 				if ok {
-					msg.Message = new(waProto.Message)
+					msg.Message = new(waE2E.Message)
 					err := proto.Unmarshal(byteContent, msg.Message)
 					if err != nil {
 						cli.Log.Warnf("Failed to unmarshal newsletter message: %v", err)
@@ -377,7 +381,7 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	if !ag.OK() {
 		return
 	}
-	go cli.sendAck(node)
+	defer cli.maybeDeferredAck(node)()
 	switch notifType {
 	case "encrypt":
 		go cli.handleEncryptNotification(node)
@@ -386,30 +390,30 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	case "account_sync":
 		go cli.handleAccountSyncNotification(node)
 	case "devices":
-		go cli.handleDeviceNotification(node)
+		cli.handleDeviceNotification(node)
 	case "fbid:devices":
-		go cli.handleFBDeviceNotification(node)
+		cli.handleFBDeviceNotification(node)
 	case "w:gp2":
 		evt, err := cli.parseGroupNotification(node)
 		if err != nil {
 			cli.Log.Errorf("Failed to parse group notification: %v", err)
 		} else {
-			go cli.dispatchEvent(evt)
+			cli.dispatchEvent(evt)
 		}
 	case "picture":
-		go cli.handlePictureNotification(node)
+		cli.handlePictureNotification(node)
 	case "mediaretry":
-		go cli.handleMediaRetryNotification(node)
+		cli.handleMediaRetryNotification(node)
 	case "privacy_token":
-		go cli.handlePrivacyTokenNotification(node)
+		cli.handlePrivacyTokenNotification(node)
 	case "link_code_companion_reg":
 		go cli.tryHandleCodePairNotification(node)
 	case "newsletter":
-		go cli.handleNewsletterNotification(node)
+		cli.handleNewsletterNotification(node)
 	case "mex":
-		go cli.handleMexNotification(node)
+		cli.handleMexNotification(node)
 	case "status":
-		go cli.handleStatusNotification(node)
+		cli.handleStatusNotification(node)
 	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)

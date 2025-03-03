@@ -25,8 +25,8 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/proto/waWa6"
 	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
@@ -37,7 +37,7 @@ import (
 )
 
 // EventHandler is a function that can handle events from WhatsApp.
-type EventHandler func(evt interface{})
+type EventHandler func(evt any)
 type nodeHandler func(node *waBinary.Node)
 
 var nextHandlerID uint32
@@ -62,6 +62,7 @@ type Client struct {
 	socket     *socket.NoiseSocket
 	socketLock sync.RWMutex
 	socketWait chan struct{}
+	wsDialer   *websocket.Dialer
 
 	isLoggedIn            atomic.Bool
 	expectedDisconnect    atomic.Bool
@@ -71,6 +72,8 @@ type Client struct {
 	// AutoReconnectHook is called when auto-reconnection fails. If the function returns false,
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
+	// If SynchronousAck is set, acks for messages will only be sent after all event handlers return.
+	SynchronousAck bool
 
 	DisableLoginAutoReconnect bool
 
@@ -87,7 +90,7 @@ type Client struct {
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 
-	historySyncNotifications  chan *waProto.HistorySyncNotification
+	historySyncNotifications  chan *waE2E.HistorySyncNotification
 	historySyncHandlerStarted atomic.Bool
 
 	uploadPreKeysLock sync.Mutex
@@ -131,10 +134,10 @@ type Client struct {
 	sessionRecreateHistoryLock sync.Mutex
 	// GetMessageForRetry is used to find the source message for handling retry receipts
 	// when the message is not found in the recently sent message cache.
-	GetMessageForRetry func(requester, to types.JID, id types.MessageID) *waProto.Message
+	GetMessageForRetry func(requester, to types.JID, id types.MessageID) *waE2E.Message
 	// PreRetryCallback is called before a retry receipt is accepted.
 	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
-	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waProto.Message) bool
+	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waE2E.Message) bool
 
 	// PrePairCallback is called before pairing is completed. If it returns false, the pairing will be cancelled and
 	// the client will disconnect.
@@ -142,7 +145,7 @@ type Client struct {
 
 	// GetClientPayload is called to get the client payload for connecting to the server.
 	// This should NOT be used for WhatsApp (to change the OS name, update fields in store.BaseClientPayload directly).
-	GetClientPayload func() *waProto.ClientPayload
+	GetClientPayload func() *waWa6.ClientPayload
 
 	// Should untrusted identity errors be handled automatically? If true, the stored identity and existing signal
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
@@ -172,8 +175,9 @@ type Client struct {
 }
 
 type MessengerConfig struct {
-	UserAgent string
-	BaseURL   string
+	UserAgent    string
+	BaseURL      string
+	WebsocketURL string
 }
 
 // Size of buffer for the channel that all incoming XML nodes go through.
@@ -220,14 +224,14 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		incomingRetryRequestCounter: make(map[incomingRetryKey]int),
 
-		historySyncNotifications: make(chan *waProto.HistorySyncNotification, 32),
+		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
 		groupParticipantsCache: make(map[types.JID][]types.JID),
 		userDevicesCache:       make(map[types.JID]deviceCache),
 
 		recentMessagesMap:      make(map[recentMessageKey]RecentMessage, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
-		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
+		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waE2E.Message { return nil },
 		appStateKeyRequests:    make(map[string]time.Time),
 
 		pendingPhoneRerequests: make(map[types.MessageID]context.CancelFunc),
@@ -371,6 +375,9 @@ func (cli *Client) closeSocketWaitChan() {
 }
 
 func (cli *Client) getOwnID() types.JID {
+	if cli == nil {
+		return types.EmptyJID
+	}
 	id := cli.Store.ID
 	if id == nil {
 		return types.EmptyJID
@@ -379,6 +386,9 @@ func (cli *Client) getOwnID() types.JID {
 }
 
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
+	if cli == nil {
+		return false
+	}
 	timeoutChan := time.After(timeout)
 	cli.socketLock.RLock()
 	for cli.socket == nil || !cli.socket.IsConnected() || !cli.IsLoggedIn() {
@@ -395,9 +405,16 @@ func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	return true
 }
 
+func (cli *Client) SetWSDialer(dialer *websocket.Dialer) {
+	cli.wsDialer = dialer
+}
+
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
 	if cli.socket != nil {
@@ -409,8 +426,10 @@ func (cli *Client) Connect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	wsDialer := websocket.Dialer{}
-	if !cli.proxyOnlyLogin || cli.Store.ID == nil {
+	var wsDialer websocket.Dialer
+	if cli.wsDialer != nil {
+		wsDialer = *cli.wsDialer
+	} else if !cli.proxyOnlyLogin || cli.Store.ID == nil {
 		if cli.proxy != nil {
 			wsDialer.Proxy = cli.proxy
 		} else if cli.socksProxy != nil {
@@ -423,12 +442,14 @@ func (cli *Client) Connect() error {
 	}
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), wsDialer)
 	if cli.MessengerConfig != nil {
-		fs.URL = "wss://web-chat-e2ee.facebook.com/ws/chat"
+		fs.URL = cli.MessengerConfig.WebsocketURL
 		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
 		fs.HTTPHeaders.Set("User-Agent", cli.MessengerConfig.UserAgent)
-		fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
-		fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
-		fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
+		fs.HTTPHeaders.Set("Cache-Control", "no-cache")
+		fs.HTTPHeaders.Set("Pragma", "no-cache")
+		//fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
+		//fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
+		//fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
 	}
 	if err := fs.Connect(); err != nil {
 		fs.Close(0)
@@ -444,7 +465,7 @@ func (cli *Client) Connect() error {
 
 // IsLoggedIn returns true after the client is successfully connected and authenticated on WhatsApp.
 func (cli *Client) IsLoggedIn() bool {
-	return cli.isLoggedIn.Load()
+	return cli != nil && cli.isLoggedIn.Load()
 }
 
 func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
@@ -508,6 +529,9 @@ func (cli *Client) autoReconnect() {
 // IsConnected checks if the client is connected to the WhatsApp web websocket.
 // Note that this doesn't check if the client is authenticated. See the IsLoggedIn field for that.
 func (cli *Client) IsConnected() bool {
+	if cli == nil {
+		return false
+	}
 	cli.socketLock.RLock()
 	connected := cli.socket != nil && cli.socket.IsConnected()
 	cli.socketLock.RUnlock()
@@ -519,12 +543,13 @@ func (cli *Client) IsConnected() bool {
 // This will not emit any events, the Disconnected event is only used when the
 // connection is closed by the server or a network error.
 func (cli *Client) Disconnect() {
-	if cli.socket == nil {
+	if cli == nil || cli.socket == nil {
 		return
 	}
 	cli.socketLock.Lock()
 	cli.unlockedDisconnect()
 	cli.socketLock.Unlock()
+	cli.clearDelayedMessageRequests()
 }
 
 // Disconnect closes the websocket connection.
@@ -544,7 +569,9 @@ func (cli *Client) unlockedDisconnect() {
 // Note that this will not emit any events. The LoggedOut event is only used for external logouts
 // (triggered by the user from the main device or by WhatsApp servers).
 func (cli *Client) Logout() error {
-	if cli.MessengerConfig != nil {
+	if cli == nil {
+		return ErrClientIsNil
+	} else if cli.MessengerConfig != nil {
 		return errors.New("can't logout with Messenger credentials")
 	}
 	ownID := cli.getOwnID()
@@ -728,6 +755,9 @@ func (cli *Client) handlerQueueLoop(ctx context.Context) {
 }
 
 func (cli *Client) sendNodeAndGetData(node waBinary.Node) ([]byte, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	cli.socketLock.RLock()
 	sock := cli.socket
 	cli.socketLock.RUnlock()
@@ -749,7 +779,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 	return err
 }
 
-func (cli *Client) dispatchEvent(evt interface{}) {
+func (cli *Client) dispatchEvent(evt any) {
 	cli.eventHandlersLock.RLock()
 	defer func() {
 		cli.eventHandlersLock.RUnlock()
@@ -786,7 +816,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 			IsFromMe: webMsg.GetKey().GetFromMe(),
 			IsGroup:  chatJID.Server == types.GroupServer,
 		},
-		ID:        webMsg.GetKey().GetID(),
+		ID:        webMsg.GetKey().GetId(),
 		PushName:  webMsg.GetPushName(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}

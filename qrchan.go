@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	"context"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -58,10 +59,10 @@ type qrChannel struct {
 	stopQRs   chan struct{}
 }
 
-func (qrc *qrChannel) emitQRs(evt *events.QR) {
+func (qrc *qrChannel) emitQRs(codes []string) {
 	var nextCode string
 	for {
-		if len(evt.Codes) == 0 {
+		if len(codes) == 0 {
 			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
 				qrc.log.Debugf("Ran out of QR codes, closing channel with status %s and disconnecting client", QRChannelTimeout)
 				qrc.output <- QRChannelTimeout
@@ -77,10 +78,10 @@ func (qrc *qrChannel) emitQRs(evt *events.QR) {
 			return
 		}
 		timeout := 20 * time.Second
-		if len(evt.Codes) == 6 {
+		if len(codes) == 6 {
 			timeout = 60 * time.Second
 		}
-		nextCode, evt.Codes = evt.Codes[0], evt.Codes[1:]
+		nextCode, codes = codes[0], codes[1:]
 		qrc.log.Debugf("Emitting QR code %s", nextCode)
 		select {
 		case qrc.output <- QRChannelItem{Code: nextCode, Timeout: timeout, Event: QRChannelEventCode}:
@@ -118,7 +119,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 	switch evt := rawEvt.(type) {
 	case *events.QR:
 		qrc.log.Debugf("Received QR code event, starting to emit codes to channel")
-		go qrc.emitQRs(evt)
+		go qrc.emitQRs(slices.Clone(evt.Codes))
 		return
 	case *events.QRScannedWithoutMultidevice:
 		qrc.log.Debugf("QR code scanned without multidevice enabled")
@@ -159,7 +160,9 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 // The last value to be emitted will be a special event like "success", "timeout" or another error code
 // depending on the result of the pairing. The channel will be closed immediately after one of those.
 func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, error) {
-	if cli.IsConnected() {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	} else if cli.IsConnected() {
 		return nil, ErrQRAlreadyConnected
 	} else if cli.Store.ID != nil {
 		return nil, ErrQRStoreContainsID

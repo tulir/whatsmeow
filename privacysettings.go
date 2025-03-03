@@ -17,7 +17,9 @@ import (
 
 // TryFetchPrivacySettings will fetch the user's privacy settings, either from the in-memory cache or from the server.
 func (cli *Client) TryFetchPrivacySettings(ignoreCache bool) (*types.PrivacySettings, error) {
-	if val := cli.privacySettingsCache.Load(); val != nil && !ignoreCache {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	} else if val := cli.privacySettingsCache.Load(); val != nil && !ignoreCache {
 		return val.(*types.PrivacySettings), nil
 	}
 	resp, err := cli.sendIQ(infoQuery{
@@ -42,7 +44,7 @@ func (cli *Client) TryFetchPrivacySettings(ignoreCache bool) (*types.PrivacySett
 // GetPrivacySettings will get the user's privacy settings. If an error occurs while fetching them, the error will be
 // logged, but the method will just return an empty struct.
 func (cli *Client) GetPrivacySettings() (settings types.PrivacySettings) {
-	if cli.MessengerConfig != nil {
+	if cli == nil || cli.MessengerConfig != nil {
 		return
 	}
 	settingsPtr, err := cli.TryFetchPrivacySettings(false)

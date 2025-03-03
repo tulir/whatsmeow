@@ -451,7 +451,7 @@ type (
 const (
 	ADVEncryptionType_E2EE                                                                       = waAdv.ADVEncryptionType_E2EE
 	ADVEncryptionType_HOSTED                                                                     = waAdv.ADVEncryptionType_HOSTED
-	KeepType_UNKNOWN                                                                             = waE2E.KeepType_UNKNOWN
+	KeepType_UNKNOWN                                                                             = waE2E.KeepType_UNKNOWN_KEEP_TYPE
 	KeepType_KEEP_FOR_ALL                                                                        = waE2E.KeepType_KEEP_FOR_ALL
 	KeepType_UNDO_KEEP_FOR_ALL                                                                   = waE2E.KeepType_UNDO_KEEP_FOR_ALL
 	PeerDataOperationRequestType_UPLOAD_STICKER                                                  = waE2E.PeerDataOperationRequestType_UPLOAD_STICKER
