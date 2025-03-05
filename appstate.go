@@ -112,7 +112,7 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 func (cli *Client) dispatchAppState(mutation appstate.Mutation, fullSync bool, emitOnFullSync bool) {
 	dispatchEvts := !fullSync || emitOnFullSync
 
-	if mutation.Action.ContactAction == nil && mutation.Operation != waServerSync.SyncdMutation_SET {
+	if (mutation.Action != nil && mutation.Action.ContactAction == nil) && mutation.Operation != waServerSync.SyncdMutation_SET {
 		return
 	}
 
