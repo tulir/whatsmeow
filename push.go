@@ -30,6 +30,33 @@ func (fpc *FCMPushConfig) GetPushConfigAttrs() waBinary.Attrs {
 	}
 }
 
+type APNsPushConfig struct {
+	Token string `json:"token"`
+}
+
+func (apc *APNsPushConfig) GetPushConfigAttrs() waBinary.Attrs {
+	return waBinary.Attrs{
+		"id":       apc.Token,
+		"platform": "apple",
+		"version":  2,
+		"reg_push": 1,
+		"preview":  1,
+
+		/*
+			"background_location": 0,
+			"call":                "Opening.m4r",
+			"default":             "note.m4r",
+			"groups":              "note.m4r",
+			"lg":                  "en",
+			"lc":                  "US",
+			"nse_call":            0,
+			"nse_ver":             0,
+			"voip":                apc.VoIPToken,
+			"voip_payload_type":   0,
+		*/
+	}
+}
+
 type WebPushConfig struct {
 	Endpoint string `json:"endpoint"`
 	Auth     []byte `json:"auth"`
