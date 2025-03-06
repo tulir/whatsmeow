@@ -126,6 +126,19 @@ type PrivacyTokenStore interface {
 	GetPrivacyToken(user types.JID) (*PrivacyToken, error)
 }
 
+type AllStores interface {
+	IdentityStore
+	SessionStore
+	PreKeyStore
+	SenderKeyStore
+	AppStateSyncKeyStore
+	AppStateStore
+	ContactStore
+	ChatSettingsStore
+	MsgSecretStore
+	PrivacyTokenStore
+}
+
 type Device struct {
 	Log waLog.Logger
 

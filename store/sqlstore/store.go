@@ -57,15 +57,7 @@ func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 	}
 }
 
-var (
-	_ store.IdentityStore        = (*SQLStore)(nil)
-	_ store.SessionStore         = (*SQLStore)(nil)
-	_ store.PreKeyStore          = (*SQLStore)(nil)
-	_ store.SenderKeyStore       = (*SQLStore)(nil)
-	_ store.AppStateSyncKeyStore = (*SQLStore)(nil)
-	_ store.AppStateStore        = (*SQLStore)(nil)
-	_ store.ContactStore         = (*SQLStore)(nil)
-)
+var _ store.AllStores = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `

@@ -19,6 +19,7 @@ import (
 
 	"go.mau.fi/whatsmeow/proto/waCompanionReg"
 	"go.mau.fi/whatsmeow/proto/waWa6"
+	"go.mau.fi/whatsmeow/types"
 )
 
 // WAVersionContainer is a container for a WhatsApp web version number.
@@ -174,6 +175,9 @@ func (device *Device) getLoginPayload() *waWa6.ClientPayload {
 
 func (device *Device) GetClientPayload() *waWa6.ClientPayload {
 	if device.ID != nil {
+		if *device.ID == types.EmptyJID {
+			panic(fmt.Errorf("GetClientPayload called with empty JID"))
+		}
 		return device.getLoginPayload()
 	} else {
 		return device.getRegistrationPayload()
