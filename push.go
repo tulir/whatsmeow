@@ -10,6 +10,8 @@ import (
 	"context"
 	"encoding/base64"
 
+	"go.mau.fi/util/random"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 )
@@ -31,30 +33,37 @@ func (fpc *FCMPushConfig) GetPushConfigAttrs() waBinary.Attrs {
 }
 
 type APNsPushConfig struct {
-	Token string `json:"token"`
+	Token       string `json:"token"`
+	VoIPToken   string `json:"voip_token"`
+	MsgIDEncKey []byte `json:"msg_id_enc_key"`
 }
 
 func (apc *APNsPushConfig) GetPushConfigAttrs() waBinary.Attrs {
-	return waBinary.Attrs{
-		"id":       apc.Token,
-		"platform": "apple",
-		"version":  2,
-		"reg_push": 1,
-		"preview":  1,
-
-		/*
-			"background_location": 0,
-			"call":                "Opening.m4r",
-			"default":             "note.m4r",
-			"groups":              "note.m4r",
-			"lg":                  "en",
-			"lc":                  "US",
-			"nse_call":            0,
-			"nse_ver":             0,
-			"voip":                apc.VoIPToken,
-			"voip_payload_type":   0,
-		*/
+	if len(apc.MsgIDEncKey) != 32 {
+		apc.MsgIDEncKey = random.Bytes(32)
 	}
+	attrs := waBinary.Attrs{
+		"id":                  apc.Token,
+		"platform":            "apple",
+		"version":             2,
+		"reg_push":            1,
+		"preview":             1,
+		"pkey":                base64.RawURLEncoding.EncodeToString(apc.MsgIDEncKey),
+		"background_location": 1, // or 0
+		"call":                "Opening.m4r",
+		"default":             "note.m4r",
+		"groups":              "note.m4r",
+		"lg":                  "en",
+		"lc":                  "US",
+		"nse_call":            0,
+		"nse_ver":             2,
+		"nse_read":            0,
+		"voip_payload_type":   2,
+	}
+	if apc.VoIPToken != "" {
+		attrs["voip"] = apc.VoIPToken
+	}
+	return attrs
 }
 
 type WebPushConfig struct {
