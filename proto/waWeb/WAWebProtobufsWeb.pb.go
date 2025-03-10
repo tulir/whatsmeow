@@ -304,6 +304,9 @@ const (
 	WebMessageInfo_STATUS_MENTION                                           WebMessageInfo_StubType = 210
 	WebMessageInfo_USER_CONTROLS_SYSTEM_MESSAGE                             WebMessageInfo_StubType = 211
 	WebMessageInfo_SUPPORT_SYSTEM_MESSAGE                                   WebMessageInfo_StubType = 212
+	WebMessageInfo_CHANGE_LID                                               WebMessageInfo_StubType = 213
+	WebMessageInfo_BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_IN_MESSAGE             WebMessageInfo_StubType = 214
+	WebMessageInfo_BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE            WebMessageInfo_StubType = 215
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -522,6 +525,9 @@ var (
 		210: "STATUS_MENTION",
 		211: "USER_CONTROLS_SYSTEM_MESSAGE",
 		212: "SUPPORT_SYSTEM_MESSAGE",
+		213: "CHANGE_LID",
+		214: "BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_IN_MESSAGE",
+		215: "BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -737,6 +743,9 @@ var (
 		"STATUS_MENTION":                                           210,
 		"USER_CONTROLS_SYSTEM_MESSAGE":                             211,
 		"SUPPORT_SYSTEM_MESSAGE":                                   212,
+		"CHANGE_LID":                                               213,
+		"BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_IN_MESSAGE":             214,
+		"BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE":            215,
 	}
 )
 

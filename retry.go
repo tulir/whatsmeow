@@ -354,6 +354,14 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 	}
 }
 
+func (cli *Client) clearDelayedMessageRequests() {
+	cli.pendingPhoneRerequestsLock.Lock()
+	defer cli.pendingPhoneRerequestsLock.Unlock()
+	for _, cancel := range cli.pendingPhoneRerequests {
+		cancel()
+	}
+}
+
 // sendRetryReceipt sends a retry receipt for an incoming message.
 func (cli *Client) sendRetryReceipt(node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
 	id, _ := node.Attrs["id"].(string)

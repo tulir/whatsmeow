@@ -698,6 +698,7 @@ message ProtocolMessage {
 		REMINDER_MESSAGE = 23;
 		BOT_MEMU_ONBOARDING_MESSAGE = 24;
 		STATUS_MENTION_MESSAGE = 25;
+		STOP_GENERATION_MESSAGE = 26;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -906,6 +907,7 @@ message ImageMessage {
 		USER_IMAGE = 0;
 		AI_GENERATED = 1;
 		AI_MODIFIED = 2;
+		RASTERIZED_TEXT_STATUS = 3;
 	}
 
 	optional string URL = 1;
@@ -1138,6 +1140,9 @@ message AIRichResponseMessage {
 		AI_RICH_RESPONSE_TABLE = 4;
 		AI_RICH_RESPONSE_CODE = 5;
 		AI_RICH_RESPONSE_DYNAMIC = 6;
+		AI_RICH_RESPONSE_MAP = 7;
+		AI_RICH_RESPONSE_LATEX = 8;
+		AI_RICH_RESPONSE_INLINE_REELS = 9;
 	}
 
 	enum AIRichResponseMessageType {
@@ -1198,7 +1203,50 @@ message AIRichResponseMessage {
 		optional AIRichResponseCodeMetadata codeMetadata = 5;
 		optional AIRichResponseTableMetadata tableMetadata = 6;
 		optional AIRichResponseDynamicMetadata dynamicMetadata = 7;
-		optional AIRichResponseAbstractData abstractData = 8;
+		optional AIRichResponseLatexMetadata latexMetadata = 8;
+		optional AIRichResponseMapMetadata mapMetadata = 9;
+		optional AIRichResponseReelsMetadata reelsMetadata = 10;
+	}
+
+	message AIRichResponseReelsMetadata {
+		message AIRichResponseReelMetadata {
+			optional string title = 1;
+			optional string profileIconURL = 2;
+			optional string previewURL = 3;
+			optional string videoURL = 4;
+		}
+
+		repeated AIRichResponseReelMetadata reelsMetadata = 1;
+	}
+
+	message AIRichResponseMapMetadata {
+		message AIRichResponseMapAnnotation {
+			optional uint32 annotationNumber = 1;
+			optional double latitude = 2;
+			optional double longtitude = 3;
+			optional string title = 4;
+			optional string body = 5;
+		}
+
+		optional double centerLatitude = 1;
+		optional double centerLongtitude = 2;
+		optional double latitudeDelta = 3;
+		optional double longtitudeDelta = 4;
+		repeated AIRichResponseMapAnnotation anotations = 5;
+		optional bool showInfoList = 6;
+	}
+
+	message AIRichResponseLatexMetadata {
+		message AIRichResponseLatexExpression {
+			optional string latexExpression = 1;
+			optional string URL = 2;
+			optional double width = 3;
+			optional double height = 4;
+			optional double fontHeight = 5;
+		}
+
+		optional string text = 1;
+		repeated AIRichResponseLatexExpression expressions = 2;
 	}
 
 	message AIRichResponseAbstractData {
@@ -1227,6 +1275,7 @@ message AIRichResponseMessage {
 
 	optional AIRichResponseMessageType messageType = 1;
 	repeated AIRichResponseSubMessage submessages = 2;
+	optional AIRichResponseAbstractData abstractData = 3;
 }
 
 message BotMediaMetadata {
@@ -1285,6 +1334,38 @@ message BotModelMetadata {
 	optional PremiumModelStatus premiumModelStatus = 2;
 }
 
+message BotProgressIndicatorMetadata {
+	message BotPlanningStepMetadata {
+		enum PlanningStepStatus {
+			PLANNED = 1;
+			EXECUTING = 2;
+			FINISHED = 3;
+		}
+
+		message BotPlanningSearchSourcesMetadata {
+			enum BotPlanningSearchSourceProvider {
+				OTHER = 1;
+				GOOGLE = 2;
+				BING = 3;
+			}
+
+			optional string sourceTitle = 1;
+			optional BotPlanningSearchSourceProvider provider = 2;
+			optional string sourceURL = 3;
+		}
+
+		optional string statusTitle = 1;
+		optional string statusBody = 2;
+		repeated BotPlanningSearchSourcesMetadata sourcesMetadata = 3;
+		optional PlanningStepStatus status = 4;
+		optional bool isReasoning = 5;
+		optional bool isEnhancedSearch = 6;
+	}
+
+	optional string progressDescription = 1;
+	repeated BotPlanningStepMetadata stepsMetadata = 2;
+}
+
 message BotCapabilityMetadata {
 	enum BotCapabilityType {
 		PROGRESS_INDICATOR = 1;
@@ -1310,6 +1391,9 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_SUB_HEADING = 21;
 		RICH_RESPONSE_GRID_IMAGE = 22;
 		AI_STUDIO_UGC_MEMORY = 23;
+		RICH_RESPONSE_LATEX = 24;
+		RICH_RESPONSE_MAPS = 25;
+		RICH_RESPONSE_INLINE_REELS = 26;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -2055,10 +2139,6 @@ message BotSessionMetadata {
 
 message BotMemuMetadata {
 	repeated BotMediaMetadata faceImages = 1;
-}
-
-message BotProgressIndicatorMetadata {
-	optional string progressDescription = 1;
 }
 
 message BotMetadata {

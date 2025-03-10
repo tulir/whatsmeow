@@ -863,7 +863,7 @@ Outer:
 	cli.groupParticipantsCache[evt.JID] = cached
 }
 
-func (cli *Client) parseGroupNotification(node *waBinary.Node) (interface{}, error) {
+func (cli *Client) parseGroupNotification(node *waBinary.Node) (any, error) {
 	children := node.GetChildren()
 	if len(children) == 1 && children[0].Tag == "create" {
 		return cli.parseGroupCreate(&children[0])

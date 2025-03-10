@@ -37,7 +37,7 @@ import (
 )
 
 // EventHandler is a function that can handle events from WhatsApp.
-type EventHandler func(evt interface{})
+type EventHandler func(evt any)
 type nodeHandler func(node *waBinary.Node)
 
 var nextHandlerID uint32
@@ -558,6 +558,7 @@ func (cli *Client) Disconnect() {
 	cli.socketLock.Lock()
 	cli.unlockedDisconnect()
 	cli.socketLock.Unlock()
+	cli.clearDelayedMessageRequests()
 }
 
 // Disconnect closes the websocket connection.
@@ -787,7 +788,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 	return err
 }
 
-func (cli *Client) dispatchEvent(evt interface{}) {
+func (cli *Client) dispatchEvent(evt any) {
 	cli.eventHandlersLock.RLock()
 	defer func() {
 		cli.eventHandlersLock.RUnlock()
