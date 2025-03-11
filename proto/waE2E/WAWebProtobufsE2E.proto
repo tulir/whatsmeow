@@ -42,6 +42,17 @@ enum BotMetricsEntryPoint {
 	FORWARD = 15;
 	APP_SHORTCUT = 16;
 	FF_FAMILY = 17;
+	AI_TAB = 18;
+	AI_HOME = 19;
+	AI_DEEPLINK_IMMERSIVE = 20;
+	AI_DEEPLINK = 21;
+}
+
+enum BotMetricsThreadEntryPoint {
+	AI_TAB_THREAD = 1;
+	AI_HOME_THREAD = 2;
+	AI_DEEPLINK_IMMERSIVE_THREAD = 3;
+	AI_DEEPLINK_THREAD = 4;
 }
 
 enum BotSessionSource {
@@ -699,6 +710,7 @@ message ProtocolMessage {
 		BOT_MEMU_ONBOARDING_MESSAGE = 24;
 		STATUS_MENTION_MESSAGE = 25;
 		STOP_GENERATION_MESSAGE = 26;
+		LIMIT_SHARING = 27;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -721,6 +733,7 @@ message ProtocolMessage {
 	optional MediaNotifyMessage mediaNotifyMessage = 21;
 	optional CloudAPIThreadControlNotification cloudApiThreadControlNotification = 22;
 	optional LIDMigrationMappingSyncMessage lidMigrationMappingSyncMessage = 23;
+	optional WACommon.LimitSharing limitSharing = 24;
 }
 
 message CloudAPIThreadControlNotification {
@@ -814,6 +827,7 @@ message VideoMessage {
 	repeated InteractiveAnnotation annotations = 25;
 	optional string accessibilityLabel = 26;
 	repeated ProcessedVideo processedVideos = 27;
+	optional uint32 externalShareFullVideoDurationInSeconds = 28;
 }
 
 message ExtendedTextMessage {
@@ -1093,6 +1107,7 @@ message ContextInfo {
 	optional StatusAttributionType statusAttributionType = 57;
 	optional UrlTrackingMap urlTrackingMap = 58;
 	optional PairedMediaType pairedMediaType = 59;
+	optional uint32 rankingVersion = 60;
 }
 
 message BotPluginMetadata {
@@ -1142,12 +1157,35 @@ message AIRichResponseMessage {
 		AI_RICH_RESPONSE_DYNAMIC = 6;
 		AI_RICH_RESPONSE_MAP = 7;
 		AI_RICH_RESPONSE_LATEX = 8;
-		AI_RICH_RESPONSE_INLINE_REELS = 9;
+		AI_RICH_RESPONSE_CONTENT_ITEMS = 9;
 	}
 
 	enum AIRichResponseMessageType {
 		AI_RICH_RESPONSE_TYPE_UNKNOWN = 0;
 		AI_RICH_RESPONSE_TYPE_STANDARD = 1;
+	}
+
+	message AIRichResponseContentItemsMetadata {
+		enum ContentType {
+			DEFAULT = 0;
+			CAROUSEL = 1;
+		}
+
+		message AIRichResponseContentItemMetadata {
+			oneof aIRichResponseContentItem {
+				AIRichResponseReelItem reelItem = 1;
+			}
+		}
+
+		message AIRichResponseReelItem {
+			optional string title = 1;
+			optional string profileIconURL = 2;
+			optional string thumbnailURL = 3;
+			optional string videoURL = 4;
+		}
+
+		repeated AIRichResponseContentItemMetadata itemsMetadata = 1;
+		optional ContentType contentType = 2;
 	}
 
 	message AIRichResponseDynamicMetadata {
@@ -1205,34 +1243,23 @@ message AIRichResponseMessage {
 		optional AIRichResponseDynamicMetadata dynamicMetadata = 7;
 		optional AIRichResponseLatexMetadata latexMetadata = 8;
 		optional AIRichResponseMapMetadata mapMetadata = 9;
-		optional AIRichResponseReelsMetadata reelsMetadata = 10;
-	}
-
-	message AIRichResponseReelsMetadata {
-		message AIRichResponseReelMetadata {
-			optional string title = 1;
-			optional string profileIconURL = 2;
-			optional string previewURL = 3;
-			optional string videoURL = 4;
-		}
-
-		repeated AIRichResponseReelMetadata reelsMetadata = 1;
+		optional AIRichResponseContentItemsMetadata contentItemsMetadata = 10;
 	}
 
 	message AIRichResponseMapMetadata {
 		message AIRichResponseMapAnnotation {
 			optional uint32 annotationNumber = 1;
 			optional double latitude = 2;
-			optional double longtitude = 3;
+			optional double longitude = 3;
 			optional string title = 4;
 			optional string body = 5;
 		}
 
 		optional double centerLatitude = 1;
-		optional double centerLongtitude = 2;
+		optional double centerLongitude = 2;
 		optional double latitudeDelta = 3;
-		optional double longtitudeDelta = 4;
-		repeated AIRichResponseMapAnnotation anotations = 5;
+		optional double longitudeDelta = 4;
+		repeated AIRichResponseMapAnnotation annotations = 5;
 		optional bool showInfoList = 6;
 	}
 
@@ -1336,7 +1363,15 @@ message BotModelMetadata {
 
 message BotProgressIndicatorMetadata {
 	message BotPlanningStepMetadata {
+		enum BotSearchSourceProvider {
+			UNKNOWNPROVIDER = 0;
+			OTHER = 1;
+			GOOGLE = 2;
+			BING = 3;
+		}
+
 		enum PlanningStepStatus {
+			UNKNOWN = 0;
 			PLANNED = 1;
 			EXECUTING = 2;
 			FINISHED = 3;
@@ -1344,6 +1379,7 @@ message BotProgressIndicatorMetadata {
 
 		message BotPlanningSearchSourcesMetadata {
 			enum BotPlanningSearchSourceProvider {
+				UNKNOWN = 0;
 				OTHER = 1;
 				GOOGLE = 2;
 				BING = 3;
@@ -1354,12 +1390,25 @@ message BotProgressIndicatorMetadata {
 			optional string sourceURL = 3;
 		}
 
+		message BotPlanningStepSectionMetadata {
+			optional string sectionTitle = 1;
+			optional string sectionBody = 2;
+			repeated BotPlanningSearchSourceMetadata sourcesMetadata = 3;
+		}
+
+		message BotPlanningSearchSourceMetadata {
+			optional string title = 1;
+			optional BotSearchSourceProvider provider = 2;
+			optional string sourceURL = 3;
+			optional string favIconURL = 4;
+		}
+
 		optional string statusTitle = 1;
-		optional string statusBody = 2;
 		repeated BotPlanningSearchSourcesMetadata sourcesMetadata = 3;
 		optional PlanningStepStatus status = 4;
 		optional bool isReasoning = 5;
 		optional bool isEnhancedSearch = 6;
+		repeated BotPlanningStepSectionMetadata sections = 7;
 	}
 
 	optional string progressDescription = 1;
@@ -1368,6 +1417,7 @@ message BotProgressIndicatorMetadata {
 
 message BotCapabilityMetadata {
 	enum BotCapabilityType {
+		UNKNOWN = 0;
 		PROGRESS_INDICATOR = 1;
 		RICH_RESPONSE_HEADING = 2;
 		RICH_RESPONSE_NESTED_LIST = 3;
@@ -1394,6 +1444,9 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_LATEX = 24;
 		RICH_RESPONSE_MAPS = 25;
 		RICH_RESPONSE_INLINE_REELS = 26;
+		AGENTIC_PLANNING = 27;
+		ACCOUNT_LINKING = 28;
+		STREAMING_DISAGGREGATION = 29;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1411,6 +1464,26 @@ message BotImagineMetadata {
 	optional ImagineType imagineType = 1;
 }
 
+message BotSourcesMetadata {
+	message BotSourceItem {
+		enum SourceProvider {
+			UNKNOWN = 0;
+			BING = 1;
+			GOOGLE = 2;
+			SUPPORT = 3;
+		}
+
+		optional SourceProvider provider = 1;
+		optional string thumbnailCDNURL = 2;
+		optional string sourceProviderURL = 3;
+		optional string sourceQuery = 4;
+		optional string faviconCDNURL = 5;
+		optional uint32 citationNumber = 6;
+	}
+
+	repeated BotSourceItem sources = 1;
+}
+
 message MessageAssociation {
 	enum AssociationType {
 		UNKNOWN = 0;
@@ -1425,6 +1498,7 @@ message MessageAssociation {
 		STATUS_NOTIFICATION = 9;
 		HD_IMAGE_DUAL_UPLOAD = 10;
 		STICKER_ANNOTATION = 11;
+		MOTION_PHOTO = 12;
 	}
 
 	optional AssociationType associationType = 1;
@@ -2130,6 +2204,7 @@ message BotRenderingMetadata {
 message BotMetricsMetadata {
 	optional string destinationID = 1;
 	optional BotMetricsEntryPoint destinationEntryPoint = 2;
+	optional BotMetricsThreadEntryPoint threadOrigin = 3;
 }
 
 message BotSessionMetadata {
@@ -2160,6 +2235,7 @@ message BotMetadata {
 	optional BotRenderingMetadata renderingMetadata = 16;
 	optional BotMetricsMetadata botMetricsMetadata = 17;
 	optional BotLinkedAccountsMetadata botLinkedAccountsMetadata = 18;
+	optional BotSourcesMetadata richResponseSourcesMetadata = 19;
 }
 
 message DeviceListMetadata {

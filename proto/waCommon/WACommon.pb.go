@@ -144,6 +144,62 @@ func (Command_CommandType) EnumDescriptor() ([]byte, []int) {
 	return file_waCommon_WACommon_proto_rawDescGZIP(), []int{1, 0}
 }
 
+type LimitSharing_Trigger int32
+
+const (
+	LimitSharing_CHAT_SETTING            LimitSharing_Trigger = 0
+	LimitSharing_BIZ_SUPPORTS_FB_HOSTING LimitSharing_Trigger = 1
+)
+
+// Enum value maps for LimitSharing_Trigger.
+var (
+	LimitSharing_Trigger_name = map[int32]string{
+		0: "CHAT_SETTING",
+		1: "BIZ_SUPPORTS_FB_HOSTING",
+	}
+	LimitSharing_Trigger_value = map[string]int32{
+		"CHAT_SETTING":            0,
+		"BIZ_SUPPORTS_FB_HOSTING": 1,
+	}
+)
+
+func (x LimitSharing_Trigger) Enum() *LimitSharing_Trigger {
+	p := new(LimitSharing_Trigger)
+	*p = x
+	return p
+}
+
+func (x LimitSharing_Trigger) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LimitSharing_Trigger) Descriptor() protoreflect.EnumDescriptor {
+	return file_waCommon_WACommon_proto_enumTypes[2].Descriptor()
+}
+
+func (LimitSharing_Trigger) Type() protoreflect.EnumType {
+	return &file_waCommon_WACommon_proto_enumTypes[2]
+}
+
+func (x LimitSharing_Trigger) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *LimitSharing_Trigger) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = LimitSharing_Trigger(num)
+	return nil
+}
+
+// Deprecated: Use LimitSharing_Trigger.Descriptor instead.
+func (LimitSharing_Trigger) EnumDescriptor() ([]byte, []int) {
+	return file_waCommon_WACommon_proto_rawDescGZIP(), []int{4, 0}
+}
+
 type MessageKey struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	RemoteJID     *string                `protobuf:"bytes,1,opt,name=remoteJID" json:"remoteJID,omitempty"`
@@ -392,6 +448,58 @@ func (x *SubProtocol) GetVersion() int32 {
 	return 0
 }
 
+type LimitSharing struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	SharingLimited *bool                  `protobuf:"varint,1,opt,name=sharingLimited" json:"sharingLimited,omitempty"`
+	Trigger        *LimitSharing_Trigger  `protobuf:"varint,2,opt,name=trigger,enum=WACommon.LimitSharing_Trigger" json:"trigger,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *LimitSharing) Reset() {
+	*x = LimitSharing{}
+	mi := &file_waCommon_WACommon_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LimitSharing) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LimitSharing) ProtoMessage() {}
+
+func (x *LimitSharing) ProtoReflect() protoreflect.Message {
+	mi := &file_waCommon_WACommon_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LimitSharing.ProtoReflect.Descriptor instead.
+func (*LimitSharing) Descriptor() ([]byte, []int) {
+	return file_waCommon_WACommon_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *LimitSharing) GetSharingLimited() bool {
+	if x != nil && x.SharingLimited != nil {
+		return *x.SharingLimited
+	}
+	return false
+}
+
+func (x *LimitSharing) GetTrigger() LimitSharing_Trigger {
+	if x != nil && x.Trigger != nil {
+		return *x.Trigger
+	}
+	return LimitSharing_CHAT_SETTING
+}
+
 var File_waCommon_WACommon_proto protoreflect.FileDescriptor
 
 //go:embed WACommon.pb.raw
@@ -409,24 +517,27 @@ func file_waCommon_WACommon_proto_rawDescGZIP() []byte {
 	return file_waCommon_WACommon_proto_rawDescData
 }
 
-var file_waCommon_WACommon_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_waCommon_WACommon_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_waCommon_WACommon_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_waCommon_WACommon_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_waCommon_WACommon_proto_goTypes = []any{
-	(FutureProofBehavior)(0), // 0: WACommon.FutureProofBehavior
-	(Command_CommandType)(0), // 1: WACommon.Command.CommandType
-	(*MessageKey)(nil),       // 2: WACommon.MessageKey
-	(*Command)(nil),          // 3: WACommon.Command
-	(*MessageText)(nil),      // 4: WACommon.MessageText
-	(*SubProtocol)(nil),      // 5: WACommon.SubProtocol
+	(FutureProofBehavior)(0),  // 0: WACommon.FutureProofBehavior
+	(Command_CommandType)(0),  // 1: WACommon.Command.CommandType
+	(LimitSharing_Trigger)(0), // 2: WACommon.LimitSharing.Trigger
+	(*MessageKey)(nil),        // 3: WACommon.MessageKey
+	(*Command)(nil),           // 4: WACommon.Command
+	(*MessageText)(nil),       // 5: WACommon.MessageText
+	(*SubProtocol)(nil),       // 6: WACommon.SubProtocol
+	(*LimitSharing)(nil),      // 7: WACommon.LimitSharing
 }
 var file_waCommon_WACommon_proto_depIdxs = []int32{
 	1, // 0: WACommon.Command.commandType:type_name -> WACommon.Command.CommandType
-	3, // 1: WACommon.MessageText.commands:type_name -> WACommon.Command
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 1: WACommon.MessageText.commands:type_name -> WACommon.Command
+	2, // 2: WACommon.LimitSharing.trigger:type_name -> WACommon.LimitSharing.Trigger
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_waCommon_WACommon_proto_init() }
@@ -439,8 +550,8 @@ func file_waCommon_WACommon_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_waCommon_WACommon_proto_rawDesc,
-			NumEnums:      2,
-			NumMessages:   4,
+			NumEnums:      3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
