@@ -162,6 +162,7 @@ func (device *Device) getRegistrationPayload() *waWa6.ClientPayload {
 		DeviceProps: deviceProps,
 	}
 	payload.Passive = proto.Bool(false)
+	payload.Pull = proto.Bool(false)
 	return payload
 }
 
@@ -170,6 +171,7 @@ func (device *Device) getLoginPayload() *waWa6.ClientPayload {
 	payload.Username = proto.Uint64(device.ID.UserInt())
 	payload.Device = proto.Uint32(uint32(device.ID.Device))
 	payload.Passive = proto.Bool(true)
+	payload.Pull = proto.Bool(true)
 	return payload
 }
 
