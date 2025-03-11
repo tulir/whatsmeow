@@ -1,0 +1,48 @@
+syntax = "proto2";
+package WAArmadilloTransportEvent;
+option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloTransportEvent";
+
+message TransportEvent {
+	message Event {
+		message IcdcAlert {
+			enum Type {
+				NONE = 0;
+				DETECTED = 1;
+				CLEARED = 2;
+			}
+
+			optional Type type = 1;
+		}
+
+		message DeviceChange {
+			enum Type {
+				NONE = 0;
+				ADDED = 1;
+				REMOVED = 2;
+				REPLACED = 3;
+			}
+
+			optional Type type = 1;
+			optional string deviceName = 2;
+		}
+
+		oneof event {
+			DeviceChange deviceChange = 1;
+			IcdcAlert icdcAlert = 2;
+		}
+	}
+
+	message Placeholder {
+		enum Type {
+			DECRYPTION_FAILURE = 1;
+			UNAVAILABLE_MESSAGE = 2;
+		}
+
+		optional Type type = 1;
+	}
+
+	oneof content {
+		Placeholder placeholder = 1;
+		Event event = 2;
+	}
+}

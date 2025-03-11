@@ -199,7 +199,7 @@ func (fs *FrameSocket) processData(msg []byte) {
 				msg = nil
 			}
 		} else {
-			if len(fs.incoming)+len(msg) >= fs.incomingLength {
+			if fs.receivedLength+len(msg) >= fs.incomingLength {
 				copy(fs.incoming[fs.receivedLength:], msg[:fs.incomingLength-fs.receivedLength])
 				msg = msg[fs.incomingLength-fs.receivedLength:]
 				fs.frameComplete()

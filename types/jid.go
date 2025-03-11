@@ -29,6 +29,7 @@ const (
 	InteropServer     = "interop"
 	NewsletterServer  = "newsletter"
 	HostedServer      = "hosted"
+	BotServer         = "bot"
 )
 
 // Some JIDs that are contacted often.

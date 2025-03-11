@@ -25,8 +25,8 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/proto/waWa6"
 	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
@@ -37,7 +37,7 @@ import (
 )
 
 // EventHandler is a function that can handle events from WhatsApp.
-type EventHandler func(evt interface{})
+type EventHandler func(evt any)
 type nodeHandler func(node *waBinary.Node)
 
 var nextHandlerID uint32
@@ -72,6 +72,8 @@ type Client struct {
 	// AutoReconnectHook is called when auto-reconnection fails. If the function returns false,
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
+	// If SynchronousAck is set, acks for messages will only be sent after all event handlers return.
+	SynchronousAck bool
 
 	DisableLoginAutoReconnect bool
 
@@ -97,7 +99,7 @@ type Client struct {
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 
-	historySyncNotifications  chan *waProto.HistorySyncNotification
+	historySyncNotifications  chan *waE2E.HistorySyncNotification
 	historySyncHandlerStarted atomic.Bool
 
 	uploadPreKeysLock sync.Mutex
@@ -141,10 +143,10 @@ type Client struct {
 	sessionRecreateHistoryLock sync.Mutex
 	// GetMessageForRetry is used to find the source message for handling retry receipts
 	// when the message is not found in the recently sent message cache.
-	GetMessageForRetry func(requester, to types.JID, id types.MessageID) *waProto.Message
+	GetMessageForRetry func(requester, to types.JID, id types.MessageID) *waE2E.Message
 	// PreRetryCallback is called before a retry receipt is accepted.
 	// If it returns false, the accepting will be cancelled and the retry receipt will be ignored.
-	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waProto.Message) bool
+	PreRetryCallback func(receipt *events.Receipt, id types.MessageID, retryCount int, msg *waE2E.Message) bool
 
 	// PrePairCallback is called before pairing is completed. If it returns false, the pairing will be cancelled and
 	// the client will disconnect.
@@ -152,7 +154,7 @@ type Client struct {
 
 	// GetClientPayload is called to get the client payload for connecting to the server.
 	// This should NOT be used for WhatsApp (to change the OS name, update fields in store.BaseClientPayload directly).
-	GetClientPayload func() *waProto.ClientPayload
+	GetClientPayload func() *waWa6.ClientPayload
 
 	// Should untrusted identity errors be handled automatically? If true, the stored identity and existing signal
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
@@ -231,14 +233,14 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		incomingRetryRequestCounter: make(map[incomingRetryKey]int),
 
-		historySyncNotifications: make(chan *waProto.HistorySyncNotification, 32),
+		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
 		groupParticipantsCache: make(map[types.JID][]types.JID),
 		userDevicesCache:       make(map[types.JID]deviceCache),
 
 		recentMessagesMap:      make(map[recentMessageKey]RecentMessage, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
-		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waProto.Message { return nil },
+		GetMessageForRetry:     func(requester, to types.JID, id types.MessageID) *waE2E.Message { return nil },
 		appStateKeyRequests:    make(map[string]time.Time),
 
 		pendingPhoneRerequests: make(map[types.MessageID]context.CancelFunc),
@@ -556,6 +558,7 @@ func (cli *Client) Disconnect() {
 	cli.socketLock.Lock()
 	cli.unlockedDisconnect()
 	cli.socketLock.Unlock()
+	cli.clearDelayedMessageRequests()
 }
 
 // Disconnect closes the websocket connection.
@@ -785,7 +788,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 	return err
 }
 
-func (cli *Client) dispatchEvent(evt interface{}) {
+func (cli *Client) dispatchEvent(evt any) {
 	cli.eventHandlersLock.RLock()
 	defer func() {
 		cli.eventHandlersLock.RUnlock()
@@ -822,7 +825,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 			IsFromMe: webMsg.GetKey().GetFromMe(),
 			IsGroup:  chatJID.Server == types.GroupServer,
 		},
-		ID:        webMsg.GetKey().GetID(),
+		ID:        webMsg.GetKey().GetId(),
 		PushName:  webMsg.GetPushName(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
