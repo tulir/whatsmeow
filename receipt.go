@@ -119,7 +119,7 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 	if recipient, ok := node.Attrs["recipient"]; ok {
 		attrs["recipient"] = recipient
 	}
-	if receiptType, ok := node.Attrs["type"]; node.Tag != "message" && ok {
+	if receiptType, ok := node.Attrs["type"]; ok {
 		attrs["type"] = receiptType
 	}
 	err := cli.sendNode(waBinary.Node{
