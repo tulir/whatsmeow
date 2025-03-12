@@ -212,3 +212,11 @@ func (n *NoopStore) PutDevice(store *Device) error {
 func (n *NoopStore) DeleteDevice(store *Device) error {
 	return n.Error
 }
+
+func (n *NoopStore) GetRepliedAndTimestamp(jid string) (*bool, *int64, error) {
+	return nil, nil, n.Error
+}
+
+func (n *NoopStore) SetRepliedIfNot(jid string) (bool, error) {
+	return false, n.Error
+}
