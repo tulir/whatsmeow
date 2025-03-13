@@ -374,6 +374,7 @@ const (
 	ClientPayload_DNSSource_HARDCODED ClientPayload_DNSSource_DNSResolutionMethod = 2
 	ClientPayload_DNSSource_OVERRIDE  ClientPayload_DNSSource_DNSResolutionMethod = 3
 	ClientPayload_DNSSource_FALLBACK  ClientPayload_DNSSource_DNSResolutionMethod = 4
+	ClientPayload_DNSSource_MNS       ClientPayload_DNSSource_DNSResolutionMethod = 5
 )
 
 // Enum value maps for ClientPayload_DNSSource_DNSResolutionMethod.
@@ -384,6 +385,7 @@ var (
 		2: "HARDCODED",
 		3: "OVERRIDE",
 		4: "FALLBACK",
+		5: "MNS",
 	}
 	ClientPayload_DNSSource_DNSResolutionMethod_value = map[string]int32{
 		"SYSTEM":    0,
@@ -391,6 +393,7 @@ var (
 		"HARDCODED": 2,
 		"OVERRIDE":  3,
 		"FALLBACK":  4,
+		"MNS":       5,
 	}
 )
 
@@ -439,6 +442,7 @@ const (
 	ClientPayload_WebInfo_WIN_STORE   ClientPayload_WebInfo_WebSubPlatform = 2
 	ClientPayload_WebInfo_DARWIN      ClientPayload_WebInfo_WebSubPlatform = 3
 	ClientPayload_WebInfo_WIN32       ClientPayload_WebInfo_WebSubPlatform = 4
+	ClientPayload_WebInfo_WIN_HYBRID  ClientPayload_WebInfo_WebSubPlatform = 5
 )
 
 // Enum value maps for ClientPayload_WebInfo_WebSubPlatform.
@@ -449,6 +453,7 @@ var (
 		2: "WIN_STORE",
 		3: "DARWIN",
 		4: "WIN32",
+		5: "WIN_HYBRID",
 	}
 	ClientPayload_WebInfo_WebSubPlatform_value = map[string]int32{
 		"WEB_BROWSER": 0,
@@ -456,6 +461,7 @@ var (
 		"WIN_STORE":   2,
 		"DARWIN":      3,
 		"WIN32":       4,
+		"WIN_HYBRID":  5,
 	}
 )
 

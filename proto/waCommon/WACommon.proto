@@ -39,3 +39,13 @@ message SubProtocol {
 	optional bytes payload = 1;
 	optional int32 version = 2;
 }
+
+message LimitSharing {
+	enum Trigger {
+		CHAT_SETTING = 0;
+		BIZ_SUPPORTS_FB_HOSTING = 1;
+	}
+
+	optional bool sharingLimited = 1;
+	optional Trigger trigger = 2;
+}

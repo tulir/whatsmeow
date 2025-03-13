@@ -2,12 +2,9 @@ syntax = "proto2";
 package WAArmadilloBackupMessage;
 option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloBackupMessage";
 
-message BackupMessage {
-	message Subprotocol {
-		optional bytes payload = 1;
-		optional int32 version = 2;
-	}
+import "waArmadilloBackupCommon/WAArmadilloBackupCommon.proto";
 
+message BackupMessage {
 	message Metadata {
 		message FrankingMetadata {
 			optional bytes frankingTag = 3;
@@ -25,8 +22,8 @@ message BackupMessage {
 
 	oneof payload {
 		bytes encryptedTransportMessage = 2;
-		Subprotocol encryptedTransportEvent = 5;
-		Subprotocol encryptedTransportLocallyTransformedMessage = 6;
+		WAArmadilloBackupCommon.Subprotocol encryptedTransportEvent = 5;
+		WAArmadilloBackupCommon.Subprotocol encryptedTransportLocallyTransformedMessage = 6;
 	}
 
 	optional Metadata metadata = 1;

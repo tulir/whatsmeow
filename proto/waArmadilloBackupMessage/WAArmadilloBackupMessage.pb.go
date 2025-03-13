@@ -13,6 +13,8 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
+	waArmadilloBackupCommon "go.mau.fi/whatsmeow/proto/waArmadilloBackupCommon"
+
 	_ "embed"
 )
 
@@ -82,7 +84,7 @@ func (x *BackupMessage) GetEncryptedTransportMessage() []byte {
 	return nil
 }
 
-func (x *BackupMessage) GetEncryptedTransportEvent() *BackupMessage_Subprotocol {
+func (x *BackupMessage) GetEncryptedTransportEvent() *waArmadilloBackupCommon.Subprotocol {
 	if x != nil {
 		if x, ok := x.Payload.(*BackupMessage_EncryptedTransportEvent); ok {
 			return x.EncryptedTransportEvent
@@ -91,7 +93,7 @@ func (x *BackupMessage) GetEncryptedTransportEvent() *BackupMessage_Subprotocol 
 	return nil
 }
 
-func (x *BackupMessage) GetEncryptedTransportLocallyTransformedMessage() *BackupMessage_Subprotocol {
+func (x *BackupMessage) GetEncryptedTransportLocallyTransformedMessage() *waArmadilloBackupCommon.Subprotocol {
 	if x != nil {
 		if x, ok := x.Payload.(*BackupMessage_EncryptedTransportLocallyTransformedMessage); ok {
 			return x.EncryptedTransportLocallyTransformedMessage
@@ -116,11 +118,11 @@ type BackupMessage_EncryptedTransportMessage struct {
 }
 
 type BackupMessage_EncryptedTransportEvent struct {
-	EncryptedTransportEvent *BackupMessage_Subprotocol `protobuf:"bytes,5,opt,name=encryptedTransportEvent,oneof"`
+	EncryptedTransportEvent *waArmadilloBackupCommon.Subprotocol `protobuf:"bytes,5,opt,name=encryptedTransportEvent,oneof"`
 }
 
 type BackupMessage_EncryptedTransportLocallyTransformedMessage struct {
-	EncryptedTransportLocallyTransformedMessage *BackupMessage_Subprotocol `protobuf:"bytes,6,opt,name=encryptedTransportLocallyTransformedMessage,oneof"`
+	EncryptedTransportLocallyTransformedMessage *waArmadilloBackupCommon.Subprotocol `protobuf:"bytes,6,opt,name=encryptedTransportLocallyTransformedMessage,oneof"`
 }
 
 func (*BackupMessage_EncryptedTransportMessage) isBackupMessage_Payload() {}
@@ -128,58 +130,6 @@ func (*BackupMessage_EncryptedTransportMessage) isBackupMessage_Payload() {}
 func (*BackupMessage_EncryptedTransportEvent) isBackupMessage_Payload() {}
 
 func (*BackupMessage_EncryptedTransportLocallyTransformedMessage) isBackupMessage_Payload() {}
-
-type BackupMessage_Subprotocol struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Payload       []byte                 `protobuf:"bytes,1,opt,name=payload" json:"payload,omitempty"`
-	Version       *int32                 `protobuf:"varint,2,opt,name=version" json:"version,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *BackupMessage_Subprotocol) Reset() {
-	*x = BackupMessage_Subprotocol{}
-	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *BackupMessage_Subprotocol) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*BackupMessage_Subprotocol) ProtoMessage() {}
-
-func (x *BackupMessage_Subprotocol) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use BackupMessage_Subprotocol.ProtoReflect.Descriptor instead.
-func (*BackupMessage_Subprotocol) Descriptor() ([]byte, []int) {
-	return file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_rawDescGZIP(), []int{0, 0}
-}
-
-func (x *BackupMessage_Subprotocol) GetPayload() []byte {
-	if x != nil {
-		return x.Payload
-	}
-	return nil
-}
-
-func (x *BackupMessage_Subprotocol) GetVersion() int32 {
-	if x != nil && x.Version != nil {
-		return *x.Version
-	}
-	return 0
-}
 
 type BackupMessage_Metadata struct {
 	state               protoimpl.MessageState                   `protogen:"open.v1"`
@@ -196,7 +146,7 @@ type BackupMessage_Metadata struct {
 
 func (x *BackupMessage_Metadata) Reset() {
 	*x = BackupMessage_Metadata{}
-	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[2]
+	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -208,7 +158,7 @@ func (x *BackupMessage_Metadata) String() string {
 func (*BackupMessage_Metadata) ProtoMessage() {}
 
 func (x *BackupMessage_Metadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[2]
+	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -221,7 +171,7 @@ func (x *BackupMessage_Metadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BackupMessage_Metadata.ProtoReflect.Descriptor instead.
 func (*BackupMessage_Metadata) Descriptor() ([]byte, []int) {
-	return file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_rawDescGZIP(), []int{0, 1}
+	return file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_rawDescGZIP(), []int{0, 0}
 }
 
 func (x *BackupMessage_Metadata) GetSenderID() string {
@@ -283,7 +233,7 @@ type BackupMessage_Metadata_FrankingMetadata struct {
 
 func (x *BackupMessage_Metadata_FrankingMetadata) Reset() {
 	*x = BackupMessage_Metadata_FrankingMetadata{}
-	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[3]
+	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -295,7 +245,7 @@ func (x *BackupMessage_Metadata_FrankingMetadata) String() string {
 func (*BackupMessage_Metadata_FrankingMetadata) ProtoMessage() {}
 
 func (x *BackupMessage_Metadata_FrankingMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[3]
+	mi := &file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -308,7 +258,7 @@ func (x *BackupMessage_Metadata_FrankingMetadata) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use BackupMessage_Metadata_FrankingMetadata.ProtoReflect.Descriptor instead.
 func (*BackupMessage_Metadata_FrankingMetadata) Descriptor() ([]byte, []int) {
-	return file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_rawDescGZIP(), []int{0, 1, 0}
+	return file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_rawDescGZIP(), []int{0, 0, 0}
 }
 
 func (x *BackupMessage_Metadata_FrankingMetadata) GetFrankingTag() []byte {
@@ -342,18 +292,18 @@ func file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_rawDescGZIP() 
 	return file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_rawDescData
 }
 
-var file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_goTypes = []any{
 	(*BackupMessage)(nil),                           // 0: WAArmadilloBackupMessage.BackupMessage
-	(*BackupMessage_Subprotocol)(nil),               // 1: WAArmadilloBackupMessage.BackupMessage.Subprotocol
-	(*BackupMessage_Metadata)(nil),                  // 2: WAArmadilloBackupMessage.BackupMessage.Metadata
-	(*BackupMessage_Metadata_FrankingMetadata)(nil), // 3: WAArmadilloBackupMessage.BackupMessage.Metadata.FrankingMetadata
+	(*BackupMessage_Metadata)(nil),                  // 1: WAArmadilloBackupMessage.BackupMessage.Metadata
+	(*BackupMessage_Metadata_FrankingMetadata)(nil), // 2: WAArmadilloBackupMessage.BackupMessage.Metadata.FrankingMetadata
+	(*waArmadilloBackupCommon.Subprotocol)(nil),     // 3: WAArmadilloBackupCommon.Subprotocol
 }
 var file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_depIdxs = []int32{
-	1, // 0: WAArmadilloBackupMessage.BackupMessage.encryptedTransportEvent:type_name -> WAArmadilloBackupMessage.BackupMessage.Subprotocol
-	1, // 1: WAArmadilloBackupMessage.BackupMessage.encryptedTransportLocallyTransformedMessage:type_name -> WAArmadilloBackupMessage.BackupMessage.Subprotocol
-	2, // 2: WAArmadilloBackupMessage.BackupMessage.metadata:type_name -> WAArmadilloBackupMessage.BackupMessage.Metadata
-	3, // 3: WAArmadilloBackupMessage.BackupMessage.Metadata.frankingMetadata:type_name -> WAArmadilloBackupMessage.BackupMessage.Metadata.FrankingMetadata
+	3, // 0: WAArmadilloBackupMessage.BackupMessage.encryptedTransportEvent:type_name -> WAArmadilloBackupCommon.Subprotocol
+	3, // 1: WAArmadilloBackupMessage.BackupMessage.encryptedTransportLocallyTransformedMessage:type_name -> WAArmadilloBackupCommon.Subprotocol
+	1, // 2: WAArmadilloBackupMessage.BackupMessage.metadata:type_name -> WAArmadilloBackupMessage.BackupMessage.Metadata
+	2, // 3: WAArmadilloBackupMessage.BackupMessage.Metadata.frankingMetadata:type_name -> WAArmadilloBackupMessage.BackupMessage.Metadata.FrankingMetadata
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -377,7 +327,7 @@ func file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

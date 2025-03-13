@@ -51,6 +51,7 @@ message HistorySync {
 	repeated PhoneNumberToLIDMapping phoneNumberToLidMappings = 15;
 	optional string companionMetaNonce = 16;
 	optional bytes shareableChatIdentifierEncryptionKey = 17;
+	repeated Account accounts = 18;
 }
 
 message Conversation {
@@ -109,6 +110,8 @@ message Conversation {
 	optional PrivacySystemMessage systemMessageToInsert = 47;
 	optional bool capiCreatedGroup = 48;
 	optional string accountLid = 49;
+	optional bool limitSharing = 50;
+	optional int64 limitSharingSettingTimestamp = 51;
 }
 
 message GroupParticipant {
@@ -136,6 +139,13 @@ message PastParticipant {
 message PhoneNumberToLIDMapping {
 	optional string pnJID = 1;
 	optional string lidJID = 2;
+}
+
+message Account {
+	optional string lid = 1;
+	optional string username = 2;
+	optional string countryCode = 3;
+	optional bool isUsernameDeleted = 4;
 }
 
 message HistorySyncMsg {
