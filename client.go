@@ -9,6 +9,7 @@ package whatsmeow
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -693,6 +694,7 @@ func (cli *Client) handleFrame(data []byte) {
 		return
 	}
 	cli.recvLog.Debugf("%s", node.XMLString())
+	cli.recvLog.Debugf("%s", base64.StdEncoding.EncodeToString(decompressed))
 	if node.Tag == "xmlstreamend" {
 		if !cli.isExpectedDisconnect() {
 			cli.Log.Warnf("Received stream end frame")
@@ -771,6 +773,7 @@ func (cli *Client) sendNodeAndGetData(node waBinary.Node) ([]byte, error) {
 	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())
+	cli.sendLog.Debugf("%s", base64.StdEncoding.EncodeToString(payload))
 	return payload, sock.SendFrame(payload)
 }
 
