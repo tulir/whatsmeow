@@ -295,7 +295,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	switch to.Server {
 	case types.GroupServer, types.BroadcastServer:
 		phash, data, err = cli.sendGroup(ctx, to, ownID, req.ID, message, &resp.DebugTimings, botNode)
-	case types.DefaultUserServer:
+	case types.DefaultUserServer, types.BotServer:
 		if req.Peer {
 			data, err = cli.sendPeerMessage(to, req.ID, message, &resp.DebugTimings)
 		} else {

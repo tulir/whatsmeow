@@ -42,6 +42,7 @@ var (
 	PSAJID              = NewJID("0", LegacyUserServer)
 	OfficialBusinessJID = NewJID("16505361212", LegacyUserServer)
 	MetaAIJID           = NewJID("13135550002", DefaultUserServer)
+	NewMetaAIJID        = NewJID("867051314767696", BotServer)
 )
 
 // MessageID is the internal ID of a WhatsApp message.
@@ -113,7 +114,7 @@ func (jid JID) IsBroadcastList() bool {
 var botUserRegex = regexp.MustCompile(`^1313555\d{4}$|^131655500\d{2}$`)
 
 func (jid JID) IsBot() bool {
-	return jid.Server == DefaultUserServer && botUserRegex.MatchString(jid.User) && jid.Device == 0
+	return (jid.Server == DefaultUserServer && botUserRegex.MatchString(jid.User) && jid.Device == 0) || jid.Server == BotServer
 }
 
 // NewADJID creates a new AD JID.
