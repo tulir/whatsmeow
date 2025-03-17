@@ -94,6 +94,15 @@ type preKeyResp struct {
 	err    error
 }
 
+func (preKey *preKeyResp) Bundle() (*prekey.Bundle, error) {
+	return preKey.bundle, preKey.err
+}
+
+type PreKeyResp struct {
+	Bundle *prekey.Bundle
+	Err    error
+}
+
 func (cli *Client) fetchPreKeys(ctx context.Context, users []types.JID) (map[types.JID]preKeyResp, error) {
 	requests := make([]waBinary.Node, len(users))
 	for i, user := range users {
@@ -129,6 +138,10 @@ func (cli *Client) fetchPreKeys(ctx context.Context, users []types.JID) (map[typ
 		respData[jid] = preKeyResp{bundle, err}
 	}
 	return respData, nil
+}
+
+func (cli *Client) FetchPreKeys(ctx context.Context, users []types.JID) (map[types.JID]preKeyResp, error) {
+	return cli.fetchPreKeys(ctx, users)
 }
 
 func preKeyToNode(key *keys.PreKey) waBinary.Node {
