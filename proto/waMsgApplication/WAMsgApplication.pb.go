@@ -84,6 +84,68 @@ func (MessageApplication_Metadata_ThreadType) EnumDescriptor() ([]byte, []int) {
 	return file_waMsgApplication_WAMsgApplication_proto_rawDescGZIP(), []int{0, 0, 0}
 }
 
+type MessageApplication_EphemeralSetting_EphemeralityType int32
+
+const (
+	MessageApplication_EphemeralSetting_UNKNOWN               MessageApplication_EphemeralSetting_EphemeralityType = 0
+	MessageApplication_EphemeralSetting_SEEN_ONCE             MessageApplication_EphemeralSetting_EphemeralityType = 1
+	MessageApplication_EphemeralSetting_SEEN_BASED_WITH_TIMER MessageApplication_EphemeralSetting_EphemeralityType = 2
+	MessageApplication_EphemeralSetting_SEND_BASED_WITH_TIMER MessageApplication_EphemeralSetting_EphemeralityType = 3
+)
+
+// Enum value maps for MessageApplication_EphemeralSetting_EphemeralityType.
+var (
+	MessageApplication_EphemeralSetting_EphemeralityType_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "SEEN_ONCE",
+		2: "SEEN_BASED_WITH_TIMER",
+		3: "SEND_BASED_WITH_TIMER",
+	}
+	MessageApplication_EphemeralSetting_EphemeralityType_value = map[string]int32{
+		"UNKNOWN":               0,
+		"SEEN_ONCE":             1,
+		"SEEN_BASED_WITH_TIMER": 2,
+		"SEND_BASED_WITH_TIMER": 3,
+	}
+)
+
+func (x MessageApplication_EphemeralSetting_EphemeralityType) Enum() *MessageApplication_EphemeralSetting_EphemeralityType {
+	p := new(MessageApplication_EphemeralSetting_EphemeralityType)
+	*p = x
+	return p
+}
+
+func (x MessageApplication_EphemeralSetting_EphemeralityType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MessageApplication_EphemeralSetting_EphemeralityType) Descriptor() protoreflect.EnumDescriptor {
+	return file_waMsgApplication_WAMsgApplication_proto_enumTypes[1].Descriptor()
+}
+
+func (MessageApplication_EphemeralSetting_EphemeralityType) Type() protoreflect.EnumType {
+	return &file_waMsgApplication_WAMsgApplication_proto_enumTypes[1]
+}
+
+func (x MessageApplication_EphemeralSetting_EphemeralityType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *MessageApplication_EphemeralSetting_EphemeralityType) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = MessageApplication_EphemeralSetting_EphemeralityType(num)
+	return nil
+}
+
+// Deprecated: Use MessageApplication_EphemeralSetting_EphemeralityType.Descriptor instead.
+func (MessageApplication_EphemeralSetting_EphemeralityType) EnumDescriptor() ([]byte, []int) {
+	return file_waMsgApplication_WAMsgApplication_proto_rawDescGZIP(), []int{0, 6, 0}
+}
+
 type MessageApplication struct {
 	state         protoimpl.MessageState       `protogen:"open.v1"`
 	Payload       *MessageApplication_Payload  `protobuf:"bytes,1,opt,name=payload" json:"payload,omitempty"`
@@ -729,10 +791,11 @@ func (*MessageApplication_Content) Descriptor() ([]byte, []int) {
 }
 
 type MessageApplication_EphemeralSetting struct {
-	state                     protoimpl.MessageState `protogen:"open.v1"`
-	EphemeralExpiration       *uint32                `protobuf:"varint,2,opt,name=ephemeralExpiration" json:"ephemeralExpiration,omitempty"`
-	EphemeralSettingTimestamp *int64                 `protobuf:"varint,3,opt,name=ephemeralSettingTimestamp" json:"ephemeralSettingTimestamp,omitempty"`
-	IsEphemeralSettingReset   *bool                  `protobuf:"varint,4,opt,name=isEphemeralSettingReset" json:"isEphemeralSettingReset,omitempty"`
+	state                     protoimpl.MessageState                                `protogen:"open.v1"`
+	EphemeralExpiration       *uint32                                               `protobuf:"varint,2,opt,name=ephemeralExpiration" json:"ephemeralExpiration,omitempty"`
+	EphemeralSettingTimestamp *int64                                                `protobuf:"varint,3,opt,name=ephemeralSettingTimestamp" json:"ephemeralSettingTimestamp,omitempty"`
+	EphemeralityType          *MessageApplication_EphemeralSetting_EphemeralityType `protobuf:"varint,5,opt,name=ephemeralityType,enum=WAMsgApplication.MessageApplication_EphemeralSetting_EphemeralityType" json:"ephemeralityType,omitempty"`
+	IsEphemeralSettingReset   *bool                                                 `protobuf:"varint,4,opt,name=isEphemeralSettingReset" json:"isEphemeralSettingReset,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -779,6 +842,13 @@ func (x *MessageApplication_EphemeralSetting) GetEphemeralSettingTimestamp() int
 		return *x.EphemeralSettingTimestamp
 	}
 	return 0
+}
+
+func (x *MessageApplication_EphemeralSetting) GetEphemeralityType() MessageApplication_EphemeralSetting_EphemeralityType {
+	if x != nil && x.EphemeralityType != nil {
+		return *x.EphemeralityType
+	}
+	return MessageApplication_EphemeralSetting_UNKNOWN
 }
 
 func (x *MessageApplication_EphemeralSetting) GetIsEphemeralSettingReset() bool {
@@ -925,49 +995,51 @@ func file_waMsgApplication_WAMsgApplication_proto_rawDescGZIP() []byte {
 	return file_waMsgApplication_WAMsgApplication_proto_rawDescData
 }
 
-var file_waMsgApplication_WAMsgApplication_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_waMsgApplication_WAMsgApplication_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_waMsgApplication_WAMsgApplication_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_waMsgApplication_WAMsgApplication_proto_goTypes = []any{
-	(MessageApplication_Metadata_ThreadType)(0),             // 0: WAMsgApplication.MessageApplication.Metadata.ThreadType
-	(*MessageApplication)(nil),                              // 1: WAMsgApplication.MessageApplication
-	(*MessageApplication_Metadata)(nil),                     // 2: WAMsgApplication.MessageApplication.Metadata
-	(*MessageApplication_Payload)(nil),                      // 3: WAMsgApplication.MessageApplication.Payload
-	(*MessageApplication_SubProtocolPayload)(nil),           // 4: WAMsgApplication.MessageApplication.SubProtocolPayload
-	(*MessageApplication_ApplicationData)(nil),              // 5: WAMsgApplication.MessageApplication.ApplicationData
-	(*MessageApplication_Signal)(nil),                       // 6: WAMsgApplication.MessageApplication.Signal
-	(*MessageApplication_Content)(nil),                      // 7: WAMsgApplication.MessageApplication.Content
-	(*MessageApplication_EphemeralSetting)(nil),             // 8: WAMsgApplication.MessageApplication.EphemeralSetting
-	(*MessageApplication_Metadata_QuotedMessage)(nil),       // 9: WAMsgApplication.MessageApplication.Metadata.QuotedMessage
-	(*MessageApplication_Metadata_EphemeralSettingMap)(nil), // 10: WAMsgApplication.MessageApplication.Metadata.EphemeralSettingMap
-	(*waCommon.SubProtocol)(nil),                            // 11: WACommon.SubProtocol
-	(waCommon.FutureProofBehavior)(0),                       // 12: WACommon.FutureProofBehavior
+	(MessageApplication_Metadata_ThreadType)(0),               // 0: WAMsgApplication.MessageApplication.Metadata.ThreadType
+	(MessageApplication_EphemeralSetting_EphemeralityType)(0), // 1: WAMsgApplication.MessageApplication.EphemeralSetting.EphemeralityType
+	(*MessageApplication)(nil),                                // 2: WAMsgApplication.MessageApplication
+	(*MessageApplication_Metadata)(nil),                       // 3: WAMsgApplication.MessageApplication.Metadata
+	(*MessageApplication_Payload)(nil),                        // 4: WAMsgApplication.MessageApplication.Payload
+	(*MessageApplication_SubProtocolPayload)(nil),             // 5: WAMsgApplication.MessageApplication.SubProtocolPayload
+	(*MessageApplication_ApplicationData)(nil),                // 6: WAMsgApplication.MessageApplication.ApplicationData
+	(*MessageApplication_Signal)(nil),                         // 7: WAMsgApplication.MessageApplication.Signal
+	(*MessageApplication_Content)(nil),                        // 8: WAMsgApplication.MessageApplication.Content
+	(*MessageApplication_EphemeralSetting)(nil),               // 9: WAMsgApplication.MessageApplication.EphemeralSetting
+	(*MessageApplication_Metadata_QuotedMessage)(nil),         // 10: WAMsgApplication.MessageApplication.Metadata.QuotedMessage
+	(*MessageApplication_Metadata_EphemeralSettingMap)(nil),   // 11: WAMsgApplication.MessageApplication.Metadata.EphemeralSettingMap
+	(*waCommon.SubProtocol)(nil),                              // 12: WACommon.SubProtocol
+	(waCommon.FutureProofBehavior)(0),                         // 13: WACommon.FutureProofBehavior
 }
 var file_waMsgApplication_WAMsgApplication_proto_depIdxs = []int32{
-	3,  // 0: WAMsgApplication.MessageApplication.payload:type_name -> WAMsgApplication.MessageApplication.Payload
-	2,  // 1: WAMsgApplication.MessageApplication.metadata:type_name -> WAMsgApplication.MessageApplication.Metadata
-	8,  // 2: WAMsgApplication.MessageApplication.Metadata.chatEphemeralSetting:type_name -> WAMsgApplication.MessageApplication.EphemeralSetting
-	10, // 3: WAMsgApplication.MessageApplication.Metadata.ephemeralSettingList:type_name -> WAMsgApplication.MessageApplication.Metadata.EphemeralSettingMap
-	11, // 4: WAMsgApplication.MessageApplication.Metadata.businessMetadata:type_name -> WACommon.SubProtocol
-	9,  // 5: WAMsgApplication.MessageApplication.Metadata.quotedMessage:type_name -> WAMsgApplication.MessageApplication.Metadata.QuotedMessage
+	4,  // 0: WAMsgApplication.MessageApplication.payload:type_name -> WAMsgApplication.MessageApplication.Payload
+	3,  // 1: WAMsgApplication.MessageApplication.metadata:type_name -> WAMsgApplication.MessageApplication.Metadata
+	9,  // 2: WAMsgApplication.MessageApplication.Metadata.chatEphemeralSetting:type_name -> WAMsgApplication.MessageApplication.EphemeralSetting
+	11, // 3: WAMsgApplication.MessageApplication.Metadata.ephemeralSettingList:type_name -> WAMsgApplication.MessageApplication.Metadata.EphemeralSettingMap
+	12, // 4: WAMsgApplication.MessageApplication.Metadata.businessMetadata:type_name -> WACommon.SubProtocol
+	10, // 5: WAMsgApplication.MessageApplication.Metadata.quotedMessage:type_name -> WAMsgApplication.MessageApplication.Metadata.QuotedMessage
 	0,  // 6: WAMsgApplication.MessageApplication.Metadata.threadType:type_name -> WAMsgApplication.MessageApplication.Metadata.ThreadType
-	7,  // 7: WAMsgApplication.MessageApplication.Payload.coreContent:type_name -> WAMsgApplication.MessageApplication.Content
-	6,  // 8: WAMsgApplication.MessageApplication.Payload.signal:type_name -> WAMsgApplication.MessageApplication.Signal
-	5,  // 9: WAMsgApplication.MessageApplication.Payload.applicationData:type_name -> WAMsgApplication.MessageApplication.ApplicationData
-	4,  // 10: WAMsgApplication.MessageApplication.Payload.subProtocol:type_name -> WAMsgApplication.MessageApplication.SubProtocolPayload
-	11, // 11: WAMsgApplication.MessageApplication.SubProtocolPayload.consumerMessage:type_name -> WACommon.SubProtocol
-	11, // 12: WAMsgApplication.MessageApplication.SubProtocolPayload.businessMessage:type_name -> WACommon.SubProtocol
-	11, // 13: WAMsgApplication.MessageApplication.SubProtocolPayload.paymentMessage:type_name -> WACommon.SubProtocol
-	11, // 14: WAMsgApplication.MessageApplication.SubProtocolPayload.multiDevice:type_name -> WACommon.SubProtocol
-	11, // 15: WAMsgApplication.MessageApplication.SubProtocolPayload.voip:type_name -> WACommon.SubProtocol
-	11, // 16: WAMsgApplication.MessageApplication.SubProtocolPayload.armadillo:type_name -> WACommon.SubProtocol
-	12, // 17: WAMsgApplication.MessageApplication.SubProtocolPayload.futureProof:type_name -> WACommon.FutureProofBehavior
-	3,  // 18: WAMsgApplication.MessageApplication.Metadata.QuotedMessage.payload:type_name -> WAMsgApplication.MessageApplication.Payload
-	8,  // 19: WAMsgApplication.MessageApplication.Metadata.EphemeralSettingMap.ephemeralSetting:type_name -> WAMsgApplication.MessageApplication.EphemeralSetting
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	8,  // 7: WAMsgApplication.MessageApplication.Payload.coreContent:type_name -> WAMsgApplication.MessageApplication.Content
+	7,  // 8: WAMsgApplication.MessageApplication.Payload.signal:type_name -> WAMsgApplication.MessageApplication.Signal
+	6,  // 9: WAMsgApplication.MessageApplication.Payload.applicationData:type_name -> WAMsgApplication.MessageApplication.ApplicationData
+	5,  // 10: WAMsgApplication.MessageApplication.Payload.subProtocol:type_name -> WAMsgApplication.MessageApplication.SubProtocolPayload
+	12, // 11: WAMsgApplication.MessageApplication.SubProtocolPayload.consumerMessage:type_name -> WACommon.SubProtocol
+	12, // 12: WAMsgApplication.MessageApplication.SubProtocolPayload.businessMessage:type_name -> WACommon.SubProtocol
+	12, // 13: WAMsgApplication.MessageApplication.SubProtocolPayload.paymentMessage:type_name -> WACommon.SubProtocol
+	12, // 14: WAMsgApplication.MessageApplication.SubProtocolPayload.multiDevice:type_name -> WACommon.SubProtocol
+	12, // 15: WAMsgApplication.MessageApplication.SubProtocolPayload.voip:type_name -> WACommon.SubProtocol
+	12, // 16: WAMsgApplication.MessageApplication.SubProtocolPayload.armadillo:type_name -> WACommon.SubProtocol
+	13, // 17: WAMsgApplication.MessageApplication.SubProtocolPayload.futureProof:type_name -> WACommon.FutureProofBehavior
+	1,  // 18: WAMsgApplication.MessageApplication.EphemeralSetting.ephemeralityType:type_name -> WAMsgApplication.MessageApplication.EphemeralSetting.EphemeralityType
+	4,  // 19: WAMsgApplication.MessageApplication.Metadata.QuotedMessage.payload:type_name -> WAMsgApplication.MessageApplication.Payload
+	9,  // 20: WAMsgApplication.MessageApplication.Metadata.EphemeralSettingMap.ephemeralSetting:type_name -> WAMsgApplication.MessageApplication.EphemeralSetting
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_waMsgApplication_WAMsgApplication_proto_init() }
@@ -999,7 +1071,7 @@ func file_waMsgApplication_WAMsgApplication_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_waMsgApplication_WAMsgApplication_proto_rawDesc,
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,

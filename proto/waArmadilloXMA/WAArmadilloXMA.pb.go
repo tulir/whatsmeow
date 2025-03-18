@@ -507,6 +507,7 @@ type ExtendedContentMessage struct {
 	ContentRef            *string                                     `protobuf:"bytes,23,opt,name=contentRef" json:"contentRef,omitempty"`
 	MentionedJID          []string                                    `protobuf:"bytes,24,rep,name=mentionedJID" json:"mentionedJID,omitempty"`
 	Commands              []*waCommon.Command                         `protobuf:"bytes,25,rep,name=commands" json:"commands,omitempty"`
+	Mentions              []*waCommon.Mention                         `protobuf:"bytes,26,rep,name=mentions" json:"mentions,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -716,6 +717,13 @@ func (x *ExtendedContentMessage) GetCommands() []*waCommon.Command {
 	return nil
 }
 
+func (x *ExtendedContentMessage) GetMentions() []*waCommon.Mention {
+	if x != nil {
+		return x.Mentions
+	}
+	return nil
+}
+
 type ExtendedContentMessage_CTA struct {
 	state             protoimpl.MessageState                `protogen:"open.v1"`
 	ButtonType        *ExtendedContentMessage_CtaButtonType `protobuf:"varint,1,opt,name=buttonType,enum=WAArmadilloXMA.ExtendedContentMessage_CtaButtonType" json:"buttonType,omitempty"`
@@ -828,6 +836,7 @@ var file_waArmadilloXMA_WAArmadilloXMA_proto_goTypes = []any{
 	(*ExtendedContentMessage_CTA)(nil),              // 5: WAArmadilloXMA.ExtendedContentMessage.CTA
 	(*waCommon.SubProtocol)(nil),                    // 6: WACommon.SubProtocol
 	(*waCommon.Command)(nil),                        // 7: WACommon.Command
+	(*waCommon.Mention)(nil),                        // 8: WACommon.Mention
 }
 var file_waArmadilloXMA_WAArmadilloXMA_proto_depIdxs = []int32{
 	6,  // 0: WAArmadilloXMA.ExtendedContentMessage.associatedMessage:type_name -> WACommon.SubProtocol
@@ -839,12 +848,13 @@ var file_waArmadilloXMA_WAArmadilloXMA_proto_depIdxs = []int32{
 	6,  // 6: WAArmadilloXMA.ExtendedContentMessage.headerImage:type_name -> WACommon.SubProtocol
 	0,  // 7: WAArmadilloXMA.ExtendedContentMessage.overlayIconGlyph:type_name -> WAArmadilloXMA.ExtendedContentMessage.OverlayIconGlyph
 	7,  // 8: WAArmadilloXMA.ExtendedContentMessage.commands:type_name -> WACommon.Command
-	1,  // 9: WAArmadilloXMA.ExtendedContentMessage.CTA.buttonType:type_name -> WAArmadilloXMA.ExtendedContentMessage.CtaButtonType
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	8,  // 9: WAArmadilloXMA.ExtendedContentMessage.mentions:type_name -> WACommon.Mention
+	1,  // 10: WAArmadilloXMA.ExtendedContentMessage.CTA.buttonType:type_name -> WAArmadilloXMA.ExtendedContentMessage.CtaButtonType
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_waArmadilloXMA_WAArmadilloXMA_proto_init() }

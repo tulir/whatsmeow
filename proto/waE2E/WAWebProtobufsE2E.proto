@@ -3,7 +3,7 @@ package WAWebProtobufsE2E;
 option go_package = "go.mau.fi/whatsmeow/proto/waE2E";
 
 import "waAdv/WAAdv.proto";
-import "waCompanionReg/WAWebProtobufsCompanionReg.proto";
+import "waCompanionReg/WACompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
 
@@ -858,6 +858,10 @@ message ExtendedTextMessage {
 		COURIERPRIME_BOLD = 10;
 	}
 
+	message LinkPreviewMetadata {
+		optional PaymentLinkMetadata paymentLinkMetadata = 1;
+	}
+
 	optional string text = 1;
 	optional string matchedText = 2;
 	optional string description = 5;
@@ -884,6 +888,25 @@ message ExtendedTextMessage {
 	optional uint32 videoHeight = 31;
 	optional uint32 videoWidth = 32;
 	optional MMSThumbnailMetadata faviconMMSMetadata = 33;
+	optional LinkPreviewMetadata linkPreviewMetadata = 34;
+}
+
+message PaymentLinkMetadata {
+	message PaymentLinkHeader {
+		enum PaymentLinkHeaderType {
+			LINK_PREVIEW = 0;
+			ORDER = 1;
+		}
+
+		optional PaymentLinkHeaderType headerType = 1;
+	}
+
+	message PaymentLinkButton {
+		optional string displayText = 1;
+	}
+
+	optional PaymentLinkButton button = 1;
+	optional PaymentLinkHeader header = 2;
 }
 
 message StatusNotificationMessage {
@@ -1013,6 +1036,7 @@ message ContextInfo {
 		optional string ctaPayload = 20;
 		optional bool disableNudge = 21;
 		optional string originalImageURL = 22;
+		optional bool wtwaAdFormat = 23;
 	}
 
 	message AdReplyInfo {
@@ -1364,7 +1388,7 @@ message BotModelMetadata {
 message BotProgressIndicatorMetadata {
 	message BotPlanningStepMetadata {
 		enum BotSearchSourceProvider {
-			UNKNOWNPROVIDER = 0;
+			UNKNOWN_PROVIDER = 0;
 			OTHER = 1;
 			GOOGLE = 2;
 			BING = 3;
@@ -1404,6 +1428,7 @@ message BotProgressIndicatorMetadata {
 		}
 
 		optional string statusTitle = 1;
+		optional string statusBody = 2;
 		repeated BotPlanningSearchSourcesMetadata sourcesMetadata = 3;
 		optional PlanningStepStatus status = 4;
 		optional bool isReasoning = 5;
@@ -1492,13 +1517,15 @@ message MessageAssociation {
 		EVENT_COVER_IMAGE = 3;
 		STATUS_POLL = 4;
 		HD_VIDEO_DUAL_UPLOAD = 5;
-		STATUS_TAPPABLE_MESSAGE = 6;
+		STATUS_EXTERNAL_RESHARE = 6;
 		MEDIA_POLL = 7;
 		STATUS_ADD_YOURS = 8;
 		STATUS_NOTIFICATION = 9;
 		HD_IMAGE_DUAL_UPLOAD = 10;
 		STICKER_ANNOTATION = 11;
 		MOTION_PHOTO = 12;
+		STATUS_LINK_ACTION = 13;
+		VIEW_ALL_REPLIES = 14;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1524,6 +1551,26 @@ message MessageContextInfo {
 	optional MessageAssociation messageAssociation = 10;
 	optional bool capiCreatedGroup = 11;
 	optional string supportPayload = 12;
+}
+
+message InteractiveAnnotation {
+	enum StatusLinkType {
+		RASTERIZED_LINK_PREVIEW = 1;
+		RASTERIZED_LINK_TRUNCATED = 2;
+		RASTERIZED_LINK_FULL_URL = 3;
+	}
+
+	oneof action {
+		Location location = 2;
+		ContextInfo.ForwardedNewsletterMessageInfo newsletter = 3;
+		bool embeddedAction = 6;
+		TapLinkAction tapAction = 7;
+	}
+
+	repeated Point polygonVertices = 1;
+	optional bool shouldSkipConfirmation = 4;
+	optional EmbeddedContent embeddedContent = 5;
+	optional StatusLinkType statusLinkType = 8;
 }
 
 message HydratedTemplateButton {
@@ -1709,6 +1756,7 @@ message Message {
 	optional FutureProofMessage groupStatusMessage = 96;
 	optional AIRichResponseMessage richResponseMessage = 97;
 	optional StatusNotificationMessage statusNotificationMessage = 98;
+	optional FutureProofMessage limitSharingMessage = 99;
 }
 
 message AlbumMessage {
@@ -1992,7 +2040,7 @@ message PeerDataOperationRequestMessage {
 
 	message FullHistorySyncOnDemandRequest {
 		optional FullHistorySyncOnDemandRequestMetadata requestMetadata = 1;
-		optional WAWebProtobufsCompanionReg.DeviceProps.HistorySyncConfig historySyncConfig = 2;
+		optional WACompanionReg.DeviceProps.HistorySyncConfig historySyncConfig = 2;
 	}
 
 	message HistorySyncOnDemandRequest {
@@ -2278,19 +2326,6 @@ message EmbeddedContent {
 message TapLinkAction {
 	optional string title = 1;
 	optional string tapURL = 2;
-}
-
-message InteractiveAnnotation {
-	oneof action {
-		Location location = 2;
-		ContextInfo.ForwardedNewsletterMessageInfo newsletter = 3;
-		bool embeddedAction = 6;
-		TapLinkAction tapAction = 7;
-	}
-
-	repeated Point polygonVertices = 1;
-	optional bool shouldSkipConfirmation = 4;
-	optional EmbeddedContent embeddedContent = 5;
 }
 
 message Point {

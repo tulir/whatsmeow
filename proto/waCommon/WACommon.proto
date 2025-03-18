@@ -29,10 +29,22 @@ message Command {
 	optional string validationToken = 4;
 }
 
+message Mention {
+	enum MentionType {
+		PROFILE = 0;
+	}
+
+	optional MentionType mentionType = 1;
+	optional string mentionedJID = 2;
+	optional uint32 offset = 3;
+	optional uint32 length = 4;
+}
+
 message MessageText {
 	optional string text = 1;
 	repeated string mentionedJID = 2;
 	repeated Command commands = 3;
+	repeated Mention mentions = 4;
 }
 
 message SubProtocol {
