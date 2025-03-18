@@ -144,6 +144,50 @@ func (cli *Client) FetchPreKeys(ctx context.Context, users []types.JID) (map[typ
 	return cli.fetchPreKeys(ctx, users)
 }
 
+func (cli *Client) FetchPreKeyTimes(ctx context.Context, users []types.JID) (map[types.JID]int64, error) {
+	start := time.Now().Unix()
+	requests := make([]waBinary.Node, len(users))
+	for i, user := range users {
+		requests[i].Tag = "user"
+		requests[i].Attrs = waBinary.Attrs{
+			"jid":    user,
+			"reason": "identity",
+		}
+	}
+	resp, err := cli.sendIQ(infoQuery{
+		Context:   ctx,
+		Namespace: "encrypt",
+		Type:      "get",
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag:     "key",
+			Content: requests,
+		}},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to send prekey request: %w", err)
+	} else if len(resp.GetChildren()) == 0 {
+		return nil, fmt.Errorf("got empty response to prekey request")
+	}
+	list := resp.GetChildByTag("list")
+	respData := make(map[types.JID]int64)
+	for _, child := range list.GetChildren() {
+		if child.Tag != "user" {
+			continue
+		}
+
+		_, ok := child.GetOptionalChildByTag("key")
+		t := child.AttrGetter().Int64("t")
+		if !ok && t >= start {
+			// 1、如果<key>为空，且时间戳大于当前时间戳，则未注册
+			// 2、如果时间戳为过去的时间戳，时间戳是最后上传公钥的时间，<key>为空则是公钥被用完了
+			continue
+		}
+		respData[child.AttrGetter().JID("jid")] = t
+	}
+	return respData, nil
+}
+
 func preKeyToNode(key *keys.PreKey) waBinary.Node {
 	var keyID [4]byte
 	binary.BigEndian.PutUint32(keyID[:], key.KeyID)
