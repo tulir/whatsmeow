@@ -588,8 +588,10 @@ func (cli *Client) sendNewsletter(to types.JID, id types.MessageID, message *waE
 		Content: plaintext,
 		Attrs:   waBinary.Attrs{},
 	}
-	if mediaType := getMediaTypeFromMessage(message); mediaType != "" {
-		plaintextNode.Attrs["mediatype"] = mediaType
+	if message != nil {
+		if mediaType := getMediaTypeFromMessage(message); mediaType != "" {
+			plaintextNode.Attrs["mediatype"] = mediaType
+		}
 	}
 	node := waBinary.Node{
 		Tag:     "message",
