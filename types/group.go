@@ -148,3 +148,8 @@ type GroupLinkChange struct {
 	UnlinkReason GroupUnlinkReason
 	Group        GroupLinkTarget
 }
+
+type GroupParticipantRequest struct {
+	JID         JID
+	RequestedAt time.Time
+}

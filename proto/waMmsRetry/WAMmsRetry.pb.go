@@ -90,6 +90,7 @@ type MediaRetryNotification struct {
 	StanzaID      *string                            `protobuf:"bytes,1,opt,name=stanzaID" json:"stanzaID,omitempty"`
 	DirectPath    *string                            `protobuf:"bytes,2,opt,name=directPath" json:"directPath,omitempty"`
 	Result        *MediaRetryNotification_ResultType `protobuf:"varint,3,opt,name=result,enum=WAMmsRetry.MediaRetryNotification_ResultType" json:"result,omitempty"`
+	MessageSecret []byte                             `protobuf:"bytes,4,opt,name=messageSecret" json:"messageSecret,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -143,6 +144,13 @@ func (x *MediaRetryNotification) GetResult() MediaRetryNotification_ResultType {
 		return *x.Result
 	}
 	return MediaRetryNotification_GENERAL_ERROR
+}
+
+func (x *MediaRetryNotification) GetMessageSecret() []byte {
+	if x != nil {
+		return x.MessageSecret
+	}
+	return nil
 }
 
 type ServerErrorReceipt struct {

@@ -136,4 +136,5 @@ message ExtendedContentMessage {
 	optional string contentRef = 23;
 	repeated string mentionedJID = 24;
 	repeated WACommon.Command commands = 25;
+	repeated WACommon.Mention mentions = 26;
 }

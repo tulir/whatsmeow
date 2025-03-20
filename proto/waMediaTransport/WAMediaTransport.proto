@@ -83,6 +83,7 @@ message VideoTransport {
 		optional uint32 width = 5;
 		optional bytes sidecar = 6;
 		optional Attribution gifAttribution = 7;
+		optional string accessibilityLabel = 8;
 	}
 
 	message Integral {

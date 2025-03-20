@@ -15,7 +15,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waServerSync"
+	"go.mau.fi/whatsmeow/proto/waSyncAction"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 )
@@ -24,20 +25,20 @@ import (
 type PatchList struct {
 	Name           WAPatchName
 	HasMorePatches bool
-	Patches        []*waProto.SyncdPatch
-	Snapshot       *waProto.SyncdSnapshot
+	Patches        []*waServerSync.SyncdPatch
+	Snapshot       *waServerSync.SyncdSnapshot
 }
 
 // DownloadExternalFunc is a function that can download a blob of external app state patches.
-type DownloadExternalFunc func(*waProto.ExternalBlobReference) ([]byte, error)
+type DownloadExternalFunc func(*waServerSync.ExternalBlobReference) ([]byte, error)
 
-func parseSnapshotInternal(collection *waBinary.Node, downloadExternal DownloadExternalFunc) (*waProto.SyncdSnapshot, error) {
+func parseSnapshotInternal(collection *waBinary.Node, downloadExternal DownloadExternalFunc) (*waServerSync.SyncdSnapshot, error) {
 	snapshotNode := collection.GetChildByTag("snapshot")
 	rawSnapshot, ok := snapshotNode.Content.([]byte)
 	if snapshotNode.Tag != "snapshot" || !ok {
 		return nil, nil
 	}
-	var snapshot waProto.ExternalBlobReference
+	var snapshot waServerSync.ExternalBlobReference
 	err := proto.Unmarshal(rawSnapshot, &snapshot)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal snapshot: %w", err)
@@ -47,7 +48,7 @@ func parseSnapshotInternal(collection *waBinary.Node, downloadExternal DownloadE
 	if err != nil {
 		return nil, fmt.Errorf("failed to download external mutations: %w", err)
 	}
-	var downloaded waProto.SyncdSnapshot
+	var downloaded waServerSync.SyncdSnapshot
 	err = proto.Unmarshal(rawData, &downloaded)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal mutation list: %w", err)
@@ -55,16 +56,16 @@ func parseSnapshotInternal(collection *waBinary.Node, downloadExternal DownloadE
 	return &downloaded, nil
 }
 
-func parsePatchListInternal(collection *waBinary.Node, downloadExternal DownloadExternalFunc) ([]*waProto.SyncdPatch, error) {
+func parsePatchListInternal(collection *waBinary.Node, downloadExternal DownloadExternalFunc) ([]*waServerSync.SyncdPatch, error) {
 	patchesNode := collection.GetChildByTag("patches")
 	patchNodes := patchesNode.GetChildren()
-	patches := make([]*waProto.SyncdPatch, 0, len(patchNodes))
+	patches := make([]*waServerSync.SyncdPatch, 0, len(patchNodes))
 	for i, patchNode := range patchNodes {
 		rawPatch, ok := patchNode.Content.([]byte)
 		if patchNode.Tag != "patch" || !ok {
 			continue
 		}
-		var patch waProto.SyncdPatch
+		var patch waServerSync.SyncdPatch
 		err := proto.Unmarshal(rawPatch, &patch)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal patch #%d: %w", i+1, err)
@@ -75,7 +76,7 @@ func parsePatchListInternal(collection *waBinary.Node, downloadExternal Download
 			if err != nil {
 				return nil, fmt.Errorf("failed to download external mutations: %w", err)
 			}
-			var downloaded waProto.SyncdMutations
+			var downloaded waServerSync.SyncdMutations
 			err = proto.Unmarshal(rawData, &downloaded)
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal mutation list: %w", err)
@@ -116,9 +117,9 @@ type patchOutput struct {
 	Mutations   []Mutation
 }
 
-func (proc *Processor) decodeMutations(mutations []*waProto.SyncdMutation, out *patchOutput, validateMACs bool) error {
+func (proc *Processor) decodeMutations(mutations []*waServerSync.SyncdMutation, out *patchOutput, validateMACs bool) error {
 	for i, mutation := range mutations {
-		keyID := mutation.GetRecord().GetKeyId().GetId()
+		keyID := mutation.GetRecord().GetKeyID().GetID()
 		keys, err := proc.getAppStateKey(keyID)
 		if err != nil {
 			return fmt.Errorf("failed to get key %X to decode mutation: %w", keyID, err)
@@ -136,7 +137,7 @@ func (proc *Processor) decodeMutations(mutations []*waProto.SyncdMutation, out *
 		if err != nil {
 			return fmt.Errorf("failed to decrypt mutation #%d: %w", i+1, err)
 		}
-		var syncAction waProto.SyncActionData
+		var syncAction waSyncAction.SyncActionData
 		err = proto.Unmarshal(plaintext, &syncAction)
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal mutation #%d: %w", i+1, err)
@@ -153,9 +154,9 @@ func (proc *Processor) decodeMutations(mutations []*waProto.SyncdMutation, out *
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal index of mutation #%d: %w", i+1, err)
 		}
-		if mutation.GetOperation() == waProto.SyncdMutation_REMOVE {
+		if mutation.GetOperation() == waServerSync.SyncdMutation_REMOVE {
 			out.RemovedMACs = append(out.RemovedMACs, indexMAC)
-		} else if mutation.GetOperation() == waProto.SyncdMutation_SET {
+		} else if mutation.GetOperation() == waServerSync.SyncdMutation_SET {
 			out.AddedMACs = append(out.AddedMACs, store.AppStateMutationMAC{
 				IndexMAC: indexMAC,
 				ValueMAC: valueMAC,
@@ -200,14 +201,14 @@ func (proc *Processor) validateSnapshotMAC(name WAPatchName, currentState HashSt
 	return
 }
 
-func (proc *Processor) decodeSnapshot(name WAPatchName, ss *waProto.SyncdSnapshot, initialState HashState, validateMACs bool, newMutationsInput []Mutation) (newMutations []Mutation, currentState HashState, err error) {
+func (proc *Processor) decodeSnapshot(name WAPatchName, ss *waServerSync.SyncdSnapshot, initialState HashState, validateMACs bool, newMutationsInput []Mutation) (newMutations []Mutation, currentState HashState, err error) {
 	currentState = initialState
 	currentState.Version = ss.GetVersion().GetVersion()
 
-	encryptedMutations := make([]*waProto.SyncdMutation, len(ss.GetRecords()))
+	encryptedMutations := make([]*waServerSync.SyncdMutation, len(ss.GetRecords()))
 	for i, record := range ss.GetRecords() {
-		encryptedMutations[i] = &waProto.SyncdMutation{
-			Operation: waProto.SyncdMutation_SET.Enum(),
+		encryptedMutations[i] = &waServerSync.SyncdMutation{
+			Operation: waServerSync.SyncdMutation_SET.Enum(),
 			Record:    record,
 		}
 	}
@@ -225,7 +226,7 @@ func (proc *Processor) decodeSnapshot(name WAPatchName, ss *waProto.SyncdSnapsho
 	}
 
 	if validateMACs {
-		_, err = proc.validateSnapshotMAC(name, currentState, ss.GetKeyId().GetId(), ss.GetMac())
+		_, err = proc.validateSnapshotMAC(name, currentState, ss.GetKeyID().GetID(), ss.GetMac())
 		if err != nil {
 			return
 		}
@@ -286,12 +287,12 @@ func (proc *Processor) DecodePatches(list *PatchList, initialState HashState, va
 
 		if validateMACs {
 			var keys ExpandedAppStateKeys
-			keys, err = proc.validateSnapshotMAC(list.Name, currentState, patch.GetKeyId().GetId(), patch.GetSnapshotMac())
+			keys, err = proc.validateSnapshotMAC(list.Name, currentState, patch.GetKeyID().GetID(), patch.GetSnapshotMac())
 			if err != nil {
 				return
 			}
 			patchMAC := generatePatchMAC(patch, list.Name, keys.PatchMAC, patch.GetVersion().GetVersion())
-			if !bytes.Equal(patchMAC, patch.GetPatchMac()) {
+			if !bytes.Equal(patchMAC, patch.GetPatchMAC()) {
 				err = fmt.Errorf("failed to verify patch v%d: %w", version, ErrMismatchingPatchMAC)
 				return
 			}

@@ -1,5 +1,5 @@
 syntax = "proto2";
-package WAWebProtobufsCompanionReg;
+package WACompanionReg;
 option go_package = "go.mau.fi/whatsmeow/proto/waCompanionReg";
 
 message DeviceProps {

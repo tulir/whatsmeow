@@ -86,6 +86,7 @@ type FingerprintData struct {
 	LidIdentifier      []byte                 `protobuf:"bytes,3,opt,name=lidIdentifier" json:"lidIdentifier,omitempty"`
 	UsernameIdentifier []byte                 `protobuf:"bytes,4,opt,name=usernameIdentifier" json:"usernameIdentifier,omitempty"`
 	HostedState        *HostedState           `protobuf:"varint,5,opt,name=hostedState,enum=WAFingerprint.HostedState" json:"hostedState,omitempty"`
+	HashedPublicKey    []byte                 `protobuf:"bytes,6,opt,name=hashedPublicKey" json:"hashedPublicKey,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -153,6 +154,13 @@ func (x *FingerprintData) GetHostedState() HostedState {
 		return *x.HostedState
 	}
 	return HostedState_E2EE
+}
+
+func (x *FingerprintData) GetHashedPublicKey() []byte {
+	if x != nil {
+		return x.HashedPublicKey
+	}
+	return nil
 }
 
 type CombinedFingerprint struct {
