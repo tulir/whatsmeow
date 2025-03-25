@@ -648,7 +648,7 @@ func (int *DangerousInternalClient) UpdateBusinessName(user types.JID, messageIn
 }
 
 func (int *DangerousInternalClient) GetFBIDDevices(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
-	return int.c.getFBIDDevices(ctx, jids)
+	return int.c.getFBIDDevicesInternal(ctx, jids)
 }
 
 func (int *DangerousInternalClient) Usync(ctx context.Context, jids []types.JID, mode, context string, query []waBinary.Node, extra ...UsyncQueryExtras) (*waBinary.Node, error) {
