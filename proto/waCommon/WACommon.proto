@@ -54,10 +54,14 @@ message SubProtocol {
 
 message LimitSharing {
 	enum Trigger {
-		CHAT_SETTING = 0;
-		BIZ_SUPPORTS_FB_HOSTING = 1;
+		UNKNOWN = 0;
+		CHAT_SETTING = 1;
+		BIZ_SUPPORTS_FB_HOSTING = 2;
+		UNKNOWN_GROUP = 3;
 	}
 
 	optional bool sharingLimited = 1;
 	optional Trigger trigger = 2;
+	optional int64 limitSharingSettingTimestamp = 3;
+	optional bool initiatedByMe = 4;
 }

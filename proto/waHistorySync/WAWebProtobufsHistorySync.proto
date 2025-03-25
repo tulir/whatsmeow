@@ -5,6 +5,7 @@ option go_package = "go.mau.fi/whatsmeow/proto/waHistorySync";
 import "waSyncAction/WASyncAction.proto";
 import "waChatLockSettings/WAProtobufsChatLockSettings.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
+import "waCommon/WACommon.proto";
 import "waWeb/WAWebProtobufsWeb.proto";
 
 enum MediaVisibility {
@@ -112,6 +113,8 @@ message Conversation {
 	optional string accountLid = 49;
 	optional bool limitSharing = 50;
 	optional int64 limitSharingSettingTimestamp = 51;
+	optional WACommon.LimitSharing.Trigger limitSharingTrigger = 52;
+	optional bool limitSharingInitiatedByMe = 53;
 }
 
 message GroupParticipant {
