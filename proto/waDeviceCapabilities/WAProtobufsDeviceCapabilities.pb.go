@@ -85,6 +85,7 @@ func (DeviceCapabilities_ChatLockSupportLevel) EnumDescriptor() ([]byte, []int) 
 type DeviceCapabilities struct {
 	state                protoimpl.MessageState                   `protogen:"open.v1"`
 	ChatLockSupportLevel *DeviceCapabilities_ChatLockSupportLevel `protobuf:"varint,1,opt,name=chatLockSupportLevel,enum=WAProtobufsDeviceCapabilities.DeviceCapabilities_ChatLockSupportLevel" json:"chatLockSupportLevel,omitempty"`
+	LidMigration         *DeviceCapabilities_LIDMigration         `protobuf:"bytes,2,opt,name=lidMigration" json:"lidMigration,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -126,6 +127,57 @@ func (x *DeviceCapabilities) GetChatLockSupportLevel() DeviceCapabilities_ChatLo
 	return DeviceCapabilities_NONE
 }
 
+func (x *DeviceCapabilities) GetLidMigration() *DeviceCapabilities_LIDMigration {
+	if x != nil {
+		return x.LidMigration
+	}
+	return nil
+}
+
+type DeviceCapabilities_LIDMigration struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	ChatDbMigrationTimestamp *uint64                `protobuf:"varint,1,opt,name=chatDbMigrationTimestamp" json:"chatDbMigrationTimestamp,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *DeviceCapabilities_LIDMigration) Reset() {
+	*x = DeviceCapabilities_LIDMigration{}
+	mi := &file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeviceCapabilities_LIDMigration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeviceCapabilities_LIDMigration) ProtoMessage() {}
+
+func (x *DeviceCapabilities_LIDMigration) ProtoReflect() protoreflect.Message {
+	mi := &file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeviceCapabilities_LIDMigration.ProtoReflect.Descriptor instead.
+func (*DeviceCapabilities_LIDMigration) Descriptor() ([]byte, []int) {
+	return file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *DeviceCapabilities_LIDMigration) GetChatDbMigrationTimestamp() uint64 {
+	if x != nil && x.ChatDbMigrationTimestamp != nil {
+		return *x.ChatDbMigrationTimestamp
+	}
+	return 0
+}
+
 var File_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto protoreflect.FileDescriptor
 
 //go:embed WAProtobufsDeviceCapabilities.pb.raw
@@ -144,18 +196,20 @@ func file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDescGZIP()
 }
 
 var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_goTypes = []any{
 	(DeviceCapabilities_ChatLockSupportLevel)(0), // 0: WAProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
 	(*DeviceCapabilities)(nil),                   // 1: WAProtobufsDeviceCapabilities.DeviceCapabilities
+	(*DeviceCapabilities_LIDMigration)(nil),      // 2: WAProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
 }
 var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_depIdxs = []int32{
 	0, // 0: WAProtobufsDeviceCapabilities.DeviceCapabilities.chatLockSupportLevel:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 1: WAProtobufsDeviceCapabilities.DeviceCapabilities.lidMigration:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_init() }
@@ -169,7 +223,7 @@ func file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

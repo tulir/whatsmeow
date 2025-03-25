@@ -50,6 +50,10 @@ message Armadillo {
 	}
 
 	message ApplicationData {
+		message MessageHistoryDocumentMessage {
+			optional WACommon.SubProtocol document = 1;
+		}
+
 		message AIBotResponseMessage {
 			optional string summonToken = 1;
 			optional string messageText = 2;
@@ -118,6 +122,7 @@ message Armadillo {
 		oneof applicationData {
 			MetadataSyncNotification metadataSync = 1;
 			AIBotResponseMessage aiBotResponse = 2;
+			MessageHistoryDocumentMessage messageHistoryDocumentMessage = 3;
 		}
 	}
 
@@ -152,10 +157,6 @@ message Armadillo {
 			optional string currency = 3;
 			optional PaymentStatus paymentStatus = 4;
 			optional WAArmadilloXMA.ExtendedContentMessage extendedContentMessage = 5;
-		}
-
-		message MessageHistoryDocumentMessage {
-			optional WACommon.SubProtocol document = 1;
 		}
 
 		message NetworkVerificationMessage {
@@ -249,7 +250,6 @@ message Armadillo {
 			NoteReplyMessage noteReplyMessage = 13;
 			RavenMessage ravenMessageMsgr = 14;
 			NetworkVerificationMessage networkVerificationMessage = 15;
-			MessageHistoryDocumentMessage messageHistoryDocumentMessage = 16;
 		}
 	}
 

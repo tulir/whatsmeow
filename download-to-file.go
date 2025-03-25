@@ -38,6 +38,9 @@ type File interface {
 //
 // This is otherwise identical to [Download], but writes the attachment to a file instead of returning it as a byte slice.
 func (cli *Client) DownloadToFile(msg DownloadableMessage, file File) error {
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	mediaType := GetMediaType(msg)
 	if mediaType == "" {
 		return fmt.Errorf("%w %T", ErrUnknownMediaType, msg)

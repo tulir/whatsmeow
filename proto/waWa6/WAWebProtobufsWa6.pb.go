@@ -817,6 +817,7 @@ type ClientPayload struct {
 	MemClass             *int32                                       `protobuf:"varint,37,opt,name=memClass" json:"memClass,omitempty"`
 	InteropData          *ClientPayload_InteropData                   `protobuf:"bytes,38,opt,name=interopData" json:"interopData,omitempty"`
 	TrafficAnonymization *ClientPayload_TrafficAnonymization          `protobuf:"varint,40,opt,name=trafficAnonymization,enum=WAWebProtobufsWa6.ClientPayload_TrafficAnonymization" json:"trafficAnonymization,omitempty"`
+	LidDbMigrated        *bool                                        `protobuf:"varint,41,opt,name=lidDbMigrated" json:"lidDbMigrated,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -1045,6 +1046,13 @@ func (x *ClientPayload) GetTrafficAnonymization() ClientPayload_TrafficAnonymiza
 		return *x.TrafficAnonymization
 	}
 	return ClientPayload_OFF
+}
+
+func (x *ClientPayload) GetLidDbMigrated() bool {
+	if x != nil && x.LidDbMigrated != nil {
+		return *x.LidDbMigrated
+	}
+	return false
 }
 
 type HandshakeMessage struct {
