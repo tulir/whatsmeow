@@ -651,8 +651,12 @@ func (int *DangerousInternalClient) UpdateBusinessName(user types.JID, messageIn
 	int.c.updateBusinessName(user, messageInfo, name)
 }
 
-func (int *DangerousInternalClient) GetFBIDDevices(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
+func (int *DangerousInternalClient) GetFBIDDevicesInternal(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
 	return int.c.getFBIDDevicesInternal(ctx, jids)
+}
+
+func (int *DangerousInternalClient) GetFBIDDevices(ctx context.Context, jids []types.JID) ([]types.JID, error) {
+	return int.c.getFBIDDevices(ctx, jids)
 }
 
 func (int *DangerousInternalClient) Usync(ctx context.Context, jids []types.JID, mode, context string, query []waBinary.Node, extra ...UsyncQueryExtras) (*waBinary.Node, error) {
