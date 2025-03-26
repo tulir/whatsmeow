@@ -858,10 +858,6 @@ message ExtendedTextMessage {
 		COURIERPRIME_BOLD = 10;
 	}
 
-	message LinkPreviewMetadata {
-		optional PaymentLinkMetadata paymentLinkMetadata = 1;
-	}
-
 	optional string text = 1;
 	optional string matchedText = 2;
 	optional string description = 5;
@@ -889,6 +885,7 @@ message ExtendedTextMessage {
 	optional uint32 videoWidth = 32;
 	optional MMSThumbnailMetadata faviconMMSMetadata = 33;
 	optional LinkPreviewMetadata linkPreviewMetadata = 34;
+	optional PaymentLinkMetadata paymentLinkMetadata = 35;
 }
 
 message PaymentLinkMetadata {
@@ -1036,7 +1033,8 @@ message ContextInfo {
 		optional string ctaPayload = 20;
 		optional bool disableNudge = 21;
 		optional string originalImageURL = 22;
-		optional bool wtwaAdFormat = 23;
+		optional string automatedGreetingMessageCtaType = 23;
+		optional bool wtwaAdFormat = 24;
 	}
 
 	message AdReplyInfo {
@@ -1472,6 +1470,7 @@ message BotCapabilityMetadata {
 		AGENTIC_PLANNING = 27;
 		ACCOUNT_LINKING = 28;
 		STREAMING_DISAGGREGATION = 29;
+		RICH_RESPONSE_GRID_IMAGE_3P = 30;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1551,6 +1550,7 @@ message MessageContextInfo {
 	optional MessageAssociation messageAssociation = 10;
 	optional bool capiCreatedGroup = 11;
 	optional string supportPayload = 12;
+	optional WACommon.LimitSharing limitSharing = 13;
 }
 
 message InteractiveAnnotation {
@@ -1792,6 +1792,7 @@ message EventMessage {
 	optional int64 startTime = 7;
 	optional int64 endTime = 8;
 	optional bool extraGuestsAllowed = 9;
+	optional bool isScheduleCall = 10;
 }
 
 message CommentMessage {
@@ -2162,6 +2163,16 @@ message DocumentMessage {
 	optional uint32 thumbnailWidth = 19;
 	optional string caption = 20;
 	optional string accessibilityLabel = 21;
+}
+
+message LinkPreviewMetadata {
+	optional PaymentLinkMetadata paymentLinkMetadata = 1;
+	optional URLMetadata urlMetadata = 2;
+	optional uint32 fbExperimentID = 3;
+}
+
+message URLMetadata {
+	optional uint32 fbExperimentID = 1;
 }
 
 message MMSThumbnailMetadata {

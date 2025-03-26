@@ -152,6 +152,15 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
 	cli.isLoggedIn.Store(true)
+	if cli.Store.LID.IsEmpty() {
+		cli.Store.LID = node.AttrGetter().JID("lid")
+		err := cli.Store.Save()
+		if err != nil {
+			cli.Log.Warnf("Failed to save device after updating LID: %v", err)
+		} else {
+			cli.Log.Infof("Updated LID to %s", cli.Store.LID)
+		}
+	}
 	go func() {
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(); err != nil {
 			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)
