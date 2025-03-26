@@ -993,6 +993,7 @@ func marshalMessage(to types.JID, message *waE2E.Message) (plaintext, dsmPlainte
 				DestinationJID: proto.String(to.String()),
 				Message:        message,
 			},
+			MessageContextInfo: message.MessageContextInfo,
 		})
 		if err != nil {
 			err = fmt.Errorf("failed to marshal message (for own devices): %w", err)

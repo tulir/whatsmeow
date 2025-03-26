@@ -550,6 +550,7 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waE2E.Mes
 }
 
 func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Message) {
+	cli.storeMessageSecret(info, msg)
 	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
@@ -566,7 +567,6 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Mess
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
-	cli.storeMessageSecret(info, msg)
 }
 
 func (cli *Client) storeMessageSecret(info *types.MessageInfo, msg *waE2E.Message) {
