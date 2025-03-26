@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"google.golang.org/protobuf/proto"
@@ -464,19 +465,11 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 	}
 
 	if len(fbJIDsToSync) > 0 {
-		list, err := cli.getFBIDDevices(ctx, fbJIDsToSync)
+		userDevices, err := cli.getFBIDDevices(ctx, fbJIDsToSync)
 		if err != nil {
 			return nil, err
 		}
-		for _, user := range list.GetChildren() {
-			jid, jidOK := user.Attrs["jid"].(types.JID)
-			if user.Tag != "user" || !jidOK {
-				continue
-			}
-			userDevices := parseFBDeviceList(jid, user.GetChildByTag("devices"))
-			cli.userDevicesCache[jid] = userDevices
-			devices = append(devices, userDevices.devices...)
-		}
+		devices = append(devices, userDevices...)
 	}
 
 	return devices, nil
@@ -703,7 +696,7 @@ func parseFBDeviceList(user types.JID, deviceList waBinary.Node) deviceCache {
 	}
 }
 
-func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
+func (cli *Client) getFBIDDevicesInternal(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
 	users := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		users[i].Tag = "user"
@@ -727,6 +720,26 @@ func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) (*waBin
 	} else {
 		return &list, err
 	}
+}
+
+func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) ([]types.JID, error) {
+	var devices []types.JID
+	for chunk := range slices.Chunk(jids, 15) {
+		list, err := cli.getFBIDDevicesInternal(ctx, chunk)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range list.GetChildren() {
+			jid, jidOK := user.Attrs["jid"].(types.JID)
+			if user.Tag != "user" || !jidOK {
+				continue
+			}
+			userDevices := parseFBDeviceList(jid, user.GetChildByTag("devices"))
+			cli.userDevicesCache[jid] = userDevices
+			devices = append(devices, userDevices.devices...)
+		}
+	}
+	return devices, nil
 }
 
 type UsyncQueryExtras struct {
