@@ -49,7 +49,7 @@ func generateMsgSecretKey(
 	useCaseSecret = append(useCaseSecret, modificationType...)
 
 	secretKey := hkdfutil.SHA256(origMsgSecret, nil, useCaseSecret, 32)
-	additionalData := []byte(fmt.Sprintf("%s\x00%s", origMsgID, modificationSenderStr))
+	additionalData := fmt.Appendf(nil, "%s\x00%s", origMsgID, modificationSenderStr)
 
 	return secretKey, additionalData
 }
@@ -129,7 +129,6 @@ func (cli *Client) encryptMsgSecret(chat, origSender types.JID, origMsgID types.
 }
 
 func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageID types.MessageID, targetSenderJID types.JID, info *types.MessageInfo) ([]byte, error) {
-	// gcm decrypt key generation
 	newKey, additionalData := generateMsgSecretKey("", info.Sender, messageID, targetSenderJID, applyBotMessageHKDF(messageSecret))
 
 	plaintext, err := gcmutil.Decrypt(newKey, msMsg.GetEncIV(), msMsg.GetEncPayload(), additionalData)
