@@ -33,7 +33,7 @@ type DangerousInternalClient struct {
 	c *Client
 }
 
-// DangerousInternals allows access to some unexported methods in Client.
+// DangerousInternals allows access to all unexported methods in Client.
 //
 // Deprecated: dangerous
 func (cli *Client) DangerousInternals() *DangerousInternalClient {
@@ -431,8 +431,8 @@ func (int *DangerousInternalClient) HandlePairSuccess(node *waBinary.Node) {
 	int.c.handlePairSuccess(node)
 }
 
-func (int *DangerousInternalClient) HandlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, jid types.JID) error {
-	return int.c.handlePair(deviceIdentityBytes, reqID, businessName, platform, jid)
+func (int *DangerousInternalClient) HandlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID) error {
+	return int.c.handlePair(deviceIdentityBytes, reqID, businessName, platform, jid, lid)
 }
 
 func (int *DangerousInternalClient) SendPairError(id string, code int, text string) {
@@ -553,6 +553,10 @@ func (int *DangerousInternalClient) CancelDelayedRequestFromPhone(msgID types.Me
 
 func (int *DangerousInternalClient) DelayedRequestMessageFromPhone(info *types.MessageInfo) {
 	int.c.delayedRequestMessageFromPhone(info)
+}
+
+func (int *DangerousInternalClient) ClearDelayedMessageRequests() {
+	int.c.clearDelayedMessageRequests()
 }
 
 func (int *DangerousInternalClient) SendRetryReceipt(node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
