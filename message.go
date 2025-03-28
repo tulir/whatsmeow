@@ -216,7 +216,6 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 		}
 	}
 	cli.dispatchEvent(evt.UnwrapRaw())
-	return
 }
 
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
@@ -250,41 +249,33 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 		} else if info.IsGroup && encType == "skmsg" {
 			decrypted, err = cli.decryptGroupMsg(&child, info.Sender, info.Chat)
 		} else if encType == "msmsg" && info.Sender.IsBot() {
-			// Meta AI / other bots (biz?):
-
-			// step 1: get message secret
 			targetSenderJID := info.MsgMetaInfo.TargetSender
+			messageSecretSenderJID := targetSenderJID
 			if targetSenderJID.User == "" {
-				// if no targetSenderJID in <meta> this must be ourselves (one-one-one mode)
-				targetSenderJID = cli.getOwnID()
+				if info.Sender.Server == types.BotServer {
+					targetSenderJID = cli.Store.LID
+				} else {
+					targetSenderJID = cli.getOwnID()
+				}
+				messageSecretSenderJID = cli.getOwnID()
 			}
-
-			messageSecret, err := cli.Store.MsgSecrets.GetMessageSecret(info.Chat, targetSenderJID, info.MsgMetaInfo.TargetID)
-			if err != nil || messageSecret == nil {
-				cli.Log.Warnf("Error getting message secret for bot msg with id %s", node.AttrGetter().String("id"))
-				continue
-			}
-
-			// step 2: get MessageSecretMessage
-			byteContents := child.Content.([]byte) // <enc> contents
-			var msMsg waE2E.MessageSecretMessage
-
-			err = proto.Unmarshal(byteContents, &msMsg)
-			if err != nil {
-				cli.Log.Warnf("Error decoding MessageSecretMesage protobuf %v", err)
-				continue
-			}
-
-			// step 3: determine best message id for decryption
-			var messageID string
+			var decryptMessageID string
 			if info.MsgBotInfo.EditType == types.EditTypeInner || info.MsgBotInfo.EditType == types.EditTypeLast {
-				messageID = info.MsgBotInfo.EditTargetID
+				decryptMessageID = info.MsgBotInfo.EditTargetID
 			} else {
-				messageID = info.ID
+				decryptMessageID = info.ID
 			}
-
-			// step 4: decrypt and voila
-			decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, messageID, targetSenderJID, info)
+			var msMsg waE2E.MessageSecretMessage
+			var messageSecret []byte
+			if messageSecret, err = cli.Store.MsgSecrets.GetMessageSecret(info.Chat, messageSecretSenderJID, info.MsgMetaInfo.TargetID); err != nil {
+				err = fmt.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
+			} else if messageSecret == nil {
+				err = fmt.Errorf("message secret for %s not found", info.MsgMetaInfo.TargetID)
+			} else if err = proto.Unmarshal(child.Content.([]byte), &msMsg); err != nil {
+				err = fmt.Errorf("failed to unmarshal MessageSecretMessage protobuf: %v", err)
+			} else {
+				decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, decryptMessageID, targetSenderJID, info)
+			}
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
 			continue
@@ -294,7 +285,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
 			// TODO figure out why @bot messages fail to decrypt
-			if info.Chat.Server != types.BotServer {
+			if info.Chat.Server != types.BotServer && encType != "msmsg" {
 				go cli.sendRetryReceipt(node, info, isUnavailable)
 			}
 			cli.dispatchEvent(&events.UndecryptableMessage{
@@ -559,6 +550,7 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waE2E.Mes
 }
 
 func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Message) {
+	cli.storeMessageSecret(info, msg)
 	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
@@ -575,7 +567,6 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Mess
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
-	cli.storeMessageSecret(info, msg)
 }
 
 func (cli *Client) storeMessageSecret(info *types.MessageInfo, msg *waE2E.Message) {

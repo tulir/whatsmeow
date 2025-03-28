@@ -14,6 +14,7 @@ import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
 	waChatLockSettings "go.mau.fi/whatsmeow/proto/waChatLockSettings"
+	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
 	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
 	waSyncAction "go.mau.fi/whatsmeow/proto/waSyncAction"
 	waWeb "go.mau.fi/whatsmeow/proto/waWeb"
@@ -672,6 +673,8 @@ type Conversation struct {
 	AccountLid                   *string                                `protobuf:"bytes,49,opt,name=accountLid" json:"accountLid,omitempty"`
 	LimitSharing                 *bool                                  `protobuf:"varint,50,opt,name=limitSharing" json:"limitSharing,omitempty"`
 	LimitSharingSettingTimestamp *int64                                 `protobuf:"varint,51,opt,name=limitSharingSettingTimestamp" json:"limitSharingSettingTimestamp,omitempty"`
+	LimitSharingTrigger          *waCommon.LimitSharing_Trigger         `protobuf:"varint,52,opt,name=limitSharingTrigger,enum=WACommon.LimitSharing_Trigger" json:"limitSharingTrigger,omitempty"`
+	LimitSharingInitiatedByMe    *bool                                  `protobuf:"varint,53,opt,name=limitSharingInitiatedByMe" json:"limitSharingInitiatedByMe,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -1061,6 +1064,20 @@ func (x *Conversation) GetLimitSharingSettingTimestamp() int64 {
 		return *x.LimitSharingSettingTimestamp
 	}
 	return 0
+}
+
+func (x *Conversation) GetLimitSharingTrigger() waCommon.LimitSharing_Trigger {
+	if x != nil && x.LimitSharingTrigger != nil {
+		return *x.LimitSharingTrigger
+	}
+	return waCommon.LimitSharing_Trigger(0)
+}
+
+func (x *Conversation) GetLimitSharingInitiatedByMe() bool {
+	if x != nil && x.LimitSharingInitiatedByMe != nil {
+		return *x.LimitSharingInitiatedByMe
+	}
+	return false
 }
 
 type GroupParticipant struct {
@@ -2072,7 +2089,8 @@ var file_waHistorySync_WAWebProtobufsHistorySync_proto_goTypes = []any{
 	(*waWeb.WebMessageInfo)(nil),                // 22: WAWebProtobufsWeb.WebMessageInfo
 	(*waSyncAction.CallLogRecord)(nil),          // 23: WASyncAction.CallLogRecord
 	(*waE2E.DisappearingMode)(nil),              // 24: WAWebProtobufsE2E.DisappearingMode
-	(*waChatLockSettings.ChatLockSettings)(nil), // 25: WAProtobufsChatLockSettings.ChatLockSettings
+	(waCommon.LimitSharing_Trigger)(0),          // 25: WACommon.LimitSharing.Trigger
+	(*waChatLockSettings.ChatLockSettings)(nil), // 26: WAProtobufsChatLockSettings.ChatLockSettings
 }
 var file_waHistorySync_WAWebProtobufsHistorySync_proto_depIdxs = []int32{
 	3,  // 0: WAWebProtobufsHistorySync.HistorySync.syncType:type_name -> WAWebProtobufsHistorySync.HistorySync.HistorySyncType
@@ -2093,25 +2111,26 @@ var file_waHistorySync_WAWebProtobufsHistorySync_proto_depIdxs = []int32{
 	15, // 15: WAWebProtobufsHistorySync.Conversation.wallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
 	0,  // 16: WAWebProtobufsHistorySync.Conversation.mediaVisibility:type_name -> WAWebProtobufsHistorySync.MediaVisibility
 	1,  // 17: WAWebProtobufsHistorySync.Conversation.systemMessageToInsert:type_name -> WAWebProtobufsHistorySync.PrivacySystemMessage
-	5,  // 18: WAWebProtobufsHistorySync.GroupParticipant.rank:type_name -> WAWebProtobufsHistorySync.GroupParticipant.Rank
-	6,  // 19: WAWebProtobufsHistorySync.PastParticipant.leaveReason:type_name -> WAWebProtobufsHistorySync.PastParticipant.LeaveReason
-	22, // 20: WAWebProtobufsHistorySync.HistorySyncMsg.message:type_name -> WAWebProtobufsWeb.WebMessageInfo
-	15, // 21: WAWebProtobufsHistorySync.GlobalSettings.lightThemeWallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
-	0,  // 22: WAWebProtobufsHistorySync.GlobalSettings.mediaVisibility:type_name -> WAWebProtobufsHistorySync.MediaVisibility
-	15, // 23: WAWebProtobufsHistorySync.GlobalSettings.darkThemeWallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
-	17, // 24: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadWiFi:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
-	17, // 25: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadCellular:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
-	17, // 26: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadRoaming:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
-	20, // 27: WAWebProtobufsHistorySync.GlobalSettings.avatarUserSettings:type_name -> WAWebProtobufsHistorySync.AvatarUserSettings
-	21, // 28: WAWebProtobufsHistorySync.GlobalSettings.individualNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
-	21, // 29: WAWebProtobufsHistorySync.GlobalSettings.groupNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
-	25, // 30: WAWebProtobufsHistorySync.GlobalSettings.chatLockSettings:type_name -> WAProtobufsChatLockSettings.ChatLockSettings
-	10, // 31: WAWebProtobufsHistorySync.PastParticipants.pastParticipants:type_name -> WAWebProtobufsHistorySync.PastParticipant
-	32, // [32:32] is the sub-list for method output_type
-	32, // [32:32] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	25, // 18: WAWebProtobufsHistorySync.Conversation.limitSharingTrigger:type_name -> WACommon.LimitSharing.Trigger
+	5,  // 19: WAWebProtobufsHistorySync.GroupParticipant.rank:type_name -> WAWebProtobufsHistorySync.GroupParticipant.Rank
+	6,  // 20: WAWebProtobufsHistorySync.PastParticipant.leaveReason:type_name -> WAWebProtobufsHistorySync.PastParticipant.LeaveReason
+	22, // 21: WAWebProtobufsHistorySync.HistorySyncMsg.message:type_name -> WAWebProtobufsWeb.WebMessageInfo
+	15, // 22: WAWebProtobufsHistorySync.GlobalSettings.lightThemeWallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
+	0,  // 23: WAWebProtobufsHistorySync.GlobalSettings.mediaVisibility:type_name -> WAWebProtobufsHistorySync.MediaVisibility
+	15, // 24: WAWebProtobufsHistorySync.GlobalSettings.darkThemeWallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
+	17, // 25: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadWiFi:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
+	17, // 26: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadCellular:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
+	17, // 27: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadRoaming:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
+	20, // 28: WAWebProtobufsHistorySync.GlobalSettings.avatarUserSettings:type_name -> WAWebProtobufsHistorySync.AvatarUserSettings
+	21, // 29: WAWebProtobufsHistorySync.GlobalSettings.individualNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
+	21, // 30: WAWebProtobufsHistorySync.GlobalSettings.groupNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
+	26, // 31: WAWebProtobufsHistorySync.GlobalSettings.chatLockSettings:type_name -> WAProtobufsChatLockSettings.ChatLockSettings
+	10, // 32: WAWebProtobufsHistorySync.PastParticipants.pastParticipants:type_name -> WAWebProtobufsHistorySync.PastParticipant
+	33, // [33:33] is the sub-list for method output_type
+	33, // [33:33] is the sub-list for method input_type
+	33, // [33:33] is the sub-list for extension type_name
+	33, // [33:33] is the sub-list for extension extendee
+	0,  // [0:33] is the sub-list for field type_name
 }
 
 func init() { file_waHistorySync_WAWebProtobufsHistorySync_proto_init() }

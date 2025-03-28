@@ -200,19 +200,25 @@ func (Mention_MentionType) EnumDescriptor() ([]byte, []int) {
 type LimitSharing_Trigger int32
 
 const (
-	LimitSharing_CHAT_SETTING            LimitSharing_Trigger = 0
-	LimitSharing_BIZ_SUPPORTS_FB_HOSTING LimitSharing_Trigger = 1
+	LimitSharing_UNKNOWN                 LimitSharing_Trigger = 0
+	LimitSharing_CHAT_SETTING            LimitSharing_Trigger = 1
+	LimitSharing_BIZ_SUPPORTS_FB_HOSTING LimitSharing_Trigger = 2
+	LimitSharing_UNKNOWN_GROUP           LimitSharing_Trigger = 3
 )
 
 // Enum value maps for LimitSharing_Trigger.
 var (
 	LimitSharing_Trigger_name = map[int32]string{
-		0: "CHAT_SETTING",
-		1: "BIZ_SUPPORTS_FB_HOSTING",
+		0: "UNKNOWN",
+		1: "CHAT_SETTING",
+		2: "BIZ_SUPPORTS_FB_HOSTING",
+		3: "UNKNOWN_GROUP",
 	}
 	LimitSharing_Trigger_value = map[string]int32{
-		"CHAT_SETTING":            0,
-		"BIZ_SUPPORTS_FB_HOSTING": 1,
+		"UNKNOWN":                 0,
+		"CHAT_SETTING":            1,
+		"BIZ_SUPPORTS_FB_HOSTING": 2,
+		"UNKNOWN_GROUP":           3,
 	}
 )
 
@@ -578,11 +584,13 @@ func (x *SubProtocol) GetVersion() int32 {
 }
 
 type LimitSharing struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	SharingLimited *bool                  `protobuf:"varint,1,opt,name=sharingLimited" json:"sharingLimited,omitempty"`
-	Trigger        *LimitSharing_Trigger  `protobuf:"varint,2,opt,name=trigger,enum=WACommon.LimitSharing_Trigger" json:"trigger,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"open.v1"`
+	SharingLimited               *bool                  `protobuf:"varint,1,opt,name=sharingLimited" json:"sharingLimited,omitempty"`
+	Trigger                      *LimitSharing_Trigger  `protobuf:"varint,2,opt,name=trigger,enum=WACommon.LimitSharing_Trigger" json:"trigger,omitempty"`
+	LimitSharingSettingTimestamp *int64                 `protobuf:"varint,3,opt,name=limitSharingSettingTimestamp" json:"limitSharingSettingTimestamp,omitempty"`
+	InitiatedByMe                *bool                  `protobuf:"varint,4,opt,name=initiatedByMe" json:"initiatedByMe,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *LimitSharing) Reset() {
@@ -626,7 +634,21 @@ func (x *LimitSharing) GetTrigger() LimitSharing_Trigger {
 	if x != nil && x.Trigger != nil {
 		return *x.Trigger
 	}
-	return LimitSharing_CHAT_SETTING
+	return LimitSharing_UNKNOWN
+}
+
+func (x *LimitSharing) GetLimitSharingSettingTimestamp() int64 {
+	if x != nil && x.LimitSharingSettingTimestamp != nil {
+		return *x.LimitSharingSettingTimestamp
+	}
+	return 0
+}
+
+func (x *LimitSharing) GetInitiatedByMe() bool {
+	if x != nil && x.InitiatedByMe != nil {
+		return *x.InitiatedByMe
+	}
+	return false
 }
 
 var File_waCommon_WACommon_proto protoreflect.FileDescriptor
