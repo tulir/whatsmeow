@@ -10,21 +10,25 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waHistorySync"
+	"go.mau.fi/whatsmeow/proto/waVnameCert"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-const BusinessMessageLinkPrefix = "https://wa.me/message/"
-const ContactQRLinkPrefix = "https://wa.me/qr/"
-const BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
-const ContactQRLinkDirectPrefix = "https://api.whatsapp.com/qr/"
-const NewsletterLinkPrefix = "https://whatsapp.com/channel/"
+const (
+	BusinessMessageLinkPrefix       = "https://wa.me/message/"
+	ContactQRLinkPrefix             = "https://wa.me/qr/"
+	BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
+	ContactQRLinkDirectPrefix       = "https://api.whatsapp.com/qr/"
+	NewsletterLinkPrefix            = "https://whatsapp.com/channel/"
+)
 
 // ResolveBusinessMessageLink resolves a business message short link and returns the target JID, business name and
 // text to prefill in the input field (if any).
@@ -421,6 +425,9 @@ func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
 }
 
 func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) ([]types.JID, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 
@@ -458,19 +465,11 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 	}
 
 	if len(fbJIDsToSync) > 0 {
-		list, err := cli.getFBIDDevices(ctx, fbJIDsToSync)
+		userDevices, err := cli.getFBIDDevices(ctx, fbJIDsToSync)
 		if err != nil {
 			return nil, err
 		}
-		for _, user := range list.GetChildren() {
-			jid, jidOK := user.Attrs["jid"].(types.JID)
-			if user.Tag != "user" || !jidOK {
-				continue
-			}
-			userDevices := parseFBDeviceList(jid, user.GetChildByTag("devices"))
-			cli.userDevicesCache[jid] = userDevices
-			devices = append(devices, userDevices.devices...)
-		}
+		devices = append(devices, userDevices...)
 	}
 
 	return devices, nil
@@ -571,7 +570,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	return &info, nil
 }
 
-func (cli *Client) handleHistoricalPushNames(names []*waProto.Pushname) {
+func (cli *Client) handleHistoricalPushNames(names []*waHistorySync.Pushname) {
 	if cli.Store.Contacts == nil {
 		return
 	}
@@ -645,12 +644,12 @@ func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedNa
 		return nil, nil
 	}
 
-	var cert waProto.VerifiedNameCertificate
+	var cert waVnameCert.VerifiedNameCertificate
 	err := proto.Unmarshal(rawCert, &cert)
 	if err != nil {
 		return nil, err
 	}
-	var certDetails waProto.VerifiedNameCertificate_Details
+	var certDetails waVnameCert.VerifiedNameCertificate_Details
 	err = proto.Unmarshal(cert.GetDetails(), &certDetails)
 	if err != nil {
 		return nil, err
@@ -697,7 +696,7 @@ func parseFBDeviceList(user types.JID, deviceList waBinary.Node) deviceCache {
 	}
 }
 
-func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
+func (cli *Client) getFBIDDevicesInternal(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
 	users := make([]waBinary.Node, len(jids))
 	for i, jid := range jids {
 		users[i].Tag = "user"
@@ -721,6 +720,26 @@ func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) (*waBin
 	} else {
 		return &list, err
 	}
+}
+
+func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) ([]types.JID, error) {
+	var devices []types.JID
+	for chunk := range slices.Chunk(jids, 15) {
+		list, err := cli.getFBIDDevicesInternal(ctx, chunk)
+		if err != nil {
+			return nil, err
+		}
+		for _, user := range list.GetChildren() {
+			jid, jidOK := user.Attrs["jid"].(types.JID)
+			if user.Tag != "user" || !jidOK {
+				continue
+			}
+			userDevices := parseFBDeviceList(jid, user.GetChildByTag("devices"))
+			cli.userDevicesCache[jid] = userDevices
+			devices = append(devices, userDevices.devices...)
+		}
+	}
+	return devices, nil
 }
 
 type UsyncQueryExtras struct {

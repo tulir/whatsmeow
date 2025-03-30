@@ -98,6 +98,7 @@ message ExtendedContentMessage {
 		RTC_MISSED_GROUP_VIDEO_CALL = 3007;
 		RTC_ONGOING_AUDIO_CALL = 3008;
 		RTC_ONGOING_VIDEO_CALL = 3009;
+		MSG_RECEIVER_FETCH_FALLBACK = 3025;
 		DATACLASS_SENDER_COPY = 4000;
 	}
 
@@ -135,4 +136,5 @@ message ExtendedContentMessage {
 	optional string contentRef = 23;
 	repeated string mentionedJID = 24;
 	repeated WACommon.Command commands = 25;
+	repeated WACommon.Mention mentions = 26;
 }

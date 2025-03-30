@@ -13,7 +13,7 @@ import (
 
 	"github.com/google/uuid"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -132,6 +132,18 @@ type CacheStore interface {
 	StoreSessions(sessions map[string][]byte) error
 	StoreIdentityKeys(identityKeys map[string][32]byte) error
 }
+type AllStores interface {
+	IdentityStore
+	SessionStore
+	PreKeyStore
+	SenderKeyStore
+	AppStateSyncKeyStore
+	AppStateStore
+	ContactStore
+	ChatSettingsStore
+	MsgSecretStore
+	PrivacyTokenStore
+}
 
 type Device struct {
 	Log waLog.Logger
@@ -143,7 +155,8 @@ type Device struct {
 	AdvSecretKey   []byte
 
 	ID           *types.JID
-	Account      *waProto.ADVSignedDeviceIdentity
+	LID          types.JID
+	Account      *waAdv.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
 	PushName     string
@@ -189,5 +202,6 @@ func (device *Device) Delete() error {
 		return err
 	}
 	device.ID = nil
+	device.LID = types.EmptyJID
 	return nil
 }

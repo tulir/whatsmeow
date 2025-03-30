@@ -18,7 +18,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
@@ -82,10 +82,11 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	deviceIdentityBytes, _ := pairSuccess.GetChildByTag("device-identity").Content.([]byte)
 	businessName, _ := pairSuccess.GetChildByTag("biz").Attrs["name"].(string)
 	jid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
+	lid, _ := pairSuccess.GetChildByTag("device").Attrs["lid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
 
 	go func() {
-		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, jid)
+		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, jid, lid)
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
 			cli.Disconnect()
@@ -97,8 +98,8 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	}()
 }
 
-func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, jid types.JID) error {
-	var deviceIdentityContainer waProto.ADVSignedDeviceIdentityHMAC
+func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID) error {
+	var deviceIdentityContainer waAdv.ADVSignedDeviceIdentityHMAC
 	err := proto.Unmarshal(deviceIdentityBytes, &deviceIdentityContainer)
 	if err != nil {
 		cli.sendPairError(reqID, 500, "internal-error")
@@ -113,7 +114,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return ErrPairInvalidDeviceIdentityHMAC
 	}
 
-	var deviceIdentity waProto.ADVSignedDeviceIdentity
+	var deviceIdentity waAdv.ADVSignedDeviceIdentity
 	err = proto.Unmarshal(deviceIdentityContainer.Details, &deviceIdentity)
 	if err != nil {
 		cli.sendPairError(reqID, 500, "internal-error")
@@ -127,7 +128,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 
 	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Store.IdentityKey)[:]
 
-	var deviceIdentityDetails waProto.ADVDeviceIdentity
+	var deviceIdentityDetails waAdv.ADVDeviceIdentity
 	err = proto.Unmarshal(deviceIdentity.Details, &deviceIdentityDetails)
 	if err != nil {
 		cli.sendPairError(reqID, 500, "internal-error")
@@ -139,7 +140,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return ErrPairRejectedLocally
 	}
 
-	cli.Store.Account = proto.Clone(&deviceIdentity).(*waProto.ADVSignedDeviceIdentity)
+	cli.Store.Account = proto.Clone(&deviceIdentity).(*waAdv.ADVSignedDeviceIdentity)
 
 	mainDeviceJID := jid
 	mainDeviceJID.Device = 0
@@ -153,6 +154,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	}
 
 	cli.Store.ID = &jid
+	cli.Store.LID = lid
 	cli.Store.BusinessName = businessName
 	cli.Store.Platform = platform
 	err = cli.Store.Save()
@@ -208,7 +210,7 @@ func concatBytes(data ...[]byte) []byte {
 	return output
 }
 
-func verifyDeviceIdentityAccountSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ikp *keys.KeyPair) bool {
+func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair) bool {
 	if len(deviceIdentity.AccountSignatureKey) != 32 || len(deviceIdentity.AccountSignature) != 64 {
 		return false
 	}
@@ -220,7 +222,7 @@ func verifyDeviceIdentityAccountSignature(deviceIdentity *waProto.ADVSignedDevic
 	return ecc.VerifySignature(signatureKey, message, signature)
 }
 
-func generateDeviceSignature(deviceIdentity *waProto.ADVSignedDeviceIdentity, ikp *keys.KeyPair) *[64]byte {
+func generateDeviceSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair) *[64]byte {
 	message := concatBytes([]byte{6, 1}, deviceIdentity.Details, ikp.Pub[:], deviceIdentity.AccountSignatureKey)
 	sig := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*ikp.Priv), message)
 	return &sig

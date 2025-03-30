@@ -22,8 +22,10 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	waProto "go.mau.fi/whatsmeow/binary/proto"
+	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/proto/waHistorySync"
 	"go.mau.fi/whatsmeow/proto/waMediaTransport"
+	"go.mau.fi/whatsmeow/proto/waServerSync"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
@@ -73,15 +75,15 @@ type DownloadableThumbnail interface {
 
 // All the message types that are intended to be downloadable
 var (
-	_ DownloadableMessage   = (*waProto.ImageMessage)(nil)
-	_ DownloadableMessage   = (*waProto.AudioMessage)(nil)
-	_ DownloadableMessage   = (*waProto.VideoMessage)(nil)
-	_ DownloadableMessage   = (*waProto.DocumentMessage)(nil)
-	_ DownloadableMessage   = (*waProto.StickerMessage)(nil)
-	_ DownloadableMessage   = (*waProto.StickerMetadata)(nil)
-	_ DownloadableMessage   = (*waProto.HistorySyncNotification)(nil)
-	_ DownloadableMessage   = (*waProto.ExternalBlobReference)(nil)
-	_ DownloadableThumbnail = (*waProto.ExtendedTextMessage)(nil)
+	_ DownloadableMessage   = (*waE2E.ImageMessage)(nil)
+	_ DownloadableMessage   = (*waE2E.AudioMessage)(nil)
+	_ DownloadableMessage   = (*waE2E.VideoMessage)(nil)
+	_ DownloadableMessage   = (*waE2E.DocumentMessage)(nil)
+	_ DownloadableMessage   = (*waE2E.StickerMessage)(nil)
+	_ DownloadableMessage   = (*waHistorySync.StickerMetadata)(nil)
+	_ DownloadableMessage   = (*waE2E.HistorySyncNotification)(nil)
+	_ DownloadableMessage   = (*waServerSync.ExternalBlobReference)(nil)
+	_ DownloadableThumbnail = (*waE2E.ExtendedTextMessage)(nil)
 )
 
 type downloadableMessageWithLength interface {
@@ -127,7 +129,7 @@ var mediaTypeToMMSType = map[MediaType]string{
 }
 
 // DownloadAny loops through the downloadable parts of the given message and downloads the first non-nil item.
-func (cli *Client) DownloadAny(msg *waProto.Message) (data []byte, err error) {
+func (cli *Client) DownloadAny(msg *waE2E.Message) (data []byte, err error) {
 	if msg == nil {
 		return nil, ErrNothingDownloadableFound
 	}
@@ -162,7 +164,7 @@ func getSize(msg DownloadableMessage) int {
 //
 // This is primarily intended for downloading link preview thumbnails, which are in ExtendedTextMessage:
 //
-//	var msg *waProto.Message
+//	var msg *waE2E.Message
 //	...
 //	thumbnailImageBytes, err := cli.DownloadThumbnail(msg.GetExtendedTextMessage())
 func (cli *Client) DownloadThumbnail(msg DownloadableThumbnail) ([]byte, error) {
@@ -193,12 +195,15 @@ func GetMediaType(msg DownloadableMessage) MediaType {
 //
 // The attachment is a specific part of a Message protobuf struct, not the message itself, e.g.
 //
-//	var msg *waProto.Message
+//	var msg *waE2E.Message
 //	...
 //	imageData, err := cli.Download(msg.GetImageMessage())
 //
 // You can also use DownloadAny to download the first non-nil sub-message.
 func (cli *Client) Download(msg DownloadableMessage) ([]byte, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	mediaType := GetMediaType(msg)
 	if mediaType == "" {
 		return nil, fmt.Errorf("%w %T", ErrUnknownMediaType, msg)

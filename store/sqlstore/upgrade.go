@@ -9,6 +9,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 )
 
 type upgradeFunc func(*sql.Tx, *Container) error
@@ -17,7 +18,7 @@ type upgradeFunc func(*sql.Tx, *Container) error
 //
 // This may be of use if you want to manage the database fully manually, but in most cases you
 // should just call Container.Upgrade to let the library handle everything.
-var Upgrades = [...]upgradeFunc{upgradeV1, upgradeV2, upgradeV3, upgradeV4, upgradeV5, upgradeV6}
+var Upgrades = [...]upgradeFunc{upgradeV1, upgradeV2, upgradeV3, upgradeV4, upgradeV5, upgradeV6, upgradeV7}
 
 func (c *Container) getVersion() (int, error) {
 	_, err := c.db.Exec("CREATE TABLE IF NOT EXISTS whatsmeow_version (version INTEGER)")
@@ -250,7 +251,8 @@ func upgradeV2(tx *sql.Tx, container *Container) error {
 	if err != nil {
 		return err
 	}
-	if container.dialect == "postgres" || container.dialect == "pgx" {
+
+	if strings.Contains(container.dialect, "postgres") || container.dialect == "pgx" {
 		_, err = tx.Exec(fillSigKeyPostgres)
 	} else {
 		_, err = tx.Exec(fillSigKeySQLite)
@@ -290,5 +292,10 @@ func upgradeV5(tx *sql.Tx, container *Container) error {
 
 func upgradeV6(tx *sql.Tx, container *Container) error {
 	_, err := tx.Exec("ALTER TABLE whatsmeow_device ADD COLUMN facebook_uuid uuid")
+	return err
+}
+
+func upgradeV7(tx *sql.Tx, container *Container) error {
+	_, err := tx.Exec("ALTER TABLE whatsmeow_device ADD COLUMN lid TEXT")
 	return err
 }

@@ -50,6 +50,10 @@ message Armadillo {
 	}
 
 	message ApplicationData {
+		message MessageHistoryDocumentMessage {
+			optional WACommon.SubProtocol document = 1;
+		}
+
 		message AIBotResponseMessage {
 			optional string summonToken = 1;
 			optional string messageText = 2;
@@ -118,6 +122,7 @@ message Armadillo {
 		oneof applicationData {
 			MetadataSyncNotification metadataSync = 1;
 			AIBotResponseMessage aiBotResponse = 2;
+			MessageHistoryDocumentMessage messageHistoryDocumentMessage = 3;
 		}
 	}
 

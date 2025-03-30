@@ -1,5 +1,5 @@
 syntax = "proto2";
-package WAWebProtobufsCompanionReg;
+package WACompanionReg;
 option go_package = "go.mau.fi/whatsmeow/proto/waCompanionReg";
 
 message DeviceProps {
@@ -96,4 +96,5 @@ message EncryptedPairingRequest {
 
 message ClientPairingProps {
 	optional bool isChatDbLidMigrated = 1;
+	optional bool isSyncdPureLidSession = 2;
 }

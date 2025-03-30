@@ -16,6 +16,7 @@ import (
 )
 
 func (cli *Client) handleReceipt(node *waBinary.Node) {
+	defer cli.maybeDeferredAck(node)()
 	receipt, err := cli.parseReceipt(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse receipt: %v", err)
@@ -28,9 +29,8 @@ func (cli *Client) handleReceipt(node *waBinary.Node) {
 				}
 			}()
 		}
-		go cli.dispatchEvent(receipt)
+		cli.dispatchEvent(receipt)
 	}
-	go cli.sendAck(node)
 }
 
 func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participants *waBinary.Node) {
@@ -96,6 +96,17 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 	return &receipt, nil
 }
 
+func (cli *Client) maybeDeferredAck(node *waBinary.Node) func() {
+	if cli.SynchronousAck {
+		return func() {
+			cli.sendAck(node)
+		}
+	} else {
+		go cli.sendAck(node)
+		return func() {}
+	}
+}
+
 func (cli *Client) sendAck(node *waBinary.Node) {
 	attrs := waBinary.Attrs{
 		"class": node.Tag,
@@ -107,6 +118,12 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 	}
 	if recipient, ok := node.Attrs["recipient"]; ok {
 		attrs["recipient"] = recipient
+
+		// TODO this hack probably needs to be removed at some point
+		recipientJID, ok := recipient.(types.JID)
+		if ok && recipientJID.Server == types.BotServer && node.Tag == "message" {
+			attrs["recipient"] = types.BotJIDMap[recipientJID]
+		}
 	}
 	if receiptType, ok := node.Attrs["type"]; node.Tag != "message" && ok {
 		attrs["type"] = receiptType
@@ -189,6 +206,9 @@ func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, se
 // Note that if you turn this off (i.e. call SetForceActiveDeliveryReceipts(false)),
 // receipts will act like the client is offline until SendPresence is called again.
 func (cli *Client) SetForceActiveDeliveryReceipts(active bool) {
+	if cli == nil {
+		return
+	}
 	if active {
 		cli.sendActiveReceipts.Store(2)
 	} else {

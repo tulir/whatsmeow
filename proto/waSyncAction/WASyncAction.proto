@@ -56,6 +56,17 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message NotificationActivitySettingAction {
+	enum NotificationActivitySetting {
+		DEFAULT_ALL_MESSAGES = 0;
+		ALL_MESSAGES = 1;
+		HIGHLIGHTS = 2;
+		DEFAULT_HIGHLIGHTS = 3;
+	}
+
+	optional NotificationActivitySetting notificationActivitySetting = 1;
+}
+
 message WaffleAccountLinkStateAction {
 	enum AccountLinkState {
 		ACTIVE = 0;
@@ -151,6 +162,8 @@ message PatchDebugData {
 		WEB = 4;
 		UWP = 5;
 		DARWIN = 6;
+		IPAD = 7;
+		WEAROS = 8;
 	}
 
 	optional bytes currentLthash = 1;
@@ -225,6 +238,7 @@ message SyncActionValue {
 	optional MerchantPaymentPartnerAction merchantPaymentPartnerAction = 57;
 	optional WaffleAccountLinkStateAction waffleAccountLinkStateAction = 58;
 	optional UsernameChatStartModeAction usernameChatStartMode = 59;
+	optional NotificationActivitySettingAction notificationActivitySettingAction = 60;
 }
 
 message FavoritesAction {
