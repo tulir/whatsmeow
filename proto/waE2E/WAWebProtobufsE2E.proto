@@ -1292,6 +1292,10 @@ message AIRichResponseMessage {
 			optional double width = 3;
 			optional double height = 4;
 			optional double fontHeight = 5;
+			optional double imageTopPadding = 6;
+			optional double imageLeadingPadding = 7;
+			optional double imageBottomPadding = 8;
+			optional double imageTrailingPadding = 9;
 		}
 
 		optional string text = 1;
@@ -1471,6 +1475,7 @@ message BotCapabilityMetadata {
 		ACCOUNT_LINKING = 28;
 		STREAMING_DISAGGREGATION = 29;
 		RICH_RESPONSE_GRID_IMAGE_3P = 30;
+		RICH_RESPONSE_LATEX_INLINE = 31;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1757,6 +1762,7 @@ message Message {
 	optional AIRichResponseMessage richResponseMessage = 97;
 	optional StatusNotificationMessage statusNotificationMessage = 98;
 	optional FutureProofMessage limitSharingMessage = 99;
+	optional FutureProofMessage botTaskMessage = 100;
 }
 
 message AlbumMessage {
@@ -2238,6 +2244,7 @@ message BotPromptSuggestion {
 message BotLinkedAccountsMetadata {
 	repeated BotLinkedAccount accounts = 1;
 	optional bytes acAuthTokens = 2;
+	optional int32 acErrorCode = 3;
 }
 
 message BotMemoryMetadata {
