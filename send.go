@@ -1017,10 +1017,21 @@ func (cli *Client) makeDeviceIdentityNode() waBinary.Node {
 	}
 }
 
+// Reducing the number of I/Os to the DB, improving performance by len(allDevices)*time(I/O) which is heavily noticable on large groups
+// one I/O to the db is 100ms on average, so sending in a group of 1000 people with at least 2 devices takes around 3 minutes to encrypt.
+// now it should take less than 4 seconds on sqlite, Less than 1 second on MSSQL and POSTGRES
 func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []types.JID, ownID types.JID, id string, msgPlaintext, dsmPlaintext []byte, encAttrs waBinary.Attrs) ([]waBinary.Node, bool) {
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
 	var retryDevices []types.JID
+	//Cache all sessions and identity keys relative to this message to decrease query time
+	//This will reduce the number of queries to the db from 3*len(allDevices) -> 2 queries only, heavily improving performance
+	var addresses []string
+	for _, jid := range allDevices {
+		addresses = append(addresses, jid.SignalAddress().String())
+	}
+	cli.Store.SessionsCache = cli.Store.Cache.GetSessions(addresses)
+	cli.Store.IdentityKeysCache = cli.Store.Cache.GetIdentityKeys(addresses)
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
 		if jid.User == ownID.User && dsmPlaintext != nil {
@@ -1044,6 +1055,13 @@ func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []ty
 		}
 	}
 	if len(retryDevices) > 0 {
+		//By Making the commands to the db be done in a separate go routine,
+		//A bug will appear when none of the devices in "allDevices" have any sessions in the db,
+		//causing the program to use the old approach to get the session and not finding any
+		//causing the program to crash
+		//by filling the cashe with at least one element, the prekeys collected in bundles will also be stored in cache, avoiding this issue
+		cli.Store.SessionsCache[ownID.SignalAddress().String()] = []byte{}
+		cli.Store.IdentityKeysCache[ownID.SignalAddress().String()] = [32]byte{}
 		bundles, err := cli.fetchPreKeys(ctx, retryDevices)
 		if err != nil {
 			cli.Log.Warnf("Failed to fetch prekeys for %v to retry encryption: %v", retryDevices, err)
@@ -1069,7 +1087,21 @@ func (cli *Client) encryptMessageForDevices(ctx context.Context, allDevices []ty
 				}
 			}
 		}
+		//Remove the dummy key
+		delete(cli.Store.SessionsCache, ownID.SignalAddress().String())
+		delete(cli.Store.IdentityKeysCache, ownID.SignalAddress().String())
 	}
+	//Store All Sessions at once. This decreases the number of commands to the database from 2*len(allDevices) -> 2 commands only
+	//An alternate, faster method would be using "go StoreSessions" which is incompatible with file databases such as sqlite
+	if len(cli.Store.SessionsCache) > 0 {
+		cli.Store.Cache.StoreSessions(cli.Store.SessionsCache)
+	}
+	if len(cli.Store.IdentityKeysCache) > 0 {
+		cli.Store.Cache.StoreIdentityKeys(cli.Store.IdentityKeysCache)
+	}
+	//clear the cache once the encryption is done to release memory
+	clear(cli.Store.SessionsCache)
+	clear(cli.Store.IdentityKeysCache)
 	return participantNodes, includeIdentity
 }
 
