@@ -84,10 +84,11 @@ func (x *LIDMigrationMapping) GetLatestLid() uint64 {
 }
 
 type LIDMigrationMappingSyncPayload struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	PnToLidMappings []*LIDMigrationMapping `protobuf:"bytes,1,rep,name=pnToLidMappings" json:"pnToLidMappings,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	PnToLidMappings          []*LIDMigrationMapping `protobuf:"bytes,1,rep,name=pnToLidMappings" json:"pnToLidMappings,omitempty"`
+	ChatDbMigrationTimestamp *uint64                `protobuf:"varint,2,opt,name=chatDbMigrationTimestamp" json:"chatDbMigrationTimestamp,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *LIDMigrationMappingSyncPayload) Reset() {
@@ -125,6 +126,13 @@ func (x *LIDMigrationMappingSyncPayload) GetPnToLidMappings() []*LIDMigrationMap
 		return x.PnToLidMappings
 	}
 	return nil
+}
+
+func (x *LIDMigrationMappingSyncPayload) GetChatDbMigrationTimestamp() uint64 {
+	if x != nil && x.ChatDbMigrationTimestamp != nil {
+		return *x.ChatDbMigrationTimestamp
+	}
+	return 0
 }
 
 var File_waLidMigrationSyncPayload_WAWebProtobufLidMigrationSyncPayload_proto protoreflect.FileDescriptor
