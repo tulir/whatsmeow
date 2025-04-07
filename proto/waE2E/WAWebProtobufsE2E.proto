@@ -711,6 +711,8 @@ message ProtocolMessage {
 		STATUS_MENTION_MESSAGE = 25;
 		STOP_GENERATION_MESSAGE = 26;
 		LIMIT_SHARING = 27;
+		AI_PSI_METADATA = 28;
+		AI_QUERY_FANOUT = 29;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -734,6 +736,8 @@ message ProtocolMessage {
 	optional CloudAPIThreadControlNotification cloudApiThreadControlNotification = 22;
 	optional LIDMigrationMappingSyncMessage lidMigrationMappingSyncMessage = 23;
 	optional WACommon.LimitSharing limitSharing = 24;
+	optional bytes aiPsiMetadata = 25;
+	optional AIQueryFanout aiQueryFanout = 26;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1476,6 +1480,8 @@ message BotCapabilityMetadata {
 		STREAMING_DISAGGREGATION = 29;
 		RICH_RESPONSE_GRID_IMAGE_3P = 30;
 		RICH_RESPONSE_LATEX_INLINE = 31;
+		QUERY_PLAN = 32;
+		PROACTIVE_MESSAGE = 33;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -2302,6 +2308,7 @@ message BotMetadata {
 	optional BotMetricsMetadata botMetricsMetadata = 17;
 	optional BotLinkedAccountsMetadata botLinkedAccountsMetadata = 18;
 	optional BotSourcesMetadata richResponseSourcesMetadata = 19;
+	optional bytes aiConversationContext = 20;
 }
 
 message DeviceListMetadata {
@@ -2425,4 +2432,10 @@ message UrlTrackingMap {
 	}
 
 	repeated UrlTrackingMapElement urlTrackingMapElements = 1;
+}
+
+message AIQueryFanout {
+	optional WACommon.MessageKey messageKey = 1;
+	optional Message message = 2;
+	optional int64 timestamp = 3;
 }
