@@ -90,10 +90,10 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
 			cli.Disconnect()
-			cli.dispatchEvent(&events.PairError{ID: jid, BusinessName: businessName, Platform: platform, Error: err})
+			cli.dispatchEvent(&events.PairError{ID: jid, LID: lid, BusinessName: businessName, Platform: platform, Error: err})
 		} else {
 			cli.Log.Infof("Successfully paired %s", cli.Store.ID)
-			cli.dispatchEvent(&events.PairSuccess{ID: jid, BusinessName: businessName, Platform: platform})
+			cli.dispatchEvent(&events.PairSuccess{ID: jid, LID: lid, BusinessName: businessName, Platform: platform})
 		}
 	}()
 }
