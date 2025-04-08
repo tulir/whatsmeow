@@ -82,7 +82,7 @@ func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targ
 		if targetUser == "" {
 			return types.JID{}, nil
 		}
-		return types.JID{User: targetUser, Server: targetServer}, nil
+		return types.JID{User: targetUser, Device: source.Device, Server: targetServer}, nil
 	}
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
@@ -95,7 +95,7 @@ func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targ
 	sourceToTarget[source.User] = targetServer
 	if targetServer != "" {
 		targetToSource[targetServer] = source.User
-		return types.JID{User: targetServer, Server: targetServer}, nil
+		return types.JID{User: targetServer, Device: source.Device, Server: targetServer}, nil
 	}
 	return types.JID{}, nil
 }

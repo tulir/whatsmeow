@@ -143,8 +143,8 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 
 	cli.Store.Account = proto.Clone(&deviceIdentity).(*waAdv.ADVSignedDeviceIdentity)
 
-	mainDeviceJID := jid
-	mainDeviceJID.Device = 0
+	mainDeviceLID := lid
+	mainDeviceLID.Device = 0
 	mainDeviceIdentity := *(*[32]byte)(deviceIdentity.AccountSignatureKey)
 	deviceIdentity.AccountSignatureKey = nil
 
@@ -164,7 +164,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		cli.sendPairError(reqID, 500, "internal-error")
 		return &PairDatabaseError{"failed to save device store", err}
 	}
-	err = cli.Store.Identities.PutIdentity(mainDeviceJID.SignalAddress().String(), mainDeviceIdentity)
+	err = cli.Store.Identities.PutIdentity(mainDeviceLID.SignalAddress().String(), mainDeviceIdentity)
 	if err != nil {
 		_ = cli.Store.Delete()
 		cli.sendPairError(reqID, 500, "internal-error")

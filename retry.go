@@ -245,7 +245,17 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	var encrypted *waBinary.Node
 	var includeDeviceIdentity bool
 	if msg.wa != nil {
-		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle, encAttrs)
+		encryptionIdentity := receipt.Sender
+		if receipt.Sender.Server == types.DefaultUserServer {
+			lidForPN, err := cli.Store.LIDs.GetLIDForPN(context.TODO(), receipt.Sender)
+			if err != nil {
+				cli.Log.Warnf("Failed to get LID for %s: %v", receipt.Sender, err)
+			} else if !lidForPN.IsEmpty() {
+				cli.migrateSessionStore(receipt.Sender, lidForPN)
+				encryptionIdentity = lidForPN
+			}
+		}
+		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(plaintext, encryptionIdentity, bundle, encAttrs)
 	} else {
 		encrypted, err = cli.encryptMessageForDeviceV3(&waMsgTransport.MessageTransport_Payload{
 			ApplicationPayload: &waCommon.SubProtocol{

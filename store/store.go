@@ -33,6 +33,7 @@ type SessionStore interface {
 	PutSession(address string, session []byte) error
 	DeleteAllSessions(phone string) error
 	DeleteSession(address string) error
+	MigratePNToLID(ctx context.Context, pn, lid types.JID) error
 }
 
 type PreKeyStore interface {

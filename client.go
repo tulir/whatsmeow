@@ -816,7 +816,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 			IsFromMe: webMsg.GetKey().GetFromMe(),
 			IsGroup:  chatJID.Server == types.GroupServer,
 		},
-		ID:        webMsg.GetKey().GetId(),
+		ID:        webMsg.GetKey().GetID(),
 		PushName:  webMsg.GetPushName(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
@@ -836,6 +836,10 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse sender of message %s: %v", info.ID, err)
+	}
+	if pk := webMsg.GetCommentMetadata().GetCommentParentKey(); pk != nil {
+		info.MsgMetaInfo.ThreadMessageID = pk.GetID()
+		info.MsgMetaInfo.ThreadMessageSenderJID, _ = types.ParseJID(pk.GetParticipant())
 	}
 	evt := &events.Message{
 		RawMessage:   webMsg.GetMessage(),

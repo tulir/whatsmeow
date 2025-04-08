@@ -78,6 +78,10 @@ func (n *NoopStore) DeleteSession(address string) error {
 	return n.Error
 }
 
+func (n *NoopStore) MigratePNToLID(ctx context.Context, pn, lid types.JID) error {
+	return n.Error
+}
+
 func (n *NoopStore) GetOrGenPreKeys(count uint32) ([]*keys.PreKey, error) {
 	return nil, n.Error
 }

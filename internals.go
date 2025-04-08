@@ -271,6 +271,10 @@ func (int *DangerousInternalClient) HandlePlaintextMessage(info *types.MessageIn
 	int.c.handlePlaintextMessage(info, node)
 }
 
+func (int *DangerousInternalClient) MigrateSessionStore(pn, lid types.JID) {
+	int.c.migrateSessionStore(pn, lid)
+}
+
 func (int *DangerousInternalClient) DecryptMessages(info *types.MessageInfo, node *waBinary.Node) {
 	int.c.decryptMessages(info, node)
 }
@@ -623,8 +627,8 @@ func (int *DangerousInternalClient) EncryptMessageForDevices(ctx context.Context
 	return int.c.encryptMessageForDevices(ctx, allDevices, ownID, id, msgPlaintext, dsmPlaintext, encAttrs)
 }
 
-func (int *DangerousInternalClient) EncryptMessageForDeviceAndWrap(plaintext []byte, to types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
-	return int.c.encryptMessageForDeviceAndWrap(plaintext, to, bundle, encAttrs)
+func (int *DangerousInternalClient) EncryptMessageForDeviceAndWrap(plaintext []byte, wireIdentity, encryptionIdentity types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
+	return int.c.encryptMessageForDeviceAndWrap(plaintext, wireIdentity, encryptionIdentity, bundle, encAttrs)
 }
 
 func (int *DangerousInternalClient) EncryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle, extraAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
