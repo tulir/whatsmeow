@@ -222,7 +222,7 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		status, _ := child.GetChildByTag("status").Content.([]byte)
 		info.Status = string(status)
 		info.PictureID, _ = child.GetChildByTag("picture").Attrs["id"].(string)
-		info.Devices = parseDeviceList(jid.User, child.GetChildByTag("devices"))
+		info.Devices = parseDeviceList(jid, child.GetChildByTag("devices"))
 		if verifiedName != nil {
 			cli.updateBusinessName(jid, nil, verifiedName.Details.GetVerifiedName())
 		}
@@ -458,7 +458,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 			if user.Tag != "user" || !jidOK {
 				continue
 			}
-			userDevices := parseDeviceList(jid.User, user.GetChildByTag("devices"))
+			userDevices := parseDeviceList(jid, user.GetChildByTag("devices"))
 			cli.userDevicesCache[jid] = deviceCache{devices: userDevices, dhash: participantListHashV2(userDevices)}
 			devices = append(devices, userDevices...)
 		}
@@ -660,7 +660,7 @@ func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedNa
 	}, nil
 }
 
-func parseDeviceList(user string, deviceNode waBinary.Node) []types.JID {
+func parseDeviceList(user types.JID, deviceNode waBinary.Node) []types.JID {
 	deviceList := deviceNode.GetChildByTag("device-list")
 	if deviceNode.Tag != "devices" || deviceList.Tag != "device-list" {
 		return nil
@@ -672,7 +672,8 @@ func parseDeviceList(user string, deviceNode waBinary.Node) []types.JID {
 		if device.Tag != "device" || !ok {
 			continue
 		}
-		devices = append(devices, types.NewADJID(user, 0, byte(deviceID)))
+		user.Device = uint16(deviceID)
+		devices = append(devices, user)
 	}
 	return devices
 }
@@ -768,20 +769,20 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 				Tag:     "contact",
 				Content: jid.String(),
 			}}
-		case types.DefaultUserServer:
+		case types.DefaultUserServer, types.HiddenUserServer:
 			userList[i].Attrs = waBinary.Attrs{"jid": jid}
 			if jid.IsBot() {
-				var personaId string
+				var personaID string
 				for _, bot := range extras.BotListInfo {
 					if bot.BotJID.User == jid.User {
-						personaId = bot.PersonaID
+						personaID = bot.PersonaID
 					}
 				}
 				userList[i].Content = []waBinary.Node{{
 					Tag: "bot",
 					Content: []waBinary.Node{{
 						Tag:   "profile",
-						Attrs: waBinary.Attrs{"persona_id": personaId},
+						Attrs: waBinary.Attrs{"persona_id": personaID},
 					}},
 				}}
 			}

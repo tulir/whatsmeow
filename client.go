@@ -378,11 +378,14 @@ func (cli *Client) getOwnID() types.JID {
 	if cli == nil {
 		return types.EmptyJID
 	}
-	id := cli.Store.ID
-	if id == nil {
+	return cli.Store.GetJID()
+}
+
+func (cli *Client) getOwnLID() types.JID {
+	if cli == nil {
 		return types.EmptyJID
 	}
-	return *id
+	return cli.Store.GetLID()
 }
 
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {

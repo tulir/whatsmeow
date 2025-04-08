@@ -150,7 +150,7 @@ func (cli *Client) parseMsgMetaInfo(node waBinary.Node) (metaInfo types.MsgMetaI
 	ag := metaNode.AttrGetter()
 	metaInfo.TargetID = types.MessageID(ag.OptionalString("target_id"))
 	metaInfo.TargetSender = ag.OptionalJIDOrEmpty("target_sender_jid")
-	deprecatedLIDSession, ok := ag.GetBool("lid_session", false)
+	deprecatedLIDSession, ok := ag.GetBool("deprecated_lid_session", false)
 	if ok {
 		metaInfo.DeprecatedLIDSession = &deprecatedLIDSession
 	}
