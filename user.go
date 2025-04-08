@@ -441,6 +441,8 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 		} else if jid.IsBot() {
 			// Bot JIDs do not have devices, the usync query is empty
 			devices = append(devices, jid)
+		} else if jid.Server == types.HiddenUserServer {
+			devices = append(devices, jid)
 		} else {
 			jidsToSync = append(jidsToSync, jid)
 		}

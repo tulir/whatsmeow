@@ -959,6 +959,9 @@ func (cli *Client) prepareMessageNode(ctx context.Context, to, ownID types.JID, 
 		"type": msgType,
 		"to":   to,
 	}
+	if participants[0].Server == types.HiddenUserServer {
+		attrs["addressing_mode"] = "lid"
+	}
 	if editAttr := getEditAttribute(message); editAttr != "" {
 		attrs["edit"] = string(editAttr)
 		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
