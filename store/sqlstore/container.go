@@ -27,8 +27,9 @@ import (
 
 // Container is a wrapper for a SQL database that can contain multiple whatsmeow sessions.
 type Container struct {
-	db  *dbutil.Database
-	log waLog.Logger
+	db     *dbutil.Database
+	log    waLog.Logger
+	LIDMap *CachedLIDMap
 
 	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
@@ -91,8 +92,9 @@ func NewWithWrappedDB(wrapped *dbutil.Database, log waLog.Logger) *Container {
 		log = waLog.Noop
 	}
 	return &Container{
-		db:  wrapped,
-		log: log,
+		db:     wrapped,
+		log:    log,
+		LIDMap: NewCachedLIDMap(wrapped),
 	}
 }
 
@@ -159,6 +161,7 @@ func (c *Container) scanDevice(row dbutil.Scannable) (*store.Device, error) {
 	device.ChatSettings = innerStore
 	device.MsgSecrets = innerStore
 	device.PrivacyTokens = innerStore
+	device.LIDs = c.LIDMap
 	device.Container = c
 	device.Initialized = true
 

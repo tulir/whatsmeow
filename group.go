@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -552,10 +553,21 @@ func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticip
 		defer cli.groupParticipantsCacheLock.Unlock()
 	}
 	participants := make([]types.JID, len(groupInfo.Participants))
+	lidPairs := make([]store.LIDMapping, len(groupInfo.Participants))
 	for i, part := range groupInfo.Participants {
 		participants[i] = part.JID
+		if !part.PhoneNumber.IsEmpty() && !part.LID.IsEmpty() {
+			lidPairs[i] = store.LIDMapping{
+				LID: part.LID,
+				PN:  part.PhoneNumber,
+			}
+		}
 	}
 	cli.groupParticipantsCache[jid] = participants
+	err = cli.Store.LIDs.PutManyLIDMappings(ctx, lidPairs)
+	if err != nil {
+		cli.Log.Warnf("Failed to store LID mappings for members of %s: %v", jid, err)
+	}
 	return groupInfo, nil
 }
 
@@ -577,12 +589,14 @@ func parseParticipant(childAG *waBinary.AttrUtility, child *waBinary.Node) types
 		IsAdmin:      pcpType == "admin" || pcpType == "superadmin",
 		IsSuperAdmin: pcpType == "superadmin",
 		JID:          childAG.JID("jid"),
-		LID:          childAG.OptionalJIDOrEmpty("lid"),
 		DisplayName:  childAG.OptionalString("display_name"),
 	}
-	if participant.JID.Server == types.HiddenUserServer && participant.LID.IsEmpty() {
+	if participant.JID.Server == types.HiddenUserServer {
 		participant.LID = participant.JID
-		//participant.JID = types.EmptyJID
+		participant.PhoneNumber = childAG.OptionalJIDOrEmpty("phone_number")
+	} else if participant.JID.Server == types.DefaultUserServer {
+		participant.PhoneNumber = participant.JID
+		participant.LID = childAG.OptionalJIDOrEmpty("lid")
 	}
 	if errorCode := childAG.OptionalInt("error"); errorCode != 0 {
 		participant.Error = errorCode
@@ -604,12 +618,15 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 
 	group.JID = types.NewJID(ag.String("id"), types.GroupServer)
 	group.OwnerJID = ag.OptionalJIDOrEmpty("creator")
+	group.OwnerPN = ag.OptionalJIDOrEmpty("creator_pn")
 
 	group.Name = ag.String("subject")
 	group.NameSetAt = ag.UnixTime("s_t")
 	group.NameSetBy = ag.OptionalJIDOrEmpty("s_o")
+	group.NameSetByPN = ag.OptionalJIDOrEmpty("s_o_pn")
 
 	group.GroupCreated = ag.UnixTime("creation")
+	group.CreatorCountryCode = ag.OptionalString("creator_country_code")
 
 	group.AnnounceVersionID = ag.OptionalString("a_v_id")
 	group.ParticipantVersionID = ag.OptionalString("p_v_id")
@@ -626,6 +643,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 				group.Topic = string(topicBytes)
 				group.TopicID = childAG.String("id")
 				group.TopicSetBy = childAG.OptionalJIDOrEmpty("participant")
+				group.TopicSetByPN = childAG.OptionalJIDOrEmpty("participant_pn") // TODO confirm field name
 				group.TopicSetAt = childAG.UnixTime("t")
 			}
 		case "announcement":
@@ -691,16 +709,20 @@ func parseParticipantList(node *waBinary.Node) (participants []types.JID) {
 	return
 }
 
-func (cli *Client) parseGroupCreate(node *waBinary.Node) (*events.JoinedGroup, error) {
+func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, error) {
 	groupNode, ok := node.GetOptionalChildByTag("group")
 	if !ok {
 		return nil, fmt.Errorf("group create notification didn't contain group info")
 	}
 	var evt events.JoinedGroup
+	pag := parentNode.AttrGetter()
 	ag := node.AttrGetter()
 	evt.Reason = ag.OptionalString("reason")
 	evt.CreateKey = ag.OptionalString("key")
 	evt.Type = ag.OptionalString("type")
+	evt.Sender = pag.OptionalJID("participant")
+	evt.SenderPN = pag.OptionalJID("participant_pn")
+	evt.Notify = pag.OptionalString("notify")
 	info, err := cli.parseGroupNode(&groupNode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
@@ -715,6 +737,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 	evt.JID = ag.JID("from")
 	evt.Notify = ag.OptionalString("notify")
 	evt.Sender = ag.OptionalJID("participant")
+	evt.SenderPN = ag.OptionalJID("participant_pn")
 	evt.Timestamp = ag.UnixTime("t")
 	if !ag.OK() {
 		return nil, fmt.Errorf("group change doesn't contain required attributes: %w", ag.Error())
@@ -744,9 +767,10 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			evt.Delete = &types.GroupDelete{Deleted: true, DeleteReason: cag.String("reason")}
 		case "subject":
 			evt.Name = &types.GroupName{
-				Name:      cag.String("subject"),
-				NameSetAt: cag.UnixTime("s_t"),
-				NameSetBy: cag.OptionalJIDOrEmpty("s_o"),
+				Name:        cag.String("subject"),
+				NameSetAt:   cag.UnixTime("s_t"),
+				NameSetBy:   cag.OptionalJIDOrEmpty("s_o"),
+				NameSetByPN: cag.OptionalJIDOrEmpty("s_o_pn"),
 			}
 		case "description":
 			var topicStr string
@@ -866,7 +890,7 @@ Outer:
 func (cli *Client) parseGroupNotification(node *waBinary.Node) (any, error) {
 	children := node.GetChildren()
 	if len(children) == 1 && children[0].Tag == "create" {
-		return cli.parseGroupCreate(&children[0])
+		return cli.parseGroupCreate(node, &children[0])
 	} else {
 		groupChange, err := cli.parseGroupChange(node)
 		if err != nil {

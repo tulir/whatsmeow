@@ -98,12 +98,6 @@ func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
 		user = fmt.Sprintf("%s_%d", jid.User, agent)
 	}
 	return signalProtocol.NewSignalAddress(user, uint32(jid.Device))
-	// TODO use @lid suffix instead of agent?
-	//suffix := ""
-	//if jid.Server == HiddenUserServer {
-	//	suffix = "@lid"
-	//}
-	//return signalProtocol.NewSignalAddress(user, uint32(jid.Device), suffix)
 }
 
 // IsBroadcastList returns true if the JID is a broadcast list, but not the status broadcast.

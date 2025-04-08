@@ -438,6 +438,11 @@ type JoinedGroup struct {
 	Reason    string          // If the event was triggered by you using an invite link, this will be "invite".
 	Type      string          // "new" if it's a newly created group.
 	CreateKey types.MessageID // If you created the group, this is the same message ID you passed to CreateGroup.
+	// For type new, the user who created the group and added you to it
+	Sender   *types.JID
+	SenderPN *types.JID
+	Notify   string
+
 	types.GroupInfo
 }
 
@@ -446,6 +451,7 @@ type GroupInfo struct {
 	JID       types.JID  // The group ID in question
 	Notify    string     // Seems like a top-level type for the invite
 	Sender    *types.JID // The user who made the change. Doesn't seem to be present when notify=invite
+	SenderPN  *types.JID // The phone number of the user who made the change, if Sender is a LID.
 	Timestamp time.Time  // The time when the change occurred
 
 	Name      *types.GroupName      // Group name change

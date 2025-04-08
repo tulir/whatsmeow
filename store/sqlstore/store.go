@@ -61,7 +61,7 @@ func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 	}
 }
 
-var _ store.AllStores = (*SQLStore)(nil)
+var _ store.AllSessionSpecificStores = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `

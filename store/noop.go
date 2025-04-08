@@ -7,6 +7,7 @@
 package store
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -210,5 +211,21 @@ func (n *NoopStore) PutDevice(store *Device) error {
 }
 
 func (n *NoopStore) DeleteDevice(store *Device) error {
+	return n.Error
+}
+
+func (n *NoopStore) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error) {
+	return types.JID{}, n.Error
+}
+
+func (n *NoopStore) GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error) {
+	return types.JID{}, n.Error
+}
+
+func (n *NoopStore) PutManyLIDMappings(ctx context.Context, mappings []LIDMapping) error {
+	return n.Error
+}
+
+func (n *NoopStore) PutLIDMapping(ctx context.Context, lid types.JID, jid types.JID) error {
 	return n.Error
 }

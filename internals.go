@@ -207,8 +207,8 @@ func (int *DangerousInternalClient) ParseGroupNode(groupNode *waBinary.Node) (*t
 	return int.c.parseGroupNode(groupNode)
 }
 
-func (int *DangerousInternalClient) ParseGroupCreate(node *waBinary.Node) (*events.JoinedGroup, error) {
-	return int.c.parseGroupCreate(node)
+func (int *DangerousInternalClient) ParseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, error) {
+	return int.c.parseGroupCreate(parentNode, node)
 }
 
 func (int *DangerousInternalClient) ParseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {

@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"bytes"
 	"compress/zlib"
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -40,6 +41,11 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
+		if !info.SenderAlt.IsEmpty() {
+			cli.StoreLIDPNMapping(context.TODO(), info.SenderAlt, info.Sender)
+		} else if !info.RecipientAlt.IsEmpty() {
+			cli.StoreLIDPNMapping(context.TODO(), info.RecipientAlt, info.Chat)
+		}
 		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
 			go cli.updateBusinessName(info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
 		}
@@ -57,12 +63,14 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
 	clientID := cli.getOwnID()
+	clientLID := cli.Store.GetLID()
 	if clientID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
 	}
 	ag := node.AttrGetter()
 	from := ag.JID("from")
+	source.AddressingMode = types.AddressingMode(ag.OptionalString("addressing_mode"))
 	if from.Server == types.GroupServer || from.Server == types.BroadcastServer {
 		source.IsGroup = true
 		source.Chat = from
@@ -71,7 +79,12 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		} else {
 			source.Sender = ag.OptionalJIDOrEmpty("participant")
 		}
-		if source.Sender.User == clientID.User {
+		if source.AddressingMode == types.AddressingModeLID {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("participant_pn")
+		} else {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("participant_lid")
+		}
+		if source.Sender.User == clientID.User || source.Sender.User == clientLID.User {
 			source.IsFromMe = true
 		}
 		if from.Server == types.BroadcastServer {
@@ -81,7 +94,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		source.Chat = from
 		source.Sender = from
 		// TODO IsFromMe?
-	} else if from.User == clientID.User {
+	} else if from.User == clientID.User || from.User == clientLID.User {
 		source.IsFromMe = true
 		source.Sender = from
 		recipient := ag.OptionalJID("recipient")
@@ -89,6 +102,11 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 			source.Chat = *recipient
 		} else {
 			source.Chat = from.ToNonAD()
+		}
+		if source.AddressingMode == types.AddressingModeLID {
+			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_pn") // existence of this field is not confirmed
+		} else {
+			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_lid")
 		}
 	} else if from.IsBot() {
 		source.Sender = from
@@ -103,6 +121,11 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 	} else {
 		source.Chat = from.ToNonAD()
 		source.Sender = from
+		if source.AddressingMode == types.AddressingModeLID {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_pn")
+		} else {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_lid")
+		}
 	}
 	err = ag.Error()
 	return
@@ -125,11 +148,14 @@ func (cli *Client) parseMsgMetaInfo(node waBinary.Node) (metaInfo types.MsgMetaI
 	metaNode := node.GetChildByTag("meta")
 
 	ag := metaNode.AttrGetter()
-	metaInfo.TargetID = types.MessageID(ag.String("target_id"))
-	targetSenderJID := ag.OptionalJIDOrEmpty("target_sender_jid")
-	if targetSenderJID.User != "" {
-		metaInfo.TargetSender = targetSenderJID
+	metaInfo.TargetID = types.MessageID(ag.OptionalString("target_id"))
+	metaInfo.TargetSender = ag.OptionalJIDOrEmpty("target_sender_jid")
+	deprecatedLIDSession, ok := ag.GetBool("lid_session", false)
+	if ok {
+		metaInfo.DeprecatedLIDSession = &deprecatedLIDSession
 	}
+	metaInfo.ThreadMessageID = types.MessageID(ag.OptionalString("thread_message_id"))
+	metaInfo.ThreadMessageSenderJID = ag.OptionalJIDOrEmpty("thread_message_sender_jid")
 	err = ag.Error()
 	return
 }
@@ -168,8 +194,10 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 				cli.Log.Warnf("Failed to parse <bot> node in %s: %v", info.ID, err)
 			}
 		case "meta":
-			// TODO parse non-bot metadata too
-			info.MsgMetaInfo, _ = cli.parseMsgMetaInfo(child)
+			info.MsgMetaInfo, err = cli.parseMsgMetaInfo(child)
+			if err != nil {
+				cli.Log.Warnf("Failed to parse <meta> node in %s: %v", info.ID, err)
+			}
 		case "franking":
 			// TODO
 		case "trace":

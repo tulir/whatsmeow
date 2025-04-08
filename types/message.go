@@ -11,12 +11,23 @@ import (
 	"time"
 )
 
+type AddressingMode string
+
+const (
+	AddressingModePN  AddressingMode = "pn"
+	AddressingModeLID AddressingMode = "lid"
+)
+
 // MessageSource contains basic sender and chat information about a message.
 type MessageSource struct {
 	Chat     JID  // The chat where the message was sent.
 	Sender   JID  // The user who sent the message.
 	IsFromMe bool // Whether the message was sent by the current user instead of someone else.
 	IsGroup  bool // Whether the chat is a group chat or broadcast list.
+
+	AddressingMode AddressingMode // The addressing mode of the message (phone number or LID)
+	SenderAlt      JID            // The alternative address of the user who sent the message
+	RecipientAlt   JID            // The alternative address of the recipient of the message for DMs.
 
 	// When sending a read receipt to a broadcast list message, the Chat is the broadcast list
 	// and Sender is you, so this field contains the recipient of the read receipt.
@@ -64,8 +75,14 @@ type MsgBotInfo struct {
 
 // MsgMetaInfo targets <meta>
 type MsgMetaInfo struct {
+	// Bot things
 	TargetID     MessageID
 	TargetSender JID
+
+	DeprecatedLIDSession *bool
+
+	ThreadMessageID        MessageID
+	ThreadMessageSenderJID JID
 }
 
 // MessageInfo contains metadata about an incoming message.

@@ -849,3 +849,20 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 	}
 	return evt, nil
 }
+
+func (cli *Client) StoreLIDPNMapping(ctx context.Context, first, second types.JID) {
+	var lid, pn types.JID
+	if first.Server == types.HiddenUserServer && second.Server == types.DefaultUserServer {
+		lid = first
+		pn = second
+	} else if first.Server == types.DefaultUserServer && second.Server == types.HiddenUserServer {
+		lid = second
+		pn = first
+	} else {
+		return
+	}
+	err := cli.Store.LIDs.PutLIDMapping(ctx, lid, pn)
+	if err != nil {
+		cli.Log.Errorf("Failed to store LID-PN mapping for %s -> %s: %v", lid, pn, err)
+	}
+}
