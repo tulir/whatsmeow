@@ -389,7 +389,7 @@ func (cli *Client) BuildMessageKey(chat, sender types.JID, id types.MessageID) *
 	}
 	if !sender.IsEmpty() && sender.User != cli.getOwnID().User {
 		key.FromMe = proto.Bool(false)
-		if chat.Server != types.DefaultUserServer && chat.Server != types.MessengerServer {
+		if chat.Server != types.DefaultUserServer && chat.Server != types.HiddenUserServer && chat.Server != types.MessengerServer {
 			key.Participant = proto.String(sender.ToNonAD().String())
 		}
 	}

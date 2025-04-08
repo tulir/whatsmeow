@@ -173,7 +173,7 @@ func (cli *Client) MarkRead(ids []types.MessageID, timestamp time.Time, chat, se
 			// TODO change played to played-self?
 		}
 	}
-	if !sender.IsEmpty() && chat.Server != types.DefaultUserServer && chat.Server != types.MessengerServer {
+	if !sender.IsEmpty() && chat.Server != types.DefaultUserServer && chat.Server != types.HiddenUserServer && chat.Server != types.MessengerServer {
 		node.Attrs["participant"] = sender.ToNonAD()
 	}
 	if len(ids) > 1 {

@@ -66,7 +66,7 @@ func getOrigSenderFromKey(msg *events.Message, key *waCommon.MessageKey) (types.
 	if key.GetFromMe() {
 		// fromMe always means the poll and vote were sent by the same user
 		return msg.Info.Sender, nil
-	} else if msg.Info.Chat.Server == types.DefaultUserServer {
+	} else if msg.Info.Chat.Server == types.DefaultUserServer || msg.Info.Chat.Server == types.HiddenUserServer {
 		sender, err := types.ParseJID(key.GetRemoteJID())
 		if err != nil {
 			return types.EmptyJID, fmt.Errorf("failed to parse JID %q of original message sender: %w", key.GetRemoteJID(), err)
@@ -74,7 +74,7 @@ func getOrigSenderFromKey(msg *events.Message, key *waCommon.MessageKey) (types.
 		return sender, nil
 	} else {
 		sender, err := types.ParseJID(key.GetParticipant())
-		if sender.Server != types.DefaultUserServer {
+		if sender.Server != types.DefaultUserServer && sender.Server != types.HiddenUserServer {
 			err = fmt.Errorf("unexpected server")
 		}
 		if err != nil {
