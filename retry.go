@@ -147,16 +147,11 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		return nil
 	}
 
-	ownID := cli.getOwnID()
-	if ownID.IsEmpty() {
-		return ErrNotLoggedIn
-	}
-
 	var fbSKDM *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage
 	var fbDSM *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage
 	if receipt.IsGroup {
 		builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
-		senderKeyName := protocol.NewSenderKeyName(receipt.Chat.String(), ownID.SignalAddress())
+		senderKeyName := protocol.NewSenderKeyName(receipt.Chat.String(), cli.getOwnLID().SignalAddress())
 		signalSKDMessage, err := builder.Create(senderKeyName)
 		if err != nil {
 			cli.Log.Warnf("Failed to create sender key distribution message to include in retry of %s in %s to %s: %v", messageID, receipt.Chat, receipt.Sender, err)
