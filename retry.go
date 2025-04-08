@@ -290,7 +290,9 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	}
 	var content []waBinary.Node
 	if msg.wa != nil {
-		content = cli.getMessageContent(*encrypted, msg.wa, attrs, includeDeviceIdentity, nil)
+		content = cli.getMessageContent(
+			*encrypted, msg.wa, attrs, includeDeviceIdentity, nodeExtraParams{},
+		)
 	} else {
 		content = []waBinary.Node{
 			*encrypted,

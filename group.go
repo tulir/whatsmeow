@@ -549,8 +549,8 @@ func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticip
 		return groupInfo, err
 	}
 	if lockParticipantCache {
-		cli.groupParticipantsCacheLock.Lock()
-		defer cli.groupParticipantsCacheLock.Unlock()
+		cli.groupCacheLock.Lock()
+		defer cli.groupCacheLock.Unlock()
 	}
 	participants := make([]types.JID, len(groupInfo.Participants))
 	lidPairs := make([]store.LIDMapping, len(groupInfo.Participants))
@@ -563,7 +563,11 @@ func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticip
 			}
 		}
 	}
-	cli.groupParticipantsCache[jid] = participants
+	cli.groupCache[jid] = &groupMetaCache{
+		AddressingMode:             groupInfo.AddressingMode,
+		CommunityAnnouncementGroup: groupInfo.IsAnnounce && groupInfo.IsDefaultSubGroup,
+		Members:                    participants,
+	}
 	err = cli.Store.LIDs.PutManyLIDMappings(ctx, lidPairs)
 	if err != nil {
 		cli.Log.Warnf("Failed to store LID mappings for members of %s: %v", jid, err)
@@ -571,16 +575,17 @@ func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticip
 	return groupInfo, nil
 }
 
-func (cli *Client) getGroupMembers(ctx context.Context, jid types.JID) ([]types.JID, error) {
-	cli.groupParticipantsCacheLock.Lock()
-	defer cli.groupParticipantsCacheLock.Unlock()
-	if _, ok := cli.groupParticipantsCache[jid]; !ok {
-		_, err := cli.getGroupInfo(ctx, jid, false)
-		if err != nil {
-			return nil, err
-		}
+func (cli *Client) getCachedGroupData(ctx context.Context, jid types.JID) (*groupMetaCache, error) {
+	cli.groupCacheLock.Lock()
+	defer cli.groupCacheLock.Unlock()
+	if val, ok := cli.groupCache[jid]; ok {
+		return val, nil
 	}
-	return cli.groupParticipantsCache[jid], nil
+	_, err := cli.getGroupInfo(ctx, jid, false)
+	if err != nil {
+		return nil, err
+	}
+	return cli.groupCache[jid], nil
 }
 
 func parseParticipant(childAG *waBinary.AttrUtility, child *waBinary.Node) types.GroupParticipant {
@@ -630,6 +635,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 
 	group.AnnounceVersionID = ag.OptionalString("a_v_id")
 	group.ParticipantVersionID = ag.OptionalString("p_v_id")
+	group.AddressingMode = types.AddressingMode(ag.OptionalString("addressing_mode"))
 
 	for _, child := range groupNode.GetChildren() {
 		childAG := child.AttrGetter()
@@ -857,34 +863,34 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 }
 
 func (cli *Client) updateGroupParticipantCache(evt *events.GroupInfo) {
+	// TODO can the addressing mode change here?
 	if len(evt.Join) == 0 && len(evt.Leave) == 0 {
 		return
 	}
-	cli.groupParticipantsCacheLock.Lock()
-	defer cli.groupParticipantsCacheLock.Unlock()
-	cached, ok := cli.groupParticipantsCache[evt.JID]
+	cli.groupCacheLock.Lock()
+	defer cli.groupCacheLock.Unlock()
+	cached, ok := cli.groupCache[evt.JID]
 	if !ok {
 		return
 	}
 Outer:
 	for _, jid := range evt.Join {
-		for _, existingJID := range cached {
+		for _, existingJID := range cached.Members {
 			if jid == existingJID {
 				continue Outer
 			}
 		}
-		cached = append(cached, jid)
+		cached.Members = append(cached.Members, jid)
 	}
 	for _, jid := range evt.Leave {
-		for i, existingJID := range cached {
+		for i, existingJID := range cached.Members {
 			if existingJID == jid {
-				cached[i] = cached[len(cached)-1]
-				cached = cached[:len(cached)-1]
+				cached.Members[i] = cached.Members[len(cached.Members)-1]
+				cached.Members = cached.Members[:len(cached.Members)-1]
 				break
 			}
 		}
 	}
-	cli.groupParticipantsCache[evt.JID] = cached
 }
 
 func (cli *Client) parseGroupNotification(node *waBinary.Node) (any, error) {
