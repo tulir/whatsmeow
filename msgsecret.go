@@ -318,3 +318,45 @@ func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waE2E.Poll
 		SenderTimestampMS: proto.Int64(time.Now().UnixMilli()),
 	}, nil
 }
+
+func (cli *Client) EncryptComment(rootMsgInfo *types.MessageInfo, comment *waE2E.Message) (*waE2E.Message, error) {
+	plaintext, err := proto.Marshal(comment)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal comment protobuf: %w", err)
+	}
+	ciphertext, iv, err := cli.encryptMsgSecret(rootMsgInfo.Chat, rootMsgInfo.Sender, rootMsgInfo.ID, EncSecretComment, plaintext)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt comment: %w", err)
+	}
+	return &waE2E.Message{
+		EncCommentMessage: &waE2E.EncCommentMessage{
+			TargetMessageKey: &waCommon.MessageKey{
+				RemoteJID: proto.String(rootMsgInfo.Chat.String()),
+				FromMe:    proto.Bool(rootMsgInfo.IsFromMe),
+				ID:        proto.String(rootMsgInfo.ID),
+			},
+			EncPayload: ciphertext,
+			EncIV:      iv,
+		},
+	}, nil
+}
+
+func (cli *Client) EncryptReaction(rootMsgInfo *types.MessageInfo, reaction *waE2E.ReactionMessage) (*waE2E.EncReactionMessage, error) {
+	plaintext, err := proto.Marshal(reaction)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal reaction protobuf: %w", err)
+	}
+	ciphertext, iv, err := cli.encryptMsgSecret(rootMsgInfo.Chat, rootMsgInfo.Sender, rootMsgInfo.ID, EncSecretReaction, plaintext)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt reaction: %w", err)
+	}
+	return &waE2E.EncReactionMessage{
+		TargetMessageKey: &waCommon.MessageKey{
+			RemoteJID: proto.String(rootMsgInfo.Chat.String()),
+			FromMe:    proto.Bool(rootMsgInfo.IsFromMe),
+			ID:        proto.String(rootMsgInfo.ID),
+		},
+		EncPayload: ciphertext,
+		EncIV:      iv,
+	}, nil
+}
