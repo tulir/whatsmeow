@@ -26,9 +26,13 @@ import (
 type MsgSecretType string
 
 const (
-	EncSecretPollVote MsgSecretType = "Poll Vote"
-	EncSecretReaction MsgSecretType = "Enc Reaction"
-	EncSecretBotMsg   MsgSecretType = "Bot Message"
+	EncSecretPollVote      MsgSecretType = "Poll Vote"
+	EncSecretReaction      MsgSecretType = "Enc Reaction"
+	EncSecretComment       MsgSecretType = "Enc Comment"
+	EncSecretReportToken   MsgSecretType = "Report Token"
+	EncSecretEventResponse MsgSecretType = "Event Response"
+	EncSecretEventEdit     MsgSecretType = "Event Edit"
+	EncSecretBotMsg        MsgSecretType = "Bot Message"
 )
 
 func applyBotMessageHKDF(messageSecret []byte) []byte {
@@ -49,7 +53,11 @@ func generateMsgSecretKey(
 	useCaseSecret = append(useCaseSecret, modificationType...)
 
 	secretKey := hkdfutil.SHA256(origMsgSecret, nil, useCaseSecret, 32)
-	additionalData := fmt.Appendf(nil, "%s\x00%s", origMsgID, modificationSenderStr)
+	var additionalData []byte
+	switch modificationType {
+	case EncSecretPollVote, EncSecretEventResponse:
+		additionalData = fmt.Appendf(nil, "%s\x00%s", origMsgID, modificationSenderStr)
+	}
 
 	return secretKey, additionalData
 }
@@ -139,8 +147,7 @@ func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncrypte
 	return plaintext, nil
 }
 
-// DecryptReaction decrypts a reaction update message. This form of reactions hasn't been rolled out yet,
-// so this function is likely not of much use.
+// DecryptReaction decrypts a reaction message in a community announcement group.
 //
 //	if evt.Message.GetEncReactionMessage() != nil {
 //		reaction, err := cli.DecryptReaction(evt)
@@ -163,6 +170,33 @@ func (cli *Client) DecryptReaction(reaction *events.Message) (*waE2E.ReactionMes
 	err = proto.Unmarshal(plaintext, &msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode reaction protobuf: %w", err)
+	}
+	return &msg, nil
+}
+
+// DecryptComment decrypts a reply/comment message in a community announcement group.
+//
+//	if evt.Message.GetEncCommentMessage() != nil {
+//		comment, err := cli.DecryptComment(evt)
+//		if err != nil {
+//			fmt.Println(":(", err)
+//			return
+//		}
+//		fmt.Printf("Comment message: %+v\n", comment)
+//	}
+func (cli *Client) DecryptComment(comment *events.Message) (*waE2E.Message, error) {
+	encComment := comment.Message.GetEncCommentMessage()
+	if encComment == nil {
+		return nil, ErrNotEncryptedCommentMessage
+	}
+	plaintext, err := cli.decryptMsgSecret(comment, EncSecretComment, encComment, encComment.GetTargetMessageKey())
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt comment: %w", err)
+	}
+	var msg waE2E.Message
+	err = proto.Unmarshal(plaintext, &msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode comment protobuf: %w", err)
 	}
 	return &msg, nil
 }

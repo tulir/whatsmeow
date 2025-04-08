@@ -25,6 +25,7 @@ import (
 	"go.mau.fi/libsignal/protocol"
 	"go.mau.fi/libsignal/session"
 	"go.mau.fi/libsignal/signalerror"
+	"go.mau.fi/util/ptr"
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
@@ -140,6 +141,8 @@ type SendRequestExtra struct {
 	Timeout time.Duration
 	// When sending media to newsletters, the Handle field returned by the file upload.
 	MediaHandle string
+
+	Meta *types.MsgMetaInfo
 }
 
 // SendMessage sends the given message.
@@ -215,17 +218,19 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	isBotMode := isInlineBotMode || to.IsBot()
+	needsMessageSecret := isBotMode
 	var botNode *waBinary.Node
 
-	if isBotMode {
+	if needsMessageSecret {
 		if message.MessageContextInfo == nil {
 			message.MessageContextInfo = &waE2E.MessageContextInfo{}
 		}
-
 		if message.MessageContextInfo.MessageSecret == nil {
 			message.MessageContextInfo.MessageSecret = random.Bytes(32)
 		}
+	}
 
+	if isBotMode {
 		if message.MessageContextInfo.BotMetadata == nil {
 			message.MessageContextInfo.BotMetadata = &waE2E.BotMetadata{
 				PersonaID: proto.String("867051314767696$760019659443059"),
@@ -267,6 +272,15 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 				Attrs:   nil,
 				Content: participantNodes,
 			}
+		}
+	} else if req.Meta != nil {
+		botNode = &waBinary.Node{
+			Tag: "meta",
+			Attrs: waBinary.Attrs{
+				"thread_msg_id":          req.Meta.ThreadMessageID,
+				"thread_msg_sender_jid":  req.Meta.ThreadMessageSenderJID,
+				"deprecated_lid_session": ptr.Val(req.Meta.DeprecatedLIDSession),
+			},
 		}
 	}
 

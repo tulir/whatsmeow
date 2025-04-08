@@ -154,8 +154,8 @@ func (cli *Client) parseMsgMetaInfo(node waBinary.Node) (metaInfo types.MsgMetaI
 	if ok {
 		metaInfo.DeprecatedLIDSession = &deprecatedLIDSession
 	}
-	metaInfo.ThreadMessageID = types.MessageID(ag.OptionalString("thread_message_id"))
-	metaInfo.ThreadMessageSenderJID = ag.OptionalJIDOrEmpty("thread_message_sender_jid")
+	metaInfo.ThreadMessageID = types.MessageID(ag.OptionalString("thread_msg_id"))
+	metaInfo.ThreadMessageSenderJID = ag.OptionalJIDOrEmpty("thread_msg_sender_jid")
 	err = ag.Error()
 	return
 }
