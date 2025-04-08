@@ -149,6 +149,7 @@ type Device struct {
 	AdvSecretKey   []byte
 
 	ID           *types.JID
+	LID          types.JID
 	Account      *waAdv.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
@@ -190,5 +191,6 @@ func (device *Device) Delete() error {
 		return err
 	}
 	device.ID = nil
+	device.LID = types.EmptyJID
 	return nil
 }

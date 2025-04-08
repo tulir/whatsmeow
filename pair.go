@@ -82,10 +82,11 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	deviceIdentityBytes, _ := pairSuccess.GetChildByTag("device-identity").Content.([]byte)
 	businessName, _ := pairSuccess.GetChildByTag("biz").Attrs["name"].(string)
 	jid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
+	lid, _ := pairSuccess.GetChildByTag("device").Attrs["lid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
 
 	go func() {
-		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, jid)
+		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, jid, lid)
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
 			cli.Disconnect()
@@ -97,7 +98,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	}()
 }
 
-func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, jid types.JID) error {
+func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID) error {
 	var deviceIdentityContainer waAdv.ADVSignedDeviceIdentityHMAC
 	err := proto.Unmarshal(deviceIdentityBytes, &deviceIdentityContainer)
 	if err != nil {
@@ -153,6 +154,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	}
 
 	cli.Store.ID = &jid
+	cli.Store.LID = lid
 	cli.Store.BusinessName = businessName
 	cli.Store.Platform = platform
 	err = cli.Store.Save()
