@@ -154,7 +154,6 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return &PairProtoError{"failed to marshal self-signed device identity", err}
 	}
 
-	cli.StoreLIDPNMapping(context.TODO(), lid, jid)
 	cli.Store.ID = &jid
 	cli.Store.LID = lid
 	cli.Store.BusinessName = businessName
@@ -164,6 +163,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		cli.sendPairError(reqID, 500, "internal-error")
 		return &PairDatabaseError{"failed to save device store", err}
 	}
+	cli.StoreLIDPNMapping(context.TODO(), lid, jid)
 	err = cli.Store.Identities.PutIdentity(mainDeviceLID.SignalAddress().String(), mainDeviceIdentity)
 	if err != nil {
 		_ = cli.Store.Delete()
