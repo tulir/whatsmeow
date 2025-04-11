@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -160,6 +161,7 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 		} else {
 			cli.Log.Infof("Updated LID to %s", cli.Store.LID)
 		}
+		cli.StoreLIDPNMapping(context.TODO(), cli.Store.GetLID(), cli.Store.GetJID())
 	}
 	go func() {
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(); err != nil {
