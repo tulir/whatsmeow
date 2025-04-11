@@ -11,6 +11,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"slices"
 	"sync"
 
@@ -101,6 +102,9 @@ func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targ
 }
 
 func (s *CachedLIDMap) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error) {
+	if pn.Server != types.DefaultUserServer {
+		return types.JID{}, fmt.Errorf("invalid GetLIDForPN call with non-PN JID %s", pn)
+	}
 	return s.getLIDMapping(
 		ctx, pn, types.HiddenUserServer, getLIDForPNQuery,
 		s.pnToLIDCache, s.lidToPNCache,
@@ -108,6 +112,9 @@ func (s *CachedLIDMap) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID
 }
 
 func (s *CachedLIDMap) GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error) {
+	if lid.Server != types.HiddenUserServer {
+		return types.JID{}, fmt.Errorf("invalid GetPNForLID call with non-LID JID %s", lid)
+	}
 	return s.getLIDMapping(
 		ctx, lid, types.DefaultUserServer, getPNForLIDQuery,
 		s.lidToPNCache, s.pnToLIDCache,
@@ -115,6 +122,9 @@ func (s *CachedLIDMap) GetPNForLID(ctx context.Context, lid types.JID) (types.JI
 }
 
 func (s *CachedLIDMap) PutLIDMapping(ctx context.Context, lid, pn types.JID) error {
+	if lid.Server != types.HiddenUserServer || pn.Server != types.DefaultUserServer {
+		return fmt.Errorf("invalid PutLIDMapping call %s/%s", lid, pn)
+	}
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
 	cachedLID, ok := s.pnToLIDCache[pn.User]
@@ -151,6 +161,9 @@ func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.
 }
 
 func (s *CachedLIDMap) unlockedPutLIDMapping(ctx context.Context, lid, pn types.JID) error {
+	if lid.Server != types.HiddenUserServer || pn.Server != types.DefaultUserServer {
+		return fmt.Errorf("invalid PutLIDMapping call %s/%s", lid, pn)
+	}
 	_, err := s.db.Exec(ctx, deleteExistingLIDMappingQuery, lid.User, pn.User)
 	if err != nil {
 		return err
