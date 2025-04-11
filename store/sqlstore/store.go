@@ -124,6 +124,14 @@ const (
 		WHERE our_jid=$1 AND their_id LIKE $2 || ':%'
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
 	`
+	deleteAllIdentityKeysQuery      = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND sender_id LIKE $2`
+	migratePNToLIDIdentityKeysQuery = `
+		INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity)
+		SELECT $1, replace(their_id, $2, $3), identity
+		FROM whatsmeow_identity_keys
+		WHERE our_jid=$1 AND their_id LIKE $2 || ':%'
+		ON CONFLICT (our_jid, their_id) DO UPDATE SET identity=excluded.identity
+	`
 	deleteAllSenderKeysQuery      = `DELETE FROM whatsmeow_sender_keys WHERE our_jid=$1 AND sender_id LIKE $2`
 	migratePNToLIDSenderKeysQuery = `
 		INSERT INTO whatsmeow_sender_keys (our_jid, chat_id, sender_id, sender_key)
@@ -169,6 +177,11 @@ func (s *SQLStore) deleteAllSenderKeys(ctx context.Context, phone string) error 
 	return err
 }
 
+func (s *SQLStore) deleteAllIdentityKeys(ctx context.Context, phone string) error {
+	_, err := s.db.Exec(ctx, deleteAllIdentityKeysQuery, s.JID, phone+":%")
+	return err
+}
+
 func (s *SQLStore) DeleteSession(address string) error {
 	_, err := s.db.Exec(context.TODO(), deleteSessionQuery, s.JID, address)
 	return err
@@ -179,7 +192,7 @@ func (s *SQLStore) MigratePNToLID(ctx context.Context, pn, lid types.JID) error 
 	if !s.migratedPNSessionsCache.Add(pnSignal) {
 		return nil
 	}
-	var sessionsUpdated, senderKeysUpdated int64
+	var sessionsUpdated, identityKeysUpdated, senderKeysUpdated int64
 	lidSignal := lid.SignalAddressUser()
 	err := s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		res, err := s.db.Exec(ctx, migratePNToLIDSessionsQuery, s.JID, pnSignal, lidSignal)
@@ -194,6 +207,20 @@ func (s *SQLStore) MigratePNToLID(ctx context.Context, pn, lid types.JID) error 
 		if err != nil {
 			return fmt.Errorf("failed to delete extra sessions: %w", err)
 		}
+
+		res, err = s.db.Exec(ctx, migratePNToLIDIdentityKeysQuery, s.JID, pnSignal, lidSignal)
+		if err != nil {
+			return fmt.Errorf("failed to migrate identity keys: %w", err)
+		}
+		identityKeysUpdated, err = res.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("failed to get rows affected for identity keys: %w", err)
+		}
+		err = s.deleteAllIdentityKeys(ctx, pnSignal)
+		if err != nil {
+			return fmt.Errorf("failed to delete extra identity keys: %w", err)
+		}
+
 		res, err = s.db.Exec(ctx, migratePNToLIDSenderKeysQuery, s.JID, pnSignal, lidSignal)
 		if err != nil {
 			return fmt.Errorf("failed to migrate sender keys: %w", err)
@@ -211,8 +238,8 @@ func (s *SQLStore) MigratePNToLID(ctx context.Context, pn, lid types.JID) error 
 	if err != nil {
 		return err
 	}
-	if sessionsUpdated > 0 || senderKeysUpdated > 0 {
-		s.log.Infof("Migrated %d sessions and %d sender keys from %s to %s", sessionsUpdated, senderKeysUpdated, pnSignal, lidSignal)
+	if sessionsUpdated > 0 || senderKeysUpdated > 0 || identityKeysUpdated > 0 {
+		s.log.Infof("Migrated %d sessions, %d identity keys and %d sender keys from %s to %s", sessionsUpdated, identityKeysUpdated, senderKeysUpdated, pnSignal, lidSignal)
 	} else {
 		s.log.Debugf("No sessions or sender keys found to migrate from %s to %s", pnSignal, lidSignal)
 	}
