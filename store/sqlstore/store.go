@@ -124,7 +124,7 @@ const (
 		WHERE our_jid=$1 AND their_id LIKE $2 || ':%'
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
 	`
-	deleteAllIdentityKeysQuery      = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND sender_id LIKE $2`
+	deleteAllIdentityKeysQuery      = `DELETE FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id LIKE $2`
 	migratePNToLIDIdentityKeysQuery = `
 		INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity)
 		SELECT $1, replace(their_id, $2, $3), identity
