@@ -86,16 +86,16 @@ func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targ
 	}
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
-	err := s.db.QueryRow(ctx, query, source.User).Scan(&targetServer)
+	err := s.db.QueryRow(ctx, query, source.User).Scan(&targetUser)
 	if errors.Is(err, sql.ErrNoRows) {
 		// continue with empty result
 	} else if err != nil {
 		return types.JID{}, err
 	}
-	sourceToTarget[source.User] = targetServer
-	if targetServer != "" {
-		targetToSource[targetServer] = source.User
-		return types.JID{User: targetServer, Device: source.Device, Server: targetServer}, nil
+	sourceToTarget[source.User] = targetUser
+	if targetUser != "" {
+		targetToSource[targetUser] = source.User
+		return types.JID{User: targetUser, Device: source.Device, Server: targetServer}, nil
 	}
 	return types.JID{}, nil
 }
