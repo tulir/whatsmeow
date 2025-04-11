@@ -127,6 +127,9 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_lid")
 		}
 	}
+	if !source.SenderAlt.IsEmpty() && source.SenderAlt.Device == 0 {
+		source.SenderAlt.Device = source.Sender.Device
+	}
 	err = ag.Error()
 	return
 }
