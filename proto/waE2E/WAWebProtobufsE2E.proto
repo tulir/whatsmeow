@@ -713,6 +713,7 @@ message ProtocolMessage {
 		LIMIT_SHARING = 27;
 		AI_PSI_METADATA = 28;
 		AI_QUERY_FANOUT = 29;
+		GROUP_MEMBER_LABEL_CHANGE = 30;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -738,6 +739,7 @@ message ProtocolMessage {
 	optional WACommon.LimitSharing limitSharing = 24;
 	optional bytes aiPsiMetadata = 25;
 	optional AIQueryFanout aiQueryFanout = 26;
+	optional MemberLabel memberLabel = 27;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1134,6 +1136,8 @@ message ContextInfo {
 	optional UrlTrackingMap urlTrackingMap = 58;
 	optional PairedMediaType pairedMediaType = 59;
 	optional uint32 rankingVersion = 60;
+	optional MemberLabel memberLabel = 62;
+	optional bool isQuestion = 63;
 }
 
 message BotPluginMetadata {
@@ -1562,6 +1566,7 @@ message MessageContextInfo {
 	optional bool capiCreatedGroup = 11;
 	optional string supportPayload = 12;
 	optional WACommon.LimitSharing limitSharing = 13;
+	optional WACommon.LimitSharing limitSharingV2 = 14;
 }
 
 message InteractiveAnnotation {
@@ -1769,6 +1774,7 @@ message Message {
 	optional StatusNotificationMessage statusNotificationMessage = 98;
 	optional FutureProofMessage limitSharingMessage = 99;
 	optional FutureProofMessage botTaskMessage = 100;
+	optional FutureProofMessage questionMessage = 101;
 }
 
 message AlbumMessage {
@@ -1778,14 +1784,15 @@ message AlbumMessage {
 }
 
 message MessageHistoryBundle {
-	optional string mimetype = 2;
-	optional bytes fileSHA256 = 3;
-	optional bytes mediaKey = 5;
-	optional bytes fileEncSHA256 = 6;
-	optional string directPath = 7;
-	optional int64 mediaKeyTimestamp = 8;
-	optional ContextInfo contextInfo = 9;
-	repeated string participants = 10;
+	optional string mimetype = 1;
+	optional bytes fileSHA256 = 2;
+	optional bytes mediaKey = 3;
+	optional bytes fileEncSHA256 = 4;
+	optional string directPath = 5;
+	optional int64 mediaKeyTimestamp = 6;
+	optional ContextInfo contextInfo = 7;
+	repeated string historyReceivers = 8;
+	optional int64 firstMessageTimestamp = 9;
 }
 
 message EncEventResponseMessage {
@@ -2438,4 +2445,9 @@ message AIQueryFanout {
 	optional WACommon.MessageKey messageKey = 1;
 	optional Message message = 2;
 	optional int64 timestamp = 3;
+}
+
+message MemberLabel {
+	optional string label = 1;
+	optional int64 labelTimestamp = 2;
 }

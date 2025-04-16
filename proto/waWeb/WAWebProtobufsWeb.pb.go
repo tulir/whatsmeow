@@ -307,6 +307,7 @@ const (
 	WebMessageInfo_CHANGE_LID                                               WebMessageInfo_StubType = 213
 	WebMessageInfo_BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_IN_MESSAGE             WebMessageInfo_StubType = 214
 	WebMessageInfo_BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE            WebMessageInfo_StubType = 215
+	WebMessageInfo_CHANGE_LIMIT_SHARING                                     WebMessageInfo_StubType = 216
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -528,6 +529,7 @@ var (
 		213: "CHANGE_LID",
 		214: "BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_IN_MESSAGE",
 		215: "BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE",
+		216: "CHANGE_LIMIT_SHARING",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -746,6 +748,7 @@ var (
 		"CHANGE_LID":                                               213,
 		"BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_IN_MESSAGE":             214,
 		"BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE":            215,
+		"CHANGE_LIMIT_SHARING":                                     216,
 	}
 )
 

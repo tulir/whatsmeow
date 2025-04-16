@@ -1489,6 +1489,7 @@ type GlobalSettings struct {
 	IndividualNotificationSettings     *NotificationSettings                `protobuf:"bytes,17,opt,name=individualNotificationSettings" json:"individualNotificationSettings,omitempty"`
 	GroupNotificationSettings          *NotificationSettings                `protobuf:"bytes,18,opt,name=groupNotificationSettings" json:"groupNotificationSettings,omitempty"`
 	ChatLockSettings                   *waChatLockSettings.ChatLockSettings `protobuf:"bytes,19,opt,name=chatLockSettings" json:"chatLockSettings,omitempty"`
+	ChatDbLidMigrationTimestamp        *int64                               `protobuf:"varint,20,opt,name=chatDbLidMigrationTimestamp" json:"chatDbLidMigrationTimestamp,omitempty"`
 	unknownFields                      protoimpl.UnknownFields
 	sizeCache                          protoimpl.SizeCache
 }
@@ -1654,6 +1655,13 @@ func (x *GlobalSettings) GetChatLockSettings() *waChatLockSettings.ChatLockSetti
 		return x.ChatLockSettings
 	}
 	return nil
+}
+
+func (x *GlobalSettings) GetChatDbLidMigrationTimestamp() int64 {
+	if x != nil && x.ChatDbLidMigrationTimestamp != nil {
+		return *x.ChatDbLidMigrationTimestamp
+	}
+	return 0
 }
 
 type AutoDownloadSettings struct {
