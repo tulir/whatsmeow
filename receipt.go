@@ -122,7 +122,10 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 		// TODO this hack probably needs to be removed at some point
 		recipientJID, ok := recipient.(types.JID)
 		if ok && recipientJID.Server == types.BotServer && node.Tag == "message" {
-			attrs["recipient"] = types.BotJIDMap[recipientJID]
+			altRecipient, ok := types.BotJIDMap[recipientJID]
+			if ok {
+				attrs["recipient"] = altRecipient
+			}
 		}
 	}
 	if receiptType, ok := node.Attrs["type"]; node.Tag != "message" && ok {
