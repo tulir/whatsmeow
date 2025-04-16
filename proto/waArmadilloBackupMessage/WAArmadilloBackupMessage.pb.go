@@ -32,6 +32,7 @@ type BackupMessage struct {
 	//	*BackupMessage_EncryptedTransportMessage
 	//	*BackupMessage_EncryptedTransportEvent
 	//	*BackupMessage_EncryptedTransportLocallyTransformedMessage
+	//	*BackupMessage_MiTransportAdminMessage
 	Payload       isBackupMessage_Payload `protobuf_oneof:"payload"`
 	Metadata      *BackupMessage_Metadata `protobuf:"bytes,1,opt,name=metadata" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -102,6 +103,15 @@ func (x *BackupMessage) GetEncryptedTransportLocallyTransformedMessage() *waArma
 	return nil
 }
 
+func (x *BackupMessage) GetMiTransportAdminMessage() *waArmadilloBackupCommon.Subprotocol {
+	if x != nil {
+		if x, ok := x.Payload.(*BackupMessage_MiTransportAdminMessage); ok {
+			return x.MiTransportAdminMessage
+		}
+	}
+	return nil
+}
+
 func (x *BackupMessage) GetMetadata() *BackupMessage_Metadata {
 	if x != nil {
 		return x.Metadata
@@ -125,11 +135,17 @@ type BackupMessage_EncryptedTransportLocallyTransformedMessage struct {
 	EncryptedTransportLocallyTransformedMessage *waArmadilloBackupCommon.Subprotocol `protobuf:"bytes,6,opt,name=encryptedTransportLocallyTransformedMessage,oneof"`
 }
 
+type BackupMessage_MiTransportAdminMessage struct {
+	MiTransportAdminMessage *waArmadilloBackupCommon.Subprotocol `protobuf:"bytes,7,opt,name=miTransportAdminMessage,oneof"`
+}
+
 func (*BackupMessage_EncryptedTransportMessage) isBackupMessage_Payload() {}
 
 func (*BackupMessage_EncryptedTransportEvent) isBackupMessage_Payload() {}
 
 func (*BackupMessage_EncryptedTransportLocallyTransformedMessage) isBackupMessage_Payload() {}
+
+func (*BackupMessage_MiTransportAdminMessage) isBackupMessage_Payload() {}
 
 type BackupMessage_Metadata struct {
 	state               protoimpl.MessageState                   `protogen:"open.v1"`
@@ -302,13 +318,14 @@ var file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_goTypes = []any
 var file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_depIdxs = []int32{
 	3, // 0: WAArmadilloBackupMessage.BackupMessage.encryptedTransportEvent:type_name -> WAArmadilloBackupCommon.Subprotocol
 	3, // 1: WAArmadilloBackupMessage.BackupMessage.encryptedTransportLocallyTransformedMessage:type_name -> WAArmadilloBackupCommon.Subprotocol
-	1, // 2: WAArmadilloBackupMessage.BackupMessage.metadata:type_name -> WAArmadilloBackupMessage.BackupMessage.Metadata
-	2, // 3: WAArmadilloBackupMessage.BackupMessage.Metadata.frankingMetadata:type_name -> WAArmadilloBackupMessage.BackupMessage.Metadata.FrankingMetadata
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	3, // 2: WAArmadilloBackupMessage.BackupMessage.miTransportAdminMessage:type_name -> WAArmadilloBackupCommon.Subprotocol
+	1, // 3: WAArmadilloBackupMessage.BackupMessage.metadata:type_name -> WAArmadilloBackupMessage.BackupMessage.Metadata
+	2, // 4: WAArmadilloBackupMessage.BackupMessage.Metadata.frankingMetadata:type_name -> WAArmadilloBackupMessage.BackupMessage.Metadata.FrankingMetadata
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_init() }
@@ -320,6 +337,7 @@ func file_waArmadilloBackupMessage_WAArmadilloBackupMessage_proto_init() {
 		(*BackupMessage_EncryptedTransportMessage)(nil),
 		(*BackupMessage_EncryptedTransportEvent)(nil),
 		(*BackupMessage_EncryptedTransportLocallyTransformedMessage)(nil),
+		(*BackupMessage_MiTransportAdminMessage)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

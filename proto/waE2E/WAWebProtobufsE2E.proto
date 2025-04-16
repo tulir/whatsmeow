@@ -1310,7 +1310,7 @@ message AIRichResponseMessage {
 		repeated AIRichResponseLatexExpression expressions = 2;
 	}
 
-	message AIRichResponseAbstractData {
+	message AIRichResponseUnifiedResponse {
 		optional bytes data = 1;
 	}
 
@@ -1336,7 +1336,7 @@ message AIRichResponseMessage {
 
 	optional AIRichResponseMessageType messageType = 1;
 	repeated AIRichResponseSubMessage submessages = 2;
-	optional AIRichResponseAbstractData abstractData = 3;
+	optional AIRichResponseUnifiedResponse unifiedResponse = 3;
 }
 
 message BotMediaMetadata {
@@ -1486,6 +1486,7 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_LATEX_INLINE = 31;
 		QUERY_PLAN = 32;
 		PROACTIVE_MESSAGE = 33;
+		RICH_RESPONSE_UNIFIED_RESPONSE = 34;
 	}
 
 	repeated BotCapabilityType capabilities = 1;

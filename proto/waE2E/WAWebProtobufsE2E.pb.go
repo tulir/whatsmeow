@@ -4430,6 +4430,7 @@ const (
 	BotCapabilityMetadata_RICH_RESPONSE_LATEX_INLINE        BotCapabilityMetadata_BotCapabilityType = 31
 	BotCapabilityMetadata_QUERY_PLAN                        BotCapabilityMetadata_BotCapabilityType = 32
 	BotCapabilityMetadata_PROACTIVE_MESSAGE                 BotCapabilityMetadata_BotCapabilityType = 33
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_RESPONSE    BotCapabilityMetadata_BotCapabilityType = 34
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -4469,6 +4470,7 @@ var (
 		31: "RICH_RESPONSE_LATEX_INLINE",
 		32: "QUERY_PLAN",
 		33: "PROACTIVE_MESSAGE",
+		34: "RICH_RESPONSE_UNIFIED_RESPONSE",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
 		"UNKNOWN":                           0,
@@ -4505,6 +4507,7 @@ var (
 		"RICH_RESPONSE_LATEX_INLINE":        31,
 		"QUERY_PLAN":                        32,
 		"PROACTIVE_MESSAGE":                 33,
+		"RICH_RESPONSE_UNIFIED_RESPONSE":    34,
 	}
 )
 
@@ -9291,12 +9294,12 @@ func (x *BotLinkedAccount) GetType() BotLinkedAccount_BotLinkedAccountType {
 }
 
 type AIRichResponseMessage struct {
-	state         protoimpl.MessageState                            `protogen:"open.v1"`
-	MessageType   *AIRichResponseMessage_AIRichResponseMessageType  `protobuf:"varint,1,opt,name=messageType,enum=WAWebProtobufsE2E.AIRichResponseMessage_AIRichResponseMessageType" json:"messageType,omitempty"`
-	Submessages   []*AIRichResponseMessage_AIRichResponseSubMessage `protobuf:"bytes,2,rep,name=submessages" json:"submessages,omitempty"`
-	AbstractData  *AIRichResponseMessage_AIRichResponseAbstractData `protobuf:"bytes,3,opt,name=abstractData" json:"abstractData,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState                               `protogen:"open.v1"`
+	MessageType     *AIRichResponseMessage_AIRichResponseMessageType     `protobuf:"varint,1,opt,name=messageType,enum=WAWebProtobufsE2E.AIRichResponseMessage_AIRichResponseMessageType" json:"messageType,omitempty"`
+	Submessages     []*AIRichResponseMessage_AIRichResponseSubMessage    `protobuf:"bytes,2,rep,name=submessages" json:"submessages,omitempty"`
+	UnifiedResponse *AIRichResponseMessage_AIRichResponseUnifiedResponse `protobuf:"bytes,3,opt,name=unifiedResponse" json:"unifiedResponse,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *AIRichResponseMessage) Reset() {
@@ -9343,9 +9346,9 @@ func (x *AIRichResponseMessage) GetSubmessages() []*AIRichResponseMessage_AIRich
 	return nil
 }
 
-func (x *AIRichResponseMessage) GetAbstractData() *AIRichResponseMessage_AIRichResponseAbstractData {
+func (x *AIRichResponseMessage) GetUnifiedResponse() *AIRichResponseMessage_AIRichResponseUnifiedResponse {
 	if x != nil {
-		return x.AbstractData
+		return x.UnifiedResponse
 	}
 	return nil
 }
@@ -20234,27 +20237,27 @@ func (x *AIRichResponseMessage_AIRichResponseLatexMetadata) GetExpressions() []*
 	return nil
 }
 
-type AIRichResponseMessage_AIRichResponseAbstractData struct {
+type AIRichResponseMessage_AIRichResponseUnifiedResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []byte                 `protobuf:"bytes,1,opt,name=data" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AIRichResponseMessage_AIRichResponseAbstractData) Reset() {
-	*x = AIRichResponseMessage_AIRichResponseAbstractData{}
+func (x *AIRichResponseMessage_AIRichResponseUnifiedResponse) Reset() {
+	*x = AIRichResponseMessage_AIRichResponseUnifiedResponse{}
 	mi := &file_waE2E_WAWebProtobufsE2E_proto_msgTypes[182]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AIRichResponseMessage_AIRichResponseAbstractData) String() string {
+func (x *AIRichResponseMessage_AIRichResponseUnifiedResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AIRichResponseMessage_AIRichResponseAbstractData) ProtoMessage() {}
+func (*AIRichResponseMessage_AIRichResponseUnifiedResponse) ProtoMessage() {}
 
-func (x *AIRichResponseMessage_AIRichResponseAbstractData) ProtoReflect() protoreflect.Message {
+func (x *AIRichResponseMessage_AIRichResponseUnifiedResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_waE2E_WAWebProtobufsE2E_proto_msgTypes[182]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -20266,12 +20269,12 @@ func (x *AIRichResponseMessage_AIRichResponseAbstractData) ProtoReflect() protor
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AIRichResponseMessage_AIRichResponseAbstractData.ProtoReflect.Descriptor instead.
-func (*AIRichResponseMessage_AIRichResponseAbstractData) Descriptor() ([]byte, []int) {
+// Deprecated: Use AIRichResponseMessage_AIRichResponseUnifiedResponse.ProtoReflect.Descriptor instead.
+func (*AIRichResponseMessage_AIRichResponseUnifiedResponse) Descriptor() ([]byte, []int) {
 	return file_waE2E_WAWebProtobufsE2E_proto_rawDescGZIP(), []int{35, 7}
 }
 
-func (x *AIRichResponseMessage_AIRichResponseAbstractData) GetData() []byte {
+func (x *AIRichResponseMessage_AIRichResponseUnifiedResponse) GetData() []byte {
 	if x != nil {
 		return x.Data
 	}
@@ -22883,7 +22886,7 @@ var file_waE2E_WAWebProtobufsE2E_proto_goTypes = []any{
 	(*AIRichResponseMessage_AIRichResponseSubMessage)(nil),                                                                      // 259: WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseSubMessage
 	(*AIRichResponseMessage_AIRichResponseMapMetadata)(nil),                                                                     // 260: WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseMapMetadata
 	(*AIRichResponseMessage_AIRichResponseLatexMetadata)(nil),                                                                   // 261: WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseLatexMetadata
-	(*AIRichResponseMessage_AIRichResponseAbstractData)(nil),                                                                    // 262: WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseAbstractData
+	(*AIRichResponseMessage_AIRichResponseUnifiedResponse)(nil),                                                                 // 262: WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseUnifiedResponse
 	(*AIRichResponseMessage_AIRichResponseTableMetadata)(nil),                                                                   // 263: WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseTableMetadata
 	(*AIRichResponseMessage_AIRichResponseGridImageMetadata)(nil),                                                               // 264: WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseGridImageMetadata
 	(*AIRichResponseMessage_AIRichResponseImageURL)(nil),                                                                        // 265: WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseImageURL
@@ -23058,7 +23061,7 @@ var file_waE2E_WAWebProtobufsE2E_proto_depIdxs = []int32{
 	54,  // 131: WAWebProtobufsE2E.BotLinkedAccount.type:type_name -> WAWebProtobufsE2E.BotLinkedAccount.BotLinkedAccountType
 	56,  // 132: WAWebProtobufsE2E.AIRichResponseMessage.messageType:type_name -> WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseMessageType
 	259, // 133: WAWebProtobufsE2E.AIRichResponseMessage.submessages:type_name -> WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseSubMessage
-	262, // 134: WAWebProtobufsE2E.AIRichResponseMessage.abstractData:type_name -> WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseAbstractData
+	262, // 134: WAWebProtobufsE2E.AIRichResponseMessage.unifiedResponse:type_name -> WAWebProtobufsE2E.AIRichResponseMessage.AIRichResponseUnifiedResponse
 	61,  // 135: WAWebProtobufsE2E.BotMediaMetadata.orientationType:type_name -> WAWebProtobufsE2E.BotMediaMetadata.OrientationType
 	296, // 136: WAWebProtobufsE2E.BotReminderMetadata.requestMessageKey:type_name -> WACommon.MessageKey
 	63,  // 137: WAWebProtobufsE2E.BotReminderMetadata.action:type_name -> WAWebProtobufsE2E.BotReminderMetadata.ReminderAction
