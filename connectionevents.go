@@ -153,8 +153,9 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
 	cli.isLoggedIn.Store(true)
-	if cli.Store.LID.IsEmpty() {
-		cli.Store.LID = node.AttrGetter().JID("lid")
+	nodeLID := node.AttrGetter().JID("lid")
+	if cli.Store.LID.IsEmpty() && !nodeLID.IsEmpty() {
+		cli.Store.LID = nodeLID
 		err := cli.Store.Save()
 		if err != nil {
 			cli.Log.Warnf("Failed to save device after updating LID: %v", err)
