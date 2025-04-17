@@ -56,7 +56,7 @@ func generateMsgSecretKey(
 	secretKey := hkdfutil.SHA256(origMsgSecret, nil, useCaseSecret, 32)
 	var additionalData []byte
 	switch modificationType {
-	case EncSecretPollVote, EncSecretEventResponse:
+	case EncSecretPollVote, EncSecretEventResponse, "":
 		additionalData = fmt.Appendf(nil, "%s\x00%s", origMsgID, modificationSenderStr)
 	}
 
