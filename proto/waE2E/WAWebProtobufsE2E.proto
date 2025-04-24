@@ -1011,6 +1011,11 @@ message ContextInfo {
 	}
 
 	message ExternalAdReplyInfo {
+		enum AdType {
+			CTWA = 0;
+			CAWC = 1;
+		}
+
 		enum MediaType {
 			NONE = 0;
 			IMAGE = 1;
@@ -1041,6 +1046,7 @@ message ContextInfo {
 		optional string originalImageURL = 22;
 		optional string automatedGreetingMessageCtaType = 23;
 		optional bool wtwaAdFormat = 24;
+		optional AdType adType = 25;
 	}
 
 	message AdReplyInfo {
@@ -1339,6 +1345,16 @@ message AIRichResponseMessage {
 	optional AIRichResponseUnifiedResponse unifiedResponse = 3;
 }
 
+message BotPromotionMessageMetadata {
+	enum BotPromotionType {
+		UNKNOWN_TYPE = 0;
+		C50 = 1;
+	}
+
+	optional BotPromotionType promotionType = 1;
+	optional string buttonTitle = 2;
+}
+
 message BotMediaMetadata {
 	enum OrientationType {
 		CENTER = 1;
@@ -1487,6 +1503,7 @@ message BotCapabilityMetadata {
 		QUERY_PLAN = 32;
 		PROACTIVE_MESSAGE = 33;
 		RICH_RESPONSE_UNIFIED_RESPONSE = 34;
+		PROMOTION_MESSAGE = 35;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1784,6 +1801,17 @@ message AlbumMessage {
 	optional ContextInfo contextInfo = 17;
 }
 
+message MessageHistoryMetadata {
+	repeated string historyReceivers = 1;
+	optional int64 firstMessageTimestamp = 2;
+	optional int64 messageCount = 3;
+}
+
+message MessageHistoryNotice {
+	optional ContextInfo contextInfo = 1;
+	optional MessageHistoryMetadata messageHistoryMetadata = 2;
+}
+
 message MessageHistoryBundle {
 	optional string mimetype = 1;
 	optional bytes fileSHA256 = 2;
@@ -1792,8 +1820,7 @@ message MessageHistoryBundle {
 	optional string directPath = 5;
 	optional int64 mediaKeyTimestamp = 6;
 	optional ContextInfo contextInfo = 7;
-	repeated string historyReceivers = 8;
-	optional int64 firstMessageTimestamp = 9;
+	optional MessageHistoryMetadata messageHistoryMetadata = 8;
 }
 
 message EncEventResponseMessage {
@@ -2317,6 +2344,7 @@ message BotMetadata {
 	optional BotLinkedAccountsMetadata botLinkedAccountsMetadata = 18;
 	optional BotSourcesMetadata richResponseSourcesMetadata = 19;
 	optional bytes aiConversationContext = 20;
+	optional BotPromotionMessageMetadata botPromotionMessageMetadata = 21;
 }
 
 message DeviceListMetadata {

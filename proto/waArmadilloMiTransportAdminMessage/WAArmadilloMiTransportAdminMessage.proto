@@ -1,0 +1,81 @@
+syntax = "proto2";
+package WAArmadilloMiTransportAdminMessage;
+option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloMiTransportAdminMessage";
+
+message MiTransportAdminMessage {
+	message GroupImageChanged {
+		enum Action {
+			CHANGED = 1;
+			REMOVED = 2;
+		}
+
+		optional Action action = 1;
+	}
+
+	message MessagePinned {
+		enum Action {
+			PINNED = 1;
+			UNPINNED = 2;
+		}
+
+		optional Action action = 1;
+	}
+
+	message GroupMembershipAddModeChanged {
+		enum Mode {
+			ALL_MEMBERS = 1;
+			ADMINS_ONLY = 2;
+		}
+
+		optional Mode mode = 1;
+	}
+
+	message GroupAdminChanged {
+		enum Action {
+			ADDED = 1;
+			REMOVED = 2;
+		}
+
+		repeated string targetUserID = 1;
+		optional Action action = 2;
+	}
+
+	message GroupParticipantChanged {
+		enum Action {
+			ADDED = 1;
+			REMOVED = 2;
+		}
+
+		repeated string targetUserID = 1;
+	}
+
+	message QuickReactionChanged {
+		optional string emojiName = 1;
+	}
+
+	message GroupNameChanged {
+		optional string groupName = 1;
+	}
+
+	message NicknameChanged {
+		optional string targetUserID = 1;
+		optional string nickname = 2;
+	}
+
+	message ChatThemeChanged {
+		optional string themeName = 1;
+		optional string themeEmoji = 2;
+	}
+
+	oneof content {
+		ChatThemeChanged chatThemeChanged = 1;
+		NicknameChanged nicknameChanged = 2;
+		GroupParticipantChanged groupParticipantChanged = 3;
+		GroupAdminChanged groupAdminChanged = 4;
+		GroupNameChanged groupNameChanged = 5;
+		GroupMembershipAddModeChanged groupMembershipAddModeChanged = 6;
+		MessagePinned messagePinned = 7;
+		GroupImageChanged groupImageChanged = 8;
+		QuickReactionChanged quickReactionChanged = 9;
+	}
+}
