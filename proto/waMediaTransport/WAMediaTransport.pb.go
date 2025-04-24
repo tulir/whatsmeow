@@ -1094,6 +1094,7 @@ type VideoTransport_Ancillary struct {
 	Sidecar            []byte                                `protobuf:"bytes,6,opt,name=sidecar" json:"sidecar,omitempty"`
 	GifAttribution     *VideoTransport_Ancillary_Attribution `protobuf:"varint,7,opt,name=gifAttribution,enum=WAMediaTransport.VideoTransport_Ancillary_Attribution" json:"gifAttribution,omitempty"`
 	AccessibilityLabel *string                               `protobuf:"bytes,8,opt,name=accessibilityLabel" json:"accessibilityLabel,omitempty"`
+	IsHd               *bool                                 `protobuf:"varint,9,opt,name=isHd" json:"isHd,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -1182,6 +1183,13 @@ func (x *VideoTransport_Ancillary) GetAccessibilityLabel() string {
 		return *x.AccessibilityLabel
 	}
 	return ""
+}
+
+func (x *VideoTransport_Ancillary) GetIsHd() bool {
+	if x != nil && x.IsHd != nil {
+		return *x.IsHd
+	}
+	return false
 }
 
 type VideoTransport_Integral struct {

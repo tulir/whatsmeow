@@ -95,6 +95,10 @@ func (int *DangerousInternalClient) GetOwnID() types.JID {
 	return int.c.getOwnID()
 }
 
+func (int *DangerousInternalClient) GetOwnLID() types.JID {
+	return int.c.getOwnLID()
+}
+
 func (int *DangerousInternalClient) OnDisconnect(ns *socket.NoiseSocket, remote bool) {
 	int.c.onDisconnect(ns, remote)
 }
@@ -199,16 +203,16 @@ func (int *DangerousInternalClient) GetGroupInfo(ctx context.Context, jid types.
 	return int.c.getGroupInfo(ctx, jid, lockParticipantCache)
 }
 
-func (int *DangerousInternalClient) GetGroupMembers(ctx context.Context, jid types.JID) ([]types.JID, error) {
-	return int.c.getGroupMembers(ctx, jid)
+func (int *DangerousInternalClient) GetCachedGroupData(ctx context.Context, jid types.JID) (*groupMetaCache, error) {
+	return int.c.getCachedGroupData(ctx, jid)
 }
 
 func (int *DangerousInternalClient) ParseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, error) {
 	return int.c.parseGroupNode(groupNode)
 }
 
-func (int *DangerousInternalClient) ParseGroupCreate(node *waBinary.Node) (*events.JoinedGroup, error) {
-	return int.c.parseGroupCreate(node)
+func (int *DangerousInternalClient) ParseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, error) {
+	return int.c.parseGroupCreate(parentNode, node)
 }
 
 func (int *DangerousInternalClient) ParseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
@@ -269,6 +273,10 @@ func (int *DangerousInternalClient) ParseMessageInfo(node *waBinary.Node) (*type
 
 func (int *DangerousInternalClient) HandlePlaintextMessage(info *types.MessageInfo, node *waBinary.Node) {
 	int.c.handlePlaintextMessage(info, node)
+}
+
+func (int *DangerousInternalClient) MigrateSessionStore(pn, lid types.JID) {
+	int.c.migrateSessionStore(pn, lid)
 }
 
 func (int *DangerousInternalClient) DecryptMessages(info *types.MessageInfo, node *waBinary.Node) {
@@ -335,8 +343,8 @@ func (int *DangerousInternalClient) DecryptMsgSecret(msg *events.Message, useCas
 	return int.c.decryptMsgSecret(msg, useCase, encrypted, origMsgKey)
 }
 
-func (int *DangerousInternalClient) EncryptMsgSecret(chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
-	return int.c.encryptMsgSecret(chat, origSender, origMsgID, useCase, plaintext)
+func (int *DangerousInternalClient) EncryptMsgSecret(ownID, chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
+	return int.c.encryptMsgSecret(ownID, chat, origSender, origMsgID, useCase, plaintext)
 }
 
 func (int *DangerousInternalClient) DecryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageID types.MessageID, targetSenderJID types.JID, info *types.MessageInfo) ([]byte, error) {
@@ -591,40 +599,40 @@ func (int *DangerousInternalClient) SendNewsletter(to types.JID, id types.Messag
 	return int.c.sendNewsletter(to, id, message, mediaID, timings)
 }
 
-func (int *DangerousInternalClient) SendGroup(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings, botNode *waBinary.Node) (string, []byte, error) {
-	return int.c.sendGroup(ctx, to, ownID, id, message, timings, botNode)
+func (int *DangerousInternalClient) SendGroup(ctx context.Context, to types.JID, participants []types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings, extraParams nodeExtraParams) (string, []byte, error) {
+	return int.c.sendGroup(ctx, to, participants, id, message, timings, extraParams)
 }
 
 func (int *DangerousInternalClient) SendPeerMessage(to types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings) ([]byte, error) {
 	return int.c.sendPeerMessage(to, id, message, timings)
 }
 
-func (int *DangerousInternalClient) SendDM(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings, botNode *waBinary.Node) ([]byte, error) {
-	return int.c.sendDM(ctx, to, ownID, id, message, timings, botNode)
+func (int *DangerousInternalClient) SendDM(ctx context.Context, ownID, to types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings, extraParams nodeExtraParams) ([]byte, error) {
+	return int.c.sendDM(ctx, ownID, to, id, message, timings, extraParams)
 }
 
 func (int *DangerousInternalClient) PreparePeerMessageNode(to types.JID, id types.MessageID, message *waE2E.Message, timings *MessageDebugTimings) (*waBinary.Node, error) {
 	return int.c.preparePeerMessageNode(to, id, message, timings)
 }
 
-func (int *DangerousInternalClient) GetMessageContent(baseNode waBinary.Node, message *waE2E.Message, msgAttrs waBinary.Attrs, includeIdentity bool, botNode *waBinary.Node) []waBinary.Node {
-	return int.c.getMessageContent(baseNode, message, msgAttrs, includeIdentity, botNode)
+func (int *DangerousInternalClient) GetMessageContent(baseNode waBinary.Node, message *waE2E.Message, msgAttrs waBinary.Attrs, includeIdentity bool, extraParams nodeExtraParams) []waBinary.Node {
+	return int.c.getMessageContent(baseNode, message, msgAttrs, includeIdentity, extraParams)
 }
 
-func (int *DangerousInternalClient) PrepareMessageNode(ctx context.Context, to, ownID types.JID, id types.MessageID, message *waE2E.Message, participants []types.JID, plaintext, dsmPlaintext []byte, timings *MessageDebugTimings, botNode *waBinary.Node) (*waBinary.Node, []types.JID, error) {
-	return int.c.prepareMessageNode(ctx, to, ownID, id, message, participants, plaintext, dsmPlaintext, timings, botNode)
+func (int *DangerousInternalClient) PrepareMessageNode(ctx context.Context, to types.JID, id types.MessageID, message *waE2E.Message, participants []types.JID, plaintext, dsmPlaintext []byte, timings *MessageDebugTimings, extraParams nodeExtraParams) (*waBinary.Node, []types.JID, error) {
+	return int.c.prepareMessageNode(ctx, to, id, message, participants, plaintext, dsmPlaintext, timings, extraParams)
 }
 
 func (int *DangerousInternalClient) MakeDeviceIdentityNode() waBinary.Node {
 	return int.c.makeDeviceIdentityNode()
 }
 
-func (int *DangerousInternalClient) EncryptMessageForDevices(ctx context.Context, allDevices []types.JID, ownID types.JID, id string, msgPlaintext, dsmPlaintext []byte, encAttrs waBinary.Attrs) ([]waBinary.Node, bool) {
-	return int.c.encryptMessageForDevices(ctx, allDevices, ownID, id, msgPlaintext, dsmPlaintext, encAttrs)
+func (int *DangerousInternalClient) EncryptMessageForDevices(ctx context.Context, allDevices []types.JID, id string, msgPlaintext, dsmPlaintext []byte, encAttrs waBinary.Attrs) ([]waBinary.Node, bool) {
+	return int.c.encryptMessageForDevices(ctx, allDevices, id, msgPlaintext, dsmPlaintext, encAttrs)
 }
 
-func (int *DangerousInternalClient) EncryptMessageForDeviceAndWrap(plaintext []byte, to types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
-	return int.c.encryptMessageForDeviceAndWrap(plaintext, to, bundle, encAttrs)
+func (int *DangerousInternalClient) EncryptMessageForDeviceAndWrap(plaintext []byte, wireIdentity, encryptionIdentity types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
+	return int.c.encryptMessageForDeviceAndWrap(plaintext, wireIdentity, encryptionIdentity, bundle, encAttrs)
 }
 
 func (int *DangerousInternalClient) EncryptMessageForDevice(plaintext []byte, to types.JID, bundle *prekey.Bundle, extraAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {

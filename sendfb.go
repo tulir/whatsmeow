@@ -197,9 +197,9 @@ func (cli *Client) SendFBMessage(
 	if len(expectedPHash) > 0 && phash != expectedPHash {
 		cli.Log.Warnf("Server returned different participant list hash when sending to %s. Some devices may not have received the message.", to)
 		// TODO also invalidate device list caches
-		cli.groupParticipantsCacheLock.Lock()
-		delete(cli.groupParticipantsCache, to)
-		cli.groupParticipantsCacheLock.Unlock()
+		cli.groupCacheLock.Lock()
+		delete(cli.groupCache, to)
+		cli.groupCacheLock.Unlock()
 	}
 	return
 }
@@ -214,11 +214,11 @@ func (cli *Client) sendGroupV3(
 	frankingTag []byte,
 	timings *MessageDebugTimings,
 ) (string, []byte, error) {
-	var participants []types.JID
+	var groupMeta *groupMetaCache
 	var err error
 	start := time.Now()
 	if to.Server == types.GroupServer {
-		participants, err = cli.getGroupMembers(ctx, to)
+		groupMeta, err = cli.getCachedGroupData(ctx, to)
 		if err != nil {
 			return "", nil, fmt.Errorf("failed to get group members: %w", err)
 		}
@@ -272,7 +272,9 @@ func (cli *Client) sendGroupV3(
 	ciphertext := encrypted.SignedSerialize()
 	timings.GroupEncrypt = time.Since(start)
 
-	node, allDevices, err := cli.prepareMessageNodeV3(ctx, to, ownID, id, nil, skdm, msgAttrs, frankingTag, participants, timings)
+	node, allDevices, err := cli.prepareMessageNodeV3(
+		ctx, to, ownID, id, nil, skdm, msgAttrs, frankingTag, groupMeta.Members, timings,
+	)
 	if err != nil {
 		return "", nil, err
 	}
