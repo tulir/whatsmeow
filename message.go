@@ -31,6 +31,8 @@ import (
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+
+	"github.com/ichabod-mo/whatsmeow/util/logging"
 )
 
 var pbSerializer = store.SignalProtobufSerializer
@@ -39,6 +41,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	info, err := cli.parseMessageInfo(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
+		logging.StdOutLogger.Warnf("Failed to parse message: %v", err)
 	} else {
 		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
 			go cli.updateBusinessName(info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
@@ -161,11 +164,13 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 			info.VerifiedName, err = parseVerifiedNameContent(child)
 			if err != nil {
 				cli.Log.Warnf("Failed to parse verified_name node in %s: %v", info.ID, err)
+				logging.StdOutLogger.Warnf("Failed to parse verified_name node in %s: %v", info.ID, err)
 			}
 		case "bot":
 			info.MsgBotInfo, err = cli.parseMsgBotInfo(child)
 			if err != nil {
 				cli.Log.Warnf("Failed to parse <bot> node in %s: %v", info.ID, err)
+				logging.StdOutLogger.Warnf("Failed to parse <bot> node in %s: %v", info.ID, err)
 			}
 		case "meta":
 			// TODO parse non-bot metadata too
@@ -194,6 +199,7 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 	plaintextBody, ok := plaintext.Content.([]byte)
 	if !ok {
 		cli.Log.Warnf("Plaintext message from %s doesn't have byte content", info.SourceString())
+		logging.StdOutLogger.Warnf("Plaintext message from %s doesn't have byte content", info.SourceString())
 		return
 	}
 
@@ -201,6 +207,7 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 	err := proto.Unmarshal(plaintextBody, &msg)
 	if err != nil {
 		cli.Log.Warnf("Error unmarshaling plaintext message from %s: %v", info.SourceString(), err)
+		logging.StdOutLogger.Warnf("Error unmarshaling plaintext message from %s: %v", info.SourceString(), err)
 		return
 	}
 	cli.storeMessageSecret(info, &msg)
@@ -223,6 +230,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	if ok && len(node.GetChildrenByTag("enc")) == 0 {
 		uType := events.UnavailableType(unavailableNode.AttrGetter().String("type"))
 		cli.Log.Warnf("Unavailable message %s from %s (type: %q)", info.ID, info.SourceString(), uType)
+		logging.StdOutLogger.Warnf("Unavailable message %s from %s (type: %q)", info.ID, info.SourceString(), uType)
 		go cli.delayedRequestMessageFromPhone(info)
 		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true, UnavailableType: uType})
 		return
@@ -230,6 +238,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 
 	children := node.GetChildren()
 	cli.Log.Debugf("Decrypting message from %s", info.SourceString())
+	logging.StdOutLogger.Debugf("Decrypting message from %s", info.SourceString())
 	handled := false
 	containsDirectMsg := false
 	for _, child := range children {
@@ -269,20 +278,25 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			var messageSecret []byte
 			if messageSecret, err = cli.Store.MsgSecrets.GetMessageSecret(info.Chat, messageSecretSenderJID, info.MsgMetaInfo.TargetID); err != nil {
 				err = fmt.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
+				logging.StdOutLogger.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
 			} else if messageSecret == nil {
 				err = fmt.Errorf("message secret for %s not found", info.MsgMetaInfo.TargetID)
+				logging.StdOutLogger.Errorf("message secret for %s not found", info.MsgMetaInfo.TargetID)
 			} else if err = proto.Unmarshal(child.Content.([]byte), &msMsg); err != nil {
 				err = fmt.Errorf("failed to unmarshal MessageSecretMessage protobuf: %v", err)
+				logging.StdOutLogger.Errorf("failed to unmarshal MessageSecretMessage protobuf: %v", err)
 			} else {
 				decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, decryptMessageID, targetSenderJID, info)
 			}
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
+			logging.StdOutLogger.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
 			continue
 		}
 
 		if err != nil {
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
+			logging.StdOutLogger.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
 			// TODO figure out why @bot messages fail to decrypt
 			if info.Chat.Server != types.BotServer && encType != "msmsg" {
@@ -304,6 +318,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			err = proto.Unmarshal(decrypted, &msg)
 			if err != nil {
 				cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
+				logging.StdOutLogger.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
 				continue
 			}
 			cli.handleDecryptedMessage(info, &msg, retryCount)
@@ -312,6 +327,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			handled = cli.handleDecryptedArmadillo(info, decrypted, retryCount)
 		default:
 			cli.Log.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
+			logging.StdOutLogger.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
 		}
 	}
 	if handled {
@@ -345,6 +361,7 @@ func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool
 		plaintext, _, err = cipher.DecryptMessageReturnKey(preKeyMsg)
 		if cli.AutoTrustIdentity && errors.Is(err, signalerror.ErrUntrustedIdentity) {
 			cli.Log.Warnf("Got %v error while trying to decrypt prekey message from %s, clearing stored identity and retrying", err, from)
+			logging.StdOutLogger.Warnf("Got %v error while trying to decrypt prekey message from %s, clearing stored identity and retrying", err, from)
 			cli.clearUntrustedIdentity(from)
 			plaintext, _, err = cipher.DecryptMessageReturnKey(preKeyMsg)
 		}
@@ -558,6 +575,7 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Mess
 	if msg.GetSenderKeyDistributionMessage() != nil {
 		if !info.IsGroup {
 			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
+			logging.StdOutLogger.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
 		} else {
 			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, msg.SenderKeyDistributionMessage.AxolotlSenderKeyDistributionMessage)
 		}
@@ -574,8 +592,10 @@ func (cli *Client) storeMessageSecret(info *types.MessageInfo, msg *waE2E.Messag
 		err := cli.Store.MsgSecrets.PutMessageSecret(info.Chat, info.Sender, info.ID, msgSecret)
 		if err != nil {
 			cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
+			logging.StdOutLogger.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
 		} else {
 			cli.Log.Debugf("Stored message secret key for %s", info.ID)
+			logging.StdOutLogger.Debugf("Stored message secret key for %s", info.ID)
 		}
 	}
 }
