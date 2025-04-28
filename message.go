@@ -33,7 +33,7 @@ import (
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 
-	"github.com/ichabod-mo/whatsmeow/util/logging"
+	"go.mau.fi/whatsmeow/util/logging"
 )
 
 var pbSerializer = store.SignalProtobufSerializer

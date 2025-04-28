@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ichabod-mo/whatsmeow/util/file"
+	"go.mau.fi/whatsmeow/util/file"
 )
 
 type Logger interface {
