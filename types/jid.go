@@ -92,18 +92,16 @@ func (jid JID) ToNonAD() JID {
 
 // SignalAddress returns the Signal protocol address for the user.
 func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
+	return signalProtocol.NewSignalAddress(jid.SignalAddressUser(), uint32(jid.Device))
+}
+
+func (jid JID) SignalAddressUser() string {
 	user := jid.User
 	agent := jid.ActualAgent()
 	if agent != 0 {
 		user = fmt.Sprintf("%s_%d", jid.User, agent)
 	}
-	return signalProtocol.NewSignalAddress(user, uint32(jid.Device))
-	// TODO use @lid suffix instead of agent?
-	//suffix := ""
-	//if jid.Server == HiddenUserServer {
-	//	suffix = "@lid"
-	//}
-	//return signalProtocol.NewSignalAddress(user, uint32(jid.Device), suffix)
+	return user
 }
 
 // IsBroadcastList returns true if the JID is a broadcast list, but not the status broadcast.

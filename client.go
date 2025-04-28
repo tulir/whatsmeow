@@ -120,10 +120,10 @@ type Client struct {
 
 	privacySettingsCache atomic.Value
 
-	groupParticipantsCache     map[types.JID][]types.JID
-	groupParticipantsCacheLock sync.Mutex
-	userDevicesCache           map[types.JID]deviceCache
-	userDevicesCacheLock       sync.Mutex
+	groupCache           map[types.JID]*groupMetaCache
+	groupCacheLock       sync.Mutex
+	userDevicesCache     map[types.JID]deviceCache
+	userDevicesCacheLock sync.Mutex
 
 	recentMessagesMap  map[recentMessageKey]RecentMessage
 	recentMessagesList [recentMessagesSize]recentMessageKey
@@ -172,6 +172,12 @@ type Client struct {
 	// The library is currently embedded in mautrix-meta (https://github.com/mautrix/meta), but may be separated later.
 	MessengerConfig *MessengerConfig
 	RefreshCAT      func() error
+}
+
+type groupMetaCache struct {
+	AddressingMode             types.AddressingMode
+	CommunityAnnouncementGroup bool
+	Members                    []types.JID
 }
 
 type MessengerConfig struct {
@@ -226,8 +232,8 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
-		groupParticipantsCache: make(map[types.JID][]types.JID),
-		userDevicesCache:       make(map[types.JID]deviceCache),
+		groupCache:       make(map[types.JID]*groupMetaCache),
+		userDevicesCache: make(map[types.JID]deviceCache),
 
 		recentMessagesMap:      make(map[recentMessageKey]RecentMessage, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
@@ -378,11 +384,14 @@ func (cli *Client) getOwnID() types.JID {
 	if cli == nil {
 		return types.EmptyJID
 	}
-	id := cli.Store.ID
-	if id == nil {
+	return cli.Store.GetJID()
+}
+
+func (cli *Client) getOwnLID() types.JID {
+	if cli == nil {
 		return types.EmptyJID
 	}
-	return *id
+	return cli.Store.GetLID()
 }
 
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
@@ -816,7 +825,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 			IsFromMe: webMsg.GetKey().GetFromMe(),
 			IsGroup:  chatJID.Server == types.GroupServer,
 		},
-		ID:        webMsg.GetKey().GetId(),
+		ID:        webMsg.GetKey().GetID(),
 		PushName:  webMsg.GetPushName(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
@@ -825,7 +834,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		if info.Sender.IsEmpty() {
 			return nil, ErrNotLoggedIn
 		}
-	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.NewsletterServer {
+	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer || chatJID.Server == types.NewsletterServer {
 		info.Sender = chatJID
 	} else if webMsg.GetParticipant() != "" {
 		info.Sender, err = types.ParseJID(webMsg.GetParticipant())
@@ -836,6 +845,10 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse sender of message %s: %v", info.ID, err)
+	}
+	if pk := webMsg.GetCommentMetadata().GetCommentParentKey(); pk != nil {
+		info.MsgMetaInfo.ThreadMessageID = pk.GetID()
+		info.MsgMetaInfo.ThreadMessageSenderJID, _ = types.ParseJID(pk.GetParticipant())
 	}
 	evt := &events.Message{
 		RawMessage:   webMsg.GetMessage(),
@@ -848,4 +861,21 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		evt.Message = evt.Message.GetProtocolMessage().GetEditedMessage()
 	}
 	return evt, nil
+}
+
+func (cli *Client) StoreLIDPNMapping(ctx context.Context, first, second types.JID) {
+	var lid, pn types.JID
+	if first.Server == types.HiddenUserServer && second.Server == types.DefaultUserServer {
+		lid = first
+		pn = second
+	} else if first.Server == types.DefaultUserServer && second.Server == types.HiddenUserServer {
+		lid = second
+		pn = first
+	} else {
+		return
+	}
+	err := cli.Store.LIDs.PutLIDMapping(ctx, lid, pn)
+	if err != nil {
+		cli.Log.Errorf("Failed to store LID-PN mapping for %s -> %s: %v", lid, pn, err)
+	}
 }
