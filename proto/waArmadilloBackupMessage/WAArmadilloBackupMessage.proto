@@ -24,6 +24,7 @@ message BackupMessage {
 		bytes encryptedTransportMessage = 2;
 		WAArmadilloBackupCommon.Subprotocol encryptedTransportEvent = 5;
 		WAArmadilloBackupCommon.Subprotocol encryptedTransportLocallyTransformedMessage = 6;
+		WAArmadilloBackupCommon.Subprotocol miTransportAdminMessage = 7;
 	}
 
 	optional Metadata metadata = 1;

@@ -8,11 +8,17 @@ message ClientPayload {
 		STANDARD = 1;
 	}
 
+	enum AccountType {
+		DEFAULT = 0;
+		GUEST = 1;
+	}
+
 	enum Product {
 		WHATSAPP = 0;
 		MESSENGER = 1;
 		INTEROP = 2;
 		INTEROP_MSGR = 3;
+		WHATSAPP_LID = 4;
 	}
 
 	enum ConnectType {
@@ -219,6 +225,8 @@ message ClientPayload {
 	optional int32 memClass = 37;
 	optional InteropData interopData = 38;
 	optional TrafficAnonymization trafficAnonymization = 40;
+	optional bool lidDbMigrated = 41;
+	optional AccountType accountType = 42;
 }
 
 message HandshakeMessage {

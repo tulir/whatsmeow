@@ -13,6 +13,7 @@ message MediaRetryNotification {
 	optional string stanzaID = 1;
 	optional string directPath = 2;
 	optional ResultType result = 3;
+	optional bytes messageSecret = 4;
 }
 
 message ServerErrorReceipt {

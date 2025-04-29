@@ -7,16 +7,19 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	mathRand "math/rand"
+	mathRand "math/rand/v2"
 
 	"github.com/google/uuid"
+	"go.mau.fi/util/dbutil"
 	"go.mau.fi/util/random"
 
 	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/store/sqlstore/upgrades"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
 	waLog "go.mau.fi/whatsmeow/util/log"
@@ -24,9 +27,9 @@ import (
 
 // Container is a wrapper for a SQL database that can contain multiple whatsmeow sessions.
 type Container struct {
-	db      *sql.DB
-	dialect string
-	log     waLog.Logger
+	db     *dbutil.Database
+	log    waLog.Logger
+	LIDMap *CachedLIDMap
 
 	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
@@ -74,18 +77,44 @@ func New(dialect, address string, log waLog.Logger) (*Container, error) {
 //	container := sqlstore.NewWithDB(...)
 //	err := container.Upgrade()
 func NewWithDB(db *sql.DB, dialect string, log waLog.Logger) *Container {
+	wrapped, err := dbutil.NewWithDB(db, dialect)
+	if err != nil {
+		// This will only panic if the dialect is invalid
+		panic(err)
+	}
+	wrapped.UpgradeTable = upgrades.Table
+	wrapped.VersionTable = "whatsmeow_version"
+	return NewWithWrappedDB(wrapped, log)
+}
+
+func NewWithWrappedDB(wrapped *dbutil.Database, log waLog.Logger) *Container {
 	if log == nil {
 		log = waLog.Noop
 	}
 	return &Container{
-		db:      db,
-		dialect: dialect,
-		log:     log,
+		db:     wrapped,
+		log:    log,
+		LIDMap: NewCachedLIDMap(wrapped),
 	}
 }
 
+// Upgrade upgrades the database from the current to the latest version available.
+func (c *Container) Upgrade() error {
+	if c.db.Dialect == dbutil.SQLite {
+		var foreignKeysEnabled bool
+		err := c.db.QueryRow(context.TODO(), "PRAGMA foreign_keys").Scan(&foreignKeysEnabled)
+		if err != nil {
+			return fmt.Errorf("failed to check if foreign keys are enabled: %w", err)
+		} else if !foreignKeysEnabled {
+			return fmt.Errorf("foreign keys are not enabled")
+		}
+	}
+
+	return c.db.Upgrade(context.TODO())
+}
+
 const getAllDevicesQuery = `
-SELECT jid, registration_id, noise_key, identity_key,
+SELECT jid, lid, registration_id, noise_key, identity_key,
        signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
        adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
        platform, business_name, push_name, facebook_uuid
@@ -94,11 +123,7 @@ FROM whatsmeow_device
 
 const getDeviceQuery = getAllDevicesQuery + " WHERE jid=$1"
 
-type scannable interface {
-	Scan(dest ...interface{}) error
-}
-
-func (c *Container) scanDevice(row scannable) (*store.Device, error) {
+func (c *Container) scanDevice(row dbutil.Scannable) (*store.Device, error) {
 	var device store.Device
 	device.DatabaseErrorHandler = c.DatabaseErrorHandler
 	device.Log = c.log
@@ -108,7 +133,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	var fbUUID uuid.NullUUID
 
 	err := row.Scan(
-		&device.ID, &device.RegistrationID, &noisePriv, &identityPriv,
+		&device.ID, &device.LID, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
 		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
 		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID)
@@ -125,26 +150,14 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.Account = &account
 	device.FacebookUUID = fbUUID.UUID
 
-	innerStore := NewSQLStore(c, *device.ID)
-	device.Identities = innerStore
-	device.Sessions = innerStore
-	device.PreKeys = innerStore
-	device.SenderKeys = innerStore
-	device.AppStateKeys = innerStore
-	device.AppState = innerStore
-	device.Contacts = innerStore
-	device.ChatSettings = innerStore
-	device.MsgSecrets = innerStore
-	device.PrivacyTokens = innerStore
-	device.Container = c
-	device.Initialized = true
+	c.initializeDevice(&device)
 
 	return &device, nil
 }
 
 // GetAllDevices finds all the devices in the database.
 func (c *Container) GetAllDevices() ([]*store.Device, error) {
-	res, err := c.db.Query(getAllDevicesQuery)
+	res, err := c.db.Query(context.TODO(), getAllDevicesQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
@@ -180,7 +193,7 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 //
 // Note that the parameter usually must be an AD-JID.
 func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
-	sess, err := c.scanDevice(c.db.QueryRow(getDeviceQuery, jid))
+	sess, err := c.scanDevice(c.db.QueryRow(context.TODO(), getDeviceQuery, jid))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -189,13 +202,16 @@ func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 
 const (
 	insertDeviceQuery = `
-		INSERT INTO whatsmeow_device (jid, registration_id, noise_key, identity_key,
+		INSERT INTO whatsmeow_device (jid, lid, registration_id, noise_key, identity_key,
 									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
 									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
 									  platform, business_name, push_name, facebook_uuid)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		ON CONFLICT (jid) DO UPDATE
-		    SET platform=excluded.platform, business_name=excluded.business_name, push_name=excluded.push_name
+			SET lid=excluded.lid,
+				platform=excluded.platform,
+				business_name=excluded.business_name,
+				push_name=excluded.push_name
 	`
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=$1`
 )
@@ -237,27 +253,33 @@ func (c *Container) PutDevice(device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(insertDeviceQuery,
-		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
+	_, err := c.db.Exec(context.TODO(), insertDeviceQuery,
+		device.ID, device.LID, device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
 		device.Platform, device.BusinessName, device.PushName, uuid.NullUUID{UUID: device.FacebookUUID, Valid: device.FacebookUUID != uuid.Nil})
 
 	if !device.Initialized {
-		innerStore := NewSQLStore(c, *device.ID)
-		device.Identities = innerStore
-		device.Sessions = innerStore
-		device.PreKeys = innerStore
-		device.SenderKeys = innerStore
-		device.AppStateKeys = innerStore
-		device.AppState = innerStore
-		device.Contacts = innerStore
-		device.ChatSettings = innerStore
-		device.MsgSecrets = innerStore
-		device.PrivacyTokens = innerStore
-		device.Initialized = true
+		c.initializeDevice(device)
 	}
 	return err
+}
+
+func (c *Container) initializeDevice(device *store.Device) {
+	innerStore := NewSQLStore(c, *device.ID)
+	device.Identities = innerStore
+	device.Sessions = innerStore
+	device.PreKeys = innerStore
+	device.SenderKeys = innerStore
+	device.AppStateKeys = innerStore
+	device.AppState = innerStore
+	device.Contacts = innerStore
+	device.ChatSettings = innerStore
+	device.MsgSecrets = innerStore
+	device.PrivacyTokens = innerStore
+	device.LIDs = c.LIDMap
+	device.Container = c
+	device.Initialized = true
 }
 
 // DeleteDevice deletes the given device from this database. This should be called through Device.Delete()
@@ -265,6 +287,6 @@ func (c *Container) DeleteDevice(store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(deleteDeviceQuery, store.ID.String())
+	_, err := c.db.Exec(context.TODO(), deleteDeviceQuery, store.ID)
 	return err
 }
