@@ -10,4 +10,5 @@ message LIDMigrationMapping {
 
 message LIDMigrationMappingSyncPayload {
 	repeated LIDMigrationMapping pnToLidMappings = 1;
+	optional uint64 chatDbMigrationTimestamp = 2;
 }

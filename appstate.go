@@ -73,10 +73,10 @@ func (cli *Client) FetchAppState(name appstate.WAPatchName, fullSync, onlyIfNotS
 			if errors.Is(err, appstate.ErrKeyNotFound) {
 				go cli.requestMissingAppStateKeys(context.TODO(), patches)
 			}
-             err := fmt.Errorf("failed to decode app state %s patches: %w", name, err)
-            if cli != nil && cli.Store != nil && cli.Store.ID != nil {
-               err = fmt.Errorf("failed to decode app state %s patches for jid %s: %w", name, cli.Store.ID.String(), err)
-            }
+			err := fmt.Errorf("failed to decode app state %s patches: %w", name, err)
+			if cli != nil && cli.Store != nil && cli.Store.ID != nil {
+				err = fmt.Errorf("failed to decode app state %s patches for jid %s: %w", name, cli.Store.ID.String(), err)
+			}
 			return err
 		}
 		wasFullSync := state.Version == 0 && patches.Snapshot != nil

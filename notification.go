@@ -7,8 +7,10 @@
 package whatsmeow
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 
 	"google.golang.org/protobuf/proto"
 
@@ -99,10 +101,20 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 	defer cli.userDevicesCacheLock.Unlock()
 	ag := node.AttrGetter()
 	from := ag.JID("from")
+	fromLID := ag.OptionalJID("lid")
+	if fromLID != nil {
+		cli.StoreLIDPNMapping(context.TODO(), *fromLID, from)
+	}
 	cached, ok := cli.userDevicesCache[from]
 	if !ok {
 		cli.Log.Debugf("No device list cached for %s, ignoring device list notification", from)
 		return
+	}
+	var cachedLID deviceCache
+	var cachedLIDHash string
+	if fromLID != nil {
+		cachedLID = cli.userDevicesCache[*fromLID]
+		cachedLIDHash = participantListHashV2(cachedLID.devices)
 	}
 	cachedParticipantHash := participantListHashV2(cached.devices)
 	for _, child := range node.GetChildren() {
@@ -112,16 +124,24 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 		}
 		cag := child.AttrGetter()
 		deviceHash := cag.String("device_hash")
+		deviceLIDHash := cag.OptionalString("device_lid_hash")
 		deviceChild, _ := child.GetOptionalChildByTag("device")
 		changedDeviceJID := deviceChild.AttrGetter().JID("jid")
+		changedDeviceLID := deviceChild.AttrGetter().OptionalJID("lid")
 		switch child.Tag {
 		case "add":
 			cached.devices = append(cached.devices, changedDeviceJID)
+			if changedDeviceLID != nil {
+				cachedLID.devices = append(cachedLID.devices, *changedDeviceLID)
+			}
 		case "remove":
-			for i, jid := range cached.devices {
-				if jid == changedDeviceJID {
-					cached.devices = append(cached.devices[:i], cached.devices[i+1:]...)
-				}
+			cached.devices = slices.DeleteFunc(cached.devices, func(existing types.JID) bool {
+				return existing == changedDeviceJID
+			})
+			if changedDeviceLID != nil {
+				cachedLID.devices = slices.DeleteFunc(cachedLID.devices, func(existing types.JID) bool {
+					return existing == *changedDeviceLID
+				})
 			}
 		case "update":
 			// ???
@@ -133,6 +153,16 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 		} else {
 			cli.Log.Warnf("%s's device list hash changed from %s to %s (%s). New hash doesn't match (%s)", from, cachedParticipantHash, deviceHash, child.Tag, newParticipantHash)
 			delete(cli.userDevicesCache, from)
+		}
+		if fromLID != nil && changedDeviceLID != nil && deviceLIDHash != "" {
+			newLIDParticipantHash := participantListHashV2(cachedLID.devices)
+			if newLIDParticipantHash == deviceLIDHash {
+				cli.Log.Debugf("%s's device list hash changed from %s to %s (%s). New hash matches", fromLID, cachedLIDHash, deviceLIDHash, child.Tag)
+				cli.userDevicesCache[*fromLID] = cachedLID
+			} else {
+				cli.Log.Warnf("%s's device list hash changed from %s to %s (%s). New hash doesn't match (%s)", fromLID, cachedLIDHash, deviceLIDHash, child.Tag, newLIDParticipantHash)
+				delete(cli.userDevicesCache, *fromLID)
+			}
 		}
 	}
 }

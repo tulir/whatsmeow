@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"bytes"
 	"compress/zlib"
+	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -40,6 +41,11 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
+		if !info.SenderAlt.IsEmpty() {
+			cli.StoreLIDPNMapping(context.TODO(), info.SenderAlt, info.Sender)
+		} else if !info.RecipientAlt.IsEmpty() {
+			cli.StoreLIDPNMapping(context.TODO(), info.RecipientAlt, info.Chat)
+		}
 		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
 			go cli.updateBusinessName(info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
 		}
@@ -57,12 +63,14 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
 	clientID := cli.getOwnID()
+	clientLID := cli.Store.GetLID()
 	if clientID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
 	}
 	ag := node.AttrGetter()
 	from := ag.JID("from")
+	source.AddressingMode = types.AddressingMode(ag.OptionalString("addressing_mode"))
 	if from.Server == types.GroupServer || from.Server == types.BroadcastServer {
 		source.IsGroup = true
 		source.Chat = from
@@ -71,7 +79,12 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		} else {
 			source.Sender = ag.OptionalJIDOrEmpty("participant")
 		}
-		if source.Sender.User == clientID.User {
+		if source.AddressingMode == types.AddressingModeLID {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("participant_pn")
+		} else {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("participant_lid")
+		}
+		if source.Sender.User == clientID.User || source.Sender.User == clientLID.User {
 			source.IsFromMe = true
 		}
 		if from.Server == types.BroadcastServer {
@@ -81,7 +94,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		source.Chat = from
 		source.Sender = from
 		// TODO IsFromMe?
-	} else if from.User == clientID.User {
+	} else if from.User == clientID.User || from.User == clientLID.User {
 		source.IsFromMe = true
 		source.Sender = from
 		recipient := ag.OptionalJID("recipient")
@@ -89,6 +102,11 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 			source.Chat = *recipient
 		} else {
 			source.Chat = from.ToNonAD()
+		}
+		if source.AddressingMode == types.AddressingModeLID {
+			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_pn") // existence of this field is not confirmed
+		} else {
+			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_lid")
 		}
 	} else if from.IsBot() {
 		source.Sender = from
@@ -103,6 +121,14 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 	} else {
 		source.Chat = from.ToNonAD()
 		source.Sender = from
+		if source.AddressingMode == types.AddressingModeLID {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_pn")
+		} else {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_lid")
+		}
+	}
+	if !source.SenderAlt.IsEmpty() && source.SenderAlt.Device == 0 {
+		source.SenderAlt.Device = source.Sender.Device
 	}
 	err = ag.Error()
 	return
@@ -125,11 +151,14 @@ func (cli *Client) parseMsgMetaInfo(node waBinary.Node) (metaInfo types.MsgMetaI
 	metaNode := node.GetChildByTag("meta")
 
 	ag := metaNode.AttrGetter()
-	metaInfo.TargetID = types.MessageID(ag.String("target_id"))
-	targetSenderJID := ag.OptionalJIDOrEmpty("target_sender_jid")
-	if targetSenderJID.User != "" {
-		metaInfo.TargetSender = targetSenderJID
+	metaInfo.TargetID = types.MessageID(ag.OptionalString("target_id"))
+	metaInfo.TargetSender = ag.OptionalJIDOrEmpty("target_sender_jid")
+	deprecatedLIDSession, ok := ag.GetBool("deprecated_lid_session", false)
+	if ok {
+		metaInfo.DeprecatedLIDSession = &deprecatedLIDSession
 	}
+	metaInfo.ThreadMessageID = types.MessageID(ag.OptionalString("thread_msg_id"))
+	metaInfo.ThreadMessageSenderJID = ag.OptionalJIDOrEmpty("thread_msg_sender_jid")
 	err = ag.Error()
 	return
 }
@@ -168,8 +197,10 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 				cli.Log.Warnf("Failed to parse <bot> node in %s: %v", info.ID, err)
 			}
 		case "meta":
-			// TODO parse non-bot metadata too
-			info.MsgMetaInfo, _ = cli.parseMsgMetaInfo(child)
+			info.MsgMetaInfo, err = cli.parseMsgMetaInfo(child)
+			if err != nil {
+				cli.Log.Warnf("Failed to parse <meta> node in %s: %v", info.ID, err)
+			}
 		case "franking":
 			// TODO
 		case "trace":
@@ -216,7 +247,13 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 		}
 	}
 	cli.dispatchEvent(evt.UnwrapRaw())
-	return
+}
+
+func (cli *Client) migrateSessionStore(pn, lid types.JID) {
+	err := cli.Store.Sessions.MigratePNToLID(context.TODO(), pn, lid)
+	if err != nil {
+		cli.Log.Errorf("Failed to migrate signal store from %s to %s: %v", pn, lid, err)
+	}
 }
 
 func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
@@ -233,6 +270,21 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	cli.Log.Debugf("Decrypting message from %s", info.SourceString())
 	handled := false
 	containsDirectMsg := false
+	senderEncryptionJID := info.Sender
+	if info.Sender.Server == types.DefaultUserServer && !info.Sender.IsBot() {
+		if info.SenderAlt.Server == types.HiddenUserServer {
+			senderEncryptionJID = info.SenderAlt
+			cli.migrateSessionStore(info.Sender, info.SenderAlt)
+		} else if lid, err := cli.Store.LIDs.GetLIDForPN(context.TODO(), info.Sender); err != nil {
+			cli.Log.Errorf("Failed to get LID for %s: %v", info.Sender, err)
+		} else if !lid.IsEmpty() {
+			cli.migrateSessionStore(info.Sender, lid)
+			senderEncryptionJID = lid
+			info.SenderAlt = lid
+		} else {
+			cli.Log.Warnf("No LID found for %s", info.Sender)
+		}
+	}
 	for _, child := range children {
 		if child.Tag != "enc" {
 			continue
@@ -245,46 +297,38 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 		var decrypted []byte
 		var err error
 		if encType == "pkmsg" || encType == "msg" {
-			decrypted, err = cli.decryptDM(&child, info.Sender, encType == "pkmsg")
+			decrypted, err = cli.decryptDM(&child, senderEncryptionJID, encType == "pkmsg")
 			containsDirectMsg = true
 		} else if info.IsGroup && encType == "skmsg" {
-			decrypted, err = cli.decryptGroupMsg(&child, info.Sender, info.Chat)
+			decrypted, err = cli.decryptGroupMsg(&child, senderEncryptionJID, info.Chat)
 		} else if encType == "msmsg" && info.Sender.IsBot() {
-			// Meta AI / other bots (biz?):
-
-			// step 1: get message secret
 			targetSenderJID := info.MsgMetaInfo.TargetSender
+			messageSecretSenderJID := targetSenderJID
 			if targetSenderJID.User == "" {
-				// if no targetSenderJID in <meta> this must be ourselves (one-one-one mode)
-				targetSenderJID = cli.getOwnID()
+				if info.Sender.Server == types.BotServer {
+					targetSenderJID = cli.Store.GetLID()
+				} else {
+					targetSenderJID = cli.getOwnID()
+				}
+				messageSecretSenderJID = cli.getOwnID()
 			}
-
-			messageSecret, err := cli.Store.MsgSecrets.GetMessageSecret(info.Chat, targetSenderJID, info.MsgMetaInfo.TargetID)
-			if err != nil || messageSecret == nil {
-				cli.Log.Warnf("Error getting message secret for bot msg with id %s", node.AttrGetter().String("id"))
-				continue
-			}
-
-			// step 2: get MessageSecretMessage
-			byteContents := child.Content.([]byte) // <enc> contents
-			var msMsg waE2E.MessageSecretMessage
-
-			err = proto.Unmarshal(byteContents, &msMsg)
-			if err != nil {
-				cli.Log.Warnf("Error decoding MessageSecretMesage protobuf %v", err)
-				continue
-			}
-
-			// step 3: determine best message id for decryption
-			var messageID string
+			var decryptMessageID string
 			if info.MsgBotInfo.EditType == types.EditTypeInner || info.MsgBotInfo.EditType == types.EditTypeLast {
-				messageID = info.MsgBotInfo.EditTargetID
+				decryptMessageID = info.MsgBotInfo.EditTargetID
 			} else {
-				messageID = info.ID
+				decryptMessageID = info.ID
 			}
-
-			// step 4: decrypt and voila
-			decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, messageID, targetSenderJID, info)
+			var msMsg waE2E.MessageSecretMessage
+			var messageSecret []byte
+			if messageSecret, err = cli.Store.MsgSecrets.GetMessageSecret(info.Chat, messageSecretSenderJID, info.MsgMetaInfo.TargetID); err != nil {
+				err = fmt.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
+			} else if messageSecret == nil {
+				err = fmt.Errorf("message secret for %s not found", info.MsgMetaInfo.TargetID)
+			} else if err = proto.Unmarshal(child.Content.([]byte), &msMsg); err != nil {
+				err = fmt.Errorf("failed to unmarshal MessageSecretMessage protobuf: %v", err)
+			} else {
+				decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, decryptMessageID, targetSenderJID, info)
+			}
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
 			continue
@@ -294,7 +338,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
 			// TODO figure out why @bot messages fail to decrypt
-			if info.Chat.Server != types.BotServer {
+			if info.Chat.Server != types.BotServer && encType != "msmsg" {
 				go cli.sendRetryReceipt(node, info, isUnavailable)
 			}
 			cli.dispatchEvent(&events.UndecryptableMessage{
@@ -341,7 +385,10 @@ func (cli *Client) clearUntrustedIdentity(target types.JID) {
 }
 
 func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool) ([]byte, error) {
-	content, _ := child.Content.([]byte)
+	content, ok := child.Content.([]byte)
+	if !ok {
+		return nil, fmt.Errorf("message content is not a byte slice")
+	}
 
 	builder := session.NewBuilderFromSignal(cli.Store, from.SignalAddress(), pbSerializer)
 	cipher := session.NewCipher(builder, from.SignalAddress())
@@ -377,7 +424,10 @@ func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool
 }
 
 func (cli *Client) decryptGroupMsg(child *waBinary.Node, from types.JID, chat types.JID) ([]byte, error) {
-	content, _ := child.Content.([]byte)
+	content, ok := child.Content.([]byte)
+	if !ok {
+		return nil, fmt.Errorf("message content is not a byte slice")
+	}
 
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
@@ -563,6 +613,7 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waE2E.Mes
 }
 
 func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Message) {
+	cli.storeMessageSecret(info, msg)
 	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
@@ -571,7 +622,11 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Mess
 		if !info.IsGroup {
 			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
 		} else {
-			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, msg.SenderKeyDistributionMessage.AxolotlSenderKeyDistributionMessage)
+			encryptionIdentity := info.Sender
+			if encryptionIdentity.Server == types.DefaultUserServer && info.SenderAlt.Server == types.HiddenUserServer {
+				encryptionIdentity = info.SenderAlt
+			}
+			cli.handleSenderKeyDistributionMessage(info.Chat, encryptionIdentity, msg.SenderKeyDistributionMessage.AxolotlSenderKeyDistributionMessage)
 		}
 	}
 	// N.B. Edits are protocol messages, but they're also wrapped inside EditedMessage,
@@ -579,7 +634,6 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Mess
 	if msg.GetProtocolMessage() != nil {
 		cli.handleProtocolMessage(info, msg)
 	}
-	cli.storeMessageSecret(info, msg)
 }
 
 func (cli *Client) storeMessageSecret(info *types.MessageInfo, msg *waE2E.Message) {

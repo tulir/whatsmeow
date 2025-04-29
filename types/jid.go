@@ -42,6 +42,7 @@ var (
 	PSAJID              = NewJID("0", LegacyUserServer)
 	OfficialBusinessJID = NewJID("16505361212", LegacyUserServer)
 	MetaAIJID           = NewJID("13135550002", DefaultUserServer)
+	NewMetaAIJID        = NewJID("867051314767696", BotServer)
 )
 
 // MessageID is the internal ID of a WhatsApp message.
@@ -91,18 +92,16 @@ func (jid JID) ToNonAD() JID {
 
 // SignalAddress returns the Signal protocol address for the user.
 func (jid JID) SignalAddress() *signalProtocol.SignalAddress {
+	return signalProtocol.NewSignalAddress(jid.SignalAddressUser(), uint32(jid.Device))
+}
+
+func (jid JID) SignalAddressUser() string {
 	user := jid.User
 	agent := jid.ActualAgent()
 	if agent != 0 {
 		user = fmt.Sprintf("%s_%d", jid.User, agent)
 	}
-	return signalProtocol.NewSignalAddress(user, uint32(jid.Device))
-	// TODO use @lid suffix instead of agent?
-	//suffix := ""
-	//if jid.Server == HiddenUserServer {
-	//	suffix = "@lid"
-	//}
-	//return signalProtocol.NewSignalAddress(user, uint32(jid.Device), suffix)
+	return user
 }
 
 // IsBroadcastList returns true if the JID is a broadcast list, but not the status broadcast.
@@ -113,7 +112,7 @@ func (jid JID) IsBroadcastList() bool {
 var botUserRegex = regexp.MustCompile(`^1313555\d{4}$|^131655500\d{2}$`)
 
 func (jid JID) IsBot() bool {
-	return jid.Server == DefaultUserServer && botUserRegex.MatchString(jid.User) && jid.Device == 0
+	return (jid.Server == DefaultUserServer && botUserRegex.MatchString(jid.User) && jid.Device == 0) || jid.Server == BotServer
 }
 
 // NewADJID creates a new AD JID.
