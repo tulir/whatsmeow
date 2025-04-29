@@ -12,7 +12,7 @@ import (
 // getLogFilePath get the log file save path
 func GetLogFilePath() string {
 	// return fmt.Sprintf("%s%s", setting.AppSetting.RuntimeRootPath, setting.AppSetting.LogSavePath)
-	return "./rumtime/logs/"
+	return "./runtime/logs/"
 }
 
 // getLogFileName get the save name of the log file
