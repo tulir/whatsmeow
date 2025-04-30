@@ -12,11 +12,11 @@ import (
 
 type Logger interface {
 	Setup()
-	Warnf(args ...interface{})
-	Errorf(args ...interface{})
-	Infof(args ...interface{})
-	Debugf(args ...interface{})
-	Fatalf(args ...interface{})
+	Warnf(msg string, args ...interface{})
+	Errorf(msg string, args ...interface{})
+	Infof(msg string, args ...interface{})
+	Debugf(msg string, args ...interface{})
+	Fatalf(msg string, args ...interface{})
 }
 
 type stdoutLogger struct{}
@@ -57,34 +57,34 @@ func (s *stdoutLogger) Setup() {
 }
 
 // Debug output logs at debug level
-func (s *stdoutLogger) Debugf(v ...interface{}) {
+func (s *stdoutLogger) Debugf(msg string, v ...interface{}) {
 	fmt.Printf("excute")
 	setPrefix(DEBUG)
-	logger.Println(v)
+	logger.Printf(msg, v...)
 }
 
 // Info output logs at info level
-func (s *stdoutLogger) Infof(v ...interface{}) {
+func (s *stdoutLogger) Infof(msg string, v ...interface{}) {
 	setPrefix(INFO)
-	logger.Println(v)
+	logger.Printf(msg, v...)
 }
 
 // Warn output logs at warn level
-func (s *stdoutLogger) Warnf(v ...interface{}) {
+func (s *stdoutLogger) Warnf(msg string, v ...interface{}) {
 	setPrefix(WARNING)
-	logger.Println(v)
+	logger.Printf(msg, v...)
 }
 
 // Error output logs at error level
-func (s *stdoutLogger) Errorf(v ...interface{}) {
+func (s *stdoutLogger) Errorf(msg string, v ...interface{}) {
 	setPrefix(ERROR)
-	logger.Println(v)
+	logger.Printf(msg, v...)
 }
 
 // Fatal output logs at fatal level
-func (s *stdoutLogger) Fatalf(v ...interface{}) {
+func (s *stdoutLogger) Fatalf(msg string, v ...interface{}) {
 	setPrefix(FATAL)
-	logger.Fatalln(v)
+	logger.Printf(msg, v...)
 }
 
 // setPrefix set the prefix of the log output
