@@ -47,6 +47,21 @@ message MiTransportAdminMessage {
 		}
 
 		repeated string targetUserID = 1;
+		optional Action action = 2;
+	}
+
+	message IconChanged {
+		optional string threadIcon = 1;
+	}
+
+	message LinkCta {
+		message UkOsaAdminText {
+			optional string initiatorUserID = 2;
+		}
+
+		oneof content {
+			UkOsaAdminText ukOsaAdminText = 1;
+		}
 	}
 
 	message QuickReactionChanged {
@@ -65,6 +80,7 @@ message MiTransportAdminMessage {
 	message ChatThemeChanged {
 		optional string themeName = 1;
 		optional string themeEmoji = 2;
+		optional int32 themeType = 3;
 	}
 
 	oneof content {
@@ -77,5 +93,7 @@ message MiTransportAdminMessage {
 		MessagePinned messagePinned = 7;
 		GroupImageChanged groupImageChanged = 8;
 		QuickReactionChanged quickReactionChanged = 9;
+		LinkCta linkCta = 10;
+		IconChanged iconChanged = 11;
 	}
 }
