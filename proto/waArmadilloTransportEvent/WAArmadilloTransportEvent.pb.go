@@ -452,11 +452,13 @@ func (x *TransportEvent_Event_IcdcAlert) GetType() TransportEvent_Event_IcdcAler
 }
 
 type TransportEvent_Event_DeviceChange struct {
-	state         protoimpl.MessageState                  `protogen:"open.v1"`
-	Type          *TransportEvent_Event_DeviceChange_Type `protobuf:"varint,1,opt,name=type,enum=WAArmadilloTransportEvent.TransportEvent_Event_DeviceChange_Type" json:"type,omitempty"`
-	DeviceName    *string                                 `protobuf:"bytes,2,opt,name=deviceName" json:"deviceName,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState                  `protogen:"open.v1"`
+	Type           *TransportEvent_Event_DeviceChange_Type `protobuf:"varint,1,opt,name=type,enum=WAArmadilloTransportEvent.TransportEvent_Event_DeviceChange_Type" json:"type,omitempty"`
+	DeviceName     *string                                 `protobuf:"bytes,2,opt,name=deviceName" json:"deviceName,omitempty"`
+	DevicePlatform *string                                 `protobuf:"bytes,3,opt,name=devicePlatform" json:"devicePlatform,omitempty"`
+	DeviceModel    *string                                 `protobuf:"bytes,4,opt,name=deviceModel" json:"deviceModel,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *TransportEvent_Event_DeviceChange) Reset() {
@@ -503,14 +505,28 @@ func (x *TransportEvent_Event_DeviceChange) GetDeviceName() string {
 	return ""
 }
 
+func (x *TransportEvent_Event_DeviceChange) GetDevicePlatform() string {
+	if x != nil && x.DevicePlatform != nil {
+		return *x.DevicePlatform
+	}
+	return ""
+}
+
+func (x *TransportEvent_Event_DeviceChange) GetDeviceModel() string {
+	if x != nil && x.DeviceModel != nil {
+		return *x.DeviceModel
+	}
+	return ""
+}
+
 var File_waArmadilloTransportEvent_WAArmadilloTransportEvent_proto protoreflect.FileDescriptor
 
 const file_waArmadilloTransportEvent_WAArmadilloTransportEvent_proto_rawDesc = "" +
 	"\n" +
-	"9waArmadilloTransportEvent/WAArmadilloTransportEvent.proto\x12\x19WAArmadilloTransportEvent\"\xf9\x06\n" +
+	"9waArmadilloTransportEvent/WAArmadilloTransportEvent.proto\x12\x19WAArmadilloTransportEvent\"\xc3\a\n" +
 	"\x0eTransportEvent\x12Y\n" +
 	"\vplaceholder\x18\x01 \x01(\v25.WAArmadilloTransportEvent.TransportEvent.PlaceholderH\x00R\vplaceholder\x12G\n" +
-	"\x05event\x18\x02 \x01(\v2/.WAArmadilloTransportEvent.TransportEvent.EventH\x00R\x05event\x1a\x9e\x04\n" +
+	"\x05event\x18\x02 \x01(\v2/.WAArmadilloTransportEvent.TransportEvent.EventH\x00R\x05event\x1a\xe8\x04\n" +
 	"\x05Event\x12b\n" +
 	"\fdeviceChange\x18\x01 \x01(\v2<.WAArmadilloTransportEvent.TransportEvent.Event.DeviceChangeH\x00R\fdeviceChange\x12Y\n" +
 	"\ticdcAlert\x18\x02 \x01(\v29.WAArmadilloTransportEvent.TransportEvent.Event.IcdcAlertH\x00R\ticdcAlert\x1a\x8c\x01\n" +
@@ -519,12 +535,14 @@ const file_waArmadilloTransportEvent_WAArmadilloTransportEvent_proto_rawDesc = "
 	"\x04Type\x12\b\n" +
 	"\x04NONE\x10\x00\x12\f\n" +
 	"\bDETECTED\x10\x01\x12\v\n" +
-	"\aCLEARED\x10\x02\x1a\xbd\x01\n" +
+	"\aCLEARED\x10\x02\x1a\x87\x02\n" +
 	"\fDeviceChange\x12U\n" +
 	"\x04type\x18\x01 \x01(\x0e2A.WAArmadilloTransportEvent.TransportEvent.Event.DeviceChange.TypeR\x04type\x12\x1e\n" +
 	"\n" +
 	"deviceName\x18\x02 \x01(\tR\n" +
-	"deviceName\"6\n" +
+	"deviceName\x12&\n" +
+	"\x0edevicePlatform\x18\x03 \x01(\tR\x0edevicePlatform\x12 \n" +
+	"\vdeviceModel\x18\x04 \x01(\tR\vdeviceModel\"6\n" +
 	"\x04Type\x12\b\n" +
 	"\x04NONE\x10\x00\x12\t\n" +
 	"\x05ADDED\x10\x01\x12\v\n" +

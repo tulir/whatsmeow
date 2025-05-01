@@ -22,6 +22,7 @@ enum PeerDataOperationRequestType {
 	WAFFLE_LINKING_NONCE_FETCH = 5;
 	FULL_HISTORY_SYNC_ON_DEMAND = 6;
 	COMPANION_META_NONCE_FETCH = 7;
+	COMPANION_SYNCD_SNAPSHOT_FATAL_RECOVERY = 8;
 }
 
 enum BotMetricsEntryPoint {
@@ -597,6 +598,11 @@ message PeerDataOperationRequestResponseMessage {
 			ERROR_HOSTED_DEVICE_LOGIN_TIME_NOT_SET = 6;
 		}
 
+		message SyncDSnapshotFatalRecoveryResponse {
+			optional bytes collectionSnapshot = 1;
+			optional bool isCompressed = 2;
+		}
+
 		message CompanionMetaNonceFetchResponse {
 			optional string nonce = 1;
 		}
@@ -642,6 +648,7 @@ message PeerDataOperationRequestResponseMessage {
 		optional WaffleNonceFetchResponse waffleNonceFetchRequestResponse = 5;
 		optional FullHistorySyncOnDemandRequestResponse fullHistorySyncOnDemandRequestResponse = 6;
 		optional CompanionMetaNonceFetchResponse companionMetaNonceFetchRequestResponse = 7;
+		optional SyncDSnapshotFatalRecoveryResponse syncdSnapshotFatalRecoveryResponse = 8;
 	}
 
 	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -2082,6 +2089,11 @@ message InitialSecurityNotificationSettingSync {
 }
 
 message PeerDataOperationRequestMessage {
+	message SyncDCollectionFatalRecoveryRequest {
+		repeated string collectionNames = 1;
+		optional int64 timestamp = 2;
+	}
+
 	message PlaceholderMessageResendRequest {
 		optional WACommon.MessageKey messageKey = 1;
 	}
@@ -2115,6 +2127,7 @@ message PeerDataOperationRequestMessage {
 	optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
 	repeated PlaceholderMessageResendRequest placeholderMessageResendRequest = 5;
 	optional FullHistorySyncOnDemandRequest fullHistorySyncOnDemandRequest = 6;
+	optional SyncDCollectionFatalRecoveryRequest syncdCollectionFatalRecoveryRequest = 7;
 }
 
 message FullHistorySyncOnDemandRequestMetadata {
