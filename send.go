@@ -36,6 +36,8 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
+const WebMessageIDPrefix = "3EB0"
+
 // GenerateMessageID generates a random string that can be used as a message ID on WhatsApp.
 //
 //	msgID := cli.GenerateMessageID()
@@ -53,7 +55,7 @@ func (cli *Client) GenerateMessageID() types.MessageID {
 	}
 	data = append(data, random.Bytes(16)...)
 	hash := sha256.Sum256(data)
-	return "3EB0" + strings.ToUpper(hex.EncodeToString(hash[:9]))
+	return WebMessageIDPrefix + strings.ToUpper(hex.EncodeToString(hash[:9]))
 }
 
 func GenerateFacebookMessageID() int64 {
@@ -68,7 +70,7 @@ func GenerateFacebookMessageID() int64 {
 //
 // Deprecated: WhatsApp web has switched to using a hash of the current timestamp, user id and random bytes. Use Client.GenerateMessageID instead.
 func GenerateMessageID() types.MessageID {
-	return "3EB0" + strings.ToUpper(hex.EncodeToString(random.Bytes(8)))
+	return WebMessageIDPrefix + strings.ToUpper(hex.EncodeToString(random.Bytes(8)))
 }
 
 type MessageDebugTimings struct {
