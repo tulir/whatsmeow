@@ -58,33 +58,33 @@ func (s *stdoutLogger) Setup() {
 
 // Debug output logs at debug level
 func (s *stdoutLogger) Debugf(msg string, v ...interface{}) {
-	fmt.Printf("excute")
-	setPrefix(DEBUG)
-	logger.Printf(msg, v...)
+	// fmt.Printf("excute")
+	// setPrefix(DEBUG)
+	// logger.Printf(msg, v...)
 }
 
 // Info output logs at info level
 func (s *stdoutLogger) Infof(msg string, v ...interface{}) {
-	setPrefix(INFO)
-	logger.Printf(msg, v...)
+	// setPrefix(INFO)
+	// logger.Printf(msg, v...)
 }
 
 // Warn output logs at warn level
 func (s *stdoutLogger) Warnf(msg string, v ...interface{}) {
-	setPrefix(WARNING)
-	logger.Printf(msg, v...)
+	// setPrefix(WARNING)
+	// logger.Printf(msg, v...)
 }
 
 // Error output logs at error level
 func (s *stdoutLogger) Errorf(msg string, v ...interface{}) {
-	setPrefix(ERROR)
-	logger.Printf(msg, v...)
+	// setPrefix(ERROR)
+	// logger.Printf(msg, v...)
 }
 
 // Fatal output logs at fatal level
 func (s *stdoutLogger) Fatalf(msg string, v ...interface{}) {
-	setPrefix(FATAL)
-	logger.Printf(msg, v...)
+	// setPrefix(FATAL)
+	// logger.Printf(msg, v...)
 }
 
 // setPrefix set the prefix of the log output
