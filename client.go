@@ -733,34 +733,51 @@ func stopAndDrainTimer(timer *time.Timer) {
 }
 
 func (cli *Client) handlerQueueLoop(ctx context.Context) {
-	timer := time.NewTimer(5 * time.Minute)
-	stopAndDrainTimer(timer)
-	cli.Log.Debugf("Starting handler queue loop")
-	for {
-		select {
-		case node := <-cli.handlerQueue:
-			doneChan := make(chan struct{}, 1)
-			go func() {
-				start := time.Now()
-				cli.nodeHandlers[node.Tag](node)
-				duration := time.Since(start)
-				doneChan <- struct{}{}
-				if duration > 5*time.Second {
-					cli.Log.Warnf("Node handling took %s for %s", duration, node.XMLString())
-				}
-			}()
-			timer.Reset(5 * time.Minute)
-			select {
-			case <-doneChan:
-				stopAndDrainTimer(timer)
-			case <-timer.C:
-				cli.Log.Warnf("Node handling is taking long for %s - continuing in background", node.XMLString())
-			}
-		case <-ctx.Done():
-			cli.Log.Debugf("Closing handler queue loop")
-			return
-		}
-	}
+    const workerCount = 10 // worker parallel size
+    tasks := make(chan *waBinary.Node, handlerQueueSize)
+
+    // Worker Pool
+    for i := 0; i < workerCount; i++ {
+        go func() {
+            for {
+                select {
+                case node := <-tasks:
+                    cli.processNode(node)
+                case <-ctx.Done():
+                    return
+                }
+            }
+        }()
+    }
+
+    cli.Log.Debugf("Starting handler queue loop")
+    for {
+        select {
+        case node := <-cli.handlerQueue:
+            select {
+            case tasks <- node:
+                // Node sent to worker pool
+            default:
+                cli.Log.Warnf("Handler queue is full, message ordering is no longer guaranteed")
+                go func() {
+                    tasks <- node
+                }()
+            }
+        case <-ctx.Done():
+            cli.Log.Debugf("Closing handler queue loop")
+            return
+        }
+    }
+}
+
+// Split process node
+func (cli *Client) processNode(node *waBinary.Node) {
+    start := time.Now()
+    cli.nodeHandlers[node.Tag](node)
+    duration := time.Since(start)
+    if duration > 5*time.Second {
+        cli.Log.Warnf("Node handling took %s for %s", duration, node.XMLString())
+    }
 }
 
 func (cli *Client) sendNodeAndGetData(node waBinary.Node) ([]byte, error) {
