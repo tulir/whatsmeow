@@ -22,6 +22,7 @@ enum PeerDataOperationRequestType {
 	WAFFLE_LINKING_NONCE_FETCH = 5;
 	FULL_HISTORY_SYNC_ON_DEMAND = 6;
 	COMPANION_META_NONCE_FETCH = 7;
+	COMPANION_SYNCD_SNAPSHOT_FATAL_RECOVERY = 8;
 }
 
 enum BotMetricsEntryPoint {
@@ -597,6 +598,11 @@ message PeerDataOperationRequestResponseMessage {
 			ERROR_HOSTED_DEVICE_LOGIN_TIME_NOT_SET = 6;
 		}
 
+		message SyncDSnapshotFatalRecoveryResponse {
+			optional bytes collectionSnapshot = 1;
+			optional bool isCompressed = 2;
+		}
+
 		message CompanionMetaNonceFetchResponse {
 			optional string nonce = 1;
 		}
@@ -642,6 +648,7 @@ message PeerDataOperationRequestResponseMessage {
 		optional WaffleNonceFetchResponse waffleNonceFetchRequestResponse = 5;
 		optional FullHistorySyncOnDemandRequestResponse fullHistorySyncOnDemandRequestResponse = 6;
 		optional CompanionMetaNonceFetchResponse companionMetaNonceFetchRequestResponse = 7;
+		optional SyncDSnapshotFatalRecoveryResponse syncdSnapshotFatalRecoveryResponse = 8;
 	}
 
 	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -711,6 +718,9 @@ message ProtocolMessage {
 		STATUS_MENTION_MESSAGE = 25;
 		STOP_GENERATION_MESSAGE = 26;
 		LIMIT_SHARING = 27;
+		AI_PSI_METADATA = 28;
+		AI_QUERY_FANOUT = 29;
+		GROUP_MEMBER_LABEL_CHANGE = 30;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -734,6 +744,9 @@ message ProtocolMessage {
 	optional CloudAPIThreadControlNotification cloudApiThreadControlNotification = 22;
 	optional LIDMigrationMappingSyncMessage lidMigrationMappingSyncMessage = 23;
 	optional WACommon.LimitSharing limitSharing = 24;
+	optional bytes aiPsiMetadata = 25;
+	optional AIQueryFanout aiQueryFanout = 26;
+	optional MemberLabel memberLabel = 27;
 }
 
 message CloudAPIThreadControlNotification {
@@ -858,10 +871,6 @@ message ExtendedTextMessage {
 		COURIERPRIME_BOLD = 10;
 	}
 
-	message LinkPreviewMetadata {
-		optional PaymentLinkMetadata paymentLinkMetadata = 1;
-	}
-
 	optional string text = 1;
 	optional string matchedText = 2;
 	optional string description = 5;
@@ -889,6 +898,7 @@ message ExtendedTextMessage {
 	optional uint32 videoWidth = 32;
 	optional MMSThumbnailMetadata faviconMMSMetadata = 33;
 	optional LinkPreviewMetadata linkPreviewMetadata = 34;
+	optional PaymentLinkMetadata paymentLinkMetadata = 35;
 }
 
 message PaymentLinkMetadata {
@@ -1008,6 +1018,11 @@ message ContextInfo {
 	}
 
 	message ExternalAdReplyInfo {
+		enum AdType {
+			CTWA = 0;
+			CAWC = 1;
+		}
+
 		enum MediaType {
 			NONE = 0;
 			IMAGE = 1;
@@ -1036,7 +1051,9 @@ message ContextInfo {
 		optional string ctaPayload = 20;
 		optional bool disableNudge = 21;
 		optional string originalImageURL = 22;
-		optional bool wtwaAdFormat = 23;
+		optional string automatedGreetingMessageCtaType = 23;
+		optional bool wtwaAdFormat = 24;
+		optional AdType adType = 25;
 	}
 
 	message AdReplyInfo {
@@ -1132,6 +1149,8 @@ message ContextInfo {
 	optional UrlTrackingMap urlTrackingMap = 58;
 	optional PairedMediaType pairedMediaType = 59;
 	optional uint32 rankingVersion = 60;
+	optional MemberLabel memberLabel = 62;
+	optional bool isQuestion = 63;
 }
 
 message BotPluginMetadata {
@@ -1294,13 +1313,17 @@ message AIRichResponseMessage {
 			optional double width = 3;
 			optional double height = 4;
 			optional double fontHeight = 5;
+			optional double imageTopPadding = 6;
+			optional double imageLeadingPadding = 7;
+			optional double imageBottomPadding = 8;
+			optional double imageTrailingPadding = 9;
 		}
 
 		optional string text = 1;
 		repeated AIRichResponseLatexExpression expressions = 2;
 	}
 
-	message AIRichResponseAbstractData {
+	message AIRichResponseUnifiedResponse {
 		optional bytes data = 1;
 	}
 
@@ -1326,7 +1349,17 @@ message AIRichResponseMessage {
 
 	optional AIRichResponseMessageType messageType = 1;
 	repeated AIRichResponseSubMessage submessages = 2;
-	optional AIRichResponseAbstractData abstractData = 3;
+	optional AIRichResponseUnifiedResponse unifiedResponse = 3;
+}
+
+message BotPromotionMessageMetadata {
+	enum BotPromotionType {
+		UNKNOWN_TYPE = 0;
+		C50 = 1;
+	}
+
+	optional BotPromotionType promotionType = 1;
+	optional string buttonTitle = 2;
 }
 
 message BotMediaMetadata {
@@ -1472,6 +1505,12 @@ message BotCapabilityMetadata {
 		AGENTIC_PLANNING = 27;
 		ACCOUNT_LINKING = 28;
 		STREAMING_DISAGGREGATION = 29;
+		RICH_RESPONSE_GRID_IMAGE_3P = 30;
+		RICH_RESPONSE_LATEX_INLINE = 31;
+		QUERY_PLAN = 32;
+		PROACTIVE_MESSAGE = 33;
+		RICH_RESPONSE_UNIFIED_RESPONSE = 34;
+		PROMOTION_MESSAGE = 35;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1551,6 +1590,8 @@ message MessageContextInfo {
 	optional MessageAssociation messageAssociation = 10;
 	optional bool capiCreatedGroup = 11;
 	optional string supportPayload = 12;
+	optional WACommon.LimitSharing limitSharing = 13;
+	optional WACommon.LimitSharing limitSharingV2 = 14;
 }
 
 message InteractiveAnnotation {
@@ -1757,6 +1798,8 @@ message Message {
 	optional AIRichResponseMessage richResponseMessage = 97;
 	optional StatusNotificationMessage statusNotificationMessage = 98;
 	optional FutureProofMessage limitSharingMessage = 99;
+	optional FutureProofMessage botTaskMessage = 100;
+	optional FutureProofMessage questionMessage = 101;
 }
 
 message AlbumMessage {
@@ -1765,15 +1808,26 @@ message AlbumMessage {
 	optional ContextInfo contextInfo = 17;
 }
 
+message MessageHistoryMetadata {
+	repeated string historyReceivers = 1;
+	optional int64 firstMessageTimestamp = 2;
+	optional int64 messageCount = 3;
+}
+
+message MessageHistoryNotice {
+	optional ContextInfo contextInfo = 1;
+	optional MessageHistoryMetadata messageHistoryMetadata = 2;
+}
+
 message MessageHistoryBundle {
-	optional string mimetype = 2;
-	optional bytes fileSHA256 = 3;
-	optional bytes mediaKey = 5;
-	optional bytes fileEncSHA256 = 6;
-	optional string directPath = 7;
-	optional int64 mediaKeyTimestamp = 8;
-	optional ContextInfo contextInfo = 9;
-	repeated string participants = 10;
+	optional string mimetype = 1;
+	optional bytes fileSHA256 = 2;
+	optional bytes mediaKey = 3;
+	optional bytes fileEncSHA256 = 4;
+	optional string directPath = 5;
+	optional int64 mediaKeyTimestamp = 6;
+	optional ContextInfo contextInfo = 7;
+	optional MessageHistoryMetadata messageHistoryMetadata = 8;
 }
 
 message EncEventResponseMessage {
@@ -1792,6 +1846,7 @@ message EventMessage {
 	optional int64 startTime = 7;
 	optional int64 endTime = 8;
 	optional bool extraGuestsAllowed = 9;
+	optional bool isScheduleCall = 10;
 }
 
 message CommentMessage {
@@ -2034,6 +2089,11 @@ message InitialSecurityNotificationSettingSync {
 }
 
 message PeerDataOperationRequestMessage {
+	message SyncDCollectionFatalRecoveryRequest {
+		repeated string collectionNames = 1;
+		optional int64 timestamp = 2;
+	}
+
 	message PlaceholderMessageResendRequest {
 		optional WACommon.MessageKey messageKey = 1;
 	}
@@ -2067,6 +2127,7 @@ message PeerDataOperationRequestMessage {
 	optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
 	repeated PlaceholderMessageResendRequest placeholderMessageResendRequest = 5;
 	optional FullHistorySyncOnDemandRequest fullHistorySyncOnDemandRequest = 6;
+	optional SyncDCollectionFatalRecoveryRequest syncdCollectionFatalRecoveryRequest = 7;
 }
 
 message FullHistorySyncOnDemandRequestMetadata {
@@ -2164,6 +2225,16 @@ message DocumentMessage {
 	optional string accessibilityLabel = 21;
 }
 
+message LinkPreviewMetadata {
+	optional PaymentLinkMetadata paymentLinkMetadata = 1;
+	optional URLMetadata urlMetadata = 2;
+	optional uint32 fbExperimentID = 3;
+}
+
+message URLMetadata {
+	optional uint32 fbExperimentID = 1;
+}
+
 message MMSThumbnailMetadata {
 	optional string thumbnailDirectPath = 1;
 	optional bytes thumbnailSHA256 = 2;
@@ -2227,6 +2298,7 @@ message BotPromptSuggestion {
 message BotLinkedAccountsMetadata {
 	repeated BotLinkedAccount accounts = 1;
 	optional bytes acAuthTokens = 2;
+	optional int32 acErrorCode = 3;
 }
 
 message BotMemoryMetadata {
@@ -2284,6 +2356,8 @@ message BotMetadata {
 	optional BotMetricsMetadata botMetricsMetadata = 17;
 	optional BotLinkedAccountsMetadata botLinkedAccountsMetadata = 18;
 	optional BotSourcesMetadata richResponseSourcesMetadata = 19;
+	optional bytes aiConversationContext = 20;
+	optional BotPromotionMessageMetadata botPromotionMessageMetadata = 21;
 }
 
 message DeviceListMetadata {
@@ -2407,4 +2481,15 @@ message UrlTrackingMap {
 	}
 
 	repeated UrlTrackingMapElement urlTrackingMapElements = 1;
+}
+
+message AIQueryFanout {
+	optional WACommon.MessageKey messageKey = 1;
+	optional Message message = 2;
+	optional int64 timestamp = 3;
+}
+
+message MemberLabel {
+	optional string label = 1;
+	optional int64 labelTimestamp = 2;
 }

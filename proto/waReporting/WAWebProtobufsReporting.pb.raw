@@ -1,32 +1,0 @@
-
-)waReporting/WAWebProtobufsReporting.protoWAWebProtobufsReporting"œ
-
-Reportable
-
-minVersion (R
-minVersion
-
-maxVersion (R
-maxVersion8
-notReportableMinVersion (RnotReportableMinVersion
-never (Rnever"¾
-Config@
-field (2*.WAWebProtobufsReporting.Config.FieldEntryRfield
-version (RversionX
-
-FieldEntry
-key (Rkey4
-value (2.WAWebProtobufsReporting.FieldRvalue:8"Æ
-Field
-
-minVersion (R
-minVersion
-
-maxVersion (R
-maxVersion8
-notReportableMinVersion (RnotReportableMinVersion
-	isMessage (R	isMessageH
-subfield (2,.WAWebProtobufsReporting.Field.SubfieldEntryRsubfield[
-SubfieldEntry
-key (Rkey4
-value (2.WAWebProtobufsReporting.FieldRvalue:8B'Z%go.mau.fi/whatsmeow/proto/waReportingbproto3
