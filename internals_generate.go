@@ -51,6 +51,9 @@ func getTypeName(expr ast.Expr) string {
 	case *ast.StarExpr:
 		return "*" + getTypeName(e.X)
 	case *ast.ArrayType:
+		if e.Len != nil {
+			return fmt.Sprintf("[%s]%s", getTypeName(e.Len), getTypeName(e.Elt))
+		}
 		return "[]" + getTypeName(e.Elt)
 	case *ast.MapType:
 		return fmt.Sprintf("map[%s]%s", getTypeName(e.Key), getTypeName(e.Value))
@@ -72,7 +75,11 @@ func getTypeName(expr ast.Expr) string {
 				results = append(results, getTypeName(result.Type))
 			}
 		}
-		return fmt.Sprintf("func(%s) %s", strings.Join(params, ", "), strings.Join(results, ", "))
+		retVals := strings.Join(results, ", ")
+		if len(results) > 1 {
+			retVals = fmt.Sprintf("(%s)", retVals)
+		}
+		return fmt.Sprintf("func(%s) %s", strings.Join(params, ", "), retVals)
 	case *ast.SelectorExpr:
 		return fmt.Sprintf("%s.%s", getTypeName(e.X), e.Sel.Name)
 	case *ast.StructType:
@@ -80,6 +87,8 @@ func getTypeName(expr ast.Expr) string {
 		return "struct{}"
 	case *ast.Ellipsis:
 		return fmt.Sprintf("...%s", e.Elt)
+	case *ast.BasicLit:
+		return e.Value
 	default:
 		panic(fmt.Errorf("unknown type %T", e))
 	}

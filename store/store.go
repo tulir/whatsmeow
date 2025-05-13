@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Tulir Asokan
+// Copyright (c) 2025 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -128,6 +128,19 @@ type PrivacyTokenStore interface {
 	GetPrivacyToken(user types.JID) (*PrivacyToken, error)
 }
 
+type BufferedEvent struct {
+	Plaintext  []byte
+	InsertTime time.Time
+	ServerTime time.Time
+}
+
+type EventBuffer interface {
+	GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte) (*BufferedEvent, error)
+	PutBufferedEvent(ctx context.Context, ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error
+	DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error
+	ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error
+}
+
 type LIDMapping struct {
 	LID types.JID
 	PN  types.JID
@@ -151,6 +164,7 @@ type AllSessionSpecificStores interface {
 	ChatSettingsStore
 	MsgSecretStore
 	PrivacyTokenStore
+	EventBuffer
 }
 
 type AllGlobalStores interface {
@@ -191,6 +205,7 @@ type Device struct {
 	ChatSettings  ChatSettingsStore
 	MsgSecrets    MsgSecretStore
 	PrivacyTokens PrivacyTokenStore
+	EventBuffer   EventBuffer
 	LIDs          LIDStore
 	Container     DeviceContainer
 
