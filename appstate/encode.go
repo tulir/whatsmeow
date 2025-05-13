@@ -1,6 +1,7 @@
 package appstate
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -245,8 +246,8 @@ func BuildStar(target, sender types.JID, messageID types.MessageID, fromMe, star
 	}
 }
 
-func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo PatchInfo) ([]byte, error) {
-	keys, err := proc.getAppStateKey(keyID)
+func (proc *Processor) EncodePatch(ctx context.Context, keyID []byte, state HashState, patchInfo PatchInfo) ([]byte, error) {
+	keys, err := proc.getAppStateKey(ctx, keyID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get app state key details with key ID %x: %w", keyID, err)
 	}
@@ -295,7 +296,7 @@ func (proc *Processor) EncodePatch(keyID []byte, state HashState, patchInfo Patc
 	}
 
 	warn, err := state.updateHash(mutations, func(indexMAC []byte, _ int) ([]byte, error) {
-		return proc.Store.AppState.GetAppStateMutationMAC(string(patchInfo.Type), indexMAC)
+		return proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchInfo.Type), indexMAC)
 	})
 	if len(warn) > 0 {
 		proc.Log.Warnf("Warnings while updating hash for %s (sending new app state): %+v", patchInfo.Type, warn)

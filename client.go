@@ -577,7 +577,7 @@ func (cli *Client) unlockedDisconnect() {
 //
 // Note that this will not emit any events. The LoggedOut event is only used for external logouts
 // (triggered by the user from the main device or by WhatsApp servers).
-func (cli *Client) Logout() error {
+func (cli *Client) Logout(ctx context.Context) error {
 	if cli == nil {
 		return ErrClientIsNil
 	} else if cli.MessengerConfig != nil {
@@ -603,7 +603,7 @@ func (cli *Client) Logout() error {
 		return fmt.Errorf("error sending logout request: %w", err)
 	}
 	cli.Disconnect()
-	err = cli.Store.Delete()
+	err = cli.Store.Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("error deleting data from store: %w", err)
 	}

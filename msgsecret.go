@@ -12,12 +12,11 @@ import (
 	"fmt"
 	"time"
 
-	"go.mau.fi/whatsmeow/proto/waCommon"
-	"go.mau.fi/whatsmeow/proto/waE2E"
-
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
+	"go.mau.fi/whatsmeow/proto/waCommon"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/gcmutil"
@@ -91,7 +90,7 @@ type messageEncryptedSecret interface {
 	GetEncPayload() []byte
 }
 
-func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waCommon.MessageKey) ([]byte, error) {
+func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waCommon.MessageKey) ([]byte, error) {
 	if cli == nil {
 		return nil, ErrClientIsNil
 	}
@@ -99,18 +98,18 @@ func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, 
 	if err != nil {
 		return nil, err
 	}
-	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(msg.Info.Chat, origSender, origMsgKey.GetID())
+	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get original message secret key: %w", err)
 	}
 	if baseEncKey == nil && origMsgKey.GetFromMe() && origSender.Server == types.HiddenUserServer {
-		origSender, err = cli.Store.LIDs.GetPNForLID(context.TODO(), origSender)
+		origSender, err = cli.Store.LIDs.GetPNForLID(ctx, origSender)
 		if err != nil {
 			return nil, fmt.Errorf("%w (also failed to get PN for LID: %w)", ErrOriginalMessageSecretNotFound, err)
 		} else if origSender.IsEmpty() {
 			return nil, fmt.Errorf("%w (PN for LID not found)", ErrOriginalMessageSecretNotFound)
 		}
-		baseEncKey, err = cli.Store.MsgSecrets.GetMessageSecret(msg.Info.Chat, origSender, origMsgKey.GetID())
+		baseEncKey, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get original message secret key with PN: %w", err)
 		}
@@ -126,14 +125,14 @@ func (cli *Client) decryptMsgSecret(msg *events.Message, useCase MsgSecretType, 
 	return plaintext, nil
 }
 
-func (cli *Client) encryptMsgSecret(ownID, chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
+func (cli *Client) encryptMsgSecret(ctx context.Context, ownID, chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
 	if cli == nil {
 		return nil, nil, ErrClientIsNil
 	} else if ownID.IsEmpty() {
 		return nil, nil, ErrNotLoggedIn
 	}
 
-	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(chat, origSender, origMsgID)
+	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, chat, origSender, origMsgID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get original message secret key: %w", err)
 	} else if baseEncKey == nil {
@@ -149,7 +148,7 @@ func (cli *Client) encryptMsgSecret(ownID, chat, origSender types.JID, origMsgID
 	return ciphertext, iv, nil
 }
 
-func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncryptedSecret, messageID types.MessageID, targetSenderJID types.JID, info *types.MessageInfo) ([]byte, error) {
+func (cli *Client) decryptBotMessage(ctx context.Context, messageSecret []byte, msMsg messageEncryptedSecret, messageID types.MessageID, targetSenderJID types.JID, info *types.MessageInfo) ([]byte, error) {
 	newKey, additionalData := generateMsgSecretKey("", info.Sender, messageID, targetSenderJID, applyBotMessageHKDF(messageSecret))
 
 	plaintext, err := gcmutil.Decrypt(newKey, msMsg.GetEncIV(), msMsg.GetEncPayload(), additionalData)
@@ -170,12 +169,12 @@ func (cli *Client) decryptBotMessage(messageSecret []byte, msMsg messageEncrypte
 //		}
 //		fmt.Printf("Reaction message: %+v\n", reaction)
 //	}
-func (cli *Client) DecryptReaction(reaction *events.Message) (*waE2E.ReactionMessage, error) {
+func (cli *Client) DecryptReaction(ctx context.Context, reaction *events.Message) (*waE2E.ReactionMessage, error) {
 	encReaction := reaction.Message.GetEncReactionMessage()
 	if encReaction == nil {
 		return nil, ErrNotEncryptedReactionMessage
 	}
-	plaintext, err := cli.decryptMsgSecret(reaction, EncSecretReaction, encReaction, encReaction.GetTargetMessageKey())
+	plaintext, err := cli.decryptMsgSecret(ctx, reaction, EncSecretReaction, encReaction, encReaction.GetTargetMessageKey())
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt reaction: %w", err)
 	}
@@ -197,12 +196,12 @@ func (cli *Client) DecryptReaction(reaction *events.Message) (*waE2E.ReactionMes
 //		}
 //		fmt.Printf("Comment message: %+v\n", comment)
 //	}
-func (cli *Client) DecryptComment(comment *events.Message) (*waE2E.Message, error) {
+func (cli *Client) DecryptComment(ctx context.Context, comment *events.Message) (*waE2E.Message, error) {
 	encComment := comment.Message.GetEncCommentMessage()
 	if encComment == nil {
 		return nil, ErrNotEncryptedCommentMessage
 	}
-	plaintext, err := cli.decryptMsgSecret(comment, EncSecretComment, encComment, encComment.GetTargetMessageKey())
+	plaintext, err := cli.decryptMsgSecret(ctx, comment, EncSecretComment, encComment, encComment.GetTargetMessageKey())
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt comment: %w", err)
 	}
@@ -227,12 +226,12 @@ func (cli *Client) DecryptComment(comment *events.Message) (*waE2E.Message, erro
 //			fmt.Printf("- %X\n", hash)
 //		}
 //	}
-func (cli *Client) DecryptPollVote(vote *events.Message) (*waE2E.PollVoteMessage, error) {
+func (cli *Client) DecryptPollVote(ctx context.Context, vote *events.Message) (*waE2E.PollVoteMessage, error) {
 	pollUpdate := vote.Message.GetPollUpdateMessage()
 	if pollUpdate == nil {
 		return nil, ErrNotPollUpdateMessage
 	}
-	plaintext, err := cli.decryptMsgSecret(vote, EncSecretPollVote, pollUpdate.GetVote(), pollUpdate.GetPollCreationMessageKey())
+	plaintext, err := cli.decryptMsgSecret(ctx, vote, EncSecretPollVote, pollUpdate.GetVote(), pollUpdate.GetPollCreationMessageKey())
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt poll vote: %w", err)
 	}
@@ -280,8 +279,8 @@ func HashPollOptions(optionNames []string) [][]byte {
 //		}
 //		resp, err := cli.SendMessage(context.Background(), evt.Info.Chat, pollVoteMsg)
 //	}
-func (cli *Client) BuildPollVote(pollInfo *types.MessageInfo, optionNames []string) (*waE2E.Message, error) {
-	pollUpdate, err := cli.EncryptPollVote(pollInfo, &waE2E.PollVoteMessage{
+func (cli *Client) BuildPollVote(ctx context.Context, pollInfo *types.MessageInfo, optionNames []string) (*waE2E.Message, error) {
+	pollUpdate, err := cli.EncryptPollVote(ctx, pollInfo, &waE2E.PollVoteMessage{
 		SelectedOptions: HashPollOptions(optionNames),
 	})
 	return &waE2E.Message{PollUpdateMessage: pollUpdate}, err
@@ -313,12 +312,12 @@ func (cli *Client) BuildPollCreation(name string, optionNames []string, selectab
 }
 
 // EncryptPollVote encrypts a poll vote message. This is a slightly lower-level function, using BuildPollVote is recommended.
-func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waE2E.PollVoteMessage) (*waE2E.PollUpdateMessage, error) {
+func (cli *Client) EncryptPollVote(ctx context.Context, pollInfo *types.MessageInfo, vote *waE2E.PollVoteMessage) (*waE2E.PollUpdateMessage, error) {
 	plaintext, err := proto.Marshal(vote)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal poll vote protobuf: %w", err)
 	}
-	ciphertext, iv, err := cli.encryptMsgSecret(cli.getOwnID(), pollInfo.Chat, pollInfo.Sender, pollInfo.ID, EncSecretPollVote, plaintext)
+	ciphertext, iv, err := cli.encryptMsgSecret(ctx, cli.getOwnID(), pollInfo.Chat, pollInfo.Sender, pollInfo.ID, EncSecretPollVote, plaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt poll vote: %w", err)
 	}
@@ -332,13 +331,13 @@ func (cli *Client) EncryptPollVote(pollInfo *types.MessageInfo, vote *waE2E.Poll
 	}, nil
 }
 
-func (cli *Client) EncryptComment(rootMsgInfo *types.MessageInfo, comment *waE2E.Message) (*waE2E.Message, error) {
+func (cli *Client) EncryptComment(ctx context.Context, rootMsgInfo *types.MessageInfo, comment *waE2E.Message) (*waE2E.Message, error) {
 	plaintext, err := proto.Marshal(comment)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal comment protobuf: %w", err)
 	}
 	// TODO is hardcoding LID here correct? What about polls?
-	ciphertext, iv, err := cli.encryptMsgSecret(cli.getOwnLID(), rootMsgInfo.Chat, rootMsgInfo.Sender, rootMsgInfo.ID, EncSecretComment, plaintext)
+	ciphertext, iv, err := cli.encryptMsgSecret(ctx, cli.getOwnLID(), rootMsgInfo.Chat, rootMsgInfo.Sender, rootMsgInfo.ID, EncSecretComment, plaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt comment: %w", err)
 	}
@@ -356,14 +355,14 @@ func (cli *Client) EncryptComment(rootMsgInfo *types.MessageInfo, comment *waE2E
 	}, nil
 }
 
-func (cli *Client) EncryptReaction(rootMsgInfo *types.MessageInfo, reaction *waE2E.ReactionMessage) (*waE2E.EncReactionMessage, error) {
+func (cli *Client) EncryptReaction(ctx context.Context, rootMsgInfo *types.MessageInfo, reaction *waE2E.ReactionMessage) (*waE2E.EncReactionMessage, error) {
 	reactionKey := reaction.Key
 	reaction.Key = nil
 	plaintext, err := proto.Marshal(reaction)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal reaction protobuf: %w", err)
 	}
-	ciphertext, iv, err := cli.encryptMsgSecret(cli.getOwnLID(), rootMsgInfo.Chat, rootMsgInfo.Sender, rootMsgInfo.ID, EncSecretReaction, plaintext)
+	ciphertext, iv, err := cli.encryptMsgSecret(ctx, cli.getOwnLID(), rootMsgInfo.Chat, rootMsgInfo.Sender, rootMsgInfo.ID, EncSecretReaction, plaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt reaction: %w", err)
 	}

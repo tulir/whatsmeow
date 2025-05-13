@@ -228,7 +228,7 @@ func (cli *Client) sendGroupV3(
 	start = time.Now()
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(to.String(), ownID.SignalAddress())
-	signalSKDMessage, err := builder.Create(senderKeyName)
+	signalSKDMessage, err := builder.Create(ctx, senderKeyName)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
 	}
@@ -265,7 +265,7 @@ func (cli *Client) sendGroupV3(
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to marshal message transport: %w", err)
 	}
-	encrypted, err := cipher.Encrypt(plaintext)
+	encrypted, err := cipher.Encrypt(ctx, plaintext)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
 	}
@@ -528,11 +528,12 @@ func (cli *Client) encryptMessageForDevicesV3(
 			}
 			dsmForDevice = dsm
 		}
-		encrypted, err := cli.encryptMessageForDeviceAndWrapV3(payload, skdm, dsmForDevice, jid, nil, encAttrs)
+		encrypted, err := cli.encryptMessageForDeviceAndWrapV3(ctx, payload, skdm, dsmForDevice, jid, nil, encAttrs)
 		if errors.Is(err, ErrNoSession) {
 			retryDevices = append(retryDevices, jid)
 			continue
 		} else if err != nil {
+			// TODO return these errors if it's a fatal one (like context cancellation or database)
 			cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
 			continue
 		}
@@ -553,8 +554,9 @@ func (cli *Client) encryptMessageForDevicesV3(
 				if jid.User == ownID.User {
 					dsmForDevice = dsm
 				}
-				encrypted, err := cli.encryptMessageForDeviceAndWrapV3(payload, skdm, dsmForDevice, jid, resp.bundle, encAttrs)
+				encrypted, err := cli.encryptMessageForDeviceAndWrapV3(ctx, payload, skdm, dsmForDevice, jid, resp.bundle, encAttrs)
 				if err != nil {
+					// TODO return these errors if it's a fatal one (like context cancellation or database)
 					cli.Log.Warnf("Failed to encrypt %s for %s (retry): %v", id, jid, err)
 					continue
 				}
@@ -566,6 +568,7 @@ func (cli *Client) encryptMessageForDevicesV3(
 }
 
 func (cli *Client) encryptMessageForDeviceAndWrapV3(
+	ctx context.Context,
 	payload *waMsgTransport.MessageTransport_Payload,
 	skdm *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage,
 	dsm *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage,
@@ -573,7 +576,7 @@ func (cli *Client) encryptMessageForDeviceAndWrapV3(
 	bundle *prekey.Bundle,
 	encAttrs waBinary.Attrs,
 ) (*waBinary.Node, error) {
-	node, err := cli.encryptMessageForDeviceV3(payload, skdm, dsm, to, bundle, encAttrs)
+	node, err := cli.encryptMessageForDeviceV3(ctx, payload, skdm, dsm, to, bundle, encAttrs)
 	if err != nil {
 		return nil, err
 	}
@@ -585,6 +588,7 @@ func (cli *Client) encryptMessageForDeviceAndWrapV3(
 }
 
 func (cli *Client) encryptMessageForDeviceV3(
+	ctx context.Context,
 	payload *waMsgTransport.MessageTransport_Payload,
 	skdm *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage,
 	dsm *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage,
@@ -595,16 +599,21 @@ func (cli *Client) encryptMessageForDeviceV3(
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if bundle != nil {
 		cli.Log.Debugf("Processing prekey bundle for %s", to)
-		err := builder.ProcessBundle(bundle)
+		err := builder.ProcessBundle(ctx, bundle)
 		if cli.AutoTrustIdentity && errors.Is(err, signalerror.ErrUntrustedIdentity) {
 			cli.Log.Warnf("Got %v error while trying to process prekey bundle for %s, clearing stored identity and retrying", err, to)
-			cli.clearUntrustedIdentity(to)
-			err = builder.ProcessBundle(bundle)
+			err = cli.clearUntrustedIdentity(ctx, to)
+			if err != nil {
+				return nil, fmt.Errorf("failed to clear untrusted identity: %w", err)
+			}
+			err = builder.ProcessBundle(ctx, bundle)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to process prekey bundle: %w", err)
 		}
-	} else if !cli.Store.ContainsSession(to.SignalAddress()) {
+	} else if contains, err := cli.Store.ContainsSession(ctx, to.SignalAddress()); err != nil {
+		return nil, err
+	} else if !contains {
 		return nil, ErrNoSession
 	}
 	cipher := session.NewCipher(builder, to.SignalAddress())
@@ -626,7 +635,7 @@ func (cli *Client) encryptMessageForDeviceV3(
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal message transport: %w", err)
 	}
-	ciphertext, err := cipher.Encrypt(plaintext)
+	ciphertext, err := cipher.Encrypt(ctx, plaintext)
 	if err != nil {
 		return nil, fmt.Errorf("cipher encryption failed: %w", err)
 	}

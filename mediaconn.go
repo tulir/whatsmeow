@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -40,7 +41,7 @@ func (mc *MediaConn) Expiry() time.Time {
 	return mc.FetchedAt.Add(time.Duration(mc.TTL) * time.Second)
 }
 
-func (cli *Client) refreshMediaConn(force bool) (*MediaConn, error) {
+func (cli *Client) refreshMediaConn(ctx context.Context, force bool) (*MediaConn, error) {
 	if cli == nil {
 		return nil, ErrClientIsNil
 	}
@@ -48,7 +49,7 @@ func (cli *Client) refreshMediaConn(force bool) (*MediaConn, error) {
 	defer cli.mediaConnLock.Unlock()
 	if cli.mediaConnCache == nil || force || time.Now().After(cli.mediaConnCache.Expiry()) {
 		var err error
-		cli.mediaConnCache, err = cli.queryMediaConn()
+		cli.mediaConnCache, err = cli.queryMediaConn(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -56,8 +57,9 @@ func (cli *Client) refreshMediaConn(force bool) (*MediaConn, error) {
 	return cli.mediaConnCache, nil
 }
 
-func (cli *Client) queryMediaConn() (*MediaConn, error) {
+func (cli *Client) queryMediaConn(ctx context.Context) (*MediaConn, error) {
 	resp, err := cli.sendIQ(infoQuery{
+		Context:   ctx,
 		Namespace: "w:m",
 		Type:      "set",
 		To:        types.ServerJID,

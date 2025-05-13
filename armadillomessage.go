@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"fmt"
 
 	"google.golang.org/protobuf/proto"
@@ -19,7 +20,7 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleDecryptedArmadillo(info *types.MessageInfo, decrypted []byte, retryCount int) bool {
+func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) bool {
 	dec, err := decodeArmadillo(decrypted)
 	if err != nil {
 		cli.Log.Warnf("Failed to decode armadillo message from %s: %v", info.SourceString(), err)
@@ -32,7 +33,7 @@ func (cli *Client) handleDecryptedArmadillo(info *types.MessageInfo, decrypted [
 			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
 		} else {
 			skdm := dec.Transport.GetProtocol().GetAncillary().GetSkdm()
-			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, skdm.AxolotlSenderKeyDistributionMessage)
+			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, info.Sender, skdm.AxolotlSenderKeyDistributionMessage)
 		}
 	}
 	if dec.Message != nil {

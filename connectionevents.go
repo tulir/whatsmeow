@@ -17,6 +17,7 @@ import (
 )
 
 func (cli *Client) handleStreamError(node *waBinary.Node) {
+	ctx := context.TODO()
 	cli.isLoggedIn.Store(false)
 	cli.clearResponseWaiters(node)
 	code, _ := node.Attrs["code"].(string)
@@ -41,7 +42,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		cli.expectDisconnect()
 		cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session")
 		go cli.dispatchEvent(&events.LoggedOut{OnConnect: false, Reason: events.ConnectFailureLoggedOut})
-		err := cli.Store.Delete()
+		err := cli.Store.Delete(ctx)
 		if err != nil {
 			cli.Log.Warnf("Failed to delete store after device_removed error: %v", err)
 		}
@@ -93,6 +94,7 @@ func (cli *Client) handleIB(node *waBinary.Node) {
 }
 
 func (cli *Client) handleConnectFailure(node *waBinary.Node) {
+	ctx := context.TODO()
 	ag := node.AttrGetter()
 	reason := events.ConnectFailureReason(ag.Int("reason"))
 	message := ag.OptionalString("message")
@@ -119,7 +121,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	if reason.IsLoggedOut() {
 		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason)
 		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})
-		err := cli.Store.Delete()
+		err := cli.Store.Delete(ctx)
 		if err != nil {
 			cli.Log.Warnf("Failed to delete store after %d failure: %v", int(reason), err)
 		}
@@ -149,6 +151,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 }
 
 func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
+	ctx := context.TODO()
 	cli.Log.Infof("Successfully authenticated")
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
@@ -156,28 +159,28 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	nodeLID := node.AttrGetter().JID("lid")
 	if cli.Store.LID.IsEmpty() && !nodeLID.IsEmpty() {
 		cli.Store.LID = nodeLID
-		err := cli.Store.Save()
+		err := cli.Store.Save(ctx)
 		if err != nil {
 			cli.Log.Warnf("Failed to save device after updating LID: %v", err)
 		} else {
 			cli.Log.Infof("Updated LID to %s", cli.Store.LID)
 		}
-		cli.StoreLIDPNMapping(context.TODO(), cli.Store.GetLID(), cli.Store.GetJID())
+		cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
 	}
 	go func() {
-		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(); err != nil {
+		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(ctx); err != nil {
 			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)
-		} else if serverCount, err := cli.getServerPreKeyCount(); err != nil {
+		} else if serverCount, err := cli.getServerPreKeyCount(ctx); err != nil {
 			cli.Log.Warnf("Failed to get number of prekeys on server: %v", err)
 		} else {
 			cli.Log.Debugf("Database has %d prekeys, server says we have %d", dbCount, serverCount)
 			if serverCount < MinPreKeyCount || dbCount < MinPreKeyCount {
-				cli.uploadPreKeys()
-				sc, _ := cli.getServerPreKeyCount()
+				cli.uploadPreKeys(ctx)
+				sc, _ := cli.getServerPreKeyCount(ctx)
 				cli.Log.Debugf("Prekey count after upload: %d", sc)
 			}
 		}
-		err := cli.SetPassive(false)
+		err := cli.SetPassive(ctx, false)
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
@@ -190,7 +193,7 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 //
 // This seems to mostly affect whether the device receives certain events.
 // By default, whatsmeow will automatically do SetPassive(false) after connecting.
-func (cli *Client) SetPassive(passive bool) error {
+func (cli *Client) SetPassive(ctx context.Context, passive bool) error {
 	tag := "active"
 	if passive {
 		tag = "passive"
@@ -199,6 +202,7 @@ func (cli *Client) SetPassive(passive bool) error {
 		Namespace: "passive",
 		Type:      "set",
 		To:        types.ServerJID,
+		Context:   ctx,
 		Content:   []waBinary.Node{{Tag: tag}},
 	})
 	if err != nil {
