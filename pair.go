@@ -25,6 +25,13 @@ import (
 	"go.mau.fi/whatsmeow/util/keys"
 )
 
+var (
+	AdvPrefixAccountSignature                                = []byte{6, 0}
+	AdvPrefixDeviceSignatureGenerate                         = []byte{6, 1}
+	AdvHostedPrefixDeviceIdentityAccountSignature            = []byte{6, 5}
+	AdvHostedPrefixDeviceIdentityDeviceSignatureVerification = []byte{6, 6}
+)
+
 func (cli *Client) handleIQ(node *waBinary.Node) {
 	children := node.GetChildren()
 	if len(children) != 1 || node.Attrs["from"] != types.ServerJID {
@@ -106,9 +113,14 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		cli.sendPairError(reqID, 500, "internal-error")
 		return &PairProtoError{"failed to parse device identity container in pair success message", err}
 	}
+	isHostedAccount := deviceIdentityContainer.AccountType != nil && *deviceIdentityContainer.AccountType == waAdv.ADVEncryptionType_HOSTED
 
 	h := hmac.New(sha256.New, cli.Store.AdvSecretKey)
+	if isHostedAccount {
+		h.Write(AdvHostedPrefixDeviceIdentityAccountSignature)
+	}
 	h.Write(deviceIdentityContainer.Details)
+
 	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.HMAC) {
 		cli.Log.Warnf("Invalid HMAC from pair success message")
 		cli.sendPairError(reqID, 401, "not-authorized")
@@ -122,12 +134,12 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		return &PairProtoError{"failed to parse signed device identity in pair success message", err}
 	}
 
-	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey) {
+	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount) {
 		cli.sendPairError(reqID, 401, "not-authorized")
 		return ErrPairInvalidDeviceSignature
 	}
 
-	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Store.IdentityKey)[:]
+	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount)[:]
 
 	var deviceIdentityDetails waAdv.ADVDeviceIdentity
 	err = proto.Unmarshal(deviceIdentity.Details, &deviceIdentityDetails)
@@ -212,7 +224,7 @@ func concatBytes(data ...[]byte) []byte {
 	return output
 }
 
-func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair) bool {
+func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair, isHostedAccount bool) bool {
 	if len(deviceIdentity.AccountSignatureKey) != 32 || len(deviceIdentity.AccountSignature) != 64 {
 		return false
 	}
@@ -220,12 +232,20 @@ func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceI
 	signatureKey := ecc.NewDjbECPublicKey(*(*[32]byte)(deviceIdentity.AccountSignatureKey))
 	signature := *(*[64]byte)(deviceIdentity.AccountSignature)
 
-	message := concatBytes([]byte{6, 0}, deviceIdentity.Details, ikp.Pub[:])
+	prefix := AdvPrefixAccountSignature
+	if isHostedAccount {
+		prefix = AdvHostedPrefixDeviceIdentityAccountSignature
+	}
+	message := concatBytes(prefix, deviceIdentity.Details, ikp.Pub[:])
 	return ecc.VerifySignature(signatureKey, message, signature)
 }
 
-func generateDeviceSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair) *[64]byte {
-	message := concatBytes([]byte{6, 1}, deviceIdentity.Details, ikp.Pub[:], deviceIdentity.AccountSignatureKey)
+func generateDeviceSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair, isHostedAccount bool) *[64]byte {
+	prefix := AdvPrefixDeviceSignatureGenerate
+	if isHostedAccount {
+		prefix = AdvHostedPrefixDeviceIdentityDeviceSignatureVerification
+	}
+	message := concatBytes(prefix, deviceIdentity.Details, ikp.Pub[:], deviceIdentity.AccountSignatureKey)
 	sig := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*ikp.Priv), message)
 	return &sig
 }
