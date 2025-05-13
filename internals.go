@@ -287,12 +287,16 @@ func (int *DangerousInternalClient) ClearUntrustedIdentity(target types.JID) {
 	int.c.clearUntrustedIdentity(target)
 }
 
-func (int *DangerousInternalClient) DecryptDM(child *waBinary.Node, from types.JID, isPreKey bool) ([]byte, error) {
-	return int.c.decryptDM(child, from, isPreKey)
+func (int *DangerousInternalClient) BufferedDecrypt(ctx context.Context, ciphertext []byte, serverTimestamp time.Time, decrypt func(context.Context) ([]byte, error)) (plaintext []byte, ciphertextHash [32]byte, err error) {
+	return int.c.bufferedDecrypt(ctx, ciphertext, serverTimestamp, decrypt)
 }
 
-func (int *DangerousInternalClient) DecryptGroupMsg(child *waBinary.Node, from types.JID, chat types.JID) ([]byte, error) {
-	return int.c.decryptGroupMsg(child, from, chat)
+func (int *DangerousInternalClient) DecryptDM(child *waBinary.Node, from types.JID, isPreKey bool, serverTS time.Time) ([]byte, *[32]byte, error) {
+	return int.c.decryptDM(child, from, isPreKey, serverTS)
+}
+
+func (int *DangerousInternalClient) DecryptGroupMsg(child *waBinary.Node, from types.JID, chat types.JID, serverTS time.Time) ([]byte, *[32]byte, error) {
+	return int.c.decryptGroupMsg(child, from, chat, serverTS)
 }
 
 func (int *DangerousInternalClient) HandleSenderKeyDistributionMessage(chat, from types.JID, axolotlSKDM []byte) {

@@ -36,6 +36,7 @@ var NoopDevice = &Device{
 	ChatSettings:  nilStore,
 	MsgSecrets:    nilStore,
 	PrivacyTokens: nilStore,
+	EventBuffer:   nilStore,
 	Container:     nilStore,
 }
 
@@ -216,6 +217,22 @@ func (n *NoopStore) PutDevice(store *Device) error {
 
 func (n *NoopStore) DeleteDevice(store *Device) error {
 	return n.Error
+}
+
+func (n *NoopStore) GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte) (*BufferedEvent, error) {
+	return nil, nil
+}
+
+func (n *NoopStore) PutBufferedEvent(ctx context.Context, ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error {
+	return nil
+}
+
+func (n *NoopStore) DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error {
+	return fn(ctx)
+}
+
+func (n *NoopStore) ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error {
+	return nil
 }
 
 func (n *NoopStore) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error) {

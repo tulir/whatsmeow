@@ -843,3 +843,47 @@ func (s *SQLStore) GetPrivacyToken(user types.JID) (*store.PrivacyToken, error) 
 		return &token, nil
 	}
 }
+
+const (
+	getBufferedEventQuery = `
+		SELECT plaintext, server_timestamp, insert_timestamp FROM whatsmeow_event_buffer WHERE our_jid = $1 AND ciphertext_hash = $2
+	`
+	putBufferedEventQuery = `
+		INSERT INTO whatsmeow_event_buffer (our_jid, ciphertext_hash, plaintext, server_timestamp, insert_timestamp)
+		VALUES ($1, $2, $3, $4, $5)
+	`
+	clearBufferedEventPlaintextQuery = `
+		UPDATE whatsmeow_event_buffer SET plaintext = NULL WHERE our_jid = $1 AND ciphertext_hash = $2
+	`
+)
+
+func (s *SQLStore) GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte) (*store.BufferedEvent, error) {
+	var insertTimeMS, serverTimeSeconds int64
+	var buf store.BufferedEvent
+	err := s.db.QueryRow(ctx, getBufferedEventQuery, s.JID, ciphertextHash[:]).Scan(&buf.Plaintext, &serverTimeSeconds, &insertTimeMS)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	buf.ServerTime = time.Unix(serverTimeSeconds, 0)
+	buf.InsertTime = time.UnixMilli(insertTimeMS)
+	return &buf, nil
+}
+
+func (s *SQLStore) PutBufferedEvent(ctx context.Context, ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error {
+	_, err := s.db.Exec(ctx, putBufferedEventQuery, s.JID, ciphertextHash[:], plaintext, serverTimestamp.Unix(), time.Now().UnixMilli())
+	return err
+}
+
+func (s *SQLStore) DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error {
+	return fn(ctx)
+	// TODO actually use transaction once libsignal-protocol-go passes them through
+	//ctx = context.WithValue(ctx, dbutil.ContextKeyDoTxnCallerSkip, 2)
+	//return s.db.DoTxn(ctx, nil, fn)
+}
+
+func (s *SQLStore) ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error {
+	_, err := s.db.Exec(ctx, clearBufferedEventPlaintextQuery, s.JID, ciphertextHash[:])
+	return err
+}
