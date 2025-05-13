@@ -50,6 +50,11 @@ message MiTransportAdminMessage {
 		optional Action action = 2;
 	}
 
+	message DisappearingSettingChanged {
+		optional int32 disappearingSettingDurationSeconds = 1;
+		optional int32 oldDisappearingSettingDurationSeconds = 2;
+	}
+
 	message IconChanged {
 		optional string threadIcon = 1;
 	}
@@ -95,5 +100,6 @@ message MiTransportAdminMessage {
 		QuickReactionChanged quickReactionChanged = 9;
 		LinkCta linkCta = 10;
 		IconChanged iconChanged = 11;
+		DisappearingSettingChanged disappearingSettingChanged = 12;
 	}
 }
