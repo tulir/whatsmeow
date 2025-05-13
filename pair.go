@@ -123,7 +123,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 
 	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.HMAC) {
 		cli.Log.Warnf("Invalid HMAC from pair success message")
-		cli.sendPairError(reqID, 401, "not-authorized")
+		cli.sendPairError(reqID, 401, "hmac-mismatch")
 		return ErrPairInvalidDeviceIdentityHMAC
 	}
 
@@ -135,7 +135,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	}
 
 	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount) {
-		cli.sendPairError(reqID, 401, "not-authorized")
+		cli.sendPairError(reqID, 401, "signature-mismatch")
 		return ErrPairInvalidDeviceSignature
 	}
 
