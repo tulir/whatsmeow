@@ -73,7 +73,8 @@ type Client struct {
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
 	// If SynchronousAck is set, acks for messages will only be sent after all event handlers return.
-	SynchronousAck bool
+	SynchronousAck             bool
+	EnableDecryptedEventBuffer bool
 
 	DisableLoginAutoReconnect bool
 
