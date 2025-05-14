@@ -51,7 +51,7 @@ type SQLStore struct {
 
 	migratedPNSessionsCache *exsync.Set[string]
 
-	DisableDecryptedEventBuffer bool
+	EnableDecryptedEventBuffer bool
 }
 
 // NewSQLStore creates a new SQLStore with the given database container and user JID.
@@ -860,7 +860,7 @@ const (
 )
 
 func (s *SQLStore) GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte) (*store.BufferedEvent, error) {
-	if s.DisableDecryptedEventBuffer {
+	if !s.EnableDecryptedEventBuffer {
 		return nil, nil
 	}
 	var insertTimeMS, serverTimeSeconds int64
@@ -877,7 +877,7 @@ func (s *SQLStore) GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte
 }
 
 func (s *SQLStore) PutBufferedEvent(ctx context.Context, ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error {
-	if s.DisableDecryptedEventBuffer {
+	if !s.EnableDecryptedEventBuffer {
 		return nil
 	}
 	_, err := s.db.Exec(ctx, putBufferedEventQuery, s.JID, ciphertextHash[:], plaintext, serverTimestamp.Unix(), time.Now().UnixMilli())
@@ -885,7 +885,7 @@ func (s *SQLStore) PutBufferedEvent(ctx context.Context, ciphertextHash [32]byte
 }
 
 func (s *SQLStore) DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error {
-	if s.DisableDecryptedEventBuffer {
+	if !s.EnableDecryptedEventBuffer {
 		return fn(ctx)
 	}
 	ctx = context.WithValue(ctx, dbutil.ContextKeyDoTxnCallerSkip, 2)
@@ -893,7 +893,7 @@ func (s *SQLStore) DoDecryptionTxn(ctx context.Context, fn func(context.Context)
 }
 
 func (s *SQLStore) ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error {
-	if s.DisableDecryptedEventBuffer {
+	if !s.EnableDecryptedEventBuffer {
 		return nil
 	}
 	_, err := s.db.Exec(ctx, clearBufferedEventPlaintextQuery, s.JID, ciphertextHash[:])
