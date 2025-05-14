@@ -30,8 +30,6 @@ type Container struct {
 	db     *dbutil.Database
 	log    waLog.Logger
 	LIDMap *CachedLIDMap
-
-	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
 
 var _ store.DeviceContainer = (*Container)(nil)
@@ -125,7 +123,6 @@ const getDeviceQuery = getAllDevicesQuery + " WHERE jid=$1"
 
 func (c *Container) scanDevice(row dbutil.Scannable) (*store.Device, error) {
 	var device store.Device
-	device.DatabaseErrorHandler = c.DatabaseErrorHandler
 	device.Log = c.log
 	device.SignedPreKey = &keys.PreKey{}
 	var noisePriv, identityPriv, preKeyPriv, preKeySig []byte
@@ -224,8 +221,6 @@ func (c *Container) NewDevice() *store.Device {
 	device := &store.Device{
 		Log:       c.log,
 		Container: c,
-
-		DatabaseErrorHandler: c.DatabaseErrorHandler,
 
 		NoiseKey:       keys.NewKeyPair(),
 		IdentityKey:    keys.NewKeyPair(),
