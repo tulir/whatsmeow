@@ -30,6 +30,8 @@ type Container struct {
 	db     *dbutil.Database
 	log    waLog.Logger
 	LIDMap *CachedLIDMap
+
+	DisableDecryptedEventBuffer bool
 }
 
 var _ store.DeviceContainer = (*Container)(nil)
@@ -262,6 +264,7 @@ func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 
 func (c *Container) initializeDevice(device *store.Device) {
 	innerStore := NewSQLStore(c, *device.ID)
+	innerStore.DisableDecryptedEventBuffer = c.DisableDecryptedEventBuffer
 	device.Identities = innerStore
 	device.Sessions = innerStore
 	device.PreKeys = innerStore
