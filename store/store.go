@@ -138,6 +138,7 @@ type EventBuffer interface {
 	PutBufferedEvent(ctx context.Context, ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error
 	DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error
 	ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error
+	DeleteOldBufferedHashes(ctx context.Context) error
 }
 
 type LIDMapping struct {

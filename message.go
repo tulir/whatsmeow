@@ -384,6 +384,16 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 					Hex("ciphertext_hash", ciphertextHash[:]).
 					Msg("Deleted event plaintext from buffer")
 			}
+
+			if time.Since(cli.lastDecryptedBufferClear) > 12*time.Hour {
+				cli.lastDecryptedBufferClear = time.Now()
+				go func() {
+					err := cli.Store.EventBuffer.DeleteOldBufferedHashes(context.WithoutCancel(ctx))
+					if err != nil {
+						zerolog.Ctx(ctx).Err(err).Msg("Failed to delete old buffered hashes")
+					}
+				}()
+			}
 		}
 	}
 	if handled {

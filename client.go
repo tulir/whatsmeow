@@ -75,6 +75,7 @@ type Client struct {
 	// If SynchronousAck is set, acks for messages will only be sent after all event handlers return.
 	SynchronousAck             bool
 	EnableDecryptedEventBuffer bool
+	lastDecryptedBufferClear   time.Time
 
 	DisableLoginAutoReconnect bool
 
