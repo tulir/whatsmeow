@@ -855,6 +855,9 @@ const (
 	clearBufferedEventPlaintextQuery = `
 		UPDATE whatsmeow_event_buffer SET plaintext = NULL WHERE our_jid = $1 AND ciphertext_hash = $2
 	`
+	deleteOldBufferedHashesQuery = `
+		DELETE FROM whatsmeow_event_buffer WHERE insert_timestamp < $1
+	`
 )
 
 func (s *SQLStore) GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte) (*store.BufferedEvent, error) {
@@ -883,5 +886,12 @@ func (s *SQLStore) DoDecryptionTxn(ctx context.Context, fn func(context.Context)
 
 func (s *SQLStore) ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error {
 	_, err := s.db.Exec(ctx, clearBufferedEventPlaintextQuery, s.JID, ciphertextHash[:])
+	return err
+}
+
+func (s *SQLStore) DeleteOldBufferedHashes(ctx context.Context) error {
+	// The WhatsApp servers only buffer events for 14 days,
+	// so we can safely delete anything older than that.
+	_, err := s.db.Exec(ctx, deleteOldBufferedHashesQuery, time.Now().Add(-14*24*time.Hour).UnixMilli())
 	return err
 }

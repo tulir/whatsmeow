@@ -235,6 +235,10 @@ func (n *NoopStore) ClearBufferedEventPlaintext(ctx context.Context, ciphertextH
 	return nil
 }
 
+func (n *NoopStore) DeleteOldBufferedHashes(ctx context.Context) error {
+	return nil
+}
+
 func (n *NoopStore) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error) {
 	return types.JID{}, n.Error
 }
