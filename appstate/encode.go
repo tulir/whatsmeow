@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"go.mau.fi/whatsmeow/proto/waCommon"
+	"go.mau.fi/whatsmeow/proto/waSyncAction"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -124,6 +126,42 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 	}
 
 	return result
+}
+
+// BuildMarkChatAsRead builds an app state patch for marking a chat as read or unread.
+//
+// The last message timestamp and last message key are optional and can be set to zero values (`time.Time{}` and `nil`).
+// It is recommended to set them.
+//
+// The last message key should contain RemoteJID, FromMe and ID. In case of a group chat also Participant.
+func BuildMarkChatAsRead(target types.JID, read bool, lastMessageTimestamp time.Time, lastMessageKey *waCommon.MessageKey) PatchInfo {
+	if lastMessageTimestamp.IsZero() {
+		lastMessageTimestamp = time.Now()
+	}
+	mutationInfo := MutationInfo{
+		Index:   []string{IndexMarkChatAsRead, target.String()},
+		Version: 3,
+		Value: &waSyncAction.SyncActionValue{
+			MarkChatAsReadAction: &waSyncAction.MarkChatAsReadAction{
+				Read: proto.Bool(read),
+				MessageRange: &waSyncAction.SyncActionMessageRange{
+					LastMessageTimestamp: proto.Int64(lastMessageTimestamp.Unix()),
+				},
+			},
+		},
+	}
+
+	if lastMessageKey != nil {
+		mutationInfo.Value.MarkChatAsReadAction.MessageRange.Messages = []*waSyncAction.SyncActionMessage{{
+			Key:       lastMessageKey,
+			Timestamp: proto.Int64(lastMessageTimestamp.Unix()),
+		}}
+	}
+
+	return PatchInfo{
+		Type:      WAPatchRegularLow,
+		Mutations: []MutationInfo{mutationInfo},
+	}
 }
 
 func newLabelChatMutation(target types.JID, labelID string, labeled bool) MutationInfo {
