@@ -129,7 +129,7 @@ func (cli *Client) downloadAndDecryptToFile(
 		return fmt.Errorf("failed to decrypt file: %w", err)
 	} else if info, err := file.Stat(); err != nil {
 		return fmt.Errorf("failed to stat file: %w", err)
-	} else if info.Size() != int64(fileLength) {
+	} else if fileLength >= 0 && info.Size() != int64(fileLength) {
 		return fmt.Errorf("%w: expected %d, got %d", ErrFileLengthMismatch, fileLength, info.Size())
 	} else if _, err = file.Seek(0, io.SeekStart); err != nil {
 		return fmt.Errorf("failed to seek to start of file after decrypting: %w", err)
