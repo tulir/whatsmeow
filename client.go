@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"go.mau.fi/util/exhttp"
 	"go.mau.fi/util/random"
 	"golang.org/x/net/proxy"
 
@@ -67,6 +68,7 @@ type Client struct {
 	isLoggedIn            atomic.Bool
 	expectedDisconnect    atomic.Bool
 	EnableAutoReconnect   bool
+	InitialAutoReconnect  bool
 	LastSuccessfulConnect time.Time
 	AutoReconnectErrors   int
 	// AutoReconnectHook is called when auto-reconnection fails. If the function returns false,
@@ -423,6 +425,17 @@ func (cli *Client) SetWSDialer(dialer *websocket.Dialer) {
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
+	err := cli.connect()
+	if exhttp.IsNetworkError(err) && cli.InitialAutoReconnect && cli.EnableAutoReconnect {
+		cli.Log.Errorf("Initial connection failed but reconnecting in background")
+		go cli.dispatchEvent(&events.Disconnected{})
+		go cli.autoReconnect()
+		return nil
+	}
+	return err
+}
+
+func (cli *Client) connect() error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -521,7 +534,7 @@ func (cli *Client) autoReconnect() {
 		cli.Log.Debugf("Automatically reconnecting after %v", autoReconnectDelay)
 		cli.AutoReconnectErrors++
 		time.Sleep(autoReconnectDelay)
-		err := cli.Connect()
+		err := cli.connect()
 		if errors.Is(err, ErrAlreadyConnected) {
 			cli.Log.Debugf("Connect() said we're already connected after autoreconnect sleep")
 			return
