@@ -65,6 +65,7 @@ func (s *stdoutLogger) Debugf(msg string, v ...interface{}) {
 
 // Info output logs at info level
 func (s *stdoutLogger) Infof(msg string, v ...interface{}) {
+	fmt.Printf("excute")
 	setPrefix(INFO)
 	logger.Printf(msg, v...)
 }

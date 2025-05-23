@@ -498,7 +498,7 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 	if isPreKey {
 		preKeyMsg, err := protocol.NewPreKeySignalMessageFromBytes(content, pbSerializer.PreKeySignalMessage, pbSerializer.SignalMessage)
 		if err != nil {
-			logging.StdOutLogger.Errorf("failed to parse prekey message: %w", err)
+			logging.StdOutLogger.Errorf("faile to parse prekey message: %w", err)
 			return nil, nil, fmt.Errorf("failed to parse prekey message: %w", err)
 		}
 		plaintext, ciphertextHash, err = cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
