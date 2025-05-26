@@ -381,6 +381,8 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 				logging.StdOutLogger.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
 				continue
 			}
+
+			logging.StdOutLogger.Debugf("go to handleDecryptMessage %s ", hex.EncodeToString(decrypted))
 			cli.handleDecryptedMessage(ctx, info, &msg, retryCount)
 			handled = true
 		case 3:
@@ -540,7 +542,7 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 		logging.StdOutLogger.Errorf("failed to unpad message: %w", err)
 		return nil, nil, fmt.Errorf("failed to unpad message: %w", err)
 	}
-	logging.StdOutLogger.Debugf("Decrypted message: %s", string(plaintext))
+	logging.StdOutLogger.Debugf("Decrypted message: %s", hex.EncodeToString(plaintext))
 	return plaintext, &ciphertextHash, nil
 }
 
@@ -570,7 +572,7 @@ func (cli *Client) decryptGroupMsg(ctx context.Context, child *waBinary.Node, fr
 	if err != nil {
 		return nil, nil, err
 	}
-	logging.StdOutLogger.Debugf("Decrypted group message: %s", string(plaintext))
+	logging.StdOutLogger.Debugf("Decrypted group message: %s", hex.EncodeToString(plaintext))
 	return plaintext, &ciphertextHash, nil
 }
 
@@ -850,7 +852,6 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 }
 
 func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) {
-	logging.StdOutLogger.Debugf("Decrypted message %s ", msg.String())
 	cli.processProtocolParts(ctx, info, msg)
 	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount}
 	cli.dispatchEvent(evt.UnwrapRaw())
