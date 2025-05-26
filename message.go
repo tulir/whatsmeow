@@ -256,7 +256,7 @@ func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.Messa
 			OriginalTS: meta.AttrGetter().UnixTime("original_msg_t"),
 		}
 	}
-	logging.StdOutLogger.Debugf("Received message from %s: %s", info.SourceString(), string(plaintextBody))
+	logging.StdOutLogger.Debugf("Received message from %s: %s", info.SourceString(), hex.EncodeToString(plaintextBody))
 	cli.dispatchEvent(evt.UnwrapRaw())
 }
 
