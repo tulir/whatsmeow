@@ -94,8 +94,13 @@ func (cli *Client) DownloadMediaWithPathToFile(
 		// TODO omit hash for unencrypted media?
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
 		err = cli.downloadAndDecryptToFile(ctx, mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash, file)
-		if err == nil || errors.Is(err, ErrFileLengthMismatch) || errors.Is(err, ErrInvalidMediaSHA256) ||
-			errors.Is(err, ErrMediaDownloadFailedWith403) || errors.Is(err, ErrMediaDownloadFailedWith404) || errors.Is(err, ErrMediaDownloadFailedWith410) {
+		if err == nil ||
+			errors.Is(err, ErrFileLengthMismatch) ||
+			errors.Is(err, ErrInvalidMediaSHA256) ||
+			errors.Is(err, ErrMediaDownloadFailedWith403) ||
+			errors.Is(err, ErrMediaDownloadFailedWith404) ||
+			errors.Is(err, ErrMediaDownloadFailedWith410) ||
+			errors.Is(err, context.Canceled) {
 			return err
 		} else if i >= len(mediaConn.Hosts)-1 {
 			return fmt.Errorf("failed to download media from last host: %w", err)
