@@ -42,6 +42,7 @@ var pbSerializer = store.SignalProtobufSerializer
 
 func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 	ctx := context.TODO()
+	logging.StdOutLogger.Debugf("Received encrypted message: %s", node.XMLString())
 	info, err := cli.parseMessageInfo(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
