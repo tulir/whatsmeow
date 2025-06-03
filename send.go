@@ -983,8 +983,15 @@ func (cli *Client) preparePeerMessageNode(
 		err = fmt.Errorf("failed to marshal message: %w", err)
 		return nil, err
 	}
+	encryptionIdentity := to
+	if to.Server == types.DefaultUserServer {
+		encryptionIdentity, err = cli.Store.LIDs.GetLIDForPN(ctx, to)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get LID for PN %s: %w", to, err)
+		}
+	}
 	start = time.Now()
-	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, to, nil, nil)
+	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, nil, nil)
 	timings.PeerEncrypt = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
@@ -1273,7 +1280,7 @@ func (cli *Client) encryptMessageForDevice(
 	} else if contains, err := cli.Store.ContainsSession(ctx, to.SignalAddress()); err != nil {
 		return nil, false, err
 	} else if !contains {
-		return nil, false, ErrNoSession
+		return nil, false, fmt.Errorf("%w with %s", ErrNoSession, to.SignalAddress().String())
 	}
 	cipher := session.NewCipher(builder, to.SignalAddress())
 	ciphertext, err := cipher.Encrypt(ctx, padMessage(plaintext))
