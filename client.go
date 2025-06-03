@@ -97,6 +97,7 @@ type Client struct {
 
 	historySyncNotifications  chan *waE2E.HistorySyncNotification
 	historySyncHandlerStarted atomic.Bool
+	ManualHistorySyncDownload bool
 
 	uploadPreKeysLock sync.Mutex
 	lastPreKeyUpload  time.Time
