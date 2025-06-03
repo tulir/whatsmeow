@@ -308,6 +308,7 @@ const (
 	WebMessageInfo_BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE            WebMessageInfo_StubType = 215
 	WebMessageInfo_CHANGE_LIMIT_SHARING                                     WebMessageInfo_StubType = 216
 	WebMessageInfo_GROUP_MEMBER_LINK_MODE                                   WebMessageInfo_StubType = 217
+	WebMessageInfo_BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE            WebMessageInfo_StubType = 218
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -531,6 +532,7 @@ var (
 		215: "BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE",
 		216: "CHANGE_LIMIT_SHARING",
 		217: "GROUP_MEMBER_LINK_MODE",
+		218: "BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -751,6 +753,7 @@ var (
 		"BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE":            215,
 		"CHANGE_LIMIT_SHARING":                                     216,
 		"GROUP_MEMBER_LINK_MODE":                                   217,
+		"BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE":            218,
 	}
 )
 
@@ -3705,7 +3708,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\x94V\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xc8V\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -3778,7 +3781,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\xef9\n" +
+	"BSP_AND_FB\x10\x03\"\xa3:\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4001,7 +4004,8 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	",BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_IN_MESSAGE\x10\xd6\x01\x122\n" +
 	"-BIZ_CUSTOMER_3PD_DATA_SHARING_OPT_OUT_MESSAGE\x10\xd7\x01\x12\x19\n" +
 	"\x14CHANGE_LIMIT_SHARING\x10\xd8\x01\x12\x1b\n" +
-	"\x16GROUP_MEMBER_LINK_MODE\x10\xd9\x01\"X\n" +
+	"\x16GROUP_MEMBER_LINK_MODE\x10\xd9\x01\x122\n" +
+	"-BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE\x10\xda\x01\"X\n" +
 	"\x06Status\x12\t\n" +
 	"\x05ERROR\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0e\n" +

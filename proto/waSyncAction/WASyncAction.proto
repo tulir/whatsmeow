@@ -56,6 +56,15 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message PaymentTosAction {
+	enum PaymentNotice {
+		BR_PAY_PRIVACY_POLICY = 0;
+	}
+
+	required PaymentNotice paymentNotice = 1;
+	required bool accepted = 2;
+}
+
 message NotificationActivitySettingAction {
 	enum NotificationActivitySetting {
 		DEFAULT_ALL_MESSAGES = 0;
@@ -244,6 +253,7 @@ message SyncActionValue {
 	optional NotificationActivitySettingAction notificationActivitySettingAction = 60;
 	optional LidContactAction lidContactAction = 61;
 	optional CtwaPerCustomerDataSharingAction ctwaPerCustomerDataSharingAction = 62;
+	optional PaymentTosAction paymentTosAction = 63;
 }
 
 message CtwaPerCustomerDataSharingAction {
