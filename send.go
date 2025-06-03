@@ -362,7 +362,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	switch to.Server {
 	case types.GroupServer, types.BroadcastServer:
 		phash, data, err = cli.sendGroup(ctx, to, groupParticipants, req.ID, message, &resp.DebugTimings, extraParams)
-	case types.DefaultUserServer, types.BotServer:
+	case types.DefaultUserServer, types.BotServer, types.HiddenUserServer:
 		if req.Peer {
 			data, err = cli.sendPeerMessage(ctx, to, req.ID, message, &resp.DebugTimings)
 		} else {
@@ -590,7 +590,7 @@ func ParseDisappearingTimerString(val string) (time.Duration, bool) {
 // In groups, the server will echo the change as a notification, so it'll show up as a *events.GroupInfo update.
 func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (err error) {
 	switch chat.Server {
-	case types.DefaultUserServer:
+	case types.DefaultUserServer, types.HiddenUserServer:
 		_, err = cli.SendMessage(context.TODO(), chat, &waE2E.Message{
 			ProtocolMessage: &waE2E.ProtocolMessage{
 				Type:                waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
