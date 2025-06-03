@@ -607,30 +607,44 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 	}()
 	ctx := context.TODO()
 	for notif := range cli.historySyncNotifications {
-		cli.handleHistorySyncNotification(ctx, notif)
+		blob, err := cli.DownloadHistorySync(ctx, notif, false)
+		if err != nil {
+			cli.Log.Errorf("Failed to download history sync: %v", err)
+		} else {
+			cli.dispatchEvent(&events.HistorySync{Data: blob})
+		}
 	}
 }
 
-func (cli *Client) handleHistorySyncNotification(ctx context.Context, notif *waE2E.HistorySyncNotification) {
+// DownloadHistorySync will download and parse the history sync blob from the given history sync notification.
+//
+// You only need to call this manually if you set [Client.ManualHistorySyncDownload] to true.
+// By default, whatsmeow will call this automatically and dispatch an [events.HistorySync] with the parsed data.
+func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.HistorySyncNotification, synchronousStorage bool) (*waHistorySync.HistorySync, error) {
 	var historySync waHistorySync.HistorySync
 	if data, err := cli.Download(ctx, notif); err != nil {
-		cli.Log.Errorf("Failed to download history sync data: %v", err)
+		return nil, fmt.Errorf("failed to download: %w", err)
 	} else if reader, err := zlib.NewReader(bytes.NewReader(data)); err != nil {
-		cli.Log.Errorf("Failed to create zlib reader for history sync data: %v", err)
+		return nil, fmt.Errorf("failed to prepare to decompress: %w", err)
 	} else if rawData, err := io.ReadAll(reader); err != nil {
-		cli.Log.Errorf("Failed to decompress history sync data: %v", err)
+		return nil, fmt.Errorf("failed to decompress: %w", err)
 	} else if err = proto.Unmarshal(rawData, &historySync); err != nil {
-		cli.Log.Errorf("Failed to unmarshal history sync data: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal: %w", err)
 	} else {
 		cli.Log.Debugf("Received history sync (type %s, chunk %d)", historySync.GetSyncType(), historySync.GetChunkOrder())
-		if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
-			go cli.handleHistoricalPushNames(context.WithoutCancel(ctx), historySync.GetPushnames())
-		} else if len(historySync.GetConversations()) > 0 {
-			go cli.storeHistoricalMessageSecrets(context.WithoutCancel(ctx), historySync.GetConversations())
+		doStorage := func(ctx context.Context) {
+			if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
+				cli.handleHistoricalPushNames(ctx, historySync.GetPushnames())
+			} else if len(historySync.GetConversations()) > 0 {
+				cli.storeHistoricalMessageSecrets(ctx, historySync.GetConversations())
+			}
 		}
-		cli.dispatchEvent(&events.HistorySync{
-			Data: &historySync,
-		})
+		if synchronousStorage {
+			doStorage(ctx)
+		} else {
+			go doStorage(context.WithoutCancel(ctx))
+		}
+		return &historySync, nil
 	}
 }
 
@@ -697,9 +711,11 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 	protoMsg := msg.GetProtocolMessage()
 
 	if protoMsg.GetHistorySyncNotification() != nil && info.IsFromMe {
-		cli.historySyncNotifications <- protoMsg.HistorySyncNotification
-		if cli.historySyncHandlerStarted.CompareAndSwap(false, true) {
-			go cli.handleHistorySyncNotificationLoop()
+		if !cli.ManualHistorySyncDownload {
+			cli.historySyncNotifications <- protoMsg.HistorySyncNotification
+			if cli.historySyncHandlerStarted.CompareAndSwap(false, true) {
+				go cli.handleHistorySyncNotificationLoop()
+			}
 		}
 		go cli.sendProtocolMessageReceipt(info.ID, types.ReceiptTypeHistorySync)
 	}

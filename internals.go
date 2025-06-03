@@ -99,6 +99,14 @@ func (int *DangerousInternalClient) GetOwnLID() types.JID {
 	return int.c.getOwnLID()
 }
 
+func (int *DangerousInternalClient) Connect() error {
+	return int.c.connect()
+}
+
+func (int *DangerousInternalClient) UnlockedConnect() error {
+	return int.c.unlockedConnect()
+}
+
 func (int *DangerousInternalClient) OnDisconnect(ns *socket.NoiseSocket, remote bool) {
 	int.c.onDisconnect(ns, remote)
 }
@@ -305,10 +313,6 @@ func (int *DangerousInternalClient) HandleSenderKeyDistributionMessage(ctx conte
 
 func (int *DangerousInternalClient) HandleHistorySyncNotificationLoop() {
 	int.c.handleHistorySyncNotificationLoop()
-}
-
-func (int *DangerousInternalClient) HandleHistorySyncNotification(ctx context.Context, notif *waE2E.HistorySyncNotification) {
-	int.c.handleHistorySyncNotification(ctx, notif)
 }
 
 func (int *DangerousInternalClient) HandleAppStateSyncKeyShare(ctx context.Context, keys *waE2E.AppStateSyncKeyShare) {
