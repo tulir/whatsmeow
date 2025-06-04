@@ -105,6 +105,18 @@ type ContactQRLinkTarget struct {
 	PushName string // The notify / push name of the user.
 }
 
+type PrivacyActionChange string
+
+const (
+	PrivacyActionChangeAdd    PrivacyActionChange = "add"
+	PrivacyActionChangeRemove PrivacyActionChange = "remove"
+)
+
+type PrivacyJID struct {
+	JID    JID
+	Action PrivacyActionChange
+}
+
 // PrivacySetting is an individual setting value in the user's privacy settings.
 type PrivacySetting string
 
@@ -132,15 +144,21 @@ const (
 	PrivacySettingTypeCallAdd      PrivacySettingType = "calladd"      // Valid values: PrivacySettingAll, PrivacySettingKnown
 )
 
+type PrivacySettingItem struct {
+	Value PrivacySetting
+	DHash int64
+	JID   []JID
+}
+
 // PrivacySettings contains the user's privacy settings.
 type PrivacySettings struct {
-	GroupAdd     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
-	LastSeen     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
-	Status       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
-	Profile      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
-	ReadReceipts PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingNone
-	CallAdd      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingKnown
-	Online       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
+	GroupAdd     PrivacySettingItem // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	LastSeen     PrivacySettingItem // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	Status       PrivacySettingItem // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	Profile      PrivacySettingItem // Valid values: PrivacySettingAll, PrivacySettingContacts, PrivacySettingContactBlacklist, PrivacySettingNone
+	ReadReceipts PrivacySettingItem // Valid values: PrivacySettingAll, PrivacySettingNone
+	CallAdd      PrivacySettingItem // Valid values: PrivacySettingAll, PrivacySettingKnown
+	Online       PrivacySettingItem // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
 }
 
 // StatusPrivacyType is the type of list in StatusPrivacy.
