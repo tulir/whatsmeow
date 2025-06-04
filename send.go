@@ -362,7 +362,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	switch to.Server {
 	case types.GroupServer, types.BroadcastServer:
 		phash, data, err = cli.sendGroup(ctx, to, groupParticipants, req.ID, message, &resp.DebugTimings, extraParams)
-	case types.DefaultUserServer, types.BotServer:
+	case types.DefaultUserServer, types.BotServer, types.HiddenUserServer:
 		if req.Peer {
 			data, err = cli.sendPeerMessage(ctx, to, req.ID, message, &resp.DebugTimings)
 		} else {
@@ -590,7 +590,7 @@ func ParseDisappearingTimerString(val string) (time.Duration, bool) {
 // In groups, the server will echo the change as a notification, so it'll show up as a *events.GroupInfo update.
 func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (err error) {
 	switch chat.Server {
-	case types.DefaultUserServer:
+	case types.DefaultUserServer, types.HiddenUserServer:
 		_, err = cli.SendMessage(context.TODO(), chat, &waE2E.Message{
 			ProtocolMessage: &waE2E.ProtocolMessage{
 				Type:                waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
@@ -985,8 +985,15 @@ func (cli *Client) preparePeerMessageNode(
 		err = fmt.Errorf("failed to marshal message: %w", err)
 		return nil, err
 	}
+	encryptionIdentity := to
+	if to.Server == types.DefaultUserServer {
+		encryptionIdentity, err = cli.Store.LIDs.GetLIDForPN(ctx, to)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get LID for PN %s: %w", to, err)
+		}
+	}
 	start = time.Now()
-	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, to, nil, nil)
+	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, nil, nil)
 	timings.PeerEncrypt = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
@@ -1280,7 +1287,7 @@ func (cli *Client) encryptMessageForDevice(
 	} else if contains, err := cli.Store.ContainsSession(ctx, to.SignalAddress()); err != nil {
 		return nil, false, err
 	} else if !contains {
-		return nil, false, ErrNoSession
+		return nil, false, fmt.Errorf("%w with %s", ErrNoSession, to.SignalAddress().String())
 	}
 	cipher := session.NewCipher(builder, to.SignalAddress())
 	ciphertext, err := cipher.Encrypt(ctx, padMessage(plaintext))

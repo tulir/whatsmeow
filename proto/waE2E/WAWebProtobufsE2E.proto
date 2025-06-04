@@ -50,6 +50,7 @@ enum BotMetricsEntryPoint {
 	META_AI_CHAT_SHORTCUT_AI_STUDIO = 22;
 	UGC_CHAT_SHORTCUT_AI_STUDIO = 23;
 	NEW_CHAT_AI_STUDIO = 24;
+	AIVOICE_FAVICON_CALL_HISTORY = 25;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -775,7 +776,8 @@ message CloudAPIThreadControlNotification {
 
 message BotFeedbackMessage {
 	enum ReportKind {
-		GENERIC = 0;
+		NONE = 0;
+		GENERIC = 1;
 	}
 
 	enum BotFeedbackKindMultiplePositive {
@@ -808,6 +810,8 @@ message BotFeedbackMessage {
 		BOT_FEEDBACK_NEGATIVE_PERSONALIZED = 10;
 		BOT_FEEDBACK_NEGATIVE_CLARITY = 11;
 		BOT_FEEDBACK_NEGATIVE_DOESNT_LOOK_LIKE_THE_PERSON = 12;
+		BOT_FEEDBACK_NEGATIVE_HALLUCINATION_INTERNAL_ONLY = 13;
+		BOT_FEEDBACK_NEGATIVE = 14;
 	}
 
 	optional WACommon.MessageKey messageKey = 1;
@@ -1015,6 +1019,8 @@ message ContextInfo {
 		HD_VIDEO_CHILD = 2;
 		SD_IMAGE_PARENT = 3;
 		HD_IMAGE_CHILD = 4;
+		MOTION_PHOTO_PARENT = 5;
+		MOTION_PHOTO_CHILD = 6;
 	}
 
 	enum StatusAttributionType {
@@ -1617,6 +1623,16 @@ message MessageAssociation {
 	optional int32 messageIndex = 3;
 }
 
+message ThreadID {
+	enum ThreadType {
+		UNKNOWN = 0;
+		VIEW_REPLIES = 1;
+	}
+
+	optional ThreadType threadType = 1;
+	optional WACommon.MessageKey threadKey = 2;
+}
+
 message MessageContextInfo {
 	enum MessageAddonExpiryType {
 		STATIC = 1;
@@ -1637,6 +1653,7 @@ message MessageContextInfo {
 	optional string supportPayload = 12;
 	optional WACommon.LimitSharing limitSharing = 13;
 	optional WACommon.LimitSharing limitSharingV2 = 14;
+	repeated ThreadID threadID = 15;
 }
 
 message InteractiveAnnotation {
