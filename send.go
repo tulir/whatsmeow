@@ -799,6 +799,16 @@ func (cli *Client) sendDM(
 	if err != nil {
 		return nil, err
 	}
+
+	if tcToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, to); err != nil {
+		cli.Log.Warnf("Failed to get privacy token for %s: %v", to, err)
+	} else if tcToken != nil {
+		node.Content = append(node.GetChildren(), waBinary.Node{
+			Tag:     "tctoken",
+			Content: tcToken.Token,
+		})
+	}
+
 	start = time.Now()
 	data, err := cli.sendNodeAndGetData(*node)
 	timings.Send = time.Since(start)
