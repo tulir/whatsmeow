@@ -38,7 +38,7 @@ type reportingField struct {
 }
 
 func (cli *Client) shouldIncludeReportingToken(message *waE2E.Message) bool {
-	if !cli.SendReportingTokens || message.GetMessageContextInfo().GetMessageSecret() == nil {
+	if !cli.SendReportingTokens {
 		return false
 	}
 	return message.ReactionMessage == nil &&

@@ -255,7 +255,6 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		EnableAutoReconnect: true,
 		AutoTrustIdentity:   true,
-		SendReportingTokens: true,
 
 		BackgroundEventCtx: context.Background(),
 	}
