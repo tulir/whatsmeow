@@ -170,6 +170,8 @@ type Client struct {
 	// Should SubscribePresence return an error if no privacy token is stored for the user?
 	ErrorOnSubscribePresenceWithoutToken bool
 
+	BackgroundEventCtx context.Context
+
 	phoneLinkingCache *phoneLinkingCache
 
 	uniqueID  string
@@ -260,6 +262,8 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		EnableAutoReconnect: true,
 		AutoTrustIdentity:   true,
+
+		BackgroundEventCtx: context.Background(),
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,

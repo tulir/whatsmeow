@@ -406,7 +406,7 @@ func (cli *Client) handleStatusNotification(ctx context.Context, node *waBinary.
 }
 
 func (cli *Client) handleNotification(node *waBinary.Node) {
-	ctx := context.TODO()
+	ctx := cli.BackgroundEventCtx
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
 	if !ag.OK() {
