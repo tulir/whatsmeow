@@ -224,7 +224,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	isBotMode := isInlineBotMode || to.IsBot()
-	needsMessageSecret := isBotMode
+	needsMessageSecret := isBotMode || cli.shouldIncludeReportingToken(message)
 	var extraParams nodeExtraParams
 
 	if needsMessageSecret {
@@ -361,7 +361,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	var data []byte
 	switch to.Server {
 	case types.GroupServer, types.BroadcastServer:
-		phash, data, err = cli.sendGroup(ctx, to, groupParticipants, req.ID, message, &resp.DebugTimings, extraParams)
+		phash, data, err = cli.sendGroup(ctx, ownID, to, groupParticipants, req.ID, message, &resp.DebugTimings, extraParams)
 	case types.DefaultUserServer, types.BotServer, types.HiddenUserServer:
 		if req.Peer {
 			data, err = cli.sendPeerMessage(ctx, to, req.ID, message, &resp.DebugTimings)
@@ -688,6 +688,7 @@ type nodeExtraParams struct {
 
 func (cli *Client) sendGroup(
 	ctx context.Context,
+	ownID,
 	to types.JID,
 	participants []types.JID,
 	id types.MessageID,
@@ -746,6 +747,9 @@ func (cli *Client) sendGroup(
 		skMsg.Attrs["mediatype"] = mediaType
 	}
 	node.Content = append(node.GetChildren(), skMsg)
+	if cli.shouldIncludeReportingToken(message) {
+		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(plaintext, message, ownID, to, id))
+	}
 
 	start = time.Now()
 	data, err := cli.sendNodeAndGetData(*node)
@@ -798,6 +802,10 @@ func (cli *Client) sendDM(
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	if cli.shouldIncludeReportingToken(message) {
+		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(messagePlaintext, message, ownID, to, id))
 	}
 
 	if tcToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, to); err != nil {

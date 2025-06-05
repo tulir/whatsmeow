@@ -161,6 +161,8 @@ type Client struct {
 	// Should SubscribePresence return an error if no privacy token is stored for the user?
 	ErrorOnSubscribePresenceWithoutToken bool
 
+	SendReportingTokens bool
+
 	BackgroundEventCtx context.Context
 
 	phoneLinkingCache *phoneLinkingCache
@@ -253,6 +255,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		EnableAutoReconnect: true,
 		AutoTrustIdentity:   true,
+		SendReportingTokens: true,
 
 		BackgroundEventCtx: context.Background(),
 	}
