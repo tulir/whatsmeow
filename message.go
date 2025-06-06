@@ -342,7 +342,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			cli.Log.Debugf("Ignoring message %s from %s: %v", info.ID, info.SourceString(), err)
 			return
 		} else if err != nil {
-			cli.Log.Warnf("Error decrypting message from %s: %v", info.SourceString(), err)
+			cli.Log.Warnf("Error decrypting message %s from %s: %v", info.ID, info.SourceString(), err)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
 			if encType != "msmsg" {
 				go cli.sendRetryReceipt(context.WithoutCancel(ctx), node, info, isUnavailable)
