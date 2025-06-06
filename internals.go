@@ -495,8 +495,8 @@ func (int *DangerousInternalClient) ParseReceipt(node *waBinary.Node) (*events.R
 	return int.c.parseReceipt(node)
 }
 
-func (int *DangerousInternalClient) MaybeDeferredAck(node *waBinary.Node) func() {
-	return int.c.maybeDeferredAck(node)
+func (int *DangerousInternalClient) MaybeDeferredAck(ctx context.Context, node *waBinary.Node) func() {
+	return int.c.maybeDeferredAck(ctx, node)
 }
 
 func (int *DangerousInternalClient) SendAck(node *waBinary.Node) {
@@ -623,10 +623,6 @@ func (int *DangerousInternalClient) PreparePeerMessageNode(ctx context.Context, 
 	return int.c.preparePeerMessageNode(ctx, to, id, message, timings)
 }
 
-func (int *DangerousInternalClient) GetMessageReportingToken(msgProtobuf []byte, msg *waE2E.Message, senderJID, remoteJID types.JID, messageID types.MessageID) waBinary.Node {
-	return int.c.getMessageReportingToken(msgProtobuf, msg, senderJID, remoteJID, messageID)
-}
-
 func (int *DangerousInternalClient) GetMessageContent(baseNode waBinary.Node, message *waE2E.Message, msgAttrs waBinary.Attrs, includeIdentity bool, extraParams nodeExtraParams) []waBinary.Node {
 	return int.c.getMessageContent(baseNode, message, msgAttrs, includeIdentity, extraParams)
 }
@@ -685,4 +681,12 @@ func (int *DangerousInternalClient) Usync(ctx context.Context, jids []types.JID,
 
 func (int *DangerousInternalClient) ParseBlocklist(node *waBinary.Node) *types.Blocklist {
 	return int.c.parseBlocklist(node)
+}
+
+func (int *DangerousInternalClient) ShouldIncludeReportingToken(message *waE2E.Message) bool {
+	return int.c.shouldIncludeReportingToken(message)
+}
+
+func (int *DangerousInternalClient) GetMessageReportingToken(msgProtobuf []byte, msg *waE2E.Message, senderJID, remoteJID types.JID, messageID types.MessageID) waBinary.Node {
+	return int.c.getMessageReportingToken(msgProtobuf, msg, senderJID, remoteJID, messageID)
 }

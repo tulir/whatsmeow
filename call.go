@@ -13,7 +13,7 @@ import (
 )
 
 func (cli *Client) handleCallEvent(node *waBinary.Node) {
-	defer cli.maybeDeferredAck(node)()
+	defer cli.maybeDeferredAck(cli.BackgroundEventCtx, node)()
 
 	if len(node.GetChildren()) != 1 {
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
