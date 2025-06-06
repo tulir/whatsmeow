@@ -412,7 +412,7 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	if !ag.OK() {
 		return
 	}
-	defer cli.maybeDeferredAck(node)()
+	defer cli.maybeDeferredAck(ctx, node)()
 	switch notifType {
 	case "encrypt":
 		go cli.handleEncryptNotification(ctx, node)
