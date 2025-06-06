@@ -12,7 +12,6 @@ import (
 	_ "embed"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"sort"
 	"sync"
 
@@ -70,11 +69,7 @@ func (cli *Client) getMessageReportingToken(
 }
 
 func getReportingToken(messageProtobuf []byte) []byte {
-	tok := extractReportingTokenContent(messageProtobuf, getReportingFields())
-	fmt.Println("TOKEN:")
-	fmt.Println(string(tok))
-	fmt.Printf("%x\n", tok)
-	return tok
+	return extractReportingTokenContent(messageProtobuf, getReportingFields())
 }
 
 // Helper to find config for a field number
