@@ -162,3 +162,9 @@ type GroupParticipantRequest struct {
 	JID         JID
 	RequestedAt time.Time
 }
+
+type GroupUpdateUserRole struct {
+	Xwa2GroupUpdateUsersRole struct {
+		GroupID string `json:"group_id"`
+	} `json:"xwa2_group_update_users_role"`
+}

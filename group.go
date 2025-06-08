@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -957,4 +958,24 @@ func (cli *Client) SetGroupDescription(jid types.JID, description string) error 
 
 	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
 	return err
+}
+
+func (cli *Client) TransferOwner(communityJID, ownerJID types.JID) (respData types.GroupUpdateUserRole, err error) {
+	payload := map[string]any{
+		"input": map[string]any{
+			"group_id": communityJID.String(),
+			"role_updates": map[string]any{
+				"new_role": "SUPERADMIN_MEMBER",
+				"user_jid": ownerJID.String(),
+			},
+		},
+	}
+
+	resp, err := cli.sendMexIQ(context.TODO(), "8057955934320889", payload)
+	if err != nil {
+		return respData, err
+	}
+
+	err = json.Unmarshal(resp, &respData)
+	return respData, err
 }
