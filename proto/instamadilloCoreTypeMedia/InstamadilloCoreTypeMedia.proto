@@ -1,0 +1,112 @@
+syntax = "proto2";
+package InstamadilloCoreTypeMedia;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeMedia";
+
+enum PjpegScanConfiguration {
+	PJPEG_SCAN_CONFIGURATION_UNSPECIFIED = 0;
+	PJPEG_SCAN_CONFIGURATION_WA = 1;
+	PJPEG_SCAN_CONFIGURATION_E15 = 2;
+	PJPEG_SCAN_CONFIGURATION_E35 = 3;
+}
+
+message Media {
+	enum InterventionType {
+		UNSET = 0;
+		NONE = 1;
+		NUDE = 2;
+	}
+
+	oneof media {
+		StaticPhoto staticPhoto = 1;
+		Voice voice = 2;
+		Video video = 3;
+		Raven raven = 4;
+		Gif gif = 5;
+		AvatarSticker avatarSticker = 6;
+	}
+}
+
+message StaticPhoto {
+	optional CommonMediaTransport mediaTransport = 1;
+	optional int32 height = 2;
+	optional int32 width = 3;
+	repeated int32 scanLengths = 4 [packed=true];
+	optional Thumbnail thumbnail = 5;
+	optional PjpegScanConfiguration pjpegScanConfiguration = 6;
+}
+
+message Voice {
+	optional CommonMediaTransport mediaTransport = 1;
+	optional int32 duration = 2;
+	repeated float waveforms = 3 [packed=true];
+	optional int32 waveformSamplingFrequencyHz = 4;
+}
+
+message Video {
+	optional CommonMediaTransport mediaTransport = 1;
+	optional int32 height = 2;
+	optional int32 width = 3;
+	optional Thumbnail thumbnail = 4;
+	optional VideoExtraMetadata videoExtraMetadata = 5;
+}
+
+message Gif {
+	optional CommonMediaTransport mediaTransport = 1;
+	optional int32 height = 2;
+	optional int32 width = 3;
+	optional bool isSticker = 4;
+	optional string stickerID = 5;
+	optional string gifURL = 6;
+	optional int32 gifSize = 7;
+	optional bool isRandom = 8;
+}
+
+message AvatarSticker {
+	optional CommonMediaTransport mediaTransport = 1;
+	optional bool isAnimated = 2;
+	optional string stickerID = 3;
+	optional string stickerTemplate = 4;
+	optional int32 nuxType = 5;
+}
+
+message Raven {
+	enum ViewMode {
+		RAVEN_VIEW_MODEL_UNSPECIFIED = 0;
+		RAVEN_VIEW_MODEL_ONCE = 1;
+		RAVEN_VIEW_MODEL_REPLAYABLE = 2;
+		RAVEN_VIEW_MODEL_PERMANENT = 3;
+	}
+
+	optional ViewMode viewMode = 1;
+	optional RavenContent content = 2;
+}
+
+message RavenContent {
+	oneof ravenContent {
+		StaticPhoto staticPhoto = 1;
+		Video video = 2;
+	}
+}
+
+message Thumbnail {
+	optional CommonMediaTransport mediaTransport = 1;
+	optional int32 height = 2;
+	optional int32 width = 3;
+}
+
+message CommonMediaTransport {
+	optional string mediaID = 1;
+	optional string fileSHA256 = 2;
+	optional string mediaKey = 3;
+	optional string fileEncSHA256 = 4;
+	optional string directPath = 5;
+	optional string mediaKeyTimestamp = 6;
+	optional string sidecar = 7;
+	optional int32 fileLength = 8;
+	optional string mimetype = 9;
+	optional string objectID = 10;
+}
+
+message VideoExtraMetadata {
+	optional float uploadMosClientScore = 1;
+}

@@ -1,0 +1,27 @@
+syntax = "proto2";
+package InstamadilloCoreTypeLink;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeLink";
+
+import "instamadilloCoreTypeMedia/InstamadilloCoreTypeMedia.proto";
+
+message Link {
+	optional string text = 1;
+	optional LinkContext linkContext = 2;
+}
+
+message LinkContext {
+	optional ImageUrl linkImageURL = 1;
+	optional string linkPreviewTitle = 2;
+	optional string linkURL = 3;
+	optional string linkSummary = 4;
+	optional string linkMusicPreviewURL = 5;
+	repeated string linkMusicPreviewCountriesAllowed = 6;
+	optional InstamadilloCoreTypeMedia.Thumbnail linkPreviewThumbnail = 7;
+	optional string linkPreviewBody = 8;
+}
+
+message ImageUrl {
+	optional string URL = 1;
+	optional int32 width = 2;
+	optional int32 height = 3;
+}

@@ -1,0 +1,21 @@
+syntax = "proto2";
+package InstamadilloCoreTypeAdminMessage;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeAdminMessage";
+
+message AdminMessage {
+	oneof adminMessageSubtype {
+		DeviceAdminMessage deviceAdminMessage = 1;
+	}
+}
+
+message DeviceAdminMessage {
+	enum Type {
+		DEVICE_ADMIN_MESSAGE_TYPE_NONE = 0;
+		DEVICE_ADMIN_MESSAGE_TYPE_LOCAL_USER_CHANGED_IDENTITY_KEY_NAMED_DEVICE = 1;
+		DEVICE_ADMIN_MESSAGE_TYPE_SECURITY_ALERT_PARTICIPANT_KEY_CHANGE = 2;
+		DEVICE_ADMIN_MESSAGE_TYPE_SECURITY_ALERT_PARTICIPANT_NEW_LOGIN = 3;
+	}
+
+	optional Type deviceAdminMessageType = 1;
+	optional string deviceName = 2;
+}

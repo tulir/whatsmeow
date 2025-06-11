@@ -52,7 +52,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
 			go cli.updateBusinessName(context.WithoutCancel(ctx), info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
 		}
-		if len(info.PushName) > 0 && info.PushName != "-" {
+		if len(info.PushName) > 0 && info.PushName != "-" && (cli.MessengerConfig == nil || info.PushName != "username") {
 			go cli.updatePushName(context.WithoutCancel(ctx), info.Sender, info, info.PushName)
 		}
 		defer cli.maybeDeferredAck(ctx, node)()
