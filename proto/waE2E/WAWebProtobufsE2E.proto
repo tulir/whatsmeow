@@ -6,6 +6,7 @@ import "waAdv/WAAdv.proto";
 import "waCompanionReg/WACompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
+import "waStatusAttributions/WAWebProtobufsStatusAttributions.proto";
 
 enum PollContentType {
 	UNKNOWN_POLL_CONTENT_TYPE = 0;
@@ -823,6 +824,11 @@ message BotFeedbackMessage {
 }
 
 message VideoMessage {
+	enum VideoSourceType {
+		USER_VIDEO = 0;
+		AI_GENERATED = 1;
+	}
+
 	enum Attribution {
 		NONE = 0;
 		GIPHY = 1;
@@ -856,6 +862,9 @@ message VideoMessage {
 	optional string accessibilityLabel = 26;
 	repeated ProcessedVideo processedVideos = 27;
 	optional uint32 externalShareFullVideoDurationInSeconds = 28;
+	optional uint64 motionPhotoPresentationOffsetMS = 29;
+	optional string metadataURL = 30;
+	optional VideoSourceType videoSourceType = 31;
 }
 
 message ExtendedTextMessage {
@@ -916,6 +925,23 @@ message ExtendedTextMessage {
 	optional PaymentLinkMetadata paymentLinkMetadata = 35;
 }
 
+message LinkPreviewMetadata {
+	enum SocialMediaPostType {
+		NONE = 0;
+		REEL = 1;
+		LIVE_VIDEO = 2;
+		LONG_VIDEO = 3;
+		SINGLE_IMAGE = 4;
+		CAROUSEL = 5;
+	}
+
+	optional PaymentLinkMetadata paymentLinkMetadata = 1;
+	optional URLMetadata urlMetadata = 2;
+	optional uint32 fbExperimentID = 3;
+	optional uint32 linkMediaDuration = 4;
+	optional SocialMediaPostType socialMediaPostType = 5;
+}
+
 message PaymentLinkMetadata {
 	message PaymentLinkHeader {
 		enum PaymentLinkHeaderType {
@@ -926,12 +952,17 @@ message PaymentLinkMetadata {
 		optional PaymentLinkHeaderType headerType = 1;
 	}
 
+	message PaymentLinkProvider {
+		optional string paramsJSON = 1;
+	}
+
 	message PaymentLinkButton {
 		optional string displayText = 1;
 	}
 
 	optional PaymentLinkButton button = 1;
 	optional PaymentLinkHeader header = 2;
+	optional PaymentLinkProvider provider = 3;
 }
 
 message StatusNotificationMessage {
@@ -1178,6 +1209,7 @@ message ContextInfo {
 	optional MemberLabel memberLabel = 62;
 	optional bool isQuestion = 63;
 	optional StatusSourceType statusSourceType = 64;
+	repeated WAWebProtobufsStatusAttributions.StatusAttribution statusAttributions = 65;
 }
 
 message BotPluginMetadata {
@@ -1361,6 +1393,7 @@ message AIRichResponseMessage {
 		}
 
 		repeated AIRichResponseTableRow rows = 1;
+		optional string title = 2;
 	}
 
 	message AIRichResponseGridImageMetadata {
@@ -1377,6 +1410,7 @@ message AIRichResponseMessage {
 	optional AIRichResponseMessageType messageType = 1;
 	repeated AIRichResponseSubMessage submessages = 2;
 	optional AIRichResponseUnifiedResponse unifiedResponse = 3;
+	optional ContextInfo contextInfo = 4;
 }
 
 message BotPromotionMessageMetadata {
@@ -1616,6 +1650,7 @@ message MessageAssociation {
 		MOTION_PHOTO = 12;
 		STATUS_LINK_ACTION = 13;
 		VIEW_ALL_REPLIES = 14;
+		STATUS_ADD_YOURS_AI_IMAGINE = 15;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1863,6 +1898,8 @@ message Message {
 	optional FutureProofMessage botTaskMessage = 100;
 	optional FutureProofMessage questionMessage = 101;
 	optional MessageHistoryNotice messageHistoryNotice = 102;
+	optional FutureProofMessage groupStatusMessageV2 = 103;
+	optional FutureProofMessage botForwardedMessage = 104;
 }
 
 message AlbumMessage {
@@ -2289,12 +2326,6 @@ message DocumentMessage {
 	optional string accessibilityLabel = 21;
 }
 
-message LinkPreviewMetadata {
-	optional PaymentLinkMetadata paymentLinkMetadata = 1;
-	optional URLMetadata urlMetadata = 2;
-	optional uint32 fbExperimentID = 3;
-}
-
 message URLMetadata {
 	optional uint32 fbExperimentID = 1;
 }
@@ -2430,6 +2461,7 @@ message BotMetadata {
 	optional BotModeSelectionMetadata botModeSelectionMetadata = 22;
 	optional BotQuotaMetadata botQuotaMetadata = 23;
 	optional BotAgeCollectionMetadata botAgeCollectionMetadata = 24;
+	optional string conversationStarterPromptID = 25;
 }
 
 message DeviceListMetadata {
