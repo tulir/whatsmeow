@@ -1,0 +1,70 @@
+syntax = "proto2";
+package WAWebProtobufsStatusAttributions;
+option go_package = "go.mau.fi/whatsmeow/proto/waStatusAttributions";
+
+message StatusAttribution {
+	enum Type {
+		RESHARE = 0;
+		EXTERNAL_SHARE = 1;
+		MUSIC = 2;
+		STATUS_MENTION = 3;
+		GROUP_STATUS = 4;
+	}
+
+	message ExternalShare {
+		enum Source {
+			UNKNOWN = 0;
+			INSTAGRAM = 1;
+			FACEBOOK = 2;
+			MESSENGER = 3;
+			SPOTIFY = 4;
+		}
+
+		optional string actionURL = 1;
+		optional Source source = 2;
+		optional int32 duration = 3;
+		optional string actionFallbackURL = 4;
+	}
+
+	message StatusReshare {
+		enum Source {
+			UNKNOWN = 0;
+			INTERNAL_RESHARE = 1;
+			MENTION_RESHARE = 2;
+			CHANNEL_RESHARE = 3;
+		}
+
+		message Metadata {
+			optional int32 duration = 1;
+			optional string channelJID = 2;
+			optional int32 channelMessageID = 3;
+			optional bool hasMultipleReshares = 4;
+		}
+
+		optional Source source = 1;
+		optional Metadata metadata = 2;
+	}
+
+	message GroupStatus {
+		optional string authorJID = 1;
+	}
+
+	message Music {
+		optional string authorName = 1;
+		optional string songID = 2;
+		optional string title = 3;
+		optional string author = 4;
+		optional string artistAttribution = 5;
+		optional bool isExplicit = 6;
+	}
+
+	oneof attributionData {
+		StatusReshare statusReshare = 3;
+		ExternalShare externalShare = 4;
+		Music music = 5;
+		GroupStatus groupStatus = 6;
+	}
+
+	optional Type type = 1;
+	optional string actionURL = 2;
+}
