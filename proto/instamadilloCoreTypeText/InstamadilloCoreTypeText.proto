@@ -1,0 +1,47 @@
+syntax = "proto2";
+package InstamadilloCoreTypeText;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeText";
+
+import "instamadilloCoreTypeMedia/InstamadilloCoreTypeMedia.proto";
+
+message Text {
+	enum FormatStyle {
+		TEXT_FORMAT_STYLE_UNSPECIFIED = 0;
+		TEXT_FORMAT_STYLE_BOLD = 1;
+		TEXT_FORMAT_STYLE_ITALIC = 2;
+		TEXT_FORMAT_STYLE_STRIKETHROUGH = 3;
+		TEXT_FORMAT_STYLE_UNDERLINE = 4;
+		TEXT_FORMAT_STYLE_INVALID = 5;
+	}
+
+	optional string text = 1;
+	optional bool isSuggestedReply = 2;
+	optional string postbackPayload = 3;
+	optional PowerUpsData powerUpData = 4;
+	repeated CommandRangeData commands = 5;
+	repeated AnimatedEmojiCharacterRange animatedEmojiCharacterRanges = 6;
+}
+
+message PowerUpsData {
+	optional int32 style = 1;
+	optional InstamadilloCoreTypeMedia.CommonMediaTransport mediaAttachment = 2;
+}
+
+message CommandRangeData {
+	optional int32 offset = 1;
+	optional int32 length = 2;
+	optional int32 type = 3;
+	optional string FBID = 4;
+	optional string userOrThreadFbid = 5;
+}
+
+message FormattedText {
+	optional int32 offset = 1;
+	optional int32 length = 2;
+	optional Text.FormatStyle style = 3;
+}
+
+message AnimatedEmojiCharacterRange {
+	optional int32 offset = 1;
+	optional int32 length = 2;
+}

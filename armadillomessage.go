@@ -13,6 +13,8 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	armadillo "go.mau.fi/whatsmeow/proto"
+	"go.mau.fi/whatsmeow/proto/armadilloutil"
+	"go.mau.fi/whatsmeow/proto/instamadilloTransportPayload"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waMsgApplication"
 	"go.mau.fi/whatsmeow/proto/waMsgTransport"
@@ -52,11 +54,23 @@ func decodeArmadillo(data []byte) (dec events.FBMessage, err error) {
 	if transport.GetPayload() == nil {
 		return
 	}
-	application, err := transport.GetPayload().Decode()
+	appPayloadVer := transport.GetPayload().GetApplicationPayload().GetVersion()
+	switch appPayloadVer {
+	case waMsgTransport.FBMessageApplicationVersion:
+		return decodeFBArmadillo(&transport)
+	case waMsgTransport.IGMessageApplicationVersion:
+		return decodeIGArmadillo(&transport)
+	default:
+		return dec, fmt.Errorf("%w %d in MessageTransport", armadilloutil.ErrUnsupportedVersion, appPayloadVer)
+	}
+}
+
+func decodeFBArmadillo(transport *waMsgTransport.MessageTransport) (dec events.FBMessage, err error) {
+	application, err := transport.GetPayload().DecodeFB()
 	if err != nil {
 		return dec, fmt.Errorf("failed to unmarshal application: %w", err)
 	}
-	dec.Application = application
+	dec.FBApplication = application
 	if application.GetPayload() == nil {
 		return
 	}
@@ -95,6 +109,23 @@ func decodeArmadillo(data []byte) (dec events.FBMessage, err error) {
 		}
 	default:
 		err = fmt.Errorf("unsupported application payload content type: %T", typedContent)
+	}
+	return
+}
+
+func decodeIGArmadillo(transport *waMsgTransport.MessageTransport) (dec events.FBMessage, err error) {
+	innerTransport, err := transport.GetPayload().DecodeIG()
+	if err != nil {
+		return dec, fmt.Errorf("failed to unmarshal IG transport: %w", err)
+	}
+	dec.IGTransport = innerTransport
+	switch typedContent := innerTransport.GetTransportPayload().(type) {
+	case *instamadilloTransportPayload.TransportPayload_Add:
+		dec.Message = typedContent.Add
+	case *instamadilloTransportPayload.TransportPayload_Supplement:
+		dec.Message = typedContent.Supplement
+	case *instamadilloTransportPayload.TransportPayload_Delete:
+		dec.Message = typedContent.Delete
 	}
 	return
 }

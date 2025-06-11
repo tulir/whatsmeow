@@ -1,0 +1,105 @@
+syntax = "proto2";
+package InstamadilloXmaContentRef;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloXmaContentRef";
+
+enum XmaActionType {
+	XMA_ACTION_TYPE_UNSPECIFIED = 0;
+	XMA_ACTION_TYPE_SHARE = 1;
+	XMA_ACTION_TYPE_REPLY = 2;
+	XMA_ACTION_TYPE_REACT = 3;
+	XMA_ACTION_TYPE_MENTION = 4;
+}
+
+enum ReceiverFetchContentType {
+	RECEIVER_FETCH_CONTENT_TYPE_UNSPECIFIED = 0;
+	RECEIVER_FETCH_CONTENT_TYPE_NOTE = 1;
+	RECEIVER_FETCH_CONTENT_TYPE_STORY = 2;
+	RECEIVER_FETCH_CONTENT_TYPE_PROFILE = 3;
+	RECEIVER_FETCH_CONTENT_TYPE_CLIP = 4;
+	RECEIVER_FETCH_CONTENT_TYPE_FEED = 5;
+	RECEIVER_FETCH_CONTENT_TYPE_LIVE = 6;
+	RECEIVER_FETCH_CONTENT_TYPE_COMMENT = 7;
+	RECEIVER_FETCH_CONTENT_TYPE_LOCATION_SHARE = 8;
+	RECEIVER_FETCH_CONTENT_TYPE_REELS_AUDIO = 9;
+	RECEIVER_FETCH_CONTENT_TYPE_MEDIA_NOTE = 10;
+	RECEIVER_FETCH_CONTENT_TYPE_STORY_HIGHLIGHT = 11;
+	RECEIVER_FETCH_CONTENT_TYPE_SOCIAL_CONTEXT = 12;
+}
+
+enum MediaNoteFetchParamsMessageType {
+	MEDIA_NOTE_FETCH_PARAMS_MESSAGE_TYPE_UNSPECIFIED = 0;
+	MEDIA_NOTE_FETCH_PARAMS_MESSAGE_TYPE_MENTION = 1;
+	MEDIA_NOTE_FETCH_PARAMS_MESSAGE_TYPE_REPLY = 2;
+}
+
+message XmaContentRef {
+	optional XmaActionType actionType = 1;
+	optional ReceiverFetchContentType contentType = 2;
+	optional string targetURL = 3;
+	optional string userName = 4;
+	optional string ownerFbid = 5;
+	optional ReceiverFetchXmaFetchParams fetchParams = 6;
+}
+
+message ReceiverFetchXmaFetchParams {
+	oneof receiverFetchXmaFetchParams {
+		ReceiverFetchXmaNoteFetchParams noteFetchParams = 1;
+		ReceiverFetchXmaStoryFetchParams storyFetchParams = 2;
+		ReceiverFetchXmaProfileFetchParams profileFetchParams = 3;
+		ReceiverFetchXmaClipFetchParams clipFetchParams = 4;
+		ReceiverFetchXmaFeedFetchParams feedFetchParams = 5;
+		ReceiverFetchXmaLiveFetchParams liveFetchParams = 6;
+		ReceiverFetchXmaCommentFetchParams commentFetchParams = 7;
+		ReceiverFetchXmaLocationShareFetchParams locationShareFetchParams = 8;
+		ReceiverFetchXmaReelsAudioFetchParams reelsAudioFetchParams = 9;
+		ReceiverFetchXmaMediaNoteFetchParams mediaNoteFetchParams = 10;
+		ReceiverFetchXmaSocialContextFetchParams socialContextFetchParams = 11;
+	}
+}
+
+message ReceiverFetchXmaNoteFetchParams {
+	optional string noteIgid = 1;
+}
+
+message ReceiverFetchXmaStoryFetchParams {
+	optional string storyIgid = 1;
+	optional string reelID = 2;
+}
+
+message ReceiverFetchXmaProfileFetchParams {
+	optional string profileIgid = 1;
+}
+
+message ReceiverFetchXmaClipFetchParams {
+	optional string mediaIgid = 1;
+}
+
+message ReceiverFetchXmaFeedFetchParams {
+	optional string mediaIgid = 1;
+	optional string carouselShareChildMediaIgid = 2;
+}
+
+message ReceiverFetchXmaLiveFetchParams {
+	optional string liveIgid = 1;
+}
+
+message ReceiverFetchXmaCommentFetchParams {
+	optional string commentFbid = 1;
+}
+
+message ReceiverFetchXmaLocationShareFetchParams {
+	optional string locationIgid = 1;
+}
+
+message ReceiverFetchXmaReelsAudioFetchParams {
+	optional string audioIgid = 1;
+}
+
+message ReceiverFetchXmaMediaNoteFetchParams {
+	optional string mediaNoteIgid = 1;
+	optional MediaNoteFetchParamsMessageType messageType = 2;
+}
+
+message ReceiverFetchXmaSocialContextFetchParams {
+	optional string mediaIgid = 1;
+}

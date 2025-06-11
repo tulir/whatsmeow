@@ -36,6 +36,7 @@ import (
 
 const FBMessageVersion = 3
 const FBMessageApplicationVersion = 2
+const IGMessageApplicationVersion = 3
 const FBConsumerMessageVersion = 1
 const FBArmadilloMessageVersion = 1
 

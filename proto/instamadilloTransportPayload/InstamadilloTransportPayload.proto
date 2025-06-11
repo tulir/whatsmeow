@@ -1,0 +1,33 @@
+syntax = "proto2";
+package InstamadilloTransportPayload;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloTransportPayload";
+
+import "instamadilloAddMessage/InstamadilloAddMessage.proto";
+import "instamadilloDeleteMessage/InstamadilloDeleteMessage.proto";
+import "instamadilloSupplementMessage/InstamadilloSupplementMessage.proto";
+
+enum PayloadCreator {
+	PAYLOAD_CREATOR_UNSPECIFIED = 0;
+	PAYLOAD_CREATOR_IGIOS = 1;
+	PAYLOAD_CREATOR_IG4A = 2;
+	PAYLOAD_CREATOR_WWW = 3;
+	PAYLOAD_CREATOR_IGLITE = 4;
+}
+
+message TransportPayload {
+	oneof transportPayload {
+		InstamadilloAddMessage.AddMessagePayload add = 1;
+		InstamadilloDeleteMessage.DeleteMessagePayload delete = 2;
+		InstamadilloSupplementMessage.SupplementMessagePayload supplement = 3;
+	}
+
+	optional Franking franking = 4;
+	optional bool openEb = 5;
+	optional bool isE2EeAttributed = 6;
+	optional PayloadCreator payloadCreator = 7;
+}
+
+message Franking {
+	optional bytes frankingKey = 1;
+	optional int32 frankingVersion = 2;
+}
