@@ -46,6 +46,7 @@ func (cli *Client) keepAliveLoop(ctx context.Context) {
 				if cli.EnableAutoReconnect && time.Since(lastSuccess) > KeepAliveMaxFailTime {
 					cli.Log.Debugf("Forcing reconnect due to keepalive failure")
 					cli.Disconnect()
+					cli.resetExpectedDisconnect()
 					go cli.autoReconnect()
 				}
 			} else {
