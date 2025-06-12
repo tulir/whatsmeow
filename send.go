@@ -974,6 +974,8 @@ func getEditAttribute(msg *waE2E.Message) types.EditAttribute {
 		return types.EditAttributeSenderRevoke
 	case msg.KeepInChatMessage != nil && msg.KeepInChatMessage.GetKey().GetFromMe() && msg.KeepInChatMessage.GetKeepType() == waE2E.KeepType_UNDO_KEEP_FOR_ALL:
 		return types.EditAttributeSenderRevoke
+	case msg.PinInChatMessage != nil:
+		return types.EditAttributePinInChat
 	}
 	return types.EditAttributeEmpty
 }
@@ -1096,6 +1098,11 @@ func (cli *Client) prepareMessageNode(
 		"type": msgType,
 		"to":   to,
 	}
+	
+	if participants[0].Server == types.HiddenUserServer {
+		attrs["addressing_mode"] = "lid"
+	}
+
 	// TODO this is a very hacky hack for announcement group messages, why is it pn anyway?
 	if extraParams.addressingMode != "" {
 		attrs["addressing_mode"] = string(extraParams.addressingMode)
