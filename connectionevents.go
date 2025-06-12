@@ -58,7 +58,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		cli.Log.Infof("Got %s stream error, refreshing CAT before reconnecting...", code)
 		cli.socketLock.RLock()
 		defer cli.socketLock.RUnlock()
-		err := cli.RefreshCAT()
+		err := cli.RefreshCAT(ctx)
 		if err != nil {
 			cli.Log.Errorf("Failed to refresh CAT: %v", err)
 			cli.expectDisconnect()
@@ -136,7 +136,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 		go cli.dispatchEvent(&events.ClientOutdated{})
 	} else if reason == events.ConnectFailureCATInvalid || reason == events.ConnectFailureCATExpired {
 		cli.Log.Infof("Got %d/%s connect failure, refreshing CAT before reconnecting...", int(reason), message)
-		err := cli.RefreshCAT()
+		err := cli.RefreshCAT(ctx)
 		if err != nil {
 			cli.Log.Errorf("Failed to refresh CAT: %v", err)
 			cli.expectDisconnect()
