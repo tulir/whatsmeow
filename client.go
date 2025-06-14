@@ -454,7 +454,7 @@ func (cli *Client) Connect() error {
 
 	err := cli.unlockedConnect()
 	if exhttp.IsNetworkError(err) && cli.InitialAutoReconnect && cli.EnableAutoReconnect {
-		cli.Log.Errorf("Initial connection failed but reconnecting in background")
+		cli.Log.Errorf("Initial connection failed but reconnecting in background (%v)", err)
 		go cli.dispatchEvent(&events.Disconnected{})
 		go cli.autoReconnect()
 		return nil
