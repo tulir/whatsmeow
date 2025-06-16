@@ -561,6 +561,8 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	ag := picture.AttrGetter()
 	if ag.OptionalInt("status") == 304 {
 		return nil, nil
+	} else if ag.OptionalInt("status") == 204 {
+		return nil, ErrProfilePictureNotSet
 	}
 	info.ID = ag.String("id")
 	info.URL = ag.String("url")
