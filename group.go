@@ -752,8 +752,8 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 	for _, child := range node.GetChildren() {
 		cag := child.AttrGetter()
 		if child.Tag == "add" || child.Tag == "remove" || child.Tag == "promote" || child.Tag == "demote" {
-			evt.PrevParticipantVersionID = cag.String("prev_v_id")
-			evt.ParticipantVersionID = cag.String("v_id")
+			evt.PrevParticipantVersionID = cag.OptionalString("prev_v_id")
+			evt.ParticipantVersionID = cag.OptionalString("v_id")
 		}
 		switch child.Tag {
 		case "add":
