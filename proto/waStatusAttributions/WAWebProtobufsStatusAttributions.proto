@@ -18,6 +18,8 @@ message StatusAttribution {
 			FACEBOOK = 2;
 			MESSENGER = 3;
 			SPOTIFY = 4;
+			YOUTUBE = 5;
+			PINTEREST = 6;
 		}
 
 		optional string actionURL = 1;
