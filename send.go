@@ -147,6 +147,10 @@ type SendRequestExtra struct {
 	MediaHandle string
 
 	Meta *types.MsgMetaInfo
+
+	// Participants to send the message to
+	// ensure the user privacy type is not whitelist
+	Participants map[types.JID]types.ContactInfo
 }
 
 // SendMessage sends the given message.
@@ -304,11 +308,29 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 				extraParams.addressingMode = types.AddressingModePN
 			}
 		} else {
-			// TODO use context
-			groupParticipants, err = cli.getBroadcastListParticipants(to)
-			if err != nil {
-				err = fmt.Errorf("failed to get broadcast list members: %w", err)
-				return
+			if len(extra) > 0 && len(extra[0].Participants) > 0 {
+				var privacyStatus []types.StatusPrivacy
+				privacyStatus, err = cli.GetStatusPrivacy()
+				if err != nil {
+					err = fmt.Errorf("failed to get status privacy: %w", err)
+					return
+				}
+
+				for _, privacy := range privacyStatus {
+					if privacy.Type == types.StatusPrivacyTypeWhitelist {
+						err = errors.New("controlled participants is not supported when user privacy is set to whitelist")
+						return
+					}
+				}
+
+				groupParticipants, err = cli.SanitizeStatusBroadcastRecipients(extra[0].Participants)
+			} else {
+				// TODO use context
+				groupParticipants, err = cli.getBroadcastListParticipants(to)
+				if err != nil {
+					err = fmt.Errorf("failed to get broadcast list members: %w", err)
+					return
+				}
 			}
 		}
 		resp.DebugTimings.GetParticipants = time.Since(start)

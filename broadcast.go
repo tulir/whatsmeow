@@ -44,20 +44,30 @@ func (cli *Client) getBroadcastListParticipants(jid types.JID) ([]types.JID, err
 }
 
 func (cli *Client) getStatusBroadcastRecipients() ([]types.JID, error) {
-	statusPrivacyOptions, err := cli.GetStatusPrivacy()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get status privacy: %w", err)
-	}
-	statusPrivacy := statusPrivacyOptions[0]
-	if statusPrivacy.Type == types.StatusPrivacyTypeWhitelist {
-		// Whitelist mode, just return the list
-		return statusPrivacy.List, nil
-	}
-
 	// Blacklist or all contacts mode. Find all contacts from database, then filter them appropriately.
 	contacts, err := cli.Store.Contacts.GetAllContacts()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get contact list from db: %w", err)
+	}
+
+	contactsArray, err := cli.SanitizeStatusBroadcastRecipients(contacts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sanitize status broadcast recipients: %w", err)
+	}
+
+	return contactsArray, nil
+}
+
+func (cli *Client) SanitizeStatusBroadcastRecipients(contacts map[types.JID]types.ContactInfo) ([]types.JID, error) {
+	statusPrivacyOptions, err := cli.GetStatusPrivacy()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get status privacy: %w", err)
+	}
+
+	statusPrivacy := statusPrivacyOptions[0]
+	if statusPrivacy.Type == types.StatusPrivacyTypeWhitelist {
+		// Whitelist mode, just return the list
+		return statusPrivacy.List, nil
 	}
 
 	blacklist := make(map[types.JID]struct{})
@@ -73,11 +83,13 @@ func (cli *Client) getStatusBroadcastRecipients() ([]types.JID, error) {
 		if isBlacklisted {
 			continue
 		}
+
 		// TODO should there be a better way to separate contacts and found push names in the db?
 		if len(contact.FullName) > 0 {
 			contactsArray = append(contactsArray, jid)
 		}
 	}
+
 	return contactsArray, nil
 }
 
