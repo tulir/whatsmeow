@@ -95,6 +95,8 @@ const (
 	StatusAttribution_ExternalShare_FACEBOOK  StatusAttribution_ExternalShare_Source = 2
 	StatusAttribution_ExternalShare_MESSENGER StatusAttribution_ExternalShare_Source = 3
 	StatusAttribution_ExternalShare_SPOTIFY   StatusAttribution_ExternalShare_Source = 4
+	StatusAttribution_ExternalShare_YOUTUBE   StatusAttribution_ExternalShare_Source = 5
+	StatusAttribution_ExternalShare_PINTEREST StatusAttribution_ExternalShare_Source = 6
 )
 
 // Enum value maps for StatusAttribution_ExternalShare_Source.
@@ -105,6 +107,8 @@ var (
 		2: "FACEBOOK",
 		3: "MESSENGER",
 		4: "SPOTIFY",
+		5: "YOUTUBE",
+		6: "PINTEREST",
 	}
 	StatusAttribution_ExternalShare_Source_value = map[string]int32{
 		"UNKNOWN":   0,
@@ -112,6 +116,8 @@ var (
 		"FACEBOOK":  2,
 		"MESSENGER": 3,
 		"SPOTIFY":   4,
+		"YOUTUBE":   5,
+		"PINTEREST": 6,
 	}
 )
 
@@ -664,25 +670,27 @@ var File_waStatusAttributions_WAWebProtobufsStatusAttributions_proto protoreflec
 
 const file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDesc = "" +
 	"\n" +
-	";waStatusAttributions/WAWebProtobufsStatusAttributions.proto\x12 WAWebProtobufsStatusAttributions\"\xeb\f\n" +
+	";waStatusAttributions/WAWebProtobufsStatusAttributions.proto\x12 WAWebProtobufsStatusAttributions\"\x87\r\n" +
 	"\x11StatusAttribution\x12i\n" +
 	"\rstatusReshare\x18\x03 \x01(\v2A.WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshareH\x00R\rstatusReshare\x12i\n" +
 	"\rexternalShare\x18\x04 \x01(\v2A.WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShareH\x00R\rexternalShare\x12Q\n" +
 	"\x05music\x18\x05 \x01(\v29.WAWebProtobufsStatusAttributions.StatusAttribution.MusicH\x00R\x05music\x12c\n" +
 	"\vgroupStatus\x18\x06 \x01(\v2?.WAWebProtobufsStatusAttributions.StatusAttribution.GroupStatusH\x00R\vgroupStatus\x12L\n" +
 	"\x04type\x18\x01 \x01(\x0e28.WAWebProtobufsStatusAttributions.StatusAttribution.TypeR\x04type\x12\x1c\n" +
-	"\tactionURL\x18\x02 \x01(\tR\tactionURL\x1a\xa9\x02\n" +
+	"\tactionURL\x18\x02 \x01(\tR\tactionURL\x1a\xc5\x02\n" +
 	"\rExternalShare\x12\x1c\n" +
 	"\tactionURL\x18\x01 \x01(\tR\tactionURL\x12`\n" +
 	"\x06source\x18\x02 \x01(\x0e2H.WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShare.SourceR\x06source\x12\x1a\n" +
 	"\bduration\x18\x03 \x01(\x05R\bduration\x12,\n" +
-	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"N\n" +
+	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"j\n" +
 	"\x06Source\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\r\n" +
 	"\tINSTAGRAM\x10\x01\x12\f\n" +
 	"\bFACEBOOK\x10\x02\x12\r\n" +
 	"\tMESSENGER\x10\x03\x12\v\n" +
-	"\aSPOTIFY\x10\x04\x1a\xd7\x03\n" +
+	"\aSPOTIFY\x10\x04\x12\v\n" +
+	"\aYOUTUBE\x10\x05\x12\r\n" +
+	"\tPINTEREST\x10\x06\x1a\xd7\x03\n" +
 	"\rStatusReshare\x12`\n" +
 	"\x06source\x18\x01 \x01(\x0e2H.WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.SourceR\x06source\x12f\n" +
 	"\bmetadata\x18\x02 \x01(\v2J.WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.MetadataR\bmetadata\x1a\xa4\x01\n" +
