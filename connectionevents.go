@@ -165,8 +165,10 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 		} else {
 			cli.Log.Infof("Updated LID to %s", cli.Store.LID)
 		}
-		cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
 	}
+	// Some users are missing their own LID-PN mapping even though it's already in the device table,
+	// so do this unconditionally for a few months to ensure everyone gets the row.
+	cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
 	go func() {
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(ctx); err != nil {
 			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)
