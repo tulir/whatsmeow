@@ -22,11 +22,11 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) bool {
+func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handled, handlerFailed bool) {
 	dec, err := decodeArmadillo(decrypted)
 	if err != nil {
 		cli.Log.Warnf("Failed to decode armadillo message from %s: %v", info.SourceString(), err)
-		return false
+		return
 	}
 	dec.Info = *info
 	dec.RetryCount = retryCount
@@ -39,9 +39,10 @@ func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.Mes
 		}
 	}
 	if dec.Message != nil {
-		cli.dispatchEvent(&dec)
+		handlerFailed = cli.dispatchEvent(&dec)
 	}
-	return true
+	handled = true
+	return
 }
 
 func decodeArmadillo(data []byte) (dec events.FBMessage, err error) {

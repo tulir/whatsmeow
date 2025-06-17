@@ -86,7 +86,7 @@ func getTypeName(expr ast.Expr) string {
 		// This isn't technically correct, but struct literals shouldn't be used for anything else
 		return "struct{}"
 	case *ast.Ellipsis:
-		return fmt.Sprintf("...%s", e.Elt)
+		return fmt.Sprintf("...%s", getTypeName(e.Elt))
 	case *ast.BasicLit:
 		return e.Value
 	default:

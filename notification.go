@@ -412,7 +412,8 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	if !ag.OK() {
 		return
 	}
-	defer cli.maybeDeferredAck(ctx, node)()
+	var cancelled bool
+	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 	switch notifType {
 	case "encrypt":
 		go cli.handleEncryptNotification(ctx, node)
@@ -429,7 +430,7 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 		if err != nil {
 			cli.Log.Errorf("Failed to parse group notification: %v", err)
 		} else {
-			cli.dispatchEvent(evt)
+			cancelled = cli.dispatchEvent(evt)
 		}
 	case "picture":
 		cli.handlePictureNotification(ctx, node)

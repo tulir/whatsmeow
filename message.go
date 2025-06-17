@@ -50,16 +50,17 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 			cli.StoreLIDPNMapping(ctx, info.RecipientAlt, info.Chat)
 		}
 		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
-			go cli.updateBusinessName(context.WithoutCancel(ctx), info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
+			go cli.updateBusinessName(cli.BackgroundEventCtx, info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
 		}
 		if len(info.PushName) > 0 && info.PushName != "-" && (cli.MessengerConfig == nil || info.PushName != "username") {
-			go cli.updatePushName(context.WithoutCancel(ctx), info.Sender, info, info.PushName)
+			go cli.updatePushName(cli.BackgroundEventCtx, info.Sender, info, info.PushName)
 		}
-		defer cli.maybeDeferredAck(ctx, node)()
+		var cancelled bool
+		defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 		if info.Sender.Server == types.NewsletterServer {
-			cli.handlePlaintextMessage(ctx, info, node)
+			cancelled = cli.handlePlaintextMessage(ctx, info, node)
 		} else {
-			cli.decryptMessages(ctx, info, node)
+			cancelled = cli.decryptMessages(ctx, info, node)
 		}
 	}
 }
@@ -218,7 +219,7 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	return &info, nil
 }
 
-func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) {
+func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) (handlerFailed bool) {
 	// TODO edits have an additional <meta msg_edit_t="1696321271735" original_msg_t="1696321248"/> node
 	plaintext, ok := node.GetOptionalChildByTag("plaintext")
 	if !ok {
@@ -249,7 +250,7 @@ func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.Messa
 			OriginalTS: meta.AttrGetter().UnixTime("original_msg_t"),
 		}
 	}
-	cli.dispatchEvent(evt.UnwrapRaw())
+	return cli.dispatchEvent(evt.UnwrapRaw())
 }
 
 func (cli *Client) migrateSessionStore(ctx context.Context, pn, lid types.JID) {
@@ -259,7 +260,7 @@ func (cli *Client) migrateSessionStore(ctx context.Context, pn, lid types.JID) {
 	}
 }
 
-func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) {
+func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) (handlerFailed bool) {
 	unavailableNode, ok := node.GetOptionalChildByTag("unavailable")
 	if ok && len(node.GetChildrenByTag("enc")) == 0 {
 		uType := events.UnavailableType(unavailableNode.AttrGetter().String("type"))
@@ -348,6 +349,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		} else if err != nil {
 			cli.Log.Warnf("Error decrypting message %s from %s: %v", info.ID, info.SourceString(), err)
 			if ctx.Err() != nil {
+				handlerFailed = true
 				return
 			}
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
@@ -358,7 +360,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 					go cli.sendRetryReceipt(context.WithoutCancel(ctx), node, info, isUnavailable)
 				}
 			}
-			cli.dispatchEvent(&events.UndecryptableMessage{
+			handlerFailed = cli.dispatchEvent(&events.UndecryptableMessage{
 				Info:            *info,
 				IsUnavailable:   isUnavailable,
 				DecryptFailMode: events.DecryptFailMode(ag.OptionalString("decrypt-fail")),
@@ -376,10 +378,10 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 				cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
 				continue
 			}
-			cli.handleDecryptedMessage(ctx, info, &msg, retryCount)
+			handlerFailed = cli.handleDecryptedMessage(ctx, info, &msg, retryCount)
 			handled = true
 		case 3:
-			handled = cli.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
+			handled, handlerFailed = cli.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
 		default:
 			cli.Log.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
 		}
@@ -410,6 +412,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 	if handled {
 		go cli.sendMessageReceipt(info)
 	}
+	return
 }
 
 func (cli *Client) clearUntrustedIdentity(ctx context.Context, target types.JID) error {
@@ -843,10 +846,10 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) {
+func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) bool {
 	cli.processProtocolParts(ctx, info, msg)
 	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount}
-	cli.dispatchEvent(evt.UnwrapRaw())
+	return cli.dispatchEvent(evt.UnwrapRaw())
 }
 
 func (cli *Client) sendProtocolMessageReceipt(id types.MessageID, msgType types.ReceiptType) {
