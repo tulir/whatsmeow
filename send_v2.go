@@ -26,6 +26,14 @@ type ClientV2 struct {
 	EncryptMessageForDevicesConcurrentSize int
 }
 
+type SendRequestExtraV2 struct {
+	SendRequestExtra
+
+	// Participants to send the message to
+	// ensure the user privacy type is not whitelist
+	Participants map[types.JID]types.ContactInfo
+}
+
 func (cliV1 *Client) UpgradeV2() *ClientV2 {
 	return &ClientV2{
 		client: cliV1,
@@ -56,12 +64,12 @@ func (cliV1 *Client) UpgradeV2() *ClientV2 {
 // in binary/proto/def.proto may be useful to find out all the allowed fields. Printing the RawMessage
 // field in incoming message events to figure out what it contains is also a good way to learn how to
 // send the same kind of message.
-func (cli *ClientV2) SendMessageV2(ctx context.Context, to types.JID, message *waE2E.Message, extra ...SendRequestExtra) (resp SendResponse, err error) {
+func (cli *ClientV2) SendMessageV2(ctx context.Context, to types.JID, message *waE2E.Message, extra ...SendRequestExtraV2) (resp SendResponse, err error) {
 	if cli == nil {
 		err = ErrClientIsNil
 		return
 	}
-	var req SendRequestExtra
+	var req SendRequestExtraV2
 	if len(extra) > 1 {
 		err = errors.New("only one extra parameter may be provided to SendMessage")
 		return
@@ -187,11 +195,29 @@ func (cli *ClientV2) SendMessageV2(ctx context.Context, to types.JID, message *w
 				extraParams.addressingMode = types.AddressingModePN
 			}
 		} else {
-			// TODO use context
-			groupParticipants, err = cli.client.getBroadcastListParticipants(to)
-			if err != nil {
-				err = fmt.Errorf("failed to get broadcast list members: %w", err)
-				return
+			if len(extra) > 0 && len(extra[0].Participants) > 0 {
+				var privacyStatus []types.StatusPrivacy
+				privacyStatus, err = cli.client.GetStatusPrivacy()
+				if err != nil {
+					err = fmt.Errorf("failed to get status privacy: %w", err)
+					return
+				}
+
+				for _, privacy := range privacyStatus {
+					if privacy.Type == types.StatusPrivacyTypeWhitelist && len(privacy.List) > 0 {
+						err = errors.New("controlled participants is not supported when user privacy is whitelist")
+						return
+					}
+				}
+
+				groupParticipants, err = cli.SanitizeStatusBroadcastRecipients(extra[0].Participants)
+			} else {
+				// TODO use context
+				groupParticipants, err = cli.client.getBroadcastListParticipants(to)
+				if err != nil {
+					err = fmt.Errorf("failed to get broadcast list members: %w", err)
+					return
+				}
 			}
 		}
 		resp.DebugTimings.GetParticipants = time.Since(start)
@@ -593,4 +619,39 @@ func (cli *ClientV2) encryptMessageForDevicesConcurrent(
 		receiverWg.Wait()
 	}
 	return participantNodes, includeIdentity.Load()
+}
+
+func (cli *ClientV2) SanitizeStatusBroadcastRecipients(contacts map[types.JID]types.ContactInfo) ([]types.JID, error) {
+	statusPrivacyOptions, err := cli.client.GetStatusPrivacy()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get status privacy: %w", err)
+	}
+
+	statusPrivacy := statusPrivacyOptions[0]
+	if statusPrivacy.Type == types.StatusPrivacyTypeWhitelist {
+		// Whitelist mode, just return the list
+		return statusPrivacy.List, nil
+	}
+
+	blacklist := make(map[types.JID]struct{})
+	if statusPrivacy.Type == types.StatusPrivacyTypeBlacklist {
+		for _, jid := range statusPrivacy.List {
+			blacklist[jid] = struct{}{}
+		}
+	}
+
+	var contactsArray []types.JID
+	for jid, contact := range contacts {
+		_, isBlacklisted := blacklist[jid]
+		if isBlacklisted {
+			continue
+		}
+
+		// TODO should there be a better way to separate contacts and found push names in the db?
+		if len(contact.FullName) > 0 {
+			contactsArray = append(contactsArray, jid)
+		}
+	}
+
+	return contactsArray, nil
 }
