@@ -259,7 +259,7 @@ func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.Messa
 		}
 	}
 	logging.StdOutLogger.Debugf("Received message from %s: %s", info.SourceString(), hex.EncodeToString(plaintextBody))
-	cli.dispatchEvent(evt.UnwrapRaw())
+	return cli.dispatchEvent(evt.UnwrapRaw())
 }
 
 func (cli *Client) migrateSessionStore(ctx context.Context, pn, lid types.JID) {
