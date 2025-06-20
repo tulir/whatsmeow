@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"strconv"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 )
 
 // TryFetchPrivacySettings will fetch the user's privacy settings, either from the in-memory cache or from the server.
-func (cli *Client) TryFetchPrivacySettings(ignoreCache bool) (*types.PrivacySettings, error) {
+func (cli *Client) TryFetchPrivacySettings(ctx context.Context, ignoreCache bool) (*types.PrivacySettings, error) {
 	if cli == nil {
 		return nil, ErrClientIsNil
 	} else if val := cli.privacySettingsCache.Load(); val != nil && !ignoreCache {
@@ -24,6 +25,7 @@ func (cli *Client) TryFetchPrivacySettings(ignoreCache bool) (*types.PrivacySett
 	}
 	resp, err := cli.sendIQ(infoQuery{
 		Namespace: "privacy",
+		Context:   ctx,
 		Type:      iqGet,
 		To:        types.ServerJID,
 		Content:   []waBinary.Node{{Tag: "privacy"}},
@@ -43,11 +45,11 @@ func (cli *Client) TryFetchPrivacySettings(ignoreCache bool) (*types.PrivacySett
 
 // GetPrivacySettings will get the user's privacy settings. If an error occurs while fetching them, the error will be
 // logged, but the method will just return an empty struct.
-func (cli *Client) GetPrivacySettings() (settings types.PrivacySettings) {
+func (cli *Client) GetPrivacySettings(ctx context.Context) (settings types.PrivacySettings) {
 	if cli == nil || cli.MessengerConfig != nil {
 		return
 	}
-	settingsPtr, err := cli.TryFetchPrivacySettings(false)
+	settingsPtr, err := cli.TryFetchPrivacySettings(ctx, false)
 	if err != nil {
 		cli.Log.Errorf("Failed to fetch privacy settings: %v", err)
 	} else {
@@ -59,8 +61,8 @@ func (cli *Client) GetPrivacySettings() (settings types.PrivacySettings) {
 // SetPrivacySetting will set the given privacy setting to the given value.
 // The privacy settings will be fetched from the server after the change and the new settings will be returned.
 // If an error occurs while fetching the new settings, will return an empty struct.
-func (cli *Client) SetPrivacySetting(name types.PrivacySettingType, value types.PrivacySetting) (settings types.PrivacySettings, err error) {
-	settingsPtr, err := cli.TryFetchPrivacySettings(false)
+func (cli *Client) SetPrivacySetting(ctx context.Context, name types.PrivacySettingType, value types.PrivacySetting) (settings types.PrivacySettings, err error) {
+	settingsPtr, err := cli.TryFetchPrivacySettings(ctx, false)
 	if err != nil {
 		return settings, err
 	}
@@ -155,17 +157,14 @@ func (cli *Client) parsePrivacySettings(privacyNode *waBinary.Node, settings *ty
 	return &evt
 }
 
-func (cli *Client) handlePrivacySettingsNotification(privacyNode *waBinary.Node) {
+func (cli *Client) handlePrivacySettingsNotification(ctx context.Context, privacyNode *waBinary.Node) {
 	cli.Log.Debugf("Parsing privacy settings change notification")
-	settings, err := cli.TryFetchPrivacySettings(false)
+	settings, err := cli.TryFetchPrivacySettings(ctx, false)
 	if err != nil {
 		cli.Log.Errorf("Failed to fetch privacy settings when handling change: %v", err)
 		return
 	}
 	evt := cli.parsePrivacySettings(privacyNode, settings)
-	// The data isn't be reliable if the fetch failed, so only cache if it didn't fail
-	if err == nil {
-		cli.privacySettingsCache.Store(settings)
-	}
+	cli.privacySettingsCache.Store(settings)
 	cli.dispatchEvent(evt)
 }

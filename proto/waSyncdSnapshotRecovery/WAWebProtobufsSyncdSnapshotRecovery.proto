@@ -1,0 +1,22 @@
+syntax = "proto2";
+package WAWebProtobufsSyncdSnapshotRecovery;
+option go_package = "go.mau.fi/whatsmeow/proto/waSyncdSnapshotRecovery";
+
+import "waSyncAction/WASyncAction.proto";
+
+message SyncdSnapshotRecovery {
+	optional SyncdVersion version = 1;
+	optional string collectionName = 2;
+	repeated SyncdPlainTextRecord mutationRecords = 3;
+	optional bytes collectionLthash = 4;
+}
+
+message SyncdPlainTextRecord {
+	optional WASyncAction.SyncActionData value = 1;
+	optional bytes keyID = 2;
+	optional bytes mac = 3;
+}
+
+message SyncdVersion {
+	optional uint64 version = 1;
+}

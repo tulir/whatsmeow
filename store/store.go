@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Tulir Asokan
+// Copyright (c) 2025 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -9,7 +9,6 @@ package store
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,33 +20,33 @@ import (
 )
 
 type IdentityStore interface {
-	PutIdentity(address string, key [32]byte) error
-	DeleteAllIdentities(phone string) error
-	DeleteIdentity(address string) error
-	IsTrustedIdentity(address string, key [32]byte) (bool, error)
+	PutIdentity(ctx context.Context, address string, key [32]byte) error
+	DeleteAllIdentities(ctx context.Context, phone string) error
+	DeleteIdentity(ctx context.Context, address string) error
+	IsTrustedIdentity(ctx context.Context, address string, key [32]byte) (bool, error)
 }
 
 type SessionStore interface {
-	GetSession(address string) ([]byte, error)
-	HasSession(address string) (bool, error)
-	PutSession(address string, session []byte) error
-	DeleteAllSessions(phone string) error
-	DeleteSession(address string) error
+	GetSession(ctx context.Context, address string) ([]byte, error)
+	HasSession(ctx context.Context, address string) (bool, error)
+	PutSession(ctx context.Context, address string, session []byte) error
+	DeleteAllSessions(ctx context.Context, phone string) error
+	DeleteSession(ctx context.Context, address string) error
 	MigratePNToLID(ctx context.Context, pn, lid types.JID) error
 }
 
 type PreKeyStore interface {
-	GetOrGenPreKeys(count uint32) ([]*keys.PreKey, error)
-	GenOnePreKey() (*keys.PreKey, error)
-	GetPreKey(id uint32) (*keys.PreKey, error)
-	RemovePreKey(id uint32) error
-	MarkPreKeysAsUploaded(upToID uint32) error
-	UploadedPreKeyCount() (int, error)
+	GetOrGenPreKeys(ctx context.Context, count uint32) ([]*keys.PreKey, error)
+	GenOnePreKey(ctx context.Context) (*keys.PreKey, error)
+	GetPreKey(ctx context.Context, id uint32) (*keys.PreKey, error)
+	RemovePreKey(ctx context.Context, id uint32) error
+	MarkPreKeysAsUploaded(ctx context.Context, upToID uint32) error
+	UploadedPreKeyCount(ctx context.Context) (int, error)
 }
 
 type SenderKeyStore interface {
-	PutSenderKey(group, user string, session []byte) error
-	GetSenderKey(group, user string) ([]byte, error)
+	PutSenderKey(ctx context.Context, group, user string, session []byte) error
+	GetSenderKey(ctx context.Context, group, user string) ([]byte, error)
 }
 
 type AppStateSyncKey struct {
@@ -57,9 +56,9 @@ type AppStateSyncKey struct {
 }
 
 type AppStateSyncKeyStore interface {
-	PutAppStateSyncKey(id []byte, key AppStateSyncKey) error
-	GetAppStateSyncKey(id []byte) (*AppStateSyncKey, error)
-	GetLatestAppStateSyncKeyID() ([]byte, error)
+	PutAppStateSyncKey(ctx context.Context, id []byte, key AppStateSyncKey) error
+	GetAppStateSyncKey(ctx context.Context, id []byte) (*AppStateSyncKey, error)
+	GetLatestAppStateSyncKeyID(ctx context.Context) ([]byte, error)
 }
 
 type AppStateMutationMAC struct {
@@ -68,13 +67,13 @@ type AppStateMutationMAC struct {
 }
 
 type AppStateStore interface {
-	PutAppStateVersion(name string, version uint64, hash [128]byte) error
-	GetAppStateVersion(name string) (uint64, [128]byte, error)
-	DeleteAppStateVersion(name string) error
+	PutAppStateVersion(ctx context.Context, name string, version uint64, hash [128]byte) error
+	GetAppStateVersion(ctx context.Context, name string) (uint64, [128]byte, error)
+	DeleteAppStateVersion(ctx context.Context, name string) error
 
-	PutAppStateMutationMACs(name string, version uint64, mutations []AppStateMutationMAC) error
-	DeleteAppStateMutationMACs(name string, indexMACs [][]byte) error
-	GetAppStateMutationMAC(name string, indexMAC []byte) (valueMAC []byte, err error)
+	PutAppStateMutationMACs(ctx context.Context, name string, version uint64, mutations []AppStateMutationMAC) error
+	DeleteAppStateMutationMACs(ctx context.Context, name string, indexMACs [][]byte) error
+	GetAppStateMutationMAC(ctx context.Context, name string, indexMAC []byte) (valueMAC []byte, err error)
 }
 
 type ContactEntry struct {
@@ -84,24 +83,24 @@ type ContactEntry struct {
 }
 
 type ContactStore interface {
-	PutPushName(user types.JID, pushName string) (bool, string, error)
-	PutBusinessName(user types.JID, businessName string) (bool, string, error)
-	PutContactName(user types.JID, fullName, firstName string) error
-	PutAllContactNames(contacts []ContactEntry) error
-	GetContact(user types.JID) (types.ContactInfo, error)
-	GetAllContacts() (map[types.JID]types.ContactInfo, error)
+	PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error)
+	PutBusinessName(ctx context.Context, user types.JID, businessName string) (bool, string, error)
+	PutContactName(ctx context.Context, user types.JID, fullName, firstName string) error
+	PutAllContactNames(ctx context.Context, contacts []ContactEntry) error
+	GetContact(ctx context.Context, user types.JID) (types.ContactInfo, error)
+	GetAllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error)
 }
 
 type ChatSettingsStore interface {
-	PutMutedUntil(chat types.JID, mutedUntil time.Time) error
-	PutPinned(chat types.JID, pinned bool) error
-	PutArchived(chat types.JID, archived bool) error
-	GetChatSettings(chat types.JID) (types.LocalChatSettings, error)
+	PutMutedUntil(ctx context.Context, chat types.JID, mutedUntil time.Time) error
+	PutPinned(ctx context.Context, chat types.JID, pinned bool) error
+	PutArchived(ctx context.Context, chat types.JID, archived bool) error
+	GetChatSettings(ctx context.Context, chat types.JID) (types.LocalChatSettings, error)
 }
 
 type DeviceContainer interface {
-	PutDevice(store *Device) error
-	DeleteDevice(store *Device) error
+	PutDevice(ctx context.Context, store *Device) error
+	DeleteDevice(ctx context.Context, store *Device) error
 }
 
 type MessageSecretInsert struct {
@@ -112,9 +111,9 @@ type MessageSecretInsert struct {
 }
 
 type MsgSecretStore interface {
-	PutMessageSecrets([]MessageSecretInsert) error
-	PutMessageSecret(chat, sender types.JID, id types.MessageID, secret []byte) error
-	GetMessageSecret(chat, sender types.JID, id types.MessageID) ([]byte, error)
+	PutMessageSecrets(ctx context.Context, inserts []MessageSecretInsert) error
+	PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte) error
+	GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) ([]byte, error)
 }
 
 type PrivacyToken struct {
@@ -124,8 +123,22 @@ type PrivacyToken struct {
 }
 
 type PrivacyTokenStore interface {
-	PutPrivacyTokens(tokens ...PrivacyToken) error
-	GetPrivacyToken(user types.JID) (*PrivacyToken, error)
+	PutPrivacyTokens(ctx context.Context, tokens ...PrivacyToken) error
+	GetPrivacyToken(ctx context.Context, user types.JID) (*PrivacyToken, error)
+}
+
+type BufferedEvent struct {
+	Plaintext  []byte
+	InsertTime time.Time
+	ServerTime time.Time
+}
+
+type EventBuffer interface {
+	GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte) (*BufferedEvent, error)
+	PutBufferedEvent(ctx context.Context, ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error
+	DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error
+	ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error
+	DeleteOldBufferedHashes(ctx context.Context) error
 }
 
 type LIDMapping struct {
@@ -151,6 +164,7 @@ type AllSessionSpecificStores interface {
 	ChatSettingsStore
 	MsgSecretStore
 	PrivacyTokenStore
+	EventBuffer
 }
 
 type AllGlobalStores interface {
@@ -191,18 +205,9 @@ type Device struct {
 	ChatSettings  ChatSettingsStore
 	MsgSecrets    MsgSecretStore
 	PrivacyTokens PrivacyTokenStore
+	EventBuffer   EventBuffer
 	LIDs          LIDStore
 	Container     DeviceContainer
-
-	DatabaseErrorHandler func(device *Device, action string, attemptIndex int, err error) (retry bool)
-}
-
-func (device *Device) handleDatabaseError(attemptIndex int, err error, action string, args ...interface{}) bool {
-	if device.DatabaseErrorHandler != nil {
-		return device.DatabaseErrorHandler(device, fmt.Sprintf(action, args...), attemptIndex, err)
-	}
-	device.Log.Errorf("Failed to %s: %v", fmt.Sprintf(action, args...), err)
-	return false
 }
 
 func (device *Device) GetJID() types.JID {
@@ -223,12 +228,12 @@ func (device *Device) GetLID() types.JID {
 	return device.LID
 }
 
-func (device *Device) Save() error {
-	return device.Container.PutDevice(device)
+func (device *Device) Save(ctx context.Context) error {
+	return device.Container.PutDevice(ctx, device)
 }
 
-func (device *Device) Delete() error {
-	err := device.Container.DeleteDevice(device)
+func (device *Device) Delete(ctx context.Context) error {
+	err := device.Container.DeleteDevice(ctx, device)
 	if err != nil {
 		return err
 	}

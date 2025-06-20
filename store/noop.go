@@ -36,45 +36,46 @@ var NoopDevice = &Device{
 	ChatSettings:  nilStore,
 	MsgSecrets:    nilStore,
 	PrivacyTokens: nilStore,
+	EventBuffer:   nilStore,
 	Container:     nilStore,
 }
 
 var _ AllStores = (*NoopStore)(nil)
 var _ DeviceContainer = (*NoopStore)(nil)
 
-func (n *NoopStore) PutIdentity(address string, key [32]byte) error {
+func (n *NoopStore) PutIdentity(ctx context.Context, address string, key [32]byte) error {
 	return n.Error
 }
 
-func (n *NoopStore) DeleteAllIdentities(phone string) error {
+func (n *NoopStore) DeleteAllIdentities(ctx context.Context, phone string) error {
 	return n.Error
 }
 
-func (n *NoopStore) DeleteIdentity(address string) error {
+func (n *NoopStore) DeleteIdentity(ctx context.Context, address string) error {
 	return n.Error
 }
 
-func (n *NoopStore) IsTrustedIdentity(address string, key [32]byte) (bool, error) {
+func (n *NoopStore) IsTrustedIdentity(ctx context.Context, address string, key [32]byte) (bool, error) {
 	return false, n.Error
 }
 
-func (n *NoopStore) GetSession(address string) ([]byte, error) {
+func (n *NoopStore) GetSession(ctx context.Context, address string) ([]byte, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) HasSession(address string) (bool, error) {
+func (n *NoopStore) HasSession(ctx context.Context, address string) (bool, error) {
 	return false, n.Error
 }
 
-func (n *NoopStore) PutSession(address string, session []byte) error {
+func (n *NoopStore) PutSession(ctx context.Context, address string, session []byte) error {
 	return n.Error
 }
 
-func (n *NoopStore) DeleteAllSessions(phone string) error {
+func (n *NoopStore) DeleteAllSessions(ctx context.Context, phone string) error {
 	return n.Error
 }
 
-func (n *NoopStore) DeleteSession(address string) error {
+func (n *NoopStore) DeleteSession(ctx context.Context, address string) error {
 	return n.Error
 }
 
@@ -82,140 +83,160 @@ func (n *NoopStore) MigratePNToLID(ctx context.Context, pn, lid types.JID) error
 	return n.Error
 }
 
-func (n *NoopStore) GetOrGenPreKeys(count uint32) ([]*keys.PreKey, error) {
+func (n *NoopStore) GetOrGenPreKeys(ctx context.Context, count uint32) ([]*keys.PreKey, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) GenOnePreKey() (*keys.PreKey, error) {
+func (n *NoopStore) GenOnePreKey(ctx context.Context) (*keys.PreKey, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) GetPreKey(id uint32) (*keys.PreKey, error) {
+func (n *NoopStore) GetPreKey(ctx context.Context, id uint32) (*keys.PreKey, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) RemovePreKey(id uint32) error {
+func (n *NoopStore) RemovePreKey(ctx context.Context, id uint32) error {
 	return n.Error
 }
 
-func (n *NoopStore) MarkPreKeysAsUploaded(upToID uint32) error {
+func (n *NoopStore) MarkPreKeysAsUploaded(ctx context.Context, upToID uint32) error {
 	return n.Error
 }
 
-func (n *NoopStore) UploadedPreKeyCount() (int, error) {
+func (n *NoopStore) UploadedPreKeyCount(ctx context.Context) (int, error) {
 	return 0, n.Error
 }
 
-func (n *NoopStore) PutSenderKey(group, user string, session []byte) error {
+func (n *NoopStore) PutSenderKey(ctx context.Context, group, user string, session []byte) error {
 	return n.Error
 }
 
-func (n *NoopStore) GetSenderKey(group, user string) ([]byte, error) {
+func (n *NoopStore) GetSenderKey(ctx context.Context, group, user string) ([]byte, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) PutAppStateSyncKey(id []byte, key AppStateSyncKey) error {
+func (n *NoopStore) PutAppStateSyncKey(ctx context.Context, id []byte, key AppStateSyncKey) error {
 	return n.Error
 }
 
-func (n *NoopStore) GetAppStateSyncKey(id []byte) (*AppStateSyncKey, error) {
+func (n *NoopStore) GetAppStateSyncKey(ctx context.Context, id []byte) (*AppStateSyncKey, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) GetLatestAppStateSyncKeyID() ([]byte, error) {
+func (n *NoopStore) GetLatestAppStateSyncKeyID(ctx context.Context) ([]byte, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) PutAppStateVersion(name string, version uint64, hash [128]byte) error {
+func (n *NoopStore) PutAppStateVersion(ctx context.Context, name string, version uint64, hash [128]byte) error {
 	return n.Error
 }
 
-func (n *NoopStore) GetAppStateVersion(name string) (uint64, [128]byte, error) {
+func (n *NoopStore) GetAppStateVersion(ctx context.Context, name string) (uint64, [128]byte, error) {
 	return 0, [128]byte{}, n.Error
 }
 
-func (n *NoopStore) DeleteAppStateVersion(name string) error {
+func (n *NoopStore) DeleteAppStateVersion(ctx context.Context, name string) error {
 	return n.Error
 }
 
-func (n *NoopStore) PutAppStateMutationMACs(name string, version uint64, mutations []AppStateMutationMAC) error {
+func (n *NoopStore) PutAppStateMutationMACs(ctx context.Context, name string, version uint64, mutations []AppStateMutationMAC) error {
 	return n.Error
 }
 
-func (n *NoopStore) DeleteAppStateMutationMACs(name string, indexMACs [][]byte) error {
+func (n *NoopStore) DeleteAppStateMutationMACs(ctx context.Context, name string, indexMACs [][]byte) error {
 	return n.Error
 }
 
-func (n *NoopStore) GetAppStateMutationMAC(name string, indexMAC []byte) (valueMAC []byte, err error) {
+func (n *NoopStore) GetAppStateMutationMAC(ctx context.Context, name string, indexMAC []byte) (valueMAC []byte, err error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) PutPushName(user types.JID, pushName string) (bool, string, error) {
+func (n *NoopStore) PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error) {
 	return false, "", n.Error
 }
 
-func (n *NoopStore) PutBusinessName(user types.JID, businessName string) (bool, string, error) {
+func (n *NoopStore) PutBusinessName(ctx context.Context, user types.JID, businessName string) (bool, string, error) {
 	return false, "", n.Error
 }
 
-func (n *NoopStore) PutContactName(user types.JID, fullName, firstName string) error {
+func (n *NoopStore) PutContactName(ctx context.Context, user types.JID, fullName, firstName string) error {
 	return n.Error
 }
 
-func (n *NoopStore) PutAllContactNames(contacts []ContactEntry) error {
+func (n *NoopStore) PutAllContactNames(ctx context.Context, contacts []ContactEntry) error {
 	return n.Error
 }
 
-func (n *NoopStore) GetContact(user types.JID) (types.ContactInfo, error) {
+func (n *NoopStore) GetContact(ctx context.Context, user types.JID) (types.ContactInfo, error) {
 	return types.ContactInfo{}, n.Error
 }
 
-func (n *NoopStore) GetAllContacts() (map[types.JID]types.ContactInfo, error) {
+func (n *NoopStore) GetAllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) PutMutedUntil(chat types.JID, mutedUntil time.Time) error {
+func (n *NoopStore) PutMutedUntil(ctx context.Context, chat types.JID, mutedUntil time.Time) error {
 	return n.Error
 }
 
-func (n *NoopStore) PutPinned(chat types.JID, pinned bool) error {
+func (n *NoopStore) PutPinned(ctx context.Context, chat types.JID, pinned bool) error {
 	return n.Error
 }
 
-func (n *NoopStore) PutArchived(chat types.JID, archived bool) error {
+func (n *NoopStore) PutArchived(ctx context.Context, chat types.JID, archived bool) error {
 	return n.Error
 }
 
-func (n *NoopStore) GetChatSettings(chat types.JID) (types.LocalChatSettings, error) {
+func (n *NoopStore) GetChatSettings(ctx context.Context, chat types.JID) (types.LocalChatSettings, error) {
 	return types.LocalChatSettings{}, n.Error
 }
 
-func (n *NoopStore) PutMessageSecrets(inserts []MessageSecretInsert) error {
+func (n *NoopStore) PutMessageSecrets(ctx context.Context, inserts []MessageSecretInsert) error {
 	return n.Error
 }
 
-func (n *NoopStore) PutMessageSecret(chat, sender types.JID, id types.MessageID, secret []byte) error {
+func (n *NoopStore) PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte) error {
 	return n.Error
 }
 
-func (n *NoopStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) ([]byte, error) {
+func (n *NoopStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) ([]byte, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) PutPrivacyTokens(tokens ...PrivacyToken) error {
+func (n *NoopStore) PutPrivacyTokens(ctx context.Context, tokens ...PrivacyToken) error {
 	return n.Error
 }
 
-func (n *NoopStore) GetPrivacyToken(user types.JID) (*PrivacyToken, error) {
+func (n *NoopStore) GetPrivacyToken(ctx context.Context, user types.JID) (*PrivacyToken, error) {
 	return nil, n.Error
 }
 
-func (n *NoopStore) PutDevice(store *Device) error {
+func (n *NoopStore) PutDevice(ctx context.Context, store *Device) error {
 	return n.Error
 }
 
-func (n *NoopStore) DeleteDevice(store *Device) error {
+func (n *NoopStore) DeleteDevice(ctx context.Context, store *Device) error {
 	return n.Error
+}
+
+func (n *NoopStore) GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte) (*BufferedEvent, error) {
+	return nil, nil
+}
+
+func (n *NoopStore) PutBufferedEvent(ctx context.Context, ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error {
+	return nil
+}
+
+func (n *NoopStore) DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error {
+	return fn(ctx)
+}
+
+func (n *NoopStore) ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error {
+	return nil
+}
+
+func (n *NoopStore) DeleteOldBufferedHashes(ctx context.Context) error {
+	return nil
 }
 
 func (n *NoopStore) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error) {

@@ -7,6 +7,9 @@
 package store
 
 import (
+	"context"
+	"fmt"
+
 	"go.mau.fi/libsignal/ecc"
 	groupRecord "go.mau.fi/libsignal/groups/state/record"
 	"go.mau.fi/libsignal/keys/identity"
@@ -14,8 +17,6 @@ import (
 	"go.mau.fi/libsignal/serialize"
 	"go.mau.fi/libsignal/state/record"
 	"go.mau.fi/libsignal/state/store"
-
-	"go.mau.fi/whatsmeow/util/keys"
 )
 
 var SignalProtobufSerializer = serialize.NewProtoBufSerializer()
@@ -29,167 +30,153 @@ func (device *Device) GetIdentityKeyPair() *identity.KeyPair {
 	)
 }
 
-func (device *Device) GetLocalRegistrationId() uint32 {
+func (device *Device) GetLocalRegistrationID() uint32 {
 	return device.RegistrationID
 }
 
-func (device *Device) SaveIdentity(address *protocol.SignalAddress, identityKey *identity.Key) {
-	for i := 0; ; i++ {
-		err := device.Identities.PutIdentity(address.String(), identityKey.PublicKey().PublicKey())
-		if err == nil || !device.handleDatabaseError(i, err, "save identity of %s", address.String()) {
-			break
-		}
-	}
-}
-
-func (device *Device) IsTrustedIdentity(address *protocol.SignalAddress, identityKey *identity.Key) bool {
-	for i := 0; ; i++ {
-		isTrusted, err := device.Identities.IsTrustedIdentity(address.String(), identityKey.PublicKey().PublicKey())
-		if err == nil || !device.handleDatabaseError(i, err, "check if %s's identity is trusted", address.String()) {
-			return isTrusted
-		}
-	}
-}
-
-func (device *Device) LoadPreKey(id uint32) *record.PreKey {
-	var preKey *keys.PreKey
-	for i := 0; ; i++ {
-		var err error
-		preKey, err = device.PreKeys.GetPreKey(id)
-		if err == nil || !device.handleDatabaseError(i, err, "load prekey %d", id) {
-			break
-		}
-	}
-	if preKey == nil {
-		return nil
-	}
-	return record.NewPreKey(preKey.KeyID, ecc.NewECKeyPair(
-		ecc.NewDjbECPublicKey(*preKey.Pub),
-		ecc.NewDjbECPrivateKey(*preKey.Priv),
-	), nil)
-}
-
-func (device *Device) RemovePreKey(id uint32) {
-	for i := 0; ; i++ {
-		err := device.PreKeys.RemovePreKey(id)
-		if err == nil || !device.handleDatabaseError(i, err, "remove prekey %d", id) {
-			break
-		}
-	}
-}
-
-func (device *Device) StorePreKey(preKeyID uint32, preKeyRecord *record.PreKey) {
-	panic("not implemented")
-}
-
-func (device *Device) ContainsPreKey(preKeyID uint32) bool {
-	panic("not implemented")
-}
-
-func (device *Device) LoadSession(address *protocol.SignalAddress) *record.Session {
-	var rawSess []byte
-	var err error
-	for i := 0; ; i++ {
-		rawSess, err = device.Sessions.GetSession(address.String())
-		if err == nil || !device.handleDatabaseError(i, err, "load session with %s", address.String()) {
-			break
-		}
-	}
-	if rawSess == nil {
-		if err != nil {
-			return nil
-		}
-		return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
-	}
-	sess, err := record.NewSessionFromBytes(rawSess, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
+func (device *Device) SaveIdentity(ctx context.Context, address *protocol.SignalAddress, identityKey *identity.Key) error {
+	addrString := address.String()
+	err := device.Identities.PutIdentity(ctx, addrString, identityKey.PublicKey().PublicKey())
 	if err != nil {
-		device.Log.Errorf("Failed to deserialize session with %s: %v", address.String(), err)
-		return nil
-	}
-	return sess
-}
-
-func (device *Device) GetSubDeviceSessions(name string) []uint32 {
-	panic("not implemented")
-}
-
-func (device *Device) StoreSession(address *protocol.SignalAddress, record *record.Session) {
-	for i := 0; ; i++ {
-		err := device.Sessions.PutSession(address.String(), record.Serialize())
-		if err == nil || !device.handleDatabaseError(i, err, "store session with %s", address.String()) {
-			return
-		}
-	}
-}
-
-func (device *Device) ContainsSession(remoteAddress *protocol.SignalAddress) bool {
-	for i := 0; ; i++ {
-		hasSession, err := device.Sessions.HasSession(remoteAddress.String())
-		if err == nil || !device.handleDatabaseError(i, err, "check if store has session for %s", remoteAddress.String()) {
-			return hasSession
-		}
-	}
-}
-
-func (device *Device) DeleteSession(remoteAddress *protocol.SignalAddress) {
-	panic("not implemented")
-}
-
-func (device *Device) DeleteAllSessions() {
-	panic("not implemented")
-}
-
-func (device *Device) LoadSignedPreKey(signedPreKeyID uint32) *record.SignedPreKey {
-	if signedPreKeyID == device.SignedPreKey.KeyID {
-		return record.NewSignedPreKey(signedPreKeyID, 0, ecc.NewECKeyPair(
-			ecc.NewDjbECPublicKey(*device.SignedPreKey.Pub),
-			ecc.NewDjbECPrivateKey(*device.SignedPreKey.Priv),
-		), *device.SignedPreKey.Signature, nil)
+		return fmt.Errorf("failed to save identity of %s: %w", addrString, err)
 	}
 	return nil
 }
 
-func (device *Device) LoadSignedPreKeys() []*record.SignedPreKey {
-	panic("not implemented")
-}
-
-func (device *Device) StoreSignedPreKey(signedPreKeyID uint32, record *record.SignedPreKey) {
-	panic("not implemented")
-}
-
-func (device *Device) ContainsSignedPreKey(signedPreKeyID uint32) bool {
-	panic("not implemented")
-}
-
-func (device *Device) RemoveSignedPreKey(signedPreKeyID uint32) {
-	panic("not implemented")
-}
-
-func (device *Device) StoreSenderKey(senderKeyName *protocol.SenderKeyName, keyRecord *groupRecord.SenderKey) {
-	for i := 0; ; i++ {
-		err := device.SenderKeys.PutSenderKey(senderKeyName.GroupID(), senderKeyName.Sender().String(), keyRecord.Serialize())
-		if err == nil || !device.handleDatabaseError(i, err, "store sender key from %s", senderKeyName.Sender().String()) {
-			return
-		}
+func (device *Device) IsTrustedIdentity(ctx context.Context, address *protocol.SignalAddress, identityKey *identity.Key) (bool, error) {
+	addrString := address.String()
+	isTrusted, err := device.Identities.IsTrustedIdentity(ctx, addrString, identityKey.PublicKey().PublicKey())
+	if err != nil {
+		return false, fmt.Errorf("failed to check if %s's identity is trusted: %w", addrString, err)
 	}
+	return isTrusted, nil
 }
 
-func (device *Device) LoadSenderKey(senderKeyName *protocol.SenderKeyName) *groupRecord.SenderKey {
-	var rawKey []byte
-	for i := 0; ; i++ {
-		var err error
-		rawKey, err = device.SenderKeys.GetSenderKey(senderKeyName.GroupID(), senderKeyName.Sender().String())
-		if err == nil || !device.handleDatabaseError(i, err, "load sender key from %s for %s", senderKeyName.Sender().String(), senderKeyName.GroupID()) {
-			break
-		}
+func (device *Device) LoadPreKey(ctx context.Context, id uint32) (*record.PreKey, error) {
+	preKey, err := device.PreKeys.GetPreKey(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load prekey %d: %w", id, err)
+	}
+	if preKey == nil {
+		return nil, nil
+	}
+	return record.NewPreKey(preKey.KeyID, ecc.NewECKeyPair(
+		ecc.NewDjbECPublicKey(*preKey.Pub),
+		ecc.NewDjbECPrivateKey(*preKey.Priv),
+	), nil), nil
+}
+
+func (device *Device) RemovePreKey(ctx context.Context, id uint32) error {
+	err := device.PreKeys.RemovePreKey(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to remove prekey %d: %w", id, err)
+	}
+	return nil
+}
+
+func (device *Device) StorePreKey(ctx context.Context, preKeyID uint32, preKeyRecord *record.PreKey) error {
+	panic("not implemented")
+}
+
+func (device *Device) ContainsPreKey(ctx context.Context, preKeyID uint32) (bool, error) {
+	panic("not implemented")
+}
+
+func (device *Device) LoadSession(ctx context.Context, address *protocol.SignalAddress) (*record.Session, error) {
+	addrString := address.String()
+	rawSess, err := device.Sessions.GetSession(ctx, addrString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load session with %s: %w", addrString, err)
+	}
+	if rawSess == nil {
+		return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State), nil
+	}
+	sess, err := record.NewSessionFromBytes(rawSess, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
+	if err != nil {
+		return nil, fmt.Errorf("failed to deserialize session with %s: %w", addrString, err)
+	}
+	return sess, nil
+}
+
+func (device *Device) GetSubDeviceSessions(ctx context.Context, name string) ([]uint32, error) {
+	panic("not implemented")
+}
+
+func (device *Device) StoreSession(ctx context.Context, address *protocol.SignalAddress, record *record.Session) error {
+	addrString := address.String()
+	err := device.Sessions.PutSession(ctx, addrString, record.Serialize())
+	if err != nil {
+		return fmt.Errorf("failed to store session with %s: %w", addrString, err)
+	}
+	return nil
+}
+
+func (device *Device) ContainsSession(ctx context.Context, remoteAddress *protocol.SignalAddress) (bool, error) {
+	addrString := remoteAddress.String()
+	hasSession, err := device.Sessions.HasSession(ctx, addrString)
+	if err != nil {
+		return false, fmt.Errorf("failed to check if store has session for %s: %w", addrString, err)
+	}
+	return hasSession, nil
+}
+
+func (device *Device) DeleteSession(ctx context.Context, remoteAddress *protocol.SignalAddress) error {
+	panic("not implemented")
+}
+
+func (device *Device) DeleteAllSessions(ctx context.Context) error {
+	panic("not implemented")
+}
+
+func (device *Device) LoadSignedPreKey(ctx context.Context, signedPreKeyID uint32) (*record.SignedPreKey, error) {
+	if signedPreKeyID == device.SignedPreKey.KeyID {
+		return record.NewSignedPreKey(signedPreKeyID, 0, ecc.NewECKeyPair(
+			ecc.NewDjbECPublicKey(*device.SignedPreKey.Pub),
+			ecc.NewDjbECPrivateKey(*device.SignedPreKey.Priv),
+		), *device.SignedPreKey.Signature, nil), nil
+	}
+	return nil, nil
+}
+
+func (device *Device) LoadSignedPreKeys(ctx context.Context) ([]*record.SignedPreKey, error) {
+	panic("not implemented")
+}
+
+func (device *Device) StoreSignedPreKey(ctx context.Context, signedPreKeyID uint32, record *record.SignedPreKey) error {
+	panic("not implemented")
+}
+
+func (device *Device) ContainsSignedPreKey(ctx context.Context, signedPreKeyID uint32) (bool, error) {
+	panic("not implemented")
+}
+
+func (device *Device) RemoveSignedPreKey(ctx context.Context, signedPreKeyID uint32) error {
+	panic("not implemented")
+}
+
+func (device *Device) StoreSenderKey(ctx context.Context, senderKeyName *protocol.SenderKeyName, keyRecord *groupRecord.SenderKey) error {
+	groupID := senderKeyName.GroupID()
+	senderString := senderKeyName.Sender().String()
+	err := device.SenderKeys.PutSenderKey(ctx, groupID, senderString, keyRecord.Serialize())
+	if err != nil {
+		return fmt.Errorf("failed to store sender key from %s for %s: %w", senderString, groupID, err)
+	}
+	return nil
+}
+
+func (device *Device) LoadSenderKey(ctx context.Context, senderKeyName *protocol.SenderKeyName) (*groupRecord.SenderKey, error) {
+	groupID := senderKeyName.GroupID()
+	senderString := senderKeyName.Sender().String()
+	rawKey, err := device.SenderKeys.GetSenderKey(ctx, groupID, senderString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load sender key from %s for %s: %w", senderString, groupID, err)
 	}
 	if rawKey == nil {
-		return groupRecord.NewSenderKey(SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
+		return groupRecord.NewSenderKey(SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState), nil
 	}
 	key, err := groupRecord.NewSenderKeyFromBytes(rawKey, SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
 	if err != nil {
-		device.Log.Errorf("Failed to deserialize sender key from %s for %s: %v", senderKeyName.Sender().String(), senderKeyName.GroupID(), err)
-		return groupRecord.NewSenderKey(SignalProtobufSerializer.SenderKeyRecord, SignalProtobufSerializer.SenderKeyState)
+		return nil, fmt.Errorf("failed to deserialize sender key from %s for %s: %w", senderString, groupID, err)
 	}
-	return key
+	return key, nil
 }

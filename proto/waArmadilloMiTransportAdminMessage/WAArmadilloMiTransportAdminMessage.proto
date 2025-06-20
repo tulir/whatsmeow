@@ -3,6 +3,15 @@ package WAArmadilloMiTransportAdminMessage;
 option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloMiTransportAdminMessage";
 
 message MiTransportAdminMessage {
+	message LimitSharingChanged {
+		enum SharingType {
+			DISABLED = 1;
+			ENABLED = 2;
+		}
+
+		optional SharingType sharingType = 1;
+	}
+
 	message GroupImageChanged {
 		enum Action {
 			CHANGED = 1;
@@ -50,6 +59,11 @@ message MiTransportAdminMessage {
 		optional Action action = 2;
 	}
 
+	message DisappearingSettingChanged {
+		optional int32 disappearingSettingDurationSeconds = 1;
+		optional int32 oldDisappearingSettingDurationSeconds = 2;
+	}
+
 	message IconChanged {
 		optional string threadIcon = 1;
 	}
@@ -95,5 +109,7 @@ message MiTransportAdminMessage {
 		QuickReactionChanged quickReactionChanged = 9;
 		LinkCta linkCta = 10;
 		IconChanged iconChanged = 11;
+		DisappearingSettingChanged disappearingSettingChanged = 12;
+		LimitSharingChanged limitSharingChanged = 13;
 	}
 }

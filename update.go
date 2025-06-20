@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,8 +29,8 @@ var clientVersionRegex = regexp.MustCompile(`"client_revision":(\d+),`)
 //		return err
 //	}
 //	store.SetWAVersion(*latestVer)
-func GetLatestVersion(httpClient *http.Client) (*store.WAVersionContainer, error) {
-	req, err := http.NewRequest(http.MethodGet, socket.Origin, nil)
+func GetLatestVersion(ctx context.Context, httpClient *http.Client) (*store.WAVersionContainer, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, socket.Origin, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare request: %w", err)
 	}

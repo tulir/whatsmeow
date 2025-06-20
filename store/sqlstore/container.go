@@ -30,8 +30,6 @@ type Container struct {
 	db     *dbutil.Database
 	log    waLog.Logger
 	LIDMap *CachedLIDMap
-
-	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
 
 var _ store.DeviceContainer = (*Container)(nil)
@@ -44,14 +42,14 @@ var _ store.DeviceContainer = (*Container)(nil)
 //
 // When using SQLite, it's strongly recommended to enable foreign keys by adding `?_foreign_keys=true`:
 //
-//	container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
-func New(dialect, address string, log waLog.Logger) (*Container, error) {
+//	container, err := sqlstore.New(context.Background(), "sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
+func New(ctx context.Context, dialect, address string, log waLog.Logger) (*Container, error) {
 	db, err := sql.Open(dialect, address)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 	container := NewWithDB(db, dialect, log)
-	err = container.Upgrade()
+	err = container.Upgrade(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to upgrade database: %w", err)
 	}
@@ -99,10 +97,10 @@ func NewWithWrappedDB(wrapped *dbutil.Database, log waLog.Logger) *Container {
 }
 
 // Upgrade upgrades the database from the current to the latest version available.
-func (c *Container) Upgrade() error {
+func (c *Container) Upgrade(ctx context.Context) error {
 	if c.db.Dialect == dbutil.SQLite {
 		var foreignKeysEnabled bool
-		err := c.db.QueryRow(context.TODO(), "PRAGMA foreign_keys").Scan(&foreignKeysEnabled)
+		err := c.db.QueryRow(ctx, "PRAGMA foreign_keys").Scan(&foreignKeysEnabled)
 		if err != nil {
 			return fmt.Errorf("failed to check if foreign keys are enabled: %w", err)
 		} else if !foreignKeysEnabled {
@@ -110,7 +108,7 @@ func (c *Container) Upgrade() error {
 		}
 	}
 
-	return c.db.Upgrade(context.TODO())
+	return c.db.Upgrade(ctx)
 }
 
 const getAllDevicesQuery = `
@@ -125,7 +123,6 @@ const getDeviceQuery = getAllDevicesQuery + " WHERE jid=$1"
 
 func (c *Container) scanDevice(row dbutil.Scannable) (*store.Device, error) {
 	var device store.Device
-	device.DatabaseErrorHandler = c.DatabaseErrorHandler
 	device.Log = c.log
 	device.SignedPreKey = &keys.PreKey{}
 	var noisePriv, identityPriv, preKeyPriv, preKeySig []byte
@@ -156,8 +153,8 @@ func (c *Container) scanDevice(row dbutil.Scannable) (*store.Device, error) {
 }
 
 // GetAllDevices finds all the devices in the database.
-func (c *Container) GetAllDevices() ([]*store.Device, error) {
-	res, err := c.db.Query(context.TODO(), getAllDevicesQuery)
+func (c *Container) GetAllDevices(ctx context.Context) ([]*store.Device, error) {
+	res, err := c.db.Query(ctx, getAllDevicesQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
@@ -175,8 +172,8 @@ func (c *Container) GetAllDevices() ([]*store.Device, error) {
 // GetFirstDevice is a convenience method for getting the first device in the store. If there are
 // no devices, then a new device will be created. You should only use this if you don't want to
 // have multiple sessions simultaneously.
-func (c *Container) GetFirstDevice() (*store.Device, error) {
-	devices, err := c.GetAllDevices()
+func (c *Container) GetFirstDevice(ctx context.Context) (*store.Device, error) {
+	devices, err := c.GetAllDevices(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -192,8 +189,8 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 // If the device is not found, nil is returned instead.
 //
 // Note that the parameter usually must be an AD-JID.
-func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
-	sess, err := c.scanDevice(c.db.QueryRow(context.TODO(), getDeviceQuery, jid))
+func (c *Container) GetDevice(ctx context.Context, jid types.JID) (*store.Device, error) {
+	sess, err := c.scanDevice(c.db.QueryRow(ctx, getDeviceQuery, jid))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -225,8 +222,6 @@ func (c *Container) NewDevice() *store.Device {
 		Log:       c.log,
 		Container: c,
 
-		DatabaseErrorHandler: c.DatabaseErrorHandler,
-
 		NoiseKey:       keys.NewKeyPair(),
 		IdentityKey:    keys.NewKeyPair(),
 		RegistrationID: mathRand.Uint32(),
@@ -249,11 +244,11 @@ func (c *Container) Close() error {
 
 // PutDevice stores the given device in this database. This should be called through Device.Save()
 // (which usually doesn't need to be called manually, as the library does that automatically when relevant).
-func (c *Container) PutDevice(device *store.Device) error {
+func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(context.TODO(), insertDeviceQuery,
+	_, err := c.db.Exec(ctx, insertDeviceQuery,
 		device.ID, device.LID, device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
@@ -277,16 +272,17 @@ func (c *Container) initializeDevice(device *store.Device) {
 	device.ChatSettings = innerStore
 	device.MsgSecrets = innerStore
 	device.PrivacyTokens = innerStore
+	device.EventBuffer = innerStore
 	device.LIDs = c.LIDMap
 	device.Container = c
 	device.Initialized = true
 }
 
 // DeleteDevice deletes the given device from this database. This should be called through Device.Delete()
-func (c *Container) DeleteDevice(store *store.Device) error {
+func (c *Container) DeleteDevice(ctx context.Context, store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.db.Exec(context.TODO(), deleteDeviceQuery, store.ID)
+	_, err := c.db.Exec(ctx, deleteDeviceQuery, store.ID)
 	return err
 }

@@ -14,6 +14,7 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	armadillo "go.mau.fi/whatsmeow/proto"
+	"go.mau.fi/whatsmeow/proto/instamadilloTransportPayload"
 	"go.mau.fi/whatsmeow/proto/waArmadilloApplication"
 	"go.mau.fi/whatsmeow/proto/waConsumerApplication"
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -319,8 +320,10 @@ type FBMessage struct {
 	// If the message was re-requested from the sender, this is the number of retries it took.
 	RetryCount int
 
-	Transport   *waMsgTransport.MessageTransport     // The first level of wrapping the message was in
-	Application *waMsgApplication.MessageApplication // The second level of wrapping the message was in
+	Transport *waMsgTransport.MessageTransport // The first level of wrapping the message was in
+
+	FBApplication *waMsgApplication.MessageApplication           // The second level of wrapping the message was in, for FB messages
+	IGTransport   *instamadilloTransportPayload.TransportPayload // The second level of wrapping the message was in, for IG messages
 }
 
 func (evt *FBMessage) GetConsumerApplication() *waConsumerApplication.ConsumerApplication {

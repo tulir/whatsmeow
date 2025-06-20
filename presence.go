@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"fmt"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -87,7 +88,7 @@ func (cli *Client) SendPresence(state types.Presence) error {
 //
 //	cli.SendPresence(types.PresenceAvailable)
 func (cli *Client) SubscribePresence(jid types.JID) error {
-	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(jid)
+	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(context.TODO(), jid)
 	if err != nil {
 		return fmt.Errorf("failed to get privacy token: %w", err)
 	} else if privacyToken == nil {
