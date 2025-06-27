@@ -107,8 +107,8 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		} else {
 			source.Chat = from.ToNonAD()
 		}
-		if source.AddressingMode == types.AddressingModeLID {
-			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_pn") // existence of this field is not confirmed
+		if source.Chat.Server == types.HiddenUserServer {
+			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_pn")
 		} else {
 			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_lid")
 		}
