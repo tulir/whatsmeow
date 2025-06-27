@@ -123,8 +123,15 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 			source.Chat = from
 		}
 	} else {
-		source.Chat = from.ToNonAD()
-		source.Sender = from
+		if from.Server == types.HiddenUserServer {
+			senderPn := ag.OptionalJIDOrEmpty("sender_pn")
+			source.Chat = senderPn.ToNonAD()
+			source.Sender = senderPn
+		} else {
+			source.Chat = from.ToNonAD()
+			source.Sender = from
+		}
+
 		if source.AddressingMode == types.AddressingModeLID {
 			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_pn")
 		} else {
