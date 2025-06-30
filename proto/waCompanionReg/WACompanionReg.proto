@@ -97,4 +97,5 @@ message EncryptedPairingRequest {
 message ClientPairingProps {
 	optional bool isChatDbLidMigrated = 1;
 	optional bool isSyncdPureLidSession = 2;
+	optional bool isSyncdSnapshotRecoveryEnabled = 3;
 }

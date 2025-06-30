@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        v3.21.12
-// source: waStatusAttributions/WAWebProtobufsStatusAttributions.proto
+// source: waStatusAttributions/WAStatusAttributions.proto
 
 package waStatusAttributions
 
@@ -61,11 +61,11 @@ func (x StatusAttribution_Type) String() string {
 }
 
 func (StatusAttribution_Type) Descriptor() protoreflect.EnumDescriptor {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_enumTypes[0].Descriptor()
+	return file_waStatusAttributions_WAStatusAttributions_proto_enumTypes[0].Descriptor()
 }
 
 func (StatusAttribution_Type) Type() protoreflect.EnumType {
-	return &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_enumTypes[0]
+	return &file_waStatusAttributions_WAStatusAttributions_proto_enumTypes[0]
 }
 
 func (x StatusAttribution_Type) Number() protoreflect.EnumNumber {
@@ -84,7 +84,7 @@ func (x *StatusAttribution_Type) UnmarshalJSON(b []byte) error {
 
 // Deprecated: Use StatusAttribution_Type.Descriptor instead.
 func (StatusAttribution_Type) EnumDescriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0, 0}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0, 0}
 }
 
 type StatusAttribution_ExternalShare_Source int32
@@ -132,11 +132,11 @@ func (x StatusAttribution_ExternalShare_Source) String() string {
 }
 
 func (StatusAttribution_ExternalShare_Source) Descriptor() protoreflect.EnumDescriptor {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_enumTypes[1].Descriptor()
+	return file_waStatusAttributions_WAStatusAttributions_proto_enumTypes[1].Descriptor()
 }
 
 func (StatusAttribution_ExternalShare_Source) Type() protoreflect.EnumType {
-	return &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_enumTypes[1]
+	return &file_waStatusAttributions_WAStatusAttributions_proto_enumTypes[1]
 }
 
 func (x StatusAttribution_ExternalShare_Source) Number() protoreflect.EnumNumber {
@@ -155,7 +155,7 @@ func (x *StatusAttribution_ExternalShare_Source) UnmarshalJSON(b []byte) error {
 
 // Deprecated: Use StatusAttribution_ExternalShare_Source.Descriptor instead.
 func (StatusAttribution_ExternalShare_Source) EnumDescriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0, 0, 0}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0, 0, 0}
 }
 
 type StatusAttribution_StatusReshare_Source int32
@@ -194,11 +194,11 @@ func (x StatusAttribution_StatusReshare_Source) String() string {
 }
 
 func (StatusAttribution_StatusReshare_Source) Descriptor() protoreflect.EnumDescriptor {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_enumTypes[2].Descriptor()
+	return file_waStatusAttributions_WAStatusAttributions_proto_enumTypes[2].Descriptor()
 }
 
 func (StatusAttribution_StatusReshare_Source) Type() protoreflect.EnumType {
-	return &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_enumTypes[2]
+	return &file_waStatusAttributions_WAStatusAttributions_proto_enumTypes[2]
 }
 
 func (x StatusAttribution_StatusReshare_Source) Number() protoreflect.EnumNumber {
@@ -217,7 +217,7 @@ func (x *StatusAttribution_StatusReshare_Source) UnmarshalJSON(b []byte) error {
 
 // Deprecated: Use StatusAttribution_StatusReshare_Source.Descriptor instead.
 func (StatusAttribution_StatusReshare_Source) EnumDescriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0, 1, 0}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0, 1, 0}
 }
 
 type StatusAttribution struct {
@@ -229,7 +229,7 @@ type StatusAttribution struct {
 	//	*StatusAttribution_Music_
 	//	*StatusAttribution_GroupStatus_
 	AttributionData isStatusAttribution_AttributionData `protobuf_oneof:"attributionData"`
-	Type            *StatusAttribution_Type             `protobuf:"varint,1,opt,name=type,enum=WAWebProtobufsStatusAttributions.StatusAttribution_Type" json:"type,omitempty"`
+	Type            *StatusAttribution_Type             `protobuf:"varint,1,opt,name=type,enum=WAStatusAttributions.StatusAttribution_Type" json:"type,omitempty"`
 	ActionURL       *string                             `protobuf:"bytes,2,opt,name=actionURL" json:"actionURL,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -237,7 +237,7 @@ type StatusAttribution struct {
 
 func (x *StatusAttribution) Reset() {
 	*x = StatusAttribution{}
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[0]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -249,7 +249,7 @@ func (x *StatusAttribution) String() string {
 func (*StatusAttribution) ProtoMessage() {}
 
 func (x *StatusAttribution) ProtoReflect() protoreflect.Message {
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[0]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -262,7 +262,7 @@ func (x *StatusAttribution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusAttribution.ProtoReflect.Descriptor instead.
 func (*StatusAttribution) Descriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *StatusAttribution) GetAttributionData() isStatusAttribution_AttributionData {
@@ -353,7 +353,7 @@ func (*StatusAttribution_GroupStatus_) isStatusAttribution_AttributionData() {}
 type StatusAttribution_ExternalShare struct {
 	state             protoimpl.MessageState                  `protogen:"open.v1"`
 	ActionURL         *string                                 `protobuf:"bytes,1,opt,name=actionURL" json:"actionURL,omitempty"`
-	Source            *StatusAttribution_ExternalShare_Source `protobuf:"varint,2,opt,name=source,enum=WAWebProtobufsStatusAttributions.StatusAttribution_ExternalShare_Source" json:"source,omitempty"`
+	Source            *StatusAttribution_ExternalShare_Source `protobuf:"varint,2,opt,name=source,enum=WAStatusAttributions.StatusAttribution_ExternalShare_Source" json:"source,omitempty"`
 	Duration          *int32                                  `protobuf:"varint,3,opt,name=duration" json:"duration,omitempty"`
 	ActionFallbackURL *string                                 `protobuf:"bytes,4,opt,name=actionFallbackURL" json:"actionFallbackURL,omitempty"`
 	unknownFields     protoimpl.UnknownFields
@@ -362,7 +362,7 @@ type StatusAttribution_ExternalShare struct {
 
 func (x *StatusAttribution_ExternalShare) Reset() {
 	*x = StatusAttribution_ExternalShare{}
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[1]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -374,7 +374,7 @@ func (x *StatusAttribution_ExternalShare) String() string {
 func (*StatusAttribution_ExternalShare) ProtoMessage() {}
 
 func (x *StatusAttribution_ExternalShare) ProtoReflect() protoreflect.Message {
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[1]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -387,7 +387,7 @@ func (x *StatusAttribution_ExternalShare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusAttribution_ExternalShare.ProtoReflect.Descriptor instead.
 func (*StatusAttribution_ExternalShare) Descriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0, 0}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0, 0}
 }
 
 func (x *StatusAttribution_ExternalShare) GetActionURL() string {
@@ -420,7 +420,7 @@ func (x *StatusAttribution_ExternalShare) GetActionFallbackURL() string {
 
 type StatusAttribution_StatusReshare struct {
 	state         protoimpl.MessageState                    `protogen:"open.v1"`
-	Source        *StatusAttribution_StatusReshare_Source   `protobuf:"varint,1,opt,name=source,enum=WAWebProtobufsStatusAttributions.StatusAttribution_StatusReshare_Source" json:"source,omitempty"`
+	Source        *StatusAttribution_StatusReshare_Source   `protobuf:"varint,1,opt,name=source,enum=WAStatusAttributions.StatusAttribution_StatusReshare_Source" json:"source,omitempty"`
 	Metadata      *StatusAttribution_StatusReshare_Metadata `protobuf:"bytes,2,opt,name=metadata" json:"metadata,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -428,7 +428,7 @@ type StatusAttribution_StatusReshare struct {
 
 func (x *StatusAttribution_StatusReshare) Reset() {
 	*x = StatusAttribution_StatusReshare{}
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[2]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -440,7 +440,7 @@ func (x *StatusAttribution_StatusReshare) String() string {
 func (*StatusAttribution_StatusReshare) ProtoMessage() {}
 
 func (x *StatusAttribution_StatusReshare) ProtoReflect() protoreflect.Message {
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[2]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +453,7 @@ func (x *StatusAttribution_StatusReshare) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusAttribution_StatusReshare.ProtoReflect.Descriptor instead.
 func (*StatusAttribution_StatusReshare) Descriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0, 1}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0, 1}
 }
 
 func (x *StatusAttribution_StatusReshare) GetSource() StatusAttribution_StatusReshare_Source {
@@ -479,7 +479,7 @@ type StatusAttribution_GroupStatus struct {
 
 func (x *StatusAttribution_GroupStatus) Reset() {
 	*x = StatusAttribution_GroupStatus{}
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[3]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -491,7 +491,7 @@ func (x *StatusAttribution_GroupStatus) String() string {
 func (*StatusAttribution_GroupStatus) ProtoMessage() {}
 
 func (x *StatusAttribution_GroupStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[3]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -504,7 +504,7 @@ func (x *StatusAttribution_GroupStatus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusAttribution_GroupStatus.ProtoReflect.Descriptor instead.
 func (*StatusAttribution_GroupStatus) Descriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0, 2}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0, 2}
 }
 
 func (x *StatusAttribution_GroupStatus) GetAuthorJID() string {
@@ -528,7 +528,7 @@ type StatusAttribution_Music struct {
 
 func (x *StatusAttribution_Music) Reset() {
 	*x = StatusAttribution_Music{}
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[4]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -540,7 +540,7 @@ func (x *StatusAttribution_Music) String() string {
 func (*StatusAttribution_Music) ProtoMessage() {}
 
 func (x *StatusAttribution_Music) ProtoReflect() protoreflect.Message {
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[4]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -553,7 +553,7 @@ func (x *StatusAttribution_Music) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusAttribution_Music.ProtoReflect.Descriptor instead.
 func (*StatusAttribution_Music) Descriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0, 3}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0, 3}
 }
 
 func (x *StatusAttribution_Music) GetAuthorName() string {
@@ -610,7 +610,7 @@ type StatusAttribution_StatusReshare_Metadata struct {
 
 func (x *StatusAttribution_StatusReshare_Metadata) Reset() {
 	*x = StatusAttribution_StatusReshare_Metadata{}
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[5]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -622,7 +622,7 @@ func (x *StatusAttribution_StatusReshare_Metadata) String() string {
 func (*StatusAttribution_StatusReshare_Metadata) ProtoMessage() {}
 
 func (x *StatusAttribution_StatusReshare_Metadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[5]
+	mi := &file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -635,7 +635,7 @@ func (x *StatusAttribution_StatusReshare_Metadata) ProtoReflect() protoreflect.M
 
 // Deprecated: Use StatusAttribution_StatusReshare_Metadata.ProtoReflect.Descriptor instead.
 func (*StatusAttribution_StatusReshare_Metadata) Descriptor() ([]byte, []int) {
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP(), []int{0, 1, 0}
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP(), []int{0, 1, 0}
 }
 
 func (x *StatusAttribution_StatusReshare_Metadata) GetDuration() int32 {
@@ -666,21 +666,21 @@ func (x *StatusAttribution_StatusReshare_Metadata) GetHasMultipleReshares() bool
 	return false
 }
 
-var File_waStatusAttributions_WAWebProtobufsStatusAttributions_proto protoreflect.FileDescriptor
+var File_waStatusAttributions_WAStatusAttributions_proto protoreflect.FileDescriptor
 
-const file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDesc = "" +
+const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\n" +
-	";waStatusAttributions/WAWebProtobufsStatusAttributions.proto\x12 WAWebProtobufsStatusAttributions\"\x87\r\n" +
-	"\x11StatusAttribution\x12i\n" +
-	"\rstatusReshare\x18\x03 \x01(\v2A.WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshareH\x00R\rstatusReshare\x12i\n" +
-	"\rexternalShare\x18\x04 \x01(\v2A.WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShareH\x00R\rexternalShare\x12Q\n" +
-	"\x05music\x18\x05 \x01(\v29.WAWebProtobufsStatusAttributions.StatusAttribution.MusicH\x00R\x05music\x12c\n" +
-	"\vgroupStatus\x18\x06 \x01(\v2?.WAWebProtobufsStatusAttributions.StatusAttribution.GroupStatusH\x00R\vgroupStatus\x12L\n" +
-	"\x04type\x18\x01 \x01(\x0e28.WAWebProtobufsStatusAttributions.StatusAttribution.TypeR\x04type\x12\x1c\n" +
-	"\tactionURL\x18\x02 \x01(\tR\tactionURL\x1a\xc5\x02\n" +
+	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\xa7\f\n" +
+	"\x11StatusAttribution\x12]\n" +
+	"\rstatusReshare\x18\x03 \x01(\v25.WAStatusAttributions.StatusAttribution.StatusReshareH\x00R\rstatusReshare\x12]\n" +
+	"\rexternalShare\x18\x04 \x01(\v25.WAStatusAttributions.StatusAttribution.ExternalShareH\x00R\rexternalShare\x12E\n" +
+	"\x05music\x18\x05 \x01(\v2-.WAStatusAttributions.StatusAttribution.MusicH\x00R\x05music\x12W\n" +
+	"\vgroupStatus\x18\x06 \x01(\v23.WAStatusAttributions.StatusAttribution.GroupStatusH\x00R\vgroupStatus\x12@\n" +
+	"\x04type\x18\x01 \x01(\x0e2,.WAStatusAttributions.StatusAttribution.TypeR\x04type\x12\x1c\n" +
+	"\tactionURL\x18\x02 \x01(\tR\tactionURL\x1a\xb9\x02\n" +
 	"\rExternalShare\x12\x1c\n" +
-	"\tactionURL\x18\x01 \x01(\tR\tactionURL\x12`\n" +
-	"\x06source\x18\x02 \x01(\x0e2H.WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShare.SourceR\x06source\x12\x1a\n" +
+	"\tactionURL\x18\x01 \x01(\tR\tactionURL\x12T\n" +
+	"\x06source\x18\x02 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.ExternalShare.SourceR\x06source\x12\x1a\n" +
 	"\bduration\x18\x03 \x01(\x05R\bduration\x12,\n" +
 	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"j\n" +
 	"\x06Source\x12\v\n" +
@@ -690,10 +690,10 @@ const file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDesc =
 	"\tMESSENGER\x10\x03\x12\v\n" +
 	"\aSPOTIFY\x10\x04\x12\v\n" +
 	"\aYOUTUBE\x10\x05\x12\r\n" +
-	"\tPINTEREST\x10\x06\x1a\xd7\x03\n" +
-	"\rStatusReshare\x12`\n" +
-	"\x06source\x18\x01 \x01(\x0e2H.WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.SourceR\x06source\x12f\n" +
-	"\bmetadata\x18\x02 \x01(\v2J.WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.MetadataR\bmetadata\x1a\xa4\x01\n" +
+	"\tPINTEREST\x10\x06\x1a\xbf\x03\n" +
+	"\rStatusReshare\x12T\n" +
+	"\x06source\x18\x01 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.StatusReshare.SourceR\x06source\x12Z\n" +
+	"\bmetadata\x18\x02 \x01(\v2>.WAStatusAttributions.StatusAttribution.StatusReshare.MetadataR\bmetadata\x1a\xa4\x01\n" +
 	"\bMetadata\x12\x1a\n" +
 	"\bduration\x18\x01 \x01(\x05R\bduration\x12\x1e\n" +
 	"\n" +
@@ -728,39 +728,39 @@ const file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDesc =
 	"\x0fattributionDataB0Z.go.mau.fi/whatsmeow/proto/waStatusAttributions"
 
 var (
-	file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescOnce sync.Once
-	file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescData []byte
+	file_waStatusAttributions_WAStatusAttributions_proto_rawDescOnce sync.Once
+	file_waStatusAttributions_WAStatusAttributions_proto_rawDescData []byte
 )
 
-func file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescGZIP() []byte {
-	file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescOnce.Do(func() {
-		file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDesc), len(file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDesc)))
+func file_waStatusAttributions_WAStatusAttributions_proto_rawDescGZIP() []byte {
+	file_waStatusAttributions_WAStatusAttributions_proto_rawDescOnce.Do(func() {
+		file_waStatusAttributions_WAStatusAttributions_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_waStatusAttributions_WAStatusAttributions_proto_rawDesc), len(file_waStatusAttributions_WAStatusAttributions_proto_rawDesc)))
 	})
-	return file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDescData
+	return file_waStatusAttributions_WAStatusAttributions_proto_rawDescData
 }
 
-var file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-var file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_goTypes = []any{
-	(StatusAttribution_Type)(0),                      // 0: WAWebProtobufsStatusAttributions.StatusAttribution.Type
-	(StatusAttribution_ExternalShare_Source)(0),      // 1: WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShare.Source
-	(StatusAttribution_StatusReshare_Source)(0),      // 2: WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.Source
-	(*StatusAttribution)(nil),                        // 3: WAWebProtobufsStatusAttributions.StatusAttribution
-	(*StatusAttribution_ExternalShare)(nil),          // 4: WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShare
-	(*StatusAttribution_StatusReshare)(nil),          // 5: WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare
-	(*StatusAttribution_GroupStatus)(nil),            // 6: WAWebProtobufsStatusAttributions.StatusAttribution.GroupStatus
-	(*StatusAttribution_Music)(nil),                  // 7: WAWebProtobufsStatusAttributions.StatusAttribution.Music
-	(*StatusAttribution_StatusReshare_Metadata)(nil), // 8: WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.Metadata
+var file_waStatusAttributions_WAStatusAttributions_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_waStatusAttributions_WAStatusAttributions_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_waStatusAttributions_WAStatusAttributions_proto_goTypes = []any{
+	(StatusAttribution_Type)(0),                      // 0: WAStatusAttributions.StatusAttribution.Type
+	(StatusAttribution_ExternalShare_Source)(0),      // 1: WAStatusAttributions.StatusAttribution.ExternalShare.Source
+	(StatusAttribution_StatusReshare_Source)(0),      // 2: WAStatusAttributions.StatusAttribution.StatusReshare.Source
+	(*StatusAttribution)(nil),                        // 3: WAStatusAttributions.StatusAttribution
+	(*StatusAttribution_ExternalShare)(nil),          // 4: WAStatusAttributions.StatusAttribution.ExternalShare
+	(*StatusAttribution_StatusReshare)(nil),          // 5: WAStatusAttributions.StatusAttribution.StatusReshare
+	(*StatusAttribution_GroupStatus)(nil),            // 6: WAStatusAttributions.StatusAttribution.GroupStatus
+	(*StatusAttribution_Music)(nil),                  // 7: WAStatusAttributions.StatusAttribution.Music
+	(*StatusAttribution_StatusReshare_Metadata)(nil), // 8: WAStatusAttributions.StatusAttribution.StatusReshare.Metadata
 }
-var file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_depIdxs = []int32{
-	5, // 0: WAWebProtobufsStatusAttributions.StatusAttribution.statusReshare:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare
-	4, // 1: WAWebProtobufsStatusAttributions.StatusAttribution.externalShare:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShare
-	7, // 2: WAWebProtobufsStatusAttributions.StatusAttribution.music:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution.Music
-	6, // 3: WAWebProtobufsStatusAttributions.StatusAttribution.groupStatus:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution.GroupStatus
-	0, // 4: WAWebProtobufsStatusAttributions.StatusAttribution.type:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution.Type
-	1, // 5: WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShare.source:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution.ExternalShare.Source
-	2, // 6: WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.source:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.Source
-	8, // 7: WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.metadata:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution.StatusReshare.Metadata
+var file_waStatusAttributions_WAStatusAttributions_proto_depIdxs = []int32{
+	5, // 0: WAStatusAttributions.StatusAttribution.statusReshare:type_name -> WAStatusAttributions.StatusAttribution.StatusReshare
+	4, // 1: WAStatusAttributions.StatusAttribution.externalShare:type_name -> WAStatusAttributions.StatusAttribution.ExternalShare
+	7, // 2: WAStatusAttributions.StatusAttribution.music:type_name -> WAStatusAttributions.StatusAttribution.Music
+	6, // 3: WAStatusAttributions.StatusAttribution.groupStatus:type_name -> WAStatusAttributions.StatusAttribution.GroupStatus
+	0, // 4: WAStatusAttributions.StatusAttribution.type:type_name -> WAStatusAttributions.StatusAttribution.Type
+	1, // 5: WAStatusAttributions.StatusAttribution.ExternalShare.source:type_name -> WAStatusAttributions.StatusAttribution.ExternalShare.Source
+	2, // 6: WAStatusAttributions.StatusAttribution.StatusReshare.source:type_name -> WAStatusAttributions.StatusAttribution.StatusReshare.Source
+	8, // 7: WAStatusAttributions.StatusAttribution.StatusReshare.metadata:type_name -> WAStatusAttributions.StatusAttribution.StatusReshare.Metadata
 	8, // [8:8] is the sub-list for method output_type
 	8, // [8:8] is the sub-list for method input_type
 	8, // [8:8] is the sub-list for extension type_name
@@ -768,12 +768,12 @@ var file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_depIdxs = [
 	0, // [0:8] is the sub-list for field type_name
 }
 
-func init() { file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_init() }
-func file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_init() {
-	if File_waStatusAttributions_WAWebProtobufsStatusAttributions_proto != nil {
+func init() { file_waStatusAttributions_WAStatusAttributions_proto_init() }
+func file_waStatusAttributions_WAStatusAttributions_proto_init() {
+	if File_waStatusAttributions_WAStatusAttributions_proto != nil {
 		return
 	}
-	file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes[0].OneofWrappers = []any{
+	file_waStatusAttributions_WAStatusAttributions_proto_msgTypes[0].OneofWrappers = []any{
 		(*StatusAttribution_StatusReshare_)(nil),
 		(*StatusAttribution_ExternalShare_)(nil),
 		(*StatusAttribution_Music_)(nil),
@@ -783,18 +783,18 @@ func file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDesc), len(file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waStatusAttributions_WAStatusAttributions_proto_rawDesc), len(file_waStatusAttributions_WAStatusAttributions_proto_rawDesc)),
 			NumEnums:      3,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_goTypes,
-		DependencyIndexes: file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_depIdxs,
-		EnumInfos:         file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_enumTypes,
-		MessageInfos:      file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_msgTypes,
+		GoTypes:           file_waStatusAttributions_WAStatusAttributions_proto_goTypes,
+		DependencyIndexes: file_waStatusAttributions_WAStatusAttributions_proto_depIdxs,
+		EnumInfos:         file_waStatusAttributions_WAStatusAttributions_proto_enumTypes,
+		MessageInfos:      file_waStatusAttributions_WAStatusAttributions_proto_msgTypes,
 	}.Build()
-	File_waStatusAttributions_WAWebProtobufsStatusAttributions_proto = out.File
-	file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_goTypes = nil
-	file_waStatusAttributions_WAWebProtobufsStatusAttributions_proto_depIdxs = nil
+	File_waStatusAttributions_WAStatusAttributions_proto = out.File
+	file_waStatusAttributions_WAStatusAttributions_proto_goTypes = nil
+	file_waStatusAttributions_WAStatusAttributions_proto_depIdxs = nil
 }

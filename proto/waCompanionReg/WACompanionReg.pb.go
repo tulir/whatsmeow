@@ -544,11 +544,12 @@ func (x *EncryptedPairingRequest) GetIV() []byte {
 }
 
 type ClientPairingProps struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	IsChatDbLidMigrated   *bool                  `protobuf:"varint,1,opt,name=isChatDbLidMigrated" json:"isChatDbLidMigrated,omitempty"`
-	IsSyncdPureLidSession *bool                  `protobuf:"varint,2,opt,name=isSyncdPureLidSession" json:"isSyncdPureLidSession,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                          protoimpl.MessageState `protogen:"open.v1"`
+	IsChatDbLidMigrated            *bool                  `protobuf:"varint,1,opt,name=isChatDbLidMigrated" json:"isChatDbLidMigrated,omitempty"`
+	IsSyncdPureLidSession          *bool                  `protobuf:"varint,2,opt,name=isSyncdPureLidSession" json:"isSyncdPureLidSession,omitempty"`
+	IsSyncdSnapshotRecoveryEnabled *bool                  `protobuf:"varint,3,opt,name=isSyncdSnapshotRecoveryEnabled" json:"isSyncdSnapshotRecoveryEnabled,omitempty"`
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
 }
 
 func (x *ClientPairingProps) Reset() {
@@ -591,6 +592,13 @@ func (x *ClientPairingProps) GetIsChatDbLidMigrated() bool {
 func (x *ClientPairingProps) GetIsSyncdPureLidSession() bool {
 	if x != nil && x.IsSyncdPureLidSession != nil {
 		return *x.IsSyncdPureLidSession
+	}
+	return false
+}
+
+func (x *ClientPairingProps) GetIsSyncdSnapshotRecoveryEnabled() bool {
+	if x != nil && x.IsSyncdSnapshotRecoveryEnabled != nil {
+		return *x.IsSyncdSnapshotRecoveryEnabled
 	}
 	return false
 }
@@ -907,10 +915,11 @@ const file_waCompanionReg_WACompanionReg_proto_rawDesc = "" +
 	"\tadvSecret\x18\x03 \x01(\fR\tadvSecret\"U\n" +
 	"\x17EncryptedPairingRequest\x12*\n" +
 	"\x10encryptedPayload\x18\x01 \x01(\fR\x10encryptedPayload\x12\x0e\n" +
-	"\x02IV\x18\x02 \x01(\fR\x02IV\"|\n" +
+	"\x02IV\x18\x02 \x01(\fR\x02IV\"\xc4\x01\n" +
 	"\x12ClientPairingProps\x120\n" +
 	"\x13isChatDbLidMigrated\x18\x01 \x01(\bR\x13isChatDbLidMigrated\x124\n" +
-	"\x15isSyncdPureLidSession\x18\x02 \x01(\bR\x15isSyncdPureLidSessionB*Z(go.mau.fi/whatsmeow/proto/waCompanionReg"
+	"\x15isSyncdPureLidSession\x18\x02 \x01(\bR\x15isSyncdPureLidSession\x12F\n" +
+	"\x1eisSyncdSnapshotRecoveryEnabled\x18\x03 \x01(\bR\x1eisSyncdSnapshotRecoveryEnabledB*Z(go.mau.fi/whatsmeow/proto/waCompanionReg"
 
 var (
 	file_waCompanionReg_WACompanionReg_proto_rawDescOnce sync.Once

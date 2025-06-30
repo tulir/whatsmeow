@@ -5,6 +5,7 @@ option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloMiTransportAdminMessag
 message MiTransportAdminMessage {
 	message LimitSharingChanged {
 		enum SharingType {
+			UNSET = 0;
 			DISABLED = 1;
 			ENABLED = 2;
 		}
@@ -14,6 +15,7 @@ message MiTransportAdminMessage {
 
 	message GroupImageChanged {
 		enum Action {
+			UNSET = 0;
 			CHANGED = 1;
 			REMOVED = 2;
 		}
@@ -23,6 +25,7 @@ message MiTransportAdminMessage {
 
 	message MessagePinned {
 		enum Action {
+			UNSET = 0;
 			PINNED = 1;
 			UNPINNED = 2;
 		}
@@ -32,6 +35,7 @@ message MiTransportAdminMessage {
 
 	message GroupMembershipAddModeChanged {
 		enum Mode {
+			UNSET = 0;
 			ALL_MEMBERS = 1;
 			ADMINS_ONLY = 2;
 		}
@@ -41,6 +45,7 @@ message MiTransportAdminMessage {
 
 	message GroupAdminChanged {
 		enum Action {
+			UNSET = 0;
 			ADDED = 1;
 			REMOVED = 2;
 		}
@@ -51,6 +56,7 @@ message MiTransportAdminMessage {
 
 	message GroupParticipantChanged {
 		enum Action {
+			UNSET = 0;
 			ADDED = 1;
 			REMOVED = 2;
 		}
