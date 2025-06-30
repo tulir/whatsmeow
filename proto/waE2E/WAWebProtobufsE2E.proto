@@ -6,7 +6,7 @@ import "waAdv/WAAdv.proto";
 import "waCompanionReg/WACompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
-import "waStatusAttributions/WAWebProtobufsStatusAttributions.proto";
+import "waStatusAttributions/WAStatusAttributions.proto";
 
 enum PollContentType {
 	UNKNOWN_POLL_CONTENT_TYPE = 0;
@@ -53,6 +53,7 @@ enum BotMetricsEntryPoint {
 	UGC_CHAT_SHORTCUT_AI_STUDIO = 23;
 	NEW_CHAT_AI_STUDIO = 24;
 	AIVOICE_FAVICON_CALL_HISTORY = 25;
+	ASK_META_AI_CONTEXT_MENU = 26;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -60,6 +61,7 @@ enum BotMetricsThreadEntryPoint {
 	AI_HOME_THREAD = 2;
 	AI_DEEPLINK_IMMERSIVE_THREAD = 3;
 	AI_DEEPLINK_THREAD = 4;
+	ASK_META_AI_CONTEXT_MENU_THREAD = 5;
 }
 
 enum BotSessionSource {
@@ -1215,7 +1217,7 @@ message ContextInfo {
 	optional MemberLabel memberLabel = 62;
 	optional bool isQuestion = 63;
 	optional StatusSourceType statusSourceType = 64;
-	repeated WAWebProtobufsStatusAttributions.StatusAttribution statusAttributions = 65;
+	repeated WAStatusAttributions.StatusAttribution statusAttributions = 65;
 }
 
 message BotPluginMetadata {
@@ -1590,6 +1592,7 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_UNIFIED_RESPONSE = 34;
 		PROMOTION_MESSAGE = 35;
 		SIMPLIFIED_PROFILE_PAGE = 36;
+		RICH_RESPONSE_SOURCES_IN_MESSAGE = 37;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -1646,6 +1649,7 @@ message BotSourcesMetadata {
 		optional string sourceQuery = 4;
 		optional string faviconCDNURL = 5;
 		optional uint32 citationNumber = 6;
+		optional string sourceTitle = 7;
 	}
 
 	repeated BotSourceItem sources = 1;
@@ -2299,6 +2303,7 @@ message Call {
 	optional string ctwaSignals = 5;
 	optional bytes ctwaPayload = 6;
 	optional ContextInfo contextInfo = 7;
+	optional string nativeFlowCallButtonPayload = 8;
 }
 
 message AudioMessage {

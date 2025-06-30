@@ -195,6 +195,7 @@ const (
 	BotMetricsEntryPoint_UGC_CHAT_SHORTCUT_AI_STUDIO         BotMetricsEntryPoint = 23
 	BotMetricsEntryPoint_NEW_CHAT_AI_STUDIO                  BotMetricsEntryPoint = 24
 	BotMetricsEntryPoint_AIVOICE_FAVICON_CALL_HISTORY        BotMetricsEntryPoint = 25
+	BotMetricsEntryPoint_ASK_META_AI_CONTEXT_MENU            BotMetricsEntryPoint = 26
 )
 
 // Enum value maps for BotMetricsEntryPoint.
@@ -225,6 +226,7 @@ var (
 		23: "UGC_CHAT_SHORTCUT_AI_STUDIO",
 		24: "NEW_CHAT_AI_STUDIO",
 		25: "AIVOICE_FAVICON_CALL_HISTORY",
+		26: "ASK_META_AI_CONTEXT_MENU",
 	}
 	BotMetricsEntryPoint_value = map[string]int32{
 		"FAVICON":                             1,
@@ -252,6 +254,7 @@ var (
 		"UGC_CHAT_SHORTCUT_AI_STUDIO":         23,
 		"NEW_CHAT_AI_STUDIO":                  24,
 		"AIVOICE_FAVICON_CALL_HISTORY":        25,
+		"ASK_META_AI_CONTEXT_MENU":            26,
 	}
 )
 
@@ -295,10 +298,11 @@ func (BotMetricsEntryPoint) EnumDescriptor() ([]byte, []int) {
 type BotMetricsThreadEntryPoint int32
 
 const (
-	BotMetricsThreadEntryPoint_AI_TAB_THREAD                BotMetricsThreadEntryPoint = 1
-	BotMetricsThreadEntryPoint_AI_HOME_THREAD               BotMetricsThreadEntryPoint = 2
-	BotMetricsThreadEntryPoint_AI_DEEPLINK_IMMERSIVE_THREAD BotMetricsThreadEntryPoint = 3
-	BotMetricsThreadEntryPoint_AI_DEEPLINK_THREAD           BotMetricsThreadEntryPoint = 4
+	BotMetricsThreadEntryPoint_AI_TAB_THREAD                   BotMetricsThreadEntryPoint = 1
+	BotMetricsThreadEntryPoint_AI_HOME_THREAD                  BotMetricsThreadEntryPoint = 2
+	BotMetricsThreadEntryPoint_AI_DEEPLINK_IMMERSIVE_THREAD    BotMetricsThreadEntryPoint = 3
+	BotMetricsThreadEntryPoint_AI_DEEPLINK_THREAD              BotMetricsThreadEntryPoint = 4
+	BotMetricsThreadEntryPoint_ASK_META_AI_CONTEXT_MENU_THREAD BotMetricsThreadEntryPoint = 5
 )
 
 // Enum value maps for BotMetricsThreadEntryPoint.
@@ -308,12 +312,14 @@ var (
 		2: "AI_HOME_THREAD",
 		3: "AI_DEEPLINK_IMMERSIVE_THREAD",
 		4: "AI_DEEPLINK_THREAD",
+		5: "ASK_META_AI_CONTEXT_MENU_THREAD",
 	}
 	BotMetricsThreadEntryPoint_value = map[string]int32{
-		"AI_TAB_THREAD":                1,
-		"AI_HOME_THREAD":               2,
-		"AI_DEEPLINK_IMMERSIVE_THREAD": 3,
-		"AI_DEEPLINK_THREAD":           4,
+		"AI_TAB_THREAD":                   1,
+		"AI_HOME_THREAD":                  2,
+		"AI_DEEPLINK_IMMERSIVE_THREAD":    3,
+		"AI_DEEPLINK_THREAD":              4,
+		"ASK_META_AI_CONTEXT_MENU_THREAD": 5,
 	}
 )
 
@@ -4826,6 +4832,7 @@ const (
 	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_RESPONSE    BotCapabilityMetadata_BotCapabilityType = 34
 	BotCapabilityMetadata_PROMOTION_MESSAGE                 BotCapabilityMetadata_BotCapabilityType = 35
 	BotCapabilityMetadata_SIMPLIFIED_PROFILE_PAGE           BotCapabilityMetadata_BotCapabilityType = 36
+	BotCapabilityMetadata_RICH_RESPONSE_SOURCES_IN_MESSAGE  BotCapabilityMetadata_BotCapabilityType = 37
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -4868,6 +4875,7 @@ var (
 		34: "RICH_RESPONSE_UNIFIED_RESPONSE",
 		35: "PROMOTION_MESSAGE",
 		36: "SIMPLIFIED_PROFILE_PAGE",
+		37: "RICH_RESPONSE_SOURCES_IN_MESSAGE",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
 		"UNKNOWN":                           0,
@@ -4907,6 +4915,7 @@ var (
 		"RICH_RESPONSE_UNIFIED_RESPONSE":    34,
 		"PROMOTION_MESSAGE":                 35,
 		"SIMPLIFIED_PROFILE_PAGE":           36,
+		"RICH_RESPONSE_SOURCES_IN_MESSAGE":  37,
 	}
 )
 
@@ -15010,16 +15019,17 @@ func (x *Chat) GetID() string {
 }
 
 type Call struct {
-	state                  protoimpl.MessageState `protogen:"open.v1"`
-	CallKey                []byte                 `protobuf:"bytes,1,opt,name=callKey" json:"callKey,omitempty"`
-	ConversionSource       *string                `protobuf:"bytes,2,opt,name=conversionSource" json:"conversionSource,omitempty"`
-	ConversionData         []byte                 `protobuf:"bytes,3,opt,name=conversionData" json:"conversionData,omitempty"`
-	ConversionDelaySeconds *uint32                `protobuf:"varint,4,opt,name=conversionDelaySeconds" json:"conversionDelaySeconds,omitempty"`
-	CtwaSignals            *string                `protobuf:"bytes,5,opt,name=ctwaSignals" json:"ctwaSignals,omitempty"`
-	CtwaPayload            []byte                 `protobuf:"bytes,6,opt,name=ctwaPayload" json:"ctwaPayload,omitempty"`
-	ContextInfo            *ContextInfo           `protobuf:"bytes,7,opt,name=contextInfo" json:"contextInfo,omitempty"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"open.v1"`
+	CallKey                     []byte                 `protobuf:"bytes,1,opt,name=callKey" json:"callKey,omitempty"`
+	ConversionSource            *string                `protobuf:"bytes,2,opt,name=conversionSource" json:"conversionSource,omitempty"`
+	ConversionData              []byte                 `protobuf:"bytes,3,opt,name=conversionData" json:"conversionData,omitempty"`
+	ConversionDelaySeconds      *uint32                `protobuf:"varint,4,opt,name=conversionDelaySeconds" json:"conversionDelaySeconds,omitempty"`
+	CtwaSignals                 *string                `protobuf:"bytes,5,opt,name=ctwaSignals" json:"ctwaSignals,omitempty"`
+	CtwaPayload                 []byte                 `protobuf:"bytes,6,opt,name=ctwaPayload" json:"ctwaPayload,omitempty"`
+	ContextInfo                 *ContextInfo           `protobuf:"bytes,7,opt,name=contextInfo" json:"contextInfo,omitempty"`
+	NativeFlowCallButtonPayload *string                `protobuf:"bytes,8,opt,name=nativeFlowCallButtonPayload" json:"nativeFlowCallButtonPayload,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *Call) Reset() {
@@ -15099,6 +15109,13 @@ func (x *Call) GetContextInfo() *ContextInfo {
 		return x.ContextInfo
 	}
 	return nil
+}
+
+func (x *Call) GetNativeFlowCallButtonPayload() string {
+	if x != nil && x.NativeFlowCallButtonPayload != nil {
+		return *x.NativeFlowCallButtonPayload
+	}
+	return ""
 }
 
 type AudioMessage struct {
@@ -22662,6 +22679,7 @@ type BotSourcesMetadata_BotSourceItem struct {
 	SourceQuery       *string                                          `protobuf:"bytes,4,opt,name=sourceQuery" json:"sourceQuery,omitempty"`
 	FaviconCDNURL     *string                                          `protobuf:"bytes,5,opt,name=faviconCDNURL" json:"faviconCDNURL,omitempty"`
 	CitationNumber    *uint32                                          `protobuf:"varint,6,opt,name=citationNumber" json:"citationNumber,omitempty"`
+	SourceTitle       *string                                          `protobuf:"bytes,7,opt,name=sourceTitle" json:"sourceTitle,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -22736,6 +22754,13 @@ func (x *BotSourcesMetadata_BotSourceItem) GetCitationNumber() uint32 {
 		return *x.CitationNumber
 	}
 	return 0
+}
+
+func (x *BotSourcesMetadata_BotSourceItem) GetSourceTitle() string {
+	if x != nil && x.SourceTitle != nil {
+		return *x.SourceTitle
+	}
+	return ""
 }
 
 type HydratedTemplateButton_HydratedURLButton struct {
@@ -24168,7 +24193,7 @@ var File_waE2E_WAWebProtobufsE2E_proto protoreflect.FileDescriptor
 
 const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaE2E/WAWebProtobufsE2E.proto\x12\x11WAWebProtobufsE2E\x1a\x11waAdv/WAAdv.proto\x1a#waCompanionReg/WACompanionReg.proto\x1a\x1bwaMmsRetry/WAMmsRetry.proto\x1a\x17waCommon/WACommon.proto\x1a;waStatusAttributions/WAWebProtobufsStatusAttributions.proto\"\xdf\t\n" +
+	"\x1dwaE2E/WAWebProtobufsE2E.proto\x12\x11WAWebProtobufsE2E\x1a\x11waAdv/WAAdv.proto\x1a#waCompanionReg/WACompanionReg.proto\x1a\x1bwaMmsRetry/WAMmsRetry.proto\x1a\x17waCommon/WACommon.proto\x1a/waStatusAttributions/WAStatusAttributions.proto\"\xdf\t\n" +
 	"\x12StickerPackMessage\x12$\n" +
 	"\rstickerPackID\x18\x01 \x01(\tR\rstickerPackID\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
@@ -24996,7 +25021,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"USER_IMAGE\x10\x00\x12\x10\n" +
 	"\fAI_GENERATED\x10\x01\x12\x0f\n" +
 	"\vAI_MODIFIED\x10\x02\x12\x1a\n" +
-	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xc6/\n" +
+	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xba/\n" +
 	"\vContextInfo\x12\x1a\n" +
 	"\bstanzaID\x18\x01 \x01(\tR\bstanzaID\x12 \n" +
 	"\vparticipant\x18\x02 \x01(\tR\vparticipant\x12@\n" +
@@ -25050,8 +25075,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\n" +
 	"isQuestion\x18? \x01(\bR\n" +
 	"isQuestion\x12[\n" +
-	"\x10statusSourceType\x18@ \x01(\x0e2/.WAWebProtobufsE2E.ContextInfo.StatusSourceTypeR\x10statusSourceType\x12c\n" +
-	"\x12statusAttributions\x18A \x03(\v23.WAWebProtobufsStatusAttributions.StatusAttributionR\x12statusAttributions\x1a\xee\x02\n" +
+	"\x10statusSourceType\x18@ \x01(\x0e2/.WAWebProtobufsE2E.ContextInfo.StatusSourceTypeR\x10statusSourceType\x12W\n" +
+	"\x12statusAttributions\x18A \x03(\v2'.WAStatusAttributions.StatusAttributionR\x12statusAttributions\x1a\xee\x02\n" +
 	"\x1eForwardedNewsletterMessageInfo\x12$\n" +
 	"\rnewsletterJID\x18\x01 \x01(\tR\rnewsletterJID\x12(\n" +
 	"\x0fserverMessageID\x18\x02 \x01(\x05R\x0fserverMessageID\x12&\n" +
@@ -25422,9 +25447,10 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPLANNED\x10\x01\x12\r\n" +
 	"\tEXECUTING\x10\x02\x12\f\n" +
-	"\bFINISHED\x10\x03\"\xe8\t\n" +
+	"\bFINISHED\x10\x03\"\x8e\n" +
+	"\n" +
 	"\x15BotCapabilityMetadata\x12^\n" +
-	"\fcapabilities\x18\x01 \x03(\x0e2:.WAWebProtobufsE2E.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xee\b\n" +
+	"\fcapabilities\x18\x01 \x03(\x0e2:.WAWebProtobufsE2E.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\x94\t\n" +
 	"\x11BotCapabilityType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x16\n" +
 	"\x12PROGRESS_INDICATOR\x10\x01\x12\x19\n" +
@@ -25464,7 +25490,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x11PROACTIVE_MESSAGE\x10!\x12\"\n" +
 	"\x1eRICH_RESPONSE_UNIFIED_RESPONSE\x10\"\x12\x15\n" +
 	"\x11PROMOTION_MESSAGE\x10#\x12\x1b\n" +
-	"\x17SIMPLIFIED_PROFILE_PAGE\x10$\"\xae\x01\n" +
+	"\x17SIMPLIFIED_PROFILE_PAGE\x10$\x12$\n" +
+	" RICH_RESPONSE_SOURCES_IN_MESSAGE\x10%\"\xae\x01\n" +
 	"\x18BotModeSelectionMetadata\x12T\n" +
 	"\x04mode\x18\x01 \x03(\x0e2@.WAWebProtobufsE2E.BotModeSelectionMetadata.BotUserSelectionModeR\x04mode\"<\n" +
 	"\x14BotUserSelectionMode\x12\x10\n" +
@@ -25486,16 +25513,17 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\aIMAGINE\x10\x01\x12\b\n" +
 	"\x04MEMU\x10\x02\x12\t\n" +
 	"\x05FLASH\x10\x03\x12\b\n" +
-	"\x04EDIT\x10\x04\"\xdf\x03\n" +
+	"\x04EDIT\x10\x04\"\x81\x04\n" +
 	"\x12BotSourcesMetadata\x12M\n" +
-	"\asources\x18\x01 \x03(\v23.WAWebProtobufsE2E.BotSourcesMetadata.BotSourceItemR\asources\x1a\xf9\x02\n" +
+	"\asources\x18\x01 \x03(\v23.WAWebProtobufsE2E.BotSourcesMetadata.BotSourceItemR\asources\x1a\x9b\x03\n" +
 	"\rBotSourceItem\x12^\n" +
 	"\bprovider\x18\x01 \x01(\x0e2B.WAWebProtobufsE2E.BotSourcesMetadata.BotSourceItem.SourceProviderR\bprovider\x12(\n" +
 	"\x0fthumbnailCDNURL\x18\x02 \x01(\tR\x0fthumbnailCDNURL\x12,\n" +
 	"\x11sourceProviderURL\x18\x03 \x01(\tR\x11sourceProviderURL\x12 \n" +
 	"\vsourceQuery\x18\x04 \x01(\tR\vsourceQuery\x12$\n" +
 	"\rfaviconCDNURL\x18\x05 \x01(\tR\rfaviconCDNURL\x12&\n" +
-	"\x0ecitationNumber\x18\x06 \x01(\rR\x0ecitationNumber\"@\n" +
+	"\x0ecitationNumber\x18\x06 \x01(\rR\x0ecitationNumber\x12 \n" +
+	"\vsourceTitle\x18\a \x01(\tR\vsourceTitle\"@\n" +
 	"\x0eSourceProvider\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\b\n" +
 	"\x04BING\x10\x01\x12\n" +
@@ -26060,7 +26088,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\akeyData\x18\x02 \x01(\v2&.WAWebProtobufsE2E.AppStateSyncKeyDataR\akeyData\"8\n" +
 	"\x04Chat\x12 \n" +
 	"\vdisplayName\x18\x01 \x01(\tR\vdisplayName\x12\x0e\n" +
-	"\x02ID\x18\x02 \x01(\tR\x02ID\"\xb2\x02\n" +
+	"\x02ID\x18\x02 \x01(\tR\x02ID\"\xf4\x02\n" +
 	"\x04Call\x12\x18\n" +
 	"\acallKey\x18\x01 \x01(\fR\acallKey\x12*\n" +
 	"\x10conversionSource\x18\x02 \x01(\tR\x10conversionSource\x12&\n" +
@@ -26068,7 +26096,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x16conversionDelaySeconds\x18\x04 \x01(\rR\x16conversionDelaySeconds\x12 \n" +
 	"\vctwaSignals\x18\x05 \x01(\tR\vctwaSignals\x12 \n" +
 	"\vctwaPayload\x18\x06 \x01(\fR\vctwaPayload\x12@\n" +
-	"\vcontextInfo\x18\a \x01(\v2\x1e.WAWebProtobufsE2E.ContextInfoR\vcontextInfo\"\xb6\x04\n" +
+	"\vcontextInfo\x18\a \x01(\v2\x1e.WAWebProtobufsE2E.ContextInfoR\vcontextInfo\x12@\n" +
+	"\x1bnativeFlowCallButtonPayload\x18\b \x01(\tR\x1bnativeFlowCallButtonPayload\"\xb6\x04\n" +
 	"\fAudioMessage\x12\x10\n" +
 	"\x03URL\x18\x01 \x01(\tR\x03URL\x12\x1a\n" +
 	"\bmimetype\x18\x02 \x01(\tR\bmimetype\x12\x1e\n" +
@@ -26354,7 +26383,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x1bFULL_HISTORY_SYNC_ON_DEMAND\x10\x06\x12\x1e\n" +
 	"\x1aCOMPANION_META_NONCE_FETCH\x10\a\x12+\n" +
 	"'COMPANION_SYNCD_SNAPSHOT_FATAL_RECOVERY\x10\b\x12(\n" +
-	"$COMPANION_CANONICAL_USER_NONCE_FETCH\x10\t*\xff\x04\n" +
+	"$COMPANION_CANONICAL_USER_NONCE_FETCH\x10\t*\x9d\x05\n" +
 	"\x14BotMetricsEntryPoint\x12\v\n" +
 	"\aFAVICON\x10\x01\x12\f\n" +
 	"\bCHATLIST\x10\x02\x12#\n" +
@@ -26382,12 +26411,14 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x1fMETA_AI_CHAT_SHORTCUT_AI_STUDIO\x10\x16\x12\x1f\n" +
 	"\x1bUGC_CHAT_SHORTCUT_AI_STUDIO\x10\x17\x12\x16\n" +
 	"\x12NEW_CHAT_AI_STUDIO\x10\x18\x12 \n" +
-	"\x1cAIVOICE_FAVICON_CALL_HISTORY\x10\x19*}\n" +
+	"\x1cAIVOICE_FAVICON_CALL_HISTORY\x10\x19\x12\x1c\n" +
+	"\x18ASK_META_AI_CONTEXT_MENU\x10\x1a*\xa2\x01\n" +
 	"\x1aBotMetricsThreadEntryPoint\x12\x11\n" +
 	"\rAI_TAB_THREAD\x10\x01\x12\x12\n" +
 	"\x0eAI_HOME_THREAD\x10\x02\x12 \n" +
 	"\x1cAI_DEEPLINK_IMMERSIVE_THREAD\x10\x03\x12\x16\n" +
-	"\x12AI_DEEPLINK_THREAD\x10\x04*}\n" +
+	"\x12AI_DEEPLINK_THREAD\x10\x04\x12#\n" +
+	"\x1fASK_META_AI_CONTEXT_MENU_THREAD\x10\x05*}\n" +
 	"\x10BotSessionSource\x12\b\n" +
 	"\x04NONE\x10\x00\x12\x0e\n" +
 	"\n" +
@@ -26740,7 +26771,7 @@ var file_waE2E_WAWebProtobufsE2E_proto_goTypes = []any{
 	(*UrlTrackingMap_UrlTrackingMapElement)(nil),                                                       // 319: WAWebProtobufsE2E.UrlTrackingMap.UrlTrackingMapElement
 	(*waCommon.MessageKey)(nil),                                                                        // 320: WACommon.MessageKey
 	(*waCommon.LimitSharing)(nil),                                                                      // 321: WACommon.LimitSharing
-	(*waStatusAttributions.StatusAttribution)(nil),                                                     // 322: WAWebProtobufsStatusAttributions.StatusAttribution
+	(*waStatusAttributions.StatusAttribution)(nil),                                                     // 322: WAStatusAttributions.StatusAttribution
 	(waAdv.ADVEncryptionType)(0),                                                                       // 323: WAAdv.ADVEncryptionType
 	(waMmsRetry.MediaRetryNotification_ResultType)(0),                                                  // 324: WAMmsRetry.MediaRetryNotification.ResultType
 	(*waCompanionReg.DeviceProps_HistorySyncConfig)(nil),                                               // 325: WACompanionReg.DeviceProps.HistorySyncConfig
@@ -26879,7 +26910,7 @@ var file_waE2E_WAWebProtobufsE2E_proto_depIdxs = []int32{
 	50,  // 130: WAWebProtobufsE2E.ContextInfo.pairedMediaType:type_name -> WAWebProtobufsE2E.ContextInfo.PairedMediaType
 	226, // 131: WAWebProtobufsE2E.ContextInfo.memberLabel:type_name -> WAWebProtobufsE2E.MemberLabel
 	49,  // 132: WAWebProtobufsE2E.ContextInfo.statusSourceType:type_name -> WAWebProtobufsE2E.ContextInfo.StatusSourceType
-	322, // 133: WAWebProtobufsE2E.ContextInfo.statusAttributions:type_name -> WAWebProtobufsStatusAttributions.StatusAttribution
+	322, // 133: WAWebProtobufsE2E.ContextInfo.statusAttributions:type_name -> WAStatusAttributions.StatusAttribution
 	57,  // 134: WAWebProtobufsE2E.BotPluginMetadata.provider:type_name -> WAWebProtobufsE2E.BotPluginMetadata.SearchProvider
 	56,  // 135: WAWebProtobufsE2E.BotPluginMetadata.pluginType:type_name -> WAWebProtobufsE2E.BotPluginMetadata.PluginType
 	320, // 136: WAWebProtobufsE2E.BotPluginMetadata.parentPluginMessageKey:type_name -> WACommon.MessageKey

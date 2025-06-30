@@ -254,6 +254,12 @@ message SyncActionValue {
 	optional LidContactAction lidContactAction = 61;
 	optional CtwaPerCustomerDataSharingAction ctwaPerCustomerDataSharingAction = 62;
 	optional PaymentTosAction paymentTosAction = 63;
+	optional PrivacySettingChannelsPersonalisedRecommendationAction privacySettingChannelsPersonalisedRecommendationAction = 64;
+	optional BusinessBroadcastAssociationAction businessBroadcastAssociationAction = 65;
+}
+
+message BusinessBroadcastAssociationAction {
+	optional bool deleted = 1;
 }
 
 message CtwaPerCustomerDataSharingAction {
@@ -273,6 +279,10 @@ message FavoritesAction {
 	}
 
 	repeated Favorite favorites = 1;
+}
+
+message PrivacySettingChannelsPersonalisedRecommendationAction {
+	optional bool isUserOptedOut = 1;
 }
 
 message PrivacySettingDisableLinkPreviewsAction {
