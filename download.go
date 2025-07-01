@@ -130,6 +130,8 @@ var mediaTypeToMMSType = map[MediaType]string{
 }
 
 // DownloadAny loops through the downloadable parts of the given message and downloads the first non-nil item.
+//
+// Deprecated: it's recommended to find the specific message type you want to download manually and use the Download method instead.
 func (cli *Client) DownloadAny(ctx context.Context, msg *waE2E.Message) (data []byte, err error) {
 	if msg == nil {
 		return nil, ErrNothingDownloadableFound
