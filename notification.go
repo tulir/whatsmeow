@@ -250,8 +250,9 @@ func (cli *Client) handleAccountSyncNotification(ctx context.Context, node *waBi
 }
 
 func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waBinary.Node) {
-	ownID := cli.getOwnID().ToNonAD()
-	if ownID.IsEmpty() {
+	ownJID := cli.getOwnID().ToNonAD()
+	ownLID := cli.getOwnLID().ToNonAD()
+	if ownJID.IsEmpty() {
 		cli.Log.Debugf("Ignoring privacy token notification, session was deleted")
 		return
 	}
@@ -270,8 +271,11 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 		ag := child.AttrGetter()
 		if child.Tag != "token" {
 			cli.Log.Warnf("privacy_token notification contained unexpected <%s> tag", child.Tag)
-		} else if targetUser := ag.JID("jid"); targetUser != ownID {
-			cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
+		} else if targetUser := ag.JID("jid"); targetUser != ownLID && targetUser != ownJID {
+			// Don't log about own privacy tokens for other users
+			if sender != ownJID && sender != ownLID {
+				cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
+			}
 		} else if tokenType := ag.String("type"); tokenType != "trusted_contact" {
 			cli.Log.Warnf("privacy_token notification contained unexpected token type %s", tokenType)
 		} else if token, ok := child.Content.([]byte); !ok {
