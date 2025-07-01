@@ -657,6 +657,9 @@ func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.History
 			if len(historySync.GetPhoneNumberToLidMappings()) > 0 {
 				cli.storeHistoricalPNLIDMappings(ctx, historySync.GetPhoneNumberToLidMappings())
 			}
+			if historySync.GlobalSettings != nil {
+				cli.storeGlobalSettings(ctx, historySync.GlobalSettings)
+			}
 		}
 		if synchronousStorage {
 			doStorage(ctx)
@@ -876,6 +879,19 @@ func (cli *Client) storeLIDSyncMessage(ctx context.Context, msg []byte) {
 		zerolog.Ctx(ctx).Err(err).Msg("Failed to unmarshal LID migration mapping sync payload")
 		return
 	}
+	if cli.Store.LIDMigrationTimestamp == 0 && decoded.GetChatDbMigrationTimestamp() > 0 {
+		cli.Store.LIDMigrationTimestamp = int64(decoded.GetChatDbMigrationTimestamp())
+		err = cli.Store.Save(ctx)
+		if err != nil {
+			zerolog.Ctx(ctx).Err(err).
+				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
+				Msg("Failed to save chat DB LID migration timestamp")
+		} else {
+			zerolog.Ctx(ctx).Debug().
+				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
+				Msg("Saved chat DB LID migration timestamp")
+		}
+	}
 	lidPairs := make([]store.LIDMapping, len(decoded.PnToLidMappings))
 	for i, mapping := range decoded.PnToLidMappings {
 		lidPairs[i] = store.LIDMapping{
@@ -892,6 +908,22 @@ func (cli *Client) storeLIDSyncMessage(ctx context.Context, msg []byte) {
 		zerolog.Ctx(ctx).Debug().
 			Int("pair_count", len(lidPairs)).
 			Msg("Stored PN-LID mappings from sync message")
+	}
+}
+
+func (cli *Client) storeGlobalSettings(ctx context.Context, settings *waHistorySync.GlobalSettings) {
+	if cli.Store.LIDMigrationTimestamp == 0 && settings.GetChatDbLidMigrationTimestamp() > 0 {
+		cli.Store.LIDMigrationTimestamp = settings.GetChatDbLidMigrationTimestamp()
+		err := cli.Store.Save(ctx)
+		if err != nil {
+			zerolog.Ctx(ctx).Err(err).
+				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
+				Msg("Failed to save chat DB LID migration timestamp")
+		} else {
+			zerolog.Ctx(ctx).Debug().
+				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
+				Msg("Saved chat DB LID migration timestamp")
+		}
 	}
 }
 
