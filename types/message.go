@@ -78,6 +78,7 @@ type MsgMetaInfo struct {
 	// Bot things
 	TargetID     MessageID
 	TargetSender JID
+	TargetChat   JID
 
 	DeprecatedLIDSession *bool
 
