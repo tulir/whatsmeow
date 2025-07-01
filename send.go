@@ -315,7 +315,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		resp.DebugTimings.GetParticipants = time.Since(start)
 	} else if to.Server == types.HiddenUserServer {
 		ownID = cli.getOwnLID()
-		extraParams.addressingMode = types.AddressingModeLID
+		//extraParams.addressingMode = types.AddressingModeLID
 		// if req.Meta == nil {
 		// 	req.Meta = &types.MsgMetaInfo{}
 		// }
