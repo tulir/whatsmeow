@@ -1179,7 +1179,7 @@ func (cli *Client) encryptMessageForDevices(
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
 		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
-			if jid == ownJID {
+			if jid == ownJID || jid == ownLID {
 				continue
 			}
 			plaintext = dsmPlaintext
