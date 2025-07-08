@@ -338,8 +338,8 @@ func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessPro
 	if !ok {
 		return nil, errors.New("missing jid in business profile")
 	}
-	address := string(profileNode.GetChildByTag("address").Content.([]byte))
-	email := string(profileNode.GetChildByTag("email").Content.([]byte))
+	address, _ := profileNode.GetChildByTag("address").Content.([]byte)
+	email, _ := profileNode.GetChildByTag("email").Content.([]byte)
 	businessHour := profileNode.GetChildByTag("business_hours")
 	businessHourTimezone := businessHour.AttrGetter().String("timezone")
 	businessHoursConfigs := businessHour.GetChildren()
@@ -366,21 +366,23 @@ func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessPro
 			continue
 		}
 		id := category.AttrGetter().String("id")
-		name := string(category.Content.([]byte))
+		name, _ := category.Content.([]byte)
 		categories = append(categories, types.Category{
 			ID:   id,
-			Name: name,
+			Name: string(name),
 		})
 	}
 	profileOptionsNode := profileNode.GetChildByTag("profile_options")
 	profileOptions := make(map[string]string)
 	for _, option := range profileOptionsNode.GetChildren() {
-		profileOptions[option.Tag] = string(option.Content.([]byte))
+		optValueBytes, _ := option.Content.([]byte)
+		profileOptions[option.Tag] = string(optValueBytes)
+		// TODO parse bot_fields
 	}
 	return &types.BusinessProfile{
 		JID:                   jid,
-		Email:                 email,
-		Address:               address,
+		Email:                 string(email),
+		Address:               string(address),
 		Categories:            categories,
 		ProfileOptions:        profileOptions,
 		BusinessHoursTimeZone: businessHourTimezone,
