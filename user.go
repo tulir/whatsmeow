@@ -338,8 +338,21 @@ func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessPro
 	if !ok {
 		return nil, errors.New("missing jid in business profile")
 	}
-	address := string(profileNode.GetChildByTag("address").Content.([]byte))
-	email := string(profileNode.GetChildByTag("email").Content.([]byte))
+
+	// Safe extraction for address - handle both []byte and []binary.Node
+	var address string
+	addressNode := profileNode.GetChildByTag("address")
+	if addressBytes, ok := addressNode.Content.([]byte); ok {
+		address = string(addressBytes)
+	}
+
+	// Safe extraction for email - handle both []byte and []binary.Node
+	var email string
+	emailNode := profileNode.GetChildByTag("email")
+	if emailBytes, ok := emailNode.Content.([]byte); ok {
+		email = string(emailBytes)
+	}
+
 	businessHour := profileNode.GetChildByTag("business_hours")
 	businessHourTimezone := businessHour.AttrGetter().String("timezone")
 	businessHoursConfigs := businessHour.GetChildren()
@@ -348,7 +361,7 @@ func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessPro
 		if config.Tag != "business_hours_config" {
 			continue
 		}
-		dow := config.AttrGetter().String("dow")
+		dow := config.AttrGetter().String("day_of_week")
 		mode := config.AttrGetter().String("mode")
 		openTime := config.AttrGetter().String("open_time")
 		closeTime := config.AttrGetter().String("close_time")
@@ -366,7 +379,10 @@ func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessPro
 			continue
 		}
 		id := category.AttrGetter().String("id")
-		name := string(category.Content.([]byte))
+		var name string
+		if nameBytes, ok := category.Content.([]byte); ok {
+			name = string(nameBytes)
+		}
 		categories = append(categories, types.Category{
 			ID:   id,
 			Name: name,
@@ -375,7 +391,11 @@ func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessPro
 	profileOptionsNode := profileNode.GetChildByTag("profile_options")
 	profileOptions := make(map[string]string)
 	for _, option := range profileOptionsNode.GetChildren() {
-		profileOptions[option.Tag] = string(option.Content.([]byte))
+		var value string
+		if valueBytes, ok := option.Content.([]byte); ok {
+			value = string(valueBytes)
+		}
+		profileOptions[option.Tag] = value
 	}
 	return &types.BusinessProfile{
 		JID:                   jid,
