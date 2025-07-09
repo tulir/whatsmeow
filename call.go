@@ -27,6 +27,7 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 		Timestamp:   ag.UnixTime("t"),
 		CallCreator: cag.JID("call-creator"),
 		CallID:      cag.String("call-id"),
+		GroupJID:    cag.OptionalJIDOrEmpty("group-jid"),
 	}
 	switch child.Tag {
 	case "offer":
