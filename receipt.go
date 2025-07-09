@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog"
 	"go.mau.fi/util/ptr"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -103,7 +104,13 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 func (cli *Client) maybeDeferredAck(ctx context.Context, node *waBinary.Node) func(cancelled ...*bool) {
 	if cli.SynchronousAck {
 		return func(cancelled ...*bool) {
-			if ctx.Err() != nil || (len(cancelled) > 0 && ptr.Val(cancelled[0])) {
+			isCancelled := len(cancelled) > 0 && ptr.Val(cancelled[0])
+			if ctx.Err() != nil || isCancelled {
+				zerolog.Ctx(ctx).Debug().
+					AnErr("ctx_err", ctx.Err()).
+					Bool("cancelled", isCancelled).
+					Str("node_tag", node.Tag).
+					Msg("Not sending ack for node")
 				return
 			}
 			cli.sendAck(node)
