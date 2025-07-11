@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"runtime/debug"
+	"strconv"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -30,6 +31,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
+	"go.mau.fi/whatsmeow/proto/waLidMigrationSyncPayload"
 	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -107,8 +109,8 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		} else {
 			source.Chat = from.ToNonAD()
 		}
-		if source.AddressingMode == types.AddressingModeLID {
-			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_pn") // existence of this field is not confirmed
+		if source.Chat.Server == types.HiddenUserServer {
+			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_pn")
 		} else {
 			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_lid")
 		}
@@ -125,7 +127,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 	} else {
 		source.Chat = from.ToNonAD()
 		source.Sender = from
-		if source.AddressingMode == types.AddressingModeLID {
+		if source.Sender.Server == types.HiddenUserServer {
 			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_pn")
 		} else {
 			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_lid")
@@ -157,6 +159,7 @@ func (cli *Client) parseMsgMetaInfo(node waBinary.Node) (metaInfo types.MsgMetaI
 	ag := metaNode.AttrGetter()
 	metaInfo.TargetID = types.MessageID(ag.OptionalString("target_id"))
 	metaInfo.TargetSender = ag.OptionalJIDOrEmpty("target_sender_jid")
+	metaInfo.TargetChat = ag.OptionalJIDOrEmpty("target_chat_jid")
 	deprecatedLIDSession, ok := ag.GetBool("deprecated_lid_session", false)
 	if ok {
 		metaInfo.DeprecatedLIDSession = &deprecatedLIDSession
@@ -348,7 +351,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			return
 		} else if err != nil {
 			cli.Log.Warnf("Error decrypting message %s from %s: %v", info.ID, info.SourceString(), err)
-			if ctx.Err() != nil {
+			if ctx.Err() != nil || errors.Is(err, context.Canceled) {
 				handlerFailed = true
 				return
 			}
@@ -385,7 +388,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		default:
 			cli.Log.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
 		}
-		if ciphertextHash != nil && cli.EnableDecryptedEventBuffer {
+		if ciphertextHash != nil && cli.EnableDecryptedEventBuffer && !handlerFailed {
 			// Use the context passed to decryptMessages
 			err = cli.Store.EventBuffer.ClearBufferedEventPlaintext(ctx, *ciphertextHash)
 			if err != nil {
@@ -409,7 +412,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			}
 		}
 	}
-	if handled {
+	if handled && !handlerFailed {
 		go cli.sendMessageReceipt(info)
 	}
 	return
@@ -652,6 +655,12 @@ func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.History
 			} else if len(historySync.GetConversations()) > 0 {
 				cli.storeHistoricalMessageSecrets(ctx, historySync.GetConversations())
 			}
+			if len(historySync.GetPhoneNumberToLidMappings()) > 0 {
+				cli.storeHistoricalPNLIDMappings(ctx, historySync.GetPhoneNumberToLidMappings())
+			}
+			if historySync.GlobalSettings != nil {
+				cli.storeGlobalSettings(ctx, historySync.GlobalSettings)
+			}
 		}
 		if synchronousStorage {
 			doStorage(ctx)
@@ -698,10 +707,11 @@ func (cli *Client) handleAppStateSyncKeyShare(ctx context.Context, keys *waE2E.A
 	}
 }
 
-func (cli *Client) handlePlaceholderResendResponse(msg *waE2E.PeerDataOperationRequestResponseMessage) {
+func (cli *Client) handlePlaceholderResendResponse(msg *waE2E.PeerDataOperationRequestResponseMessage) (ok bool) {
 	reqID := msg.GetStanzaID()
 	parts := msg.GetPeerDataOperationResult()
 	cli.Log.Debugf("Handling response to placeholder resend request %s with %d items", reqID, len(parts))
+	ok = true
 	for i, part := range parts {
 		var webMsg waWeb.WebMessageInfo
 		if resp := part.GetPlaceholderMessageResendResponse(); resp == nil {
@@ -712,15 +722,21 @@ func (cli *Client) handlePlaceholderResendResponse(msg *waE2E.PeerDataOperationR
 			cli.Log.Warnf("Failed to parse web message info in item #%d of response to %s: %v", i+1, reqID, err)
 		} else {
 			msgEvt.UnavailableRequestID = reqID
-			cli.dispatchEvent(msgEvt)
+			ok = cli.dispatchEvent(msgEvt) && ok
 		}
 	}
+	return
 }
 
-func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
+func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) (ok bool) {
+	ok = true
 	protoMsg := msg.GetProtocolMessage()
 
-	if protoMsg.GetHistorySyncNotification() != nil && info.IsFromMe {
+	if !info.IsFromMe {
+		return
+	}
+
+	if protoMsg.GetHistorySyncNotification() != nil {
 		if !cli.ManualHistorySyncDownload {
 			cli.historySyncNotifications <- protoMsg.HistorySyncNotification
 			if cli.historySyncHandlerStarted.CompareAndSwap(false, true) {
@@ -730,20 +746,26 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 		go cli.sendProtocolMessageReceipt(info.ID, types.ReceiptTypeHistorySync)
 	}
 
-	if protoMsg.GetPeerDataOperationRequestResponseMessage().GetPeerDataOperationRequestType() == waE2E.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND {
-		go cli.handlePlaceholderResendResponse(protoMsg.GetPeerDataOperationRequestResponseMessage())
+	if protoMsg.GetLidMigrationMappingSyncMessage() != nil {
+		cli.storeLIDSyncMessage(ctx, protoMsg.GetLidMigrationMappingSyncMessage().GetEncodedMappingPayload())
 	}
 
-	if protoMsg.GetAppStateSyncKeyShare() != nil && info.IsFromMe {
+	if protoMsg.GetPeerDataOperationRequestResponseMessage().GetPeerDataOperationRequestType() == waE2E.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND {
+		ok = cli.handlePlaceholderResendResponse(protoMsg.GetPeerDataOperationRequestResponseMessage()) && ok
+	}
+
+	if protoMsg.GetAppStateSyncKeyShare() != nil {
 		go cli.handleAppStateSyncKeyShare(context.WithoutCancel(ctx), protoMsg.AppStateSyncKeyShare)
 	}
 
 	if info.Category == "peer" {
 		go cli.sendProtocolMessageReceipt(info.ID, types.ReceiptTypePeerMsg)
 	}
+	return
 }
 
-func (cli *Client) processProtocolParts(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
+func (cli *Client) processProtocolParts(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) (ok bool) {
+	ok = true
 	cli.storeMessageSecret(ctx, info, msg)
 	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
@@ -763,8 +785,9 @@ func (cli *Client) processProtocolParts(ctx context.Context, info *types.Message
 	// N.B. Edits are protocol messages, but they're also wrapped inside EditedMessage,
 	// which is only unwrapped after processProtocolParts, so this won't trigger for edits.
 	if msg.GetProtocolMessage() != nil {
-		cli.handleProtocolMessage(ctx, info, msg)
+		ok = cli.handleProtocolMessage(ctx, info, msg) && ok
 	}
+	return
 }
 
 func (cli *Client) storeMessageSecret(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
@@ -846,8 +869,105 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 	}
 }
 
+func (cli *Client) storeLIDSyncMessage(ctx context.Context, msg []byte) {
+	var decoded waLidMigrationSyncPayload.LIDMigrationMappingSyncPayload
+	err := proto.Unmarshal(msg, &decoded)
+	if err != nil {
+		zerolog.Ctx(ctx).Err(err).Msg("Failed to unmarshal LID migration mapping sync payload")
+		return
+	}
+	if cli.Store.LIDMigrationTimestamp == 0 && decoded.GetChatDbMigrationTimestamp() > 0 {
+		cli.Store.LIDMigrationTimestamp = int64(decoded.GetChatDbMigrationTimestamp())
+		err = cli.Store.Save(ctx)
+		if err != nil {
+			zerolog.Ctx(ctx).Err(err).
+				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
+				Msg("Failed to save chat DB LID migration timestamp")
+		} else {
+			zerolog.Ctx(ctx).Debug().
+				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
+				Msg("Saved chat DB LID migration timestamp")
+		}
+	}
+	lidPairs := make([]store.LIDMapping, len(decoded.PnToLidMappings))
+	for i, mapping := range decoded.PnToLidMappings {
+		lidPairs[i] = store.LIDMapping{
+			LID: types.JID{User: strconv.FormatUint(mapping.GetAssignedLid(), 10), Server: types.HiddenUserServer},
+			PN:  types.JID{User: strconv.FormatUint(mapping.GetPn(), 10), Server: types.DefaultUserServer},
+		}
+	}
+	err = cli.Store.LIDs.PutManyLIDMappings(ctx, lidPairs)
+	if err != nil {
+		zerolog.Ctx(ctx).Err(err).
+			Int("pair_count", len(lidPairs)).
+			Msg("Failed to store phone number to LID mappings from sync message")
+	} else {
+		zerolog.Ctx(ctx).Debug().
+			Int("pair_count", len(lidPairs)).
+			Msg("Stored PN-LID mappings from sync message")
+	}
+}
+
+func (cli *Client) storeGlobalSettings(ctx context.Context, settings *waHistorySync.GlobalSettings) {
+	if cli.Store.LIDMigrationTimestamp == 0 && settings.GetChatDbLidMigrationTimestamp() > 0 {
+		cli.Store.LIDMigrationTimestamp = settings.GetChatDbLidMigrationTimestamp()
+		err := cli.Store.Save(ctx)
+		if err != nil {
+			zerolog.Ctx(ctx).Err(err).
+				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
+				Msg("Failed to save chat DB LID migration timestamp")
+		} else {
+			zerolog.Ctx(ctx).Debug().
+				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
+				Msg("Saved chat DB LID migration timestamp")
+		}
+	}
+}
+
+func (cli *Client) storeHistoricalPNLIDMappings(ctx context.Context, mappings []*waHistorySync.PhoneNumberToLIDMapping) {
+	lidPairs := make([]store.LIDMapping, 0, len(mappings))
+	for _, mapping := range mappings {
+		pn, err := types.ParseJID(mapping.GetPnJID())
+		if err != nil {
+			zerolog.Ctx(ctx).Err(err).
+				Str("pn_jid", mapping.GetPnJID()).
+				Str("lid_jid", mapping.GetLidJID()).
+				Msg("Failed to parse phone number from history sync")
+			continue
+		}
+		if pn.Server == types.LegacyUserServer {
+			pn.Server = types.DefaultUserServer
+		}
+		lid, err := types.ParseJID(mapping.GetLidJID())
+		if err != nil {
+			zerolog.Ctx(ctx).Err(err).
+				Str("pn_jid", mapping.GetPnJID()).
+				Str("lid_jid", mapping.GetLidJID()).
+				Msg("Failed to parse LID from history sync")
+			continue
+		}
+		lidPairs = append(lidPairs, store.LIDMapping{
+			LID: lid,
+			PN:  pn,
+		})
+	}
+	err := cli.Store.LIDs.PutManyLIDMappings(ctx, lidPairs)
+	if err != nil {
+		zerolog.Ctx(ctx).Err(err).
+			Int("pair_count", len(lidPairs)).
+			Msg("Failed to store phone number to LID mappings from history sync")
+	} else {
+		zerolog.Ctx(ctx).Debug().
+			Int("pair_count", len(lidPairs)).
+			Msg("Stored PN-LID mappings from history sync")
+	}
+}
+
 func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) bool {
-	cli.processProtocolParts(ctx, info, msg)
+	ok := cli.processProtocolParts(ctx, info, msg)
+	if !ok {
+		return false
+	}
 	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount}
 	return cli.dispatchEvent(evt.UnwrapRaw())
 }

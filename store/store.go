@@ -192,6 +192,8 @@ type Device struct {
 	BusinessName string
 	PushName     string
 
+	LIDMigrationTimestamp int64
+
 	FacebookUUID uuid.UUID
 
 	Initialized   bool

@@ -25,6 +25,7 @@ const (
 type MiTransportAdminMessage_LimitSharingChanged_SharingType int32
 
 const (
+	MiTransportAdminMessage_LimitSharingChanged_UNSET    MiTransportAdminMessage_LimitSharingChanged_SharingType = 0
 	MiTransportAdminMessage_LimitSharingChanged_DISABLED MiTransportAdminMessage_LimitSharingChanged_SharingType = 1
 	MiTransportAdminMessage_LimitSharingChanged_ENABLED  MiTransportAdminMessage_LimitSharingChanged_SharingType = 2
 )
@@ -32,10 +33,12 @@ const (
 // Enum value maps for MiTransportAdminMessage_LimitSharingChanged_SharingType.
 var (
 	MiTransportAdminMessage_LimitSharingChanged_SharingType_name = map[int32]string{
+		0: "UNSET",
 		1: "DISABLED",
 		2: "ENABLED",
 	}
 	MiTransportAdminMessage_LimitSharingChanged_SharingType_value = map[string]int32{
+		"UNSET":    0,
 		"DISABLED": 1,
 		"ENABLED":  2,
 	}
@@ -81,6 +84,7 @@ func (MiTransportAdminMessage_LimitSharingChanged_SharingType) EnumDescriptor() 
 type MiTransportAdminMessage_GroupImageChanged_Action int32
 
 const (
+	MiTransportAdminMessage_GroupImageChanged_UNSET   MiTransportAdminMessage_GroupImageChanged_Action = 0
 	MiTransportAdminMessage_GroupImageChanged_CHANGED MiTransportAdminMessage_GroupImageChanged_Action = 1
 	MiTransportAdminMessage_GroupImageChanged_REMOVED MiTransportAdminMessage_GroupImageChanged_Action = 2
 )
@@ -88,10 +92,12 @@ const (
 // Enum value maps for MiTransportAdminMessage_GroupImageChanged_Action.
 var (
 	MiTransportAdminMessage_GroupImageChanged_Action_name = map[int32]string{
+		0: "UNSET",
 		1: "CHANGED",
 		2: "REMOVED",
 	}
 	MiTransportAdminMessage_GroupImageChanged_Action_value = map[string]int32{
+		"UNSET":   0,
 		"CHANGED": 1,
 		"REMOVED": 2,
 	}
@@ -137,6 +143,7 @@ func (MiTransportAdminMessage_GroupImageChanged_Action) EnumDescriptor() ([]byte
 type MiTransportAdminMessage_MessagePinned_Action int32
 
 const (
+	MiTransportAdminMessage_MessagePinned_UNSET    MiTransportAdminMessage_MessagePinned_Action = 0
 	MiTransportAdminMessage_MessagePinned_PINNED   MiTransportAdminMessage_MessagePinned_Action = 1
 	MiTransportAdminMessage_MessagePinned_UNPINNED MiTransportAdminMessage_MessagePinned_Action = 2
 )
@@ -144,10 +151,12 @@ const (
 // Enum value maps for MiTransportAdminMessage_MessagePinned_Action.
 var (
 	MiTransportAdminMessage_MessagePinned_Action_name = map[int32]string{
+		0: "UNSET",
 		1: "PINNED",
 		2: "UNPINNED",
 	}
 	MiTransportAdminMessage_MessagePinned_Action_value = map[string]int32{
+		"UNSET":    0,
 		"PINNED":   1,
 		"UNPINNED": 2,
 	}
@@ -193,6 +202,7 @@ func (MiTransportAdminMessage_MessagePinned_Action) EnumDescriptor() ([]byte, []
 type MiTransportAdminMessage_GroupMembershipAddModeChanged_Mode int32
 
 const (
+	MiTransportAdminMessage_GroupMembershipAddModeChanged_UNSET       MiTransportAdminMessage_GroupMembershipAddModeChanged_Mode = 0
 	MiTransportAdminMessage_GroupMembershipAddModeChanged_ALL_MEMBERS MiTransportAdminMessage_GroupMembershipAddModeChanged_Mode = 1
 	MiTransportAdminMessage_GroupMembershipAddModeChanged_ADMINS_ONLY MiTransportAdminMessage_GroupMembershipAddModeChanged_Mode = 2
 )
@@ -200,10 +210,12 @@ const (
 // Enum value maps for MiTransportAdminMessage_GroupMembershipAddModeChanged_Mode.
 var (
 	MiTransportAdminMessage_GroupMembershipAddModeChanged_Mode_name = map[int32]string{
+		0: "UNSET",
 		1: "ALL_MEMBERS",
 		2: "ADMINS_ONLY",
 	}
 	MiTransportAdminMessage_GroupMembershipAddModeChanged_Mode_value = map[string]int32{
+		"UNSET":       0,
 		"ALL_MEMBERS": 1,
 		"ADMINS_ONLY": 2,
 	}
@@ -249,6 +261,7 @@ func (MiTransportAdminMessage_GroupMembershipAddModeChanged_Mode) EnumDescriptor
 type MiTransportAdminMessage_GroupAdminChanged_Action int32
 
 const (
+	MiTransportAdminMessage_GroupAdminChanged_UNSET   MiTransportAdminMessage_GroupAdminChanged_Action = 0
 	MiTransportAdminMessage_GroupAdminChanged_ADDED   MiTransportAdminMessage_GroupAdminChanged_Action = 1
 	MiTransportAdminMessage_GroupAdminChanged_REMOVED MiTransportAdminMessage_GroupAdminChanged_Action = 2
 )
@@ -256,10 +269,12 @@ const (
 // Enum value maps for MiTransportAdminMessage_GroupAdminChanged_Action.
 var (
 	MiTransportAdminMessage_GroupAdminChanged_Action_name = map[int32]string{
+		0: "UNSET",
 		1: "ADDED",
 		2: "REMOVED",
 	}
 	MiTransportAdminMessage_GroupAdminChanged_Action_value = map[string]int32{
+		"UNSET":   0,
 		"ADDED":   1,
 		"REMOVED": 2,
 	}
@@ -305,6 +320,7 @@ func (MiTransportAdminMessage_GroupAdminChanged_Action) EnumDescriptor() ([]byte
 type MiTransportAdminMessage_GroupParticipantChanged_Action int32
 
 const (
+	MiTransportAdminMessage_GroupParticipantChanged_UNSET   MiTransportAdminMessage_GroupParticipantChanged_Action = 0
 	MiTransportAdminMessage_GroupParticipantChanged_ADDED   MiTransportAdminMessage_GroupParticipantChanged_Action = 1
 	MiTransportAdminMessage_GroupParticipantChanged_REMOVED MiTransportAdminMessage_GroupParticipantChanged_Action = 2
 )
@@ -312,10 +328,12 @@ const (
 // Enum value maps for MiTransportAdminMessage_GroupParticipantChanged_Action.
 var (
 	MiTransportAdminMessage_GroupParticipantChanged_Action_name = map[int32]string{
+		0: "UNSET",
 		1: "ADDED",
 		2: "REMOVED",
 	}
 	MiTransportAdminMessage_GroupParticipantChanged_Action_value = map[string]int32{
+		"UNSET":   0,
 		"ADDED":   1,
 		"REMOVED": 2,
 	}
@@ -657,7 +675,7 @@ func (x *MiTransportAdminMessage_LimitSharingChanged) GetSharingType() MiTranspo
 	if x != nil && x.SharingType != nil {
 		return *x.SharingType
 	}
-	return MiTransportAdminMessage_LimitSharingChanged_DISABLED
+	return MiTransportAdminMessage_LimitSharingChanged_UNSET
 }
 
 type MiTransportAdminMessage_GroupImageChanged struct {
@@ -701,7 +719,7 @@ func (x *MiTransportAdminMessage_GroupImageChanged) GetAction() MiTransportAdmin
 	if x != nil && x.Action != nil {
 		return *x.Action
 	}
-	return MiTransportAdminMessage_GroupImageChanged_CHANGED
+	return MiTransportAdminMessage_GroupImageChanged_UNSET
 }
 
 type MiTransportAdminMessage_MessagePinned struct {
@@ -745,7 +763,7 @@ func (x *MiTransportAdminMessage_MessagePinned) GetAction() MiTransportAdminMess
 	if x != nil && x.Action != nil {
 		return *x.Action
 	}
-	return MiTransportAdminMessage_MessagePinned_PINNED
+	return MiTransportAdminMessage_MessagePinned_UNSET
 }
 
 type MiTransportAdminMessage_GroupMembershipAddModeChanged struct {
@@ -789,7 +807,7 @@ func (x *MiTransportAdminMessage_GroupMembershipAddModeChanged) GetMode() MiTran
 	if x != nil && x.Mode != nil {
 		return *x.Mode
 	}
-	return MiTransportAdminMessage_GroupMembershipAddModeChanged_ALL_MEMBERS
+	return MiTransportAdminMessage_GroupMembershipAddModeChanged_UNSET
 }
 
 type MiTransportAdminMessage_GroupAdminChanged struct {
@@ -841,7 +859,7 @@ func (x *MiTransportAdminMessage_GroupAdminChanged) GetAction() MiTransportAdmin
 	if x != nil && x.Action != nil {
 		return *x.Action
 	}
-	return MiTransportAdminMessage_GroupAdminChanged_ADDED
+	return MiTransportAdminMessage_GroupAdminChanged_UNSET
 }
 
 type MiTransportAdminMessage_GroupParticipantChanged struct {
@@ -893,7 +911,7 @@ func (x *MiTransportAdminMessage_GroupParticipantChanged) GetAction() MiTranspor
 	if x != nil && x.Action != nil {
 		return *x.Action
 	}
-	return MiTransportAdminMessage_GroupParticipantChanged_ADDED
+	return MiTransportAdminMessage_GroupParticipantChanged_UNSET
 }
 
 type MiTransportAdminMessage_DisappearingSettingChanged struct {
@@ -1306,7 +1324,7 @@ var File_waArmadilloMiTransportAdminMessage_WAArmadilloMiTransportAdminMessage_p
 
 const file_waArmadilloMiTransportAdminMessage_WAArmadilloMiTransportAdminMessage_proto_rawDesc = "" +
 	"\n" +
-	"KwaArmadilloMiTransportAdminMessage/WAArmadilloMiTransportAdminMessage.proto\x12\"WAArmadilloMiTransportAdminMessage\"\x8d\x1c\n" +
+	"KwaArmadilloMiTransportAdminMessage/WAArmadilloMiTransportAdminMessage.proto\x12\"WAArmadilloMiTransportAdminMessage\"\xcf\x1c\n" +
 	"\x17MiTransportAdminMessage\x12z\n" +
 	"\x10chatThemeChanged\x18\x01 \x01(\v2L.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.ChatThemeChangedH\x00R\x10chatThemeChanged\x12w\n" +
 	"\x0fnicknameChanged\x18\x02 \x01(\v2K.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.NicknameChangedH\x00R\x0fnicknameChanged\x12\x8f\x01\n" +
@@ -1321,38 +1339,44 @@ const file_waArmadilloMiTransportAdminMessage_WAArmadilloMiTransportAdminMessage
 	" \x01(\v2C.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.LinkCtaH\x00R\alinkCta\x12k\n" +
 	"\viconChanged\x18\v \x01(\v2G.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.IconChangedH\x00R\viconChanged\x12\x98\x01\n" +
 	"\x1adisappearingSettingChanged\x18\f \x01(\v2V.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.DisappearingSettingChangedH\x00R\x1adisappearingSettingChanged\x12\x83\x01\n" +
-	"\x13limitSharingChanged\x18\r \x01(\v2O.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.LimitSharingChangedH\x00R\x13limitSharingChanged\x1a\xbe\x01\n" +
+	"\x13limitSharingChanged\x18\r \x01(\v2O.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.LimitSharingChangedH\x00R\x13limitSharingChanged\x1a\xc9\x01\n" +
 	"\x13LimitSharingChanged\x12}\n" +
-	"\vsharingType\x18\x01 \x01(\x0e2[.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.LimitSharingChanged.SharingTypeR\vsharingType\"(\n" +
-	"\vSharingType\x12\f\n" +
+	"\vsharingType\x18\x01 \x01(\x0e2[.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.LimitSharingChanged.SharingTypeR\vsharingType\"3\n" +
+	"\vSharingType\x12\t\n" +
+	"\x05UNSET\x10\x00\x12\f\n" +
 	"\bDISABLED\x10\x01\x12\v\n" +
-	"\aENABLED\x10\x02\x1a\xa5\x01\n" +
+	"\aENABLED\x10\x02\x1a\xb0\x01\n" +
 	"\x11GroupImageChanged\x12l\n" +
-	"\x06action\x18\x01 \x01(\x0e2T.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.GroupImageChanged.ActionR\x06action\"\"\n" +
-	"\x06Action\x12\v\n" +
+	"\x06action\x18\x01 \x01(\x0e2T.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.GroupImageChanged.ActionR\x06action\"-\n" +
+	"\x06Action\x12\t\n" +
+	"\x05UNSET\x10\x00\x12\v\n" +
 	"\aCHANGED\x10\x01\x12\v\n" +
-	"\aREMOVED\x10\x02\x1a\x9d\x01\n" +
+	"\aREMOVED\x10\x02\x1a\xa8\x01\n" +
 	"\rMessagePinned\x12h\n" +
-	"\x06action\x18\x01 \x01(\x0e2P.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.MessagePinned.ActionR\x06action\"\"\n" +
-	"\x06Action\x12\n" +
+	"\x06action\x18\x01 \x01(\x0e2P.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.MessagePinned.ActionR\x06action\"-\n" +
+	"\x06Action\x12\t\n" +
+	"\x05UNSET\x10\x00\x12\n" +
 	"\n" +
 	"\x06PINNED\x10\x01\x12\f\n" +
-	"\bUNPINNED\x10\x02\x1a\xbd\x01\n" +
+	"\bUNPINNED\x10\x02\x1a\xc8\x01\n" +
 	"\x1dGroupMembershipAddModeChanged\x12r\n" +
-	"\x04mode\x18\x01 \x01(\x0e2^.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.GroupMembershipAddModeChanged.ModeR\x04mode\"(\n" +
-	"\x04Mode\x12\x0f\n" +
+	"\x04mode\x18\x01 \x01(\x0e2^.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.GroupMembershipAddModeChanged.ModeR\x04mode\"3\n" +
+	"\x04Mode\x12\t\n" +
+	"\x05UNSET\x10\x00\x12\x0f\n" +
 	"\vALL_MEMBERS\x10\x01\x12\x0f\n" +
-	"\vADMINS_ONLY\x10\x02\x1a\xc7\x01\n" +
+	"\vADMINS_ONLY\x10\x02\x1a\xd2\x01\n" +
 	"\x11GroupAdminChanged\x12\"\n" +
 	"\ftargetUserID\x18\x01 \x03(\tR\ftargetUserID\x12l\n" +
-	"\x06action\x18\x02 \x01(\x0e2T.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.GroupAdminChanged.ActionR\x06action\" \n" +
+	"\x06action\x18\x02 \x01(\x0e2T.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.GroupAdminChanged.ActionR\x06action\"+\n" +
 	"\x06Action\x12\t\n" +
+	"\x05UNSET\x10\x00\x12\t\n" +
 	"\x05ADDED\x10\x01\x12\v\n" +
-	"\aREMOVED\x10\x02\x1a\xd3\x01\n" +
+	"\aREMOVED\x10\x02\x1a\xde\x01\n" +
 	"\x17GroupParticipantChanged\x12\"\n" +
 	"\ftargetUserID\x18\x01 \x03(\tR\ftargetUserID\x12r\n" +
-	"\x06action\x18\x02 \x01(\x0e2Z.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.GroupParticipantChanged.ActionR\x06action\" \n" +
+	"\x06action\x18\x02 \x01(\x0e2Z.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.GroupParticipantChanged.ActionR\x06action\"+\n" +
 	"\x06Action\x12\t\n" +
+	"\x05UNSET\x10\x00\x12\t\n" +
 	"\x05ADDED\x10\x01\x12\v\n" +
 	"\aREMOVED\x10\x02\x1a\xc2\x01\n" +
 	"\x1aDisappearingSettingChanged\x12N\n" +

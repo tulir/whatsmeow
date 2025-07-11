@@ -261,6 +261,7 @@ const (
 	ExtendedContentMessage_FB_COMMENT_MENTION_SHARE                ExtendedContentMessage_ExtendedContentType = 1010
 	ExtendedContentMessage_FB_POST_MENTION                         ExtendedContentMessage_ExtendedContentType = 1011
 	ExtendedContentMessage_FB_PROFILE_DIRECTORY_ITEM               ExtendedContentMessage_ExtendedContentType = 1013
+	ExtendedContentMessage_FB_FEED_POST_REACTION_REPLY             ExtendedContentMessage_ExtendedContentType = 1014
 	ExtendedContentMessage_MSG_EXTERNAL_LINK_SHARE                 ExtendedContentMessage_ExtendedContentType = 2000
 	ExtendedContentMessage_MSG_P2P_PAYMENT                         ExtendedContentMessage_ExtendedContentType = 2001
 	ExtendedContentMessage_MSG_LOCATION_SHARING                    ExtendedContentMessage_ExtendedContentType = 2002
@@ -336,6 +337,7 @@ var (
 		1010: "FB_COMMENT_MENTION_SHARE",
 		1011: "FB_POST_MENTION",
 		1013: "FB_PROFILE_DIRECTORY_ITEM",
+		1014: "FB_FEED_POST_REACTION_REPLY",
 		2000: "MSG_EXTERNAL_LINK_SHARE",
 		2001: "MSG_P2P_PAYMENT",
 		2002: "MSG_LOCATION_SHARING",
@@ -408,6 +410,7 @@ var (
 		"FB_COMMENT_MENTION_SHARE":                1010,
 		"FB_POST_MENTION":                         1011,
 		"FB_PROFILE_DIRECTORY_ITEM":               1013,
+		"FB_FEED_POST_REACTION_REPLY":             1014,
 		"MSG_EXTERNAL_LINK_SHARE":                 2000,
 		"MSG_P2P_PAYMENT":                         2001,
 		"MSG_LOCATION_SHARING":                    2002,
@@ -817,7 +820,7 @@ var File_waArmadilloXMA_WAArmadilloXMA_proto protoreflect.FileDescriptor
 
 const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\n" +
-	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\xa4\x1d\n" +
+	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\xc6\x1d\n" +
 	"\x16ExtendedContentMessage\x12C\n" +
 	"\x11associatedMessage\x18\x01 \x01(\v2\x15.WACommon.SubProtocolR\x11associatedMessage\x12Z\n" +
 	"\n" +
@@ -881,7 +884,7 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\bPORTRAIT\x10\x03\x12\x11\n" +
 	"\rSTANDARD_DXMA\x10\f\x12\r\n" +
 	"\tLIST_DXMA\x10\x0f\x12\b\n" +
-	"\x04GRID\x10\x10\"\xd6\x0e\n" +
+	"\x04GRID\x10\x10\"\xf8\x0e\n" +
 	"\x13ExtendedContentType\x12\x0f\n" +
 	"\vUNSUPPORTED\x10\x00\x12\x1a\n" +
 	"\x16IG_STORY_PHOTO_MENTION\x10\x04\x12\x1e\n" +
@@ -916,7 +919,8 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\bFB_SHORT\x10\xf1\a\x12\x1d\n" +
 	"\x18FB_COMMENT_MENTION_SHARE\x10\xf2\a\x12\x14\n" +
 	"\x0fFB_POST_MENTION\x10\xf3\a\x12\x1e\n" +
-	"\x19FB_PROFILE_DIRECTORY_ITEM\x10\xf5\a\x12\x1c\n" +
+	"\x19FB_PROFILE_DIRECTORY_ITEM\x10\xf5\a\x12 \n" +
+	"\x1bFB_FEED_POST_REACTION_REPLY\x10\xf6\a\x12\x1c\n" +
 	"\x17MSG_EXTERNAL_LINK_SHARE\x10\xd0\x0f\x12\x14\n" +
 	"\x0fMSG_P2P_PAYMENT\x10\xd1\x0f\x12\x19\n" +
 	"\x14MSG_LOCATION_SHARING\x10\xd2\x0f\x12\x1c\n" +
