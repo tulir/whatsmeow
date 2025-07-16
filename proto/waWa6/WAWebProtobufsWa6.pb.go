@@ -726,6 +726,7 @@ const (
 	ClientPayload_UserAgent_IPAD           ClientPayload_UserAgent_Platform = 33
 	ClientPayload_UserAgent_TEST           ClientPayload_UserAgent_Platform = 34
 	ClientPayload_UserAgent_SMART_GLASSES  ClientPayload_UserAgent_Platform = 35
+	ClientPayload_UserAgent_BLUE_VR        ClientPayload_UserAgent_Platform = 36
 )
 
 // Enum value maps for ClientPayload_UserAgent_Platform.
@@ -767,6 +768,7 @@ var (
 		33: "IPAD",
 		34: "TEST",
 		35: "SMART_GLASSES",
+		36: "BLUE_VR",
 	}
 	ClientPayload_UserAgent_Platform_value = map[string]int32{
 		"ANDROID":        0,
@@ -805,6 +807,7 @@ var (
 		"IPAD":           33,
 		"TEST":           34,
 		"SMART_GLASSES":  35,
+		"BLUE_VR":        36,
 	}
 )
 
@@ -2001,7 +2004,7 @@ var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xa3)\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xb0)\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2074,7 +2077,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x06DARWIN\x10\x03\x12\t\n" +
 	"\x05WIN32\x10\x04\x12\x0e\n" +
 	"\n" +
-	"WIN_HYBRID\x10\x05\x1a\xc2\f\n" +
+	"WIN_HYBRID\x10\x05\x1a\xcf\f\n" +
 	"\tUserAgent\x12O\n" +
 	"\bplatform\x18\x01 \x01(\x0e23.WAWebProtobufsWa6.ClientPayload.UserAgent.PlatformR\bplatform\x12U\n" +
 	"\n" +
@@ -2118,7 +2121,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\aRELEASE\x10\x00\x12\b\n" +
 	"\x04BETA\x10\x01\x12\t\n" +
 	"\x05ALPHA\x10\x02\x12\t\n" +
-	"\x05DEBUG\x10\x03\"\x8a\x04\n" +
+	"\x05DEBUG\x10\x03\"\x97\x04\n" +
 	"\bPlatform\x12\v\n" +
 	"\aANDROID\x10\x00\x12\a\n" +
 	"\x03IOS\x10\x01\x12\x11\n" +
@@ -2161,7 +2164,8 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\bBLUE_WEB\x10 \x12\b\n" +
 	"\x04IPAD\x10!\x12\b\n" +
 	"\x04TEST\x10\"\x12\x11\n" +
-	"\rSMART_GLASSES\x10#\x1aq\n" +
+	"\rSMART_GLASSES\x10#\x12\v\n" +
+	"\aBLUE_VR\x10$\x1aq\n" +
 	"\vInteropData\x12\x1c\n" +
 	"\taccountID\x18\x01 \x01(\x04R\taccountID\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\fR\x05token\x12.\n" +
