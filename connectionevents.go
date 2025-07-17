@@ -157,6 +157,11 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 	cli.AutoReconnectErrors = 0
 	cli.isLoggedIn.Store(true)
 	nodeLID := node.AttrGetter().JID("lid")
+	if !cli.Store.LID.IsEmpty() && !nodeLID.IsEmpty() && cli.Store.LID != nodeLID {
+		// This should probably never happen, but check just in case.
+		cli.Log.Warnf("Stored LID doesn't match one in connect success: %s != %s", cli.Store.LID, nodeLID)
+		cli.Store.LID = types.EmptyJID
+	}
 	if cli.Store.LID.IsEmpty() && !nodeLID.IsEmpty() {
 		cli.Store.LID = nodeLID
 		err := cli.Store.Save(ctx)
