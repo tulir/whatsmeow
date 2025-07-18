@@ -170,6 +170,26 @@ func (cli *Client) parseMsgMetaInfo(node waBinary.Node) (metaInfo types.MsgMetaI
 	return
 }
 
+func (cli *Client) parseMessageParticipant(node *waBinary.Node) (participant types.JID, err error) {
+	ag := node.AttrGetter()
+	participant = ag.JID("jid")
+	err = ag.Error()
+	return
+}
+
+func (cli *Client) parseMessageParticipants(node *waBinary.Node) (participants []types.JID, err error) {
+	children := node.GetChildren()
+	participants = make([]types.JID, 0, len(children))
+	for _, child := range children {
+		participant, err := cli.parseMessageParticipant(&child)
+		if err != nil {
+			return nil, err
+		}
+		participants = append(participants, participant)
+	}
+	return
+}
+
 func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, error) {
 	var info types.MessageInfo
 	var err error
@@ -212,6 +232,11 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 			// TODO
 		case "trace":
 			// TODO
+		case "participants":
+			info.Participants, err = cli.parseMessageParticipants(&child)
+			if err != nil {
+				cli.Log.Warnf("Failed to parse <participants> node in %s: %v", info.ID, err)
+			}
 		default:
 			if mediaType, ok := child.AttrGetter().GetString("mediatype", false); ok {
 				info.MediaType = mediaType
