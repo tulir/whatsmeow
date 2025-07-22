@@ -69,7 +69,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
 	clientID := cli.getOwnID()
-	clientLID := cli.Store.GetLID()
+	clientLID := cli.getOwnLID()
 	if clientID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
@@ -317,7 +317,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			targetSenderJID := info.MsgMetaInfo.TargetSender
 			if targetSenderJID.User == "" {
 				if info.Sender.Server == types.BotServer {
-					targetSenderJID = cli.Store.GetLID()
+					targetSenderJID = cli.getOwnLID()
 				} else {
 					targetSenderJID = cli.getOwnID()
 				}
