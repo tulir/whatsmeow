@@ -773,7 +773,16 @@ const (
 		ON CONFLICT (our_jid, chat_jid, sender_jid, message_id) DO NOTHING
 	`
 	getMsgSecret = `
-		SELECT key FROM whatsmeow_message_secrets WHERE our_jid=$1 AND chat_jid=$2 AND sender_jid=$3 AND message_id=$4
+		SELECT key, sender_jid
+		FROM whatsmeow_message_secrets
+		WHERE our_jid=$1 AND chat_jid=$2 AND message_id=$4 AND (sender_jid=$3 OR sender_jid=(
+			CASE
+				WHEN $3 LIKE '%@lid'
+					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($3, '@lid', ''))
+				WHEN $3 LIKE '%@s.whatsapp.net'
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE lid=replace($3, '@s.whatsapp.net', ''))
+			END
+		))
 	`
 )
 
@@ -797,8 +806,8 @@ func (s *SQLStore) PutMessageSecret(ctx context.Context, chat, sender types.JID,
 	return
 }
 
-func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) (secret []byte, err error) {
-	err = s.db.QueryRow(ctx, getMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&secret)
+func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) (secret []byte, realSender types.JID, err error) {
+	err = s.db.QueryRow(ctx, getMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&secret, &realSender)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}

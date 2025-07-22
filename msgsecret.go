@@ -98,21 +98,9 @@ func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, us
 	if err != nil {
 		return nil, err
 	}
-	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
+	baseEncKey, origSender, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get original message secret key: %w", err)
-	}
-	if baseEncKey == nil && origMsgKey.GetFromMe() && origSender.Server == types.HiddenUserServer {
-		origSender, err = cli.Store.LIDs.GetPNForLID(ctx, origSender)
-		if err != nil {
-			return nil, fmt.Errorf("%w (also failed to get PN for LID: %w)", ErrOriginalMessageSecretNotFound, err)
-		} else if origSender.IsEmpty() {
-			return nil, fmt.Errorf("%w (PN for LID not found)", ErrOriginalMessageSecretNotFound)
-		}
-		baseEncKey, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
-		if err != nil {
-			return nil, fmt.Errorf("failed to get original message secret key with PN: %w", err)
-		}
 	}
 	if baseEncKey == nil {
 		return nil, ErrOriginalMessageSecretNotFound
@@ -132,7 +120,7 @@ func (cli *Client) encryptMsgSecret(ctx context.Context, ownID, chat, origSender
 		return nil, nil, ErrNotLoggedIn
 	}
 
-	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, chat, origSender, origMsgID)
+	baseEncKey, origSender, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, chat, origSender, origMsgID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get original message secret key: %w", err)
 	} else if baseEncKey == nil {

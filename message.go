@@ -315,14 +315,8 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			decrypted, ciphertextHash, err = cli.decryptGroupMsg(ctx, &child, senderEncryptionJID, info.Chat, info.Timestamp)
 		} else if encType == "msmsg" && info.Sender.IsBot() {
 			targetSenderJID := info.MsgMetaInfo.TargetSender
-			messageSecretSenderJID := targetSenderJID
 			if targetSenderJID.User == "" {
-				if info.Sender.Server == types.BotServer {
-					targetSenderJID = cli.Store.GetLID()
-				} else {
-					targetSenderJID = cli.getOwnID()
-				}
-				messageSecretSenderJID = cli.getOwnID()
+				targetSenderJID = cli.getOwnID()
 			}
 			var decryptMessageID string
 			if info.MsgBotInfo.EditType == types.EditTypeInner || info.MsgBotInfo.EditType == types.EditTypeLast {
@@ -332,7 +326,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			}
 			var msMsg waE2E.MessageSecretMessage
 			var messageSecret []byte
-			if messageSecret, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, info.Chat, messageSecretSenderJID, info.MsgMetaInfo.TargetID); err != nil {
+			if messageSecret, targetSenderJID, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, info.Chat, targetSenderJID, info.MsgMetaInfo.TargetID); err != nil {
 				err = fmt.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
 			} else if messageSecret == nil {
 				err = fmt.Errorf("message secret for %s not found", info.MsgMetaInfo.TargetID)

@@ -113,7 +113,7 @@ type MessageSecretInsert struct {
 type MsgSecretStore interface {
 	PutMessageSecrets(ctx context.Context, inserts []MessageSecretInsert) error
 	PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte) error
-	GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) ([]byte, error)
+	GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) ([]byte, types.JID, error)
 }
 
 type PrivacyToken struct {
