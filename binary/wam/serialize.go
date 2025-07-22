@@ -44,9 +44,9 @@ func serializeData(key int, value interface{}, flag byte) []byte {
 	switch v := value.(type) {
 	case bool:
 		if v {
-			value = 1
+			value = int32(1)
 		} else {
-			value = 0
+			value = int32(0)
 		}
 	}
 
@@ -57,7 +57,7 @@ func serializeData(key int, value interface{}, flag byte) []byte {
 			offset = serializeHeader(buf, offset, key, flag)
 			return buf
 		}
-	case int:
+	case int32:
 		if v == 0 || v == 1 {
 			buf = make([]byte, headerLen)
 			offset = serializeHeader(buf, offset, key, flag|byte((v+1)<<4))

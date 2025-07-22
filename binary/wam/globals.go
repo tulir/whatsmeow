@@ -26,9 +26,15 @@ func encodeGlobalAttributes(globals wam.WAMGlobals) []byte {
 			continue
 		}
 
-		fieldVal := val.Field(i).Interface()
+		fieldVal := val.Field(i)
+		if fieldVal.IsNil() {
+			continue // Skip unset (nil) fields
+		}
 
-		result = append(result, serializeData(id, fieldVal, FLAG_GLOBAL)...)
+		// Dereference the pointer
+		derefVal := fieldVal.Elem().Interface()
+
+		result = append(result, serializeData(id, derefVal, FLAG_GLOBAL)...)
 	}
 
 	return result

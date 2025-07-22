@@ -4,9 +4,9 @@ package wam
 
 type WamDroppedEventEvent struct {
 	_meta             struct{} `wammeta:"id=4358,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DroppedEventCode  int32    `wam:"1"`
-	DroppedEventCount int32    `wam:"2"`
-	IsFromWamsys      bool     `wam:"3"`
+	DroppedEventCode  *int32   `wam:"1"`
+	DroppedEventCount *int32   `wam:"2"`
+	IsFromWamsys      *bool    `wam:"3"`
 }
 
 type MediaUpload2_ConnectionType int32
@@ -254,69 +254,69 @@ const (
 )
 
 type MediaUpload2Event struct {
-	_meta                       struct{}                                 `wammeta:"id=1588,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppContext                  string                                   `wam:"63"`
-	AppContextBitfield          int32                                    `wam:"64"`
-	BatchSize                   int32                                    `wam:"57"`
-	ConnectionType              MediaUpload2_ConnectionType              `wam:"43"`
-	DebugMediaException         string                                   `wam:"34"`
-	DebugMediaIp                string                                   `wam:"32"`
-	DebugUrl                    string                                   `wam:"33"`
-	EstimatedBandwidth          float64                                  `wam:"45"`
-	EstimatedBandwidthV2        float64                                  `wam:"61"`
-	FileHeight                  int32                                    `wam:"55"`
-	FileWidth                   int32                                    `wam:"56"`
-	FinalizeConnectT            int64                                    `wam:"28"`
-	FinalizeHttpCode            int32                                    `wam:"31"`
-	FinalizeIsReuse             bool                                     `wam:"30"`
-	FinalizeNetworkT            int64                                    `wam:"29"`
-	HttpProtocolVersionType     MediaUpload2_HttpProtocolVersionType     `wam:"51"`
-	IsViewOnce                  bool                                     `wam:"49"`
-	MediaCollectionId           int32                                    `wam:"60"`
-	MediaId                     int32                                    `wam:"46"`
-	MessageKeyHash              string                                   `wam:"58"`
-	NetworkStack                MediaUpload2_NetworkStack                `wam:"42"`
-	OriginalSize                int32                                    `wam:"53"`
-	OverallAttemptCount         int32                                    `wam:"4"`
-	OverallConnBlockFetchT      int64                                    `wam:"10"`
-	OverallConnectionClass      string                                   `wam:"41"`
-	OverallCumT                 int64                                    `wam:"37"`
-	OverallCumUserVisibleT      int64                                    `wam:"38"`
-	OverallDomain               string                                   `wam:"5"`
-	OverallEncryptT             int64                                    `wam:"50"`
-	OverallIsFinal              bool                                     `wam:"36"`
-	OverallIsForward            bool                                     `wam:"16"`
-	OverallIsManual             bool                                     `wam:"13"`
-	OverallLastUploadRetryPhase MediaUpload2_OverallLastUploadRetryPhase `wam:"11"`
-	OverallMediaKeyReuse        MediaUpload2_OverallMediaKeyReuse        `wam:"40"`
-	OverallMediaSize            float64                                  `wam:"7"`
-	OverallMediaType            MediaUpload2_OverallMediaType            `wam:"1"`
-	OverallMmsVersion           int32                                    `wam:"6"`
-	OverallOptimisticFlag       MediaUpload2_OverallOptimisticFlag       `wam:"12"`
-	OverallQueueT               int64                                    `wam:"9"`
-	OverallRetryCount           int32                                    `wam:"3"`
-	OverallT                    int64                                    `wam:"8"`
-	OverallTranscodeT           int64                                    `wam:"15"`
-	OverallUploadMode           MediaUpload2_OverallUploadMode           `wam:"39"`
-	OverallUploadOrigin         MediaUpload2_OverallUploadOrigin         `wam:"44"`
-	OverallUploadResult         MediaUpload2_OverallUploadResult         `wam:"35"`
-	OverallUserVisibleT         int64                                    `wam:"14"`
-	PairedMediaType             MediaUpload2_PairedMediaType             `wam:"62"`
-	PhotoQualitySetting         MediaUpload2_PhotoQualitySetting         `wam:"52"`
-	ResumeConnectT              int64                                    `wam:"17"`
-	ResumeHttpCode              int32                                    `wam:"20"`
-	ResumeIsReuse               bool                                     `wam:"19"`
-	ResumeNetworkT              int64                                    `wam:"18"`
-	UploadBytesTransferred      float64                                  `wam:"27"`
-	UploadConnectT              int64                                    `wam:"22"`
-	UploadHttpCode              int32                                    `wam:"25"`
-	UploadIsReuse               bool                                     `wam:"24"`
-	UploadIsStreaming           bool                                     `wam:"26"`
-	UploadNetworkT              int64                                    `wam:"23"`
-	UploadResumePoint           int32                                    `wam:"21"`
-	UploadSource                MediaUpload2_UploadSource                `wam:"48"`
-	UsedFallbackHint            string                                   `wam:"47"`
-	VideoQualitySetting         MediaUpload2_VideoQualitySetting         `wam:"54"`
+	_meta                       struct{}                                  `wammeta:"id=1588,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppContext                  *string                                   `wam:"63"`
+	AppContextBitfield          *int32                                    `wam:"64"`
+	BatchSize                   *int32                                    `wam:"57"`
+	ConnectionType              *MediaUpload2_ConnectionType              `wam:"43"`
+	DebugMediaException         *string                                   `wam:"34"`
+	DebugMediaIp                *string                                   `wam:"32"`
+	DebugUrl                    *string                                   `wam:"33"`
+	EstimatedBandwidth          *float64                                  `wam:"45"`
+	EstimatedBandwidthV2        *float64                                  `wam:"61"`
+	FileHeight                  *int32                                    `wam:"55"`
+	FileWidth                   *int32                                    `wam:"56"`
+	FinalizeConnectT            *int64                                    `wam:"28"`
+	FinalizeHttpCode            *int32                                    `wam:"31"`
+	FinalizeIsReuse             *bool                                     `wam:"30"`
+	FinalizeNetworkT            *int64                                    `wam:"29"`
+	HttpProtocolVersionType     *MediaUpload2_HttpProtocolVersionType     `wam:"51"`
+	IsViewOnce                  *bool                                     `wam:"49"`
+	MediaCollectionId           *int32                                    `wam:"60"`
+	MediaId                     *int32                                    `wam:"46"`
+	MessageKeyHash              *string                                   `wam:"58"`
+	NetworkStack                *MediaUpload2_NetworkStack                `wam:"42"`
+	OriginalSize                *int32                                    `wam:"53"`
+	OverallAttemptCount         *int32                                    `wam:"4"`
+	OverallConnBlockFetchT      *int64                                    `wam:"10"`
+	OverallConnectionClass      *string                                   `wam:"41"`
+	OverallCumT                 *int64                                    `wam:"37"`
+	OverallCumUserVisibleT      *int64                                    `wam:"38"`
+	OverallDomain               *string                                   `wam:"5"`
+	OverallEncryptT             *int64                                    `wam:"50"`
+	OverallIsFinal              *bool                                     `wam:"36"`
+	OverallIsForward            *bool                                     `wam:"16"`
+	OverallIsManual             *bool                                     `wam:"13"`
+	OverallLastUploadRetryPhase *MediaUpload2_OverallLastUploadRetryPhase `wam:"11"`
+	OverallMediaKeyReuse        *MediaUpload2_OverallMediaKeyReuse        `wam:"40"`
+	OverallMediaSize            *float64                                  `wam:"7"`
+	OverallMediaType            *MediaUpload2_OverallMediaType            `wam:"1"`
+	OverallMmsVersion           *int32                                    `wam:"6"`
+	OverallOptimisticFlag       *MediaUpload2_OverallOptimisticFlag       `wam:"12"`
+	OverallQueueT               *int64                                    `wam:"9"`
+	OverallRetryCount           *int32                                    `wam:"3"`
+	OverallT                    *int64                                    `wam:"8"`
+	OverallTranscodeT           *int64                                    `wam:"15"`
+	OverallUploadMode           *MediaUpload2_OverallUploadMode           `wam:"39"`
+	OverallUploadOrigin         *MediaUpload2_OverallUploadOrigin         `wam:"44"`
+	OverallUploadResult         *MediaUpload2_OverallUploadResult         `wam:"35"`
+	OverallUserVisibleT         *int64                                    `wam:"14"`
+	PairedMediaType             *MediaUpload2_PairedMediaType             `wam:"62"`
+	PhotoQualitySetting         *MediaUpload2_PhotoQualitySetting         `wam:"52"`
+	ResumeConnectT              *int64                                    `wam:"17"`
+	ResumeHttpCode              *int32                                    `wam:"20"`
+	ResumeIsReuse               *bool                                     `wam:"19"`
+	ResumeNetworkT              *int64                                    `wam:"18"`
+	UploadBytesTransferred      *float64                                  `wam:"27"`
+	UploadConnectT              *int64                                    `wam:"22"`
+	UploadHttpCode              *int32                                    `wam:"25"`
+	UploadIsReuse               *bool                                     `wam:"24"`
+	UploadIsStreaming           *bool                                     `wam:"26"`
+	UploadNetworkT              *int64                                    `wam:"23"`
+	UploadResumePoint           *int32                                    `wam:"21"`
+	UploadSource                *MediaUpload2_UploadSource                `wam:"48"`
+	UsedFallbackHint            *string                                   `wam:"47"`
+	VideoQualitySetting         *MediaUpload2_VideoQualitySetting         `wam:"54"`
 }
 
 type SystemMessageClick_SystemMessageCategory int32
@@ -347,11 +347,11 @@ const (
 )
 
 type SystemMessageClickEvent struct {
-	_meta                 struct{}                                 `wammeta:"id=5082,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsAGroup              bool                                     `wam:"1"`
-	IsANewThread          bool                                     `wam:"2"`
-	SystemMessageCategory SystemMessageClick_SystemMessageCategory `wam:"3"`
-	SystemMessageType     SystemMessageClick_SystemMessageType     `wam:"4"`
+	_meta                 struct{}                                  `wammeta:"id=5082,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsAGroup              *bool                                     `wam:"1"`
+	IsANewThread          *bool                                     `wam:"2"`
+	SystemMessageCategory *SystemMessageClick_SystemMessageCategory `wam:"3"`
+	SystemMessageType     *SystemMessageClick_SystemMessageType     `wam:"4"`
 }
 
 type PrivacyHighlightDaily_PrivacyHighlightCategory int32
@@ -379,12 +379,12 @@ const (
 )
 
 type PrivacyHighlightDailyEvent struct {
-	_meta                    struct{}                                       `wammeta:"id=3522,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DialogAppearCount        int32                                          `wam:"1"`
-	DialogSelectCount        int32                                          `wam:"2"`
-	NarrativeAppearCount     int32                                          `wam:"3"`
-	PrivacyHighlightCategory PrivacyHighlightDaily_PrivacyHighlightCategory `wam:"4"`
-	PrivacyHighlightSurface  PrivacyHighlightDaily_PrivacyHighlightSurface  `wam:"5"`
+	_meta                    struct{}                                        `wammeta:"id=3522,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DialogAppearCount        *int32                                          `wam:"1"`
+	DialogSelectCount        *int32                                          `wam:"2"`
+	NarrativeAppearCount     *int32                                          `wam:"3"`
+	PrivacyHighlightCategory *PrivacyHighlightDaily_PrivacyHighlightCategory `wam:"4"`
+	PrivacyHighlightSurface  *PrivacyHighlightDaily_PrivacyHighlightSurface  `wam:"5"`
 }
 
 type CrashLog_ActiveSubfunnelType int32
@@ -704,28 +704,28 @@ const (
 )
 
 type CrashLogEvent struct {
-	_meta                     struct{}                          `wammeta:"id=494,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActiveSubfunnelId         string                            `wam:"20"`
-	ActiveSubfunnelType       CrashLog_ActiveSubfunnelType      `wam:"21"`
-	AppContext                string                            `wam:"32"`
-	AppContextBitfield        int32                             `wam:"33"`
-	ChatSessionId             string                            `wam:"22"`
-	CrashApplicationState     CrashLog_CrashApplicationState    `wam:"23"`
-	CrashContext              string                            `wam:"3"`
-	CrashCount                int32                             `wam:"5"`
-	CrashLogProductArea       CrashLog_CrashLogProductArea      `wam:"28"`
-	CrashLogTimeSpentViewName string                            `wam:"27"`
-	CrashReason               string                            `wam:"2"`
-	CrashTimeout              int32                             `wam:"24"`
-	CrashType                 CrashLog_CrashType                `wam:"6"`
-	IphoneProcessNonGlobal    CrashLog_IphoneProcessNonGlobal   `wam:"30"`
-	IphoneTimeSpentSurfaceId  CrashLog_IphoneTimeSpentSurfaceId `wam:"26"`
-	LowPowerModeEnabled       bool                              `wam:"31"`
-	PeripheralConnected       string                            `wam:"19"`
-	ProcessIdentifier         int32                             `wam:"18"`
-	RunningTasks              string                            `wam:"16"`
-	UfadReportType            CrashLog_UfadReportType           `wam:"29"`
-	UnifiedSessionId          string                            `wam:"25"`
+	_meta                     struct{}                           `wammeta:"id=494,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActiveSubfunnelId         *string                            `wam:"20"`
+	ActiveSubfunnelType       *CrashLog_ActiveSubfunnelType      `wam:"21"`
+	AppContext                *string                            `wam:"32"`
+	AppContextBitfield        *int32                             `wam:"33"`
+	ChatSessionId             *string                            `wam:"22"`
+	CrashApplicationState     *CrashLog_CrashApplicationState    `wam:"23"`
+	CrashContext              *string                            `wam:"3"`
+	CrashCount                *int32                             `wam:"5"`
+	CrashLogProductArea       *CrashLog_CrashLogProductArea      `wam:"28"`
+	CrashLogTimeSpentViewName *string                            `wam:"27"`
+	CrashReason               *string                            `wam:"2"`
+	CrashTimeout              *int32                             `wam:"24"`
+	CrashType                 *CrashLog_CrashType                `wam:"6"`
+	IphoneProcessNonGlobal    *CrashLog_IphoneProcessNonGlobal   `wam:"30"`
+	IphoneTimeSpentSurfaceId  *CrashLog_IphoneTimeSpentSurfaceId `wam:"26"`
+	LowPowerModeEnabled       *bool                              `wam:"31"`
+	PeripheralConnected       *string                            `wam:"19"`
+	ProcessIdentifier         *int32                             `wam:"18"`
+	RunningTasks              *string                            `wam:"16"`
+	UfadReportType            *CrashLog_UfadReportType           `wam:"29"`
+	UnifiedSessionId          *string                            `wam:"25"`
 }
 
 type Lid11MigrationLifecycle_MigrationStage int32
@@ -758,20 +758,20 @@ const (
 )
 
 type Lid11MigrationLifecycleEvent struct {
-	_meta                              struct{}                                   `wammeta:"id=6154,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatNotInMappingCount              int32                                      `wam:"1"`
-	CompanionHasADifferentMappingCount int32                                      `wam:"2"`
-	CurrentLocalTimeSeconds            int32                                      `wam:"10"`
-	FakeLidCount                       int32                                      `wam:"3"`
-	IsStageInOfflineResume             bool                                       `wam:"11"`
-	IsSyncdLidSession                  bool                                       `wam:"4"`
-	LatestMappingCount                 int32                                      `wam:"5"`
-	MappingCount                       int32                                      `wam:"6"`
-	MigratedThreadCount                int32                                      `wam:"7"`
-	MigrationStage                     Lid11MigrationLifecycle_MigrationStage     `wam:"8"`
-	PeerMappingBytesLength             int32                                      `wam:"12"`
-	PrimaryMigrationTimeSeconds        int32                                      `wam:"13"`
-	StageFailureReason                 Lid11MigrationLifecycle_StageFailureReason `wam:"9"`
+	_meta                              struct{}                                    `wammeta:"id=6154,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatNotInMappingCount              *int32                                      `wam:"1"`
+	CompanionHasADifferentMappingCount *int32                                      `wam:"2"`
+	CurrentLocalTimeSeconds            *int32                                      `wam:"10"`
+	FakeLidCount                       *int32                                      `wam:"3"`
+	IsStageInOfflineResume             *bool                                       `wam:"11"`
+	IsSyncdLidSession                  *bool                                       `wam:"4"`
+	LatestMappingCount                 *int32                                      `wam:"5"`
+	MappingCount                       *int32                                      `wam:"6"`
+	MigratedThreadCount                *int32                                      `wam:"7"`
+	MigrationStage                     *Lid11MigrationLifecycle_MigrationStage     `wam:"8"`
+	PeerMappingBytesLength             *int32                                      `wam:"12"`
+	PrimaryMigrationTimeSeconds        *int32                                      `wam:"13"`
+	StageFailureReason                 *Lid11MigrationLifecycle_StageFailureReason `wam:"9"`
 }
 
 type ChatFilterEvent_ActionType int32
@@ -1040,22 +1040,22 @@ const (
 )
 
 type ChatFilterEventEvent struct {
-	_meta             struct{}                         `wammeta:"id=1616,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionType        ChatFilterEvent_ActionType       `wam:"1"`
-	ActivitySessionId string                           `wam:"6"`
-	FilterType        ChatFilterEvent_FilterType       `wam:"2"`
-	LabelName         string                           `wam:"11"`
-	ListId            int32                            `wam:"12"`
-	ListIndex         int32                            `wam:"13"`
-	ListType          ChatFilterEvent_ListType         `wam:"14"`
-	Metadata          string                           `wam:"7"`
-	PredefinedId      int32                            `wam:"10"`
-	SearchQueryId     string                           `wam:"8"`
-	SearchRequestId   string                           `wam:"9"`
-	SearchResultType  ChatFilterEvent_SearchResultType `wam:"4"`
-	SessionId         int32                            `wam:"3"`
-	TargetScreen      ChatFilterEvent_TargetScreen     `wam:"5"`
-	ThreadId          string                           `wam:"15"`
+	_meta             struct{}                          `wammeta:"id=1616,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionType        *ChatFilterEvent_ActionType       `wam:"1"`
+	ActivitySessionId *string                           `wam:"6"`
+	FilterType        *ChatFilterEvent_FilterType       `wam:"2"`
+	LabelName         *string                           `wam:"11"`
+	ListId            *int32                            `wam:"12"`
+	ListIndex         *int32                            `wam:"13"`
+	ListType          *ChatFilterEvent_ListType         `wam:"14"`
+	Metadata          *string                           `wam:"7"`
+	PredefinedId      *int32                            `wam:"10"`
+	SearchQueryId     *string                           `wam:"8"`
+	SearchRequestId   *string                           `wam:"9"`
+	SearchResultType  *ChatFilterEvent_SearchResultType `wam:"4"`
+	SessionId         *int32                            `wam:"3"`
+	TargetScreen      *ChatFilterEvent_TargetScreen     `wam:"5"`
+	ThreadId          *string                           `wam:"15"`
 }
 
 type CommunityCreation_CommunityCreationActionTaken int32
@@ -1118,13 +1118,13 @@ const (
 )
 
 type CommunityCreationEvent struct {
-	_meta                          struct{}                                         `wammeta:"id=3492,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CommunityCreationActionCount   int32                                            `wam:"1"`
-	CommunityCreationActionTaken   CommunityCreation_CommunityCreationActionTaken   `wam:"2"`
-	CommunityCreationCurrentScreen CommunityCreation_CommunityCreationCurrentScreen `wam:"3"`
-	CommunityCreationEntrypoint    CommunityCreation_CommunityCreationEntrypoint    `wam:"5"`
-	CommunityCreationSessionId     string                                           `wam:"4"`
-	CommunityId                    string                                           `wam:"6"`
+	_meta                          struct{}                                          `wammeta:"id=3492,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CommunityCreationActionCount   *int32                                            `wam:"1"`
+	CommunityCreationActionTaken   *CommunityCreation_CommunityCreationActionTaken   `wam:"2"`
+	CommunityCreationCurrentScreen *CommunityCreation_CommunityCreationCurrentScreen `wam:"3"`
+	CommunityCreationEntrypoint    *CommunityCreation_CommunityCreationEntrypoint    `wam:"5"`
+	CommunityCreationSessionId     *string                                           `wam:"4"`
+	CommunityId                    *string                                           `wam:"6"`
 }
 
 type SenderKeyExpired_ChatType int32
@@ -1173,10 +1173,10 @@ const (
 )
 
 type SenderKeyExpiredEvent struct {
-	_meta            struct{}                          `wammeta:"id=3130,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatType         SenderKeyExpired_ChatType         `wam:"1"`
-	DeviceSizeBucket SenderKeyExpired_DeviceSizeBucket `wam:"2"`
-	ExpiryReason     SenderKeyExpired_ExpiryReason     `wam:"3"`
+	_meta            struct{}                           `wammeta:"id=3130,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatType         *SenderKeyExpired_ChatType         `wam:"1"`
+	DeviceSizeBucket *SenderKeyExpired_DeviceSizeBucket `wam:"2"`
+	ExpiryReason     *SenderKeyExpired_ExpiryReason     `wam:"3"`
 }
 
 type BusinessToolsImpression_BusinessToolsEntryPoint int32
@@ -1193,15 +1193,15 @@ const (
 )
 
 type BusinessToolsImpressionEvent struct {
-	_meta                       struct{}                                        `wammeta:"id=2220,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BusinessToolsEntryPoint     BusinessToolsImpression_BusinessToolsEntryPoint `wam:"4"`
-	BusinessToolsSequenceNumber int32                                           `wam:"2"`
-	BusinessToolsSessionId      string                                          `wam:"1"`
+	_meta                       struct{}                                         `wammeta:"id=2220,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BusinessToolsEntryPoint     *BusinessToolsImpression_BusinessToolsEntryPoint `wam:"4"`
+	BusinessToolsSequenceNumber *int32                                           `wam:"2"`
+	BusinessToolsSessionId      *string                                          `wam:"1"`
 }
 
 type WebcPageResumeEvent struct {
 	_meta           struct{} `wammeta:"id=884,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcResumeCount int32    `wam:"1"`
+	WebcResumeCount *int32   `wam:"1"`
 }
 
 type SettingsClick_SettingsClickEntryPoint int32
@@ -1269,11 +1269,11 @@ const (
 )
 
 type SettingsClickEvent struct {
-	_meta                   struct{}                              `wammeta:"id=2214,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsBookmarkAppInstalled  bool                                  `wam:"4"`
-	SettingsClickEntryPoint SettingsClick_SettingsClickEntryPoint `wam:"2"`
-	SettingsItem            SettingsClick_SettingsItem            `wam:"1"`
-	SettingsPageType        SettingsClick_SettingsPageType        `wam:"3"`
+	_meta                   struct{}                               `wammeta:"id=2214,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsBookmarkAppInstalled  *bool                                  `wam:"4"`
+	SettingsClickEntryPoint *SettingsClick_SettingsClickEntryPoint `wam:"2"`
+	SettingsItem            *SettingsClick_SettingsItem            `wam:"1"`
+	SettingsPageType        *SettingsClick_SettingsPageType        `wam:"3"`
 }
 
 type PsGroupSafetyCheckExitDialog_PsGroupSafetyCheckExitDialogAction int32
@@ -1288,10 +1288,10 @@ const (
 )
 
 type PsGroupSafetyCheckExitDialogEvent struct {
-	_meta                              struct{}                                                        `wammeta:"id=6252,channel=private,weight=1,privateStatsIdInt=216763284"`
-	IntegrityGroupUserHashedId         string                                                          `wam:"3"`
-	PsGroupSafetyCheckExitDialogAction PsGroupSafetyCheckExitDialog_PsGroupSafetyCheckExitDialogAction `wam:"1"`
-	PsSafetyCheckGroupJid              string                                                          `wam:"2"`
+	_meta                              struct{}                                                         `wammeta:"id=6252,channel=private,weight=1,privateStatsIdInt=216763284"`
+	IntegrityGroupUserHashedId         *string                                                          `wam:"3"`
+	PsGroupSafetyCheckExitDialogAction *PsGroupSafetyCheckExitDialog_PsGroupSafetyCheckExitDialogAction `wam:"1"`
+	PsSafetyCheckGroupJid              *string                                                          `wam:"2"`
 }
 
 type TestAnonymousDailyEvent struct {
@@ -1322,31 +1322,31 @@ const (
 )
 
 type OfflineResumeStageEvent struct {
-	_meta                       struct{}                               `wammeta:"id=3536,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AttemptId                   int32                                  `wam:"13"`
-	ChatThreadCount             int32                                  `wam:"4"`
-	CurrentOfflineStage         OfflineResumeStage_CurrentOfflineStage `wam:"1"`
-	IsResumeInForeground        bool                                   `wam:"5"`
-	IsResumeStartedInForeground bool                                   `wam:"14"`
-	LastPushTimestampMs         int32                                  `wam:"12"`
-	MailboxAge                  int32                                  `wam:"6"`
-	OfflineCallCount            int32                                  `wam:"15"`
-	OfflineDecryptErrorCount    int32                                  `wam:"7"`
-	OfflineMessageCount         int32                                  `wam:"8"`
-	OfflineNotificationCount    int32                                  `wam:"9"`
-	OfflineReceiptCount         int32                                  `wam:"10"`
-	OfflineResumeMode           OfflineResumeStage_OfflineResumeMode   `wam:"11"`
-	OfflineSessionId            string                                 `wam:"2"`
-	OfflineSizeBytes            int32                                  `wam:"16"`
-	OfflineStageTimestampMs     int32                                  `wam:"3"`
-	PassiveModeT                int64                                  `wam:"17"`
+	_meta                       struct{}                                `wammeta:"id=3536,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AttemptId                   *int32                                  `wam:"13"`
+	ChatThreadCount             *int32                                  `wam:"4"`
+	CurrentOfflineStage         *OfflineResumeStage_CurrentOfflineStage `wam:"1"`
+	IsResumeInForeground        *bool                                   `wam:"5"`
+	IsResumeStartedInForeground *bool                                   `wam:"14"`
+	LastPushTimestampMs         *int32                                  `wam:"12"`
+	MailboxAge                  *int32                                  `wam:"6"`
+	OfflineCallCount            *int32                                  `wam:"15"`
+	OfflineDecryptErrorCount    *int32                                  `wam:"7"`
+	OfflineMessageCount         *int32                                  `wam:"8"`
+	OfflineNotificationCount    *int32                                  `wam:"9"`
+	OfflineReceiptCount         *int32                                  `wam:"10"`
+	OfflineResumeMode           *OfflineResumeStage_OfflineResumeMode   `wam:"11"`
+	OfflineSessionId            *string                                 `wam:"2"`
+	OfflineSizeBytes            *int32                                  `wam:"16"`
+	OfflineStageTimestampMs     *int32                                  `wam:"3"`
+	PassiveModeT                *int64                                  `wam:"17"`
 }
 
 type TestAnonymousWeeklyIdEvent struct {
 	_meta                     struct{} `wammeta:"id=2956,channel=private,weight=1,privateStatsIdInt=42196056"`
-	PsTestBooleanField        bool     `wam:"2"`
-	PsTestStringField         string   `wam:"3"`
-	PsTimeSinceLastEventInMin int32    `wam:"1"`
+	PsTestBooleanField        *bool    `wam:"2"`
+	PsTestStringField         *string  `wam:"3"`
+	PsTimeSinceLastEventInMin *int32   `wam:"1"`
 }
 
 type WebcQplHealth_WebcQplHealthEventType int32
@@ -1367,9 +1367,9 @@ const (
 )
 
 type WebcQplHealthEvent struct {
-	_meta                  struct{}                             `wammeta:"id=3134,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcQplHealthEventData string                               `wam:"1"`
-	WebcQplHealthEventType WebcQplHealth_WebcQplHealthEventType `wam:"2"`
+	_meta                  struct{}                              `wammeta:"id=3134,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcQplHealthEventData *string                               `wam:"1"`
+	WebcQplHealthEventType *WebcQplHealth_WebcQplHealthEventType `wam:"2"`
 }
 
 type ViewBusinessProfile_BizFbSize int32
@@ -1479,19 +1479,19 @@ const (
 )
 
 type ViewBusinessProfileEvent struct {
-	_meta                     struct{}                                      `wammeta:"id=1522,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BizFbSize                 ViewBusinessProfile_BizFbSize                 `wam:"9"`
-	BizIgSize                 ViewBusinessProfile_BizIgSize                 `wam:"10"`
-	BusinessProfileJid        string                                        `wam:"3"`
-	CatalogSessionId          string                                        `wam:"6"`
-	HasCoverPhoto             bool                                          `wam:"12"`
-	IsProfileLinked           bool                                          `wam:"11"`
-	IsSelfView                bool                                          `wam:"7"`
-	LinkedAccount             ViewBusinessProfile_LinkedAccount             `wam:"5"`
-	ProfileEntryPoint         ViewBusinessProfile_ProfileEntryPoint         `wam:"8"`
-	ScrollDepth               int32                                         `wam:"4"`
-	ViewBusinessProfileAction ViewBusinessProfile_ViewBusinessProfileAction `wam:"1"`
-	WebsiteSource             ViewBusinessProfile_WebsiteSource             `wam:"2"`
+	_meta                     struct{}                                       `wammeta:"id=1522,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BizFbSize                 *ViewBusinessProfile_BizFbSize                 `wam:"9"`
+	BizIgSize                 *ViewBusinessProfile_BizIgSize                 `wam:"10"`
+	BusinessProfileJid        *string                                        `wam:"3"`
+	CatalogSessionId          *string                                        `wam:"6"`
+	HasCoverPhoto             *bool                                          `wam:"12"`
+	IsProfileLinked           *bool                                          `wam:"11"`
+	IsSelfView                *bool                                          `wam:"7"`
+	LinkedAccount             *ViewBusinessProfile_LinkedAccount             `wam:"5"`
+	ProfileEntryPoint         *ViewBusinessProfile_ProfileEntryPoint         `wam:"8"`
+	ScrollDepth               *int32                                         `wam:"4"`
+	ViewBusinessProfileAction *ViewBusinessProfile_ViewBusinessProfileAction `wam:"1"`
+	WebsiteSource             *ViewBusinessProfile_WebsiteSource             `wam:"2"`
 }
 
 type ChatPsaRemove_LastReceivedMediaType int32
@@ -1615,22 +1615,22 @@ const (
 )
 
 type ChatPsaRemoveEvent struct {
-	_meta                      struct{}                                 `wammeta:"id=3582,channel=regular,weight=1,privateStatsIdInt=-1"`
-	LastReceivedMediaType      ChatPsaRemove_LastReceivedMediaType      `wam:"2"`
-	LastReceivedMessageTs      int64                                    `wam:"4"`
-	LastReceivedMsgId          string                                   `wam:"8"`
-	PsaBlockReason             ChatPsaRemove_PsaBlockReason             `wam:"10"`
-	PsaCampaignId              string                                   `wam:"9"`
-	PsaMessageRemoveAction     ChatPsaRemove_PsaMessageRemoveAction     `wam:"5"`
-	PsaMessageRemoveEntryPoint ChatPsaRemove_PsaMessageRemoveEntryPoint `wam:"6"`
-	WaOfficialAccountName      ChatPsaRemove_WaOfficialAccountName      `wam:"7"`
+	_meta                      struct{}                                  `wammeta:"id=3582,channel=regular,weight=1,privateStatsIdInt=-1"`
+	LastReceivedMediaType      *ChatPsaRemove_LastReceivedMediaType      `wam:"2"`
+	LastReceivedMessageTs      *int64                                    `wam:"4"`
+	LastReceivedMsgId          *string                                   `wam:"8"`
+	PsaBlockReason             *ChatPsaRemove_PsaBlockReason             `wam:"10"`
+	PsaCampaignId              *string                                   `wam:"9"`
+	PsaMessageRemoveAction     *ChatPsaRemove_PsaMessageRemoveAction     `wam:"5"`
+	PsaMessageRemoveEntryPoint *ChatPsaRemove_PsaMessageRemoveEntryPoint `wam:"6"`
+	WaOfficialAccountName      *ChatPsaRemove_WaOfficialAccountName      `wam:"7"`
 }
 
 type WebcDbOpenEvent struct {
 	_meta                 struct{} `wammeta:"id=1940,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcDbName            string   `wam:"1"`
-	WebcDbOpenNumAttempts int32    `wam:"3"`
-	WebcDbOpenWasSuccess  bool     `wam:"2"`
+	WebcDbName            *string  `wam:"1"`
+	WebcDbOpenNumAttempts *int32   `wam:"3"`
+	WebcDbOpenWasSuccess  *bool    `wam:"2"`
 }
 
 type AddressingModeMismatch_IqResponse int32
@@ -1667,12 +1667,12 @@ const (
 )
 
 type AddressingModeMismatchEvent struct {
-	_meta                struct{}                                    `wammeta:"id=4750,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IqResponse           AddressingModeMismatch_IqResponse           `wam:"1"`
-	LocalAddressingMode  AddressingModeMismatch_LocalAddressingMode  `wam:"2"`
-	MismatchOrigin       AddressingModeMismatch_MismatchOrigin       `wam:"6"`
-	NotificationTag      string                                      `wam:"3"`
-	ServerAddressingMode AddressingModeMismatch_ServerAddressingMode `wam:"5"`
+	_meta                struct{}                                     `wammeta:"id=4750,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IqResponse           *AddressingModeMismatch_IqResponse           `wam:"1"`
+	LocalAddressingMode  *AddressingModeMismatch_LocalAddressingMode  `wam:"2"`
+	MismatchOrigin       *AddressingModeMismatch_MismatchOrigin       `wam:"6"`
+	NotificationTag      *string                                      `wam:"3"`
+	ServerAddressingMode *AddressingModeMismatch_ServerAddressingMode `wam:"5"`
 }
 
 type ReportingTokenValidationFailureSender_E2eReceiverType int32
@@ -1800,22 +1800,22 @@ const (
 )
 
 type ReportingTokenValidationFailureSenderEvent struct {
-	_meta                                 struct{}                                                                    `wammeta:"id=6094,channel=private,weight=1,privateStatsIdInt=113760892"`
-	ClientMessageId                       string                                                                      `wam:"1"`
-	E2eReceiverType                       ReportingTokenValidationFailureSender_E2eReceiverType                       `wam:"2"`
-	E2eSenderType                         ReportingTokenValidationFailureSender_E2eSenderType                         `wam:"3"`
-	EditType                              ReportingTokenValidationFailureSender_EditType                              `wam:"4"`
-	IsLid                                 bool                                                                        `wam:"5"`
-	IsMessageMediaRetry                   bool                                                                        `wam:"14"`
-	IsMessageRetry                        bool                                                                        `wam:"6"`
-	IsSecretEncryptedMsg                  bool                                                                        `wam:"12"`
-	MessageIsForward                      bool                                                                        `wam:"15"`
-	MessageMediaType                      ReportingTokenValidationFailureSender_MessageMediaType                      `wam:"7"`
-	MessageType                           ReportingTokenValidationFailureSender_MessageType                           `wam:"8"`
-	Offline                               bool                                                                        `wam:"9"`
-	ReportingTokenValidationFailureReason ReportingTokenValidationFailureSender_ReportingTokenValidationFailureReason `wam:"10"`
-	ReportingTokenVersion                 int32                                                                       `wam:"13"`
-	SenderJid                             string                                                                      `wam:"11"`
+	_meta                                 struct{}                                                                     `wammeta:"id=6094,channel=private,weight=1,privateStatsIdInt=113760892"`
+	ClientMessageId                       *string                                                                      `wam:"1"`
+	E2eReceiverType                       *ReportingTokenValidationFailureSender_E2eReceiverType                       `wam:"2"`
+	E2eSenderType                         *ReportingTokenValidationFailureSender_E2eSenderType                         `wam:"3"`
+	EditType                              *ReportingTokenValidationFailureSender_EditType                              `wam:"4"`
+	IsLid                                 *bool                                                                        `wam:"5"`
+	IsMessageMediaRetry                   *bool                                                                        `wam:"14"`
+	IsMessageRetry                        *bool                                                                        `wam:"6"`
+	IsSecretEncryptedMsg                  *bool                                                                        `wam:"12"`
+	MessageIsForward                      *bool                                                                        `wam:"15"`
+	MessageMediaType                      *ReportingTokenValidationFailureSender_MessageMediaType                      `wam:"7"`
+	MessageType                           *ReportingTokenValidationFailureSender_MessageType                           `wam:"8"`
+	Offline                               *bool                                                                        `wam:"9"`
+	ReportingTokenValidationFailureReason *ReportingTokenValidationFailureSender_ReportingTokenValidationFailureReason `wam:"10"`
+	ReportingTokenVersion                 *int32                                                                       `wam:"13"`
+	SenderJid                             *string                                                                      `wam:"11"`
 }
 
 type NotificationEngagement_GroupSizeBucket int32
@@ -1849,31 +1849,31 @@ const (
 )
 
 type NotificationEngagementEvent struct {
-	_meta                                   struct{}                               `wammeta:"id=3796,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AvgNotifEngagementT                     int64                                  `wam:"1"`
-	GroupSizeBucket                         NotificationEngagement_GroupSizeBucket `wam:"2"`
-	GroupTypeClient                         NotificationEngagement_GroupTypeClient `wam:"3"`
-	IsAGroup                                bool                                   `wam:"4"`
-	IsWebBackgroundSyncNotif                bool                                   `wam:"18"`
-	ThreadId                                string                                 `wam:"5"`
-	TotalLinkReshareMessageNotifShown       int32                                  `wam:"19"`
-	TotalLinkReshareMessageNotifShownFb     int32                                  `wam:"21"`
-	TotalLinkReshareMessageNotifShownIg     int32                                  `wam:"22"`
-	TotalLinkReshareMessageNotifTapToOpen   int32                                  `wam:"20"`
-	TotalLinkReshareMessageNotifTapToOpenFb int32                                  `wam:"23"`
-	TotalLinkReshareMessageNotifTapToOpenIg int32                                  `wam:"24"`
-	TotalMessageReminderNotifShown          int32                                  `wam:"16"`
-	TotalMessageReminderNotifTapToOpen      int32                                  `wam:"17"`
-	TotalNotifMarkAsRead                    int32                                  `wam:"6"`
-	TotalNotifMissedCallVoipCallback        int32                                  `wam:"7"`
-	TotalNotifMissedCallVoipMessage         int32                                  `wam:"8"`
-	TotalNotifOthers                        int32                                  `wam:"9"`
-	TotalNotifReply                         int32                                  `wam:"10"`
-	TotalNotifRtcVoipAccept                 int32                                  `wam:"11"`
-	TotalNotifRtcVoipDecline                int32                                  `wam:"12"`
-	TotalNotifShowPreview                   int32                                  `wam:"13"`
-	TotalNotifShown                         int32                                  `wam:"14"`
-	TotalNotifTapToOpen                     int32                                  `wam:"15"`
+	_meta                                   struct{}                                `wammeta:"id=3796,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AvgNotifEngagementT                     *int64                                  `wam:"1"`
+	GroupSizeBucket                         *NotificationEngagement_GroupSizeBucket `wam:"2"`
+	GroupTypeClient                         *NotificationEngagement_GroupTypeClient `wam:"3"`
+	IsAGroup                                *bool                                   `wam:"4"`
+	IsWebBackgroundSyncNotif                *bool                                   `wam:"18"`
+	ThreadId                                *string                                 `wam:"5"`
+	TotalLinkReshareMessageNotifShown       *int32                                  `wam:"19"`
+	TotalLinkReshareMessageNotifShownFb     *int32                                  `wam:"21"`
+	TotalLinkReshareMessageNotifShownIg     *int32                                  `wam:"22"`
+	TotalLinkReshareMessageNotifTapToOpen   *int32                                  `wam:"20"`
+	TotalLinkReshareMessageNotifTapToOpenFb *int32                                  `wam:"23"`
+	TotalLinkReshareMessageNotifTapToOpenIg *int32                                  `wam:"24"`
+	TotalMessageReminderNotifShown          *int32                                  `wam:"16"`
+	TotalMessageReminderNotifTapToOpen      *int32                                  `wam:"17"`
+	TotalNotifMarkAsRead                    *int32                                  `wam:"6"`
+	TotalNotifMissedCallVoipCallback        *int32                                  `wam:"7"`
+	TotalNotifMissedCallVoipMessage         *int32                                  `wam:"8"`
+	TotalNotifOthers                        *int32                                  `wam:"9"`
+	TotalNotifReply                         *int32                                  `wam:"10"`
+	TotalNotifRtcVoipAccept                 *int32                                  `wam:"11"`
+	TotalNotifRtcVoipDecline                *int32                                  `wam:"12"`
+	TotalNotifShowPreview                   *int32                                  `wam:"13"`
+	TotalNotifShown                         *int32                                  `wam:"14"`
+	TotalNotifTapToOpen                     *int32                                  `wam:"15"`
 }
 
 type GifSearchResultTapped_GifSearchProvider int32
@@ -1884,22 +1884,22 @@ const (
 )
 
 type GifSearchResultTappedEvent struct {
-	_meta             struct{}                                `wammeta:"id=1122,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GifSearchProvider GifSearchResultTapped_GifSearchProvider `wam:"1"`
-	Rank              int32                                   `wam:"2"`
+	_meta             struct{}                                 `wammeta:"id=1122,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GifSearchProvider *GifSearchResultTapped_GifSearchProvider `wam:"1"`
+	Rank              *int32                                   `wam:"2"`
 }
 
 type WebcStorageStatEvent struct {
 	_meta              struct{} `wammeta:"id=1504,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcAgeOfStorage   int32    `wam:"3"`
-	WebcPackingEnabled bool     `wam:"4"`
-	WebcStorageQuota   int32    `wam:"2"`
-	WebcStorageUsage   int32    `wam:"1"`
+	WebcAgeOfStorage   *int32   `wam:"3"`
+	WebcPackingEnabled *bool    `wam:"4"`
+	WebcStorageQuota   *int32   `wam:"2"`
+	WebcStorageUsage   *int32   `wam:"1"`
 }
 
 type WebcEmojiOpenEvent struct {
 	_meta            struct{} `wammeta:"id=1166,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcEmojiOpenTab string   `wam:"1"`
+	WebcEmojiOpenTab *string  `wam:"1"`
 }
 
 type Login_AndroidKeystoreState int32
@@ -1997,35 +1997,35 @@ const (
 )
 
 type LoginEvent struct {
-	_meta                  struct{}                     `wammeta:"id=460,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AndroidKeystoreState   Login_AndroidKeystoreState   `wam:"10"`
-	AppContext             string                       `wam:"20"`
-	AppContextBitfield     int32                        `wam:"21"`
-	ConnectionOrigin       Login_ConnectionOrigin       `wam:"6"`
-	ConnectionSequenceStep Login_ConnectionSequenceStep `wam:"11"`
-	ConnectionT            int64                        `wam:"5"`
-	DnsResolutionMethod    Login_DnsResolutionMethod    `wam:"12"`
-	LoginDnsResolver       Login_LoginDnsResolver       `wam:"13"`
-	LoginIpSource          Login_LoginIpSource          `wam:"14"`
-	LoginPort              Login_LoginPort              `wam:"15"`
-	LoginResolvedPop       string                       `wam:"19"`
-	LoginResult            Login_LoginResult            `wam:"1"`
-	LoginSocketProvider    Login_LoginSocketProvider    `wam:"22"`
-	LoginT                 int64                        `wam:"3"`
-	LogoutSessionId        int32                        `wam:"18"`
-	LongConnect            bool                         `wam:"4"`
-	NoiseProtocolVersion   int32                        `wam:"16"`
-	Passive                bool                         `wam:"8"`
-	PendingAcksCount       int32                        `wam:"17"`
-	RetryCount             int32                        `wam:"2"`
-	SequenceStep           int32                        `wam:"7"`
-	ServerErrorCode        int32                        `wam:"9"`
+	_meta                  struct{}                      `wammeta:"id=460,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AndroidKeystoreState   *Login_AndroidKeystoreState   `wam:"10"`
+	AppContext             *string                       `wam:"20"`
+	AppContextBitfield     *int32                        `wam:"21"`
+	ConnectionOrigin       *Login_ConnectionOrigin       `wam:"6"`
+	ConnectionSequenceStep *Login_ConnectionSequenceStep `wam:"11"`
+	ConnectionT            *int64                        `wam:"5"`
+	DnsResolutionMethod    *Login_DnsResolutionMethod    `wam:"12"`
+	LoginDnsResolver       *Login_LoginDnsResolver       `wam:"13"`
+	LoginIpSource          *Login_LoginIpSource          `wam:"14"`
+	LoginPort              *Login_LoginPort              `wam:"15"`
+	LoginResolvedPop       *string                       `wam:"19"`
+	LoginResult            *Login_LoginResult            `wam:"1"`
+	LoginSocketProvider    *Login_LoginSocketProvider    `wam:"22"`
+	LoginT                 *int64                        `wam:"3"`
+	LogoutSessionId        *int32                        `wam:"18"`
+	LongConnect            *bool                         `wam:"4"`
+	NoiseProtocolVersion   *int32                        `wam:"16"`
+	Passive                *bool                         `wam:"8"`
+	PendingAcksCount       *int32                        `wam:"17"`
+	RetryCount             *int32                        `wam:"2"`
+	SequenceStep           *int32                        `wam:"7"`
+	ServerErrorCode        *int32                        `wam:"9"`
 }
 
 type BusinessMuteEvent struct {
 	_meta   struct{} `wammeta:"id=1376,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MuteT   int64    `wam:"2"`
-	MuteeId string   `wam:"1"`
+	MuteT   *int64   `wam:"2"`
+	MuteeId *string  `wam:"1"`
 }
 
 type ListUpdateUserJourney_ListAction int32
@@ -2078,13 +2078,13 @@ const (
 )
 
 type ListUpdateUserJourneyEvent struct {
-	_meta                       struct{}                                          `wammeta:"id=5958,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ListAction                  ListUpdateUserJourney_ListAction                  `wam:"1"`
-	ListId                      int32                                             `wam:"2"`
-	ListType                    ListUpdateUserJourney_ListType                    `wam:"3"`
-	ListUpdateUserJourneyAction ListUpdateUserJourney_ListUpdateUserJourneyAction `wam:"4"`
-	PredefinedId                int32                                             `wam:"5"`
-	UpdateEntryPoint            ListUpdateUserJourney_UpdateEntryPoint            `wam:"6"`
+	_meta                       struct{}                                           `wammeta:"id=5958,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ListAction                  *ListUpdateUserJourney_ListAction                  `wam:"1"`
+	ListId                      *int32                                             `wam:"2"`
+	ListType                    *ListUpdateUserJourney_ListType                    `wam:"3"`
+	ListUpdateUserJourneyAction *ListUpdateUserJourney_ListUpdateUserJourneyAction `wam:"4"`
+	PredefinedId                *int32                                             `wam:"5"`
+	UpdateEntryPoint            *ListUpdateUserJourney_UpdateEntryPoint            `wam:"6"`
 }
 
 type BlockEventsFs_BlockEntryPoint int32
@@ -2187,13 +2187,13 @@ const (
 )
 
 type BlockEventsFsEvent struct {
-	_meta                  struct{}                           `wammeta:"id=4288,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BlockEntryPoint        BlockEventsFs_BlockEntryPoint      `wam:"1"`
-	BlockEventActionType   BlockEventsFs_BlockEventActionType `wam:"2"`
-	BlockEventIsSuspicious bool                               `wam:"3"`
-	BlockEventIsUnsub      bool                               `wam:"4"`
-	PastCall               bool                               `wam:"5"`
-	PastCallResult         BlockEventsFs_PastCallResult       `wam:"6"`
+	_meta                  struct{}                            `wammeta:"id=4288,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BlockEntryPoint        *BlockEventsFs_BlockEntryPoint      `wam:"1"`
+	BlockEventActionType   *BlockEventsFs_BlockEventActionType `wam:"2"`
+	BlockEventIsSuspicious *bool                               `wam:"3"`
+	BlockEventIsUnsub      *bool                               `wam:"4"`
+	PastCall               *bool                               `wam:"5"`
+	PastCallResult         *BlockEventsFs_PastCallResult       `wam:"6"`
 }
 
 type SupportAiSession_SupportAiEventType int32
@@ -2222,11 +2222,11 @@ const (
 )
 
 type SupportAiSessionEvent struct {
-	_meta                 struct{}                            `wammeta:"id=4970,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CitationCmsId         string                              `wam:"5"`
-	SupportAiErrorCode    int32                               `wam:"3"`
-	SupportAiErrorMessage string                              `wam:"4"`
-	SupportAiEventType    SupportAiSession_SupportAiEventType `wam:"1"`
+	_meta                 struct{}                             `wammeta:"id=4970,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CitationCmsId         *string                              `wam:"5"`
+	SupportAiErrorCode    *int32                               `wam:"3"`
+	SupportAiErrorMessage *string                              `wam:"4"`
+	SupportAiEventType    *SupportAiSession_SupportAiEventType `wam:"1"`
 }
 
 type ChannelDyi_ChannelDyiEventType int32
@@ -2238,8 +2238,8 @@ const (
 )
 
 type ChannelDyiEvent struct {
-	_meta               struct{}                       `wammeta:"id=4726,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChannelDyiEventType ChannelDyi_ChannelDyiEventType `wam:"1"`
+	_meta               struct{}                        `wammeta:"id=4726,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChannelDyiEventType *ChannelDyi_ChannelDyiEventType `wam:"1"`
 }
 
 type ChannelsVideoPlay_VideoPlayOrigin int32
@@ -2273,20 +2273,20 @@ const (
 )
 
 type ChannelsVideoPlayEvent struct {
-	_meta                  struct{}                          `wammeta:"id=6556,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AutoPlayT              int32                             `wam:"1"`
-	Cid                    string                            `wam:"2"`
-	FinishCount            int32                             `wam:"13"`
-	Height                 int32                             `wam:"3"`
-	PostId                 string                            `wam:"4"`
-	VideoDuration          int32                             `wam:"5"`
-	VideoInitialBufferingT int64                             `wam:"6"`
-	VideoPlayOrigin        ChannelsVideoPlay_VideoPlayOrigin `wam:"7"`
-	VideoPlayResult        ChannelsVideoPlay_VideoPlayResult `wam:"8"`
-	VideoPlayT             int32                             `wam:"9"`
-	VideoPlayType          ChannelsVideoPlay_VideoPlayType   `wam:"10"`
-	VideoSize              float64                           `wam:"11"`
-	Width                  int32                             `wam:"12"`
+	_meta                  struct{}                           `wammeta:"id=6556,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AutoPlayT              *int32                             `wam:"1"`
+	Cid                    *string                            `wam:"2"`
+	FinishCount            *int32                             `wam:"13"`
+	Height                 *int32                             `wam:"3"`
+	PostId                 *string                            `wam:"4"`
+	VideoDuration          *int32                             `wam:"5"`
+	VideoInitialBufferingT *int64                             `wam:"6"`
+	VideoPlayOrigin        *ChannelsVideoPlay_VideoPlayOrigin `wam:"7"`
+	VideoPlayResult        *ChannelsVideoPlay_VideoPlayResult `wam:"8"`
+	VideoPlayT             *int32                             `wam:"9"`
+	VideoPlayType          *ChannelsVideoPlay_VideoPlayType   `wam:"10"`
+	VideoSize              *float64                           `wam:"11"`
+	Width                  *int32                             `wam:"12"`
 }
 
 type ManageAdsEntryPointTap_ManageAdsEntryPoint int32
@@ -2299,8 +2299,8 @@ const (
 )
 
 type ManageAdsEntryPointTapEvent struct {
-	_meta               struct{}                                   `wammeta:"id=4126,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ManageAdsEntryPoint ManageAdsEntryPointTap_ManageAdsEntryPoint `wam:"1"`
+	_meta               struct{}                                    `wammeta:"id=4126,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ManageAdsEntryPoint *ManageAdsEntryPointTap_ManageAdsEntryPoint `wam:"1"`
 }
 
 type NativeContactsNuxEvent_NativeContactsNuxEntryPoint int32
@@ -2341,9 +2341,9 @@ const (
 )
 
 type NativeContactsNuxEventEvent struct {
-	_meta                       struct{}                                           `wammeta:"id=5788,channel=regular,weight=1,privateStatsIdInt=-1"`
-	NativeContactsNuxEntryPoint NativeContactsNuxEvent_NativeContactsNuxEntryPoint `wam:"3"`
-	NativeContactsNuxEventType  NativeContactsNuxEvent_NativeContactsNuxEventType  `wam:"1"`
+	_meta                       struct{}                                            `wammeta:"id=5788,channel=regular,weight=1,privateStatsIdInt=-1"`
+	NativeContactsNuxEntryPoint *NativeContactsNuxEvent_NativeContactsNuxEntryPoint `wam:"3"`
+	NativeContactsNuxEventType  *NativeContactsNuxEvent_NativeContactsNuxEventType  `wam:"1"`
 }
 
 type AppLaunch_AppLaunchDestination int32
@@ -2365,25 +2365,25 @@ const (
 )
 
 type AppLaunchEvent struct {
-	_meta                       struct{}                       `wammeta:"id=1094,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppContext                  string                         `wam:"22"`
-	AppContextBitfield          int32                          `wam:"23"`
-	AppLaunchCpuT               int64                          `wam:"2"`
-	AppLaunchDestination        AppLaunch_AppLaunchDestination `wam:"7"`
-	AppLaunchMainPreT           int64                          `wam:"3"`
-	AppLaunchMainRunT           int64                          `wam:"4"`
-	AppLaunchT                  int64                          `wam:"1"`
-	AppLaunchTypeT              AppLaunch_AppLaunchTypeT       `wam:"5"`
-	DbBgThreadReadsDurationT    int64                          `wam:"17"`
-	DbBgThreadWritesDurationT   int64                          `wam:"18"`
-	DbMainThreadCount           int32                          `wam:"10"`
-	DbMainThreadReadsDurationT  int64                          `wam:"19"`
-	DbMainThreadWritesDurationT int64                          `wam:"20"`
-	DbReadsCount                int32                          `wam:"8"`
-	DbWritesCount               int32                          `wam:"9"`
-	LowPowerModeEnabled         bool                           `wam:"12"`
-	PeripheralConnected         string                         `wam:"16"`
-	ProcessIdentifier           int32                          `wam:"15"`
+	_meta                       struct{}                        `wammeta:"id=1094,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppContext                  *string                         `wam:"22"`
+	AppContextBitfield          *int32                          `wam:"23"`
+	AppLaunchCpuT               *int64                          `wam:"2"`
+	AppLaunchDestination        *AppLaunch_AppLaunchDestination `wam:"7"`
+	AppLaunchMainPreT           *int64                          `wam:"3"`
+	AppLaunchMainRunT           *int64                          `wam:"4"`
+	AppLaunchT                  *int64                          `wam:"1"`
+	AppLaunchTypeT              *AppLaunch_AppLaunchTypeT       `wam:"5"`
+	DbBgThreadReadsDurationT    *int64                          `wam:"17"`
+	DbBgThreadWritesDurationT   *int64                          `wam:"18"`
+	DbMainThreadCount           *int32                          `wam:"10"`
+	DbMainThreadReadsDurationT  *int64                          `wam:"19"`
+	DbMainThreadWritesDurationT *int64                          `wam:"20"`
+	DbReadsCount                *int32                          `wam:"8"`
+	DbWritesCount               *int32                          `wam:"9"`
+	LowPowerModeEnabled         *bool                           `wam:"12"`
+	PeripheralConnected         *string                         `wam:"16"`
+	ProcessIdentifier           *int32                          `wam:"15"`
 }
 
 type StickerLatency_StickerLatencyAction int32
@@ -2393,10 +2393,10 @@ const (
 )
 
 type StickerLatencyEvent struct {
-	_meta                  struct{}                            `wammeta:"id=5026,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Size                   int32                               `wam:"1"`
-	StickerLatencyAction   StickerLatency_StickerLatencyAction `wam:"2"`
-	StickerLatencyTtAction int32                               `wam:"3"`
+	_meta                  struct{}                             `wammeta:"id=5026,channel=regular,weight=1,privateStatsIdInt=-1"`
+	Size                   *int32                               `wam:"1"`
+	StickerLatencyAction   *StickerLatency_StickerLatencyAction `wam:"2"`
+	StickerLatencyTtAction *int32                               `wam:"3"`
 }
 
 type KeepInChatPerf_KicErrorCode int32
@@ -2435,14 +2435,14 @@ const (
 )
 
 type KeepInChatPerfEvent struct {
-	_meta                          struct{}                      `wammeta:"id=3488,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatEphemeralityDuration       int32                         `wam:"1"`
-	KicErrorCode                   KeepInChatPerf_KicErrorCode   `wam:"2"`
-	KicMessageEphemeralityDuration int32                         `wam:"3"`
-	KicRequestType                 KeepInChatPerf_KicRequestType `wam:"4"`
-	RequestSendTime                int32                         `wam:"5"`
-	Response                       KeepInChatPerf_Response       `wam:"6"`
-	ThreadId                       string                        `wam:"7"`
+	_meta                          struct{}                       `wammeta:"id=3488,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatEphemeralityDuration       *int32                         `wam:"1"`
+	KicErrorCode                   *KeepInChatPerf_KicErrorCode   `wam:"2"`
+	KicMessageEphemeralityDuration *int32                         `wam:"3"`
+	KicRequestType                 *KeepInChatPerf_KicRequestType `wam:"4"`
+	RequestSendTime                *int32                         `wam:"5"`
+	Response                       *KeepInChatPerf_Response       `wam:"6"`
+	ThreadId                       *string                        `wam:"7"`
 }
 
 type PsGroupExitExperienceExitDialogInteraction_PsGroupExitExperienceExitDialogAction int32
@@ -2473,12 +2473,12 @@ const (
 )
 
 type PsGroupExitExperienceExitDialogInteractionEvent struct {
-	_meta                                 struct{}                                                                         `wammeta:"id=6318,channel=private,weight=1,privateStatsIdInt=152546501"`
-	PsExitExperienceReportingEnabled      bool                                                                             `wam:"1"`
-	PsGroupExitExperienceEnabled          bool                                                                             `wam:"2"`
-	PsGroupExitExperienceExitDialogAction PsGroupExitExperienceExitDialogInteraction_PsGroupExitExperienceExitDialogAction `wam:"3"`
-	PsGroupExitExperienceGroupJid         string                                                                           `wam:"4"`
-	PsGroupExitExperienceTouchPoint       PsGroupExitExperienceExitDialogInteraction_PsGroupExitExperienceTouchPoint       `wam:"6"`
+	_meta                                 struct{}                                                                          `wammeta:"id=6318,channel=private,weight=1,privateStatsIdInt=152546501"`
+	PsExitExperienceReportingEnabled      *bool                                                                             `wam:"1"`
+	PsGroupExitExperienceEnabled          *bool                                                                             `wam:"2"`
+	PsGroupExitExperienceExitDialogAction *PsGroupExitExperienceExitDialogInteraction_PsGroupExitExperienceExitDialogAction `wam:"3"`
+	PsGroupExitExperienceGroupJid         *string                                                                           `wam:"4"`
+	PsGroupExitExperienceTouchPoint       *PsGroupExitExperienceExitDialogInteraction_PsGroupExitExperienceTouchPoint       `wam:"6"`
 }
 
 type MdCriticalEvent_Collection int32
@@ -2513,9 +2513,9 @@ const (
 )
 
 type MdCriticalEventEvent struct {
-	_meta               struct{}                            `wammeta:"id=2746,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Collection          MdCriticalEvent_Collection          `wam:"2"`
-	MdCriticalEventCode MdCriticalEvent_MdCriticalEventCode `wam:"1"`
+	_meta               struct{}                             `wammeta:"id=2746,channel=regular,weight=1,privateStatsIdInt=-1"`
+	Collection          *MdCriticalEvent_Collection          `wam:"2"`
+	MdCriticalEventCode *MdCriticalEvent_MdCriticalEventCode `wam:"1"`
 }
 
 type VideoTranscoder_SourceFormat int32
@@ -2551,29 +2551,29 @@ const (
 )
 
 type VideoTranscoderEvent struct {
-	_meta                              struct{}                            `wammeta:"id=1802,channel=regular,weight=1,privateStatsIdInt=-1"`
-	SourceAudioBitRate                 float64                             `wam:"12"`
-	SourceDuration                     int64                               `wam:"8"`
-	SourceFileSize                     float64                             `wam:"7"`
-	SourceFormat                       VideoTranscoder_SourceFormat        `wam:"14"`
-	SourceFrameRate                    float64                             `wam:"13"`
-	SourceHeight                       float64                             `wam:"10"`
-	SourceVideoBitRate                 float64                             `wam:"11"`
-	SourceWidth                        float64                             `wam:"9"`
-	TargetAudioBitRate                 float64                             `wam:"20"`
-	TargetDuration                     int64                               `wam:"16"`
-	TargetFileSize                     float64                             `wam:"15"`
-	TargetFormat                       VideoTranscoder_TargetFormat        `wam:"22"`
-	TargetFrameRate                    float64                             `wam:"21"`
-	TargetHeight                       float64                             `wam:"18"`
-	TargetVideoBitRate                 float64                             `wam:"19"`
-	TargetWidth                        float64                             `wam:"17"`
-	TranscoderAlgorithm                VideoTranscoder_TranscoderAlgorithm `wam:"1"`
-	TranscoderContainsVideocomposition bool                                `wam:"5"`
-	TranscoderHasEdits                 bool                                `wam:"6"`
-	TranscoderIsPassthrough            bool                                `wam:"4"`
-	TranscoderResult                   VideoTranscoder_TranscoderResult    `wam:"2"`
-	TranscoderT                        int64                               `wam:"3"`
+	_meta                              struct{}                             `wammeta:"id=1802,channel=regular,weight=1,privateStatsIdInt=-1"`
+	SourceAudioBitRate                 *float64                             `wam:"12"`
+	SourceDuration                     *int64                               `wam:"8"`
+	SourceFileSize                     *float64                             `wam:"7"`
+	SourceFormat                       *VideoTranscoder_SourceFormat        `wam:"14"`
+	SourceFrameRate                    *float64                             `wam:"13"`
+	SourceHeight                       *float64                             `wam:"10"`
+	SourceVideoBitRate                 *float64                             `wam:"11"`
+	SourceWidth                        *float64                             `wam:"9"`
+	TargetAudioBitRate                 *float64                             `wam:"20"`
+	TargetDuration                     *int64                               `wam:"16"`
+	TargetFileSize                     *float64                             `wam:"15"`
+	TargetFormat                       *VideoTranscoder_TargetFormat        `wam:"22"`
+	TargetFrameRate                    *float64                             `wam:"21"`
+	TargetHeight                       *float64                             `wam:"18"`
+	TargetVideoBitRate                 *float64                             `wam:"19"`
+	TargetWidth                        *float64                             `wam:"17"`
+	TranscoderAlgorithm                *VideoTranscoder_TranscoderAlgorithm `wam:"1"`
+	TranscoderContainsVideocomposition *bool                                `wam:"5"`
+	TranscoderHasEdits                 *bool                                `wam:"6"`
+	TranscoderIsPassthrough            *bool                                `wam:"4"`
+	TranscoderResult                   *VideoTranscoder_TranscoderResult    `wam:"2"`
+	TranscoderT                        *int64                               `wam:"3"`
 }
 
 type CommunityFeatureUsage_CommunityUiAction int32
@@ -2592,10 +2592,10 @@ const (
 )
 
 type CommunityFeatureUsageEvent struct {
-	_meta              struct{}                                 `wammeta:"id=3696,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CommunityId        string                                   `wam:"2"`
-	CommunityUiAction  CommunityFeatureUsage_CommunityUiAction  `wam:"4"`
-	CommunityUiFeature CommunityFeatureUsage_CommunityUiFeature `wam:"3"`
+	_meta              struct{}                                  `wammeta:"id=3696,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CommunityId        *string                                   `wam:"2"`
+	CommunityUiAction  *CommunityFeatureUsage_CommunityUiAction  `wam:"4"`
+	CommunityUiFeature *CommunityFeatureUsage_CommunityUiFeature `wam:"3"`
 }
 
 type MediaStreamPlayback_MediaType int32
@@ -2693,24 +2693,24 @@ const (
 )
 
 type MediaStreamPlaybackEvent struct {
-	_meta                 struct{}                           `wammeta:"id=1584,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BytesDownloadedStart  float64                            `wam:"4"`
-	BytesTransferred      float64                            `wam:"5"`
-	DidPlay               bool                               `wam:"15"`
-	ForcedPlayCount       int32                              `wam:"12"`
-	InitialBufferingT     int64                              `wam:"7"`
-	MediaSize             float64                            `wam:"2"`
-	MediaType             MediaStreamPlayback_MediaType      `wam:"3"`
-	OverallPlayT          int64                              `wam:"10"`
-	OverallT              int64                              `wam:"1"`
-	PlaybackCount         int32                              `wam:"14"`
-	PlaybackError         int32                              `wam:"17"`
-	PlaybackOrigin        MediaStreamPlayback_PlaybackOrigin `wam:"16"`
-	PlaybackState         MediaStreamPlayback_PlaybackState  `wam:"11"`
-	SeekCount             int32                              `wam:"13"`
-	TotalRebufferingCount int32                              `wam:"9"`
-	TotalRebufferingT     int64                              `wam:"8"`
-	VideoDuration         int32                              `wam:"6"`
+	_meta                 struct{}                            `wammeta:"id=1584,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BytesDownloadedStart  *float64                            `wam:"4"`
+	BytesTransferred      *float64                            `wam:"5"`
+	DidPlay               *bool                               `wam:"15"`
+	ForcedPlayCount       *int32                              `wam:"12"`
+	InitialBufferingT     *int64                              `wam:"7"`
+	MediaSize             *float64                            `wam:"2"`
+	MediaType             *MediaStreamPlayback_MediaType      `wam:"3"`
+	OverallPlayT          *int64                              `wam:"10"`
+	OverallT              *int64                              `wam:"1"`
+	PlaybackCount         *int32                              `wam:"14"`
+	PlaybackError         *int32                              `wam:"17"`
+	PlaybackOrigin        *MediaStreamPlayback_PlaybackOrigin `wam:"16"`
+	PlaybackState         *MediaStreamPlayback_PlaybackState  `wam:"11"`
+	SeekCount             *int32                              `wam:"13"`
+	TotalRebufferingCount *int32                              `wam:"9"`
+	TotalRebufferingT     *int64                              `wam:"8"`
+	VideoDuration         *int32                              `wam:"6"`
 }
 
 type PrivacyTipAction_PrivacyTipActionType int32
@@ -2723,8 +2723,8 @@ const (
 )
 
 type PrivacyTipActionEvent struct {
-	_meta                struct{}                              `wammeta:"id=4794,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PrivacyTipActionType PrivacyTipAction_PrivacyTipActionType `wam:"1"`
+	_meta                struct{}                               `wammeta:"id=4794,channel=regular,weight=1,privateStatsIdInt=-1"`
+	PrivacyTipActionType *PrivacyTipAction_PrivacyTipActionType `wam:"1"`
 }
 
 type KeepInChatNux_KicNuxActionName int32
@@ -2749,11 +2749,11 @@ const (
 )
 
 type KeepInChatNuxEvent struct {
-	_meta                    struct{}                       `wammeta:"id=3486,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatEphemeralityDuration int32                          `wam:"1"`
-	KicNuxActionName         KeepInChatNux_KicNuxActionName `wam:"2"`
-	ThreadId                 string                         `wam:"3"`
-	Trigger                  KeepInChatNux_Trigger          `wam:"4"`
+	_meta                    struct{}                        `wammeta:"id=3486,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatEphemeralityDuration *int32                          `wam:"1"`
+	KicNuxActionName         *KeepInChatNux_KicNuxActionName `wam:"2"`
+	ThreadId                 *string                         `wam:"3"`
+	Trigger                  *KeepInChatNux_Trigger          `wam:"4"`
 }
 
 type GifSearchCancelled_GifSearchProvider int32
@@ -2764,62 +2764,62 @@ const (
 )
 
 type GifSearchCancelledEvent struct {
-	_meta             struct{}                             `wammeta:"id=1126,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GifSearchProvider GifSearchCancelled_GifSearchProvider `wam:"1"`
+	_meta             struct{}                              `wammeta:"id=1126,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GifSearchProvider *GifSearchCancelled_GifSearchProvider `wam:"1"`
 }
 
 type PttDailyEvent struct {
 	_meta                     struct{} `wammeta:"id=2938,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PttCancelBroadcast        int32    `wam:"9"`
-	PttCancelGroup            int32    `wam:"8"`
-	PttCancelIndividual       int32    `wam:"7"`
-	PttCancelInterop          int32    `wam:"42"`
-	PttCancelNewsletter       int32    `wam:"32"`
-	PttDraftReviewBroadcast   int32    `wam:"15"`
-	PttDraftReviewGroup       int32    `wam:"14"`
-	PttDraftReviewIndividual  int32    `wam:"13"`
-	PttDraftReviewInterop     int32    `wam:"43"`
-	PttDraftReviewNewsletter  int32    `wam:"33"`
-	PttFastplaybackBroadcast  int32    `wam:"21"`
-	PttFastplaybackGroup      int32    `wam:"20"`
-	PttFastplaybackIndividual int32    `wam:"19"`
-	PttFastplaybackInterop    int32    `wam:"44"`
-	PttFastplaybackNewsletter int32    `wam:"34"`
-	PttLockBroadcast          int32    `wam:"12"`
-	PttLockGroup              int32    `wam:"11"`
-	PttLockIndividual         int32    `wam:"10"`
-	PttLockInterop            int32    `wam:"45"`
-	PttLockNewsletter         int32    `wam:"35"`
-	PttOutOfChatBroadcast     int32    `wam:"29"`
-	PttOutOfChatGroup         int32    `wam:"30"`
-	PttOutOfChatIndividual    int32    `wam:"31"`
-	PttOutOfChatInterop       int32    `wam:"46"`
-	PttOutOfChatNewsletter    int32    `wam:"36"`
-	PttPausedRecordBroadcast  int32    `wam:"22"`
-	PttPausedRecordGroup      int32    `wam:"23"`
-	PttPausedRecordIndividual int32    `wam:"24"`
-	PttPausedRecordInterop    int32    `wam:"47"`
-	PttPausedRecordNewsletter int32    `wam:"37"`
-	PttPlaybackBroadcast      int32    `wam:"18"`
-	PttPlaybackGroup          int32    `wam:"17"`
-	PttPlaybackIndividual     int32    `wam:"16"`
-	PttPlaybackInterop        int32    `wam:"48"`
-	PttPlaybackNewsletter     int32    `wam:"38"`
-	PttRecordBroadcast        int32    `wam:"3"`
-	PttRecordGroup            int32    `wam:"2"`
-	PttRecordIndividual       int32    `wam:"1"`
-	PttRecordInterop          int32    `wam:"49"`
-	PttRecordNewsletter       int32    `wam:"39"`
-	PttSendBroadcast          int32    `wam:"6"`
-	PttSendGroup              int32    `wam:"5"`
-	PttSendIndividual         int32    `wam:"4"`
-	PttSendInterop            int32    `wam:"50"`
-	PttSendNewsletter         int32    `wam:"40"`
-	PttStopTapBroadcast       int32    `wam:"25"`
-	PttStopTapGroup           int32    `wam:"26"`
-	PttStopTapIndividual      int32    `wam:"27"`
-	PttStopTapInterop         int32    `wam:"51"`
-	PttStopTapNewsletter      int32    `wam:"41"`
+	PttCancelBroadcast        *int32   `wam:"9"`
+	PttCancelGroup            *int32   `wam:"8"`
+	PttCancelIndividual       *int32   `wam:"7"`
+	PttCancelInterop          *int32   `wam:"42"`
+	PttCancelNewsletter       *int32   `wam:"32"`
+	PttDraftReviewBroadcast   *int32   `wam:"15"`
+	PttDraftReviewGroup       *int32   `wam:"14"`
+	PttDraftReviewIndividual  *int32   `wam:"13"`
+	PttDraftReviewInterop     *int32   `wam:"43"`
+	PttDraftReviewNewsletter  *int32   `wam:"33"`
+	PttFastplaybackBroadcast  *int32   `wam:"21"`
+	PttFastplaybackGroup      *int32   `wam:"20"`
+	PttFastplaybackIndividual *int32   `wam:"19"`
+	PttFastplaybackInterop    *int32   `wam:"44"`
+	PttFastplaybackNewsletter *int32   `wam:"34"`
+	PttLockBroadcast          *int32   `wam:"12"`
+	PttLockGroup              *int32   `wam:"11"`
+	PttLockIndividual         *int32   `wam:"10"`
+	PttLockInterop            *int32   `wam:"45"`
+	PttLockNewsletter         *int32   `wam:"35"`
+	PttOutOfChatBroadcast     *int32   `wam:"29"`
+	PttOutOfChatGroup         *int32   `wam:"30"`
+	PttOutOfChatIndividual    *int32   `wam:"31"`
+	PttOutOfChatInterop       *int32   `wam:"46"`
+	PttOutOfChatNewsletter    *int32   `wam:"36"`
+	PttPausedRecordBroadcast  *int32   `wam:"22"`
+	PttPausedRecordGroup      *int32   `wam:"23"`
+	PttPausedRecordIndividual *int32   `wam:"24"`
+	PttPausedRecordInterop    *int32   `wam:"47"`
+	PttPausedRecordNewsletter *int32   `wam:"37"`
+	PttPlaybackBroadcast      *int32   `wam:"18"`
+	PttPlaybackGroup          *int32   `wam:"17"`
+	PttPlaybackIndividual     *int32   `wam:"16"`
+	PttPlaybackInterop        *int32   `wam:"48"`
+	PttPlaybackNewsletter     *int32   `wam:"38"`
+	PttRecordBroadcast        *int32   `wam:"3"`
+	PttRecordGroup            *int32   `wam:"2"`
+	PttRecordIndividual       *int32   `wam:"1"`
+	PttRecordInterop          *int32   `wam:"49"`
+	PttRecordNewsletter       *int32   `wam:"39"`
+	PttSendBroadcast          *int32   `wam:"6"`
+	PttSendGroup              *int32   `wam:"5"`
+	PttSendIndividual         *int32   `wam:"4"`
+	PttSendInterop            *int32   `wam:"50"`
+	PttSendNewsletter         *int32   `wam:"40"`
+	PttStopTapBroadcast       *int32   `wam:"25"`
+	PttStopTapGroup           *int32   `wam:"26"`
+	PttStopTapIndividual      *int32   `wam:"27"`
+	PttStopTapInterop         *int32   `wam:"51"`
+	PttStopTapNewsletter      *int32   `wam:"41"`
 }
 
 type GroupJourney_ActionType int32
@@ -3373,14 +3373,14 @@ const (
 )
 
 type GroupJourneyEvent struct {
-	_meta        struct{}                `wammeta:"id=4512,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionType   GroupJourney_ActionType `wam:"1"`
-	AppSessionId string                  `wam:"2"`
-	GroupSize    int32                   `wam:"3"`
-	Surface      GroupJourney_Surface    `wam:"4"`
-	ThreadType   GroupJourney_ThreadType `wam:"5"`
-	UiSurface    GroupJourney_UiSurface  `wam:"7"`
-	UserRole     GroupJourney_UserRole   `wam:"6"`
+	_meta        struct{}                 `wammeta:"id=4512,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionType   *GroupJourney_ActionType `wam:"1"`
+	AppSessionId *string                  `wam:"2"`
+	GroupSize    *int32                   `wam:"3"`
+	Surface      *GroupJourney_Surface    `wam:"4"`
+	ThreadType   *GroupJourney_ThreadType `wam:"5"`
+	UiSurface    *GroupJourney_UiSurface  `wam:"7"`
+	UserRole     *GroupJourney_UserRole   `wam:"6"`
 }
 
 type MessageHighRetryCount_DeviceSizeBucket int32
@@ -3512,15 +3512,15 @@ const (
 )
 
 type MessageHighRetryCountEvent struct {
-	_meta                    struct{}                                       `wammeta:"id=3132,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DeviceSizeBucket         MessageHighRetryCount_DeviceSizeBucket         `wam:"5"`
-	E2eSenderType            MessageHighRetryCount_E2eSenderType            `wam:"3"`
-	InvisibleMessageCategory MessageHighRetryCount_InvisibleMessageCategory `wam:"6"`
-	IsReceiverLidBased       bool                                           `wam:"7"`
-	IsSenderLidBased         bool                                           `wam:"8"`
-	MediaType                MessageHighRetryCount_MediaType                `wam:"1"`
-	MessageType              MessageHighRetryCount_MessageType              `wam:"4"`
-	RetryCount               int32                                          `wam:"2"`
+	_meta                    struct{}                                        `wammeta:"id=3132,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DeviceSizeBucket         *MessageHighRetryCount_DeviceSizeBucket         `wam:"5"`
+	E2eSenderType            *MessageHighRetryCount_E2eSenderType            `wam:"3"`
+	InvisibleMessageCategory *MessageHighRetryCount_InvisibleMessageCategory `wam:"6"`
+	IsReceiverLidBased       *bool                                           `wam:"7"`
+	IsSenderLidBased         *bool                                           `wam:"8"`
+	MediaType                *MessageHighRetryCount_MediaType                `wam:"1"`
+	MessageType              *MessageHighRetryCount_MessageType              `wam:"4"`
+	RetryCount               *int32                                          `wam:"2"`
 }
 
 type MdRetryFromUnknownDevice_SenderType int32
@@ -3531,9 +3531,9 @@ const (
 )
 
 type MdRetryFromUnknownDeviceEvent struct {
-	_meta      struct{}                            `wammeta:"id=2178,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Offline    bool                                `wam:"2"`
-	SenderType MdRetryFromUnknownDevice_SenderType `wam:"1"`
+	_meta      struct{}                             `wammeta:"id=2178,channel=regular,weight=1,privateStatsIdInt=-1"`
+	Offline    *bool                                `wam:"2"`
+	SenderType *MdRetryFromUnknownDevice_SenderType `wam:"1"`
 }
 
 type MessageSend_AgentEngagementType int32
@@ -4007,82 +4007,82 @@ const (
 )
 
 type MessageSendEvent struct {
-	_meta                               struct{}                                  `wammeta:"id=854,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AgentEngagementType                 MessageSend_AgentEngagementType           `wam:"49"`
-	AppContext                          string                                    `wam:"72"`
-	AppContextBitfield                  int32                                     `wam:"73"`
-	BotType                             MessageSend_BotType                       `wam:"55"`
-	ChatOrigins                         MessageSend_ChatOrigins                   `wam:"58"`
-	ChatSessionId                       string                                    `wam:"67"`
-	DeviceCount                         int32                                     `wam:"31"`
-	DeviceSizeBucket                    MessageSend_DeviceSizeBucket              `wam:"25"`
-	DisappearingChatInitiator           MessageSend_DisappearingChatInitiator     `wam:"30"`
-	E2eBackfill                         bool                                      `wam:"23"`
-	E2eCiphertextType                   MessageSend_E2eCiphertextType             `wam:"10"`
-	E2eCiphertextVersion                int32                                     `wam:"9"`
-	E2eFailureReason                    MessageSend_E2eFailureReason              `wam:"46"`
-	EditDuration                        int32                                     `wam:"43"`
-	EditType                            MessageSend_EditType                      `wam:"44"`
-	EphemeralityDuration                int32                                     `wam:"21"`
-	EphemeralityInitiator               MessageSend_EphemeralityInitiator         `wam:"47"`
-	EphemeralityTriggerAction           MessageSend_EphemeralityTriggerAction     `wam:"48"`
-	ExcessPayloadKbSize                 int32                                     `wam:"40"`
-	FastForwardEnabled                  bool                                      `wam:"15"`
-	HasUsername                         bool                                      `wam:"59"`
-	HasUsernamePin                      bool                                      `wam:"74"`
-	InvisibleMessageCategory            MessageSend_InvisibleMessageCategory      `wam:"64"`
-	IsAComment                          bool                                      `wam:"54"`
-	IsAReply                            bool                                      `wam:"35"`
-	IsFromWamsys                        bool                                      `wam:"19"`
-	IsLid                               bool                                      `wam:"39"`
-	IsPremium                           bool                                      `wam:"69"`
-	IsViewOnce                          bool                                      `wam:"22"`
-	IsWhatsapiBuild                     bool                                      `wam:"75"`
-	LocalAddressingMode                 MessageSend_LocalAddressingMode           `wam:"53"`
-	LogoutReason                        MessageSend_LogoutReason                  `wam:"70"`
-	MediaCaptionPresent                 bool                                      `wam:"8"`
-	MediaUploadError                    MessageSend_MediaUploadError              `wam:"61"`
-	MediaUploadRetryCount               int32                                     `wam:"62"`
-	MessageDistributionType             MessageSend_MessageDistributionType       `wam:"41"`
-	MessageForwardAgeT                  int64                                     `wam:"14"`
-	MessageIsFanout                     bool                                      `wam:"5"`
-	MessageIsFastForward                bool                                      `wam:"13"`
-	MessageIsFirstUserMessage           bool                                      `wam:"26"`
-	MessageIsForward                    bool                                      `wam:"4"`
-	MessageIsInternational              bool                                      `wam:"7"`
-	MessageIsInvisible                  bool                                      `wam:"29"`
-	MessageIsRevoke                     bool                                      `wam:"24"`
-	MessageKeyHash                      string                                    `wam:"57"`
-	MessageMediaType                    MessageSend_MessageMediaType              `wam:"3"`
-	MessageSendOptUploadEnabled         bool                                      `wam:"12"`
-	MessageSendResult                   MessageSend_MessageSendResult             `wam:"1"`
-	MessageSendResultIsTerminal         bool                                      `wam:"17"`
-	MessageSendSource                   MessageSend_MessageSendSource             `wam:"66"`
-	MessageSendT                        int64                                     `wam:"11"`
-	MessageType                         MessageSend_MessageType                   `wam:"2"`
-	NetworkWasDisconnected              bool                                      `wam:"37"`
-	OppositeVisibleIdentification       MessageSend_OppositeVisibleIdentification `wam:"60"`
-	OverallMediaSize                    float64                                   `wam:"42"`
-	PairedMediaType                     MessageSend_PairedMediaType               `wam:"71"`
-	ParticipantCount                    int32                                     `wam:"32"`
-	ReceiverDefaultDisappearingDuration int32                                     `wam:"28"`
-	ResendCount                         int32                                     `wam:"16"`
-	RetryCount                          int32                                     `wam:"6"`
-	RevokeDuration                      int32                                     `wam:"33"`
-	RevokeType                          MessageSend_RevokeType                    `wam:"34"`
-	RunningTasks                        string                                    `wam:"63"`
-	SendButtonPressT                    int32                                     `wam:"45"`
-	SenderDefaultDisappearingDuration   int32                                     `wam:"27"`
-	ServerErrorCode                     int32                                     `wam:"56"`
-	StickerIsAi                         bool                                      `wam:"50"`
-	StickerIsAvatar                     bool                                      `wam:"38"`
-	StickerIsFirstParty                 bool                                      `wam:"18"`
-	StickerIsFromStickerMaker           bool                                      `wam:"51"`
-	StickerMakerSourceType              MessageSend_StickerMakerSourceType        `wam:"52"`
-	ThumbSize                           float64                                   `wam:"20"`
-	TypeOfGroup                         MessageSend_TypeOfGroup                   `wam:"36"`
-	UnifiedSessionId                    string                                    `wam:"68"`
-	UserToDeviceSizeBucket              string                                    `wam:"65"`
+	_meta                               struct{}                                   `wammeta:"id=854,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AgentEngagementType                 *MessageSend_AgentEngagementType           `wam:"49"`
+	AppContext                          *string                                    `wam:"72"`
+	AppContextBitfield                  *int32                                     `wam:"73"`
+	BotType                             *MessageSend_BotType                       `wam:"55"`
+	ChatOrigins                         *MessageSend_ChatOrigins                   `wam:"58"`
+	ChatSessionId                       *string                                    `wam:"67"`
+	DeviceCount                         *int32                                     `wam:"31"`
+	DeviceSizeBucket                    *MessageSend_DeviceSizeBucket              `wam:"25"`
+	DisappearingChatInitiator           *MessageSend_DisappearingChatInitiator     `wam:"30"`
+	E2eBackfill                         *bool                                      `wam:"23"`
+	E2eCiphertextType                   *MessageSend_E2eCiphertextType             `wam:"10"`
+	E2eCiphertextVersion                *int32                                     `wam:"9"`
+	E2eFailureReason                    *MessageSend_E2eFailureReason              `wam:"46"`
+	EditDuration                        *int32                                     `wam:"43"`
+	EditType                            *MessageSend_EditType                      `wam:"44"`
+	EphemeralityDuration                *int32                                     `wam:"21"`
+	EphemeralityInitiator               *MessageSend_EphemeralityInitiator         `wam:"47"`
+	EphemeralityTriggerAction           *MessageSend_EphemeralityTriggerAction     `wam:"48"`
+	ExcessPayloadKbSize                 *int32                                     `wam:"40"`
+	FastForwardEnabled                  *bool                                      `wam:"15"`
+	HasUsername                         *bool                                      `wam:"59"`
+	HasUsernamePin                      *bool                                      `wam:"74"`
+	InvisibleMessageCategory            *MessageSend_InvisibleMessageCategory      `wam:"64"`
+	IsAComment                          *bool                                      `wam:"54"`
+	IsAReply                            *bool                                      `wam:"35"`
+	IsFromWamsys                        *bool                                      `wam:"19"`
+	IsLid                               *bool                                      `wam:"39"`
+	IsPremium                           *bool                                      `wam:"69"`
+	IsViewOnce                          *bool                                      `wam:"22"`
+	IsWhatsapiBuild                     *bool                                      `wam:"75"`
+	LocalAddressingMode                 *MessageSend_LocalAddressingMode           `wam:"53"`
+	LogoutReason                        *MessageSend_LogoutReason                  `wam:"70"`
+	MediaCaptionPresent                 *bool                                      `wam:"8"`
+	MediaUploadError                    *MessageSend_MediaUploadError              `wam:"61"`
+	MediaUploadRetryCount               *int32                                     `wam:"62"`
+	MessageDistributionType             *MessageSend_MessageDistributionType       `wam:"41"`
+	MessageForwardAgeT                  *int64                                     `wam:"14"`
+	MessageIsFanout                     *bool                                      `wam:"5"`
+	MessageIsFastForward                *bool                                      `wam:"13"`
+	MessageIsFirstUserMessage           *bool                                      `wam:"26"`
+	MessageIsForward                    *bool                                      `wam:"4"`
+	MessageIsInternational              *bool                                      `wam:"7"`
+	MessageIsInvisible                  *bool                                      `wam:"29"`
+	MessageIsRevoke                     *bool                                      `wam:"24"`
+	MessageKeyHash                      *string                                    `wam:"57"`
+	MessageMediaType                    *MessageSend_MessageMediaType              `wam:"3"`
+	MessageSendOptUploadEnabled         *bool                                      `wam:"12"`
+	MessageSendResult                   *MessageSend_MessageSendResult             `wam:"1"`
+	MessageSendResultIsTerminal         *bool                                      `wam:"17"`
+	MessageSendSource                   *MessageSend_MessageSendSource             `wam:"66"`
+	MessageSendT                        *int64                                     `wam:"11"`
+	MessageType                         *MessageSend_MessageType                   `wam:"2"`
+	NetworkWasDisconnected              *bool                                      `wam:"37"`
+	OppositeVisibleIdentification       *MessageSend_OppositeVisibleIdentification `wam:"60"`
+	OverallMediaSize                    *float64                                   `wam:"42"`
+	PairedMediaType                     *MessageSend_PairedMediaType               `wam:"71"`
+	ParticipantCount                    *int32                                     `wam:"32"`
+	ReceiverDefaultDisappearingDuration *int32                                     `wam:"28"`
+	ResendCount                         *int32                                     `wam:"16"`
+	RetryCount                          *int32                                     `wam:"6"`
+	RevokeDuration                      *int32                                     `wam:"33"`
+	RevokeType                          *MessageSend_RevokeType                    `wam:"34"`
+	RunningTasks                        *string                                    `wam:"63"`
+	SendButtonPressT                    *int32                                     `wam:"45"`
+	SenderDefaultDisappearingDuration   *int32                                     `wam:"27"`
+	ServerErrorCode                     *int32                                     `wam:"56"`
+	StickerIsAi                         *bool                                      `wam:"50"`
+	StickerIsAvatar                     *bool                                      `wam:"38"`
+	StickerIsFirstParty                 *bool                                      `wam:"18"`
+	StickerIsFromStickerMaker           *bool                                      `wam:"51"`
+	StickerMakerSourceType              *MessageSend_StickerMakerSourceType        `wam:"52"`
+	ThumbSize                           *float64                                   `wam:"20"`
+	TypeOfGroup                         *MessageSend_TypeOfGroup                   `wam:"36"`
+	UnifiedSessionId                    *string                                    `wam:"68"`
+	UserToDeviceSizeBucket              *string                                    `wam:"65"`
 }
 
 type PlaceholderActivity_DeviceSizeBucket int32
@@ -4280,26 +4280,26 @@ const (
 )
 
 type PlaceholderActivityEvent struct {
-	_meta                     struct{}                                      `wammeta:"id=1980,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DeviceCount               int32                                         `wam:"9"`
-	DeviceSizeBucket          PlaceholderActivity_DeviceSizeBucket          `wam:"8"`
-	E2eSenderType             PlaceholderActivity_E2eSenderType             `wam:"16"`
-	IsHostedChat              bool                                          `wam:"19"`
-	IsLid                     bool                                          `wam:"12"`
-	LocalAddressingMode       PlaceholderActivity_LocalAddressingMode       `wam:"20"`
-	MessageBeforeReg          bool                                          `wam:"15"`
-	MessageIsRevoke           bool                                          `wam:"7"`
-	MessageKeyHash            string                                        `wam:"14"`
-	MessageMediaType          PlaceholderActivity_MessageMediaType          `wam:"6"`
-	MessageType               PlaceholderActivity_MessageType               `wam:"5"`
-	ParticipantCount          int32                                         `wam:"10"`
-	PlaceholderActionInd      PlaceholderActivity_PlaceholderActionInd      `wam:"2"`
-	PlaceholderAddReason      PlaceholderActivity_PlaceholderAddReason      `wam:"11"`
-	PlaceholderChatTypeInd    PlaceholderActivity_PlaceholderChatTypeInd    `wam:"3"`
-	PlaceholderPopulationType PlaceholderActivity_PlaceholderPopulationType `wam:"17"`
-	PlaceholderTimePeriod     int32                                         `wam:"4"`
-	PlaceholderTypeInd        PlaceholderActivity_PlaceholderTypeInd        `wam:"1"`
-	TypeOfGroup               PlaceholderActivity_TypeOfGroup               `wam:"13"`
+	_meta                     struct{}                                       `wammeta:"id=1980,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DeviceCount               *int32                                         `wam:"9"`
+	DeviceSizeBucket          *PlaceholderActivity_DeviceSizeBucket          `wam:"8"`
+	E2eSenderType             *PlaceholderActivity_E2eSenderType             `wam:"16"`
+	IsHostedChat              *bool                                          `wam:"19"`
+	IsLid                     *bool                                          `wam:"12"`
+	LocalAddressingMode       *PlaceholderActivity_LocalAddressingMode       `wam:"20"`
+	MessageBeforeReg          *bool                                          `wam:"15"`
+	MessageIsRevoke           *bool                                          `wam:"7"`
+	MessageKeyHash            *string                                        `wam:"14"`
+	MessageMediaType          *PlaceholderActivity_MessageMediaType          `wam:"6"`
+	MessageType               *PlaceholderActivity_MessageType               `wam:"5"`
+	ParticipantCount          *int32                                         `wam:"10"`
+	PlaceholderActionInd      *PlaceholderActivity_PlaceholderActionInd      `wam:"2"`
+	PlaceholderAddReason      *PlaceholderActivity_PlaceholderAddReason      `wam:"11"`
+	PlaceholderChatTypeInd    *PlaceholderActivity_PlaceholderChatTypeInd    `wam:"3"`
+	PlaceholderPopulationType *PlaceholderActivity_PlaceholderPopulationType `wam:"17"`
+	PlaceholderTimePeriod     *int32                                         `wam:"4"`
+	PlaceholderTypeInd        *PlaceholderActivity_PlaceholderTypeInd        `wam:"1"`
+	TypeOfGroup               *PlaceholderActivity_TypeOfGroup               `wam:"13"`
 }
 
 type ListUpdate_ListAction int32
@@ -4344,16 +4344,16 @@ const (
 )
 
 type ListUpdateEvent struct {
-	_meta             struct{}                    `wammeta:"id=5830,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GroupsAdded       int32                       `wam:"9"`
-	GroupsAfterUpdate int32                       `wam:"10"`
-	ListAction        ListUpdate_ListAction       `wam:"1"`
-	ListId            int32                       `wam:"2"`
-	ListType          ListUpdate_ListType         `wam:"3"`
-	PredefinedId      int32                       `wam:"13"`
-	UpdateEntryPoint  ListUpdate_UpdateEntryPoint `wam:"8"`
-	UsersAdded        int32                       `wam:"11"`
-	UsersAfterUpdate  int32                       `wam:"12"`
+	_meta             struct{}                     `wammeta:"id=5830,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GroupsAdded       *int32                       `wam:"9"`
+	GroupsAfterUpdate *int32                       `wam:"10"`
+	ListAction        *ListUpdate_ListAction       `wam:"1"`
+	ListId            *int32                       `wam:"2"`
+	ListType          *ListUpdate_ListType         `wam:"3"`
+	PredefinedId      *int32                       `wam:"13"`
+	UpdateEntryPoint  *ListUpdate_UpdateEntryPoint `wam:"8"`
+	UsersAdded        *int32                       `wam:"11"`
+	UsersAfterUpdate  *int32                       `wam:"12"`
 }
 
 type GraphqlCatalogRequest_BusinessType int32
@@ -4388,12 +4388,12 @@ const (
 )
 
 type GraphqlCatalogRequestEvent struct {
-	_meta                  struct{}                                     `wammeta:"id=3206,channel=private,weight=1,privateStatsIdInt=0"`
-	BusinessJid            string                                       `wam:"4"`
-	BusinessType           GraphqlCatalogRequest_BusinessType           `wam:"5"`
-	GraphqlCatalogEndpoint GraphqlCatalogRequest_GraphqlCatalogEndpoint `wam:"1"`
-	GraphqlErrorCode       int32                                        `wam:"3"`
-	GraphqlRequestResult   GraphqlCatalogRequest_GraphqlRequestResult   `wam:"2"`
+	_meta                  struct{}                                      `wammeta:"id=3206,channel=private,weight=1,privateStatsIdInt=0"`
+	BusinessJid            *string                                       `wam:"4"`
+	BusinessType           *GraphqlCatalogRequest_BusinessType           `wam:"5"`
+	GraphqlCatalogEndpoint *GraphqlCatalogRequest_GraphqlCatalogEndpoint `wam:"1"`
+	GraphqlErrorCode       *int32                                        `wam:"3"`
+	GraphqlRequestResult   *GraphqlCatalogRequest_GraphqlRequestResult   `wam:"2"`
 }
 
 type SmbUserJourney_ActionType int32
@@ -4963,20 +4963,20 @@ const (
 )
 
 type SmbUserJourneyEvent struct {
-	_meta             struct{}                         `wammeta:"id=5462,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionType        SmbUserJourney_ActionType        `wam:"1"`
-	ContactIsSaved    bool                             `wam:"2"`
-	EntryPoint        SmbUserJourney_EntryPoint        `wam:"3"`
-	ExtraAttributes   string                           `wam:"4"`
-	OppositePlatform  SmbUserJourney_OppositePlatform  `wam:"5"`
-	PrevSurface       SmbUserJourney_PrevSurface       `wam:"14"`
-	RecipientSize     int32                            `wam:"12"`
-	SeqId             int32                            `wam:"7"`
-	SmbFeatureName    SmbUserJourney_SmbFeatureName    `wam:"8"`
-	SmbUserActionType SmbUserJourney_SmbUserActionType `wam:"13"`
-	SmbUserSessionId  string                           `wam:"9"`
-	Surface           SmbUserJourney_Surface           `wam:"10"`
-	UserActionTarget  string                           `wam:"11"`
+	_meta             struct{}                          `wammeta:"id=5462,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionType        *SmbUserJourney_ActionType        `wam:"1"`
+	ContactIsSaved    *bool                             `wam:"2"`
+	EntryPoint        *SmbUserJourney_EntryPoint        `wam:"3"`
+	ExtraAttributes   *string                           `wam:"4"`
+	OppositePlatform  *SmbUserJourney_OppositePlatform  `wam:"5"`
+	PrevSurface       *SmbUserJourney_PrevSurface       `wam:"14"`
+	RecipientSize     *int32                            `wam:"12"`
+	SeqId             *int32                            `wam:"7"`
+	SmbFeatureName    *SmbUserJourney_SmbFeatureName    `wam:"8"`
+	SmbUserActionType *SmbUserJourney_SmbUserActionType `wam:"13"`
+	SmbUserSessionId  *string                           `wam:"9"`
+	Surface           *SmbUserJourney_Surface           `wam:"10"`
+	UserActionTarget  *string                           `wam:"11"`
 }
 
 type MdBootstrapHistoryDataReceived_MdBootstrapHistoryPayloadType int32
@@ -4999,13 +4999,13 @@ const (
 )
 
 type MdBootstrapHistoryDataReceivedEvent struct {
-	_meta                         struct{}                                                     `wammeta:"id=2998,channel=regular,weight=1,privateStatsIdInt=-1"`
-	HistorySyncChunkOrder         int32                                                        `wam:"6"`
-	HistorySyncStageProgress      int32                                                        `wam:"5"`
-	MdBootstrapHistoryPayloadType MdBootstrapHistoryDataReceived_MdBootstrapHistoryPayloadType `wam:"3"`
-	MdBootstrapPayloadType        MdBootstrapHistoryDataReceived_MdBootstrapPayloadType        `wam:"2"`
-	MdSessionId                   string                                                       `wam:"1"`
-	MdTimestamp                   int32                                                        `wam:"4"`
+	_meta                         struct{}                                                      `wammeta:"id=2998,channel=regular,weight=1,privateStatsIdInt=-1"`
+	HistorySyncChunkOrder         *int32                                                        `wam:"6"`
+	HistorySyncStageProgress      *int32                                                        `wam:"5"`
+	MdBootstrapHistoryPayloadType *MdBootstrapHistoryDataReceived_MdBootstrapHistoryPayloadType `wam:"3"`
+	MdBootstrapPayloadType        *MdBootstrapHistoryDataReceived_MdBootstrapPayloadType        `wam:"2"`
+	MdSessionId                   *string                                                       `wam:"1"`
+	MdTimestamp                   *int32                                                        `wam:"4"`
 }
 
 type StructuredMessageReceive_BizPlatform int32
@@ -5119,29 +5119,29 @@ const (
 )
 
 type StructuredMessageReceiveEvent struct {
-	_meta                           struct{}                                                 `wammeta:"id=3222,channel=private,weight=1,privateStatsIdInt=0"`
-	BizPlatform                     StructuredMessageReceive_BizPlatform                     `wam:"1"`
-	BusinessOwnerJid                string                                                   `wam:"2"`
-	EntryPointConversationInitiated StructuredMessageReceive_EntryPointConversationInitiated `wam:"7"`
-	EntryPointConversionApp         string                                                   `wam:"8"`
-	EntryPointConversionSource      string                                                   `wam:"9"`
-	LastMessageDirection            StructuredMessageReceive_LastMessageDirection            `wam:"10"`
-	MessageClass                    StructuredMessageReceive_MessageClass                    `wam:"3"`
-	MessageClassAttributes          string                                                   `wam:"4"`
-	MessageDepth                    int32                                                    `wam:"11"`
-	MessageMediaType                StructuredMessageReceive_MessageMediaType                `wam:"5"`
-	TemplateId                      string                                                   `wam:"6"`
-	ThreadIdHmac                    string                                                   `wam:"12"`
+	_meta                           struct{}                                                  `wammeta:"id=3222,channel=private,weight=1,privateStatsIdInt=0"`
+	BizPlatform                     *StructuredMessageReceive_BizPlatform                     `wam:"1"`
+	BusinessOwnerJid                *string                                                   `wam:"2"`
+	EntryPointConversationInitiated *StructuredMessageReceive_EntryPointConversationInitiated `wam:"7"`
+	EntryPointConversionApp         *string                                                   `wam:"8"`
+	EntryPointConversionSource      *string                                                   `wam:"9"`
+	LastMessageDirection            *StructuredMessageReceive_LastMessageDirection            `wam:"10"`
+	MessageClass                    *StructuredMessageReceive_MessageClass                    `wam:"3"`
+	MessageClassAttributes          *string                                                   `wam:"4"`
+	MessageDepth                    *int32                                                    `wam:"11"`
+	MessageMediaType                *StructuredMessageReceive_MessageMediaType                `wam:"5"`
+	TemplateId                      *string                                                   `wam:"6"`
+	ThreadIdHmac                    *string                                                   `wam:"12"`
 }
 
 type PsGroupSafetyCheckEnabledEvent struct {
 	_meta                               struct{} `wammeta:"id=6238,channel=private,weight=1,privateStatsIdInt=216763284"`
-	DidJoinByGil                        bool     `wam:"3"`
-	IntegrityGroupUserHashedId          string   `wam:"4"`
-	PsSafetyCheckGroupJid               string   `wam:"1"`
-	PsWasSafetyCheckGroupInitiallyMuted bool     `wam:"2"`
-	WasAddedByContact                   bool     `wam:"5"`
-	WillSafetyCheckBeSeen               bool     `wam:"6"`
+	DidJoinByGil                        *bool    `wam:"3"`
+	IntegrityGroupUserHashedId          *string  `wam:"4"`
+	PsSafetyCheckGroupJid               *string  `wam:"1"`
+	PsWasSafetyCheckGroupInitiallyMuted *bool    `wam:"2"`
+	WasAddedByContact                   *bool    `wam:"5"`
+	WillSafetyCheckBeSeen               *bool    `wam:"6"`
 }
 
 type E2eMessageSend_AgentEngagementType int32
@@ -5444,44 +5444,44 @@ const (
 )
 
 type E2eMessageSendEvent struct {
-	_meta                    struct{}                                `wammeta:"id=476,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AgentEngagementType      E2eMessageSend_AgentEngagementType      `wam:"15"`
-	BotType                  E2eMessageSend_BotType                  `wam:"17"`
-	E2eBackfill              bool                                    `wam:"18"`
-	E2eCiphertextType        E2eMessageSend_E2eCiphertextType        `wam:"5"`
-	E2eCiphertextVersion     int32                                   `wam:"6"`
-	E2eDestination           E2eMessageSend_E2eDestination           `wam:"4"`
-	E2eFailureReason         E2eMessageSend_E2eFailureReason         `wam:"2"`
-	E2eReceiverDeviceType    E2eMessageSend_E2eReceiverDeviceType    `wam:"19"`
-	E2eReceiverType          E2eMessageSend_E2eReceiverType          `wam:"8"`
-	E2eSuccessful            bool                                    `wam:"1"`
-	EditType                 E2eMessageSend_EditType                 `wam:"14"`
-	EncRetryCount            int32                                   `wam:"9"`
-	GroupEncryptionState     E2eMessageSend_GroupEncryptionState     `wam:"22"`
-	InvisibleMessageCategory E2eMessageSend_InvisibleMessageCategory `wam:"21"`
-	IsLid                    bool                                    `wam:"12"`
-	LocalAddressingMode      E2eMessageSend_LocalAddressingMode      `wam:"16"`
-	MessageDistributionType  E2eMessageSend_MessageDistributionType  `wam:"20"`
-	MessageIsInvisible       bool                                    `wam:"10"`
-	MessageMediaType         E2eMessageSend_MessageMediaType         `wam:"7"`
-	RetryCount               int32                                   `wam:"3"`
-	RevokeType               E2eMessageSend_RevokeType               `wam:"11"`
-	TypeOfGroup              E2eMessageSend_TypeOfGroup              `wam:"13"`
+	_meta                    struct{}                                 `wammeta:"id=476,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AgentEngagementType      *E2eMessageSend_AgentEngagementType      `wam:"15"`
+	BotType                  *E2eMessageSend_BotType                  `wam:"17"`
+	E2eBackfill              *bool                                    `wam:"18"`
+	E2eCiphertextType        *E2eMessageSend_E2eCiphertextType        `wam:"5"`
+	E2eCiphertextVersion     *int32                                   `wam:"6"`
+	E2eDestination           *E2eMessageSend_E2eDestination           `wam:"4"`
+	E2eFailureReason         *E2eMessageSend_E2eFailureReason         `wam:"2"`
+	E2eReceiverDeviceType    *E2eMessageSend_E2eReceiverDeviceType    `wam:"19"`
+	E2eReceiverType          *E2eMessageSend_E2eReceiverType          `wam:"8"`
+	E2eSuccessful            *bool                                    `wam:"1"`
+	EditType                 *E2eMessageSend_EditType                 `wam:"14"`
+	EncRetryCount            *int32                                   `wam:"9"`
+	GroupEncryptionState     *E2eMessageSend_GroupEncryptionState     `wam:"22"`
+	InvisibleMessageCategory *E2eMessageSend_InvisibleMessageCategory `wam:"21"`
+	IsLid                    *bool                                    `wam:"12"`
+	LocalAddressingMode      *E2eMessageSend_LocalAddressingMode      `wam:"16"`
+	MessageDistributionType  *E2eMessageSend_MessageDistributionType  `wam:"20"`
+	MessageIsInvisible       *bool                                    `wam:"10"`
+	MessageMediaType         *E2eMessageSend_MessageMediaType         `wam:"7"`
+	RetryCount               *int32                                   `wam:"3"`
+	RevokeType               *E2eMessageSend_RevokeType               `wam:"11"`
+	TypeOfGroup              *E2eMessageSend_TypeOfGroup              `wam:"13"`
 }
 
 type DeepLinkClickEvent struct {
 	_meta                   struct{} `wammeta:"id=1156,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DeepLinkHasPhoneNumber  bool     `wam:"2"`
-	DeepLinkHasText         bool     `wam:"1"`
-	DeepLinkHasUsername     bool     `wam:"4"`
-	DeepLinkHasUsernamePin  bool     `wam:"5"`
-	DeepLinkRequirePinEntry bool     `wam:"6"`
-	DeepLinkSessionId       string   `wam:"3"`
+	DeepLinkHasPhoneNumber  *bool    `wam:"2"`
+	DeepLinkHasText         *bool    `wam:"1"`
+	DeepLinkHasUsername     *bool    `wam:"4"`
+	DeepLinkHasUsernamePin  *bool    `wam:"5"`
+	DeepLinkRequirePinEntry *bool    `wam:"6"`
+	DeepLinkSessionId       *string  `wam:"3"`
 }
 
 type WebcRawPlatformsEvent struct {
 	_meta           struct{} `wammeta:"id=2416,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcRawPlatform string   `wam:"1"`
+	WebcRawPlatform *string  `wam:"1"`
 }
 
 type LwiEntryPointImpression_LwiEntryPoint int32
@@ -5569,14 +5569,14 @@ const (
 )
 
 type LwiEntryPointImpressionEvent struct {
-	_meta                  struct{}                                 `wammeta:"id=2906,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BusinessToolsSessionId string                                   `wam:"2"`
-	CatalogSessionId       string                                   `wam:"1"`
-	ItemsCount             int32                                    `wam:"7"`
-	LwiEntryPoint          LwiEntryPointImpression_LwiEntryPoint    `wam:"3"`
-	LwiSubEntryPoint       LwiEntryPointImpression_LwiSubEntryPoint `wam:"6"`
-	StatusSessionId        int32                                    `wam:"5"`
-	UserHasLinkedFbPage    bool                                     `wam:"4"`
+	_meta                  struct{}                                  `wammeta:"id=2906,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BusinessToolsSessionId *string                                   `wam:"2"`
+	CatalogSessionId       *string                                   `wam:"1"`
+	ItemsCount             *int32                                    `wam:"7"`
+	LwiEntryPoint          *LwiEntryPointImpression_LwiEntryPoint    `wam:"3"`
+	LwiSubEntryPoint       *LwiEntryPointImpression_LwiSubEntryPoint `wam:"6"`
+	StatusSessionId        *int32                                    `wam:"5"`
+	UserHasLinkedFbPage    *bool                                     `wam:"4"`
 }
 
 type CadminDemote_CadminDemoteOrigin int32
@@ -5598,10 +5598,10 @@ const (
 )
 
 type CadminDemoteEvent struct {
-	_meta                 struct{}                        `wammeta:"id=3426,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CadminDemoteOrigin    CadminDemote_CadminDemoteOrigin `wam:"1"`
-	CadminDemoteResult    CadminDemote_CadminDemoteResult `wam:"2"`
-	IsLastCadminOrCreator bool                            `wam:"4"`
+	_meta                 struct{}                         `wammeta:"id=3426,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CadminDemoteOrigin    *CadminDemote_CadminDemoteOrigin `wam:"1"`
+	CadminDemoteResult    *CadminDemote_CadminDemoteResult `wam:"2"`
+	IsLastCadminOrCreator *bool                            `wam:"4"`
 }
 
 type PsIdUpdate_PsIdAction int32
@@ -5613,11 +5613,11 @@ const (
 )
 
 type PsIdUpdateEvent struct {
-	_meta                 struct{}              `wammeta:"id=2862,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsFromWamsys          bool                  `wam:"4"`
-	PsIdAction            PsIdUpdate_PsIdAction `wam:"2"`
-	PsIdKey               int32                 `wam:"1"`
-	PsIdRotationFrequence int32                 `wam:"3"`
+	_meta                 struct{}               `wammeta:"id=2862,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsFromWamsys          *bool                  `wam:"4"`
+	PsIdAction            *PsIdUpdate_PsIdAction `wam:"2"`
+	PsIdKey               *int32                 `wam:"1"`
+	PsIdRotationFrequence *int32                 `wam:"3"`
 }
 
 type WebcSocketConnect_WebcSocketConnectReason int32
@@ -5628,11 +5628,11 @@ const (
 )
 
 type WebcSocketConnectEvent struct {
-	_meta                     struct{}                                  `wammeta:"id=5450,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcAuthHandshakeDuration int64                                     `wam:"1"`
-	WebcSocketConnectDuration int64                                     `wam:"2"`
-	WebcSocketConnectReason   WebcSocketConnect_WebcSocketConnectReason `wam:"3"`
-	WebcSocketHostname        string                                    `wam:"4"`
+	_meta                     struct{}                                   `wammeta:"id=5450,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcAuthHandshakeDuration *int64                                     `wam:"1"`
+	WebcSocketConnectDuration *int64                                     `wam:"2"`
+	WebcSocketConnectReason   *WebcSocketConnect_WebcSocketConnectReason `wam:"3"`
+	WebcSocketHostname        *string                                    `wam:"4"`
 }
 
 type GroupJoinCEvent struct {
@@ -5641,9 +5641,9 @@ type GroupJoinCEvent struct {
 
 type ChatFolderOpenEvent struct {
 	_meta                  struct{} `wammeta:"id=2808,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActivityIndicatorCount int32    `wam:"2"`
-	FolderType             string   `wam:"1"`
-	HasImportantMessages   bool     `wam:"3"`
+	ActivityIndicatorCount *int32   `wam:"2"`
+	FolderType             *string  `wam:"1"`
+	HasImportantMessages   *bool    `wam:"3"`
 }
 
 type GifFromProviderSent_GifSearchProvider int32
@@ -5654,8 +5654,8 @@ const (
 )
 
 type GifFromProviderSentEvent struct {
-	_meta             struct{}                              `wammeta:"id=1124,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GifSearchProvider GifFromProviderSent_GifSearchProvider `wam:"1"`
+	_meta             struct{}                               `wammeta:"id=1124,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GifSearchProvider *GifFromProviderSent_GifSearchProvider `wam:"1"`
 }
 
 type NonMessagePeerDataOperationResponse_PeerDataRequestType int32
@@ -5681,15 +5681,15 @@ const (
 )
 
 type NonMessagePeerDataOperationResponseEvent struct {
-	_meta                        struct{}                                                        `wammeta:"id=3904,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PeerDataErrorCount           int32                                                           `wam:"1"`
-	PeerDataNotFoundCount        int32                                                           `wam:"2"`
-	PeerDataRequestSessionId     string                                                          `wam:"3"`
-	PeerDataRequestType          NonMessagePeerDataOperationResponse_PeerDataRequestType         `wam:"4"`
-	PeerDataResponseApplyResult  NonMessagePeerDataOperationResponse_PeerDataResponseApplyResult `wam:"8"`
-	PeerDataResponseCount        int32                                                           `wam:"5"`
-	PeerDataSuccessProcessCount  int32                                                           `wam:"6"`
-	PeerDataSuccessResponseCount int32                                                           `wam:"7"`
+	_meta                        struct{}                                                         `wammeta:"id=3904,channel=regular,weight=1,privateStatsIdInt=-1"`
+	PeerDataErrorCount           *int32                                                           `wam:"1"`
+	PeerDataNotFoundCount        *int32                                                           `wam:"2"`
+	PeerDataRequestSessionId     *string                                                          `wam:"3"`
+	PeerDataRequestType          *NonMessagePeerDataOperationResponse_PeerDataRequestType         `wam:"4"`
+	PeerDataResponseApplyResult  *NonMessagePeerDataOperationResponse_PeerDataResponseApplyResult `wam:"8"`
+	PeerDataResponseCount        *int32                                                           `wam:"5"`
+	PeerDataSuccessProcessCount  *int32                                                           `wam:"6"`
+	PeerDataSuccessResponseCount *int32                                                           `wam:"7"`
 }
 
 type WaShopsManagement_ShopsManagementAction int32
@@ -5712,15 +5712,15 @@ const (
 )
 
 type WaShopsManagementEvent struct {
-	_meta                        struct{}                                `wammeta:"id=2908,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsShopsProductPreviewVisible bool                                    `wam:"2"`
-	ShopsManagementAction        WaShopsManagement_ShopsManagementAction `wam:"1"`
-	ShopsSellerJid               string                                  `wam:"3"`
+	_meta                        struct{}                                 `wammeta:"id=2908,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsShopsProductPreviewVisible *bool                                    `wam:"2"`
+	ShopsManagementAction        *WaShopsManagement_ShopsManagementAction `wam:"1"`
+	ShopsSellerJid               *string                                  `wam:"3"`
 }
 
 type MdAppStateMessageRangeEvent struct {
 	_meta                   struct{} `wammeta:"id=2522,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AdditionalMessagesCount int32    `wam:"1"`
+	AdditionalMessagesCount *int32   `wam:"1"`
 }
 
 type WebcFingerprint_BrowserEngine int32
@@ -5753,34 +5753,34 @@ const (
 )
 
 type WebcFingerprintEvent struct {
-	_meta                        struct{}                                     `wammeta:"id=1704,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BrowserEngine                WebcFingerprint_BrowserEngine                `wam:"26"`
-	ConnectionRtt                int32                                        `wam:"37"`
-	CpuMake                      string                                       `wam:"38"`
-	DeviceMemory                 string                                       `wam:"39"`
-	ExtentionIds                 string                                       `wam:"27"`
-	ExternalSources              string                                       `wam:"36"`
-	GpuMake                      string                                       `wam:"40"`
-	HasChrome                    bool                                         `wam:"28"`
-	HasTaskbar                   bool                                         `wam:"29"`
-	HasWebShare                  bool                                         `wam:"30"`
-	HistoryLength                int32                                        `wam:"41"`
-	MimeTypeCount                int32                                        `wam:"31"`
-	NotificationPermission       bool                                         `wam:"32"`
-	PdfViewerEnabled             bool                                         `wam:"33"`
-	Peripherals                  string                                       `wam:"42"`
-	PlatformEstimate             WebcFingerprint_PlatformEstimate             `wam:"34"`
-	PluginCount                  int32                                        `wam:"35"`
-	ScreenResolution             string                                       `wam:"43"`
-	SessionStorageLength         int32                                        `wam:"44"`
-	Timezone                     string                                       `wam:"45"`
-	TouchPresence                bool                                         `wam:"46"`
-	ViewportSize                 string                                       `wam:"47"`
-	WebcCanvasFingerprint        string                                       `wam:"25"`
-	WebcWebglFingerprint         string                                       `wam:"24"`
-	WebcWebglRenderer            string                                       `wam:"23"`
-	WebcWebglVendor              string                                       `wam:"22"`
-	WebcWindowNavigatorWebdriver WebcFingerprint_WebcWindowNavigatorWebdriver `wam:"21"`
+	_meta                        struct{}                                      `wammeta:"id=1704,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BrowserEngine                *WebcFingerprint_BrowserEngine                `wam:"26"`
+	ConnectionRtt                *int32                                        `wam:"37"`
+	CpuMake                      *string                                       `wam:"38"`
+	DeviceMemory                 *string                                       `wam:"39"`
+	ExtentionIds                 *string                                       `wam:"27"`
+	ExternalSources              *string                                       `wam:"36"`
+	GpuMake                      *string                                       `wam:"40"`
+	HasChrome                    *bool                                         `wam:"28"`
+	HasTaskbar                   *bool                                         `wam:"29"`
+	HasWebShare                  *bool                                         `wam:"30"`
+	HistoryLength                *int32                                        `wam:"41"`
+	MimeTypeCount                *int32                                        `wam:"31"`
+	NotificationPermission       *bool                                         `wam:"32"`
+	PdfViewerEnabled             *bool                                         `wam:"33"`
+	Peripherals                  *string                                       `wam:"42"`
+	PlatformEstimate             *WebcFingerprint_PlatformEstimate             `wam:"34"`
+	PluginCount                  *int32                                        `wam:"35"`
+	ScreenResolution             *string                                       `wam:"43"`
+	SessionStorageLength         *int32                                        `wam:"44"`
+	Timezone                     *string                                       `wam:"45"`
+	TouchPresence                *bool                                         `wam:"46"`
+	ViewportSize                 *string                                       `wam:"47"`
+	WebcCanvasFingerprint        *string                                       `wam:"25"`
+	WebcWebglFingerprint         *string                                       `wam:"24"`
+	WebcWebglRenderer            *string                                       `wam:"23"`
+	WebcWebglVendor              *string                                       `wam:"22"`
+	WebcWindowNavigatorWebdriver *WebcFingerprint_WebcWindowNavigatorWebdriver `wam:"21"`
 }
 
 type SnackbarDeleteUndo_MediaType int32
@@ -5865,12 +5865,12 @@ const (
 )
 
 type SnackbarDeleteUndoEvent struct {
-	_meta              struct{}                              `wammeta:"id=3628,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsAGroup           bool                                  `wam:"1"`
-	MediaType          SnackbarDeleteUndo_MediaType          `wam:"6"`
-	MessagesUndeleted  int32                                 `wam:"2"`
-	SnackbarActionType SnackbarDeleteUndo_SnackbarActionType `wam:"3"`
-	ThreadId           string                                `wam:"4"`
+	_meta              struct{}                               `wammeta:"id=3628,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsAGroup           *bool                                  `wam:"1"`
+	MediaType          *SnackbarDeleteUndo_MediaType          `wam:"6"`
+	MessagesUndeleted  *int32                                 `wam:"2"`
+	SnackbarActionType *SnackbarDeleteUndo_SnackbarActionType `wam:"3"`
+	ThreadId           *string                                `wam:"4"`
 }
 
 type PnhDaily_TypeOfGroup int32
@@ -5882,20 +5882,20 @@ const (
 )
 
 type PnhDailyEvent struct {
-	_meta                        struct{}             `wammeta:"id=3806,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CommunityId                  string               `wam:"1"`
-	MappingMissing               int32                `wam:"7"`
-	PnhIndicatorClicksChat       int32                `wam:"2"`
-	PnhIndicatorClicksInfoScreen int32                `wam:"3"`
-	ReactionDeleteCount          int32                `wam:"4"`
-	ReactionOpenTrayCount        int32                `wam:"5"`
-	TotalContacts                int32                `wam:"8"`
-	TypeOfGroup                  PnhDaily_TypeOfGroup `wam:"6"`
+	_meta                        struct{}              `wammeta:"id=3806,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CommunityId                  *string               `wam:"1"`
+	MappingMissing               *int32                `wam:"7"`
+	PnhIndicatorClicksChat       *int32                `wam:"2"`
+	PnhIndicatorClicksInfoScreen *int32                `wam:"3"`
+	ReactionDeleteCount          *int32                `wam:"4"`
+	ReactionOpenTrayCount        *int32                `wam:"5"`
+	TotalContacts                *int32                `wam:"8"`
+	TypeOfGroup                  *PnhDaily_TypeOfGroup `wam:"6"`
 }
 
 type AdvStoredTimestampExpiredEvent struct {
 	_meta                struct{} `wammeta:"id=3036,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AdvExpireTimeInHours int32    `wam:"1"`
+	AdvExpireTimeInHours *int32   `wam:"1"`
 }
 
 type MessagingUserJourney_MediaType int32
@@ -6248,17 +6248,17 @@ const (
 )
 
 type MessagingUserJourneyEvent struct {
-	_meta               struct{}                                 `wammeta:"id=5134,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppSessionId        string                                   `wam:"1"`
-	IsSelfPin           bool                                     `wam:"8"`
-	MediaType           MessagingUserJourney_MediaType           `wam:"9"`
-	MessagingActionType MessagingUserJourney_MessagingActionType `wam:"2"`
-	PinInChatExpirySecs int32                                    `wam:"3"`
-	ThreadType          MessagingUserJourney_ThreadType          `wam:"4"`
-	UiSurface           MessagingUserJourney_UiSurface           `wam:"5"`
-	UnifiedSessionId    string                                   `wam:"10"`
-	UserJourneyFunnelId string                                   `wam:"6"`
-	UserRole            MessagingUserJourney_UserRole            `wam:"7"`
+	_meta               struct{}                                  `wammeta:"id=5134,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppSessionId        *string                                   `wam:"1"`
+	IsSelfPin           *bool                                     `wam:"8"`
+	MediaType           *MessagingUserJourney_MediaType           `wam:"9"`
+	MessagingActionType *MessagingUserJourney_MessagingActionType `wam:"2"`
+	PinInChatExpirySecs *int32                                    `wam:"3"`
+	ThreadType          *MessagingUserJourney_ThreadType          `wam:"4"`
+	UiSurface           *MessagingUserJourney_UiSurface           `wam:"5"`
+	UnifiedSessionId    *string                                   `wam:"10"`
+	UserJourneyFunnelId *string                                   `wam:"6"`
+	UserRole            *MessagingUserJourney_UserRole            `wam:"7"`
 }
 
 type WebcPwaEvent_WebcPwaAction int32
@@ -6268,8 +6268,8 @@ const (
 )
 
 type WebcPwaEventEvent struct {
-	_meta         struct{}                   `wammeta:"id=4116,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcPwaAction WebcPwaEvent_WebcPwaAction `wam:"2"`
+	_meta         struct{}                    `wammeta:"id=4116,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcPwaAction *WebcPwaEvent_WebcPwaAction `wam:"2"`
 }
 
 type SmbDataSharingConsentScreen_SmbDataSharingConsentScreenEntryPoint int32
@@ -6296,10 +6296,10 @@ const (
 )
 
 type SmbDataSharingConsentScreenEvent struct {
-	_meta                                 struct{}                                                          `wammeta:"id=3972,channel=regular,weight=1,privateStatsIdInt=-1"`
-	SmbDataSharingConsentScreenEntryPoint SmbDataSharingConsentScreen_SmbDataSharingConsentScreenEntryPoint `wam:"3"`
-	SmbDataSharingConsentScreenType       SmbDataSharingConsentScreen_SmbDataSharingConsentScreenType       `wam:"1"`
-	SmbDataSharingConsentScreenVersion    int32                                                             `wam:"2"`
+	_meta                                 struct{}                                                           `wammeta:"id=3972,channel=regular,weight=1,privateStatsIdInt=-1"`
+	SmbDataSharingConsentScreenEntryPoint *SmbDataSharingConsentScreen_SmbDataSharingConsentScreenEntryPoint `wam:"3"`
+	SmbDataSharingConsentScreenType       *SmbDataSharingConsentScreen_SmbDataSharingConsentScreenType       `wam:"1"`
+	SmbDataSharingConsentScreenVersion    *int32                                                             `wam:"2"`
 }
 
 type ChatMessageCounts_AiChatOrigins int32
@@ -6421,260 +6421,260 @@ const (
 )
 
 type ChatMessageCountsEvent struct {
-	_meta                                     struct{}                                        `wammeta:"id=1644,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AiChatOrigins                             ChatMessageCounts_AiChatOrigins                 `wam:"224"`
-	AiDiscoveryTab                            string                                          `wam:"195"`
-	AptTestId                                 string                                          `wam:"212"`
-	AudioMessagesReceived                     int32                                           `wam:"149"`
-	AudioMessagesSent                         int32                                           `wam:"150"`
-	AutoReplyFromIcebreakerSent               int32                                           `wam:"190"`
-	AwayMsgsSent                              int32                                           `wam:"56"`
-	BizCatalogType                            ChatMessageCounts_BizCatalogType                `wam:"60"`
-	BizConversationDepth                      int32                                           `wam:"65"`
-	BlockReason                               ChatMessageCounts_BlockReason                   `wam:"33"`
-	BottomSheetAnimatedSent                   int32                                           `wam:"206"`
-	BottomSheetEditedAnimatedSent             int32                                           `wam:"207"`
-	BottomSheetEditedSent                     int32                                           `wam:"208"`
-	BottomSheetForwardMessagesSent            int32                                           `wam:"196"`
-	BottomSheetImagesEdited                   int32                                           `wam:"209"`
-	BottomSheetImagesGenerated                int32                                           `wam:"197"`
-	BottomSheetMemuImagesGenerated            int32                                           `wam:"220"`
-	BottomSheetMemuInitiated                  int32                                           `wam:"221"`
-	BottomSheetMemuMessagesSent               int32                                           `wam:"222"`
-	BottomSheetMessagesDownloaded             int32                                           `wam:"198"`
-	BottomSheetMessagesReceived               int32                                           `wam:"199"`
-	BottomSheetMessagesSent                   int32                                           `wam:"200"`
-	BottomSheetPromptsInitiated               int32                                           `wam:"201"`
-	BottomSheetRegeneratedSent                int32                                           `wam:"210"`
-	BroadcastMsgsReceived                     int32                                           `wam:"30"`
-	BroadcastMsgsSent                         int32                                           `wam:"29"`
-	CallOffersReceived                        int32                                           `wam:"27"`
-	CallOffersSent                            int32                                           `wam:"26"`
-	CallsResultBusy                           int32                                           `wam:"70"`
-	CallsResultCancelled                      int32                                           `wam:"71"`
-	CallsResultConnected                      int32                                           `wam:"72"`
-	CallsResultError                          int32                                           `wam:"78"`
-	CallsResultMissed                         int32                                           `wam:"73"`
-	CallsResultRejected                       int32                                           `wam:"74"`
-	CanEditDmSettings                         bool                                            `wam:"88"`
-	CartViews                                 int32                                           `wam:"86"`
-	ChatEphemeralityDuration                  int32                                           `wam:"15"`
-	ChatMuted                                 ChatMessageCounts_ChatMuted                     `wam:"8"`
-	ChatOrigins                               ChatMessageCounts_ChatOrigins                   `wam:"179"`
-	ChatOverflowClicks                        int32                                           `wam:"79"`
-	ChatTypeInd                               ChatMessageCounts_ChatTypeInd                   `wam:"2"`
-	CollectionInquiriesSent                   int32                                           `wam:"44"`
-	CommandSheetShow                          int32                                           `wam:"174"`
-	CommentsReceived                          int32                                           `wam:"126"`
-	CommerceMsgsReceived                      int32                                           `wam:"41"`
-	CommerceMsgsSent                          int32                                           `wam:"40"`
-	DeviceLanguage                            string                                          `wam:"219"`
-	DisappearingChatInitiator                 ChatMessageCounts_DisappearingChatInitiator     `wam:"59"`
-	DocumentMessagesReceived                  int32                                           `wam:"151"`
-	DocumentMessagesSent                      int32                                           `wam:"152"`
-	EditedMsgsSent                            int32                                           `wam:"100"`
-	EmuFlashPlaybacks                         int32                                           `wam:"184"`
-	EmuFlashPreviewShow                       int32                                           `wam:"182"`
-	EmuFlashSent                              int32                                           `wam:"183"`
-	EntryPointConversionApp                   string                                          `wam:"47"`
-	EntryPointConversionSource                string                                          `wam:"46"`
-	EphemeralMessagesExpired                  int32                                           `wam:"248"`
-	EphemeralMessagesReceived                 int32                                           `wam:"14"`
-	EphemeralMessagesSent                     int32                                           `wam:"13"`
-	EphemeralMessagesUnreadExpired            int32                                           `wam:"69"`
-	EphemeralityInitiator                     ChatMessageCounts_EphemeralityInitiator         `wam:"109"`
-	EphemeralityTriggerAction                 ChatMessageCounts_EphemeralityTriggerAction     `wam:"110"`
-	EventCreationMessagesReceived             int32                                           `wam:"142"`
-	EventCreationMessagesSent                 int32                                           `wam:"143"`
-	EventResponseMessagesReceived             int32                                           `wam:"144"`
-	EventResponseMessagesSent                 int32                                           `wam:"145"`
-	FbCtaInquiriesSent                        int32                                           `wam:"45"`
-	FirstResponseTime                         int32                                           `wam:"25"`
-	FmxNotMvBottomSheetDismissedCount         int32                                           `wam:"234"`
-	FmxNotMvBottomSheetGetMvButtonClicks      int32                                           `wam:"235"`
-	FmxNotMvBottomSheetGetMvButtonImpressions int32                                           `wam:"236"`
-	FmxNotMvBottomSheetImpressions            int32                                           `wam:"237"`
-	FmxNotMvBottomSheetLearnMoreButtonClicks  int32                                           `wam:"238"`
-	FmxNotMvClicks                            int32                                           `wam:"229"`
-	ForwardAudioMessagesReceived              int32                                           `wam:"153"`
-	ForwardAudioMessagesSent                  int32                                           `wam:"154"`
-	ForwardDocumentMessagesReceived           int32                                           `wam:"155"`
-	ForwardDocumentMessagesSent               int32                                           `wam:"156"`
-	ForwardGifMessagesReceived                int32                                           `wam:"157"`
-	ForwardGifMessagesSent                    int32                                           `wam:"158"`
-	ForwardMessagesReceived                   int32                                           `wam:"89"`
-	ForwardMessagesSent                       int32                                           `wam:"90"`
-	ForwardPhotoMessagesReceived              int32                                           `wam:"128"`
-	ForwardPhotoMessagesSent                  int32                                           `wam:"129"`
-	ForwardPtvMessagesReceived                int32                                           `wam:"159"`
-	ForwardPtvMessagesSent                    int32                                           `wam:"160"`
-	ForwardStatusReplyMessagesReceived        int32                                           `wam:"161"`
-	ForwardStatusReplyMessagesSent            int32                                           `wam:"162"`
-	ForwardStickerMessagesReceived            int32                                           `wam:"163"`
-	ForwardStickerMessagesSent                int32                                           `wam:"164"`
-	ForwardTextMessagesReceived               int32                                           `wam:"130"`
-	ForwardTextMessagesSent                   int32                                           `wam:"131"`
-	ForwardUrlMessagesReceived                int32                                           `wam:"132"`
-	ForwardUrlMessagesSent                    int32                                           `wam:"133"`
-	ForwardVideoMessagesReceived              int32                                           `wam:"165"`
-	ForwardVideoMessagesSent                  int32                                           `wam:"166"`
-	GaStatus                                  ChatMessageCounts_GaStatus                      `wam:"22"`
-	GifMessagesReceived                       int32                                           `wam:"167"`
-	GifMessagesSent                           int32                                           `wam:"168"`
-	GoogleSearchClick                         int32                                           `wam:"214"`
-	GoogleSearchShow                          int32                                           `wam:"215"`
-	GreetingMsgsSent                          int32                                           `wam:"57"`
-	GroupContainsBiz                          bool                                            `wam:"75"`
-	GroupInfoSetting                          ChatMessageCounts_GroupInfoSetting              `wam:"87"`
-	GroupLimitSharingOnCnt                    int32                                           `wam:"225"`
-	GroupMembershipReplies                    int32                                           `wam:"51"`
-	GroupPrivateReplies                       int32                                           `wam:"52"`
-	GroupSize                                 int32                                           `wam:"19"`
-	HasReplied1On1                            bool                                            `wam:"216"`
-	HasUsername                               bool                                            `wam:"180"`
-	HasUsernamePin                            bool                                            `wam:"228"`
-	ImagineCommandClick                       int32                                           `wam:"175"`
-	ImagineMeMessagesSent                     int32                                           `wam:"202"`
-	ImagineMePromptsInitiatedCount            int32                                           `wam:"203"`
-	ImagineMentionClick                       int32                                           `wam:"146"`
-	ImagineMentionShow                        int32                                           `wam:"176"`
-	IsAContact                                bool                                            `wam:"6"`
-	IsAContactAtThreadCreation                bool                                            `wam:"213"`
-	IsAGroup                                  bool                                            `wam:"5"`
-	IsArchived                                bool                                            `wam:"10"`
-	IsAutoMuted                               bool                                            `wam:"108"`
-	IsBizMvFrictionEligible                   bool                                            `wam:"230"`
-	IsBlocked                                 bool                                            `wam:"32"`
-	IsCartAddClicked                          bool                                            `wam:"36"`
-	IsCommerceViewed                          bool                                            `wam:"35"`
-	IsCtaOnPdpClicked                         bool                                            `wam:"37"`
-	IsDeleted                                 bool                                            `wam:"185"`
-	IsInviteCreatedThread                     bool                                            `wam:"106"`
-	IsLabelled                                bool                                            `wam:"54"`
-	IsMessageYourself                         bool                                            `wam:"91"`
-	IsMetaAiAssistant                         bool                                            `wam:"211"`
-	IsOppositePartyInitiated                  bool                                            `wam:"62"`
-	IsPinned                                  bool                                            `wam:"9"`
-	IsPnhEnabledChat                          bool                                            `wam:"92"`
-	IsReported                                bool                                            `wam:"186"`
-	IsUser1pBizBotChat                        bool                                            `wam:"141"`
-	IsUser3pBotChat                           bool                                            `wam:"140"`
-	IsUserAgent                               bool                                            `wam:"111"`
-	IsUserCreatedAgent                        bool                                            `wam:"123"`
-	IsWaPayRegistered                         bool                                            `wam:"81"`
-	LabelledMsgs                              int32                                           `wam:"55"`
-	LimitSharingOption                        bool                                            `wam:"226"`
-	LocationsSent                             int32                                           `wam:"96"`
-	MarkedReadCnt                             int32                                           `wam:"193"`
-	MarkedReadMessageCnt                      int32                                           `wam:"194"`
-	MatchedMessagesMarkedAsReadWithDeltaTime  string                                          `wam:"246"`
-	MatchedMessagesReadWithDeltaTime          string                                          `wam:"247"`
-	MessagesRead                              int32                                           `wam:"127"`
-	MessagesReceived                          int32                                           `wam:"4"`
-	MessagesReceivedWithEnabledReadReceipt    int32                                           `wam:"245"`
-	MessagesSent                              int32                                           `wam:"3"`
-	MessagesStarred                           int32                                           `wam:"12"`
-	MessagesUnread                            int32                                           `wam:"11"`
-	MetaAiMentionClick                        int32                                           `wam:"147"`
-	MetaAiMentionShow                         int32                                           `wam:"148"`
-	NewThread                                 bool                                            `wam:"68"`
-	NotMvImpressions                          int32                                           `wam:"231"`
-	OdReceived                                int32                                           `wam:"82"`
-	OppositePartyHasBadge                     bool                                            `wam:"240"`
-	OppositePartyHasBusinessIntent            bool                                            `wam:"204"`
-	OppositePartyHasProfilePhoto              bool                                            `wam:"217"`
-	OppositePartyLimitSharingOption           bool                                            `wam:"227"`
-	OppositeVisibleIdentification             ChatMessageCounts_OppositeVisibleIdentification `wam:"181"`
-	OrdersSent                                int32                                           `wam:"38"`
-	P2mOdNnpTransactionsSent                  int32                                           `wam:"83"`
-	P2mOdNpTransactionsSent                   int32                                           `wam:"84"`
-	PaymentsSent                              int32                                           `wam:"39"`
-	PdpInquiriesSent                          int32                                           `wam:"42"`
-	PdpViews                                  int32                                           `wam:"61"`
-	PhotoMessagesReceived                     int32                                           `wam:"134"`
-	PhotoMessagesSent                         int32                                           `wam:"135"`
-	PollCreationMessagesReceived              int32                                           `wam:"115"`
-	PollCreationMessagesSent                  int32                                           `wam:"116"`
-	PollUpdateMessagesReceived                int32                                           `wam:"117"`
-	PollUpdateMessagesSent                    int32                                           `wam:"118"`
-	ProfileReplies                            int32                                           `wam:"64"`
-	ProfileViews                              int32                                           `wam:"63"`
-	PttMessagesReceived                       int32                                           `wam:"119"`
-	PttMessagesSent                           int32                                           `wam:"120"`
-	PtvMessagesReceived                       int32                                           `wam:"121"`
-	PtvMessagesSent                           int32                                           `wam:"122"`
-	QuickRepliesSent                          int32                                           `wam:"58"`
-	ReactionsReceived                         int32                                           `wam:"97"`
-	ReactionsSent                             int32                                           `wam:"98"`
-	ReceiverDefaultDisappearingDuration       int32                                           `wam:"21"`
-	RepliesSent                               int32                                           `wam:"80"`
-	RequestedPhoneNumber                      bool                                            `wam:"93"`
-	SeenMaskedPhoneNumber                     bool                                            `wam:"94"`
-	SenderDefaultDisappearingDuration         int32                                           `wam:"20"`
-	SharedPhoneNumber                         bool                                            `wam:"99"`
-	SharesCommonGroup                         bool                                            `wam:"218"`
-	SmbMarketingMessagesReactionsSent         int32                                           `wam:"101"`
-	SmbMarketingMessagesRepliesSent           int32                                           `wam:"102"`
-	SmbMarketingMessagesSpamReports           int32                                           `wam:"103"`
-	SmbMarketingMsgsReceived                  int32                                           `wam:"104"`
-	SmbMarketingMsgsSent                      int32                                           `wam:"105"`
-	SpamReports                               int32                                           `wam:"31"`
-	StartTime                                 int32                                           `wam:"7"`
-	StatusReactionsReceived                   int32                                           `wam:"191"`
-	StatusReactionsSent                       int32                                           `wam:"192"`
-	StatusReplies                             int32                                           `wam:"50"`
-	StatusReplyMessagesReceived               int32                                           `wam:"169"`
-	StatusViews                               int32                                           `wam:"49"`
-	StickerMessagesReceived                   int32                                           `wam:"170"`
-	StickerMessagesSent                       int32                                           `wam:"171"`
-	StorefrontInquiriesSent                   int32                                           `wam:"43"`
-	SuggestionPromptsClick                    int32                                           `wam:"177"`
-	SuggestionPromptsShow                     int32                                           `wam:"178"`
-	TextMessagesReceived                      int32                                           `wam:"136"`
-	TextMessagesSent                          int32                                           `wam:"137"`
-	TextMessagesToUserCreatedAgentCnt         int32                                           `wam:"124"`
-	ThreadCreationDate                        string                                          `wam:"189"`
-	ThreadDs                                  string                                          `wam:"66"`
-	ThreadId                                  string                                          `wam:"67"`
-	ThreadIdMonthly                           string                                          `wam:"223"`
-	TotalCallDuration                         int32                                           `wam:"28"`
-	TotalMessageEditsFromAgentCnt             int32                                           `wam:"112"`
-	TotalMessageFromAgentCnt                  int32                                           `wam:"113"`
-	TotalMessageToAgentCnt                    int32                                           `wam:"114"`
-	TotalMessagesToUserCreatedAgentCnt        int32                                           `wam:"125"`
-	TypeOfGroup                               ChatMessageCounts_TypeOfGroup                   `wam:"85"`
-	UrlMessagesReceived                       int32                                           `wam:"138"`
-	UrlMessagesSent                           int32                                           `wam:"139"`
-	UserHasBusinessIntent                     bool                                            `wam:"205"`
-	ViaContactlessChats                       bool                                            `wam:"107"`
-	VideoCallsOffered                         int32                                           `wam:"76"`
-	VideoMessagesReceived                     int32                                           `wam:"172"`
-	VideoMessagesSent                         int32                                           `wam:"173"`
-	ViewOnceMessagesOpened                    int32                                           `wam:"18"`
-	ViewOnceMessagesReceived                  int32                                           `wam:"17"`
-	ViewOnceMessagesSent                      int32                                           `wam:"16"`
-	VoiceCallsOffered                         int32                                           `wam:"77"`
+	_meta                                     struct{}                                         `wammeta:"id=1644,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AiChatOrigins                             *ChatMessageCounts_AiChatOrigins                 `wam:"224"`
+	AiDiscoveryTab                            *string                                          `wam:"195"`
+	AptTestId                                 *string                                          `wam:"212"`
+	AudioMessagesReceived                     *int32                                           `wam:"149"`
+	AudioMessagesSent                         *int32                                           `wam:"150"`
+	AutoReplyFromIcebreakerSent               *int32                                           `wam:"190"`
+	AwayMsgsSent                              *int32                                           `wam:"56"`
+	BizCatalogType                            *ChatMessageCounts_BizCatalogType                `wam:"60"`
+	BizConversationDepth                      *int32                                           `wam:"65"`
+	BlockReason                               *ChatMessageCounts_BlockReason                   `wam:"33"`
+	BottomSheetAnimatedSent                   *int32                                           `wam:"206"`
+	BottomSheetEditedAnimatedSent             *int32                                           `wam:"207"`
+	BottomSheetEditedSent                     *int32                                           `wam:"208"`
+	BottomSheetForwardMessagesSent            *int32                                           `wam:"196"`
+	BottomSheetImagesEdited                   *int32                                           `wam:"209"`
+	BottomSheetImagesGenerated                *int32                                           `wam:"197"`
+	BottomSheetMemuImagesGenerated            *int32                                           `wam:"220"`
+	BottomSheetMemuInitiated                  *int32                                           `wam:"221"`
+	BottomSheetMemuMessagesSent               *int32                                           `wam:"222"`
+	BottomSheetMessagesDownloaded             *int32                                           `wam:"198"`
+	BottomSheetMessagesReceived               *int32                                           `wam:"199"`
+	BottomSheetMessagesSent                   *int32                                           `wam:"200"`
+	BottomSheetPromptsInitiated               *int32                                           `wam:"201"`
+	BottomSheetRegeneratedSent                *int32                                           `wam:"210"`
+	BroadcastMsgsReceived                     *int32                                           `wam:"30"`
+	BroadcastMsgsSent                         *int32                                           `wam:"29"`
+	CallOffersReceived                        *int32                                           `wam:"27"`
+	CallOffersSent                            *int32                                           `wam:"26"`
+	CallsResultBusy                           *int32                                           `wam:"70"`
+	CallsResultCancelled                      *int32                                           `wam:"71"`
+	CallsResultConnected                      *int32                                           `wam:"72"`
+	CallsResultError                          *int32                                           `wam:"78"`
+	CallsResultMissed                         *int32                                           `wam:"73"`
+	CallsResultRejected                       *int32                                           `wam:"74"`
+	CanEditDmSettings                         *bool                                            `wam:"88"`
+	CartViews                                 *int32                                           `wam:"86"`
+	ChatEphemeralityDuration                  *int32                                           `wam:"15"`
+	ChatMuted                                 *ChatMessageCounts_ChatMuted                     `wam:"8"`
+	ChatOrigins                               *ChatMessageCounts_ChatOrigins                   `wam:"179"`
+	ChatOverflowClicks                        *int32                                           `wam:"79"`
+	ChatTypeInd                               *ChatMessageCounts_ChatTypeInd                   `wam:"2"`
+	CollectionInquiriesSent                   *int32                                           `wam:"44"`
+	CommandSheetShow                          *int32                                           `wam:"174"`
+	CommentsReceived                          *int32                                           `wam:"126"`
+	CommerceMsgsReceived                      *int32                                           `wam:"41"`
+	CommerceMsgsSent                          *int32                                           `wam:"40"`
+	DeviceLanguage                            *string                                          `wam:"219"`
+	DisappearingChatInitiator                 *ChatMessageCounts_DisappearingChatInitiator     `wam:"59"`
+	DocumentMessagesReceived                  *int32                                           `wam:"151"`
+	DocumentMessagesSent                      *int32                                           `wam:"152"`
+	EditedMsgsSent                            *int32                                           `wam:"100"`
+	EmuFlashPlaybacks                         *int32                                           `wam:"184"`
+	EmuFlashPreviewShow                       *int32                                           `wam:"182"`
+	EmuFlashSent                              *int32                                           `wam:"183"`
+	EntryPointConversionApp                   *string                                          `wam:"47"`
+	EntryPointConversionSource                *string                                          `wam:"46"`
+	EphemeralMessagesExpired                  *int32                                           `wam:"248"`
+	EphemeralMessagesReceived                 *int32                                           `wam:"14"`
+	EphemeralMessagesSent                     *int32                                           `wam:"13"`
+	EphemeralMessagesUnreadExpired            *int32                                           `wam:"69"`
+	EphemeralityInitiator                     *ChatMessageCounts_EphemeralityInitiator         `wam:"109"`
+	EphemeralityTriggerAction                 *ChatMessageCounts_EphemeralityTriggerAction     `wam:"110"`
+	EventCreationMessagesReceived             *int32                                           `wam:"142"`
+	EventCreationMessagesSent                 *int32                                           `wam:"143"`
+	EventResponseMessagesReceived             *int32                                           `wam:"144"`
+	EventResponseMessagesSent                 *int32                                           `wam:"145"`
+	FbCtaInquiriesSent                        *int32                                           `wam:"45"`
+	FirstResponseTime                         *int32                                           `wam:"25"`
+	FmxNotMvBottomSheetDismissedCount         *int32                                           `wam:"234"`
+	FmxNotMvBottomSheetGetMvButtonClicks      *int32                                           `wam:"235"`
+	FmxNotMvBottomSheetGetMvButtonImpressions *int32                                           `wam:"236"`
+	FmxNotMvBottomSheetImpressions            *int32                                           `wam:"237"`
+	FmxNotMvBottomSheetLearnMoreButtonClicks  *int32                                           `wam:"238"`
+	FmxNotMvClicks                            *int32                                           `wam:"229"`
+	ForwardAudioMessagesReceived              *int32                                           `wam:"153"`
+	ForwardAudioMessagesSent                  *int32                                           `wam:"154"`
+	ForwardDocumentMessagesReceived           *int32                                           `wam:"155"`
+	ForwardDocumentMessagesSent               *int32                                           `wam:"156"`
+	ForwardGifMessagesReceived                *int32                                           `wam:"157"`
+	ForwardGifMessagesSent                    *int32                                           `wam:"158"`
+	ForwardMessagesReceived                   *int32                                           `wam:"89"`
+	ForwardMessagesSent                       *int32                                           `wam:"90"`
+	ForwardPhotoMessagesReceived              *int32                                           `wam:"128"`
+	ForwardPhotoMessagesSent                  *int32                                           `wam:"129"`
+	ForwardPtvMessagesReceived                *int32                                           `wam:"159"`
+	ForwardPtvMessagesSent                    *int32                                           `wam:"160"`
+	ForwardStatusReplyMessagesReceived        *int32                                           `wam:"161"`
+	ForwardStatusReplyMessagesSent            *int32                                           `wam:"162"`
+	ForwardStickerMessagesReceived            *int32                                           `wam:"163"`
+	ForwardStickerMessagesSent                *int32                                           `wam:"164"`
+	ForwardTextMessagesReceived               *int32                                           `wam:"130"`
+	ForwardTextMessagesSent                   *int32                                           `wam:"131"`
+	ForwardUrlMessagesReceived                *int32                                           `wam:"132"`
+	ForwardUrlMessagesSent                    *int32                                           `wam:"133"`
+	ForwardVideoMessagesReceived              *int32                                           `wam:"165"`
+	ForwardVideoMessagesSent                  *int32                                           `wam:"166"`
+	GaStatus                                  *ChatMessageCounts_GaStatus                      `wam:"22"`
+	GifMessagesReceived                       *int32                                           `wam:"167"`
+	GifMessagesSent                           *int32                                           `wam:"168"`
+	GoogleSearchClick                         *int32                                           `wam:"214"`
+	GoogleSearchShow                          *int32                                           `wam:"215"`
+	GreetingMsgsSent                          *int32                                           `wam:"57"`
+	GroupContainsBiz                          *bool                                            `wam:"75"`
+	GroupInfoSetting                          *ChatMessageCounts_GroupInfoSetting              `wam:"87"`
+	GroupLimitSharingOnCnt                    *int32                                           `wam:"225"`
+	GroupMembershipReplies                    *int32                                           `wam:"51"`
+	GroupPrivateReplies                       *int32                                           `wam:"52"`
+	GroupSize                                 *int32                                           `wam:"19"`
+	HasReplied1On1                            *bool                                            `wam:"216"`
+	HasUsername                               *bool                                            `wam:"180"`
+	HasUsernamePin                            *bool                                            `wam:"228"`
+	ImagineCommandClick                       *int32                                           `wam:"175"`
+	ImagineMeMessagesSent                     *int32                                           `wam:"202"`
+	ImagineMePromptsInitiatedCount            *int32                                           `wam:"203"`
+	ImagineMentionClick                       *int32                                           `wam:"146"`
+	ImagineMentionShow                        *int32                                           `wam:"176"`
+	IsAContact                                *bool                                            `wam:"6"`
+	IsAContactAtThreadCreation                *bool                                            `wam:"213"`
+	IsAGroup                                  *bool                                            `wam:"5"`
+	IsArchived                                *bool                                            `wam:"10"`
+	IsAutoMuted                               *bool                                            `wam:"108"`
+	IsBizMvFrictionEligible                   *bool                                            `wam:"230"`
+	IsBlocked                                 *bool                                            `wam:"32"`
+	IsCartAddClicked                          *bool                                            `wam:"36"`
+	IsCommerceViewed                          *bool                                            `wam:"35"`
+	IsCtaOnPdpClicked                         *bool                                            `wam:"37"`
+	IsDeleted                                 *bool                                            `wam:"185"`
+	IsInviteCreatedThread                     *bool                                            `wam:"106"`
+	IsLabelled                                *bool                                            `wam:"54"`
+	IsMessageYourself                         *bool                                            `wam:"91"`
+	IsMetaAiAssistant                         *bool                                            `wam:"211"`
+	IsOppositePartyInitiated                  *bool                                            `wam:"62"`
+	IsPinned                                  *bool                                            `wam:"9"`
+	IsPnhEnabledChat                          *bool                                            `wam:"92"`
+	IsReported                                *bool                                            `wam:"186"`
+	IsUser1pBizBotChat                        *bool                                            `wam:"141"`
+	IsUser3pBotChat                           *bool                                            `wam:"140"`
+	IsUserAgent                               *bool                                            `wam:"111"`
+	IsUserCreatedAgent                        *bool                                            `wam:"123"`
+	IsWaPayRegistered                         *bool                                            `wam:"81"`
+	LabelledMsgs                              *int32                                           `wam:"55"`
+	LimitSharingOption                        *bool                                            `wam:"226"`
+	LocationsSent                             *int32                                           `wam:"96"`
+	MarkedReadCnt                             *int32                                           `wam:"193"`
+	MarkedReadMessageCnt                      *int32                                           `wam:"194"`
+	MatchedMessagesMarkedAsReadWithDeltaTime  *string                                          `wam:"246"`
+	MatchedMessagesReadWithDeltaTime          *string                                          `wam:"247"`
+	MessagesRead                              *int32                                           `wam:"127"`
+	MessagesReceived                          *int32                                           `wam:"4"`
+	MessagesReceivedWithEnabledReadReceipt    *int32                                           `wam:"245"`
+	MessagesSent                              *int32                                           `wam:"3"`
+	MessagesStarred                           *int32                                           `wam:"12"`
+	MessagesUnread                            *int32                                           `wam:"11"`
+	MetaAiMentionClick                        *int32                                           `wam:"147"`
+	MetaAiMentionShow                         *int32                                           `wam:"148"`
+	NewThread                                 *bool                                            `wam:"68"`
+	NotMvImpressions                          *int32                                           `wam:"231"`
+	OdReceived                                *int32                                           `wam:"82"`
+	OppositePartyHasBadge                     *bool                                            `wam:"240"`
+	OppositePartyHasBusinessIntent            *bool                                            `wam:"204"`
+	OppositePartyHasProfilePhoto              *bool                                            `wam:"217"`
+	OppositePartyLimitSharingOption           *bool                                            `wam:"227"`
+	OppositeVisibleIdentification             *ChatMessageCounts_OppositeVisibleIdentification `wam:"181"`
+	OrdersSent                                *int32                                           `wam:"38"`
+	P2mOdNnpTransactionsSent                  *int32                                           `wam:"83"`
+	P2mOdNpTransactionsSent                   *int32                                           `wam:"84"`
+	PaymentsSent                              *int32                                           `wam:"39"`
+	PdpInquiriesSent                          *int32                                           `wam:"42"`
+	PdpViews                                  *int32                                           `wam:"61"`
+	PhotoMessagesReceived                     *int32                                           `wam:"134"`
+	PhotoMessagesSent                         *int32                                           `wam:"135"`
+	PollCreationMessagesReceived              *int32                                           `wam:"115"`
+	PollCreationMessagesSent                  *int32                                           `wam:"116"`
+	PollUpdateMessagesReceived                *int32                                           `wam:"117"`
+	PollUpdateMessagesSent                    *int32                                           `wam:"118"`
+	ProfileReplies                            *int32                                           `wam:"64"`
+	ProfileViews                              *int32                                           `wam:"63"`
+	PttMessagesReceived                       *int32                                           `wam:"119"`
+	PttMessagesSent                           *int32                                           `wam:"120"`
+	PtvMessagesReceived                       *int32                                           `wam:"121"`
+	PtvMessagesSent                           *int32                                           `wam:"122"`
+	QuickRepliesSent                          *int32                                           `wam:"58"`
+	ReactionsReceived                         *int32                                           `wam:"97"`
+	ReactionsSent                             *int32                                           `wam:"98"`
+	ReceiverDefaultDisappearingDuration       *int32                                           `wam:"21"`
+	RepliesSent                               *int32                                           `wam:"80"`
+	RequestedPhoneNumber                      *bool                                            `wam:"93"`
+	SeenMaskedPhoneNumber                     *bool                                            `wam:"94"`
+	SenderDefaultDisappearingDuration         *int32                                           `wam:"20"`
+	SharedPhoneNumber                         *bool                                            `wam:"99"`
+	SharesCommonGroup                         *bool                                            `wam:"218"`
+	SmbMarketingMessagesReactionsSent         *int32                                           `wam:"101"`
+	SmbMarketingMessagesRepliesSent           *int32                                           `wam:"102"`
+	SmbMarketingMessagesSpamReports           *int32                                           `wam:"103"`
+	SmbMarketingMsgsReceived                  *int32                                           `wam:"104"`
+	SmbMarketingMsgsSent                      *int32                                           `wam:"105"`
+	SpamReports                               *int32                                           `wam:"31"`
+	StartTime                                 *int32                                           `wam:"7"`
+	StatusReactionsReceived                   *int32                                           `wam:"191"`
+	StatusReactionsSent                       *int32                                           `wam:"192"`
+	StatusReplies                             *int32                                           `wam:"50"`
+	StatusReplyMessagesReceived               *int32                                           `wam:"169"`
+	StatusViews                               *int32                                           `wam:"49"`
+	StickerMessagesReceived                   *int32                                           `wam:"170"`
+	StickerMessagesSent                       *int32                                           `wam:"171"`
+	StorefrontInquiriesSent                   *int32                                           `wam:"43"`
+	SuggestionPromptsClick                    *int32                                           `wam:"177"`
+	SuggestionPromptsShow                     *int32                                           `wam:"178"`
+	TextMessagesReceived                      *int32                                           `wam:"136"`
+	TextMessagesSent                          *int32                                           `wam:"137"`
+	TextMessagesToUserCreatedAgentCnt         *int32                                           `wam:"124"`
+	ThreadCreationDate                        *string                                          `wam:"189"`
+	ThreadDs                                  *string                                          `wam:"66"`
+	ThreadId                                  *string                                          `wam:"67"`
+	ThreadIdMonthly                           *string                                          `wam:"223"`
+	TotalCallDuration                         *int32                                           `wam:"28"`
+	TotalMessageEditsFromAgentCnt             *int32                                           `wam:"112"`
+	TotalMessageFromAgentCnt                  *int32                                           `wam:"113"`
+	TotalMessageToAgentCnt                    *int32                                           `wam:"114"`
+	TotalMessagesToUserCreatedAgentCnt        *int32                                           `wam:"125"`
+	TypeOfGroup                               *ChatMessageCounts_TypeOfGroup                   `wam:"85"`
+	UrlMessagesReceived                       *int32                                           `wam:"138"`
+	UrlMessagesSent                           *int32                                           `wam:"139"`
+	UserHasBusinessIntent                     *bool                                            `wam:"205"`
+	ViaContactlessChats                       *bool                                            `wam:"107"`
+	VideoCallsOffered                         *int32                                           `wam:"76"`
+	VideoMessagesReceived                     *int32                                           `wam:"172"`
+	VideoMessagesSent                         *int32                                           `wam:"173"`
+	ViewOnceMessagesOpened                    *int32                                           `wam:"18"`
+	ViewOnceMessagesReceived                  *int32                                           `wam:"17"`
+	ViewOnceMessagesSent                      *int32                                           `wam:"16"`
+	VoiceCallsOffered                         *int32                                           `wam:"77"`
 }
 
 type WebcLoginEvent struct {
 	_meta                            struct{} `wammeta:"id=1664,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcBrowserNetworkType           string   `wam:"14"`
-	WebcBrowserStorageQuotaBytes     int32    `wam:"15"`
-	WebcBrowserStorageQuotaUsedBytes int32    `wam:"16"`
-	WebcLoginT                       int64    `wam:"3"`
-	WebcPersistentLoginEnabled       bool     `wam:"17"`
-	WebcQrCodes                      int32    `wam:"1"`
-	WebcQrLoadT                      int64    `wam:"2"`
-	WebcSyncChatCount                int32    `wam:"8"`
-	WebcSyncChatSize                 int32    `wam:"10"`
-	WebcSyncChatT                    int64    `wam:"9"`
-	WebcSyncContactCount             int32    `wam:"11"`
-	WebcSyncContactSize              int32    `wam:"13"`
-	WebcSyncContactT                 int64    `wam:"12"`
-	WebcSyncMessageCount             int32    `wam:"5"`
-	WebcSyncMessageSize              int32    `wam:"7"`
-	WebcSyncMessageT                 int64    `wam:"6"`
-	WebcSyncT                        int64    `wam:"4"`
+	WebcBrowserNetworkType           *string  `wam:"14"`
+	WebcBrowserStorageQuotaBytes     *int32   `wam:"15"`
+	WebcBrowserStorageQuotaUsedBytes *int32   `wam:"16"`
+	WebcLoginT                       *int64   `wam:"3"`
+	WebcPersistentLoginEnabled       *bool    `wam:"17"`
+	WebcQrCodes                      *int32   `wam:"1"`
+	WebcQrLoadT                      *int64   `wam:"2"`
+	WebcSyncChatCount                *int32   `wam:"8"`
+	WebcSyncChatSize                 *int32   `wam:"10"`
+	WebcSyncChatT                    *int64   `wam:"9"`
+	WebcSyncContactCount             *int32   `wam:"11"`
+	WebcSyncContactSize              *int32   `wam:"13"`
+	WebcSyncContactT                 *int64   `wam:"12"`
+	WebcSyncMessageCount             *int32   `wam:"5"`
+	WebcSyncMessageSize              *int32   `wam:"7"`
+	WebcSyncMessageT                 *int64   `wam:"6"`
+	WebcSyncT                        *int64   `wam:"4"`
 }
 
 type GroupCreateCEvent struct {
@@ -6778,16 +6778,16 @@ const (
 )
 
 type PinInChatInteractionEvent struct {
-	_meta                    struct{}                                      `wammeta:"id=4436,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GroupRole                PinInChatInteraction_GroupRole                `wam:"1"`
-	GroupSize                int32                                         `wam:"2"`
-	GroupTypeClient          PinInChatInteraction_GroupTypeClient          `wam:"3"`
-	IsAGroup                 bool                                          `wam:"4"`
-	IsSelfPin                bool                                          `wam:"8"`
-	MediaType                PinInChatInteraction_MediaType                `wam:"5"`
-	PinCount                 int32                                         `wam:"6"`
-	PinInChatInteractionType PinInChatInteraction_PinInChatInteractionType `wam:"7"`
-	PinIndex                 int32                                         `wam:"9"`
+	_meta                    struct{}                                       `wammeta:"id=4436,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GroupRole                *PinInChatInteraction_GroupRole                `wam:"1"`
+	GroupSize                *int32                                         `wam:"2"`
+	GroupTypeClient          *PinInChatInteraction_GroupTypeClient          `wam:"3"`
+	IsAGroup                 *bool                                          `wam:"4"`
+	IsSelfPin                *bool                                          `wam:"8"`
+	MediaType                *PinInChatInteraction_MediaType                `wam:"5"`
+	PinCount                 *int32                                         `wam:"6"`
+	PinInChatInteractionType *PinInChatInteraction_PinInChatInteractionType `wam:"7"`
+	PinIndex                 *int32                                         `wam:"9"`
 }
 
 type AdvertiseTooltipImpression_LwiEntryPoint int32
@@ -6874,9 +6874,9 @@ const (
 )
 
 type AdvertiseTooltipImpressionEvent struct {
-	_meta         struct{}                                 `wammeta:"id=4024,channel=regular,weight=1,privateStatsIdInt=-1"`
-	LwiEntryPoint AdvertiseTooltipImpression_LwiEntryPoint `wam:"1"`
-	TooltipAction AdvertiseTooltipImpression_TooltipAction `wam:"2"`
+	_meta         struct{}                                  `wammeta:"id=4024,channel=regular,weight=1,privateStatsIdInt=-1"`
+	LwiEntryPoint *AdvertiseTooltipImpression_LwiEntryPoint `wam:"1"`
+	TooltipAction *AdvertiseTooltipImpression_TooltipAction `wam:"2"`
 }
 
 type MdBadDeviceSentMessage_DsmError int32
@@ -6999,14 +6999,14 @@ const (
 )
 
 type MdBadDeviceSentMessageEvent struct {
-	_meta       struct{}                           `wammeta:"id=2176,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DsmError    MdBadDeviceSentMessage_DsmError    `wam:"2"`
-	EditType    MdBadDeviceSentMessage_EditType    `wam:"3"`
-	IsLid       bool                               `wam:"4"`
-	MediaType   MdBadDeviceSentMessage_MediaType   `wam:"5"`
-	MessageType MdBadDeviceSentMessage_MessageType `wam:"6"`
-	PeerType    MdBadDeviceSentMessage_PeerType    `wam:"1"`
-	RevokeType  MdBadDeviceSentMessage_RevokeType  `wam:"7"`
+	_meta       struct{}                            `wammeta:"id=2176,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DsmError    *MdBadDeviceSentMessage_DsmError    `wam:"2"`
+	EditType    *MdBadDeviceSentMessage_EditType    `wam:"3"`
+	IsLid       *bool                               `wam:"4"`
+	MediaType   *MdBadDeviceSentMessage_MediaType   `wam:"5"`
+	MessageType *MdBadDeviceSentMessage_MessageType `wam:"6"`
+	PeerType    *MdBadDeviceSentMessage_PeerType    `wam:"1"`
+	RevokeType  *MdBadDeviceSentMessage_RevokeType  `wam:"7"`
 }
 
 type InvalidMacIncomingMutation_Collection int32
@@ -7041,16 +7041,16 @@ const (
 )
 
 type InvalidMacIncomingMutationEvent struct {
-	_meta                 struct{}                                         `wammeta:"id=6072,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Collection            InvalidMacIncomingMutation_Collection            `wam:"1"`
-	DoesIndexExistLocally bool                                             `wam:"2"`
-	IsSenderPrimary       bool                                             `wam:"3"`
-	MutationActionName    string                                           `wam:"4"`
-	MutationIndexMac      string                                           `wam:"5"`
-	MutationOperationType InvalidMacIncomingMutation_MutationOperationType `wam:"6"`
-	PatchSenderPlatform   InvalidMacIncomingMutation_PatchSenderPlatform   `wam:"7"`
-	PatchVersionNum       int32                                            `wam:"8"`
-	SenderDeviceId        int32                                            `wam:"9"`
+	_meta                 struct{}                                          `wammeta:"id=6072,channel=regular,weight=1,privateStatsIdInt=-1"`
+	Collection            *InvalidMacIncomingMutation_Collection            `wam:"1"`
+	DoesIndexExistLocally *bool                                             `wam:"2"`
+	IsSenderPrimary       *bool                                             `wam:"3"`
+	MutationActionName    *string                                           `wam:"4"`
+	MutationIndexMac      *string                                           `wam:"5"`
+	MutationOperationType *InvalidMacIncomingMutation_MutationOperationType `wam:"6"`
+	PatchSenderPlatform   *InvalidMacIncomingMutation_PatchSenderPlatform   `wam:"7"`
+	PatchVersionNum       *int32                                            `wam:"8"`
+	SenderDeviceId        *int32                                            `wam:"9"`
 }
 
 type NotificationSetting_GroupSoundTone int32
@@ -7090,30 +7090,30 @@ const (
 )
 
 type NotificationSettingEvent struct {
-	_meta                       struct{}                                        `wammeta:"id=3684,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GroupReactionNotification   bool                                            `wam:"1"`
-	GroupShowNotification       bool                                            `wam:"2"`
-	GroupSoundTone              NotificationSetting_GroupSoundTone              `wam:"3"`
-	InAppNotificationAlertStyle NotificationSetting_InAppNotificationAlertStyle `wam:"4"`
-	InAppNotificationSound      bool                                            `wam:"5"`
-	InAppNotificationVibrate    bool                                            `wam:"6"`
-	MessageReactionNotification bool                                            `wam:"7"`
-	MessageShowNotification     bool                                            `wam:"8"`
-	MessageSoundTone            NotificationSetting_MessageSoundTone            `wam:"9"`
-	OfflineNotification         bool                                            `wam:"11"`
-	ShowPreview                 bool                                            `wam:"10"`
-	StatusNotificationPriority  bool                                            `wam:"14"`
-	StatusNotificationVibration bool                                            `wam:"15"`
-	StatusReactionNotification  bool                                            `wam:"16"`
-	StatusReminderNotification  bool                                            `wam:"12"`
-	StatusShowNotification      bool                                            `wam:"18"`
-	StatusSoundTone             NotificationSetting_StatusSoundTone             `wam:"17"`
-	UnreadBadgeSetting          NotificationSetting_UnreadBadgeSetting          `wam:"13"`
+	_meta                       struct{}                                         `wammeta:"id=3684,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GroupReactionNotification   *bool                                            `wam:"1"`
+	GroupShowNotification       *bool                                            `wam:"2"`
+	GroupSoundTone              *NotificationSetting_GroupSoundTone              `wam:"3"`
+	InAppNotificationAlertStyle *NotificationSetting_InAppNotificationAlertStyle `wam:"4"`
+	InAppNotificationSound      *bool                                            `wam:"5"`
+	InAppNotificationVibrate    *bool                                            `wam:"6"`
+	MessageReactionNotification *bool                                            `wam:"7"`
+	MessageShowNotification     *bool                                            `wam:"8"`
+	MessageSoundTone            *NotificationSetting_MessageSoundTone            `wam:"9"`
+	OfflineNotification         *bool                                            `wam:"11"`
+	ShowPreview                 *bool                                            `wam:"10"`
+	StatusNotificationPriority  *bool                                            `wam:"14"`
+	StatusNotificationVibration *bool                                            `wam:"15"`
+	StatusReactionNotification  *bool                                            `wam:"16"`
+	StatusReminderNotification  *bool                                            `wam:"12"`
+	StatusShowNotification      *bool                                            `wam:"18"`
+	StatusSoundTone             *NotificationSetting_StatusSoundTone             `wam:"17"`
+	UnreadBadgeSetting          *NotificationSetting_UnreadBadgeSetting          `wam:"13"`
 }
 
 type WebHdMediaAwarenessInteractionEvent struct {
 	_meta           struct{} `wammeta:"id=5426,channel=regular,weight=1,privateStatsIdInt=-1"`
-	HdMediaSelected bool     `wam:"1"`
+	HdMediaSelected *bool    `wam:"1"`
 }
 
 type ManageAdsEntryPointImpression_ManageAdsEntryPoint int32
@@ -7126,26 +7126,26 @@ const (
 )
 
 type ManageAdsEntryPointImpressionEvent struct {
-	_meta               struct{}                                          `wammeta:"id=4124,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ManageAdsEntryPoint ManageAdsEntryPointImpression_ManageAdsEntryPoint `wam:"1"`
+	_meta               struct{}                                           `wammeta:"id=4124,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ManageAdsEntryPoint *ManageAdsEntryPointImpression_ManageAdsEntryPoint `wam:"1"`
 }
 
 type WebcMessageProcessingPerfEvent struct {
 	_meta                  struct{} `wammeta:"id=5790,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DbStoringT             int32    `wam:"7"`
-	DecryptionT            int32    `wam:"1"`
-	IsOffline              bool     `wam:"2"`
-	LidProcessingT         int32    `wam:"8"`
-	ParsingT               int32    `wam:"3"`
-	PostProcessingT        int32    `wam:"4"`
-	PreProcessingT         int32    `wam:"5"`
-	ProcessingT            int32    `wam:"6"`
-	ReportTokenValidationT int32    `wam:"9"`
+	DbStoringT             *int32   `wam:"7"`
+	DecryptionT            *int32   `wam:"1"`
+	IsOffline              *bool    `wam:"2"`
+	LidProcessingT         *int32   `wam:"8"`
+	ParsingT               *int32   `wam:"3"`
+	PostProcessingT        *int32   `wam:"4"`
+	PreProcessingT         *int32   `wam:"5"`
+	ProcessingT            *int32   `wam:"6"`
+	ReportTokenValidationT *int32   `wam:"9"`
 }
 
 type AdvMetadataCreationFailureEvent struct {
 	_meta           struct{} `wammeta:"id=3048,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AdvMetadataIsMe bool     `wam:"1"`
+	AdvMetadataIsMe *bool    `wam:"1"`
 }
 
 type ReactionActions_MediaType int32
@@ -7243,10 +7243,10 @@ const (
 )
 
 type ReactionActionsEvent struct {
-	_meta          struct{}                       `wammeta:"id=3184,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MediaType      ReactionActions_MediaType      `wam:"3"`
-	MessageType    ReactionActions_MessageType    `wam:"1"`
-	ReactionAction ReactionActions_ReactionAction `wam:"2"`
+	_meta          struct{}                        `wammeta:"id=3184,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MediaType      *ReactionActions_MediaType      `wam:"3"`
+	MessageType    *ReactionActions_MessageType    `wam:"1"`
+	ReactionAction *ReactionActions_ReactionAction `wam:"2"`
 }
 
 type ChatAction_ChatActionChatType int32
@@ -7288,11 +7288,11 @@ const (
 )
 
 type ChatActionEvent struct {
-	_meta                  struct{}                        `wammeta:"id=2312,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatActionChatType     ChatAction_ChatActionChatType   `wam:"3"`
-	ChatActionEntryPoint   ChatAction_ChatActionEntryPoint `wam:"2"`
-	ChatActionMuteDuration int64                           `wam:"4"`
-	ChatActionType         ChatAction_ChatActionType       `wam:"1"`
+	_meta                  struct{}                         `wammeta:"id=2312,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatActionChatType     *ChatAction_ChatActionChatType   `wam:"3"`
+	ChatActionEntryPoint   *ChatAction_ChatActionEntryPoint `wam:"2"`
+	ChatActionMuteDuration *int64                           `wam:"4"`
+	ChatActionType         *ChatAction_ChatActionType       `wam:"1"`
 }
 
 type DeepLinkConversion_CallInitiator int32
@@ -7337,25 +7337,25 @@ const (
 )
 
 type DeepLinkConversionEvent struct {
-	_meta                    struct{}                                `wammeta:"id=1432,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CallInitiator            DeepLinkConversion_CallInitiator        `wam:"8"`
-	CtwaChatCreationMode     DeepLinkConversion_CtwaChatCreationMode `wam:"4"`
-	CtwaConversionType       DeepLinkConversion_CtwaConversionType   `wam:"3"`
-	CtwaSignals              string                                  `wam:"9"`
-	DeepLinkConversionData   string                                  `wam:"2"`
-	DeepLinkConversionSource string                                  `wam:"1"`
-	IsPriority               bool                                    `wam:"7"`
-	TrustBannerAction        DeepLinkConversion_TrustBannerAction    `wam:"5"`
-	TrustBannerType          string                                  `wam:"6"`
+	_meta                    struct{}                                 `wammeta:"id=1432,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CallInitiator            *DeepLinkConversion_CallInitiator        `wam:"8"`
+	CtwaChatCreationMode     *DeepLinkConversion_CtwaChatCreationMode `wam:"4"`
+	CtwaConversionType       *DeepLinkConversion_CtwaConversionType   `wam:"3"`
+	CtwaSignals              *string                                  `wam:"9"`
+	DeepLinkConversionData   *string                                  `wam:"2"`
+	DeepLinkConversionSource *string                                  `wam:"1"`
+	IsPriority               *bool                                    `wam:"7"`
+	TrustBannerAction        *DeepLinkConversion_TrustBannerAction    `wam:"5"`
+	TrustBannerType          *string                                  `wam:"6"`
 }
 
 type CommunityTabActionEvent struct {
 	_meta                           struct{} `wammeta:"id=3496,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CommunityNoActionTabViews       int32    `wam:"4"`
-	CommunityTabGroupNavigations    int32    `wam:"1"`
-	CommunityTabToHomeViews         int32    `wam:"2"`
-	CommunityTabViews               int32    `wam:"3"`
-	CommunityTabViewsViaContextMenu int32    `wam:"5"`
+	CommunityNoActionTabViews       *int32   `wam:"4"`
+	CommunityTabGroupNavigations    *int32   `wam:"1"`
+	CommunityTabToHomeViews         *int32   `wam:"2"`
+	CommunityTabViews               *int32   `wam:"3"`
+	CommunityTabViewsViaContextMenu *int32   `wam:"5"`
 }
 
 type ChatMute_ActionConducted int32
@@ -7402,14 +7402,14 @@ const (
 )
 
 type ChatMuteEvent struct {
-	_meta                      struct{}                            `wammeta:"id=2280,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionConducted            ChatMute_ActionConducted            `wam:"3"`
-	ChatMuteNotificationChoice ChatMute_ChatMuteNotificationChoice `wam:"5"`
-	MuteChatType               ChatMute_MuteChatType               `wam:"4"`
-	MuteDuration               int64                               `wam:"1"`
-	MuteEntryPoint             ChatMute_MuteEntryPoint             `wam:"6"`
-	MuteGroupSize              int32                               `wam:"2"`
-	WaOfficialAccountName      ChatMute_WaOfficialAccountName      `wam:"7"`
+	_meta                      struct{}                             `wammeta:"id=2280,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionConducted            *ChatMute_ActionConducted            `wam:"3"`
+	ChatMuteNotificationChoice *ChatMute_ChatMuteNotificationChoice `wam:"5"`
+	MuteChatType               *ChatMute_MuteChatType               `wam:"4"`
+	MuteDuration               *int64                               `wam:"1"`
+	MuteEntryPoint             *ChatMute_MuteEntryPoint             `wam:"6"`
+	MuteGroupSize              *int32                               `wam:"2"`
+	WaOfficialAccountName      *ChatMute_WaOfficialAccountName      `wam:"7"`
 }
 
 type BotBizJourney_BotBizActionType int32
@@ -7456,12 +7456,12 @@ const (
 )
 
 type BotBizJourneyEvent struct {
-	_meta            struct{}                       `wammeta:"id=4868,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppSessionId     string                         `wam:"1"`
-	BotBizActionType BotBizJourney_BotBizActionType `wam:"5"`
-	BotBizEntryPoint BotBizJourney_BotBizEntryPoint `wam:"6"`
-	BotBizType       BotBizJourney_BotBizType       `wam:"7"`
-	BotType          BotBizJourney_BotType          `wam:"4"`
+	_meta            struct{}                        `wammeta:"id=4868,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppSessionId     *string                         `wam:"1"`
+	BotBizActionType *BotBizJourney_BotBizActionType `wam:"5"`
+	BotBizEntryPoint *BotBizJourney_BotBizEntryPoint `wam:"6"`
+	BotBizType       *BotBizJourney_BotBizType       `wam:"7"`
+	BotType          *BotBizJourney_BotType          `wam:"4"`
 }
 
 type MdSyncdMutation_MutationBundle int32
@@ -7496,22 +7496,22 @@ const (
 )
 
 type MdSyncdMutationEvent struct {
-	_meta               struct{}                          `wammeta:"id=5970,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppSessionId        string                            `wam:"1"`
-	CompanionSessionIds string                            `wam:"2"`
-	ContentLength       int32                             `wam:"3"`
-	IsInBootstrap       bool                              `wam:"4"`
-	IsUsingLid          bool                              `wam:"5"`
-	MutationBundle      MdSyncdMutation_MutationBundle    `wam:"6"`
-	MutationDirection   MdSyncdMutation_MutationDirection `wam:"7"`
-	MutationMac         string                            `wam:"8"`
-	MutationName        string                            `wam:"9"`
-	MutationOperation   MdSyncdMutation_MutationOperation `wam:"10"`
-	PatchMac            string                            `wam:"15"`
-	SeqNumber           int32                             `wam:"11"`
-	SyncdCollection     MdSyncdMutation_SyncdCollection   `wam:"12"`
-	SyncdKeyhash        string                            `wam:"13"`
-	SyncdKeyid          string                            `wam:"14"`
+	_meta               struct{}                           `wammeta:"id=5970,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppSessionId        *string                            `wam:"1"`
+	CompanionSessionIds *string                            `wam:"2"`
+	ContentLength       *int32                             `wam:"3"`
+	IsInBootstrap       *bool                              `wam:"4"`
+	IsUsingLid          *bool                              `wam:"5"`
+	MutationBundle      *MdSyncdMutation_MutationBundle    `wam:"6"`
+	MutationDirection   *MdSyncdMutation_MutationDirection `wam:"7"`
+	MutationMac         *string                            `wam:"8"`
+	MutationName        *string                            `wam:"9"`
+	MutationOperation   *MdSyncdMutation_MutationOperation `wam:"10"`
+	PatchMac            *string                            `wam:"15"`
+	SeqNumber           *int32                             `wam:"11"`
+	SyncdCollection     *MdSyncdMutation_SyncdCollection   `wam:"12"`
+	SyncdKeyhash        *string                            `wam:"13"`
+	SyncdKeyid          *string                            `wam:"14"`
 }
 
 type LabelEvent_LabelOperation int32
@@ -7555,20 +7555,20 @@ const (
 )
 
 type LabelEventEvent struct {
-	_meta                      struct{}                        `wammeta:"id=1422,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CustomLabelTitle           string                          `wam:"9"`
-	EntryPointConversionSource string                          `wam:"10"`
-	ItemsLabeledCount          int32                           `wam:"5"`
-	LabelCount                 int32                           `wam:"4"`
-	LabelOperation             LabelEvent_LabelOperation       `wam:"2"`
-	LabelOperationEntryPoint   string                          `wam:"6"`
-	LabelTarget                LabelEvent_LabelTarget          `wam:"1"`
-	LastMessageDirection       LabelEvent_LastMessageDirection `wam:"14"`
-	MessageDepth               int32                           `wam:"15"`
-	PredefinedLabelNumber      int32                           `wam:"3"`
-	ThreadCreationDate         string                          `wam:"11"`
-	ThreadId                   string                          `wam:"12"`
-	ThreadIdHmac               string                          `wam:"13"`
+	_meta                      struct{}                         `wammeta:"id=1422,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CustomLabelTitle           *string                          `wam:"9"`
+	EntryPointConversionSource *string                          `wam:"10"`
+	ItemsLabeledCount          *int32                           `wam:"5"`
+	LabelCount                 *int32                           `wam:"4"`
+	LabelOperation             *LabelEvent_LabelOperation       `wam:"2"`
+	LabelOperationEntryPoint   *string                          `wam:"6"`
+	LabelTarget                *LabelEvent_LabelTarget          `wam:"1"`
+	LastMessageDirection       *LabelEvent_LastMessageDirection `wam:"14"`
+	MessageDepth               *int32                           `wam:"15"`
+	PredefinedLabelNumber      *int32                           `wam:"3"`
+	ThreadCreationDate         *string                          `wam:"11"`
+	ThreadId                   *string                          `wam:"12"`
+	ThreadIdHmac               *string                          `wam:"13"`
 }
 
 type InlineVideoPlaybackClosed_InlineVideoCtaClick int32
@@ -7615,20 +7615,20 @@ const (
 )
 
 type InlineVideoPlaybackClosedEvent struct {
-	_meta                             struct{}                                      `wammeta:"id=2032,channel=regular,weight=1,privateStatsIdInt=-1"`
-	InlineVideoCancelBeforePlayStateT int64                                         `wam:"7"`
-	InlineVideoComplete               bool                                          `wam:"8"`
-	InlineVideoCompletionRate         int32                                         `wam:"9"`
-	InlineVideoCtaClick               InlineVideoPlaybackClosed_InlineVideoCtaClick `wam:"10"`
-	InlineVideoDurationT              int64                                         `wam:"2"`
-	InlineVideoError                  string                                        `wam:"11"`
-	InlineVideoHasRcat                bool                                          `wam:"13"`
-	InlineVideoPlayStartT             int64                                         `wam:"6"`
-	InlineVideoPlayed                 bool                                          `wam:"3"`
-	InlineVideoStallT                 int64                                         `wam:"4"`
-	InlineVideoType                   InlineVideoPlaybackClosed_InlineVideoType     `wam:"1"`
-	InlineVideoWatchT                 int64                                         `wam:"5"`
-	MessageType                       InlineVideoPlaybackClosed_MessageType         `wam:"12"`
+	_meta                             struct{}                                       `wammeta:"id=2032,channel=regular,weight=1,privateStatsIdInt=-1"`
+	InlineVideoCancelBeforePlayStateT *int64                                         `wam:"7"`
+	InlineVideoComplete               *bool                                          `wam:"8"`
+	InlineVideoCompletionRate         *int32                                         `wam:"9"`
+	InlineVideoCtaClick               *InlineVideoPlaybackClosed_InlineVideoCtaClick `wam:"10"`
+	InlineVideoDurationT              *int64                                         `wam:"2"`
+	InlineVideoError                  *string                                        `wam:"11"`
+	InlineVideoHasRcat                *bool                                          `wam:"13"`
+	InlineVideoPlayStartT             *int64                                         `wam:"6"`
+	InlineVideoPlayed                 *bool                                          `wam:"3"`
+	InlineVideoStallT                 *int64                                         `wam:"4"`
+	InlineVideoType                   *InlineVideoPlaybackClosed_InlineVideoType     `wam:"1"`
+	InlineVideoWatchT                 *int64                                         `wam:"5"`
+	MessageType                       *InlineVideoPlaybackClosed_MessageType         `wam:"12"`
 }
 
 type PttPlayback_PttPlaybackSpeed int32
@@ -7672,25 +7672,25 @@ const (
 )
 
 type PttPlaybackEvent struct {
-	_meta                 struct{}                     `wammeta:"id=2044,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PttDuration           int64                        `wam:"12"`
-	PttMainThreadBlock    bool                         `wam:"7"`
-	PttMiniPlayerClick    int32                        `wam:"15"`
-	PttMiniPlayerClose    bool                         `wam:"16"`
-	PttMiniPlayerPauseCnt int32                        `wam:"17"`
-	PttPlayRequestT       int64                        `wam:"1"`
-	PttPlaybackFailed     bool                         `wam:"8"`
-	PttPlaybackOverallT   int64                        `wam:"4"`
-	PttPlaybackSpeed      PttPlayback_PttPlaybackSpeed `wam:"10"`
-	PttPlaybackSpeedCnt   int32                        `wam:"11"`
-	PttPlayedOutOfChat    bool                         `wam:"18"`
-	PttPlayedPct          float64                      `wam:"14"`
-	PttPlayer             PttPlayback_PttPlayer        `wam:"9"`
-	PttPlayerInitT        int64                        `wam:"2"`
-	PttPlayerPlayT        int64                        `wam:"3"`
-	PttSeekCnt            int32                        `wam:"13"`
-	PttTrigger            PttPlayback_PttTrigger       `wam:"5"`
-	PttType               PttPlayback_PttType          `wam:"6"`
+	_meta                 struct{}                      `wammeta:"id=2044,channel=regular,weight=1,privateStatsIdInt=-1"`
+	PttDuration           *int64                        `wam:"12"`
+	PttMainThreadBlock    *bool                         `wam:"7"`
+	PttMiniPlayerClick    *int32                        `wam:"15"`
+	PttMiniPlayerClose    *bool                         `wam:"16"`
+	PttMiniPlayerPauseCnt *int32                        `wam:"17"`
+	PttPlayRequestT       *int64                        `wam:"1"`
+	PttPlaybackFailed     *bool                         `wam:"8"`
+	PttPlaybackOverallT   *int64                        `wam:"4"`
+	PttPlaybackSpeed      *PttPlayback_PttPlaybackSpeed `wam:"10"`
+	PttPlaybackSpeedCnt   *int32                        `wam:"11"`
+	PttPlayedOutOfChat    *bool                         `wam:"18"`
+	PttPlayedPct          *float64                      `wam:"14"`
+	PttPlayer             *PttPlayback_PttPlayer        `wam:"9"`
+	PttPlayerInitT        *int64                        `wam:"2"`
+	PttPlayerPlayT        *int64                        `wam:"3"`
+	PttSeekCnt            *int32                        `wam:"13"`
+	PttTrigger            *PttPlayback_PttTrigger       `wam:"5"`
+	PttType               *PttPlayback_PttType          `wam:"6"`
 }
 
 type ReceiptStanzaReceive_MediaType int32
@@ -7802,23 +7802,23 @@ const (
 )
 
 type ReceiptStanzaReceiveEvent struct {
-	_meta                       struct{}                                `wammeta:"id=2496,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DbReadsCount                int32                                   `wam:"12"`
-	DbWritesCount               int32                                   `wam:"13"`
-	MediaType                   ReceiptStanzaReceive_MediaType          `wam:"2"`
-	MessageType                 ReceiptStanzaReceive_MessageType        `wam:"10"`
-	ProcessingDeferred          bool                                    `wam:"14"`
-	ReceiptAggregation          ReceiptStanzaReceive_ReceiptAggregation `wam:"11"`
-	ReceiptStanzaDuration       int64                                   `wam:"1"`
-	ReceiptStanzaHasOrphaned    bool                                    `wam:"6"`
-	ReceiptStanzaOfflineCount   int32                                   `wam:"3"`
-	ReceiptStanzaProcessedCount int32                                   `wam:"8"`
-	ReceiptStanzaRetryVer       int32                                   `wam:"5"`
-	ReceiptStanzaStage          ReceiptStanzaReceive_ReceiptStanzaStage `wam:"9"`
-	ReceiptStanzaTotalCount     int32                                   `wam:"7"`
-	ReceiptStanzaType           string                                  `wam:"4"`
-	StanzaBatchSize             int32                                   `wam:"15"`
-	StanzaProcessCount          int32                                   `wam:"16"`
+	_meta                       struct{}                                 `wammeta:"id=2496,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DbReadsCount                *int32                                   `wam:"12"`
+	DbWritesCount               *int32                                   `wam:"13"`
+	MediaType                   *ReceiptStanzaReceive_MediaType          `wam:"2"`
+	MessageType                 *ReceiptStanzaReceive_MessageType        `wam:"10"`
+	ProcessingDeferred          *bool                                    `wam:"14"`
+	ReceiptAggregation          *ReceiptStanzaReceive_ReceiptAggregation `wam:"11"`
+	ReceiptStanzaDuration       *int64                                   `wam:"1"`
+	ReceiptStanzaHasOrphaned    *bool                                    `wam:"6"`
+	ReceiptStanzaOfflineCount   *int32                                   `wam:"3"`
+	ReceiptStanzaProcessedCount *int32                                   `wam:"8"`
+	ReceiptStanzaRetryVer       *int32                                   `wam:"5"`
+	ReceiptStanzaStage          *ReceiptStanzaReceive_ReceiptStanzaStage `wam:"9"`
+	ReceiptStanzaTotalCount     *int32                                   `wam:"7"`
+	ReceiptStanzaType           *string                                  `wam:"4"`
+	StanzaBatchSize             *int32                                   `wam:"15"`
+	StanzaProcessCount          *int32                                   `wam:"16"`
 }
 
 type MessageDeleteActions_DeleteActionType int32
@@ -7903,12 +7903,12 @@ const (
 )
 
 type MessageDeleteActionsEvent struct {
-	_meta            struct{}                              `wammeta:"id=3626,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DeleteActionType MessageDeleteActions_DeleteActionType `wam:"1"`
-	IsAGroup         bool                                  `wam:"2"`
-	MediaType        MessageDeleteActions_MediaType        `wam:"6"`
-	MessagesDeleted  int32                                 `wam:"3"`
-	ThreadId         string                                `wam:"4"`
+	_meta            struct{}                               `wammeta:"id=3626,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DeleteActionType *MessageDeleteActions_DeleteActionType `wam:"1"`
+	IsAGroup         *bool                                  `wam:"2"`
+	MediaType        *MessageDeleteActions_MediaType        `wam:"6"`
+	MessagesDeleted  *int32                                 `wam:"3"`
+	ThreadId         *string                                `wam:"4"`
 }
 
 type WebcMenu_WebcMenuAction int32
@@ -7950,20 +7950,20 @@ const (
 )
 
 type WebcMenuEvent struct {
-	_meta             struct{}                   `wammeta:"id=2504,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcMenuAction    WebcMenu_WebcMenuAction    `wam:"2"`
-	WebcMenuItemLabel WebcMenu_WebcMenuItemLabel `wam:"3"`
+	_meta             struct{}                    `wammeta:"id=2504,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcMenuAction    *WebcMenu_WebcMenuAction    `wam:"2"`
+	WebcMenuItemLabel *WebcMenu_WebcMenuItemLabel `wam:"3"`
 }
 
 type WebcChatOpenEvent struct {
 	_meta                         struct{} `wammeta:"id=864,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcChatOpenBeforePaintT      int64    `wam:"7"`
-	WebcChatOpenPaintedT          int64    `wam:"6"`
-	WebcChatOpenT                 int64    `wam:"2"`
-	WebcFinalRenderedMessageCount int32    `wam:"5"`
-	WebcRenderedMessageCount      int32    `wam:"4"`
-	WebcUnreadCount               float64  `wam:"1"`
-	WebcWindowHeightFloat         float64  `wam:"8"`
+	WebcChatOpenBeforePaintT      *int64   `wam:"7"`
+	WebcChatOpenPaintedT          *int64   `wam:"6"`
+	WebcChatOpenT                 *int64   `wam:"2"`
+	WebcFinalRenderedMessageCount *int32   `wam:"5"`
+	WebcRenderedMessageCount      *int32   `wam:"4"`
+	WebcUnreadCount               *float64 `wam:"1"`
+	WebcWindowHeightFloat         *float64 `wam:"8"`
 }
 
 type LockFolderUnlock_LandingSurface int32
@@ -7990,10 +7990,10 @@ const (
 )
 
 type LockFolderUnlockEvent struct {
-	_meta            struct{}                          `wammeta:"id=4218,channel=regular,weight=1,privateStatsIdInt=-1"`
-	LandingSurface   LockFolderUnlock_LandingSurface   `wam:"1"`
-	TotalChatCount   int32                             `wam:"2"`
-	UnlockEntryPoint LockFolderUnlock_UnlockEntryPoint `wam:"3"`
+	_meta            struct{}                           `wammeta:"id=4218,channel=regular,weight=1,privateStatsIdInt=-1"`
+	LandingSurface   *LockFolderUnlock_LandingSurface   `wam:"1"`
+	TotalChatCount   *int32                             `wam:"2"`
+	UnlockEntryPoint *LockFolderUnlock_UnlockEntryPoint `wam:"3"`
 }
 
 type DeepLinkMsgSent_DeepLinkAction int32
@@ -8003,9 +8003,9 @@ const (
 )
 
 type DeepLinkMsgSentEvent struct {
-	_meta             struct{}                       `wammeta:"id=3198,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DeepLinkAction    DeepLinkMsgSent_DeepLinkAction `wam:"1"`
-	DeepLinkSessionId string                         `wam:"2"`
+	_meta             struct{}                        `wammeta:"id=3198,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DeepLinkAction    *DeepLinkMsgSent_DeepLinkAction `wam:"1"`
+	DeepLinkSessionId *string                         `wam:"2"`
 }
 
 type MetaVerifiedInteraction_BusinessOwnerPlatform int32
@@ -8080,13 +8080,13 @@ const (
 )
 
 type MetaVerifiedInteractionEvent struct {
-	_meta                            struct{}                                                 `wammeta:"id=4870,channel=private,weight=1,privateStatsIdInt=113760892"`
-	BusinessOwnerJid                 string                                                   `wam:"1"`
-	BusinessOwnerPlatform            MetaVerifiedInteraction_BusinessOwnerPlatform            `wam:"2"`
-	MetaVerifiedInteractionAction    MetaVerifiedInteraction_MetaVerifiedInteractionAction    `wam:"3"`
-	MetaVerifiedInteractionAssetType MetaVerifiedInteraction_MetaVerifiedInteractionAssetType `wam:"4"`
-	MetaVerifiedInteractionReferral  MetaVerifiedInteraction_MetaVerifiedInteractionReferral  `wam:"5"`
-	MetaVerifiedInteractionSurface   MetaVerifiedInteraction_MetaVerifiedInteractionSurface   `wam:"6"`
+	_meta                            struct{}                                                  `wammeta:"id=4870,channel=private,weight=1,privateStatsIdInt=113760892"`
+	BusinessOwnerJid                 *string                                                   `wam:"1"`
+	BusinessOwnerPlatform            *MetaVerifiedInteraction_BusinessOwnerPlatform            `wam:"2"`
+	MetaVerifiedInteractionAction    *MetaVerifiedInteraction_MetaVerifiedInteractionAction    `wam:"3"`
+	MetaVerifiedInteractionAssetType *MetaVerifiedInteraction_MetaVerifiedInteractionAssetType `wam:"4"`
+	MetaVerifiedInteractionReferral  *MetaVerifiedInteraction_MetaVerifiedInteractionReferral  `wam:"5"`
+	MetaVerifiedInteractionSurface   *MetaVerifiedInteraction_MetaVerifiedInteractionSurface   `wam:"6"`
 }
 
 type BizCatalogView_BizPlatform int32
@@ -8200,38 +8200,38 @@ const (
 )
 
 type BizCatalogViewEvent struct {
-	_meta                           struct{}                                       `wammeta:"id=3006,channel=private,weight=1,privateStatsIdInt=0"`
-	AdId                            string                                         `wam:"26"`
-	BizPlatform                     BizCatalogView_BizPlatform                     `wam:"14"`
-	CartToggle                      bool                                           `wam:"13"`
-	CatalogCategoryId               string                                         `wam:"19"`
-	CatalogEntryPoint               BizCatalogView_CatalogEntryPoint               `wam:"2"`
-	CatalogEventSampled             bool                                           `wam:"11"`
-	CatalogOwnerJid                 string                                         `wam:"10"`
-	CatalogReportReasonCode         string                                         `wam:"8"`
-	CatalogSessionId                string                                         `wam:"3"`
-	CatalogViewAction               BizCatalogView_CatalogViewAction               `wam:"1"`
-	CollectionId                    string                                         `wam:"15"`
-	CollectionIndex                 string                                         `wam:"16"`
-	DeepLinkOpenFrom                BizCatalogView_DeepLinkOpenFrom                `wam:"12"`
-	EntryPointConversationInitiated BizCatalogView_EntryPointConversationInitiated `wam:"22"`
-	EntryPointConversionApp         string                                         `wam:"20"`
-	EntryPointConversionSource      string                                         `wam:"21"`
-	HasVariants                     bool                                           `wam:"23"`
-	IsNewProductAddedToCart         bool                                           `wam:"7"`
-	IsOrderMsgAttached              bool                                           `wam:"5"`
-	OrderId                         string                                         `wam:"4"`
-	ProductId                       string                                         `wam:"9"`
-	ProductIndex                    string                                         `wam:"17"`
-	Quantity                        int32                                          `wam:"6"`
-	SequenceNumber                  int32                                          `wam:"18"`
-	VariantTypes                    string                                         `wam:"24"`
-	VariantsExtraAttributes         string                                         `wam:"25"`
+	_meta                           struct{}                                        `wammeta:"id=3006,channel=private,weight=1,privateStatsIdInt=0"`
+	AdId                            *string                                         `wam:"26"`
+	BizPlatform                     *BizCatalogView_BizPlatform                     `wam:"14"`
+	CartToggle                      *bool                                           `wam:"13"`
+	CatalogCategoryId               *string                                         `wam:"19"`
+	CatalogEntryPoint               *BizCatalogView_CatalogEntryPoint               `wam:"2"`
+	CatalogEventSampled             *bool                                           `wam:"11"`
+	CatalogOwnerJid                 *string                                         `wam:"10"`
+	CatalogReportReasonCode         *string                                         `wam:"8"`
+	CatalogSessionId                *string                                         `wam:"3"`
+	CatalogViewAction               *BizCatalogView_CatalogViewAction               `wam:"1"`
+	CollectionId                    *string                                         `wam:"15"`
+	CollectionIndex                 *string                                         `wam:"16"`
+	DeepLinkOpenFrom                *BizCatalogView_DeepLinkOpenFrom                `wam:"12"`
+	EntryPointConversationInitiated *BizCatalogView_EntryPointConversationInitiated `wam:"22"`
+	EntryPointConversionApp         *string                                         `wam:"20"`
+	EntryPointConversionSource      *string                                         `wam:"21"`
+	HasVariants                     *bool                                           `wam:"23"`
+	IsNewProductAddedToCart         *bool                                           `wam:"7"`
+	IsOrderMsgAttached              *bool                                           `wam:"5"`
+	OrderId                         *string                                         `wam:"4"`
+	ProductId                       *string                                         `wam:"9"`
+	ProductIndex                    *string                                         `wam:"17"`
+	Quantity                        *int32                                          `wam:"6"`
+	SequenceNumber                  *int32                                          `wam:"18"`
+	VariantTypes                    *string                                         `wam:"24"`
+	VariantsExtraAttributes         *string                                         `wam:"25"`
 }
 
 type MdAppStateOfflineNotificationsEvent struct {
 	_meta          struct{} `wammeta:"id=2602,channel=regular,weight=1,privateStatsIdInt=-1"`
-	RedundantCount int32    `wam:"1"`
+	RedundantCount *int32   `wam:"1"`
 }
 
 type MdBootstrapHistoryDataStartDownloading_MdBootstrapHistoryPayloadType int32
@@ -8254,37 +8254,37 @@ const (
 )
 
 type MdBootstrapHistoryDataStartDownloadingEvent struct {
-	_meta                         struct{}                                                             `wammeta:"id=4650,channel=regular,weight=1,privateStatsIdInt=-1"`
-	HistorySyncChunkOrder         int32                                                                `wam:"1"`
-	HistorySyncStageProgress      int32                                                                `wam:"2"`
-	MdBootstrapHistoryPayloadType MdBootstrapHistoryDataStartDownloading_MdBootstrapHistoryPayloadType `wam:"3"`
-	MdBootstrapPayloadSize        int32                                                                `wam:"4"`
-	MdBootstrapPayloadType        MdBootstrapHistoryDataStartDownloading_MdBootstrapPayloadType        `wam:"5"`
-	MdBootstrapStepDuration       int32                                                                `wam:"6"`
-	MdSessionId                   string                                                               `wam:"7"`
-	MdTimestamp                   int32                                                                `wam:"8"`
+	_meta                         struct{}                                                              `wammeta:"id=4650,channel=regular,weight=1,privateStatsIdInt=-1"`
+	HistorySyncChunkOrder         *int32                                                                `wam:"1"`
+	HistorySyncStageProgress      *int32                                                                `wam:"2"`
+	MdBootstrapHistoryPayloadType *MdBootstrapHistoryDataStartDownloading_MdBootstrapHistoryPayloadType `wam:"3"`
+	MdBootstrapPayloadSize        *int32                                                                `wam:"4"`
+	MdBootstrapPayloadType        *MdBootstrapHistoryDataStartDownloading_MdBootstrapPayloadType        `wam:"5"`
+	MdBootstrapStepDuration       *int32                                                                `wam:"6"`
+	MdSessionId                   *string                                                               `wam:"7"`
+	MdTimestamp                   *int32                                                                `wam:"8"`
 }
 
 type WebcStatusSyncEvent struct {
 	_meta                     struct{} `wammeta:"id=1878,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcStatusMutedItemCount  int32    `wam:"4"`
-	WebcStatusMutedRowCount   int32    `wam:"7"`
-	WebcStatusRecentItemCount int32    `wam:"2"`
-	WebcStatusRecentRowCount  int32    `wam:"5"`
-	WebcStatusSyncT           int64    `wam:"1"`
-	WebcStatusViewedItemCount int32    `wam:"3"`
-	WebcStatusViewedRowCount  int32    `wam:"6"`
+	WebcStatusMutedItemCount  *int32   `wam:"4"`
+	WebcStatusMutedRowCount   *int32   `wam:"7"`
+	WebcStatusRecentItemCount *int32   `wam:"2"`
+	WebcStatusRecentRowCount  *int32   `wam:"5"`
+	WebcStatusSyncT           *int64   `wam:"1"`
+	WebcStatusViewedItemCount *int32   `wam:"3"`
+	WebcStatusViewedRowCount  *int32   `wam:"6"`
 }
 
 type WebcMediaEditorSendEvent struct {
 	_meta             struct{} `wammeta:"id=2890,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BlurImageCount    int32    `wam:"7"`
-	EditedImageCount  int32    `wam:"2"`
-	EmojiLayerCount   int32    `wam:"5"`
-	ImageCount        int32    `wam:"1"`
-	PaintedImageCount int32    `wam:"3"`
-	StickerLayerCount int32    `wam:"6"`
-	TextLayerCount    int32    `wam:"4"`
+	BlurImageCount    *int32   `wam:"7"`
+	EditedImageCount  *int32   `wam:"2"`
+	EmojiLayerCount   *int32   `wam:"5"`
+	ImageCount        *int32   `wam:"1"`
+	PaintedImageCount *int32   `wam:"3"`
+	StickerLayerCount *int32   `wam:"6"`
+	TextLayerCount    *int32   `wam:"4"`
 }
 
 type StatusItemView_ExternalSourceDomainType int32
@@ -8501,46 +8501,46 @@ const (
 )
 
 type StatusItemViewEvent struct {
-	_meta                     struct{}                                `wammeta:"id=1658,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ExternalSourceDomainType  StatusItemView_ExternalSourceDomainType `wam:"34"`
-	IsAlreadyDownloaded       bool                                    `wam:"35"`
-	IsForwardable             bool                                    `wam:"44"`
-	IsForwarded               bool                                    `wam:"45"`
-	IsPosterBiz               bool                                    `wam:"23"`
-	IsPosterInAddressBook     bool                                    `wam:"25"`
-	IsResharable              bool                                    `wam:"37"`
-	IsReshare                 bool                                    `wam:"40"`
-	IsViewedInLandscape       bool                                    `wam:"29"`
-	MediaType                 StatusItemView_MediaType                `wam:"4"`
-	MusicBlocked              bool                                    `wam:"32"`
-	PairedMediaType           StatusItemView_PairedMediaType          `wam:"38"`
-	PsaCampaignId             string                                  `wam:"17"`
-	PsaCampaignItemIndex      int32                                   `wam:"18"`
-	PsaLinkAvailable          bool                                    `wam:"19"`
-	PsaLinkClick              bool                                    `wam:"22"`
-	PsaLinkLoadTime           int64                                   `wam:"21"`
-	PsaLinkOpenResult         StatusItemView_PsaLinkOpenResult        `wam:"20"`
-	ReshareSource             StatusItemView_ReshareSource            `wam:"41"`
-	StatusContainsMusic       bool                                    `wam:"30"`
-	StatusItem3sViewCount     int32                                   `wam:"31"`
-	StatusItemImpressionCount int32                                   `wam:"14"`
-	StatusItemIndex           int32                                   `wam:"16"`
-	StatusItemLength          int64                                   `wam:"7"`
-	StatusItemLoadTime        int64                                   `wam:"5"`
-	StatusItemReplied         int32                                   `wam:"8"`
-	StatusItemUnread          bool                                    `wam:"9"`
-	StatusItemViewCount       int32                                   `wam:"10"`
-	StatusItemViewResult      StatusItemView_StatusItemViewResult     `wam:"3"`
-	StatusItemViewTime        int64                                   `wam:"6"`
-	StatusMediaHeight         int32                                   `wam:"42"`
-	StatusMediaWidth          int32                                   `wam:"43"`
-	StatusPairedMediaQuality  StatusItemView_StatusPairedMediaQuality `wam:"39"`
-	StatusRowIndex            int32                                   `wam:"2"`
-	StatusRowSection          StatusItemView_StatusRowSection         `wam:"11"`
-	StatusType                StatusItemView_StatusType               `wam:"36"`
-	StatusViewerSessionId     int32                                   `wam:"1"`
-	UrlStatusClicked          StatusItemView_UrlStatusClicked         `wam:"26"`
-	UrlStatusType             StatusItemView_UrlStatusType            `wam:"27"`
+	_meta                     struct{}                                 `wammeta:"id=1658,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ExternalSourceDomainType  *StatusItemView_ExternalSourceDomainType `wam:"34"`
+	IsAlreadyDownloaded       *bool                                    `wam:"35"`
+	IsForwardable             *bool                                    `wam:"44"`
+	IsForwarded               *bool                                    `wam:"45"`
+	IsPosterBiz               *bool                                    `wam:"23"`
+	IsPosterInAddressBook     *bool                                    `wam:"25"`
+	IsResharable              *bool                                    `wam:"37"`
+	IsReshare                 *bool                                    `wam:"40"`
+	IsViewedInLandscape       *bool                                    `wam:"29"`
+	MediaType                 *StatusItemView_MediaType                `wam:"4"`
+	MusicBlocked              *bool                                    `wam:"32"`
+	PairedMediaType           *StatusItemView_PairedMediaType          `wam:"38"`
+	PsaCampaignId             *string                                  `wam:"17"`
+	PsaCampaignItemIndex      *int32                                   `wam:"18"`
+	PsaLinkAvailable          *bool                                    `wam:"19"`
+	PsaLinkClick              *bool                                    `wam:"22"`
+	PsaLinkLoadTime           *int64                                   `wam:"21"`
+	PsaLinkOpenResult         *StatusItemView_PsaLinkOpenResult        `wam:"20"`
+	ReshareSource             *StatusItemView_ReshareSource            `wam:"41"`
+	StatusContainsMusic       *bool                                    `wam:"30"`
+	StatusItem3sViewCount     *int32                                   `wam:"31"`
+	StatusItemImpressionCount *int32                                   `wam:"14"`
+	StatusItemIndex           *int32                                   `wam:"16"`
+	StatusItemLength          *int64                                   `wam:"7"`
+	StatusItemLoadTime        *int64                                   `wam:"5"`
+	StatusItemReplied         *int32                                   `wam:"8"`
+	StatusItemUnread          *bool                                    `wam:"9"`
+	StatusItemViewCount       *int32                                   `wam:"10"`
+	StatusItemViewResult      *StatusItemView_StatusItemViewResult     `wam:"3"`
+	StatusItemViewTime        *int64                                   `wam:"6"`
+	StatusMediaHeight         *int32                                   `wam:"42"`
+	StatusMediaWidth          *int32                                   `wam:"43"`
+	StatusPairedMediaQuality  *StatusItemView_StatusPairedMediaQuality `wam:"39"`
+	StatusRowIndex            *int32                                   `wam:"2"`
+	StatusRowSection          *StatusItemView_StatusRowSection         `wam:"11"`
+	StatusType                *StatusItemView_StatusType               `wam:"36"`
+	StatusViewerSessionId     *int32                                   `wam:"1"`
+	UrlStatusClicked          *StatusItemView_UrlStatusClicked         `wam:"26"`
+	UrlStatusType             *StatusItemView_UrlStatusType            `wam:"27"`
 }
 
 type AndroidMessageSendPerf_AgentEngagementType int32
@@ -8743,58 +8743,58 @@ const (
 )
 
 type AndroidMessageSendPerfEvent struct {
-	_meta                                        struct{}                                           `wammeta:"id=1994,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AgentEngagementType                          AndroidMessageSendPerf_AgentEngagementType         `wam:"47"`
-	AppRestart                                   bool                                               `wam:"16"`
-	BucketedSenderKeyDistributionCountPercentage int32                                              `wam:"32"`
-	BucketedSenderKeyDistributionHashTime        int32                                              `wam:"35"`
-	DeviceCount                                  int32                                              `wam:"36"`
-	DeviceSizeBucket                             AndroidMessageSendPerf_DeviceSizeBucket            `wam:"26"`
-	DurationAbs                                  int64                                              `wam:"11"`
-	DurationRelative                             int64                                              `wam:"12"`
-	DurationT                                    int64                                              `wam:"1"`
-	EditType                                     AndroidMessageSendPerf_EditType                    `wam:"42"`
-	FetchPrekeys                                 bool                                               `wam:"15"`
-	FetchPrekeysPercentage                       int32                                              `wam:"21"`
-	GroupSizeBucket                              AndroidMessageSendPerf_GroupSizeBucket             `wam:"17"`
-	InvisibleMessageCategory                     AndroidMessageSendPerf_InvisibleMessageCategory    `wam:"45"`
-	IsDirectedMessage                            bool                                               `wam:"33"`
-	IsE2eBackfill                                bool                                               `wam:"27"`
-	IsLid                                        bool                                               `wam:"41"`
-	IsMessageFanout                              bool                                               `wam:"9"`
-	IsMessageForward                             bool                                               `wam:"8"`
-	IsRevokeMessage                              bool                                               `wam:"24"`
-	IsViewOnce                                   bool                                               `wam:"29"`
-	JobsInQueue                                  int32                                              `wam:"18"`
-	MediaType                                    AndroidMessageSendPerf_MediaType                   `wam:"3"`
-	MessageIsFirstUserMessage                    bool                                               `wam:"30"`
-	MessageIsInvisible                           bool                                               `wam:"31"`
-	MessageType                                  AndroidMessageSendPerf_MessageType                 `wam:"4"`
-	NetworkWasDisconnected                       bool                                               `wam:"14"`
-	ParticipantCount                             int32                                              `wam:"37"`
-	PhoneCores                                   int32                                              `wam:"34"`
-	PrekeysEligibleForPrallelProcessing          bool                                               `wam:"28"`
-	ReceiverDeviceCount                          int32                                              `wam:"39"`
-	RunningTasks                                 string                                             `wam:"44"`
-	SendCount                                    int32                                              `wam:"13"`
-	SendRetryCount                               int32                                              `wam:"10"`
-	SendStage                                    AndroidMessageSendPerf_SendStage                   `wam:"2"`
-	SenderDeviceCount                            int32                                              `wam:"40"`
-	SenderKeyDistributionCountPercentage         int32                                              `wam:"23"`
-	SessionsMissingWhenComposing                 bool                                               `wam:"25"`
-	TargetDeviceGroupSizeBucket                  AndroidMessageSendPerf_TargetDeviceGroupSizeBucket `wam:"20"`
-	ThreadsInExecution                           int32                                              `wam:"19"`
-	TypeOfGroup                                  AndroidMessageSendPerf_TypeOfGroup                 `wam:"38"`
-	UserToDeviceSizeBucket                       string                                             `wam:"46"`
+	_meta                                        struct{}                                            `wammeta:"id=1994,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AgentEngagementType                          *AndroidMessageSendPerf_AgentEngagementType         `wam:"47"`
+	AppRestart                                   *bool                                               `wam:"16"`
+	BucketedSenderKeyDistributionCountPercentage *int32                                              `wam:"32"`
+	BucketedSenderKeyDistributionHashTime        *int32                                              `wam:"35"`
+	DeviceCount                                  *int32                                              `wam:"36"`
+	DeviceSizeBucket                             *AndroidMessageSendPerf_DeviceSizeBucket            `wam:"26"`
+	DurationAbs                                  *int64                                              `wam:"11"`
+	DurationRelative                             *int64                                              `wam:"12"`
+	DurationT                                    *int64                                              `wam:"1"`
+	EditType                                     *AndroidMessageSendPerf_EditType                    `wam:"42"`
+	FetchPrekeys                                 *bool                                               `wam:"15"`
+	FetchPrekeysPercentage                       *int32                                              `wam:"21"`
+	GroupSizeBucket                              *AndroidMessageSendPerf_GroupSizeBucket             `wam:"17"`
+	InvisibleMessageCategory                     *AndroidMessageSendPerf_InvisibleMessageCategory    `wam:"45"`
+	IsDirectedMessage                            *bool                                               `wam:"33"`
+	IsE2eBackfill                                *bool                                               `wam:"27"`
+	IsLid                                        *bool                                               `wam:"41"`
+	IsMessageFanout                              *bool                                               `wam:"9"`
+	IsMessageForward                             *bool                                               `wam:"8"`
+	IsRevokeMessage                              *bool                                               `wam:"24"`
+	IsViewOnce                                   *bool                                               `wam:"29"`
+	JobsInQueue                                  *int32                                              `wam:"18"`
+	MediaType                                    *AndroidMessageSendPerf_MediaType                   `wam:"3"`
+	MessageIsFirstUserMessage                    *bool                                               `wam:"30"`
+	MessageIsInvisible                           *bool                                               `wam:"31"`
+	MessageType                                  *AndroidMessageSendPerf_MessageType                 `wam:"4"`
+	NetworkWasDisconnected                       *bool                                               `wam:"14"`
+	ParticipantCount                             *int32                                              `wam:"37"`
+	PhoneCores                                   *int32                                              `wam:"34"`
+	PrekeysEligibleForPrallelProcessing          *bool                                               `wam:"28"`
+	ReceiverDeviceCount                          *int32                                              `wam:"39"`
+	RunningTasks                                 *string                                             `wam:"44"`
+	SendCount                                    *int32                                              `wam:"13"`
+	SendRetryCount                               *int32                                              `wam:"10"`
+	SendStage                                    *AndroidMessageSendPerf_SendStage                   `wam:"2"`
+	SenderDeviceCount                            *int32                                              `wam:"40"`
+	SenderKeyDistributionCountPercentage         *int32                                              `wam:"23"`
+	SessionsMissingWhenComposing                 *bool                                               `wam:"25"`
+	TargetDeviceGroupSizeBucket                  *AndroidMessageSendPerf_TargetDeviceGroupSizeBucket `wam:"20"`
+	ThreadsInExecution                           *int32                                              `wam:"19"`
+	TypeOfGroup                                  *AndroidMessageSendPerf_TypeOfGroup                 `wam:"38"`
+	UserToDeviceSizeBucket                       *string                                             `wam:"46"`
 }
 
 type CommunityHomeActionEvent struct {
 	_meta                         struct{} `wammeta:"id=3494,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CommunityHomeGroupDiscoveries int32    `wam:"1"`
-	CommunityHomeGroupJoins       int32    `wam:"2"`
-	CommunityHomeGroupNavigations int32    `wam:"3"`
-	CommunityHomeId               string   `wam:"4"`
-	CommunityHomeViews            int32    `wam:"5"`
+	CommunityHomeGroupDiscoveries *int32   `wam:"1"`
+	CommunityHomeGroupJoins       *int32   `wam:"2"`
+	CommunityHomeGroupNavigations *int32   `wam:"3"`
+	CommunityHomeId               *string  `wam:"4"`
+	CommunityHomeViews            *int32   `wam:"5"`
 }
 
 type ViewOnceScreenshotActions_VoMessageType int32
@@ -8826,19 +8826,19 @@ const (
 )
 
 type ViewOnceScreenshotActionsEvent struct {
-	_meta         struct{}                                `wammeta:"id=3606,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsAGroup      bool                                    `wam:"1"`
-	ThreadId      string                                  `wam:"2"`
-	VoMessageType ViewOnceScreenshotActions_VoMessageType `wam:"3"`
-	VoSsAction    ViewOnceScreenshotActions_VoSsAction    `wam:"4"`
+	_meta         struct{}                                 `wammeta:"id=3606,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsAGroup      *bool                                    `wam:"1"`
+	ThreadId      *string                                  `wam:"2"`
+	VoMessageType *ViewOnceScreenshotActions_VoMessageType `wam:"3"`
+	VoSsAction    *ViewOnceScreenshotActions_VoSsAction    `wam:"4"`
 }
 
 type KeepInChatNotifEvent struct {
 	_meta                    struct{} `wammeta:"id=3484,channel=regular,weight=1,privateStatsIdInt=-1"`
-	KicGroupNotificationTaps int32    `wam:"3"`
-	KicGroupNotifications    int32    `wam:"4"`
-	KicNotificationTaps      int32    `wam:"5"`
-	KicNotifications         int32    `wam:"6"`
+	KicGroupNotificationTaps *int32   `wam:"3"`
+	KicGroupNotifications    *int32   `wam:"4"`
+	KicNotificationTaps      *int32   `wam:"5"`
+	KicNotifications         *int32   `wam:"6"`
 }
 
 type WebcAssetLoad_WebcAssetCacheType int32
@@ -8850,18 +8850,18 @@ const (
 )
 
 type WebcAssetLoadEvent struct {
-	_meta              struct{}                         `wammeta:"id=1358,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcAssetCacheType WebcAssetLoad_WebcAssetCacheType `wam:"4"`
-	WebcAssetFromCache bool                             `wam:"2"`
-	WebcAssetLoadT     int64                            `wam:"3"`
-	WebcAssetName      string                           `wam:"1"`
-	WebcAssetSize      float64                          `wam:"5"`
+	_meta              struct{}                          `wammeta:"id=1358,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcAssetCacheType *WebcAssetLoad_WebcAssetCacheType `wam:"4"`
+	WebcAssetFromCache *bool                             `wam:"2"`
+	WebcAssetLoadT     *int64                            `wam:"3"`
+	WebcAssetName      *string                           `wam:"1"`
+	WebcAssetSize      *float64                          `wam:"5"`
 }
 
 type WefrClientExposureEvent struct {
 	_meta         struct{} `wammeta:"id=5504,channel=realtime,weight=1,privateStatsIdInt=-1"`
-	ExposureKey   string   `wam:"1"`
-	SentWithDaily bool     `wam:"3"`
+	ExposureKey   *string  `wam:"1"`
+	SentWithDaily *bool    `wam:"3"`
 }
 
 type SmbDataSharingConsentSetting_SmbDataSharingConsentSettingEntryPoint int32
@@ -8877,10 +8877,10 @@ const (
 )
 
 type SmbDataSharingConsentSettingEvent struct {
-	_meta                                  struct{}                                                            `wammeta:"id=3974,channel=regular,weight=1,privateStatsIdInt=-1"`
-	SmbDataSharingConsentSettingEntryPoint SmbDataSharingConsentSetting_SmbDataSharingConsentSettingEntryPoint `wam:"1"`
-	SmbDataSharingConsentSettingType       bool                                                                `wam:"2"`
-	SmbDataSharingConsentSettingVersion    int32                                                               `wam:"3"`
+	_meta                                  struct{}                                                             `wammeta:"id=3974,channel=regular,weight=1,privateStatsIdInt=-1"`
+	SmbDataSharingConsentSettingEntryPoint *SmbDataSharingConsentSetting_SmbDataSharingConsentSettingEntryPoint `wam:"1"`
+	SmbDataSharingConsentSettingType       *bool                                                                `wam:"2"`
+	SmbDataSharingConsentSettingVersion    *int32                                                               `wam:"3"`
 }
 
 type MetaVerifiedUserAction_MetaVerifiedUserActionAction int32
@@ -9075,20 +9075,20 @@ const (
 )
 
 type MetaVerifiedUserActionEvent struct {
-	_meta                                  struct{}                                                      `wammeta:"id=4986,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MetaVerifiedQuickPromotionId           string                                                        `wam:"12"`
-	MetaVerifiedUserActionAction           MetaVerifiedUserAction_MetaVerifiedUserActionAction           `wam:"1"`
-	MetaVerifiedUserActionAssetType        MetaVerifiedUserAction_MetaVerifiedUserActionAssetType        `wam:"2"`
-	MetaVerifiedUserActionErrorDetails     MetaVerifiedUserAction_MetaVerifiedUserActionErrorDetails     `wam:"8"`
-	MetaVerifiedUserActionExtra            string                                                        `wam:"13"`
-	MetaVerifiedUserActionGreenDotVisible  bool                                                          `wam:"7"`
-	MetaVerifiedUserActionInteractionError MetaVerifiedUserAction_MetaVerifiedUserActionInteractionError `wam:"6"`
-	MetaVerifiedUserActionIsSubscribed     bool                                                          `wam:"9"`
-	MetaVerifiedUserActionReferral         MetaVerifiedUserAction_MetaVerifiedUserActionReferral         `wam:"3"`
-	MetaVerifiedUserActionResult           MetaVerifiedUserAction_MetaVerifiedUserActionResult           `wam:"5"`
-	MetaVerifiedUserActionSurface          MetaVerifiedUserAction_MetaVerifiedUserActionSurface          `wam:"4"`
-	UserActionErrorCode                    string                                                        `wam:"10"`
-	UserActionSessionId                    string                                                        `wam:"11"`
+	_meta                                  struct{}                                                       `wammeta:"id=4986,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MetaVerifiedQuickPromotionId           *string                                                        `wam:"12"`
+	MetaVerifiedUserActionAction           *MetaVerifiedUserAction_MetaVerifiedUserActionAction           `wam:"1"`
+	MetaVerifiedUserActionAssetType        *MetaVerifiedUserAction_MetaVerifiedUserActionAssetType        `wam:"2"`
+	MetaVerifiedUserActionErrorDetails     *MetaVerifiedUserAction_MetaVerifiedUserActionErrorDetails     `wam:"8"`
+	MetaVerifiedUserActionExtra            *string                                                        `wam:"13"`
+	MetaVerifiedUserActionGreenDotVisible  *bool                                                          `wam:"7"`
+	MetaVerifiedUserActionInteractionError *MetaVerifiedUserAction_MetaVerifiedUserActionInteractionError `wam:"6"`
+	MetaVerifiedUserActionIsSubscribed     *bool                                                          `wam:"9"`
+	MetaVerifiedUserActionReferral         *MetaVerifiedUserAction_MetaVerifiedUserActionReferral         `wam:"3"`
+	MetaVerifiedUserActionResult           *MetaVerifiedUserAction_MetaVerifiedUserActionResult           `wam:"5"`
+	MetaVerifiedUserActionSurface          *MetaVerifiedUserAction_MetaVerifiedUserActionSurface          `wam:"4"`
+	UserActionErrorCode                    *string                                                        `wam:"10"`
+	UserActionSessionId                    *string                                                        `wam:"11"`
 }
 
 type UserNotice_NoticeTriggeredBy int32
@@ -9167,13 +9167,13 @@ const (
 )
 
 type UserNoticeEvent struct {
-	_meta                    struct{}                     `wammeta:"id=2472,channel=regular,weight=1,privateStatsIdInt=-1"`
-	NoticeTriggeredBy        UserNotice_NoticeTriggeredBy `wam:"5"`
-	NoticeType               UserNotice_NoticeType        `wam:"4"`
-	TsMs                     int64                        `wam:"6"`
-	UserNoticeContentVersion int32                        `wam:"2"`
-	UserNoticeEvent          UserNotice_UserNoticeEvent   `wam:"3"`
-	UserNoticeId             int32                        `wam:"1"`
+	_meta                    struct{}                      `wammeta:"id=2472,channel=regular,weight=1,privateStatsIdInt=-1"`
+	NoticeTriggeredBy        *UserNotice_NoticeTriggeredBy `wam:"5"`
+	NoticeType               *UserNotice_NoticeType        `wam:"4"`
+	TsMs                     *int64                        `wam:"6"`
+	UserNoticeContentVersion *int32                        `wam:"2"`
+	UserNoticeEvent          *UserNotice_UserNoticeEvent   `wam:"3"`
+	UserNoticeId             *int32                        `wam:"1"`
 }
 
 type TsNavigation_EntryPointConversationInitiated int32
@@ -9658,44 +9658,44 @@ const (
 )
 
 type TsNavigationEvent struct {
-	_meta                            struct{}                                      `wammeta:"id=4334,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Cid                              string                                        `wam:"19"`
-	EntryPointConversationInitiated  TsNavigation_EntryPointConversationInitiated  `wam:"23"`
-	EntryPointConversionApp          string                                        `wam:"24"`
-	EntryPointConversionSource       string                                        `wam:"25"`
-	GroupSize                        int32                                         `wam:"1"`
-	IsCatalogVisible                 bool                                          `wam:"29"`
-	IsCloudapi                       bool                                          `wam:"26"`
-	IsMetaAiThread                   bool                                          `wam:"30"`
-	IsOnpremises                     bool                                          `wam:"27"`
-	IsSmb                            bool                                          `wam:"28"`
-	NavigationDestination            TsNavigation_NavigationDestination            `wam:"2"`
-	NavigationDestinationProductArea TsNavigation_NavigationDestinationProductArea `wam:"34"`
-	NavigationDestinationViewName    string                                        `wam:"35"`
-	NavigationSource                 TsNavigation_NavigationSource                 `wam:"3"`
-	ReferrerAction                   TsNavigation_ReferrerAction                   `wam:"31"`
-	RelativeTimestampMs              int32                                         `wam:"4"`
-	SmbCatalogBusinessVertical       string                                        `wam:"20"`
-	SmbCatalogIsCatalogVisible       bool                                          `wam:"21"`
-	SmbCatalogIsToggleCart           bool                                          `wam:"22"`
-	ThreadType                       TsNavigation_ThreadType                       `wam:"7"`
-	TsSessionId                      int32                                         `wam:"5"`
-	TsTimestampMs                    int32                                         `wam:"32"`
-	TypeOfGroup                      TsNavigation_TypeOfGroup                      `wam:"6"`
-	UnifiedSessionId                 string                                        `wam:"33"`
+	_meta                            struct{}                                       `wammeta:"id=4334,channel=regular,weight=1,privateStatsIdInt=-1"`
+	Cid                              *string                                        `wam:"19"`
+	EntryPointConversationInitiated  *TsNavigation_EntryPointConversationInitiated  `wam:"23"`
+	EntryPointConversionApp          *string                                        `wam:"24"`
+	EntryPointConversionSource       *string                                        `wam:"25"`
+	GroupSize                        *int32                                         `wam:"1"`
+	IsCatalogVisible                 *bool                                          `wam:"29"`
+	IsCloudapi                       *bool                                          `wam:"26"`
+	IsMetaAiThread                   *bool                                          `wam:"30"`
+	IsOnpremises                     *bool                                          `wam:"27"`
+	IsSmb                            *bool                                          `wam:"28"`
+	NavigationDestination            *TsNavigation_NavigationDestination            `wam:"2"`
+	NavigationDestinationProductArea *TsNavigation_NavigationDestinationProductArea `wam:"34"`
+	NavigationDestinationViewName    *string                                        `wam:"35"`
+	NavigationSource                 *TsNavigation_NavigationSource                 `wam:"3"`
+	ReferrerAction                   *TsNavigation_ReferrerAction                   `wam:"31"`
+	RelativeTimestampMs              *int32                                         `wam:"4"`
+	SmbCatalogBusinessVertical       *string                                        `wam:"20"`
+	SmbCatalogIsCatalogVisible       *bool                                          `wam:"21"`
+	SmbCatalogIsToggleCart           *bool                                          `wam:"22"`
+	ThreadType                       *TsNavigation_ThreadType                       `wam:"7"`
+	TsSessionId                      *int32                                         `wam:"5"`
+	TsTimestampMs                    *int32                                         `wam:"32"`
+	TypeOfGroup                      *TsNavigation_TypeOfGroup                      `wam:"6"`
+	UnifiedSessionId                 *string                                        `wam:"33"`
 }
 
 type MdAppStateSyncDailyEvent struct {
 	_meta                   struct{} `wammeta:"id=2300,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CrossIndexConflictCount int32    `wam:"11"`
-	InvalidActionCount      int32    `wam:"4"`
-	KeyRotationRemoveCount  int32    `wam:"12"`
-	MissingKeyCount         int32    `wam:"9"`
-	MutationCount           int32    `wam:"1"`
-	StoredMutationCount     int32    `wam:"7"`
-	UnsetActionCount        int32    `wam:"8"`
-	UnsupportedActionCount  int32    `wam:"5"`
-	UploadConflictCount     int32    `wam:"10"`
+	CrossIndexConflictCount *int32   `wam:"11"`
+	InvalidActionCount      *int32   `wam:"4"`
+	KeyRotationRemoveCount  *int32   `wam:"12"`
+	MissingKeyCount         *int32   `wam:"9"`
+	MutationCount           *int32   `wam:"1"`
+	StoredMutationCount     *int32   `wam:"7"`
+	UnsetActionCount        *int32   `wam:"8"`
+	UnsupportedActionCount  *int32   `wam:"5"`
+	UploadConflictCount     *int32   `wam:"10"`
 }
 
 type CtwaBizUserJourney_CtwaBizUserJourneyOperation int32
@@ -9717,13 +9717,13 @@ const (
 )
 
 type CtwaBizUserJourneyEvent struct {
-	_meta                        struct{}                                       `wammeta:"id=5992,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AdId                         string                                         `wam:"3"`
-	BizFeatureEnabled            string                                         `wam:"4"`
-	BusinessPhoneNumber          int32                                          `wam:"5"`
-	CtwaBizUserJouneryEntryPoint string                                         `wam:"6"`
-	CtwaBizUserJourneyMetadata   string                                         `wam:"1"`
-	CtwaBizUserJourneyOperation  CtwaBizUserJourney_CtwaBizUserJourneyOperation `wam:"2"`
+	_meta                        struct{}                                        `wammeta:"id=5992,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AdId                         *string                                         `wam:"3"`
+	BizFeatureEnabled            *string                                         `wam:"4"`
+	BusinessPhoneNumber          *int32                                          `wam:"5"`
+	CtwaBizUserJouneryEntryPoint *string                                         `wam:"6"`
+	CtwaBizUserJourneyMetadata   *string                                         `wam:"1"`
+	CtwaBizUserJourneyOperation  *CtwaBizUserJourney_CtwaBizUserJourneyOperation `wam:"2"`
 }
 
 type StickerError_StickerErrorType int32
@@ -9735,8 +9735,8 @@ const (
 )
 
 type StickerErrorEvent struct {
-	_meta            struct{}                      `wammeta:"id=5024,channel=regular,weight=1,privateStatsIdInt=-1"`
-	StickerErrorType StickerError_StickerErrorType `wam:"1"`
+	_meta            struct{}                       `wammeta:"id=5024,channel=regular,weight=1,privateStatsIdInt=-1"`
+	StickerErrorType *StickerError_StickerErrorType `wam:"1"`
 }
 
 type ChannelDiscoveryVisibilityTracking_ChannelEventUnit int32
@@ -9943,20 +9943,20 @@ const (
 )
 
 type ChannelDiscoveryVisibilityTrackingEvent struct {
-	_meta                     struct{}                                            `wammeta:"id=5766,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChannelCategoryIndex      int32                                               `wam:"1"`
-	ChannelCategoryName       string                                              `wam:"2"`
-	ChannelDirectorySessionId int32                                               `wam:"3"`
-	ChannelEventUnit          ChannelDiscoveryVisibilityTracking_ChannelEventUnit `wam:"4"`
-	ChannelIndex              int32                                               `wam:"5"`
-	Cid                       string                                              `wam:"6"`
-	CountrySelector           string                                              `wam:"7"`
-	DiscoverySurface          ChannelDiscoveryVisibilityTracking_DiscoverySurface `wam:"8"`
-	IsSubImpression           bool                                                `wam:"16"`
-	PillSelected              ChannelDiscoveryVisibilityTracking_PillSelected     `wam:"11"`
-	SimilarChannelsSessionId  int32                                               `wam:"13"`
-	UnifiedSessionId          string                                              `wam:"14"`
-	UpdatesTabSessionId       int32                                               `wam:"17"`
+	_meta                     struct{}                                             `wammeta:"id=5766,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChannelCategoryIndex      *int32                                               `wam:"1"`
+	ChannelCategoryName       *string                                              `wam:"2"`
+	ChannelDirectorySessionId *int32                                               `wam:"3"`
+	ChannelEventUnit          *ChannelDiscoveryVisibilityTracking_ChannelEventUnit `wam:"4"`
+	ChannelIndex              *int32                                               `wam:"5"`
+	Cid                       *string                                              `wam:"6"`
+	CountrySelector           *string                                              `wam:"7"`
+	DiscoverySurface          *ChannelDiscoveryVisibilityTracking_DiscoverySurface `wam:"8"`
+	IsSubImpression           *bool                                                `wam:"16"`
+	PillSelected              *ChannelDiscoveryVisibilityTracking_PillSelected     `wam:"11"`
+	SimilarChannelsSessionId  *int32                                               `wam:"13"`
+	UnifiedSessionId          *string                                              `wam:"14"`
+	UpdatesTabSessionId       *int32                                               `wam:"17"`
 }
 
 type WebDynamicSamplingTestEventWithoutSamplingEvent struct {
@@ -9993,24 +9993,24 @@ const (
 )
 
 type MdGroupParticipantMissAckEvent struct {
-	_meta                  struct{}                                  `wammeta:"id=4146,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GroupSizeBucket        MdGroupParticipantMissAck_GroupSizeBucket `wam:"1"`
-	IsLid                  bool                                      `wam:"2"`
-	MessageIsRevoke        bool                                      `wam:"3"`
-	ParticipantAddCount    int32                                     `wam:"4"`
-	ParticipantRemoveCount int32                                     `wam:"5"`
-	TypeOfGroup            MdGroupParticipantMissAck_TypeOfGroup     `wam:"6"`
+	_meta                  struct{}                                   `wammeta:"id=4146,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GroupSizeBucket        *MdGroupParticipantMissAck_GroupSizeBucket `wam:"1"`
+	IsLid                  *bool                                      `wam:"2"`
+	MessageIsRevoke        *bool                                      `wam:"3"`
+	ParticipantAddCount    *int32                                     `wam:"4"`
+	ParticipantRemoveCount *int32                                     `wam:"5"`
+	TypeOfGroup            *MdGroupParticipantMissAck_TypeOfGroup     `wam:"6"`
 }
 
 type WebcStatusSessionEvent struct {
 	_meta                     struct{} `wammeta:"id=1880,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcStatusMutedItemCount  int32    `wam:"4"`
-	WebcStatusMutedRowCount   int32    `wam:"7"`
-	WebcStatusRecentItemCount int32    `wam:"2"`
-	WebcStatusRecentRowCount  int32    `wam:"5"`
-	WebcStatusSessionId       int32    `wam:"1"`
-	WebcStatusViewedItemCount int32    `wam:"3"`
-	WebcStatusViewedRowCount  int32    `wam:"6"`
+	WebcStatusMutedItemCount  *int32   `wam:"4"`
+	WebcStatusMutedRowCount   *int32   `wam:"7"`
+	WebcStatusRecentItemCount *int32   `wam:"2"`
+	WebcStatusRecentRowCount  *int32   `wam:"5"`
+	WebcStatusSessionId       *int32   `wam:"1"`
+	WebcStatusViewedItemCount *int32   `wam:"3"`
+	WebcStatusViewedRowCount  *int32   `wam:"6"`
 }
 
 type CriticalEvent_CrashApplicationState int32
@@ -10030,14 +10030,14 @@ const (
 )
 
 type CriticalEventEvent struct {
-	_meta                 struct{}                            `wammeta:"id=1684,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Context               string                              `wam:"2"`
-	CrashApplicationState CriticalEvent_CrashApplicationState `wam:"8"`
-	CrashlogType          CriticalEvent_CrashlogType          `wam:"6"`
-	Debug                 string                              `wam:"3"`
-	ExtraDebug            string                              `wam:"7"`
-	MobileBuildId         string                              `wam:"5"`
-	Name                  string                              `wam:"1"`
+	_meta                 struct{}                             `wammeta:"id=1684,channel=regular,weight=1,privateStatsIdInt=-1"`
+	Context               *string                              `wam:"2"`
+	CrashApplicationState *CriticalEvent_CrashApplicationState `wam:"8"`
+	CrashlogType          *CriticalEvent_CrashlogType          `wam:"6"`
+	Debug                 *string                              `wam:"3"`
+	ExtraDebug            *string                              `wam:"7"`
+	MobileBuildId         *string                              `wam:"5"`
+	Name                  *string                              `wam:"1"`
 }
 
 type PollsActions_ChatType int32
@@ -10092,15 +10092,15 @@ const (
 )
 
 type PollsActionsEvent struct {
-	_meta            struct{}                     `wammeta:"id=3676,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatType         PollsActions_ChatType        `wam:"8"`
-	GroupSizeBucket  PollsActions_GroupSizeBucket `wam:"1"`
-	IsAGroup         bool                         `wam:"6"`
-	IsAdmin          bool                         `wam:"2"`
-	PollAction       PollsActions_PollAction      `wam:"3"`
-	PollCreationDs   int32                        `wam:"4"`
-	PollOptionsCount int32                        `wam:"5"`
-	TypeOfGroup      PollsActions_TypeOfGroup     `wam:"7"`
+	_meta            struct{}                      `wammeta:"id=3676,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatType         *PollsActions_ChatType        `wam:"8"`
+	GroupSizeBucket  *PollsActions_GroupSizeBucket `wam:"1"`
+	IsAGroup         *bool                         `wam:"6"`
+	IsAdmin          *bool                         `wam:"2"`
+	PollAction       *PollsActions_PollAction      `wam:"3"`
+	PollCreationDs   *int32                        `wam:"4"`
+	PollOptionsCount *int32                        `wam:"5"`
+	TypeOfGroup      *PollsActions_TypeOfGroup     `wam:"7"`
 }
 
 type WebContactListStartNewChat_WebContactListStartNewChatType int32
@@ -10112,19 +10112,19 @@ const (
 )
 
 type WebContactListStartNewChatEvent struct {
-	_meta                            struct{}                                                  `wammeta:"id=4560,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebContactListStartNewChatSearch bool                                                      `wam:"1"`
-	WebContactListStartNewChatType   WebContactListStartNewChat_WebContactListStartNewChatType `wam:"2"`
+	_meta                            struct{}                                                   `wammeta:"id=4560,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebContactListStartNewChatSearch *bool                                                      `wam:"1"`
+	WebContactListStartNewChatType   *WebContactListStartNewChat_WebContactListStartNewChatType `wam:"2"`
 }
 
 type WhatsappQuickPromotionClientEligibilityWaterfallEvent struct {
 	_meta             struct{} `wammeta:"id=4360,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ClientExtraData   string   `wam:"6"`
-	EligibilityStatus bool     `wam:"1"`
-	InstanceLogData   string   `wam:"5"`
-	PromotionId       string   `wam:"2"`
-	QpFailureReason   string   `wam:"3"`
-	Step              string   `wam:"4"`
+	ClientExtraData   *string  `wam:"6"`
+	EligibilityStatus *bool    `wam:"1"`
+	InstanceLogData   *string  `wam:"5"`
+	PromotionId       *string  `wam:"2"`
+	QpFailureReason   *string  `wam:"3"`
+	Step              *string  `wam:"4"`
 }
 
 type EphemeralSyncResponseSend_ClientDisappearingModeInitiator int32
@@ -10236,27 +10236,27 @@ const (
 )
 
 type EphemeralSyncResponseSendEvent struct {
-	_meta                               struct{}                                                   `wammeta:"id=4778,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ClientDisappearingModeInitiator     EphemeralSyncResponseSend_ClientDisappearingModeInitiator  `wam:"1"`
-	ClientEphemeralityDuration          int32                                                      `wam:"2"`
-	ClientEphemeralityInitiator         EphemeralSyncResponseSend_ClientEphemeralityInitiator      `wam:"3"`
-	ClientEphemeralitySettingTimestamp  int32                                                      `wam:"4"`
-	ClientEphemeralityTriggerAction     EphemeralSyncResponseSend_ClientEphemeralityTriggerAction  `wam:"5"`
-	EsrDisappearingModeInitiator        EphemeralSyncResponseSend_EsrDisappearingModeInitiator     `wam:"6"`
-	EsrEphemeralityDuration             int32                                                      `wam:"7"`
-	EsrEphemeralityInitiator            EphemeralSyncResponseSend_EsrEphemeralityInitiator         `wam:"8"`
-	EsrEphemeralitySettingTimestamp     int32                                                      `wam:"9"`
-	EsrEphemeralityTriggerAction        EphemeralSyncResponseSend_EsrEphemeralityTriggerAction     `wam:"10"`
-	EsrFailureReason                    EphemeralSyncResponseSend_EsrFailureReason                 `wam:"11"`
-	EsrSendAttempt                      int32                                                      `wam:"12"`
-	EsrSendResult                       EphemeralSyncResponseSend_EsrSendResult                    `wam:"13"`
-	IsAGroup                            bool                                                       `wam:"14"`
-	MessageDisappearingModeInitiator    EphemeralSyncResponseSend_MessageDisappearingModeInitiator `wam:"15"`
-	MessageEphemeralityDuration         int32                                                      `wam:"16"`
-	MessageEphemeralityInitiator        EphemeralSyncResponseSend_MessageEphemeralityInitiator     `wam:"17"`
-	MessageEphemeralitySettingTimestamp int32                                                      `wam:"18"`
-	MessageEphemeralityTriggerAction    EphemeralSyncResponseSend_MessageEphemeralityTriggerAction `wam:"19"`
-	ThreadId                            string                                                     `wam:"20"`
+	_meta                               struct{}                                                    `wammeta:"id=4778,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ClientDisappearingModeInitiator     *EphemeralSyncResponseSend_ClientDisappearingModeInitiator  `wam:"1"`
+	ClientEphemeralityDuration          *int32                                                      `wam:"2"`
+	ClientEphemeralityInitiator         *EphemeralSyncResponseSend_ClientEphemeralityInitiator      `wam:"3"`
+	ClientEphemeralitySettingTimestamp  *int32                                                      `wam:"4"`
+	ClientEphemeralityTriggerAction     *EphemeralSyncResponseSend_ClientEphemeralityTriggerAction  `wam:"5"`
+	EsrDisappearingModeInitiator        *EphemeralSyncResponseSend_EsrDisappearingModeInitiator     `wam:"6"`
+	EsrEphemeralityDuration             *int32                                                      `wam:"7"`
+	EsrEphemeralityInitiator            *EphemeralSyncResponseSend_EsrEphemeralityInitiator         `wam:"8"`
+	EsrEphemeralitySettingTimestamp     *int32                                                      `wam:"9"`
+	EsrEphemeralityTriggerAction        *EphemeralSyncResponseSend_EsrEphemeralityTriggerAction     `wam:"10"`
+	EsrFailureReason                    *EphemeralSyncResponseSend_EsrFailureReason                 `wam:"11"`
+	EsrSendAttempt                      *int32                                                      `wam:"12"`
+	EsrSendResult                       *EphemeralSyncResponseSend_EsrSendResult                    `wam:"13"`
+	IsAGroup                            *bool                                                       `wam:"14"`
+	MessageDisappearingModeInitiator    *EphemeralSyncResponseSend_MessageDisappearingModeInitiator `wam:"15"`
+	MessageEphemeralityDuration         *int32                                                      `wam:"16"`
+	MessageEphemeralityInitiator        *EphemeralSyncResponseSend_MessageEphemeralityInitiator     `wam:"17"`
+	MessageEphemeralitySettingTimestamp *int32                                                      `wam:"18"`
+	MessageEphemeralityTriggerAction    *EphemeralSyncResponseSend_MessageEphemeralityTriggerAction `wam:"19"`
+	ThreadId                            *string                                                     `wam:"20"`
 }
 
 type RevokeMessageSend_MessageType int32
@@ -10279,13 +10279,13 @@ const (
 )
 
 type RevokeMessageSendEvent struct {
-	_meta                       struct{}                      `wammeta:"id=3656,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MessageSendResultIsTerminal bool                          `wam:"1"`
-	MessageType                 RevokeMessageSend_MessageType `wam:"2"`
-	ResendCount                 int32                         `wam:"3"`
-	RetryCount                  int32                         `wam:"4"`
-	RevokeDuration              int32                         `wam:"5"`
-	RevokeType                  RevokeMessageSend_RevokeType  `wam:"6"`
+	_meta                       struct{}                       `wammeta:"id=3656,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MessageSendResultIsTerminal *bool                          `wam:"1"`
+	MessageType                 *RevokeMessageSend_MessageType `wam:"2"`
+	ResendCount                 *int32                         `wam:"3"`
+	RetryCount                  *int32                         `wam:"4"`
+	RevokeDuration              *int32                         `wam:"5"`
+	RevokeType                  *RevokeMessageSend_RevokeType  `wam:"6"`
 }
 
 type WebcBackgroundSyncAdoption_OffboardSource int32
@@ -10321,11 +10321,11 @@ const (
 )
 
 type WebcBackgroundSyncAdoptionEvent struct {
-	_meta                       struct{}                                               `wammeta:"id=5302,channel=regular,weight=1,privateStatsIdInt=-1"`
-	OffboardSource              WebcBackgroundSyncAdoption_OffboardSource              `wam:"1"`
-	OnboardSource               WebcBackgroundSyncAdoption_OnboardSource               `wam:"2"`
-	PushNotificationInteraction WebcBackgroundSyncAdoption_PushNotificationInteraction `wam:"3"`
-	WebOsNotificationSetting    WebcBackgroundSyncAdoption_WebOsNotificationSetting    `wam:"4"`
+	_meta                       struct{}                                                `wammeta:"id=5302,channel=regular,weight=1,privateStatsIdInt=-1"`
+	OffboardSource              *WebcBackgroundSyncAdoption_OffboardSource              `wam:"1"`
+	OnboardSource               *WebcBackgroundSyncAdoption_OnboardSource               `wam:"2"`
+	PushNotificationInteraction *WebcBackgroundSyncAdoption_PushNotificationInteraction `wam:"3"`
+	WebOsNotificationSetting    *WebcBackgroundSyncAdoption_WebOsNotificationSetting    `wam:"4"`
 }
 
 type SettingsSearchInitiate_SettingsPageType int32
@@ -10337,8 +10337,8 @@ const (
 )
 
 type SettingsSearchInitiateEvent struct {
-	_meta            struct{}                                `wammeta:"id=4014,channel=regular,weight=1,privateStatsIdInt=-1"`
-	SettingsPageType SettingsSearchInitiate_SettingsPageType `wam:"1"`
+	_meta            struct{}                                 `wammeta:"id=4014,channel=regular,weight=1,privateStatsIdInt=-1"`
+	SettingsPageType *SettingsSearchInitiate_SettingsPageType `wam:"1"`
 }
 
 type EphemeralOutOfSyncInfo_GroupSizeBucket int32
@@ -10363,15 +10363,15 @@ const (
 )
 
 type EphemeralOutOfSyncInfoEvent struct {
-	_meta                               struct{}                               `wammeta:"id=3892,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GroupSizeBucket                     EphemeralOutOfSyncInfo_GroupSizeBucket `wam:"1"`
-	IncomingMessageEphemeralityDuration int32                                  `wam:"2"`
-	IsAGroup                            bool                                   `wam:"3"`
-	IsNewThreadForUser                  bool                                   `wam:"5"`
-	OtherDefaultModeDuration            int32                                  `wam:"6"`
-	ThreadEphemeralityDuration          int32                                  `wam:"7"`
-	ThreadId                            string                                 `wam:"8"`
-	UserDefaultModeDuration             int32                                  `wam:"9"`
+	_meta                               struct{}                                `wammeta:"id=3892,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GroupSizeBucket                     *EphemeralOutOfSyncInfo_GroupSizeBucket `wam:"1"`
+	IncomingMessageEphemeralityDuration *int32                                  `wam:"2"`
+	IsAGroup                            *bool                                   `wam:"3"`
+	IsNewThreadForUser                  *bool                                   `wam:"5"`
+	OtherDefaultModeDuration            *int32                                  `wam:"6"`
+	ThreadEphemeralityDuration          *int32                                  `wam:"7"`
+	ThreadId                            *string                                 `wam:"8"`
+	UserDefaultModeDuration             *int32                                  `wam:"9"`
 }
 
 type WebcMediaRmr_MessageMediaType int32
@@ -10480,20 +10480,20 @@ const (
 )
 
 type WebcMediaRmrEvent struct {
-	_meta                            struct{}                      `wammeta:"id=1906,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MessageMediaType                 WebcMediaRmr_MessageMediaType `wam:"10"`
-	WebcBrowserNetworkType           string                        `wam:"2"`
-	WebcBrowserStorageQuotaBytes     int32                         `wam:"11"`
-	WebcBrowserStorageQuotaUsedBytes int32                         `wam:"12"`
-	WebcChatPosition                 int32                         `wam:"1"`
-	WebcChatType                     WebcMediaRmr_WebcChatType     `wam:"9"`
-	WebcMediaRmrError                bool                          `wam:"8"`
-	WebcMediaRmrT                    int64                         `wam:"6"`
-	WebcMediaSize                    int32                         `wam:"7"`
-	WebcMessageIndex                 int32                         `wam:"3"`
-	WebcMessageT                     int64                         `wam:"5"`
-	WebcRmrReason                    WebcMediaRmr_WebcRmrReason    `wam:"14"`
-	WebcRmrStatusCode                int32                         `wam:"13"`
+	_meta                            struct{}                       `wammeta:"id=1906,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MessageMediaType                 *WebcMediaRmr_MessageMediaType `wam:"10"`
+	WebcBrowserNetworkType           *string                        `wam:"2"`
+	WebcBrowserStorageQuotaBytes     *int32                         `wam:"11"`
+	WebcBrowserStorageQuotaUsedBytes *int32                         `wam:"12"`
+	WebcChatPosition                 *int32                         `wam:"1"`
+	WebcChatType                     *WebcMediaRmr_WebcChatType     `wam:"9"`
+	WebcMediaRmrError                *bool                          `wam:"8"`
+	WebcMediaRmrT                    *int64                         `wam:"6"`
+	WebcMediaSize                    *int32                         `wam:"7"`
+	WebcMessageIndex                 *int32                         `wam:"3"`
+	WebcMessageT                     *int64                         `wam:"5"`
+	WebcRmrReason                    *WebcMediaRmr_WebcRmrReason    `wam:"14"`
+	WebcRmrStatusCode                *int32                         `wam:"13"`
 }
 
 type MdAppStateKeyRotation_MdAppStateKeyRotationReason int32
@@ -10505,15 +10505,15 @@ const (
 )
 
 type MdAppStateKeyRotationEvent struct {
-	_meta                       struct{}                                          `wammeta:"id=2518,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppSessionId                string                                            `wam:"2"`
-	CompanionSessionIds         string                                            `wam:"3"`
-	MdAppStateKeyRotationReason MdAppStateKeyRotation_MdAppStateKeyRotationReason `wam:"1"`
-	OldSyncdKeyhash             string                                            `wam:"6"`
-	OldSyncdKeyid               string                                            `wam:"7"`
-	SeqNumber                   int32                                             `wam:"8"`
-	SyncdKeyhashAfterRotation   string                                            `wam:"9"`
-	SyncdKeyidAfterRotation     string                                            `wam:"10"`
+	_meta                       struct{}                                           `wammeta:"id=2518,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppSessionId                *string                                            `wam:"2"`
+	CompanionSessionIds         *string                                            `wam:"3"`
+	MdAppStateKeyRotationReason *MdAppStateKeyRotation_MdAppStateKeyRotationReason `wam:"1"`
+	OldSyncdKeyhash             *string                                            `wam:"6"`
+	OldSyncdKeyid               *string                                            `wam:"7"`
+	SeqNumber                   *int32                                             `wam:"8"`
+	SyncdKeyhashAfterRotation   *string                                            `wam:"9"`
+	SyncdKeyidAfterRotation     *string                                            `wam:"10"`
 }
 
 type PsBufferUpload_ApplicationState int32
@@ -10568,20 +10568,20 @@ const (
 )
 
 type PsBufferUploadEvent struct {
-	_meta                          struct{}                             `wammeta:"id=2244,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ApplicationState               PsBufferUpload_ApplicationState      `wam:"6"`
-	IsFromWamsys                   bool                                 `wam:"12"`
-	IsRealtime                     bool                                 `wam:"15"`
-	IsUserSampled                  bool                                 `wam:"14"`
-	PsBufferSequenceNumber         int32                                `wam:"13"`
-	PsBufferUploadHttpResponseCode int32                                `wam:"3"`
-	PsBufferUploadResult           PsBufferUpload_PsBufferUploadResult  `wam:"1"`
-	PsBufferUploadT                int64                                `wam:"2"`
-	PsDitheredT                    int32                                `wam:"11"`
-	PsForceUpload                  bool                                 `wam:"10"`
-	PsTokenNotReadyReason          PsBufferUpload_PsTokenNotReadyReason `wam:"4"`
-	PsUploadReason                 PsBufferUpload_PsUploadReason        `wam:"9"`
-	WaConnectedToChatd             bool                                 `wam:"5"`
+	_meta                          struct{}                              `wammeta:"id=2244,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ApplicationState               *PsBufferUpload_ApplicationState      `wam:"6"`
+	IsFromWamsys                   *bool                                 `wam:"12"`
+	IsRealtime                     *bool                                 `wam:"15"`
+	IsUserSampled                  *bool                                 `wam:"14"`
+	PsBufferSequenceNumber         *int32                                `wam:"13"`
+	PsBufferUploadHttpResponseCode *int32                                `wam:"3"`
+	PsBufferUploadResult           *PsBufferUpload_PsBufferUploadResult  `wam:"1"`
+	PsBufferUploadT                *int64                                `wam:"2"`
+	PsDitheredT                    *int32                                `wam:"11"`
+	PsForceUpload                  *bool                                 `wam:"10"`
+	PsTokenNotReadyReason          *PsBufferUpload_PsTokenNotReadyReason `wam:"4"`
+	PsUploadReason                 *PsBufferUpload_PsUploadReason        `wam:"9"`
+	WaConnectedToChatd             *bool                                 `wam:"5"`
 }
 
 type BannerEvent_BannerOperation int32
@@ -10695,10 +10695,10 @@ const (
 )
 
 type BannerEventEvent struct {
-	_meta           struct{}                    `wammeta:"id=1578,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BannerId        string                      `wam:"3"`
-	BannerOperation BannerEvent_BannerOperation `wam:"2"`
-	BannerType      BannerEvent_BannerType      `wam:"1"`
+	_meta           struct{}                     `wammeta:"id=1578,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BannerId        *string                      `wam:"3"`
+	BannerOperation *BannerEvent_BannerOperation `wam:"2"`
+	BannerType      *BannerEvent_BannerType      `wam:"1"`
 }
 
 type ChannelProducerInsightsNavigation_ChannelProducerInsightsActionTarget int32
@@ -10746,14 +10746,14 @@ const (
 )
 
 type ChannelProducerInsightsNavigationEvent struct {
-	_meta                                 struct{}                                                              `wammeta:"id=5626,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChannelProducerInsightsActionTarget   ChannelProducerInsightsNavigation_ChannelProducerInsightsActionTarget `wam:"1"`
-	ChannelProducerInsightsActionType     ChannelProducerInsightsNavigation_ChannelProducerInsightsActionType   `wam:"2"`
-	ChannelProducerInsightsEntryPoint     ChannelProducerInsightsNavigation_ChannelProducerInsightsEntryPoint   `wam:"3"`
-	ChannelProducerInsightsSequenceNumber int32                                                                 `wam:"4"`
-	ChannelProducerInsightsSurface        ChannelProducerInsightsNavigation_ChannelProducerInsightsSurface      `wam:"5"`
-	Cid                                   string                                                                `wam:"6"`
-	ProducerInsightsSessionId             int32                                                                 `wam:"7"`
+	_meta                                 struct{}                                                               `wammeta:"id=5626,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChannelProducerInsightsActionTarget   *ChannelProducerInsightsNavigation_ChannelProducerInsightsActionTarget `wam:"1"`
+	ChannelProducerInsightsActionType     *ChannelProducerInsightsNavigation_ChannelProducerInsightsActionType   `wam:"2"`
+	ChannelProducerInsightsEntryPoint     *ChannelProducerInsightsNavigation_ChannelProducerInsightsEntryPoint   `wam:"3"`
+	ChannelProducerInsightsSequenceNumber *int32                                                                 `wam:"4"`
+	ChannelProducerInsightsSurface        *ChannelProducerInsightsNavigation_ChannelProducerInsightsSurface      `wam:"5"`
+	Cid                                   *string                                                                `wam:"6"`
+	ProducerInsightsSessionId             *int32                                                                 `wam:"7"`
 }
 
 type ChannelAdmin_AdminFlowType int32
@@ -10787,11 +10787,11 @@ const (
 )
 
 type ChannelAdminEvent struct {
-	_meta                         struct{}                        `wammeta:"id=4556,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AdminFlowActionSequenceNumber int32                           `wam:"1"`
-	AdminFlowType                 ChannelAdmin_AdminFlowType      `wam:"2"`
-	ChannelAdminAction            ChannelAdmin_ChannelAdminAction `wam:"3"`
-	ChannelAdminSessionId         int32                           `wam:"4"`
+	_meta                         struct{}                         `wammeta:"id=4556,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AdminFlowActionSequenceNumber *int32                           `wam:"1"`
+	AdminFlowType                 *ChannelAdmin_AdminFlowType      `wam:"2"`
+	ChannelAdminAction            *ChannelAdmin_ChannelAdminAction `wam:"3"`
+	ChannelAdminSessionId         *int32                           `wam:"4"`
 }
 
 type DisappearingMessageChatPicker_DmChatPickerEntryPoint int32
@@ -10812,15 +10812,15 @@ const (
 )
 
 type DisappearingMessageChatPickerEvent struct {
-	_meta                     struct{}                                             `wammeta:"id=3398,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatsSelected             int32                                                `wam:"1"`
-	DmChatPickerEntryPoint    DisappearingMessageChatPicker_DmChatPickerEntryPoint `wam:"2"`
-	DmChatPickerEventName     DisappearingMessageChatPicker_DmChatPickerEventName  `wam:"3"`
-	EphemeralityDuration      int32                                                `wam:"4"`
-	GroupChatsSelected        int32                                                `wam:"5"`
-	GroupSizeDistributionJson string                                               `wam:"9"`
-	NewlyEphemeralChats       int32                                                `wam:"7"`
-	TotalChatsInChatPicker    int32                                                `wam:"8"`
+	_meta                     struct{}                                              `wammeta:"id=3398,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatsSelected             *int32                                                `wam:"1"`
+	DmChatPickerEntryPoint    *DisappearingMessageChatPicker_DmChatPickerEntryPoint `wam:"2"`
+	DmChatPickerEventName     *DisappearingMessageChatPicker_DmChatPickerEventName  `wam:"3"`
+	EphemeralityDuration      *int32                                                `wam:"4"`
+	GroupChatsSelected        *int32                                                `wam:"5"`
+	GroupSizeDistributionJson *string                                               `wam:"9"`
+	NewlyEphemeralChats       *int32                                                `wam:"7"`
+	TotalChatsInChatPicker    *int32                                                `wam:"8"`
 }
 
 type ChatPsaAction_MessageMediaType int32
@@ -10911,11 +10911,11 @@ const (
 )
 
 type ChatPsaActionEvent struct {
-	_meta                struct{}                           `wammeta:"id=3572,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MessageMediaType     ChatPsaAction_MessageMediaType     `wam:"1"`
-	PsaCampaignId        string                             `wam:"4"`
-	PsaMessageActionType ChatPsaAction_PsaMessageActionType `wam:"2"`
-	PsaMsgId             string                             `wam:"5"`
+	_meta                struct{}                            `wammeta:"id=3572,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MessageMediaType     *ChatPsaAction_MessageMediaType     `wam:"1"`
+	PsaCampaignId        *string                             `wam:"4"`
+	PsaMessageActionType *ChatPsaAction_PsaMessageActionType `wam:"2"`
+	PsaMsgId             *string                             `wam:"5"`
 }
 
 type EditMessageSend_EditType int32
@@ -11024,15 +11024,15 @@ const (
 )
 
 type EditMessageSendEvent struct {
-	_meta                       struct{}                    `wammeta:"id=3990,channel=regular,weight=1,privateStatsIdInt=-1"`
-	EditDuration                int32                       `wam:"1"`
-	EditType                    EditMessageSend_EditType    `wam:"2"`
-	MediaType                   EditMessageSend_MediaType   `wam:"8"`
-	MessageSendResultIsTerminal bool                        `wam:"3"`
-	MessageType                 EditMessageSend_MessageType `wam:"4"`
-	ResendCount                 int32                       `wam:"5"`
-	RetryCount                  int32                       `wam:"6"`
-	TypeOfGroup                 EditMessageSend_TypeOfGroup `wam:"9"`
+	_meta                       struct{}                     `wammeta:"id=3990,channel=regular,weight=1,privateStatsIdInt=-1"`
+	EditDuration                *int32                       `wam:"1"`
+	EditType                    *EditMessageSend_EditType    `wam:"2"`
+	MediaType                   *EditMessageSend_MediaType   `wam:"8"`
+	MessageSendResultIsTerminal *bool                        `wam:"3"`
+	MessageType                 *EditMessageSend_MessageType `wam:"4"`
+	ResendCount                 *int32                       `wam:"5"`
+	RetryCount                  *int32                       `wam:"6"`
+	TypeOfGroup                 *EditMessageSend_TypeOfGroup `wam:"9"`
 }
 
 type MessageSecretErrors_MessageMediaType int32
@@ -11131,10 +11131,10 @@ const (
 )
 
 type MessageSecretErrorsEvent struct {
-	_meta                    struct{}                                     `wammeta:"id=3686,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MessageMediaType         MessageSecretErrors_MessageMediaType         `wam:"3"`
-	MessageSecretAllowedList MessageSecretErrors_MessageSecretAllowedList `wam:"1"`
-	MessageSecretError       MessageSecretErrors_MessageSecretError       `wam:"2"`
+	_meta                    struct{}                                      `wammeta:"id=3686,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MessageMediaType         *MessageSecretErrors_MessageMediaType         `wam:"3"`
+	MessageSecretAllowedList *MessageSecretErrors_MessageSecretAllowedList `wam:"1"`
+	MessageSecretError       *MessageSecretErrors_MessageSecretError       `wam:"2"`
 }
 
 type TsExternal_TsExternalEventSource int32
@@ -11147,18 +11147,18 @@ const (
 )
 
 type TsExternalEvent struct {
-	_meta                 struct{}                         `wammeta:"id=4574,channel=regular,weight=1,privateStatsIdInt=-1"`
-	RelativeTimestampMs   int32                            `wam:"1"`
-	TsDuration            int32                            `wam:"2"`
-	TsExternalEventSource TsExternal_TsExternalEventSource `wam:"3"`
-	TsSessionId           int32                            `wam:"4"`
-	TsTimestampMs         int32                            `wam:"5"`
-	UnifiedSessionId      string                           `wam:"6"`
+	_meta                 struct{}                          `wammeta:"id=4574,channel=regular,weight=1,privateStatsIdInt=-1"`
+	RelativeTimestampMs   *int32                            `wam:"1"`
+	TsDuration            *int32                            `wam:"2"`
+	TsExternalEventSource *TsExternal_TsExternalEventSource `wam:"3"`
+	TsSessionId           *int32                            `wam:"4"`
+	TsTimestampMs         *int32                            `wam:"5"`
+	UnifiedSessionId      *string                           `wam:"6"`
 }
 
 type WebcPageLoad2Event struct {
 	_meta          struct{} `wammeta:"id=5392,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcPageLoadId string   `wam:"1"`
+	WebcPageLoadId *string  `wam:"1"`
 }
 
 type WebWamForceFlushEvent struct {
@@ -11175,27 +11175,27 @@ const (
 )
 
 type MerchantCommerceEventEvent struct {
-	_meta                         struct{}                          `wammeta:"id=4688,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AcceptedPaymentMethods        string                            `wam:"1"`
-	AdId                          string                            `wam:"2"`
-	AppSessionId                  string                            `wam:"3"`
-	BizPlatform                   MerchantCommerceEvent_BizPlatform `wam:"4"`
-	CommerceExperience            string                            `wam:"6"`
-	CommerceFlowId                string                            `wam:"20"`
-	CommerceInteractionAction     string                            `wam:"7"`
-	CommerceInteractionActionType string                            `wam:"21"`
-	CommerceOrderStatus           string                            `wam:"22"`
-	CommercePaymentStatus         string                            `wam:"8"`
-	CommerceSessionId             string                            `wam:"9"`
-	CommerceSurface               string                            `wam:"10"`
-	ExtraAttributes               string                            `wam:"11"`
-	IsCtwaOriginated              bool                              `wam:"12"`
-	IsEligibleForAdSignal         bool                              `wam:"13"`
-	MerchantHasCatalog            bool                              `wam:"14"`
-	MerchantIsDiscoverable        bool                              `wam:"15"`
-	P2mFlow                       string                            `wam:"17"`
-	Referral                      string                            `wam:"18"`
-	SequenceId                    int32                             `wam:"19"`
+	_meta                         struct{}                           `wammeta:"id=4688,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AcceptedPaymentMethods        *string                            `wam:"1"`
+	AdId                          *string                            `wam:"2"`
+	AppSessionId                  *string                            `wam:"3"`
+	BizPlatform                   *MerchantCommerceEvent_BizPlatform `wam:"4"`
+	CommerceExperience            *string                            `wam:"6"`
+	CommerceFlowId                *string                            `wam:"20"`
+	CommerceInteractionAction     *string                            `wam:"7"`
+	CommerceInteractionActionType *string                            `wam:"21"`
+	CommerceOrderStatus           *string                            `wam:"22"`
+	CommercePaymentStatus         *string                            `wam:"8"`
+	CommerceSessionId             *string                            `wam:"9"`
+	CommerceSurface               *string                            `wam:"10"`
+	ExtraAttributes               *string                            `wam:"11"`
+	IsCtwaOriginated              *bool                              `wam:"12"`
+	IsEligibleForAdSignal         *bool                              `wam:"13"`
+	MerchantHasCatalog            *bool                              `wam:"14"`
+	MerchantIsDiscoverable        *bool                              `wam:"15"`
+	P2mFlow                       *string                            `wam:"17"`
+	Referral                      *string                            `wam:"18"`
+	SequenceId                    *int32                             `wam:"19"`
 }
 
 type TestAnonymousDailyId_PsTestEnumField int32
@@ -11206,9 +11206,9 @@ const (
 )
 
 type TestAnonymousDailyIdEvent struct {
-	_meta            struct{}                             `wammeta:"id=2958,channel=private,weight=1,privateStatsIdInt=248614979"`
-	PsTestEnumField  TestAnonymousDailyId_PsTestEnumField `wam:"1"`
-	PsTestFloatField float64                              `wam:"2"`
+	_meta            struct{}                              `wammeta:"id=2958,channel=private,weight=1,privateStatsIdInt=248614979"`
+	PsTestEnumField  *TestAnonymousDailyId_PsTestEnumField `wam:"1"`
+	PsTestFloatField *float64                              `wam:"2"`
 }
 
 type OtpRetriever_ChatsFolderType int32
@@ -11288,41 +11288,41 @@ const (
 )
 
 type OtpRetrieverEvent struct {
-	_meta                             struct{}                       `wammeta:"id=3468,channel=private,weight=1,privateStatsIdInt=113760892"`
-	BusinessLid                       int32                          `wam:"26"`
-	BusinessLidOrJid                  string                         `wam:"28"`
-	BusinessPhoneNumber               int32                          `wam:"1"`
-	ChatId                            string                         `wam:"19"`
-	ChatsFolderType                   OtpRetriever_ChatsFolderType   `wam:"12"`
-	CtaFallbackReason                 OtpRetriever_CtaFallbackReason `wam:"2"`
-	CtaType                           OtpRetriever_CtaType           `wam:"3"`
-	IsKeepChatsArchivedEnabled        bool                           `wam:"13"`
-	IsMessageNotificationEnabled      bool                           `wam:"14"`
-	IsNotificationEnabled             bool                           `wam:"15"`
-	MessageReceivedElapsedTimeSeconds int32                          `wam:"11"`
-	OtpCorrelationId                  string                         `wam:"20"`
-	OtpEventSource                    OtpRetriever_OtpEventSource    `wam:"5"`
-	OtpEventType                      OtpRetriever_OtpEventType      `wam:"6"`
-	OtpFailureReason                  string                         `wam:"16"`
-	OtpHandshakeElapsedTimeMs         int32                          `wam:"21"`
-	OtpHandshakeId                    string                         `wam:"23"`
-	OtpMaskLinkedDevices              bool                           `wam:"24"`
-	OtpProductType                    OtpRetriever_OtpProductType    `wam:"7"`
-	OtpSdkVersion                     string                         `wam:"22"`
-	OtpSenderAttributes               string                         `wam:"27"`
-	OtpSessionId                      string                         `wam:"8"`
-	ReceiverCountryCode               string                         `wam:"18"`
-	TemplateId                        string                         `wam:"17"`
-	ThirdPartyPackageNameFromIntent   string                         `wam:"9"`
-	ThirdPartyPackageSignatureHash    string                         `wam:"10"`
-	WaDeviceId                        int32                          `wam:"25"`
+	_meta                             struct{}                        `wammeta:"id=3468,channel=private,weight=1,privateStatsIdInt=113760892"`
+	BusinessLid                       *int32                          `wam:"26"`
+	BusinessLidOrJid                  *string                         `wam:"28"`
+	BusinessPhoneNumber               *int32                          `wam:"1"`
+	ChatId                            *string                         `wam:"19"`
+	ChatsFolderType                   *OtpRetriever_ChatsFolderType   `wam:"12"`
+	CtaFallbackReason                 *OtpRetriever_CtaFallbackReason `wam:"2"`
+	CtaType                           *OtpRetriever_CtaType           `wam:"3"`
+	IsKeepChatsArchivedEnabled        *bool                           `wam:"13"`
+	IsMessageNotificationEnabled      *bool                           `wam:"14"`
+	IsNotificationEnabled             *bool                           `wam:"15"`
+	MessageReceivedElapsedTimeSeconds *int32                          `wam:"11"`
+	OtpCorrelationId                  *string                         `wam:"20"`
+	OtpEventSource                    *OtpRetriever_OtpEventSource    `wam:"5"`
+	OtpEventType                      *OtpRetriever_OtpEventType      `wam:"6"`
+	OtpFailureReason                  *string                         `wam:"16"`
+	OtpHandshakeElapsedTimeMs         *int32                          `wam:"21"`
+	OtpHandshakeId                    *string                         `wam:"23"`
+	OtpMaskLinkedDevices              *bool                           `wam:"24"`
+	OtpProductType                    *OtpRetriever_OtpProductType    `wam:"7"`
+	OtpSdkVersion                     *string                         `wam:"22"`
+	OtpSenderAttributes               *string                         `wam:"27"`
+	OtpSessionId                      *string                         `wam:"8"`
+	ReceiverCountryCode               *string                         `wam:"18"`
+	TemplateId                        *string                         `wam:"17"`
+	ThirdPartyPackageNameFromIntent   *string                         `wam:"9"`
+	ThirdPartyPackageSignatureHash    *string                         `wam:"10"`
+	WaDeviceId                        *int32                          `wam:"25"`
 }
 
 type WebcResourceLoadEvent struct {
 	_meta                struct{} `wammeta:"id=688,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcResourceCached   bool     `wam:"3"`
-	WebcResourceDuration int64    `wam:"2"`
-	WebcResourceName     string   `wam:"1"`
+	WebcResourceCached   *bool    `wam:"3"`
+	WebcResourceDuration *int64   `wam:"2"`
+	WebcResourceName     *string  `wam:"1"`
 }
 
 type StatusRowView_StatusRowEntryMethod int32
@@ -11360,15 +11360,15 @@ const (
 )
 
 type StatusRowViewEvent struct {
-	_meta                    struct{}                           `wammeta:"id=1656,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PsaCampaigns             string                             `wam:"8"`
-	StatusRowEntryMethod     StatusRowView_StatusRowEntryMethod `wam:"5"`
-	StatusRowIndex           int32                              `wam:"4"`
-	StatusRowSection         StatusRowView_StatusRowSection     `wam:"3"`
-	StatusRowUnreadItemCount int32                              `wam:"7"`
-	StatusRowViewCount       int32                              `wam:"6"`
-	StatusSessionId          int32                              `wam:"1"`
-	StatusViewerSessionId    int32                              `wam:"2"`
+	_meta                    struct{}                            `wammeta:"id=1656,channel=regular,weight=1,privateStatsIdInt=-1"`
+	PsaCampaigns             *string                             `wam:"8"`
+	StatusRowEntryMethod     *StatusRowView_StatusRowEntryMethod `wam:"5"`
+	StatusRowIndex           *int32                              `wam:"4"`
+	StatusRowSection         *StatusRowView_StatusRowSection     `wam:"3"`
+	StatusRowUnreadItemCount *int32                              `wam:"7"`
+	StatusRowViewCount       *int32                              `wam:"6"`
+	StatusSessionId          *int32                              `wam:"1"`
+	StatusViewerSessionId    *int32                              `wam:"2"`
 }
 
 type WebcMessageSend_MessageMediaType int32
@@ -11458,11 +11458,11 @@ const (
 )
 
 type WebcMessageSendEvent struct {
-	_meta            struct{}                         `wammeta:"id=2072,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MessageIsForward bool                             `wam:"3"`
-	MessageMediaType WebcMessageSend_MessageMediaType `wam:"2"`
-	MessageSendT     int64                            `wam:"4"`
-	MessageType      WebcMessageSend_MessageType      `wam:"1"`
+	_meta            struct{}                          `wammeta:"id=2072,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MessageIsForward *bool                             `wam:"3"`
+	MessageMediaType *WebcMessageSend_MessageMediaType `wam:"2"`
+	MessageSendT     *int64                            `wam:"4"`
+	MessageType      *WebcMessageSend_MessageType      `wam:"1"`
 }
 
 type UpdatesTabSearch_UpdateTabSearchEventType int32
@@ -11497,18 +11497,18 @@ const (
 )
 
 type UpdatesTabSearchEvent struct {
-	_meta                        struct{}                                    `wammeta:"id=4838,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChannelsAdminCount           int32                                       `wam:"5"`
-	ChannelsFollowedCount        int32                                       `wam:"1"`
-	PremiumChannelsFollowedCount int32                                       `wam:"8"`
-	RecentStatusItemCount        int32                                       `wam:"2"`
-	RecentStatusRowCount         int32                                       `wam:"3"`
-	UpdateTabSearchEventType     UpdatesTabSearch_UpdateTabSearchEventType   `wam:"4"`
-	UpdatesTabSearchModeType     UpdatesTabSearch_UpdatesTabSearchModeType   `wam:"11"`
-	UpdatesTabSearchResultType   UpdatesTabSearch_UpdatesTabSearchResultType `wam:"9"`
-	UpdatesTabSearchSessionId    string                                      `wam:"10"`
-	ViewedStatusItemCount        int32                                       `wam:"6"`
-	ViewedStatusRowCount         int32                                       `wam:"7"`
+	_meta                        struct{}                                     `wammeta:"id=4838,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChannelsAdminCount           *int32                                       `wam:"5"`
+	ChannelsFollowedCount        *int32                                       `wam:"1"`
+	PremiumChannelsFollowedCount *int32                                       `wam:"8"`
+	RecentStatusItemCount        *int32                                       `wam:"2"`
+	RecentStatusRowCount         *int32                                       `wam:"3"`
+	UpdateTabSearchEventType     *UpdatesTabSearch_UpdateTabSearchEventType   `wam:"4"`
+	UpdatesTabSearchModeType     *UpdatesTabSearch_UpdatesTabSearchModeType   `wam:"11"`
+	UpdatesTabSearchResultType   *UpdatesTabSearch_UpdatesTabSearchResultType `wam:"9"`
+	UpdatesTabSearchSessionId    *string                                      `wam:"10"`
+	ViewedStatusItemCount        *int32                                       `wam:"6"`
+	ViewedStatusRowCount         *int32                                       `wam:"7"`
 }
 
 type SignCredential_ApplicationState int32
@@ -11536,30 +11536,30 @@ const (
 )
 
 type SignCredentialEvent struct {
-	_meta                struct{}                            `wammeta:"id=2242,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ApplicationState     SignCredential_ApplicationState     `wam:"6"`
-	IsFromWameta         bool                                `wam:"8"`
-	OverallT             int64                               `wam:"4"`
-	ProjectCode          SignCredential_ProjectCode          `wam:"7"`
-	RetryCount           int32                               `wam:"2"`
-	SignCredentialResult SignCredential_SignCredentialResult `wam:"1"`
-	SignCredentialT      int64                               `wam:"3"`
-	WaConnectedToChatd   bool                                `wam:"5"`
+	_meta                struct{}                             `wammeta:"id=2242,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ApplicationState     *SignCredential_ApplicationState     `wam:"6"`
+	IsFromWameta         *bool                                `wam:"8"`
+	OverallT             *int64                               `wam:"4"`
+	ProjectCode          *SignCredential_ProjectCode          `wam:"7"`
+	RetryCount           *int32                               `wam:"2"`
+	SignCredentialResult *SignCredential_SignCredentialResult `wam:"1"`
+	SignCredentialT      *int64                               `wam:"3"`
+	WaConnectedToChatd   *bool                                `wam:"5"`
 }
 
 type MexEventV2Event struct {
 	_meta                   struct{} `wammeta:"id=4336,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MexEventV2DurationMs    int64    `wam:"1"`
-	MexEventV2EndTime       int32    `wam:"2"`
-	MexEventV2ErrorCodes    string   `wam:"3"`
-	MexEventV2Errors        string   `wam:"4"`
-	MexEventV2HasData       bool     `wam:"5"`
-	MexEventV2IsArgoPayload bool     `wam:"10"`
-	MexEventV2IsMex         bool     `wam:"6"`
-	MexEventV2OperationName string   `wam:"7"`
-	MexEventV2QueryId       string   `wam:"8"`
-	MexEventV2StartTime     int32    `wam:"9"`
-	MexFbUserType           string   `wam:"11"`
+	MexEventV2DurationMs    *int64   `wam:"1"`
+	MexEventV2EndTime       *int32   `wam:"2"`
+	MexEventV2ErrorCodes    *string  `wam:"3"`
+	MexEventV2Errors        *string  `wam:"4"`
+	MexEventV2HasData       *bool    `wam:"5"`
+	MexEventV2IsArgoPayload *bool    `wam:"10"`
+	MexEventV2IsMex         *bool    `wam:"6"`
+	MexEventV2OperationName *string  `wam:"7"`
+	MexEventV2QueryId       *string  `wam:"8"`
+	MexEventV2StartTime     *int32   `wam:"9"`
+	MexFbUserType           *string  `wam:"11"`
 }
 
 type Ptt_PttResult int32
@@ -11578,22 +11578,22 @@ const (
 )
 
 type PttEvent struct {
-	_meta                         struct{}      `wammeta:"id=458,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsMetaAiThread                bool          `wam:"15"`
-	PttAvgNoiseLoudness           float64       `wam:"11"`
-	PttAvgNoiseLoudnessReduction  float64       `wam:"12"`
-	PttAvgSpeechLoudness          float64       `wam:"13"`
-	PttAvgSpeechLoudnessReduction float64       `wam:"14"`
-	PttDraftPlayCnt               int32         `wam:"7"`
-	PttDraftSeekCnt               int32         `wam:"8"`
-	PttDuration                   int64         `wam:"5"`
-	PttLock                       bool          `wam:"4"`
-	PttPauseCnt                   int32         `wam:"9"`
-	PttResult                     Ptt_PttResult `wam:"1"`
-	PttSize                       float64       `wam:"3"`
-	PttSource                     Ptt_PttSource `wam:"2"`
-	PttStop                       bool          `wam:"6"`
-	PttStopTapCnt                 int32         `wam:"10"`
+	_meta                         struct{}       `wammeta:"id=458,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsMetaAiThread                *bool          `wam:"15"`
+	PttAvgNoiseLoudness           *float64       `wam:"11"`
+	PttAvgNoiseLoudnessReduction  *float64       `wam:"12"`
+	PttAvgSpeechLoudness          *float64       `wam:"13"`
+	PttAvgSpeechLoudnessReduction *float64       `wam:"14"`
+	PttDraftPlayCnt               *int32         `wam:"7"`
+	PttDraftSeekCnt               *int32         `wam:"8"`
+	PttDuration                   *int64         `wam:"5"`
+	PttLock                       *bool          `wam:"4"`
+	PttPauseCnt                   *int32         `wam:"9"`
+	PttResult                     *Ptt_PttResult `wam:"1"`
+	PttSize                       *float64       `wam:"3"`
+	PttSource                     *Ptt_PttSource `wam:"2"`
+	PttStop                       *bool          `wam:"6"`
+	PttStopTapCnt                 *int32         `wam:"10"`
 }
 
 type WebcPageLoad_WebcAppcacheStatus int32
@@ -11617,53 +11617,53 @@ const (
 )
 
 type WebcPageLoadEvent struct {
-	_meta                          struct{}                        `wammeta:"id=642,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcAppcacheStatus             WebcPageLoad_WebcAppcacheStatus `wam:"29"`
-	WebcCached                     bool                            `wam:"30"`
-	WebcConnectEnd                 int64                           `wam:"10"`
-	WebcConnectStart               int64                           `wam:"9"`
-	WebcDomComplete                int64                           `wam:"19"`
-	WebcDomContentLoadedEventEnd   int64                           `wam:"18"`
-	WebcDomContentLoadedEventStart int64                           `wam:"17"`
-	WebcDomInteractive             int64                           `wam:"16"`
-	WebcDomLoading                 int64                           `wam:"15"`
-	WebcDomainLookupEnd            int64                           `wam:"8"`
-	WebcDomainLookupStart          int64                           `wam:"7"`
-	WebcExeDone                    int64                           `wam:"23"`
-	WebcExeStart                   int64                           `wam:"22"`
-	WebcFetchStart                 int64                           `wam:"6"`
-	WebcInitialMountT              int64                           `wam:"38"`
-	WebcInitialNavMountT           int64                           `wam:"39"`
-	WebcInitialPanel               string                          `wam:"42"`
-	WebcInitialPanelMountStartT    int64                           `wam:"43"`
-	WebcInitialPanelMountT         int64                           `wam:"40"`
-	WebcInitialPanelRenderT        int64                           `wam:"46"`
-	WebcJsLoadT                    int64                           `wam:"37"`
-	WebcLoadEventEnd               int64                           `wam:"21"`
-	WebcLoadEventStart             int64                           `wam:"20"`
-	WebcLoadInForeground           bool                            `wam:"53"`
-	WebcMainScriptEnd              int64                           `wam:"45"`
-	WebcMainScriptStart            int64                           `wam:"44"`
-	WebcNativeLoadT                int64                           `wam:"36"`
-	WebcNavigation                 WebcPageLoad_WebcNavigation     `wam:"32"`
-	WebcPageLoadId                 string                          `wam:"54"`
-	WebcPageLoadT                  int64                           `wam:"34"`
-	WebcParallellyFetched          bool                            `wam:"41"`
-	WebcQrCode                     bool                            `wam:"31"`
-	WebcRedirectCount              float64                         `wam:"33"`
-	WebcRedirectEnd                int64                           `wam:"5"`
-	WebcRedirectStart              int64                           `wam:"4"`
-	WebcRequestStart               int64                           `wam:"12"`
-	WebcResponseEnd                int64                           `wam:"14"`
-	WebcResponseStart              int64                           `wam:"13"`
-	WebcSecureConnectionStart      int64                           `wam:"11"`
-	WebcUnloadEventEnd             int64                           `wam:"3"`
-	WebcUnloadEventStart           int64                           `wam:"2"`
-	WebcWsAttempts                 float64                         `wam:"28"`
-	WebcWsNormal                   int64                           `wam:"27"`
-	WebcWsOpening                  int64                           `wam:"24"`
-	WebcWsPairing                  int64                           `wam:"25"`
-	WebcWsSyncing                  int64                           `wam:"26"`
+	_meta                          struct{}                         `wammeta:"id=642,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcAppcacheStatus             *WebcPageLoad_WebcAppcacheStatus `wam:"29"`
+	WebcCached                     *bool                            `wam:"30"`
+	WebcConnectEnd                 *int64                           `wam:"10"`
+	WebcConnectStart               *int64                           `wam:"9"`
+	WebcDomComplete                *int64                           `wam:"19"`
+	WebcDomContentLoadedEventEnd   *int64                           `wam:"18"`
+	WebcDomContentLoadedEventStart *int64                           `wam:"17"`
+	WebcDomInteractive             *int64                           `wam:"16"`
+	WebcDomLoading                 *int64                           `wam:"15"`
+	WebcDomainLookupEnd            *int64                           `wam:"8"`
+	WebcDomainLookupStart          *int64                           `wam:"7"`
+	WebcExeDone                    *int64                           `wam:"23"`
+	WebcExeStart                   *int64                           `wam:"22"`
+	WebcFetchStart                 *int64                           `wam:"6"`
+	WebcInitialMountT              *int64                           `wam:"38"`
+	WebcInitialNavMountT           *int64                           `wam:"39"`
+	WebcInitialPanel               *string                          `wam:"42"`
+	WebcInitialPanelMountStartT    *int64                           `wam:"43"`
+	WebcInitialPanelMountT         *int64                           `wam:"40"`
+	WebcInitialPanelRenderT        *int64                           `wam:"46"`
+	WebcJsLoadT                    *int64                           `wam:"37"`
+	WebcLoadEventEnd               *int64                           `wam:"21"`
+	WebcLoadEventStart             *int64                           `wam:"20"`
+	WebcLoadInForeground           *bool                            `wam:"53"`
+	WebcMainScriptEnd              *int64                           `wam:"45"`
+	WebcMainScriptStart            *int64                           `wam:"44"`
+	WebcNativeLoadT                *int64                           `wam:"36"`
+	WebcNavigation                 *WebcPageLoad_WebcNavigation     `wam:"32"`
+	WebcPageLoadId                 *string                          `wam:"54"`
+	WebcPageLoadT                  *int64                           `wam:"34"`
+	WebcParallellyFetched          *bool                            `wam:"41"`
+	WebcQrCode                     *bool                            `wam:"31"`
+	WebcRedirectCount              *float64                         `wam:"33"`
+	WebcRedirectEnd                *int64                           `wam:"5"`
+	WebcRedirectStart              *int64                           `wam:"4"`
+	WebcRequestStart               *int64                           `wam:"12"`
+	WebcResponseEnd                *int64                           `wam:"14"`
+	WebcResponseStart              *int64                           `wam:"13"`
+	WebcSecureConnectionStart      *int64                           `wam:"11"`
+	WebcUnloadEventEnd             *int64                           `wam:"3"`
+	WebcUnloadEventStart           *int64                           `wam:"2"`
+	WebcWsAttempts                 *float64                         `wam:"28"`
+	WebcWsNormal                   *int64                           `wam:"27"`
+	WebcWsOpening                  *int64                           `wam:"24"`
+	WebcWsPairing                  *int64                           `wam:"25"`
+	WebcWsSyncing                  *int64                           `wam:"26"`
 }
 
 type TestAnonymousMonthlyIdEvent struct {
@@ -11692,9 +11692,9 @@ const (
 )
 
 type WebcButterbarEventEvent struct {
-	_meta               struct{}                               `wammeta:"id=3932,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcButterbarAction WebcButterbarEvent_WebcButterbarAction `wam:"1"`
-	WebcButterbarType   WebcButterbarEvent_WebcButterbarType   `wam:"2"`
+	_meta               struct{}                                `wammeta:"id=3932,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcButterbarAction *WebcButterbarEvent_WebcButterbarAction `wam:"1"`
+	WebcButterbarType   *WebcButterbarEvent_WebcButterbarType   `wam:"2"`
 }
 
 type StatusReply_ReplyEntryMethod int32
@@ -11756,30 +11756,30 @@ const (
 )
 
 type StatusReplyEvent struct {
-	_meta                  struct{}                           `wammeta:"id=1180,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsMentioned            bool                               `wam:"7"`
-	IsPosterBiz            bool                               `wam:"4"`
-	IsPosterInAddressBook  bool                               `wam:"6"`
-	IsRecentQuickReplyUsed bool                               `wam:"16"`
-	IsReplyBarBelowCanvas  bool                               `wam:"9"`
-	IsReplyBarOverMedia    bool                               `wam:"10"`
-	MediaHeight            int32                              `wam:"11"`
-	MediaWidth             int32                              `wam:"12"`
-	PostContainedPrompt    bool                               `wam:"15"`
-	ReplyEntryMethod       StatusReply_ReplyEntryMethod       `wam:"13"`
-	ReplyExitMethod        StatusReply_ReplyExitMethod        `wam:"14"`
-	StatusContentType      StatusReply_StatusContentType      `wam:"8"`
-	StatusReplyMessageType StatusReply_StatusReplyMessageType `wam:"3"`
-	StatusReplyResult      StatusReply_StatusReplyResult      `wam:"2"`
-	StatusSessionId        int32                              `wam:"1"`
+	_meta                  struct{}                            `wammeta:"id=1180,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsMentioned            *bool                               `wam:"7"`
+	IsPosterBiz            *bool                               `wam:"4"`
+	IsPosterInAddressBook  *bool                               `wam:"6"`
+	IsRecentQuickReplyUsed *bool                               `wam:"16"`
+	IsReplyBarBelowCanvas  *bool                               `wam:"9"`
+	IsReplyBarOverMedia    *bool                               `wam:"10"`
+	MediaHeight            *int32                              `wam:"11"`
+	MediaWidth             *int32                              `wam:"12"`
+	PostContainedPrompt    *bool                               `wam:"15"`
+	ReplyEntryMethod       *StatusReply_ReplyEntryMethod       `wam:"13"`
+	ReplyExitMethod        *StatusReply_ReplyExitMethod        `wam:"14"`
+	StatusContentType      *StatusReply_StatusContentType      `wam:"8"`
+	StatusReplyMessageType *StatusReply_StatusReplyMessageType `wam:"3"`
+	StatusReplyResult      *StatusReply_StatusReplyResult      `wam:"2"`
+	StatusSessionId        *int32                              `wam:"1"`
 }
 
 type PsGroupOpenedEvent struct {
 	_meta                              struct{} `wammeta:"id=6236,channel=private,weight=1,privateStatsIdInt=216763284"`
-	IntegrityGroupUserHashedId         string   `wam:"4"`
-	IsGroupSafetyCheckAbpropEnabled    bool     `wam:"2"`
-	IsPartOfGroupSafetyCheckExperiment bool     `wam:"3"`
-	OpenedGroupJid                     string   `wam:"1"`
+	IntegrityGroupUserHashedId         *string  `wam:"4"`
+	IsGroupSafetyCheckAbpropEnabled    *bool    `wam:"2"`
+	IsPartOfGroupSafetyCheckExperiment *bool    `wam:"3"`
+	OpenedGroupJid                     *string  `wam:"1"`
 }
 
 type PsGroupExitExperienceGroupAction_PsGroupExitExperienceAction int32
@@ -11804,11 +11804,11 @@ const (
 )
 
 type PsGroupExitExperienceGroupActionEvent struct {
-	_meta                           struct{}                                                         `wammeta:"id=6332,channel=private,weight=1,privateStatsIdInt=152546501"`
-	PsGroupExitExperienceAction     PsGroupExitExperienceGroupAction_PsGroupExitExperienceAction     `wam:"1"`
-	PsGroupExitExperienceEnabled    bool                                                             `wam:"2"`
-	PsGroupExitExperienceGroupJid   string                                                           `wam:"3"`
-	PsGroupExitExperienceTouchPoint PsGroupExitExperienceGroupAction_PsGroupExitExperienceTouchPoint `wam:"4"`
+	_meta                           struct{}                                                          `wammeta:"id=6332,channel=private,weight=1,privateStatsIdInt=152546501"`
+	PsGroupExitExperienceAction     *PsGroupExitExperienceGroupAction_PsGroupExitExperienceAction     `wam:"1"`
+	PsGroupExitExperienceEnabled    *bool                                                             `wam:"2"`
+	PsGroupExitExperienceGroupJid   *string                                                           `wam:"3"`
+	PsGroupExitExperienceTouchPoint *PsGroupExitExperienceGroupAction_PsGroupExitExperienceTouchPoint `wam:"4"`
 }
 
 type SmbPaidMessagesButtonLogger_PmButtonEventType int32
@@ -11828,14 +11828,14 @@ const (
 )
 
 type SmbPaidMessagesButtonLoggerEvent struct {
-	_meta               struct{}                                      `wammeta:"id=4508,channel=private,weight=1,privateStatsIdInt=113760892"`
-	BusinessPhoneNumber int32                                         `wam:"1"`
-	PmButtonCount       int32                                         `wam:"2"`
-	PmButtonEventType   SmbPaidMessagesButtonLogger_PmButtonEventType `wam:"3"`
-	PmButtonIndex       int32                                         `wam:"4"`
-	PmButtonType        SmbPaidMessagesButtonLogger_PmButtonType      `wam:"5"`
-	PmIsTrackableLink   string                                        `wam:"7"`
-	PmServerCampaignId  string                                        `wam:"6"`
+	_meta               struct{}                                       `wammeta:"id=4508,channel=private,weight=1,privateStatsIdInt=113760892"`
+	BusinessPhoneNumber *int32                                         `wam:"1"`
+	PmButtonCount       *int32                                         `wam:"2"`
+	PmButtonEventType   *SmbPaidMessagesButtonLogger_PmButtonEventType `wam:"3"`
+	PmButtonIndex       *int32                                         `wam:"4"`
+	PmButtonType        *SmbPaidMessagesButtonLogger_PmButtonType      `wam:"5"`
+	PmIsTrackableLink   *string                                        `wam:"7"`
+	PmServerCampaignId  *string                                        `wam:"6"`
 }
 
 type ForwardSend_DisappearingChatInitiator int32
@@ -11987,33 +11987,33 @@ const (
 )
 
 type ForwardSendEvent struct {
-	_meta                               struct{}                              `wammeta:"id=1728,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DisappearingChatInitiator           ForwardSend_DisappearingChatInitiator `wam:"21"`
-	E2eCiphertextType                   ForwardSend_E2eCiphertextType         `wam:"12"`
-	E2eCiphertextVersion                int32                                 `wam:"11"`
-	EphemeralityDuration                int32                                 `wam:"18"`
-	EphemeralityInitiator               ForwardSend_EphemeralityInitiator     `wam:"24"`
-	EphemeralityTriggerAction           ForwardSend_EphemeralityTriggerAction `wam:"25"`
-	FastForwardEnabled                  bool                                  `wam:"5"`
-	ForwardPickerOrigin                 ForwardSend_ForwardPickerOrigin       `wam:"27"`
-	IsForwardedForward                  bool                                  `wam:"22"`
-	IsFrequentlyForwarded               bool                                  `wam:"14"`
-	MediaCaptionPresent                 bool                                  `wam:"10"`
-	MessageBizType                      ForwardSend_MessageBizType            `wam:"26"`
-	MessageForwardAgeT                  int64                                 `wam:"4"`
-	MessageIsFanout                     bool                                  `wam:"6"`
-	MessageIsFastForward                bool                                  `wam:"3"`
-	MessageIsInternational              bool                                  `wam:"9"`
-	MessageMediaType                    ForwardSend_MessageMediaType          `wam:"2"`
-	MessageSendT                        int64                                 `wam:"13"`
-	MessageType                         ForwardSend_MessageType               `wam:"1"`
-	ReceiverDefaultDisappearingDuration int32                                 `wam:"20"`
-	ResendCount                         int32                                 `wam:"8"`
-	RetryCount                          int32                                 `wam:"7"`
-	SenderDefaultDisappearingDuration   int32                                 `wam:"19"`
-	TypeOfGroup                         ForwardSend_TypeOfGroup               `wam:"23"`
-	WouldBeFrequentlyForwardedAt3       bool                                  `wam:"16"`
-	WouldBeFrequentlyForwardedAt4       bool                                  `wam:"17"`
+	_meta                               struct{}                               `wammeta:"id=1728,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DisappearingChatInitiator           *ForwardSend_DisappearingChatInitiator `wam:"21"`
+	E2eCiphertextType                   *ForwardSend_E2eCiphertextType         `wam:"12"`
+	E2eCiphertextVersion                *int32                                 `wam:"11"`
+	EphemeralityDuration                *int32                                 `wam:"18"`
+	EphemeralityInitiator               *ForwardSend_EphemeralityInitiator     `wam:"24"`
+	EphemeralityTriggerAction           *ForwardSend_EphemeralityTriggerAction `wam:"25"`
+	FastForwardEnabled                  *bool                                  `wam:"5"`
+	ForwardPickerOrigin                 *ForwardSend_ForwardPickerOrigin       `wam:"27"`
+	IsForwardedForward                  *bool                                  `wam:"22"`
+	IsFrequentlyForwarded               *bool                                  `wam:"14"`
+	MediaCaptionPresent                 *bool                                  `wam:"10"`
+	MessageBizType                      *ForwardSend_MessageBizType            `wam:"26"`
+	MessageForwardAgeT                  *int64                                 `wam:"4"`
+	MessageIsFanout                     *bool                                  `wam:"6"`
+	MessageIsFastForward                *bool                                  `wam:"3"`
+	MessageIsInternational              *bool                                  `wam:"9"`
+	MessageMediaType                    *ForwardSend_MessageMediaType          `wam:"2"`
+	MessageSendT                        *int64                                 `wam:"13"`
+	MessageType                         *ForwardSend_MessageType               `wam:"1"`
+	ReceiverDefaultDisappearingDuration *int32                                 `wam:"20"`
+	ResendCount                         *int32                                 `wam:"8"`
+	RetryCount                          *int32                                 `wam:"7"`
+	SenderDefaultDisappearingDuration   *int32                                 `wam:"19"`
+	TypeOfGroup                         *ForwardSend_TypeOfGroup               `wam:"23"`
+	WouldBeFrequentlyForwardedAt3       *bool                                  `wam:"16"`
+	WouldBeFrequentlyForwardedAt4       *bool                                  `wam:"17"`
 }
 
 type PsGroupSafetyCheckUiInteractions_PsSafetyCheckInteraction int32
@@ -12033,10 +12033,10 @@ const (
 )
 
 type PsGroupSafetyCheckUiInteractionsEvent struct {
-	_meta                      struct{}                                                  `wammeta:"id=6242,channel=private,weight=1,privateStatsIdInt=216763284"`
-	IntegrityGroupUserHashedId string                                                    `wam:"3"`
-	PsSafetyCheckGroupJid      string                                                    `wam:"1"`
-	PsSafetyCheckInteraction   PsGroupSafetyCheckUiInteractions_PsSafetyCheckInteraction `wam:"2"`
+	_meta                      struct{}                                                   `wammeta:"id=6242,channel=private,weight=1,privateStatsIdInt=216763284"`
+	IntegrityGroupUserHashedId *string                                                    `wam:"3"`
+	PsSafetyCheckGroupJid      *string                                                    `wam:"1"`
+	PsSafetyCheckInteraction   *PsGroupSafetyCheckUiInteractions_PsSafetyCheckInteraction `wam:"2"`
 }
 
 type OfflineCountTooHigh_CallStanzaType int32
@@ -12170,15 +12170,15 @@ const (
 )
 
 type OfflineCountTooHighEvent struct {
-	_meta                    struct{}                                     `wammeta:"id=2638,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CallStanzaType           OfflineCountTooHigh_CallStanzaType           `wam:"7"`
-	InvisibleMessageCategory OfflineCountTooHigh_InvisibleMessageCategory `wam:"8"`
-	MediaType                OfflineCountTooHigh_MediaType                `wam:"3"`
-	MessageType              OfflineCountTooHigh_MessageType              `wam:"4"`
-	NotificationStanzaType   string                                       `wam:"6"`
-	OfflineCount             int32                                        `wam:"2"`
-	ReceiptStanzaType        string                                       `wam:"5"`
-	StanzaType               OfflineCountTooHigh_StanzaType               `wam:"1"`
+	_meta                    struct{}                                      `wammeta:"id=2638,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CallStanzaType           *OfflineCountTooHigh_CallStanzaType           `wam:"7"`
+	InvisibleMessageCategory *OfflineCountTooHigh_InvisibleMessageCategory `wam:"8"`
+	MediaType                *OfflineCountTooHigh_MediaType                `wam:"3"`
+	MessageType              *OfflineCountTooHigh_MessageType              `wam:"4"`
+	NotificationStanzaType   *string                                       `wam:"6"`
+	OfflineCount             *int32                                        `wam:"2"`
+	ReceiptStanzaType        *string                                       `wam:"5"`
+	StanzaType               *OfflineCountTooHigh_StanzaType               `wam:"1"`
 }
 
 type SearchTheWebFunnel_ImageSearchFailedErrorType int32
@@ -12247,20 +12247,20 @@ const (
 )
 
 type SearchTheWebFunnelEvent struct {
-	_meta                      struct{}                                      `wammeta:"id=5702,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ImageSearchFailedErrorType SearchTheWebFunnel_ImageSearchFailedErrorType `wam:"5"`
-	MessageType                SearchTheWebFunnel_MessageType                `wam:"1"`
-	StwEntryPoint              SearchTheWebFunnel_StwEntryPoint              `wam:"2"`
-	StwFormat                  SearchTheWebFunnel_StwFormat                  `wam:"3"`
-	StwInteraction             SearchTheWebFunnel_StwInteraction             `wam:"4"`
+	_meta                      struct{}                                       `wammeta:"id=5702,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ImageSearchFailedErrorType *SearchTheWebFunnel_ImageSearchFailedErrorType `wam:"5"`
+	MessageType                *SearchTheWebFunnel_MessageType                `wam:"1"`
+	StwEntryPoint              *SearchTheWebFunnel_StwEntryPoint              `wam:"2"`
+	StwFormat                  *SearchTheWebFunnel_StwFormat                  `wam:"3"`
+	StwInteraction             *SearchTheWebFunnel_StwInteraction             `wam:"4"`
 }
 
 type WebcLinkPreviewResponseHandleEvent struct {
 	_meta               struct{} `wammeta:"id=3860,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DidRespondHqPreview bool     `wam:"5"`
-	IsPreviewSuccess    bool     `wam:"2"`
-	PreviewDurationMs   int32    `wam:"4"`
-	PreviewSessionId    string   `wam:"3"`
+	DidRespondHqPreview *bool    `wam:"5"`
+	IsPreviewSuccess    *bool    `wam:"2"`
+	PreviewDurationMs   *int32   `wam:"4"`
+	PreviewSessionId    *string  `wam:"3"`
 }
 
 type CompanionsContactEvent_CompanionAddContactActionType int32
@@ -12300,17 +12300,17 @@ const (
 )
 
 type CompanionsContactEventEvent struct {
-	_meta                         struct{}                                             `wammeta:"id=5718,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CompanionAddContactActionType CompanionsContactEvent_CompanionAddContactActionType `wam:"1"`
-	CompanionAddContactEventType  CompanionsContactEvent_CompanionAddContactEventType  `wam:"2"`
-	CompanionAddContactSessionId  string                                               `wam:"3"`
-	CompanionAddContactSource     CompanionsContactEvent_CompanionAddContactSource     `wam:"4"`
-	CompanionContactSaveResult    CompanionsContactEvent_CompanionContactSaveResult    `wam:"5"`
-	CompanionFnameEdited          bool                                                 `wam:"6"`
-	CompanionIsContactSyncToOs    bool                                                 `wam:"7"`
-	CompanionLnameEdited          bool                                                 `wam:"8"`
-	CompanionPhNumberEdited       bool                                                 `wam:"9"`
-	CompanionSyncSettingChanged   bool                                                 `wam:"10"`
+	_meta                         struct{}                                              `wammeta:"id=5718,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CompanionAddContactActionType *CompanionsContactEvent_CompanionAddContactActionType `wam:"1"`
+	CompanionAddContactEventType  *CompanionsContactEvent_CompanionAddContactEventType  `wam:"2"`
+	CompanionAddContactSessionId  *string                                               `wam:"3"`
+	CompanionAddContactSource     *CompanionsContactEvent_CompanionAddContactSource     `wam:"4"`
+	CompanionContactSaveResult    *CompanionsContactEvent_CompanionContactSaveResult    `wam:"5"`
+	CompanionFnameEdited          *bool                                                 `wam:"6"`
+	CompanionIsContactSyncToOs    *bool                                                 `wam:"7"`
+	CompanionLnameEdited          *bool                                                 `wam:"8"`
+	CompanionPhNumberEdited       *bool                                                 `wam:"9"`
+	CompanionSyncSettingChanged   *bool                                                 `wam:"10"`
 }
 
 type ChannelDirectory_ChannelDirectoryAction int32
@@ -12376,21 +12376,21 @@ const (
 )
 
 type ChannelDirectoryEvent struct {
-	_meta                                struct{}                                    `wammeta:"id=4544,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChannelCategoryIndex                 int32                                       `wam:"11"`
-	ChannelCategoryName                  string                                      `wam:"12"`
-	ChannelDirectoryAction               ChannelDirectory_ChannelDirectoryAction     `wam:"1"`
-	ChannelDirectoryActionSequenceNumber int32                                       `wam:"5"`
-	ChannelDirectoryEntryPoint           ChannelDirectory_ChannelDirectoryEntryPoint `wam:"2"`
-	ChannelDirectorySearchSessionId      string                                      `wam:"14"`
-	ChannelDirectorySessionId            int32                                       `wam:"3"`
-	ChannelDirectorySurface              ChannelDirectory_ChannelDirectorySurface    `wam:"13"`
-	ChannelIndex                         int32                                       `wam:"6"`
-	Cid                                  string                                      `wam:"4"`
-	CountrySelector                      string                                      `wam:"8"`
-	ImpReason                            ChannelDirectory_ImpReason                  `wam:"9"`
-	PillSelected                         ChannelDirectory_PillSelected               `wam:"10"`
-	SearchMode                           bool                                        `wam:"7"`
+	_meta                                struct{}                                     `wammeta:"id=4544,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChannelCategoryIndex                 *int32                                       `wam:"11"`
+	ChannelCategoryName                  *string                                      `wam:"12"`
+	ChannelDirectoryAction               *ChannelDirectory_ChannelDirectoryAction     `wam:"1"`
+	ChannelDirectoryActionSequenceNumber *int32                                       `wam:"5"`
+	ChannelDirectoryEntryPoint           *ChannelDirectory_ChannelDirectoryEntryPoint `wam:"2"`
+	ChannelDirectorySearchSessionId      *string                                      `wam:"14"`
+	ChannelDirectorySessionId            *int32                                       `wam:"3"`
+	ChannelDirectorySurface              *ChannelDirectory_ChannelDirectorySurface    `wam:"13"`
+	ChannelIndex                         *int32                                       `wam:"6"`
+	Cid                                  *string                                      `wam:"4"`
+	CountrySelector                      *string                                      `wam:"8"`
+	ImpReason                            *ChannelDirectory_ImpReason                  `wam:"9"`
+	PillSelected                         *ChannelDirectory_PillSelected               `wam:"10"`
+	SearchMode                           *bool                                        `wam:"7"`
 }
 
 type LidMigrationDaily_LidMigrationSource int32
@@ -12401,14 +12401,14 @@ const (
 )
 
 type LidMigrationDailyEvent struct {
-	_meta                                struct{}                             `wammeta:"id=5842,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CompletedMigrations                  string                               `wam:"1"`
-	LidMigrationSource                   LidMigrationDaily_LidMigrationSource `wam:"7"`
-	NumberOfPnChatsWithoutMapping        int32                                `wam:"5"`
-	NumberOfPnhCtwaThreadsKnownMapping   int32                                `wam:"2"`
-	NumberOfPnhCtwaThreadsMissingMapping int32                                `wam:"3"`
-	NumberOfSplitThreads                 int32                                `wam:"4"`
-	NumberOfUserChatsWithoutAccountLid   int32                                `wam:"6"`
+	_meta                                struct{}                              `wammeta:"id=5842,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CompletedMigrations                  *string                               `wam:"1"`
+	LidMigrationSource                   *LidMigrationDaily_LidMigrationSource `wam:"7"`
+	NumberOfPnChatsWithoutMapping        *int32                                `wam:"5"`
+	NumberOfPnhCtwaThreadsKnownMapping   *int32                                `wam:"2"`
+	NumberOfPnhCtwaThreadsMissingMapping *int32                                `wam:"3"`
+	NumberOfSplitThreads                 *int32                                `wam:"4"`
+	NumberOfUserChatsWithoutAccountLid   *int32                                `wam:"6"`
 }
 
 type ChannelCoreEvent_ChannelCoreEventType int32
@@ -12675,25 +12675,25 @@ const (
 )
 
 type ChannelCoreEventEvent struct {
-	_meta                          struct{}                                   `wammeta:"id=4692,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChannelCoreEventSequenceNumber int32                                      `wam:"8"`
-	ChannelCoreEventType           ChannelCoreEvent_ChannelCoreEventType      `wam:"1"`
-	ChannelDirectorySessionId      int32                                      `wam:"7"`
-	ChannelEntryPoint              ChannelCoreEvent_ChannelEntryPoint         `wam:"2"`
-	ChannelEntryPointApp           ChannelCoreEvent_ChannelEntryPointApp      `wam:"3"`
-	ChannelEntryPointMetadata      ChannelCoreEvent_ChannelEntryPointMetadata `wam:"10"`
-	ChannelEventUnit               ChannelCoreEvent_ChannelEventUnit          `wam:"12"`
-	Cid                            string                                     `wam:"4"`
-	DirectoryChannelIndex          int32                                      `wam:"9"`
-	DiscoverySurface               ChannelCoreEvent_DiscoverySurface          `wam:"14"`
-	EntryPointMetadata             string                                     `wam:"5"`
-	EventSurface                   ChannelCoreEvent_EventSurface              `wam:"6"`
-	SimilarChannelsSessionId       int32                                      `wam:"13"`
+	_meta                          struct{}                                    `wammeta:"id=4692,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChannelCoreEventSequenceNumber *int32                                      `wam:"8"`
+	ChannelCoreEventType           *ChannelCoreEvent_ChannelCoreEventType      `wam:"1"`
+	ChannelDirectorySessionId      *int32                                      `wam:"7"`
+	ChannelEntryPoint              *ChannelCoreEvent_ChannelEntryPoint         `wam:"2"`
+	ChannelEntryPointApp           *ChannelCoreEvent_ChannelEntryPointApp      `wam:"3"`
+	ChannelEntryPointMetadata      *ChannelCoreEvent_ChannelEntryPointMetadata `wam:"10"`
+	ChannelEventUnit               *ChannelCoreEvent_ChannelEventUnit          `wam:"12"`
+	Cid                            *string                                     `wam:"4"`
+	DirectoryChannelIndex          *int32                                      `wam:"9"`
+	DiscoverySurface               *ChannelCoreEvent_DiscoverySurface          `wam:"14"`
+	EntryPointMetadata             *string                                     `wam:"5"`
+	EventSurface                   *ChannelCoreEvent_EventSurface              `wam:"6"`
+	SimilarChannelsSessionId       *int32                                      `wam:"13"`
 }
 
 type BusinessUnmuteEvent struct {
 	_meta   struct{} `wammeta:"id=1378,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MuteeId string   `wam:"1"`
+	MuteeId *string  `wam:"1"`
 }
 
 type MdAppStateSyncMutationStats_Applied int32
@@ -12762,13 +12762,13 @@ const (
 )
 
 type MdAppStateSyncMutationStatsEvent struct {
-	_meta       struct{}                                `wammeta:"id=3180,channel=private,weight=1,privateStatsIdInt=0"`
-	Applied     MdAppStateSyncMutationStats_Applied     `wam:"1"`
-	Failed      MdAppStateSyncMutationStats_Failed      `wam:"2"`
-	Invalid     MdAppStateSyncMutationStats_Invalid     `wam:"3"`
-	Orphan      MdAppStateSyncMutationStats_Orphan      `wam:"4"`
-	SyncdAction string                                  `wam:"5"`
-	Unsupported MdAppStateSyncMutationStats_Unsupported `wam:"6"`
+	_meta       struct{}                                 `wammeta:"id=3180,channel=private,weight=1,privateStatsIdInt=0"`
+	Applied     *MdAppStateSyncMutationStats_Applied     `wam:"1"`
+	Failed      *MdAppStateSyncMutationStats_Failed      `wam:"2"`
+	Invalid     *MdAppStateSyncMutationStats_Invalid     `wam:"3"`
+	Orphan      *MdAppStateSyncMutationStats_Orphan      `wam:"4"`
+	SyncdAction *string                                  `wam:"5"`
+	Unsupported *MdAppStateSyncMutationStats_Unsupported `wam:"6"`
 }
 
 type WebDbLoadFromVersionFailureNonAnonymous_WebDbLoader int32
@@ -12798,9 +12798,9 @@ const (
 )
 
 type WebDbLoadFromVersionFailureNonAnonymousEvent struct {
-	_meta       struct{}                                            `wammeta:"id=4814,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebDbLoader WebDbLoadFromVersionFailureNonAnonymous_WebDbLoader `wam:"1"`
-	WebDbName   WebDbLoadFromVersionFailureNonAnonymous_WebDbName   `wam:"2"`
+	_meta       struct{}                                             `wammeta:"id=4814,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebDbLoader *WebDbLoadFromVersionFailureNonAnonymous_WebDbLoader `wam:"1"`
+	WebDbName   *WebDbLoadFromVersionFailureNonAnonymous_WebDbName   `wam:"2"`
 }
 
 type MessageReceive_AgentEngagementType int32
@@ -13058,63 +13058,63 @@ const (
 )
 
 type MessageReceiveEvent struct {
-	_meta                               struct{}                                     `wammeta:"id=450,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AgentEngagementType                 MessageReceive_AgentEngagementType           `wam:"28"`
-	AppContext                          string                                       `wam:"43"`
-	AppContextBitfield                  int32                                        `wam:"44"`
-	BotType                             MessageReceive_BotType                       `wam:"37"`
-	ChatOrigins                         MessageReceive_ChatOrigins                   `wam:"38"`
-	DeviceCount                         int32                                        `wam:"16"`
-	DeviceSizeBucket                    MessageReceive_DeviceSizeBucket              `wam:"10"`
-	DisappearingChatInitiator           MessageReceive_DisappearingChatInitiator     `wam:"14"`
-	EditType                            MessageReceive_EditType                      `wam:"25"`
-	EphemeralityDuration                int32                                        `wam:"13"`
-	EphemeralityInitiator               MessageReceive_EphemeralityInitiator         `wam:"26"`
-	EphemeralityTriggerAction           MessageReceive_EphemeralityTriggerAction     `wam:"27"`
-	HasUsername                         bool                                         `wam:"39"`
-	HasUsernamePin                      bool                                         `wam:"45"`
-	InvisibleMessageCategory            MessageReceive_InvisibleMessageCategory      `wam:"41"`
-	IsAComment                          bool                                         `wam:"36"`
-	IsAReply                            bool                                         `wam:"19"`
-	IsForwardedForward                  bool                                         `wam:"18"`
-	IsLid                               bool                                         `wam:"24"`
-	IsViewOnce                          bool                                         `wam:"9"`
-	LocalAddressingMode                 MessageReceive_LocalAddressingMode           `wam:"33"`
-	MessageAddressingMode               MessageReceive_MessageAddressingMode         `wam:"34"`
-	MessageIsInternational              bool                                         `wam:"4"`
-	MessageIsInvisible                  bool                                         `wam:"23"`
-	MessageIsOffline                    bool                                         `wam:"5"`
-	MessageMediaType                    MessageReceive_MessageMediaType              `wam:"2"`
-	MessageQueueTime                    int64                                        `wam:"15"`
-	MessageReceiveT0                    int64                                        `wam:"6"`
-	MessageReceiveT1                    int64                                        `wam:"7"`
-	MessageType                         MessageReceive_MessageType                   `wam:"1"`
-	MutedGroupMessage                   bool                                         `wam:"8"`
-	NumOfWebUrlsInTextMessage           int32                                        `wam:"3"`
-	OfflineCount                        int32                                        `wam:"30"`
-	OppositeVisibleIdentification       MessageReceive_OppositeVisibleIdentification `wam:"40"`
-	PaddingBytesSize                    int32                                        `wam:"22"`
-	PairedMediaType                     MessageReceive_PairedMediaType               `wam:"42"`
-	ParticipantCount                    int32                                        `wam:"17"`
-	ReceiverDefaultDisappearingDuration int32                                        `wam:"12"`
-	RevokeType                          MessageReceive_RevokeType                    `wam:"20"`
-	SenderDefaultDisappearingDuration   int32                                        `wam:"11"`
-	ServerAddressingMode                MessageReceive_ServerAddressingMode          `wam:"35"`
-	StickerIsAi                         bool                                         `wam:"29"`
-	StickerIsFromStickerMaker           bool                                         `wam:"31"`
-	StickerMakerSourceType              MessageReceive_StickerMakerSourceType        `wam:"32"`
-	TypeOfGroup                         MessageReceive_TypeOfGroup                   `wam:"21"`
+	_meta                               struct{}                                      `wammeta:"id=450,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AgentEngagementType                 *MessageReceive_AgentEngagementType           `wam:"28"`
+	AppContext                          *string                                       `wam:"43"`
+	AppContextBitfield                  *int32                                        `wam:"44"`
+	BotType                             *MessageReceive_BotType                       `wam:"37"`
+	ChatOrigins                         *MessageReceive_ChatOrigins                   `wam:"38"`
+	DeviceCount                         *int32                                        `wam:"16"`
+	DeviceSizeBucket                    *MessageReceive_DeviceSizeBucket              `wam:"10"`
+	DisappearingChatInitiator           *MessageReceive_DisappearingChatInitiator     `wam:"14"`
+	EditType                            *MessageReceive_EditType                      `wam:"25"`
+	EphemeralityDuration                *int32                                        `wam:"13"`
+	EphemeralityInitiator               *MessageReceive_EphemeralityInitiator         `wam:"26"`
+	EphemeralityTriggerAction           *MessageReceive_EphemeralityTriggerAction     `wam:"27"`
+	HasUsername                         *bool                                         `wam:"39"`
+	HasUsernamePin                      *bool                                         `wam:"45"`
+	InvisibleMessageCategory            *MessageReceive_InvisibleMessageCategory      `wam:"41"`
+	IsAComment                          *bool                                         `wam:"36"`
+	IsAReply                            *bool                                         `wam:"19"`
+	IsForwardedForward                  *bool                                         `wam:"18"`
+	IsLid                               *bool                                         `wam:"24"`
+	IsViewOnce                          *bool                                         `wam:"9"`
+	LocalAddressingMode                 *MessageReceive_LocalAddressingMode           `wam:"33"`
+	MessageAddressingMode               *MessageReceive_MessageAddressingMode         `wam:"34"`
+	MessageIsInternational              *bool                                         `wam:"4"`
+	MessageIsInvisible                  *bool                                         `wam:"23"`
+	MessageIsOffline                    *bool                                         `wam:"5"`
+	MessageMediaType                    *MessageReceive_MessageMediaType              `wam:"2"`
+	MessageQueueTime                    *int64                                        `wam:"15"`
+	MessageReceiveT0                    *int64                                        `wam:"6"`
+	MessageReceiveT1                    *int64                                        `wam:"7"`
+	MessageType                         *MessageReceive_MessageType                   `wam:"1"`
+	MutedGroupMessage                   *bool                                         `wam:"8"`
+	NumOfWebUrlsInTextMessage           *int32                                        `wam:"3"`
+	OfflineCount                        *int32                                        `wam:"30"`
+	OppositeVisibleIdentification       *MessageReceive_OppositeVisibleIdentification `wam:"40"`
+	PaddingBytesSize                    *int32                                        `wam:"22"`
+	PairedMediaType                     *MessageReceive_PairedMediaType               `wam:"42"`
+	ParticipantCount                    *int32                                        `wam:"17"`
+	ReceiverDefaultDisappearingDuration *int32                                        `wam:"12"`
+	RevokeType                          *MessageReceive_RevokeType                    `wam:"20"`
+	SenderDefaultDisappearingDuration   *int32                                        `wam:"11"`
+	ServerAddressingMode                *MessageReceive_ServerAddressingMode          `wam:"35"`
+	StickerIsAi                         *bool                                         `wam:"29"`
+	StickerIsFromStickerMaker           *bool                                         `wam:"31"`
+	StickerMakerSourceType              *MessageReceive_StickerMakerSourceType        `wam:"32"`
+	TypeOfGroup                         *MessageReceive_TypeOfGroup                   `wam:"21"`
 }
 
 type Ctwa3pdConversionEvent struct {
 	_meta                     struct{} `wammeta:"id=5138,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Ctwa3pdConversionMetadata string   `wam:"1"`
-	Ctwa3pdConversionSubtype  string   `wam:"2"`
-	Ctwa3pdConversionType     string   `wam:"3"`
-	Ctwa3pdSchemaVersion      int32    `wam:"4"`
-	Ctwa3pdSurfaceType        string   `wam:"5"`
-	CtwaSignals               string   `wam:"7"`
-	CtwaTrackingPayload       string   `wam:"6"`
+	Ctwa3pdConversionMetadata *string  `wam:"1"`
+	Ctwa3pdConversionSubtype  *string  `wam:"2"`
+	Ctwa3pdConversionType     *string  `wam:"3"`
+	Ctwa3pdSchemaVersion      *int32   `wam:"4"`
+	Ctwa3pdSurfaceType        *string  `wam:"5"`
+	CtwaSignals               *string  `wam:"7"`
+	CtwaTrackingPayload       *string  `wam:"6"`
 }
 
 type WebcMediaErrorUnknownDetails_WebcMediaOperation int32
@@ -13125,11 +13125,11 @@ const (
 )
 
 type WebcMediaErrorUnknownDetailsEvent struct {
-	_meta                 struct{}                                        `wammeta:"id=2352,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MediaId               int32                                           `wam:"1"`
-	WebcMediaErrorMessage string                                          `wam:"4"`
-	WebcMediaErrorName    string                                          `wam:"3"`
-	WebcMediaOperation    WebcMediaErrorUnknownDetails_WebcMediaOperation `wam:"2"`
+	_meta                 struct{}                                         `wammeta:"id=2352,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MediaId               *int32                                           `wam:"1"`
+	WebcMediaErrorMessage *string                                          `wam:"4"`
+	WebcMediaErrorName    *string                                          `wam:"3"`
+	WebcMediaOperation    *WebcMediaErrorUnknownDetails_WebcMediaOperation `wam:"2"`
 }
 
 type DisappearingModeSettingChange_DisappearingModeEntryPoint int32
@@ -13145,11 +13145,11 @@ const (
 )
 
 type DisappearingModeSettingChangeEvent struct {
-	_meta                        struct{}                                                 `wammeta:"id=3056,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DisappearingModeEntryPoint   DisappearingModeSettingChange_DisappearingModeEntryPoint `wam:"4"`
-	LastToggleTimestamp          int32                                                    `wam:"3"`
-	NewEphemeralityDuration      int32                                                    `wam:"2"`
-	PreviousEphemeralityDuration int32                                                    `wam:"1"`
+	_meta                        struct{}                                                  `wammeta:"id=3056,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DisappearingModeEntryPoint   *DisappearingModeSettingChange_DisappearingModeEntryPoint `wam:"4"`
+	LastToggleTimestamp          *int32                                                    `wam:"3"`
+	NewEphemeralityDuration      *int32                                                    `wam:"2"`
+	PreviousEphemeralityDuration *int32                                                    `wam:"1"`
 }
 
 type WebcOfflineNotificationProcess_CurrentOfflineProcessStage int32
@@ -13171,16 +13171,16 @@ const (
 )
 
 type WebcOfflineNotificationProcessEvent struct {
-	_meta                           struct{}                                                  `wammeta:"id=4222,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CurrentOfflineProcessStage      WebcOfflineNotificationProcess_CurrentOfflineProcessStage `wam:"4"`
-	OfflineProcessDecryptErrorCount int32                                                     `wam:"5"`
-	OfflineProcessMailboxAge        int32                                                     `wam:"6"`
-	OfflineProcessMessageCount      int32                                                     `wam:"7"`
-	OfflineProcessNotificationCount int32                                                     `wam:"8"`
-	OfflineProcessSessionId         string                                                    `wam:"9"`
-	OfflineProcessStageTimestampMs  int32                                                     `wam:"10"`
-	RunReason                       WebcOfflineNotificationProcess_RunReason                  `wam:"12"`
-	SwVersion                       string                                                    `wam:"11"`
+	_meta                           struct{}                                                   `wammeta:"id=4222,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CurrentOfflineProcessStage      *WebcOfflineNotificationProcess_CurrentOfflineProcessStage `wam:"4"`
+	OfflineProcessDecryptErrorCount *int32                                                     `wam:"5"`
+	OfflineProcessMailboxAge        *int32                                                     `wam:"6"`
+	OfflineProcessMessageCount      *int32                                                     `wam:"7"`
+	OfflineProcessNotificationCount *int32                                                     `wam:"8"`
+	OfflineProcessSessionId         *string                                                    `wam:"9"`
+	OfflineProcessStageTimestampMs  *int32                                                     `wam:"10"`
+	RunReason                       *WebcOfflineNotificationProcess_RunReason                  `wam:"12"`
+	SwVersion                       *string                                                    `wam:"11"`
 }
 
 type UiMessageYourselfAction_UiMessageYourselfActionType int32
@@ -13202,10 +13202,10 @@ const (
 )
 
 type UiMessageYourselfActionEvent struct {
-	_meta                            struct{}                                            `wammeta:"id=3780,channel=regular,weight=1,privateStatsIdInt=-1"`
-	UiMessageYourselfActionSessionId string                                              `wam:"1"`
-	UiMessageYourselfActionType      UiMessageYourselfAction_UiMessageYourselfActionType `wam:"2"`
-	UiMessageYourselfFunnelName      UiMessageYourselfAction_UiMessageYourselfFunnelName `wam:"3"`
+	_meta                            struct{}                                             `wammeta:"id=3780,channel=regular,weight=1,privateStatsIdInt=-1"`
+	UiMessageYourselfActionSessionId *string                                              `wam:"1"`
+	UiMessageYourselfActionType      *UiMessageYourselfAction_UiMessageYourselfActionType `wam:"2"`
+	UiMessageYourselfFunnelName      *UiMessageYourselfAction_UiMessageYourselfFunnelName `wam:"3"`
 }
 
 type OfflineResume_OfflineResumeResult int32
@@ -13218,60 +13218,60 @@ const (
 )
 
 type OfflineResumeEvent struct {
-	_meta                            struct{}                          `wammeta:"id=3112,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AffectedBySleepMode              bool                              `wam:"35"`
-	AppContext                       string                            `wam:"49"`
-	AppContextBitfield               int32                             `wam:"50"`
-	AttemptNumber                    int32                             `wam:"36"`
-	ChatThreadCount                  int32                             `wam:"1"`
-	DbDurationT                      int64                             `wam:"39"`
-	DbMainThreadDurationT            int64                             `wam:"40"`
-	DbMainThreadReadsCount           int32                             `wam:"41"`
-	DbMainThreadWritesCount          int32                             `wam:"42"`
-	DbReadsCount                     int32                             `wam:"43"`
-	DbWritesCount                    int32                             `wam:"44"`
-	Disconnected                     bool                              `wam:"45"`
-	ExpectedOfflineCallCount         int32                             `wam:"23"`
-	ExpectedOfflineMessageCount      int32                             `wam:"17"`
-	ExpectedOfflineNotificationCount int32                             `wam:"18"`
-	ExpectedOfflineReceiptCount      int32                             `wam:"19"`
-	IsOfflineCompleteMissed          bool                              `wam:"2"`
-	IsResumeInForeground             bool                              `wam:"13"`
-	IsResumeStartedInForeground      bool                              `wam:"37"`
-	IsRunningFromServiceExtension    bool                              `wam:"22"`
-	LastStanzaT                      int64                             `wam:"3"`
-	LogoutSessionId                  int32                             `wam:"38"`
-	MailboxAge                       int32                             `wam:"14"`
-	MainScreenLoadT                  int64                             `wam:"4"`
-	NseMergeT                        int64                             `wam:"54"`
-	OfflineCallCount                 int32                             `wam:"24"`
-	OfflineDecryptErrorCount         int32                             `wam:"5"`
-	OfflineMessageCount              int32                             `wam:"6"`
-	OfflineNotificationCount         int32                             `wam:"7"`
-	OfflinePreviewT                  int64                             `wam:"8"`
-	OfflineProcessingT               int64                             `wam:"20"`
-	OfflineReceiptCount              int32                             `wam:"9"`
-	OfflineResumeResult              OfflineResume_OfflineResumeResult `wam:"21"`
-	OfflineSessionT                  int64                             `wam:"46"`
-	OfflineSizeBytes                 int32                             `wam:"10"`
-	OnTrickleMode                    bool                              `wam:"15"`
-	PageLoadT                        int64                             `wam:"11"`
-	PassiveModeT                     int64                             `wam:"25"`
-	PreackCallCount                  int32                             `wam:"26"`
-	PreackMessageCount               int32                             `wam:"27"`
-	PreackNotificationCount          int32                             `wam:"28"`
-	PreackReceiptCount               int32                             `wam:"29"`
-	PreacksCount                     int32                             `wam:"47"`
-	ProcessedCallCount               int32                             `wam:"30"`
-	ProcessedMessageCount            int32                             `wam:"31"`
-	ProcessedNotificationCount       int32                             `wam:"32"`
-	ProcessedReceiptCount            int32                             `wam:"33"`
-	QueuedMessageCount               int32                             `wam:"51"`
-	QueuedNotificationCount          int32                             `wam:"52"`
-	QueuedReceiptCount               int32                             `wam:"53"`
-	RunningTasks                     string                            `wam:"48"`
-	SocketConnectT                   int64                             `wam:"12"`
-	TransientOfflineSessionId        string                            `wam:"34"`
+	_meta                            struct{}                           `wammeta:"id=3112,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AffectedBySleepMode              *bool                              `wam:"35"`
+	AppContext                       *string                            `wam:"49"`
+	AppContextBitfield               *int32                             `wam:"50"`
+	AttemptNumber                    *int32                             `wam:"36"`
+	ChatThreadCount                  *int32                             `wam:"1"`
+	DbDurationT                      *int64                             `wam:"39"`
+	DbMainThreadDurationT            *int64                             `wam:"40"`
+	DbMainThreadReadsCount           *int32                             `wam:"41"`
+	DbMainThreadWritesCount          *int32                             `wam:"42"`
+	DbReadsCount                     *int32                             `wam:"43"`
+	DbWritesCount                    *int32                             `wam:"44"`
+	Disconnected                     *bool                              `wam:"45"`
+	ExpectedOfflineCallCount         *int32                             `wam:"23"`
+	ExpectedOfflineMessageCount      *int32                             `wam:"17"`
+	ExpectedOfflineNotificationCount *int32                             `wam:"18"`
+	ExpectedOfflineReceiptCount      *int32                             `wam:"19"`
+	IsOfflineCompleteMissed          *bool                              `wam:"2"`
+	IsResumeInForeground             *bool                              `wam:"13"`
+	IsResumeStartedInForeground      *bool                              `wam:"37"`
+	IsRunningFromServiceExtension    *bool                              `wam:"22"`
+	LastStanzaT                      *int64                             `wam:"3"`
+	LogoutSessionId                  *int32                             `wam:"38"`
+	MailboxAge                       *int32                             `wam:"14"`
+	MainScreenLoadT                  *int64                             `wam:"4"`
+	NseMergeT                        *int64                             `wam:"54"`
+	OfflineCallCount                 *int32                             `wam:"24"`
+	OfflineDecryptErrorCount         *int32                             `wam:"5"`
+	OfflineMessageCount              *int32                             `wam:"6"`
+	OfflineNotificationCount         *int32                             `wam:"7"`
+	OfflinePreviewT                  *int64                             `wam:"8"`
+	OfflineProcessingT               *int64                             `wam:"20"`
+	OfflineReceiptCount              *int32                             `wam:"9"`
+	OfflineResumeResult              *OfflineResume_OfflineResumeResult `wam:"21"`
+	OfflineSessionT                  *int64                             `wam:"46"`
+	OfflineSizeBytes                 *int32                             `wam:"10"`
+	OnTrickleMode                    *bool                              `wam:"15"`
+	PageLoadT                        *int64                             `wam:"11"`
+	PassiveModeT                     *int64                             `wam:"25"`
+	PreackCallCount                  *int32                             `wam:"26"`
+	PreackMessageCount               *int32                             `wam:"27"`
+	PreackNotificationCount          *int32                             `wam:"28"`
+	PreackReceiptCount               *int32                             `wam:"29"`
+	PreacksCount                     *int32                             `wam:"47"`
+	ProcessedCallCount               *int32                             `wam:"30"`
+	ProcessedMessageCount            *int32                             `wam:"31"`
+	ProcessedNotificationCount       *int32                             `wam:"32"`
+	ProcessedReceiptCount            *int32                             `wam:"33"`
+	QueuedMessageCount               *int32                             `wam:"51"`
+	QueuedNotificationCount          *int32                             `wam:"52"`
+	QueuedReceiptCount               *int32                             `wam:"53"`
+	RunningTasks                     *string                            `wam:"48"`
+	SocketConnectT                   *int64                             `wam:"12"`
+	TransientOfflineSessionId        *string                            `wam:"34"`
 }
 
 type SendRevokeMessage_MessageMediaType int32
@@ -13361,23 +13361,23 @@ const (
 )
 
 type SendRevokeMessageEvent struct {
-	_meta            struct{}                           `wammeta:"id=1348,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MessageMediaType SendRevokeMessage_MessageMediaType `wam:"2"`
-	MessageType      SendRevokeMessage_MessageType      `wam:"1"`
-	RevokeSendDelay  int32                              `wam:"3"`
+	_meta            struct{}                            `wammeta:"id=1348,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MessageMediaType *SendRevokeMessage_MessageMediaType `wam:"2"`
+	MessageType      *SendRevokeMessage_MessageType      `wam:"1"`
+	RevokeSendDelay  *int32                              `wam:"3"`
 }
 
 type TsBitArrayEvent struct {
 	_meta               struct{} `wammeta:"id=4332,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BitarrayHigh        int32    `wam:"1"`
-	BitarrayLength      int32    `wam:"2"`
-	BitarrayLow         int32    `wam:"3"`
-	CumulativeBits      int32    `wam:"4"`
-	RelativeTimestampMs int32    `wam:"5"`
-	SessionSeq          int32    `wam:"6"`
-	TsSessionId         int32    `wam:"7"`
-	TsTimestampMs       int32    `wam:"8"`
-	UnifiedSessionId    string   `wam:"9"`
+	BitarrayHigh        *int32   `wam:"1"`
+	BitarrayLength      *int32   `wam:"2"`
+	BitarrayLow         *int32   `wam:"3"`
+	CumulativeBits      *int32   `wam:"4"`
+	RelativeTimestampMs *int32   `wam:"5"`
+	SessionSeq          *int32   `wam:"6"`
+	TsSessionId         *int32   `wam:"7"`
+	TsTimestampMs       *int32   `wam:"8"`
+	UnifiedSessionId    *string  `wam:"9"`
 }
 
 type NotificationDelivery_NotificationAction int32
@@ -13451,20 +13451,20 @@ const (
 )
 
 type NotificationDeliveryEvent struct {
-	_meta                   struct{}                                     `wammeta:"id=3748,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ClientMessageId         string                                       `wam:"1"`
-	NotificationAction      NotificationDelivery_NotificationAction      `wam:"2"`
-	NotificationDeliveryT   int32                                        `wam:"3"`
-	NotificationDestination NotificationDelivery_NotificationDestination `wam:"4"`
-	NotificationId          string                                       `wam:"5"`
-	NotificationSource      NotificationDelivery_NotificationSource      `wam:"6"`
-	ThreadId                string                                       `wam:"7"`
-	UiNotificationType      NotificationDelivery_UiNotificationType      `wam:"8"`
+	_meta                   struct{}                                      `wammeta:"id=3748,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ClientMessageId         *string                                       `wam:"1"`
+	NotificationAction      *NotificationDelivery_NotificationAction      `wam:"2"`
+	NotificationDeliveryT   *int32                                        `wam:"3"`
+	NotificationDestination *NotificationDelivery_NotificationDestination `wam:"4"`
+	NotificationId          *string                                       `wam:"5"`
+	NotificationSource      *NotificationDelivery_NotificationSource      `wam:"6"`
+	ThreadId                *string                                       `wam:"7"`
+	UiNotificationType      *NotificationDelivery_UiNotificationType      `wam:"8"`
 }
 
 type MdAppStateDirtyBitsEvent struct {
 	_meta                  struct{} `wammeta:"id=2520,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DirtyBitsFalsePositive bool     `wam:"2"`
+	DirtyBitsFalsePositive *bool    `wam:"2"`
 }
 
 type WebcStreamModeChange_WebcStreamMode int32
@@ -13483,8 +13483,8 @@ const (
 )
 
 type WebcStreamModeChangeEvent struct {
-	_meta          struct{}                            `wammeta:"id=770,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcStreamMode WebcStreamModeChange_WebcStreamMode `wam:"1"`
+	_meta          struct{}                             `wammeta:"id=770,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcStreamMode *WebcStreamModeChange_WebcStreamMode `wam:"1"`
 }
 
 type KeepInChatErrors_KicAction int32
@@ -13516,13 +13516,13 @@ const (
 )
 
 type KeepInChatErrorsEvent struct {
-	_meta                          struct{}                      `wammeta:"id=3698,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CanEditDmSettings              bool                          `wam:"7"`
-	IsAGroup                       bool                          `wam:"2"`
-	IsAdmin                        bool                          `wam:"3"`
-	KicAction                      KeepInChatErrors_KicAction    `wam:"4"`
-	KicErrorCode                   KeepInChatErrors_KicErrorCode `wam:"5"`
-	KicMessageEphemeralityDuration int32                         `wam:"6"`
+	_meta                          struct{}                       `wammeta:"id=3698,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CanEditDmSettings              *bool                          `wam:"7"`
+	IsAGroup                       *bool                          `wam:"2"`
+	IsAdmin                        *bool                          `wam:"3"`
+	KicAction                      *KeepInChatErrors_KicAction    `wam:"4"`
+	KicErrorCode                   *KeepInChatErrors_KicErrorCode `wam:"5"`
+	KicMessageEphemeralityDuration *int32                         `wam:"6"`
 }
 
 type WaFsGroupJoinRequestAction_GroupJoinRequestAction int32
@@ -13538,12 +13538,12 @@ const (
 )
 
 type WaFsGroupJoinRequestActionEvent struct {
-	_meta                          struct{}                                          `wammeta:"id=3944,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GroupJid                       string                                            `wam:"1"`
-	GroupJoinRequestAction         WaFsGroupJoinRequestAction_GroupJoinRequestAction `wam:"2"`
-	GroupJoinRequestGroupsInCommon int32                                             `wam:"5"`
-	IsSuccessful                   bool                                              `wam:"3"`
-	ServerResponseTime             int64                                             `wam:"4"`
+	_meta                          struct{}                                           `wammeta:"id=3944,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GroupJid                       *string                                            `wam:"1"`
+	GroupJoinRequestAction         *WaFsGroupJoinRequestAction_GroupJoinRequestAction `wam:"2"`
+	GroupJoinRequestGroupsInCommon *int32                                             `wam:"5"`
+	IsSuccessful                   *bool                                              `wam:"3"`
+	ServerResponseTime             *int64                                             `wam:"4"`
 }
 
 type WebcStickerMakerEvents_StickerMakerEventName int32
@@ -13560,19 +13560,19 @@ const (
 )
 
 type WebcStickerMakerEventsEvent struct {
-	_meta                 struct{}                                     `wammeta:"id=3104,channel=regular,weight=1,privateStatsIdInt=-1"`
-	StickerMakerEventName WebcStickerMakerEvents_StickerMakerEventName `wam:"1"`
+	_meta                 struct{}                                      `wammeta:"id=3104,channel=regular,weight=1,privateStatsIdInt=-1"`
+	StickerMakerEventName *WebcStickerMakerEvents_StickerMakerEventName `wam:"1"`
 }
 
 type UserActivityEvent struct {
 	_meta                  struct{} `wammeta:"id=1384,channel=regular,weight=1,privateStatsIdInt=-1"`
-	UserActivityBitmapHigh int32    `wam:"4"`
-	UserActivityBitmapLen  int32    `wam:"5"`
-	UserActivityBitmapLow  int32    `wam:"3"`
-	UserActivitySessionCum int32    `wam:"7"`
-	UserActivitySessionId  string   `wam:"1"`
-	UserActivitySessionSeq int32    `wam:"6"`
-	UserActivityStartTime  int32    `wam:"2"`
+	UserActivityBitmapHigh *int32   `wam:"4"`
+	UserActivityBitmapLen  *int32   `wam:"5"`
+	UserActivityBitmapLow  *int32   `wam:"3"`
+	UserActivitySessionCum *int32   `wam:"7"`
+	UserActivitySessionId  *string  `wam:"1"`
+	UserActivitySessionSeq *int32   `wam:"6"`
+	UserActivityStartTime  *int32   `wam:"2"`
 }
 
 type ReportingTokenValidationFailure_EditType int32
@@ -13682,18 +13682,18 @@ const (
 )
 
 type ReportingTokenValidationFailureEvent struct {
-	_meta                                 struct{}                                                              `wammeta:"id=5466,channel=regular,weight=1,privateStatsIdInt=-1"`
-	EditType                              ReportingTokenValidationFailure_EditType                              `wam:"1"`
-	IsLid                                 bool                                                                  `wam:"5"`
-	IsMessageMediaRetry                   bool                                                                  `wam:"10"`
-	IsMessageRetry                        bool                                                                  `wam:"6"`
-	IsSecretEncryptedMsg                  bool                                                                  `wam:"8"`
-	MessageIsForward                      bool                                                                  `wam:"11"`
-	MessageMediaType                      ReportingTokenValidationFailure_MessageMediaType                      `wam:"2"`
-	MessageType                           ReportingTokenValidationFailure_MessageType                           `wam:"3"`
-	Offline                               bool                                                                  `wam:"7"`
-	ReportingTokenValidationFailureReason ReportingTokenValidationFailure_ReportingTokenValidationFailureReason `wam:"4"`
-	ReportingTokenVersion                 int32                                                                 `wam:"9"`
+	_meta                                 struct{}                                                               `wammeta:"id=5466,channel=regular,weight=1,privateStatsIdInt=-1"`
+	EditType                              *ReportingTokenValidationFailure_EditType                              `wam:"1"`
+	IsLid                                 *bool                                                                  `wam:"5"`
+	IsMessageMediaRetry                   *bool                                                                  `wam:"10"`
+	IsMessageRetry                        *bool                                                                  `wam:"6"`
+	IsSecretEncryptedMsg                  *bool                                                                  `wam:"8"`
+	MessageIsForward                      *bool                                                                  `wam:"11"`
+	MessageMediaType                      *ReportingTokenValidationFailure_MessageMediaType                      `wam:"2"`
+	MessageType                           *ReportingTokenValidationFailure_MessageType                           `wam:"3"`
+	Offline                               *bool                                                                  `wam:"7"`
+	ReportingTokenValidationFailureReason *ReportingTokenValidationFailure_ReportingTokenValidationFailureReason `wam:"4"`
+	ReportingTokenVersion                 *int32                                                                 `wam:"9"`
 }
 
 type WebDbVersionsSource_WebDbVersionSource int32
@@ -13714,9 +13714,9 @@ const (
 )
 
 type WebDbVersionsSourceEvent struct {
-	_meta              struct{}                               `wammeta:"id=4784,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebDbVersionSource WebDbVersionsSource_WebDbVersionSource `wam:"1"`
-	WebSchemaInitiator WebDbVersionsSource_WebSchemaInitiator `wam:"2"`
+	_meta              struct{}                                `wammeta:"id=4784,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebDbVersionSource *WebDbVersionsSource_WebDbVersionSource `wam:"1"`
+	WebSchemaInitiator *WebDbVersionsSource_WebSchemaInitiator `wam:"2"`
 }
 
 type WebcMemoryStat_Scenario int32
@@ -13738,24 +13738,24 @@ const (
 )
 
 type WebcMemoryStatEvent struct {
-	_meta                 struct{}                      `wammeta:"id=1188,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppContext            string                        `wam:"26"`
-	AppContextBitfield    int32                         `wam:"27"`
-	ChatCollectionSize    int32                         `wam:"17"`
-	ChatDbSize            int32                         `wam:"18"`
-	ContactCollectionSize int32                         `wam:"19"`
-	ContactDbSize         int32                         `wam:"20"`
-	IsForeground          bool                          `wam:"13"`
-	JsHeapSizeLimit       int32                         `wam:"9"`
-	MessageCollectionSize int32                         `wam:"24"`
-	MessageDbSize         int32                         `wam:"25"`
-	PeakUsedJsHeapSize    int32                         `wam:"14"`
-	Scenario              WebcMemoryStat_Scenario       `wam:"15"`
-	TotalJsHeapSize       int32                         `wam:"10"`
-	Uptime                float64                       `wam:"6"`
-	UsedJsHeapSize        int32                         `wam:"11"`
-	UsedJsHeapSizeDelta   int32                         `wam:"16"`
-	WebcRuntimeEnv        WebcMemoryStat_WebcRuntimeEnv `wam:"23"`
+	_meta                 struct{}                       `wammeta:"id=1188,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppContext            *string                        `wam:"26"`
+	AppContextBitfield    *int32                         `wam:"27"`
+	ChatCollectionSize    *int32                         `wam:"17"`
+	ChatDbSize            *int32                         `wam:"18"`
+	ContactCollectionSize *int32                         `wam:"19"`
+	ContactDbSize         *int32                         `wam:"20"`
+	IsForeground          *bool                          `wam:"13"`
+	JsHeapSizeLimit       *int32                         `wam:"9"`
+	MessageCollectionSize *int32                         `wam:"24"`
+	MessageDbSize         *int32                         `wam:"25"`
+	PeakUsedJsHeapSize    *int32                         `wam:"14"`
+	Scenario              *WebcMemoryStat_Scenario       `wam:"15"`
+	TotalJsHeapSize       *int32                         `wam:"10"`
+	Uptime                *float64                       `wam:"6"`
+	UsedJsHeapSize        *int32                         `wam:"11"`
+	UsedJsHeapSizeDelta   *int32                         `wam:"16"`
+	WebcRuntimeEnv        *WebcMemoryStat_WebcRuntimeEnv `wam:"23"`
 }
 
 type ChannelOpen_ChannelEntryPoint int32
@@ -13988,20 +13988,20 @@ const (
 )
 
 type ChannelOpenEvent struct {
-	_meta                     struct{}                              `wammeta:"id=4316,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChannelDirectorySessionId int32                                 `wam:"8"`
-	ChannelEntryPoint         ChannelOpen_ChannelEntryPoint         `wam:"1"`
-	ChannelEntryPointMetadata ChannelOpen_ChannelEntryPointMetadata `wam:"9"`
-	ChannelSessionId          int32                                 `wam:"3"`
-	ChannelUserType           ChannelOpen_ChannelUserType           `wam:"4"`
-	Cid                       string                                `wam:"6"`
-	DiscoverySurface          ChannelOpen_DiscoverySurface          `wam:"15"`
-	EntryPointMetadata        string                                `wam:"12"`
-	HasNetworkConnection      bool                                  `wam:"7"`
-	IsPremium                 bool                                  `wam:"14"`
-	SimilarChannelsSessionId  int32                                 `wam:"11"`
-	UnreadMessages            int32                                 `wam:"5"`
-	UnreadPremiumMessages     int32                                 `wam:"13"`
+	_meta                     struct{}                               `wammeta:"id=4316,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChannelDirectorySessionId *int32                                 `wam:"8"`
+	ChannelEntryPoint         *ChannelOpen_ChannelEntryPoint         `wam:"1"`
+	ChannelEntryPointMetadata *ChannelOpen_ChannelEntryPointMetadata `wam:"9"`
+	ChannelSessionId          *int32                                 `wam:"3"`
+	ChannelUserType           *ChannelOpen_ChannelUserType           `wam:"4"`
+	Cid                       *string                                `wam:"6"`
+	DiscoverySurface          *ChannelOpen_DiscoverySurface          `wam:"15"`
+	EntryPointMetadata        *string                                `wam:"12"`
+	HasNetworkConnection      *bool                                  `wam:"7"`
+	IsPremium                 *bool                                  `wam:"14"`
+	SimilarChannelsSessionId  *int32                                 `wam:"11"`
+	UnreadMessages            *int32                                 `wam:"5"`
+	UnreadPremiumMessages     *int32                                 `wam:"13"`
 }
 
 type EphemeralSettingChange_EphemeralSettingEntryPoint int32
@@ -14040,12 +14040,12 @@ const (
 )
 
 type EphemeralSettingChangeEvent struct {
-	_meta                        struct{}                                          `wammeta:"id=2370,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatEphemeralityDuration     int32                                             `wam:"1"`
-	EphemeralSettingEntryPoint   EphemeralSettingChange_EphemeralSettingEntryPoint `wam:"3"`
-	EphemeralSettingGroupSize    EphemeralSettingChange_EphemeralSettingGroupSize  `wam:"5"`
-	PreviousEphemeralityDuration int32                                             `wam:"2"`
-	ThreadId                     string                                            `wam:"6"`
+	_meta                        struct{}                                           `wammeta:"id=2370,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatEphemeralityDuration     *int32                                             `wam:"1"`
+	EphemeralSettingEntryPoint   *EphemeralSettingChange_EphemeralSettingEntryPoint `wam:"3"`
+	EphemeralSettingGroupSize    *EphemeralSettingChange_EphemeralSettingGroupSize  `wam:"5"`
+	PreviousEphemeralityDuration *int32                                             `wam:"2"`
+	ThreadId                     *string                                            `wam:"6"`
 }
 
 type GatedMessageReceived_ChatGatedReason int32
@@ -14056,8 +14056,8 @@ const (
 )
 
 type GatedMessageReceivedEvent struct {
-	_meta           struct{}                             `wammeta:"id=3152,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatGatedReason GatedMessageReceived_ChatGatedReason `wam:"1"`
+	_meta           struct{}                              `wammeta:"id=3152,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatGatedReason *GatedMessageReceived_ChatGatedReason `wam:"1"`
 }
 
 type LimitSharingSettingUpdate_ToggleUpdateAction int32
@@ -14068,9 +14068,9 @@ const (
 )
 
 type LimitSharingSettingUpdateEvent struct {
-	_meta              struct{}                                     `wammeta:"id=6390,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ThreadId           string                                       `wam:"1"`
-	ToggleUpdateAction LimitSharingSettingUpdate_ToggleUpdateAction `wam:"2"`
+	_meta              struct{}                                      `wammeta:"id=6390,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ThreadId           *string                                       `wam:"1"`
+	ToggleUpdateAction *LimitSharingSettingUpdate_ToggleUpdateAction `wam:"2"`
 }
 
 type MessageContextMenuActions_MessageContextMenuAction int32
@@ -14104,12 +14104,12 @@ const (
 )
 
 type MessageContextMenuActionsEvent struct {
-	_meta                    struct{}                                           `wammeta:"id=3694,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsAGroup                 bool                                               `wam:"1"`
-	IsMultiAction            bool                                               `wam:"2"`
-	IsOriginalSender         bool                                               `wam:"3"`
-	MessageContextMenuAction MessageContextMenuActions_MessageContextMenuAction `wam:"4"`
-	MessageContextMenuOption MessageContextMenuActions_MessageContextMenuOption `wam:"5"`
+	_meta                    struct{}                                            `wammeta:"id=3694,channel=regular,weight=1,privateStatsIdInt=-1"`
+	IsAGroup                 *bool                                               `wam:"1"`
+	IsMultiAction            *bool                                               `wam:"2"`
+	IsOriginalSender         *bool                                               `wam:"3"`
+	MessageContextMenuAction *MessageContextMenuActions_MessageContextMenuAction `wam:"4"`
+	MessageContextMenuOption *MessageContextMenuActions_MessageContextMenuOption `wam:"5"`
 }
 
 type CtwaActionBannerUnderstand_PreferredLink int32
@@ -14120,17 +14120,17 @@ const (
 )
 
 type CtwaActionBannerUnderstandEvent struct {
-	_meta             struct{}                                 `wammeta:"id=3586,channel=private,weight=1,privateStatsIdInt=0"`
-	BannerIdentifier  string                                   `wam:"1"`
-	BannerLocale      string                                   `wam:"2"`
-	ClientLocale      string                                   `wam:"3"`
-	HasLocalLink      bool                                     `wam:"4"`
-	HasUniversalLink  bool                                     `wam:"5"`
-	InvalidLink       string                                   `wam:"6"`
-	LwiFlowIdentifier string                                   `wam:"7"`
-	PreferredLink     CtwaActionBannerUnderstand_PreferredLink `wam:"8"`
-	ValidLocale       bool                                     `wam:"9"`
-	ValidNotification bool                                     `wam:"10"`
+	_meta             struct{}                                  `wammeta:"id=3586,channel=private,weight=1,privateStatsIdInt=0"`
+	BannerIdentifier  *string                                   `wam:"1"`
+	BannerLocale      *string                                   `wam:"2"`
+	ClientLocale      *string                                   `wam:"3"`
+	HasLocalLink      *bool                                     `wam:"4"`
+	HasUniversalLink  *bool                                     `wam:"5"`
+	InvalidLink       *string                                   `wam:"6"`
+	LwiFlowIdentifier *string                                   `wam:"7"`
+	PreferredLink     *CtwaActionBannerUnderstand_PreferredLink `wam:"8"`
+	ValidLocale       *bool                                     `wam:"9"`
+	ValidNotification *bool                                     `wam:"10"`
 }
 
 type CoexPrivacySysMsg_CoexStatusReplyPrivacyDisclaimerUserAction int32
@@ -14157,16 +14157,16 @@ const (
 )
 
 type CoexPrivacySysMsgEvent struct {
-	_meta                                      struct{}                                                     `wammeta:"id=5204,channel=private,weight=1,privateStatsIdInt=113760892"`
-	CoexStatusReplyPrivacyDisclaimerUserAction CoexPrivacySysMsg_CoexStatusReplyPrivacyDisclaimerUserAction `wam:"8"`
-	CoexSysMsgBusinessId                       string                                                       `wam:"1"`
-	CoexSysMsgInsertionChannel                 CoexPrivacySysMsg_CoexSysMsgInsertionChannel                 `wam:"9"`
-	CoexSysMsgInsertionErrorCode               int32                                                        `wam:"2"`
-	CoexSysMsgInsertionErrorMsg                string                                                       `wam:"3"`
-	CoexSysMsgInsertionSuccess                 bool                                                         `wam:"4"`
-	CoexSysMsgIsSelf                           bool                                                         `wam:"5"`
-	CoexSysMsgMultiDeviceId                    int32                                                        `wam:"6"`
-	CoexSysMsgStateTransitionAttempt           CoexPrivacySysMsg_CoexSysMsgStateTransitionAttempt           `wam:"7"`
+	_meta                                      struct{}                                                      `wammeta:"id=5204,channel=private,weight=1,privateStatsIdInt=113760892"`
+	CoexStatusReplyPrivacyDisclaimerUserAction *CoexPrivacySysMsg_CoexStatusReplyPrivacyDisclaimerUserAction `wam:"8"`
+	CoexSysMsgBusinessId                       *string                                                       `wam:"1"`
+	CoexSysMsgInsertionChannel                 *CoexPrivacySysMsg_CoexSysMsgInsertionChannel                 `wam:"9"`
+	CoexSysMsgInsertionErrorCode               *int32                                                        `wam:"2"`
+	CoexSysMsgInsertionErrorMsg                *string                                                       `wam:"3"`
+	CoexSysMsgInsertionSuccess                 *bool                                                         `wam:"4"`
+	CoexSysMsgIsSelf                           *bool                                                         `wam:"5"`
+	CoexSysMsgMultiDeviceId                    *int32                                                        `wam:"6"`
+	CoexSysMsgStateTransitionAttempt           *CoexPrivacySysMsg_CoexSysMsgStateTransitionAttempt           `wam:"7"`
 }
 
 type BotJourney_ActionType int32
@@ -14644,41 +14644,41 @@ const (
 )
 
 type BotJourneyEvent struct {
-	_meta                               struct{}                       `wammeta:"id=4630,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionType                          BotJourney_ActionType          `wam:"1"`
-	AdditionalCategory                  BotJourney_AdditionalCategory  `wam:"11"`
-	AiCreationAvatarCropChanges         string                         `wam:"38"`
-	AiCreationInputType                 BotJourney_AiCreationInputType `wam:"29"`
-	AiCreationPersonalityCategoryInsert string                         `wam:"26"`
-	AiCreationPersonalityCategorySelect string                         `wam:"27"`
-	AiDiscoveryTab                      string                         `wam:"4"`
-	AiSessionId                         string                         `wam:"18"`
-	AiVoiceOnSelectionDefault           bool                           `wam:"24"`
-	AiVoiceSelectionEnum                string                         `wam:"25"`
-	AppSessionId                        string                         `wam:"2"`
-	BotDiscoveryPath                    BotJourney_BotDiscoveryPath    `wam:"8"`
-	BotEntryPoint                       BotJourney_BotEntryPoint       `wam:"7"`
-	BotPersonaId                        string                         `wam:"5"`
-	CallRandomId                        string                         `wam:"13"`
-	ConversationStarterCategory         string                         `wam:"22"`
-	ConversationStarterIndex            int32                          `wam:"23"`
-	ConversationStarterPromptMode       string                         `wam:"28"`
-	DeviceLanguage                      string                         `wam:"16"`
-	DiscoveryOrigin                     BotJourney_DiscoveryOrigin     `wam:"19"`
-	InlineTosNoticeId                   string                         `wam:"20"`
-	InlineTosStatus                     BotJourney_InlineTosStatus     `wam:"21"`
-	IsMetaAiAssistant                   bool                           `wam:"12"`
-	IsMetaAiCharacterBotChat            bool                           `wam:"9"`
-	IsUserCreatedAgent                  bool                           `wam:"10"`
-	MetricCount                         int32                          `wam:"17"`
-	UiSurface                           BotJourney_UiSurface           `wam:"6"`
-	XmaReelIndex                        int32                          `wam:"14"`
-	XmaReelMaxIndex                     int32                          `wam:"15"`
+	_meta                               struct{}                        `wammeta:"id=4630,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionType                          *BotJourney_ActionType          `wam:"1"`
+	AdditionalCategory                  *BotJourney_AdditionalCategory  `wam:"11"`
+	AiCreationAvatarCropChanges         *string                         `wam:"38"`
+	AiCreationInputType                 *BotJourney_AiCreationInputType `wam:"29"`
+	AiCreationPersonalityCategoryInsert *string                         `wam:"26"`
+	AiCreationPersonalityCategorySelect *string                         `wam:"27"`
+	AiDiscoveryTab                      *string                         `wam:"4"`
+	AiSessionId                         *string                         `wam:"18"`
+	AiVoiceOnSelectionDefault           *bool                           `wam:"24"`
+	AiVoiceSelectionEnum                *string                         `wam:"25"`
+	AppSessionId                        *string                         `wam:"2"`
+	BotDiscoveryPath                    *BotJourney_BotDiscoveryPath    `wam:"8"`
+	BotEntryPoint                       *BotJourney_BotEntryPoint       `wam:"7"`
+	BotPersonaId                        *string                         `wam:"5"`
+	CallRandomId                        *string                         `wam:"13"`
+	ConversationStarterCategory         *string                         `wam:"22"`
+	ConversationStarterIndex            *int32                          `wam:"23"`
+	ConversationStarterPromptMode       *string                         `wam:"28"`
+	DeviceLanguage                      *string                         `wam:"16"`
+	DiscoveryOrigin                     *BotJourney_DiscoveryOrigin     `wam:"19"`
+	InlineTosNoticeId                   *string                         `wam:"20"`
+	InlineTosStatus                     *BotJourney_InlineTosStatus     `wam:"21"`
+	IsMetaAiAssistant                   *bool                           `wam:"12"`
+	IsMetaAiCharacterBotChat            *bool                           `wam:"9"`
+	IsUserCreatedAgent                  *bool                           `wam:"10"`
+	MetricCount                         *int32                          `wam:"17"`
+	UiSurface                           *BotJourney_UiSurface           `wam:"6"`
+	XmaReelIndex                        *int32                          `wam:"14"`
+	XmaReelMaxIndex                     *int32                          `wam:"15"`
 }
 
 type WebcImgErrorEvent struct {
 	_meta            struct{} `wammeta:"id=1700,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcImgErrorCode float64  `wam:"1"`
+	WebcImgErrorCode *float64 `wam:"1"`
 }
 
 type DisappearingModeSettingEvents_DisappearingModeEntryPoint int32
@@ -14703,12 +14703,12 @@ const (
 )
 
 type DisappearingModeSettingEventsEvent struct {
-	_meta                            struct{}                                                       `wammeta:"id=3446,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DisappearingModeEntryPoint       DisappearingModeSettingEvents_DisappearingModeEntryPoint       `wam:"5"`
-	DisappearingModeSettingEventName DisappearingModeSettingEvents_DisappearingModeSettingEventName `wam:"1"`
-	LastToggleTimestamp              int32                                                          `wam:"2"`
-	NewEphemeralityDuration          int32                                                          `wam:"3"`
-	PreviousEphemeralityDuration     int32                                                          `wam:"4"`
+	_meta                            struct{}                                                        `wammeta:"id=3446,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DisappearingModeEntryPoint       *DisappearingModeSettingEvents_DisappearingModeEntryPoint       `wam:"5"`
+	DisappearingModeSettingEventName *DisappearingModeSettingEvents_DisappearingModeSettingEventName `wam:"1"`
+	LastToggleTimestamp              *int32                                                          `wam:"2"`
+	NewEphemeralityDuration          *int32                                                          `wam:"3"`
+	PreviousEphemeralityDuration     *int32                                                          `wam:"4"`
 }
 
 type PsPhoneNumberHyperlink_PhoneNumHyperlinkAction int32
@@ -14728,11 +14728,11 @@ const (
 )
 
 type PsPhoneNumberHyperlinkEvent struct {
-	_meta                    struct{}                                       `wammeta:"id=3266,channel=private,weight=1,privateStatsIdInt=113760892"`
-	IsPhoneNumHyperlinkOwner bool                                           `wam:"1"`
-	PhoneNumHyperlinkAction  PsPhoneNumberHyperlink_PhoneNumHyperlinkAction `wam:"2"`
-	PhoneNumberStatusOnWa    bool                                           `wam:"3"`
-	SequenceNumber           int32                                          `wam:"4"`
+	_meta                    struct{}                                        `wammeta:"id=3266,channel=private,weight=1,privateStatsIdInt=113760892"`
+	IsPhoneNumHyperlinkOwner *bool                                           `wam:"1"`
+	PhoneNumHyperlinkAction  *PsPhoneNumberHyperlink_PhoneNumHyperlinkAction `wam:"2"`
+	PhoneNumberStatusOnWa    *bool                                           `wam:"3"`
+	SequenceNumber           *int32                                          `wam:"4"`
 }
 
 type WebDynamicSamplingTestEventWithSamplingEvent struct {
@@ -14773,16 +14773,16 @@ const (
 )
 
 type MarketingMessageUserControlsJourneyEvent struct {
-	_meta                        struct{}                                                     `wammeta:"id=6070,channel=private,weight=1,privateStatsIdInt=113760892"`
-	BusinessPhoneNumber          int32                                                        `wam:"9"`
-	IsSuccess                    bool                                                         `wam:"1"`
-	MmUserControlsAction         MarketingMessageUserControlsJourney_MmUserControlsAction     `wam:"2"`
-	MmUserControlsEntryPoint     MarketingMessageUserControlsJourney_MmUserControlsEntryPoint `wam:"3"`
-	MmUserControlsErrorType      string                                                       `wam:"4"`
-	MmUserControlsRolloutVariant int32                                                        `wam:"5"`
-	SequenceNumber               int32                                                        `wam:"6"`
-	TemplateId                   string                                                       `wam:"7"`
-	UnifiedSessionId             string                                                       `wam:"8"`
+	_meta                        struct{}                                                      `wammeta:"id=6070,channel=private,weight=1,privateStatsIdInt=113760892"`
+	BusinessPhoneNumber          *int32                                                        `wam:"9"`
+	IsSuccess                    *bool                                                         `wam:"1"`
+	MmUserControlsAction         *MarketingMessageUserControlsJourney_MmUserControlsAction     `wam:"2"`
+	MmUserControlsEntryPoint     *MarketingMessageUserControlsJourney_MmUserControlsEntryPoint `wam:"3"`
+	MmUserControlsErrorType      *string                                                       `wam:"4"`
+	MmUserControlsRolloutVariant *int32                                                        `wam:"5"`
+	SequenceNumber               *int32                                                        `wam:"6"`
+	TemplateId                   *string                                                       `wam:"7"`
+	UnifiedSessionId             *string                                                       `wam:"8"`
 }
 
 type StickerCommonQueryToStaticServer_QueryType int32
@@ -14796,16 +14796,16 @@ const (
 )
 
 type StickerCommonQueryToStaticServerEvent struct {
-	_meta            struct{}                                   `wammeta:"id=2740,channel=regular,weight=1,privateStatsIdInt=-1"`
-	HttpResponseCode int32                                      `wam:"2"`
-	Params           string                                     `wam:"3"`
-	QueryLatencyMs   int64                                      `wam:"4"`
-	QueryType        StickerCommonQueryToStaticServer_QueryType `wam:"1"`
+	_meta            struct{}                                    `wammeta:"id=2740,channel=regular,weight=1,privateStatsIdInt=-1"`
+	HttpResponseCode *int32                                      `wam:"2"`
+	Params           *string                                     `wam:"3"`
+	QueryLatencyMs   *int64                                      `wam:"4"`
+	QueryType        *StickerCommonQueryToStaticServer_QueryType `wam:"1"`
 }
 
 type TestAnonymousIdLessEvent struct {
 	_meta                     struct{} `wammeta:"id=3004,channel=private,weight=1,privateStatsIdInt=0"`
-	PsTimeSinceLastEventInMin int32    `wam:"1"`
+	PsTimeSinceLastEventInMin *int32   `wam:"1"`
 }
 
 type LwiScreen_AdContentRecommendation int32
@@ -15453,65 +15453,65 @@ const (
 )
 
 type LwiScreenEvent struct {
-	_meta                                  struct{}                              `wammeta:"id=2772,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AdContentRecommendation                LwiScreen_AdContentRecommendation     `wam:"41"`
-	AdMediaTemplateName                    string                                `wam:"61"`
-	AdMediaTypeSelected                    LwiScreen_AdMediaTypeSelected         `wam:"40"`
-	AdsContentSelected                     LwiScreen_AdsContentSelected          `wam:"42"`
-	AlertCount                             int32                                 `wam:"33"`
-	AudienceType                           LwiScreen_AudienceType                `wam:"45"`
-	BillingStatus                          LwiScreen_BillingStatus               `wam:"36"`
-	CreateAdEnabled                        bool                                  `wam:"12"`
-	CtwaAdAccountType                      LwiScreen_CtwaAdAccountType           `wam:"58"`
-	CtwaLoginType                          LwiScreen_CtwaLoginType               `wam:"59"`
-	DefaultAdsContentSelected              LwiScreen_DefaultAdsContentSelected   `wam:"9"`
-	DefaultAudienceLocationType            LwiScreen_DefaultAudienceLocationType `wam:"57"`
-	ItemCount                              int32                                 `wam:"39"`
-	LwiAdCampaignId                        string                                `wam:"46"`
-	LwiAdsIdentityType                     LwiScreen_LwiAdsIdentityType          `wam:"22"`
-	LwiAlertReason                         LwiScreen_LwiAlertReason              `wam:"6"`
-	LwiBudgetInLocal                       int32                                 `wam:"15"`
-	LwiBudgetOptionsInLocal                string                                `wam:"54"`
-	LwiCtwaAdCtaType                       LwiScreen_LwiCtwaAdCtaType            `wam:"24"`
-	LwiCtwaAdStatusType                    LwiScreen_LwiCtwaAdStatusType         `wam:"25"`
-	LwiCurrency                            string                                `wam:"16"`
-	LwiDefaultBudgetInLocal                int32                                 `wam:"17"`
-	LwiDefaultDurationInDays               int32                                 `wam:"18"`
-	LwiDefaultTargetingSpec                LwiScreen_LwiDefaultTargetingSpec     `wam:"19"`
-	LwiDurationInDays                      int32                                 `wam:"20"`
-	LwiEventSequenceNumber                 int32                                 `wam:"2"`
-	LwiExtras                              string                                `wam:"30"`
-	LwiFlowId                              string                                `wam:"1"`
-	LwiIsFbAppInstalled                    bool                                  `wam:"27"`
-	LwiIsIgAppInstalled                    bool                                  `wam:"51"`
-	LwiLocationTypesSetOnAudienceSelection string                                `wam:"55"`
-	LwiMaxDurationInDays                   int32                                 `wam:"52"`
-	LwiMinDurationInDays                   int32                                 `wam:"53"`
-	LwiScreenAction                        LwiScreen_LwiScreenAction             `wam:"5"`
-	LwiScreenReference                     LwiScreen_LwiScreenReference          `wam:"4"`
-	LwiTargetingSpec                       string                                `wam:"21"`
-	LwiTotalCtwaAds                        int32                                 `wam:"26"`
-	LwiViewerHasEditPermission             bool                                  `wam:"28"`
-	LwiViewerHasPromotePermission          bool                                  `wam:"32"`
-	MediaEdited                            bool                                  `wam:"49"`
-	OnboardingEntryPoint                   LwiScreen_OnboardingEntryPoint        `wam:"38"`
-	PaymentMethodSet                       bool                                  `wam:"13"`
-	ProductId                              string                                `wam:"3"`
-	SelectedProductsIdsList                string                                `wam:"8"`
-	TotalMediaCount                        int32                                 `wam:"50"`
-	UsedSavedAudience                      bool                                  `wam:"31"`
-	UserHasAdvancedAudience                bool                                  `wam:"35"`
-	UserHasBpCredentials                   bool                                  `wam:"43"`
-	UserHasCatalogItemsToPromote           bool                                  `wam:"10"`
-	UserHasChangedDefaultCityLevelAudience bool                                  `wam:"56"`
-	UserHasLinkedFbPage                    bool                                  `wam:"7"`
-	UserHasMultisourceMedia                bool                                  `wam:"60"`
-	UserHasSeenRecommendedBudget           bool                                  `wam:"34"`
-	UserHasStatusToPromote                 bool                                  `wam:"11"`
-	UserProvidedFbConsent                  bool                                  `wam:"14"`
-	UserWentThroughFbWebLogin              bool                                  `wam:"23"`
-	ValidationStatus                       LwiScreen_ValidationStatus            `wam:"37"`
-	WaAdAccountId                          string                                `wam:"44"`
+	_meta                                  struct{}                               `wammeta:"id=2772,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AdContentRecommendation                *LwiScreen_AdContentRecommendation     `wam:"41"`
+	AdMediaTemplateName                    *string                                `wam:"61"`
+	AdMediaTypeSelected                    *LwiScreen_AdMediaTypeSelected         `wam:"40"`
+	AdsContentSelected                     *LwiScreen_AdsContentSelected          `wam:"42"`
+	AlertCount                             *int32                                 `wam:"33"`
+	AudienceType                           *LwiScreen_AudienceType                `wam:"45"`
+	BillingStatus                          *LwiScreen_BillingStatus               `wam:"36"`
+	CreateAdEnabled                        *bool                                  `wam:"12"`
+	CtwaAdAccountType                      *LwiScreen_CtwaAdAccountType           `wam:"58"`
+	CtwaLoginType                          *LwiScreen_CtwaLoginType               `wam:"59"`
+	DefaultAdsContentSelected              *LwiScreen_DefaultAdsContentSelected   `wam:"9"`
+	DefaultAudienceLocationType            *LwiScreen_DefaultAudienceLocationType `wam:"57"`
+	ItemCount                              *int32                                 `wam:"39"`
+	LwiAdCampaignId                        *string                                `wam:"46"`
+	LwiAdsIdentityType                     *LwiScreen_LwiAdsIdentityType          `wam:"22"`
+	LwiAlertReason                         *LwiScreen_LwiAlertReason              `wam:"6"`
+	LwiBudgetInLocal                       *int32                                 `wam:"15"`
+	LwiBudgetOptionsInLocal                *string                                `wam:"54"`
+	LwiCtwaAdCtaType                       *LwiScreen_LwiCtwaAdCtaType            `wam:"24"`
+	LwiCtwaAdStatusType                    *LwiScreen_LwiCtwaAdStatusType         `wam:"25"`
+	LwiCurrency                            *string                                `wam:"16"`
+	LwiDefaultBudgetInLocal                *int32                                 `wam:"17"`
+	LwiDefaultDurationInDays               *int32                                 `wam:"18"`
+	LwiDefaultTargetingSpec                *LwiScreen_LwiDefaultTargetingSpec     `wam:"19"`
+	LwiDurationInDays                      *int32                                 `wam:"20"`
+	LwiEventSequenceNumber                 *int32                                 `wam:"2"`
+	LwiExtras                              *string                                `wam:"30"`
+	LwiFlowId                              *string                                `wam:"1"`
+	LwiIsFbAppInstalled                    *bool                                  `wam:"27"`
+	LwiIsIgAppInstalled                    *bool                                  `wam:"51"`
+	LwiLocationTypesSetOnAudienceSelection *string                                `wam:"55"`
+	LwiMaxDurationInDays                   *int32                                 `wam:"52"`
+	LwiMinDurationInDays                   *int32                                 `wam:"53"`
+	LwiScreenAction                        *LwiScreen_LwiScreenAction             `wam:"5"`
+	LwiScreenReference                     *LwiScreen_LwiScreenReference          `wam:"4"`
+	LwiTargetingSpec                       *string                                `wam:"21"`
+	LwiTotalCtwaAds                        *int32                                 `wam:"26"`
+	LwiViewerHasEditPermission             *bool                                  `wam:"28"`
+	LwiViewerHasPromotePermission          *bool                                  `wam:"32"`
+	MediaEdited                            *bool                                  `wam:"49"`
+	OnboardingEntryPoint                   *LwiScreen_OnboardingEntryPoint        `wam:"38"`
+	PaymentMethodSet                       *bool                                  `wam:"13"`
+	ProductId                              *string                                `wam:"3"`
+	SelectedProductsIdsList                *string                                `wam:"8"`
+	TotalMediaCount                        *int32                                 `wam:"50"`
+	UsedSavedAudience                      *bool                                  `wam:"31"`
+	UserHasAdvancedAudience                *bool                                  `wam:"35"`
+	UserHasBpCredentials                   *bool                                  `wam:"43"`
+	UserHasCatalogItemsToPromote           *bool                                  `wam:"10"`
+	UserHasChangedDefaultCityLevelAudience *bool                                  `wam:"56"`
+	UserHasLinkedFbPage                    *bool                                  `wam:"7"`
+	UserHasMultisourceMedia                *bool                                  `wam:"60"`
+	UserHasSeenRecommendedBudget           *bool                                  `wam:"34"`
+	UserHasStatusToPromote                 *bool                                  `wam:"11"`
+	UserProvidedFbConsent                  *bool                                  `wam:"14"`
+	UserWentThroughFbWebLogin              *bool                                  `wam:"23"`
+	ValidationStatus                       *LwiScreen_ValidationStatus            `wam:"37"`
+	WaAdAccountId                          *string                                `wam:"44"`
 }
 
 type CtwaConsumerDisclosure_DisclosureAction int32
@@ -15572,12 +15572,12 @@ const (
 )
 
 type CtwaConsumerDisclosureEvent struct {
-	_meta                         struct{}                                    `wammeta:"id=4406,channel=private,weight=1,privateStatsIdInt=0"`
-	CtwaConsumerDisclosureVersion int32                                       `wam:"3"`
-	DisclosureAction              CtwaConsumerDisclosure_DisclosureAction     `wam:"1"`
-	DisclosureContext             CtwaConsumerDisclosure_DisclosureContext    `wam:"5"`
-	DisclosureEntryPoint          CtwaConsumerDisclosure_DisclosureEntryPoint `wam:"4"`
-	DisclosureType                CtwaConsumerDisclosure_DisclosureType       `wam:"2"`
+	_meta                         struct{}                                     `wammeta:"id=4406,channel=private,weight=1,privateStatsIdInt=0"`
+	CtwaConsumerDisclosureVersion *int32                                       `wam:"3"`
+	DisclosureAction              *CtwaConsumerDisclosure_DisclosureAction     `wam:"1"`
+	DisclosureContext             *CtwaConsumerDisclosure_DisclosureContext    `wam:"5"`
+	DisclosureEntryPoint          *CtwaConsumerDisclosure_DisclosureEntryPoint `wam:"4"`
+	DisclosureType                *CtwaConsumerDisclosure_DisclosureType       `wam:"2"`
 }
 
 type EphemeralSyncResponseReceive_ClientDisappearingModeInitiator int32
@@ -15660,21 +15660,21 @@ const (
 )
 
 type EphemeralSyncResponseReceiveEvent struct {
-	_meta                              struct{}                                                     `wammeta:"id=4780,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ClientDisappearingModeInitiator    EphemeralSyncResponseReceive_ClientDisappearingModeInitiator `wam:"1"`
-	ClientEphemeralityDuration         int32                                                        `wam:"2"`
-	ClientEphemeralityInitiator        EphemeralSyncResponseReceive_ClientEphemeralityInitiator     `wam:"3"`
-	ClientEphemeralitySettingTimestamp int32                                                        `wam:"4"`
-	ClientEphemeralityTriggerAction    EphemeralSyncResponseReceive_ClientEphemeralityTriggerAction `wam:"5"`
-	EsrDisappearingModeInitiator       EphemeralSyncResponseReceive_EsrDisappearingModeInitiator    `wam:"6"`
-	EsrEphemeralityDuration            int32                                                        `wam:"7"`
-	EsrEphemeralityInitiator           EphemeralSyncResponseReceive_EsrEphemeralityInitiator        `wam:"8"`
-	EsrEphemeralitySettingTimestamp    int32                                                        `wam:"9"`
-	EsrEphemeralityTriggerAction       EphemeralSyncResponseReceive_EsrEphemeralityTriggerAction    `wam:"10"`
-	EsrFailureReason                   EphemeralSyncResponseReceive_EsrFailureReason                `wam:"11"`
-	EsrResolveResult                   EphemeralSyncResponseReceive_EsrResolveResult                `wam:"12"`
-	IsAGroup                           bool                                                         `wam:"13"`
-	ThreadId                           string                                                       `wam:"14"`
+	_meta                              struct{}                                                      `wammeta:"id=4780,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ClientDisappearingModeInitiator    *EphemeralSyncResponseReceive_ClientDisappearingModeInitiator `wam:"1"`
+	ClientEphemeralityDuration         *int32                                                        `wam:"2"`
+	ClientEphemeralityInitiator        *EphemeralSyncResponseReceive_ClientEphemeralityInitiator     `wam:"3"`
+	ClientEphemeralitySettingTimestamp *int32                                                        `wam:"4"`
+	ClientEphemeralityTriggerAction    *EphemeralSyncResponseReceive_ClientEphemeralityTriggerAction `wam:"5"`
+	EsrDisappearingModeInitiator       *EphemeralSyncResponseReceive_EsrDisappearingModeInitiator    `wam:"6"`
+	EsrEphemeralityDuration            *int32                                                        `wam:"7"`
+	EsrEphemeralityInitiator           *EphemeralSyncResponseReceive_EsrEphemeralityInitiator        `wam:"8"`
+	EsrEphemeralitySettingTimestamp    *int32                                                        `wam:"9"`
+	EsrEphemeralityTriggerAction       *EphemeralSyncResponseReceive_EsrEphemeralityTriggerAction    `wam:"10"`
+	EsrFailureReason                   *EphemeralSyncResponseReceive_EsrFailureReason                `wam:"11"`
+	EsrResolveResult                   *EphemeralSyncResponseReceive_EsrResolveResult                `wam:"12"`
+	IsAGroup                           *bool                                                         `wam:"13"`
+	ThreadId                           *string                                                       `wam:"14"`
 }
 
 type MdBootstrapDataApplied_ApplicationState int32
@@ -15728,30 +15728,30 @@ const (
 )
 
 type MdBootstrapDataAppliedEvent struct {
-	_meta                         struct{}                                             `wammeta:"id=2298,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppContext                    string                                               `wam:"22"`
-	AppContextBitfield            int32                                                `wam:"23"`
-	ApplicationState              MdBootstrapDataApplied_ApplicationState              `wam:"21"`
-	ChunkChatsApplied             int32                                                `wam:"15"`
-	ChunkMsgsApplied              int32                                                `wam:"16"`
-	Collection                    MdBootstrapDataApplied_Collection                    `wam:"5"`
-	HistorySyncChunkOrder         int32                                                `wam:"14"`
-	HistorySyncStageProgress      int32                                                `wam:"11"`
-	MdBootstrapChatsCount         int32                                                `wam:"17"`
-	MdBootstrapContactsCount      int32                                                `wam:"8"`
-	MdBootstrapHistoryPayloadType MdBootstrapDataApplied_MdBootstrapHistoryPayloadType `wam:"10"`
-	MdBootstrapMessagesCount      int32                                                `wam:"18"`
-	MdBootstrapPayloadType        MdBootstrapDataApplied_MdBootstrapPayloadType        `wam:"3"`
-	MdBootstrapSource             MdBootstrapDataApplied_MdBootstrapSource             `wam:"2"`
-	MdBootstrapStepDuration       int32                                                `wam:"6"`
-	MdBootstrapStepResult         MdBootstrapDataApplied_MdBootstrapStepResult         `wam:"12"`
-	MdDroppedMsgType              string                                               `wam:"19"`
-	MdRegAttemptId                string                                               `wam:"9"`
-	MdSessionId                   string                                               `wam:"1"`
-	MdSyncFailureReason           string                                               `wam:"20"`
-	MdTimestamp                   int32                                                `wam:"4"`
-	SentViaMms                    bool                                                 `wam:"13"`
-	UsedSnapshot                  bool                                                 `wam:"7"`
+	_meta                         struct{}                                              `wammeta:"id=2298,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppContext                    *string                                               `wam:"22"`
+	AppContextBitfield            *int32                                                `wam:"23"`
+	ApplicationState              *MdBootstrapDataApplied_ApplicationState              `wam:"21"`
+	ChunkChatsApplied             *int32                                                `wam:"15"`
+	ChunkMsgsApplied              *int32                                                `wam:"16"`
+	Collection                    *MdBootstrapDataApplied_Collection                    `wam:"5"`
+	HistorySyncChunkOrder         *int32                                                `wam:"14"`
+	HistorySyncStageProgress      *int32                                                `wam:"11"`
+	MdBootstrapChatsCount         *int32                                                `wam:"17"`
+	MdBootstrapContactsCount      *int32                                                `wam:"8"`
+	MdBootstrapHistoryPayloadType *MdBootstrapDataApplied_MdBootstrapHistoryPayloadType `wam:"10"`
+	MdBootstrapMessagesCount      *int32                                                `wam:"18"`
+	MdBootstrapPayloadType        *MdBootstrapDataApplied_MdBootstrapPayloadType        `wam:"3"`
+	MdBootstrapSource             *MdBootstrapDataApplied_MdBootstrapSource             `wam:"2"`
+	MdBootstrapStepDuration       *int32                                                `wam:"6"`
+	MdBootstrapStepResult         *MdBootstrapDataApplied_MdBootstrapStepResult         `wam:"12"`
+	MdDroppedMsgType              *string                                               `wam:"19"`
+	MdRegAttemptId                *string                                               `wam:"9"`
+	MdSessionId                   *string                                               `wam:"1"`
+	MdSyncFailureReason           *string                                               `wam:"20"`
+	MdTimestamp                   *int32                                                `wam:"4"`
+	SentViaMms                    *bool                                                 `wam:"13"`
+	UsedSnapshot                  *bool                                                 `wam:"7"`
 }
 
 type CtwaOrderSignal_CustomerAdsSharingSettingEnabled int32
@@ -15782,23 +15782,23 @@ const (
 )
 
 type CtwaOrderSignalEvent struct {
-	_meta                            struct{}                                         `wammeta:"id=4264,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CtwaOrderSignalVersion           int32                                            `wam:"1"`
-	CtwaSignalMetadata               string                                           `wam:"10"`
-	CustomerAdsSharingSettingEnabled CtwaOrderSignal_CustomerAdsSharingSettingEnabled `wam:"11"`
-	DeepLinkConversionData           string                                           `wam:"2"`
-	DeepLinkConversionSource         string                                           `wam:"3"`
-	EventSharingSettingEnabled       bool                                             `wam:"4"`
-	GlobalSharingSettingEnabled      bool                                             `wam:"5"`
-	OrderPaid                        bool                                             `wam:"8"`
-	OrderSignalType                  CtwaOrderSignal_OrderSignalType                  `wam:"6"`
-	OrderStatus                      CtwaOrderSignal_OrderStatus                      `wam:"7"`
-	ThreadIdHmac                     string                                           `wam:"9"`
+	_meta                            struct{}                                          `wammeta:"id=4264,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CtwaOrderSignalVersion           *int32                                            `wam:"1"`
+	CtwaSignalMetadata               *string                                           `wam:"10"`
+	CustomerAdsSharingSettingEnabled *CtwaOrderSignal_CustomerAdsSharingSettingEnabled `wam:"11"`
+	DeepLinkConversionData           *string                                           `wam:"2"`
+	DeepLinkConversionSource         *string                                           `wam:"3"`
+	EventSharingSettingEnabled       *bool                                             `wam:"4"`
+	GlobalSharingSettingEnabled      *bool                                             `wam:"5"`
+	OrderPaid                        *bool                                             `wam:"8"`
+	OrderSignalType                  *CtwaOrderSignal_OrderSignalType                  `wam:"6"`
+	OrderStatus                      *CtwaOrderSignal_OrderStatus                      `wam:"7"`
+	ThreadIdHmac                     *string                                           `wam:"9"`
 }
 
 type ScreenLockSettingsDataEvent struct {
 	_meta                  struct{} `wammeta:"id=4802,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ScreenAutoLockDuration int32    `wam:"1"`
+	ScreenAutoLockDuration *int32   `wam:"1"`
 }
 
 type CatalogBiz_CatalogBizAction int32
@@ -15944,30 +15944,30 @@ const (
 )
 
 type CatalogBizEvent struct {
-	_meta                      struct{}                        `wammeta:"id=1722,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AdId                       string                          `wam:"19"`
-	CartToggle                 bool                            `wam:"13"`
-	CatalogAppealReason        string                          `wam:"4"`
-	CatalogBizAction           CatalogBiz_CatalogBizAction     `wam:"1"`
-	CatalogEntryPoint          CatalogBiz_CatalogEntryPoint    `wam:"7"`
-	CatalogSessionId           string                          `wam:"3"`
-	CollectionCount            int32                           `wam:"18"`
-	CollectionId               string                          `wam:"14"`
-	CollectionIndex            string                          `wam:"15"`
-	DeepLinkOpenFrom           CatalogBiz_DeepLinkOpenFrom     `wam:"8"`
-	EntryPointConversionSource string                          `wam:"20"`
-	ErrorCode                  int32                           `wam:"5"`
-	ExtraAttributes            string                          `wam:"24"`
-	IsOrderMsgAttached         bool                            `wam:"10"`
-	LastMessageDirection       CatalogBiz_LastMessageDirection `wam:"21"`
-	MessageDepth               int32                           `wam:"22"`
-	OrderId                    string                          `wam:"9"`
-	ProductCount               int32                           `wam:"6"`
-	ProductId                  string                          `wam:"2"`
-	ProductIds                 string                          `wam:"12"`
-	ProductIndex               string                          `wam:"16"`
-	Quantity                   int32                           `wam:"11"`
-	ThreadIdHmac               string                          `wam:"23"`
+	_meta                      struct{}                         `wammeta:"id=1722,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AdId                       *string                          `wam:"19"`
+	CartToggle                 *bool                            `wam:"13"`
+	CatalogAppealReason        *string                          `wam:"4"`
+	CatalogBizAction           *CatalogBiz_CatalogBizAction     `wam:"1"`
+	CatalogEntryPoint          *CatalogBiz_CatalogEntryPoint    `wam:"7"`
+	CatalogSessionId           *string                          `wam:"3"`
+	CollectionCount            *int32                           `wam:"18"`
+	CollectionId               *string                          `wam:"14"`
+	CollectionIndex            *string                          `wam:"15"`
+	DeepLinkOpenFrom           *CatalogBiz_DeepLinkOpenFrom     `wam:"8"`
+	EntryPointConversionSource *string                          `wam:"20"`
+	ErrorCode                  *int32                           `wam:"5"`
+	ExtraAttributes            *string                          `wam:"24"`
+	IsOrderMsgAttached         *bool                            `wam:"10"`
+	LastMessageDirection       *CatalogBiz_LastMessageDirection `wam:"21"`
+	MessageDepth               *int32                           `wam:"22"`
+	OrderId                    *string                          `wam:"9"`
+	ProductCount               *int32                           `wam:"6"`
+	ProductId                  *string                          `wam:"2"`
+	ProductIds                 *string                          `wam:"12"`
+	ProductIndex               *string                          `wam:"16"`
+	Quantity                   *int32                           `wam:"11"`
+	ThreadIdHmac               *string                          `wam:"23"`
 }
 
 type PinInChatMessageSend_GroupRole int32
@@ -16068,22 +16068,22 @@ const (
 )
 
 type PinInChatMessageSendEvent struct {
-	_meta                     struct{}                             `wammeta:"id=4438,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GroupRole                 PinInChatMessageSend_GroupRole       `wam:"1"`
-	GroupTypeClient           PinInChatMessageSend_GroupTypeClient `wam:"2"`
-	IsAGroup                  bool                                 `wam:"3"`
-	IsSelfParentMessage       bool                                 `wam:"7"`
-	IsSelfPin                 bool                                 `wam:"8"`
-	MediaType                 PinInChatMessageSend_MediaType       `wam:"4"`
-	PinInChatExpirySecs       int32                                `wam:"5"`
-	PinInChatType             PinInChatMessageSend_PinInChatType   `wam:"6"`
-	TimeRemainingToExpirySecs int32                                `wam:"9"`
+	_meta                     struct{}                              `wammeta:"id=4438,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GroupRole                 *PinInChatMessageSend_GroupRole       `wam:"1"`
+	GroupTypeClient           *PinInChatMessageSend_GroupTypeClient `wam:"2"`
+	IsAGroup                  *bool                                 `wam:"3"`
+	IsSelfParentMessage       *bool                                 `wam:"7"`
+	IsSelfPin                 *bool                                 `wam:"8"`
+	MediaType                 *PinInChatMessageSend_MediaType       `wam:"4"`
+	PinInChatExpirySecs       *int32                                `wam:"5"`
+	PinInChatType             *PinInChatMessageSend_PinInChatType   `wam:"6"`
+	TimeRemainingToExpirySecs *int32                                `wam:"9"`
 }
 
 type PsChannelsSnaplEventEvent struct {
 	_meta          struct{} `wammeta:"id=6254,channel=private,weight=1,privateStatsIdInt=0"`
-	AppId          int32    `wam:"2"`
-	VideoEventJson string   `wam:"1"`
+	AppId          *int32   `wam:"2"`
+	VideoEventJson *string  `wam:"1"`
 }
 
 type AttachmentTrayActions_ActionThreadType int32
@@ -16160,16 +16160,16 @@ const (
 )
 
 type AttachmentTrayActionsEvent struct {
-	_meta                      struct{}                                         `wammeta:"id=3980,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionDurationMs           int32                                            `wam:"1"`
-	ActionThreadType           AttachmentTrayActions_ActionThreadType           `wam:"9"`
-	AttachmentTrayAction       AttachmentTrayActions_AttachmentTrayAction       `wam:"2"`
-	AttachmentTrayActionTarget AttachmentTrayActions_AttachmentTrayActionTarget `wam:"3"`
-	GroupSizeBucket            AttachmentTrayActions_GroupSizeBucket            `wam:"4"`
-	IsAGroup                   bool                                             `wam:"5"`
-	IsSuccessful               bool                                             `wam:"6"`
-	SendMediaType              AttachmentTrayActions_SendMediaType              `wam:"7"`
-	SendTime                   int32                                            `wam:"8"`
+	_meta                      struct{}                                          `wammeta:"id=3980,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionDurationMs           *int32                                            `wam:"1"`
+	ActionThreadType           *AttachmentTrayActions_ActionThreadType           `wam:"9"`
+	AttachmentTrayAction       *AttachmentTrayActions_AttachmentTrayAction       `wam:"2"`
+	AttachmentTrayActionTarget *AttachmentTrayActions_AttachmentTrayActionTarget `wam:"3"`
+	GroupSizeBucket            *AttachmentTrayActions_GroupSizeBucket            `wam:"4"`
+	IsAGroup                   *bool                                             `wam:"5"`
+	IsSuccessful               *bool                                             `wam:"6"`
+	SendMediaType              *AttachmentTrayActions_SendMediaType              `wam:"7"`
+	SendTime                   *int32                                            `wam:"8"`
 }
 
 type WebcNavbar_WebcNavbarItemLabel int32
@@ -16189,8 +16189,8 @@ const (
 )
 
 type WebcNavbarEvent struct {
-	_meta               struct{}                       `wammeta:"id=5258,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcNavbarItemLabel WebcNavbar_WebcNavbarItemLabel `wam:"1"`
+	_meta               struct{}                        `wammeta:"id=5258,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcNavbarItemLabel *WebcNavbar_WebcNavbarItemLabel `wam:"1"`
 }
 
 type WebDbTableUsage_WebScenario int32
@@ -16207,13 +16207,13 @@ const (
 )
 
 type WebDbTableUsageEvent struct {
-	_meta              struct{}                          `wammeta:"id=5074,channel=regular,weight=1,privateStatsIdInt=-1"`
-	OfflineSessionId   string                            `wam:"1"`
-	WebScenario        WebDbTableUsage_WebScenario       `wam:"2"`
-	WebTable           string                            `wam:"3"`
-	WebTableLogReason  WebDbTableUsage_WebTableLogReason `wam:"4"`
-	WebTableReadCount  int32                             `wam:"5"`
-	WebTableWriteCount int32                             `wam:"6"`
+	_meta              struct{}                           `wammeta:"id=5074,channel=regular,weight=1,privateStatsIdInt=-1"`
+	OfflineSessionId   *string                            `wam:"1"`
+	WebScenario        *WebDbTableUsage_WebScenario       `wam:"2"`
+	WebTable           *string                            `wam:"3"`
+	WebTableLogReason  *WebDbTableUsage_WebTableLogReason `wam:"4"`
+	WebTableReadCount  *int32                             `wam:"5"`
+	WebTableWriteCount *int32                             `wam:"6"`
 }
 
 type DisappearingMessageKeepInChat_KicActionName int32
@@ -16319,22 +16319,22 @@ const (
 )
 
 type DisappearingMessageKeepInChatEvent struct {
-	_meta                    struct{}                                    `wammeta:"id=3482,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CanEditDmSettings        bool                                        `wam:"16"`
-	ChatEphemeralityDuration int32                                       `wam:"1"`
-	IsAGroup                 bool                                        `wam:"2"`
-	IsAdmin                  bool                                        `wam:"3"`
-	KeptCount                int32                                       `wam:"15"`
-	KeptDelta                int32                                       `wam:"4"`
-	KicActionName            DisappearingMessageKeepInChat_KicActionName `wam:"5"`
-	KicActor                 DisappearingMessageKeepInChat_KicActor      `wam:"6"`
-	KicEntryPoint            DisappearingMessageKeepInChat_KicEntryPoint `wam:"7"`
-	MediaType                DisappearingMessageKeepInChat_MediaType     `wam:"8"`
-	MessageExpiredOnUnkeep   bool                                        `wam:"9"`
-	MessageExpiryTimer       int32                                       `wam:"10"`
-	MessagesInFolder         int32                                       `wam:"11"`
-	MessagesSelected         int32                                       `wam:"12"`
-	ThreadId                 string                                      `wam:"13"`
+	_meta                    struct{}                                     `wammeta:"id=3482,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CanEditDmSettings        *bool                                        `wam:"16"`
+	ChatEphemeralityDuration *int32                                       `wam:"1"`
+	IsAGroup                 *bool                                        `wam:"2"`
+	IsAdmin                  *bool                                        `wam:"3"`
+	KeptCount                *int32                                       `wam:"15"`
+	KeptDelta                *int32                                       `wam:"4"`
+	KicActionName            *DisappearingMessageKeepInChat_KicActionName `wam:"5"`
+	KicActor                 *DisappearingMessageKeepInChat_KicActor      `wam:"6"`
+	KicEntryPoint            *DisappearingMessageKeepInChat_KicEntryPoint `wam:"7"`
+	MediaType                *DisappearingMessageKeepInChat_MediaType     `wam:"8"`
+	MessageExpiredOnUnkeep   *bool                                        `wam:"9"`
+	MessageExpiryTimer       *int32                                       `wam:"10"`
+	MessagesInFolder         *int32                                       `wam:"11"`
+	MessagesSelected         *int32                                       `wam:"12"`
+	ThreadId                 *string                                      `wam:"13"`
 }
 
 type PsStructuredMessageInteraction_BizPlatform int32
@@ -16499,15 +16499,15 @@ const (
 )
 
 type PsStructuredMessageInteractionEvent struct {
-	_meta                  struct{}                                          `wammeta:"id=3052,channel=private,weight=1,privateStatsIdInt=0"`
-	BizPlatform            PsStructuredMessageInteraction_BizPlatform        `wam:"1"`
-	BusinessOwnerJid       string                                            `wam:"7"`
-	MessageClass           PsStructuredMessageInteraction_MessageClass       `wam:"3"`
-	MessageClassAttributes string                                            `wam:"5"`
-	MessageInteraction     PsStructuredMessageInteraction_MessageInteraction `wam:"4"`
-	MessageMediaType       PsStructuredMessageInteraction_MessageMediaType   `wam:"2"`
-	TemplateId             string                                            `wam:"8"`
-	ThreadIdHmac           string                                            `wam:"9"`
+	_meta                  struct{}                                           `wammeta:"id=3052,channel=private,weight=1,privateStatsIdInt=0"`
+	BizPlatform            *PsStructuredMessageInteraction_BizPlatform        `wam:"1"`
+	BusinessOwnerJid       *string                                            `wam:"7"`
+	MessageClass           *PsStructuredMessageInteraction_MessageClass       `wam:"3"`
+	MessageClassAttributes *string                                            `wam:"5"`
+	MessageInteraction     *PsStructuredMessageInteraction_MessageInteraction `wam:"4"`
+	MessageMediaType       *PsStructuredMessageInteraction_MessageMediaType   `wam:"2"`
+	TemplateId             *string                                            `wam:"8"`
+	ThreadIdHmac           *string                                            `wam:"9"`
 }
 
 type PaymentsUserAction_ActionTarget int32
@@ -16869,54 +16869,54 @@ const (
 )
 
 type PaymentsUserActionEvent struct {
-	_meta                                struct{}                                          `wammeta:"id=2162,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionTarget                         PaymentsUserAction_ActionTarget                   `wam:"4"`
-	MerchantType                         PaymentsUserAction_MerchantType                   `wam:"43"`
-	P2mType                              PaymentsUserAction_P2mType                        `wam:"44"`
-	PaymentAccountRowSelected            int32                                             `wam:"24"`
-	PaymentActionType                    PaymentsUserAction_PaymentActionType              `wam:"3"`
-	PaymentMode                          PaymentsUserAction_PaymentMode                    `wam:"7"`
-	PaymentNumberOfAccountsAvailable     int32                                             `wam:"23"`
-	PaymentNumberOfPeopleInvited         int32                                             `wam:"32"`
-	PaymentPinSetUp                      bool                                              `wam:"33"`
-	PaymentSent                          bool                                              `wam:"34"`
-	PaymentSmsProviderNumber             string                                            `wam:"15"`
-	PaymentTransactionStatus             PaymentsUserAction_PaymentTransactionStatus       `wam:"45"`
-	PaymentsAccountsExist                bool                                              `wam:"13"`
-	PaymentsBankId                       string                                            `wam:"11"`
-	PaymentsBanksRowSelected             int32                                             `wam:"22"`
-	PaymentsBanksScrolled                bool                                              `wam:"21"`
-	PaymentsBanksSearchActivated         bool                                              `wam:"18"`
-	PaymentsBanksSearchSelected          bool                                              `wam:"20"`
-	PaymentsBanksSearchString            string                                            `wam:"19"`
-	PaymentsBanksSelectedName            string                                            `wam:"25"`
-	PaymentsContactsBucket               PaymentsUserAction_PaymentsContactsBucket         `wam:"31"`
-	PaymentsCountryCode                  string                                            `wam:"2"`
-	PaymentsErrorCode                    string                                            `wam:"9"`
-	PaymentsErrorText                    string                                            `wam:"10"`
-	PaymentsErrorTitle                   string                                            `wam:"47"`
-	PaymentsEventId                      string                                            `wam:"1"`
-	PaymentsHasMultipleSims              bool                                              `wam:"29"`
-	PaymentsIqCallStatus                 PaymentsUserAction_PaymentsIqCallStatus           `wam:"42"`
-	PaymentsIsMandate                    bool                                              `wam:"40"`
-	PaymentsIsOrder                      bool                                              `wam:"36"`
-	PaymentsMandate                      string                                            `wam:"41"`
-	PaymentsOrderType                    string                                            `wam:"38"`
-	PaymentsP2mPaymentConfigId           string                                            `wam:"39"`
-	PaymentsRequestName                  PaymentsUserAction_PaymentsRequestName            `wam:"17"`
-	PaymentsRequestRetryCount            int32                                             `wam:"26"`
-	PaymentsRequestRetryTimeDelaySeconds int32                                             `wam:"27"`
-	PaymentsResponseResult               PaymentsUserAction_PaymentsResponseResult         `wam:"12"`
-	PaymentsSmsProviderRetryCount        int32                                             `wam:"14"`
-	PaymentsSmsRequestRetryCount         int32                                             `wam:"16"`
-	PaymentsUpiCheckPinErrorReason       PaymentsUserAction_PaymentsUpiCheckPinErrorReason `wam:"28"`
-	PaymentsVerifyCardResult             PaymentsUserAction_PaymentsVerifyCardResult       `wam:"30"`
-	PreviousScreenName                   string                                            `wam:"46"`
-	QueryParams                          string                                            `wam:"35"`
-	Referral                             string                                            `wam:"6"`
-	ReferralContext                      string                                            `wam:"37"`
-	Screen                               string                                            `wam:"5"`
-	UpiPaymentsPspId                     PaymentsUserAction_UpiPaymentsPspId               `wam:"8"`
+	_meta                                struct{}                                           `wammeta:"id=2162,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionTarget                         *PaymentsUserAction_ActionTarget                   `wam:"4"`
+	MerchantType                         *PaymentsUserAction_MerchantType                   `wam:"43"`
+	P2mType                              *PaymentsUserAction_P2mType                        `wam:"44"`
+	PaymentAccountRowSelected            *int32                                             `wam:"24"`
+	PaymentActionType                    *PaymentsUserAction_PaymentActionType              `wam:"3"`
+	PaymentMode                          *PaymentsUserAction_PaymentMode                    `wam:"7"`
+	PaymentNumberOfAccountsAvailable     *int32                                             `wam:"23"`
+	PaymentNumberOfPeopleInvited         *int32                                             `wam:"32"`
+	PaymentPinSetUp                      *bool                                              `wam:"33"`
+	PaymentSent                          *bool                                              `wam:"34"`
+	PaymentSmsProviderNumber             *string                                            `wam:"15"`
+	PaymentTransactionStatus             *PaymentsUserAction_PaymentTransactionStatus       `wam:"45"`
+	PaymentsAccountsExist                *bool                                              `wam:"13"`
+	PaymentsBankId                       *string                                            `wam:"11"`
+	PaymentsBanksRowSelected             *int32                                             `wam:"22"`
+	PaymentsBanksScrolled                *bool                                              `wam:"21"`
+	PaymentsBanksSearchActivated         *bool                                              `wam:"18"`
+	PaymentsBanksSearchSelected          *bool                                              `wam:"20"`
+	PaymentsBanksSearchString            *string                                            `wam:"19"`
+	PaymentsBanksSelectedName            *string                                            `wam:"25"`
+	PaymentsContactsBucket               *PaymentsUserAction_PaymentsContactsBucket         `wam:"31"`
+	PaymentsCountryCode                  *string                                            `wam:"2"`
+	PaymentsErrorCode                    *string                                            `wam:"9"`
+	PaymentsErrorText                    *string                                            `wam:"10"`
+	PaymentsErrorTitle                   *string                                            `wam:"47"`
+	PaymentsEventId                      *string                                            `wam:"1"`
+	PaymentsHasMultipleSims              *bool                                              `wam:"29"`
+	PaymentsIqCallStatus                 *PaymentsUserAction_PaymentsIqCallStatus           `wam:"42"`
+	PaymentsIsMandate                    *bool                                              `wam:"40"`
+	PaymentsIsOrder                      *bool                                              `wam:"36"`
+	PaymentsMandate                      *string                                            `wam:"41"`
+	PaymentsOrderType                    *string                                            `wam:"38"`
+	PaymentsP2mPaymentConfigId           *string                                            `wam:"39"`
+	PaymentsRequestName                  *PaymentsUserAction_PaymentsRequestName            `wam:"17"`
+	PaymentsRequestRetryCount            *int32                                             `wam:"26"`
+	PaymentsRequestRetryTimeDelaySeconds *int32                                             `wam:"27"`
+	PaymentsResponseResult               *PaymentsUserAction_PaymentsResponseResult         `wam:"12"`
+	PaymentsSmsProviderRetryCount        *int32                                             `wam:"14"`
+	PaymentsSmsRequestRetryCount         *int32                                             `wam:"16"`
+	PaymentsUpiCheckPinErrorReason       *PaymentsUserAction_PaymentsUpiCheckPinErrorReason `wam:"28"`
+	PaymentsVerifyCardResult             *PaymentsUserAction_PaymentsVerifyCardResult       `wam:"30"`
+	PreviousScreenName                   *string                                            `wam:"46"`
+	QueryParams                          *string                                            `wam:"35"`
+	Referral                             *string                                            `wam:"6"`
+	ReferralContext                      *string                                            `wam:"37"`
+	Screen                               *string                                            `wam:"5"`
+	UpiPaymentsPspId                     *PaymentsUserAction_UpiPaymentsPspId               `wam:"8"`
 }
 
 type CtwaUserJourney_CtwaChatCreationMode int32
@@ -17006,20 +17006,20 @@ const (
 )
 
 type CtwaUserJourneyEvent struct {
-	_meta                    struct{}                                 `wammeta:"id=3466,channel=private,weight=1,privateStatsIdInt=113760892"`
-	AdId                     string                                   `wam:"1"`
-	BusinessJid              string                                   `wam:"2"`
-	CtwaChatCreationMode     CtwaUserJourney_CtwaChatCreationMode     `wam:"6"`
-	CtwaUserJourneyMetadata  string                                   `wam:"12"`
-	CtwaUserJourneyOperation CtwaUserJourney_CtwaUserJourneyOperation `wam:"3"`
-	ElapsedTimeInMs          int32                                    `wam:"13"`
-	FeatureEnabled           string                                   `wam:"9"`
-	IcebreakersShown         bool                                     `wam:"4"`
-	SequenceNumber           int32                                    `wam:"5"`
-	ThreadCreationDate       string                                   `wam:"10"`
-	ThreadIdHmac             string                                   `wam:"11"`
-	TrustBannerAction        CtwaUserJourney_TrustBannerAction        `wam:"7"`
-	TrustBannerType          string                                   `wam:"8"`
+	_meta                    struct{}                                  `wammeta:"id=3466,channel=private,weight=1,privateStatsIdInt=113760892"`
+	AdId                     *string                                   `wam:"1"`
+	BusinessJid              *string                                   `wam:"2"`
+	CtwaChatCreationMode     *CtwaUserJourney_CtwaChatCreationMode     `wam:"6"`
+	CtwaUserJourneyMetadata  *string                                   `wam:"12"`
+	CtwaUserJourneyOperation *CtwaUserJourney_CtwaUserJourneyOperation `wam:"3"`
+	ElapsedTimeInMs          *int32                                    `wam:"13"`
+	FeatureEnabled           *string                                   `wam:"9"`
+	IcebreakersShown         *bool                                     `wam:"4"`
+	SequenceNumber           *int32                                    `wam:"5"`
+	ThreadCreationDate       *string                                   `wam:"10"`
+	ThreadIdHmac             *string                                   `wam:"11"`
+	TrustBannerAction        *CtwaUserJourney_TrustBannerAction        `wam:"7"`
+	TrustBannerType          *string                                   `wam:"8"`
 }
 
 type PrivacySettingsClick_PrivacyControlEntryPoint int32
@@ -17073,9 +17073,9 @@ const (
 )
 
 type PrivacySettingsClickEvent struct {
-	_meta                    struct{}                                      `wammeta:"id=3726,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PrivacyControlEntryPoint PrivacySettingsClick_PrivacyControlEntryPoint `wam:"1"`
-	PrivacyControlItem       PrivacySettingsClick_PrivacyControlItem       `wam:"2"`
+	_meta                    struct{}                                       `wammeta:"id=3726,channel=regular,weight=1,privateStatsIdInt=-1"`
+	PrivacyControlEntryPoint *PrivacySettingsClick_PrivacyControlEntryPoint `wam:"1"`
+	PrivacyControlItem       *PrivacySettingsClick_PrivacyControlItem       `wam:"2"`
 }
 
 type SettingsChange_SettingType int32
@@ -17086,10 +17086,10 @@ const (
 )
 
 type SettingsChangeEvent struct {
-	_meta                struct{}                   `wammeta:"id=6396,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CurrentSettingValue  string                     `wam:"4"`
-	PreviousSettingValue string                     `wam:"2"`
-	SettingType          SettingsChange_SettingType `wam:"3"`
+	_meta                struct{}                    `wammeta:"id=6396,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CurrentSettingValue  *string                     `wam:"4"`
+	PreviousSettingValue *string                     `wam:"2"`
+	SettingType          *SettingsChange_SettingType `wam:"3"`
 }
 
 type MdBootstrapHistorySyncStatusAfterPairing_ActiveTimeAfterPairing int32
@@ -17133,34 +17133,34 @@ const (
 )
 
 type MdBootstrapHistorySyncStatusAfterPairingEvent struct {
-	_meta                                  struct{}                                                               `wammeta:"id=4652,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActiveTimeAfterPairing                 MdBootstrapHistorySyncStatusAfterPairing_ActiveTimeAfterPairing        `wam:"1"`
-	IsLoopRunning                          bool                                                                   `wam:"12"`
-	LastProcessedNotificationChunkOrder    int32                                                                  `wam:"2"`
-	LastProcessedNotificationChunkProgress int32                                                                  `wam:"3"`
-	MdBootstrapHistoryPayloadType          MdBootstrapHistorySyncStatusAfterPairing_MdBootstrapHistoryPayloadType `wam:"4"`
-	MdHistorySyncStatusResult              MdBootstrapHistorySyncStatusAfterPairing_MdHistorySyncStatusResult     `wam:"5"`
-	MdSessionId                            string                                                                 `wam:"6"`
-	MdTimestamp                            int32                                                                  `wam:"7"`
-	MissingNotificationCount               int32                                                                  `wam:"8"`
-	NextNotificationChunkOrder             int32                                                                  `wam:"9"`
-	TotalProcessedMessageCount             int32                                                                  `wam:"10"`
-	UnprocessedNotificationCount           int32                                                                  `wam:"11"`
+	_meta                                  struct{}                                                                `wammeta:"id=4652,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActiveTimeAfterPairing                 *MdBootstrapHistorySyncStatusAfterPairing_ActiveTimeAfterPairing        `wam:"1"`
+	IsLoopRunning                          *bool                                                                   `wam:"12"`
+	LastProcessedNotificationChunkOrder    *int32                                                                  `wam:"2"`
+	LastProcessedNotificationChunkProgress *int32                                                                  `wam:"3"`
+	MdBootstrapHistoryPayloadType          *MdBootstrapHistorySyncStatusAfterPairing_MdBootstrapHistoryPayloadType `wam:"4"`
+	MdHistorySyncStatusResult              *MdBootstrapHistorySyncStatusAfterPairing_MdHistorySyncStatusResult     `wam:"5"`
+	MdSessionId                            *string                                                                 `wam:"6"`
+	MdTimestamp                            *int32                                                                  `wam:"7"`
+	MissingNotificationCount               *int32                                                                  `wam:"8"`
+	NextNotificationChunkOrder             *int32                                                                  `wam:"9"`
+	TotalProcessedMessageCount             *int32                                                                  `wam:"10"`
+	UnprocessedNotificationCount           *int32                                                                  `wam:"11"`
 }
 
 type PsGroupSafetyCheckSheetSeenEvent struct {
 	_meta                      struct{} `wammeta:"id=6240,channel=private,weight=1,privateStatsIdInt=216763284"`
-	IntegrityGroupUserHashedId string   `wam:"2"`
-	PsSafetyCheckGroupJid      string   `wam:"1"`
+	IntegrityGroupUserHashedId *string  `wam:"2"`
+	PsSafetyCheckGroupJid      *string  `wam:"1"`
 }
 
 type ChannelMessageVisibilityTrackingEvent struct {
 	_meta            struct{} `wammeta:"id=5998,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Cid              string   `wam:"1"`
-	IsStarredPost    bool     `wam:"8"`
-	IsVpvImpression  bool     `wam:"7"`
-	PostId           string   `wam:"4"`
-	UnifiedSessionId string   `wam:"6"`
+	Cid              *string  `wam:"1"`
+	IsStarredPost    *bool    `wam:"8"`
+	IsVpvImpression  *bool    `wam:"7"`
+	PostId           *string  `wam:"4"`
+	UnifiedSessionId *string  `wam:"6"`
 }
 
 type ChannelMembershipActionEvent_ActionResult int32
@@ -17173,22 +17173,22 @@ const (
 )
 
 type ChannelMembershipActionEventEvent struct {
-	_meta        struct{}                                  `wammeta:"id=5762,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionResult ChannelMembershipActionEvent_ActionResult `wam:"1"`
-	Cid          string                                    `wam:"2"`
+	_meta        struct{}                                   `wammeta:"id=5762,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionResult *ChannelMembershipActionEvent_ActionResult `wam:"1"`
+	Cid          *string                                    `wam:"2"`
 }
 
 type WaFsSingleEmojiMessageDailyEvent struct {
 	_meta                   struct{} `wammeta:"id=5602,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AnimatedEmojiEnabled    bool     `wam:"1"`
-	AnimatedEmojiReceiveCnt int32    `wam:"2"`
-	AnimatedEmojiSendCnt    int32    `wam:"3"`
-	EmojiClickCnt           int32    `wam:"4"`
-	EmojiReplyCount         int32    `wam:"5"`
-	PauseAnimationCnt       int32    `wam:"6"`
-	ReplayAnimationCnt      int32    `wam:"7"`
-	SingleEmojiReceiveCnt   int32    `wam:"8"`
-	SingleEmojiSendCnt      int32    `wam:"9"`
+	AnimatedEmojiEnabled    *bool    `wam:"1"`
+	AnimatedEmojiReceiveCnt *int32   `wam:"2"`
+	AnimatedEmojiSendCnt    *int32   `wam:"3"`
+	EmojiClickCnt           *int32   `wam:"4"`
+	EmojiReplyCount         *int32   `wam:"5"`
+	PauseAnimationCnt       *int32   `wam:"6"`
+	ReplayAnimationCnt      *int32   `wam:"7"`
+	SingleEmojiReceiveCnt   *int32   `wam:"8"`
+	SingleEmojiSendCnt      *int32   `wam:"9"`
 }
 
 type SendDocument_DocumentType int32
@@ -17205,20 +17205,20 @@ const (
 )
 
 type SendDocumentEvent struct {
-	_meta        struct{}                  `wammeta:"id=2172,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DocumentExt  string                    `wam:"3"`
-	DocumentSize float64                   `wam:"1"`
-	DocumentType SendDocument_DocumentType `wam:"2"`
+	_meta        struct{}                   `wammeta:"id=2172,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DocumentExt  *string                    `wam:"3"`
+	DocumentSize *float64                   `wam:"1"`
+	DocumentType *SendDocument_DocumentType `wam:"2"`
 }
 
 type GroupCatchUpEvent struct {
 	_meta                          struct{} `wammeta:"id=3058,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MentionsCountPendingPercentage int32    `wam:"4"`
+	MentionsCountPendingPercentage *int32   `wam:"4"`
 }
 
 type WebcFtsStorageEvent struct {
 	_meta        struct{} `wammeta:"id=3642,channel=regular,weight=1,privateStatsIdInt=-1"`
-	FtsTotalSize int32    `wam:"1"`
+	FtsTotalSize *int32   `wam:"1"`
 }
 
 type BugReportSession_BugReportFlowAction int32
@@ -17260,18 +17260,18 @@ const (
 )
 
 type BugReportSessionEvent struct {
-	_meta                  struct{}                                `wammeta:"id=3850,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BugReportErrorMessage  string                                  `wam:"2"`
-	BugReportFlowAction    BugReportSession_BugReportFlowAction    `wam:"1"`
-	BugReportImageCount    int32                                   `wam:"8"`
-	BugReportMediaCount    int32                                   `wam:"3"`
-	BugReportNumberOfChars int32                                   `wam:"9"`
-	BugReportNumberOfWords int32                                   `wam:"10"`
-	BugReportTaskId        string                                  `wam:"7"`
-	BugReportVideoCount    int32                                   `wam:"11"`
-	BugReportingEntryPoint BugReportSession_BugReportingEntryPoint `wam:"12"`
-	SubmitBugCategory      string                                  `wam:"6"`
-	SubmitBugContainsTitle bool                                    `wam:"5"`
+	_meta                  struct{}                                 `wammeta:"id=3850,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BugReportErrorMessage  *string                                  `wam:"2"`
+	BugReportFlowAction    *BugReportSession_BugReportFlowAction    `wam:"1"`
+	BugReportImageCount    *int32                                   `wam:"8"`
+	BugReportMediaCount    *int32                                   `wam:"3"`
+	BugReportNumberOfChars *int32                                   `wam:"9"`
+	BugReportNumberOfWords *int32                                   `wam:"10"`
+	BugReportTaskId        *string                                  `wam:"7"`
+	BugReportVideoCount    *int32                                   `wam:"11"`
+	BugReportingEntryPoint *BugReportSession_BugReportingEntryPoint `wam:"12"`
+	SubmitBugCategory      *string                                  `wam:"6"`
+	SubmitBugContainsTitle *bool                                    `wam:"5"`
 }
 
 type IncomingMessageDrop_AgentEngagementType int32
@@ -17565,23 +17565,23 @@ const (
 )
 
 type IncomingMessageDropEvent struct {
-	_meta                    struct{}                                     `wammeta:"id=3724,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AgentEngagementType      IncomingMessageDrop_AgentEngagementType      `wam:"12"`
-	BotType                  IncomingMessageDrop_BotType                  `wam:"14"`
-	E2eCiphertextType        IncomingMessageDrop_E2eCiphertextType        `wam:"1"`
-	E2eDestination           IncomingMessageDrop_E2eDestination           `wam:"2"`
-	E2eFailureReason         IncomingMessageDrop_E2eFailureReason         `wam:"9"`
-	E2eSenderType            IncomingMessageDrop_E2eSenderType            `wam:"3"`
-	InvisibleMessageCategory IncomingMessageDrop_InvisibleMessageCategory `wam:"13"`
-	IsLid                    bool                                         `wam:"15"`
-	LocalAddressingMode      IncomingMessageDrop_LocalAddressingMode      `wam:"16"`
-	MessageDropReason        IncomingMessageDrop_MessageDropReason        `wam:"4"`
-	MessageMediaType         IncomingMessageDrop_MessageMediaType         `wam:"5"`
-	Offline                  bool                                         `wam:"6"`
-	OfflineCount             int32                                        `wam:"11"`
-	RetryCount               int32                                        `wam:"7"`
-	RevokeType               IncomingMessageDrop_RevokeType               `wam:"8"`
-	TypeOfGroup              IncomingMessageDrop_TypeOfGroup              `wam:"10"`
+	_meta                    struct{}                                      `wammeta:"id=3724,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AgentEngagementType      *IncomingMessageDrop_AgentEngagementType      `wam:"12"`
+	BotType                  *IncomingMessageDrop_BotType                  `wam:"14"`
+	E2eCiphertextType        *IncomingMessageDrop_E2eCiphertextType        `wam:"1"`
+	E2eDestination           *IncomingMessageDrop_E2eDestination           `wam:"2"`
+	E2eFailureReason         *IncomingMessageDrop_E2eFailureReason         `wam:"9"`
+	E2eSenderType            *IncomingMessageDrop_E2eSenderType            `wam:"3"`
+	InvisibleMessageCategory *IncomingMessageDrop_InvisibleMessageCategory `wam:"13"`
+	IsLid                    *bool                                         `wam:"15"`
+	LocalAddressingMode      *IncomingMessageDrop_LocalAddressingMode      `wam:"16"`
+	MessageDropReason        *IncomingMessageDrop_MessageDropReason        `wam:"4"`
+	MessageMediaType         *IncomingMessageDrop_MessageMediaType         `wam:"5"`
+	Offline                  *bool                                         `wam:"6"`
+	OfflineCount             *int32                                        `wam:"11"`
+	RetryCount               *int32                                        `wam:"7"`
+	RevokeType               *IncomingMessageDrop_RevokeType               `wam:"8"`
+	TypeOfGroup              *IncomingMessageDrop_TypeOfGroup              `wam:"10"`
 }
 
 type E2eRetryReject_InvisibleMessageCategory int32
@@ -17698,29 +17698,29 @@ const (
 )
 
 type E2eRetryRejectEvent struct {
-	_meta                    struct{}                                `wammeta:"id=3578,channel=regular,weight=1,privateStatsIdInt=-1"`
-	InvisibleMessageCategory E2eRetryReject_InvisibleMessageCategory `wam:"6"`
-	MediaType                E2eRetryReject_MediaType                `wam:"7"`
-	MessageType              E2eRetryReject_MessageType              `wam:"1"`
-	MsgRetryCount            int32                                   `wam:"2"`
-	RetryRejectReason        E2eRetryReject_RetryRejectReason        `wam:"3"`
-	RetryRevoke              bool                                    `wam:"4"`
-	SenderDeviceType         E2eRetryReject_SenderDeviceType         `wam:"5"`
+	_meta                    struct{}                                 `wammeta:"id=3578,channel=regular,weight=1,privateStatsIdInt=-1"`
+	InvisibleMessageCategory *E2eRetryReject_InvisibleMessageCategory `wam:"6"`
+	MediaType                *E2eRetryReject_MediaType                `wam:"7"`
+	MessageType              *E2eRetryReject_MessageType              `wam:"1"`
+	MsgRetryCount            *int32                                   `wam:"2"`
+	RetryRejectReason        *E2eRetryReject_RetryRejectReason        `wam:"3"`
+	RetryRevoke              *bool                                    `wam:"4"`
+	SenderDeviceType         *E2eRetryReject_SenderDeviceType         `wam:"5"`
 }
 
 type MexEventEvent struct {
 	_meta                          struct{} `wammeta:"id=3782,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsMex                          bool     `wam:"1"`
-	MexEventData                   string   `wam:"2"`
-	MexEventDurationT              int64    `wam:"12"`
-	MexEventEndTime                int32    `wam:"3"`
-	MexEventEnvelopeResponseStatus int32    `wam:"13"`
-	MexEventOperation              string   `wam:"7"`
-	MexEventPayloadResponseStatus  int32    `wam:"14"`
-	MexEventRequestSize            int32    `wam:"8"`
-	MexEventResponseSize           int32    `wam:"9"`
-	MexEventRetries                int32    `wam:"10"`
-	MexEventStartTime              int32    `wam:"11"`
+	IsMex                          *bool    `wam:"1"`
+	MexEventData                   *string  `wam:"2"`
+	MexEventDurationT              *int64   `wam:"12"`
+	MexEventEndTime                *int32   `wam:"3"`
+	MexEventEnvelopeResponseStatus *int32   `wam:"13"`
+	MexEventOperation              *string  `wam:"7"`
+	MexEventPayloadResponseStatus  *int32   `wam:"14"`
+	MexEventRequestSize            *int32   `wam:"8"`
+	MexEventResponseSize           *int32   `wam:"9"`
+	MexEventRetries                *int32   `wam:"10"`
+	MexEventStartTime              *int32   `wam:"11"`
 }
 
 type CtwaLabelSignal_CtwaLabelTarget int32
@@ -17754,24 +17754,24 @@ const (
 )
 
 type CtwaLabelSignalEvent struct {
-	_meta                            struct{}                                         `wammeta:"id=4662,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CtwaLabelSignalVersion           int32                                            `wam:"1"`
-	CtwaLabelTarget                  CtwaLabelSignal_CtwaLabelTarget                  `wam:"2"`
-	CtwaLabelType                    CtwaLabelSignal_CtwaLabelType                    `wam:"3"`
-	CtwaSignalMetadata               string                                           `wam:"9"`
-	CustomerAdsSharingSettingEnabled CtwaLabelSignal_CustomerAdsSharingSettingEnabled `wam:"10"`
-	DeepLinkConversionData           string                                           `wam:"4"`
-	DeepLinkConversionSource         string                                           `wam:"5"`
-	EventSharingSettingEnabled       bool                                             `wam:"6"`
-	GlobalSharingSettingEnabled      bool                                             `wam:"7"`
-	ThreadIdHmac                     string                                           `wam:"8"`
+	_meta                            struct{}                                          `wammeta:"id=4662,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CtwaLabelSignalVersion           *int32                                            `wam:"1"`
+	CtwaLabelTarget                  *CtwaLabelSignal_CtwaLabelTarget                  `wam:"2"`
+	CtwaLabelType                    *CtwaLabelSignal_CtwaLabelType                    `wam:"3"`
+	CtwaSignalMetadata               *string                                           `wam:"9"`
+	CustomerAdsSharingSettingEnabled *CtwaLabelSignal_CustomerAdsSharingSettingEnabled `wam:"10"`
+	DeepLinkConversionData           *string                                           `wam:"4"`
+	DeepLinkConversionSource         *string                                           `wam:"5"`
+	EventSharingSettingEnabled       *bool                                             `wam:"6"`
+	GlobalSharingSettingEnabled      *bool                                             `wam:"7"`
+	ThreadIdHmac                     *string                                           `wam:"8"`
 }
 
 type WebcMediaAnalyzedEvent struct {
 	_meta               struct{} `wammeta:"id=912,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcMediaAnalyzeT   int64    `wam:"3"`
-	WebcMediaExtensions string   `wam:"2"`
-	WebcMediaSupported  bool     `wam:"1"`
+	WebcMediaAnalyzeT   *int64   `wam:"3"`
+	WebcMediaExtensions *string  `wam:"2"`
+	WebcMediaSupported  *bool    `wam:"1"`
 }
 
 type UserNoticeError_NoticeType int32
@@ -17803,11 +17803,11 @@ const (
 )
 
 type UserNoticeErrorEvent struct {
-	_meta                    struct{}                             `wammeta:"id=2474,channel=regular,weight=1,privateStatsIdInt=-1"`
-	NoticeType               UserNoticeError_NoticeType           `wam:"4"`
-	UserNoticeContentVersion int32                                `wam:"2"`
-	UserNoticeErrorEvent     UserNoticeError_UserNoticeErrorEvent `wam:"3"`
-	UserNoticeId             int32                                `wam:"1"`
+	_meta                    struct{}                              `wammeta:"id=2474,channel=regular,weight=1,privateStatsIdInt=-1"`
+	NoticeType               *UserNoticeError_NoticeType           `wam:"4"`
+	UserNoticeContentVersion *int32                                `wam:"2"`
+	UserNoticeErrorEvent     *UserNoticeError_UserNoticeErrorEvent `wam:"3"`
+	UserNoticeId             *int32                                `wam:"1"`
 }
 
 type MdLinkDeviceCompanion_ApplicationState int32
@@ -17830,19 +17830,19 @@ const (
 )
 
 type MdLinkDeviceCompanionEvent struct {
-	_meta                          struct{}                                         `wammeta:"id=2576,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppContext                     string                                           `wam:"13"`
-	AppContextBitfield             int32                                            `wam:"14"`
-	ApplicationState               MdLinkDeviceCompanion_ApplicationState           `wam:"12"`
-	MdCompanionRefHash             string                                           `wam:"10"`
-	MdDurationS                    int32                                            `wam:"8"`
-	MdLinkDeviceCompanionErrorCode int32                                            `wam:"6"`
-	MdLinkDeviceCompanionStage     MdLinkDeviceCompanion_MdLinkDeviceCompanionStage `wam:"4"`
-	MdLinkDeviceExperienceId       int32                                            `wam:"11"`
-	MdRegAttemptId                 string                                           `wam:"9"`
-	MdSessionId                    string                                           `wam:"1"`
-	MdTimestampS                   int32                                            `wam:"7"`
-	MdWasUpgraded                  bool                                             `wam:"5"`
+	_meta                          struct{}                                          `wammeta:"id=2576,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppContext                     *string                                           `wam:"13"`
+	AppContextBitfield             *int32                                            `wam:"14"`
+	ApplicationState               *MdLinkDeviceCompanion_ApplicationState           `wam:"12"`
+	MdCompanionRefHash             *string                                           `wam:"10"`
+	MdDurationS                    *int32                                            `wam:"8"`
+	MdLinkDeviceCompanionErrorCode *int32                                            `wam:"6"`
+	MdLinkDeviceCompanionStage     *MdLinkDeviceCompanion_MdLinkDeviceCompanionStage `wam:"4"`
+	MdLinkDeviceExperienceId       *int32                                            `wam:"11"`
+	MdRegAttemptId                 *string                                           `wam:"9"`
+	MdSessionId                    *string                                           `wam:"1"`
+	MdTimestampS                   *int32                                            `wam:"7"`
+	MdWasUpgraded                  *bool                                             `wam:"5"`
 }
 
 type PsGroupExitExperienceExitDeleteConfirmationDialogUiInteraction_PsGroupExitExperienceDeleteConfirmationDialogAction int32
@@ -17867,10 +17867,10 @@ const (
 )
 
 type PsGroupExitExperienceExitDeleteConfirmationDialogUiInteractionEvent struct {
-	_meta                                               struct{}                                                                                                           `wammeta:"id=6316,channel=private,weight=1,privateStatsIdInt=152546501"`
-	PsGroupExitExperienceDeleteConfirmationDialogAction PsGroupExitExperienceExitDeleteConfirmationDialogUiInteraction_PsGroupExitExperienceDeleteConfirmationDialogAction `wam:"1"`
-	PsGroupExitExperienceGroupJid                       string                                                                                                             `wam:"2"`
-	PsGroupExitExperienceTouchPoint                     PsGroupExitExperienceExitDeleteConfirmationDialogUiInteraction_PsGroupExitExperienceTouchPoint                     `wam:"4"`
+	_meta                                               struct{}                                                                                                            `wammeta:"id=6316,channel=private,weight=1,privateStatsIdInt=152546501"`
+	PsGroupExitExperienceDeleteConfirmationDialogAction *PsGroupExitExperienceExitDeleteConfirmationDialogUiInteraction_PsGroupExitExperienceDeleteConfirmationDialogAction `wam:"1"`
+	PsGroupExitExperienceGroupJid                       *string                                                                                                             `wam:"2"`
+	PsGroupExitExperienceTouchPoint                     *PsGroupExitExperienceExitDeleteConfirmationDialogUiInteraction_PsGroupExitExperienceTouchPoint                     `wam:"4"`
 }
 
 type StatusReportingEvents_StatusReportInteraction int32
@@ -17883,8 +17883,8 @@ const (
 )
 
 type StatusReportingEventsEvent struct {
-	_meta                   struct{}                                      `wammeta:"id=3920,channel=regular,weight=1,privateStatsIdInt=-1"`
-	StatusReportInteraction StatusReportingEvents_StatusReportInteraction `wam:"1"`
+	_meta                   struct{}                                       `wammeta:"id=3920,channel=regular,weight=1,privateStatsIdInt=-1"`
+	StatusReportInteraction *StatusReportingEvents_StatusReportInteraction `wam:"1"`
 }
 
 type PsChannelPostForward_ChannelForwardContentType int32
@@ -17980,14 +17980,14 @@ const (
 )
 
 type PsChannelPostForwardEvent struct {
-	_meta                     struct{}                                       `wammeta:"id=4746,channel=private,weight=1,privateStatsIdInt=0"`
-	ChannelForwardContentType PsChannelPostForward_ChannelForwardContentType `wam:"6"`
-	ChannelForwardGroupType   PsChannelPostForward_ChannelForwardGroupType   `wam:"1"`
-	Cid                       string                                         `wam:"2"`
-	DestinationChannelId      string                                         `wam:"7"`
-	DestinationPostId         string                                         `wam:"8"`
-	MediaType                 PsChannelPostForward_MediaType                 `wam:"3"`
-	PostId                    string                                         `wam:"4"`
+	_meta                     struct{}                                        `wammeta:"id=4746,channel=private,weight=1,privateStatsIdInt=0"`
+	ChannelForwardContentType *PsChannelPostForward_ChannelForwardContentType `wam:"6"`
+	ChannelForwardGroupType   *PsChannelPostForward_ChannelForwardGroupType   `wam:"1"`
+	Cid                       *string                                         `wam:"2"`
+	DestinationChannelId      *string                                         `wam:"7"`
+	DestinationPostId         *string                                         `wam:"8"`
+	MediaType                 *PsChannelPostForward_MediaType                 `wam:"3"`
+	PostId                    *string                                         `wam:"4"`
 }
 
 type MediaPicker_HdToggleState int32
@@ -18196,54 +18196,54 @@ const (
 )
 
 type MediaPickerEvent struct {
-	_meta                         struct{}                        `wammeta:"id=1038,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AudienceSelectorClicked       bool                            `wam:"24"`
-	AudienceSelectorUpdated       bool                            `wam:"25"`
-	AutoScaleCount                int32                           `wam:"51"`
-	CaptionPositions              string                          `wam:"37"`
-	ChatRecipients                int32                           `wam:"16"`
-	HasCollectionCaption          bool                            `wam:"38"`
-	HdToggleChange                int32                           `wam:"34"`
-	HdToggleEligible              bool                            `wam:"35"`
-	HdToggleState                 MediaPicker_HdToggleState       `wam:"36"`
-	IsSentInLandscape             bool                            `wam:"41"`
-	IsViewOnce                    bool                            `wam:"22"`
-	ItemCaptionCount              int32                           `wam:"39"`
-	MediaPickerArBackground       int32                           `wam:"42"`
-	MediaPickerArFilter           int32                           `wam:"43"`
-	MediaPickerArFunEffect        int32                           `wam:"44"`
-	MediaPickerAvatarStickers     int32                           `wam:"33"`
-	MediaPickerChanged            int32                           `wam:"4"`
-	MediaPickerCroppedRotated     int32                           `wam:"10"`
-	MediaPickerDeleted            int32                           `wam:"3"`
-	MediaPickerDrawing            int32                           `wam:"11"`
-	MediaPickerFilter             int32                           `wam:"18"`
-	MediaPickerHasLocationSticker bool                            `wam:"26"`
-	MediaPickerIgluLowlight       int32                           `wam:"47"`
-	MediaPickerIgluTouchup        int32                           `wam:"48"`
-	MediaPickerLikeDoc            int32                           `wam:"19"`
-	MediaPickerNotLikeDoc         int32                           `wam:"20"`
-	MediaPickerOrigin             MediaPicker_MediaPickerOrigin   `wam:"14"`
-	MediaPickerOriginThirdParty   bool                            `wam:"21"`
-	MediaPickerSent               int32                           `wam:"2"`
-	MediaPickerSentUnchanged      int32                           `wam:"5"`
-	MediaPickerSessionId          string                          `wam:"29"`
-	MediaPickerStickers           int32                           `wam:"12"`
-	MediaPickerT                  int64                           `wam:"15"`
-	MediaPickerText               int32                           `wam:"13"`
-	MediaType                     MediaPicker_MediaType           `wam:"1"`
-	MotionPhotoImpressionCount    int32                           `wam:"31"`
-	MotionPhotoSentCount          int32                           `wam:"32"`
-	NumberOfArPostCapture         int32                           `wam:"45"`
-	NumberOfArPreCapture          int32                           `wam:"46"`
-	NumberOfIgluPostCapture       int32                           `wam:"49"`
-	NumberOfIgluPreCapture        int32                           `wam:"50"`
-	PhotoGalleryDurationT         int64                           `wam:"23"`
-	PhotoQualitySetting           MediaPicker_PhotoQualitySetting `wam:"27"`
-	PickerSessionId               int32                           `wam:"30"`
-	StatusRecipients              int32                           `wam:"17"`
-	TransformCount                int32                           `wam:"52"`
-	VideoQualitySetting           MediaPicker_VideoQualitySetting `wam:"28"`
+	_meta                         struct{}                         `wammeta:"id=1038,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AudienceSelectorClicked       *bool                            `wam:"24"`
+	AudienceSelectorUpdated       *bool                            `wam:"25"`
+	AutoScaleCount                *int32                           `wam:"51"`
+	CaptionPositions              *string                          `wam:"37"`
+	ChatRecipients                *int32                           `wam:"16"`
+	HasCollectionCaption          *bool                            `wam:"38"`
+	HdToggleChange                *int32                           `wam:"34"`
+	HdToggleEligible              *bool                            `wam:"35"`
+	HdToggleState                 *MediaPicker_HdToggleState       `wam:"36"`
+	IsSentInLandscape             *bool                            `wam:"41"`
+	IsViewOnce                    *bool                            `wam:"22"`
+	ItemCaptionCount              *int32                           `wam:"39"`
+	MediaPickerArBackground       *int32                           `wam:"42"`
+	MediaPickerArFilter           *int32                           `wam:"43"`
+	MediaPickerArFunEffect        *int32                           `wam:"44"`
+	MediaPickerAvatarStickers     *int32                           `wam:"33"`
+	MediaPickerChanged            *int32                           `wam:"4"`
+	MediaPickerCroppedRotated     *int32                           `wam:"10"`
+	MediaPickerDeleted            *int32                           `wam:"3"`
+	MediaPickerDrawing            *int32                           `wam:"11"`
+	MediaPickerFilter             *int32                           `wam:"18"`
+	MediaPickerHasLocationSticker *bool                            `wam:"26"`
+	MediaPickerIgluLowlight       *int32                           `wam:"47"`
+	MediaPickerIgluTouchup        *int32                           `wam:"48"`
+	MediaPickerLikeDoc            *int32                           `wam:"19"`
+	MediaPickerNotLikeDoc         *int32                           `wam:"20"`
+	MediaPickerOrigin             *MediaPicker_MediaPickerOrigin   `wam:"14"`
+	MediaPickerOriginThirdParty   *bool                            `wam:"21"`
+	MediaPickerSent               *int32                           `wam:"2"`
+	MediaPickerSentUnchanged      *int32                           `wam:"5"`
+	MediaPickerSessionId          *string                          `wam:"29"`
+	MediaPickerStickers           *int32                           `wam:"12"`
+	MediaPickerT                  *int64                           `wam:"15"`
+	MediaPickerText               *int32                           `wam:"13"`
+	MediaType                     *MediaPicker_MediaType           `wam:"1"`
+	MotionPhotoImpressionCount    *int32                           `wam:"31"`
+	MotionPhotoSentCount          *int32                           `wam:"32"`
+	NumberOfArPostCapture         *int32                           `wam:"45"`
+	NumberOfArPreCapture          *int32                           `wam:"46"`
+	NumberOfIgluPostCapture       *int32                           `wam:"49"`
+	NumberOfIgluPreCapture        *int32                           `wam:"50"`
+	PhotoGalleryDurationT         *int64                           `wam:"23"`
+	PhotoQualitySetting           *MediaPicker_PhotoQualitySetting `wam:"27"`
+	PickerSessionId               *int32                           `wam:"30"`
+	StatusRecipients              *int32                           `wam:"17"`
+	TransformCount                *int32                           `wam:"52"`
+	VideoQualitySetting           *MediaPicker_VideoQualitySetting `wam:"28"`
 }
 
 type EditBusinessProfile_BusinessProfileEntryPoint int32
@@ -18299,23 +18299,23 @@ const (
 )
 
 type EditBusinessProfileEvent struct {
-	_meta                        struct{}                                      `wammeta:"id=1466,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BusinessProfileEntryPoint    EditBusinessProfile_BusinessProfileEntryPoint `wam:"10"`
-	EditBusinessProfileSessionId string                                        `wam:"2"`
-	EditProfileAction            EditBusinessProfile_EditProfileAction         `wam:"1"`
-	EditProfileActionField       EditBusinessProfile_EditProfileActionField    `wam:"9"`
-	HasAddress                   bool                                          `wam:"5"`
-	HasCategory                  bool                                          `wam:"4"`
-	HasDescription               bool                                          `wam:"3"`
-	HasEmail                     bool                                          `wam:"7"`
-	HasHours                     bool                                          `wam:"6"`
-	HasPaymentInfo               bool                                          `wam:"11"`
-	HasWebsite                   bool                                          `wam:"8"`
+	_meta                        struct{}                                       `wammeta:"id=1466,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BusinessProfileEntryPoint    *EditBusinessProfile_BusinessProfileEntryPoint `wam:"10"`
+	EditBusinessProfileSessionId *string                                        `wam:"2"`
+	EditProfileAction            *EditBusinessProfile_EditProfileAction         `wam:"1"`
+	EditProfileActionField       *EditBusinessProfile_EditProfileActionField    `wam:"9"`
+	HasAddress                   *bool                                          `wam:"5"`
+	HasCategory                  *bool                                          `wam:"4"`
+	HasDescription               *bool                                          `wam:"3"`
+	HasEmail                     *bool                                          `wam:"7"`
+	HasHours                     *bool                                          `wam:"6"`
+	HasPaymentInfo               *bool                                          `wam:"11"`
+	HasWebsite                   *bool                                          `wam:"8"`
 }
 
 type ClockSkewDifferenceTEvent struct {
 	_meta           struct{} `wammeta:"id=3178,channel=private,weight=1,privateStatsIdInt=37887164"`
-	ClockSkewHourly int32    `wam:"1"`
+	ClockSkewHourly *int32   `wam:"1"`
 }
 
 type UiAction_AgentEngagementType int32
@@ -18414,30 +18414,30 @@ const (
 )
 
 type UiActionEvent struct {
-	_meta                       struct{}                     `wammeta:"id=472,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AgentEngagementType         UiAction_AgentEngagementType `wam:"9"`
-	AppContext                  string                       `wam:"21"`
-	AppContextBitfield          int32                        `wam:"22"`
-	BotType                     UiAction_BotType             `wam:"11"`
-	DbBgThreadReadsDurationT    int64                        `wam:"17"`
-	DbBgThreadWritesDurationT   int64                        `wam:"18"`
-	DbMainThreadCount           int32                        `wam:"13"`
-	DbMainThreadReadsDurationT  int64                        `wam:"19"`
-	DbMainThreadWritesDurationT int64                        `wam:"20"`
-	DbReadsCount                int32                        `wam:"14"`
-	DbWritesCount               int32                        `wam:"15"`
-	DeviceCount                 int32                        `wam:"5"`
-	IsLid                       bool                         `wam:"8"`
-	IsLowPowerMode              bool                         `wam:"23"`
-	LocalAddressingMode         UiAction_LocalAddressingMode `wam:"10"`
-	ParticipantCount            int32                        `wam:"6"`
-	PeripheralConnected         string                       `wam:"16"`
-	SizeBucket                  UiAction_SizeBucket          `wam:"4"`
-	UiActionChatType            UiAction_UiActionChatType    `wam:"7"`
-	UiActionPreloaded           bool                         `wam:"2"`
-	UiActionT                   int64                        `wam:"3"`
-	UiActionTtrcSurfaceName     string                       `wam:"12"`
-	UiActionType                UiAction_UiActionType        `wam:"1"`
+	_meta                       struct{}                      `wammeta:"id=472,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AgentEngagementType         *UiAction_AgentEngagementType `wam:"9"`
+	AppContext                  *string                       `wam:"21"`
+	AppContextBitfield          *int32                        `wam:"22"`
+	BotType                     *UiAction_BotType             `wam:"11"`
+	DbBgThreadReadsDurationT    *int64                        `wam:"17"`
+	DbBgThreadWritesDurationT   *int64                        `wam:"18"`
+	DbMainThreadCount           *int32                        `wam:"13"`
+	DbMainThreadReadsDurationT  *int64                        `wam:"19"`
+	DbMainThreadWritesDurationT *int64                        `wam:"20"`
+	DbReadsCount                *int32                        `wam:"14"`
+	DbWritesCount               *int32                        `wam:"15"`
+	DeviceCount                 *int32                        `wam:"5"`
+	IsLid                       *bool                         `wam:"8"`
+	IsLowPowerMode              *bool                         `wam:"23"`
+	LocalAddressingMode         *UiAction_LocalAddressingMode `wam:"10"`
+	ParticipantCount            *int32                        `wam:"6"`
+	PeripheralConnected         *string                       `wam:"16"`
+	SizeBucket                  *UiAction_SizeBucket          `wam:"4"`
+	UiActionChatType            *UiAction_UiActionChatType    `wam:"7"`
+	UiActionPreloaded           *bool                         `wam:"2"`
+	UiActionT                   *int64                        `wam:"3"`
+	UiActionTtrcSurfaceName     *string                       `wam:"12"`
+	UiActionType                *UiAction_UiActionType        `wam:"1"`
 }
 
 type WebcNativeUpsellCta_WebcNativeUpsellCtaEventType int32
@@ -18485,12 +18485,12 @@ const (
 )
 
 type WebcNativeUpsellCtaEvent struct {
-	_meta                                      struct{}                                                       `wammeta:"id=3934,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcNativeUpsellCtaEventType               WebcNativeUpsellCta_WebcNativeUpsellCtaEventType               `wam:"2"`
-	WebcNativeUpsellCtaIsBetaUser              bool                                                           `wam:"5"`
-	WebcNativeUpsellCtaQrScreenExperimentGroup WebcNativeUpsellCta_WebcNativeUpsellCtaQrScreenExperimentGroup `wam:"3"`
-	WebcNativeUpsellCtaReleaseChannel          WebcNativeUpsellCta_WebcNativeUpsellCtaReleaseChannel          `wam:"4"`
-	WebcNativeUpsellCtaSource                  WebcNativeUpsellCta_WebcNativeUpsellCtaSource                  `wam:"1"`
+	_meta                                      struct{}                                                        `wammeta:"id=3934,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcNativeUpsellCtaEventType               *WebcNativeUpsellCta_WebcNativeUpsellCtaEventType               `wam:"2"`
+	WebcNativeUpsellCtaIsBetaUser              *bool                                                           `wam:"5"`
+	WebcNativeUpsellCtaQrScreenExperimentGroup *WebcNativeUpsellCta_WebcNativeUpsellCtaQrScreenExperimentGroup `wam:"3"`
+	WebcNativeUpsellCtaReleaseChannel          *WebcNativeUpsellCta_WebcNativeUpsellCtaReleaseChannel          `wam:"4"`
+	WebcNativeUpsellCtaSource                  *WebcNativeUpsellCta_WebcNativeUpsellCtaSource                  `wam:"1"`
 }
 
 type BusinessToolsEntry_BusinessToolsEntryPoint int32
@@ -18507,10 +18507,10 @@ const (
 )
 
 type BusinessToolsEntryEvent struct {
-	_meta                       struct{}                                   `wammeta:"id=2216,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BusinessToolsEntryPoint     BusinessToolsEntry_BusinessToolsEntryPoint `wam:"3"`
-	BusinessToolsSequenceNumber int32                                      `wam:"2"`
-	BusinessToolsSessionId      string                                     `wam:"1"`
+	_meta                       struct{}                                    `wammeta:"id=2216,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BusinessToolsEntryPoint     *BusinessToolsEntry_BusinessToolsEntryPoint `wam:"3"`
+	BusinessToolsSequenceNumber *int32                                      `wam:"2"`
+	BusinessToolsSessionId      *string                                     `wam:"1"`
 }
 
 type MdBootstrapAppStateDataDownloaded_ApplicationState int32
@@ -18547,26 +18547,26 @@ const (
 )
 
 type MdBootstrapAppStateDataDownloadedEvent struct {
-	_meta                         struct{}                                                        `wammeta:"id=2294,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppContext                    string                                                          `wam:"14"`
-	AppContextBitfield            int32                                                           `wam:"15"`
-	ApplicationState              MdBootstrapAppStateDataDownloaded_ApplicationState              `wam:"13"`
-	MdBootstrapContactsCount      int32                                                           `wam:"5"`
-	MdBootstrapHistoryPayloadType MdBootstrapAppStateDataDownloaded_MdBootstrapHistoryPayloadType `wam:"11"`
-	MdBootstrapPayloadSize        int32                                                           `wam:"4"`
-	MdBootstrapPayloadType        MdBootstrapAppStateDataDownloaded_MdBootstrapPayloadType        `wam:"2"`
-	MdBootstrapStepDuration       int32                                                           `wam:"6"`
-	MdBootstrapStepResult         MdBootstrapAppStateDataDownloaded_MdBootstrapStepResult         `wam:"7"`
-	MdRegAttemptId                string                                                          `wam:"10"`
-	MdSessionId                   string                                                          `wam:"1"`
-	MdStorageQuotaBytes           int32                                                           `wam:"8"`
-	MdStorageQuotaUsedBytes       int32                                                           `wam:"9"`
-	MdTimestamp                   int32                                                           `wam:"3"`
+	_meta                         struct{}                                                         `wammeta:"id=2294,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppContext                    *string                                                          `wam:"14"`
+	AppContextBitfield            *int32                                                           `wam:"15"`
+	ApplicationState              *MdBootstrapAppStateDataDownloaded_ApplicationState              `wam:"13"`
+	MdBootstrapContactsCount      *int32                                                           `wam:"5"`
+	MdBootstrapHistoryPayloadType *MdBootstrapAppStateDataDownloaded_MdBootstrapHistoryPayloadType `wam:"11"`
+	MdBootstrapPayloadSize        *int32                                                           `wam:"4"`
+	MdBootstrapPayloadType        *MdBootstrapAppStateDataDownloaded_MdBootstrapPayloadType        `wam:"2"`
+	MdBootstrapStepDuration       *int32                                                           `wam:"6"`
+	MdBootstrapStepResult         *MdBootstrapAppStateDataDownloaded_MdBootstrapStepResult         `wam:"7"`
+	MdRegAttemptId                *string                                                          `wam:"10"`
+	MdSessionId                   *string                                                          `wam:"1"`
+	MdStorageQuotaBytes           *int32                                                           `wam:"8"`
+	MdStorageQuotaUsedBytes       *int32                                                           `wam:"9"`
+	MdTimestamp                   *int32                                                           `wam:"3"`
 }
 
 type WaOldCodeEvent struct {
 	_meta    struct{} `wammeta:"id=3940,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DeviceId string   `wam:"1"`
+	DeviceId *string  `wam:"1"`
 }
 
 type ChatLockAction_ActionEntryPoint int32
@@ -18618,12 +18618,12 @@ const (
 )
 
 type ChatLockActionEvent struct {
-	_meta                  struct{}                          `wammeta:"id=4212,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActionEntryPoint       ChatLockAction_ActionEntryPoint   `wam:"3"`
-	ActionFolderChatsCount int32                             `wam:"4"`
-	AuthType               ChatLockAction_AuthType           `wam:"5"`
-	ChatLockActionType     ChatLockAction_ChatLockActionType `wam:"1"`
-	ChatLockIsGroup        bool                              `wam:"2"`
+	_meta                  struct{}                           `wammeta:"id=4212,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActionEntryPoint       *ChatLockAction_ActionEntryPoint   `wam:"3"`
+	ActionFolderChatsCount *int32                             `wam:"4"`
+	AuthType               *ChatLockAction_AuthType           `wam:"5"`
+	ChatLockActionType     *ChatLockAction_ChatLockActionType `wam:"1"`
+	ChatLockIsGroup        *bool                              `wam:"2"`
 }
 
 type DeepLinkOpen_DeepLinkOpenFrom int32
@@ -18837,14 +18837,14 @@ const (
 )
 
 type DeepLinkOpenEvent struct {
-	_meta             struct{}                      `wammeta:"id=2136,channel=regular,weight=1,privateStatsIdInt=-1"`
-	Campaign          string                        `wam:"8"`
-	DeepLinkOpenFrom  DeepLinkOpen_DeepLinkOpenFrom `wam:"2"`
-	DeepLinkSessionId string                        `wam:"6"`
-	DeepLinkType      DeepLinkOpen_DeepLinkType     `wam:"3"`
-	IsContact         bool                          `wam:"4"`
-	LinkOwnerType     DeepLinkOpen_LinkOwnerType    `wam:"5"`
-	SourceSurface     int32                         `wam:"7"`
+	_meta             struct{}                       `wammeta:"id=2136,channel=regular,weight=1,privateStatsIdInt=-1"`
+	Campaign          *string                        `wam:"8"`
+	DeepLinkOpenFrom  *DeepLinkOpen_DeepLinkOpenFrom `wam:"2"`
+	DeepLinkSessionId *string                        `wam:"6"`
+	DeepLinkType      *DeepLinkOpen_DeepLinkType     `wam:"3"`
+	IsContact         *bool                          `wam:"4"`
+	LinkOwnerType     *DeepLinkOpen_LinkOwnerType    `wam:"5"`
+	SourceSurface     *int32                         `wam:"7"`
 }
 
 type SettingsSearchTap_TopLevelParentSetting int32
@@ -18894,9 +18894,9 @@ const (
 )
 
 type SettingsSearchTapEvent struct {
-	_meta                 struct{}                                `wammeta:"id=4016,channel=regular,weight=1,privateStatsIdInt=-1"`
-	TapItemName           string                                  `wam:"1"`
-	TopLevelParentSetting SettingsSearchTap_TopLevelParentSetting `wam:"2"`
+	_meta                 struct{}                                 `wammeta:"id=4016,channel=regular,weight=1,privateStatsIdInt=-1"`
+	TapItemName           *string                                  `wam:"1"`
+	TopLevelParentSetting *SettingsSearchTap_TopLevelParentSetting `wam:"2"`
 }
 
 type MdSyncdDogfoodingFeatureUsage_MdSyncdDogfoodingFeature int32
@@ -18910,8 +18910,8 @@ const (
 )
 
 type MdSyncdDogfoodingFeatureUsageEvent struct {
-	_meta                    struct{}                                               `wammeta:"id=3016,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MdSyncdDogfoodingFeature MdSyncdDogfoodingFeatureUsage_MdSyncdDogfoodingFeature `wam:"1"`
+	_meta                    struct{}                                                `wammeta:"id=3016,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MdSyncdDogfoodingFeature *MdSyncdDogfoodingFeatureUsage_MdSyncdDogfoodingFeature `wam:"1"`
 }
 
 type AutomaticEventsUserJourney_AutomaticEventsTargetComponent int32
@@ -19082,10 +19082,10 @@ const (
 )
 
 type AutomaticEventsUserJourneyEvent struct {
-	_meta                          struct{}                                                  `wammeta:"id=6636,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AutomaticEventsTargetComponent AutomaticEventsUserJourney_AutomaticEventsTargetComponent `wam:"1"`
-	SmbUserActionType              AutomaticEventsUserJourney_SmbUserActionType              `wam:"2"`
-	Surface                        AutomaticEventsUserJourney_Surface                        `wam:"3"`
+	_meta                          struct{}                                                   `wammeta:"id=6636,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AutomaticEventsTargetComponent *AutomaticEventsUserJourney_AutomaticEventsTargetComponent `wam:"1"`
+	SmbUserActionType              *AutomaticEventsUserJourney_SmbUserActionType              `wam:"2"`
+	Surface                        *AutomaticEventsUserJourney_Surface                        `wam:"3"`
 }
 
 type ChannelSimilarChannels_BannerStatus int32
@@ -19129,16 +19129,16 @@ const (
 )
 
 type ChannelSimilarChannelsEvent struct {
-	_meta                      struct{}                                          `wammeta:"id=5202,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BannerStatus               ChannelSimilarChannels_BannerStatus               `wam:"1"`
-	BannerStatusReason         ChannelSimilarChannels_BannerStatusReason         `wam:"2"`
-	Cid                        string                                            `wam:"3"`
-	SimilarChannelDisplayRank  int32                                             `wam:"4"`
-	SimilarChannelEventSurface ChannelSimilarChannels_SimilarChannelEventSurface `wam:"5"`
-	SimilarChannelId           string                                            `wam:"6"`
-	SimilarChannelRank         int32                                             `wam:"7"`
-	SimilarChannelUserType     ChannelSimilarChannels_SimilarChannelUserType     `wam:"9"`
-	SimilarChannelsSessionId   int32                                             `wam:"10"`
+	_meta                      struct{}                                           `wammeta:"id=5202,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BannerStatus               *ChannelSimilarChannels_BannerStatus               `wam:"1"`
+	BannerStatusReason         *ChannelSimilarChannels_BannerStatusReason         `wam:"2"`
+	Cid                        *string                                            `wam:"3"`
+	SimilarChannelDisplayRank  *int32                                             `wam:"4"`
+	SimilarChannelEventSurface *ChannelSimilarChannels_SimilarChannelEventSurface `wam:"5"`
+	SimilarChannelId           *string                                            `wam:"6"`
+	SimilarChannelRank         *int32                                             `wam:"7"`
+	SimilarChannelUserType     *ChannelSimilarChannels_SimilarChannelUserType     `wam:"9"`
+	SimilarChannelsSessionId   *int32                                             `wam:"10"`
 }
 
 type NonMessagePeerDataRequest_PeerDataRequestType int32
@@ -19154,10 +19154,10 @@ const (
 )
 
 type NonMessagePeerDataRequestEvent struct {
-	_meta                    struct{}                                      `wammeta:"id=3906,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PeerDataRequestCount     int32                                         `wam:"1"`
-	PeerDataRequestSessionId string                                        `wam:"2"`
-	PeerDataRequestType      NonMessagePeerDataRequest_PeerDataRequestType `wam:"3"`
+	_meta                    struct{}                                       `wammeta:"id=3906,channel=regular,weight=1,privateStatsIdInt=-1"`
+	PeerDataRequestCount     *int32                                         `wam:"1"`
+	PeerDataRequestSessionId *string                                        `wam:"2"`
+	PeerDataRequestType      *NonMessagePeerDataRequest_PeerDataRequestType `wam:"3"`
 }
 
 type GifSearchNoResults_GifSearchProvider int32
@@ -19168,10 +19168,10 @@ const (
 )
 
 type GifSearchNoResultsEvent struct {
-	_meta             struct{}                             `wammeta:"id=1128,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GifSearchProvider GifSearchNoResults_GifSearchProvider `wam:"1"`
-	InputLanguageCode string                               `wam:"3"`
-	LanguageCode      string                               `wam:"2"`
+	_meta             struct{}                              `wammeta:"id=1128,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GifSearchProvider *GifSearchNoResults_GifSearchProvider `wam:"1"`
+	InputLanguageCode *string                               `wam:"3"`
+	LanguageCode      *string                               `wam:"2"`
 }
 
 type MediaDownload2_AiFetchMediaType int32
@@ -19410,68 +19410,68 @@ const (
 )
 
 type MediaDownload2Event struct {
-	_meta                    struct{}                                `wammeta:"id=1590,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ActiveThreadCount        int32                                   `wam:"55"`
-	AiFetchMediaType         MediaDownload2_AiFetchMediaType         `wam:"62"`
-	AppContext               string                                  `wam:"64"`
-	AppContextBitfield       int32                                   `wam:"65"`
-	ClientMessageId          string                                  `wam:"50"`
-	ConnectionType           MediaDownload2_ConnectionType           `wam:"31"`
-	DaysSinceReceive         int32                                   `wam:"46"`
-	DebugMediaException      string                                  `wam:"24"`
-	DebugMediaIp             string                                  `wam:"22"`
-	DebugUrl                 string                                  `wam:"23"`
-	DeviceCount              int32                                   `wam:"49"`
-	DownloadBytesTransferred float64                                 `wam:"20"`
-	DownloadConnectT         int64                                   `wam:"15"`
-	DownloadHttpCode         int32                                   `wam:"18"`
-	DownloadIsReuse          bool                                    `wam:"17"`
-	DownloadIsStreaming      bool                                    `wam:"19"`
-	DownloadNetworkT         int64                                   `wam:"16"`
-	DownloadQuality          MediaDownload2_DownloadQuality          `wam:"37"`
-	DownloadResumePoint      int32                                   `wam:"14"`
-	DownloadTimeToFirstByteT int64                                   `wam:"21"`
-	EstimatedBandwidth       float64                                 `wam:"36"`
-	EstimatedBandwidthV2     float64                                 `wam:"59"`
-	ExpressPathBytesSaved    float64                                 `wam:"42"`
-	ExpressPathDownloadState MediaDownload2_ExpressPathDownloadState `wam:"56"`
-	ExpressPathTimeSavedMs   int64                                   `wam:"43"`
-	FileHeight               int32                                   `wam:"47"`
-	FileWidth                int32                                   `wam:"48"`
-	HasLeveragedExpressPath  bool                                    `wam:"44"`
-	HttpProtocolVersionType  MediaDownload2_HttpProtocolVersionType  `wam:"45"`
-	IsProcessedVideo         bool                                    `wam:"58"`
-	IsSenderPlatformCapi     bool                                    `wam:"52"`
-	IsViewOnce               bool                                    `wam:"41"`
-	MaxThreadCount           int32                                   `wam:"57"`
-	MediaId                  int32                                   `wam:"38"`
-	NetworkStack             MediaDownload2_NetworkStack             `wam:"30"`
-	OverallAttemptCount      int32                                   `wam:"4"`
-	OverallBackendStore      MediaDownload2_OverallBackendStore      `wam:"39"`
-	OverallConnBlockFetchT   int64                                   `wam:"10"`
-	OverallConnectionClass   string                                  `wam:"29"`
-	OverallCumT              int64                                   `wam:"27"`
-	OverallCumUserVisibleT   int64                                   `wam:"60"`
-	OverallCumV2T            int64                                   `wam:"53"`
-	OverallDecryptT          int64                                   `wam:"12"`
-	OverallDomain            string                                  `wam:"5"`
-	OverallDownloadMode      MediaDownload2_OverallDownloadMode      `wam:"11"`
-	OverallDownloadOrigin    MediaDownload2_OverallDownloadOrigin    `wam:"35"`
-	OverallDownloadResult    MediaDownload2_OverallDownloadResult    `wam:"25"`
-	OverallFileValidationT   int64                                   `wam:"13"`
-	OverallIsEncrypted       bool                                    `wam:"28"`
-	OverallIsFinal           bool                                    `wam:"26"`
-	OverallMediaSize         float64                                 `wam:"7"`
-	OverallMediaType         MediaDownload2_OverallMediaType         `wam:"1"`
-	OverallMmsVersion        int32                                   `wam:"6"`
-	OverallQueueT            int64                                   `wam:"9"`
-	OverallRetryCount        int32                                   `wam:"3"`
-	OverallT                 int64                                   `wam:"8"`
-	OverallUserVisibleT      int64                                   `wam:"61"`
-	PairedMediaType          MediaDownload2_PairedMediaType          `wam:"63"`
-	SleepModeAffected        bool                                    `wam:"51"`
-	TimeDelayed              int64                                   `wam:"54"`
-	UsedFallbackHint         string                                  `wam:"40"`
+	_meta                    struct{}                                 `wammeta:"id=1590,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ActiveThreadCount        *int32                                   `wam:"55"`
+	AiFetchMediaType         *MediaDownload2_AiFetchMediaType         `wam:"62"`
+	AppContext               *string                                  `wam:"64"`
+	AppContextBitfield       *int32                                   `wam:"65"`
+	ClientMessageId          *string                                  `wam:"50"`
+	ConnectionType           *MediaDownload2_ConnectionType           `wam:"31"`
+	DaysSinceReceive         *int32                                   `wam:"46"`
+	DebugMediaException      *string                                  `wam:"24"`
+	DebugMediaIp             *string                                  `wam:"22"`
+	DebugUrl                 *string                                  `wam:"23"`
+	DeviceCount              *int32                                   `wam:"49"`
+	DownloadBytesTransferred *float64                                 `wam:"20"`
+	DownloadConnectT         *int64                                   `wam:"15"`
+	DownloadHttpCode         *int32                                   `wam:"18"`
+	DownloadIsReuse          *bool                                    `wam:"17"`
+	DownloadIsStreaming      *bool                                    `wam:"19"`
+	DownloadNetworkT         *int64                                   `wam:"16"`
+	DownloadQuality          *MediaDownload2_DownloadQuality          `wam:"37"`
+	DownloadResumePoint      *int32                                   `wam:"14"`
+	DownloadTimeToFirstByteT *int64                                   `wam:"21"`
+	EstimatedBandwidth       *float64                                 `wam:"36"`
+	EstimatedBandwidthV2     *float64                                 `wam:"59"`
+	ExpressPathBytesSaved    *float64                                 `wam:"42"`
+	ExpressPathDownloadState *MediaDownload2_ExpressPathDownloadState `wam:"56"`
+	ExpressPathTimeSavedMs   *int64                                   `wam:"43"`
+	FileHeight               *int32                                   `wam:"47"`
+	FileWidth                *int32                                   `wam:"48"`
+	HasLeveragedExpressPath  *bool                                    `wam:"44"`
+	HttpProtocolVersionType  *MediaDownload2_HttpProtocolVersionType  `wam:"45"`
+	IsProcessedVideo         *bool                                    `wam:"58"`
+	IsSenderPlatformCapi     *bool                                    `wam:"52"`
+	IsViewOnce               *bool                                    `wam:"41"`
+	MaxThreadCount           *int32                                   `wam:"57"`
+	MediaId                  *int32                                   `wam:"38"`
+	NetworkStack             *MediaDownload2_NetworkStack             `wam:"30"`
+	OverallAttemptCount      *int32                                   `wam:"4"`
+	OverallBackendStore      *MediaDownload2_OverallBackendStore      `wam:"39"`
+	OverallConnBlockFetchT   *int64                                   `wam:"10"`
+	OverallConnectionClass   *string                                  `wam:"29"`
+	OverallCumT              *int64                                   `wam:"27"`
+	OverallCumUserVisibleT   *int64                                   `wam:"60"`
+	OverallCumV2T            *int64                                   `wam:"53"`
+	OverallDecryptT          *int64                                   `wam:"12"`
+	OverallDomain            *string                                  `wam:"5"`
+	OverallDownloadMode      *MediaDownload2_OverallDownloadMode      `wam:"11"`
+	OverallDownloadOrigin    *MediaDownload2_OverallDownloadOrigin    `wam:"35"`
+	OverallDownloadResult    *MediaDownload2_OverallDownloadResult    `wam:"25"`
+	OverallFileValidationT   *int64                                   `wam:"13"`
+	OverallIsEncrypted       *bool                                    `wam:"28"`
+	OverallIsFinal           *bool                                    `wam:"26"`
+	OverallMediaSize         *float64                                 `wam:"7"`
+	OverallMediaType         *MediaDownload2_OverallMediaType         `wam:"1"`
+	OverallMmsVersion        *int32                                   `wam:"6"`
+	OverallQueueT            *int64                                   `wam:"9"`
+	OverallRetryCount        *int32                                   `wam:"3"`
+	OverallT                 *int64                                   `wam:"8"`
+	OverallUserVisibleT      *int64                                   `wam:"61"`
+	PairedMediaType          *MediaDownload2_PairedMediaType          `wam:"63"`
+	SleepModeAffected        *bool                                    `wam:"51"`
+	TimeDelayed              *int64                                   `wam:"54"`
+	UsedFallbackHint         *string                                  `wam:"40"`
 }
 
 type MetaAiUpsellCta_MetaAiUpsellCtaOperation int32
@@ -19488,9 +19488,9 @@ const (
 )
 
 type MetaAiUpsellCtaEvent struct {
-	_meta                    struct{}                                 `wammeta:"id=6532,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MetaAiUpsellCtaOperation MetaAiUpsellCta_MetaAiUpsellCtaOperation `wam:"1"`
-	MetaAiUpsellCtaSource    MetaAiUpsellCta_MetaAiUpsellCtaSource    `wam:"2"`
+	_meta                    struct{}                                  `wammeta:"id=6532,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MetaAiUpsellCtaOperation *MetaAiUpsellCta_MetaAiUpsellCtaOperation `wam:"1"`
+	MetaAiUpsellCtaSource    *MetaAiUpsellCta_MetaAiUpsellCtaSource    `wam:"2"`
 }
 
 type Daily_AndroidKeystoreState int32
@@ -19778,143 +19778,143 @@ const (
 )
 
 type DailyEvent struct {
-	_meta                                       struct{}                                    `wammeta:"id=1158,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AccessibilityVoiceover                      bool                                        `wam:"108"`
-	AddressbookSize                             int32                                       `wam:"11"`
-	AddressbookWhatsappSize                     int32                                       `wam:"12"`
-	AiMemorySavedCnt                            int32                                       `wam:"223"`
-	AiWidgetInstalled                           bool                                        `wam:"210"`
-	AndroidAdvertisingId                        string                                      `wam:"135"`
-	AndroidKeystoreState                        Daily_AndroidKeystoreState                  `wam:"139"`
-	AndroidXmppWorkersRuntime                   int32                                       `wam:"167"`
-	AppCodeHash                                 string                                      `wam:"103"`
-	AppLastOpenTimestamp                        int32                                       `wam:"212"`
-	AppStandbyBucket                            int32                                       `wam:"121"`
-	AutoDlAudioCellular                         bool                                        `wam:"90"`
-	AutoDlAudioRoaming                          bool                                        `wam:"91"`
-	AutoDlAudioWifi                             bool                                        `wam:"89"`
-	AutoDlDocCellular                           bool                                        `wam:"96"`
-	AutoDlDocRoaming                            bool                                        `wam:"97"`
-	AutoDlDocWifi                               bool                                        `wam:"95"`
-	AutoDlImageCellular                         bool                                        `wam:"87"`
-	AutoDlImageRoaming                          bool                                        `wam:"88"`
-	AutoDlImageWifi                             bool                                        `wam:"86"`
-	AutoDlVideoCellular                         bool                                        `wam:"93"`
-	AutoDlVideoRoaming                          bool                                        `wam:"94"`
-	AutoDlVideoWifi                             bool                                        `wam:"92"`
-	BackupNetworkSetting                        Daily_BackupNetworkSetting                  `wam:"10"`
-	BackupRestoreEncryptionVersion              int32                                       `wam:"138"`
-	BackupSchedule                              Daily_BackupSchedule                        `wam:"9"`
-	ChannelsMediaFolderSize                     int32                                       `wam:"186"`
-	ChatDatabaseSize                            int32                                       `wam:"19"`
-	ChatLockFolderCount                         int32                                       `wam:"168"`
-	ContactsCreatedOnWhatsappSize               int32                                       `wam:"200"`
-	ContactsPermissionAuthorizationStatus       Daily_ContactsPermissionAuthorizationStatus `wam:"201"`
-	Count1on1Threads                            int32                                       `wam:"216"`
-	CountEphemeralThreads                       int32                                       `wam:"181"`
-	CountEphemeralThreadsEnabledByMe            int32                                       `wam:"182"`
-	CountGroupThreads                           int32                                       `wam:"217"`
-	CountLimitSharing1on1Threads                int32                                       `wam:"218"`
-	CountLimitSharingGroupThreads               int32                                       `wam:"219"`
-	DbAddressbookTableSize                      int32                                       `wam:"206"`
-	DefaultDisappearingDuration                 int32                                       `wam:"140"`
-	DefenseMode                                 int32                                       `wam:"214"`
-	DeprecatedContactsSize                      int32                                       `wam:"228"`
-	DeviceLanguage                              string                                      `wam:"153"`
-	EmailState                                  Daily_EmailState                            `wam:"174"`
-	EntSecurityNotificationsEnabled             bool                                        `wam:"134"`
-	ExperimentTmoPreloadGroupDaily              int32                                       `wam:"166"`
-	FavoritedAnimatedStickerCount               int32                                       `wam:"113"`
-	FavoritedFirstPartyStickerCount             int32                                       `wam:"112"`
-	FavoritedTotalStickerCount                  int32                                       `wam:"111"`
-	GalleryPermission                           Daily_GalleryPermission                     `wam:"164"`
-	HasTextstatusEmojiModified24h               bool                                        `wam:"175"`
-	HasTextstatusModified24h                    bool                                        `wam:"176"`
-	HasTextstatusTextModified24h                bool                                        `wam:"177"`
-	HasUsername                                 bool                                        `wam:"187"`
-	HasUsernamePin                              bool                                        `wam:"222"`
-	InNetworkContactsSize                       int32                                       `wam:"190"`
-	InstalledAnimatedStickerPackCount           int32                                       `wam:"116"`
-	InstalledAnimatedThirdPartyStickerPackCount int32                                       `wam:"137"`
-	InstalledFirstPartyStickerPackCount         int32                                       `wam:"115"`
-	InstalledTotalStickerPackCount              int32                                       `wam:"114"`
-	IsContactSyncToOsDefaultOn                  bool                                        `wam:"202"`
-	IsDefaultDisappearingMessagingUser          bool                                        `wam:"183"`
-	IsEphemeralMessagingUser                    bool                                        `wam:"184"`
-	IsProfilePhotoSet                           bool                                        `wam:"195"`
-	KeyboardLanguage                            string                                      `wam:"154"`
-	LanguageCode                                string                                      `wam:"5"`
-	LastBackupTimestamp                         int32                                       `wam:"63"`
-	LastCloudBackupSize                         int32                                       `wam:"185"`
-	LocationCode                                string                                      `wam:"6"`
-	LockFolderHidden                            bool                                        `wam:"171"`
-	LowestAppStandbyBucket                      int32                                       `wam:"160"`
-	MdPairTime                                  int32                                       `wam:"124"`
-	MediaFolderFileCount                        int32                                       `wam:"21"`
-	MediaFolderSize                             int32                                       `wam:"20"`
-	MediaQualitySetting                         Daily_MediaQualitySetting                   `wam:"188"`
-	MetaAiModelActual                           Daily_MetaAiModelActual                     `wam:"198"`
-	MetaAiModelSelected                         Daily_MetaAiModelSelected                   `wam:"199"`
-	MetaAiVoiceDefaultOn                        bool                                        `wam:"220"`
-	MetaAiVoiceSelection                        string                                      `wam:"221"`
-	ModifiedInternalProps                       bool                                        `wam:"155"`
-	NativeContactsGlobalSettingEnabled          bool                                        `wam:"205"`
-	NetworkIsRoaming                            bool                                        `wam:"7"`
-	NetworkOperatorName                         string                                      `wam:"159"`
-	NumAccounts                                 int32                                       `wam:"163"`
-	NumContactsWithTextstatus24h                int32                                       `wam:"178"`
-	NumContactsWithTextstatusEmoji24h           int32                                       `wam:"179"`
-	NumContactsWithTextstatusText24h            int32                                       `wam:"180"`
-	OsBuildNumber                               string                                      `wam:"4"`
-	OsNotificationSetting                       Daily_OsNotificationSetting                 `wam:"118"`
-	OutOfNetworkContactsSize                    int32                                       `wam:"191"`
-	PackageName                                 string                                      `wam:"102"`
-	PasskeyExists                               bool                                        `wam:"165"`
-	PaymentsIsEnabled                           bool                                        `wam:"100"`
-	PeripheralConnected                         string                                      `wam:"209"`
-	PeripheralLinkedProductLine                 string                                      `wam:"229"`
-	PermissionAccessCoarseLocation              int32                                       `wam:"57"`
-	PermissionAccessFineLocation                int32                                       `wam:"58"`
-	PermissionCamera                            int32                                       `wam:"56"`
-	PermissionContacts                          bool                                        `wam:"104"`
-	PermissionReadExternalStorage               int32                                       `wam:"53"`
-	PermissionRecordAudio                       int32                                       `wam:"55"`
-	PhoneCores                                  int32                                       `wam:"156"`
-	Phoneyid                                    string                                      `wam:"162"`
-	PreloadsAppManagerId                        string                                      `wam:"224"`
-	PreloadsAttributionJson                     string                                      `wam:"227"`
-	PrivacySettingsAbout                        Daily_PrivacySettingsAbout                  `wam:"141"`
-	PrivacySettingsAboutExceptNum               Daily_PrivacySettingsAboutExceptNum         `wam:"142"`
-	PrivacySettingsGroups                       Daily_PrivacySettingsGroups                 `wam:"143"`
-	PrivacySettingsGroupsExceptNum              Daily_PrivacySettingsGroupsExceptNum        `wam:"144"`
-	PrivacySettingsLastSeen                     Daily_PrivacySettingsLastSeen               `wam:"145"`
-	PrivacySettingsLastSeenExceptNum            Daily_PrivacySettingsLastSeenExceptNum      `wam:"146"`
-	PrivacySettingsProfileLinks                 Daily_PrivacySettingsProfileLinks           `wam:"225"`
-	PrivacySettingsProfileLinksExceptNum        Daily_PrivacySettingsProfileLinksExceptNum  `wam:"226"`
-	PrivacySettingsProfilePhoto                 Daily_PrivacySettingsProfilePhoto           `wam:"147"`
-	PrivacySettingsProfilePhotoExceptNum        Daily_PrivacySettingsProfilePhotoExceptNum  `wam:"148"`
-	PrivacySettingsStatus                       Daily_PrivacySettingsStatus                 `wam:"150"`
-	PrivacySettingsStatusExceptNum              Daily_PrivacySettingsStatusExceptNum        `wam:"151"`
-	PrivacySettingsStatusShareNum               Daily_PrivacySettingsStatusShareNum         `wam:"152"`
-	ProfileLinksCount                           int32                                       `wam:"211"`
-	ReceiptsEnabled                             bool                                        `wam:"8"`
-	SecretCodeActive                            bool                                        `wam:"172"`
-	ShowMetaAiButtonSetting                     bool                                        `wam:"173"`
-	SimMcc                                      int32                                       `wam:"2"`
-	SimMnc                                      int32                                       `wam:"3"`
-	StorageAvailSize                            int32                                       `wam:"31"`
-	StorageTotalSize                            int32                                       `wam:"32"`
-	SupportedDecoders                           string                                      `wam:"169"`
-	SupportedEncoders                           string                                      `wam:"170"`
-	SyncedInNetworkContactsSize                 int32                                       `wam:"192"`
-	TotalCountInNetworkUniquePhoneNumber        int32                                       `wam:"193"`
-	TotalCountSyncedInNetworkUniquePhoneNumber  int32                                       `wam:"194"`
-	TrafficAnonymization                        int32                                       `wam:"215"`
-	UnreadBadgeFrequency                        int32                                       `wam:"213"`
-	VideoFolderFileCount                        int32                                       `wam:"23"`
-	VideoFolderSize                             int32                                       `wam:"22"`
-	WebcContactsTableSize                       int32                                       `wam:"207"`
-	WebcFilteredContactsSize                    int32                                       `wam:"208"`
+	_meta                                       struct{}                                     `wammeta:"id=1158,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AccessibilityVoiceover                      *bool                                        `wam:"108"`
+	AddressbookSize                             *int32                                       `wam:"11"`
+	AddressbookWhatsappSize                     *int32                                       `wam:"12"`
+	AiMemorySavedCnt                            *int32                                       `wam:"223"`
+	AiWidgetInstalled                           *bool                                        `wam:"210"`
+	AndroidAdvertisingId                        *string                                      `wam:"135"`
+	AndroidKeystoreState                        *Daily_AndroidKeystoreState                  `wam:"139"`
+	AndroidXmppWorkersRuntime                   *int32                                       `wam:"167"`
+	AppCodeHash                                 *string                                      `wam:"103"`
+	AppLastOpenTimestamp                        *int32                                       `wam:"212"`
+	AppStandbyBucket                            *int32                                       `wam:"121"`
+	AutoDlAudioCellular                         *bool                                        `wam:"90"`
+	AutoDlAudioRoaming                          *bool                                        `wam:"91"`
+	AutoDlAudioWifi                             *bool                                        `wam:"89"`
+	AutoDlDocCellular                           *bool                                        `wam:"96"`
+	AutoDlDocRoaming                            *bool                                        `wam:"97"`
+	AutoDlDocWifi                               *bool                                        `wam:"95"`
+	AutoDlImageCellular                         *bool                                        `wam:"87"`
+	AutoDlImageRoaming                          *bool                                        `wam:"88"`
+	AutoDlImageWifi                             *bool                                        `wam:"86"`
+	AutoDlVideoCellular                         *bool                                        `wam:"93"`
+	AutoDlVideoRoaming                          *bool                                        `wam:"94"`
+	AutoDlVideoWifi                             *bool                                        `wam:"92"`
+	BackupNetworkSetting                        *Daily_BackupNetworkSetting                  `wam:"10"`
+	BackupRestoreEncryptionVersion              *int32                                       `wam:"138"`
+	BackupSchedule                              *Daily_BackupSchedule                        `wam:"9"`
+	ChannelsMediaFolderSize                     *int32                                       `wam:"186"`
+	ChatDatabaseSize                            *int32                                       `wam:"19"`
+	ChatLockFolderCount                         *int32                                       `wam:"168"`
+	ContactsCreatedOnWhatsappSize               *int32                                       `wam:"200"`
+	ContactsPermissionAuthorizationStatus       *Daily_ContactsPermissionAuthorizationStatus `wam:"201"`
+	Count1on1Threads                            *int32                                       `wam:"216"`
+	CountEphemeralThreads                       *int32                                       `wam:"181"`
+	CountEphemeralThreadsEnabledByMe            *int32                                       `wam:"182"`
+	CountGroupThreads                           *int32                                       `wam:"217"`
+	CountLimitSharing1on1Threads                *int32                                       `wam:"218"`
+	CountLimitSharingGroupThreads               *int32                                       `wam:"219"`
+	DbAddressbookTableSize                      *int32                                       `wam:"206"`
+	DefaultDisappearingDuration                 *int32                                       `wam:"140"`
+	DefenseMode                                 *int32                                       `wam:"214"`
+	DeprecatedContactsSize                      *int32                                       `wam:"228"`
+	DeviceLanguage                              *string                                      `wam:"153"`
+	EmailState                                  *Daily_EmailState                            `wam:"174"`
+	EntSecurityNotificationsEnabled             *bool                                        `wam:"134"`
+	ExperimentTmoPreloadGroupDaily              *int32                                       `wam:"166"`
+	FavoritedAnimatedStickerCount               *int32                                       `wam:"113"`
+	FavoritedFirstPartyStickerCount             *int32                                       `wam:"112"`
+	FavoritedTotalStickerCount                  *int32                                       `wam:"111"`
+	GalleryPermission                           *Daily_GalleryPermission                     `wam:"164"`
+	HasTextstatusEmojiModified24h               *bool                                        `wam:"175"`
+	HasTextstatusModified24h                    *bool                                        `wam:"176"`
+	HasTextstatusTextModified24h                *bool                                        `wam:"177"`
+	HasUsername                                 *bool                                        `wam:"187"`
+	HasUsernamePin                              *bool                                        `wam:"222"`
+	InNetworkContactsSize                       *int32                                       `wam:"190"`
+	InstalledAnimatedStickerPackCount           *int32                                       `wam:"116"`
+	InstalledAnimatedThirdPartyStickerPackCount *int32                                       `wam:"137"`
+	InstalledFirstPartyStickerPackCount         *int32                                       `wam:"115"`
+	InstalledTotalStickerPackCount              *int32                                       `wam:"114"`
+	IsContactSyncToOsDefaultOn                  *bool                                        `wam:"202"`
+	IsDefaultDisappearingMessagingUser          *bool                                        `wam:"183"`
+	IsEphemeralMessagingUser                    *bool                                        `wam:"184"`
+	IsProfilePhotoSet                           *bool                                        `wam:"195"`
+	KeyboardLanguage                            *string                                      `wam:"154"`
+	LanguageCode                                *string                                      `wam:"5"`
+	LastBackupTimestamp                         *int32                                       `wam:"63"`
+	LastCloudBackupSize                         *int32                                       `wam:"185"`
+	LocationCode                                *string                                      `wam:"6"`
+	LockFolderHidden                            *bool                                        `wam:"171"`
+	LowestAppStandbyBucket                      *int32                                       `wam:"160"`
+	MdPairTime                                  *int32                                       `wam:"124"`
+	MediaFolderFileCount                        *int32                                       `wam:"21"`
+	MediaFolderSize                             *int32                                       `wam:"20"`
+	MediaQualitySetting                         *Daily_MediaQualitySetting                   `wam:"188"`
+	MetaAiModelActual                           *Daily_MetaAiModelActual                     `wam:"198"`
+	MetaAiModelSelected                         *Daily_MetaAiModelSelected                   `wam:"199"`
+	MetaAiVoiceDefaultOn                        *bool                                        `wam:"220"`
+	MetaAiVoiceSelection                        *string                                      `wam:"221"`
+	ModifiedInternalProps                       *bool                                        `wam:"155"`
+	NativeContactsGlobalSettingEnabled          *bool                                        `wam:"205"`
+	NetworkIsRoaming                            *bool                                        `wam:"7"`
+	NetworkOperatorName                         *string                                      `wam:"159"`
+	NumAccounts                                 *int32                                       `wam:"163"`
+	NumContactsWithTextstatus24h                *int32                                       `wam:"178"`
+	NumContactsWithTextstatusEmoji24h           *int32                                       `wam:"179"`
+	NumContactsWithTextstatusText24h            *int32                                       `wam:"180"`
+	OsBuildNumber                               *string                                      `wam:"4"`
+	OsNotificationSetting                       *Daily_OsNotificationSetting                 `wam:"118"`
+	OutOfNetworkContactsSize                    *int32                                       `wam:"191"`
+	PackageName                                 *string                                      `wam:"102"`
+	PasskeyExists                               *bool                                        `wam:"165"`
+	PaymentsIsEnabled                           *bool                                        `wam:"100"`
+	PeripheralConnected                         *string                                      `wam:"209"`
+	PeripheralLinkedProductLine                 *string                                      `wam:"229"`
+	PermissionAccessCoarseLocation              *int32                                       `wam:"57"`
+	PermissionAccessFineLocation                *int32                                       `wam:"58"`
+	PermissionCamera                            *int32                                       `wam:"56"`
+	PermissionContacts                          *bool                                        `wam:"104"`
+	PermissionReadExternalStorage               *int32                                       `wam:"53"`
+	PermissionRecordAudio                       *int32                                       `wam:"55"`
+	PhoneCores                                  *int32                                       `wam:"156"`
+	Phoneyid                                    *string                                      `wam:"162"`
+	PreloadsAppManagerId                        *string                                      `wam:"224"`
+	PreloadsAttributionJson                     *string                                      `wam:"227"`
+	PrivacySettingsAbout                        *Daily_PrivacySettingsAbout                  `wam:"141"`
+	PrivacySettingsAboutExceptNum               *Daily_PrivacySettingsAboutExceptNum         `wam:"142"`
+	PrivacySettingsGroups                       *Daily_PrivacySettingsGroups                 `wam:"143"`
+	PrivacySettingsGroupsExceptNum              *Daily_PrivacySettingsGroupsExceptNum        `wam:"144"`
+	PrivacySettingsLastSeen                     *Daily_PrivacySettingsLastSeen               `wam:"145"`
+	PrivacySettingsLastSeenExceptNum            *Daily_PrivacySettingsLastSeenExceptNum      `wam:"146"`
+	PrivacySettingsProfileLinks                 *Daily_PrivacySettingsProfileLinks           `wam:"225"`
+	PrivacySettingsProfileLinksExceptNum        *Daily_PrivacySettingsProfileLinksExceptNum  `wam:"226"`
+	PrivacySettingsProfilePhoto                 *Daily_PrivacySettingsProfilePhoto           `wam:"147"`
+	PrivacySettingsProfilePhotoExceptNum        *Daily_PrivacySettingsProfilePhotoExceptNum  `wam:"148"`
+	PrivacySettingsStatus                       *Daily_PrivacySettingsStatus                 `wam:"150"`
+	PrivacySettingsStatusExceptNum              *Daily_PrivacySettingsStatusExceptNum        `wam:"151"`
+	PrivacySettingsStatusShareNum               *Daily_PrivacySettingsStatusShareNum         `wam:"152"`
+	ProfileLinksCount                           *int32                                       `wam:"211"`
+	ReceiptsEnabled                             *bool                                        `wam:"8"`
+	SecretCodeActive                            *bool                                        `wam:"172"`
+	ShowMetaAiButtonSetting                     *bool                                        `wam:"173"`
+	SimMcc                                      *int32                                       `wam:"2"`
+	SimMnc                                      *int32                                       `wam:"3"`
+	StorageAvailSize                            *int32                                       `wam:"31"`
+	StorageTotalSize                            *int32                                       `wam:"32"`
+	SupportedDecoders                           *string                                      `wam:"169"`
+	SupportedEncoders                           *string                                      `wam:"170"`
+	SyncedInNetworkContactsSize                 *int32                                       `wam:"192"`
+	TotalCountInNetworkUniquePhoneNumber        *int32                                       `wam:"193"`
+	TotalCountSyncedInNetworkUniquePhoneNumber  *int32                                       `wam:"194"`
+	TrafficAnonymization                        *int32                                       `wam:"215"`
+	UnreadBadgeFrequency                        *int32                                       `wam:"213"`
+	VideoFolderFileCount                        *int32                                       `wam:"23"`
+	VideoFolderSize                             *int32                                       `wam:"22"`
+	WebcContactsTableSize                       *int32                                       `wam:"207"`
+	WebcFilteredContactsSize                    *int32                                       `wam:"208"`
 }
 
 type MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionAssignmentType int32
@@ -19961,15 +19961,15 @@ const (
 )
 
 type MdChatAssignmentSecondaryActionEvent struct {
-	_meta                                         struct{}                                                                      `wammeta:"id=3716,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MdChatAssignmentSecondaryActionAgentId        string                                                                        `wam:"1"`
-	MdChatAssignmentSecondaryActionAssignmentType MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionAssignmentType `wam:"8"`
-	MdChatAssignmentSecondaryActionBrowserId      string                                                                        `wam:"2"`
-	MdChatAssignmentSecondaryActionChatType       MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionChatType       `wam:"3"`
-	MdChatAssignmentSecondaryActionError          MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionError          `wam:"4"`
-	MdChatAssignmentSecondaryActionMdId           int32                                                                         `wam:"5"`
-	MdChatAssignmentSecondaryActionSource         MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionSource         `wam:"6"`
-	MdChatAssignmentSecondaryActionType           MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionType           `wam:"7"`
+	_meta                                         struct{}                                                                       `wammeta:"id=3716,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MdChatAssignmentSecondaryActionAgentId        *string                                                                        `wam:"1"`
+	MdChatAssignmentSecondaryActionAssignmentType *MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionAssignmentType `wam:"8"`
+	MdChatAssignmentSecondaryActionBrowserId      *string                                                                        `wam:"2"`
+	MdChatAssignmentSecondaryActionChatType       *MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionChatType       `wam:"3"`
+	MdChatAssignmentSecondaryActionError          *MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionError          `wam:"4"`
+	MdChatAssignmentSecondaryActionMdId           *int32                                                                         `wam:"5"`
+	MdChatAssignmentSecondaryActionSource         *MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionSource         `wam:"6"`
+	MdChatAssignmentSecondaryActionType           *MdChatAssignmentSecondaryAction_MdChatAssignmentSecondaryActionType           `wam:"7"`
 }
 
 type WebcJobInfo_JobResultType int32
@@ -19992,15 +19992,15 @@ const (
 )
 
 type WebcJobInfoEvent struct {
-	_meta             struct{}                  `wammeta:"id=3054,channel=regular,weight=1,privateStatsIdInt=-1"`
-	JobName           string                    `wam:"1"`
-	JobPriority       string                    `wam:"2"`
-	JobResultType     WebcJobInfo_JobResultType `wam:"5"`
-	PendingJobsCount  int32                     `wam:"4"`
-	Scenario          WebcJobInfo_Scenario      `wam:"3"`
-	WebcJobAddedT     int32                     `wam:"6"`
-	WebcJobCompletedT int32                     `wam:"8"`
-	WebcJobStartedT   int32                     `wam:"7"`
+	_meta             struct{}                   `wammeta:"id=3054,channel=regular,weight=1,privateStatsIdInt=-1"`
+	JobName           *string                    `wam:"1"`
+	JobPriority       *string                    `wam:"2"`
+	JobResultType     *WebcJobInfo_JobResultType `wam:"5"`
+	PendingJobsCount  *int32                     `wam:"4"`
+	Scenario          *WebcJobInfo_Scenario      `wam:"3"`
+	WebcJobAddedT     *int32                     `wam:"6"`
+	WebcJobCompletedT *int32                     `wam:"8"`
+	WebcJobStartedT   *int32                     `wam:"7"`
 }
 
 type MessagingFavoritesUpdate_FavoritesUpdateEntryPoint int32
@@ -20022,20 +20022,20 @@ const (
 )
 
 type MessagingFavoritesUpdateEvent struct {
-	_meta                       struct{}                                           `wammeta:"id=5460,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ContactFavCountAfterUpdate  int32                                              `wam:"1"`
-	ContactFavCountBeforeUpdate int32                                              `wam:"2"`
-	FavoritesUpdateEntryPoint   MessagingFavoritesUpdate_FavoritesUpdateEntryPoint `wam:"3"`
-	GroupFavCountAfterUpdate    int32                                              `wam:"4"`
-	GroupFavCountBeforeUpdate   int32                                              `wam:"5"`
+	_meta                       struct{}                                            `wammeta:"id=5460,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ContactFavCountAfterUpdate  *int32                                              `wam:"1"`
+	ContactFavCountBeforeUpdate *int32                                              `wam:"2"`
+	FavoritesUpdateEntryPoint   *MessagingFavoritesUpdate_FavoritesUpdateEntryPoint `wam:"3"`
+	GroupFavCountAfterUpdate    *int32                                              `wam:"4"`
+	GroupFavCountBeforeUpdate   *int32                                              `wam:"5"`
 }
 
 type WebcProgressiveImageEvent struct {
 	_meta                struct{} `wammeta:"id=2226,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcFirstRenderScans int32    `wam:"1"`
-	WebcFirstRenderT     int64    `wam:"2"`
-	WebcFullQualityT     int64    `wam:"4"`
-	WebcMidQualityT      int64    `wam:"3"`
+	WebcFirstRenderScans *int32   `wam:"1"`
+	WebcFirstRenderT     *int64   `wam:"2"`
+	WebcFullQualityT     *int64   `wam:"4"`
+	WebcMidQualityT      *int64   `wam:"3"`
 }
 
 type WebcMessageQuery_WebcChatType int32
@@ -20066,27 +20066,27 @@ const (
 )
 
 type WebcMessageQueryEvent struct {
-	_meta                            struct{}                                 `wammeta:"id=1876,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcAudioMessageCount            int32                                    `wam:"14"`
-	WebcBrowserNetworkType           string                                   `wam:"1"`
-	WebcBrowserStorageQuotaBytes     int32                                    `wam:"20"`
-	WebcBrowserStorageQuotaUsedBytes int32                                    `wam:"21"`
-	WebcChatPosition                 int32                                    `wam:"2"`
-	WebcChatType                     WebcMessageQuery_WebcChatType            `wam:"13"`
-	WebcDocumentMessageCount         int32                                    `wam:"16"`
-	WebcEarliestMessageIndex         int32                                    `wam:"11"`
-	WebcEarliestMessageT             int64                                    `wam:"12"`
-	WebcMessageCount                 int32                                    `wam:"4"`
-	WebcMessageQueryTrigger          WebcMessageQuery_WebcMessageQueryTrigger `wam:"19"`
-	WebcMessageQueryType             WebcMessageQuery_WebcMessageQueryType    `wam:"3"`
-	WebcOtherMessageCount            int32                                    `wam:"18"`
-	WebcPhotoMessageCount            int32                                    `wam:"7"`
-	WebcPttMessageCount              int32                                    `wam:"15"`
-	WebcQueryT                       int64                                    `wam:"9"`
-	WebcResponseBytes                int32                                    `wam:"10"`
-	WebcStickerMessageCount          int32                                    `wam:"17"`
-	WebcTextMessageCount             int32                                    `wam:"5"`
-	WebcVideoMessageCount            int32                                    `wam:"6"`
+	_meta                            struct{}                                  `wammeta:"id=1876,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcAudioMessageCount            *int32                                    `wam:"14"`
+	WebcBrowserNetworkType           *string                                   `wam:"1"`
+	WebcBrowserStorageQuotaBytes     *int32                                    `wam:"20"`
+	WebcBrowserStorageQuotaUsedBytes *int32                                    `wam:"21"`
+	WebcChatPosition                 *int32                                    `wam:"2"`
+	WebcChatType                     *WebcMessageQuery_WebcChatType            `wam:"13"`
+	WebcDocumentMessageCount         *int32                                    `wam:"16"`
+	WebcEarliestMessageIndex         *int32                                    `wam:"11"`
+	WebcEarliestMessageT             *int64                                    `wam:"12"`
+	WebcMessageCount                 *int32                                    `wam:"4"`
+	WebcMessageQueryTrigger          *WebcMessageQuery_WebcMessageQueryTrigger `wam:"19"`
+	WebcMessageQueryType             *WebcMessageQuery_WebcMessageQueryType    `wam:"3"`
+	WebcOtherMessageCount            *int32                                    `wam:"18"`
+	WebcPhotoMessageCount            *int32                                    `wam:"7"`
+	WebcPttMessageCount              *int32                                    `wam:"15"`
+	WebcQueryT                       *int64                                    `wam:"9"`
+	WebcResponseBytes                *int32                                    `wam:"10"`
+	WebcStickerMessageCount          *int32                                    `wam:"17"`
+	WebcTextMessageCount             *int32                                    `wam:"5"`
+	WebcVideoMessageCount            *int32                                    `wam:"6"`
 }
 
 type MdChatAssignment_ChatAssignmentAction int32
@@ -20118,17 +20118,17 @@ const (
 )
 
 type MdChatAssignmentEvent struct {
-	_meta                    struct{}                                  `wammeta:"id=3752,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AssignerAgentId          string                                    `wam:"1"`
-	AssignerBrowserId        string                                    `wam:"2"`
-	AssignerMdId             int32                                     `wam:"3"`
-	ChatAssignmentAction     MdChatAssignment_ChatAssignmentAction     `wam:"4"`
-	ChatAssignmentAgentId    string                                    `wam:"5"`
-	ChatAssignmentBrowserId  string                                    `wam:"6"`
-	ChatAssignmentChatType   MdChatAssignment_ChatAssignmentChatType   `wam:"7"`
-	ChatAssignmentEntryPoint MdChatAssignment_ChatAssignmentEntryPoint `wam:"8"`
-	ChatAssignmentMdId       int32                                     `wam:"9"`
-	ChatsCnt                 int32                                     `wam:"10"`
+	_meta                    struct{}                                   `wammeta:"id=3752,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AssignerAgentId          *string                                    `wam:"1"`
+	AssignerBrowserId        *string                                    `wam:"2"`
+	AssignerMdId             *int32                                     `wam:"3"`
+	ChatAssignmentAction     *MdChatAssignment_ChatAssignmentAction     `wam:"4"`
+	ChatAssignmentAgentId    *string                                    `wam:"5"`
+	ChatAssignmentBrowserId  *string                                    `wam:"6"`
+	ChatAssignmentChatType   *MdChatAssignment_ChatAssignmentChatType   `wam:"7"`
+	ChatAssignmentEntryPoint *MdChatAssignment_ChatAssignmentEntryPoint `wam:"8"`
+	ChatAssignmentMdId       *int32                                     `wam:"9"`
+	ChatsCnt                 *int32                                     `wam:"10"`
 }
 
 type ChatPsaRead_MessageMediaType int32
@@ -20213,11 +20213,11 @@ const (
 )
 
 type ChatPsaReadEvent struct {
-	_meta            struct{}                     `wammeta:"id=3574,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MessageMediaType ChatPsaRead_MessageMediaType `wam:"1"`
-	PsaCampaignId    string                       `wam:"4"`
-	PsaMsgId         string                       `wam:"5"`
-	ReadEntryPoint   ChatPsaRead_ReadEntryPoint   `wam:"3"`
+	_meta            struct{}                      `wammeta:"id=3574,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MessageMediaType *ChatPsaRead_MessageMediaType `wam:"1"`
+	PsaCampaignId    *string                       `wam:"4"`
+	PsaMsgId         *string                       `wam:"5"`
+	ReadEntryPoint   *ChatPsaRead_ReadEntryPoint   `wam:"3"`
 }
 
 type WebcLinkPreviewDisplay_WebcDisplayStatus int32
@@ -20232,11 +20232,11 @@ const (
 )
 
 type WebcLinkPreviewDisplayEvent struct {
-	_meta               struct{}                                 `wammeta:"id=3864,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DidFallbackNonHq    bool                                     `wam:"2"`
-	DidRequestHq        bool                                     `wam:"3"`
-	DidRespondHqPreview bool                                     `wam:"4"`
-	WebcDisplayStatus   WebcLinkPreviewDisplay_WebcDisplayStatus `wam:"1"`
+	_meta               struct{}                                  `wammeta:"id=3864,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DidFallbackNonHq    *bool                                     `wam:"2"`
+	DidRequestHq        *bool                                     `wam:"3"`
+	DidRespondHqPreview *bool                                     `wam:"4"`
+	WebcDisplayStatus   *WebcLinkPreviewDisplay_WebcDisplayStatus `wam:"1"`
 }
 
 type BusinessToolsClick_BusinessToolsEntryPoint int32
@@ -20291,12 +20291,12 @@ const (
 )
 
 type BusinessToolsClickEvent struct {
-	_meta                       struct{}                                   `wammeta:"id=2218,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BusinessToolsEntryPoint     BusinessToolsClick_BusinessToolsEntryPoint `wam:"5"`
-	BusinessToolsItem           BusinessToolsClick_BusinessToolsItem       `wam:"3"`
-	BusinessToolsSequenceNumber int32                                      `wam:"2"`
-	BusinessToolsSessionId      string                                     `wam:"1"`
-	LinkingTarget               BusinessToolsClick_LinkingTarget           `wam:"4"`
+	_meta                       struct{}                                    `wammeta:"id=2218,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BusinessToolsEntryPoint     *BusinessToolsClick_BusinessToolsEntryPoint `wam:"5"`
+	BusinessToolsItem           *BusinessToolsClick_BusinessToolsItem       `wam:"3"`
+	BusinessToolsSequenceNumber *int32                                      `wam:"2"`
+	BusinessToolsSessionId      *string                                     `wam:"1"`
+	LinkingTarget               *BusinessToolsClick_LinkingTarget           `wam:"4"`
 }
 
 type E2eMessageRecv_AgentEngagementType int32
@@ -20616,40 +20616,40 @@ const (
 )
 
 type E2eMessageRecvEvent struct {
-	_meta                    struct{}                                `wammeta:"id=478,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AgentEngagementType      E2eMessageRecv_AgentEngagementType      `wam:"15"`
-	BotType                  E2eMessageRecv_BotType                  `wam:"19"`
-	E2eCiphertextType        E2eMessageRecv_E2eCiphertextType        `wam:"5"`
-	E2eCiphertextVersion     int32                                   `wam:"6"`
-	E2eDestination           E2eMessageRecv_E2eDestination           `wam:"4"`
-	E2eFailureReason         E2eMessageRecv_E2eFailureReason         `wam:"2"`
-	E2eSenderType            E2eMessageRecv_E2eSenderType            `wam:"8"`
-	E2eSuccessful            bool                                    `wam:"1"`
-	EditType                 E2eMessageRecv_EditType                 `wam:"13"`
-	GroupEncryptionState     E2eMessageRecv_GroupEncryptionState     `wam:"23"`
-	InvisibleMessageCategory E2eMessageRecv_InvisibleMessageCategory `wam:"22"`
-	IsHostedChat             bool                                    `wam:"20"`
-	IsLid                    bool                                    `wam:"11"`
-	LocalAddressingMode      E2eMessageRecv_LocalAddressingMode      `wam:"16"`
-	MessageAddressingMode    E2eMessageRecv_MessageAddressingMode    `wam:"17"`
-	MessageDistributionType  E2eMessageRecv_MessageDistributionType  `wam:"21"`
-	MessageMediaType         E2eMessageRecv_MessageMediaType         `wam:"7"`
-	Offline                  bool                                    `wam:"9"`
-	RetryCount               int32                                   `wam:"3"`
-	RevokeType               E2eMessageRecv_RevokeType               `wam:"10"`
-	ServerAddressingMode     E2eMessageRecv_ServerAddressingMode     `wam:"18"`
-	StanzaType               E2eMessageRecv_StanzaType               `wam:"14"`
-	TypeOfGroup              E2eMessageRecv_TypeOfGroup              `wam:"12"`
+	_meta                    struct{}                                 `wammeta:"id=478,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AgentEngagementType      *E2eMessageRecv_AgentEngagementType      `wam:"15"`
+	BotType                  *E2eMessageRecv_BotType                  `wam:"19"`
+	E2eCiphertextType        *E2eMessageRecv_E2eCiphertextType        `wam:"5"`
+	E2eCiphertextVersion     *int32                                   `wam:"6"`
+	E2eDestination           *E2eMessageRecv_E2eDestination           `wam:"4"`
+	E2eFailureReason         *E2eMessageRecv_E2eFailureReason         `wam:"2"`
+	E2eSenderType            *E2eMessageRecv_E2eSenderType            `wam:"8"`
+	E2eSuccessful            *bool                                    `wam:"1"`
+	EditType                 *E2eMessageRecv_EditType                 `wam:"13"`
+	GroupEncryptionState     *E2eMessageRecv_GroupEncryptionState     `wam:"23"`
+	InvisibleMessageCategory *E2eMessageRecv_InvisibleMessageCategory `wam:"22"`
+	IsHostedChat             *bool                                    `wam:"20"`
+	IsLid                    *bool                                    `wam:"11"`
+	LocalAddressingMode      *E2eMessageRecv_LocalAddressingMode      `wam:"16"`
+	MessageAddressingMode    *E2eMessageRecv_MessageAddressingMode    `wam:"17"`
+	MessageDistributionType  *E2eMessageRecv_MessageDistributionType  `wam:"21"`
+	MessageMediaType         *E2eMessageRecv_MessageMediaType         `wam:"7"`
+	Offline                  *bool                                    `wam:"9"`
+	RetryCount               *int32                                   `wam:"3"`
+	RevokeType               *E2eMessageRecv_RevokeType               `wam:"10"`
+	ServerAddressingMode     *E2eMessageRecv_ServerAddressingMode     `wam:"18"`
+	StanzaType               *E2eMessageRecv_StanzaType               `wam:"14"`
+	TypeOfGroup              *E2eMessageRecv_TypeOfGroup              `wam:"12"`
 }
 
 type ChatLockDailyEvent struct {
 	_meta              struct{} `wammeta:"id=4214,channel=regular,weight=1,privateStatsIdInt=-1"`
-	FolderChatsCount   int32    `wam:"1"`
-	FolderOpenCount    int32    `wam:"2"`
-	LockFolderHidden   bool     `wam:"5"`
-	NewAddChatCount    int32    `wam:"3"`
-	NewRemoveChatCount int32    `wam:"4"`
-	SecretCodeActive   bool     `wam:"6"`
+	FolderChatsCount   *int32   `wam:"1"`
+	FolderOpenCount    *int32   `wam:"2"`
+	LockFolderHidden   *bool    `wam:"5"`
+	NewAddChatCount    *int32   `wam:"3"`
+	NewRemoveChatCount *int32   `wam:"4"`
+	SecretCodeActive   *bool    `wam:"6"`
 }
 
 type WebcMediaLoad_WebcMediaLoadResult int32
@@ -20661,9 +20661,9 @@ const (
 )
 
 type WebcMediaLoadEvent struct {
-	_meta               struct{}                          `wammeta:"id=1202,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebcMediaLoadResult WebcMediaLoad_WebcMediaLoadResult `wam:"2"`
-	WebcMediaLoadT      int64                             `wam:"1"`
+	_meta               struct{}                           `wammeta:"id=1202,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebcMediaLoadResult *WebcMediaLoad_WebcMediaLoadResult `wam:"2"`
+	WebcMediaLoadT      *int64                             `wam:"1"`
 }
 
 type FmxAction_FmxEntryPoint int32
@@ -20703,16 +20703,16 @@ const (
 )
 
 type FmxActionEvent struct {
-	_meta              struct{}                     `wammeta:"id=4444,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CommonGroupNum     int32                        `wam:"1"`
-	CountryShown       bool                         `wam:"2"`
-	FmxEntryPoint      FmxAction_FmxEntryPoint      `wam:"3"`
-	FmxEvent           FmxAction_FmxEvent           `wam:"4"`
-	HighlightGroupType FmxAction_HighlightGroupType `wam:"6"`
-	IsSenderSmb        bool                         `wam:"7"`
-	NotAContactShown   bool                         `wam:"5"`
-	ThreadIdHmac       string                       `wam:"8"`
-	TrustSignals       string                       `wam:"9"`
+	_meta              struct{}                      `wammeta:"id=4444,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CommonGroupNum     *int32                        `wam:"1"`
+	CountryShown       *bool                         `wam:"2"`
+	FmxEntryPoint      *FmxAction_FmxEntryPoint      `wam:"3"`
+	FmxEvent           *FmxAction_FmxEvent           `wam:"4"`
+	HighlightGroupType *FmxAction_HighlightGroupType `wam:"6"`
+	IsSenderSmb        *bool                         `wam:"7"`
+	NotAContactShown   *bool                         `wam:"5"`
+	ThreadIdHmac       *string                       `wam:"8"`
+	TrustSignals       *string                       `wam:"9"`
 }
 
 type ChannelLinkShare_ChannelLinkShareDirection int32
@@ -20746,17 +20746,17 @@ const (
 )
 
 type ChannelLinkShareEvent struct {
-	_meta                      struct{}                                    `wammeta:"id=4728,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChannelLinkShareDirection  ChannelLinkShare_ChannelLinkShareDirection  `wam:"1"`
-	ChannelLinkShareEntryPoint ChannelLinkShare_ChannelLinkShareEntryPoint `wam:"2"`
-	ChannelLinkShareScreen     ChannelLinkShare_ChannelLinkShareScreen     `wam:"4"`
-	Cid                        string                                      `wam:"3"`
+	_meta                      struct{}                                     `wammeta:"id=4728,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChannelLinkShareDirection  *ChannelLinkShare_ChannelLinkShareDirection  `wam:"1"`
+	ChannelLinkShareEntryPoint *ChannelLinkShare_ChannelLinkShareEntryPoint `wam:"2"`
+	ChannelLinkShareScreen     *ChannelLinkShare_ChannelLinkShareScreen     `wam:"4"`
+	Cid                        *string                                      `wam:"3"`
 }
 
 type UnknownStanzaEvent struct {
 	_meta             struct{} `wammeta:"id=3448,channel=regular,weight=1,privateStatsIdInt=-1"`
-	UnknownStanzaTag  string   `wam:"1"`
-	UnknownStanzaType string   `wam:"2"`
+	UnknownStanzaTag  *string  `wam:"1"`
+	UnknownStanzaType *string  `wam:"2"`
 }
 
 type ReportToAdminEvents_ReportToAdminInteraction int32
@@ -20769,9 +20769,9 @@ const (
 )
 
 type ReportToAdminEventsEvent struct {
-	_meta                    struct{}                                     `wammeta:"id=4420,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ReportToAdminInteraction ReportToAdminEvents_ReportToAdminInteraction `wam:"1"`
-	RtaGroupId               string                                       `wam:"2"`
+	_meta                    struct{}                                      `wammeta:"id=4420,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ReportToAdminInteraction *ReportToAdminEvents_ReportToAdminInteraction `wam:"1"`
+	RtaGroupId               *string                                       `wam:"2"`
 }
 
 type WebcMinorEventLog_LogType int32
@@ -20786,12 +20786,12 @@ const (
 )
 
 type WebcMinorEventLogEvent struct {
-	_meta                  struct{}                  `wammeta:"id=5440,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AdditionalDebugContext string                    `wam:"1"`
-	LogContext             string                    `wam:"2"`
-	LogCount               int32                     `wam:"3"`
-	LogReason              string                    `wam:"4"`
-	LogType                WebcMinorEventLog_LogType `wam:"5"`
+	_meta                  struct{}                   `wammeta:"id=5440,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AdditionalDebugContext *string                    `wam:"1"`
+	LogContext             *string                    `wam:"2"`
+	LogCount               *int32                     `wam:"3"`
+	LogReason              *string                    `wam:"4"`
+	LogType                *WebcMinorEventLog_LogType `wam:"5"`
 }
 
 type PaidMessagingUserInteractionsLogger_PmxActionTarget int32
@@ -20863,20 +20863,20 @@ const (
 )
 
 type PaidMessagingUserInteractionsLoggerEvent struct {
-	_meta                      struct{}                                               `wammeta:"id=4740,channel=private,weight=1,privateStatsIdInt=113760892"`
-	PmxActionTarget            PaidMessagingUserInteractionsLogger_PmxActionTarget    `wam:"1"`
-	PmxActionType              PaidMessagingUserInteractionsLogger_PmxActionType      `wam:"2"`
-	PmxComponentType           PaidMessagingUserInteractionsLogger_PmxComponentType   `wam:"3"`
-	PmxHashedMessageId         string                                                 `wam:"13"`
-	PmxHashedMessageKey        int32                                                  `wam:"11"`
-	PmxHeaderMediaType         PaidMessagingUserInteractionsLogger_PmxHeaderMediaType `wam:"4"`
-	PmxHostStorage             PaidMessagingUserInteractionsLogger_PmxHostStorage     `wam:"8"`
-	PmxMarketingFormat         PaidMessagingUserInteractionsLogger_PmxMarketingFormat `wam:"5"`
-	PmxMessageDeliveredTs      int32                                                  `wam:"10"`
-	PmxMessageStanzaAcceptedTs int32                                                  `wam:"12"`
-	PmxQueryParams             string                                                 `wam:"6"`
-	PmxSenderCountryCode       string                                                 `wam:"9"`
-	TemplateId                 string                                                 `wam:"7"`
+	_meta                      struct{}                                                `wammeta:"id=4740,channel=private,weight=1,privateStatsIdInt=113760892"`
+	PmxActionTarget            *PaidMessagingUserInteractionsLogger_PmxActionTarget    `wam:"1"`
+	PmxActionType              *PaidMessagingUserInteractionsLogger_PmxActionType      `wam:"2"`
+	PmxComponentType           *PaidMessagingUserInteractionsLogger_PmxComponentType   `wam:"3"`
+	PmxHashedMessageId         *string                                                 `wam:"13"`
+	PmxHashedMessageKey        *int32                                                  `wam:"11"`
+	PmxHeaderMediaType         *PaidMessagingUserInteractionsLogger_PmxHeaderMediaType `wam:"4"`
+	PmxHostStorage             *PaidMessagingUserInteractionsLogger_PmxHostStorage     `wam:"8"`
+	PmxMarketingFormat         *PaidMessagingUserInteractionsLogger_PmxMarketingFormat `wam:"5"`
+	PmxMessageDeliveredTs      *int32                                                  `wam:"10"`
+	PmxMessageStanzaAcceptedTs *int32                                                  `wam:"12"`
+	PmxQueryParams             *string                                                 `wam:"6"`
+	PmxSenderCountryCode       *string                                                 `wam:"9"`
+	TemplateId                 *string                                                 `wam:"7"`
 }
 
 type HfmTextSearchCompleteEvent struct {
@@ -20956,23 +20956,23 @@ const (
 )
 
 type OrderDetailsActionsSmbEvent struct {
-	_meta                      struct{}                                          `wammeta:"id=3456,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AcceptedPayMethods         string                                            `wam:"1"`
-	ActionCategory             string                                            `wam:"2"`
-	EntryPointConversionSource string                                            `wam:"13"`
-	ExtraAttributes            string                                            `wam:"3"`
-	HasAddedPrice              bool                                              `wam:"4"`
-	HasCatalog                 bool                                              `wam:"5"`
-	HasNote                    bool                                              `wam:"6"`
-	LastMessageDirection       OrderDetailsActionsSmb_LastMessageDirection       `wam:"14"`
-	MessageDepth               int32                                             `wam:"15"`
-	OrderDetailEntryPoint      string                                            `wam:"7"`
-	OrderDetailsCreationAction OrderDetailsActionsSmb_OrderDetailsCreationAction `wam:"8"`
-	OrderEligibleToSend        bool                                              `wam:"11"`
-	PaymentStatus              bool                                              `wam:"9"`
-	PaymentType                string                                            `wam:"10"`
-	SharingOrderStatusEvents   bool                                              `wam:"12"`
-	ThreadIdHmac               string                                            `wam:"16"`
+	_meta                      struct{}                                           `wammeta:"id=3456,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AcceptedPayMethods         *string                                            `wam:"1"`
+	ActionCategory             *string                                            `wam:"2"`
+	EntryPointConversionSource *string                                            `wam:"13"`
+	ExtraAttributes            *string                                            `wam:"3"`
+	HasAddedPrice              *bool                                              `wam:"4"`
+	HasCatalog                 *bool                                              `wam:"5"`
+	HasNote                    *bool                                              `wam:"6"`
+	LastMessageDirection       *OrderDetailsActionsSmb_LastMessageDirection       `wam:"14"`
+	MessageDepth               *int32                                             `wam:"15"`
+	OrderDetailEntryPoint      *string                                            `wam:"7"`
+	OrderDetailsCreationAction *OrderDetailsActionsSmb_OrderDetailsCreationAction `wam:"8"`
+	OrderEligibleToSend        *bool                                              `wam:"11"`
+	PaymentStatus              *bool                                              `wam:"9"`
+	PaymentType                *string                                            `wam:"10"`
+	SharingOrderStatusEvents   *bool                                              `wam:"12"`
+	ThreadIdHmac               *string                                            `wam:"16"`
 }
 
 type PrekeysDepletion_DeviceSizeBucket int32
@@ -21027,10 +21027,10 @@ const (
 )
 
 type PrekeysDepletionEvent struct {
-	_meta              struct{}                            `wammeta:"id=3014,channel=regular,weight=1,privateStatsIdInt=-1"`
-	DeviceSizeBucket   PrekeysDepletion_DeviceSizeBucket   `wam:"3"`
-	MessageType        PrekeysDepletion_MessageType        `wam:"2"`
-	PrekeysFetchReason PrekeysDepletion_PrekeysFetchReason `wam:"1"`
+	_meta              struct{}                             `wammeta:"id=3014,channel=regular,weight=1,privateStatsIdInt=-1"`
+	DeviceSizeBucket   *PrekeysDepletion_DeviceSizeBucket   `wam:"3"`
+	MessageType        *PrekeysDepletion_MessageType        `wam:"2"`
+	PrekeysFetchReason *PrekeysDepletion_PrekeysFetchReason `wam:"1"`
 }
 
 type GatedChatOpened_ChatGatedReason int32
@@ -21041,9 +21041,9 @@ const (
 )
 
 type GatedChatOpenedEvent struct {
-	_meta           struct{}                        `wammeta:"id=3150,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatGatedReason GatedChatOpened_ChatGatedReason `wam:"1"`
-	SelfInitiated   bool                            `wam:"2"`
+	_meta           struct{}                         `wammeta:"id=3150,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatGatedReason *GatedChatOpened_ChatGatedReason `wam:"1"`
+	SelfInitiated   *bool                            `wam:"2"`
 }
 
 type MdFatalError_Collection int32
@@ -21171,53 +21171,53 @@ const (
 )
 
 type MdFatalErrorEvent struct {
-	_meta                                                             struct{}                                  `wammeta:"id=2304,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppContext                                                        string                                    `wam:"46"`
-	AppContextBitfield                                                int32                                     `wam:"47"`
-	AppSessionId                                                      string                                    `wam:"41"`
-	Collection                                                        MdFatalError_Collection                   `wam:"2"`
-	CompanionSessionIds                                               string                                    `wam:"42"`
-	CurrentPrimaryAppVersion                                          string                                    `wam:"14"`
-	DaysSinceLastPeriodicSync                                         int32                                     `wam:"11"`
-	DidBootstrapFromSnapshot                                          bool                                      `wam:"38"`
-	HoursSinceFirstFiniteFailure                                      int32                                     `wam:"12"`
-	IsBootstrap                                                       bool                                      `wam:"3"`
-	IsFatal                                                           bool                                      `wam:"16"`
-	IsPatchSenderPrimary                                              bool                                      `wam:"23"`
-	IsPreviousPatchAnIncomingPatch                                    bool                                      `wam:"24"`
-	IsPreviousPatchSenderPrimary                                      bool                                      `wam:"25"`
-	IsSenderIndexSameAsPreviousSenderIndex                            bool                                      `wam:"39"`
-	IsThereAnotherSyncdCompanion                                      bool                                      `wam:"40"`
-	IsWebLthashConsistent                                             bool                                      `wam:"17"`
-	MacFatalCollectionNameMismatch                                    bool                                      `wam:"18"`
-	MacFatalCurrentLthashMismatch                                     bool                                      `wam:"19"`
-	MacFatalDidPreviousPatchFailPostSaveValidation                    bool                                      `wam:"26"`
-	MacFatalDidUseMacFetchFallback                                    bool                                      `wam:"36"`
-	MacFatalFirstTwoBytesFromAHashOfSnapshotMacKeyMismatch            bool                                      `wam:"20"`
-	MacFatalHasMissingRemove                                          bool                                      `wam:"37"`
-	MacFatalNewLthashMismatch                                         bool                                      `wam:"21"`
-	MacFatalNewLthashSubtractMismatch                                 bool                                      `wam:"27"`
-	MacFatalNumberAddMismatch                                         bool                                      `wam:"28"`
-	MacFatalNumberHasOverrideMutation                                 bool                                      `wam:"29"`
-	MacFatalNumberNumAddMutation                                      int32                                     `wam:"30"`
-	MacFatalNumberNumRemoveMutation                                   int32                                     `wam:"31"`
-	MacFatalNumberOverrideMismatch                                    bool                                      `wam:"32"`
-	MacFatalNumberRemoveMismatch                                      bool                                      `wam:"33"`
-	MacFatalPatchVersionMismatch                                      bool                                      `wam:"22"`
-	MacFatalPreviousPatchNewLthashToCurrentPatchCurrentLthash         bool                                      `wam:"34"`
-	MacFatalSenderCurrentLthashToLocalCalculatedCurrentLthashMismatch bool                                      `wam:"35"`
-	MailboxAgeDays                                                    int32                                     `wam:"13"`
-	MdCompanionDeviceAccountType                                      MdFatalError_MdCompanionDeviceAccountType `wam:"43"`
-	MdFatalErrorCode                                                  MdFatalError_MdFatalErrorCode             `wam:"1"`
-	MdRegAttemptId                                                    string                                    `wam:"44"`
-	PatchSnapshotMutationCount                                        int32                                     `wam:"9"`
-	PatchVersion                                                      int32                                     `wam:"5"`
-	SeqNumber                                                         int32                                     `wam:"45"`
-	SessionStartPrimaryAppVersion                                     string                                    `wam:"15"`
-	SourceType                                                        MdFatalError_SourceType                   `wam:"10"`
-	TimeSincePairingMs                                                int32                                     `wam:"6"`
-	TimeSinceRefreshMs                                                int32                                     `wam:"7"`
-	TimeSinceTabTakeoverMs                                            int32                                     `wam:"8"`
+	_meta                                                             struct{}                                   `wammeta:"id=2304,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppContext                                                        *string                                    `wam:"46"`
+	AppContextBitfield                                                *int32                                     `wam:"47"`
+	AppSessionId                                                      *string                                    `wam:"41"`
+	Collection                                                        *MdFatalError_Collection                   `wam:"2"`
+	CompanionSessionIds                                               *string                                    `wam:"42"`
+	CurrentPrimaryAppVersion                                          *string                                    `wam:"14"`
+	DaysSinceLastPeriodicSync                                         *int32                                     `wam:"11"`
+	DidBootstrapFromSnapshot                                          *bool                                      `wam:"38"`
+	HoursSinceFirstFiniteFailure                                      *int32                                     `wam:"12"`
+	IsBootstrap                                                       *bool                                      `wam:"3"`
+	IsFatal                                                           *bool                                      `wam:"16"`
+	IsPatchSenderPrimary                                              *bool                                      `wam:"23"`
+	IsPreviousPatchAnIncomingPatch                                    *bool                                      `wam:"24"`
+	IsPreviousPatchSenderPrimary                                      *bool                                      `wam:"25"`
+	IsSenderIndexSameAsPreviousSenderIndex                            *bool                                      `wam:"39"`
+	IsThereAnotherSyncdCompanion                                      *bool                                      `wam:"40"`
+	IsWebLthashConsistent                                             *bool                                      `wam:"17"`
+	MacFatalCollectionNameMismatch                                    *bool                                      `wam:"18"`
+	MacFatalCurrentLthashMismatch                                     *bool                                      `wam:"19"`
+	MacFatalDidPreviousPatchFailPostSaveValidation                    *bool                                      `wam:"26"`
+	MacFatalDidUseMacFetchFallback                                    *bool                                      `wam:"36"`
+	MacFatalFirstTwoBytesFromAHashOfSnapshotMacKeyMismatch            *bool                                      `wam:"20"`
+	MacFatalHasMissingRemove                                          *bool                                      `wam:"37"`
+	MacFatalNewLthashMismatch                                         *bool                                      `wam:"21"`
+	MacFatalNewLthashSubtractMismatch                                 *bool                                      `wam:"27"`
+	MacFatalNumberAddMismatch                                         *bool                                      `wam:"28"`
+	MacFatalNumberHasOverrideMutation                                 *bool                                      `wam:"29"`
+	MacFatalNumberNumAddMutation                                      *int32                                     `wam:"30"`
+	MacFatalNumberNumRemoveMutation                                   *int32                                     `wam:"31"`
+	MacFatalNumberOverrideMismatch                                    *bool                                      `wam:"32"`
+	MacFatalNumberRemoveMismatch                                      *bool                                      `wam:"33"`
+	MacFatalPatchVersionMismatch                                      *bool                                      `wam:"22"`
+	MacFatalPreviousPatchNewLthashToCurrentPatchCurrentLthash         *bool                                      `wam:"34"`
+	MacFatalSenderCurrentLthashToLocalCalculatedCurrentLthashMismatch *bool                                      `wam:"35"`
+	MailboxAgeDays                                                    *int32                                     `wam:"13"`
+	MdCompanionDeviceAccountType                                      *MdFatalError_MdCompanionDeviceAccountType `wam:"43"`
+	MdFatalErrorCode                                                  *MdFatalError_MdFatalErrorCode             `wam:"1"`
+	MdRegAttemptId                                                    *string                                    `wam:"44"`
+	PatchSnapshotMutationCount                                        *int32                                     `wam:"9"`
+	PatchVersion                                                      *int32                                     `wam:"5"`
+	SeqNumber                                                         *int32                                     `wam:"45"`
+	SessionStartPrimaryAppVersion                                     *string                                    `wam:"15"`
+	SourceType                                                        *MdFatalError_SourceType                   `wam:"10"`
+	TimeSincePairingMs                                                *int32                                     `wam:"6"`
+	TimeSinceRefreshMs                                                *int32                                     `wam:"7"`
+	TimeSinceTabTakeoverMs                                            *int32                                     `wam:"8"`
 }
 
 type WebDbVersionNonAnonymous_WebDbName int32
@@ -21239,9 +21239,9 @@ const (
 )
 
 type WebDbVersionNonAnonymousEvent struct {
-	_meta              struct{}                           `wammeta:"id=4816,channel=regular,weight=1,privateStatsIdInt=-1"`
-	WebDbName          WebDbVersionNonAnonymous_WebDbName `wam:"1"`
-	WebDbVersionNumber int32                              `wam:"2"`
+	_meta              struct{}                            `wammeta:"id=4816,channel=regular,weight=1,privateStatsIdInt=-1"`
+	WebDbName          *WebDbVersionNonAnonymous_WebDbName `wam:"1"`
+	WebDbVersionNumber *int32                              `wam:"2"`
 }
 
 type MdExpansionAgentBrowserMdId_MultideviceAction int32
@@ -21256,25 +21256,25 @@ const (
 )
 
 type MdExpansionAgentBrowserMdIdEvent struct {
-	_meta             struct{}                                      `wammeta:"id=3390,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AgentId           string                                        `wam:"1"`
-	BrowserId         string                                        `wam:"2"`
-	CompanionMdId     int32                                         `wam:"5"`
-	IsCustomAgentName bool                                          `wam:"6"`
-	IsNewAgent        bool                                          `wam:"9"`
-	LoginTimestamp    int32                                         `wam:"3"`
-	LogoutTimestamp   int32                                         `wam:"4"`
-	MdLinkedCount     int32                                         `wam:"8"`
-	MultideviceAction MdExpansionAgentBrowserMdId_MultideviceAction `wam:"7"`
+	_meta             struct{}                                       `wammeta:"id=3390,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AgentId           *string                                        `wam:"1"`
+	BrowserId         *string                                        `wam:"2"`
+	CompanionMdId     *int32                                         `wam:"5"`
+	IsCustomAgentName *bool                                          `wam:"6"`
+	IsNewAgent        *bool                                          `wam:"9"`
+	LoginTimestamp    *int32                                         `wam:"3"`
+	LogoutTimestamp   *int32                                         `wam:"4"`
+	MdLinkedCount     *int32                                         `wam:"8"`
+	MultideviceAction *MdExpansionAgentBrowserMdId_MultideviceAction `wam:"7"`
 }
 
 type SyncdKeyCountEvent struct {
 	_meta                   struct{} `wammeta:"id=3978,channel=regular,weight=1,privateStatsIdInt=-1"`
-	KeysUsedInSnapshotCount int32    `wam:"1"`
-	P80MuationsPerKey       int32    `wam:"2"`
-	P95MuationsPerKey       int32    `wam:"3"`
-	SyncdSessionLengthDays  int32    `wam:"4"`
-	TotalKeyCount           int32    `wam:"5"`
+	KeysUsedInSnapshotCount *int32   `wam:"1"`
+	P80MuationsPerKey       *int32   `wam:"2"`
+	P95MuationsPerKey       *int32   `wam:"3"`
+	SyncdSessionLengthDays  *int32   `wam:"4"`
+	TotalKeyCount           *int32   `wam:"5"`
 }
 
 type MdBootstrapHistoryDataDownloaded_ApplicationState int32
@@ -21311,26 +21311,26 @@ const (
 )
 
 type MdBootstrapHistoryDataDownloadedEvent struct {
-	_meta                         struct{}                                                       `wammeta:"id=2296,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AppContext                    string                                                         `wam:"18"`
-	AppContextBitfield            int32                                                          `wam:"19"`
-	ApplicationState              MdBootstrapHistoryDataDownloaded_ApplicationState              `wam:"17"`
-	HistorySyncChunkOrder         int32                                                          `wam:"15"`
-	HistorySyncStageProgress      int32                                                          `wam:"14"`
-	MdBootstrapChatsCount         int32                                                          `wam:"6"`
-	MdBootstrapHistoryPayloadType MdBootstrapHistoryDataDownloaded_MdBootstrapHistoryPayloadType `wam:"13"`
-	MdBootstrapMessagesCount      int32                                                          `wam:"5"`
-	MdBootstrapPayloadSize        int32                                                          `wam:"4"`
-	MdBootstrapPayloadType        MdBootstrapHistoryDataDownloaded_MdBootstrapPayloadType        `wam:"2"`
-	MdBootstrapStepDuration       int32                                                          `wam:"7"`
-	MdBootstrapStepResult         MdBootstrapHistoryDataDownloaded_MdBootstrapStepResult         `wam:"8"`
-	MdHsOldestMessageTimestamp    int32                                                          `wam:"11"`
-	MdRegAttemptId                string                                                         `wam:"12"`
-	MdSessionId                   string                                                         `wam:"1"`
-	MdStorageQuotaBytes           int32                                                          `wam:"9"`
-	MdStorageQuotaUsedBytes       int32                                                          `wam:"10"`
-	MdSyncFailureReason           string                                                         `wam:"16"`
-	MdTimestamp                   int32                                                          `wam:"3"`
+	_meta                         struct{}                                                        `wammeta:"id=2296,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AppContext                    *string                                                         `wam:"18"`
+	AppContextBitfield            *int32                                                          `wam:"19"`
+	ApplicationState              *MdBootstrapHistoryDataDownloaded_ApplicationState              `wam:"17"`
+	HistorySyncChunkOrder         *int32                                                          `wam:"15"`
+	HistorySyncStageProgress      *int32                                                          `wam:"14"`
+	MdBootstrapChatsCount         *int32                                                          `wam:"6"`
+	MdBootstrapHistoryPayloadType *MdBootstrapHistoryDataDownloaded_MdBootstrapHistoryPayloadType `wam:"13"`
+	MdBootstrapMessagesCount      *int32                                                          `wam:"5"`
+	MdBootstrapPayloadSize        *int32                                                          `wam:"4"`
+	MdBootstrapPayloadType        *MdBootstrapHistoryDataDownloaded_MdBootstrapPayloadType        `wam:"2"`
+	MdBootstrapStepDuration       *int32                                                          `wam:"7"`
+	MdBootstrapStepResult         *MdBootstrapHistoryDataDownloaded_MdBootstrapStepResult         `wam:"8"`
+	MdHsOldestMessageTimestamp    *int32                                                          `wam:"11"`
+	MdRegAttemptId                *string                                                         `wam:"12"`
+	MdSessionId                   *string                                                         `wam:"1"`
+	MdStorageQuotaBytes           *int32                                                          `wam:"9"`
+	MdStorageQuotaUsedBytes       *int32                                                          `wam:"10"`
+	MdSyncFailureReason           *string                                                         `wam:"16"`
+	MdTimestamp                   *int32                                                          `wam:"3"`
 }
 
 type ContactUsSession_ContactUsExitState int32
@@ -21345,17 +21345,17 @@ const (
 )
 
 type ContactUsSessionEvent struct {
-	_meta                   struct{}                            `wammeta:"id=470,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ContactUsAutomaticEmail bool                                `wam:"3"`
-	ContactUsExitState      ContactUsSession_ContactUsExitState `wam:"1"`
-	ContactUsFaq            bool                                `wam:"2"`
-	ContactUsLogs           bool                                `wam:"4"`
-	ContactUsMenuFaqT       int64                               `wam:"12"`
-	ContactUsOutage         bool                                `wam:"5"`
-	ContactUsOutageEmail    bool                                `wam:"6"`
-	ContactUsScreenshotC    float64                             `wam:"19"`
-	ContactUsT              int64                               `wam:"11"`
-	LanguageCode            string                              `wam:"21"`
+	_meta                   struct{}                             `wammeta:"id=470,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ContactUsAutomaticEmail *bool                                `wam:"3"`
+	ContactUsExitState      *ContactUsSession_ContactUsExitState `wam:"1"`
+	ContactUsFaq            *bool                                `wam:"2"`
+	ContactUsLogs           *bool                                `wam:"4"`
+	ContactUsMenuFaqT       *int64                               `wam:"12"`
+	ContactUsOutage         *bool                                `wam:"5"`
+	ContactUsOutageEmail    *bool                                `wam:"6"`
+	ContactUsScreenshotC    *float64                             `wam:"19"`
+	ContactUsT              *int64                               `wam:"11"`
+	LanguageCode            *string                              `wam:"21"`
 }
 
 type WebcChatCreate_CreationMethod int32
@@ -21365,9 +21365,9 @@ const (
 )
 
 type WebcChatCreateEvent struct {
-	_meta          struct{}                      `wammeta:"id=6132,channel=regular,weight=1,privateStatsIdInt=-1"`
-	CreationMethod WebcChatCreate_CreationMethod `wam:"1"`
-	NoCreated      int32                         `wam:"2"`
+	_meta          struct{}                       `wammeta:"id=6132,channel=regular,weight=1,privateStatsIdInt=-1"`
+	CreationMethod *WebcChatCreate_CreationMethod `wam:"1"`
+	NoCreated      *int32                         `wam:"2"`
 }
 
 type LwiEntryTap_LwiEntryPoint int32
@@ -21462,17 +21462,17 @@ const (
 )
 
 type LwiEntryTapEvent struct {
-	_meta                  struct{}                     `wammeta:"id=2770,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BusinessToolsSessionId string                       `wam:"4"`
-	CatalogSessionId       string                       `wam:"2"`
-	ItemsCount             int32                        `wam:"11"`
-	LwiEntryPoint          LwiEntryTap_LwiEntryPoint    `wam:"3"`
-	LwiFlowId              string                       `wam:"1"`
-	LwiSubEntryPoint       LwiEntryTap_LwiSubEntryPoint `wam:"7"`
-	StatusSessionId        int32                        `wam:"6"`
-	StatusTypeMedia        LwiEntryTap_StatusTypeMedia  `wam:"12"`
-	UserHasLinkedFbPage    bool                         `wam:"5"`
-	WaCampaignId           string                       `wam:"10"`
+	_meta                  struct{}                      `wammeta:"id=2770,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BusinessToolsSessionId *string                       `wam:"4"`
+	CatalogSessionId       *string                       `wam:"2"`
+	ItemsCount             *int32                        `wam:"11"`
+	LwiEntryPoint          *LwiEntryTap_LwiEntryPoint    `wam:"3"`
+	LwiFlowId              *string                       `wam:"1"`
+	LwiSubEntryPoint       *LwiEntryTap_LwiSubEntryPoint `wam:"7"`
+	StatusSessionId        *int32                        `wam:"6"`
+	StatusTypeMedia        *LwiEntryTap_StatusTypeMedia  `wam:"12"`
+	UserHasLinkedFbPage    *bool                         `wam:"5"`
+	WaCampaignId           *string                       `wam:"10"`
 }
 
 type SuspendedGroupDelete_DeleteBtnSource int32
@@ -21483,54 +21483,54 @@ const (
 )
 
 type SuspendedGroupDeleteEvent struct {
-	_meta           struct{}                             `wammeta:"id=4342,channel=private,weight=1,privateStatsIdInt=0"`
-	DeleteBtnSource SuspendedGroupDelete_DeleteBtnSource `wam:"1"`
+	_meta           struct{}                              `wammeta:"id=4342,channel=private,weight=1,privateStatsIdInt=0"`
+	DeleteBtnSource *SuspendedGroupDelete_DeleteBtnSource `wam:"1"`
 }
 
 type WamClientErrorsEvent struct {
 	_meta                                      struct{} `wammeta:"id=1144,channel=regular,weight=1,privateStatsIdInt=-1"`
-	IsFromWamsys                               bool     `wam:"27"`
-	WamClientBufferDropErrorCount              int32    `wam:"28"`
-	WamClientBufferFetchErrorCount             int32    `wam:"29"`
-	WamClientBufferRotateErrorCount            int32    `wam:"43"`
-	WamClientBufferStoreErrorCount             int32    `wam:"30"`
-	WamClientCorruptedBuffersCount             int32    `wam:"42"`
-	WamClientDroppedEventCount                 int32    `wam:"2"`
-	WamClientDroppedEventCountNoEnoughStorage  int32    `wam:"41"`
-	WamClientDroppedEventSize                  int32    `wam:"3"`
-	WamClientErrorFlags                        bool     `wam:"1"`
-	WamClientMetadataReadErrorCount            int32    `wam:"37"`
-	WamClientMetadataWriteErrorCount           int32    `wam:"38"`
-	WamClientPrivateDroppedEventCount          int32    `wam:"24"`
-	WamClientPrivateDroppedEventSize           int32    `wam:"25"`
-	WamClientPrivateRealtimeDroppedEventCount  int32    `wam:"34"`
-	WamClientPrivateRealtimeDroppedEventSize   int32    `wam:"35"`
-	WamClientPrivateRealtimeRejectedEventCount int32    `wam:"36"`
-	WamClientPrivateRejectedEventCount         int32    `wam:"31"`
-	WamClientRealtimeDroppedEventCount         int32    `wam:"22"`
-	WamClientRealtimeDroppedEventSize          int32    `wam:"23"`
-	WamClientRealtimeRejectedEventCount        int32    `wam:"32"`
-	WamClientRejectedEventCount                int32    `wam:"33"`
-	WamErrorBadCurrentEventBufferChecksum      bool     `wam:"18"`
-	WamErrorBadEventBuffer                     bool     `wam:"16"`
-	WamErrorBadFileHeader                      bool     `wam:"15"`
-	WamErrorBadFileSize                        bool     `wam:"8"`
-	WamErrorBadHeaderChecksum                  bool     `wam:"17"`
-	WamErrorBadRotatedEventBufferChecksum      bool     `wam:"19"`
-	WamErrorCloseFile                          bool     `wam:"11"`
-	WamErrorCreateWamFile                      bool     `wam:"14"`
-	WamErrorFseekFile                          bool     `wam:"9"`
-	WamErrorOpenFile                           bool     `wam:"10"`
-	WamErrorOpenPsUploadQueueFile              bool     `wam:"26"`
-	WamErrorOpenWamFile                        bool     `wam:"13"`
-	WamErrorPersistence                        bool     `wam:"20"`
-	WamErrorReadFile                           bool     `wam:"7"`
-	WamErrorRemoveFile                         bool     `wam:"12"`
-	WamErrorWriteEventBuffer                   bool     `wam:"6"`
-	WamErrorWriteFile                          bool     `wam:"4"`
-	WamErrorWriteHeader                        bool     `wam:"5"`
-	WamFirstErrorReadMetadata                  bool     `wam:"39"`
-	WamFirstErrorWriteMetadata                 bool     `wam:"40"`
+	IsFromWamsys                               *bool    `wam:"27"`
+	WamClientBufferDropErrorCount              *int32   `wam:"28"`
+	WamClientBufferFetchErrorCount             *int32   `wam:"29"`
+	WamClientBufferRotateErrorCount            *int32   `wam:"43"`
+	WamClientBufferStoreErrorCount             *int32   `wam:"30"`
+	WamClientCorruptedBuffersCount             *int32   `wam:"42"`
+	WamClientDroppedEventCount                 *int32   `wam:"2"`
+	WamClientDroppedEventCountNoEnoughStorage  *int32   `wam:"41"`
+	WamClientDroppedEventSize                  *int32   `wam:"3"`
+	WamClientErrorFlags                        *bool    `wam:"1"`
+	WamClientMetadataReadErrorCount            *int32   `wam:"37"`
+	WamClientMetadataWriteErrorCount           *int32   `wam:"38"`
+	WamClientPrivateDroppedEventCount          *int32   `wam:"24"`
+	WamClientPrivateDroppedEventSize           *int32   `wam:"25"`
+	WamClientPrivateRealtimeDroppedEventCount  *int32   `wam:"34"`
+	WamClientPrivateRealtimeDroppedEventSize   *int32   `wam:"35"`
+	WamClientPrivateRealtimeRejectedEventCount *int32   `wam:"36"`
+	WamClientPrivateRejectedEventCount         *int32   `wam:"31"`
+	WamClientRealtimeDroppedEventCount         *int32   `wam:"22"`
+	WamClientRealtimeDroppedEventSize          *int32   `wam:"23"`
+	WamClientRealtimeRejectedEventCount        *int32   `wam:"32"`
+	WamClientRejectedEventCount                *int32   `wam:"33"`
+	WamErrorBadCurrentEventBufferChecksum      *bool    `wam:"18"`
+	WamErrorBadEventBuffer                     *bool    `wam:"16"`
+	WamErrorBadFileHeader                      *bool    `wam:"15"`
+	WamErrorBadFileSize                        *bool    `wam:"8"`
+	WamErrorBadHeaderChecksum                  *bool    `wam:"17"`
+	WamErrorBadRotatedEventBufferChecksum      *bool    `wam:"19"`
+	WamErrorCloseFile                          *bool    `wam:"11"`
+	WamErrorCreateWamFile                      *bool    `wam:"14"`
+	WamErrorFseekFile                          *bool    `wam:"9"`
+	WamErrorOpenFile                           *bool    `wam:"10"`
+	WamErrorOpenPsUploadQueueFile              *bool    `wam:"26"`
+	WamErrorOpenWamFile                        *bool    `wam:"13"`
+	WamErrorPersistence                        *bool    `wam:"20"`
+	WamErrorReadFile                           *bool    `wam:"7"`
+	WamErrorRemoveFile                         *bool    `wam:"12"`
+	WamErrorWriteEventBuffer                   *bool    `wam:"6"`
+	WamErrorWriteFile                          *bool    `wam:"4"`
+	WamErrorWriteHeader                        *bool    `wam:"5"`
+	WamFirstErrorReadMetadata                  *bool    `wam:"39"`
+	WamFirstErrorWriteMetadata                 *bool    `wam:"40"`
 }
 
 type UiRevokeAction_MessageAction int32
@@ -21545,10 +21545,10 @@ const (
 )
 
 type UiRevokeActionEvent struct {
-	_meta                   struct{}                     `wammeta:"id=3298,channel=regular,weight=1,privateStatsIdInt=-1"`
-	MessageAction           UiRevokeAction_MessageAction `wam:"1"`
-	UiRevokeActionDuration  int32                        `wam:"2"`
-	UiRevokeActionSessionId string                       `wam:"3"`
+	_meta                   struct{}                      `wammeta:"id=3298,channel=regular,weight=1,privateStatsIdInt=-1"`
+	MessageAction           *UiRevokeAction_MessageAction `wam:"1"`
+	UiRevokeActionDuration  *int32                        `wam:"2"`
+	UiRevokeActionSessionId *string                       `wam:"3"`
 }
 
 type PnhRequestRevealAction_PnhAction int32
@@ -21588,12 +21588,12 @@ const (
 )
 
 type PnhRequestRevealActionEvent struct {
-	_meta         struct{}                             `wammeta:"id=3808,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PnhAction     PnhRequestRevealAction_PnhAction     `wam:"1"`
-	PnhChatParty  PnhRequestRevealAction_PnhChatParty  `wam:"2"`
-	PnhChatType   PnhRequestRevealAction_PnhChatType   `wam:"3"`
-	PnhEntryPoint PnhRequestRevealAction_PnhEntryPoint `wam:"4"`
-	ThreadId      string                               `wam:"5"`
+	_meta         struct{}                              `wammeta:"id=3808,channel=regular,weight=1,privateStatsIdInt=-1"`
+	PnhAction     *PnhRequestRevealAction_PnhAction     `wam:"1"`
+	PnhChatParty  *PnhRequestRevealAction_PnhChatParty  `wam:"2"`
+	PnhChatType   *PnhRequestRevealAction_PnhChatType   `wam:"3"`
+	PnhEntryPoint *PnhRequestRevealAction_PnhEntryPoint `wam:"4"`
+	ThreadId      *string                               `wam:"5"`
 }
 
 type BusinessInteraction_BusinessInteractionAction int32
@@ -21642,14 +21642,14 @@ const (
 )
 
 type BusinessInteractionEvent struct {
-	_meta                           struct{}                                            `wammeta:"id=3450,channel=private,weight=1,privateStatsIdInt=113760892"`
-	BusinessInteractionAction       BusinessInteraction_BusinessInteractionAction       `wam:"1"`
-	BusinessInteractionTargetScreen BusinessInteraction_BusinessInteractionTargetScreen `wam:"2"`
-	BusinessJid                     string                                              `wam:"3"`
-	EntryPointApp                   BusinessInteraction_EntryPointApp                   `wam:"4"`
-	EntryPointSource                BusinessInteraction_EntryPointSource                `wam:"5"`
-	InternalEntryPoint              BusinessInteraction_InternalEntryPoint              `wam:"6"`
-	SequenceNumber                  int32                                               `wam:"7"`
+	_meta                           struct{}                                             `wammeta:"id=3450,channel=private,weight=1,privateStatsIdInt=113760892"`
+	BusinessInteractionAction       *BusinessInteraction_BusinessInteractionAction       `wam:"1"`
+	BusinessInteractionTargetScreen *BusinessInteraction_BusinessInteractionTargetScreen `wam:"2"`
+	BusinessJid                     *string                                              `wam:"3"`
+	EntryPointApp                   *BusinessInteraction_EntryPointApp                   `wam:"4"`
+	EntryPointSource                *BusinessInteraction_EntryPointSource                `wam:"5"`
+	InternalEntryPoint              *BusinessInteraction_InternalEntryPoint              `wam:"6"`
+	SequenceNumber                  *int32                                               `wam:"7"`
 }
 
 type GroupProfilePicture_GroupProfileAction int32
@@ -21702,13 +21702,13 @@ const (
 )
 
 type GroupProfilePictureEvent struct {
-	_meta                  struct{}                                   `wammeta:"id=3652,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GroupCreationDs        string                                     `wam:"1"`
-	GroupProfileAction     GroupProfilePicture_GroupProfileAction     `wam:"7"`
-	HasProfilePicture      bool                                       `wam:"3"`
-	IsAdmin                bool                                       `wam:"4"`
-	PreciseGroupSizeBucket GroupProfilePicture_PreciseGroupSizeBucket `wam:"5"`
-	ProfilePictureType     GroupProfilePicture_ProfilePictureType     `wam:"6"`
+	_meta                  struct{}                                    `wammeta:"id=3652,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GroupCreationDs        *string                                     `wam:"1"`
+	GroupProfileAction     *GroupProfilePicture_GroupProfileAction     `wam:"7"`
+	HasProfilePicture      *bool                                       `wam:"3"`
+	IsAdmin                *bool                                       `wam:"4"`
+	PreciseGroupSizeBucket *GroupProfilePicture_PreciseGroupSizeBucket `wam:"5"`
+	ProfilePictureType     *GroupProfilePicture_ProfilePictureType     `wam:"6"`
 }
 
 type GifSearchSessionStarted_GifSearchProvider int32
@@ -21719,8 +21719,8 @@ const (
 )
 
 type GifSearchSessionStartedEvent struct {
-	_meta             struct{}                                  `wammeta:"id=1134,channel=regular,weight=1,privateStatsIdInt=-1"`
-	GifSearchProvider GifSearchSessionStarted_GifSearchProvider `wam:"1"`
+	_meta             struct{}                                   `wammeta:"id=1134,channel=regular,weight=1,privateStatsIdInt=-1"`
+	GifSearchProvider *GifSearchSessionStarted_GifSearchProvider `wam:"1"`
 }
 
 type StickerSend_StickerMakerSourceType int32
@@ -21764,19 +21764,19 @@ const (
 )
 
 type StickerSendEvent struct {
-	_meta                        struct{}                           `wammeta:"id=1840,channel=regular,weight=1,privateStatsIdInt=-1"`
-	StickerIsAi                  bool                               `wam:"7"`
-	StickerIsAnimated            bool                               `wam:"3"`
-	StickerIsAvatar              bool                               `wam:"6"`
-	StickerIsFirstParty          bool                               `wam:"2"`
-	StickerIsFromStickerMaker    bool                               `wam:"5"`
-	StickerIsFromUserCreatedPack bool                               `wam:"12"`
-	StickerIsGiphy               bool                               `wam:"10"`
-	StickerIsLottie              bool                               `wam:"9"`
-	StickerIsTenor               bool                               `wam:"11"`
-	StickerMakerSourceType       StickerSend_StickerMakerSourceType `wam:"8"`
-	StickerSendMessageType       StickerSend_StickerSendMessageType `wam:"4"`
-	StickerSendOrigin            StickerSend_StickerSendOrigin      `wam:"1"`
+	_meta                        struct{}                            `wammeta:"id=1840,channel=regular,weight=1,privateStatsIdInt=-1"`
+	StickerIsAi                  *bool                               `wam:"7"`
+	StickerIsAnimated            *bool                               `wam:"3"`
+	StickerIsAvatar              *bool                               `wam:"6"`
+	StickerIsFirstParty          *bool                               `wam:"2"`
+	StickerIsFromStickerMaker    *bool                               `wam:"5"`
+	StickerIsFromUserCreatedPack *bool                               `wam:"12"`
+	StickerIsGiphy               *bool                               `wam:"10"`
+	StickerIsLottie              *bool                               `wam:"9"`
+	StickerIsTenor               *bool                               `wam:"11"`
+	StickerMakerSourceType       *StickerSend_StickerMakerSourceType `wam:"8"`
+	StickerSendMessageType       *StickerSend_StickerSendMessageType `wam:"4"`
+	StickerSendOrigin            *StickerSend_StickerSendOrigin      `wam:"1"`
 }
 
 type NonMessagePeerDataMediaUpload_PeerDataRequestType int32
@@ -21804,16 +21804,16 @@ const (
 )
 
 type NonMessagePeerDataMediaUploadEvent struct {
-	_meta                              struct{}                                             `wammeta:"id=3902,channel=regular,weight=1,privateStatsIdInt=-1"`
-	PeerDataErrorCount                 int32                                                `wam:"1"`
-	PeerDataExistingDataNoUploadCount  int32                                                `wam:"2"`
-	PeerDataNotFoundCount              int32                                                `wam:"3"`
-	PeerDataRequestCount               int32                                                `wam:"4"`
-	PeerDataRequestSessionId           string                                               `wam:"5"`
-	PeerDataRequestType                NonMessagePeerDataMediaUpload_PeerDataRequestType    `wam:"6"`
-	PeerDataResponseResult             NonMessagePeerDataMediaUpload_PeerDataResponseResult `wam:"8"`
-	PeerDataSuccessInlineNoUploadCount int32                                                `wam:"9"`
-	PeerDataSuccessUploadCount         int32                                                `wam:"7"`
+	_meta                              struct{}                                              `wammeta:"id=3902,channel=regular,weight=1,privateStatsIdInt=-1"`
+	PeerDataErrorCount                 *int32                                                `wam:"1"`
+	PeerDataExistingDataNoUploadCount  *int32                                                `wam:"2"`
+	PeerDataNotFoundCount              *int32                                                `wam:"3"`
+	PeerDataRequestCount               *int32                                                `wam:"4"`
+	PeerDataRequestSessionId           *string                                               `wam:"5"`
+	PeerDataRequestType                *NonMessagePeerDataMediaUpload_PeerDataRequestType    `wam:"6"`
+	PeerDataResponseResult             *NonMessagePeerDataMediaUpload_PeerDataResponseResult `wam:"8"`
+	PeerDataSuccessInlineNoUploadCount *int32                                                `wam:"9"`
+	PeerDataSuccessUploadCount         *int32                                                `wam:"7"`
 }
 
 type MdBootstrapAppStateCriticalDataProcessing_BootstrapAppStateDataStage int32
@@ -21840,12 +21840,12 @@ const (
 )
 
 type MdBootstrapAppStateCriticalDataProcessingEvent struct {
-	_meta                      struct{}                                                             `wammeta:"id=3164,channel=regular,weight=1,privateStatsIdInt=-1"`
-	BootstrapAppStateDataStage MdBootstrapAppStateCriticalDataProcessing_BootstrapAppStateDataStage `wam:"1"`
-	MdBootstrapPayloadType     MdBootstrapAppStateCriticalDataProcessing_MdBootstrapPayloadType     `wam:"2"`
-	MdRegAttemptId             string                                                               `wam:"3"`
-	MdSessionId                string                                                               `wam:"4"`
-	MdTimestamp                int32                                                                `wam:"5"`
+	_meta                      struct{}                                                              `wammeta:"id=3164,channel=regular,weight=1,privateStatsIdInt=-1"`
+	BootstrapAppStateDataStage *MdBootstrapAppStateCriticalDataProcessing_BootstrapAppStateDataStage `wam:"1"`
+	MdBootstrapPayloadType     *MdBootstrapAppStateCriticalDataProcessing_MdBootstrapPayloadType     `wam:"2"`
+	MdRegAttemptId             *string                                                               `wam:"3"`
+	MdSessionId                *string                                                               `wam:"4"`
+	MdTimestamp                *int32                                                                `wam:"5"`
 }
 
 type MdDeviceSyncAck_ChatType int32
@@ -21892,14 +21892,14 @@ const (
 )
 
 type MdDeviceSyncAckEvent struct {
-	_meta                    struct{}                                 `wammeta:"id=2180,channel=regular,weight=1,privateStatsIdInt=-1"`
-	ChatType                 MdDeviceSyncAck_ChatType                 `wam:"1"`
-	InvisibleMessageCategory MdDeviceSyncAck_InvisibleMessageCategory `wam:"7"`
-	IsLid                    bool                                     `wam:"3"`
-	LocalAddressingMode      MdDeviceSyncAck_LocalAddressingMode      `wam:"5"`
-	Revoke                   bool                                     `wam:"2"`
-	ServerAddressingMode     MdDeviceSyncAck_ServerAddressingMode     `wam:"6"`
-	TypeOfGroup              MdDeviceSyncAck_TypeOfGroup              `wam:"4"`
+	_meta                    struct{}                                  `wammeta:"id=2180,channel=regular,weight=1,privateStatsIdInt=-1"`
+	ChatType                 *MdDeviceSyncAck_ChatType                 `wam:"1"`
+	InvisibleMessageCategory *MdDeviceSyncAck_InvisibleMessageCategory `wam:"7"`
+	IsLid                    *bool                                     `wam:"3"`
+	LocalAddressingMode      *MdDeviceSyncAck_LocalAddressingMode      `wam:"5"`
+	Revoke                   *bool                                     `wam:"2"`
+	ServerAddressingMode     *MdDeviceSyncAck_ServerAddressingMode     `wam:"6"`
+	TypeOfGroup              *MdDeviceSyncAck_TypeOfGroup              `wam:"4"`
 }
 
 type QuickReply_LastMessageDirection int32
@@ -21970,23 +21970,23 @@ const (
 )
 
 type QuickReplyEvent struct {
-	_meta                     struct{}                             `wammeta:"id=1468,channel=regular,weight=1,privateStatsIdInt=-1"`
-	AttachmentGifCount        int32                                `wam:"7"`
-	AttachmentImageCount      int32                                `wam:"5"`
-	AttachmentVideoCount      int32                                `wam:"6"`
-	IsSmartDefault            bool                                 `wam:"10"`
-	LabelThreadId             string                               `wam:"12"`
-	LastMessageDirection      QuickReply_LastMessageDirection      `wam:"16"`
-	MessageDepth              int32                                `wam:"17"`
-	QuickReplyAction          QuickReply_QuickReplyAction          `wam:"1"`
-	QuickReplyCount           int32                                `wam:"2"`
-	QuickReplyEntryPoint      QuickReply_QuickReplyEntryPoint      `wam:"11"`
-	QuickReplyKeywordCount    int32                                `wam:"3"`
-	QuickReplyKeywordMatched  bool                                 `wam:"4"`
-	QuickReplyOrigin          QuickReply_QuickReplyOrigin          `wam:"9"`
-	QuickReplyTranscodeResult QuickReply_QuickReplyTranscodeResult `wam:"8"`
-	QuickReplyType            QuickReply_QuickReplyType            `wam:"19"`
-	ThreadCreationDate        string                               `wam:"14"`
-	ThreadEntryPoint          string                               `wam:"13"`
-	ThreadIdHmac              string                               `wam:"15"`
+	_meta                     struct{}                              `wammeta:"id=1468,channel=regular,weight=1,privateStatsIdInt=-1"`
+	AttachmentGifCount        *int32                                `wam:"7"`
+	AttachmentImageCount      *int32                                `wam:"5"`
+	AttachmentVideoCount      *int32                                `wam:"6"`
+	IsSmartDefault            *bool                                 `wam:"10"`
+	LabelThreadId             *string                               `wam:"12"`
+	LastMessageDirection      *QuickReply_LastMessageDirection      `wam:"16"`
+	MessageDepth              *int32                                `wam:"17"`
+	QuickReplyAction          *QuickReply_QuickReplyAction          `wam:"1"`
+	QuickReplyCount           *int32                                `wam:"2"`
+	QuickReplyEntryPoint      *QuickReply_QuickReplyEntryPoint      `wam:"11"`
+	QuickReplyKeywordCount    *int32                                `wam:"3"`
+	QuickReplyKeywordMatched  *bool                                 `wam:"4"`
+	QuickReplyOrigin          *QuickReply_QuickReplyOrigin          `wam:"9"`
+	QuickReplyTranscodeResult *QuickReply_QuickReplyTranscodeResult `wam:"8"`
+	QuickReplyType            *QuickReply_QuickReplyType            `wam:"19"`
+	ThreadCreationDate        *string                               `wam:"14"`
+	ThreadEntryPoint          *string                               `wam:"13"`
+	ThreadIdHmac              *string                               `wam:"15"`
 }

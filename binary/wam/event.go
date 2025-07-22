@@ -8,13 +8,16 @@ import (
 
 func extractEventMeta(event interface{}) EventMeta {
 	meta := EventMeta{
-		id:      -1,
-		channel: "",
-		weight:  -1,
-		statsID: -1,
+		ID:      -1,
+		Channel: "",
+		Weight:  -1,
+		StatsID: -1,
 	}
 
-	val := reflect.ValueOf(event).Elem()
+	val := reflect.ValueOf(event)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 	typ := val.Type()
 
 	for i := 0; i < typ.NumField(); i++ {
@@ -30,13 +33,13 @@ func extractEventMeta(event interface{}) EventMeta {
 				k, v := kv[0], kv[1]
 				switch k {
 				case "id":
-					meta.id, _ = strconv.Atoi(v)
+					meta.ID, _ = strconv.Atoi(v)
 				case "channel":
-					meta.channel = v
+					meta.Channel = v
 				case "weight":
-					meta.weight, _ = strconv.Atoi(v)
+					meta.Weight, _ = strconv.Atoi(v)
 				case "privateStatsIdInt":
-					meta.statsID, _ = strconv.Atoi(v)
+					meta.StatsID, _ = strconv.Atoi(v)
 				}
 			}
 			break // Only need to process one _meta field
@@ -47,7 +50,10 @@ func extractEventMeta(event interface{}) EventMeta {
 }
 
 func isExtended(event interface{}) bool {
-	val := reflect.ValueOf(event).Elem()
+	val := reflect.ValueOf(event)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 	typ := val.Type()
 
 	for i := 0; i < val.NumField(); i++ {
@@ -55,10 +61,14 @@ func isExtended(event interface{}) bool {
 		if field.Name == "_meta" {
 			continue
 		}
-		if !val.Field(i).IsZero() {
+
+		fieldVal := val.Field(i)
+
+		if fieldVal.Kind() == reflect.Ptr && !fieldVal.IsNil() {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -67,7 +77,7 @@ func encodeEventHeader(meta EventMeta, extended bool) []byte {
 	if !extended {
 		flag = FLAG_EVENT | FLAG_EXTENDED
 	}
-	return serializeData(meta.id, -meta.weight, byte(flag))
+	return serializeData(meta.ID, int32(-meta.Weight), byte(flag))
 }
 
 func encodeEventField(key int, value interface{}, extended bool) []byte {
@@ -83,7 +93,10 @@ func isZeroValue(val interface{}) bool {
 }
 
 func encodeEventProps(event interface{}) []byte {
-	val := reflect.ValueOf(event).Elem()
+	val := reflect.ValueOf(event)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
 	typ := val.Type()
 
 	var extended bool
@@ -100,25 +113,28 @@ func encodeEventProps(event interface{}) []byte {
 			continue
 		}
 
-		// Get field ID from the tag
 		fieldID, err := strconv.Atoi(tag)
 		if err != nil {
 			continue
 		}
 
-		fieldVal := val.Field(i).Interface()
+		fieldVal := val.Field(i)
+		if fieldVal.Kind() == reflect.Ptr {
+			if fieldVal.IsNil() {
+				continue
+			}
 
-		// Check for non-nil/zero value to set "extended"
-		if !extended && !isZeroValue(fieldVal) {
-			extended = true
+			deref := fieldVal.Elem().Interface()
+
+			if !extended && !isZeroValue(deref) {
+				extended = true
+			}
+
+			props = append(props, encodeEventField(fieldID, deref, extended)...)
+		} else {
+			panic("received non-ptr value in wam event prop")
 		}
-
-		// Append serialized field
-		props = append(props, encodeEventField(fieldID, fieldVal, extended)...)
 	}
-
-	// Adjust flags post-loop if necessary (if you're using it elsewhere)
-	_ = extended // use this in outer logic if needed
 
 	return props
 }

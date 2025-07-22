@@ -7,15 +7,15 @@ import (
 )
 
 type EventMeta struct {
-	id      int
-	channel string
-	weight  int
-	statsID int
+	ID      int
+	Channel string
+	Weight  int
+	StatsID int
 }
 
 type Event struct {
-	event   interface{}
-	globals wam.WAMGlobals
+	Event   interface{}
+	Globals wam.WAMGlobals
 }
 
 type WAMEncoder struct {
@@ -25,7 +25,7 @@ type WAMEncoder struct {
 	data     []byte
 }
 
-func NewDefaultWAMEncoder() *WAMEncoder { return &WAMEncoder{data: []byte{0}, sequence: 0, version: 5} }
+func NewDefaultWAMEncoder() *WAMEncoder { return &WAMEncoder{data: []byte{}, sequence: 1, version: 5} }
 
 func (wam *WAMEncoder) writeHeader() {
 	headerBytes := make([]byte, 8)
@@ -49,17 +49,17 @@ func (wam *WAMEncoder) PutEvent(event Event) {
 
 func (wam *WAMEncoder) writeEvent(event Event) {
 	eventBytes := make([]byte, 0)
-	meta := extractEventMeta(event.event)
-	extended := isExtended(event.event)
+	meta := extractEventMeta(event.Event)
+	extended := isExtended(event.Event)
 
 	// write globals
-	eventBytes = append(eventBytes, encodeGlobalAttributes(event.globals)...)
+	eventBytes = append(eventBytes, encodeGlobalAttributes(event.Globals)...)
 
 	// write event header
 	eventBytes = append(eventBytes, encodeEventHeader(meta, extended)...)
 
 	// write props
-	eventBytes = append(eventBytes, encodeEventProps(event.event)...)
+	eventBytes = append(eventBytes, encodeEventProps(event.Event)...)
 
 	wam.data = append(wam.data, eventBytes...)
 }
