@@ -1952,6 +1952,7 @@ message Message {
 	optional FutureProofMessage botForwardedMessage = 104;
 	optional StatusQuestionAnswerMessage statusQuestionAnswerMessage = 105;
 	optional QuestionAdminReplyMessage questionAdminReplyMessage = 106;
+	optional QuestionResponseMessage questionResponseMessage = 107;
 }
 
 message AlbumMessage {
@@ -2022,6 +2023,11 @@ message KeepInChatMessage {
 	optional WACommon.MessageKey key = 1;
 	optional KeepType keepType = 2;
 	optional int64 timestampMS = 3;
+}
+
+message QuestionResponseMessage {
+	optional WACommon.MessageKey key = 1;
+	optional string text = 2;
 }
 
 message StatusQuestionAnswerMessage {
