@@ -36,7 +36,7 @@ func serializeHeader(buf []byte, offset int, key int, flag byte) int {
 	return offset
 }
 
-func serializeData(key int, value interface{}, flag byte) []byte {
+func serializeData(key int, value any, flag byte) []byte {
 	headerLen := getHeaderBitLength(key)
 	var buf []byte
 	offset := 0

@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"go.mau.fi/whatsmeow/wam"
+	"go.mau.fi/whatsmeow/binary/wam/wamschema"
 )
 
-func encodeGlobalAttributes(globals wam.WAMGlobals) []byte {
+func encodeGlobalAttributes(globals wamschema.WAMGlobals) []byte {
 	var result []byte
 	val := reflect.ValueOf(globals)
 	typ := reflect.TypeOf(globals)

@@ -1,4 +1,4 @@
-package wam
+package wamschema
 
 // GENERATED CODE. DO NOT EDIT.
 

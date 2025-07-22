@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func extractEventMeta(event interface{}) EventMeta {
+func extractEventMeta(event any) EventMeta {
 	meta := EventMeta{
 		ID:      -1,
 		Channel: "",
@@ -49,7 +49,7 @@ func extractEventMeta(event interface{}) EventMeta {
 	return meta
 }
 
-func isExtended(event interface{}) bool {
+func isExtended(event any) bool {
 	val := reflect.ValueOf(event)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
@@ -80,7 +80,7 @@ func encodeEventHeader(meta EventMeta, extended bool) []byte {
 	return serializeData(meta.ID, int32(-meta.Weight), byte(flag))
 }
 
-func encodeEventField(key int, value interface{}, extended bool) []byte {
+func encodeEventField(key int, value any, extended bool) []byte {
 	flag := FLAG_FIELD
 	if !extended {
 		flag = FLAG_FIELD | FLAG_EXTENDED
@@ -88,11 +88,11 @@ func encodeEventField(key int, value interface{}, extended bool) []byte {
 	return serializeData(key, value, byte(flag))
 }
 
-func isZeroValue(val interface{}) bool {
+func isZeroValue(val any) bool {
 	return reflect.DeepEqual(val, reflect.Zero(reflect.TypeOf(val)).Interface())
 }
 
-func encodeEventProps(event interface{}) []byte {
+func encodeEventProps(event any) []byte {
 	val := reflect.ValueOf(event)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()

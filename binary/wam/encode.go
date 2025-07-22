@@ -3,7 +3,7 @@ package wam
 import (
 	"encoding/binary"
 
-	"go.mau.fi/whatsmeow/wam"
+	"go.mau.fi/whatsmeow/binary/wam/wamschema"
 )
 
 type EventMeta struct {
@@ -14,8 +14,8 @@ type EventMeta struct {
 }
 
 type Event struct {
-	Event   interface{}
-	Globals wam.WAMGlobals
+	Event   any
+	Globals wamschema.WAMGlobals
 }
 
 type WAMEncoder struct {
