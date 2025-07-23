@@ -288,7 +288,7 @@ func (proc *Processor) DecodePatches(ctx context.Context, list *PatchList, initi
 
 		if validateMACs {
 			var keys ExpandedAppStateKeys
-			keys, err = proc.validateSnapshotMAC(ctx, list.Name, currentState, patch.GetKeyID().GetID(), patch.GetSnapshotMac())
+			keys, err = proc.validateSnapshotMAC(ctx, list.Name, currentState, patch.GetKeyID().GetID(), patch.GetSnapshotMAC())
 			if err != nil {
 				return
 			}
