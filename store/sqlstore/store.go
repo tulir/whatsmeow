@@ -733,7 +733,9 @@ const (
 
 func (s *SQLStore) PutMutedUntil(ctx context.Context, chat types.JID, mutedUntil time.Time) error {
 	var val int64
-	if !mutedUntil.IsZero() {
+	if mutedUntil == store.MutedForever {
+		val = -1
+	} else if !mutedUntil.IsZero() {
 		val = mutedUntil.Unix()
 	}
 	_, err := s.db.Exec(ctx, fmt.Sprintf(putChatSettingQuery, "muted_until"), s.JID, chat, val)
@@ -760,7 +762,9 @@ func (s *SQLStore) GetChatSettings(ctx context.Context, chat types.JID) (setting
 	} else {
 		settings.Found = true
 	}
-	if mutedUntil != 0 {
+	if mutedUntil < 0 {
+		settings.MutedUntil = store.MutedForever
+	} else if mutedUntil > 0 {
 		settings.MutedUntil = time.Unix(mutedUntil, 0)
 	}
 	return
