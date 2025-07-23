@@ -45,6 +45,7 @@ const (
 	MediaHistory  MediaType = "WhatsApp History Keys"
 	MediaAppState MediaType = "WhatsApp App State Keys"
 
+	MediaStickerPack   MediaType = "WhatsApp Sticker Pack Keys"
 	MediaLinkThumbnail MediaType = "WhatsApp Link Thumbnail Keys"
 )
 
@@ -81,6 +82,7 @@ var (
 	_ DownloadableMessage   = (*waE2E.VideoMessage)(nil)
 	_ DownloadableMessage   = (*waE2E.DocumentMessage)(nil)
 	_ DownloadableMessage   = (*waE2E.StickerMessage)(nil)
+	_ DownloadableMessage   = (*waE2E.StickerPackMessage)(nil)
 	_ DownloadableMessage   = (*waHistorySync.StickerMetadata)(nil)
 	_ DownloadableMessage   = (*waE2E.HistorySyncNotification)(nil)
 	_ DownloadableMessage   = (*waServerSync.ExternalBlobReference)(nil)
@@ -110,6 +112,7 @@ var classToMediaType = map[protoreflect.Name]MediaType{
 	"StickerMessage":  MediaImage,
 	"StickerMetadata": MediaImage,
 
+	"StickerPackMessage":      MediaStickerPack,
 	"HistorySyncNotification": MediaHistory,
 	"ExternalBlobReference":   MediaAppState,
 }
@@ -126,6 +129,7 @@ var mediaTypeToMMSType = map[MediaType]string{
 	MediaHistory:  "md-msg-hist",
 	MediaAppState: "md-app-state",
 
+	MediaStickerPack:   "sticker-pack",
 	MediaLinkThumbnail: "thumbnail-link",
 }
 
