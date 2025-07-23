@@ -134,7 +134,11 @@ func (cli *Client) dispatchAppState(ctx context.Context, mutation appstate.Mutat
 		eventToDispatch = &events.Mute{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 		var mutedUntil time.Time
 		if act.GetMuted() {
-			mutedUntil = time.UnixMilli(act.GetMuteEndTimestamp())
+			if act.GetMuteEndTimestamp() < 0 {
+				mutedUntil = store.MutedForever
+			} else {
+				mutedUntil = time.UnixMilli(act.GetMuteEndTimestamp())
+			}
 		}
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutMutedUntil(ctx, jid, mutedUntil)

@@ -91,6 +91,8 @@ type ContactStore interface {
 	GetAllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error)
 }
 
+var MutedForever = time.Date(9999, 12, 31, 23, 59, 59, 999999999, time.UTC)
+
 type ChatSettingsStore interface {
 	PutMutedUntil(ctx context.Context, chat types.JID, mutedUntil time.Time) error
 	PutPinned(ctx context.Context, chat types.JID, pinned bool) error
