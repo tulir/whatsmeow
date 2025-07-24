@@ -118,7 +118,7 @@ type patchOutput struct {
 	Mutations   []Mutation
 }
 
-func (proc *Processor) decodeMutations(mutations []*waServerSync.SyncdMutation, out *patchOutput, validateMACs bool, patchName string, patchVersion uint64) error {
+func (proc *Processor) decodeMutations(ctx context.Context, mutations []*waServerSync.SyncdMutation, out *patchOutput, validateMACs bool, patchName string, patchVersion uint64) error {
 	for i, mutation := range mutations {
 		keyID := mutation.GetRecord().GetKeyID().GetID()
 		keys, err := proc.getAppStateKey(ctx, keyID)
@@ -237,7 +237,7 @@ func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss 
 
 	var out patchOutput
 	out.Mutations = newMutationsInput
-	err = proc.decodeMutations(encryptedMutations, &out, validateMACs, string(name), currentState.Version)
+	err = proc.decodeMutations(ctx, encryptedMutations, &out, validateMACs, string(name), currentState.Version)
 	if err != nil {
 		err = fmt.Errorf("failed to decode snapshot of v%d: %w", currentState.Version, err)
 		return
@@ -303,7 +303,7 @@ func (proc *Processor) DecodePatches(ctx context.Context, list *PatchList, initi
 
 		var out patchOutput
 		out.Mutations = newMutations
-		err = proc.decodeMutations(patch.GetMutations(), &out, validateMACs, string(list.Name), version)
+		err = proc.decodeMutations(ctx, patch.GetMutations(), &out, validateMACs, string(list.Name), version)
 		if err != nil {
 			return
 		}
