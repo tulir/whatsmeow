@@ -39,26 +39,27 @@ import (
 var pbSerializer = store.SignalProtobufSerializer
 
 func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
+	ctx := context.TODO()
 	info, err := cli.parseMessageInfo(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
 	} else {
 		if !info.SenderAlt.IsEmpty() {
-			cli.StoreLIDPNMapping(context.TODO(), info.SenderAlt, info.Sender)
+			cli.StoreLIDPNMapping(ctx, info.SenderAlt, info.Sender)
 		} else if !info.RecipientAlt.IsEmpty() {
-			cli.StoreLIDPNMapping(context.TODO(), info.RecipientAlt, info.Chat)
+			cli.StoreLIDPNMapping(ctx, info.RecipientAlt, info.Chat)
 		}
 		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
-			go cli.updateBusinessName(info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
+			go cli.updateBusinessName(context.WithoutCancel(ctx), info.Sender, info, info.VerifiedName.Details.GetVerifiedName())
 		}
 		if len(info.PushName) > 0 && info.PushName != "-" {
-			go cli.updatePushName(info.Sender, info, info.PushName)
+			go cli.updatePushName(context.WithoutCancel(ctx), info.Sender, info, info.PushName)
 		}
 		defer cli.maybeDeferredAck(node)()
 		if info.Sender.Server == types.NewsletterServer {
-			cli.handlePlaintextMessage(info, node)
+			cli.handlePlaintextMessage(ctx, info, node)
 		} else {
-			cli.decryptMessages(info, node)
+			cli.decryptMessages(ctx, info, node)
 		}
 	}
 }
@@ -217,7 +218,7 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	return &info, nil
 }
 
-func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinary.Node) {
+func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) {
 	// TODO edits have an additional <meta msg_edit_t="1696321271735" original_msg_t="1696321248"/> node
 	plaintext, ok := node.GetOptionalChildByTag("plaintext")
 	if !ok {
@@ -236,7 +237,7 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 		cli.Log.Warnf("Error unmarshaling plaintext message from %s: %v", info.SourceString(), err)
 		return
 	}
-	cli.storeMessageSecret(info, &msg)
+	cli.storeMessageSecret(ctx, info, &msg)
 	evt := &events.Message{
 		Info:       *info,
 		RawMessage: &msg,
@@ -251,14 +252,14 @@ func (cli *Client) handlePlaintextMessage(info *types.MessageInfo, node *waBinar
 	cli.dispatchEvent(evt.UnwrapRaw())
 }
 
-func (cli *Client) migrateSessionStore(pn, lid types.JID) {
-	err := cli.Store.Sessions.MigratePNToLID(context.TODO(), pn, lid)
+func (cli *Client) migrateSessionStore(ctx context.Context, pn, lid types.JID) {
+	err := cli.Store.Sessions.MigratePNToLID(ctx, pn, lid)
 	if err != nil {
 		cli.Log.Errorf("Failed to migrate signal store from %s to %s: %v", pn, lid, err)
 	}
 }
 
-func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node) {
+func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) {
 	unavailableNode, ok := node.GetOptionalChildByTag("unavailable")
 	if ok && len(node.GetChildrenByTag("enc")) == 0 {
 		uType := events.UnavailableType(unavailableNode.AttrGetter().String("type"))
@@ -276,11 +277,11 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	if info.Sender.Server == types.DefaultUserServer && !info.Sender.IsBot() {
 		if info.SenderAlt.Server == types.HiddenUserServer {
 			senderEncryptionJID = info.SenderAlt
-			cli.migrateSessionStore(info.Sender, info.SenderAlt)
-		} else if lid, err := cli.Store.LIDs.GetLIDForPN(context.TODO(), info.Sender); err != nil {
+			cli.migrateSessionStore(ctx, info.Sender, info.SenderAlt)
+		} else if lid, err := cli.Store.LIDs.GetLIDForPN(ctx, info.Sender); err != nil {
 			cli.Log.Errorf("Failed to get LID for %s: %v", info.Sender, err)
 		} else if !lid.IsEmpty() {
-			cli.migrateSessionStore(info.Sender, lid)
+			cli.migrateSessionStore(ctx, info.Sender, lid)
 			senderEncryptionJID = lid
 			info.SenderAlt = lid
 		} else {
@@ -300,10 +301,10 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 		var ciphertextHash *[32]byte
 		var err error
 		if encType == "pkmsg" || encType == "msg" {
-			decrypted, ciphertextHash, err = cli.decryptDM(&child, senderEncryptionJID, encType == "pkmsg", info.Timestamp)
+			decrypted, ciphertextHash, err = cli.decryptDM(ctx, &child, senderEncryptionJID, encType == "pkmsg", info.Timestamp)
 			containsDirectMsg = true
 		} else if info.IsGroup && encType == "skmsg" {
-			decrypted, ciphertextHash, err = cli.decryptGroupMsg(&child, senderEncryptionJID, info.Chat, info.Timestamp)
+			decrypted, ciphertextHash, err = cli.decryptGroupMsg(ctx, &child, senderEncryptionJID, info.Chat, info.Timestamp)
 		} else if encType == "msmsg" && info.Sender.IsBot() {
 			targetSenderJID := info.MsgMetaInfo.TargetSender
 			messageSecretSenderJID := targetSenderJID
@@ -323,14 +324,14 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			}
 			var msMsg waE2E.MessageSecretMessage
 			var messageSecret []byte
-			if messageSecret, err = cli.Store.MsgSecrets.GetMessageSecret(info.Chat, messageSecretSenderJID, info.MsgMetaInfo.TargetID); err != nil {
+			if messageSecret, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, info.Chat, messageSecretSenderJID, info.MsgMetaInfo.TargetID); err != nil {
 				err = fmt.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
 			} else if messageSecret == nil {
 				err = fmt.Errorf("message secret for %s not found", info.MsgMetaInfo.TargetID)
 			} else if err = proto.Unmarshal(child.Content.([]byte), &msMsg); err != nil {
 				err = fmt.Errorf("failed to unmarshal MessageSecretMessage protobuf: %v", err)
 			} else {
-				decrypted, err = cli.decryptBotMessage(messageSecret, &msMsg, decryptMessageID, targetSenderJID, info)
+				decrypted, err = cli.decryptBotMessage(ctx, messageSecret, &msMsg, decryptMessageID, targetSenderJID, info)
 			}
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
@@ -342,7 +343,7 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
 			// TODO figure out why @bot messages fail to decrypt
 			if info.Chat.Server != types.BotServer && encType != "msmsg" {
-				go cli.sendRetryReceipt(node, info, isUnavailable)
+				go cli.sendRetryReceipt(context.WithoutCancel(ctx), node, info, isUnavailable)
 			}
 			cli.dispatchEvent(&events.UndecryptableMessage{
 				Info:            *info,
@@ -362,15 +363,15 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 				cli.Log.Warnf("Error unmarshaling decrypted message from %s: %v", info.SourceString(), err)
 				continue
 			}
-			cli.handleDecryptedMessage(info, &msg, retryCount)
+			cli.handleDecryptedMessage(ctx, info, &msg, retryCount)
 			handled = true
 		case 3:
-			handled = cli.handleDecryptedArmadillo(info, decrypted, retryCount)
+			handled = cli.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
 		default:
 			cli.Log.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
 		}
 		if ciphertextHash != nil {
-			ctx := context.TODO()
+			// Use the context passed to decryptMessages
 			err = cli.Store.EventBuffer.ClearBufferedEventPlaintext(ctx, *ciphertextHash)
 			if err != nil {
 				zerolog.Ctx(ctx).Err(err).
@@ -388,16 +389,17 @@ func (cli *Client) decryptMessages(info *types.MessageInfo, node *waBinary.Node)
 	}
 }
 
-func (cli *Client) clearUntrustedIdentity(target types.JID) {
-	err := cli.Store.Identities.DeleteIdentity(target.SignalAddress().String())
+func (cli *Client) clearUntrustedIdentity(ctx context.Context, target types.JID) error {
+	err := cli.Store.Identities.DeleteIdentity(ctx, target.SignalAddress().String())
 	if err != nil {
-		cli.Log.Warnf("Failed to delete untrusted identity of %s from store: %v", target, err)
+		return fmt.Errorf("failed to delete identity: %w", err)
 	}
-	err = cli.Store.Sessions.DeleteSession(target.SignalAddress().String())
+	err = cli.Store.Sessions.DeleteSession(ctx, target.SignalAddress().String())
 	if err != nil {
-		cli.Log.Warnf("Failed to delete session with %s (untrusted identity) from store: %v", target, err)
+		return fmt.Errorf("failed to delete session: %w", err)
 	}
 	go cli.dispatchEvent(&events.IdentityChange{JID: target, Timestamp: time.Now(), Implicit: true})
+	return nil
 }
 
 var EventAlreadyProcessed = errors.New("event was already processed")
@@ -450,7 +452,7 @@ func (cli *Client) bufferedDecrypt(
 	return
 }
 
-func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool, serverTS time.Time) ([]byte, *[32]byte, error) {
+func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from types.JID, isPreKey bool, serverTS time.Time) ([]byte, *[32]byte, error) {
 	content, ok := child.Content.([]byte)
 	if !ok {
 		return nil, nil, fmt.Errorf("message content is not a byte slice")
@@ -465,12 +467,15 @@ func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to parse prekey message: %w", err)
 		}
-		plaintext, ciphertextHash, err = cli.bufferedDecrypt(context.TODO(), content, serverTS, func(ctx context.Context) ([]byte, error) {
-			pt, innerErr := cipher.DecryptMessage(preKeyMsg)
+		plaintext, ciphertextHash, err = cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
+			pt, innerErr := cipher.DecryptMessage(decryptCtx, preKeyMsg)
 			if cli.AutoTrustIdentity && errors.Is(innerErr, signalerror.ErrUntrustedIdentity) {
 				cli.Log.Warnf("Got %v error while trying to decrypt prekey message from %s, clearing stored identity and retrying", innerErr, from)
-				cli.clearUntrustedIdentity(from)
-				pt, innerErr = cipher.DecryptMessage(preKeyMsg)
+				if innerErr = cli.clearUntrustedIdentity(decryptCtx, from); innerErr != nil {
+					innerErr = fmt.Errorf("failed to clear untrusted identity: %w", innerErr)
+					return nil, innerErr
+				}
+				pt, innerErr = cipher.DecryptMessage(decryptCtx, preKeyMsg)
 			}
 			return pt, innerErr
 		})
@@ -482,8 +487,8 @@ func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to parse normal message: %w", err)
 		}
-		plaintext, ciphertextHash, err = cli.bufferedDecrypt(context.TODO(), content, serverTS, func(ctx context.Context) ([]byte, error) {
-			return cipher.Decrypt(msg)
+		plaintext, ciphertextHash, err = cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
+			return cipher.Decrypt(decryptCtx, msg)
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to decrypt normal message: %w", err)
@@ -497,7 +502,7 @@ func (cli *Client) decryptDM(child *waBinary.Node, from types.JID, isPreKey bool
 	return plaintext, &ciphertextHash, nil
 }
 
-func (cli *Client) decryptGroupMsg(child *waBinary.Node, from types.JID, chat types.JID, serverTS time.Time) ([]byte, *[32]byte, error) {
+func (cli *Client) decryptGroupMsg(ctx context.Context, child *waBinary.Node, from types.JID, chat types.JID, serverTS time.Time) ([]byte, *[32]byte, error) {
 	content, ok := child.Content.([]byte)
 	if !ok {
 		return nil, nil, fmt.Errorf("message content is not a byte slice")
@@ -510,8 +515,8 @@ func (cli *Client) decryptGroupMsg(child *waBinary.Node, from types.JID, chat ty
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse group message: %w", err)
 	}
-	plaintext, ciphertextHash, err := cli.bufferedDecrypt(context.TODO(), content, serverTS, func(ctx context.Context) ([]byte, error) {
-		return cipher.Decrypt(msg)
+	plaintext, ciphertextHash, err := cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
+		return cipher.Decrypt(decryptCtx, msg)
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to decrypt group message: %w", err)
@@ -553,7 +558,7 @@ func padMessage(plaintext []byte) []byte {
 	return plaintext
 }
 
-func (cli *Client) handleSenderKeyDistributionMessage(chat, from types.JID, axolotlSKDM []byte) {
+func (cli *Client) handleSenderKeyDistributionMessage(ctx context.Context, chat, from types.JID, axolotlSKDM []byte) {
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
 	sdkMsg, err := protocol.NewSenderKeyDistributionMessageFromBytes(axolotlSKDM, pbSerializer.SenderKeyDistributionMessage)
@@ -561,7 +566,11 @@ func (cli *Client) handleSenderKeyDistributionMessage(chat, from types.JID, axol
 		cli.Log.Errorf("Failed to parse sender key distribution message from %s for %s: %v", from, chat, err)
 		return
 	}
-	builder.Process(senderKeyName, sdkMsg)
+	err = builder.Process(ctx, senderKeyName, sdkMsg)
+	if err != nil {
+		cli.Log.Errorf("Failed to process sender key distribution message from %s for %s: %v", from, chat, err)
+		return
+	}
 	cli.Log.Debugf("Processed sender key distribution message from %s in %s", senderKeyName.Sender().String(), senderKeyName.GroupID())
 }
 
@@ -580,14 +589,15 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 			go cli.handleHistorySyncNotificationLoop()
 		}
 	}()
+	ctx := context.TODO()
 	for notif := range cli.historySyncNotifications {
-		cli.handleHistorySyncNotification(notif)
+		cli.handleHistorySyncNotification(ctx, notif)
 	}
 }
 
-func (cli *Client) handleHistorySyncNotification(notif *waE2E.HistorySyncNotification) {
+func (cli *Client) handleHistorySyncNotification(ctx context.Context, notif *waE2E.HistorySyncNotification) {
 	var historySync waHistorySync.HistorySync
-	if data, err := cli.Download(notif); err != nil {
+	if data, err := cli.Download(ctx, notif); err != nil {
 		cli.Log.Errorf("Failed to download history sync data: %v", err)
 	} else if reader, err := zlib.NewReader(bytes.NewReader(data)); err != nil {
 		cli.Log.Errorf("Failed to create zlib reader for history sync data: %v", err)
@@ -598,9 +608,9 @@ func (cli *Client) handleHistorySyncNotification(notif *waE2E.HistorySyncNotific
 	} else {
 		cli.Log.Debugf("Received history sync (type %s, chunk %d)", historySync.GetSyncType(), historySync.GetChunkOrder())
 		if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
-			go cli.handleHistoricalPushNames(historySync.GetPushnames())
+			go cli.handleHistoricalPushNames(context.WithoutCancel(ctx), historySync.GetPushnames())
 		} else if len(historySync.GetConversations()) > 0 {
-			go cli.storeHistoricalMessageSecrets(historySync.GetConversations())
+			go cli.storeHistoricalMessageSecrets(context.WithoutCancel(ctx), historySync.GetConversations())
 		}
 		cli.dispatchEvent(&events.HistorySync{
 			Data: &historySync,
@@ -608,7 +618,7 @@ func (cli *Client) handleHistorySyncNotification(notif *waE2E.HistorySyncNotific
 	}
 }
 
-func (cli *Client) handleAppStateSyncKeyShare(keys *waE2E.AppStateSyncKeyShare) {
+func (cli *Client) handleAppStateSyncKeyShare(ctx context.Context, keys *waE2E.AppStateSyncKeyShare) {
 	onlyResyncIfNotSynced := true
 
 	cli.Log.Debugf("Got %d new app state keys", len(keys.GetKeys()))
@@ -623,7 +633,7 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waE2E.AppStateSyncKeyShare) 
 		if isReRequest {
 			onlyResyncIfNotSynced = false
 		}
-		err = cli.Store.AppStateKeys.PutAppStateSyncKey(key.GetKeyID().GetKeyID(), store.AppStateSyncKey{
+		err = cli.Store.AppStateKeys.PutAppStateSyncKey(ctx, key.GetKeyID().GetKeyID(), store.AppStateSyncKey{
 			Data:        key.GetKeyData().GetKeyData(),
 			Fingerprint: marshaledFingerprint,
 			Timestamp:   key.GetKeyData().GetTimestamp(),
@@ -637,7 +647,7 @@ func (cli *Client) handleAppStateSyncKeyShare(keys *waE2E.AppStateSyncKeyShare) 
 	cli.appStateKeyRequestsLock.RUnlock()
 
 	for _, name := range appstate.AllPatchNames {
-		err := cli.FetchAppState(name, false, onlyResyncIfNotSynced)
+		err := cli.FetchAppState(ctx, name, false, onlyResyncIfNotSynced)
 		if err != nil {
 			cli.Log.Errorf("Failed to do initial fetch of app state %s: %v", name, err)
 		}
@@ -667,7 +677,7 @@ func (cli *Client) handlePlaceholderResendResponse(msg *waE2E.PeerDataOperationR
 	}
 }
 
-func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waE2E.Message) {
+func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
 	protoMsg := msg.GetProtocolMessage()
 
 	if protoMsg.GetHistorySyncNotification() != nil && info.IsFromMe {
@@ -683,7 +693,7 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waE2E.Mes
 	}
 
 	if protoMsg.GetAppStateSyncKeyShare() != nil && info.IsFromMe {
-		go cli.handleAppStateSyncKeyShare(protoMsg.AppStateSyncKeyShare)
+		go cli.handleAppStateSyncKeyShare(context.WithoutCancel(ctx), protoMsg.AppStateSyncKeyShare)
 	}
 
 	if info.Category == "peer" {
@@ -691,8 +701,8 @@ func (cli *Client) handleProtocolMessage(info *types.MessageInfo, msg *waE2E.Mes
 	}
 }
 
-func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Message) {
-	cli.storeMessageSecret(info, msg)
+func (cli *Client) processProtocolParts(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
+	cli.storeMessageSecret(ctx, info, msg)
 	// Hopefully sender key distribution messages and protocol messages can't be inside ephemeral messages
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
@@ -705,19 +715,19 @@ func (cli *Client) processProtocolParts(info *types.MessageInfo, msg *waE2E.Mess
 			if encryptionIdentity.Server == types.DefaultUserServer && info.SenderAlt.Server == types.HiddenUserServer {
 				encryptionIdentity = info.SenderAlt
 			}
-			cli.handleSenderKeyDistributionMessage(info.Chat, encryptionIdentity, msg.SenderKeyDistributionMessage.AxolotlSenderKeyDistributionMessage)
+			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, encryptionIdentity, msg.SenderKeyDistributionMessage.AxolotlSenderKeyDistributionMessage)
 		}
 	}
 	// N.B. Edits are protocol messages, but they're also wrapped inside EditedMessage,
 	// which is only unwrapped after processProtocolParts, so this won't trigger for edits.
 	if msg.GetProtocolMessage() != nil {
-		cli.handleProtocolMessage(info, msg)
+		cli.handleProtocolMessage(ctx, info, msg)
 	}
 }
 
-func (cli *Client) storeMessageSecret(info *types.MessageInfo, msg *waE2E.Message) {
+func (cli *Client) storeMessageSecret(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
 	if msgSecret := msg.GetMessageContextInfo().GetMessageSecret(); len(msgSecret) > 0 {
-		err := cli.Store.MsgSecrets.PutMessageSecret(info.Chat, info.Sender, info.ID, msgSecret)
+		err := cli.Store.MsgSecrets.PutMessageSecret(ctx, info.Chat, info.Sender, info.ID, msgSecret)
 		if err != nil {
 			cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
 		} else {
@@ -726,7 +736,7 @@ func (cli *Client) storeMessageSecret(info *types.MessageInfo, msg *waE2E.Messag
 	}
 }
 
-func (cli *Client) storeHistoricalMessageSecrets(conversations []*waHistorySync.Conversation) {
+func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversations []*waHistorySync.Conversation) {
 	var secrets []store.MessageSecretInsert
 	var privacyTokens []store.PrivacyToken
 	ownID := cli.getOwnID().ToNonAD()
@@ -776,7 +786,7 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waHistorySync.
 	}
 	if len(secrets) > 0 {
 		cli.Log.Debugf("Storing %d message secret keys in history sync", len(secrets))
-		err := cli.Store.MsgSecrets.PutMessageSecrets(secrets)
+		err := cli.Store.MsgSecrets.PutMessageSecrets(ctx, secrets)
 		if err != nil {
 			cli.Log.Errorf("Failed to store message secret keys in history sync: %v", err)
 		} else {
@@ -785,7 +795,7 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waHistorySync.
 	}
 	if len(privacyTokens) > 0 {
 		cli.Log.Debugf("Storing %d privacy tokens in history sync", len(privacyTokens))
-		err := cli.Store.PrivacyTokens.PutPrivacyTokens(privacyTokens...)
+		err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, privacyTokens...)
 		if err != nil {
 			cli.Log.Errorf("Failed to store privacy tokens in history sync: %v", err)
 		} else {
@@ -794,8 +804,8 @@ func (cli *Client) storeHistoricalMessageSecrets(conversations []*waHistorySync.
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(info *types.MessageInfo, msg *waE2E.Message, retryCount int) {
-	cli.processProtocolParts(info, msg)
+func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) {
+	cli.processProtocolParts(ctx, info, msg)
 	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount}
 	cli.dispatchEvent(evt.UnwrapRaw())
 }

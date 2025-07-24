@@ -94,7 +94,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
 
 	go func() {
-		err := cli.handlePair(deviceIdentityBytes, id, businessName, platform, jid, lid)
+		err := cli.handlePair(context.TODO(), deviceIdentityBytes, id, businessName, platform, jid, lid)
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
 			cli.Disconnect()
@@ -106,7 +106,7 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	}()
 }
 
-func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID) error {
+func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID) error {
 	var deviceIdentityContainer waAdv.ADVSignedDeviceIdentityHMAC
 	err := proto.Unmarshal(deviceIdentityBytes, &deviceIdentityContainer)
 	if err != nil {
@@ -170,15 +170,15 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 	cli.Store.LID = lid
 	cli.Store.BusinessName = businessName
 	cli.Store.Platform = platform
-	err = cli.Store.Save()
+	err = cli.Store.Save(ctx)
 	if err != nil {
 		cli.sendPairError(reqID, 500, "internal-error")
 		return &PairDatabaseError{"failed to save device store", err}
 	}
-	cli.StoreLIDPNMapping(context.TODO(), lid, jid)
-	err = cli.Store.Identities.PutIdentity(mainDeviceLID.SignalAddress().String(), mainDeviceIdentity)
+	cli.StoreLIDPNMapping(ctx, lid, jid)
+	err = cli.Store.Identities.PutIdentity(ctx, mainDeviceLID.SignalAddress().String(), mainDeviceIdentity)
 	if err != nil {
-		_ = cli.Store.Delete()
+		_ = cli.Store.Delete(ctx)
 		cli.sendPairError(reqID, 500, "internal-error")
 		return &PairDatabaseError{"failed to store main device identity", err}
 	}
@@ -205,7 +205,7 @@ func (cli *Client) handlePair(deviceIdentityBytes []byte, reqID, businessName, p
 		}},
 	})
 	if err != nil {
-		_ = cli.Store.Delete()
+		_ = cli.Store.Delete(ctx)
 		return fmt.Errorf("failed to send pairing confirmation: %w", err)
 	}
 	return nil
