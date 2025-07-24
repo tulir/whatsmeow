@@ -73,7 +73,7 @@ func (cli *Client) handleEncryptedMessage(node *waBinary.Node) {
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
 	clientID := cli.getOwnID()
-	clientLID := cli.Store.GetLID()
+	clientLID := cli.getOwnLID()
 	if clientID.IsEmpty() {
 		err = ErrNotLoggedIn
 		return
@@ -326,14 +326,12 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			decrypted, ciphertextHash, err = cli.decryptGroupMsg(ctx, &child, senderEncryptionJID, info.Chat, info.Timestamp)
 		} else if encType == "msmsg" && info.Sender.IsBot() {
 			targetSenderJID := info.MsgMetaInfo.TargetSender
-			messageSecretSenderJID := targetSenderJID
 			if targetSenderJID.User == "" {
 				if info.Sender.Server == types.BotServer {
-					targetSenderJID = cli.Store.GetLID()
+					targetSenderJID = cli.getOwnLID()
 				} else {
 					targetSenderJID = cli.getOwnID()
 				}
-				messageSecretSenderJID = cli.getOwnID()
 			}
 			var decryptMessageID string
 			if info.MsgBotInfo.EditType == types.EditTypeInner || info.MsgBotInfo.EditType == types.EditTypeLast {
@@ -343,7 +341,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			}
 			var msMsg waE2E.MessageSecretMessage
 			var messageSecret []byte
-			if messageSecret, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, info.Chat, messageSecretSenderJID, info.MsgMetaInfo.TargetID); err != nil {
+			if messageSecret, _, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, info.Chat, targetSenderJID, info.MsgMetaInfo.TargetID); err != nil {
 				err = fmt.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
 				logging.StdOutLogger.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
 			} else if messageSecret == nil {
@@ -406,6 +404,9 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		default:
 			cli.Log.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
 			logging.StdOutLogger.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
+		}
+		if handlerFailed {
+			cli.Log.Warnf("Handler for %s failed", info.ID)
 		}
 		if ciphertextHash != nil && cli.EnableDecryptedEventBuffer && !handlerFailed {
 			// Use the context passed to decryptMessages
@@ -680,7 +681,7 @@ func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.History
 	} else if err = proto.Unmarshal(rawData, &historySync); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal: %w", err)
 	} else {
-		cli.Log.Debugf("Received history sync (type %s, chunk %d)", historySync.GetSyncType(), historySync.GetChunkOrder())
+		cli.Log.Debugf("Received history sync (type %s, chunk %d, progress %d)", historySync.GetSyncType(), historySync.GetChunkOrder(), historySync.GetProgress())
 		doStorage := func(ctx context.Context) {
 			if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
 				cli.handleHistoricalPushNames(ctx, historySync.GetPushnames())
