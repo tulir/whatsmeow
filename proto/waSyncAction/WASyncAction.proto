@@ -56,6 +56,25 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message MaibaAIFeaturesControlAction {
+	enum MaibaAIFeatureStatus {
+		ENABLED = 0;
+		ENABLED_HAS_LEARNING = 1;
+		DISABLED = 2;
+	}
+
+	optional MaibaAIFeatureStatus aiFeatureStatus = 1;
+}
+
+message PaymentTosAction {
+	enum PaymentNotice {
+		BR_PAY_PRIVACY_POLICY = 0;
+	}
+
+	required PaymentNotice paymentNotice = 1;
+	required bool accepted = 2;
+}
+
 message NotificationActivitySettingAction {
 	enum NotificationActivitySetting {
 		DEFAULT_ALL_MESSAGES = 0;
@@ -142,6 +161,8 @@ message LabelEditAction {
 		FAVORITES = 3;
 		PREDEFINED = 4;
 		CUSTOM = 5;
+		COMMUNITY = 6;
+		SERVER_ASSIGNED = 7;
 	}
 
 	optional string name = 1;
@@ -151,6 +172,7 @@ message LabelEditAction {
 	optional int32 orderIndex = 5;
 	optional bool isActive = 6;
 	optional ListType type = 7;
+	optional bool isImmutable = 8;
 }
 
 message PatchDebugData {
@@ -239,6 +261,28 @@ message SyncActionValue {
 	optional WaffleAccountLinkStateAction waffleAccountLinkStateAction = 58;
 	optional UsernameChatStartModeAction usernameChatStartMode = 59;
 	optional NotificationActivitySettingAction notificationActivitySettingAction = 60;
+	optional LidContactAction lidContactAction = 61;
+	optional CtwaPerCustomerDataSharingAction ctwaPerCustomerDataSharingAction = 62;
+	optional PaymentTosAction paymentTosAction = 63;
+	optional PrivacySettingChannelsPersonalisedRecommendationAction privacySettingChannelsPersonalisedRecommendationAction = 64;
+	optional BusinessBroadcastAssociationAction businessBroadcastAssociationAction = 65;
+	optional DetectedOutcomesStatusAction detectedOutcomesStatusAction = 66;
+	optional MaibaAIFeaturesControlAction maibaAiFeaturesControlAction = 67;
+}
+
+message BusinessBroadcastAssociationAction {
+	optional bool deleted = 1;
+}
+
+message CtwaPerCustomerDataSharingAction {
+	optional bool isCtwaPerCustomerDataSharingEnabled = 1;
+}
+
+message LidContactAction {
+	optional string fullName = 1;
+	optional string firstName = 2;
+	optional string username = 3;
+	optional bool saveOnPrimaryAddressbook = 4;
 }
 
 message FavoritesAction {
@@ -247,6 +291,10 @@ message FavoritesAction {
 	}
 
 	repeated Favorite favorites = 1;
+}
+
+message PrivacySettingChannelsPersonalisedRecommendationAction {
+	optional bool isUserOptedOut = 1;
 }
 
 message PrivacySettingDisableLinkPreviewsAction {
@@ -299,6 +347,10 @@ message CallLogAction {
 }
 
 message PrivacySettingRelayAllCalls {
+	optional bool isEnabled = 1;
+}
+
+message DetectedOutcomesStatusAction {
 	optional bool isEnabled = 1;
 }
 
@@ -461,6 +513,8 @@ message ContactAction {
 	optional string firstName = 2;
 	optional string lidJID = 3;
 	optional bool saveOnPrimaryAddressbook = 4;
+	optional string pnJID = 5;
+	optional string username = 6;
 }
 
 message StarAction {

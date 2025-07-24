@@ -213,7 +213,7 @@ func (cli *ClientV2) SendMessageV2(ctx context.Context, to types.JID, message *w
 				groupParticipants, err = cli.SanitizeStatusBroadcastRecipients(extra[0].Participants)
 			} else {
 				// TODO use context
-				groupParticipants, err = cli.client.getBroadcastListParticipants(to)
+				groupParticipants, err = cli.client.getBroadcastListParticipants(ctx, to)
 				if err != nil {
 					err = fmt.Errorf("failed to get broadcast list members: %w", err)
 					return
@@ -258,7 +258,7 @@ func (cli *ClientV2) SendMessageV2(ctx context.Context, to types.JID, message *w
 	}
 
 	if message.GetMessageContextInfo().GetMessageSecret() != nil {
-		err = cli.client.Store.MsgSecrets.PutMessageSecret(to, ownID, req.ID, message.GetMessageContextInfo().GetMessageSecret())
+		err = cli.client.Store.MsgSecrets.PutMessageSecret(ctx, to, ownID, req.ID, message.GetMessageContextInfo().GetMessageSecret())
 		if err != nil {
 			cli.client.Log.Warnf("Failed to store message secret key for outgoing message %s: %v", req.ID, err)
 		} else {
@@ -272,7 +272,7 @@ func (cli *ClientV2) SendMessageV2(ctx context.Context, to types.JID, message *w
 		phash, data, err = cli.sendGroupV2(ctx, to, groupParticipants, req.ID, message, &resp.DebugTimings, extraParams)
 	case types.DefaultUserServer, types.BotServer:
 		if req.Peer {
-			data, err = cli.client.sendPeerMessage(to, req.ID, message, &resp.DebugTimings)
+			data, err = cli.client.sendPeerMessage(ctx, to, req.ID, message, &resp.DebugTimings)
 		} else {
 			data, err = cli.client.sendDM(ctx, ownID, to, req.ID, message, &resp.DebugTimings, extraParams)
 		}
@@ -349,7 +349,7 @@ func (cli *ClientV2) sendGroupV2(
 	start = time.Now()
 	builder := groups.NewGroupSessionBuilder(cli.client.Store, pbSerializer)
 	senderKeyName := protocol.NewSenderKeyName(to.String(), cli.client.getOwnLID().SignalAddress())
-	signalSKDMessage, err := builder.Create(senderKeyName)
+	signalSKDMessage, err := builder.Create(ctx, senderKeyName)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to create sender key distribution message to send %s to %s: %w", id, to, err)
 	}
@@ -365,7 +365,7 @@ func (cli *ClientV2) sendGroupV2(
 	}
 
 	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.client.Store)
-	encrypted, err := cipher.Encrypt(padMessage(plaintext))
+	encrypted, err := cipher.Encrypt(ctx, padMessage(plaintext))
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to encrypt group message to send %s to %s: %w", id, to, err)
 	}
@@ -523,7 +523,7 @@ func (cli *ClientV2) encryptMessageForDevicesConcurrent(
 			if err != nil {
 				cli.client.Log.Warnf("Failed to get LID for %s: %v", jid, err)
 			} else if !lidForPN.IsEmpty() {
-				cli.client.migrateSessionStore(jid, lidForPN)
+				cli.client.migrateSessionStore(ctx, jid, lidForPN)
 				encryptionIdentity = lidForPN
 			}
 		}
@@ -536,7 +536,7 @@ func (cli *ClientV2) encryptMessageForDevicesConcurrent(
 				wg.Done()
 			}()
 			encrypted, isPreKey, err := cli.client.encryptMessageForDeviceAndWrap(
-				plaintext, jid, encryptionIdentity, nil, encAttrs,
+				ctx, plaintext, jid, encryptionIdentity, nil, encAttrs,
 			)
 			if errors.Is(err, ErrNoSession) {
 				retryDeviceChan <- jid
@@ -599,7 +599,7 @@ func (cli *ClientV2) encryptMessageForDevicesConcurrent(
 						wg.Done()
 					}()
 					encrypted, isPreKey, err := cli.client.encryptMessageForDeviceAndWrap(
-						plaintext, jid, retryEncryptionIdentities[i], resp.bundle, encAttrs,
+						ctx, plaintext, jid, retryEncryptionIdentities[i], resp.bundle, encAttrs,
 					)
 					if err != nil {
 						cli.client.Log.Warnf("Failed to encrypt %s for %s (retry): %v", id, jid, err)

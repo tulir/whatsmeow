@@ -260,6 +260,8 @@ const (
 	ExtendedContentMessage_FB_SHORT                                ExtendedContentMessage_ExtendedContentType = 1009
 	ExtendedContentMessage_FB_COMMENT_MENTION_SHARE                ExtendedContentMessage_ExtendedContentType = 1010
 	ExtendedContentMessage_FB_POST_MENTION                         ExtendedContentMessage_ExtendedContentType = 1011
+	ExtendedContentMessage_FB_PROFILE_DIRECTORY_ITEM               ExtendedContentMessage_ExtendedContentType = 1013
+	ExtendedContentMessage_FB_FEED_POST_REACTION_REPLY             ExtendedContentMessage_ExtendedContentType = 1014
 	ExtendedContentMessage_MSG_EXTERNAL_LINK_SHARE                 ExtendedContentMessage_ExtendedContentType = 2000
 	ExtendedContentMessage_MSG_P2P_PAYMENT                         ExtendedContentMessage_ExtendedContentType = 2001
 	ExtendedContentMessage_MSG_LOCATION_SHARING                    ExtendedContentMessage_ExtendedContentType = 2002
@@ -284,6 +286,7 @@ const (
 	ExtendedContentMessage_MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE     ExtendedContentMessage_ExtendedContentType = 2023
 	ExtendedContentMessage_MSG_NOTE_REPLY                          ExtendedContentMessage_ExtendedContentType = 2024
 	ExtendedContentMessage_MSG_NOTE_MENTION                        ExtendedContentMessage_ExtendedContentType = 2025
+	ExtendedContentMessage_GEN_AI_ENTITY                           ExtendedContentMessage_ExtendedContentType = 2026
 	ExtendedContentMessage_RTC_AUDIO_CALL                          ExtendedContentMessage_ExtendedContentType = 3000
 	ExtendedContentMessage_RTC_VIDEO_CALL                          ExtendedContentMessage_ExtendedContentType = 3001
 	ExtendedContentMessage_RTC_MISSED_AUDIO_CALL                   ExtendedContentMessage_ExtendedContentType = 3002
@@ -333,6 +336,8 @@ var (
 		1009: "FB_SHORT",
 		1010: "FB_COMMENT_MENTION_SHARE",
 		1011: "FB_POST_MENTION",
+		1013: "FB_PROFILE_DIRECTORY_ITEM",
+		1014: "FB_FEED_POST_REACTION_REPLY",
 		2000: "MSG_EXTERNAL_LINK_SHARE",
 		2001: "MSG_P2P_PAYMENT",
 		2002: "MSG_LOCATION_SHARING",
@@ -357,6 +362,7 @@ var (
 		2023: "MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE",
 		2024: "MSG_NOTE_REPLY",
 		2025: "MSG_NOTE_MENTION",
+		2026: "GEN_AI_ENTITY",
 		3000: "RTC_AUDIO_CALL",
 		3001: "RTC_VIDEO_CALL",
 		3002: "RTC_MISSED_AUDIO_CALL",
@@ -403,6 +409,8 @@ var (
 		"FB_SHORT":                                1009,
 		"FB_COMMENT_MENTION_SHARE":                1010,
 		"FB_POST_MENTION":                         1011,
+		"FB_PROFILE_DIRECTORY_ITEM":               1013,
+		"FB_FEED_POST_REACTION_REPLY":             1014,
 		"MSG_EXTERNAL_LINK_SHARE":                 2000,
 		"MSG_P2P_PAYMENT":                         2001,
 		"MSG_LOCATION_SHARING":                    2002,
@@ -427,6 +435,7 @@ var (
 		"MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE":     2023,
 		"MSG_NOTE_REPLY":                          2024,
 		"MSG_NOTE_MENTION":                        2025,
+		"GEN_AI_ENTITY":                           2026,
 		"RTC_AUDIO_CALL":                          3000,
 		"RTC_VIDEO_CALL":                          3001,
 		"RTC_MISSED_AUDIO_CALL":                   3002,
@@ -811,7 +820,7 @@ var File_waArmadilloXMA_WAArmadilloXMA_proto protoreflect.FileDescriptor
 
 const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\n" +
-	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\xf0\x1c\n" +
+	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\xc6\x1d\n" +
 	"\x16ExtendedContentMessage\x12C\n" +
 	"\x11associatedMessage\x18\x01 \x01(\v2\x15.WACommon.SubProtocolR\x11associatedMessage\x12Z\n" +
 	"\n" +
@@ -875,7 +884,7 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\bPORTRAIT\x10\x03\x12\x11\n" +
 	"\rSTANDARD_DXMA\x10\f\x12\r\n" +
 	"\tLIST_DXMA\x10\x0f\x12\b\n" +
-	"\x04GRID\x10\x10\"\xa2\x0e\n" +
+	"\x04GRID\x10\x10\"\xf8\x0e\n" +
 	"\x13ExtendedContentType\x12\x0f\n" +
 	"\vUNSUPPORTED\x10\x00\x12\x1a\n" +
 	"\x16IG_STORY_PHOTO_MENTION\x10\x04\x12\x1e\n" +
@@ -909,7 +918,9 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\x1aFB_FEED_POST_PRIVATE_REPLY\x10\xf0\a\x12\r\n" +
 	"\bFB_SHORT\x10\xf1\a\x12\x1d\n" +
 	"\x18FB_COMMENT_MENTION_SHARE\x10\xf2\a\x12\x14\n" +
-	"\x0fFB_POST_MENTION\x10\xf3\a\x12\x1c\n" +
+	"\x0fFB_POST_MENTION\x10\xf3\a\x12\x1e\n" +
+	"\x19FB_PROFILE_DIRECTORY_ITEM\x10\xf5\a\x12 \n" +
+	"\x1bFB_FEED_POST_REACTION_REPLY\x10\xf6\a\x12\x1c\n" +
 	"\x17MSG_EXTERNAL_LINK_SHARE\x10\xd0\x0f\x12\x14\n" +
 	"\x0fMSG_P2P_PAYMENT\x10\xd1\x0f\x12\x19\n" +
 	"\x14MSG_LOCATION_SHARING\x10\xd2\x0f\x12\x1c\n" +
@@ -933,7 +944,8 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\x13MSG_GEN_AI_REMINDER\x10\xe6\x0f\x12(\n" +
 	"#MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE\x10\xe7\x0f\x12\x13\n" +
 	"\x0eMSG_NOTE_REPLY\x10\xe8\x0f\x12\x15\n" +
-	"\x10MSG_NOTE_MENTION\x10\xe9\x0f\x12\x13\n" +
+	"\x10MSG_NOTE_MENTION\x10\xe9\x0f\x12\x12\n" +
+	"\rGEN_AI_ENTITY\x10\xea\x0f\x12\x13\n" +
 	"\x0eRTC_AUDIO_CALL\x10\xb8\x17\x12\x13\n" +
 	"\x0eRTC_VIDEO_CALL\x10\xb9\x17\x12\x1a\n" +
 	"\x15RTC_MISSED_AUDIO_CALL\x10\xba\x17\x12\x1a\n" +

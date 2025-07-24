@@ -1,0 +1,85 @@
+syntax = "proto2";
+package InstamadilloAddMessage;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloAddMessage";
+
+import "instamadilloCoreTypeActionLog/InstamadilloCoreTypeActionLog.proto";
+import "instamadilloCoreTypeAdminMessage/InstamadilloCoreTypeAdminMessage.proto";
+import "instamadilloCoreTypeCollection/InstamadilloCoreTypeCollection.proto";
+import "instamadilloCoreTypeLink/InstamadilloCoreTypeLink.proto";
+import "instamadilloCoreTypeMedia/InstamadilloCoreTypeMedia.proto";
+import "instamadilloCoreTypeText/InstamadilloCoreTypeText.proto";
+import "instamadilloXmaContentRef/InstamadilloXmaContentRef.proto";
+
+message AddMessagePayload {
+	optional AddMessageContent content = 1;
+	optional AddMessageMetadata metadata = 2;
+}
+
+message AddMessageContent {
+	oneof addMessageContent {
+		InstamadilloCoreTypeText.Text text = 1;
+		Like like = 2;
+		InstamadilloCoreTypeLink.Link link = 3;
+		ReceiverFetchXma receiverFetchXma = 4;
+		InstamadilloCoreTypeMedia.Media media = 5;
+		Placeholder placeholder = 6;
+		InstamadilloCoreTypeCollection.Collection collection = 7;
+		InstamadilloCoreTypeAdminMessage.AdminMessage adminMessage = 8;
+		InstamadilloCoreTypeActionLog.ActionLog actionLog = 9;
+	}
+}
+
+message AddMessageMetadata {
+	optional bool sendSilently = 1;
+	optional PrivateReplyInfo privateReplyInfo = 2;
+	optional RepliedToMessage repliedToMessage = 3;
+	optional ForwardingParams forwardingParams = 4;
+	optional EphemeralityParams ephemeralityParams = 5;
+}
+
+message RepliedToMessage {
+	optional string repliedToMessageOtid = 1;
+	optional string repliedToMessageWaServerTimeSec = 2;
+	optional string repliedToMessageCollectionItemID = 3;
+	optional OpenMessageMicroSecondTimestamp omMicroSecTS = 4;
+}
+
+message OpenMessageMicroSecondTimestamp {
+	optional int64 timestampMS = 1;
+	optional int32 microSecondsBits = 2;
+}
+
+message PrivateReplyInfo {
+	optional string commentID = 1;
+	optional string postLink = 2;
+}
+
+message ForwardingParams {
+	optional string forwardedThreadID = 1;
+}
+
+message EphemeralityParams {
+	optional int64 ephemeralDurationSec = 1;
+}
+
+message Like {
+}
+
+message ReceiverFetchXma {
+	optional string contentRef = 1;
+	optional string text = 2;
+	optional InstamadilloCoreTypeMedia.Media media = 3;
+	optional InstamadilloXmaContentRef.XmaContentRef xmaContentRef = 4;
+}
+
+message Placeholder {
+	enum Type {
+		PLACEHOLDER_TYPE_NONE = 0;
+		PLACEHOLDER_TYPE_DECRYPTION_FAILURE = 1;
+		PLACEHOLDER_TYPE_NOT_SUPPORTED_NEED_UPDATE = 2;
+		PLACEHOLDER_TYPE_DEVICE_UNAVAILABLE = 3;
+		PLACEHOLDER_TYPE_NOT_SUPPORTED_NOT_RECOVERABLE = 4;
+	}
+
+	optional Type placeholderType = 1;
+}

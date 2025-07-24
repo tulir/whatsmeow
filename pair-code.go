@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
@@ -86,7 +87,7 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 // (the server will validate it and return 400 if it's wrong).
 //
 // See https://faq.whatsapp.com/1324084875126592 for more info
-func (cli *Client) PairPhone(phone string, showPushNotification bool, clientType PairClientType, clientDisplayName string) (string, error) {
+func (cli *Client) PairPhone(ctx context.Context, phone string, showPushNotification bool, clientType PairClientType, clientDisplayName string) (string, error) {
 	if cli == nil {
 		return "", ErrClientIsNil
 	}
@@ -102,6 +103,7 @@ func (cli *Client) PairPhone(phone string, showPushNotification bool, clientType
 		Namespace: "md",
 		Type:      iqSet,
 		To:        types.ServerJID,
+		Context:   ctx,
 		Content: []waBinary.Node{{
 			Tag: "link_code_companion_reg",
 			Attrs: waBinary.Attrs{
@@ -139,14 +141,14 @@ func (cli *Client) PairPhone(phone string, showPushNotification bool, clientType
 	return encodedLinkingCode[0:4] + "-" + encodedLinkingCode[4:], nil
 }
 
-func (cli *Client) tryHandleCodePairNotification(parentNode *waBinary.Node) {
-	err := cli.handleCodePairNotification(parentNode)
+func (cli *Client) tryHandleCodePairNotification(ctx context.Context, parentNode *waBinary.Node) {
+	err := cli.handleCodePairNotification(ctx, parentNode)
 	if err != nil {
 		cli.Log.Errorf("Failed to handle code pair notification: %s", err)
 	}
 }
 
-func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
+func (cli *Client) handleCodePairNotification(ctx context.Context, parentNode *waBinary.Node) error {
 	node, ok := parentNode.GetOptionalChildByTag("link_code_companion_reg")
 	if !ok {
 		return &ElementMissingError{
@@ -225,6 +227,7 @@ func (cli *Client) handleCodePairNotification(parentNode *waBinary.Node) error {
 		Namespace: "md",
 		Type:      iqSet,
 		To:        types.ServerJID,
+		Context:   ctx,
 		Content: []waBinary.Node{{
 			Tag: "link_code_companion_reg",
 			Attrs: waBinary.Attrs{

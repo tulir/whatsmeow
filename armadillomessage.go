@@ -7,11 +7,14 @@
 package whatsmeow
 
 import (
+	"context"
 	"fmt"
 
 	"google.golang.org/protobuf/proto"
 
 	armadillo "go.mau.fi/whatsmeow/proto"
+	"go.mau.fi/whatsmeow/proto/armadilloutil"
+	"go.mau.fi/whatsmeow/proto/instamadilloTransportPayload"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waMsgApplication"
 	"go.mau.fi/whatsmeow/proto/waMsgTransport"
@@ -19,11 +22,11 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleDecryptedArmadillo(info *types.MessageInfo, decrypted []byte, retryCount int) bool {
+func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handled, handlerFailed bool) {
 	dec, err := decodeArmadillo(decrypted)
 	if err != nil {
 		cli.Log.Warnf("Failed to decode armadillo message from %s: %v", info.SourceString(), err)
-		return false
+		return
 	}
 	dec.Info = *info
 	dec.RetryCount = retryCount
@@ -32,13 +35,14 @@ func (cli *Client) handleDecryptedArmadillo(info *types.MessageInfo, decrypted [
 			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
 		} else {
 			skdm := dec.Transport.GetProtocol().GetAncillary().GetSkdm()
-			cli.handleSenderKeyDistributionMessage(info.Chat, info.Sender, skdm.AxolotlSenderKeyDistributionMessage)
+			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, info.Sender, skdm.AxolotlSenderKeyDistributionMessage)
 		}
 	}
 	if dec.Message != nil {
-		cli.dispatchEvent(&dec)
+		handlerFailed = cli.dispatchEvent(&dec)
 	}
-	return true
+	handled = true
+	return
 }
 
 func decodeArmadillo(data []byte) (dec events.FBMessage, err error) {
@@ -51,11 +55,23 @@ func decodeArmadillo(data []byte) (dec events.FBMessage, err error) {
 	if transport.GetPayload() == nil {
 		return
 	}
-	application, err := transport.GetPayload().Decode()
+	appPayloadVer := transport.GetPayload().GetApplicationPayload().GetVersion()
+	switch appPayloadVer {
+	case waMsgTransport.FBMessageApplicationVersion:
+		return decodeFBArmadillo(&transport)
+	case waMsgTransport.IGMessageApplicationVersion:
+		return decodeIGArmadillo(&transport)
+	default:
+		return dec, fmt.Errorf("%w %d in MessageTransport", armadilloutil.ErrUnsupportedVersion, appPayloadVer)
+	}
+}
+
+func decodeFBArmadillo(transport *waMsgTransport.MessageTransport) (dec events.FBMessage, err error) {
+	application, err := transport.GetPayload().DecodeFB()
 	if err != nil {
 		return dec, fmt.Errorf("failed to unmarshal application: %w", err)
 	}
-	dec.Application = application
+	dec.FBApplication = application
 	if application.GetPayload() == nil {
 		return
 	}
@@ -94,6 +110,23 @@ func decodeArmadillo(data []byte) (dec events.FBMessage, err error) {
 		}
 	default:
 		err = fmt.Errorf("unsupported application payload content type: %T", typedContent)
+	}
+	return
+}
+
+func decodeIGArmadillo(transport *waMsgTransport.MessageTransport) (dec events.FBMessage, err error) {
+	innerTransport, err := transport.GetPayload().DecodeIG()
+	if err != nil {
+		return dec, fmt.Errorf("failed to unmarshal IG transport: %w", err)
+	}
+	dec.IGTransport = innerTransport
+	switch typedContent := innerTransport.GetTransportPayload().(type) {
+	case *instamadilloTransportPayload.TransportPayload_Add:
+		dec.Message = typedContent.Add
+	case *instamadilloTransportPayload.TransportPayload_Supplement:
+		dec.Message = typedContent.Supplement
+	case *instamadilloTransportPayload.TransportPayload_Delete:
+		dec.Message = typedContent.Delete
 	}
 	return
 }
