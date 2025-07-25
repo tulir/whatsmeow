@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"context"
 	"fmt"
 
 	"go.mau.fi/util/random"
@@ -174,7 +175,7 @@ func parseMediaRetryNotification(node *waBinary.Node) (*events.MediaRetry, error
 	return &evt, nil
 }
 
-func (cli *Client) handleMediaRetryNotification(node *waBinary.Node) {
+func (cli *Client) handleMediaRetryNotification(ctx context.Context, node *waBinary.Node) {
 	evt, err := parseMediaRetryNotification(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse media retry notification: %v", err)

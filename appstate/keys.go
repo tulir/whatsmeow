@@ -8,6 +8,7 @@
 package appstate
 
 import (
+	"context"
 	"encoding/base64"
 	"sync"
 
@@ -82,7 +83,7 @@ func expandAppStateKeys(keyData []byte) (keys ExpandedAppStateKeys) {
 	return ExpandedAppStateKeys{appStateKeyExpanded[0:32], appStateKeyExpanded[32:64], appStateKeyExpanded[64:96], appStateKeyExpanded[96:128], appStateKeyExpanded[128:160]}
 }
 
-func (proc *Processor) getAppStateKey(keyID []byte) (keys ExpandedAppStateKeys, err error) {
+func (proc *Processor) getAppStateKey(ctx context.Context, keyID []byte) (keys ExpandedAppStateKeys, err error) {
 	keyCacheID := base64.RawStdEncoding.EncodeToString(keyID)
 	var ok bool
 
@@ -92,7 +93,7 @@ func (proc *Processor) getAppStateKey(keyID []byte) (keys ExpandedAppStateKeys, 
 	keys, ok = proc.keyCache[keyCacheID]
 	if !ok {
 		var keyData *store.AppStateSyncKey
-		keyData, err = proc.Store.AppStateKeys.GetAppStateSyncKey(keyID)
+		keyData, err = proc.Store.AppStateKeys.GetAppStateSyncKey(ctx, keyID)
 		if keyData != nil {
 			keys = expandAppStateKeys(keyData.Data)
 			proc.keyCache[keyCacheID] = keys
@@ -103,7 +104,7 @@ func (proc *Processor) getAppStateKey(keyID []byte) (keys ExpandedAppStateKeys, 
 	return
 }
 
-func (proc *Processor) GetMissingKeyIDs(pl *PatchList) [][]byte {
+func (proc *Processor) GetMissingKeyIDs(ctx context.Context, pl *PatchList) [][]byte {
 	cache := make(map[string]bool)
 	var missingKeys [][]byte
 	checkMissing := func(keyID []byte) {
@@ -113,7 +114,7 @@ func (proc *Processor) GetMissingKeyIDs(pl *PatchList) [][]byte {
 		stringKeyID := base64.RawStdEncoding.EncodeToString(keyID)
 		_, alreadyAdded := cache[stringKeyID]
 		if !alreadyAdded {
-			keyData, err := proc.Store.AppStateKeys.GetAppStateSyncKey(keyID)
+			keyData, err := proc.Store.AppStateKeys.GetAppStateSyncKey(ctx, keyID)
 			if err != nil {
 				proc.Log.Warnf("Error fetching key %X while checking if it's missing: %v", keyID, err)
 			}

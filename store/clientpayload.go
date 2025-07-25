@@ -19,6 +19,7 @@ import (
 
 	"go.mau.fi/whatsmeow/proto/waCompanionReg"
 	"go.mau.fi/whatsmeow/proto/waWa6"
+	"go.mau.fi/whatsmeow/types"
 )
 
 // WAVersionContainer is a container for a WhatsApp web version number.
@@ -75,7 +76,7 @@ func (vc WAVersionContainer) ProtoAppVersion() *waWa6.ClientPayload_UserAgent_Ap
 }
 
 // waVersion is the WhatsApp web client version
-var waVersion = WAVersionContainer{2, 3000, 1020322842}
+var waVersion = WAVersionContainer{2, 3000, 1024995419}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
 var waVersionHash [16]byte
@@ -161,6 +162,7 @@ func (device *Device) getRegistrationPayload() *waWa6.ClientPayload {
 		DeviceProps: deviceProps,
 	}
 	payload.Passive = proto.Bool(false)
+	payload.Pull = proto.Bool(false)
 	return payload
 }
 
@@ -169,11 +171,15 @@ func (device *Device) getLoginPayload() *waWa6.ClientPayload {
 	payload.Username = proto.Uint64(device.ID.UserInt())
 	payload.Device = proto.Uint32(uint32(device.ID.Device))
 	payload.Passive = proto.Bool(true)
+	payload.Pull = proto.Bool(true)
 	return payload
 }
 
 func (device *Device) GetClientPayload() *waWa6.ClientPayload {
 	if device.ID != nil {
+		if *device.ID == types.EmptyJID {
+			panic(fmt.Errorf("GetClientPayload called with empty JID"))
+		}
 		return device.getLoginPayload()
 	} else {
 		return device.getRegistrationPayload()

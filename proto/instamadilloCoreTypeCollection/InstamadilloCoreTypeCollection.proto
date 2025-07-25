@@ -1,0 +1,10 @@
+syntax = "proto2";
+package InstamadilloCoreTypeCollection;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeCollection";
+
+import "instamadilloCoreTypeMedia/InstamadilloCoreTypeMedia.proto";
+
+message Collection {
+	optional string name = 1;
+	repeated InstamadilloCoreTypeMedia.Media media = 2;
+}

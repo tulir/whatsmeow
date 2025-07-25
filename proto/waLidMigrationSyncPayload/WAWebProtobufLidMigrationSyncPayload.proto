@@ -1,0 +1,14 @@
+syntax = "proto2";
+package WAWebProtobufLidMigrationSyncPayload;
+option go_package = "go.mau.fi/whatsmeow/proto/waLidMigrationSyncPayload";
+
+message LIDMigrationMapping {
+	required uint64 pn = 1;
+	required uint64 assignedLid = 2;
+	optional uint64 latestLid = 3;
+}
+
+message LIDMigrationMappingSyncPayload {
+	repeated LIDMigrationMapping pnToLidMappings = 1;
+	optional uint64 chatDbMigrationTimestamp = 2;
+}

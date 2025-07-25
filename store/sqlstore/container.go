@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
-	mathRand "math/rand"
+	mathRand "math/rand/v2"
 
 	"github.com/google/uuid"
 	"go.mau.fi/util/random"
@@ -26,9 +26,10 @@ import (
 
 // Container is a wrapper for a SQL database that can contain multiple whatsmeow sessions.
 type Container struct {
-	dbPool     *pgxpool.Pool
 	businessId string
+	dbPool     *pgxpool.Pool
 	log        waLog.Logger
+	LIDMap     *CachedLIDMap
 
 	DatabaseErrorHandler func(device *store.Device, action string, attemptIndex int, err error) (retry bool)
 }
@@ -43,15 +44,16 @@ func NewContainer(dbPool *pgxpool.Pool, businessId string, log waLog.Logger) *Co
 		dbPool:     dbPool,
 		businessId: businessId,
 		log:        log,
+		LIDMap:     NewCachedLIDMap(dbPool, businessId),
 	}
 	return container
 }
 
 const getAllDevicesQuery = `
-SELECT jid, registration_id, noise_key, identity_key,
+SELECT jid, lid, registration_id, noise_key, identity_key,
        signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
        adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
-       platform, business_name, push_name, facebook_uuid
+       platform, business_name, push_name, facebook_uuid, lid_migration_ts
 FROM whatsmeow_device WHERE business_id=$1
 `
 
@@ -71,10 +73,10 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	var fbUUID uuid.NullUUID
 
 	err := row.Scan(
-		&device.ID, &device.RegistrationID, &noisePriv, &identityPriv,
+		&device.ID, &device.LID, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
 		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
-		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID)
+		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID, &device.LIDMigrationTimestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan session: %w", err)
 	} else if len(noisePriv) != 32 || len(identityPriv) != 32 || len(preKeyPriv) != 32 || len(preKeySig) != 64 {
@@ -88,19 +90,7 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.Account = &account
 	device.FacebookUUID = fbUUID.UUID
 
-	innerStore := NewSQLStore(c, *device.ID)
-	device.Identities = innerStore
-	device.Sessions = innerStore
-	device.PreKeys = innerStore
-	device.SenderKeys = innerStore
-	device.AppStateKeys = innerStore
-	device.AppState = innerStore
-	device.Contacts = innerStore
-	device.ChatSettings = innerStore
-	device.MsgSecrets = innerStore
-	device.PrivacyTokens = innerStore
-	device.Container = c
-	device.Initialized = true
+	c.initializeDevice(&device)
 
 	return &device, nil
 }
@@ -153,13 +143,17 @@ func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
 
 const (
 	insertDeviceQuery = `
-		INSERT INTO whatsmeow_device (business_id, jid, registration_id, noise_key, identity_key,
+		INSERT INTO whatsmeow_device (business_id, jid, lid, registration_id, noise_key, identity_key,
 									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
 									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
-									  platform, business_name, push_name, facebook_uuid)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+									  platform, business_name, push_name, facebook_uuid, lid_migration_ts)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
 		ON CONFLICT (business_id, jid) DO UPDATE
-		    SET platform=excluded.platform, business_name=excluded.business_name, push_name=excluded.push_name
+			SET lid=excluded.lid,
+				platform=excluded.platform,
+				business_name=excluded.business_name,
+				push_name=excluded.push_name,
+				lid_migration_ts=excluded.lid_migration_ts
 	`
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE business_id=$1 AND jid=$2`
 )
@@ -195,26 +189,35 @@ func (c *Container) PutDevice(device *store.Device) error {
 	}
 	_, err := c.dbPool.Exec(context.Background(), insertDeviceQuery,
 		c.businessId,
-		device.ID.String(), device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
+		device.ID.String(), device.LID, device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
-		device.Platform, device.BusinessName, device.PushName, uuid.NullUUID{UUID: device.FacebookUUID, Valid: device.FacebookUUID != uuid.Nil})
+		device.Platform, device.BusinessName, device.PushName, uuid.NullUUID{UUID: device.FacebookUUID, Valid: device.FacebookUUID != uuid.Nil},
+		device.LIDMigrationTimestamp,
+	)
 
 	if !device.Initialized {
-		innerStore := NewSQLStore(c, *device.ID)
-		device.Identities = innerStore
-		device.Sessions = innerStore
-		device.PreKeys = innerStore
-		device.SenderKeys = innerStore
-		device.AppStateKeys = innerStore
-		device.AppState = innerStore
-		device.Contacts = innerStore
-		device.ChatSettings = innerStore
-		device.MsgSecrets = innerStore
-		device.PrivacyTokens = innerStore
-		device.Initialized = true
+		c.initializeDevice(device)
 	}
 	return err
+}
+
+func (c *Container) initializeDevice(device *store.Device) {
+	innerStore := NewSQLStore(c, *device.ID)
+	device.Identities = innerStore
+	device.Sessions = innerStore
+	device.PreKeys = innerStore
+	device.SenderKeys = innerStore
+	device.AppStateKeys = innerStore
+	device.AppState = innerStore
+	device.Contacts = innerStore
+	device.ChatSettings = innerStore
+	device.MsgSecrets = innerStore
+	device.PrivacyTokens = innerStore
+	device.EventBuffer = innerStore
+	device.LIDs = c.LIDMap
+	device.Container = c
+	device.Initialized = true
 }
 
 // DeleteDevice deletes the given device from this database. This should be called through Device.Delete()

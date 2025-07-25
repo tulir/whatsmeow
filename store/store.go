@@ -8,7 +8,7 @@
 package store
 
 import (
-	"fmt"
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -32,6 +32,7 @@ type SessionStore interface {
 	PutSession(address string, session []byte) error
 	DeleteAllSessions(phone string) error
 	DeleteSession(address string) error
+	MigratePNToLID(pn, lid types.JID) error
 }
 
 type PreKeyStore interface {
@@ -110,9 +111,9 @@ type MessageSecretInsert struct {
 }
 
 type MsgSecretStore interface {
-	PutMessageSecrets([]MessageSecretInsert) error
+	PutMessageSecrets(inserts []MessageSecretInsert) error
 	PutMessageSecret(chat, sender types.JID, id types.MessageID, secret []byte) error
-	GetMessageSecret(chat, sender types.JID, id types.MessageID) ([]byte, error)
+	GetMessageSecret(chat, sender types.JID, id types.MessageID) ([]byte, types.JID, error)
 }
 
 type PrivacyToken struct {
@@ -126,6 +127,55 @@ type PrivacyTokenStore interface {
 	GetPrivacyToken(user types.JID) (*PrivacyToken, error)
 }
 
+type BufferedEvent struct {
+	Plaintext  []byte
+	InsertTime time.Time
+	ServerTime time.Time
+}
+
+type EventBuffer interface {
+	GetBufferedEvent(ciphertextHash [32]byte) (*BufferedEvent, error)
+	PutBufferedEvent(ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error
+	DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error
+	ClearBufferedEventPlaintext(ciphertextHash [32]byte) error
+	DeleteOldBufferedHashes() error
+}
+
+type LIDMapping struct {
+	LID types.JID
+	PN  types.JID
+}
+
+type LIDStore interface {
+	PutManyLIDMappings(mappings []LIDMapping) error
+	PutLIDMapping(lid, jid types.JID) error
+	GetPNForLID(lid types.JID) (types.JID, error)
+	GetLIDForPN(pn types.JID) (types.JID, error)
+}
+
+type AllSessionSpecificStores interface {
+	IdentityStore
+	SessionStore
+	PreKeyStore
+	SenderKeyStore
+	AppStateSyncKeyStore
+	AppStateStore
+	ContactStore
+	ChatSettingsStore
+	MsgSecretStore
+	PrivacyTokenStore
+	EventBuffer
+}
+
+type AllGlobalStores interface {
+	LIDStore
+}
+
+type AllStores interface {
+	AllSessionSpecificStores
+	AllGlobalStores
+}
+
 type Device struct {
 	Log waLog.Logger
 
@@ -136,10 +186,13 @@ type Device struct {
 	AdvSecretKey   []byte
 
 	ID           *types.JID
+	LID          types.JID
 	Account      *waAdv.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string
 	PushName     string
+
+	LIDMigrationTimestamp int64
 
 	FacebookUUID uuid.UUID
 
@@ -154,17 +207,35 @@ type Device struct {
 	ChatSettings  ChatSettingsStore
 	MsgSecrets    MsgSecretStore
 	PrivacyTokens PrivacyTokenStore
-	Container     DeviceContainer
+	EventBuffer   EventBuffer
 
 	DatabaseErrorHandler func(device *Device, action string, attemptIndex int, err error) (retry bool)
+
+	LIDs          LIDStore
+	Container     DeviceContainer
 }
 
-func (device *Device) handleDatabaseError(attemptIndex int, err error, action string, args ...interface{}) bool {
-	if device.DatabaseErrorHandler != nil {
-		return device.DatabaseErrorHandler(device, fmt.Sprintf(action, args...), attemptIndex, err)
+// MutedForever represents a special timestamp meaning that a chat is muted permanently.
+// It is implemented as the Unix timestamp -1, matching the database representation
+// used by SQLStore (see sqlstore/store.go PutMutedUntil / GetChatSettings).
+var MutedForever = time.Unix(-1, 0)
+
+func (device *Device) GetJID() types.JID {
+	if device == nil {
+		return types.EmptyJID
 	}
-	device.Log.Errorf("Failed to %s: %v", fmt.Sprintf(action, args...), err)
-	return false
+	id := device.ID
+	if id == nil {
+		return types.EmptyJID
+	}
+	return *id
+}
+
+func (device *Device) GetLID() types.JID {
+	if device == nil {
+		return types.EmptyJID
+	}
+	return device.LID
 }
 
 func (device *Device) Save() error {
@@ -177,5 +248,6 @@ func (device *Device) Delete() error {
 		return err
 	}
 	device.ID = nil
+	device.LID = types.EmptyJID
 	return nil
 }

@@ -13,6 +13,7 @@ type BasicCallMeta struct {
 	Timestamp   time.Time
 	CallCreator JID
 	CallID      string
+	GroupJID    JID
 }
 
 type CallRemoteMeta struct {

@@ -9,5 +9,10 @@ message DeviceCapabilities {
 		FULL = 2;
 	}
 
+	message LIDMigration {
+		optional uint64 chatDbMigrationTimestamp = 1;
+	}
+
 	optional ChatLockSupportLevel chatLockSupportLevel = 1;
+	optional LIDMigration lidMigration = 2;
 }

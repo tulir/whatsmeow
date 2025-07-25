@@ -69,7 +69,7 @@ func (cli *Client) getRecentMessage(to types.JID, id types.MessageID) RecentMess
 	return msg
 }
 
-func (cli *Client) getMessageForRetry(receipt *events.Receipt, messageID types.MessageID) (RecentMessage, error) {
+func (cli *Client) getMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (RecentMessage, error) {
 	msg := cli.getRecentMessage(receipt.Chat, messageID)
 	if msg.IsEmpty() {
 		waMsg := cli.GetMessageForRetry(receipt.Sender, receipt.Chat, messageID)
@@ -87,10 +87,12 @@ func (cli *Client) getMessageForRetry(receipt *events.Receipt, messageID types.M
 
 const recreateSessionTimeout = 1 * time.Hour
 
-func (cli *Client) shouldRecreateSession(retryCount int, jid types.JID) (reason string, recreate bool) {
+func (cli *Client) shouldRecreateSession(ctx context.Context, retryCount int, jid types.JID) (reason string, recreate bool) {
 	cli.sessionRecreateHistoryLock.Lock()
 	defer cli.sessionRecreateHistoryLock.Unlock()
-	if !cli.Store.ContainsSession(jid.SignalAddress()) {
+	if contains, err := cli.Store.ContainsSession(ctx, jid.SignalAddress()); err != nil {
+		return "", false
+	} else if !contains {
 		cli.sessionRecreateHistory[jid] = time.Now()
 		return "we don't have a Signal session with them", true
 	} else if retryCount < 2 {
@@ -110,7 +112,7 @@ type incomingRetryKey struct {
 }
 
 // handleRetryReceipt handles an incoming retry receipt for an outgoing message.
-func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.Node) error {
+func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Receipt, node *waBinary.Node) error {
 	retryChild, ok := node.GetOptionalChildByTag("retry")
 	if !ok {
 		return &ElementMissingError{Tag: "retry", In: "retry receipt"}
@@ -122,7 +124,7 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	if !ag.OK() {
 		return ag.Error()
 	}
-	msg, err := cli.getMessageForRetry(receipt, messageID)
+	msg, err := cli.getMessageForRetry(ctx, receipt, messageID)
 	if err != nil {
 		return err
 	}
@@ -147,17 +149,12 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		return nil
 	}
 
-	ownID := cli.getOwnID()
-	if ownID.IsEmpty() {
-		return ErrNotLoggedIn
-	}
-
 	var fbSKDM *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage
 	var fbDSM *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage
 	if receipt.IsGroup {
 		builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
-		senderKeyName := protocol.NewSenderKeyName(receipt.Chat.String(), ownID.SignalAddress())
-		signalSKDMessage, err := builder.Create(senderKeyName)
+		senderKeyName := protocol.NewSenderKeyName(receipt.Chat.String(), cli.getOwnLID().SignalAddress())
+		signalSKDMessage, err := builder.Create(ctx, senderKeyName)
 		if err != nil {
 			cli.Log.Warnf("Failed to create sender key distribution message to include in retry of %s in %s to %s: %v", messageID, receipt.Chat, receipt.Sender, err)
 		}
@@ -215,10 +212,10 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 		if err != nil {
 			return fmt.Errorf("failed to read prekey bundle in retry receipt: %w", err)
 		}
-	} else if reason, recreate := cli.shouldRecreateSession(retryCount, receipt.Sender); recreate {
+	} else if reason, recreate := cli.shouldRecreateSession(ctx, retryCount, receipt.Sender); recreate {
 		cli.Log.Debugf("Fetching prekeys for %s for handling retry receipt with no prekey bundle because %s", receipt.Sender, reason)
 		var keys map[types.JID]preKeyResp
-		keys, err = cli.fetchPreKeys(context.TODO(), []types.JID{receipt.Sender})
+		keys, err = cli.fetchPreKeys(ctx, []types.JID{receipt.Sender})
 		if err != nil {
 			return err
 		}
@@ -245,9 +242,19 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	var encrypted *waBinary.Node
 	var includeDeviceIdentity bool
 	if msg.wa != nil {
-		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(plaintext, receipt.Sender, bundle, encAttrs)
+		encryptionIdentity := receipt.Sender
+		if receipt.Sender.Server == types.DefaultUserServer {
+			lidForPN, err := cli.Store.LIDs.GetLIDForPN(ctx, receipt.Sender)
+			if err != nil {
+				cli.Log.Warnf("Failed to get LID for %s: %v", receipt.Sender, err)
+			} else if !lidForPN.IsEmpty() {
+				cli.migrateSessionStore(ctx, receipt.Sender, lidForPN)
+				encryptionIdentity = lidForPN
+			}
+		}
+		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, encAttrs)
 	} else {
-		encrypted, err = cli.encryptMessageForDeviceV3(&waMsgTransport.MessageTransport_Payload{
+		encrypted, err = cli.encryptMessageForDeviceV3(ctx, &waMsgTransport.MessageTransport_Payload{
 			ApplicationPayload: &waCommon.SubProtocol{
 				Payload: plaintext,
 				Version: proto.Int32(FBMessageApplicationVersion),
@@ -280,7 +287,9 @@ func (cli *Client) handleRetryReceipt(receipt *events.Receipt, node *waBinary.No
 	}
 	var content []waBinary.Node
 	if msg.wa != nil {
-		content = cli.getMessageContent(*encrypted, msg.wa, attrs, includeDeviceIdentity, nil)
+		content = cli.getMessageContent(
+			*encrypted, msg.wa, attrs, includeDeviceIdentity, nodeExtraParams{},
+		)
 	} else {
 		content = []waBinary.Node{
 			*encrypted,
@@ -325,7 +334,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 		cli.pendingPhoneRerequestsLock.Unlock()
 		return
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(cli.BackgroundEventCtx)
 	defer cancel()
 	cli.pendingPhoneRerequests[info.ID] = cancel
 	cli.pendingPhoneRerequestsLock.Unlock()
@@ -341,6 +350,10 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 		cli.Log.Debugf("Cancelled delayed request for message %s from phone", info.ID)
 		return
 	}
+	cli.immediateRequestMessageFromPhone(ctx, info)
+}
+
+func (cli *Client) immediateRequestMessageFromPhone(ctx context.Context, info *types.MessageInfo) {
 	_, err := cli.SendMessage(
 		ctx,
 		cli.getOwnID().ToNonAD(),
@@ -352,6 +365,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 	} else {
 		cli.Log.Debugf("Requested message %s from phone", info.ID)
 	}
+	return
 }
 
 func (cli *Client) clearDelayedMessageRequests() {
@@ -363,7 +377,7 @@ func (cli *Client) clearDelayedMessageRequests() {
 }
 
 // sendRetryReceipt sends a retry receipt for an incoming message.
-func (cli *Client) sendRetryReceipt(node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
+func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
 	id, _ := node.Attrs["id"].(string)
 	children := node.GetChildren()
 	var retryCountInMsg int
@@ -385,7 +399,11 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node, info *types.MessageInfo
 		return
 	}
 	if retryCount == 1 {
-		go cli.delayedRequestMessageFromPhone(info)
+		if cli.SynchronousAck {
+			cli.immediateRequestMessageFromPhone(ctx, info)
+		} else {
+			go cli.delayedRequestMessageFromPhone(info)
+		}
 	}
 
 	var registrationIDBytes [4]byte
@@ -415,7 +433,7 @@ func (cli *Client) sendRetryReceipt(node *waBinary.Node, info *types.MessageInfo
 		},
 	}
 	if retryCount > 1 || forceIncludeIdentity {
-		if key, err := cli.Store.PreKeys.GenOnePreKey(); err != nil {
+		if key, err := cli.Store.PreKeys.GenOnePreKey(ctx); err != nil {
 			cli.Log.Errorf("Failed to get prekey for retry receipt: %v", err)
 		} else if deviceIdentity, err := proto.Marshal(cli.Store.Account); err != nil {
 			cli.Log.Errorf("Failed to marshal account info: %v", err)

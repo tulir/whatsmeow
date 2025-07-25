@@ -84,6 +84,7 @@ message VideoTransport {
 		optional bytes sidecar = 6;
 		optional Attribution gifAttribution = 7;
 		optional string accessibilityLabel = 8;
+		optional bool isHd = 9;
 	}
 
 	message Integral {

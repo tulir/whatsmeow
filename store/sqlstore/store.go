@@ -14,11 +14,11 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/lib/pq"
+	"go.mau.fi/util/exsync"
 	"strings"
 	"sync"
 	"time"
 
-	_ "context"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/keys"
@@ -47,6 +47,8 @@ type SQLStore struct {
 
 	contactCache     map[types.JID]*types.ContactInfo
 	contactCacheLock sync.Mutex
+
+	migratedPNSessionsCache *exsync.Set[string]
 }
 
 // NewSQLStore creates a new SQLStore with the given database container and user JID.
@@ -59,18 +61,12 @@ func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 		businessId:   c.businessId,
 		JID:          jid.String(),
 		contactCache: make(map[types.JID]*types.ContactInfo),
+
+		migratedPNSessionsCache: exsync.NewSet[string](),
 	}
 }
 
-var (
-	_ store.IdentityStore        = (*SQLStore)(nil)
-	_ store.SessionStore         = (*SQLStore)(nil)
-	_ store.PreKeyStore          = (*SQLStore)(nil)
-	_ store.SenderKeyStore       = (*SQLStore)(nil)
-	_ store.AppStateSyncKeyStore = (*SQLStore)(nil)
-	_ store.AppStateStore        = (*SQLStore)(nil)
-	_ store.ContactStore         = (*SQLStore)(nil)
-)
+var _ store.AllSessionSpecificStores = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `
@@ -125,6 +121,30 @@ const (
 	`
 	deleteAllSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3`
 	deleteSessionQuery     = `DELETE FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
+
+	migratePNToLIDSessionsQuery = `
+		INSERT INTO whatsmeow_sessions (business_id, our_jid, their_id, session)
+		SELECT our_jid, replace(their_id, $3, $4), session
+		FROM whatsmeow_sessions
+		WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3 || ':%'
+		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET session=excluded.session
+	`
+	deleteAllIdentityKeysQuery      = `DELETE FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3`
+	migratePNToLIDIdentityKeysQuery = `
+		INSERT INTO whatsmeow_identity_keys (business_id, our_jid, their_id, identity)
+		SELECT our_jid, replace(their_id, $3, $4), identity
+		FROM whatsmeow_identity_keys
+		WHERE business_id=$1, our_jid=$2 AND their_id LIKE $3 || ':%'
+		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET identity=excluded.identity
+	`
+	deleteAllSenderKeysQuery      = `DELETE FROM whatsmeow_sender_keys WHERE business_id=$1 AND our_jid=$2 AND sender_id LIKE $3`
+	migratePNToLIDSenderKeysQuery = `
+		INSERT INTO whatsmeow_sender_keys (business_id, our_jid, chat_id, sender_id, sender_key)
+		SELECT our_jid, chat_id, replace(sender_id, $2, $3), sender_key
+		FROM whatsmeow_sender_keys
+		WHERE business_id=$1 AND our_jid=$2 AND sender_id LIKE $3 || ':%'
+		ON CONFLICT (business_id, our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
+	`
 )
 
 func (s *SQLStore) GetSession(address string) (session []byte, err error) {
@@ -152,7 +172,23 @@ func (s *SQLStore) PutSession(address string, session []byte) error {
 }
 
 func (s *SQLStore) DeleteAllSessions(phone string) error {
+	return s.deleteAllSessions(phone)
+}
+
+func (s *SQLStore) deleteAllSessions(phone string) error {
 	row, err := s.dbPool.Query(context.Background(), deleteAllSessionsQuery, s.businessId, s.JID, phone+":%")
+	defer row.Close()
+	return err
+}
+
+func (s *SQLStore) deleteAllSenderKeys(phone string) error {
+	row, err := s.dbPool.Query(context.Background(), deleteAllSenderKeysQuery, s.businessId, s.JID, phone+":%")
+	defer row.Close()
+	return err
+}
+
+func (s *SQLStore) deleteAllIdentityKeys(phone string) error {
+	row, err := s.dbPool.Query(context.Background(), deleteAllIdentityKeysQuery, s.businessId, s.JID, phone+":%")
 	defer row.Close()
 	return err
 }
@@ -161,6 +197,71 @@ func (s *SQLStore) DeleteSession(address string) error {
 	row, err := s.dbPool.Query(context.Background(), deleteSessionQuery, s.businessId, s.JID, address)
 	defer row.Close()
 	return err
+}
+
+func (s *SQLStore) MigratePNToLID(pn, lid types.JID) error {
+	pnSignal := pn.SignalAddressUser()
+	if !s.migratedPNSessionsCache.Add(pnSignal) {
+		return nil
+	}
+	var sessionsUpdated, identityKeysUpdated, senderKeysUpdated int64
+	lidSignal := lid.SignalAddressUser()
+
+	tx, err := s.dbPool.Begin(context.Background())
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		// Rollback is safe to call even after commit, so always call as a defer.
+		_ = tx.Rollback(context.Background())
+	}()
+
+	// Sessions migration
+	res, err := tx.Exec(context.Background(), migratePNToLIDSessionsQuery, s.businessId, s.JID, pnSignal, lidSignal)
+	if err != nil {
+		return fmt.Errorf("failed to migrate sessions: %w", err)
+	}
+	sessionsUpdated = res.RowsAffected()
+
+	err = s.deleteAllSessions(pnSignal)
+	if err != nil {
+		return fmt.Errorf("failed to delete extra sessions: %w", err)
+	}
+
+	// IdentityKey migration
+	res, err = tx.Exec(context.Background(), migratePNToLIDIdentityKeysQuery, s.businessId, s.JID, pnSignal, lidSignal)
+	if err != nil {
+		return fmt.Errorf("failed to migrate identity keys: %w", err)
+	}
+	identityKeysUpdated = res.RowsAffected()
+
+	err = s.deleteAllIdentityKeys(pnSignal)
+	if err != nil {
+		return fmt.Errorf("failed to delete extra identity keys: %w", err)
+	}
+
+	// SenderKey migration
+	res, err = tx.Exec(context.Background(), migratePNToLIDSenderKeysQuery, s.businessId, s.JID, pnSignal, lidSignal)
+	if err != nil {
+		return fmt.Errorf("failed to migrate sender keys: %w", err)
+	}
+	senderKeysUpdated = res.RowsAffected()
+
+	err = s.deleteAllSenderKeys(pnSignal)
+	if err != nil {
+		return fmt.Errorf("failed to delete extra sender keys: %w", err)
+	}
+
+	if err := tx.Commit(context.Background()); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	if sessionsUpdated > 0 || senderKeysUpdated > 0 || identityKeysUpdated > 0 {
+		s.log.Infof("Migrated %d sessions, %d identity keys and %d sender keys from %s to %s", sessionsUpdated, identityKeysUpdated, senderKeysUpdated, pnSignal, lidSignal)
+	} else {
+		s.log.Debugf("No sessions or sender keys found to migrate from %s to %s", pnSignal, lidSignal)
+	}
+	return nil
 }
 
 const (
@@ -383,10 +484,6 @@ func (s *SQLStore) DeleteAppStateVersion(name string) error {
 	return err
 }
 
-type execable interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-}
-
 func (s *SQLStore) putAppStateMutationMACs(tx pgx.Tx, name string, version uint64, mutations []store.AppStateMutationMAC) error {
 	values := make([]interface{}, 4+len(mutations)*2)
 	queryParts := make([]string, len(mutations))
@@ -605,12 +702,19 @@ func (s *SQLStore) PutAllContactNames(contacts []store.ContactEntry) error {
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 	} else if len(contacts) > 0 {
-		tx, _ := s.dbPool.Begin(context.Background())
-		err := s.putContactNamesBatch(tx, contacts)
+		tx, err := s.dbPool.Begin(context.Background())
 		if err != nil {
+			return fmt.Errorf("failed to start transaction: %w", err)
+		}
+		err = s.putContactNamesBatch(tx, contacts)
+		if err != nil {
+			_ = tx.Rollback(context.Background())
 			return err
 		}
-		tx.Commit(context.Background())
+		err = tx.Commit(context.Background())
+		if err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
 	} else {
 		return nil
 	}
@@ -695,7 +799,9 @@ const (
 
 func (s *SQLStore) PutMutedUntil(chat types.JID, mutedUntil time.Time) error {
 	var val int64
-	if !mutedUntil.IsZero() {
+	if mutedUntil == store.MutedForever {
+		val = -1
+	} else if !mutedUntil.IsZero() {
 		val = mutedUntil.Unix()
 	}
 	row, err := s.dbPool.Query(context.Background(), fmt.Sprintf(putChatSettingQuery, "muted_until"), s.businessId, s.JID, chat, val)
@@ -726,7 +832,9 @@ func (s *SQLStore) GetChatSettings(chat types.JID) (settings types.LocalChatSett
 	} else {
 		settings.Found = true
 	}
-	if mutedUntil != 0 {
+	if mutedUntil < 0 {
+		settings.MutedUntil = store.MutedForever
+	} else if mutedUntil > 0 {
 		settings.MutedUntil = time.Unix(mutedUntil, 0)
 	}
 	return
@@ -739,7 +847,16 @@ const (
 		ON CONFLICT (business_id, our_jid, chat_jid, sender_jid, message_id) DO NOTHING
 	`
 	getMsgSecret = `
-		SELECT key FROM whatsmeow_message_secrets WHERE business_id=$1 AND our_jid=$2 AND chat_jid=$3 AND sender_jid=$4 AND message_id=$5
+		SELECT key, sender_jid
+		FROM whatsmeow_message_secrets
+		WHERE business_id=$1 AND our_jid=$2 AND chat_jid=$3 AND message_id=$4 AND (sender_jid=$4 OR sender_jid=(
+			CASE
+				WHEN $4 LIKE '%@lid'
+					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($4, '@lid', ''))
+				WHEN $4 LIKE '%@s.whatsapp.net'
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE lid=replace($4, '@s.whatsapp.net', ''))
+			END
+		))
 	`
 )
 
@@ -765,7 +882,7 @@ func (s *SQLStore) PutMessageSecret(chat, sender types.JID, id types.MessageID, 
 	return
 }
 
-func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) (secret []byte, err error) {
+func (s *SQLStore) GetMessageSecret(chat, sender types.JID, id types.MessageID) (secret []byte, jid types.JID, err error) {
 	row := s.dbPool.QueryRow(context.Background(), getMsgSecret, s.businessId, s.JID, chat.ToNonAD(), sender.ToNonAD(), id)
 	err = row.Scan(&secret)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -814,4 +931,79 @@ func (s *SQLStore) GetPrivacyToken(user types.JID) (*store.PrivacyToken, error) 
 		token.Timestamp = time.Unix(ts, 0)
 		return &token, nil
 	}
+}
+
+const (
+	getBufferedEventQuery = `
+		SELECT plaintext, server_timestamp, insert_timestamp FROM whatsmeow_event_buffer WHERE business_id = $1 AND our_jid = $2 AND ciphertext_hash = $3
+	`
+	putBufferedEventQuery = `
+		INSERT INTO whatsmeow_event_buffer (business_id, our_jid, ciphertext_hash, plaintext, server_timestamp, insert_timestamp)
+		VALUES ($1, $2, $3, $4, $5, $6)
+	`
+	clearBufferedEventPlaintextQuery = `
+		UPDATE whatsmeow_event_buffer SET plaintext = NULL WHERE business_id = $1 AND our_jid = $2 AND ciphertext_hash = $3
+	`
+	deleteOldBufferedHashesQuery = `
+		DELETE FROM whatsmeow_event_buffer WHERE insert_timestamp < $1
+	`
+)
+
+func (s *SQLStore) GetBufferedEvent(ciphertextHash [32]byte) (*store.BufferedEvent, error) {
+	var insertTimeMS, serverTimeSeconds int64
+	var buf store.BufferedEvent
+	row := s.dbPool.QueryRow(context.Background(), getBufferedEventQuery, s.businessId, s.JID, ciphertextHash[:])
+	err := row.Scan(&buf.Plaintext, &serverTimeSeconds, &insertTimeMS)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	buf.ServerTime = time.Unix(serverTimeSeconds, 0)
+	buf.InsertTime = time.UnixMilli(insertTimeMS)
+	return &buf, nil
+}
+
+func (s *SQLStore) PutBufferedEvent(ciphertextHash [32]byte, plaintext []byte, serverTimestamp time.Time) error {
+	row, err := s.dbPool.Query(context.Background(), putBufferedEventQuery, s.businessId, s.JID, ciphertextHash[:], plaintext, serverTimestamp.Unix(), time.Now().UnixMilli())
+	defer row.Close()
+	return err
+}
+
+func (s *SQLStore) DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error {
+	tx, err := s.dbPool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer func() {
+		// Rollback is safe to call even after commit, so always call as a defer.
+		_ = tx.Rollback(ctx)
+	}()
+
+	// Execute the function with the transaction context
+	err = fn(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Commit the transaction
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}
+
+func (s *SQLStore) ClearBufferedEventPlaintext(ciphertextHash [32]byte) error {
+	row, err := s.dbPool.Query(context.Background(), clearBufferedEventPlaintextQuery, s.businessId, s.JID, ciphertextHash[:])
+	defer row.Close()
+	return err
+}
+
+func (s *SQLStore) DeleteOldBufferedHashes() error {
+	// The WhatsApp servers only buffer events for 14 days,
+	// so we can safely delete anything older than that.
+	row, err := s.dbPool.Query(context.Background(), deleteOldBufferedHashesQuery, time.Now().Add(-14*24*time.Hour).UnixMilli())
+	defer row.Close()
+	return err
 }
