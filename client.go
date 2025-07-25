@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"go.mau.fi/util/exhttp"
+	"go.mau.fi/util/exsync"
 	"go.mau.fi/util/random"
 	"golang.org/x/net/proxy"
 
@@ -38,12 +40,13 @@ import (
 
 // EventHandler is a function that can handle events from WhatsApp.
 type EventHandler func(evt any)
+type EventHandlerWithSuccessStatus func(evt any) bool
 type nodeHandler func(node *waBinary.Node)
 
 var nextHandlerID uint32
 
 type wrappedEventHandler struct {
-	fn EventHandler
+	fn EventHandlerWithSuccessStatus
 	id uint32
 }
 
@@ -65,15 +68,18 @@ type Client struct {
 	wsDialer   *websocket.Dialer
 
 	isLoggedIn            atomic.Bool
-	expectedDisconnect    atomic.Bool
+	expectedDisconnect    *exsync.Event
 	EnableAutoReconnect   bool
+	InitialAutoReconnect  bool
 	LastSuccessfulConnect time.Time
 	AutoReconnectErrors   int
 	// AutoReconnectHook is called when auto-reconnection fails. If the function returns false,
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
 	// If SynchronousAck is set, acks for messages will only be sent after all event handlers return.
-	SynchronousAck bool
+	SynchronousAck             bool
+	EnableDecryptedEventBuffer bool
+	lastDecryptedBufferClear   time.Time
 
 	DisableLoginAutoReconnect bool
 
@@ -92,6 +98,7 @@ type Client struct {
 
 	historySyncNotifications  chan *waE2E.HistorySyncNotification
 	historySyncHandlerStarted atomic.Bool
+	ManualHistorySyncDownload bool
 
 	uploadPreKeysLock sync.Mutex
 	lastPreKeyUpload  time.Time
@@ -120,10 +127,10 @@ type Client struct {
 
 	privacySettingsCache atomic.Value
 
-	groupParticipantsCache     map[types.JID][]types.JID
-	groupParticipantsCacheLock sync.Mutex
-	userDevicesCache           map[types.JID]deviceCache
-	userDevicesCacheLock       sync.Mutex
+	groupCache           map[types.JID]*groupMetaCache
+	groupCacheLock       sync.Mutex
+	userDevicesCache     map[types.JID]deviceCache
+	userDevicesCacheLock sync.Mutex
 
 	recentMessagesMap  map[recentMessageKey]RecentMessage
 	recentMessagesList [recentMessagesSize]recentMessageKey
@@ -155,6 +162,10 @@ type Client struct {
 	// Should SubscribePresence return an error if no privacy token is stored for the user?
 	ErrorOnSubscribePresenceWithoutToken bool
 
+	SendReportingTokens bool
+
+	BackgroundEventCtx context.Context
+
 	phoneLinkingCache *phoneLinkingCache
 
 	uniqueID  string
@@ -171,7 +182,13 @@ type Client struct {
 	// separate library for all the non-e2ee-related stuff like logging in.
 	// The library is currently embedded in mautrix-meta (https://github.com/mautrix/meta), but may be separated later.
 	MessengerConfig *MessengerConfig
-	RefreshCAT      func() error
+	RefreshCAT      func(context.Context) error
+}
+
+type groupMetaCache struct {
+	AddressingMode             types.AddressingMode
+	CommunityAnnouncementGroup bool
+	Members                    []types.JID
 }
 
 type MessengerConfig struct {
@@ -209,25 +226,26 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		http: &http.Client{
 			Transport: (http.DefaultTransport.(*http.Transport)).Clone(),
 		},
-		proxy:           http.ProxyFromEnvironment,
-		Store:           deviceStore,
-		Log:             log,
-		recvLog:         log.Sub("Recv"),
-		sendLog:         log.Sub("Send"),
-		uniqueID:        fmt.Sprintf("%d.%d-", uniqueIDPrefix[0], uniqueIDPrefix[1]),
-		responseWaiters: make(map[string]chan<- *waBinary.Node),
-		eventHandlers:   make([]wrappedEventHandler, 0, 1),
-		messageRetries:  make(map[string]int),
-		handlerQueue:    make(chan *waBinary.Node, handlerQueueSize),
-		appStateProc:    appstate.NewProcessor(deviceStore, log.Sub("AppState")),
-		socketWait:      make(chan struct{}),
+		proxy:              http.ProxyFromEnvironment,
+		Store:              deviceStore,
+		Log:                log,
+		recvLog:            log.Sub("Recv"),
+		sendLog:            log.Sub("Send"),
+		uniqueID:           fmt.Sprintf("%d.%d-", uniqueIDPrefix[0], uniqueIDPrefix[1]),
+		responseWaiters:    make(map[string]chan<- *waBinary.Node),
+		eventHandlers:      make([]wrappedEventHandler, 0, 1),
+		messageRetries:     make(map[string]int),
+		handlerQueue:       make(chan *waBinary.Node, handlerQueueSize),
+		appStateProc:       appstate.NewProcessor(deviceStore, log.Sub("AppState")),
+		socketWait:         make(chan struct{}),
+		expectedDisconnect: exsync.NewEvent(),
 
 		incomingRetryRequestCounter: make(map[incomingRetryKey]int),
 
 		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
-		groupParticipantsCache: make(map[types.JID][]types.JID),
-		userDevicesCache:       make(map[types.JID]deviceCache),
+		groupCache:       make(map[types.JID]*groupMetaCache),
+		userDevicesCache: make(map[types.JID]deviceCache),
 
 		recentMessagesMap:      make(map[recentMessageKey]RecentMessage, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
@@ -238,6 +256,8 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		EnableAutoReconnect: true,
 		AutoTrustIdentity:   true,
+
+		BackgroundEventCtx: context.Background(),
 	}
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
@@ -378,11 +398,14 @@ func (cli *Client) getOwnID() types.JID {
 	if cli == nil {
 		return types.EmptyJID
 	}
-	id := cli.Store.ID
-	if id == nil {
+	return cli.Store.GetJID()
+}
+
+func (cli *Client) getOwnLID() types.JID {
+	if cli == nil {
 		return types.EmptyJID
 	}
-	return *id
+	return cli.Store.GetLID()
 }
 
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
@@ -397,6 +420,8 @@ func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 		select {
 		case <-ch:
 		case <-timeoutChan:
+			return false
+		case <-cli.expectedDisconnect.GetChan():
 			return false
 		}
 		cli.socketLock.RLock()
@@ -415,8 +440,28 @@ func (cli *Client) Connect() error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
+
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
+
+	err := cli.unlockedConnect()
+	if exhttp.IsNetworkError(err) && cli.InitialAutoReconnect && cli.EnableAutoReconnect {
+		cli.Log.Errorf("Initial connection failed but reconnecting in background (%v)", err)
+		go cli.dispatchEvent(&events.Disconnected{})
+		go cli.autoReconnect()
+		return nil
+	}
+	return err
+}
+
+func (cli *Client) connect() error {
+	cli.socketLock.Lock()
+	defer cli.socketLock.Unlock()
+
+	return cli.unlockedConnect()
+}
+
+func (cli *Client) unlockedConnect() error {
 	if cli.socket != nil {
 		if !cli.socket.IsConnected() {
 			cli.unlockedDisconnect()
@@ -490,15 +535,15 @@ func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
 }
 
 func (cli *Client) expectDisconnect() {
-	cli.expectedDisconnect.Store(true)
+	cli.expectedDisconnect.Set()
 }
 
 func (cli *Client) resetExpectedDisconnect() {
-	cli.expectedDisconnect.Store(false)
+	cli.expectedDisconnect.Clear()
 }
 
 func (cli *Client) isExpectedDisconnect() bool {
-	return cli.expectedDisconnect.Load()
+	return cli.expectedDisconnect.IsSet()
 }
 
 func (cli *Client) autoReconnect() {
@@ -509,12 +554,17 @@ func (cli *Client) autoReconnect() {
 		autoReconnectDelay := time.Duration(cli.AutoReconnectErrors) * 2 * time.Second
 		cli.Log.Debugf("Automatically reconnecting after %v", autoReconnectDelay)
 		cli.AutoReconnectErrors++
-		time.Sleep(autoReconnectDelay)
-		err := cli.Connect()
+		if cli.expectedDisconnect.WaitTimeout(autoReconnectDelay) {
+			return
+		}
+		err := cli.connect()
 		if errors.Is(err, ErrAlreadyConnected) {
 			cli.Log.Debugf("Connect() said we're already connected after autoreconnect sleep")
 			return
 		} else if err != nil {
+			if cli.expectedDisconnect.IsSet() {
+				return
+			}
 			cli.Log.Errorf("Error reconnecting after autoreconnect sleep: %v", err)
 			if cli.AutoReconnectHook != nil && !cli.AutoReconnectHook(err) {
 				cli.Log.Debugf("AutoReconnectHook returned false, not reconnecting")
@@ -543,10 +593,11 @@ func (cli *Client) IsConnected() bool {
 // This will not emit any events, the Disconnected event is only used when the
 // connection is closed by the server or a network error.
 func (cli *Client) Disconnect() {
-	if cli == nil || cli.socket == nil {
+	if cli == nil {
 		return
 	}
 	cli.socketLock.Lock()
+	cli.expectDisconnect()
 	cli.unlockedDisconnect()
 	cli.socketLock.Unlock()
 	cli.clearDelayedMessageRequests()
@@ -568,7 +619,7 @@ func (cli *Client) unlockedDisconnect() {
 //
 // Note that this will not emit any events. The LoggedOut event is only used for external logouts
 // (triggered by the user from the main device or by WhatsApp servers).
-func (cli *Client) Logout() error {
+func (cli *Client) Logout(ctx context.Context) error {
 	if cli == nil {
 		return ErrClientIsNil
 	} else if cli.MessengerConfig != nil {
@@ -594,7 +645,7 @@ func (cli *Client) Logout() error {
 		return fmt.Errorf("error sending logout request: %w", err)
 	}
 	cli.Disconnect()
-	err = cli.Store.Delete()
+	err = cli.Store.Delete(ctx)
 	if err != nil {
 		return fmt.Errorf("error deleting data from store: %w", err)
 	}
@@ -633,6 +684,13 @@ func (cli *Client) Logout() error {
 //		// Handle event and access mycli.WAClient
 //	}
 func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
+	return cli.AddEventHandlerWithSuccessStatus(func(evt any) bool {
+		handler(evt)
+		return true
+	})
+}
+
+func (cli *Client) AddEventHandlerWithSuccessStatus(handler EventHandlerWithSuccessStatus) uint32 {
 	nextID := atomic.AddUint32(&nextHandlerID, 1)
 	cli.eventHandlersLock.Lock()
 	cli.eventHandlers = append(cli.eventHandlers, wrappedEventHandler{handler, nextID})
@@ -779,7 +837,7 @@ func (cli *Client) sendNode(node waBinary.Node) error {
 	return err
 }
 
-func (cli *Client) dispatchEvent(evt any) {
+func (cli *Client) dispatchEvent(evt any) (handlerFailed bool) {
 	cli.eventHandlersLock.RLock()
 	defer func() {
 		cli.eventHandlersLock.RUnlock()
@@ -789,8 +847,11 @@ func (cli *Client) dispatchEvent(evt any) {
 		}
 	}()
 	for _, handler := range cli.eventHandlers {
-		handler.fn(evt)
+		if !handler.fn(evt) {
+			return true
+		}
 	}
+	return false
 }
 
 // ParseWebMessage parses a WebMessageInfo object into *events.Message to match what real-time messages have.
@@ -816,7 +877,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 			IsFromMe: webMsg.GetKey().GetFromMe(),
 			IsGroup:  chatJID.Server == types.GroupServer,
 		},
-		ID:        webMsg.GetKey().GetId(),
+		ID:        webMsg.GetKey().GetID(),
 		PushName:  webMsg.GetPushName(),
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
@@ -825,7 +886,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		if info.Sender.IsEmpty() {
 			return nil, ErrNotLoggedIn
 		}
-	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.NewsletterServer {
+	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer || chatJID.Server == types.NewsletterServer {
 		info.Sender = chatJID
 	} else if webMsg.GetParticipant() != "" {
 		info.Sender, err = types.ParseJID(webMsg.GetParticipant())
@@ -836,6 +897,10 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse sender of message %s: %v", info.ID, err)
+	}
+	if pk := webMsg.GetCommentMetadata().GetCommentParentKey(); pk != nil {
+		info.MsgMetaInfo.ThreadMessageID = pk.GetID()
+		info.MsgMetaInfo.ThreadMessageSenderJID, _ = types.ParseJID(pk.GetParticipant())
 	}
 	evt := &events.Message{
 		RawMessage:   webMsg.GetMessage(),
@@ -848,4 +913,21 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		evt.Message = evt.Message.GetProtocolMessage().GetEditedMessage()
 	}
 	return evt, nil
+}
+
+func (cli *Client) StoreLIDPNMapping(ctx context.Context, first, second types.JID) {
+	var lid, pn types.JID
+	if first.Server == types.HiddenUserServer && second.Server == types.DefaultUserServer {
+		lid = first
+		pn = second
+	} else if first.Server == types.DefaultUserServer && second.Server == types.HiddenUserServer {
+		lid = second
+		pn = first
+	} else {
+		return
+	}
+	err := cli.Store.LIDs.PutLIDMapping(ctx, lid, pn)
+	if err != nil {
+		cli.Log.Errorf("Failed to store LID-PN mapping for %s -> %s: %v", lid, pn, err)
+	}
 }

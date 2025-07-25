@@ -1,0 +1,59 @@
+syntax = "proto2";
+package InstamadilloSupplementMessage;
+option go_package = "go.mau.fi/whatsmeow/proto/instamadilloSupplementMessage";
+
+import "instamadilloCoreTypeMedia/InstamadilloCoreTypeMedia.proto";
+
+message SupplementMessagePayload {
+	optional string targetMessageOtid = 1;
+	optional string uniquingKeyForSupplementalData = 2;
+	optional SupplementMessageContent content = 3;
+	optional string targetMessageWaServerTimeSec = 4;
+	optional string targetWaThreadID = 5;
+}
+
+message SupplementMessageContent {
+	oneof supplementMessageContent {
+		Reaction reaction = 1;
+		ContentView contentView = 2;
+		EditText editText = 3;
+		MediaReaction mediaReaction = 4;
+		OriginalTransportPayload originalTransportPayload = 5;
+		MediaInterventions mediaInterventions = 6;
+	}
+}
+
+message MediaReaction {
+	optional string mediaID = 1;
+	optional Reaction reaction = 2;
+}
+
+message Reaction {
+	optional string reactionType = 1;
+	optional string reactionStatus = 2;
+	optional string emoji = 3;
+	optional string superReactType = 4;
+	optional string actionLogOtid = 5;
+}
+
+message ContentView {
+	optional bool seen = 1;
+	optional bool screenshotted = 2;
+	optional bool replayed = 3;
+	optional string mimetype = 4;
+	optional string objectID = 5;
+}
+
+message EditText {
+	optional string newContent = 1;
+	optional int32 editCount = 2;
+}
+
+message OriginalTransportPayload {
+	optional bytes originalTransportPayload = 1;
+}
+
+message MediaInterventions {
+	optional string mediaID = 1;
+	optional InstamadilloCoreTypeMedia.Media.InterventionType interventionType = 2;
+}

@@ -7,8 +7,10 @@
 package whatsmeow
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"slices"
 
 	"google.golang.org/protobuf/proto"
 
@@ -20,7 +22,7 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
+func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary.Node) {
 	from := node.AttrGetter().JID("from")
 	if from == types.ServerJID {
 		count := node.GetChildByTag("count")
@@ -32,15 +34,15 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 		}
 		cli.Log.Infof("Got prekey count from server: %s", node.XMLString())
 		if otksLeft < MinPreKeyCount {
-			cli.uploadPreKeys()
+			cli.uploadPreKeys(ctx)
 		}
 	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
 		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node.XMLString())
-		err := cli.Store.Identities.DeleteAllIdentities(from.User)
+		err := cli.Store.Identities.DeleteAllIdentities(ctx, from.User)
 		if err != nil {
 			cli.Log.Warnf("Failed to delete all identities of %s from store after identity change: %v", from, err)
 		}
-		err = cli.Store.Sessions.DeleteAllSessions(from.User)
+		err = cli.Store.Sessions.DeleteAllSessions(ctx, from.User)
 		if err != nil {
 			cli.Log.Warnf("Failed to delete all sessions of %s from store after identity change: %v", from, err)
 		}
@@ -51,13 +53,13 @@ func (cli *Client) handleEncryptNotification(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
+func (cli *Client) handleAppStateNotification(ctx context.Context, node *waBinary.Node) {
 	for _, collection := range node.GetChildrenByTag("collection") {
 		ag := collection.AttrGetter()
 		name := appstate.WAPatchName(ag.String("name"))
 		version := ag.Uint64("version")
 		cli.Log.Debugf("Got server sync notification that app state %s has updated to version %d", name, version)
-		err := cli.FetchAppState(name, false, false)
+		err := cli.FetchAppState(ctx, name, false, false)
 		if errors.Is(err, ErrIQDisconnected) || errors.Is(err, ErrNotConnected) {
 			// There are some app state changes right before a remote logout, so stop syncing if we're disconnected.
 			cli.Log.Debugf("Failed to sync app state after notification: %v, not trying to sync other states", err)
@@ -68,7 +70,7 @@ func (cli *Client) handleAppStateNotification(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handlePictureNotification(node *waBinary.Node) {
+func (cli *Client) handlePictureNotification(ctx context.Context, node *waBinary.Node) {
 	ts := node.AttrGetter().UnixTime("t")
 	for _, child := range node.GetChildren() {
 		ag := child.AttrGetter()
@@ -94,15 +96,25 @@ func (cli *Client) handlePictureNotification(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
+func (cli *Client) handleDeviceNotification(ctx context.Context, node *waBinary.Node) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 	ag := node.AttrGetter()
 	from := ag.JID("from")
+	fromLID := ag.OptionalJID("lid")
+	if fromLID != nil {
+		cli.StoreLIDPNMapping(ctx, *fromLID, from)
+	}
 	cached, ok := cli.userDevicesCache[from]
 	if !ok {
 		cli.Log.Debugf("No device list cached for %s, ignoring device list notification", from)
 		return
+	}
+	var cachedLID deviceCache
+	var cachedLIDHash string
+	if fromLID != nil {
+		cachedLID = cli.userDevicesCache[*fromLID]
+		cachedLIDHash = participantListHashV2(cachedLID.devices)
 	}
 	cachedParticipantHash := participantListHashV2(cached.devices)
 	for _, child := range node.GetChildren() {
@@ -112,16 +124,24 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 		}
 		cag := child.AttrGetter()
 		deviceHash := cag.String("device_hash")
+		deviceLIDHash := cag.OptionalString("device_lid_hash")
 		deviceChild, _ := child.GetOptionalChildByTag("device")
 		changedDeviceJID := deviceChild.AttrGetter().JID("jid")
+		changedDeviceLID := deviceChild.AttrGetter().OptionalJID("lid")
 		switch child.Tag {
 		case "add":
 			cached.devices = append(cached.devices, changedDeviceJID)
+			if changedDeviceLID != nil {
+				cachedLID.devices = append(cachedLID.devices, *changedDeviceLID)
+			}
 		case "remove":
-			for i, jid := range cached.devices {
-				if jid == changedDeviceJID {
-					cached.devices = append(cached.devices[:i], cached.devices[i+1:]...)
-				}
+			cached.devices = slices.DeleteFunc(cached.devices, func(existing types.JID) bool {
+				return existing == changedDeviceJID
+			})
+			if changedDeviceLID != nil {
+				cachedLID.devices = slices.DeleteFunc(cachedLID.devices, func(existing types.JID) bool {
+					return existing == *changedDeviceLID
+				})
 			}
 		case "update":
 			// ???
@@ -134,10 +154,20 @@ func (cli *Client) handleDeviceNotification(node *waBinary.Node) {
 			cli.Log.Warnf("%s's device list hash changed from %s to %s (%s). New hash doesn't match (%s)", from, cachedParticipantHash, deviceHash, child.Tag, newParticipantHash)
 			delete(cli.userDevicesCache, from)
 		}
+		if fromLID != nil && changedDeviceLID != nil && deviceLIDHash != "" {
+			newLIDParticipantHash := participantListHashV2(cachedLID.devices)
+			if newLIDParticipantHash == deviceLIDHash {
+				cli.Log.Debugf("%s's device list hash changed from %s to %s (%s). New hash matches", fromLID, cachedLIDHash, deviceLIDHash, child.Tag)
+				cli.userDevicesCache[*fromLID] = cachedLID
+			} else {
+				cli.Log.Warnf("%s's device list hash changed from %s to %s (%s). New hash doesn't match (%s)", fromLID, cachedLIDHash, deviceLIDHash, child.Tag, newLIDParticipantHash)
+				delete(cli.userDevicesCache, *fromLID)
+			}
+		}
 	}
 }
 
-func (cli *Client) handleFBDeviceNotification(node *waBinary.Node) {
+func (cli *Client) handleFBDeviceNotification(ctx context.Context, node *waBinary.Node) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 	jid := node.AttrGetter().JID("from")
@@ -145,7 +175,7 @@ func (cli *Client) handleFBDeviceNotification(node *waBinary.Node) {
 	cli.userDevicesCache[jid] = userDevices
 }
 
-func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
+func (cli *Client) handleOwnDevicesNotification(ctx context.Context, node *waBinary.Node) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
 	ownID := cli.getOwnID().ToNonAD()
@@ -177,7 +207,7 @@ func (cli *Client) handleOwnDevicesNotification(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleBlocklist(node *waBinary.Node) {
+func (cli *Client) handleBlocklist(ctx context.Context, node *waBinary.Node) {
 	ag := node.AttrGetter()
 	evt := events.Blocklist{
 		Action:    events.BlocklistAction(ag.OptionalString("action")),
@@ -199,29 +229,30 @@ func (cli *Client) handleBlocklist(node *waBinary.Node) {
 	cli.dispatchEvent(&evt)
 }
 
-func (cli *Client) handleAccountSyncNotification(node *waBinary.Node) {
+func (cli *Client) handleAccountSyncNotification(ctx context.Context, node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		switch child.Tag {
 		case "privacy":
-			cli.handlePrivacySettingsNotification(&child)
+			cli.handlePrivacySettingsNotification(ctx, &child)
 		case "devices":
-			cli.handleOwnDevicesNotification(&child)
+			cli.handleOwnDevicesNotification(ctx, &child)
 		case "picture":
 			cli.dispatchEvent(&events.Picture{
 				Timestamp: node.AttrGetter().UnixTime("t"),
 				JID:       cli.getOwnID().ToNonAD(),
 			})
 		case "blocklist":
-			cli.handleBlocklist(&child)
+			cli.handleBlocklist(ctx, &child)
 		default:
 			cli.Log.Debugf("Unhandled account sync item %s", child.Tag)
 		}
 	}
 }
 
-func (cli *Client) handlePrivacyTokenNotification(node *waBinary.Node) {
-	ownID := cli.getOwnID().ToNonAD()
-	if ownID.IsEmpty() {
+func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waBinary.Node) {
+	ownJID := cli.getOwnID().ToNonAD()
+	ownLID := cli.getOwnLID().ToNonAD()
+	if ownJID.IsEmpty() {
 		cli.Log.Debugf("Ignoring privacy token notification, session was deleted")
 		return
 	}
@@ -240,8 +271,11 @@ func (cli *Client) handlePrivacyTokenNotification(node *waBinary.Node) {
 		ag := child.AttrGetter()
 		if child.Tag != "token" {
 			cli.Log.Warnf("privacy_token notification contained unexpected <%s> tag", child.Tag)
-		} else if targetUser := ag.JID("jid"); targetUser != ownID {
-			cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
+		} else if targetUser := ag.JID("jid"); targetUser != ownLID && targetUser != ownJID {
+			// Don't log about own privacy tokens for other users
+			if sender != ownJID && sender != ownLID {
+				cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
+			}
 		} else if tokenType := ag.String("type"); tokenType != "trusted_contact" {
 			cli.Log.Warnf("privacy_token notification contained unexpected token type %s", tokenType)
 		} else if token, ok := child.Content.([]byte); !ok {
@@ -251,7 +285,7 @@ func (cli *Client) handlePrivacyTokenNotification(node *waBinary.Node) {
 			if !ag.OK() {
 				cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
 			}
-			err := cli.Store.PrivacyTokens.PutPrivacyTokens(store.PrivacyToken{
+			err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
 				User:      sender,
 				Token:     token,
 				Timestamp: timestamp,
@@ -308,7 +342,7 @@ func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.Newslet
 	return output
 }
 
-func (cli *Client) handleNewsletterNotification(node *waBinary.Node) {
+func (cli *Client) handleNewsletterNotification(ctx context.Context, node *waBinary.Node) {
 	ag := node.AttrGetter()
 	liveUpdates := node.GetChildByTag("live_updates")
 	cli.dispatchEvent(&events.NewsletterLiveUpdate{
@@ -331,7 +365,7 @@ type newsletterEvent struct {
 	// _on_state_change -> id, is_requestor, state
 }
 
-func (cli *Client) handleMexNotification(node *waBinary.Node) {
+func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		if child.Tag != "update" {
 			continue
@@ -356,7 +390,7 @@ func (cli *Client) handleMexNotification(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleStatusNotification(node *waBinary.Node) {
+func (cli *Client) handleStatusNotification(ctx context.Context, node *waBinary.Node) {
 	ag := node.AttrGetter()
 	child, found := node.GetOptionalChildByTag("set")
 	if !found {
@@ -376,44 +410,46 @@ func (cli *Client) handleStatusNotification(node *waBinary.Node) {
 }
 
 func (cli *Client) handleNotification(node *waBinary.Node) {
+	ctx := cli.BackgroundEventCtx
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
 	if !ag.OK() {
 		return
 	}
-	defer cli.maybeDeferredAck(node)()
+	var cancelled bool
+	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 	switch notifType {
 	case "encrypt":
-		go cli.handleEncryptNotification(node)
+		go cli.handleEncryptNotification(ctx, node)
 	case "server_sync":
-		go cli.handleAppStateNotification(node)
+		go cli.handleAppStateNotification(ctx, node)
 	case "account_sync":
-		go cli.handleAccountSyncNotification(node)
+		go cli.handleAccountSyncNotification(ctx, node)
 	case "devices":
-		cli.handleDeviceNotification(node)
+		cli.handleDeviceNotification(ctx, node)
 	case "fbid:devices":
-		cli.handleFBDeviceNotification(node)
+		cli.handleFBDeviceNotification(ctx, node)
 	case "w:gp2":
 		evt, err := cli.parseGroupNotification(node)
 		if err != nil {
 			cli.Log.Errorf("Failed to parse group notification: %v", err)
 		} else {
-			cli.dispatchEvent(evt)
+			cancelled = cli.dispatchEvent(evt)
 		}
 	case "picture":
-		cli.handlePictureNotification(node)
+		cli.handlePictureNotification(ctx, node)
 	case "mediaretry":
-		cli.handleMediaRetryNotification(node)
+		cli.handleMediaRetryNotification(ctx, node)
 	case "privacy_token":
-		cli.handlePrivacyTokenNotification(node)
+		cli.handlePrivacyTokenNotification(ctx, node)
 	case "link_code_companion_reg":
-		go cli.tryHandleCodePairNotification(node)
+		go cli.tryHandleCodePairNotification(ctx, node)
 	case "newsletter":
-		cli.handleNewsletterNotification(node)
+		cli.handleNewsletterNotification(ctx, node)
 	case "mex":
-		cli.handleMexNotification(node)
+		cli.handleMexNotification(ctx, node)
 	case "status":
-		cli.handleStatusNotification(node)
+		cli.handleStatusNotification(ctx, node)
 	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)

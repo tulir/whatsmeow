@@ -51,6 +51,9 @@ func getTypeName(expr ast.Expr) string {
 	case *ast.StarExpr:
 		return "*" + getTypeName(e.X)
 	case *ast.ArrayType:
+		if e.Len != nil {
+			return fmt.Sprintf("[%s]%s", getTypeName(e.Len), getTypeName(e.Elt))
+		}
 		return "[]" + getTypeName(e.Elt)
 	case *ast.MapType:
 		return fmt.Sprintf("map[%s]%s", getTypeName(e.Key), getTypeName(e.Value))
@@ -72,14 +75,20 @@ func getTypeName(expr ast.Expr) string {
 				results = append(results, getTypeName(result.Type))
 			}
 		}
-		return fmt.Sprintf("func(%s) %s", strings.Join(params, ", "), strings.Join(results, ", "))
+		retVals := strings.Join(results, ", ")
+		if len(results) > 1 {
+			retVals = fmt.Sprintf("(%s)", retVals)
+		}
+		return fmt.Sprintf("func(%s) %s", strings.Join(params, ", "), retVals)
 	case *ast.SelectorExpr:
 		return fmt.Sprintf("%s.%s", getTypeName(e.X), e.Sel.Name)
 	case *ast.StructType:
 		// This isn't technically correct, but struct literals shouldn't be used for anything else
 		return "struct{}"
 	case *ast.Ellipsis:
-		return fmt.Sprintf("...%s", e.Elt)
+		return fmt.Sprintf("...%s", getTypeName(e.Elt))
+	case *ast.BasicLit:
+		return e.Value
 	default:
 		panic(fmt.Errorf("unknown type %T", e))
 	}
@@ -96,7 +105,7 @@ func main() {
 		"keepalive.go", "mediaconn.go", "mediaretry.go", "message.go", "msgsecret.go",
 		"newsletter.go", "notification.go", "pair-code.go", "pair.go", "prekeys.go",
 		"presence.go", "privacysettings.go", "push.go", "qrchan.go", "receipt.go", "request.go",
-		"retry.go", "sendfb.go", "send.go", "upload.go", "user.go",
+		"retry.go", "sendfb.go", "send.go", "upload.go", "user.go", "reportingtoken.go",
 	}
 	files := make([]*ast.File, len(fileNames))
 	for i, name := range fileNames {

@@ -24,6 +24,8 @@ message TransportEvent {
 
 			optional Type type = 1;
 			optional string deviceName = 2;
+			optional string devicePlatform = 3;
+			optional string deviceModel = 4;
 		}
 
 		oneof event {

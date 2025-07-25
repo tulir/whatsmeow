@@ -1,0 +1,121 @@
+syntax = "proto2";
+package WAArmadilloMiTransportAdminMessage;
+option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloMiTransportAdminMessage";
+
+message MiTransportAdminMessage {
+	message LimitSharingChanged {
+		enum SharingType {
+			UNSET = 0;
+			DISABLED = 1;
+			ENABLED = 2;
+		}
+
+		optional SharingType sharingType = 1;
+	}
+
+	message GroupImageChanged {
+		enum Action {
+			UNSET = 0;
+			CHANGED = 1;
+			REMOVED = 2;
+		}
+
+		optional Action action = 1;
+	}
+
+	message MessagePinned {
+		enum Action {
+			UNSET = 0;
+			PINNED = 1;
+			UNPINNED = 2;
+		}
+
+		optional Action action = 1;
+	}
+
+	message GroupMembershipAddModeChanged {
+		enum Mode {
+			UNSET = 0;
+			ALL_MEMBERS = 1;
+			ADMINS_ONLY = 2;
+		}
+
+		optional Mode mode = 1;
+	}
+
+	message GroupAdminChanged {
+		enum Action {
+			UNSET = 0;
+			ADDED = 1;
+			REMOVED = 2;
+		}
+
+		repeated string targetUserID = 1;
+		optional Action action = 2;
+	}
+
+	message GroupParticipantChanged {
+		enum Action {
+			UNSET = 0;
+			ADDED = 1;
+			REMOVED = 2;
+		}
+
+		repeated string targetUserID = 1;
+		optional Action action = 2;
+	}
+
+	message DisappearingSettingChanged {
+		optional int32 disappearingSettingDurationSeconds = 1;
+		optional int32 oldDisappearingSettingDurationSeconds = 2;
+	}
+
+	message IconChanged {
+		optional string threadIcon = 1;
+	}
+
+	message LinkCta {
+		message UkOsaAdminText {
+			optional string initiatorUserID = 2;
+		}
+
+		oneof content {
+			UkOsaAdminText ukOsaAdminText = 1;
+		}
+	}
+
+	message QuickReactionChanged {
+		optional string emojiName = 1;
+	}
+
+	message GroupNameChanged {
+		optional string groupName = 1;
+	}
+
+	message NicknameChanged {
+		optional string targetUserID = 1;
+		optional string nickname = 2;
+	}
+
+	message ChatThemeChanged {
+		optional string themeName = 1;
+		optional string themeEmoji = 2;
+		optional int32 themeType = 3;
+	}
+
+	oneof content {
+		ChatThemeChanged chatThemeChanged = 1;
+		NicknameChanged nicknameChanged = 2;
+		GroupParticipantChanged groupParticipantChanged = 3;
+		GroupAdminChanged groupAdminChanged = 4;
+		GroupNameChanged groupNameChanged = 5;
+		GroupMembershipAddModeChanged groupMembershipAddModeChanged = 6;
+		MessagePinned messagePinned = 7;
+		GroupImageChanged groupImageChanged = 8;
+		QuickReactionChanged quickReactionChanged = 9;
+		LinkCta linkCta = 10;
+		IconChanged iconChanged = 11;
+		DisappearingSettingChanged disappearingSettingChanged = 12;
+		LimitSharingChanged limitSharingChanged = 13;
+	}
+}
