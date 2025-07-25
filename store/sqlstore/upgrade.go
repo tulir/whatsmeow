@@ -285,12 +285,26 @@ func upgradeV6(tx pgx.Tx, _ *ClientInstance) error {
 }
 
 func upgradeV7(tx pgx.Tx, _ *ClientInstance) error {
-    // Add LID related columns to whatsmeow_device table if they do not exist yet
-    // Using IF NOT EXISTS ensures idempotent migrations.
-    _, err := tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN IF NOT EXISTS lid TEXT")
-    if err != nil {
-        return err
-    }
-    _, err = tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN IF NOT EXISTS lid_migration_ts BIGINT")
-    return err
+	// Add LID related columns to whatsmeow_device table if they do not exist yet
+	// Using IF NOT EXISTS ensures idempotent migrations.
+	_, err := tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN IF NOT EXISTS lid TEXT")
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN IF NOT EXISTS lid_migration_ts BIGINT")
+	if err != nil {
+		return err
+	}
+
+	// Create whatsmeow_lid_map table if it does not yet exist
+	_, err = tx.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS whatsmeow_lid_map (
+        business_id TEXT NOT NULL,
+        lid TEXT NOT NULL,
+        pn TEXT NOT NULL,
+        PRIMARY KEY (business_id, lid)
+    )`)
+	if err != nil {
+		return err
+	}
+	return nil
 }

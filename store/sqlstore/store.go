@@ -124,7 +124,7 @@ const (
 
 	migratePNToLIDSessionsQuery = `
 		INSERT INTO whatsmeow_sessions (business_id, our_jid, their_id, session)
-		SELECT our_jid, replace(their_id, $3, $4), session
+		SELECT $1, our_jid, replace(their_id, $3, $4), session
 		FROM whatsmeow_sessions
 		WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3 || ':%'
 		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET session=excluded.session
@@ -132,15 +132,15 @@ const (
 	deleteAllIdentityKeysQuery      = `DELETE FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3`
 	migratePNToLIDIdentityKeysQuery = `
 		INSERT INTO whatsmeow_identity_keys (business_id, our_jid, their_id, identity)
-		SELECT our_jid, replace(their_id, $3, $4), identity
+		SELECT $1, our_jid, replace(their_id, $3, $4), identity
 		FROM whatsmeow_identity_keys
-		WHERE business_id=$1, our_jid=$2 AND their_id LIKE $3 || ':%'
+		WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3 || ':%'
 		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET identity=excluded.identity
 	`
 	deleteAllSenderKeysQuery      = `DELETE FROM whatsmeow_sender_keys WHERE business_id=$1 AND our_jid=$2 AND sender_id LIKE $3`
 	migratePNToLIDSenderKeysQuery = `
 		INSERT INTO whatsmeow_sender_keys (business_id, our_jid, chat_id, sender_id, sender_key)
-		SELECT our_jid, chat_id, replace(sender_id, $2, $3), sender_key
+		SELECT $1, our_jid, chat_id, replace(sender_id, $3, $4), sender_key
 		FROM whatsmeow_sender_keys
 		WHERE business_id=$1 AND our_jid=$2 AND sender_id LIKE $3 || ':%'
 		ON CONFLICT (business_id, our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
