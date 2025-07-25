@@ -17,7 +17,7 @@ type upgradeFunc func(pgx.Tx, *ClientInstance) error
 //
 // This may be of use if you want to manage the database fully manually, but in most cases you
 // should just call Container.Upgrade to let the library handle everything.
-var Upgrades = [...]upgradeFunc{upgradeV1, upgradeV2, upgradeV3, upgradeV4, upgradeV5, upgradeV6}
+var Upgrades = [...]upgradeFunc{upgradeV1, upgradeV2, upgradeV3, upgradeV4, upgradeV5, upgradeV6, upgradeV7}
 
 func (clientInstance *ClientInstance) getVersion() (int, error) {
 	_, err := clientInstance.DbPool.Exec(context.Background(), "CREATE TABLE IF NOT EXISTS whatsmeow_version (version INTEGER)")
@@ -282,4 +282,15 @@ func upgradeV5(tx pgx.Tx, _ *ClientInstance) error {
 func upgradeV6(tx pgx.Tx, _ *ClientInstance) error {
 	_, err := tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN facebook_uuid uuid")
 	return err
+}
+
+func upgradeV7(tx pgx.Tx, _ *ClientInstance) error {
+    // Add LID related columns to whatsmeow_device table if they do not exist yet
+    // Using IF NOT EXISTS ensures idempotent migrations.
+    _, err := tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN IF NOT EXISTS lid TEXT")
+    if err != nil {
+        return err
+    }
+    _, err = tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN IF NOT EXISTS lid_migration_ts BIGINT")
+    return err
 }
