@@ -280,7 +280,7 @@ func upgradeV5(tx pgx.Tx, _ *ClientInstance) error {
 }
 
 func upgradeV6(tx pgx.Tx, _ *ClientInstance) error {
-	_, err := tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN facebook_uuid uuid")
+	_, err := tx.Exec(context.Background(), "ALTER TABLE whatsmeow_device ADD COLUMN IF NOT EXISTS facebook_uuid uuid")
 	return err
 }
 
