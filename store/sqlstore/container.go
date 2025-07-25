@@ -71,12 +71,13 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	var noisePriv, identityPriv, preKeyPriv, preKeySig []byte
 	var account waAdv.ADVSignedDeviceIdentity
 	var fbUUID uuid.NullUUID
+	var lidTS sql.NullInt64
 
 	err := row.Scan(
 		&device.ID, &device.LID, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
 		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
-		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID, &device.LIDMigrationTimestamp)
+		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID, &lidTS)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan session: %w", err)
 	} else if len(noisePriv) != 32 || len(identityPriv) != 32 || len(preKeyPriv) != 32 || len(preKeySig) != 64 {
@@ -89,6 +90,10 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.SignedPreKey.Signature = (*[64]byte)(preKeySig)
 	device.Account = &account
 	device.FacebookUUID = fbUUID.UUID
+
+	if lidTS.Valid {
+		device.LIDMigrationTimestamp = lidTS.Int64
+	}
 
 	c.initializeDevice(&device)
 
