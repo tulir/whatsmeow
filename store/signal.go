@@ -36,7 +36,7 @@ func (device *Device) GetLocalRegistrationID() uint32 {
 
 func (device *Device) SaveIdentity(ctx context.Context, address *protocol.SignalAddress, identityKey *identity.Key) error {
 	addrString := address.String()
-	err := device.Identities.PutIdentity(addrString, identityKey.PublicKey().PublicKey())
+	err := device.Identities.PutIdentity(ctx, addrString, identityKey.PublicKey().PublicKey())
 	if err != nil {
 		return fmt.Errorf("failed to save identity of %s: %w", addrString, err)
 	}
@@ -45,7 +45,7 @@ func (device *Device) SaveIdentity(ctx context.Context, address *protocol.Signal
 
 func (device *Device) IsTrustedIdentity(ctx context.Context, address *protocol.SignalAddress, identityKey *identity.Key) (bool, error) {
 	addrString := address.String()
-	isTrusted, err := device.Identities.IsTrustedIdentity(addrString, identityKey.PublicKey().PublicKey())
+	isTrusted, err := device.Identities.IsTrustedIdentity(ctx, addrString, identityKey.PublicKey().PublicKey())
 	if err != nil {
 		return false, fmt.Errorf("failed to check if %s's identity is trusted: %w", addrString, err)
 	}
@@ -53,7 +53,7 @@ func (device *Device) IsTrustedIdentity(ctx context.Context, address *protocol.S
 }
 
 func (device *Device) LoadPreKey(ctx context.Context, id uint32) (*record.PreKey, error) {
-	preKey, err := device.PreKeys.GetPreKey(id)
+	preKey, err := device.PreKeys.GetPreKey(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load prekey %d: %w", id, err)
 	}
@@ -67,7 +67,7 @@ func (device *Device) LoadPreKey(ctx context.Context, id uint32) (*record.PreKey
 }
 
 func (device *Device) RemovePreKey(ctx context.Context, id uint32) error {
-	err := device.PreKeys.RemovePreKey(id)
+	err := device.PreKeys.RemovePreKey(ctx, id)
 	if err != nil {
 		return fmt.Errorf("failed to remove prekey %d: %w", id, err)
 	}
@@ -84,7 +84,7 @@ func (device *Device) ContainsPreKey(ctx context.Context, preKeyID uint32) (bool
 
 func (device *Device) LoadSession(ctx context.Context, address *protocol.SignalAddress) (*record.Session, error) {
 	addrString := address.String()
-	rawSess, err := device.Sessions.GetSession(addrString)
+	rawSess, err := device.Sessions.GetSession(ctx, addrString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load session with %s: %w", addrString, err)
 	}
@@ -104,7 +104,7 @@ func (device *Device) GetSubDeviceSessions(ctx context.Context, name string) ([]
 
 func (device *Device) StoreSession(ctx context.Context, address *protocol.SignalAddress, record *record.Session) error {
 	addrString := address.String()
-	err := device.Sessions.PutSession(addrString, record.Serialize())
+	err := device.Sessions.PutSession(ctx, addrString, record.Serialize())
 	if err != nil {
 		return fmt.Errorf("failed to store session with %s: %w", addrString, err)
 	}
@@ -113,7 +113,7 @@ func (device *Device) StoreSession(ctx context.Context, address *protocol.Signal
 
 func (device *Device) ContainsSession(ctx context.Context, remoteAddress *protocol.SignalAddress) (bool, error) {
 	addrString := remoteAddress.String()
-	hasSession, err := device.Sessions.HasSession(addrString)
+	hasSession, err := device.Sessions.HasSession(ctx, addrString)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if store has session for %s: %w", addrString, err)
 	}
@@ -157,7 +157,7 @@ func (device *Device) RemoveSignedPreKey(ctx context.Context, signedPreKeyID uin
 func (device *Device) StoreSenderKey(ctx context.Context, senderKeyName *protocol.SenderKeyName, keyRecord *groupRecord.SenderKey) error {
 	groupID := senderKeyName.GroupID()
 	senderString := senderKeyName.Sender().String()
-	err := device.SenderKeys.PutSenderKey(groupID, senderString, keyRecord.Serialize())
+	err := device.SenderKeys.PutSenderKey(ctx, groupID, senderString, keyRecord.Serialize())
 	if err != nil {
 		return fmt.Errorf("failed to store sender key from %s for %s: %w", senderString, groupID, err)
 	}
@@ -167,7 +167,7 @@ func (device *Device) StoreSenderKey(ctx context.Context, senderKeyName *protoco
 func (device *Device) LoadSenderKey(ctx context.Context, senderKeyName *protocol.SenderKeyName) (*groupRecord.SenderKey, error) {
 	groupID := senderKeyName.GroupID()
 	senderString := senderKeyName.Sender().String()
-	rawKey, err := device.SenderKeys.GetSenderKey(groupID, senderString)
+	rawKey, err := device.SenderKeys.GetSenderKey(ctx, groupID, senderString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load sender key from %s for %s: %w", senderString, groupID, err)
 	}

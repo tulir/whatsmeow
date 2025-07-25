@@ -74,7 +74,7 @@ func (s *CachedLIDMap) FillCache() error {
 	return nil
 }
 
-func (s *CachedLIDMap) getLIDMapping(source types.JID, targetServer string, query string, cacheKey string,
+func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targetServer string, query string, cacheKey string,
 	sourceToTarget, targetToSource map[string]string) (types.JID, error) {
 
 	// cacheKey is e.g. s.businessId
@@ -101,7 +101,7 @@ func (s *CachedLIDMap) getLIDMapping(source types.JID, targetServer string, quer
 	}
 
 	var queryVal string
-	row := s.dbPool.QueryRow(context.Background(), query, s.businessId, source.User)
+	row := s.dbPool.QueryRow(ctx, query, s.businessId, source.User)
 	err := row.Scan(&queryVal)
 	if errors.Is(err, sql.ErrNoRows) {
 		// cache miss, empty result
@@ -117,27 +117,29 @@ func (s *CachedLIDMap) getLIDMapping(source types.JID, targetServer string, quer
 	return types.JID{}, nil
 }
 
-func (s *CachedLIDMap) GetLIDForPN(pn types.JID) (types.JID, error) {
+func (s *CachedLIDMap) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error) {
 	if pn.Server != types.DefaultUserServer {
 		return types.JID{}, fmt.Errorf("invalid GetLIDForPN call with non-PN JID %s", pn)
 	}
 	return s.getLIDMapping(
+		ctx,
 		pn, types.HiddenUserServer, getLIDForPNQuery, s.businessId,
 		s.pnToLIDCache, s.lidToPNCache,
 	)
 }
 
-func (s *CachedLIDMap) GetPNForLID(lid types.JID) (types.JID, error) {
+func (s *CachedLIDMap) GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error) {
 	if lid.Server != types.HiddenUserServer {
 		return types.JID{}, fmt.Errorf("invalid GetPNForLID call with non-LID JID %s", lid)
 	}
 	return s.getLIDMapping(
+		ctx,
 		lid, types.DefaultUserServer, getPNForLIDQuery, s.businessId,
 		s.lidToPNCache, s.pnToLIDCache,
 	)
 }
 
-func (s *CachedLIDMap) PutLIDMapping(lid, pn types.JID) error {
+func (s *CachedLIDMap) PutLIDMapping(ctx context.Context, lid, pn types.JID) error {
 	if lid.Server != types.HiddenUserServer || pn.Server != types.DefaultUserServer {
 		return fmt.Errorf("invalid PutLIDMapping call %s/%s", lid, pn)
 	}
@@ -148,25 +150,25 @@ func (s *CachedLIDMap) PutLIDMapping(lid, pn types.JID) error {
 		return nil
 	}
 	// Transaction is not strictly needed for a single row, but can be done for safety
-	tx, err := s.dbPool.Begin(context.Background())
+	tx, err := s.dbPool.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(context.Background())
-	_, err = tx.Exec(context.Background(), deleteExistingLIDMappingQuery, s.businessId, lid.User, pn.User)
+	defer tx.Rollback(ctx)
+	_, err = tx.Exec(ctx, deleteExistingLIDMappingQuery, s.businessId, lid.User, pn.User)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(context.Background(), putLIDMappingQuery, s.businessId, lid.User, pn.User)
+	_, err = tx.Exec(ctx, putLIDMappingQuery, s.businessId, lid.User, pn.User)
 	if err != nil {
 		return err
 	}
 	s.pnToLIDCache[pn.User] = lid.User
 	s.lidToPNCache[lid.User] = pn.User
-	return tx.Commit(context.Background())
+	return tx.Commit(ctx)
 }
 
-func (s *CachedLIDMap) PutManyLIDMappings(mappings []store.LIDMapping) error {
+func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.LIDMapping) error {
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
 	mappings = slices.DeleteFunc(mappings, func(mapping store.LIDMapping) bool {
@@ -182,22 +184,22 @@ func (s *CachedLIDMap) PutManyLIDMappings(mappings []store.LIDMapping) error {
 	if len(mappings) == 0 {
 		return nil
 	}
-	tx, err := s.dbPool.Begin(context.Background())
+	tx, err := s.dbPool.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(context.Background())
+	defer tx.Rollback(ctx)
 	for _, mapping := range mappings {
-		_, err := tx.Exec(context.Background(), deleteExistingLIDMappingQuery, s.businessId, mapping.LID.User, mapping.PN.User)
+		_, err := tx.Exec(ctx, deleteExistingLIDMappingQuery, s.businessId, mapping.LID.User, mapping.PN.User)
 		if err != nil {
 			return err
 		}
-		_, err = tx.Exec(context.Background(), putLIDMappingQuery, s.businessId, mapping.LID.User, mapping.PN.User)
+		_, err = tx.Exec(ctx, putLIDMappingQuery, s.businessId, mapping.LID.User, mapping.PN.User)
 		if err != nil {
 			return err
 		}
 		s.pnToLIDCache[mapping.PN.User] = mapping.LID.User
 		s.lidToPNCache[mapping.LID.User] = mapping.PN.User
 	}
-	return tx.Commit(context.Background())
+	return tx.Commit(ctx)
 }

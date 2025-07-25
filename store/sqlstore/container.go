@@ -96,8 +96,8 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 }
 
 // GetAllDevices finds all the devices in the database.
-func (c *Container) GetAllDevices() ([]*store.Device, error) {
-	res, err := c.dbPool.Query(context.Background(), getAllDevicesQuery, c.businessId)
+func (c *Container) GetAllDevices(ctx context.Context) ([]*store.Device, error) {
+	res, err := c.dbPool.Query(ctx, getAllDevicesQuery, c.businessId)
 	defer res.Close()
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
@@ -116,8 +116,8 @@ func (c *Container) GetAllDevices() ([]*store.Device, error) {
 // GetFirstDevice is a convenience method for getting the first device in the store. If there are
 // no devices, then a new device will be created. You should only use this if you don't want to
 // have multiple sessions simultaneously.
-func (c *Container) GetFirstDevice() (*store.Device, error) {
-	devices, err := c.GetAllDevices()
+func (c *Container) GetFirstDevice(ctx context.Context) (*store.Device, error) {
+	devices, err := c.GetAllDevices(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -133,8 +133,8 @@ func (c *Container) GetFirstDevice() (*store.Device, error) {
 // If the device is not found, nil is returned instead.
 //
 // Note that the parameter usually must be an AD-JID.
-func (c *Container) GetDevice(jid types.JID) (*store.Device, error) {
-	sess, err := c.scanDevice(c.dbPool.QueryRow(context.Background(), getDeviceQuery, c.businessId, jid))
+func (c *Container) GetDevice(ctx context.Context, jid types.JID) (*store.Device, error) {
+	sess, err := c.scanDevice(c.dbPool.QueryRow(ctx, getDeviceQuery, c.businessId, jid))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -183,11 +183,11 @@ var ErrDeviceIDMustBeSet = errors.New("device JID must be known before accessing
 
 // PutDevice stores the given device in this database. This should be called through Device.Save()
 // (which usually doesn't need to be called manually, as the library does that automatically when relevant).
-func (c *Container) PutDevice(device *store.Device) error {
+func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.dbPool.Exec(context.Background(), insertDeviceQuery,
+	_, err := c.dbPool.Exec(ctx, insertDeviceQuery,
 		c.businessId,
 		device.ID.String(), device.LID, device.RegistrationID, device.NoiseKey.Priv[:], device.IdentityKey.Priv[:],
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
@@ -221,10 +221,10 @@ func (c *Container) initializeDevice(device *store.Device) {
 }
 
 // DeleteDevice deletes the given device from this database. This should be called through Device.Delete()
-func (c *Container) DeleteDevice(store *store.Device) error {
+func (c *Container) DeleteDevice(ctx context.Context, store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
 	}
-	_, err := c.dbPool.Exec(context.Background(), deleteDeviceQuery, c.businessId, store.ID.String())
+	_, err := c.dbPool.Exec(ctx, deleteDeviceQuery, c.businessId, store.ID.String())
 	return err
 }
