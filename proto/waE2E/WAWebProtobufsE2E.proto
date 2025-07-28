@@ -799,6 +799,7 @@ message CloudAPIThreadControlNotification {
 	optional string consumerLid = 3;
 	optional string consumerPhoneNumber = 4;
 	optional CloudAPIThreadControlNotificationContent notificationContent = 5;
+	optional bool shouldSuppressNotification = 6;
 }
 
 message BotFeedbackMessage {
@@ -951,7 +952,6 @@ message ExtendedTextMessage {
 	optional LinkPreviewMetadata linkPreviewMetadata = 34;
 	optional PaymentLinkMetadata paymentLinkMetadata = 35;
 	repeated VideoEndCard endCardTiles = 36;
-	optional MediaKeyDomain mediaKeyDomain = 37;
 }
 
 message LinkPreviewMetadata {
@@ -1066,6 +1066,13 @@ message ImageMessage {
 }
 
 message ContextInfo {
+	enum ForwardOrigin {
+		UNKNOWN = 0;
+		CHAT = 1;
+		STATUS = 2;
+		CHANNELS = 3;
+	}
+
 	enum StatusSourceType {
 		IMAGE = 0;
 		VIDEO = 1;
@@ -1089,7 +1096,37 @@ message ContextInfo {
 		NONE = 0;
 		RESHARED_FROM_MENTION = 1;
 		RESHARED_FROM_POST = 2;
-		FORWARDED_FROM_STATUS = 3;
+		RESHARED_FROM_POST_MANY_TIMES = 3;
+		FORWARDED_FROM_STATUS = 4;
+	}
+
+	message StatusAudienceMetadata {
+		enum AudienceType {
+			UNKNOWN = 0;
+			CLOSE_FRIENDS = 1;
+		}
+
+		optional AudienceType audienceType = 1;
+	}
+
+	message DataSharingContext {
+		enum DataSharingFlags {
+			SHOW_MM_DISCLOSURE_ON_CLICK = 1;
+			SHOW_MM_DISCLOSURE_ON_READ = 2;
+		}
+
+		message Parameters {
+			optional string key = 1;
+			optional string stringData = 2;
+			optional int64 intData = 3;
+			optional float floatData = 4;
+			optional Parameters contents = 5;
+		}
+
+		optional bool showMmDisclosure = 1;
+		optional string encryptedSignalTokenConsented = 2;
+		repeated Parameters parameters = 3;
+		optional int32 dataSharingFlags = 4;
 	}
 
 	message ForwardedNewsletterMessageInfo {
@@ -1143,6 +1180,7 @@ message ContextInfo {
 		optional string automatedGreetingMessageCtaType = 23;
 		optional bool wtwaAdFormat = 24;
 		optional AdType adType = 25;
+		optional string wtwaWebsiteURL = 26;
 	}
 
 	message AdReplyInfo {
@@ -1165,24 +1203,16 @@ message ContextInfo {
 		optional bool canBeReshared = 4;
 	}
 
-	message DataSharingContext {
-		message Parameters {
-			optional string key = 1;
-			optional string stringData = 2;
-			optional int64 intData = 3;
-			optional float floatData = 4;
-			optional Parameters contents = 5;
-		}
-
-		optional bool showMmDisclosure = 1;
-		optional string encryptedSignalTokenConsented = 2;
-		repeated Parameters parameters = 3;
-	}
-
 	message ForwardedAIBotMessageInfo {
 		optional string botName = 1;
 		optional string botJID = 2;
 		optional string creatorName = 3;
+	}
+
+	message QuestionReplyQuotedMessage {
+		optional int32 serverQuestionID = 1;
+		optional Message quotedQuestion = 2;
+		optional Message quotedResponse = 3;
 	}
 
 	message UTMInfo {
@@ -1243,6 +1273,9 @@ message ContextInfo {
 	optional StatusSourceType statusSourceType = 64;
 	repeated WAStatusAttributions.StatusAttribution statusAttributions = 65;
 	optional bool isGroupStatus = 66;
+	optional ForwardOrigin forwardOrigin = 67;
+	optional QuestionReplyQuotedMessage questionReplyQuotedMessage = 68;
+	optional StatusAudienceMetadata statusAudienceMetadata = 69;
 }
 
 message BotPluginMetadata {
@@ -1682,6 +1715,14 @@ message BotSourcesMetadata {
 	repeated BotSourceItem sources = 1;
 }
 
+message BotMessageOrigin {
+	enum BotMessageOriginType {
+		BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED = 0;
+	}
+
+	optional BotMessageOriginType type = 1;
+}
+
 message MessageAssociation {
 	enum AssociationType {
 		UNKNOWN = 0;
@@ -1951,7 +1992,6 @@ message Message {
 	optional FutureProofMessage groupStatusMessageV2 = 103;
 	optional FutureProofMessage botForwardedMessage = 104;
 	optional StatusQuestionAnswerMessage statusQuestionAnswerMessage = 105;
-	optional QuestionAdminReplyMessage questionAdminReplyMessage = 106;
 	optional QuestionResponseMessage questionResponseMessage = 107;
 }
 
@@ -2033,17 +2073,6 @@ message QuestionResponseMessage {
 message StatusQuestionAnswerMessage {
 	optional WACommon.MessageKey key = 1;
 	optional string text = 2;
-}
-
-message QuestionAdminReplyMessage {
-	message QuotedQuestionAdminReplyMessage {
-		optional int32 serverQuestionID = 1;
-		optional Message quotedQuestion = 2;
-		optional Message quotedFollowerResponse = 3;
-	}
-
-	optional Message adminReplyMessage = 1;
-	optional QuotedQuestionAdminReplyMessage quotedMessage = 2;
 }
 
 message PollResultSnapshotMessage {
@@ -2526,6 +2555,10 @@ message BotAgeCollectionMetadata {
 	optional bool shouldTriggerAgeCollectionOnClient = 2;
 }
 
+message BotMessageOriginMetadata {
+	repeated BotMessageOrigin origins = 1;
+}
+
 message BotMetadata {
 	optional BotAvatarMetadata avatarMetadata = 1;
 	optional string personaID = 2;
@@ -2555,6 +2588,7 @@ message BotMetadata {
 	optional string botResponseID = 26;
 	optional BotSignatureVerificationMetadata verificationMetadata = 27;
 	optional BotUnifiedResponseMutation unifiedResponseMutation = 28;
+	optional BotMessageOriginMetadata botMessageOriginMetadata = 29;
 }
 
 message BotUnifiedResponseMutation {
