@@ -19,6 +19,13 @@ import (
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
+// Context keys for client information
+type contextKey string
+
+const (
+	ClientJIDKey contextKey = "client_jid"
+)
+
 type FrameSocket struct {
 	conn   *websocket.Conn
 	ctx    context.Context
@@ -40,6 +47,9 @@ type FrameSocket struct {
 	receivedLength int
 	incoming       []byte
 	partialHeader  []byte
+
+	// Error logging callback
+	OnWebSocketError func(clientJID string, err error)
 }
 
 func NewFrameSocket(log waLog.Logger, dialer websocket.Dialer) *FrameSocket {
@@ -101,6 +111,40 @@ func (fs *FrameSocket) Connect() error {
 		return ErrSocketAlreadyOpen
 	}
 	ctx, cancel := context.WithCancel(context.Background())
+
+	fs.log.Debugf("Dialing %s", fs.URL)
+	conn, _, err := fs.Dialer.Dial(fs.URL, fs.HTTPHeaders)
+	if err != nil {
+		cancel()
+		return fmt.Errorf("couldn't dial whatsapp web websocket: %w", err)
+	}
+
+	fs.ctx, fs.cancel = ctx, cancel
+	fs.conn = conn
+	conn.SetCloseHandler(func(code int, text string) error {
+		fs.log.Debugf("Server closed websocket with status %d/%s", code, text)
+		cancel()
+		// from default CloseHandler
+		message := websocket.FormatCloseMessage(code, "")
+		_ = conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
+		return nil
+	})
+
+	go fs.readPump(conn, ctx)
+	return nil
+}
+
+// ConnectWithClientJID connects the websocket with client JID information in context
+func (fs *FrameSocket) ConnectWithClientJID(clientJID string) error {
+	fs.lock.Lock()
+	defer fs.lock.Unlock()
+
+	if fs.conn != nil {
+		return ErrSocketAlreadyOpen
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	// Add client JID to context
+	ctx = context.WithValue(ctx, ClientJIDKey, clientJID)
 
 	fs.log.Debugf("Dialing %s", fs.URL)
 	conn, _, err := fs.Dialer.Dial(fs.URL, fs.HTTPHeaders)
@@ -224,6 +268,13 @@ func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 			// Ignore the error if the context has been closed
 			if !errors.Is(ctx.Err(), context.Canceled) {
 				fs.log.Errorf("Error reading from websocket: %v", err)
+
+				// Log error to database if callback is set and client JID is available
+				if fs.OnWebSocketError != nil {
+					if clientJID, ok := ctx.Value(ClientJIDKey).(string); ok && clientJID != "" {
+						fs.OnWebSocketError(clientJID, err)
+					}
+				}
 			}
 			return
 		} else if msgType != websocket.BinaryMessage {

@@ -32,6 +32,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waWeb"
 	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
@@ -496,10 +497,37 @@ func (cli *Client) unlockedConnect() error {
 		//fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
 		//fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
 	}
-	if err := fs.Connect(); err != nil {
-		fs.Close(0)
-		return err
-	} else if err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
+
+	// Set up websocket error logging callback
+	fs.OnWebSocketError = func(clientJID string, err error) {
+		if cli.Store != nil && cli.Store.Initialized {
+			ctx := context.Background()
+			if container, ok := cli.Store.Container.(*sqlstore.Container); ok {
+				// Get the SQLStore for this client
+				sqlStore := sqlstore.NewSQLStore(container, cli.getOwnID())
+				logErr := sqlStore.LogWebSocketError(ctx, clientJID, err.Error())
+				if logErr != nil {
+					cli.Log.Errorf("Failed to log websocket error to database: %v", logErr)
+				}
+			}
+		}
+	}
+
+	// Get client JID for context
+	clientJID := cli.getOwnID().String()
+	if clientJID != "" {
+		if err := fs.ConnectWithClientJID(clientJID); err != nil {
+			fs.Close(0)
+			return err
+		}
+	} else {
+		if err := fs.Connect(); err != nil {
+			fs.Close(0)
+			return err
+		}
+	}
+
+	if err := cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
 		fs.Close(0)
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}

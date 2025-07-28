@@ -895,3 +895,62 @@ func (s *SQLStore) DeleteOldBufferedHashes(ctx context.Context) error {
 	_, err := s.db.Exec(ctx, deleteOldBufferedHashesQuery, time.Now().Add(-14*24*time.Hour).UnixMilli())
 	return err
 }
+
+const (
+	insertWebSocketErrorQuery = `
+		INSERT INTO whatsmeow_websocket_errors (client_jid, error_msg, timestamp)
+		VALUES ($1, $2, $3)
+	`
+	getWebSocketErrorsQuery = `
+		SELECT id, client_jid, error_msg, timestamp, created_at
+		FROM whatsmeow_websocket_errors
+		WHERE client_jid = $1
+		ORDER BY timestamp DESC
+		LIMIT $2
+	`
+	deleteOldWebSocketErrorsQuery = `
+		DELETE FROM whatsmeow_websocket_errors
+		WHERE timestamp < $1
+	`
+)
+
+// LogWebSocketError logs a websocket error to the database
+func (s *SQLStore) LogWebSocketError(ctx context.Context, clientJID string, errorMsg string) error {
+	_, err := s.db.Exec(ctx, insertWebSocketErrorQuery, clientJID, errorMsg, time.Now().Unix())
+	return err
+}
+
+// GetWebSocketErrors retrieves websocket errors for a specific client
+func (s *SQLStore) GetWebSocketErrors(ctx context.Context, clientJID string, limit int) ([]WebSocketError, error) {
+	rows, err := s.db.Query(ctx, getWebSocketErrorsQuery, clientJID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var errors []WebSocketError
+	for rows.Next() {
+		var wsError WebSocketError
+		err := rows.Scan(&wsError.ID, &wsError.ClientJID, &wsError.ErrorMsg, &wsError.Timestamp, &wsError.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		errors = append(errors, wsError)
+	}
+	return errors, rows.Err()
+}
+
+// DeleteOldWebSocketErrors deletes websocket errors older than the specified time
+func (s *SQLStore) DeleteOldWebSocketErrors(ctx context.Context, olderThan time.Time) error {
+	_, err := s.db.Exec(ctx, deleteOldWebSocketErrorsQuery, olderThan.Unix())
+	return err
+}
+
+// WebSocketError represents a websocket error record
+type WebSocketError struct {
+	ID        int64     `json:"id"`
+	ClientJID string    `json:"client_jid"`
+	ErrorMsg  string    `json:"error_msg"`
+	Timestamp int64     `json:"timestamp"`
+	CreatedAt time.Time `json:"created_at"`
+}
