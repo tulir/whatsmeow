@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"slices"
@@ -570,6 +571,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	info.URL = ag.String("url")
 	info.Type = ag.String("type")
 	info.DirectPath = ag.String("direct_path")
+	info.Hash, _ = base64.StdEncoding.DecodeString(ag.OptionalString("hash"))
 	if !ag.OK() {
 		return &info, ag.Error()
 	}
