@@ -94,9 +94,9 @@ func (cli *Client) PairPhone(ctx context.Context, phone string, showPushNotifica
 	ephemeralKeyPair, ephemeralKey, encodedLinkingCode := generateCompanionEphemeralKey()
 	phone = notNumbers.ReplaceAllString(phone, "")
 	if len(phone) <= 6 {
-		return "", fmt.Errorf("phone number too short")
+		return "", ErrPhoneNumberTooShort
 	} else if strings.HasPrefix(phone, "0") {
-		return "", fmt.Errorf("international phone number required (must not start with 0)")
+		return "", ErrPhoneNumberIsNotInternational
 	}
 	jid := types.NewJID(phone, types.DefaultUserServer)
 	resp, err := cli.sendIQ(infoQuery{
