@@ -227,10 +227,6 @@ func (n *NoopStore) PutBufferedEvent(ctx context.Context, ciphertextHash [32]byt
 	return nil
 }
 
-func (n *NoopStore) AcceptDevicePairing(ctx context.Context, user types.JID, deviceID string) error {
-	return n.Error
-}
-
 func (n *NoopStore) DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error {
 	return fn(ctx)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Tulir Asokan
+// Copyright (c) 2025 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -210,9 +210,6 @@ type Device struct {
 	MsgSecrets    MsgSecretStore
 	PrivacyTokens PrivacyTokenStore
 	EventBuffer   EventBuffer
-
-	DatabaseErrorHandler func(device *Device, action string, attemptIndex int, err error) (retry bool)
-
 	LIDs          LIDStore
 	Container     DeviceContainer
 }

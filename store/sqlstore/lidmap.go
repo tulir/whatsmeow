@@ -16,6 +16,9 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/rs/zerolog"
+	"go.mau.fi/util/dbutil"
+
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 )
@@ -74,10 +77,7 @@ func (s *CachedLIDMap) FillCache() error {
 	return nil
 }
 
-func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targetServer string, query string, cacheKey string,
-	sourceToTarget, targetToSource map[string]string) (types.JID, error) {
-
-	// cacheKey is e.g. s.businessId
+func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targetServer, query string, sourceToTarget, targetToSource map[string]string) (types.JID, error) {
 	s.lidCacheLock.RLock()
 	targetUser, ok := sourceToTarget[source.User]
 	cacheFilled := s.cacheFilled
@@ -88,7 +88,6 @@ func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targ
 		}
 		return types.JID{User: targetUser, Device: source.Device, Server: targetServer}, nil
 	}
-
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
 	// Double check after getting exclusive lock.
@@ -173,6 +172,10 @@ func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.
 	defer s.lidCacheLock.Unlock()
 	mappings = slices.DeleteFunc(mappings, func(mapping store.LIDMapping) bool {
 		if mapping.LID.Server != types.HiddenUserServer || mapping.PN.Server != types.DefaultUserServer {
+			zerolog.Ctx(ctx).Debug().
+				Stringer("entry_lid", mapping.LID).
+				Stringer("entry_pn", mapping.PN).
+				Msg("Ignoring invalid entry in PutManyLIDMappings")
 			return true
 		}
 		cachedLID, ok := s.pnToLIDCache[mapping.PN.User]
