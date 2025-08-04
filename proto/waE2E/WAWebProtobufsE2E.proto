@@ -792,12 +792,29 @@ message BotFeedbackMessage {
 		BOT_FEEDBACK_NEGATIVE = 14;
 	}
 
+	message SideBySideSurveyMetadata {
+		message SideBySideSurveyAnalyticsData {
+			optional string tessaEvent = 1;
+			optional string tessaSessionFbid = 2;
+		}
+
+		optional string selectedRequestID = 1;
+		optional uint32 surveyID = 2;
+		optional string simonSessionFbid = 3;
+		optional string responseOtid = 4;
+		optional string responseTimestampMSString = 5;
+		optional bool isSelectedResponsePrimary = 6;
+		optional string messageIDToEdit = 7;
+		optional SideBySideSurveyAnalyticsData analyticsData = 8;
+	}
+
 	optional WACommon.MessageKey messageKey = 1;
 	optional BotFeedbackKind kind = 2;
 	optional string text = 3;
 	optional uint64 kindNegative = 4;
 	optional uint64 kindPositive = 5;
 	optional ReportKind kindReport = 6;
+	optional SideBySideSurveyMetadata sideBySideSurveyMetadata = 7;
 }
 
 message VideoMessage {
@@ -1664,6 +1681,7 @@ message Message {
 	optional FutureProofMessage groupStatusMessageV2 = 103;
 	optional FutureProofMessage botForwardedMessage = 104;
 	optional StatusQuestionAnswerMessage statusQuestionAnswerMessage = 105;
+	optional FutureProofMessage questionReplyMessage = 106;
 	optional QuestionResponseMessage questionResponseMessage = 107;
 }
 

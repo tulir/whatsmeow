@@ -57,6 +57,7 @@ const (
 	BotMetricsEntryPoint_ASK_META_AI_CONTEXT_MENU_GROUP      BotMetricsEntryPoint = 28
 	BotMetricsEntryPoint_INVOKE_META_AI_1ON1                 BotMetricsEntryPoint = 29
 	BotMetricsEntryPoint_INVOKE_META_AI_GROUP                BotMetricsEntryPoint = 30
+	BotMetricsEntryPoint_META_AI_FORWARD                     BotMetricsEntryPoint = 31
 )
 
 // Enum value maps for BotMetricsEntryPoint.
@@ -92,6 +93,7 @@ var (
 		28: "ASK_META_AI_CONTEXT_MENU_GROUP",
 		29: "INVOKE_META_AI_1ON1",
 		30: "INVOKE_META_AI_GROUP",
+		31: "META_AI_FORWARD",
 	}
 	BotMetricsEntryPoint_value = map[string]int32{
 		"FAVICON":                             1,
@@ -124,6 +126,7 @@ var (
 		"ASK_META_AI_CONTEXT_MENU_GROUP":      28,
 		"INVOKE_META_AI_1ON1":                 29,
 		"INVOKE_META_AI_GROUP":                30,
+		"META_AI_FORWARD":                     31,
 	}
 )
 
@@ -4287,7 +4290,7 @@ const file_waBotMetadata_WAWebProtobufsBotMetadata_proto_rawDesc = "" +
 	"\rbotResponseID\x18\x1a \x01(\tR\rbotResponseID\x12o\n" +
 	"\x14verificationMetadata\x18\x1b \x01(\v2;.WAWebProtobufsBotMetadata.BotSignatureVerificationMetadataR\x14verificationMetadata\x12o\n" +
 	"\x17unifiedResponseMutation\x18\x1c \x01(\v25.WAWebProtobufsBotMetadata.BotUnifiedResponseMutationR\x17unifiedResponseMutation\x12o\n" +
-	"\x18botMessageOriginMetadata\x18\x1d \x01(\v23.WAWebProtobufsBotMetadata.BotMessageOriginMetadataR\x18botMessageOriginMetadata*\x97\x06\n" +
+	"\x18botMessageOriginMetadata\x18\x1d \x01(\v23.WAWebProtobufsBotMetadata.BotMessageOriginMetadataR\x18botMessageOriginMetadata*\xac\x06\n" +
 	"\x14BotMetricsEntryPoint\x12\v\n" +
 	"\aFAVICON\x10\x01\x12\f\n" +
 	"\bCHATLIST\x10\x02\x12#\n" +
@@ -4320,7 +4323,8 @@ const file_waBotMetadata_WAWebProtobufsBotMetadata_proto_rawDesc = "" +
 	"\x1dASK_META_AI_CONTEXT_MENU_1ON1\x10\x1b\x12\"\n" +
 	"\x1eASK_META_AI_CONTEXT_MENU_GROUP\x10\x1c\x12\x17\n" +
 	"\x13INVOKE_META_AI_1ON1\x10\x1d\x12\x18\n" +
-	"\x14INVOKE_META_AI_GROUP\x10\x1e*\xa2\x01\n" +
+	"\x14INVOKE_META_AI_GROUP\x10\x1e\x12\x13\n" +
+	"\x0fMETA_AI_FORWARD\x10\x1f*\xa2\x01\n" +
 	"\x1aBotMetricsThreadEntryPoint\x12\x11\n" +
 	"\rAI_TAB_THREAD\x10\x01\x12\x12\n" +
 	"\x0eAI_HOME_THREAD\x10\x02\x12 \n" +
