@@ -219,11 +219,11 @@ func (int *DangerousInternalClient) ParseGroupNode(groupNode *waBinary.Node) (*t
 	return int.c.parseGroupNode(groupNode)
 }
 
-func (int *DangerousInternalClient) ParseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, error) {
+func (int *DangerousInternalClient) ParseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, []store.LIDMapping, error) {
 	return int.c.parseGroupCreate(parentNode, node)
 }
 
-func (int *DangerousInternalClient) ParseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
+func (int *DangerousInternalClient) ParseGroupChange(node *waBinary.Node) (*events.GroupInfo, []store.LIDMapping, error) {
 	return int.c.parseGroupChange(node)
 }
 
@@ -231,7 +231,7 @@ func (int *DangerousInternalClient) UpdateGroupParticipantCache(evt *events.Grou
 	int.c.updateGroupParticipantCache(evt)
 }
 
-func (int *DangerousInternalClient) ParseGroupNotification(node *waBinary.Node) (any, error) {
+func (int *DangerousInternalClient) ParseGroupNotification(node *waBinary.Node) (any, []store.LIDMapping, error) {
 	return int.c.parseGroupNotification(node)
 }
 
@@ -279,7 +279,7 @@ func (int *DangerousInternalClient) ParseMessageInfo(node *waBinary.Node) (*type
 	return int.c.parseMessageInfo(node)
 }
 
-func (int *DangerousInternalClient) HandlePlaintextMessage(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) bool {
+func (int *DangerousInternalClient) HandlePlaintextMessage(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) (handlerFailed bool) {
 	return int.c.handlePlaintextMessage(ctx, info, node)
 }
 
@@ -319,16 +319,16 @@ func (int *DangerousInternalClient) HandleAppStateSyncKeyShare(ctx context.Conte
 	int.c.handleAppStateSyncKeyShare(ctx, keys)
 }
 
-func (int *DangerousInternalClient) HandlePlaceholderResendResponse(msg *waE2E.PeerDataOperationRequestResponseMessage) {
-	int.c.handlePlaceholderResendResponse(msg)
+func (int *DangerousInternalClient) HandlePlaceholderResendResponse(msg *waE2E.PeerDataOperationRequestResponseMessage) (ok bool) {
+	return int.c.handlePlaceholderResendResponse(msg)
 }
 
-func (int *DangerousInternalClient) HandleProtocolMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
-	int.c.handleProtocolMessage(ctx, info, msg)
+func (int *DangerousInternalClient) HandleProtocolMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) (ok bool) {
+	return int.c.handleProtocolMessage(ctx, info, msg)
 }
 
-func (int *DangerousInternalClient) ProcessProtocolParts(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
-	int.c.processProtocolParts(ctx, info, msg)
+func (int *DangerousInternalClient) ProcessProtocolParts(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) (ok bool) {
+	return int.c.processProtocolParts(ctx, info, msg)
 }
 
 func (int *DangerousInternalClient) StoreMessageSecret(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
@@ -337,6 +337,18 @@ func (int *DangerousInternalClient) StoreMessageSecret(ctx context.Context, info
 
 func (int *DangerousInternalClient) StoreHistoricalMessageSecrets(ctx context.Context, conversations []*waHistorySync.Conversation) {
 	int.c.storeHistoricalMessageSecrets(ctx, conversations)
+}
+
+func (int *DangerousInternalClient) StoreLIDSyncMessage(ctx context.Context, msg []byte) {
+	int.c.storeLIDSyncMessage(ctx, msg)
+}
+
+func (int *DangerousInternalClient) StoreGlobalSettings(ctx context.Context, settings *waHistorySync.GlobalSettings) {
+	int.c.storeGlobalSettings(ctx, settings)
+}
+
+func (int *DangerousInternalClient) StoreHistoricalPNLIDMappings(ctx context.Context, mappings []*waHistorySync.PhoneNumberToLIDMapping) {
+	int.c.storeHistoricalPNLIDMappings(ctx, mappings)
 }
 
 func (int *DangerousInternalClient) HandleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) bool {
