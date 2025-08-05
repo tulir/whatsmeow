@@ -24,6 +24,7 @@ type UserInfo struct {
 	Status       string
 	PictureID    string
 	Devices      []JID
+	LID          *JID // The local ID (if available)
 }
 
 type BotListInfo struct {
@@ -83,6 +84,7 @@ type LocalChatSettings struct {
 type IsOnWhatsAppResponse struct {
 	Query string // The query string used
 	JID   JID    // The canonical user ID
+	LID   *JID   // The local ID (if available)
 	IsIn  bool   // Whether the phone is registered or not.
 
 	VerifiedName *VerifiedName // If the phone is a business, the verified business details.
