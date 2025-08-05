@@ -185,10 +185,25 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, 
 		}
 		var info types.IsOnWhatsAppResponse
 		info.JID = jid
+
+		// Consultar LID Store para obter LID associado ao número de telefone
+		if cli.Store.LIDs != nil {
+			if lid, err := cli.Store.LIDs.GetLIDForPN(context.TODO(), jid); err != nil {
+				cli.Log.Debugf("Failed to get LID for %s: %v", jid, err)
+			} else if !lid.IsEmpty() {
+				info.LID = &lid
+				cli.Log.Debugf("Found LID %s for %s", lid, jid)
+			} else {
+				cli.Log.Debugf("No LID found for %s", jid)
+			}
+		}
+
 		info.VerifiedName, err = parseVerifiedName(child.GetChildByTag("business"))
 		if err != nil {
 			cli.Log.Warnf("Failed to parse %s's verified name details: %v", jid, err)
 		}
+
+		// Processar elemento contact para outras informações
 		contactNode := child.GetChildByTag("contact")
 		info.IsIn = contactNode.AttrGetter().String("type") == "in"
 		contactQuery, _ := contactNode.Content.([]byte)
@@ -216,6 +231,19 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 			continue
 		}
 		var info types.UserInfo
+
+		// Consultar LID Store para obter LID associado ao número de telefone
+		if cli.Store.LIDs != nil {
+			if lid, err := cli.Store.LIDs.GetLIDForPN(context.TODO(), jid); err != nil {
+				cli.Log.Debugf("Failed to get LID for %s: %v", jid, err)
+			} else if !lid.IsEmpty() {
+				info.LID = &lid
+				cli.Log.Debugf("Found LID %s for %s", lid, jid)
+			} else {
+				cli.Log.Debugf("No LID found for %s", jid)
+			}
+		}
+
 		verifiedName, err := parseVerifiedName(child.GetChildByTag("business"))
 		if err != nil {
 			cli.Log.Warnf("Failed to parse %s's verified name details: %v", jid, err)
