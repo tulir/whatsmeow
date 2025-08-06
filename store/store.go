@@ -241,6 +241,7 @@ func (device *Device) Delete(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	device.Initialized = false
 	device.ID = nil
 	device.LID = types.EmptyJID
 	return nil
