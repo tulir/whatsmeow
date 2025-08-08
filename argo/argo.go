@@ -1,10 +1,9 @@
 package argo
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
-	"log"
-	"os"
 
 	"github.com/beeper/argo-go/wire"
 	"github.com/beeper/argo-go/wirecodec"
@@ -14,22 +13,21 @@ var Store map[string]wire.Type
 
 var QueryIDToMessageName map[string]string
 
+//go:embed argo-wire-type-store.argo
+var wireTypeStoreBytes []byte
+
+//go:embed name-to-queryids.json
+var jsonMapBytes []byte
+
 func init() {
-	raw, err := os.ReadFile("argo-wire-type-store.argo")
+	var err error
+	Store, err = wirecodec.DecodeWireTypeStoreFile(wireTypeStoreBytes)
 	if err != nil {
-		log.Fatalf("read file: %v", err)
-	}
-	Store, err = wirecodec.DecodeWireTypeStoreFile(raw)
-	if err != nil {
-		log.Fatalf("decode wire-type store: %v", err)
+		fmt.Errorf("decode wire-type store: %v", err)
 	}
 
-	raw2, err := os.ReadFile("name-to-queryids.json")
-	if err != nil {
-		log.Fatalf("read file: %v", err)
-	}
 	var src map[string]string
-	if err = json.Unmarshal(raw2, &src); err != nil {
+	if err = json.Unmarshal(jsonMapBytes, &src); err != nil {
 		fmt.Errorf("input must be a JSON object of string->string: %w", err)
 	}
 
