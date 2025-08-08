@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WACommonParameterised;
-option go_package = "go.mau.fi/whatsmeow/proto/waCommonParameterised";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waCommonParameterised";
 
 enum FutureProofBehavior {
 	PLACEHOLDER = 0;

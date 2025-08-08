@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAArmadilloBackupCommon;
-option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloBackupCommon";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waArmadilloBackupCommon";
 
 message Subprotocol {
 	optional bytes payload = 1;

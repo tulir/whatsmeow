@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAWebProtobufsRoutingInfo;
-option go_package = "go.mau.fi/whatsmeow/proto/waRoutingInfo";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waRoutingInfo";
 
 message RoutingInfo {
 	repeated int32 regionID = 1;

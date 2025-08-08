@@ -154,7 +154,7 @@ const file_waArmadilloICDC_WAArmadilloICDC_proto_rawDesc = "" +
 	"\x12signingDeviceIndex\x18\x04 \x01(\x05R\x12signingDeviceIndex\"P\n" +
 	"\x16SignedICDCIdentityList\x12\x18\n" +
 	"\adetails\x18\x01 \x01(\fR\adetails\x12\x1c\n" +
-	"\tsignature\x18\x02 \x01(\fR\tsignatureB+Z)go.mau.fi/whatsmeow/proto/waArmadilloICDC"
+	"\tsignature\x18\x02 \x01(\fR\tsignatureB+Z)github.com/PakaiWA/whatsmeow/proto/waArmadilloICDC"
 
 var (
 	file_waArmadilloICDC_WAArmadilloICDC_proto_rawDescOnce sync.Once

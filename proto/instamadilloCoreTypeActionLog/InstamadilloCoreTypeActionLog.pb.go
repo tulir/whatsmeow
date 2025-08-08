@@ -141,7 +141,7 @@ const file_instamadilloCoreTypeActionLog_InstamadilloCoreTypeActionLog_proto_raw
 	"\x11actionLogReaction\x18\x01 \x01(\v20.InstamadilloCoreTypeActionLog.ActionLogReactionH\x00R\x11actionLogReactionB\x12\n" +
 	"\x10actionLogSubtype\"7\n" +
 	"\x11ActionLogReaction\x12\"\n" +
-	"\femojiUnicode\x18\x01 \x01(\tR\femojiUnicodeB9Z7go.mau.fi/whatsmeow/proto/instamadilloCoreTypeActionLog"
+	"\femojiUnicode\x18\x01 \x01(\tR\femojiUnicodeB9Z7github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeActionLog"
 
 var (
 	file_instamadilloCoreTypeActionLog_InstamadilloCoreTypeActionLog_proto_rawDescOnce sync.Once

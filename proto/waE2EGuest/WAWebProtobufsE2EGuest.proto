@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAWebProtobufsE2EGuest;
-option go_package = "go.mau.fi/whatsmeow/proto/waE2EGuest";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waE2EGuest";
 
 message Message {
 	message ExtendedTextMessage {

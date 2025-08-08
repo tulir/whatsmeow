@@ -859,7 +859,7 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\x0eSTATUS_MENTION\x10\x04\x12\x10\n" +
 	"\fGROUP_STATUS\x10\x05\x12\x12\n" +
 	"\x0eRL_ATTRIBUTION\x10\x06B\x11\n" +
-	"\x0fattributionDataB0Z.go.mau.fi/whatsmeow/proto/waStatusAttributions"
+	"\x0fattributionDataB0Z.github.com/PakaiWA/whatsmeow/proto/waStatusAttributions"
 
 var (
 	file_waStatusAttributions_WAStatusAttributions_proto_rawDescOnce sync.Once

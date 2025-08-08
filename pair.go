@@ -18,11 +18,11 @@ import (
 	"go.mau.fi/libsignal/ecc"
 	"google.golang.org/protobuf/proto"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/proto/waAdv"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/types/events"
-	"go.mau.fi/whatsmeow/util/keys"
+	waBinary "github.com/PakaiWA/whatsmeow/binary"
+	"github.com/PakaiWA/whatsmeow/proto/waAdv"
+	"github.com/PakaiWA/whatsmeow/types"
+	"github.com/PakaiWA/whatsmeow/types/events"
+	"github.com/PakaiWA/whatsmeow/util/keys"
 )
 
 var (

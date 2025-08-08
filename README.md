@@ -1,35 +1,17 @@
 # whatsmeow
-[![Go Reference](https://pkg.go.dev/badge/go.mau.fi/whatsmeow.svg)](https://pkg.go.dev/go.mau.fi/whatsmeow)
+[![Go Reference](https://pkg.go.dev/badge/github.com/PakaiWA/whatsmeow.svg)](https://pkg.go.dev/github.com/PakaiWA/whatsmeow)
 
 whatsmeow is a Go library for the WhatsApp web multidevice API.
 
-## Discussion
-Matrix room: [#whatsmeow:maunium.net](https://matrix.to/#/#whatsmeow:maunium.net)
+## Disclaimer
 
-For questions about the WhatsApp protocol (like how to send a specific type of
-message), you can also use the [WhatsApp protocol Q&A] section on GitHub
-discussions.
+This project is a **fork** of [tulir/whatsmeow](https://github.com/tulir/whatsmeow).
+The original source code was developed by [tulir](https://github.com/tulir) and the contributors of that project.
 
-[WhatsApp protocol Q&A]: https://github.com/tulir/whatsmeow/discussions/categories/whatsapp-protocol-q-a
+This fork has been modified to suit the needs of the **PakaiWA** project, including:
+- Adding or changing specific features
+- Internal adjustments for project requirements
+- Bug fixes or modifications relevant to our use case
 
-## Usage
-The [godoc](https://pkg.go.dev/go.mau.fi/whatsmeow) includes docs for all methods and event types.
-There's also a [simple example](https://pkg.go.dev/go.mau.fi/whatsmeow#example-package) at the top.
-
-## Features
-Most core features are already present:
-
-* Sending messages to private chats and groups (both text and media)
-* Receiving all messages
-* Managing groups and receiving group change events
-* Joining via invite messages, using and creating invite links
-* Sending and receiving typing notifications
-* Sending and receiving delivery and read receipts
-* Reading and writing app state (contact list, chat pin/mute status, etc)
-* Sending and handling retry receipts if message decryption fails
-* Sending status messages (experimental, may not work for large contact lists)
-
-Things that are not yet implemented:
-
-* Sending broadcast list messages (this is not supported on WhatsApp web either)
-* Calls
+All changes in this repository are **not officially** supported or maintained by the original developers.
+Please note that the behavior or API may differ from the upstream repository.

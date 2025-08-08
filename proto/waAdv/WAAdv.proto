@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAAdv;
-option go_package = "go.mau.fi/whatsmeow/proto/waAdv";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waAdv";
 
 enum ADVEncryptionType {
 	E2EE = 0;

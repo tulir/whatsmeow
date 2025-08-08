@@ -14,9 +14,9 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	instamadilloAddMessage "go.mau.fi/whatsmeow/proto/instamadilloAddMessage"
-	instamadilloDeleteMessage "go.mau.fi/whatsmeow/proto/instamadilloDeleteMessage"
-	instamadilloSupplementMessage "go.mau.fi/whatsmeow/proto/instamadilloSupplementMessage"
+	instamadilloAddMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloAddMessage"
+	instamadilloDeleteMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloDeleteMessage"
+	instamadilloSupplementMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloSupplementMessage"
 )
 
 const (
@@ -297,7 +297,7 @@ const file_instamadilloTransportPayload_InstamadilloTransportPayload_proto_rawDe
 	"\x15PAYLOAD_CREATOR_IGIOS\x10\x01\x12\x18\n" +
 	"\x14PAYLOAD_CREATOR_IG4A\x10\x02\x12\x17\n" +
 	"\x13PAYLOAD_CREATOR_WWW\x10\x03\x12\x1a\n" +
-	"\x16PAYLOAD_CREATOR_IGLITE\x10\x04B8Z6go.mau.fi/whatsmeow/proto/instamadilloTransportPayload"
+	"\x16PAYLOAD_CREATOR_IGLITE\x10\x04B8Z6github.com/PakaiWA/whatsmeow/proto/instamadilloTransportPayload"
 
 var (
 	file_instamadilloTransportPayload_InstamadilloTransportPayload_proto_rawDescOnce sync.Once

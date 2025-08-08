@@ -447,7 +447,7 @@ const file_waQuickPromotionSurfaces_WAWebProtobufsQuickPromotionSurfaces_proto_r
 	"ClauseType\x12\a\n" +
 	"\x03AND\x10\x01\x12\x06\n" +
 	"\x02OR\x10\x02\x12\a\n" +
-	"\x03NOR\x10\x03B4Z2go.mau.fi/whatsmeow/proto/waQuickPromotionSurfaces"
+	"\x03NOR\x10\x03B4Z2github.com/PakaiWA/whatsmeow/proto/waQuickPromotionSurfaces"
 
 var (
 	file_waQuickPromotionSurfaces_WAWebProtobufsQuickPromotionSurfaces_proto_rawDescOnce sync.Once

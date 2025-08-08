@@ -219,7 +219,7 @@ const file_instamadilloCoreTypeAdminMessage_InstamadilloCoreTypeAdminMessage_pro
 	"\x1eDEVICE_ADMIN_MESSAGE_TYPE_NONE\x10\x00\x12J\n" +
 	"FDEVICE_ADMIN_MESSAGE_TYPE_LOCAL_USER_CHANGED_IDENTITY_KEY_NAMED_DEVICE\x10\x01\x12C\n" +
 	"?DEVICE_ADMIN_MESSAGE_TYPE_SECURITY_ALERT_PARTICIPANT_KEY_CHANGE\x10\x02\x12B\n" +
-	">DEVICE_ADMIN_MESSAGE_TYPE_SECURITY_ALERT_PARTICIPANT_NEW_LOGIN\x10\x03B<Z:go.mau.fi/whatsmeow/proto/instamadilloCoreTypeAdminMessage"
+	">DEVICE_ADMIN_MESSAGE_TYPE_SECURITY_ALERT_PARTICIPANT_NEW_LOGIN\x10\x03B<Z:github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeAdminMessage"
 
 var (
 	file_instamadilloCoreTypeAdminMessage_InstamadilloCoreTypeAdminMessage_proto_rawDescOnce sync.Once

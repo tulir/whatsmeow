@@ -355,7 +355,7 @@ const file_waCert_WACert_proto_rawDesc = "" +
 	"\fissuerSerial\x18\x02 \x01(\rR\fissuerSerial\x12\x10\n" +
 	"\x03key\x18\x03 \x01(\fR\x03key\x12\x1c\n" +
 	"\tnotBefore\x18\x04 \x01(\x04R\tnotBefore\x12\x1a\n" +
-	"\bnotAfter\x18\x05 \x01(\x04R\bnotAfterB\"Z go.mau.fi/whatsmeow/proto/waCert"
+	"\bnotAfter\x18\x05 \x01(\x04R\bnotAfterB\"Z github.com/PakaiWA/whatsmeow/proto/waCert"
 
 var (
 	file_waCert_WACert_proto_rawDescOnce sync.Once

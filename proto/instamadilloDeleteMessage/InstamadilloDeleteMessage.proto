@@ -1,6 +1,6 @@
 syntax = "proto2";
 package InstamadilloDeleteMessage;
-option go_package = "go.mau.fi/whatsmeow/proto/instamadilloDeleteMessage";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/instamadilloDeleteMessage";
 
 message DeleteMessagePayload {
 	optional string messageOtid = 1;

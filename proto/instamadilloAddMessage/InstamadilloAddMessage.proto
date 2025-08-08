@@ -1,6 +1,6 @@
 syntax = "proto2";
 package InstamadilloAddMessage;
-option go_package = "go.mau.fi/whatsmeow/proto/instamadilloAddMessage";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/instamadilloAddMessage";
 
 import "instamadilloCoreTypeActionLog/InstamadilloCoreTypeActionLog.proto";
 import "instamadilloCoreTypeAdminMessage/InstamadilloCoreTypeAdminMessage.proto";

@@ -16,7 +16,7 @@ repos:
       - id: go-imports-repo
         args:
           - "-local"
-          - "go.mau.fi/whatsmeow"
+          - "github.com/PakaiWA/whatsmeow"
           - "-w"
       - id: go-vet-repo-mod
       # TODO enable this

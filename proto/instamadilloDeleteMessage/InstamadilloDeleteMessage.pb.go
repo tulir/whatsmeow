@@ -72,7 +72,7 @@ const file_instamadilloDeleteMessage_InstamadilloDeleteMessage_proto_rawDesc = "
 	"\n" +
 	"9instamadilloDeleteMessage/InstamadilloDeleteMessage.proto\x12\x19InstamadilloDeleteMessage\"8\n" +
 	"\x14DeleteMessagePayload\x12 \n" +
-	"\vmessageOtid\x18\x01 \x01(\tR\vmessageOtidB5Z3go.mau.fi/whatsmeow/proto/instamadilloDeleteMessage"
+	"\vmessageOtid\x18\x01 \x01(\tR\vmessageOtidB5Z3github.com/PakaiWA/whatsmeow/proto/instamadilloDeleteMessage"
 
 var (
 	file_instamadilloDeleteMessage_InstamadilloDeleteMessage_proto_rawDescOnce sync.Once

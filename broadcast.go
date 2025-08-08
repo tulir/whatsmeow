@@ -11,8 +11,8 @@ import (
 	"errors"
 	"fmt"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/types"
+	waBinary "github.com/PakaiWA/whatsmeow/binary"
+	"github.com/PakaiWA/whatsmeow/types"
 )
 
 func (cli *Client) getBroadcastListParticipants(ctx context.Context, jid types.JID) ([]types.JID, error) {

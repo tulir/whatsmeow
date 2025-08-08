@@ -18,9 +18,9 @@ import (
 	"go.mau.fi/util/exerrors"
 	"go.mau.fi/util/exstrings"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/proto/waE2E"
-	"go.mau.fi/whatsmeow/types"
+	waBinary "github.com/PakaiWA/whatsmeow/binary"
+	"github.com/PakaiWA/whatsmeow/proto/waE2E"
+	"github.com/PakaiWA/whatsmeow/types"
 )
 
 //go:embed reportingfields.json

@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAWinUIApi;
-option go_package = "go.mau.fi/whatsmeow/proto/waWinUIApi";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waWinUIApi";
 
 enum PositronDataSource {
 	MESSAGES = 1;

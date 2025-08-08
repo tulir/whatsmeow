@@ -14,9 +14,9 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/ptr"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/types"
-	"go.mau.fi/whatsmeow/types/events"
+	waBinary "github.com/PakaiWA/whatsmeow/binary"
+	"github.com/PakaiWA/whatsmeow/types"
+	"github.com/PakaiWA/whatsmeow/types/events"
 )
 
 func (cli *Client) handleReceipt(node *waBinary.Node) {

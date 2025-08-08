@@ -81,7 +81,7 @@ const file_waArmadilloBackupCommon_WAArmadilloBackupCommon_proto_rawDesc = "" +
 	"5waArmadilloBackupCommon/WAArmadilloBackupCommon.proto\x12\x17WAArmadilloBackupCommon\"A\n" +
 	"\vSubprotocol\x12\x18\n" +
 	"\apayload\x18\x01 \x01(\fR\apayload\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\x05R\aversionB3Z1go.mau.fi/whatsmeow/proto/waArmadilloBackupCommon"
+	"\aversion\x18\x02 \x01(\x05R\aversionB3Z1github.com/PakaiWA/whatsmeow/proto/waArmadilloBackupCommon"
 
 var (
 	file_waArmadilloBackupCommon_WAArmadilloBackupCommon_proto_rawDescOnce sync.Once

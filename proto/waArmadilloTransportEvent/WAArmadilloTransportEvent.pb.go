@@ -554,7 +554,7 @@ const file_waArmadilloTransportEvent_WAArmadilloTransportEvent_proto_rawDesc = "
 	"\x04Type\x12\x16\n" +
 	"\x12DECRYPTION_FAILURE\x10\x01\x12\x17\n" +
 	"\x13UNAVAILABLE_MESSAGE\x10\x02B\t\n" +
-	"\acontentB5Z3go.mau.fi/whatsmeow/proto/waArmadilloTransportEvent"
+	"\acontentB5Z3github.com/PakaiWA/whatsmeow/proto/waArmadilloTransportEvent"
 
 var (
 	file_waArmadilloTransportEvent_WAArmadilloTransportEvent_proto_rawDescOnce sync.Once

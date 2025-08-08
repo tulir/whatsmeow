@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAMsgApplication;
-option go_package = "go.mau.fi/whatsmeow/proto/waMsgApplication";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waMsgApplication";
 
 import "waCommon/WACommon.proto";
 

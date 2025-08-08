@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAWebProtobufsHistorySync;
-option go_package = "go.mau.fi/whatsmeow/proto/waHistorySync";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waHistorySync";
 
 import "waSyncAction/WASyncAction.proto";
 import "waChatLockSettings/WAProtobufsChatLockSettings.proto";

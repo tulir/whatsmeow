@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAStatusAttributions;
-option go_package = "go.mau.fi/whatsmeow/proto/waStatusAttributions";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waStatusAttributions";
 
 message StatusAttribution {
 	enum Type {

@@ -145,7 +145,7 @@ const file_waLidMigrationSyncPayload_WAWebProtobufLidMigrationSyncPayload_proto_
 	"\tlatestLid\x18\x03 \x01(\x04R\tlatestLid\"\xc1\x01\n" +
 	"\x1eLIDMigrationMappingSyncPayload\x12c\n" +
 	"\x0fpnToLidMappings\x18\x01 \x03(\v29.WAWebProtobufLidMigrationSyncPayload.LIDMigrationMappingR\x0fpnToLidMappings\x12:\n" +
-	"\x18chatDbMigrationTimestamp\x18\x02 \x01(\x04R\x18chatDbMigrationTimestampB5Z3go.mau.fi/whatsmeow/proto/waLidMigrationSyncPayload"
+	"\x18chatDbMigrationTimestamp\x18\x02 \x01(\x04R\x18chatDbMigrationTimestampB5Z3github.com/PakaiWA/whatsmeow/proto/waLidMigrationSyncPayload"
 
 var (
 	file_waLidMigrationSyncPayload_WAWebProtobufLidMigrationSyncPayload_proto_rawDescOnce sync.Once

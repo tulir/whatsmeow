@@ -1142,7 +1142,7 @@ const file_instamadilloXmaContentRef_InstamadilloXmaContentRef_proto_rawDesc = "
 	"\x1fMediaNoteFetchParamsMessageType\x124\n" +
 	"0MEDIA_NOTE_FETCH_PARAMS_MESSAGE_TYPE_UNSPECIFIED\x10\x00\x120\n" +
 	",MEDIA_NOTE_FETCH_PARAMS_MESSAGE_TYPE_MENTION\x10\x01\x12.\n" +
-	"*MEDIA_NOTE_FETCH_PARAMS_MESSAGE_TYPE_REPLY\x10\x02B5Z3go.mau.fi/whatsmeow/proto/instamadilloXmaContentRef"
+	"*MEDIA_NOTE_FETCH_PARAMS_MESSAGE_TYPE_REPLY\x10\x02B5Z3github.com/PakaiWA/whatsmeow/proto/instamadilloXmaContentRef"
 
 var (
 	file_instamadilloXmaContentRef_InstamadilloXmaContentRef_proto_rawDescOnce sync.Once

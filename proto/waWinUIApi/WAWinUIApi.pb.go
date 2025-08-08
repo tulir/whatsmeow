@@ -790,7 +790,7 @@ const file_waWinUIApi_WAWinUIApi_proto_rawDesc = "" +
 	"\bCONTACTS\x10\x03\x12\x12\n" +
 	"\x0eGROUP_METADATA\x10\x04\x12\x16\n" +
 	"\x12GROUP_PARTICIPANTS\x10\x05\x12\r\n" +
-	"\tREACTIONS\x10\x06B&Z$go.mau.fi/whatsmeow/proto/waWinUIApi"
+	"\tREACTIONS\x10\x06B&Z$github.com/PakaiWA/whatsmeow/proto/waWinUIApi"
 
 var (
 	file_waWinUIApi_WAWinUIApi_proto_rawDescOnce sync.Once

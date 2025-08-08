@@ -14,7 +14,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	instamadilloCoreTypeMedia "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeMedia"
+	instamadilloCoreTypeMedia "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeMedia"
 )
 
 const (
@@ -450,7 +450,7 @@ const file_instamadilloCoreTypeText_InstamadilloCoreTypeText_proto_rawDesc = "" 
 	"\x05style\x18\x03 \x01(\x0e2*.InstamadilloCoreTypeText.Text.FormatStyleR\x05style\"M\n" +
 	"\x1bAnimatedEmojiCharacterRange\x12\x16\n" +
 	"\x06offset\x18\x01 \x01(\x05R\x06offset\x12\x16\n" +
-	"\x06length\x18\x02 \x01(\x05R\x06lengthB4Z2go.mau.fi/whatsmeow/proto/instamadilloCoreTypeText"
+	"\x06length\x18\x02 \x01(\x05R\x06lengthB4Z2github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeText"
 
 var (
 	file_instamadilloCoreTypeText_InstamadilloCoreTypeText_proto_rawDescOnce sync.Once

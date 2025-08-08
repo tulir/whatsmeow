@@ -779,7 +779,7 @@ const file_waServerSync_WAServerSync_proto_rawDesc = "" +
 	"\x05keyID\x18\x06 \x01(\v2\x13.WAServerSync.KeyIdR\x05keyID\x122\n" +
 	"\bexitCode\x18\a \x01(\v2\x16.WAServerSync.ExitCodeR\bexitCode\x12 \n" +
 	"\vdeviceIndex\x18\b \x01(\rR\vdeviceIndex\x12(\n" +
-	"\x0fclientDebugData\x18\t \x01(\fR\x0fclientDebugDataB(Z&go.mau.fi/whatsmeow/proto/waServerSync"
+	"\x0fclientDebugData\x18\t \x01(\fR\x0fclientDebugDataB(Z&github.com/PakaiWA/whatsmeow/proto/waServerSync"
 
 var (
 	file_waServerSync_WAServerSync_proto_rawDescOnce sync.Once

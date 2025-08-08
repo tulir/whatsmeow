@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAMultiDevice;
-option go_package = "go.mau.fi/whatsmeow/proto/waMultiDevice";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waMultiDevice";
 
 message MultiDevice {
 	message Metadata {
