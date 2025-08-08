@@ -1,0 +1,57 @@
+name: Auto Tag (v0.yy.m-dhhmm)
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-tag-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Jakarta
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Hitung versi tag (WIB)
+        id: ver
+        run: |
+          sudo ln -sf /usr/share/zoneinfo/$TZ /etc/localtime
+          yy=$(date +%y)
+          m=$(date +%-m)
+          d=$(date +%-d)
+          HH=$(date +%H)
+          MM=$(date +%M)
+
+          tag="v0.${yy}.${m}-${d}${HH}${MM}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Tag yang akan dibuat: $tag"
+
+      - name: Cek apakah tag sudah ada
+        id: check
+        run: |
+          git fetch --tags --quiet
+          if git rev-parse -q --verify "refs/tags/${{ steps.ver.outputs.tag }}" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag sudah ada, tidak perlu membuat ulang."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Buat dan push tag
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          tag="${{ steps.ver.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "Auto tag $tag"
+          git push origin "$tag"
