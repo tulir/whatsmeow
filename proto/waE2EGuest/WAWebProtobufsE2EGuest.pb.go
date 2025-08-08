@@ -255,7 +255,7 @@ const file_waE2EGuest_WAWebProtobufsE2EGuest_proto_rawDesc = "" +
 	"\vparticipant\x18\x02 \x01(\tR\vparticipant\x12E\n" +
 	"\rquotedMessage\x18\x03 \x01(\v2\x1f.WAWebProtobufsE2EGuest.MessageR\rquotedMessage\":\n" +
 	"\x12MessageContextInfo\x12$\n" +
-	"\rmessageSecret\x18\x03 \x01(\fR\rmessageSecretB&Z$go.mau.fi/whatsmeow/proto/waE2EGuest"
+	"\rmessageSecret\x18\x03 \x01(\fR\rmessageSecretB&Z$github.com/PakaiWA/whatsmeow/proto/waE2EGuest"
 
 var (
 	file_waE2EGuest_WAWebProtobufsE2EGuest_proto_rawDescOnce sync.Once

@@ -216,7 +216,7 @@ const file_waMmsRetry_WAMmsRetry_proto_rawDesc = "" +
 	"\tNOT_FOUND\x10\x02\x12\x14\n" +
 	"\x10DECRYPTION_ERROR\x10\x03\"0\n" +
 	"\x12ServerErrorReceipt\x12\x1a\n" +
-	"\bstanzaID\x18\x01 \x01(\tR\bstanzaIDB&Z$go.mau.fi/whatsmeow/proto/waMmsRetry"
+	"\bstanzaID\x18\x01 \x01(\tR\bstanzaIDB&Z$github.com/PakaiWA/whatsmeow/proto/waMmsRetry"
 
 var (
 	file_waMmsRetry_WAMmsRetry_proto_rawDescOnce sync.Once

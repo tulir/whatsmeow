@@ -919,7 +919,7 @@ const file_waCompanionReg_WACompanionReg_proto_rawDesc = "" +
 	"\x12ClientPairingProps\x120\n" +
 	"\x13isChatDbLidMigrated\x18\x01 \x01(\bR\x13isChatDbLidMigrated\x124\n" +
 	"\x15isSyncdPureLidSession\x18\x02 \x01(\bR\x15isSyncdPureLidSession\x12F\n" +
-	"\x1eisSyncdSnapshotRecoveryEnabled\x18\x03 \x01(\bR\x1eisSyncdSnapshotRecoveryEnabledB*Z(go.mau.fi/whatsmeow/proto/waCompanionReg"
+	"\x1eisSyncdSnapshotRecoveryEnabled\x18\x03 \x01(\bR\x1eisSyncdSnapshotRecoveryEnabledB*Z(github.com/PakaiWA/whatsmeow/proto/waCompanionReg"
 
 var (
 	file_waCompanionReg_WACompanionReg_proto_rawDescOnce sync.Once

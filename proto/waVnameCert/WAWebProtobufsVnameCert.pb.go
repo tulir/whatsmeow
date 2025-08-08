@@ -781,7 +781,7 @@ const file_waVnameCert_WAWebProtobufsVnameCert_proto_rawDesc = "" +
 	" \x01(\x04R\tissueTime\"\x8d\x01\n" +
 	"\x11BizAccountPayload\x12N\n" +
 	"\tvnameCert\x18\x01 \x01(\v20.WAWebProtobufsVnameCert.VerifiedNameCertificateR\tvnameCert\x12(\n" +
-	"\x0fbizAcctLinkInfo\x18\x02 \x01(\fR\x0fbizAcctLinkInfoB'Z%go.mau.fi/whatsmeow/proto/waVnameCert"
+	"\x0fbizAcctLinkInfo\x18\x02 \x01(\fR\x0fbizAcctLinkInfoB'Z%github.com/PakaiWA/whatsmeow/proto/waVnameCert"
 
 var (
 	file_waVnameCert_WAWebProtobufsVnameCert_proto_rawDescOnce sync.Once

@@ -14,7 +14,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	waUserPassword "go.mau.fi/whatsmeow/proto/waUserPassword"
+	waUserPassword "github.com/PakaiWA/whatsmeow/proto/waUserPassword"
 )
 
 const (
@@ -85,7 +85,7 @@ const file_waChatLockSettings_WAProtobufsChatLockSettings_proto_rawDesc = "" +
 	"\x0fhideLockedChats\x18\x01 \x01(\bR\x0fhideLockedChats\x12E\n" +
 	"\n" +
 	"secretCode\x18\x02 \x01(\v2%.WAProtobufsUserPassword.UserPasswordR\n" +
-	"secretCodeB.Z,go.mau.fi/whatsmeow/proto/waChatLockSettings"
+	"secretCodeB.Z,github.com/PakaiWA/whatsmeow/proto/waChatLockSettings"
 
 var (
 	file_waChatLockSettings_WAProtobufsChatLockSettings_proto_rawDescOnce sync.Once

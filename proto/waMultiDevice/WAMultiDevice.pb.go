@@ -652,7 +652,7 @@ const file_waMultiDevice_WAMultiDevice_proto_rawDesc = "" +
 	"\x11AppStateSyncKeyId\x12\x14\n" +
 	"\x05keyID\x18\x01 \x01(\fR\x05keyIDB\x11\n" +
 	"\x0fapplicationData\x1a\b\n" +
-	"\x06SignalB)Z'go.mau.fi/whatsmeow/proto/waMultiDevice"
+	"\x06SignalB)Z'github.com/PakaiWA/whatsmeow/proto/waMultiDevice"
 
 var (
 	file_waMultiDevice_WAMultiDevice_proto_rawDescOnce sync.Once

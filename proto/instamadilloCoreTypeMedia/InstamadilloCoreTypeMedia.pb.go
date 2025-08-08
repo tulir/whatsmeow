@@ -1201,7 +1201,7 @@ const file_instamadilloCoreTypeMedia_InstamadilloCoreTypeMedia_proto_rawDesc = "
 	"$PJPEG_SCAN_CONFIGURATION_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bPJPEG_SCAN_CONFIGURATION_WA\x10\x01\x12 \n" +
 	"\x1cPJPEG_SCAN_CONFIGURATION_E15\x10\x02\x12 \n" +
-	"\x1cPJPEG_SCAN_CONFIGURATION_E35\x10\x03B5Z3go.mau.fi/whatsmeow/proto/instamadilloCoreTypeMedia"
+	"\x1cPJPEG_SCAN_CONFIGURATION_E35\x10\x03B5Z3github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeMedia"
 
 var (
 	file_instamadilloCoreTypeMedia_InstamadilloCoreTypeMedia_proto_rawDescOnce sync.Once

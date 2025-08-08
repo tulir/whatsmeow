@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAWebProtobufsWeb;
-option go_package = "go.mau.fi/whatsmeow/proto/waWeb";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waWeb";
 
 import "waE2E/WAWebProtobufsE2E.proto";
 import "waCommon/WACommon.proto";

@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAArmadilloApplication;
-option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloApplication";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waArmadilloApplication";
 
 import "waArmadilloXMA/WAArmadilloXMA.proto";
 import "waCommon/WACommon.proto";

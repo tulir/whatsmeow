@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAConsumerApplicationParameterised;
-option go_package = "go.mau.fi/whatsmeow/proto/waConsumerApplicationParameterised";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waConsumerApplicationParameterised";
 
 import "waCommonParameterised/WACommonParameterised.proto";
 

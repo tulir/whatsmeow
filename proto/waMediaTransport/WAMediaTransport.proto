@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAMediaTransport;
-option go_package = "go.mau.fi/whatsmeow/proto/waMediaTransport";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waMediaTransport";
 
 import "waCommon/WACommon.proto";
 

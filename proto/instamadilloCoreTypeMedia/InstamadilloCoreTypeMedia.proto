@@ -1,6 +1,6 @@
 syntax = "proto2";
 package InstamadilloCoreTypeMedia;
-option go_package = "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeMedia";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeMedia";
 
 enum PjpegScanConfiguration {
 	PJPEG_SCAN_CONFIGURATION_UNSPECIFIED = 0;

@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAWebProtobufsBotMetadata;
-option go_package = "go.mau.fi/whatsmeow/proto/waBotMetadata";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waBotMetadata";
 
 import "waCommon/WACommon.proto";
 

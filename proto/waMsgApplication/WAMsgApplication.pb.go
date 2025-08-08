@@ -14,7 +14,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
+	waCommon "github.com/PakaiWA/whatsmeow/proto/waCommon"
 )
 
 const (
@@ -1050,7 +1050,7 @@ const file_waMsgApplication_WAMsgApplication_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\r\n" +
 	"\tSEEN_ONCE\x10\x01\x12\x19\n" +
 	"\x15SEEN_BASED_WITH_TIMER\x10\x02\x12\x19\n" +
-	"\x15SEND_BASED_WITH_TIMER\x10\x03B,Z*go.mau.fi/whatsmeow/proto/waMsgApplication"
+	"\x15SEND_BASED_WITH_TIMER\x10\x03B,Z*github.com/PakaiWA/whatsmeow/proto/waMsgApplication"
 
 var (
 	file_waMsgApplication_WAMsgApplication_proto_rawDescOnce sync.Once

@@ -14,13 +14,13 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	instamadilloCoreTypeActionLog "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeActionLog"
-	instamadilloCoreTypeAdminMessage "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeAdminMessage"
-	instamadilloCoreTypeCollection "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeCollection"
-	instamadilloCoreTypeLink "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeLink"
-	instamadilloCoreTypeMedia "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeMedia"
-	instamadilloCoreTypeText "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeText"
-	instamadilloXmaContentRef "go.mau.fi/whatsmeow/proto/instamadilloXmaContentRef"
+	instamadilloCoreTypeActionLog "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeActionLog"
+	instamadilloCoreTypeAdminMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeAdminMessage"
+	instamadilloCoreTypeCollection "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeCollection"
+	instamadilloCoreTypeLink "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeLink"
+	instamadilloCoreTypeMedia "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeMedia"
+	instamadilloCoreTypeText "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeText"
+	instamadilloXmaContentRef "github.com/PakaiWA/whatsmeow/proto/instamadilloXmaContentRef"
 )
 
 const (
@@ -882,7 +882,7 @@ const file_instamadilloAddMessage_InstamadilloAddMessage_proto_rawDesc = "" +
 	"#PLACEHOLDER_TYPE_DECRYPTION_FAILURE\x10\x01\x12.\n" +
 	"*PLACEHOLDER_TYPE_NOT_SUPPORTED_NEED_UPDATE\x10\x02\x12'\n" +
 	"#PLACEHOLDER_TYPE_DEVICE_UNAVAILABLE\x10\x03\x122\n" +
-	".PLACEHOLDER_TYPE_NOT_SUPPORTED_NOT_RECOVERABLE\x10\x04B2Z0go.mau.fi/whatsmeow/proto/instamadilloAddMessage"
+	".PLACEHOLDER_TYPE_NOT_SUPPORTED_NOT_RECOVERABLE\x10\x04B2Z0github.com/PakaiWA/whatsmeow/proto/instamadilloAddMessage"
 
 var (
 	file_instamadilloAddMessage_InstamadilloAddMessage_proto_rawDescOnce sync.Once

@@ -14,7 +14,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	instamadilloCoreTypeMedia "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeMedia"
+	instamadilloCoreTypeMedia "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeMedia"
 )
 
 const (
@@ -256,7 +256,7 @@ const file_instamadilloCoreTypeLink_InstamadilloCoreTypeLink_proto_rawDesc = "" 
 	"\bImageUrl\x12\x10\n" +
 	"\x03URL\x18\x01 \x01(\tR\x03URL\x12\x14\n" +
 	"\x05width\x18\x02 \x01(\x05R\x05width\x12\x16\n" +
-	"\x06height\x18\x03 \x01(\x05R\x06heightB4Z2go.mau.fi/whatsmeow/proto/instamadilloCoreTypeLink"
+	"\x06height\x18\x03 \x01(\x05R\x06heightB4Z2github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeLink"
 
 var (
 	file_instamadilloCoreTypeLink_InstamadilloCoreTypeLink_proto_rawDescOnce sync.Once

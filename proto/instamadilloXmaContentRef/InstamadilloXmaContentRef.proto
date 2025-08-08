@@ -1,6 +1,6 @@
 syntax = "proto2";
 package InstamadilloXmaContentRef;
-option go_package = "go.mau.fi/whatsmeow/proto/instamadilloXmaContentRef";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/instamadilloXmaContentRef";
 
 enum XmaActionType {
 	XMA_ACTION_TYPE_UNSPECIFIED = 0;

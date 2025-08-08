@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAMmsRetry;
-option go_package = "go.mau.fi/whatsmeow/proto/waMmsRetry";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waMmsRetry";
 
 message MediaRetryNotification {
 	enum ResultType {

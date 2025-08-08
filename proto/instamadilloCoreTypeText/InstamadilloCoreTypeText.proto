@@ -1,6 +1,6 @@
 syntax = "proto2";
 package InstamadilloCoreTypeText;
-option go_package = "go.mau.fi/whatsmeow/proto/instamadilloCoreTypeText";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeText";
 
 import "instamadilloCoreTypeMedia/InstamadilloCoreTypeMedia.proto";
 

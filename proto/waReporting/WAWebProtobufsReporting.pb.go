@@ -252,7 +252,7 @@ const file_waReporting_WAWebProtobufsReporting_proto_rawDesc = "" +
 	"\bsubfield\x18\x05 \x03(\v2,.WAWebProtobufsReporting.Field.SubfieldEntryR\bsubfield\x1a[\n" +
 	"\rSubfieldEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\rR\x03key\x124\n" +
-	"\x05value\x18\x02 \x01(\v2\x1e.WAWebProtobufsReporting.FieldR\x05value:\x028\x01B'Z%go.mau.fi/whatsmeow/proto/waReportingb\x06proto3"
+	"\x05value\x18\x02 \x01(\v2\x1e.WAWebProtobufsReporting.FieldR\x05value:\x028\x01B'Z%github.com/PakaiWA/whatsmeow/proto/waReportingb\x06proto3"
 
 var (
 	file_waReporting_WAWebProtobufsReporting_proto_rawDescOnce sync.Once

@@ -81,7 +81,7 @@ const file_waEphemeral_WAWebProtobufsEphemeral_proto_rawDesc = "" +
 	")waEphemeral/WAWebProtobufsEphemeral.proto\x12\x17WAWebProtobufsEphemeral\"L\n" +
 	"\x10EphemeralSetting\x12\x1a\n" +
 	"\bduration\x18\x01 \x01(\x0fR\bduration\x12\x1c\n" +
-	"\ttimestamp\x18\x02 \x01(\x10R\ttimestampB'Z%go.mau.fi/whatsmeow/proto/waEphemeral"
+	"\ttimestamp\x18\x02 \x01(\x10R\ttimestampB'Z%github.com/PakaiWA/whatsmeow/proto/waEphemeral"
 
 var (
 	file_waEphemeral_WAWebProtobufsEphemeral_proto_rawDescOnce sync.Once

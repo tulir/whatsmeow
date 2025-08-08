@@ -117,7 +117,7 @@ const file_waRoutingInfo_WAWebProtobufsRoutingInfo_proto_rawDesc = "" +
 	"\x06taskID\x18\x03 \x01(\x05R\x06taskID\x12\x14\n" +
 	"\x05debug\x18\x04 \x01(\bR\x05debug\x12\x16\n" +
 	"\x06tcpBbr\x18\x05 \x01(\bR\x06tcpBbr\x12\"\n" +
-	"\ftcpKeepalive\x18\x06 \x01(\bR\ftcpKeepaliveB)Z'go.mau.fi/whatsmeow/proto/waRoutingInfo"
+	"\ftcpKeepalive\x18\x06 \x01(\bR\ftcpKeepaliveB)Z'github.com/PakaiWA/whatsmeow/proto/waRoutingInfo"
 
 var (
 	file_waRoutingInfo_WAWebProtobufsRoutingInfo_proto_rawDescOnce sync.Once

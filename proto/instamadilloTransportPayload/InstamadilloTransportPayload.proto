@@ -1,6 +1,6 @@
 syntax = "proto2";
 package InstamadilloTransportPayload;
-option go_package = "go.mau.fi/whatsmeow/proto/instamadilloTransportPayload";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/instamadilloTransportPayload";
 
 import "instamadilloAddMessage/InstamadilloAddMessage.proto";
 import "instamadilloDeleteMessage/InstamadilloDeleteMessage.proto";

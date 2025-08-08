@@ -372,7 +372,7 @@ const file_waMediaEntryData_WAMediaEntryData_proto_rawDesc = "" +
 	"directPath\x12\x1a\n" +
 	"\bmediaKey\x18\x04 \x01(\fR\bmediaKey\x12,\n" +
 	"\x11mediaKeyTimestamp\x18\x05 \x01(\x03R\x11mediaKeyTimestamp\x12\x1a\n" +
-	"\bobjectID\x18\x06 \x01(\tR\bobjectIDB,Z*go.mau.fi/whatsmeow/proto/waMediaEntryData"
+	"\bobjectID\x18\x06 \x01(\tR\bobjectIDB,Z*github.com/PakaiWA/whatsmeow/proto/waMediaEntryData"
 
 var (
 	file_waMediaEntryData_WAMediaEntryData_proto_rawDescOnce sync.Once

@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAServerSync;
-option go_package = "go.mau.fi/whatsmeow/proto/waServerSync";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waServerSync";
 
 message SyncdMutation {
 	enum SyncdOperation {

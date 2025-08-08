@@ -14,8 +14,8 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
-	waE2E "go.mau.fi/whatsmeow/proto/waE2E"
+	waCommon "github.com/PakaiWA/whatsmeow/proto/waCommon"
+	waE2E "github.com/PakaiWA/whatsmeow/proto/waE2E"
 )
 
 const (
@@ -4254,7 +4254,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x05title\x18\x01 \x02(\tR\x05title\x12\x1a\n" +
 	"\bsubtitle\x18\x02 \x02(\tR\bsubtitle\x12\x14\n" +
 	"\x05cmsID\x18\x03 \x02(\tR\x05cmsID\x12\x1a\n" +
-	"\bimageURL\x18\x04 \x02(\tR\bimageURLB!Z\x1fgo.mau.fi/whatsmeow/proto/waWeb"
+	"\bimageURL\x18\x04 \x02(\tR\bimageURLB!Z\x1fgithub.com/PakaiWA/whatsmeow/proto/waWeb"
 
 var (
 	file_waWeb_WAWebProtobufsWeb_proto_rawDescOnce sync.Once

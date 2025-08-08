@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAArmadilloTransportEvent;
-option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloTransportEvent";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waArmadilloTransportEvent";
 
 message TransportEvent {
 	message Event {

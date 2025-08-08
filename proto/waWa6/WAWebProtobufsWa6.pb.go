@@ -2233,7 +2233,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\vClientHello\x12\x1c\n" +
 	"\tephemeral\x18\x01 \x01(\fR\tephemeral\x12\x16\n" +
 	"\x06static\x18\x02 \x01(\fR\x06static\x12\x18\n" +
-	"\apayload\x18\x03 \x01(\fR\apayloadB!Z\x1fgo.mau.fi/whatsmeow/proto/waWa6"
+	"\apayload\x18\x03 \x01(\fR\apayloadB!Z\x1fgithub.com/PakaiWA/whatsmeow/proto/waWa6"
 
 var (
 	file_waWa6_WAWebProtobufsWa6_proto_rawDescOnce sync.Once

@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAArmadilloICDC;
-option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloICDC";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waArmadilloICDC";
 
 message ICDCIdentityList {
 	optional int32 seq = 1;

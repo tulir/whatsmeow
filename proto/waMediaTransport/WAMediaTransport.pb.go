@@ -14,7 +14,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
+	waCommon "github.com/PakaiWA/whatsmeow/proto/waCommon"
 )
 
 const (
@@ -2015,7 +2015,7 @@ const file_waMediaTransport_WAMediaTransport_proto_rawDesc = "" +
 	"\bIntegral\x12\x16\n" +
 	"\x05vcard\x18\x01 \x01(\tH\x00R\x05vcard\x12R\n" +
 	"\x11downloadableVcard\x18\x02 \x01(\v2\".WAMediaTransport.WAMediaTransportH\x00R\x11downloadableVcardB\t\n" +
-	"\acontactB,Z*go.mau.fi/whatsmeow/proto/waMediaTransport"
+	"\acontactB,Z*github.com/PakaiWA/whatsmeow/proto/waMediaTransport"
 
 var (
 	file_waMediaTransport_WAMediaTransport_proto_rawDescOnce sync.Once

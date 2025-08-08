@@ -702,7 +702,7 @@ const file_waCommon_WACommon_proto_rawDesc = "" +
 	"\vPLACEHOLDER\x10\x00\x12\x12\n" +
 	"\x0eNO_PLACEHOLDER\x10\x01\x12\n" +
 	"\n" +
-	"\x06IGNORE\x10\x02B$Z\"go.mau.fi/whatsmeow/proto/waCommon"
+	"\x06IGNORE\x10\x02B$Z\"github.com/PakaiWA/whatsmeow/proto/waCommon"
 
 var (
 	file_waCommon_WACommon_proto_rawDescOnce sync.Once

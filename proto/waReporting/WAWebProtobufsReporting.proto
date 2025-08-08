@@ -1,6 +1,6 @@
 syntax = "proto3";
 package WAWebProtobufsReporting;
-option go_package = "go.mau.fi/whatsmeow/proto/waReporting";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waReporting";
 
 message Reportable {
 	uint32 minVersion = 1;

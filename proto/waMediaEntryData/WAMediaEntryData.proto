@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAMediaEntryData;
-option go_package = "go.mau.fi/whatsmeow/proto/waMediaEntryData";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waMediaEntryData";
 
 message MediaEntry {
 	message ProgressiveJpegDetails {

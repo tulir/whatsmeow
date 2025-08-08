@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WAProtobufsDeviceCapabilities;
-option go_package = "go.mau.fi/whatsmeow/proto/waDeviceCapabilities";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waDeviceCapabilities";
 
 message DeviceCapabilities {
 	enum ChatLockSupportLevel {

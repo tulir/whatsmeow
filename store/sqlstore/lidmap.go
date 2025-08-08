@@ -18,8 +18,8 @@ import (
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/dbutil"
 
-	"go.mau.fi/whatsmeow/store"
-	"go.mau.fi/whatsmeow/types"
+	"github.com/PakaiWA/whatsmeow/store"
+	"github.com/PakaiWA/whatsmeow/types"
 )
 
 type CachedLIDMap struct {

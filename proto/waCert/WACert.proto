@@ -1,6 +1,6 @@
 syntax = "proto2";
 package WACert;
-option go_package = "go.mau.fi/whatsmeow/proto/waCert";
+option go_package = "github.com/PakaiWA/whatsmeow/proto/waCert";
 
 message NoiseCertificate {
 	message Details {

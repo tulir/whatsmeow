@@ -14,8 +14,8 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 
-	waArmadilloXMA "go.mau.fi/whatsmeow/proto/waArmadilloXMA"
-	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
+	waArmadilloXMA "github.com/PakaiWA/whatsmeow/proto/waArmadilloXMA"
+	waCommon "github.com/PakaiWA/whatsmeow/proto/waCommon"
 )
 
 const (
@@ -2784,7 +2784,7 @@ const file_waArmadilloApplication_WAArmadilloApplication_proto_rawDesc = "" +
 	"\vMEDIUM_LIKE\x10\x02\x12\x0e\n" +
 	"\n" +
 	"LARGE_LIKE\x10\x03B\t\n" +
-	"\acontentB2Z0go.mau.fi/whatsmeow/proto/waArmadilloApplication"
+	"\acontentB2Z0github.com/PakaiWA/whatsmeow/proto/waArmadilloApplication"
 
 var (
 	file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescOnce sync.Once
