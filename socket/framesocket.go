@@ -14,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"go.mau.fi/whatsmeow/iface"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
@@ -232,7 +231,7 @@ func (fs *FrameSocket) readPump(conn iface.WebSocketConnection, ctx context.Cont
 				fs.log.Errorf("Error reading from websocket: %v", err)
 			}
 			return
-		} else if msgType != websocket.BinaryMessage {
+		} else if msgType != iface.BinaryMessage {
 			fs.log.Warnf("Got unexpected websocket message type %d", msgType)
 			continue
 		}

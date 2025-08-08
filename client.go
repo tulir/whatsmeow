@@ -275,8 +275,8 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"ib":           cli.handleIB,
 		// Apparently there's also an <error> node which can have a code=479 and means "Invalid stanza sent (smax-invalid)"
 	}
-	// Set default wsDialer to native GorillaDialer
-	cli.wsDialer = wanet.NewDefaultGorillaDialer()
+	// Set default wsDialer to native CoderDialer
+	cli.wsDialer = wanet.NewDefaultCoderDialer()
 	return cli
 }
 

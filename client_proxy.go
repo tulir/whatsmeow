@@ -1,27 +1,36 @@
-//go:build !wasm
-
 package whatsmeow
 
 import (
+	"net/http"
+
 	wanet "go.mau.fi/whatsmeow/net"
 	"golang.org/x/net/proxy"
 )
 
 func (cli *Client) configureWebSocketProxy(proxyVal Proxy) {
-	if gorillaDialer, ok := cli.wsDialer.(*wanet.GorillaDialer); ok {
-		gorillaDialer.Proxy = proxyVal
-		gorillaDialer.NetDial = nil
+	if coderDialer, ok := cli.wsDialer.(*wanet.CoderDialer); ok {
+		transport := &http.Transport{
+			Proxy: proxyVal,
+		}
+		if coderDialer.DialOptions.HTTPClient == nil {
+			coderDialer.DialOptions.HTTPClient = new(http.Client)
+		}
+		coderDialer.DialOptions.HTTPClient.Transport = transport
 	}
 }
 
 func (cli *Client) configureWebSocketSOCKSProxy(px proxy.Dialer) {
-	if gorillaDialer, ok := cli.wsDialer.(*wanet.GorillaDialer); ok {
-		gorillaDialer.Proxy = nil
-		gorillaDialer.NetDial = px.Dial
+	if coderDialer, ok := cli.wsDialer.(*wanet.CoderDialer); ok {
+		transport := &http.Transport{}
 		if contextDialer, ok := px.(proxy.ContextDialer); ok {
-			gorillaDialer.NetDialContext = contextDialer.DialContext
+			transport.DialContext = contextDialer.DialContext
 		} else {
-			gorillaDialer.NetDialContext = nil
+			transport.Dial = px.Dial
 		}
+
+		if coderDialer.DialOptions.HTTPClient == nil {
+			coderDialer.DialOptions.HTTPClient = new(http.Client)
+		}
+		coderDialer.DialOptions.HTTPClient.Transport = transport
 	}
 }

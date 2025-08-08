@@ -14,21 +14,31 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
 
+	"go.mau.fi/util/fallocate"
 	"go.mau.fi/util/retryafter"
 
-	"go.mau.fi/whatsmeow/iface"
 	"go.mau.fi/whatsmeow/proto/waMediaTransport"
 	"go.mau.fi/whatsmeow/util/cbcutil"
-	"go.mau.fi/whatsmeow/util/fallocate"
 )
+
+type File interface {
+	io.Reader
+	io.Writer
+	io.Seeker
+	io.ReaderAt
+	io.WriterAt
+	Truncate(size int64) error
+	Stat() (os.FileInfo, error)
+}
 
 // DownloadToFile downloads the attachment from the given protobuf message.
 //
 // This is otherwise identical to [Download], but writes the attachment to a file instead of returning it as a byte slice.
-func (cli *Client) DownloadToFile(ctx context.Context, msg DownloadableMessage, file iface.File) error {
+func (cli *Client) DownloadToFile(ctx context.Context, msg DownloadableMessage, file File) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -59,7 +69,7 @@ func (cli *Client) DownloadFBToFile(
 	ctx context.Context,
 	transport *waMediaTransport.WAMediaTransport_Integral,
 	mediaType MediaType,
-	file iface.File,
+	file File,
 ) error {
 	return cli.DownloadMediaWithPathToFile(ctx, transport.GetDirectPath(), transport.GetFileEncSHA256(), transport.GetFileSHA256(), transport.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType], file)
 }
@@ -71,7 +81,7 @@ func (cli *Client) DownloadMediaWithPathToFile(
 	fileLength int,
 	mediaType MediaType,
 	mmsType string,
-	file iface.File,
+	file File,
 ) error {
 	mediaConn, err := cli.refreshMediaConn(ctx, false)
 	if err != nil {
@@ -107,7 +117,7 @@ func (cli *Client) downloadAndDecryptToFile(
 	appInfo MediaType,
 	fileLength int,
 	fileEncSHA256, fileSHA256 []byte,
-	file iface.File,
+	file File,
 ) error {
 	iv, cipherKey, macKey, _ := getMediaKeys(mediaKey, appInfo)
 	hasher := sha256.New()
@@ -138,7 +148,7 @@ func (cli *Client) downloadAndDecryptToFile(
 	return nil
 }
 
-func (cli *Client) downloadPossiblyEncryptedMediaWithRetriesToFile(ctx context.Context, url string, checksum []byte, file iface.File) (mac []byte, err error) {
+func (cli *Client) downloadPossiblyEncryptedMediaWithRetriesToFile(ctx context.Context, url string, checksum []byte, file File) (mac []byte, err error) {
 	for retryNum := 0; retryNum < 5; retryNum++ {
 		if checksum == nil {
 			_, _, err = cli.downloadMediaToFile(ctx, url, file)
@@ -167,14 +177,15 @@ func (cli *Client) downloadPossiblyEncryptedMediaWithRetriesToFile(ctx context.C
 	return
 }
 
-func (cli *Client) downloadMediaToFile(ctx context.Context, url string, file iface.File) (int64, []byte, error) {
+func (cli *Client) downloadMediaToFile(ctx context.Context, url string, file io.Writer) (int64, []byte, error) {
 	resp, err := cli.doMediaDownloadRequest(ctx, url)
 	if err != nil {
 		return 0, nil, err
 	}
 	defer resp.Body.Close()
-	if resp.ContentLength > 0 {
-		err = fallocate.Fallocate(file, resp.ContentLength)
+	osFile, ok := file.(*os.File)
+	if ok && resp.ContentLength > 0 {
+		err = fallocate.Fallocate(osFile, int(resp.ContentLength))
 		if err != nil {
 			return 0, nil, fmt.Errorf("failed to preallocate file: %w", err)
 		}
@@ -184,7 +195,7 @@ func (cli *Client) downloadMediaToFile(ctx context.Context, url string, file ifa
 	return n, hasher.Sum(nil), err
 }
 
-func (cli *Client) downloadEncryptedMediaToFile(ctx context.Context, url string, checksum []byte, file iface.File) ([]byte, error) {
+func (cli *Client) downloadEncryptedMediaToFile(ctx context.Context, url string, checksum []byte, file File) ([]byte, error) {
 	size, hash, err := cli.downloadMediaToFile(ctx, url, file)
 	if err != nil {
 		return nil, err

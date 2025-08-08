@@ -16,7 +16,6 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/iface"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
@@ -188,19 +187,19 @@ func (int *DangerousInternalClient) DownloadEncryptedMedia(ctx context.Context, 
 	return int.c.downloadEncryptedMedia(ctx, url, checksum)
 }
 
-func (int *DangerousInternalClient) DownloadAndDecryptToFile(ctx context.Context, url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSHA256, fileSHA256 []byte, file iface.File) error {
+func (int *DangerousInternalClient) DownloadAndDecryptToFile(ctx context.Context, url string, mediaKey []byte, appInfo MediaType, fileLength int, fileEncSHA256, fileSHA256 []byte, file File) error {
 	return int.c.downloadAndDecryptToFile(ctx, url, mediaKey, appInfo, fileLength, fileEncSHA256, fileSHA256, file)
 }
 
-func (int *DangerousInternalClient) DownloadPossiblyEncryptedMediaWithRetriesToFile(ctx context.Context, url string, checksum []byte, file iface.File) (mac []byte, err error) {
+func (int *DangerousInternalClient) DownloadPossiblyEncryptedMediaWithRetriesToFile(ctx context.Context, url string, checksum []byte, file File) (mac []byte, err error) {
 	return int.c.downloadPossiblyEncryptedMediaWithRetriesToFile(ctx, url, checksum, file)
 }
 
-func (int *DangerousInternalClient) DownloadMediaToFile(ctx context.Context, url string, file iface.File) (int64, []byte, error) {
+func (int *DangerousInternalClient) DownloadMediaToFile(ctx context.Context, url string, file io.Writer) (int64, []byte, error) {
 	return int.c.downloadMediaToFile(ctx, url, file)
 }
 
-func (int *DangerousInternalClient) DownloadEncryptedMediaToFile(ctx context.Context, url string, checksum []byte, file iface.File) ([]byte, error) {
+func (int *DangerousInternalClient) DownloadEncryptedMediaToFile(ctx context.Context, url string, checksum []byte, file File) ([]byte, error) {
 	return int.c.downloadEncryptedMediaToFile(ctx, url, checksum, file)
 }
 
