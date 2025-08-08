@@ -24,7 +24,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
+
+	"go.mau.fi/whatsmeow/iface"
 )
 
 /*
@@ -44,14 +45,9 @@ func Decrypt(key, iv, ciphertext []byte) ([]byte, error) {
 	return unpad(ciphertext)
 }
 
-type File interface {
-	io.Reader
-	io.WriterAt
-	Truncate(size int64) error
-	Stat() (os.FileInfo, error)
-}
 
-func DecryptFile(key, iv []byte, file File) error {
+
+func DecryptFile(key, iv []byte, file iface.File) error {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return err

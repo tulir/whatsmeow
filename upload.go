@@ -17,7 +17,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 
 	"go.mau.fi/util/random"
 
@@ -101,20 +100,13 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 //
 // To use only one file, pass the same file as both plaintext and tempFile. This will cause the file to be overwritten with encrypted data.
 func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFile io.ReadWriteSeeker, appInfo MediaType) (resp UploadResponse, err error) {
+	if tempFile == nil {
+		return UploadResponse{}, fmt.Errorf("a non-nil tempFile (io.ReadWriteSeeker) must be provided for UploadReader")
+	}
+
 	resp.MediaKey = random.Bytes(32)
 	iv, cipherKey, macKey, _ := getMediaKeys(resp.MediaKey, appInfo)
-	if tempFile == nil {
-		tempFile, err = os.CreateTemp("", "whatsmeow-upload-*")
-		if err != nil {
-			err = fmt.Errorf("failed to create temporary file: %w", err)
-			return
-		}
-		defer func() {
-			tempFileFile := tempFile.(*os.File)
-			_ = tempFileFile.Close()
-			_ = os.Remove(tempFileFile.Name())
-		}()
-	}
+
 	var uploadSize uint64
 	resp.FileSHA256, resp.FileEncSHA256, resp.FileLength, uploadSize, err = cbcutil.EncryptStream(cipherKey, iv, macKey, plaintext, tempFile)
 	if err != nil {
