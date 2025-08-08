@@ -5,8 +5,8 @@ go 1.23.0
 toolchain go1.24.5
 
 require (
+	github.com/coder/websocket v1.8.13
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/websocket v1.5.0
 	github.com/rs/zerolog v1.34.0
 	go.mau.fi/libsignal v0.2.0
 	go.mau.fi/util v0.8.8

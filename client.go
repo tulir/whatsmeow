@@ -19,7 +19,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"go.mau.fi/util/exhttp"
 	"go.mau.fi/util/exsync"
 	"go.mau.fi/util/random"
@@ -27,6 +26,8 @@ import (
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/iface"
+	wanet "go.mau.fi/whatsmeow/net"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waWa6"
 	"go.mau.fi/whatsmeow/proto/waWeb"
@@ -65,7 +66,7 @@ type Client struct {
 	socket     *socket.NoiseSocket
 	socketLock sync.RWMutex
 	socketWait chan struct{}
-	wsDialer   *websocket.Dialer
+	wsDialer   iface.WebSocketDialer
 
 	isLoggedIn            atomic.Bool
 	expectedDisconnect    *exsync.Event
@@ -274,7 +275,15 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"ib":           cli.handleIB,
 		// Apparently there's also an <error> node which can have a code=479 and means "Invalid stanza sent (smax-invalid)"
 	}
+	// Set default wsDialer to native CoderDialer
+	cli.wsDialer = wanet.NewDefaultCoderDialer()
 	return cli
+}
+
+// SetWSDialer allows replacing the default WebSocket dialer.
+// This must be called before Connect().
+func (cli *Client) SetWSDialer(dialer iface.WebSocketDialer) {
+	cli.wsDialer = dialer
 }
 
 // SetProxyAddress is a helper method that parses a URL string and calls SetProxy or SetSOCKSProxy based on the URL scheme.
@@ -333,6 +342,7 @@ func (cli *Client) SetProxy(proxy Proxy, opts ...SetProxyOptions) {
 	if !opt.NoWebsocket {
 		cli.proxy = proxy
 		cli.socksProxy = nil
+		cli.configureWebSocketProxy(proxy)
 	}
 	if !opt.NoMedia {
 		transport := cli.http.Transport.(*http.Transport)
@@ -360,6 +370,7 @@ func (cli *Client) SetSOCKSProxy(px proxy.Dialer, opts ...SetProxyOptions) {
 	if !opt.NoWebsocket {
 		cli.socksProxy = px
 		cli.proxy = nil
+		cli.configureWebSocketSOCKSProxy(px)
 	}
 	if !opt.NoMedia {
 		transport := cli.http.Transport.(*http.Transport)
@@ -430,10 +441,6 @@ func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	return true
 }
 
-func (cli *Client) SetWSDialer(dialer *websocket.Dialer) {
-	cli.wsDialer = dialer
-}
-
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
@@ -471,21 +478,7 @@ func (cli *Client) unlockedConnect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	var wsDialer websocket.Dialer
-	if cli.wsDialer != nil {
-		wsDialer = *cli.wsDialer
-	} else if !cli.proxyOnlyLogin || cli.Store.ID == nil {
-		if cli.proxy != nil {
-			wsDialer.Proxy = cli.proxy
-		} else if cli.socksProxy != nil {
-			wsDialer.NetDial = cli.socksProxy.Dial
-			contextDialer, ok := cli.socksProxy.(proxy.ContextDialer)
-			if ok {
-				wsDialer.NetDialContext = contextDialer.DialContext
-			}
-		}
-	}
-	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), wsDialer)
+	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), cli.wsDialer)
 	if cli.MessengerConfig != nil {
 		fs.URL = cli.MessengerConfig.WebsocketURL
 		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
