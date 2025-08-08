@@ -202,7 +202,16 @@ func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any)
 		return nil, fmt.Errorf("unexpected content type %T in mex response", result.Content)
 	}
 	if result.AttrGetter().String("type") == "argo" {
-		wt := argo.Store[argo.QueryIDToMessageName[queryID]]
+		store, err := argo.GetStore()
+		if err != nil {
+			return nil, err
+		}
+		queryIDMap, err := argo.GetQueryIDToMessageName()
+		if err != nil {
+			return nil, err
+		}
+		wt := store[queryIDMap[queryID]]
+
 		decoder, err := codec.NewArgoDecoder(buf.NewBufReadonly(resultContent))
 		if err != nil {
 			return nil, err
