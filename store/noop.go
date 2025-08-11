@@ -37,6 +37,7 @@ var NoopDevice = &Device{
 	MsgSecrets:    nilStore,
 	PrivacyTokens: nilStore,
 	EventBuffer:   nilStore,
+	LIDs:          nilStore,
 	Container:     nilStore,
 }
 
