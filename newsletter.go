@@ -201,7 +201,7 @@ func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any)
 	if !ok {
 		return nil, fmt.Errorf("unexpected content type %T in mex response", result.Content)
 	}
-	if result.AttrGetter().String("type") == "argo" {
+	if result.AttrGetter().String("format") == "argo" {
 		store, err := argo.GetStore()
 		if err != nil {
 			return nil, err
