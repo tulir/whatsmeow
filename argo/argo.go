@@ -48,12 +48,6 @@ func Init() error {
 	return initErr
 }
 
-func MustInit() {
-	if err := Init(); err != nil {
-		panic(err)
-	}
-}
-
 func GetStore() (map[string]wire.Type, error) {
 	if err := Init(); err != nil {
 		return nil, err
