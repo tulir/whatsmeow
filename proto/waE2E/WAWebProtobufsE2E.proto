@@ -3,7 +3,7 @@ package WAWebProtobufsE2E;
 option go_package = "go.mau.fi/whatsmeow/proto/waE2E";
 
 import "waAdv/WAAdv.proto";
-import "waBotMetadata/WAWebProtobufsBotMetadata.proto";
+import "waBotMetadata/WABotMetadata.proto";
 import "waCompanionReg/WACompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
@@ -319,6 +319,17 @@ message InteractiveResponseMessage {
 }
 
 message InteractiveMessage {
+	message CarouselMessage {
+		enum CarouselCardType {
+			DEFAULT = 0;
+			ALBUM = 1;
+		}
+
+		repeated InteractiveMessage cards = 1;
+		optional int32 messageVersion = 2;
+		optional CarouselCardType carouselCardType = 3;
+	}
+
 	message ShopMessage {
 		enum Surface {
 			UNKNOWN_SURFACE = 0;
@@ -330,11 +341,6 @@ message InteractiveMessage {
 		optional string ID = 1;
 		optional Surface surface = 2;
 		optional int32 messageVersion = 3;
-	}
-
-	message CarouselMessage {
-		repeated InteractiveMessage cards = 1;
-		optional int32 messageVersion = 2;
 	}
 
 	message NativeFlowMessage {
@@ -577,6 +583,8 @@ message PeerDataOperationRequestResponseMessage {
 
 		message CompanionCanonicalUserNonceFetchResponse {
 			optional string nonce = 1;
+			optional string waFbid = 2;
+			optional bool forceRefresh = 3;
 		}
 
 		message CompanionMetaNonceFetchResponse {
@@ -1031,6 +1039,7 @@ message ImageMessage {
 	optional ImageSourceType imageSourceType = 31;
 	optional string accessibilityLabel = 32;
 	optional MediaKeyDomain mediaKeyDomain = 33;
+	optional string qrURL = 34;
 }
 
 message ContextInfo {
@@ -1150,6 +1159,7 @@ message ContextInfo {
 		optional bool wtwaAdFormat = 24;
 		optional AdType adType = 25;
 		optional string wtwaWebsiteURL = 26;
+		optional string adPreviewURL = 27;
 	}
 
 	message AdReplyInfo {
@@ -1460,7 +1470,7 @@ message MessageContextInfo {
 	optional bytes paddingBytes = 4;
 	optional uint32 messageAddOnDurationInSecs = 5;
 	optional bytes botMessageSecret = 6;
-	optional WAWebProtobufsBotMetadata.BotMetadata botMetadata = 7;
+	optional WABotMetadata.BotMetadata botMetadata = 7;
 	optional int32 reportingTokenVersion = 8;
 	optional MessageAddonExpiryType messageAddOnExpiryType = 9;
 	optional MessageAssociation messageAssociation = 10;
@@ -1693,7 +1703,7 @@ message AlbumMessage {
 
 message MessageHistoryMetadata {
 	repeated string historyReceivers = 1;
-	optional int64 firstMessageTimestamp = 2;
+	optional int64 oldestMessageTimestamp = 2;
 	optional int64 messageCount = 3;
 }
 
@@ -1970,6 +1980,7 @@ message SendPaymentMessage {
 	optional Message noteMessage = 2;
 	optional WACommon.MessageKey requestMessageKey = 3;
 	optional PaymentBackground background = 4;
+	optional string transactionData = 5;
 }
 
 message ContactsArrayMessage {

@@ -1,5 +1,5 @@
 syntax = "proto2";
-package WAWebProtobufsBotMetadata;
+package WABotMetadata;
 option go_package = "go.mau.fi/whatsmeow/proto/waBotMetadata";
 
 import "waCommon/WACommon.proto";
@@ -107,6 +107,7 @@ message BotPromotionMessageMetadata {
 	enum BotPromotionType {
 		UNKNOWN_TYPE = 0;
 		C50 = 1;
+		SURVEY_PLATFORM = 2;
 	}
 
 	optional BotPromotionType promotionType = 1;
@@ -265,6 +266,7 @@ message BotCapabilityMetadata {
 		SIMPLIFIED_PROFILE_PAGE = 36;
 		RICH_RESPONSE_SOURCES_IN_MESSAGE = 37;
 		RICH_RESPONSE_SIDE_BY_SIDE_SURVEY = 38;
+		RICH_RESPONSE_UNIFIED_TEXT_COMPONENT = 39;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -410,6 +412,43 @@ message BotAgeCollectionMetadata {
 	optional bool shouldTriggerAgeCollectionOnClient = 2;
 }
 
+message InThreadSurveyMetadata {
+	message InThreadSurveyPrivacyStatementPart {
+		optional string text = 1;
+		optional string URL = 2;
+	}
+
+	message InThreadSurveyOption {
+		optional string stringValue = 1;
+		optional uint32 numericValue = 2;
+		optional string textTranslated = 3;
+	}
+
+	message InThreadSurveyQuestion {
+		optional string questionText = 1;
+		optional string questionID = 2;
+		repeated InThreadSurveyOption questionOptions = 3;
+	}
+
+	optional string tessaSessionID = 1;
+	optional string simonSessionID = 2;
+	optional string simonSurveyID = 3;
+	optional string tessaRootID = 4;
+	optional string requestID = 5;
+	optional string tessaEvent = 6;
+	optional string invitationHeaderText = 7;
+	optional string invitationBodyText = 8;
+	optional string invitationCtaText = 9;
+	optional string invitationCtaURL = 10;
+	optional string surveyTitle = 11;
+	repeated InThreadSurveyQuestion questions = 12;
+	optional string surveyContinueButtonText = 13;
+	optional string surveySubmitButtonText = 14;
+	optional string privacyStatementFull = 15;
+	repeated InThreadSurveyPrivacyStatementPart privacyStatementParts = 16;
+	optional string feedbackToastText = 17;
+}
+
 message BotMessageOriginMetadata {
 	repeated BotMessageOrigin origins = 1;
 }
@@ -452,4 +491,5 @@ message BotMetadata {
 	optional BotSignatureVerificationMetadata verificationMetadata = 27;
 	optional BotUnifiedResponseMutation unifiedResponseMutation = 28;
 	optional BotMessageOriginMetadata botMessageOriginMetadata = 29;
+	optional InThreadSurveyMetadata inThreadSurveyMetadata = 30;
 }
