@@ -1169,17 +1169,35 @@ func (cli *Client) encryptMessageForDevices(
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
 
-	// Heuristic: below this size, sequential loop is cheaper than goroutine scheduling.
 	const parallelThreshold = 8
-	concurrency := cli.EncryptConcurrency
-	if concurrency <= 0 {
-		concurrency = runtime.NumCPU()
-	}
-	if concurrency < 1 {
-		concurrency = 1
+
+	const minConcurrency = 1
+	const maxConcurrency = 64
+	var concurrency int
+	if cli.EncryptConcurrency > 0 {
+		concurrency = cli.EncryptConcurrency
+	} else {
+		procs := runtime.GOMAXPROCS(0)
+
+		concurrency = procs * 2
 	}
 
-	if len(allDevices) < parallelThreshold || concurrency == 1 {
+	if concurrency < minConcurrency {
+		concurrency = minConcurrency
+	}
+	if concurrency > maxConcurrency {
+		concurrency = maxConcurrency
+	}
+
+	if concurrency > len(allDevices) {
+		concurrency = len(allDevices)
+	}
+
+	if len(allDevices) == 0 {
+		return participantNodes, includeIdentity
+	}
+
+	if len(allDevices) < parallelThreshold || concurrency <= 1 {
 		// Fall back to original sequential implementation for small batches
 		var retryDevices, retryEncryptionIdentities []types.JID
 		for _, jid := range allDevices {
