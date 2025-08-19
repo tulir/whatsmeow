@@ -386,6 +386,9 @@ func (evt *Message) UnwrapRaw() *Message {
 		evt.Message = evt.Message.GetEditedMessage().GetMessage()
 		evt.IsEdit = true
 	}
+	if evt.Message != nil && evt.RawMessage != nil && evt.Message.MessageContextInfo == nil && evt.RawMessage.MessageContextInfo != nil {
+		evt.Message.MessageContextInfo = evt.RawMessage.MessageContextInfo
+	}
 	return evt
 }
 
