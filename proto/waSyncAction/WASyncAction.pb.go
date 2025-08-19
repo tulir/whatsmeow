@@ -11,11 +11,12 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
 	waChatLockSettings "go.mau.fi/whatsmeow/proto/waChatLockSettings"
 	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
 	waDeviceCapabilities "go.mau.fi/whatsmeow/proto/waDeviceCapabilities"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (

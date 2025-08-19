@@ -11,14 +11,15 @@ import (
 	sync "sync"
 	unsafe "unsafe"
 
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
 	waAdv "go.mau.fi/whatsmeow/proto/waAdv"
 	waBotMetadata "go.mau.fi/whatsmeow/proto/waBotMetadata"
 	waCommon "go.mau.fi/whatsmeow/proto/waCommon"
 	waCompanionReg "go.mau.fi/whatsmeow/proto/waCompanionReg"
 	waMmsRetry "go.mau.fi/whatsmeow/proto/waMmsRetry"
 	waStatusAttributions "go.mau.fi/whatsmeow/proto/waStatusAttributions"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
