@@ -1166,6 +1166,53 @@ func (cli *Client) encryptMessageForDevices(
 ) ([]waBinary.Node, bool) {
 	ownJID := cli.getOwnID()
 	ownLID := cli.getOwnLID()
+
+	// Scoped cache activation (batch load sessions & identity keys) – only if backend supports it
+	if cli.Store != nil && cli.Store.Cache != nil && len(allDevices) > 1 { // only bother if >1 device
+		addresses := make([]string, 0, len(allDevices))
+		for _, jid := range allDevices {
+			if jid == ownJID || jid == ownLID { // skip own identity placeholders, own device sessions not needed
+				continue
+			}
+			addresses = append(addresses, jid.SignalAddress().String())
+		}
+		if len(addresses) > 0 {
+			// Batch fetch
+			sessMap, err := cli.Store.Cache.GetSessions(ctx, addresses)
+			if err != nil {
+				cli.Log.Warnf("Scoped cache: failed to batch fetch sessions: %v", err)
+				sessMap = map[string][]byte{}
+			}
+			idMap, err := cli.Store.Cache.GetIdentityKeys(ctx, addresses)
+			if err != nil {
+				cli.Log.Warnf("Scoped cache: failed to batch fetch identity keys: %v", err)
+				idMap = map[string][32]byte{}
+			}
+			cli.Store.SessionsCacheLock.Lock()
+			cli.Store.SessionsCache = sessMap
+			cli.Store.IdentityKeysCache = idMap
+			cli.Store.SessionsCacheLock.Unlock()
+			defer func() {
+				cli.Store.SessionsCacheLock.Lock()
+				sessionsCopy := cli.Store.SessionsCache
+				identityCopy := cli.Store.IdentityKeysCache
+				cli.Store.SessionsCache = nil
+				cli.Store.IdentityKeysCache = nil
+				cli.Store.SessionsCacheLock.Unlock()
+				// Flush new/updated sessions & identities back (best effort)
+				if len(sessionsCopy) > 0 {
+					if err := cli.Store.Cache.PutSessions(context.Background(), sessionsCopy); err != nil {
+						cli.Log.Warnf("Scoped cache: failed to flush sessions: %v", err)
+					}
+				}
+				if len(identityCopy) > 0 {
+					if err := cli.Store.Cache.PutIdentityKeys(context.Background(), identityCopy); err != nil {
+						cli.Log.Warnf("Scoped cache: failed to flush identity keys: %v", err)
+					}
+				}
+			}()
+		}
+	}
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
 

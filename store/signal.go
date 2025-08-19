@@ -7,6 +7,7 @@
 package store
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
@@ -36,6 +37,16 @@ func (device *Device) GetLocalRegistrationID() uint32 {
 
 func (device *Device) SaveIdentity(ctx context.Context, address *protocol.SignalAddress, identityKey *identity.Key) error {
 	addrString := address.String()
+	// Scoped cache active?
+	device.SessionsCacheLock.RLock()
+	cacheActive := device.IdentityKeysCache != nil
+	device.SessionsCacheLock.RUnlock()
+	if cacheActive {
+		device.SessionsCacheLock.Lock()
+		device.IdentityKeysCache[addrString] = identityKey.PublicKey().PublicKey()
+		device.SessionsCacheLock.Unlock()
+		return nil
+	}
 	err := device.Identities.PutIdentity(ctx, addrString, identityKey.PublicKey().PublicKey())
 	if err != nil {
 		return fmt.Errorf("failed to save identity of %s: %w", addrString, err)
@@ -45,6 +56,16 @@ func (device *Device) SaveIdentity(ctx context.Context, address *protocol.Signal
 
 func (device *Device) IsTrustedIdentity(ctx context.Context, address *protocol.SignalAddress, identityKey *identity.Key) (bool, error) {
 	addrString := address.String()
+	device.SessionsCacheLock.RLock()
+	cacheActive := device.IdentityKeysCache != nil
+	if cacheActive {
+		if existing, ok := device.IdentityKeysCache[addrString]; ok {
+			device.SessionsCacheLock.RUnlock()
+			newKey := identityKey.PublicKey().PublicKey()
+			return bytes.Equal(existing[:], newKey[:]), nil
+		}
+	}
+	device.SessionsCacheLock.RUnlock()
 	isTrusted, err := device.Identities.IsTrustedIdentity(ctx, addrString, identityKey.PublicKey().PublicKey())
 	if err != nil {
 		return false, fmt.Errorf("failed to check if %s's identity is trusted: %w", addrString, err)
@@ -84,6 +105,21 @@ func (device *Device) ContainsPreKey(ctx context.Context, preKeyID uint32) (bool
 
 func (device *Device) LoadSession(ctx context.Context, address *protocol.SignalAddress) (*record.Session, error) {
 	addrString := address.String()
+	device.SessionsCacheLock.RLock()
+	if device.SessionsCache != nil {
+		if raw, ok := device.SessionsCache[addrString]; ok {
+			device.SessionsCacheLock.RUnlock()
+			if len(raw) == 0 { // placeholder for new session
+				return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State), nil
+			}
+			sess, err := record.NewSessionFromBytes(raw, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
+			if err != nil {
+				return nil, fmt.Errorf("failed to deserialize cached session with %s: %w", addrString, err)
+			}
+			return sess, nil
+		}
+	}
+	device.SessionsCacheLock.RUnlock()
 	rawSess, err := device.Sessions.GetSession(ctx, addrString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load session with %s: %w", addrString, err)
@@ -104,6 +140,15 @@ func (device *Device) GetSubDeviceSessions(ctx context.Context, name string) ([]
 
 func (device *Device) StoreSession(ctx context.Context, address *protocol.SignalAddress, record *record.Session) error {
 	addrString := address.String()
+	device.SessionsCacheLock.RLock()
+	if device.SessionsCache != nil {
+		device.SessionsCacheLock.RUnlock()
+		device.SessionsCacheLock.Lock()
+		device.SessionsCache[addrString] = record.Serialize()
+		device.SessionsCacheLock.Unlock()
+		return nil
+	}
+	device.SessionsCacheLock.RUnlock()
 	err := device.Sessions.PutSession(ctx, addrString, record.Serialize())
 	if err != nil {
 		return fmt.Errorf("failed to store session with %s: %w", addrString, err)
@@ -113,6 +158,14 @@ func (device *Device) StoreSession(ctx context.Context, address *protocol.Signal
 
 func (device *Device) ContainsSession(ctx context.Context, remoteAddress *protocol.SignalAddress) (bool, error) {
 	addrString := remoteAddress.String()
+	device.SessionsCacheLock.RLock()
+	if device.SessionsCache != nil {
+		if _, ok := device.SessionsCache[addrString]; ok {
+			device.SessionsCacheLock.RUnlock()
+			return true, nil
+		}
+	}
+	device.SessionsCacheLock.RUnlock()
 	hasSession, err := device.Sessions.HasSession(ctx, addrString)
 	if err != nil {
 		return false, fmt.Errorf("failed to check if store has session for %s: %w", addrString, err)
