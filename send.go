@@ -29,6 +29,7 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/proto/waBotMetadata"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
@@ -237,7 +238,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 
 	if isBotMode {
 		if message.MessageContextInfo.BotMetadata == nil {
-			message.MessageContextInfo.BotMetadata = &waE2E.BotMetadata{
+			message.MessageContextInfo.BotMetadata = &waBotMetadata.BotMetadata{
 				PersonaID: proto.String("867051314767696$760019659443059"),
 			}
 		}

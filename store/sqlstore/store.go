@@ -779,7 +779,14 @@ const (
 	getMsgSecret = `
 		SELECT key, sender_jid
 		FROM whatsmeow_message_secrets
-		WHERE our_jid=$1 AND chat_jid=$2 AND message_id=$4 AND (sender_jid=$3 OR sender_jid=(
+		WHERE our_jid=$1 AND (chat_jid=$2 OR chat_jid=(
+			CASE
+				WHEN $2 LIKE '%@lid'
+					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($2, '@lid', ''))
+				WHEN $2 LIKE '%@s.whatsapp.net'
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE lid=replace($2, '@s.whatsapp.net', ''))
+			END
+		)) AND message_id=$4 AND (sender_jid=$3 OR sender_jid=(
 			CASE
 				WHEN $3 LIKE '%@lid'
 					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($3, '@lid', ''))

@@ -126,6 +126,7 @@ message GroupParticipant {
 
 	required string userJID = 1;
 	optional Rank rank = 2;
+	optional WAWebProtobufsE2E.MemberLabel memberLabel = 3;
 }
 
 message PastParticipant {
@@ -209,6 +210,8 @@ message StickerMetadata {
 	optional float weight = 10;
 	optional int64 lastStickerSentTS = 11;
 	optional bool isLottie = 12;
+	optional string imageHash = 13;
+	optional bool isAvatarSticker = 14;
 }
 
 message PastParticipants {

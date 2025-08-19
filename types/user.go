@@ -56,6 +56,8 @@ type ProfilePictureInfo struct {
 	Type string `json:"type"` // The type of image. Known types include "image" (full res) and "preview" (thumbnail).
 
 	DirectPath string `json:"direct_path"` // The path to the image, probably not very useful
+
+	Hash []byte `json:"hash"` // Some kind of hash (format is unknown)
 }
 
 // ContactInfo contains the cached names of a WhatsApp user.

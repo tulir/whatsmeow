@@ -18,6 +18,7 @@ message StatusAttribution {
 			UNKNOWN = 0;
 			RAY_BAN_META_GLASSES = 1;
 			OAKLEY_META_GLASSES = 2;
+			HYPERNOVA_GLASSES = 3;
 		}
 
 		optional Source source = 1;
@@ -32,6 +33,7 @@ message StatusAttribution {
 			SPOTIFY = 4;
 			YOUTUBE = 5;
 			PINTEREST = 6;
+			THREADS = 7;
 		}
 
 		optional string actionURL = 1;
