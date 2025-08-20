@@ -13,7 +13,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/gorilla/websocket"
+	"go.mau.fi/whatsmeow/iface"
 )
 
 type NoiseSocket struct {
@@ -79,7 +79,7 @@ func (ns *NoiseSocket) Stop(disconnect bool) {
 		close(ns.stopConsumer)
 		ns.fs.OnDisconnect = nil
 		if disconnect {
-			ns.fs.Close(websocket.CloseNormalClosure)
+			ns.fs.Close(iface.CloseMessage)
 		}
 	}
 }

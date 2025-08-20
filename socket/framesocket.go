@@ -14,13 +14,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
-
+	"go.mau.fi/whatsmeow/iface"
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 type FrameSocket struct {
-	conn   *websocket.Conn
+	conn   iface.WebSocketConnection
 	ctx    context.Context
 	cancel func()
 	log    waLog.Logger
@@ -34,7 +33,7 @@ type FrameSocket struct {
 	WriteTimeout time.Duration
 
 	Header []byte
-	Dialer websocket.Dialer
+	Dialer iface.WebSocketDialer
 
 	incomingLength int
 	receivedLength int
@@ -42,7 +41,7 @@ type FrameSocket struct {
 	partialHeader  []byte
 }
 
-func NewFrameSocket(log waLog.Logger, dialer websocket.Dialer) *FrameSocket {
+func NewFrameSocket(log waLog.Logger, dialer iface.WebSocketDialer) *FrameSocket {
 	return &FrameSocket{
 		conn:   nil,
 		log:    log,
@@ -73,8 +72,8 @@ func (fs *FrameSocket) Close(code int) {
 	}
 
 	if code > 0 {
-		message := websocket.FormatCloseMessage(code, "")
-		err := fs.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
+		message := iface.FormatClosePayload(code)
+		err := fs.conn.WriteMessage(iface.CloseMessage, message)
 		if err != nil {
 			fs.log.Warnf("Error sending close message: %v", err)
 		}
@@ -103,23 +102,28 @@ func (fs *FrameSocket) Connect() error {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	fs.log.Debugf("Dialing %s", fs.URL)
-	conn, _, err := fs.Dialer.Dial(fs.URL, fs.HTTPHeaders)
+	conn, _, err := fs.Dialer.DialContext(ctx, fs.URL, fs.HTTPHeaders)
 	if err != nil {
 		cancel()
-		return fmt.Errorf("couldn't dial whatsapp web websocket: %w", err)
+		return err
 	}
-
-	fs.ctx, fs.cancel = ctx, cancel
 	fs.conn = conn
-	conn.SetCloseHandler(func(code int, text string) error {
-		fs.log.Debugf("Server closed websocket with status %d/%s", code, text)
-		cancel()
-		// from default CloseHandler
-		message := websocket.FormatCloseMessage(code, "")
-		_ = conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
-		return nil
-	})
+	fs.ctx = ctx
+	fs.cancel = cancel
+	fs.conn.SetReadDeadline(time.Time{})
 
+	// Set close handler if supported
+	if _, ok := fs.conn.(interface {
+		SetCloseHandler(func(code int, text string) error)
+	}); ok {
+		fs.conn.SetCloseHandler(func(code int, text string) error {
+			fs.log.Debugf("Server closed websocket with status %d/%s", code, text)
+			cancel()
+			message := iface.FormatClosePayload(code)
+			_ = fs.conn.WriteMessage(iface.CloseMessage, message)
+			return nil
+		})
+	}
 	go fs.readPump(conn, ctx)
 	return nil
 }
@@ -159,7 +163,8 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 			fs.log.Warnf("Failed to set write deadline: %v", err)
 		}
 	}
-	return conn.WriteMessage(websocket.BinaryMessage, wholeFrame)
+
+	return conn.WriteMessage(iface.BinaryMessage, wholeFrame)
 }
 
 func (fs *FrameSocket) frameComplete() {
@@ -212,7 +217,7 @@ func (fs *FrameSocket) processData(msg []byte) {
 	}
 }
 
-func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
+func (fs *FrameSocket) readPump(conn iface.WebSocketConnection, ctx context.Context) {
 	fs.log.Debugf("Frame websocket read pump starting %p", fs)
 	defer func() {
 		fs.log.Debugf("Frame websocket read pump exiting %p", fs)
@@ -226,7 +231,7 @@ func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 				fs.log.Errorf("Error reading from websocket: %v", err)
 			}
 			return
-		} else if msgType != websocket.BinaryMessage {
+		} else if msgType != iface.BinaryMessage {
 			fs.log.Warnf("Got unexpected websocket message type %d", msgType)
 			continue
 		}
