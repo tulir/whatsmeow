@@ -833,7 +833,7 @@ func getTypeFromMessage(msg *waE2E.Message) string {
 		return getTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
 	case msg.ReactionMessage != nil, msg.EncReactionMessage != nil:
 		return "reaction"
-	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
+	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil, msg.PollCreationMessageV3 != nil:
 		return "poll"
 	case getMediaTypeFromMessage(msg) != "":
 		return "media"
