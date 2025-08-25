@@ -47,6 +47,7 @@ type GroupInfo struct {
 
 type GroupMembershipApprovalMode struct {
 	IsJoinApprovalRequired bool
+	IsPendingRequest bool
 }
 
 type GroupParent struct {
