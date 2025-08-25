@@ -569,6 +569,11 @@ func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticip
 				PN:  part.PhoneNumber,
 			}
 		}
+		// 这里把JID中lid的格式改成默认的s.whatsapp.net格式
+		if part.JID.Server == types.HiddenUserServer && !part.PhoneNumber.IsEmpty() {
+			part.JID = part.PhoneNumber
+			groupInfo.Participants[i] = part
+		}
 	}
 	cli.groupCache[jid] = &groupMetaCache{
 		AddressingMode:             groupInfo.AddressingMode,
