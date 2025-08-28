@@ -270,11 +270,21 @@ message SyncActionValue {
 	optional MaibaAIFeaturesControlAction maibaAiFeaturesControlAction = 68;
 	optional BusinessBroadcastListAction businessBroadcastListAction = 69;
 	optional MusicUserIdAction musicUserIDAction = 70;
+	optional StatusPostOptInNotificationPreferencesAction statusPostOptInNotificationPreferencesAction = 71;
+}
+
+message StatusPostOptInNotificationPreferencesAction {
+	optional bool enabled = 1;
+}
+
+message BroadcastListParticipant {
+	required string lidJID = 1;
+	optional string pnJID = 2;
 }
 
 message BusinessBroadcastListAction {
 	optional bool deleted = 1;
-	repeated string lids = 2;
+	repeated BroadcastListParticipant participants = 2;
 	optional string listName = 3;
 }
 

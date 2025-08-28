@@ -881,6 +881,7 @@ type ClientPayload struct {
 	LidDbMigrated          *bool                                        `protobuf:"varint,41,opt,name=lidDbMigrated" json:"lidDbMigrated,omitempty"`
 	AccountType            *ClientPayload_AccountType                   `protobuf:"varint,42,opt,name=accountType,enum=WAWebProtobufsWa6.ClientPayload_AccountType" json:"accountType,omitempty"`
 	ConnectionSequenceInfo *int32                                       `protobuf:"fixed32,43,opt,name=connectionSequenceInfo" json:"connectionSequenceInfo,omitempty"`
+	PaaLink                *bool                                        `protobuf:"varint,44,opt,name=paaLink" json:"paaLink,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -1130,6 +1131,13 @@ func (x *ClientPayload) GetConnectionSequenceInfo() int32 {
 		return *x.ConnectionSequenceInfo
 	}
 	return 0
+}
+
+func (x *ClientPayload) GetPaaLink() bool {
+	if x != nil && x.PaaLink != nil {
+		return *x.PaaLink
+	}
+	return false
 }
 
 type HandshakeMessage struct {
@@ -2012,7 +2020,7 @@ var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xe8)\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\x82*\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2047,7 +2055,8 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x14trafficAnonymization\x18( \x01(\x0e25.WAWebProtobufsWa6.ClientPayload.TrafficAnonymizationR\x14trafficAnonymization\x12$\n" +
 	"\rlidDbMigrated\x18) \x01(\bR\rlidDbMigrated\x12N\n" +
 	"\vaccountType\x18* \x01(\x0e2,.WAWebProtobufsWa6.ClientPayload.AccountTypeR\vaccountType\x126\n" +
-	"\x16connectionSequenceInfo\x18+ \x01(\x0fR\x16connectionSequenceInfo\x1a\xea\x01\n" +
+	"\x16connectionSequenceInfo\x18+ \x01(\x0fR\x16connectionSequenceInfo\x12\x18\n" +
+	"\apaaLink\x18, \x01(\bR\apaaLink\x1a\xea\x01\n" +
 	"\tDNSSource\x12\\\n" +
 	"\tdnsMethod\x18\x0f \x01(\x0e2>.WAWebProtobufsWa6.ClientPayload.DNSSource.DNSResolutionMethodR\tdnsMethod\x12\x1c\n" +
 	"\tappCached\x18\x10 \x01(\bR\tappCached\"a\n" +

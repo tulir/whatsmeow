@@ -1248,19 +1248,22 @@ func (InteractiveResponseMessage_Body_Format) EnumDescriptor() ([]byte, []int) {
 type InteractiveMessage_CarouselMessage_CarouselCardType int32
 
 const (
-	InteractiveMessage_CarouselMessage_DEFAULT InteractiveMessage_CarouselMessage_CarouselCardType = 0
-	InteractiveMessage_CarouselMessage_ALBUM   InteractiveMessage_CarouselMessage_CarouselCardType = 1
+	InteractiveMessage_CarouselMessage_UNKNOWN       InteractiveMessage_CarouselMessage_CarouselCardType = 0
+	InteractiveMessage_CarouselMessage_HSCROLL_CARDS InteractiveMessage_CarouselMessage_CarouselCardType = 1
+	InteractiveMessage_CarouselMessage_ALBUM_IMAGE   InteractiveMessage_CarouselMessage_CarouselCardType = 2
 )
 
 // Enum value maps for InteractiveMessage_CarouselMessage_CarouselCardType.
 var (
 	InteractiveMessage_CarouselMessage_CarouselCardType_name = map[int32]string{
-		0: "DEFAULT",
-		1: "ALBUM",
+		0: "UNKNOWN",
+		1: "HSCROLL_CARDS",
+		2: "ALBUM_IMAGE",
 	}
 	InteractiveMessage_CarouselMessage_CarouselCardType_value = map[string]int32{
-		"DEFAULT": 0,
-		"ALBUM":   1,
+		"UNKNOWN":       0,
+		"HSCROLL_CARDS": 1,
+		"ALBUM_IMAGE":   2,
 	}
 )
 
@@ -3082,6 +3085,7 @@ const (
 	ContextInfo_STATUS   ContextInfo_ForwardOrigin = 2
 	ContextInfo_CHANNELS ContextInfo_ForwardOrigin = 3
 	ContextInfo_META_AI  ContextInfo_ForwardOrigin = 4
+	ContextInfo_UGC      ContextInfo_ForwardOrigin = 5
 )
 
 // Enum value maps for ContextInfo_ForwardOrigin.
@@ -3092,6 +3096,7 @@ var (
 		2: "STATUS",
 		3: "CHANNELS",
 		4: "META_AI",
+		5: "UGC",
 	}
 	ContextInfo_ForwardOrigin_value = map[string]int32{
 		"UNKNOWN":  0,
@@ -3099,6 +3104,7 @@ var (
 		"STATUS":   2,
 		"CHANNELS": 3,
 		"META_AI":  4,
+		"UGC":      5,
 	}
 )
 
@@ -4172,6 +4178,7 @@ type ThreadID_ThreadType int32
 const (
 	ThreadID_UNKNOWN      ThreadID_ThreadType = 0
 	ThreadID_VIEW_REPLIES ThreadID_ThreadType = 1
+	ThreadID_AI_THREAD    ThreadID_ThreadType = 2
 )
 
 // Enum value maps for ThreadID_ThreadType.
@@ -4179,10 +4186,12 @@ var (
 	ThreadID_ThreadType_name = map[int32]string{
 		0: "UNKNOWN",
 		1: "VIEW_REPLIES",
+		2: "AI_THREAD",
 	}
 	ThreadID_ThreadType_value = map[string]int32{
 		"UNKNOWN":      0,
 		"VIEW_REPLIES": 1,
+		"AI_THREAD":    2,
 	}
 )
 
@@ -8392,6 +8401,7 @@ type ContextInfo struct {
 	ForwardOrigin                      *ContextInfo_ForwardOrigin                  `protobuf:"varint,67,opt,name=forwardOrigin,enum=WAWebProtobufsE2E.ContextInfo_ForwardOrigin" json:"forwardOrigin,omitempty"`
 	QuestionReplyQuotedMessage         *ContextInfo_QuestionReplyQuotedMessage     `protobuf:"bytes,68,opt,name=questionReplyQuotedMessage" json:"questionReplyQuotedMessage,omitempty"`
 	StatusAudienceMetadata             *ContextInfo_StatusAudienceMetadata         `protobuf:"bytes,69,opt,name=statusAudienceMetadata" json:"statusAudienceMetadata,omitempty"`
+	NonJIDMentions                     *uint32                                     `protobuf:"varint,70,opt,name=nonJIDMentions" json:"nonJIDMentions,omitempty"`
 	unknownFields                      protoimpl.UnknownFields
 	sizeCache                          protoimpl.SizeCache
 }
@@ -8788,6 +8798,13 @@ func (x *ContextInfo) GetStatusAudienceMetadata() *ContextInfo_StatusAudienceMet
 		return x.StatusAudienceMetadata
 	}
 	return nil
+}
+
+func (x *ContextInfo) GetNonJIDMentions() uint32 {
+	if x != nil && x.NonJIDMentions != nil {
+		return *x.NonJIDMentions
+	}
+	return 0
 }
 
 type AIRichResponseMessage struct {
@@ -15925,7 +15942,7 @@ func (x *InteractiveMessage_CarouselMessage) GetCarouselCardType() InteractiveMe
 	if x != nil && x.CarouselCardType != nil {
 		return *x.CarouselCardType
 	}
-	return InteractiveMessage_CarouselMessage_DEFAULT
+	return InteractiveMessage_CarouselMessage_UNKNOWN
 }
 
 type InteractiveMessage_ShopMessage struct {
@@ -21752,7 +21769,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"paramsJSON\x18\x02 \x01(\tR\n" +
 	"paramsJSON\x12\x18\n" +
 	"\aversion\x18\x03 \x01(\x05R\aversionB\x1c\n" +
-	"\x1ainteractiveResponseMessage\"\xed\x11\n" +
+	"\x1ainteractiveResponseMessage\"\x86\x12\n" +
 	"\x12InteractiveMessage\x12i\n" +
 	"\x15shopStorefrontMessage\x18\x04 \x01(\v21.WAWebProtobufsE2E.InteractiveMessage.ShopMessageH\x00R\x15shopStorefrontMessage\x12g\n" +
 	"\x11collectionMessage\x18\x05 \x01(\v27.WAWebProtobufsE2E.InteractiveMessage.CollectionMessageH\x00R\x11collectionMessage\x12g\n" +
@@ -21762,14 +21779,15 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x04body\x18\x02 \x01(\v2*.WAWebProtobufsE2E.InteractiveMessage.BodyR\x04body\x12D\n" +
 	"\x06footer\x18\x03 \x01(\v2,.WAWebProtobufsE2E.InteractiveMessage.FooterR\x06footer\x12@\n" +
 	"\vcontextInfo\x18\x0f \x01(\v2\x1e.WAWebProtobufsE2E.ContextInfoR\vcontextInfo\x12I\n" +
-	"\x0eurlTrackingMap\x18\x10 \x01(\v2!.WAWebProtobufsE2E.UrlTrackingMapR\x0eurlTrackingMap\x1a\x96\x02\n" +
+	"\x0eurlTrackingMap\x18\x10 \x01(\v2!.WAWebProtobufsE2E.UrlTrackingMapR\x0eurlTrackingMap\x1a\xaf\x02\n" +
 	"\x0fCarouselMessage\x12;\n" +
 	"\x05cards\x18\x01 \x03(\v2%.WAWebProtobufsE2E.InteractiveMessageR\x05cards\x12&\n" +
 	"\x0emessageVersion\x18\x02 \x01(\x05R\x0emessageVersion\x12r\n" +
-	"\x10carouselCardType\x18\x03 \x01(\x0e2F.WAWebProtobufsE2E.InteractiveMessage.CarouselMessage.CarouselCardTypeR\x10carouselCardType\"*\n" +
+	"\x10carouselCardType\x18\x03 \x01(\x0e2F.WAWebProtobufsE2E.InteractiveMessage.CarouselMessage.CarouselCardTypeR\x10carouselCardType\"C\n" +
 	"\x10CarouselCardType\x12\v\n" +
-	"\aDEFAULT\x10\x00\x12\t\n" +
-	"\x05ALBUM\x10\x01\x1a\xd2\x01\n" +
+	"\aUNKNOWN\x10\x00\x12\x11\n" +
+	"\rHSCROLL_CARDS\x10\x01\x12\x0f\n" +
+	"\vALBUM_IMAGE\x10\x02\x1a\xd2\x01\n" +
 	"\vShopMessage\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\tR\x02ID\x12S\n" +
 	"\asurface\x18\x02 \x01(\x0e29.WAWebProtobufsE2E.InteractiveMessage.ShopMessage.SurfaceR\asurface\x12&\n" +
@@ -22380,7 +22398,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"USER_IMAGE\x10\x00\x12\x10\n" +
 	"\fAI_GENERATED\x10\x01\x12\x0f\n" +
 	"\vAI_MODIFIED\x10\x02\x12\x1a\n" +
-	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xff7\n" +
+	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xb08\n" +
 	"\vContextInfo\x12\x1a\n" +
 	"\bstanzaID\x18\x01 \x01(\tR\bstanzaID\x12 \n" +
 	"\vparticipant\x18\x02 \x01(\tR\vparticipant\x12@\n" +
@@ -22439,7 +22457,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\risGroupStatus\x18B \x01(\bR\risGroupStatus\x12R\n" +
 	"\rforwardOrigin\x18C \x01(\x0e2,.WAWebProtobufsE2E.ContextInfo.ForwardOriginR\rforwardOrigin\x12y\n" +
 	"\x1aquestionReplyQuotedMessage\x18D \x01(\v29.WAWebProtobufsE2E.ContextInfo.QuestionReplyQuotedMessageR\x1aquestionReplyQuotedMessage\x12m\n" +
-	"\x16statusAudienceMetadata\x18E \x01(\v25.WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadataR\x16statusAudienceMetadata\x1a\xb0\x01\n" +
+	"\x16statusAudienceMetadata\x18E \x01(\v25.WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadataR\x16statusAudienceMetadata\x12&\n" +
+	"\x0enonJIDMentions\x18F \x01(\rR\x0enonJIDMentions\x1a\xb0\x01\n" +
 	"\x16StatusAudienceMetadata\x12f\n" +
 	"\faudienceType\x18\x01 \x01(\x0e2B.WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadata.AudienceTypeR\faudienceType\".\n" +
 	"\fAudienceType\x12\v\n" +
@@ -22541,14 +22560,15 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\tutmSource\x18\x01 \x01(\tR\tutmSource\x12 \n" +
 	"\vutmCampaign\x18\x02 \x01(\tR\vutmCampaign\x1aH\n" +
 	"\x1aBusinessMessageForwardInfo\x12*\n" +
-	"\x10businessOwnerJID\x18\x01 \x01(\tR\x10businessOwnerJID\"M\n" +
+	"\x10businessOwnerJID\x18\x01 \x01(\tR\x10businessOwnerJID\"V\n" +
 	"\rForwardOrigin\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\b\n" +
 	"\x04CHAT\x10\x01\x12\n" +
 	"\n" +
 	"\x06STATUS\x10\x02\x12\f\n" +
 	"\bCHANNELS\x10\x03\x12\v\n" +
-	"\aMETA_AI\x10\x04\"\\\n" +
+	"\aMETA_AI\x10\x04\x12\a\n" +
+	"\x03UGC\x10\x05\"\\\n" +
 	"\x10StatusSourceType\x12\t\n" +
 	"\x05IMAGE\x10\x00\x12\t\n" +
 	"\x05VIDEO\x10\x01\x12\a\n" +
@@ -22717,16 +22737,17 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x12STATUS_LINK_ACTION\x10\r\x12\x14\n" +
 	"\x10VIEW_ALL_REPLIES\x10\x0e\x12\x1f\n" +
 	"\x1bSTATUS_ADD_YOURS_AI_IMAGINE\x10\x0f\x12\x13\n" +
-	"\x0fSTATUS_QUESTION\x10\x10\"\xb3\x01\n" +
+	"\x0fSTATUS_QUESTION\x10\x10\"\xc2\x01\n" +
 	"\bThreadID\x12F\n" +
 	"\n" +
 	"threadType\x18\x01 \x01(\x0e2&.WAWebProtobufsE2E.ThreadID.ThreadTypeR\n" +
 	"threadType\x122\n" +
-	"\tthreadKey\x18\x02 \x01(\v2\x14.WACommon.MessageKeyR\tthreadKey\"+\n" +
+	"\tthreadKey\x18\x02 \x01(\v2\x14.WACommon.MessageKeyR\tthreadKey\":\n" +
 	"\n" +
 	"ThreadType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x10\n" +
-	"\fVIEW_REPLIES\x10\x01\"\xe8\a\n" +
+	"\fVIEW_REPLIES\x10\x01\x12\r\n" +
+	"\tAI_THREAD\x10\x02\"\xe8\a\n" +
 	"\x12MessageContextInfo\x12U\n" +
 	"\x12deviceListMetadata\x18\x01 \x01(\v2%.WAWebProtobufsE2E.DeviceListMetadataR\x12deviceListMetadata\x12<\n" +
 	"\x19deviceListMetadataVersion\x18\x02 \x01(\x05R\x19deviceListMetadataVersion\x12$\n" +

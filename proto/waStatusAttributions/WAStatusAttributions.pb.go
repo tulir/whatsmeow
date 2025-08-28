@@ -32,6 +32,7 @@ const (
 	StatusAttribution_STATUS_MENTION StatusAttribution_Type = 4
 	StatusAttribution_GROUP_STATUS   StatusAttribution_Type = 5
 	StatusAttribution_RL_ATTRIBUTION StatusAttribution_Type = 6
+	StatusAttribution_AI_CREATED     StatusAttribution_Type = 7
 )
 
 // Enum value maps for StatusAttribution_Type.
@@ -44,6 +45,7 @@ var (
 		4: "STATUS_MENTION",
 		5: "GROUP_STATUS",
 		6: "RL_ATTRIBUTION",
+		7: "AI_CREATED",
 	}
 	StatusAttribution_Type_value = map[string]int32{
 		"UNKNOWN":        0,
@@ -53,6 +55,7 @@ var (
 		"STATUS_MENTION": 4,
 		"GROUP_STATUS":   5,
 		"RL_ATTRIBUTION": 6,
+		"AI_CREATED":     7,
 	}
 )
 
@@ -801,7 +804,7 @@ var File_waStatusAttributions_WAStatusAttributions_proto protoreflect.FileDescri
 
 const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\n" +
-	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\xfd\x0e\n" +
+	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\x8e\x0f\n" +
 	"\x11StatusAttribution\x12]\n" +
 	"\rstatusReshare\x18\x03 \x01(\v25.WAStatusAttributions.StatusAttribution.StatusReshareH\x00R\rstatusReshare\x12]\n" +
 	"\rexternalShare\x18\x04 \x01(\v25.WAStatusAttributions.StatusAttribution.ExternalShareH\x00R\rexternalShare\x12E\n" +
@@ -858,7 +861,7 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\x11artistAttribution\x18\x05 \x01(\tR\x11artistAttribution\x12\x1e\n" +
 	"\n" +
 	"isExplicit\x18\x06 \x01(\bR\n" +
-	"isExplicit\"y\n" +
+	"isExplicit\"\x89\x01\n" +
 	"\x04Type\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aRESHARE\x10\x01\x12\x12\n" +
@@ -866,7 +869,9 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\x05MUSIC\x10\x03\x12\x12\n" +
 	"\x0eSTATUS_MENTION\x10\x04\x12\x10\n" +
 	"\fGROUP_STATUS\x10\x05\x12\x12\n" +
-	"\x0eRL_ATTRIBUTION\x10\x06B\x11\n" +
+	"\x0eRL_ATTRIBUTION\x10\x06\x12\x0e\n" +
+	"\n" +
+	"AI_CREATED\x10\aB\x11\n" +
 	"\x0fattributionDataB0Z.go.mau.fi/whatsmeow/proto/waStatusAttributions"
 
 var (
