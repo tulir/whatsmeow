@@ -149,6 +149,8 @@ type SendRequestExtra struct {
 	MediaHandle string
 
 	Meta *types.MsgMetaInfo
+	// use this only if you know what you are doing
+	AdditionalNodes *[]waBinary.Node
 }
 
 // SendMessage sends the given message.
@@ -324,6 +326,10 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 			extraParams.metaNode.Attrs["thread_msg_id"] = req.Meta.ThreadMessageID
 			extraParams.metaNode.Attrs["thread_msg_sender_jid"] = req.Meta.ThreadMessageSenderJID
 		}
+	}
+
+	if req.AdditionalNodes != nil {
+		extraParams.additionalNodes = req.AdditionalNodes
 	}
 
 	resp.Sender = ownID
@@ -673,9 +679,10 @@ func (cli *Client) sendNewsletter(
 }
 
 type nodeExtraParams struct {
-	botNode        *waBinary.Node
-	metaNode       *waBinary.Node
-	addressingMode types.AddressingMode
+	botNode         *waBinary.Node
+	metaNode        *waBinary.Node
+	additionalNodes *[]waBinary.Node
+	addressingMode  types.AddressingMode
 }
 
 func (cli *Client) sendGroup(
@@ -1046,6 +1053,9 @@ func (cli *Client) getMessageContent(
 	}
 	if extraParams.metaNode != nil {
 		content = append(content, *extraParams.metaNode)
+	}
+	if extraParams.additionalNodes != nil {
+		content = append(content, *extraParams.additionalNodes...)
 	}
 
 	if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
