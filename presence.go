@@ -62,7 +62,9 @@ func (cli *Client) handlePresence(node *waBinary.Node) {
 // You should call this at least once after connecting so that the server has your pushname.
 // Otherwise, other users will see "-" as the name.
 func (cli *Client) SendPresence(state types.Presence) error {
-	if len(cli.Store.PushName) == 0 {
+	if cli == nil {
+		return ErrClientIsNil
+	} else if len(cli.Store.PushName) == 0 && cli.MessengerConfig == nil {
 		return ErrNoPushName
 	}
 	if state == types.PresenceAvailable {
@@ -70,12 +72,16 @@ func (cli *Client) SendPresence(state types.Presence) error {
 	} else {
 		cli.sendActiveReceipts.CompareAndSwap(1, 0)
 	}
+	attrs := waBinary.Attrs{
+		"type": string(state),
+	}
+	// PushName not set when using WhatsApp for Messenger E2EE
+	if cli.MessengerConfig == nil {
+		attrs["name"] = cli.Store.PushName
+	}
 	return cli.sendNode(waBinary.Node{
-		Tag: "presence",
-		Attrs: waBinary.Attrs{
-			"name": cli.Store.PushName,
-			"type": string(state),
-		},
+		Tag:   "presence",
+		Attrs: attrs,
 	})
 }
 
@@ -88,6 +94,9 @@ func (cli *Client) SendPresence(state types.Presence) error {
 //
 //	cli.SendPresence(types.PresenceAvailable)
 func (cli *Client) SubscribePresence(jid types.JID) error {
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(context.TODO(), jid)
 	if err != nil {
 		return fmt.Errorf("failed to get privacy token: %w", err)

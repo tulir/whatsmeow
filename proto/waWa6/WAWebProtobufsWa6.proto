@@ -152,6 +152,7 @@ message ClientPayload {
 			IPAD = 33;
 			TEST = 34;
 			SMART_GLASSES = 35;
+			BLUE_VR = 36;
 		}
 
 		message AppVersion {
@@ -227,6 +228,8 @@ message ClientPayload {
 	optional TrafficAnonymization trafficAnonymization = 40;
 	optional bool lidDbMigrated = 41;
 	optional AccountType accountType = 42;
+	optional sfixed32 connectionSequenceInfo = 43;
+	optional bool paaLink = 44;
 }
 
 message HandshakeMessage {

@@ -39,6 +39,11 @@ type ReqCreateGroup struct {
 	// A create key can be provided to deduplicate the group create notification that will be triggered
 	// when the group is created. If provided, the JoinedGroup event will contain the same key.
 	CreateKey types.MessageID
+
+	types.GroupEphemeral
+	types.GroupAnnounce
+	types.GroupLocked
+	types.GroupMembershipApprovalMode
 	// Set IsParent to true to create a community instead of a normal group.
 	// When creating a community, the linked announcement group will be created automatically by the server.
 	types.GroupParent
@@ -49,12 +54,21 @@ type ReqCreateGroup struct {
 // CreateGroup creates a group on WhatsApp with the given name and participants.
 //
 // See ReqCreateGroup for parameters.
-func (cli *Client) CreateGroup(req ReqCreateGroup) (*types.GroupInfo, error) {
+func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.GroupInfo, error) {
 	participantNodes := make([]waBinary.Node, len(req.Participants), len(req.Participants)+1)
 	for i, participant := range req.Participants {
 		participantNodes[i] = waBinary.Node{
 			Tag:   "participant",
 			Attrs: waBinary.Attrs{"jid": participant},
+		}
+		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participant)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participant, err)
+		} else if pt != nil {
+			participantNodes[i].Content = []waBinary.Node{{
+				Tag:     "privacy",
+				Content: pt.Token,
+			}}
 		}
 	}
 	if req.CreateKey == "" {
@@ -76,9 +90,33 @@ func (cli *Client) CreateGroup(req ReqCreateGroup) (*types.GroupInfo, error) {
 			Attrs: waBinary.Attrs{"jid": req.LinkedParentJID},
 		})
 	}
+	if req.IsLocked {
+		participantNodes = append(participantNodes, waBinary.Node{Tag: "locked"})
+	}
+	if req.IsAnnounce {
+		participantNodes = append(participantNodes, waBinary.Node{Tag: "announcement"})
+	}
+	if req.IsEphemeral {
+		participantNodes = append(participantNodes, waBinary.Node{
+			Tag: "ephemeral",
+			Attrs: waBinary.Attrs{
+				"expiration": req.DisappearingTimer,
+				"trigger":    "1", // TODO what's this?
+			},
+		})
+	}
+	if req.IsJoinApprovalRequired {
+		participantNodes = append(participantNodes, waBinary.Node{
+			Tag: "membership_approval_mode",
+			Content: []waBinary.Node{{
+				Tag:   "group_join",
+				Attrs: waBinary.Attrs{"state": "on"},
+			}},
+		})
+	}
 	// WhatsApp web doesn't seem to include the static prefix for these
 	key := strings.TrimPrefix(req.CreateKey, "3EB0")
-	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, types.GroupServerJID, waBinary.Node{
+	resp, err := cli.sendGroupIQ(ctx, iqSet, types.GroupServerJID, waBinary.Node{
 		Tag: "create",
 		Attrs: waBinary.Attrs{
 			"subject": req.Name,
@@ -519,7 +557,14 @@ func (cli *Client) GetLinkedGroupsParticipants(community types.JID) ([]types.JID
 	if !ok {
 		return nil, &ElementMissingError{Tag: "linked_groups_participants", In: "response to community participants query"}
 	}
-	return parseParticipantList(&participants), nil
+	members, lidPairs := parseParticipantList(&participants)
+	if len(lidPairs) > 0 {
+		err = cli.Store.LIDs.PutManyLIDMappings(context.TODO(), lidPairs)
+		if err != nil {
+			cli.Log.Warnf("Failed to store LID mappings for community participants: %v", err)
+		}
+	}
+	return members, nil
 }
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
@@ -702,7 +747,7 @@ func parseGroupLinkTargetNode(groupNode *waBinary.Node) (types.GroupLinkTarget, 
 	}, ag.Error()
 }
 
-func parseParticipantList(node *waBinary.Node) (participants []types.JID) {
+func parseParticipantList(node *waBinary.Node) (participants []types.JID, lidPairs []store.LIDMapping) {
 	children := node.GetChildren()
 	participants = make([]types.JID, 0, len(children))
 	for _, child := range children {
@@ -711,14 +756,31 @@ func parseParticipantList(node *waBinary.Node) (participants []types.JID) {
 			continue
 		}
 		participants = append(participants, jid)
+		if jid.Server == types.HiddenUserServer {
+			phoneNumber, ok := child.Attrs["phone_number"].(types.JID)
+			if ok && !phoneNumber.IsEmpty() {
+				lidPairs = append(lidPairs, store.LIDMapping{
+					LID: jid,
+					PN:  phoneNumber,
+				})
+			}
+		} else if jid.Server == types.DefaultUserServer {
+			lid, ok := child.Attrs["lid"].(types.JID)
+			if ok && !lid.IsEmpty() {
+				lidPairs = append(lidPairs, store.LIDMapping{
+					LID: lid,
+					PN:  jid,
+				})
+			}
+		}
 	}
 	return
 }
 
-func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, error) {
+func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, []store.LIDMapping, error) {
 	groupNode, ok := node.GetOptionalChildByTag("group")
 	if !ok {
-		return nil, fmt.Errorf("group create notification didn't contain group info")
+		return nil, nil, fmt.Errorf("group create notification didn't contain group info")
 	}
 	var evt events.JoinedGroup
 	pag := parentNode.AttrGetter()
@@ -731,13 +793,22 @@ func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.Jo
 	evt.Notify = pag.OptionalString("notify")
 	info, err := cli.parseGroupNode(&groupNode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
+		return nil, nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
 	}
 	evt.GroupInfo = *info
-	return &evt, nil
+	lidPairs := make([]store.LIDMapping, 0, len(info.Participants))
+	for _, pcp := range info.Participants {
+		if !pcp.PhoneNumber.IsEmpty() && !pcp.LID.IsEmpty() {
+			lidPairs = append(lidPairs, store.LIDMapping{
+				LID: pcp.LID,
+				PN:  pcp.PhoneNumber,
+			})
+		}
+	}
+	return &evt, lidPairs, nil
 }
 
-func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, error) {
+func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []store.LIDMapping, error) {
 	var evt events.GroupInfo
 	ag := node.AttrGetter()
 	evt.JID = ag.JID("from")
@@ -746,9 +817,10 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 	evt.SenderPN = ag.OptionalJID("participant_pn")
 	evt.Timestamp = ag.UnixTime("t")
 	if !ag.OK() {
-		return nil, fmt.Errorf("group change doesn't contain required attributes: %w", ag.Error())
+		return nil, nil, fmt.Errorf("group change doesn't contain required attributes: %w", ag.Error())
 	}
 
+	var lidPairs []store.LIDMapping
 	for _, child := range node.GetChildren() {
 		cag := child.AttrGetter()
 		if child.Tag == "add" || child.Tag == "remove" || child.Tag == "promote" || child.Tag == "demote" {
@@ -758,13 +830,13 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 		switch child.Tag {
 		case "add":
 			evt.JoinReason = cag.OptionalString("reason")
-			evt.Join = parseParticipantList(&child)
+			evt.Join, lidPairs = parseParticipantList(&child)
 		case "remove":
-			evt.Leave = parseParticipantList(&child)
+			evt.Leave, lidPairs = parseParticipantList(&child)
 		case "promote":
-			evt.Promote = parseParticipantList(&child)
+			evt.Promote, lidPairs = parseParticipantList(&child)
 		case "demote":
-			evt.Demote = parseParticipantList(&child)
+			evt.Demote, lidPairs = parseParticipantList(&child)
 		case "locked":
 			evt.Locked = &types.GroupLocked{IsLocked: true}
 		case "unlocked":
@@ -785,7 +857,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 				topicChild := child.GetChildByTag("body")
 				topicBytes, ok := topicChild.Content.([]byte)
 				if !ok {
-					return nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
+					return nil, nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
 				}
 				topicStr = string(topicBytes)
 			}
@@ -827,12 +899,12 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			}
 			groupNode, ok := child.GetOptionalChildByTag("group")
 			if !ok {
-				return nil, &ElementMissingError{Tag: "group", In: "group link"}
+				return nil, nil, &ElementMissingError{Tag: "group", In: "group link"}
 			}
 			var err error
 			evt.Link.Group, err = parseGroupLinkTargetNode(&groupNode)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse group link node in group change: %w", err)
+				return nil, nil, fmt.Errorf("failed to parse group link node in group change: %w", err)
 			}
 		case "unlink":
 			evt.Unlink = &types.GroupLinkChange{
@@ -841,12 +913,12 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			}
 			groupNode, ok := child.GetOptionalChildByTag("group")
 			if !ok {
-				return nil, &ElementMissingError{Tag: "group", In: "group unlink"}
+				return nil, nil, &ElementMissingError{Tag: "group", In: "group unlink"}
 			}
 			var err error
 			evt.Unlink.Group, err = parseGroupLinkTargetNode(&groupNode)
 			if err != nil {
-				return nil, fmt.Errorf("failed to parse group unlink node in group change: %w", err)
+				return nil, nil, fmt.Errorf("failed to parse group unlink node in group change: %w", err)
 			}
 		case "membership_approval_mode":
 			evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
@@ -856,10 +928,10 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, err
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
 		if !cag.OK() {
-			return nil, fmt.Errorf("group change %s element doesn't contain required attributes: %w", child.Tag, cag.Error())
+			return nil, nil, fmt.Errorf("group change %s element doesn't contain required attributes: %w", child.Tag, cag.Error())
 		}
 	}
-	return &evt, nil
+	return &evt, lidPairs, nil
 }
 
 func (cli *Client) updateGroupParticipantCache(evt *events.GroupInfo) {
@@ -893,17 +965,17 @@ Outer:
 	}
 }
 
-func (cli *Client) parseGroupNotification(node *waBinary.Node) (any, error) {
+func (cli *Client) parseGroupNotification(node *waBinary.Node) (any, []store.LIDMapping, error) {
 	children := node.GetChildren()
 	if len(children) == 1 && children[0].Tag == "create" {
 		return cli.parseGroupCreate(node, &children[0])
 	} else {
-		groupChange, err := cli.parseGroupChange(node)
+		groupChange, lidPairs, err := cli.parseGroupChange(node)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		cli.updateGroupParticipantCache(groupChange)
-		return groupChange, nil
+		return groupChange, lidPairs, nil
 	}
 }
 

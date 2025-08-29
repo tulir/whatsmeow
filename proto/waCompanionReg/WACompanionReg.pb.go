@@ -619,6 +619,9 @@ type DeviceProps_HistorySyncConfig struct {
 	SupportFbidBotChatHistory                *bool                  `protobuf:"varint,12,opt,name=supportFbidBotChatHistory" json:"supportFbidBotChatHistory,omitempty"`
 	SupportAddOnHistorySyncMigration         *bool                  `protobuf:"varint,13,opt,name=supportAddOnHistorySyncMigration" json:"supportAddOnHistorySyncMigration,omitempty"`
 	SupportMessageAssociation                *bool                  `protobuf:"varint,14,opt,name=supportMessageAssociation" json:"supportMessageAssociation,omitempty"`
+	SupportGroupHistory                      *bool                  `protobuf:"varint,15,opt,name=supportGroupHistory" json:"supportGroupHistory,omitempty"`
+	OnDemandReady                            *bool                  `protobuf:"varint,16,opt,name=onDemandReady" json:"onDemandReady,omitempty"`
+	SupportGuestChat                         *bool                  `protobuf:"varint,17,opt,name=supportGuestChat" json:"supportGuestChat,omitempty"`
 	unknownFields                            protoimpl.UnknownFields
 	sizeCache                                protoimpl.SizeCache
 }
@@ -751,6 +754,27 @@ func (x *DeviceProps_HistorySyncConfig) GetSupportMessageAssociation() bool {
 	return false
 }
 
+func (x *DeviceProps_HistorySyncConfig) GetSupportGroupHistory() bool {
+	if x != nil && x.SupportGroupHistory != nil {
+		return *x.SupportGroupHistory
+	}
+	return false
+}
+
+func (x *DeviceProps_HistorySyncConfig) GetOnDemandReady() bool {
+	if x != nil && x.OnDemandReady != nil {
+		return *x.OnDemandReady
+	}
+	return false
+}
+
+func (x *DeviceProps_HistorySyncConfig) GetSupportGuestChat() bool {
+	if x != nil && x.SupportGuestChat != nil {
+		return *x.SupportGuestChat
+	}
+	return false
+}
+
 type DeviceProps_AppVersion struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Primary       *uint32                `protobuf:"varint,1,opt,name=primary" json:"primary,omitempty"`
@@ -831,13 +855,13 @@ var File_waCompanionReg_WACompanionReg_proto protoreflect.FileDescriptor
 
 const file_waCompanionReg_WACompanionReg_proto_rawDesc = "" +
 	"\n" +
-	"#waCompanionReg/WACompanionReg.proto\x12\x0eWACompanionReg\"\x95\r\n" +
+	"#waCompanionReg/WACompanionReg.proto\x12\x0eWACompanionReg\"\x99\x0e\n" +
 	"\vDeviceProps\x12\x0e\n" +
 	"\x02os\x18\x01 \x01(\tR\x02os\x12@\n" +
 	"\aversion\x18\x02 \x01(\v2&.WACompanionReg.DeviceProps.AppVersionR\aversion\x12L\n" +
 	"\fplatformType\x18\x03 \x01(\x0e2(.WACompanionReg.DeviceProps.PlatformTypeR\fplatformType\x12(\n" +
 	"\x0frequireFullSync\x18\x04 \x01(\bR\x0frequireFullSync\x12[\n" +
-	"\x11historySyncConfig\x18\x05 \x01(\v2-.WACompanionReg.DeviceProps.HistorySyncConfigR\x11historySyncConfig\x1a\xdf\x06\n" +
+	"\x11historySyncConfig\x18\x05 \x01(\v2-.WACompanionReg.DeviceProps.HistorySyncConfigR\x11historySyncConfig\x1a\xe3\a\n" +
 	"\x11HistorySyncConfig\x12,\n" +
 	"\x11fullSyncDaysLimit\x18\x01 \x01(\rR\x11fullSyncDaysLimit\x120\n" +
 	"\x13fullSyncSizeMbLimit\x18\x02 \x01(\rR\x13fullSyncSizeMbLimit\x12&\n" +
@@ -853,7 +877,10 @@ const file_waCompanionReg_WACompanionReg_proto_rawDesc = "" +
 	"\x15supportHostedGroupMsg\x18\v \x01(\bR\x15supportHostedGroupMsg\x12<\n" +
 	"\x19supportFbidBotChatHistory\x18\f \x01(\bR\x19supportFbidBotChatHistory\x12J\n" +
 	" supportAddOnHistorySyncMigration\x18\r \x01(\bR supportAddOnHistorySyncMigration\x12<\n" +
-	"\x19supportMessageAssociation\x18\x0e \x01(\bR\x19supportMessageAssociation\x1a\x9a\x01\n" +
+	"\x19supportMessageAssociation\x18\x0e \x01(\bR\x19supportMessageAssociation\x120\n" +
+	"\x13supportGroupHistory\x18\x0f \x01(\bR\x13supportGroupHistory\x12$\n" +
+	"\ronDemandReady\x18\x10 \x01(\bR\ronDemandReady\x12*\n" +
+	"\x10supportGuestChat\x18\x11 \x01(\bR\x10supportGuestChat\x1a\x9a\x01\n" +
 	"\n" +
 	"AppVersion\x12\x18\n" +
 	"\aprimary\x18\x01 \x01(\rR\aprimary\x12\x1c\n" +

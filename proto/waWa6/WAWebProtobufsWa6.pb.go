@@ -726,6 +726,7 @@ const (
 	ClientPayload_UserAgent_IPAD           ClientPayload_UserAgent_Platform = 33
 	ClientPayload_UserAgent_TEST           ClientPayload_UserAgent_Platform = 34
 	ClientPayload_UserAgent_SMART_GLASSES  ClientPayload_UserAgent_Platform = 35
+	ClientPayload_UserAgent_BLUE_VR        ClientPayload_UserAgent_Platform = 36
 )
 
 // Enum value maps for ClientPayload_UserAgent_Platform.
@@ -767,6 +768,7 @@ var (
 		33: "IPAD",
 		34: "TEST",
 		35: "SMART_GLASSES",
+		36: "BLUE_VR",
 	}
 	ClientPayload_UserAgent_Platform_value = map[string]int32{
 		"ANDROID":        0,
@@ -805,6 +807,7 @@ var (
 		"IPAD":           33,
 		"TEST":           34,
 		"SMART_GLASSES":  35,
+		"BLUE_VR":        36,
 	}
 )
 
@@ -846,39 +849,41 @@ func (ClientPayload_UserAgent_Platform) EnumDescriptor() ([]byte, []int) {
 }
 
 type ClientPayload struct {
-	state                protoimpl.MessageState                       `protogen:"open.v1"`
-	Username             *uint64                                      `protobuf:"varint,1,opt,name=username" json:"username,omitempty"`
-	Passive              *bool                                        `protobuf:"varint,3,opt,name=passive" json:"passive,omitempty"`
-	UserAgent            *ClientPayload_UserAgent                     `protobuf:"bytes,5,opt,name=userAgent" json:"userAgent,omitempty"`
-	WebInfo              *ClientPayload_WebInfo                       `protobuf:"bytes,6,opt,name=webInfo" json:"webInfo,omitempty"`
-	PushName             *string                                      `protobuf:"bytes,7,opt,name=pushName" json:"pushName,omitempty"`
-	SessionID            *int32                                       `protobuf:"fixed32,9,opt,name=sessionID" json:"sessionID,omitempty"`
-	ShortConnect         *bool                                        `protobuf:"varint,10,opt,name=shortConnect" json:"shortConnect,omitempty"`
-	ConnectType          *ClientPayload_ConnectType                   `protobuf:"varint,12,opt,name=connectType,enum=WAWebProtobufsWa6.ClientPayload_ConnectType" json:"connectType,omitempty"`
-	ConnectReason        *ClientPayload_ConnectReason                 `protobuf:"varint,13,opt,name=connectReason,enum=WAWebProtobufsWa6.ClientPayload_ConnectReason" json:"connectReason,omitempty"`
-	Shards               []int32                                      `protobuf:"varint,14,rep,name=shards" json:"shards,omitempty"`
-	DnsSource            *ClientPayload_DNSSource                     `protobuf:"bytes,15,opt,name=dnsSource" json:"dnsSource,omitempty"`
-	ConnectAttemptCount  *uint32                                      `protobuf:"varint,16,opt,name=connectAttemptCount" json:"connectAttemptCount,omitempty"`
-	Device               *uint32                                      `protobuf:"varint,18,opt,name=device" json:"device,omitempty"`
-	DevicePairingData    *ClientPayload_DevicePairingRegistrationData `protobuf:"bytes,19,opt,name=devicePairingData" json:"devicePairingData,omitempty"`
-	Product              *ClientPayload_Product                       `protobuf:"varint,20,opt,name=product,enum=WAWebProtobufsWa6.ClientPayload_Product" json:"product,omitempty"`
-	FbCat                []byte                                       `protobuf:"bytes,21,opt,name=fbCat" json:"fbCat,omitempty"`
-	FbUserAgent          []byte                                       `protobuf:"bytes,22,opt,name=fbUserAgent" json:"fbUserAgent,omitempty"`
-	Oc                   *bool                                        `protobuf:"varint,23,opt,name=oc" json:"oc,omitempty"`
-	Lc                   *int32                                       `protobuf:"varint,24,opt,name=lc" json:"lc,omitempty"`
-	IosAppExtension      *ClientPayload_IOSAppExtension               `protobuf:"varint,30,opt,name=iosAppExtension,enum=WAWebProtobufsWa6.ClientPayload_IOSAppExtension" json:"iosAppExtension,omitempty"`
-	FbAppID              *uint64                                      `protobuf:"varint,31,opt,name=fbAppID" json:"fbAppID,omitempty"`
-	FbDeviceID           []byte                                       `protobuf:"bytes,32,opt,name=fbDeviceID" json:"fbDeviceID,omitempty"`
-	Pull                 *bool                                        `protobuf:"varint,33,opt,name=pull" json:"pull,omitempty"`
-	PaddingBytes         []byte                                       `protobuf:"bytes,34,opt,name=paddingBytes" json:"paddingBytes,omitempty"`
-	YearClass            *int32                                       `protobuf:"varint,36,opt,name=yearClass" json:"yearClass,omitempty"`
-	MemClass             *int32                                       `protobuf:"varint,37,opt,name=memClass" json:"memClass,omitempty"`
-	InteropData          *ClientPayload_InteropData                   `protobuf:"bytes,38,opt,name=interopData" json:"interopData,omitempty"`
-	TrafficAnonymization *ClientPayload_TrafficAnonymization          `protobuf:"varint,40,opt,name=trafficAnonymization,enum=WAWebProtobufsWa6.ClientPayload_TrafficAnonymization" json:"trafficAnonymization,omitempty"`
-	LidDbMigrated        *bool                                        `protobuf:"varint,41,opt,name=lidDbMigrated" json:"lidDbMigrated,omitempty"`
-	AccountType          *ClientPayload_AccountType                   `protobuf:"varint,42,opt,name=accountType,enum=WAWebProtobufsWa6.ClientPayload_AccountType" json:"accountType,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                  protoimpl.MessageState                       `protogen:"open.v1"`
+	Username               *uint64                                      `protobuf:"varint,1,opt,name=username" json:"username,omitempty"`
+	Passive                *bool                                        `protobuf:"varint,3,opt,name=passive" json:"passive,omitempty"`
+	UserAgent              *ClientPayload_UserAgent                     `protobuf:"bytes,5,opt,name=userAgent" json:"userAgent,omitempty"`
+	WebInfo                *ClientPayload_WebInfo                       `protobuf:"bytes,6,opt,name=webInfo" json:"webInfo,omitempty"`
+	PushName               *string                                      `protobuf:"bytes,7,opt,name=pushName" json:"pushName,omitempty"`
+	SessionID              *int32                                       `protobuf:"fixed32,9,opt,name=sessionID" json:"sessionID,omitempty"`
+	ShortConnect           *bool                                        `protobuf:"varint,10,opt,name=shortConnect" json:"shortConnect,omitempty"`
+	ConnectType            *ClientPayload_ConnectType                   `protobuf:"varint,12,opt,name=connectType,enum=WAWebProtobufsWa6.ClientPayload_ConnectType" json:"connectType,omitempty"`
+	ConnectReason          *ClientPayload_ConnectReason                 `protobuf:"varint,13,opt,name=connectReason,enum=WAWebProtobufsWa6.ClientPayload_ConnectReason" json:"connectReason,omitempty"`
+	Shards                 []int32                                      `protobuf:"varint,14,rep,name=shards" json:"shards,omitempty"`
+	DnsSource              *ClientPayload_DNSSource                     `protobuf:"bytes,15,opt,name=dnsSource" json:"dnsSource,omitempty"`
+	ConnectAttemptCount    *uint32                                      `protobuf:"varint,16,opt,name=connectAttemptCount" json:"connectAttemptCount,omitempty"`
+	Device                 *uint32                                      `protobuf:"varint,18,opt,name=device" json:"device,omitempty"`
+	DevicePairingData      *ClientPayload_DevicePairingRegistrationData `protobuf:"bytes,19,opt,name=devicePairingData" json:"devicePairingData,omitempty"`
+	Product                *ClientPayload_Product                       `protobuf:"varint,20,opt,name=product,enum=WAWebProtobufsWa6.ClientPayload_Product" json:"product,omitempty"`
+	FbCat                  []byte                                       `protobuf:"bytes,21,opt,name=fbCat" json:"fbCat,omitempty"`
+	FbUserAgent            []byte                                       `protobuf:"bytes,22,opt,name=fbUserAgent" json:"fbUserAgent,omitempty"`
+	Oc                     *bool                                        `protobuf:"varint,23,opt,name=oc" json:"oc,omitempty"`
+	Lc                     *int32                                       `protobuf:"varint,24,opt,name=lc" json:"lc,omitempty"`
+	IosAppExtension        *ClientPayload_IOSAppExtension               `protobuf:"varint,30,opt,name=iosAppExtension,enum=WAWebProtobufsWa6.ClientPayload_IOSAppExtension" json:"iosAppExtension,omitempty"`
+	FbAppID                *uint64                                      `protobuf:"varint,31,opt,name=fbAppID" json:"fbAppID,omitempty"`
+	FbDeviceID             []byte                                       `protobuf:"bytes,32,opt,name=fbDeviceID" json:"fbDeviceID,omitempty"`
+	Pull                   *bool                                        `protobuf:"varint,33,opt,name=pull" json:"pull,omitempty"`
+	PaddingBytes           []byte                                       `protobuf:"bytes,34,opt,name=paddingBytes" json:"paddingBytes,omitempty"`
+	YearClass              *int32                                       `protobuf:"varint,36,opt,name=yearClass" json:"yearClass,omitempty"`
+	MemClass               *int32                                       `protobuf:"varint,37,opt,name=memClass" json:"memClass,omitempty"`
+	InteropData            *ClientPayload_InteropData                   `protobuf:"bytes,38,opt,name=interopData" json:"interopData,omitempty"`
+	TrafficAnonymization   *ClientPayload_TrafficAnonymization          `protobuf:"varint,40,opt,name=trafficAnonymization,enum=WAWebProtobufsWa6.ClientPayload_TrafficAnonymization" json:"trafficAnonymization,omitempty"`
+	LidDbMigrated          *bool                                        `protobuf:"varint,41,opt,name=lidDbMigrated" json:"lidDbMigrated,omitempty"`
+	AccountType            *ClientPayload_AccountType                   `protobuf:"varint,42,opt,name=accountType,enum=WAWebProtobufsWa6.ClientPayload_AccountType" json:"accountType,omitempty"`
+	ConnectionSequenceInfo *int32                                       `protobuf:"fixed32,43,opt,name=connectionSequenceInfo" json:"connectionSequenceInfo,omitempty"`
+	PaaLink                *bool                                        `protobuf:"varint,44,opt,name=paaLink" json:"paaLink,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *ClientPayload) Reset() {
@@ -1119,6 +1124,20 @@ func (x *ClientPayload) GetAccountType() ClientPayload_AccountType {
 		return *x.AccountType
 	}
 	return ClientPayload_DEFAULT
+}
+
+func (x *ClientPayload) GetConnectionSequenceInfo() int32 {
+	if x != nil && x.ConnectionSequenceInfo != nil {
+		return *x.ConnectionSequenceInfo
+	}
+	return 0
+}
+
+func (x *ClientPayload) GetPaaLink() bool {
+	if x != nil && x.PaaLink != nil {
+		return *x.PaaLink
+	}
+	return false
 }
 
 type HandshakeMessage struct {
@@ -2001,7 +2020,7 @@ var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xa3)\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\x82*\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2035,7 +2054,9 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\vinteropData\x18& \x01(\v2,.WAWebProtobufsWa6.ClientPayload.InteropDataR\vinteropData\x12i\n" +
 	"\x14trafficAnonymization\x18( \x01(\x0e25.WAWebProtobufsWa6.ClientPayload.TrafficAnonymizationR\x14trafficAnonymization\x12$\n" +
 	"\rlidDbMigrated\x18) \x01(\bR\rlidDbMigrated\x12N\n" +
-	"\vaccountType\x18* \x01(\x0e2,.WAWebProtobufsWa6.ClientPayload.AccountTypeR\vaccountType\x1a\xea\x01\n" +
+	"\vaccountType\x18* \x01(\x0e2,.WAWebProtobufsWa6.ClientPayload.AccountTypeR\vaccountType\x126\n" +
+	"\x16connectionSequenceInfo\x18+ \x01(\x0fR\x16connectionSequenceInfo\x12\x18\n" +
+	"\apaaLink\x18, \x01(\bR\apaaLink\x1a\xea\x01\n" +
 	"\tDNSSource\x12\\\n" +
 	"\tdnsMethod\x18\x0f \x01(\x0e2>.WAWebProtobufsWa6.ClientPayload.DNSSource.DNSResolutionMethodR\tdnsMethod\x12\x1c\n" +
 	"\tappCached\x18\x10 \x01(\bR\tappCached\"a\n" +
@@ -2074,7 +2095,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x06DARWIN\x10\x03\x12\t\n" +
 	"\x05WIN32\x10\x04\x12\x0e\n" +
 	"\n" +
-	"WIN_HYBRID\x10\x05\x1a\xc2\f\n" +
+	"WIN_HYBRID\x10\x05\x1a\xcf\f\n" +
 	"\tUserAgent\x12O\n" +
 	"\bplatform\x18\x01 \x01(\x0e23.WAWebProtobufsWa6.ClientPayload.UserAgent.PlatformR\bplatform\x12U\n" +
 	"\n" +
@@ -2118,7 +2139,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\aRELEASE\x10\x00\x12\b\n" +
 	"\x04BETA\x10\x01\x12\t\n" +
 	"\x05ALPHA\x10\x02\x12\t\n" +
-	"\x05DEBUG\x10\x03\"\x8a\x04\n" +
+	"\x05DEBUG\x10\x03\"\x97\x04\n" +
 	"\bPlatform\x12\v\n" +
 	"\aANDROID\x10\x00\x12\a\n" +
 	"\x03IOS\x10\x01\x12\x11\n" +
@@ -2161,7 +2182,8 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\bBLUE_WEB\x10 \x12\b\n" +
 	"\x04IPAD\x10!\x12\b\n" +
 	"\x04TEST\x10\"\x12\x11\n" +
-	"\rSMART_GLASSES\x10#\x1aq\n" +
+	"\rSMART_GLASSES\x10#\x12\v\n" +
+	"\aBLUE_VR\x10$\x1aq\n" +
 	"\vInteropData\x12\x1c\n" +
 	"\taccountID\x18\x01 \x01(\x04R\taccountID\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\fR\x05token\x12.\n" +
