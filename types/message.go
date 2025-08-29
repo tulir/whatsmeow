@@ -104,6 +104,8 @@ type MessageInfo struct {
 
 	VerifiedName   *VerifiedName
 	DeviceSentMeta *DeviceSentMeta // Metadata for direct messages sent from another one of the user's own devices.
+
+	Participants []JID
 }
 
 // SourceString returns a log-friendly representation of who sent the message and where.
