@@ -658,10 +658,32 @@ func (cli *Client) sendNewsletter(
 			plaintextNode.Attrs["mediatype"] = mediaType
 		}
 	}
+	content := []waBinary.Node{}
+	if attrs["type"] == "poll" {
+		var node waBinary.Node
+		if message.PollUpdateMessage == nil {
+			node = waBinary.Node{
+				Tag: "meta",
+				Attrs: waBinary.Attrs{
+					"polltype":    "creation",
+					"contenttype": "text",
+				},
+			}
+		} else {
+			node = waBinary.Node{
+				Tag: "meta",
+				Attrs: waBinary.Attrs{
+					"polltype": "vote",
+				},
+			}
+		}
+		content = append(content, node)
+	}
+	content = append(content, plaintextNode)
 	node := waBinary.Node{
 		Tag:     "message",
 		Attrs:   attrs,
-		Content: []waBinary.Node{plaintextNode},
+		Content: content,
 	}
 	start = time.Now()
 	data, err := cli.sendNodeAndGetData(node)
@@ -834,7 +856,7 @@ func getTypeFromMessage(msg *waE2E.Message) string {
 		return getTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
 	case msg.ReactionMessage != nil, msg.EncReactionMessage != nil:
 		return "reaction"
-	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
+	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil, msg.PollCreationMessageV3 != nil:
 		return "poll"
 	case getMediaTypeFromMessage(msg) != "":
 		return "media"
