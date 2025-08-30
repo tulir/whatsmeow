@@ -1017,16 +1017,37 @@ func (cli *Client) SetGroupMemberAddMode(jid types.JID, mode types.GroupMemberAd
 
 // SetGroupDescription updates the group description.
 func (cli *Client) SetGroupDescription(jid types.JID, description string) error {
-	content := waBinary.Node{
-		Tag: "description",
-		Content: []waBinary.Node{
-			{
-				Tag:     "body",
-				Content: []byte(description),
-			},
-		},
+	attrs := waBinary.Attrs{}
+	groupInfo, err := cli.getGroupInfo(context.TODO(), jid, false)
+	if err != nil {
+		return err
 	}
 
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
+	if description != "" {
+		attrs["id"] = cli.GenerateMessageID()
+	} else {
+		attrs["delete"] = "true"
+	}
+
+	prev := groupInfo.TopicID
+	if prev != "" {
+		attrs["prev"] = prev
+	}
+
+	var contentNodes []waBinary.Node
+    if description != "" {
+        contentNodes = append(contentNodes, waBinary.Node{
+            Tag:     "body",
+            Content: []byte(description),
+        })
+    }
+
+    content := waBinary.Node{
+        Tag:     "description",
+        Attrs:   attrs,
+        Content: contentNodes,
+    }
+
+	_, err = cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
 	return err
 }
