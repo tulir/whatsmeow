@@ -9,6 +9,7 @@ package store
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -129,6 +130,16 @@ type PrivacyTokenStore interface {
 	GetPrivacyToken(ctx context.Context, user types.JID) (*PrivacyToken, error)
 }
 
+// CacheStore provides batch operations for sessions & identity keys used by the
+// scoped per-SendMessage cache. Implementations are optional – if nil, the
+// scoped cache optimization will be skipped transparently.
+type CacheStore interface {
+	GetSessions(ctx context.Context, addresses []string) (map[string][]byte, error)
+	GetIdentityKeys(ctx context.Context, addresses []string) (map[string][32]byte, error)
+	PutSessions(ctx context.Context, sessions map[string][]byte) error
+	PutIdentityKeys(ctx context.Context, identityKeys map[string][32]byte) error
+}
+
 type BufferedEvent struct {
 	Plaintext  []byte
 	InsertTime time.Time
@@ -212,6 +223,18 @@ type Device struct {
 	EventBuffer   EventBuffer
 	LIDs          LIDStore
 	Container     DeviceContainer
+
+	// Cache is the optional batch-capable backend implementation.
+	Cache CacheStore
+
+	// The following fields implement a scoped, per-SendMessage in-memory cache
+	// for libsignal sessions & identity keys to reduce database round trips for
+	// large fan-out (e.g. big groups). They are activated by encryptMessageForDevices
+	// and cleared (and flushed) at the end of the call. Access must be guarded
+	// by SessionsCacheLock as the encryption itself may run in parallel.
+	SessionsCache      map[string][]byte
+	IdentityKeysCache  map[string][32]byte
+	SessionsCacheLock  sync.RWMutex
 }
 
 func (device *Device) GetJID() types.JID {

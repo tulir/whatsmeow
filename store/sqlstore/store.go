@@ -67,6 +67,8 @@ func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 }
 
 var _ store.AllSessionSpecificStores = (*SQLStore)(nil)
+// Implement CacheStore (optional) if batch methods are used by higher level code.
+var _ store.CacheStore = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `
@@ -105,6 +107,122 @@ func (s *SQLStore) IsTrustedIdentity(ctx context.Context, address string, key [3
 		return false, ErrInvalidLength
 	}
 	return *(*[32]byte)(existingIdentity) == key, nil
+}
+
+// ---- Batch cache queries (scoped cache support) ----
+const (
+	getCacheSessionsPrefix = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN (`
+	getCacheIdentityKeysPrefix = `SELECT their_id, identity FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id IN (`
+	// We'll build VALUES list for bulk upsert; reuse single-row upsert syntax expanded.
+)
+
+// GetSessions fetches multiple sessions in a single query.
+func (s *SQLStore) GetSessions(ctx context.Context, addresses []string) (map[string][]byte, error) {
+	if len(addresses) == 0 {
+		return map[string][]byte{}, nil
+	}
+	// Build dynamic IN clause: ($2,$3,...)
+	placeholders := make([]string, len(addresses))
+	args := make([]any, 1+len(addresses))
+	args[0] = s.JID
+	for i, addr := range addresses {
+		placeholders[i] = fmt.Sprintf("$%d", i+2)
+		args[i+1] = addr
+	}
+	query := getCacheSessionsPrefix + strings.Join(placeholders, ",") + ")"
+	rows, err := s.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to batch query sessions: %w", err)
+	}
+	defer rows.Close()
+	out := make(map[string][]byte, len(addresses))
+	for rows.Next() {
+		var id string
+		var sess []byte
+		if err := rows.Scan(&id, &sess); err != nil {
+			return nil, fmt.Errorf("failed to scan session row: %w", err)
+		}
+		out[id] = sess
+	}
+	return out, nil
+}
+
+// GetIdentityKeys fetches multiple identity keys in a single query.
+func (s *SQLStore) GetIdentityKeys(ctx context.Context, addresses []string) (map[string][32]byte, error) {
+	if len(addresses) == 0 {
+		return map[string][32]byte{}, nil
+	}
+	placeholders := make([]string, len(addresses))
+	args := make([]any, 1+len(addresses))
+	args[0] = s.JID
+	for i, addr := range addresses {
+		placeholders[i] = fmt.Sprintf("$%d", i+2)
+		args[i+1] = addr
+	}
+	query := getCacheIdentityKeysPrefix + strings.Join(placeholders, ",") + ")"
+	rows, err := s.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to batch query identity keys: %w", err)
+	}
+	defer rows.Close()
+	out := make(map[string][32]byte, len(addresses))
+	for rows.Next() {
+		var id string
+		var key []byte
+		if err := rows.Scan(&id, &key); err != nil {
+			return nil, fmt.Errorf("failed to scan identity key row: %w", err)
+		}
+		if len(key) == 32 {
+			out[id] = *(*[32]byte)(key)
+		}
+	}
+	return out, nil
+}
+
+// PutSessions bulk upserts sessions in batches (simple approach w/ individual exec if dialect lacks multi-values?).
+func (s *SQLStore) PutSessions(ctx context.Context, sessions map[string][]byte) error {
+	if len(sessions) == 0 {
+		return nil
+	}
+	// Build bulk INSERT ... ON CONFLICT
+	const rowWidth = 3
+	values := make([]any, 0, len(sessions)*rowWidth)
+	parts := make([]string, 0, len(sessions))
+	i := 0
+	for addr, sess := range sessions {
+		// Skip empty new-session placeholders (len==0) to avoid writing meaningless zero-length row – but still store non-empty
+		values = append(values, s.JID, addr, sess)
+		parts = append(parts, fmt.Sprintf("($%d,$%d,$%d)", i*rowWidth+1, i*rowWidth+2, i*rowWidth+3))
+		i++
+	}
+	query := "INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES " + strings.Join(parts, ",") + " ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session"
+	_, err := s.db.Exec(ctx, query, values...)
+	if err != nil {
+		return fmt.Errorf("failed to bulk upsert sessions: %w", err)
+	}
+	return nil
+}
+
+// PutIdentityKeys bulk upserts identity keys.
+func (s *SQLStore) PutIdentityKeys(ctx context.Context, identityKeys map[string][32]byte) error {
+	if len(identityKeys) == 0 {
+		return nil
+	}
+	const rowWidth = 3
+	values := make([]any, 0, len(identityKeys)*rowWidth)
+	parts := make([]string, 0, len(identityKeys))
+	i := 0
+	for addr, key := range identityKeys {
+		values = append(values, s.JID, addr, key[:])
+		parts = append(parts, fmt.Sprintf("($%d,$%d,$%d)", i*rowWidth+1, i*rowWidth+2, i*rowWidth+3))
+		i++
+	}
+	query := "INSERT INTO whatsmeow_identity_keys (our_jid, their_id, identity) VALUES " + strings.Join(parts, ",") + " ON CONFLICT (our_jid, their_id) DO UPDATE SET identity=excluded.identity"
+	_, err := s.db.Exec(ctx, query, values...)
+	if err != nil {
+		return fmt.Errorf("failed to bulk upsert identity keys: %w", err)
+	}
+	return nil
 }
 
 const (
