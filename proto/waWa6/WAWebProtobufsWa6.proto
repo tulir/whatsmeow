@@ -228,6 +228,8 @@ message ClientPayload {
 	optional TrafficAnonymization trafficAnonymization = 40;
 	optional bool lidDbMigrated = 41;
 	optional AccountType accountType = 42;
+	optional sfixed32 connectionSequenceInfo = 43;
+	optional bool paaLink = 44;
 }
 
 message HandshakeMessage {

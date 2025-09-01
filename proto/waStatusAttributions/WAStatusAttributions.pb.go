@@ -32,6 +32,7 @@ const (
 	StatusAttribution_STATUS_MENTION StatusAttribution_Type = 4
 	StatusAttribution_GROUP_STATUS   StatusAttribution_Type = 5
 	StatusAttribution_RL_ATTRIBUTION StatusAttribution_Type = 6
+	StatusAttribution_AI_CREATED     StatusAttribution_Type = 7
 )
 
 // Enum value maps for StatusAttribution_Type.
@@ -44,6 +45,7 @@ var (
 		4: "STATUS_MENTION",
 		5: "GROUP_STATUS",
 		6: "RL_ATTRIBUTION",
+		7: "AI_CREATED",
 	}
 	StatusAttribution_Type_value = map[string]int32{
 		"UNKNOWN":        0,
@@ -53,6 +55,7 @@ var (
 		"STATUS_MENTION": 4,
 		"GROUP_STATUS":   5,
 		"RL_ATTRIBUTION": 6,
+		"AI_CREATED":     7,
 	}
 )
 
@@ -99,6 +102,7 @@ const (
 	StatusAttribution_RLAttribution_UNKNOWN              StatusAttribution_RLAttribution_Source = 0
 	StatusAttribution_RLAttribution_RAY_BAN_META_GLASSES StatusAttribution_RLAttribution_Source = 1
 	StatusAttribution_RLAttribution_OAKLEY_META_GLASSES  StatusAttribution_RLAttribution_Source = 2
+	StatusAttribution_RLAttribution_HYPERNOVA_GLASSES    StatusAttribution_RLAttribution_Source = 3
 )
 
 // Enum value maps for StatusAttribution_RLAttribution_Source.
@@ -107,11 +111,13 @@ var (
 		0: "UNKNOWN",
 		1: "RAY_BAN_META_GLASSES",
 		2: "OAKLEY_META_GLASSES",
+		3: "HYPERNOVA_GLASSES",
 	}
 	StatusAttribution_RLAttribution_Source_value = map[string]int32{
 		"UNKNOWN":              0,
 		"RAY_BAN_META_GLASSES": 1,
 		"OAKLEY_META_GLASSES":  2,
+		"HYPERNOVA_GLASSES":    3,
 	}
 )
 
@@ -162,6 +168,7 @@ const (
 	StatusAttribution_ExternalShare_SPOTIFY   StatusAttribution_ExternalShare_Source = 4
 	StatusAttribution_ExternalShare_YOUTUBE   StatusAttribution_ExternalShare_Source = 5
 	StatusAttribution_ExternalShare_PINTEREST StatusAttribution_ExternalShare_Source = 6
+	StatusAttribution_ExternalShare_THREADS   StatusAttribution_ExternalShare_Source = 7
 )
 
 // Enum value maps for StatusAttribution_ExternalShare_Source.
@@ -174,6 +181,7 @@ var (
 		4: "SPOTIFY",
 		5: "YOUTUBE",
 		6: "PINTEREST",
+		7: "THREADS",
 	}
 	StatusAttribution_ExternalShare_Source_value = map[string]int32{
 		"UNKNOWN":   0,
@@ -183,6 +191,7 @@ var (
 		"SPOTIFY":   4,
 		"YOUTUBE":   5,
 		"PINTEREST": 6,
+		"THREADS":   7,
 	}
 )
 
@@ -795,7 +804,7 @@ var File_waStatusAttributions_WAStatusAttributions_proto protoreflect.FileDescri
 
 const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\n" +
-	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\xd9\x0e\n" +
+	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\x8e\x0f\n" +
 	"\x11StatusAttribution\x12]\n" +
 	"\rstatusReshare\x18\x03 \x01(\v25.WAStatusAttributions.StatusAttribution.StatusReshareH\x00R\rstatusReshare\x12]\n" +
 	"\rexternalShare\x18\x04 \x01(\v25.WAStatusAttributions.StatusAttribution.ExternalShareH\x00R\rexternalShare\x12E\n" +
@@ -803,18 +812,19 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\vgroupStatus\x18\x06 \x01(\v23.WAStatusAttributions.StatusAttribution.GroupStatusH\x00R\vgroupStatus\x12]\n" +
 	"\rrlAttribution\x18\a \x01(\v25.WAStatusAttributions.StatusAttribution.RLAttributionH\x00R\rrlAttribution\x12@\n" +
 	"\x04type\x18\x01 \x01(\x0e2,.WAStatusAttributions.StatusAttribution.TypeR\x04type\x12\x1c\n" +
-	"\tactionURL\x18\x02 \x01(\tR\tactionURL\x1a\xaf\x01\n" +
+	"\tactionURL\x18\x02 \x01(\tR\tactionURL\x1a\xc6\x01\n" +
 	"\rRLAttribution\x12T\n" +
-	"\x06source\x18\x01 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.RLAttribution.SourceR\x06source\"H\n" +
+	"\x06source\x18\x01 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.RLAttribution.SourceR\x06source\"_\n" +
 	"\x06Source\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x18\n" +
 	"\x14RAY_BAN_META_GLASSES\x10\x01\x12\x17\n" +
-	"\x13OAKLEY_META_GLASSES\x10\x02\x1a\xb9\x02\n" +
+	"\x13OAKLEY_META_GLASSES\x10\x02\x12\x15\n" +
+	"\x11HYPERNOVA_GLASSES\x10\x03\x1a\xc6\x02\n" +
 	"\rExternalShare\x12\x1c\n" +
 	"\tactionURL\x18\x01 \x01(\tR\tactionURL\x12T\n" +
 	"\x06source\x18\x02 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.ExternalShare.SourceR\x06source\x12\x1a\n" +
 	"\bduration\x18\x03 \x01(\x05R\bduration\x12,\n" +
-	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"j\n" +
+	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"w\n" +
 	"\x06Source\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\r\n" +
 	"\tINSTAGRAM\x10\x01\x12\f\n" +
@@ -822,7 +832,8 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\tMESSENGER\x10\x03\x12\v\n" +
 	"\aSPOTIFY\x10\x04\x12\v\n" +
 	"\aYOUTUBE\x10\x05\x12\r\n" +
-	"\tPINTEREST\x10\x06\x1a\xbf\x03\n" +
+	"\tPINTEREST\x10\x06\x12\v\n" +
+	"\aTHREADS\x10\a\x1a\xbf\x03\n" +
 	"\rStatusReshare\x12T\n" +
 	"\x06source\x18\x01 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.StatusReshare.SourceR\x06source\x12Z\n" +
 	"\bmetadata\x18\x02 \x01(\v2>.WAStatusAttributions.StatusAttribution.StatusReshare.MetadataR\bmetadata\x1a\xa4\x01\n" +
@@ -850,7 +861,7 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\x11artistAttribution\x18\x05 \x01(\tR\x11artistAttribution\x12\x1e\n" +
 	"\n" +
 	"isExplicit\x18\x06 \x01(\bR\n" +
-	"isExplicit\"y\n" +
+	"isExplicit\"\x89\x01\n" +
 	"\x04Type\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aRESHARE\x10\x01\x12\x12\n" +
@@ -858,7 +869,9 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\x05MUSIC\x10\x03\x12\x12\n" +
 	"\x0eSTATUS_MENTION\x10\x04\x12\x10\n" +
 	"\fGROUP_STATUS\x10\x05\x12\x12\n" +
-	"\x0eRL_ATTRIBUTION\x10\x06B\x11\n" +
+	"\x0eRL_ATTRIBUTION\x10\x06\x12\x0e\n" +
+	"\n" +
+	"AI_CREATED\x10\aB\x11\n" +
 	"\x0fattributionDataB0Z.go.mau.fi/whatsmeow/proto/waStatusAttributions"
 
 var (

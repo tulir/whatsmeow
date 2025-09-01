@@ -1753,7 +1753,8 @@ type StickerMetadata struct {
 	Weight            *float32               `protobuf:"fixed32,10,opt,name=weight" json:"weight,omitempty"`
 	LastStickerSentTS *int64                 `protobuf:"varint,11,opt,name=lastStickerSentTS" json:"lastStickerSentTS,omitempty"`
 	IsLottie          *bool                  `protobuf:"varint,12,opt,name=isLottie" json:"isLottie,omitempty"`
-	IsAvatarSticker   *bool                  `protobuf:"varint,13,opt,name=isAvatarSticker" json:"isAvatarSticker,omitempty"`
+	ImageHash         *string                `protobuf:"bytes,13,opt,name=imageHash" json:"imageHash,omitempty"`
+	IsAvatarSticker   *bool                  `protobuf:"varint,14,opt,name=isAvatarSticker" json:"isAvatarSticker,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1870,6 +1871,13 @@ func (x *StickerMetadata) GetIsLottie() bool {
 		return *x.IsLottie
 	}
 	return false
+}
+
+func (x *StickerMetadata) GetImageHash() string {
+	if x != nil && x.ImageHash != nil {
+		return *x.ImageHash
+	}
+	return ""
 }
 
 func (x *StickerMetadata) GetIsAvatarSticker() bool {
@@ -2231,7 +2239,7 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x0edownloadImages\x18\x01 \x01(\bR\x0edownloadImages\x12$\n" +
 	"\rdownloadAudio\x18\x02 \x01(\bR\rdownloadAudio\x12$\n" +
 	"\rdownloadVideo\x18\x03 \x01(\bR\rdownloadVideo\x12,\n" +
-	"\x11downloadDocuments\x18\x04 \x01(\bR\x11downloadDocuments\"\x9b\x03\n" +
+	"\x11downloadDocuments\x18\x04 \x01(\bR\x11downloadDocuments\"\xb9\x03\n" +
 	"\x0fStickerMetadata\x12\x10\n" +
 	"\x03URL\x18\x01 \x01(\tR\x03URL\x12\x1e\n" +
 	"\n" +
@@ -2251,8 +2259,9 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x06weight\x18\n" +
 	" \x01(\x02R\x06weight\x12,\n" +
 	"\x11lastStickerSentTS\x18\v \x01(\x03R\x11lastStickerSentTS\x12\x1a\n" +
-	"\bisLottie\x18\f \x01(\bR\bisLottie\x12(\n" +
-	"\x0fisAvatarSticker\x18\r \x01(\bR\x0fisAvatarSticker\"\x86\x01\n" +
+	"\bisLottie\x18\f \x01(\bR\bisLottie\x12\x1c\n" +
+	"\timageHash\x18\r \x01(\tR\timageHash\x12(\n" +
+	"\x0fisAvatarSticker\x18\x0e \x01(\bR\x0fisAvatarSticker\"\x86\x01\n" +
 	"\x10PastParticipants\x12\x1a\n" +
 	"\bgroupJID\x18\x01 \x01(\tR\bgroupJID\x12V\n" +
 	"\x10pastParticipants\x18\x02 \x03(\v2*.WAWebProtobufsHistorySync.PastParticipantR\x10pastParticipants\"D\n" +
