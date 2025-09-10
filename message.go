@@ -751,6 +751,11 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 		cli.storeLIDSyncMessage(ctx, protoMsg.GetLidMigrationMappingSyncMessage().GetEncodedMappingPayload())
 	}
 
+	if protoMsg.GetType() == waE2E.ProtocolMessage_SHARE_PHONE_NUMBER {
+		// user shared phone number with a business
+		cli.StoreLIDPNMapping(ctx, info.Sender, info.SenderAlt)
+	}
+
 	if protoMsg.GetPeerDataOperationRequestResponseMessage().GetPeerDataOperationRequestType() == waE2E.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND {
 		ok = cli.handlePlaceholderResendResponse(protoMsg.GetPeerDataOperationRequestResponseMessage()) && ok
 	}

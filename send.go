@@ -459,6 +459,25 @@ func (cli *Client) BuildRevoke(chat, sender types.JID, id types.MessageID) *waE2
 	}
 }
 
+// BuildRequestPhoneNumber builds a message that requests a user share their phone number or a business
+// This is useful when you only have an LID and not an alternate ID associated (hidden)
+func (cli *Client) BuildRequestPhoneNumber() *waE2E.Message {
+	return &waE2E.Message{
+		RequestPhoneNumberMessage: &waE2E.RequestPhoneNumberMessage{},
+	}
+}
+
+// BuildSharePhoneNumber builds a message that shares your phone number to a business
+// This is useful when you only have an LID and not an alternate ID associated (hidden)
+func (cli *Client) BuildSharePhoneNumber() *waE2E.Message {
+	// as far as I remember, nothing extra is needed here ~ rajeh
+	return &waE2E.Message{
+		ProtocolMessage: &waE2E.ProtocolMessage{
+			Type: waE2E.ProtocolMessage_SHARE_PHONE_NUMBER.Enum(),
+		},
+	}
+}
+
 // BuildReaction builds a message reaction message using the given variables.
 // The built message can be sent normally using Client.SendMessage.
 //
