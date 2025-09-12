@@ -10,10 +10,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
+	"github.com/beeper/argo-go/codec"
+	"github.com/beeper/argo-go/pkg/buf"
+
+	"go.mau.fi/whatsmeow/argo"
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/proto/waWa6"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -118,9 +124,53 @@ const (
 	mutationCreateNewsletter       = "6234210096708695"
 	mutationUnfollowNewsletter     = "6392786840836363"
 	mutationFollowNewsletter       = "9926858900719341"
+
+	// desktop & mobile
+	queryFetchNewsletterDesktop        = "9779843322044422"
+	queryRecommendedNewslettersDesktop = "27256776790637714"
+	querySubscribedNewslettersDesktop  = "8621797084555037"
+	queryNewsletterSubscribersDesktop  = "25403502652570342"
+	mutationMuteNewsletterDesktop      = "5971669009605755" // variables -> {newsletter_id, updates->{description, settings}}, output: xwa2_newsletter_update -> NewsletterMetadata without viewer meta
+	mutationUnmuteNewsletterDesktop    = "6104029483058502"
+	mutationUpdateNewsletterDesktop    = "7839742399440946"
+	mutationCreateNewsletterDesktop    = "27527996220149684"
+	mutationUnfollowNewsletterDesktop  = "8782612271820087"
+	mutationFollowNewsletterDesktop    = "8621797084555037"
 )
 
+func convertQueryID(cli *Client, queryID string) string {
+	if payload := cli.Store.GetClientPayload(); payload.GetUserAgent().Platform == waWa6.ClientPayload_UserAgent_MACOS.Enum() || payload.GetWebInfo() == nil {
+		switch queryID {
+		case queryFetchNewsletter:
+			return queryFetchNewsletterDesktop
+		case queryRecommendedNewsletters:
+			return queryRecommendedNewslettersDesktop
+		case querySubscribedNewsletters:
+			return querySubscribedNewslettersDesktop
+		case queryNewsletterSubscribers:
+			return queryNewsletterSubscribersDesktop
+		case mutationMuteNewsletter:
+			return mutationMuteNewsletterDesktop
+		case mutationUnmuteNewsletter:
+			return mutationUnmuteNewsletterDesktop
+		case mutationUpdateNewsletter:
+			return mutationUpdateNewsletterDesktop
+		case mutationCreateNewsletter:
+			return mutationCreateNewsletterDesktop
+		case mutationUnfollowNewsletter:
+			return mutationUnfollowNewsletterDesktop
+		case mutationFollowNewsletter:
+			return mutationFollowNewsletterDesktop
+		default:
+			return queryID
+		}
+	} else {
+		return queryID
+	}
+}
+
 func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any) (json.RawMessage, error) {
+	queryID = convertQueryID(cli, queryID)
 	payload, err := json.Marshal(map[string]any{
 		"variables": variables,
 	})
@@ -151,14 +201,40 @@ func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any)
 	if !ok {
 		return nil, fmt.Errorf("unexpected content type %T in mex response", result.Content)
 	}
-	var gqlResp types.GraphQLResponse
-	err = json.Unmarshal(resultContent, &gqlResp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal graphql response: %w", err)
-	} else if len(gqlResp.Errors) > 0 {
-		return gqlResp.Data, fmt.Errorf("graphql error: %w", gqlResp.Errors)
+	if result.AttrGetter().OptionalString("format") == "argo" {
+		store, err := argo.GetStore()
+		if err != nil {
+			return nil, err
+		}
+		queryIDMap, err := argo.GetQueryIDToMessageName()
+		if err != nil {
+			return nil, err
+		}
+		wt := store[queryIDMap[queryID]]
+
+		decoder, err := codec.NewArgoDecoder(buf.NewBufReadonly(resultContent))
+		if err != nil {
+			return nil, err
+		}
+		data, err := decoder.ArgoToMap(wt)
+		if err != nil {
+			log.Fatalf("argo to map error: %v", err)
+		}
+		b, err := json.Marshal(data)
+		if err != nil {
+			return nil, err
+		}
+		return b, nil
+	} else {
+		var gqlResp types.GraphQLResponse
+		err = json.Unmarshal(resultContent, &gqlResp)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal graphql response: %w", err)
+		} else if len(gqlResp.Errors) > 0 {
+			return gqlResp.Data, fmt.Errorf("graphql error: %w", gqlResp.Errors)
+		}
+		return gqlResp.Data, nil
 	}
-	return gqlResp.Data, nil
 }
 
 type respGetNewsletterInfo struct {

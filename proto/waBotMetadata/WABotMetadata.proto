@@ -36,6 +36,7 @@ enum BotMetricsEntryPoint {
 	INVOKE_META_AI_1ON1 = 29;
 	INVOKE_META_AI_GROUP = 30;
 	META_AI_FORWARD = 31;
+	NEW_CHAT_AI_CONTACT = 32;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -268,6 +269,8 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_SIDE_BY_SIDE_SURVEY = 38;
 		RICH_RESPONSE_UNIFIED_TEXT_COMPONENT = 39;
 		AI_SHARED_MEMORY = 40;
+		RICH_RESPONSE_UNIFIED_SOURCES = 41;
+		RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS = 42;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -474,11 +477,18 @@ message BotMessageOriginMetadata {
 }
 
 message BotUnifiedResponseMutation {
+	message MediaDetailsMetadata {
+		optional string ID = 1;
+		optional BotMediaMetadata highResMedia = 2;
+		optional BotMediaMetadata previewMedia = 3;
+	}
+
 	message SideBySideMetadata {
 		optional string primaryResponseID = 1;
 	}
 
 	optional SideBySideMetadata sbsMetadata = 1;
+	repeated MediaDetailsMetadata mediaDetailsMetadataList = 2;
 }
 
 message BotMetadata {
@@ -513,4 +523,5 @@ message BotMetadata {
 	optional BotMessageOriginMetadata botMessageOriginMetadata = 29;
 	optional InThreadSurveyMetadata inThreadSurveyMetadata = 30;
 	optional AIThreadInfo botThreadInfo = 31;
+	optional bytes internalMetadata = 999;
 }

@@ -58,6 +58,7 @@ const (
 	BotMetricsEntryPoint_INVOKE_META_AI_1ON1                 BotMetricsEntryPoint = 29
 	BotMetricsEntryPoint_INVOKE_META_AI_GROUP                BotMetricsEntryPoint = 30
 	BotMetricsEntryPoint_META_AI_FORWARD                     BotMetricsEntryPoint = 31
+	BotMetricsEntryPoint_NEW_CHAT_AI_CONTACT                 BotMetricsEntryPoint = 32
 )
 
 // Enum value maps for BotMetricsEntryPoint.
@@ -94,6 +95,7 @@ var (
 		29: "INVOKE_META_AI_1ON1",
 		30: "INVOKE_META_AI_GROUP",
 		31: "META_AI_FORWARD",
+		32: "NEW_CHAT_AI_CONTACT",
 	}
 	BotMetricsEntryPoint_value = map[string]int32{
 		"FAVICON":                             1,
@@ -127,6 +129,7 @@ var (
 		"INVOKE_META_AI_1ON1":                 29,
 		"INVOKE_META_AI_GROUP":                30,
 		"META_AI_FORWARD":                     31,
+		"NEW_CHAT_AI_CONTACT":                 32,
 	}
 )
 
@@ -1082,47 +1085,49 @@ func (BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSour
 type BotCapabilityMetadata_BotCapabilityType int32
 
 const (
-	BotCapabilityMetadata_UNKNOWN                              BotCapabilityMetadata_BotCapabilityType = 0
-	BotCapabilityMetadata_PROGRESS_INDICATOR                   BotCapabilityMetadata_BotCapabilityType = 1
-	BotCapabilityMetadata_RICH_RESPONSE_HEADING                BotCapabilityMetadata_BotCapabilityType = 2
-	BotCapabilityMetadata_RICH_RESPONSE_NESTED_LIST            BotCapabilityMetadata_BotCapabilityType = 3
-	BotCapabilityMetadata_AI_MEMORY                            BotCapabilityMetadata_BotCapabilityType = 4
-	BotCapabilityMetadata_RICH_RESPONSE_THREAD_SURFING         BotCapabilityMetadata_BotCapabilityType = 5
-	BotCapabilityMetadata_RICH_RESPONSE_TABLE                  BotCapabilityMetadata_BotCapabilityType = 6
-	BotCapabilityMetadata_RICH_RESPONSE_CODE                   BotCapabilityMetadata_BotCapabilityType = 7
-	BotCapabilityMetadata_RICH_RESPONSE_STRUCTURED_RESPONSE    BotCapabilityMetadata_BotCapabilityType = 8
-	BotCapabilityMetadata_RICH_RESPONSE_INLINE_IMAGE           BotCapabilityMetadata_BotCapabilityType = 9
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_CONTROL      BotCapabilityMetadata_BotCapabilityType = 10
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_1     BotCapabilityMetadata_BotCapabilityType = 11
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_2     BotCapabilityMetadata_BotCapabilityType = 12
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_3     BotCapabilityMetadata_BotCapabilityType = 13
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_4     BotCapabilityMetadata_BotCapabilityType = 14
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_5     BotCapabilityMetadata_BotCapabilityType = 15
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_6     BotCapabilityMetadata_BotCapabilityType = 16
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_7     BotCapabilityMetadata_BotCapabilityType = 17
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_8     BotCapabilityMetadata_BotCapabilityType = 18
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_9     BotCapabilityMetadata_BotCapabilityType = 19
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_10    BotCapabilityMetadata_BotCapabilityType = 20
-	BotCapabilityMetadata_RICH_RESPONSE_SUB_HEADING            BotCapabilityMetadata_BotCapabilityType = 21
-	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE             BotCapabilityMetadata_BotCapabilityType = 22
-	BotCapabilityMetadata_AI_STUDIO_UGC_MEMORY                 BotCapabilityMetadata_BotCapabilityType = 23
-	BotCapabilityMetadata_RICH_RESPONSE_LATEX                  BotCapabilityMetadata_BotCapabilityType = 24
-	BotCapabilityMetadata_RICH_RESPONSE_MAPS                   BotCapabilityMetadata_BotCapabilityType = 25
-	BotCapabilityMetadata_RICH_RESPONSE_INLINE_REELS           BotCapabilityMetadata_BotCapabilityType = 26
-	BotCapabilityMetadata_AGENTIC_PLANNING                     BotCapabilityMetadata_BotCapabilityType = 27
-	BotCapabilityMetadata_ACCOUNT_LINKING                      BotCapabilityMetadata_BotCapabilityType = 28
-	BotCapabilityMetadata_STREAMING_DISAGGREGATION             BotCapabilityMetadata_BotCapabilityType = 29
-	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE_3P          BotCapabilityMetadata_BotCapabilityType = 30
-	BotCapabilityMetadata_RICH_RESPONSE_LATEX_INLINE           BotCapabilityMetadata_BotCapabilityType = 31
-	BotCapabilityMetadata_QUERY_PLAN                           BotCapabilityMetadata_BotCapabilityType = 32
-	BotCapabilityMetadata_PROACTIVE_MESSAGE                    BotCapabilityMetadata_BotCapabilityType = 33
-	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_RESPONSE       BotCapabilityMetadata_BotCapabilityType = 34
-	BotCapabilityMetadata_PROMOTION_MESSAGE                    BotCapabilityMetadata_BotCapabilityType = 35
-	BotCapabilityMetadata_SIMPLIFIED_PROFILE_PAGE              BotCapabilityMetadata_BotCapabilityType = 36
-	BotCapabilityMetadata_RICH_RESPONSE_SOURCES_IN_MESSAGE     BotCapabilityMetadata_BotCapabilityType = 37
-	BotCapabilityMetadata_RICH_RESPONSE_SIDE_BY_SIDE_SURVEY    BotCapabilityMetadata_BotCapabilityType = 38
-	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_TEXT_COMPONENT BotCapabilityMetadata_BotCapabilityType = 39
-	BotCapabilityMetadata_AI_SHARED_MEMORY                     BotCapabilityMetadata_BotCapabilityType = 40
+	BotCapabilityMetadata_UNKNOWN                                BotCapabilityMetadata_BotCapabilityType = 0
+	BotCapabilityMetadata_PROGRESS_INDICATOR                     BotCapabilityMetadata_BotCapabilityType = 1
+	BotCapabilityMetadata_RICH_RESPONSE_HEADING                  BotCapabilityMetadata_BotCapabilityType = 2
+	BotCapabilityMetadata_RICH_RESPONSE_NESTED_LIST              BotCapabilityMetadata_BotCapabilityType = 3
+	BotCapabilityMetadata_AI_MEMORY                              BotCapabilityMetadata_BotCapabilityType = 4
+	BotCapabilityMetadata_RICH_RESPONSE_THREAD_SURFING           BotCapabilityMetadata_BotCapabilityType = 5
+	BotCapabilityMetadata_RICH_RESPONSE_TABLE                    BotCapabilityMetadata_BotCapabilityType = 6
+	BotCapabilityMetadata_RICH_RESPONSE_CODE                     BotCapabilityMetadata_BotCapabilityType = 7
+	BotCapabilityMetadata_RICH_RESPONSE_STRUCTURED_RESPONSE      BotCapabilityMetadata_BotCapabilityType = 8
+	BotCapabilityMetadata_RICH_RESPONSE_INLINE_IMAGE             BotCapabilityMetadata_BotCapabilityType = 9
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_CONTROL        BotCapabilityMetadata_BotCapabilityType = 10
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_1       BotCapabilityMetadata_BotCapabilityType = 11
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_2       BotCapabilityMetadata_BotCapabilityType = 12
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_3       BotCapabilityMetadata_BotCapabilityType = 13
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_4       BotCapabilityMetadata_BotCapabilityType = 14
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_5       BotCapabilityMetadata_BotCapabilityType = 15
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_6       BotCapabilityMetadata_BotCapabilityType = 16
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_7       BotCapabilityMetadata_BotCapabilityType = 17
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_8       BotCapabilityMetadata_BotCapabilityType = 18
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_9       BotCapabilityMetadata_BotCapabilityType = 19
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_10      BotCapabilityMetadata_BotCapabilityType = 20
+	BotCapabilityMetadata_RICH_RESPONSE_SUB_HEADING              BotCapabilityMetadata_BotCapabilityType = 21
+	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE               BotCapabilityMetadata_BotCapabilityType = 22
+	BotCapabilityMetadata_AI_STUDIO_UGC_MEMORY                   BotCapabilityMetadata_BotCapabilityType = 23
+	BotCapabilityMetadata_RICH_RESPONSE_LATEX                    BotCapabilityMetadata_BotCapabilityType = 24
+	BotCapabilityMetadata_RICH_RESPONSE_MAPS                     BotCapabilityMetadata_BotCapabilityType = 25
+	BotCapabilityMetadata_RICH_RESPONSE_INLINE_REELS             BotCapabilityMetadata_BotCapabilityType = 26
+	BotCapabilityMetadata_AGENTIC_PLANNING                       BotCapabilityMetadata_BotCapabilityType = 27
+	BotCapabilityMetadata_ACCOUNT_LINKING                        BotCapabilityMetadata_BotCapabilityType = 28
+	BotCapabilityMetadata_STREAMING_DISAGGREGATION               BotCapabilityMetadata_BotCapabilityType = 29
+	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE_3P            BotCapabilityMetadata_BotCapabilityType = 30
+	BotCapabilityMetadata_RICH_RESPONSE_LATEX_INLINE             BotCapabilityMetadata_BotCapabilityType = 31
+	BotCapabilityMetadata_QUERY_PLAN                             BotCapabilityMetadata_BotCapabilityType = 32
+	BotCapabilityMetadata_PROACTIVE_MESSAGE                      BotCapabilityMetadata_BotCapabilityType = 33
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_RESPONSE         BotCapabilityMetadata_BotCapabilityType = 34
+	BotCapabilityMetadata_PROMOTION_MESSAGE                      BotCapabilityMetadata_BotCapabilityType = 35
+	BotCapabilityMetadata_SIMPLIFIED_PROFILE_PAGE                BotCapabilityMetadata_BotCapabilityType = 36
+	BotCapabilityMetadata_RICH_RESPONSE_SOURCES_IN_MESSAGE       BotCapabilityMetadata_BotCapabilityType = 37
+	BotCapabilityMetadata_RICH_RESPONSE_SIDE_BY_SIDE_SURVEY      BotCapabilityMetadata_BotCapabilityType = 38
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_TEXT_COMPONENT   BotCapabilityMetadata_BotCapabilityType = 39
+	BotCapabilityMetadata_AI_SHARED_MEMORY                       BotCapabilityMetadata_BotCapabilityType = 40
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_SOURCES          BotCapabilityMetadata_BotCapabilityType = 41
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS BotCapabilityMetadata_BotCapabilityType = 42
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -1169,49 +1174,53 @@ var (
 		38: "RICH_RESPONSE_SIDE_BY_SIDE_SURVEY",
 		39: "RICH_RESPONSE_UNIFIED_TEXT_COMPONENT",
 		40: "AI_SHARED_MEMORY",
+		41: "RICH_RESPONSE_UNIFIED_SOURCES",
+		42: "RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
-		"UNKNOWN":                              0,
-		"PROGRESS_INDICATOR":                   1,
-		"RICH_RESPONSE_HEADING":                2,
-		"RICH_RESPONSE_NESTED_LIST":            3,
-		"AI_MEMORY":                            4,
-		"RICH_RESPONSE_THREAD_SURFING":         5,
-		"RICH_RESPONSE_TABLE":                  6,
-		"RICH_RESPONSE_CODE":                   7,
-		"RICH_RESPONSE_STRUCTURED_RESPONSE":    8,
-		"RICH_RESPONSE_INLINE_IMAGE":           9,
-		"WA_IG_1P_PLUGIN_RANKING_CONTROL":      10,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_1":     11,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_2":     12,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_3":     13,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_4":     14,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_5":     15,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_6":     16,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_7":     17,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_8":     18,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_9":     19,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_10":    20,
-		"RICH_RESPONSE_SUB_HEADING":            21,
-		"RICH_RESPONSE_GRID_IMAGE":             22,
-		"AI_STUDIO_UGC_MEMORY":                 23,
-		"RICH_RESPONSE_LATEX":                  24,
-		"RICH_RESPONSE_MAPS":                   25,
-		"RICH_RESPONSE_INLINE_REELS":           26,
-		"AGENTIC_PLANNING":                     27,
-		"ACCOUNT_LINKING":                      28,
-		"STREAMING_DISAGGREGATION":             29,
-		"RICH_RESPONSE_GRID_IMAGE_3P":          30,
-		"RICH_RESPONSE_LATEX_INLINE":           31,
-		"QUERY_PLAN":                           32,
-		"PROACTIVE_MESSAGE":                    33,
-		"RICH_RESPONSE_UNIFIED_RESPONSE":       34,
-		"PROMOTION_MESSAGE":                    35,
-		"SIMPLIFIED_PROFILE_PAGE":              36,
-		"RICH_RESPONSE_SOURCES_IN_MESSAGE":     37,
-		"RICH_RESPONSE_SIDE_BY_SIDE_SURVEY":    38,
-		"RICH_RESPONSE_UNIFIED_TEXT_COMPONENT": 39,
-		"AI_SHARED_MEMORY":                     40,
+		"UNKNOWN":                                0,
+		"PROGRESS_INDICATOR":                     1,
+		"RICH_RESPONSE_HEADING":                  2,
+		"RICH_RESPONSE_NESTED_LIST":              3,
+		"AI_MEMORY":                              4,
+		"RICH_RESPONSE_THREAD_SURFING":           5,
+		"RICH_RESPONSE_TABLE":                    6,
+		"RICH_RESPONSE_CODE":                     7,
+		"RICH_RESPONSE_STRUCTURED_RESPONSE":      8,
+		"RICH_RESPONSE_INLINE_IMAGE":             9,
+		"WA_IG_1P_PLUGIN_RANKING_CONTROL":        10,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_1":       11,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_2":       12,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_3":       13,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_4":       14,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_5":       15,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_6":       16,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_7":       17,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_8":       18,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_9":       19,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_10":      20,
+		"RICH_RESPONSE_SUB_HEADING":              21,
+		"RICH_RESPONSE_GRID_IMAGE":               22,
+		"AI_STUDIO_UGC_MEMORY":                   23,
+		"RICH_RESPONSE_LATEX":                    24,
+		"RICH_RESPONSE_MAPS":                     25,
+		"RICH_RESPONSE_INLINE_REELS":             26,
+		"AGENTIC_PLANNING":                       27,
+		"ACCOUNT_LINKING":                        28,
+		"STREAMING_DISAGGREGATION":               29,
+		"RICH_RESPONSE_GRID_IMAGE_3P":            30,
+		"RICH_RESPONSE_LATEX_INLINE":             31,
+		"QUERY_PLAN":                             32,
+		"PROACTIVE_MESSAGE":                      33,
+		"RICH_RESPONSE_UNIFIED_RESPONSE":         34,
+		"PROMOTION_MESSAGE":                      35,
+		"SIMPLIFIED_PROFILE_PAGE":                36,
+		"RICH_RESPONSE_SOURCES_IN_MESSAGE":       37,
+		"RICH_RESPONSE_SIDE_BY_SIDE_SURVEY":      38,
+		"RICH_RESPONSE_UNIFIED_TEXT_COMPONENT":   39,
+		"AI_SHARED_MEMORY":                       40,
+		"RICH_RESPONSE_UNIFIED_SOURCES":          41,
+		"RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS": 42,
 	}
 )
 
@@ -3415,10 +3424,11 @@ func (x *BotMessageOriginMetadata) GetOrigins() []*BotMessageOrigin {
 }
 
 type BotUnifiedResponseMutation struct {
-	state         protoimpl.MessageState                         `protogen:"open.v1"`
-	SbsMetadata   *BotUnifiedResponseMutation_SideBySideMetadata `protobuf:"bytes,1,opt,name=sbsMetadata" json:"sbsMetadata,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState                             `protogen:"open.v1"`
+	SbsMetadata              *BotUnifiedResponseMutation_SideBySideMetadata     `protobuf:"bytes,1,opt,name=sbsMetadata" json:"sbsMetadata,omitempty"`
+	MediaDetailsMetadataList []*BotUnifiedResponseMutation_MediaDetailsMetadata `protobuf:"bytes,2,rep,name=mediaDetailsMetadataList" json:"mediaDetailsMetadataList,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *BotUnifiedResponseMutation) Reset() {
@@ -3458,6 +3468,13 @@ func (x *BotUnifiedResponseMutation) GetSbsMetadata() *BotUnifiedResponseMutatio
 	return nil
 }
 
+func (x *BotUnifiedResponseMutation) GetMediaDetailsMetadataList() []*BotUnifiedResponseMutation_MediaDetailsMetadata {
+	if x != nil {
+		return x.MediaDetailsMetadataList
+	}
+	return nil
+}
+
 type BotMetadata struct {
 	state                       protoimpl.MessageState            `protogen:"open.v1"`
 	AvatarMetadata              *BotAvatarMetadata                `protobuf:"bytes,1,opt,name=avatarMetadata" json:"avatarMetadata,omitempty"`
@@ -3491,6 +3508,7 @@ type BotMetadata struct {
 	BotMessageOriginMetadata    *BotMessageOriginMetadata         `protobuf:"bytes,29,opt,name=botMessageOriginMetadata" json:"botMessageOriginMetadata,omitempty"`
 	InThreadSurveyMetadata      *InThreadSurveyMetadata           `protobuf:"bytes,30,opt,name=inThreadSurveyMetadata" json:"inThreadSurveyMetadata,omitempty"`
 	BotThreadInfo               *AIThreadInfo                     `protobuf:"bytes,31,opt,name=botThreadInfo" json:"botThreadInfo,omitempty"`
+	InternalMetadata            []byte                            `protobuf:"bytes,999,opt,name=internalMetadata" json:"internalMetadata,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -3738,6 +3756,13 @@ func (x *BotMetadata) GetInThreadSurveyMetadata() *InThreadSurveyMetadata {
 func (x *BotMetadata) GetBotThreadInfo() *AIThreadInfo {
 	if x != nil {
 		return x.BotThreadInfo
+	}
+	return nil
+}
+
+func (x *BotMetadata) GetInternalMetadata() []byte {
+	if x != nil {
+		return x.InternalMetadata
 	}
 	return nil
 }
@@ -4489,6 +4514,66 @@ func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) GetQuestionOptions() []*
 	return nil
 }
 
+type BotUnifiedResponseMutation_MediaDetailsMetadata struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            *string                `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	HighResMedia  *BotMediaMetadata      `protobuf:"bytes,2,opt,name=highResMedia" json:"highResMedia,omitempty"`
+	PreviewMedia  *BotMediaMetadata      `protobuf:"bytes,3,opt,name=previewMedia" json:"previewMedia,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) Reset() {
+	*x = BotUnifiedResponseMutation_MediaDetailsMetadata{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotUnifiedResponseMutation_MediaDetailsMetadata) ProtoMessage() {}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotUnifiedResponseMutation_MediaDetailsMetadata.ProtoReflect.Descriptor instead.
+func (*BotUnifiedResponseMutation_MediaDetailsMetadata) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{30, 0}
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) GetID() string {
+	if x != nil && x.ID != nil {
+		return *x.ID
+	}
+	return ""
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) GetHighResMedia() *BotMediaMetadata {
+	if x != nil {
+		return x.HighResMedia
+	}
+	return nil
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) GetPreviewMedia() *BotMediaMetadata {
+	if x != nil {
+		return x.PreviewMedia
+	}
+	return nil
+}
+
 type BotUnifiedResponseMutation_SideBySideMetadata struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	PrimaryResponseID *string                `protobuf:"bytes,1,opt,name=primaryResponseID" json:"primaryResponseID,omitempty"`
@@ -4498,7 +4583,7 @@ type BotUnifiedResponseMutation_SideBySideMetadata struct {
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) Reset() {
 	*x = BotUnifiedResponseMutation_SideBySideMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[44]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4510,7 +4595,7 @@ func (x *BotUnifiedResponseMutation_SideBySideMetadata) String() string {
 func (*BotUnifiedResponseMutation_SideBySideMetadata) ProtoMessage() {}
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[44]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4523,7 +4608,7 @@ func (x *BotUnifiedResponseMutation_SideBySideMetadata) ProtoReflect() protorefl
 
 // Deprecated: Use BotUnifiedResponseMutation_SideBySideMetadata.ProtoReflect.Descriptor instead.
 func (*BotUnifiedResponseMutation_SideBySideMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{30, 0}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{30, 1}
 }
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) GetPrimaryResponseID() string {
@@ -4680,10 +4765,10 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPLANNED\x10\x01\x12\r\n" +
 	"\tEXECUTING\x10\x02\x12\f\n" +
-	"\bFINISHED\x10\x03\"\xf1\n" +
-	"\n" +
+	"\bFINISHED\x10\x03\"\xc0\v\n" +
 	"\x15BotCapabilityMetadata\x12Z\n" +
-	"\fcapabilities\x18\x01 \x03(\x0e26.WABotMetadata.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xfb\t\n" +
+	"\fcapabilities\x18\x01 \x03(\x0e26.WABotMetadata.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xca\n" +
+	"\n" +
 	"\x11BotCapabilityType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x16\n" +
 	"\x12PROGRESS_INDICATOR\x10\x01\x12\x19\n" +
@@ -4727,7 +4812,9 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	" RICH_RESPONSE_SOURCES_IN_MESSAGE\x10%\x12%\n" +
 	"!RICH_RESPONSE_SIDE_BY_SIDE_SURVEY\x10&\x12(\n" +
 	"$RICH_RESPONSE_UNIFIED_TEXT_COMPONENT\x10'\x12\x14\n" +
-	"\x10AI_SHARED_MEMORY\x10(\"\xaa\x01\n" +
+	"\x10AI_SHARED_MEMORY\x10(\x12!\n" +
+	"\x1dRICH_RESPONSE_UNIFIED_SOURCES\x10)\x12*\n" +
+	"&RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS\x10*\"\xaa\x01\n" +
 	"\x18BotModeSelectionMetadata\x12P\n" +
 	"\x04mode\x18\x01 \x03(\x0e2<.WABotMetadata.BotModeSelectionMetadata.BotUserSelectionModeR\x04mode\"<\n" +
 	"\x14BotUserSelectionMode\x12\x10\n" +
@@ -4874,11 +4961,16 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"questionID\x12d\n" +
 	"\x0fquestionOptions\x18\x03 \x03(\v2:.WABotMetadata.InThreadSurveyMetadata.InThreadSurveyOptionR\x0fquestionOptions\"U\n" +
 	"\x18BotMessageOriginMetadata\x129\n" +
-	"\aorigins\x18\x01 \x03(\v2\x1f.WABotMetadata.BotMessageOriginR\aorigins\"\xc0\x01\n" +
+	"\aorigins\x18\x01 \x03(\v2\x1f.WABotMetadata.BotMessageOriginR\aorigins\"\xef\x03\n" +
 	"\x1aBotUnifiedResponseMutation\x12^\n" +
-	"\vsbsMetadata\x18\x01 \x01(\v2<.WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadataR\vsbsMetadata\x1aB\n" +
+	"\vsbsMetadata\x18\x01 \x01(\v2<.WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadataR\vsbsMetadata\x12z\n" +
+	"\x18mediaDetailsMetadataList\x18\x02 \x03(\v2>.WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadataR\x18mediaDetailsMetadataList\x1a\xb0\x01\n" +
+	"\x14MediaDetailsMetadata\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\tR\x02ID\x12C\n" +
+	"\fhighResMedia\x18\x02 \x01(\v2\x1f.WABotMetadata.BotMediaMetadataR\fhighResMedia\x12C\n" +
+	"\fpreviewMedia\x18\x03 \x01(\v2\x1f.WABotMetadata.BotMediaMetadataR\fpreviewMedia\x1aB\n" +
 	"\x12SideBySideMetadata\x12,\n" +
-	"\x11primaryResponseID\x18\x01 \x01(\tR\x11primaryResponseID\"\xfd\x12\n" +
+	"\x11primaryResponseID\x18\x01 \x01(\tR\x11primaryResponseID\"\xaa\x13\n" +
 	"\vBotMetadata\x12H\n" +
 	"\x0eavatarMetadata\x18\x01 \x01(\v2 .WABotMetadata.BotAvatarMetadataR\x0eavatarMetadata\x12\x1c\n" +
 	"\tpersonaID\x18\x02 \x01(\tR\tpersonaID\x12H\n" +
@@ -4913,7 +5005,8 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\x17unifiedResponseMutation\x18\x1c \x01(\v2).WABotMetadata.BotUnifiedResponseMutationR\x17unifiedResponseMutation\x12c\n" +
 	"\x18botMessageOriginMetadata\x18\x1d \x01(\v2'.WABotMetadata.BotMessageOriginMetadataR\x18botMessageOriginMetadata\x12]\n" +
 	"\x16inThreadSurveyMetadata\x18\x1e \x01(\v2%.WABotMetadata.InThreadSurveyMetadataR\x16inThreadSurveyMetadata\x12A\n" +
-	"\rbotThreadInfo\x18\x1f \x01(\v2\x1b.WABotMetadata.AIThreadInfoR\rbotThreadInfo*\xac\x06\n" +
+	"\rbotThreadInfo\x18\x1f \x01(\v2\x1b.WABotMetadata.AIThreadInfoR\rbotThreadInfo\x12+\n" +
+	"\x10internalMetadata\x18\xe7\a \x01(\fR\x10internalMetadata*\xc5\x06\n" +
 	"\x14BotMetricsEntryPoint\x12\v\n" +
 	"\aFAVICON\x10\x01\x12\f\n" +
 	"\bCHATLIST\x10\x02\x12#\n" +
@@ -4947,7 +5040,8 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\x1eASK_META_AI_CONTEXT_MENU_GROUP\x10\x1c\x12\x17\n" +
 	"\x13INVOKE_META_AI_1ON1\x10\x1d\x12\x18\n" +
 	"\x14INVOKE_META_AI_GROUP\x10\x1e\x12\x13\n" +
-	"\x0fMETA_AI_FORWARD\x10\x1f*\xa2\x01\n" +
+	"\x0fMETA_AI_FORWARD\x10\x1f\x12\x17\n" +
+	"\x13NEW_CHAT_AI_CONTACT\x10 *\xa2\x01\n" +
 	"\x1aBotMetricsThreadEntryPoint\x12\x11\n" +
 	"\rAI_TAB_THREAD\x10\x01\x12\x12\n" +
 	"\x0eAI_HOME_THREAD\x10\x02\x12 \n" +
@@ -4978,7 +5072,7 @@ func file_waBotMetadata_WABotMetadata_proto_rawDescGZIP() []byte {
 }
 
 var file_waBotMetadata_WABotMetadata_proto_enumTypes = make([]protoimpl.EnumInfo, 23)
-var file_waBotMetadata_WABotMetadata_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_waBotMetadata_WABotMetadata_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_waBotMetadata_WABotMetadata_proto_goTypes = []any{
 	(BotMetricsEntryPoint)(0),                                                         // 0: WABotMetadata.BotMetricsEntryPoint
 	(BotMetricsThreadEntryPoint)(0),                                                   // 1: WABotMetadata.BotMetricsThreadEntryPoint
@@ -5047,20 +5141,21 @@ var file_waBotMetadata_WABotMetadata_proto_goTypes = []any{
 	(*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart)(nil),                             // 64: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPart
 	(*InThreadSurveyMetadata_InThreadSurveyOption)(nil),                                           // 65: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyOption
 	(*InThreadSurveyMetadata_InThreadSurveyQuestion)(nil),                                         // 66: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyQuestion
-	(*BotUnifiedResponseMutation_SideBySideMetadata)(nil),                                         // 67: WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadata
-	(*waCommon.MessageKey)(nil),                                                                   // 68: WACommon.MessageKey
+	(*BotUnifiedResponseMutation_MediaDetailsMetadata)(nil),                                       // 67: WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadata
+	(*BotUnifiedResponseMutation_SideBySideMetadata)(nil),                                         // 68: WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadata
+	(*waCommon.MessageKey)(nil),                                                                   // 69: WACommon.MessageKey
 }
 var file_waBotMetadata_WABotMetadata_proto_depIdxs = []int32{
 	4,  // 0: WABotMetadata.BotPluginMetadata.provider:type_name -> WABotMetadata.BotPluginMetadata.SearchProvider
 	3,  // 1: WABotMetadata.BotPluginMetadata.pluginType:type_name -> WABotMetadata.BotPluginMetadata.PluginType
-	68, // 2: WABotMetadata.BotPluginMetadata.parentPluginMessageKey:type_name -> WACommon.MessageKey
+	69, // 2: WABotMetadata.BotPluginMetadata.parentPluginMessageKey:type_name -> WACommon.MessageKey
 	3,  // 3: WABotMetadata.BotPluginMetadata.deprecatedField:type_name -> WABotMetadata.BotPluginMetadata.PluginType
 	3,  // 4: WABotMetadata.BotPluginMetadata.parentPluginType:type_name -> WABotMetadata.BotPluginMetadata.PluginType
 	5,  // 5: WABotMetadata.BotLinkedAccount.type:type_name -> WABotMetadata.BotLinkedAccount.BotLinkedAccountType
 	6,  // 6: WABotMetadata.BotSignatureVerificationUseCaseProof.useCase:type_name -> WABotMetadata.BotSignatureVerificationUseCaseProof.BotSignatureUseCase
 	7,  // 7: WABotMetadata.BotPromotionMessageMetadata.promotionType:type_name -> WABotMetadata.BotPromotionMessageMetadata.BotPromotionType
 	8,  // 8: WABotMetadata.BotMediaMetadata.orientationType:type_name -> WABotMetadata.BotMediaMetadata.OrientationType
-	68, // 9: WABotMetadata.BotReminderMetadata.requestMessageKey:type_name -> WACommon.MessageKey
+	69, // 9: WABotMetadata.BotReminderMetadata.requestMessageKey:type_name -> WACommon.MessageKey
 	10, // 10: WABotMetadata.BotReminderMetadata.action:type_name -> WABotMetadata.BotReminderMetadata.ReminderAction
 	9,  // 11: WABotMetadata.BotReminderMetadata.frequency:type_name -> WABotMetadata.BotReminderMetadata.ReminderFrequency
 	12, // 12: WABotMetadata.BotModelMetadata.modelType:type_name -> WABotMetadata.BotModelMetadata.ModelType
@@ -5088,46 +5183,49 @@ var file_waBotMetadata_WABotMetadata_proto_depIdxs = []int32{
 	66, // 34: WABotMetadata.InThreadSurveyMetadata.questions:type_name -> WABotMetadata.InThreadSurveyMetadata.InThreadSurveyQuestion
 	64, // 35: WABotMetadata.InThreadSurveyMetadata.privacyStatementParts:type_name -> WABotMetadata.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPart
 	36, // 36: WABotMetadata.BotMessageOriginMetadata.origins:type_name -> WABotMetadata.BotMessageOrigin
-	67, // 37: WABotMetadata.BotUnifiedResponseMutation.sbsMetadata:type_name -> WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadata
-	38, // 38: WABotMetadata.BotMetadata.avatarMetadata:type_name -> WABotMetadata.BotAvatarMetadata
-	23, // 39: WABotMetadata.BotMetadata.pluginMetadata:type_name -> WABotMetadata.BotPluginMetadata
-	39, // 40: WABotMetadata.BotMetadata.suggestedPromptMetadata:type_name -> WABotMetadata.BotSuggestedPromptMetadata
-	48, // 41: WABotMetadata.BotMetadata.sessionMetadata:type_name -> WABotMetadata.BotSessionMetadata
-	49, // 42: WABotMetadata.BotMetadata.memuMetadata:type_name -> WABotMetadata.BotMemuMetadata
-	28, // 43: WABotMetadata.BotMetadata.reminderMetadata:type_name -> WABotMetadata.BotReminderMetadata
-	29, // 44: WABotMetadata.BotMetadata.modelMetadata:type_name -> WABotMetadata.BotModelMetadata
-	30, // 45: WABotMetadata.BotMetadata.progressIndicatorMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata
-	31, // 46: WABotMetadata.BotMetadata.capabilityMetadata:type_name -> WABotMetadata.BotCapabilityMetadata
-	34, // 47: WABotMetadata.BotMetadata.imagineMetadata:type_name -> WABotMetadata.BotImagineMetadata
-	43, // 48: WABotMetadata.BotMetadata.memoryMetadata:type_name -> WABotMetadata.BotMemoryMetadata
-	46, // 49: WABotMetadata.BotMetadata.renderingMetadata:type_name -> WABotMetadata.BotRenderingMetadata
-	47, // 50: WABotMetadata.BotMetadata.botMetricsMetadata:type_name -> WABotMetadata.BotMetricsMetadata
-	42, // 51: WABotMetadata.BotMetadata.botLinkedAccountsMetadata:type_name -> WABotMetadata.BotLinkedAccountsMetadata
-	35, // 52: WABotMetadata.BotMetadata.richResponseSourcesMetadata:type_name -> WABotMetadata.BotSourcesMetadata
-	26, // 53: WABotMetadata.BotMetadata.botPromotionMessageMetadata:type_name -> WABotMetadata.BotPromotionMessageMetadata
-	32, // 54: WABotMetadata.BotMetadata.botModeSelectionMetadata:type_name -> WABotMetadata.BotModeSelectionMetadata
-	33, // 55: WABotMetadata.BotMetadata.botQuotaMetadata:type_name -> WABotMetadata.BotQuotaMetadata
-	50, // 56: WABotMetadata.BotMetadata.botAgeCollectionMetadata:type_name -> WABotMetadata.BotAgeCollectionMetadata
-	45, // 57: WABotMetadata.BotMetadata.verificationMetadata:type_name -> WABotMetadata.BotSignatureVerificationMetadata
-	53, // 58: WABotMetadata.BotMetadata.unifiedResponseMutation:type_name -> WABotMetadata.BotUnifiedResponseMutation
-	52, // 59: WABotMetadata.BotMetadata.botMessageOriginMetadata:type_name -> WABotMetadata.BotMessageOriginMetadata
-	51, // 60: WABotMetadata.BotMetadata.inThreadSurveyMetadata:type_name -> WABotMetadata.InThreadSurveyMetadata
-	37, // 61: WABotMetadata.BotMetadata.botThreadInfo:type_name -> WABotMetadata.AIThreadInfo
-	56, // 62: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sourcesMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
-	14, // 63: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.status:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.PlanningStepStatus
-	57, // 64: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sections:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
-	15, // 65: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.provider:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.BotPlanningSearchSourceProvider
-	58, // 66: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata.sourcesMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
-	13, // 67: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata.provider:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotSearchSourceProvider
-	18, // 68: WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata.featureType:type_name -> WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata.BotFeatureType
-	20, // 69: WABotMetadata.BotSourcesMetadata.BotSourceItem.provider:type_name -> WABotMetadata.BotSourcesMetadata.BotSourceItem.SourceProvider
-	22, // 70: WABotMetadata.AIThreadInfo.AIThreadClientInfo.type:type_name -> WABotMetadata.AIThreadInfo.AIThreadClientInfo.AIThreadType
-	65, // 71: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyQuestion.questionOptions:type_name -> WABotMetadata.InThreadSurveyMetadata.InThreadSurveyOption
-	72, // [72:72] is the sub-list for method output_type
-	72, // [72:72] is the sub-list for method input_type
-	72, // [72:72] is the sub-list for extension type_name
-	72, // [72:72] is the sub-list for extension extendee
-	0,  // [0:72] is the sub-list for field type_name
+	68, // 37: WABotMetadata.BotUnifiedResponseMutation.sbsMetadata:type_name -> WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadata
+	67, // 38: WABotMetadata.BotUnifiedResponseMutation.mediaDetailsMetadataList:type_name -> WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadata
+	38, // 39: WABotMetadata.BotMetadata.avatarMetadata:type_name -> WABotMetadata.BotAvatarMetadata
+	23, // 40: WABotMetadata.BotMetadata.pluginMetadata:type_name -> WABotMetadata.BotPluginMetadata
+	39, // 41: WABotMetadata.BotMetadata.suggestedPromptMetadata:type_name -> WABotMetadata.BotSuggestedPromptMetadata
+	48, // 42: WABotMetadata.BotMetadata.sessionMetadata:type_name -> WABotMetadata.BotSessionMetadata
+	49, // 43: WABotMetadata.BotMetadata.memuMetadata:type_name -> WABotMetadata.BotMemuMetadata
+	28, // 44: WABotMetadata.BotMetadata.reminderMetadata:type_name -> WABotMetadata.BotReminderMetadata
+	29, // 45: WABotMetadata.BotMetadata.modelMetadata:type_name -> WABotMetadata.BotModelMetadata
+	30, // 46: WABotMetadata.BotMetadata.progressIndicatorMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata
+	31, // 47: WABotMetadata.BotMetadata.capabilityMetadata:type_name -> WABotMetadata.BotCapabilityMetadata
+	34, // 48: WABotMetadata.BotMetadata.imagineMetadata:type_name -> WABotMetadata.BotImagineMetadata
+	43, // 49: WABotMetadata.BotMetadata.memoryMetadata:type_name -> WABotMetadata.BotMemoryMetadata
+	46, // 50: WABotMetadata.BotMetadata.renderingMetadata:type_name -> WABotMetadata.BotRenderingMetadata
+	47, // 51: WABotMetadata.BotMetadata.botMetricsMetadata:type_name -> WABotMetadata.BotMetricsMetadata
+	42, // 52: WABotMetadata.BotMetadata.botLinkedAccountsMetadata:type_name -> WABotMetadata.BotLinkedAccountsMetadata
+	35, // 53: WABotMetadata.BotMetadata.richResponseSourcesMetadata:type_name -> WABotMetadata.BotSourcesMetadata
+	26, // 54: WABotMetadata.BotMetadata.botPromotionMessageMetadata:type_name -> WABotMetadata.BotPromotionMessageMetadata
+	32, // 55: WABotMetadata.BotMetadata.botModeSelectionMetadata:type_name -> WABotMetadata.BotModeSelectionMetadata
+	33, // 56: WABotMetadata.BotMetadata.botQuotaMetadata:type_name -> WABotMetadata.BotQuotaMetadata
+	50, // 57: WABotMetadata.BotMetadata.botAgeCollectionMetadata:type_name -> WABotMetadata.BotAgeCollectionMetadata
+	45, // 58: WABotMetadata.BotMetadata.verificationMetadata:type_name -> WABotMetadata.BotSignatureVerificationMetadata
+	53, // 59: WABotMetadata.BotMetadata.unifiedResponseMutation:type_name -> WABotMetadata.BotUnifiedResponseMutation
+	52, // 60: WABotMetadata.BotMetadata.botMessageOriginMetadata:type_name -> WABotMetadata.BotMessageOriginMetadata
+	51, // 61: WABotMetadata.BotMetadata.inThreadSurveyMetadata:type_name -> WABotMetadata.InThreadSurveyMetadata
+	37, // 62: WABotMetadata.BotMetadata.botThreadInfo:type_name -> WABotMetadata.AIThreadInfo
+	56, // 63: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sourcesMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
+	14, // 64: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.status:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.PlanningStepStatus
+	57, // 65: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sections:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
+	15, // 66: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.provider:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.BotPlanningSearchSourceProvider
+	58, // 67: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata.sourcesMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
+	13, // 68: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata.provider:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotSearchSourceProvider
+	18, // 69: WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata.featureType:type_name -> WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata.BotFeatureType
+	20, // 70: WABotMetadata.BotSourcesMetadata.BotSourceItem.provider:type_name -> WABotMetadata.BotSourcesMetadata.BotSourceItem.SourceProvider
+	22, // 71: WABotMetadata.AIThreadInfo.AIThreadClientInfo.type:type_name -> WABotMetadata.AIThreadInfo.AIThreadClientInfo.AIThreadType
+	65, // 72: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyQuestion.questionOptions:type_name -> WABotMetadata.InThreadSurveyMetadata.InThreadSurveyOption
+	27, // 73: WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadata.highResMedia:type_name -> WABotMetadata.BotMediaMetadata
+	27, // 74: WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadata.previewMedia:type_name -> WABotMetadata.BotMediaMetadata
+	75, // [75:75] is the sub-list for method output_type
+	75, // [75:75] is the sub-list for method input_type
+	75, // [75:75] is the sub-list for extension type_name
+	75, // [75:75] is the sub-list for extension extendee
+	0,  // [0:75] is the sub-list for field type_name
 }
 
 func init() { file_waBotMetadata_WABotMetadata_proto_init() }
@@ -5141,7 +5239,7 @@ func file_waBotMetadata_WABotMetadata_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waBotMetadata_WABotMetadata_proto_rawDesc), len(file_waBotMetadata_WABotMetadata_proto_rawDesc)),
 			NumEnums:      23,
-			NumMessages:   45,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -207,6 +207,10 @@ func (int *DangerousInternalClient) SendGroupIQ(ctx context.Context, iqType info
 	return int.c.sendGroupIQ(ctx, iqType, jid, content)
 }
 
+func (int *DangerousInternalClient) CacheGroupInfo(groupInfo *types.GroupInfo, lock bool) ([]store.LIDMapping, []store.RedactedPhoneEntry) {
+	return int.c.cacheGroupInfo(groupInfo, lock)
+}
+
 func (int *DangerousInternalClient) GetGroupInfo(ctx context.Context, jid types.JID, lockParticipantCache bool) (*types.GroupInfo, error) {
 	return int.c.getGroupInfo(ctx, jid, lockParticipantCache)
 }
@@ -219,7 +223,7 @@ func (int *DangerousInternalClient) ParseGroupNode(groupNode *waBinary.Node) (*t
 	return int.c.parseGroupNode(groupNode)
 }
 
-func (int *DangerousInternalClient) ParseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, []store.LIDMapping, error) {
+func (int *DangerousInternalClient) ParseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, []store.LIDMapping, []store.RedactedPhoneEntry, error) {
 	return int.c.parseGroupCreate(parentNode, node)
 }
 
@@ -231,7 +235,7 @@ func (int *DangerousInternalClient) UpdateGroupParticipantCache(evt *events.Grou
 	int.c.updateGroupParticipantCache(evt)
 }
 
-func (int *DangerousInternalClient) ParseGroupNotification(node *waBinary.Node) (any, []store.LIDMapping, error) {
+func (int *DangerousInternalClient) ParseGroupNotification(node *waBinary.Node) (any, []store.LIDMapping, []store.RedactedPhoneEntry, error) {
 	return int.c.parseGroupNotification(node)
 }
 
