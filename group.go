@@ -493,8 +493,8 @@ func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
 }
 
 // GetJoinedGroups returns the list of groups the user is participating in.
-func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
-	resp, err := cli.sendGroupIQ(context.TODO(), iqGet, types.GroupServerJID, waBinary.Node{
+func (cli *Client) GetJoinedGroups(ctx context.Context) ([]*types.GroupInfo, error) {
+	resp, err := cli.sendGroupIQ(ctx, iqGet, types.GroupServerJID, waBinary.Node{
 		Tag: "participating",
 		Content: []waBinary.Node{
 			{Tag: "participants"},
@@ -510,6 +510,8 @@ func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
 	}
 	children := groups.GetChildren()
 	infos := make([]*types.GroupInfo, 0, len(children))
+	var allLIDPairs []store.LIDMapping
+	var allRedactedPhones []store.RedactedPhoneEntry
 	for _, child := range children {
 		if child.Tag != "group" {
 			cli.Log.Debugf("Unexpected child in group list response: %s", child.XMLString())
@@ -519,7 +521,18 @@ func (cli *Client) GetJoinedGroups() ([]*types.GroupInfo, error) {
 		if parseErr != nil {
 			cli.Log.Warnf("Error parsing group %s: %v", parsed.JID, parseErr)
 		}
+		lidPairs, redactedPhones := cli.cacheGroupInfo(parsed, true)
+		allLIDPairs = append(allLIDPairs, lidPairs...)
+		allRedactedPhones = append(allRedactedPhones, redactedPhones...)
 		infos = append(infos, parsed)
+	}
+	err = cli.Store.LIDs.PutManyLIDMappings(ctx, allLIDPairs)
+	if err != nil {
+		cli.Log.Warnf("Failed to store LID mappings from joined groups: %v", err)
+	}
+	err = cli.Store.Contacts.PutManyRedactedPhones(ctx, allRedactedPhones)
+	if err != nil {
+		cli.Log.Warnf("Failed to store redacted phones from joined groups: %v", err)
 	}
 	return infos, nil
 }
@@ -572,6 +585,37 @@ func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
 	return cli.getGroupInfo(context.TODO(), jid, true)
 }
 
+func (cli *Client) cacheGroupInfo(groupInfo *types.GroupInfo, lock bool) ([]store.LIDMapping, []store.RedactedPhoneEntry) {
+	participants := make([]types.JID, len(groupInfo.Participants))
+	lidPairs := make([]store.LIDMapping, len(groupInfo.Participants))
+	redactedPhones := make([]store.RedactedPhoneEntry, 0)
+	for i, part := range groupInfo.Participants {
+		participants[i] = part.JID
+		if !part.PhoneNumber.IsEmpty() && !part.LID.IsEmpty() {
+			lidPairs[i] = store.LIDMapping{
+				LID: part.LID,
+				PN:  part.PhoneNumber,
+			}
+		}
+		if part.DisplayName != "" && !part.LID.IsEmpty() {
+			redactedPhones = append(redactedPhones, store.RedactedPhoneEntry{
+				JID:           part.LID,
+				RedactedPhone: part.DisplayName,
+			})
+		}
+	}
+	if lock {
+		cli.groupCacheLock.Lock()
+		defer cli.groupCacheLock.Unlock()
+	}
+	cli.groupCache[groupInfo.JID] = &groupMetaCache{
+		AddressingMode:             groupInfo.AddressingMode,
+		CommunityAnnouncementGroup: groupInfo.IsAnnounce && groupInfo.IsDefaultSubGroup,
+		Members:                    participants,
+	}
+	return lidPairs, redactedPhones
+}
+
 func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticipantCache bool) (*types.GroupInfo, error) {
 	res, err := cli.sendGroupIQ(ctx, iqGet, jid, waBinary.Node{
 		Tag:   "query",
@@ -593,29 +637,14 @@ func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticip
 	if err != nil {
 		return groupInfo, err
 	}
-	if lockParticipantCache {
-		cli.groupCacheLock.Lock()
-		defer cli.groupCacheLock.Unlock()
-	}
-	participants := make([]types.JID, len(groupInfo.Participants))
-	lidPairs := make([]store.LIDMapping, len(groupInfo.Participants))
-	for i, part := range groupInfo.Participants {
-		participants[i] = part.JID
-		if !part.PhoneNumber.IsEmpty() && !part.LID.IsEmpty() {
-			lidPairs[i] = store.LIDMapping{
-				LID: part.LID,
-				PN:  part.PhoneNumber,
-			}
-		}
-	}
-	cli.groupCache[jid] = &groupMetaCache{
-		AddressingMode:             groupInfo.AddressingMode,
-		CommunityAnnouncementGroup: groupInfo.IsAnnounce && groupInfo.IsDefaultSubGroup,
-		Members:                    participants,
-	}
+	lidPairs, redactedPhones := cli.cacheGroupInfo(groupInfo, lockParticipantCache)
 	err = cli.Store.LIDs.PutManyLIDMappings(ctx, lidPairs)
 	if err != nil {
 		cli.Log.Warnf("Failed to store LID mappings for members of %s: %v", jid, err)
+	}
+	err = cli.Store.Contacts.PutManyRedactedPhones(ctx, redactedPhones)
+	if err != nil {
+		cli.Log.Warnf("Failed to store redacted phones for members of %s: %v", jid, err)
 	}
 	return groupInfo, nil
 }
@@ -777,10 +806,10 @@ func parseParticipantList(node *waBinary.Node) (participants []types.JID, lidPai
 	return
 }
 
-func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, []store.LIDMapping, error) {
+func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, []store.LIDMapping, []store.RedactedPhoneEntry, error) {
 	groupNode, ok := node.GetOptionalChildByTag("group")
 	if !ok {
-		return nil, nil, fmt.Errorf("group create notification didn't contain group info")
+		return nil, nil, nil, fmt.Errorf("group create notification didn't contain group info")
 	}
 	var evt events.JoinedGroup
 	pag := parentNode.AttrGetter()
@@ -793,19 +822,11 @@ func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.Jo
 	evt.Notify = pag.OptionalString("notify")
 	info, err := cli.parseGroupNode(&groupNode)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
 	}
 	evt.GroupInfo = *info
-	lidPairs := make([]store.LIDMapping, 0, len(info.Participants))
-	for _, pcp := range info.Participants {
-		if !pcp.PhoneNumber.IsEmpty() && !pcp.LID.IsEmpty() {
-			lidPairs = append(lidPairs, store.LIDMapping{
-				LID: pcp.LID,
-				PN:  pcp.PhoneNumber,
-			})
-		}
-	}
-	return &evt, lidPairs, nil
+	lidPairs, redactedPhones := cli.cacheGroupInfo(info, true)
+	return &evt, lidPairs, redactedPhones, nil
 }
 
 func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []store.LIDMapping, error) {
@@ -965,17 +986,17 @@ Outer:
 	}
 }
 
-func (cli *Client) parseGroupNotification(node *waBinary.Node) (any, []store.LIDMapping, error) {
+func (cli *Client) parseGroupNotification(node *waBinary.Node) (any, []store.LIDMapping, []store.RedactedPhoneEntry, error) {
 	children := node.GetChildren()
 	if len(children) == 1 && children[0].Tag == "create" {
 		return cli.parseGroupCreate(node, &children[0])
 	} else {
 		groupChange, lidPairs, err := cli.parseGroupChange(node)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 		cli.updateGroupParticipantCache(groupChange)
-		return groupChange, lidPairs, nil
+		return groupChange, lidPairs, nil, nil
 	}
 }
 

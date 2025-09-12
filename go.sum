@@ -45,8 +45,8 @@ github.com/vektah/gqlparser/v2 v2.5.27 h1:RHPD3JOplpk5mP5JGX8RKZkt2/Vwj/PZv0HxTd
 github.com/vektah/gqlparser/v2 v2.5.27/go.mod h1:D1/VCZtV3LPnQrcPBeR/q5jkSQIPti0uYCP/RI0gIeo=
 go.mau.fi/libsignal v0.2.0 h1:oRXj3OHhEJq51BFEM8/50UZblmWiTYH93hsNTPcbk90=
 go.mau.fi/libsignal v0.2.0/go.mod h1:tvjoDsMejgT38CXTXwqaYu8itBiY8O2Mb6biWvZBb9k=
-go.mau.fi/util v0.9.0 h1:ya3s3pX+Y8R2fgp0DbE7a0o3FwncoelDX5iyaeVE8ls=
-go.mau.fi/util v0.9.0/go.mod h1:pdL3lg2aaeeHIreGXNnPwhJPXkXdc3ZxsI6le8hOWEA=
+go.mau.fi/util v0.9.1-0.20250912114103-419604f95907 h1:VBApThdwZPIaNKt2sdfTk2Pal2Qqcaokjpq9e/LkVmg=
+go.mau.fi/util v0.9.1-0.20250912114103-419604f95907/go.mod h1:pdL3lg2aaeeHIreGXNnPwhJPXkXdc3ZxsI6le8hOWEA=
 golang.org/x/crypto v0.41.0 h1:WKYxWedPGCTVVl5+WHSSrOBT0O8lx32+zxmHxijgXp4=
 golang.org/x/crypto v0.41.0/go.mod h1:pO5AFd7FA68rFak7rOAGVuygIISepHftHnr8dr6+sUc=
 golang.org/x/exp v0.0.0-20250813145105-42675adae3e6 h1:SbTAbRFnd5kjQXbczszQ0hdk3ctwYf3qBNH9jIsGclE=

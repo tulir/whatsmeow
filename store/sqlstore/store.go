@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"go.mau.fi/util/dbutil"
+	"go.mau.fi/util/exslices"
 	"go.mau.fi/util/exsync"
 
 	"go.mau.fi/whatsmeow/store"
@@ -522,10 +523,10 @@ const (
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name) VALUES ($1, $2, $3, $4)
 		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
 	`
-	putManyContactNamesQuery = `
-		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name)
-		VALUES %s
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
+	putRedactedPhoneQuery = `
+		INSERT INTO whatsmeow_contacts (our_jid, their_jid, redacted_phone)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET redacted_phone=excluded.redacted_phone
 	`
 	putPushNameQuery = `
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, push_name) VALUES ($1, $2, $3)
@@ -536,11 +537,19 @@ const (
 		ON CONFLICT (our_jid, their_jid) DO UPDATE SET business_name=excluded.business_name
 	`
 	getContactQuery = `
-		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
+		SELECT first_name, full_name, push_name, business_name, redacted_phone FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
 	`
 	getAllContactsQuery = `
-		SELECT their_jid, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1
+		SELECT their_jid, first_name, full_name, push_name, business_name, redacted_phone FROM whatsmeow_contacts WHERE our_jid=$1
 	`
+)
+
+var putContactNamesMassInsertBuilder = dbutil.NewMassInsertBuilder[store.ContactEntry, [1]any](
+	putContactNameQuery, "($1, $%d, $%d, $%d)",
+)
+
+var putRedactedPhonesMassInsertBuilder = dbutil.NewMassInsertBuilder[store.RedactedPhoneEntry, [1]any](
+	putRedactedPhoneQuery, "($1, $%d, $%d)",
 )
 
 func (s *SQLStore) PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error) {
@@ -607,44 +616,21 @@ func (s *SQLStore) PutContactName(ctx context.Context, user types.JID, firstName
 
 const contactBatchSize = 300
 
-func (s *SQLStore) putContactNamesBatch(ctx context.Context, contacts []store.ContactEntry) error {
-	values := make([]any, 1, 1+len(contacts)*3)
-	queryParts := make([]string, 0, len(contacts))
-	values[0] = s.JID
-	placeholderSyntax := "($1, $%d, $%d, $%d)"
-	if s.db.Dialect == dbutil.SQLite {
-		placeholderSyntax = "(?1, ?%d, ?%d, ?%d)"
-	}
-	i := 0
-	handledContacts := make(map[types.JID]struct{}, len(contacts))
-	for _, contact := range contacts {
-		if contact.JID.IsEmpty() {
-			s.log.Warnf("Empty contact info in mass insert: %+v", contact)
-			continue
-		}
-		// The whole query will break if there are duplicates, so make sure there aren't any duplicates
-		_, alreadyHandled := handledContacts[contact.JID]
-		if alreadyHandled {
-			s.log.Warnf("Duplicate contact info for %s in mass insert", contact.JID)
-			continue
-		}
-		handledContacts[contact.JID] = struct{}{}
-		baseIndex := i*3 + 1
-		values = append(values, contact.JID.String(), contact.FirstName, contact.FullName)
-		queryParts = append(queryParts, fmt.Sprintf(placeholderSyntax, baseIndex+1, baseIndex+2, baseIndex+3))
-		i++
-	}
-	_, err := s.db.Exec(ctx, fmt.Sprintf(putManyContactNamesQuery, strings.Join(queryParts, ",")), values...)
-	return err
-}
-
 func (s *SQLStore) PutAllContactNames(ctx context.Context, contacts []store.ContactEntry) error {
 	if len(contacts) == 0 {
 		return nil
 	}
+	origLen := len(contacts)
+	contacts = exslices.DeduplicateUnsortedOverwriteFunc(contacts, func(t store.ContactEntry) types.JID {
+		return t.JID
+	})
+	if origLen != len(contacts) {
+		s.log.Warnf("%d duplicate contacts found in PutAllContactNames", origLen-len(contacts))
+	}
 	err := s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		for slice := range slices.Chunk(contacts, contactBatchSize) {
-			err := s.putContactNamesBatch(ctx, slice)
+			query, vars := putContactNamesMassInsertBuilder.Build([1]any{s.JID}, slice)
+			_, err := s.db.Exec(ctx, query, vars...)
 			if err != nil {
 				return err
 			}
@@ -661,23 +647,59 @@ func (s *SQLStore) PutAllContactNames(ctx context.Context, contacts []store.Cont
 	return nil
 }
 
+func (s *SQLStore) PutManyRedactedPhones(ctx context.Context, entries []store.RedactedPhoneEntry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+	origLen := len(entries)
+	entries = exslices.DeduplicateUnsortedOverwriteFunc(entries, func(t store.RedactedPhoneEntry) types.JID {
+		return t.JID
+	})
+	if origLen != len(entries) {
+		s.log.Warnf("%d duplicate contacts found in PutManyRedactedPhones", origLen-len(entries))
+	}
+	err := s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
+		for slice := range slices.Chunk(entries, contactBatchSize) {
+			query, vars := putRedactedPhonesMassInsertBuilder.Build([1]any{s.JID}, slice)
+			_, err := s.db.Exec(ctx, query, vars...)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	s.contactCacheLock.Lock()
+	for _, entry := range entries {
+		if cached, ok := s.contactCache[entry.JID]; ok && cached.RedactedPhone == entry.RedactedPhone {
+			continue
+		}
+		delete(s.contactCache, entry.JID)
+	}
+	s.contactCacheLock.Unlock()
+	return nil
+}
+
 func (s *SQLStore) getContact(ctx context.Context, user types.JID) (*types.ContactInfo, error) {
 	cached, ok := s.contactCache[user]
 	if ok {
 		return cached, nil
 	}
 
-	var first, full, push, business sql.NullString
-	err := s.db.QueryRow(ctx, getContactQuery, s.JID, user).Scan(&first, &full, &push, &business)
+	var first, full, push, business, redactedPhone sql.NullString
+	err := s.db.QueryRow(ctx, getContactQuery, s.JID, user).Scan(&first, &full, &push, &business, &redactedPhone)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 	info := &types.ContactInfo{
-		Found:        err == nil,
-		FirstName:    first.String,
-		FullName:     full.String,
-		PushName:     push.String,
-		BusinessName: business.String,
+		Found:         err == nil,
+		FirstName:     first.String,
+		FullName:      full.String,
+		PushName:      push.String,
+		BusinessName:  business.String,
+		RedactedPhone: redactedPhone.String,
 	}
 	s.contactCache[user] = info
 	return info, nil
@@ -703,17 +725,18 @@ func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.Cont
 	output := make(map[types.JID]types.ContactInfo, len(s.contactCache))
 	for rows.Next() {
 		var jid types.JID
-		var first, full, push, business sql.NullString
-		err = rows.Scan(&jid, &first, &full, &push, &business)
+		var first, full, push, business, redactedPhone sql.NullString
+		err = rows.Scan(&jid, &first, &full, &push, &business, &redactedPhone)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 		info := types.ContactInfo{
-			Found:        true,
-			FirstName:    first.String,
-			FullName:     full.String,
-			PushName:     push.String,
-			BusinessName: business.String,
+			Found:         true,
+			FirstName:     first.String,
+			FullName:      full.String,
+			PushName:      push.String,
+			BusinessName:  business.String,
+			RedactedPhone: redactedPhone.String,
 		}
 		output[jid] = info
 		s.contactCache[jid] = &info

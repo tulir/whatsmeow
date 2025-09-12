@@ -168,6 +168,10 @@ func (n *NoopStore) PutAllContactNames(ctx context.Context, contacts []ContactEn
 	return n.Error
 }
 
+func (n *NoopStore) PutManyRedactedPhones(ctx context.Context, entries []RedactedPhoneEntry) error {
+	return n.Error
+}
+
 func (n *NoopStore) GetContact(ctx context.Context, user types.JID) (types.ContactInfo, error) {
 	return types.ContactInfo{}, n.Error
 }
