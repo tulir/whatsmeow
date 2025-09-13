@@ -231,6 +231,23 @@ func (cli *Client) DecryptPollVote(ctx context.Context, vote *events.Message) (*
 	return &msg, nil
 }
 
+func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *events.Message) (*waE2E.Message, error) {
+	encMessage := evt.Message.GetSecretEncryptedMessage()
+	if encMessage == nil {
+		return nil, ErrNotSecretEncryptedMessage
+	}
+	plaintext, err := cli.decryptMsgSecret(ctx, evt, EncSecretEventEdit, encMessage, encMessage.GetTargetMessageKey())
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt message: %w", err)
+	}
+	var msg waE2E.Message
+	err = proto.Unmarshal(plaintext, &msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode message protobuf: %w", err)
+	}
+	return &msg, nil
+}
+
 func getKeyFromInfo(msgInfo *types.MessageInfo) *waCommon.MessageKey {
 	creationKey := &waCommon.MessageKey{
 		RemoteJID: proto.String(msgInfo.Chat.String()),
