@@ -236,6 +236,9 @@ func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *event
 	if encMessage == nil {
 		return nil, ErrNotSecretEncryptedMessage
 	}
+	if encMessage.SecretEncType != waE2E.SecretEncryptedMessage_EVENT_EDIT.Enum() {
+		return nil, fmt.Errorf("unsupported secret enc type: %d", *encMessage.SecretEncType)
+	}
 	plaintext, err := cli.decryptMsgSecret(ctx, evt, EncSecretEventEdit, encMessage, encMessage.GetTargetMessageKey())
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt message: %w", err)
