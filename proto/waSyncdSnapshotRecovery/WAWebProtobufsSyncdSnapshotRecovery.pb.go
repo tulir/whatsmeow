@@ -7,12 +7,14 @@
 package waSyncdSnapshotRecovery
 
 import (
-	waSyncAction "github.com/PakaiWA/whatsmeow/proto/waSyncAction"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	waSyncAction "github.com/PakaiWA/whatsmeow/proto/waSyncAction"
 )
 
 const (

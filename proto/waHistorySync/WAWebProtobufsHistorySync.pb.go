@@ -7,16 +7,18 @@
 package waHistorySync
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
 	waChatLockSettings "github.com/PakaiWA/whatsmeow/proto/waChatLockSettings"
 	waCommon "github.com/PakaiWA/whatsmeow/proto/waCommon"
 	waE2E "github.com/PakaiWA/whatsmeow/proto/waE2E"
 	waSyncAction "github.com/PakaiWA/whatsmeow/proto/waSyncAction"
 	waWeb "github.com/PakaiWA/whatsmeow/proto/waWeb"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (

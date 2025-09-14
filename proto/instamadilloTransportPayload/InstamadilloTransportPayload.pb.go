@@ -7,14 +7,16 @@
 package instamadilloTransportPayload
 
 import (
-	instamadilloAddMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloAddMessage"
-	instamadilloDeleteMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloDeleteMessage"
-	instamadilloSupplementMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloSupplementMessage"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	instamadilloAddMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloAddMessage"
+	instamadilloDeleteMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloDeleteMessage"
+	instamadilloSupplementMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloSupplementMessage"
 )
 
 const (

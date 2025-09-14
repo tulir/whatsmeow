@@ -7,12 +7,14 @@
 package waBotMetadata
 
 import (
-	waCommon "github.com/PakaiWA/whatsmeow/proto/waCommon"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	waCommon "github.com/PakaiWA/whatsmeow/proto/waCommon"
 )
 
 const (

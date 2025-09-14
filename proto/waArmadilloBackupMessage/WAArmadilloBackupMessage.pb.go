@@ -7,12 +7,14 @@
 package waArmadilloBackupMessage
 
 import (
-	waArmadilloBackupCommon "github.com/PakaiWA/whatsmeow/proto/waArmadilloBackupCommon"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	waArmadilloBackupCommon "github.com/PakaiWA/whatsmeow/proto/waArmadilloBackupCommon"
 )
 
 const (

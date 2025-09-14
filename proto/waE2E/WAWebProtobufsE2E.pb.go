@@ -7,17 +7,19 @@
 package waE2E
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
 	waAdv "github.com/PakaiWA/whatsmeow/proto/waAdv"
 	waBotMetadata "github.com/PakaiWA/whatsmeow/proto/waBotMetadata"
 	waCommon "github.com/PakaiWA/whatsmeow/proto/waCommon"
 	waCompanionReg "github.com/PakaiWA/whatsmeow/proto/waCompanionReg"
 	waMmsRetry "github.com/PakaiWA/whatsmeow/proto/waMmsRetry"
 	waStatusAttributions "github.com/PakaiWA/whatsmeow/proto/waStatusAttributions"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (

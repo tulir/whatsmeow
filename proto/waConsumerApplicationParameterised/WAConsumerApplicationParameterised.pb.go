@@ -7,12 +7,14 @@
 package waConsumerApplicationParameterised
 
 import (
-	waCommonParameterised "github.com/PakaiWA/whatsmeow/proto/waCommonParameterised"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
+	waCommonParameterised "github.com/PakaiWA/whatsmeow/proto/waCommonParameterised"
 )
 
 const (

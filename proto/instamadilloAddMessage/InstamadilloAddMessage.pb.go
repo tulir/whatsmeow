@@ -7,6 +7,13 @@
 package instamadilloAddMessage
 
 import (
+	reflect "reflect"
+	sync "sync"
+	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+
 	instamadilloCoreTypeActionLog "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeActionLog"
 	instamadilloCoreTypeAdminMessage "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeAdminMessage"
 	instamadilloCoreTypeCollection "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeCollection"
@@ -14,11 +21,6 @@ import (
 	instamadilloCoreTypeMedia "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeMedia"
 	instamadilloCoreTypeText "github.com/PakaiWA/whatsmeow/proto/instamadilloCoreTypeText"
 	instamadilloXmaContentRef "github.com/PakaiWA/whatsmeow/proto/instamadilloXmaContentRef"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
-	unsafe "unsafe"
 )
 
 const (
