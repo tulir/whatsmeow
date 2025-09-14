@@ -10,9 +10,15 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/rs/zerolog v1.34.0
 	go.mau.fi/libsignal v0.2.0
+<<<<<<< HEAD
 	go.mau.fi/util v0.9.0
 	golang.org/x/crypto v0.42.0
 	golang.org/x/net v0.44.0
+=======
+	go.mau.fi/util v0.9.1-0.20250912114103-419604f95907
+	golang.org/x/crypto v0.41.0
+	golang.org/x/net v0.43.0
+>>>>>>> 6e8bb0a6f77f028ec87255e9fadcc52757ea4f94
 	google.golang.org/protobuf v1.36.7
 )
 

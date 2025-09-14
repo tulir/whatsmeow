@@ -14,6 +14,15 @@ message StatusAttribution {
 		AI_CREATED = 7;
 	}
 
+	message AiCreatedAttribution {
+		enum Source {
+			UNKNOWN = 0;
+			STATUS_MIMICRY = 1;
+		}
+
+		optional Source source = 1;
+	}
+
 	message RLAttribution {
 		enum Source {
 			UNKNOWN = 0;
@@ -81,6 +90,7 @@ message StatusAttribution {
 		Music music = 5;
 		GroupStatus groupStatus = 6;
 		RLAttribution rlAttribution = 7;
+		AiCreatedAttribution aiCreatedAttribution = 8;
 	}
 
 	optional Type type = 1;

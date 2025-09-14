@@ -56,6 +56,7 @@ const (
 	BotMetricsEntryPoint_INVOKE_META_AI_1ON1                 BotMetricsEntryPoint = 29
 	BotMetricsEntryPoint_INVOKE_META_AI_GROUP                BotMetricsEntryPoint = 30
 	BotMetricsEntryPoint_META_AI_FORWARD                     BotMetricsEntryPoint = 31
+	BotMetricsEntryPoint_NEW_CHAT_AI_CONTACT                 BotMetricsEntryPoint = 32
 )
 
 // Enum value maps for BotMetricsEntryPoint.
@@ -92,6 +93,7 @@ var (
 		29: "INVOKE_META_AI_1ON1",
 		30: "INVOKE_META_AI_GROUP",
 		31: "META_AI_FORWARD",
+		32: "NEW_CHAT_AI_CONTACT",
 	}
 	BotMetricsEntryPoint_value = map[string]int32{
 		"FAVICON":                             1,
@@ -125,6 +127,7 @@ var (
 		"INVOKE_META_AI_1ON1":                 29,
 		"INVOKE_META_AI_GROUP":                30,
 		"META_AI_FORWARD":                     31,
+		"NEW_CHAT_AI_CONTACT":                 32,
 	}
 )
 
@@ -531,8 +534,9 @@ func (BotSignatureVerificationUseCaseProof_BotSignatureUseCase) EnumDescriptor()
 type BotPromotionMessageMetadata_BotPromotionType int32
 
 const (
-	BotPromotionMessageMetadata_UNKNOWN_TYPE BotPromotionMessageMetadata_BotPromotionType = 0
-	BotPromotionMessageMetadata_C50          BotPromotionMessageMetadata_BotPromotionType = 1
+	BotPromotionMessageMetadata_UNKNOWN_TYPE    BotPromotionMessageMetadata_BotPromotionType = 0
+	BotPromotionMessageMetadata_C50             BotPromotionMessageMetadata_BotPromotionType = 1
+	BotPromotionMessageMetadata_SURVEY_PLATFORM BotPromotionMessageMetadata_BotPromotionType = 2
 )
 
 // Enum value maps for BotPromotionMessageMetadata_BotPromotionType.
@@ -540,10 +544,12 @@ var (
 	BotPromotionMessageMetadata_BotPromotionType_name = map[int32]string{
 		0: "UNKNOWN_TYPE",
 		1: "C50",
+		2: "SURVEY_PLATFORM",
 	}
 	BotPromotionMessageMetadata_BotPromotionType_value = map[string]int32{
-		"UNKNOWN_TYPE": 0,
-		"C50":          1,
+		"UNKNOWN_TYPE":    0,
+		"C50":             1,
+		"SURVEY_PLATFORM": 2,
 	}
 )
 
@@ -1077,45 +1083,49 @@ func (BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSour
 type BotCapabilityMetadata_BotCapabilityType int32
 
 const (
-	BotCapabilityMetadata_UNKNOWN                           BotCapabilityMetadata_BotCapabilityType = 0
-	BotCapabilityMetadata_PROGRESS_INDICATOR                BotCapabilityMetadata_BotCapabilityType = 1
-	BotCapabilityMetadata_RICH_RESPONSE_HEADING             BotCapabilityMetadata_BotCapabilityType = 2
-	BotCapabilityMetadata_RICH_RESPONSE_NESTED_LIST         BotCapabilityMetadata_BotCapabilityType = 3
-	BotCapabilityMetadata_AI_MEMORY                         BotCapabilityMetadata_BotCapabilityType = 4
-	BotCapabilityMetadata_RICH_RESPONSE_THREAD_SURFING      BotCapabilityMetadata_BotCapabilityType = 5
-	BotCapabilityMetadata_RICH_RESPONSE_TABLE               BotCapabilityMetadata_BotCapabilityType = 6
-	BotCapabilityMetadata_RICH_RESPONSE_CODE                BotCapabilityMetadata_BotCapabilityType = 7
-	BotCapabilityMetadata_RICH_RESPONSE_STRUCTURED_RESPONSE BotCapabilityMetadata_BotCapabilityType = 8
-	BotCapabilityMetadata_RICH_RESPONSE_INLINE_IMAGE        BotCapabilityMetadata_BotCapabilityType = 9
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_CONTROL   BotCapabilityMetadata_BotCapabilityType = 10
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_1  BotCapabilityMetadata_BotCapabilityType = 11
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_2  BotCapabilityMetadata_BotCapabilityType = 12
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_3  BotCapabilityMetadata_BotCapabilityType = 13
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_4  BotCapabilityMetadata_BotCapabilityType = 14
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_5  BotCapabilityMetadata_BotCapabilityType = 15
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_6  BotCapabilityMetadata_BotCapabilityType = 16
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_7  BotCapabilityMetadata_BotCapabilityType = 17
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_8  BotCapabilityMetadata_BotCapabilityType = 18
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_9  BotCapabilityMetadata_BotCapabilityType = 19
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_10 BotCapabilityMetadata_BotCapabilityType = 20
-	BotCapabilityMetadata_RICH_RESPONSE_SUB_HEADING         BotCapabilityMetadata_BotCapabilityType = 21
-	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE          BotCapabilityMetadata_BotCapabilityType = 22
-	BotCapabilityMetadata_AI_STUDIO_UGC_MEMORY              BotCapabilityMetadata_BotCapabilityType = 23
-	BotCapabilityMetadata_RICH_RESPONSE_LATEX               BotCapabilityMetadata_BotCapabilityType = 24
-	BotCapabilityMetadata_RICH_RESPONSE_MAPS                BotCapabilityMetadata_BotCapabilityType = 25
-	BotCapabilityMetadata_RICH_RESPONSE_INLINE_REELS        BotCapabilityMetadata_BotCapabilityType = 26
-	BotCapabilityMetadata_AGENTIC_PLANNING                  BotCapabilityMetadata_BotCapabilityType = 27
-	BotCapabilityMetadata_ACCOUNT_LINKING                   BotCapabilityMetadata_BotCapabilityType = 28
-	BotCapabilityMetadata_STREAMING_DISAGGREGATION          BotCapabilityMetadata_BotCapabilityType = 29
-	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE_3P       BotCapabilityMetadata_BotCapabilityType = 30
-	BotCapabilityMetadata_RICH_RESPONSE_LATEX_INLINE        BotCapabilityMetadata_BotCapabilityType = 31
-	BotCapabilityMetadata_QUERY_PLAN                        BotCapabilityMetadata_BotCapabilityType = 32
-	BotCapabilityMetadata_PROACTIVE_MESSAGE                 BotCapabilityMetadata_BotCapabilityType = 33
-	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_RESPONSE    BotCapabilityMetadata_BotCapabilityType = 34
-	BotCapabilityMetadata_PROMOTION_MESSAGE                 BotCapabilityMetadata_BotCapabilityType = 35
-	BotCapabilityMetadata_SIMPLIFIED_PROFILE_PAGE           BotCapabilityMetadata_BotCapabilityType = 36
-	BotCapabilityMetadata_RICH_RESPONSE_SOURCES_IN_MESSAGE  BotCapabilityMetadata_BotCapabilityType = 37
-	BotCapabilityMetadata_RICH_RESPONSE_SIDE_BY_SIDE_SURVEY BotCapabilityMetadata_BotCapabilityType = 38
+	BotCapabilityMetadata_UNKNOWN                                BotCapabilityMetadata_BotCapabilityType = 0
+	BotCapabilityMetadata_PROGRESS_INDICATOR                     BotCapabilityMetadata_BotCapabilityType = 1
+	BotCapabilityMetadata_RICH_RESPONSE_HEADING                  BotCapabilityMetadata_BotCapabilityType = 2
+	BotCapabilityMetadata_RICH_RESPONSE_NESTED_LIST              BotCapabilityMetadata_BotCapabilityType = 3
+	BotCapabilityMetadata_AI_MEMORY                              BotCapabilityMetadata_BotCapabilityType = 4
+	BotCapabilityMetadata_RICH_RESPONSE_THREAD_SURFING           BotCapabilityMetadata_BotCapabilityType = 5
+	BotCapabilityMetadata_RICH_RESPONSE_TABLE                    BotCapabilityMetadata_BotCapabilityType = 6
+	BotCapabilityMetadata_RICH_RESPONSE_CODE                     BotCapabilityMetadata_BotCapabilityType = 7
+	BotCapabilityMetadata_RICH_RESPONSE_STRUCTURED_RESPONSE      BotCapabilityMetadata_BotCapabilityType = 8
+	BotCapabilityMetadata_RICH_RESPONSE_INLINE_IMAGE             BotCapabilityMetadata_BotCapabilityType = 9
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_CONTROL        BotCapabilityMetadata_BotCapabilityType = 10
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_1       BotCapabilityMetadata_BotCapabilityType = 11
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_2       BotCapabilityMetadata_BotCapabilityType = 12
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_3       BotCapabilityMetadata_BotCapabilityType = 13
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_4       BotCapabilityMetadata_BotCapabilityType = 14
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_5       BotCapabilityMetadata_BotCapabilityType = 15
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_6       BotCapabilityMetadata_BotCapabilityType = 16
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_7       BotCapabilityMetadata_BotCapabilityType = 17
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_8       BotCapabilityMetadata_BotCapabilityType = 18
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_9       BotCapabilityMetadata_BotCapabilityType = 19
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_10      BotCapabilityMetadata_BotCapabilityType = 20
+	BotCapabilityMetadata_RICH_RESPONSE_SUB_HEADING              BotCapabilityMetadata_BotCapabilityType = 21
+	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE               BotCapabilityMetadata_BotCapabilityType = 22
+	BotCapabilityMetadata_AI_STUDIO_UGC_MEMORY                   BotCapabilityMetadata_BotCapabilityType = 23
+	BotCapabilityMetadata_RICH_RESPONSE_LATEX                    BotCapabilityMetadata_BotCapabilityType = 24
+	BotCapabilityMetadata_RICH_RESPONSE_MAPS                     BotCapabilityMetadata_BotCapabilityType = 25
+	BotCapabilityMetadata_RICH_RESPONSE_INLINE_REELS             BotCapabilityMetadata_BotCapabilityType = 26
+	BotCapabilityMetadata_AGENTIC_PLANNING                       BotCapabilityMetadata_BotCapabilityType = 27
+	BotCapabilityMetadata_ACCOUNT_LINKING                        BotCapabilityMetadata_BotCapabilityType = 28
+	BotCapabilityMetadata_STREAMING_DISAGGREGATION               BotCapabilityMetadata_BotCapabilityType = 29
+	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE_3P            BotCapabilityMetadata_BotCapabilityType = 30
+	BotCapabilityMetadata_RICH_RESPONSE_LATEX_INLINE             BotCapabilityMetadata_BotCapabilityType = 31
+	BotCapabilityMetadata_QUERY_PLAN                             BotCapabilityMetadata_BotCapabilityType = 32
+	BotCapabilityMetadata_PROACTIVE_MESSAGE                      BotCapabilityMetadata_BotCapabilityType = 33
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_RESPONSE         BotCapabilityMetadata_BotCapabilityType = 34
+	BotCapabilityMetadata_PROMOTION_MESSAGE                      BotCapabilityMetadata_BotCapabilityType = 35
+	BotCapabilityMetadata_SIMPLIFIED_PROFILE_PAGE                BotCapabilityMetadata_BotCapabilityType = 36
+	BotCapabilityMetadata_RICH_RESPONSE_SOURCES_IN_MESSAGE       BotCapabilityMetadata_BotCapabilityType = 37
+	BotCapabilityMetadata_RICH_RESPONSE_SIDE_BY_SIDE_SURVEY      BotCapabilityMetadata_BotCapabilityType = 38
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_TEXT_COMPONENT   BotCapabilityMetadata_BotCapabilityType = 39
+	BotCapabilityMetadata_AI_SHARED_MEMORY                       BotCapabilityMetadata_BotCapabilityType = 40
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_SOURCES          BotCapabilityMetadata_BotCapabilityType = 41
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS BotCapabilityMetadata_BotCapabilityType = 42
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -1160,47 +1170,55 @@ var (
 		36: "SIMPLIFIED_PROFILE_PAGE",
 		37: "RICH_RESPONSE_SOURCES_IN_MESSAGE",
 		38: "RICH_RESPONSE_SIDE_BY_SIDE_SURVEY",
+		39: "RICH_RESPONSE_UNIFIED_TEXT_COMPONENT",
+		40: "AI_SHARED_MEMORY",
+		41: "RICH_RESPONSE_UNIFIED_SOURCES",
+		42: "RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
-		"UNKNOWN":                           0,
-		"PROGRESS_INDICATOR":                1,
-		"RICH_RESPONSE_HEADING":             2,
-		"RICH_RESPONSE_NESTED_LIST":         3,
-		"AI_MEMORY":                         4,
-		"RICH_RESPONSE_THREAD_SURFING":      5,
-		"RICH_RESPONSE_TABLE":               6,
-		"RICH_RESPONSE_CODE":                7,
-		"RICH_RESPONSE_STRUCTURED_RESPONSE": 8,
-		"RICH_RESPONSE_INLINE_IMAGE":        9,
-		"WA_IG_1P_PLUGIN_RANKING_CONTROL":   10,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_1":  11,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_2":  12,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_3":  13,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_4":  14,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_5":  15,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_6":  16,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_7":  17,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_8":  18,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_9":  19,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_10": 20,
-		"RICH_RESPONSE_SUB_HEADING":         21,
-		"RICH_RESPONSE_GRID_IMAGE":          22,
-		"AI_STUDIO_UGC_MEMORY":              23,
-		"RICH_RESPONSE_LATEX":               24,
-		"RICH_RESPONSE_MAPS":                25,
-		"RICH_RESPONSE_INLINE_REELS":        26,
-		"AGENTIC_PLANNING":                  27,
-		"ACCOUNT_LINKING":                   28,
-		"STREAMING_DISAGGREGATION":          29,
-		"RICH_RESPONSE_GRID_IMAGE_3P":       30,
-		"RICH_RESPONSE_LATEX_INLINE":        31,
-		"QUERY_PLAN":                        32,
-		"PROACTIVE_MESSAGE":                 33,
-		"RICH_RESPONSE_UNIFIED_RESPONSE":    34,
-		"PROMOTION_MESSAGE":                 35,
-		"SIMPLIFIED_PROFILE_PAGE":           36,
-		"RICH_RESPONSE_SOURCES_IN_MESSAGE":  37,
-		"RICH_RESPONSE_SIDE_BY_SIDE_SURVEY": 38,
+		"UNKNOWN":                                0,
+		"PROGRESS_INDICATOR":                     1,
+		"RICH_RESPONSE_HEADING":                  2,
+		"RICH_RESPONSE_NESTED_LIST":              3,
+		"AI_MEMORY":                              4,
+		"RICH_RESPONSE_THREAD_SURFING":           5,
+		"RICH_RESPONSE_TABLE":                    6,
+		"RICH_RESPONSE_CODE":                     7,
+		"RICH_RESPONSE_STRUCTURED_RESPONSE":      8,
+		"RICH_RESPONSE_INLINE_IMAGE":             9,
+		"WA_IG_1P_PLUGIN_RANKING_CONTROL":        10,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_1":       11,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_2":       12,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_3":       13,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_4":       14,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_5":       15,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_6":       16,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_7":       17,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_8":       18,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_9":       19,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_10":      20,
+		"RICH_RESPONSE_SUB_HEADING":              21,
+		"RICH_RESPONSE_GRID_IMAGE":               22,
+		"AI_STUDIO_UGC_MEMORY":                   23,
+		"RICH_RESPONSE_LATEX":                    24,
+		"RICH_RESPONSE_MAPS":                     25,
+		"RICH_RESPONSE_INLINE_REELS":             26,
+		"AGENTIC_PLANNING":                       27,
+		"ACCOUNT_LINKING":                        28,
+		"STREAMING_DISAGGREGATION":               29,
+		"RICH_RESPONSE_GRID_IMAGE_3P":            30,
+		"RICH_RESPONSE_LATEX_INLINE":             31,
+		"QUERY_PLAN":                             32,
+		"PROACTIVE_MESSAGE":                      33,
+		"RICH_RESPONSE_UNIFIED_RESPONSE":         34,
+		"PROMOTION_MESSAGE":                      35,
+		"SIMPLIFIED_PROFILE_PAGE":                36,
+		"RICH_RESPONSE_SOURCES_IN_MESSAGE":       37,
+		"RICH_RESPONSE_SIDE_BY_SIDE_SURVEY":      38,
+		"RICH_RESPONSE_UNIFIED_TEXT_COMPONENT":   39,
+		"AI_SHARED_MEMORY":                       40,
+		"RICH_RESPONSE_UNIFIED_SOURCES":          41,
+		"RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS": 42,
 	}
 )
 
@@ -1534,6 +1552,65 @@ func (x *BotMessageOrigin_BotMessageOriginType) UnmarshalJSON(b []byte) error {
 // Deprecated: Use BotMessageOrigin_BotMessageOriginType.Descriptor instead.
 func (BotMessageOrigin_BotMessageOriginType) EnumDescriptor() ([]byte, []int) {
 	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{13, 0}
+}
+
+type AIThreadInfo_AIThreadClientInfo_AIThreadType int32
+
+const (
+	AIThreadInfo_AIThreadClientInfo_UNKNOWN   AIThreadInfo_AIThreadClientInfo_AIThreadType = 0
+	AIThreadInfo_AIThreadClientInfo_DEFAULT   AIThreadInfo_AIThreadClientInfo_AIThreadType = 1
+	AIThreadInfo_AIThreadClientInfo_INCOGNITO AIThreadInfo_AIThreadClientInfo_AIThreadType = 2
+)
+
+// Enum value maps for AIThreadInfo_AIThreadClientInfo_AIThreadType.
+var (
+	AIThreadInfo_AIThreadClientInfo_AIThreadType_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "DEFAULT",
+		2: "INCOGNITO",
+	}
+	AIThreadInfo_AIThreadClientInfo_AIThreadType_value = map[string]int32{
+		"UNKNOWN":   0,
+		"DEFAULT":   1,
+		"INCOGNITO": 2,
+	}
+)
+
+func (x AIThreadInfo_AIThreadClientInfo_AIThreadType) Enum() *AIThreadInfo_AIThreadClientInfo_AIThreadType {
+	p := new(AIThreadInfo_AIThreadClientInfo_AIThreadType)
+	*p = x
+	return p
+}
+
+func (x AIThreadInfo_AIThreadClientInfo_AIThreadType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AIThreadInfo_AIThreadClientInfo_AIThreadType) Descriptor() protoreflect.EnumDescriptor {
+	return file_waBotMetadata_WABotMetadata_proto_enumTypes[22].Descriptor()
+}
+
+func (AIThreadInfo_AIThreadClientInfo_AIThreadType) Type() protoreflect.EnumType {
+	return &file_waBotMetadata_WABotMetadata_proto_enumTypes[22]
+}
+
+func (x AIThreadInfo_AIThreadClientInfo_AIThreadType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *AIThreadInfo_AIThreadClientInfo_AIThreadType) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = AIThreadInfo_AIThreadClientInfo_AIThreadType(num)
+	return nil
+}
+
+// Deprecated: Use AIThreadInfo_AIThreadClientInfo_AIThreadType.Descriptor instead.
+func (AIThreadInfo_AIThreadClientInfo_AIThreadType) EnumDescriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{14, 0, 0}
 }
 
 type BotPluginMetadata struct {
@@ -2368,6 +2445,58 @@ func (x *BotMessageOrigin) GetType() BotMessageOrigin_BotMessageOriginType {
 	return BotMessageOrigin_BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED
 }
 
+type AIThreadInfo struct {
+	state         protoimpl.MessageState           `protogen:"open.v1"`
+	ServerInfo    *AIThreadInfo_AIThreadServerInfo `protobuf:"bytes,1,opt,name=serverInfo" json:"serverInfo,omitempty"`
+	ClientInfo    *AIThreadInfo_AIThreadClientInfo `protobuf:"bytes,2,opt,name=clientInfo" json:"clientInfo,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AIThreadInfo) Reset() {
+	*x = AIThreadInfo{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AIThreadInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AIThreadInfo) ProtoMessage() {}
+
+func (x *AIThreadInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AIThreadInfo.ProtoReflect.Descriptor instead.
+func (*AIThreadInfo) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *AIThreadInfo) GetServerInfo() *AIThreadInfo_AIThreadServerInfo {
+	if x != nil {
+		return x.ServerInfo
+	}
+	return nil
+}
+
+func (x *AIThreadInfo) GetClientInfo() *AIThreadInfo_AIThreadClientInfo {
+	if x != nil {
+		return x.ClientInfo
+	}
+	return nil
+}
+
 type BotAvatarMetadata struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Sentiment     *uint32                `protobuf:"varint,1,opt,name=sentiment" json:"sentiment,omitempty"`
@@ -2381,7 +2510,7 @@ type BotAvatarMetadata struct {
 
 func (x *BotAvatarMetadata) Reset() {
 	*x = BotAvatarMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[14]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2393,7 +2522,7 @@ func (x *BotAvatarMetadata) String() string {
 func (*BotAvatarMetadata) ProtoMessage() {}
 
 func (x *BotAvatarMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[14]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2406,7 +2535,7 @@ func (x *BotAvatarMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotAvatarMetadata.ProtoReflect.Descriptor instead.
 func (*BotAvatarMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{14}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *BotAvatarMetadata) GetSentiment() uint32 {
@@ -2456,7 +2585,7 @@ type BotSuggestedPromptMetadata struct {
 
 func (x *BotSuggestedPromptMetadata) Reset() {
 	*x = BotSuggestedPromptMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[15]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2468,7 +2597,7 @@ func (x *BotSuggestedPromptMetadata) String() string {
 func (*BotSuggestedPromptMetadata) ProtoMessage() {}
 
 func (x *BotSuggestedPromptMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[15]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2481,7 +2610,7 @@ func (x *BotSuggestedPromptMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotSuggestedPromptMetadata.ProtoReflect.Descriptor instead.
 func (*BotSuggestedPromptMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{15}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *BotSuggestedPromptMetadata) GetSuggestedPrompts() []string {
@@ -2521,7 +2650,7 @@ type BotPromptSuggestions struct {
 
 func (x *BotPromptSuggestions) Reset() {
 	*x = BotPromptSuggestions{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[16]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2533,7 +2662,7 @@ func (x *BotPromptSuggestions) String() string {
 func (*BotPromptSuggestions) ProtoMessage() {}
 
 func (x *BotPromptSuggestions) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[16]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2546,7 +2675,7 @@ func (x *BotPromptSuggestions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotPromptSuggestions.ProtoReflect.Descriptor instead.
 func (*BotPromptSuggestions) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{16}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *BotPromptSuggestions) GetSuggestions() []*BotPromptSuggestion {
@@ -2566,7 +2695,7 @@ type BotPromptSuggestion struct {
 
 func (x *BotPromptSuggestion) Reset() {
 	*x = BotPromptSuggestion{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[17]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2578,7 +2707,7 @@ func (x *BotPromptSuggestion) String() string {
 func (*BotPromptSuggestion) ProtoMessage() {}
 
 func (x *BotPromptSuggestion) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[17]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2591,7 +2720,7 @@ func (x *BotPromptSuggestion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotPromptSuggestion.ProtoReflect.Descriptor instead.
 func (*BotPromptSuggestion) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{17}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *BotPromptSuggestion) GetPrompt() string {
@@ -2619,7 +2748,7 @@ type BotLinkedAccountsMetadata struct {
 
 func (x *BotLinkedAccountsMetadata) Reset() {
 	*x = BotLinkedAccountsMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[18]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2631,7 +2760,7 @@ func (x *BotLinkedAccountsMetadata) String() string {
 func (*BotLinkedAccountsMetadata) ProtoMessage() {}
 
 func (x *BotLinkedAccountsMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[18]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2644,7 +2773,7 @@ func (x *BotLinkedAccountsMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotLinkedAccountsMetadata.ProtoReflect.Descriptor instead.
 func (*BotLinkedAccountsMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{18}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *BotLinkedAccountsMetadata) GetAccounts() []*BotLinkedAccount {
@@ -2679,7 +2808,7 @@ type BotMemoryMetadata struct {
 
 func (x *BotMemoryMetadata) Reset() {
 	*x = BotMemoryMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[19]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2691,7 +2820,7 @@ func (x *BotMemoryMetadata) String() string {
 func (*BotMemoryMetadata) ProtoMessage() {}
 
 func (x *BotMemoryMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[19]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2704,7 +2833,7 @@ func (x *BotMemoryMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMemoryMetadata.ProtoReflect.Descriptor instead.
 func (*BotMemoryMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{19}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *BotMemoryMetadata) GetAddedFacts() []*BotMemoryFact {
@@ -2738,7 +2867,7 @@ type BotMemoryFact struct {
 
 func (x *BotMemoryFact) Reset() {
 	*x = BotMemoryFact{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[20]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2750,7 +2879,7 @@ func (x *BotMemoryFact) String() string {
 func (*BotMemoryFact) ProtoMessage() {}
 
 func (x *BotMemoryFact) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[20]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2763,7 +2892,7 @@ func (x *BotMemoryFact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMemoryFact.ProtoReflect.Descriptor instead.
 func (*BotMemoryFact) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{20}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *BotMemoryFact) GetFact() string {
@@ -2789,7 +2918,7 @@ type BotSignatureVerificationMetadata struct {
 
 func (x *BotSignatureVerificationMetadata) Reset() {
 	*x = BotSignatureVerificationMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[21]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2801,7 +2930,7 @@ func (x *BotSignatureVerificationMetadata) String() string {
 func (*BotSignatureVerificationMetadata) ProtoMessage() {}
 
 func (x *BotSignatureVerificationMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[21]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2814,7 +2943,7 @@ func (x *BotSignatureVerificationMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotSignatureVerificationMetadata.ProtoReflect.Descriptor instead.
 func (*BotSignatureVerificationMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{21}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *BotSignatureVerificationMetadata) GetProofs() []*BotSignatureVerificationUseCaseProof {
@@ -2833,7 +2962,7 @@ type BotRenderingMetadata struct {
 
 func (x *BotRenderingMetadata) Reset() {
 	*x = BotRenderingMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[22]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2845,7 +2974,7 @@ func (x *BotRenderingMetadata) String() string {
 func (*BotRenderingMetadata) ProtoMessage() {}
 
 func (x *BotRenderingMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[22]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2858,7 +2987,7 @@ func (x *BotRenderingMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotRenderingMetadata.ProtoReflect.Descriptor instead.
 func (*BotRenderingMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{22}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *BotRenderingMetadata) GetKeywords() []*BotRenderingMetadata_Keyword {
@@ -2879,7 +3008,7 @@ type BotMetricsMetadata struct {
 
 func (x *BotMetricsMetadata) Reset() {
 	*x = BotMetricsMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[23]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2891,7 +3020,7 @@ func (x *BotMetricsMetadata) String() string {
 func (*BotMetricsMetadata) ProtoMessage() {}
 
 func (x *BotMetricsMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[23]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2904,7 +3033,7 @@ func (x *BotMetricsMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMetricsMetadata.ProtoReflect.Descriptor instead.
 func (*BotMetricsMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{23}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *BotMetricsMetadata) GetDestinationID() string {
@@ -2938,7 +3067,7 @@ type BotSessionMetadata struct {
 
 func (x *BotSessionMetadata) Reset() {
 	*x = BotSessionMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[24]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2950,7 +3079,7 @@ func (x *BotSessionMetadata) String() string {
 func (*BotSessionMetadata) ProtoMessage() {}
 
 func (x *BotSessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[24]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2963,7 +3092,7 @@ func (x *BotSessionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotSessionMetadata.ProtoReflect.Descriptor instead.
 func (*BotSessionMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{24}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *BotSessionMetadata) GetSessionID() string {
@@ -2989,7 +3118,7 @@ type BotMemuMetadata struct {
 
 func (x *BotMemuMetadata) Reset() {
 	*x = BotMemuMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[25]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3001,7 +3130,7 @@ func (x *BotMemuMetadata) String() string {
 func (*BotMemuMetadata) ProtoMessage() {}
 
 func (x *BotMemuMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[25]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3014,7 +3143,7 @@ func (x *BotMemuMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMemuMetadata.ProtoReflect.Descriptor instead.
 func (*BotMemuMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{25}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *BotMemuMetadata) GetFaceImages() []*BotMediaMetadata {
@@ -3034,7 +3163,7 @@ type BotAgeCollectionMetadata struct {
 
 func (x *BotAgeCollectionMetadata) Reset() {
 	*x = BotAgeCollectionMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[26]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3046,7 +3175,7 @@ func (x *BotAgeCollectionMetadata) String() string {
 func (*BotAgeCollectionMetadata) ProtoMessage() {}
 
 func (x *BotAgeCollectionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[26]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3059,7 +3188,7 @@ func (x *BotAgeCollectionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotAgeCollectionMetadata.ProtoReflect.Descriptor instead.
 func (*BotAgeCollectionMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{26}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *BotAgeCollectionMetadata) GetAgeCollectionEligible() bool {
@@ -3076,6 +3205,178 @@ func (x *BotAgeCollectionMetadata) GetShouldTriggerAgeCollectionOnClient() bool 
 	return false
 }
 
+type InThreadSurveyMetadata struct {
+	state                    protoimpl.MessageState                                       `protogen:"open.v1"`
+	TessaSessionID           *string                                                      `protobuf:"bytes,1,opt,name=tessaSessionID" json:"tessaSessionID,omitempty"`
+	SimonSessionID           *string                                                      `protobuf:"bytes,2,opt,name=simonSessionID" json:"simonSessionID,omitempty"`
+	SimonSurveyID            *string                                                      `protobuf:"bytes,3,opt,name=simonSurveyID" json:"simonSurveyID,omitempty"`
+	TessaRootID              *string                                                      `protobuf:"bytes,4,opt,name=tessaRootID" json:"tessaRootID,omitempty"`
+	RequestID                *string                                                      `protobuf:"bytes,5,opt,name=requestID" json:"requestID,omitempty"`
+	TessaEvent               *string                                                      `protobuf:"bytes,6,opt,name=tessaEvent" json:"tessaEvent,omitempty"`
+	InvitationHeaderText     *string                                                      `protobuf:"bytes,7,opt,name=invitationHeaderText" json:"invitationHeaderText,omitempty"`
+	InvitationBodyText       *string                                                      `protobuf:"bytes,8,opt,name=invitationBodyText" json:"invitationBodyText,omitempty"`
+	InvitationCtaText        *string                                                      `protobuf:"bytes,9,opt,name=invitationCtaText" json:"invitationCtaText,omitempty"`
+	InvitationCtaURL         *string                                                      `protobuf:"bytes,10,opt,name=invitationCtaURL" json:"invitationCtaURL,omitempty"`
+	SurveyTitle              *string                                                      `protobuf:"bytes,11,opt,name=surveyTitle" json:"surveyTitle,omitempty"`
+	Questions                []*InThreadSurveyMetadata_InThreadSurveyQuestion             `protobuf:"bytes,12,rep,name=questions" json:"questions,omitempty"`
+	SurveyContinueButtonText *string                                                      `protobuf:"bytes,13,opt,name=surveyContinueButtonText" json:"surveyContinueButtonText,omitempty"`
+	SurveySubmitButtonText   *string                                                      `protobuf:"bytes,14,opt,name=surveySubmitButtonText" json:"surveySubmitButtonText,omitempty"`
+	PrivacyStatementFull     *string                                                      `protobuf:"bytes,15,opt,name=privacyStatementFull" json:"privacyStatementFull,omitempty"`
+	PrivacyStatementParts    []*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart `protobuf:"bytes,16,rep,name=privacyStatementParts" json:"privacyStatementParts,omitempty"`
+	FeedbackToastText        *string                                                      `protobuf:"bytes,17,opt,name=feedbackToastText" json:"feedbackToastText,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *InThreadSurveyMetadata) Reset() {
+	*x = InThreadSurveyMetadata{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InThreadSurveyMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InThreadSurveyMetadata) ProtoMessage() {}
+
+func (x *InThreadSurveyMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InThreadSurveyMetadata.ProtoReflect.Descriptor instead.
+func (*InThreadSurveyMetadata) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *InThreadSurveyMetadata) GetTessaSessionID() string {
+	if x != nil && x.TessaSessionID != nil {
+		return *x.TessaSessionID
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetSimonSessionID() string {
+	if x != nil && x.SimonSessionID != nil {
+		return *x.SimonSessionID
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetSimonSurveyID() string {
+	if x != nil && x.SimonSurveyID != nil {
+		return *x.SimonSurveyID
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetTessaRootID() string {
+	if x != nil && x.TessaRootID != nil {
+		return *x.TessaRootID
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetRequestID() string {
+	if x != nil && x.RequestID != nil {
+		return *x.RequestID
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetTessaEvent() string {
+	if x != nil && x.TessaEvent != nil {
+		return *x.TessaEvent
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetInvitationHeaderText() string {
+	if x != nil && x.InvitationHeaderText != nil {
+		return *x.InvitationHeaderText
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetInvitationBodyText() string {
+	if x != nil && x.InvitationBodyText != nil {
+		return *x.InvitationBodyText
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetInvitationCtaText() string {
+	if x != nil && x.InvitationCtaText != nil {
+		return *x.InvitationCtaText
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetInvitationCtaURL() string {
+	if x != nil && x.InvitationCtaURL != nil {
+		return *x.InvitationCtaURL
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetSurveyTitle() string {
+	if x != nil && x.SurveyTitle != nil {
+		return *x.SurveyTitle
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetQuestions() []*InThreadSurveyMetadata_InThreadSurveyQuestion {
+	if x != nil {
+		return x.Questions
+	}
+	return nil
+}
+
+func (x *InThreadSurveyMetadata) GetSurveyContinueButtonText() string {
+	if x != nil && x.SurveyContinueButtonText != nil {
+		return *x.SurveyContinueButtonText
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetSurveySubmitButtonText() string {
+	if x != nil && x.SurveySubmitButtonText != nil {
+		return *x.SurveySubmitButtonText
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetPrivacyStatementFull() string {
+	if x != nil && x.PrivacyStatementFull != nil {
+		return *x.PrivacyStatementFull
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata) GetPrivacyStatementParts() []*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart {
+	if x != nil {
+		return x.PrivacyStatementParts
+	}
+	return nil
+}
+
+func (x *InThreadSurveyMetadata) GetFeedbackToastText() string {
+	if x != nil && x.FeedbackToastText != nil {
+		return *x.FeedbackToastText
+	}
+	return ""
+}
+
 type BotMessageOriginMetadata struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Origins       []*BotMessageOrigin    `protobuf:"bytes,1,rep,name=origins" json:"origins,omitempty"`
@@ -3085,7 +3386,7 @@ type BotMessageOriginMetadata struct {
 
 func (x *BotMessageOriginMetadata) Reset() {
 	*x = BotMessageOriginMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[27]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3097,7 +3398,7 @@ func (x *BotMessageOriginMetadata) String() string {
 func (*BotMessageOriginMetadata) ProtoMessage() {}
 
 func (x *BotMessageOriginMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[27]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3110,7 +3411,7 @@ func (x *BotMessageOriginMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMessageOriginMetadata.ProtoReflect.Descriptor instead.
 func (*BotMessageOriginMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{27}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *BotMessageOriginMetadata) GetOrigins() []*BotMessageOrigin {
@@ -3121,15 +3422,16 @@ func (x *BotMessageOriginMetadata) GetOrigins() []*BotMessageOrigin {
 }
 
 type BotUnifiedResponseMutation struct {
-	state         protoimpl.MessageState                         `protogen:"open.v1"`
-	SbsMetadata   *BotUnifiedResponseMutation_SideBySideMetadata `protobuf:"bytes,1,opt,name=sbsMetadata" json:"sbsMetadata,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                    protoimpl.MessageState                             `protogen:"open.v1"`
+	SbsMetadata              *BotUnifiedResponseMutation_SideBySideMetadata     `protobuf:"bytes,1,opt,name=sbsMetadata" json:"sbsMetadata,omitempty"`
+	MediaDetailsMetadataList []*BotUnifiedResponseMutation_MediaDetailsMetadata `protobuf:"bytes,2,rep,name=mediaDetailsMetadataList" json:"mediaDetailsMetadataList,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *BotUnifiedResponseMutation) Reset() {
 	*x = BotUnifiedResponseMutation{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[28]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3141,7 +3443,7 @@ func (x *BotUnifiedResponseMutation) String() string {
 func (*BotUnifiedResponseMutation) ProtoMessage() {}
 
 func (x *BotUnifiedResponseMutation) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[28]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3154,12 +3456,19 @@ func (x *BotUnifiedResponseMutation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotUnifiedResponseMutation.ProtoReflect.Descriptor instead.
 func (*BotUnifiedResponseMutation) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{28}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *BotUnifiedResponseMutation) GetSbsMetadata() *BotUnifiedResponseMutation_SideBySideMetadata {
 	if x != nil {
 		return x.SbsMetadata
+	}
+	return nil
+}
+
+func (x *BotUnifiedResponseMutation) GetMediaDetailsMetadataList() []*BotUnifiedResponseMutation_MediaDetailsMetadata {
+	if x != nil {
+		return x.MediaDetailsMetadataList
 	}
 	return nil
 }
@@ -3195,13 +3504,16 @@ type BotMetadata struct {
 	VerificationMetadata        *BotSignatureVerificationMetadata `protobuf:"bytes,27,opt,name=verificationMetadata" json:"verificationMetadata,omitempty"`
 	UnifiedResponseMutation     *BotUnifiedResponseMutation       `protobuf:"bytes,28,opt,name=unifiedResponseMutation" json:"unifiedResponseMutation,omitempty"`
 	BotMessageOriginMetadata    *BotMessageOriginMetadata         `protobuf:"bytes,29,opt,name=botMessageOriginMetadata" json:"botMessageOriginMetadata,omitempty"`
+	InThreadSurveyMetadata      *InThreadSurveyMetadata           `protobuf:"bytes,30,opt,name=inThreadSurveyMetadata" json:"inThreadSurveyMetadata,omitempty"`
+	BotThreadInfo               *AIThreadInfo                     `protobuf:"bytes,31,opt,name=botThreadInfo" json:"botThreadInfo,omitempty"`
+	InternalMetadata            []byte                            `protobuf:"bytes,999,opt,name=internalMetadata" json:"internalMetadata,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *BotMetadata) Reset() {
 	*x = BotMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[29]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3213,7 +3525,7 @@ func (x *BotMetadata) String() string {
 func (*BotMetadata) ProtoMessage() {}
 
 func (x *BotMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[29]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3226,7 +3538,7 @@ func (x *BotMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMetadata.ProtoReflect.Descriptor instead.
 func (*BotMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{29}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *BotMetadata) GetAvatarMetadata() *BotAvatarMetadata {
@@ -3432,6 +3744,27 @@ func (x *BotMetadata) GetBotMessageOriginMetadata() *BotMessageOriginMetadata {
 	return nil
 }
 
+func (x *BotMetadata) GetInThreadSurveyMetadata() *InThreadSurveyMetadata {
+	if x != nil {
+		return x.InThreadSurveyMetadata
+	}
+	return nil
+}
+
+func (x *BotMetadata) GetBotThreadInfo() *AIThreadInfo {
+	if x != nil {
+		return x.BotThreadInfo
+	}
+	return nil
+}
+
+func (x *BotMetadata) GetInternalMetadata() []byte {
+	if x != nil {
+		return x.InternalMetadata
+	}
+	return nil
+}
+
 type BotProgressIndicatorMetadata_BotPlanningStepMetadata struct {
 	state            protoimpl.MessageState                                                                   `protogen:"open.v1"`
 	StatusTitle      *string                                                                                  `protobuf:"bytes,1,opt,name=statusTitle" json:"statusTitle,omitempty"`
@@ -3447,7 +3780,7 @@ type BotProgressIndicatorMetadata_BotPlanningStepMetadata struct {
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata) Reset() {
 	*x = BotProgressIndicatorMetadata_BotPlanningStepMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[30]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3459,7 +3792,7 @@ func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata) String() string {
 func (*BotProgressIndicatorMetadata_BotPlanningStepMetadata) ProtoMessage() {}
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[30]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3535,7 +3868,7 @@ type BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourc
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata) Reset() {
 	*x = BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[31]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3548,7 +3881,7 @@ func (*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSou
 }
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[31]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3596,7 +3929,7 @@ type BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSection
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata) Reset() {
 	*x = BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[32]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3609,7 +3942,7 @@ func (*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSecti
 }
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[32]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3658,7 +3991,7 @@ type BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourc
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata) Reset() {
 	*x = BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[33]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3671,7 +4004,7 @@ func (*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSou
 }
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[33]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3726,7 +4059,7 @@ type BotQuotaMetadata_BotFeatureQuotaMetadata struct {
 
 func (x *BotQuotaMetadata_BotFeatureQuotaMetadata) Reset() {
 	*x = BotQuotaMetadata_BotFeatureQuotaMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[34]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3738,7 +4071,7 @@ func (x *BotQuotaMetadata_BotFeatureQuotaMetadata) String() string {
 func (*BotQuotaMetadata_BotFeatureQuotaMetadata) ProtoMessage() {}
 
 func (x *BotQuotaMetadata_BotFeatureQuotaMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[34]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3790,7 +4123,7 @@ type BotSourcesMetadata_BotSourceItem struct {
 
 func (x *BotSourcesMetadata_BotSourceItem) Reset() {
 	*x = BotSourcesMetadata_BotSourceItem{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[35]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3802,7 +4135,7 @@ func (x *BotSourcesMetadata_BotSourceItem) String() string {
 func (*BotSourcesMetadata_BotSourceItem) ProtoMessage() {}
 
 func (x *BotSourcesMetadata_BotSourceItem) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[35]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3867,6 +4200,94 @@ func (x *BotSourcesMetadata_BotSourceItem) GetSourceTitle() string {
 	return ""
 }
 
+type AIThreadInfo_AIThreadClientInfo struct {
+	state         protoimpl.MessageState                        `protogen:"open.v1"`
+	Type          *AIThreadInfo_AIThreadClientInfo_AIThreadType `protobuf:"varint,1,opt,name=type,enum=WABotMetadata.AIThreadInfo_AIThreadClientInfo_AIThreadType" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AIThreadInfo_AIThreadClientInfo) Reset() {
+	*x = AIThreadInfo_AIThreadClientInfo{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AIThreadInfo_AIThreadClientInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AIThreadInfo_AIThreadClientInfo) ProtoMessage() {}
+
+func (x *AIThreadInfo_AIThreadClientInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AIThreadInfo_AIThreadClientInfo.ProtoReflect.Descriptor instead.
+func (*AIThreadInfo_AIThreadClientInfo) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{14, 0}
+}
+
+func (x *AIThreadInfo_AIThreadClientInfo) GetType() AIThreadInfo_AIThreadClientInfo_AIThreadType {
+	if x != nil && x.Type != nil {
+		return *x.Type
+	}
+	return AIThreadInfo_AIThreadClientInfo_UNKNOWN
+}
+
+type AIThreadInfo_AIThreadServerInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Title         *string                `protobuf:"bytes,1,opt,name=title" json:"title,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AIThreadInfo_AIThreadServerInfo) Reset() {
+	*x = AIThreadInfo_AIThreadServerInfo{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AIThreadInfo_AIThreadServerInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AIThreadInfo_AIThreadServerInfo) ProtoMessage() {}
+
+func (x *AIThreadInfo_AIThreadServerInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AIThreadInfo_AIThreadServerInfo.ProtoReflect.Descriptor instead.
+func (*AIThreadInfo_AIThreadServerInfo) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{14, 1}
+}
+
+func (x *AIThreadInfo_AIThreadServerInfo) GetTitle() string {
+	if x != nil && x.Title != nil {
+		return *x.Title
+	}
+	return ""
+}
+
 type BotRenderingMetadata_Keyword struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Value             *string                `protobuf:"bytes,1,opt,name=value" json:"value,omitempty"`
@@ -3877,7 +4298,7 @@ type BotRenderingMetadata_Keyword struct {
 
 func (x *BotRenderingMetadata_Keyword) Reset() {
 	*x = BotRenderingMetadata_Keyword{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[36]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3889,7 +4310,7 @@ func (x *BotRenderingMetadata_Keyword) String() string {
 func (*BotRenderingMetadata_Keyword) ProtoMessage() {}
 
 func (x *BotRenderingMetadata_Keyword) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[36]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3902,7 +4323,7 @@ func (x *BotRenderingMetadata_Keyword) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotRenderingMetadata_Keyword.ProtoReflect.Descriptor instead.
 func (*BotRenderingMetadata_Keyword) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{22, 0}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{23, 0}
 }
 
 func (x *BotRenderingMetadata_Keyword) GetValue() string {
@@ -3919,6 +4340,238 @@ func (x *BotRenderingMetadata_Keyword) GetAssociatedPrompts() []string {
 	return nil
 }
 
+type InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Text          *string                `protobuf:"bytes,1,opt,name=text" json:"text,omitempty"`
+	URL           *string                `protobuf:"bytes,2,opt,name=URL" json:"URL,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) Reset() {
+	*x = InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) ProtoMessage() {}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart.ProtoReflect.Descriptor instead.
+func (*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{28, 0}
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) GetText() string {
+	if x != nil && x.Text != nil {
+		return *x.Text
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) GetURL() string {
+	if x != nil && x.URL != nil {
+		return *x.URL
+	}
+	return ""
+}
+
+type InThreadSurveyMetadata_InThreadSurveyOption struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	StringValue    *string                `protobuf:"bytes,1,opt,name=stringValue" json:"stringValue,omitempty"`
+	NumericValue   *uint32                `protobuf:"varint,2,opt,name=numericValue" json:"numericValue,omitempty"`
+	TextTranslated *string                `protobuf:"bytes,3,opt,name=textTranslated" json:"textTranslated,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyOption) Reset() {
+	*x = InThreadSurveyMetadata_InThreadSurveyOption{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InThreadSurveyMetadata_InThreadSurveyOption) ProtoMessage() {}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyOption) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InThreadSurveyMetadata_InThreadSurveyOption.ProtoReflect.Descriptor instead.
+func (*InThreadSurveyMetadata_InThreadSurveyOption) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{28, 1}
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyOption) GetStringValue() string {
+	if x != nil && x.StringValue != nil {
+		return *x.StringValue
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyOption) GetNumericValue() uint32 {
+	if x != nil && x.NumericValue != nil {
+		return *x.NumericValue
+	}
+	return 0
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyOption) GetTextTranslated() string {
+	if x != nil && x.TextTranslated != nil {
+		return *x.TextTranslated
+	}
+	return ""
+}
+
+type InThreadSurveyMetadata_InThreadSurveyQuestion struct {
+	state           protoimpl.MessageState                         `protogen:"open.v1"`
+	QuestionText    *string                                        `protobuf:"bytes,1,opt,name=questionText" json:"questionText,omitempty"`
+	QuestionID      *string                                        `protobuf:"bytes,2,opt,name=questionID" json:"questionID,omitempty"`
+	QuestionOptions []*InThreadSurveyMetadata_InThreadSurveyOption `protobuf:"bytes,3,rep,name=questionOptions" json:"questionOptions,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) Reset() {
+	*x = InThreadSurveyMetadata_InThreadSurveyQuestion{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InThreadSurveyMetadata_InThreadSurveyQuestion) ProtoMessage() {}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InThreadSurveyMetadata_InThreadSurveyQuestion.ProtoReflect.Descriptor instead.
+func (*InThreadSurveyMetadata_InThreadSurveyQuestion) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{28, 2}
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) GetQuestionText() string {
+	if x != nil && x.QuestionText != nil {
+		return *x.QuestionText
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) GetQuestionID() string {
+	if x != nil && x.QuestionID != nil {
+		return *x.QuestionID
+	}
+	return ""
+}
+
+func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) GetQuestionOptions() []*InThreadSurveyMetadata_InThreadSurveyOption {
+	if x != nil {
+		return x.QuestionOptions
+	}
+	return nil
+}
+
+type BotUnifiedResponseMutation_MediaDetailsMetadata struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            *string                `protobuf:"bytes,1,opt,name=ID" json:"ID,omitempty"`
+	HighResMedia  *BotMediaMetadata      `protobuf:"bytes,2,opt,name=highResMedia" json:"highResMedia,omitempty"`
+	PreviewMedia  *BotMediaMetadata      `protobuf:"bytes,3,opt,name=previewMedia" json:"previewMedia,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) Reset() {
+	*x = BotUnifiedResponseMutation_MediaDetailsMetadata{}
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotUnifiedResponseMutation_MediaDetailsMetadata) ProtoMessage() {}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotUnifiedResponseMutation_MediaDetailsMetadata.ProtoReflect.Descriptor instead.
+func (*BotUnifiedResponseMutation_MediaDetailsMetadata) Descriptor() ([]byte, []int) {
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{30, 0}
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) GetID() string {
+	if x != nil && x.ID != nil {
+		return *x.ID
+	}
+	return ""
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) GetHighResMedia() *BotMediaMetadata {
+	if x != nil {
+		return x.HighResMedia
+	}
+	return nil
+}
+
+func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) GetPreviewMedia() *BotMediaMetadata {
+	if x != nil {
+		return x.PreviewMedia
+	}
+	return nil
+}
+
 type BotUnifiedResponseMutation_SideBySideMetadata struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	PrimaryResponseID *string                `protobuf:"bytes,1,opt,name=primaryResponseID" json:"primaryResponseID,omitempty"`
@@ -3928,7 +4581,7 @@ type BotUnifiedResponseMutation_SideBySideMetadata struct {
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) Reset() {
 	*x = BotUnifiedResponseMutation_SideBySideMetadata{}
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[37]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3940,7 +4593,7 @@ func (x *BotUnifiedResponseMutation_SideBySideMetadata) String() string {
 func (*BotUnifiedResponseMutation_SideBySideMetadata) ProtoMessage() {}
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[37]
+	mi := &file_waBotMetadata_WABotMetadata_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3953,7 +4606,7 @@ func (x *BotUnifiedResponseMutation_SideBySideMetadata) ProtoReflect() protorefl
 
 // Deprecated: Use BotUnifiedResponseMutation_SideBySideMetadata.ProtoReflect.Descriptor instead.
 func (*BotUnifiedResponseMutation_SideBySideMetadata) Descriptor() ([]byte, []int) {
-	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{28, 0}
+	return file_waBotMetadata_WABotMetadata_proto_rawDescGZIP(), []int{30, 1}
 }
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) GetPrimaryResponseID() string {
@@ -4007,13 +4660,14 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\x10certificateChain\x18\x04 \x01(\fR\x10certificateChain\"%\n" +
 	"\x13BotSignatureUseCase\x12\x0e\n" +
 	"\n" +
-	"WA_BOT_MSG\x10\x00\"\xd1\x01\n" +
+	"WA_BOT_MSG\x10\x00\"\xe6\x01\n" +
 	"\x1bBotPromotionMessageMetadata\x12a\n" +
 	"\rpromotionType\x18\x01 \x01(\x0e2;.WABotMetadata.BotPromotionMessageMetadata.BotPromotionTypeR\rpromotionType\x12 \n" +
-	"\vbuttonTitle\x18\x02 \x01(\tR\vbuttonTitle\"-\n" +
+	"\vbuttonTitle\x18\x02 \x01(\tR\vbuttonTitle\"B\n" +
 	"\x10BotPromotionType\x12\x10\n" +
 	"\fUNKNOWN_TYPE\x10\x00\x12\a\n" +
-	"\x03C50\x10\x01\"\xed\x02\n" +
+	"\x03C50\x10\x01\x12\x13\n" +
+	"\x0fSURVEY_PLATFORM\x10\x02\"\xed\x02\n" +
 	"\x10BotMediaMetadata\x12\x1e\n" +
 	"\n" +
 	"fileSHA256\x18\x01 \x01(\tR\n" +
@@ -4109,10 +4763,10 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPLANNED\x10\x01\x12\r\n" +
 	"\tEXECUTING\x10\x02\x12\f\n" +
-	"\bFINISHED\x10\x03\"\xb1\n" +
-	"\n" +
+	"\bFINISHED\x10\x03\"\xc0\v\n" +
 	"\x15BotCapabilityMetadata\x12Z\n" +
-	"\fcapabilities\x18\x01 \x03(\x0e26.WABotMetadata.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xbb\t\n" +
+	"\fcapabilities\x18\x01 \x03(\x0e26.WABotMetadata.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xca\n" +
+	"\n" +
 	"\x11BotCapabilityType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x16\n" +
 	"\x12PROGRESS_INDICATOR\x10\x01\x12\x19\n" +
@@ -4154,7 +4808,11 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\x11PROMOTION_MESSAGE\x10#\x12\x1b\n" +
 	"\x17SIMPLIFIED_PROFILE_PAGE\x10$\x12$\n" +
 	" RICH_RESPONSE_SOURCES_IN_MESSAGE\x10%\x12%\n" +
-	"!RICH_RESPONSE_SIDE_BY_SIDE_SURVEY\x10&\"\xaa\x01\n" +
+	"!RICH_RESPONSE_SIDE_BY_SIDE_SURVEY\x10&\x12(\n" +
+	"$RICH_RESPONSE_UNIFIED_TEXT_COMPONENT\x10'\x12\x14\n" +
+	"\x10AI_SHARED_MEMORY\x10(\x12!\n" +
+	"\x1dRICH_RESPONSE_UNIFIED_SOURCES\x10)\x12*\n" +
+	"&RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS\x10*\"\xaa\x01\n" +
 	"\x18BotModeSelectionMetadata\x12P\n" +
 	"\x04mode\x18\x01 \x03(\x0e2<.WABotMetadata.BotModeSelectionMetadata.BotUserSelectionModeR\x04mode\"<\n" +
 	"\x14BotUserSelectionMode\x12\x10\n" +
@@ -4197,7 +4855,22 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\x10BotMessageOrigin\x12H\n" +
 	"\x04type\x18\x01 \x01(\x0e24.WABotMetadata.BotMessageOrigin.BotMessageOriginTypeR\x04type\"@\n" +
 	"\x14BotMessageOriginType\x12(\n" +
-	"$BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED\x10\x00\"\xab\x01\n" +
+	"$BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED\x10\x00\"\xfb\x02\n" +
+	"\fAIThreadInfo\x12N\n" +
+	"\n" +
+	"serverInfo\x18\x01 \x01(\v2..WABotMetadata.AIThreadInfo.AIThreadServerInfoR\n" +
+	"serverInfo\x12N\n" +
+	"\n" +
+	"clientInfo\x18\x02 \x01(\v2..WABotMetadata.AIThreadInfo.AIThreadClientInfoR\n" +
+	"clientInfo\x1a\x9e\x01\n" +
+	"\x12AIThreadClientInfo\x12O\n" +
+	"\x04type\x18\x01 \x01(\x0e2;.WABotMetadata.AIThreadInfo.AIThreadClientInfo.AIThreadTypeR\x04type\"7\n" +
+	"\fAIThreadType\x12\v\n" +
+	"\aUNKNOWN\x10\x00\x12\v\n" +
+	"\aDEFAULT\x10\x01\x12\r\n" +
+	"\tINCOGNITO\x10\x02\x1a*\n" +
+	"\x12AIThreadServerInfo\x12\x14\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\"\xab\x01\n" +
 	"\x11BotAvatarMetadata\x12\x1c\n" +
 	"\tsentiment\x18\x01 \x01(\rR\tsentiment\x12$\n" +
 	"\rbehaviorGraph\x18\x02 \x01(\tR\rbehaviorGraph\x12\x16\n" +
@@ -4249,13 +4922,53 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"faceImages\"\xa0\x01\n" +
 	"\x18BotAgeCollectionMetadata\x124\n" +
 	"\x15ageCollectionEligible\x18\x01 \x01(\bR\x15ageCollectionEligible\x12N\n" +
-	"\"shouldTriggerAgeCollectionOnClient\x18\x02 \x01(\bR\"shouldTriggerAgeCollectionOnClient\"U\n" +
+	"\"shouldTriggerAgeCollectionOnClient\x18\x02 \x01(\bR\"shouldTriggerAgeCollectionOnClient\"\x98\n" +
+	"\n" +
+	"\x16InThreadSurveyMetadata\x12&\n" +
+	"\x0etessaSessionID\x18\x01 \x01(\tR\x0etessaSessionID\x12&\n" +
+	"\x0esimonSessionID\x18\x02 \x01(\tR\x0esimonSessionID\x12$\n" +
+	"\rsimonSurveyID\x18\x03 \x01(\tR\rsimonSurveyID\x12 \n" +
+	"\vtessaRootID\x18\x04 \x01(\tR\vtessaRootID\x12\x1c\n" +
+	"\trequestID\x18\x05 \x01(\tR\trequestID\x12\x1e\n" +
+	"\n" +
+	"tessaEvent\x18\x06 \x01(\tR\n" +
+	"tessaEvent\x122\n" +
+	"\x14invitationHeaderText\x18\a \x01(\tR\x14invitationHeaderText\x12.\n" +
+	"\x12invitationBodyText\x18\b \x01(\tR\x12invitationBodyText\x12,\n" +
+	"\x11invitationCtaText\x18\t \x01(\tR\x11invitationCtaText\x12*\n" +
+	"\x10invitationCtaURL\x18\n" +
+	" \x01(\tR\x10invitationCtaURL\x12 \n" +
+	"\vsurveyTitle\x18\v \x01(\tR\vsurveyTitle\x12Z\n" +
+	"\tquestions\x18\f \x03(\v2<.WABotMetadata.InThreadSurveyMetadata.InThreadSurveyQuestionR\tquestions\x12:\n" +
+	"\x18surveyContinueButtonText\x18\r \x01(\tR\x18surveyContinueButtonText\x126\n" +
+	"\x16surveySubmitButtonText\x18\x0e \x01(\tR\x16surveySubmitButtonText\x122\n" +
+	"\x14privacyStatementFull\x18\x0f \x01(\tR\x14privacyStatementFull\x12~\n" +
+	"\x15privacyStatementParts\x18\x10 \x03(\v2H.WABotMetadata.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPartR\x15privacyStatementParts\x12,\n" +
+	"\x11feedbackToastText\x18\x11 \x01(\tR\x11feedbackToastText\x1aJ\n" +
+	"\"InThreadSurveyPrivacyStatementPart\x12\x12\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\x12\x10\n" +
+	"\x03URL\x18\x02 \x01(\tR\x03URL\x1a\x84\x01\n" +
+	"\x14InThreadSurveyOption\x12 \n" +
+	"\vstringValue\x18\x01 \x01(\tR\vstringValue\x12\"\n" +
+	"\fnumericValue\x18\x02 \x01(\rR\fnumericValue\x12&\n" +
+	"\x0etextTranslated\x18\x03 \x01(\tR\x0etextTranslated\x1a\xc2\x01\n" +
+	"\x16InThreadSurveyQuestion\x12\"\n" +
+	"\fquestionText\x18\x01 \x01(\tR\fquestionText\x12\x1e\n" +
+	"\n" +
+	"questionID\x18\x02 \x01(\tR\n" +
+	"questionID\x12d\n" +
+	"\x0fquestionOptions\x18\x03 \x03(\v2:.WABotMetadata.InThreadSurveyMetadata.InThreadSurveyOptionR\x0fquestionOptions\"U\n" +
 	"\x18BotMessageOriginMetadata\x129\n" +
-	"\aorigins\x18\x01 \x03(\v2\x1f.WABotMetadata.BotMessageOriginR\aorigins\"\xc0\x01\n" +
+	"\aorigins\x18\x01 \x03(\v2\x1f.WABotMetadata.BotMessageOriginR\aorigins\"\xef\x03\n" +
 	"\x1aBotUnifiedResponseMutation\x12^\n" +
-	"\vsbsMetadata\x18\x01 \x01(\v2<.WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadataR\vsbsMetadata\x1aB\n" +
+	"\vsbsMetadata\x18\x01 \x01(\v2<.WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadataR\vsbsMetadata\x12z\n" +
+	"\x18mediaDetailsMetadataList\x18\x02 \x03(\v2>.WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadataR\x18mediaDetailsMetadataList\x1a\xb0\x01\n" +
+	"\x14MediaDetailsMetadata\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\tR\x02ID\x12C\n" +
+	"\fhighResMedia\x18\x02 \x01(\v2\x1f.WABotMetadata.BotMediaMetadataR\fhighResMedia\x12C\n" +
+	"\fpreviewMedia\x18\x03 \x01(\v2\x1f.WABotMetadata.BotMediaMetadataR\fpreviewMedia\x1aB\n" +
 	"\x12SideBySideMetadata\x12,\n" +
-	"\x11primaryResponseID\x18\x01 \x01(\tR\x11primaryResponseID\"\xdb\x11\n" +
+	"\x11primaryResponseID\x18\x01 \x01(\tR\x11primaryResponseID\"\xaa\x13\n" +
 	"\vBotMetadata\x12H\n" +
 	"\x0eavatarMetadata\x18\x01 \x01(\v2 .WABotMetadata.BotAvatarMetadataR\x0eavatarMetadata\x12\x1c\n" +
 	"\tpersonaID\x18\x02 \x01(\tR\tpersonaID\x12H\n" +
@@ -4288,7 +5001,10 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\rbotResponseID\x18\x1a \x01(\tR\rbotResponseID\x12c\n" +
 	"\x14verificationMetadata\x18\x1b \x01(\v2/.WABotMetadata.BotSignatureVerificationMetadataR\x14verificationMetadata\x12c\n" +
 	"\x17unifiedResponseMutation\x18\x1c \x01(\v2).WABotMetadata.BotUnifiedResponseMutationR\x17unifiedResponseMutation\x12c\n" +
-	"\x18botMessageOriginMetadata\x18\x1d \x01(\v2'.WABotMetadata.BotMessageOriginMetadataR\x18botMessageOriginMetadata*\xac\x06\n" +
+	"\x18botMessageOriginMetadata\x18\x1d \x01(\v2'.WABotMetadata.BotMessageOriginMetadataR\x18botMessageOriginMetadata\x12]\n" +
+	"\x16inThreadSurveyMetadata\x18\x1e \x01(\v2%.WABotMetadata.InThreadSurveyMetadataR\x16inThreadSurveyMetadata\x12A\n" +
+	"\rbotThreadInfo\x18\x1f \x01(\v2\x1b.WABotMetadata.AIThreadInfoR\rbotThreadInfo\x12+\n" +
+	"\x10internalMetadata\x18\xe7\a \x01(\fR\x10internalMetadata*\xc5\x06\n" +
 	"\x14BotMetricsEntryPoint\x12\v\n" +
 	"\aFAVICON\x10\x01\x12\f\n" +
 	"\bCHATLIST\x10\x02\x12#\n" +
@@ -4322,7 +5038,8 @@ const file_waBotMetadata_WABotMetadata_proto_rawDesc = "" +
 	"\x1eASK_META_AI_CONTEXT_MENU_GROUP\x10\x1c\x12\x17\n" +
 	"\x13INVOKE_META_AI_1ON1\x10\x1d\x12\x18\n" +
 	"\x14INVOKE_META_AI_GROUP\x10\x1e\x12\x13\n" +
-	"\x0fMETA_AI_FORWARD\x10\x1f*\xa2\x01\n" +
+	"\x0fMETA_AI_FORWARD\x10\x1f\x12\x17\n" +
+	"\x13NEW_CHAT_AI_CONTACT\x10 *\xa2\x01\n" +
 	"\x1aBotMetricsThreadEntryPoint\x12\x11\n" +
 	"\rAI_TAB_THREAD\x10\x01\x12\x12\n" +
 	"\x0eAI_HOME_THREAD\x10\x02\x12 \n" +
@@ -4352,8 +5069,8 @@ func file_waBotMetadata_WABotMetadata_proto_rawDescGZIP() []byte {
 	return file_waBotMetadata_WABotMetadata_proto_rawDescData
 }
 
-var file_waBotMetadata_WABotMetadata_proto_enumTypes = make([]protoimpl.EnumInfo, 22)
-var file_waBotMetadata_WABotMetadata_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_waBotMetadata_WABotMetadata_proto_enumTypes = make([]protoimpl.EnumInfo, 23)
+var file_waBotMetadata_WABotMetadata_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_waBotMetadata_WABotMetadata_proto_goTypes = []any{
 	(BotMetricsEntryPoint)(0),                                                         // 0: WABotMetadata.BotMetricsEntryPoint
 	(BotMetricsThreadEntryPoint)(0),                                                   // 1: WABotMetadata.BotMetricsThreadEntryPoint
@@ -4377,116 +5094,136 @@ var file_waBotMetadata_WABotMetadata_proto_goTypes = []any{
 	(BotImagineMetadata_ImagineType)(0),                          // 19: WABotMetadata.BotImagineMetadata.ImagineType
 	(BotSourcesMetadata_BotSourceItem_SourceProvider)(0),         // 20: WABotMetadata.BotSourcesMetadata.BotSourceItem.SourceProvider
 	(BotMessageOrigin_BotMessageOriginType)(0),                   // 21: WABotMetadata.BotMessageOrigin.BotMessageOriginType
-	(*BotPluginMetadata)(nil),                                    // 22: WABotMetadata.BotPluginMetadata
-	(*BotLinkedAccount)(nil),                                     // 23: WABotMetadata.BotLinkedAccount
-	(*BotSignatureVerificationUseCaseProof)(nil),                 // 24: WABotMetadata.BotSignatureVerificationUseCaseProof
-	(*BotPromotionMessageMetadata)(nil),                          // 25: WABotMetadata.BotPromotionMessageMetadata
-	(*BotMediaMetadata)(nil),                                     // 26: WABotMetadata.BotMediaMetadata
-	(*BotReminderMetadata)(nil),                                  // 27: WABotMetadata.BotReminderMetadata
-	(*BotModelMetadata)(nil),                                     // 28: WABotMetadata.BotModelMetadata
-	(*BotProgressIndicatorMetadata)(nil),                         // 29: WABotMetadata.BotProgressIndicatorMetadata
-	(*BotCapabilityMetadata)(nil),                                // 30: WABotMetadata.BotCapabilityMetadata
-	(*BotModeSelectionMetadata)(nil),                             // 31: WABotMetadata.BotModeSelectionMetadata
-	(*BotQuotaMetadata)(nil),                                     // 32: WABotMetadata.BotQuotaMetadata
-	(*BotImagineMetadata)(nil),                                   // 33: WABotMetadata.BotImagineMetadata
-	(*BotSourcesMetadata)(nil),                                   // 34: WABotMetadata.BotSourcesMetadata
-	(*BotMessageOrigin)(nil),                                     // 35: WABotMetadata.BotMessageOrigin
-	(*BotAvatarMetadata)(nil),                                    // 36: WABotMetadata.BotAvatarMetadata
-	(*BotSuggestedPromptMetadata)(nil),                           // 37: WABotMetadata.BotSuggestedPromptMetadata
-	(*BotPromptSuggestions)(nil),                                 // 38: WABotMetadata.BotPromptSuggestions
-	(*BotPromptSuggestion)(nil),                                  // 39: WABotMetadata.BotPromptSuggestion
-	(*BotLinkedAccountsMetadata)(nil),                            // 40: WABotMetadata.BotLinkedAccountsMetadata
-	(*BotMemoryMetadata)(nil),                                    // 41: WABotMetadata.BotMemoryMetadata
-	(*BotMemoryFact)(nil),                                        // 42: WABotMetadata.BotMemoryFact
-	(*BotSignatureVerificationMetadata)(nil),                     // 43: WABotMetadata.BotSignatureVerificationMetadata
-	(*BotRenderingMetadata)(nil),                                 // 44: WABotMetadata.BotRenderingMetadata
-	(*BotMetricsMetadata)(nil),                                   // 45: WABotMetadata.BotMetricsMetadata
-	(*BotSessionMetadata)(nil),                                   // 46: WABotMetadata.BotSessionMetadata
-	(*BotMemuMetadata)(nil),                                      // 47: WABotMetadata.BotMemuMetadata
-	(*BotAgeCollectionMetadata)(nil),                             // 48: WABotMetadata.BotAgeCollectionMetadata
-	(*BotMessageOriginMetadata)(nil),                             // 49: WABotMetadata.BotMessageOriginMetadata
-	(*BotUnifiedResponseMutation)(nil),                           // 50: WABotMetadata.BotUnifiedResponseMutation
-	(*BotMetadata)(nil),                                          // 51: WABotMetadata.BotMetadata
-	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata)(nil), // 52: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata
-	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata)(nil), // 53: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
-	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata)(nil),   // 54: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
-	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata)(nil),  // 55: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
-	(*BotQuotaMetadata_BotFeatureQuotaMetadata)(nil),                                              // 56: WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata
-	(*BotSourcesMetadata_BotSourceItem)(nil),                                                      // 57: WABotMetadata.BotSourcesMetadata.BotSourceItem
-	(*BotRenderingMetadata_Keyword)(nil),                                                          // 58: WABotMetadata.BotRenderingMetadata.Keyword
-	(*BotUnifiedResponseMutation_SideBySideMetadata)(nil),                                         // 59: WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadata
-	(*waCommon.MessageKey)(nil),                                                                   // 60: WACommon.MessageKey
+	(AIThreadInfo_AIThreadClientInfo_AIThreadType)(0),            // 22: WABotMetadata.AIThreadInfo.AIThreadClientInfo.AIThreadType
+	(*BotPluginMetadata)(nil),                                    // 23: WABotMetadata.BotPluginMetadata
+	(*BotLinkedAccount)(nil),                                     // 24: WABotMetadata.BotLinkedAccount
+	(*BotSignatureVerificationUseCaseProof)(nil),                 // 25: WABotMetadata.BotSignatureVerificationUseCaseProof
+	(*BotPromotionMessageMetadata)(nil),                          // 26: WABotMetadata.BotPromotionMessageMetadata
+	(*BotMediaMetadata)(nil),                                     // 27: WABotMetadata.BotMediaMetadata
+	(*BotReminderMetadata)(nil),                                  // 28: WABotMetadata.BotReminderMetadata
+	(*BotModelMetadata)(nil),                                     // 29: WABotMetadata.BotModelMetadata
+	(*BotProgressIndicatorMetadata)(nil),                         // 30: WABotMetadata.BotProgressIndicatorMetadata
+	(*BotCapabilityMetadata)(nil),                                // 31: WABotMetadata.BotCapabilityMetadata
+	(*BotModeSelectionMetadata)(nil),                             // 32: WABotMetadata.BotModeSelectionMetadata
+	(*BotQuotaMetadata)(nil),                                     // 33: WABotMetadata.BotQuotaMetadata
+	(*BotImagineMetadata)(nil),                                   // 34: WABotMetadata.BotImagineMetadata
+	(*BotSourcesMetadata)(nil),                                   // 35: WABotMetadata.BotSourcesMetadata
+	(*BotMessageOrigin)(nil),                                     // 36: WABotMetadata.BotMessageOrigin
+	(*AIThreadInfo)(nil),                                         // 37: WABotMetadata.AIThreadInfo
+	(*BotAvatarMetadata)(nil),                                    // 38: WABotMetadata.BotAvatarMetadata
+	(*BotSuggestedPromptMetadata)(nil),                           // 39: WABotMetadata.BotSuggestedPromptMetadata
+	(*BotPromptSuggestions)(nil),                                 // 40: WABotMetadata.BotPromptSuggestions
+	(*BotPromptSuggestion)(nil),                                  // 41: WABotMetadata.BotPromptSuggestion
+	(*BotLinkedAccountsMetadata)(nil),                            // 42: WABotMetadata.BotLinkedAccountsMetadata
+	(*BotMemoryMetadata)(nil),                                    // 43: WABotMetadata.BotMemoryMetadata
+	(*BotMemoryFact)(nil),                                        // 44: WABotMetadata.BotMemoryFact
+	(*BotSignatureVerificationMetadata)(nil),                     // 45: WABotMetadata.BotSignatureVerificationMetadata
+	(*BotRenderingMetadata)(nil),                                 // 46: WABotMetadata.BotRenderingMetadata
+	(*BotMetricsMetadata)(nil),                                   // 47: WABotMetadata.BotMetricsMetadata
+	(*BotSessionMetadata)(nil),                                   // 48: WABotMetadata.BotSessionMetadata
+	(*BotMemuMetadata)(nil),                                      // 49: WABotMetadata.BotMemuMetadata
+	(*BotAgeCollectionMetadata)(nil),                             // 50: WABotMetadata.BotAgeCollectionMetadata
+	(*InThreadSurveyMetadata)(nil),                               // 51: WABotMetadata.InThreadSurveyMetadata
+	(*BotMessageOriginMetadata)(nil),                             // 52: WABotMetadata.BotMessageOriginMetadata
+	(*BotUnifiedResponseMutation)(nil),                           // 53: WABotMetadata.BotUnifiedResponseMutation
+	(*BotMetadata)(nil),                                          // 54: WABotMetadata.BotMetadata
+	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata)(nil), // 55: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata
+	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata)(nil), // 56: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
+	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata)(nil),   // 57: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
+	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata)(nil),  // 58: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
+	(*BotQuotaMetadata_BotFeatureQuotaMetadata)(nil),                                              // 59: WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata
+	(*BotSourcesMetadata_BotSourceItem)(nil),                                                      // 60: WABotMetadata.BotSourcesMetadata.BotSourceItem
+	(*AIThreadInfo_AIThreadClientInfo)(nil),                                                       // 61: WABotMetadata.AIThreadInfo.AIThreadClientInfo
+	(*AIThreadInfo_AIThreadServerInfo)(nil),                                                       // 62: WABotMetadata.AIThreadInfo.AIThreadServerInfo
+	(*BotRenderingMetadata_Keyword)(nil),                                                          // 63: WABotMetadata.BotRenderingMetadata.Keyword
+	(*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart)(nil),                             // 64: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPart
+	(*InThreadSurveyMetadata_InThreadSurveyOption)(nil),                                           // 65: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyOption
+	(*InThreadSurveyMetadata_InThreadSurveyQuestion)(nil),                                         // 66: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyQuestion
+	(*BotUnifiedResponseMutation_MediaDetailsMetadata)(nil),                                       // 67: WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadata
+	(*BotUnifiedResponseMutation_SideBySideMetadata)(nil),                                         // 68: WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadata
+	(*waCommon.MessageKey)(nil),                                                                   // 69: WACommon.MessageKey
 }
 var file_waBotMetadata_WABotMetadata_proto_depIdxs = []int32{
 	4,  // 0: WABotMetadata.BotPluginMetadata.provider:type_name -> WABotMetadata.BotPluginMetadata.SearchProvider
 	3,  // 1: WABotMetadata.BotPluginMetadata.pluginType:type_name -> WABotMetadata.BotPluginMetadata.PluginType
-	60, // 2: WABotMetadata.BotPluginMetadata.parentPluginMessageKey:type_name -> WACommon.MessageKey
+	69, // 2: WABotMetadata.BotPluginMetadata.parentPluginMessageKey:type_name -> WACommon.MessageKey
 	3,  // 3: WABotMetadata.BotPluginMetadata.deprecatedField:type_name -> WABotMetadata.BotPluginMetadata.PluginType
 	3,  // 4: WABotMetadata.BotPluginMetadata.parentPluginType:type_name -> WABotMetadata.BotPluginMetadata.PluginType
 	5,  // 5: WABotMetadata.BotLinkedAccount.type:type_name -> WABotMetadata.BotLinkedAccount.BotLinkedAccountType
 	6,  // 6: WABotMetadata.BotSignatureVerificationUseCaseProof.useCase:type_name -> WABotMetadata.BotSignatureVerificationUseCaseProof.BotSignatureUseCase
 	7,  // 7: WABotMetadata.BotPromotionMessageMetadata.promotionType:type_name -> WABotMetadata.BotPromotionMessageMetadata.BotPromotionType
 	8,  // 8: WABotMetadata.BotMediaMetadata.orientationType:type_name -> WABotMetadata.BotMediaMetadata.OrientationType
-	60, // 9: WABotMetadata.BotReminderMetadata.requestMessageKey:type_name -> WACommon.MessageKey
+	69, // 9: WABotMetadata.BotReminderMetadata.requestMessageKey:type_name -> WACommon.MessageKey
 	10, // 10: WABotMetadata.BotReminderMetadata.action:type_name -> WABotMetadata.BotReminderMetadata.ReminderAction
 	9,  // 11: WABotMetadata.BotReminderMetadata.frequency:type_name -> WABotMetadata.BotReminderMetadata.ReminderFrequency
 	12, // 12: WABotMetadata.BotModelMetadata.modelType:type_name -> WABotMetadata.BotModelMetadata.ModelType
 	11, // 13: WABotMetadata.BotModelMetadata.premiumModelStatus:type_name -> WABotMetadata.BotModelMetadata.PremiumModelStatus
-	52, // 14: WABotMetadata.BotProgressIndicatorMetadata.stepsMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata
+	55, // 14: WABotMetadata.BotProgressIndicatorMetadata.stepsMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata
 	16, // 15: WABotMetadata.BotCapabilityMetadata.capabilities:type_name -> WABotMetadata.BotCapabilityMetadata.BotCapabilityType
 	17, // 16: WABotMetadata.BotModeSelectionMetadata.mode:type_name -> WABotMetadata.BotModeSelectionMetadata.BotUserSelectionMode
-	56, // 17: WABotMetadata.BotQuotaMetadata.botFeatureQuotaMetadata:type_name -> WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata
+	59, // 17: WABotMetadata.BotQuotaMetadata.botFeatureQuotaMetadata:type_name -> WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata
 	19, // 18: WABotMetadata.BotImagineMetadata.imagineType:type_name -> WABotMetadata.BotImagineMetadata.ImagineType
-	57, // 19: WABotMetadata.BotSourcesMetadata.sources:type_name -> WABotMetadata.BotSourcesMetadata.BotSourceItem
+	60, // 19: WABotMetadata.BotSourcesMetadata.sources:type_name -> WABotMetadata.BotSourcesMetadata.BotSourceItem
 	21, // 20: WABotMetadata.BotMessageOrigin.type:type_name -> WABotMetadata.BotMessageOrigin.BotMessageOriginType
-	38, // 21: WABotMetadata.BotSuggestedPromptMetadata.promptSuggestions:type_name -> WABotMetadata.BotPromptSuggestions
-	39, // 22: WABotMetadata.BotPromptSuggestions.suggestions:type_name -> WABotMetadata.BotPromptSuggestion
-	23, // 23: WABotMetadata.BotLinkedAccountsMetadata.accounts:type_name -> WABotMetadata.BotLinkedAccount
-	42, // 24: WABotMetadata.BotMemoryMetadata.addedFacts:type_name -> WABotMetadata.BotMemoryFact
-	42, // 25: WABotMetadata.BotMemoryMetadata.removedFacts:type_name -> WABotMetadata.BotMemoryFact
-	24, // 26: WABotMetadata.BotSignatureVerificationMetadata.proofs:type_name -> WABotMetadata.BotSignatureVerificationUseCaseProof
-	58, // 27: WABotMetadata.BotRenderingMetadata.keywords:type_name -> WABotMetadata.BotRenderingMetadata.Keyword
-	0,  // 28: WABotMetadata.BotMetricsMetadata.destinationEntryPoint:type_name -> WABotMetadata.BotMetricsEntryPoint
-	1,  // 29: WABotMetadata.BotMetricsMetadata.threadOrigin:type_name -> WABotMetadata.BotMetricsThreadEntryPoint
-	2,  // 30: WABotMetadata.BotSessionMetadata.sessionSource:type_name -> WABotMetadata.BotSessionSource
-	26, // 31: WABotMetadata.BotMemuMetadata.faceImages:type_name -> WABotMetadata.BotMediaMetadata
-	35, // 32: WABotMetadata.BotMessageOriginMetadata.origins:type_name -> WABotMetadata.BotMessageOrigin
-	59, // 33: WABotMetadata.BotUnifiedResponseMutation.sbsMetadata:type_name -> WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadata
-	36, // 34: WABotMetadata.BotMetadata.avatarMetadata:type_name -> WABotMetadata.BotAvatarMetadata
-	22, // 35: WABotMetadata.BotMetadata.pluginMetadata:type_name -> WABotMetadata.BotPluginMetadata
-	37, // 36: WABotMetadata.BotMetadata.suggestedPromptMetadata:type_name -> WABotMetadata.BotSuggestedPromptMetadata
-	46, // 37: WABotMetadata.BotMetadata.sessionMetadata:type_name -> WABotMetadata.BotSessionMetadata
-	47, // 38: WABotMetadata.BotMetadata.memuMetadata:type_name -> WABotMetadata.BotMemuMetadata
-	27, // 39: WABotMetadata.BotMetadata.reminderMetadata:type_name -> WABotMetadata.BotReminderMetadata
-	28, // 40: WABotMetadata.BotMetadata.modelMetadata:type_name -> WABotMetadata.BotModelMetadata
-	29, // 41: WABotMetadata.BotMetadata.progressIndicatorMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata
-	30, // 42: WABotMetadata.BotMetadata.capabilityMetadata:type_name -> WABotMetadata.BotCapabilityMetadata
-	33, // 43: WABotMetadata.BotMetadata.imagineMetadata:type_name -> WABotMetadata.BotImagineMetadata
-	41, // 44: WABotMetadata.BotMetadata.memoryMetadata:type_name -> WABotMetadata.BotMemoryMetadata
-	44, // 45: WABotMetadata.BotMetadata.renderingMetadata:type_name -> WABotMetadata.BotRenderingMetadata
-	45, // 46: WABotMetadata.BotMetadata.botMetricsMetadata:type_name -> WABotMetadata.BotMetricsMetadata
-	40, // 47: WABotMetadata.BotMetadata.botLinkedAccountsMetadata:type_name -> WABotMetadata.BotLinkedAccountsMetadata
-	34, // 48: WABotMetadata.BotMetadata.richResponseSourcesMetadata:type_name -> WABotMetadata.BotSourcesMetadata
-	25, // 49: WABotMetadata.BotMetadata.botPromotionMessageMetadata:type_name -> WABotMetadata.BotPromotionMessageMetadata
-	31, // 50: WABotMetadata.BotMetadata.botModeSelectionMetadata:type_name -> WABotMetadata.BotModeSelectionMetadata
-	32, // 51: WABotMetadata.BotMetadata.botQuotaMetadata:type_name -> WABotMetadata.BotQuotaMetadata
-	48, // 52: WABotMetadata.BotMetadata.botAgeCollectionMetadata:type_name -> WABotMetadata.BotAgeCollectionMetadata
-	43, // 53: WABotMetadata.BotMetadata.verificationMetadata:type_name -> WABotMetadata.BotSignatureVerificationMetadata
-	50, // 54: WABotMetadata.BotMetadata.unifiedResponseMutation:type_name -> WABotMetadata.BotUnifiedResponseMutation
-	49, // 55: WABotMetadata.BotMetadata.botMessageOriginMetadata:type_name -> WABotMetadata.BotMessageOriginMetadata
-	53, // 56: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sourcesMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
-	14, // 57: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.status:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.PlanningStepStatus
-	54, // 58: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sections:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
-	15, // 59: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.provider:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.BotPlanningSearchSourceProvider
-	55, // 60: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata.sourcesMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
-	13, // 61: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata.provider:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotSearchSourceProvider
-	18, // 62: WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata.featureType:type_name -> WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata.BotFeatureType
-	20, // 63: WABotMetadata.BotSourcesMetadata.BotSourceItem.provider:type_name -> WABotMetadata.BotSourcesMetadata.BotSourceItem.SourceProvider
-	64, // [64:64] is the sub-list for method output_type
-	64, // [64:64] is the sub-list for method input_type
-	64, // [64:64] is the sub-list for extension type_name
-	64, // [64:64] is the sub-list for extension extendee
-	0,  // [0:64] is the sub-list for field type_name
+	62, // 21: WABotMetadata.AIThreadInfo.serverInfo:type_name -> WABotMetadata.AIThreadInfo.AIThreadServerInfo
+	61, // 22: WABotMetadata.AIThreadInfo.clientInfo:type_name -> WABotMetadata.AIThreadInfo.AIThreadClientInfo
+	40, // 23: WABotMetadata.BotSuggestedPromptMetadata.promptSuggestions:type_name -> WABotMetadata.BotPromptSuggestions
+	41, // 24: WABotMetadata.BotPromptSuggestions.suggestions:type_name -> WABotMetadata.BotPromptSuggestion
+	24, // 25: WABotMetadata.BotLinkedAccountsMetadata.accounts:type_name -> WABotMetadata.BotLinkedAccount
+	44, // 26: WABotMetadata.BotMemoryMetadata.addedFacts:type_name -> WABotMetadata.BotMemoryFact
+	44, // 27: WABotMetadata.BotMemoryMetadata.removedFacts:type_name -> WABotMetadata.BotMemoryFact
+	25, // 28: WABotMetadata.BotSignatureVerificationMetadata.proofs:type_name -> WABotMetadata.BotSignatureVerificationUseCaseProof
+	63, // 29: WABotMetadata.BotRenderingMetadata.keywords:type_name -> WABotMetadata.BotRenderingMetadata.Keyword
+	0,  // 30: WABotMetadata.BotMetricsMetadata.destinationEntryPoint:type_name -> WABotMetadata.BotMetricsEntryPoint
+	1,  // 31: WABotMetadata.BotMetricsMetadata.threadOrigin:type_name -> WABotMetadata.BotMetricsThreadEntryPoint
+	2,  // 32: WABotMetadata.BotSessionMetadata.sessionSource:type_name -> WABotMetadata.BotSessionSource
+	27, // 33: WABotMetadata.BotMemuMetadata.faceImages:type_name -> WABotMetadata.BotMediaMetadata
+	66, // 34: WABotMetadata.InThreadSurveyMetadata.questions:type_name -> WABotMetadata.InThreadSurveyMetadata.InThreadSurveyQuestion
+	64, // 35: WABotMetadata.InThreadSurveyMetadata.privacyStatementParts:type_name -> WABotMetadata.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPart
+	36, // 36: WABotMetadata.BotMessageOriginMetadata.origins:type_name -> WABotMetadata.BotMessageOrigin
+	68, // 37: WABotMetadata.BotUnifiedResponseMutation.sbsMetadata:type_name -> WABotMetadata.BotUnifiedResponseMutation.SideBySideMetadata
+	67, // 38: WABotMetadata.BotUnifiedResponseMutation.mediaDetailsMetadataList:type_name -> WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadata
+	38, // 39: WABotMetadata.BotMetadata.avatarMetadata:type_name -> WABotMetadata.BotAvatarMetadata
+	23, // 40: WABotMetadata.BotMetadata.pluginMetadata:type_name -> WABotMetadata.BotPluginMetadata
+	39, // 41: WABotMetadata.BotMetadata.suggestedPromptMetadata:type_name -> WABotMetadata.BotSuggestedPromptMetadata
+	48, // 42: WABotMetadata.BotMetadata.sessionMetadata:type_name -> WABotMetadata.BotSessionMetadata
+	49, // 43: WABotMetadata.BotMetadata.memuMetadata:type_name -> WABotMetadata.BotMemuMetadata
+	28, // 44: WABotMetadata.BotMetadata.reminderMetadata:type_name -> WABotMetadata.BotReminderMetadata
+	29, // 45: WABotMetadata.BotMetadata.modelMetadata:type_name -> WABotMetadata.BotModelMetadata
+	30, // 46: WABotMetadata.BotMetadata.progressIndicatorMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata
+	31, // 47: WABotMetadata.BotMetadata.capabilityMetadata:type_name -> WABotMetadata.BotCapabilityMetadata
+	34, // 48: WABotMetadata.BotMetadata.imagineMetadata:type_name -> WABotMetadata.BotImagineMetadata
+	43, // 49: WABotMetadata.BotMetadata.memoryMetadata:type_name -> WABotMetadata.BotMemoryMetadata
+	46, // 50: WABotMetadata.BotMetadata.renderingMetadata:type_name -> WABotMetadata.BotRenderingMetadata
+	47, // 51: WABotMetadata.BotMetadata.botMetricsMetadata:type_name -> WABotMetadata.BotMetricsMetadata
+	42, // 52: WABotMetadata.BotMetadata.botLinkedAccountsMetadata:type_name -> WABotMetadata.BotLinkedAccountsMetadata
+	35, // 53: WABotMetadata.BotMetadata.richResponseSourcesMetadata:type_name -> WABotMetadata.BotSourcesMetadata
+	26, // 54: WABotMetadata.BotMetadata.botPromotionMessageMetadata:type_name -> WABotMetadata.BotPromotionMessageMetadata
+	32, // 55: WABotMetadata.BotMetadata.botModeSelectionMetadata:type_name -> WABotMetadata.BotModeSelectionMetadata
+	33, // 56: WABotMetadata.BotMetadata.botQuotaMetadata:type_name -> WABotMetadata.BotQuotaMetadata
+	50, // 57: WABotMetadata.BotMetadata.botAgeCollectionMetadata:type_name -> WABotMetadata.BotAgeCollectionMetadata
+	45, // 58: WABotMetadata.BotMetadata.verificationMetadata:type_name -> WABotMetadata.BotSignatureVerificationMetadata
+	53, // 59: WABotMetadata.BotMetadata.unifiedResponseMutation:type_name -> WABotMetadata.BotUnifiedResponseMutation
+	52, // 60: WABotMetadata.BotMetadata.botMessageOriginMetadata:type_name -> WABotMetadata.BotMessageOriginMetadata
+	51, // 61: WABotMetadata.BotMetadata.inThreadSurveyMetadata:type_name -> WABotMetadata.InThreadSurveyMetadata
+	37, // 62: WABotMetadata.BotMetadata.botThreadInfo:type_name -> WABotMetadata.AIThreadInfo
+	56, // 63: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sourcesMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
+	14, // 64: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.status:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.PlanningStepStatus
+	57, // 65: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sections:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
+	15, // 66: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.provider:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.BotPlanningSearchSourceProvider
+	58, // 67: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata.sourcesMetadata:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
+	13, // 68: WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata.provider:type_name -> WABotMetadata.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotSearchSourceProvider
+	18, // 69: WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata.featureType:type_name -> WABotMetadata.BotQuotaMetadata.BotFeatureQuotaMetadata.BotFeatureType
+	20, // 70: WABotMetadata.BotSourcesMetadata.BotSourceItem.provider:type_name -> WABotMetadata.BotSourcesMetadata.BotSourceItem.SourceProvider
+	22, // 71: WABotMetadata.AIThreadInfo.AIThreadClientInfo.type:type_name -> WABotMetadata.AIThreadInfo.AIThreadClientInfo.AIThreadType
+	65, // 72: WABotMetadata.InThreadSurveyMetadata.InThreadSurveyQuestion.questionOptions:type_name -> WABotMetadata.InThreadSurveyMetadata.InThreadSurveyOption
+	27, // 73: WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadata.highResMedia:type_name -> WABotMetadata.BotMediaMetadata
+	27, // 74: WABotMetadata.BotUnifiedResponseMutation.MediaDetailsMetadata.previewMedia:type_name -> WABotMetadata.BotMediaMetadata
+	75, // [75:75] is the sub-list for method output_type
+	75, // [75:75] is the sub-list for method input_type
+	75, // [75:75] is the sub-list for extension type_name
+	75, // [75:75] is the sub-list for extension extendee
+	0,  // [0:75] is the sub-list for field type_name
 }
 
 func init() { file_waBotMetadata_WABotMetadata_proto_init() }
@@ -4499,8 +5236,8 @@ func file_waBotMetadata_WABotMetadata_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waBotMetadata_WABotMetadata_proto_rawDesc), len(file_waBotMetadata_WABotMetadata_proto_rawDesc)),
-			NumEnums:      22,
-			NumMessages:   38,
+			NumEnums:      23,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
