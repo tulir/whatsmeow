@@ -11,6 +11,7 @@ message StatusAttribution {
 		STATUS_MENTION = 4;
 		GROUP_STATUS = 5;
 		RL_ATTRIBUTION = 6;
+		AI_CREATED = 7;
 	}
 
 	message RLAttribution {
@@ -18,6 +19,7 @@ message StatusAttribution {
 			UNKNOWN = 0;
 			RAY_BAN_META_GLASSES = 1;
 			OAKLEY_META_GLASSES = 2;
+			HYPERNOVA_GLASSES = 3;
 		}
 
 		optional Source source = 1;
@@ -32,6 +34,7 @@ message StatusAttribution {
 			SPOTIFY = 4;
 			YOUTUBE = 5;
 			PINTEREST = 6;
+			THREADS = 7;
 		}
 
 		optional string actionURL = 1;

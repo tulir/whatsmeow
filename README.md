@@ -15,3 +15,10 @@ This fork has been modified to suit the needs of the **PakaiWA** project, includ
 
 All changes in this repository are **not officially** supported or maintained by the original developers.
 Please note that the behavior or API may differ from the upstream repository.
+
+
+### Generating protobuf files
+
+```bash
+cd proto && find . -name "*.proto" -print0 | xargs -0 protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:.
+```

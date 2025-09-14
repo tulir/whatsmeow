@@ -267,7 +267,25 @@ message SyncActionValue {
 	optional PrivacySettingChannelsPersonalisedRecommendationAction privacySettingChannelsPersonalisedRecommendationAction = 64;
 	optional BusinessBroadcastAssociationAction businessBroadcastAssociationAction = 65;
 	optional DetectedOutcomesStatusAction detectedOutcomesStatusAction = 66;
-	optional MaibaAIFeaturesControlAction maibaAiFeaturesControlAction = 67;
+	optional MaibaAIFeaturesControlAction maibaAiFeaturesControlAction = 68;
+	optional BusinessBroadcastListAction businessBroadcastListAction = 69;
+	optional MusicUserIdAction musicUserIDAction = 70;
+	optional StatusPostOptInNotificationPreferencesAction statusPostOptInNotificationPreferencesAction = 71;
+}
+
+message StatusPostOptInNotificationPreferencesAction {
+	optional bool enabled = 1;
+}
+
+message BroadcastListParticipant {
+	required string lidJID = 1;
+	optional string pnJID = 2;
+}
+
+message BusinessBroadcastListAction {
+	optional bool deleted = 1;
+	repeated BroadcastListParticipant participants = 2;
+	optional string listName = 3;
 }
 
 message BusinessBroadcastAssociationAction {
@@ -342,6 +360,10 @@ message BotWelcomeRequestAction {
 	optional bool isSent = 1;
 }
 
+message MusicUserIdAction {
+	optional string musicUserID = 1;
+}
+
 message CallLogAction {
 	optional CallLogRecord callLogRecord = 1;
 }
@@ -386,6 +408,8 @@ message StickerAction {
 	optional bool isFavorite = 9;
 	optional uint32 deviceIDHint = 10;
 	optional bool isLottie = 11;
+	optional string imageHash = 12;
+	optional bool isAvatarSticker = 13;
 }
 
 message RemoveRecentStickerAction {

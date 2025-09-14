@@ -39,6 +39,11 @@ type ReqCreateGroup struct {
 	// A create key can be provided to deduplicate the group create notification that will be triggered
 	// when the group is created. If provided, the JoinedGroup event will contain the same key.
 	CreateKey types.MessageID
+
+	types.GroupEphemeral
+	types.GroupAnnounce
+	types.GroupLocked
+	types.GroupMembershipApprovalMode
 	// Set IsParent to true to create a community instead of a normal group.
 	// When creating a community, the linked announcement group will be created automatically by the server.
 	types.GroupParent
@@ -49,12 +54,21 @@ type ReqCreateGroup struct {
 // CreateGroup creates a group on WhatsApp with the given name and participants.
 //
 // See ReqCreateGroup for parameters.
-func (cli *Client) CreateGroup(req ReqCreateGroup) (*types.GroupInfo, error) {
+func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.GroupInfo, error) {
 	participantNodes := make([]waBinary.Node, len(req.Participants), len(req.Participants)+1)
 	for i, participant := range req.Participants {
 		participantNodes[i] = waBinary.Node{
 			Tag:   "participant",
 			Attrs: waBinary.Attrs{"jid": participant},
+		}
+		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participant)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participant, err)
+		} else if pt != nil {
+			participantNodes[i].Content = []waBinary.Node{{
+				Tag:     "privacy",
+				Content: pt.Token,
+			}}
 		}
 	}
 	if req.CreateKey == "" {
@@ -76,9 +90,33 @@ func (cli *Client) CreateGroup(req ReqCreateGroup) (*types.GroupInfo, error) {
 			Attrs: waBinary.Attrs{"jid": req.LinkedParentJID},
 		})
 	}
+	if req.IsLocked {
+		participantNodes = append(participantNodes, waBinary.Node{Tag: "locked"})
+	}
+	if req.IsAnnounce {
+		participantNodes = append(participantNodes, waBinary.Node{Tag: "announcement"})
+	}
+	if req.IsEphemeral {
+		participantNodes = append(participantNodes, waBinary.Node{
+			Tag: "ephemeral",
+			Attrs: waBinary.Attrs{
+				"expiration": req.DisappearingTimer,
+				"trigger":    "1", // TODO what's this?
+			},
+		})
+	}
+	if req.IsJoinApprovalRequired {
+		participantNodes = append(participantNodes, waBinary.Node{
+			Tag: "membership_approval_mode",
+			Content: []waBinary.Node{{
+				Tag:   "group_join",
+				Attrs: waBinary.Attrs{"state": "on"},
+			}},
+		})
+	}
 	// WhatsApp web doesn't seem to include the static prefix for these
 	key := strings.TrimPrefix(req.CreateKey, "3EB0")
-	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, types.GroupServerJID, waBinary.Node{
+	resp, err := cli.sendGroupIQ(ctx, iqSet, types.GroupServerJID, waBinary.Node{
 		Tag: "create",
 		Attrs: waBinary.Attrs{
 			"subject": req.Name,
