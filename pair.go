@@ -134,9 +134,14 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 		return &PairProtoError{"failed to parse signed device identity in pair success message", err}
 	}
 
-	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount) {
-		cli.sendPairError(reqID, 401, "signature-mismatch")
-		return ErrPairInvalidDeviceSignature
+	// Skip signature verification for coexistent WhatsApp (HOSTED + platform="smba")
+	if isHostedAccount && strings.ToLower(platform) == "smba" {
+		// Coexistent WhatsApp detected - bypass signature verification
+	} else {
+		if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount) {
+			cli.sendPairError(reqID, 401, "signature-mismatch")
+			return ErrPairInvalidDeviceSignature
+		}
 	}
 
 	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount)[:]
