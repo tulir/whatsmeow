@@ -95,6 +95,29 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		}
 		if from.Server == types.BroadcastServer {
 			source.BroadcastListOwner = ag.OptionalJIDOrEmpty("recipient")
+			participants, ok := node.GetOptionalChildByTag("participants")
+			if ok && source.IsFromMe {
+				children := participants.GetChildren()
+				source.BroadcastRecipients = make([]types.BroadcastRecipient, 0, len(children))
+				for _, child := range children {
+					if child.Tag != "to" {
+						continue
+					}
+					cag := child.AttrGetter()
+					mainJID := cag.JID("jid")
+					if mainJID.Server == types.HiddenUserServer {
+						source.BroadcastRecipients = append(source.BroadcastRecipients, types.BroadcastRecipient{
+							LID: mainJID,
+							PN:  cag.OptionalJIDOrEmpty("peer_recipient_pn"),
+						})
+					} else {
+						source.BroadcastRecipients = append(source.BroadcastRecipients, types.BroadcastRecipient{
+							LID: cag.OptionalJIDOrEmpty("peer_recipient_lid"),
+							PN:  mainJID,
+						})
+					}
+				}
+			}
 		}
 	} else if from.Server == types.NewsletterServer {
 		source.Chat = from

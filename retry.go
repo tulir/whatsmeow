@@ -157,8 +157,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 		signalSKDMessage, err := builder.Create(ctx, senderKeyName)
 		if err != nil {
 			cli.Log.Warnf("Failed to create sender key distribution message to include in retry of %s in %s to %s: %v", messageID, receipt.Chat, receipt.Sender, err)
-		}
-		if msg.wa != nil {
+		} else if msg.wa != nil {
 			msg.wa.SenderKeyDistributionMessage = &waE2E.SenderKeyDistributionMessage{
 				GroupID:                             proto.String(receipt.Chat.String()),
 				AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),

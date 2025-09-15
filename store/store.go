@@ -82,11 +82,25 @@ type ContactEntry struct {
 	FullName  string
 }
 
+func (ce ContactEntry) GetMassInsertValues() [3]any {
+	return [...]any{ce.JID.String(), ce.FirstName, ce.FullName}
+}
+
+type RedactedPhoneEntry struct {
+	JID           types.JID
+	RedactedPhone string
+}
+
+func (rpe RedactedPhoneEntry) GetMassInsertValues() [2]any {
+	return [...]any{rpe.JID.String(), rpe.RedactedPhone}
+}
+
 type ContactStore interface {
 	PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error)
 	PutBusinessName(ctx context.Context, user types.JID, businessName string) (bool, string, error)
 	PutContactName(ctx context.Context, user types.JID, fullName, firstName string) error
 	PutAllContactNames(ctx context.Context, contacts []ContactEntry) error
+	PutManyRedactedPhones(ctx context.Context, entries []RedactedPhoneEntry) error
 	GetContact(ctx context.Context, user types.JID) (types.ContactInfo, error)
 	GetAllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error)
 }
@@ -146,6 +160,10 @@ type EventBuffer interface {
 type LIDMapping struct {
 	LID types.JID
 	PN  types.JID
+}
+
+func (lm LIDMapping) GetMassInsertValues() [2]any {
+	return [...]any{lm.LID.User, lm.PN.User}
 }
 
 type LIDStore interface {
