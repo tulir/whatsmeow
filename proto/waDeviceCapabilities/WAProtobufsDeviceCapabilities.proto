@@ -9,10 +9,15 @@ message DeviceCapabilities {
 		FULL = 2;
 	}
 
+	message BusinessBroadcast {
+		optional bool importListEnabled = 1;
+	}
+
 	message LIDMigration {
 		optional uint64 chatDbMigrationTimestamp = 1;
 	}
 
 	optional ChatLockSupportLevel chatLockSupportLevel = 1;
 	optional LIDMigration lidMigration = 2;
+	optional BusinessBroadcast businessBroadcast = 3;
 }
