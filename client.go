@@ -183,6 +183,14 @@ type Client struct {
 	// The library is currently embedded in mautrix-meta (https://github.com/mautrix/meta), but may be separated later.
 	MessengerConfig *MessengerConfig
 	RefreshCAT      func(context.Context) error
+
+	// EncryptConcurrency controls how many goroutines are used when encrypting a
+	// message fan-out to multiple devices (e.g. large groups). If zero or
+	// negative, the library will pick a value automatically (runtime.NumCPU()).
+	// A value of 1 disables parallelization and preserves the previous
+	// sequential behavior. Small groups automatically fall back to sequential
+	// processing for lower overhead.
+	EncryptConcurrency int
 }
 
 type groupMetaCache struct {
