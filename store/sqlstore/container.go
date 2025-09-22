@@ -277,6 +277,7 @@ func (c *Container) initializeDevice(device *store.Device) {
 	device.PrivacyTokens = innerStore
 	device.EventBuffer = innerStore
 	device.LIDs = c.LIDMap
+	device.Cache = innerStore
 	device.Container = c
 	device.Initialized = true
 }
