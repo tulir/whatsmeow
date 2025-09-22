@@ -135,8 +135,14 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 	}
 
 	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount) {
-		cli.sendPairError(reqID, 401, "signature-mismatch")
-		return ErrPairInvalidDeviceSignature
+		// Fallback: try with opposite account type if initial validation fails
+		// This handles edge cases where account type detection may be inconsistent
+		// Supports coexisting WhatsApp account types (regular, business, hosted)
+		if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey, !isHostedAccount) {
+			cli.sendPairError(reqID, 401, "signature-mismatch")
+			return ErrPairInvalidDeviceSignature
+		}
+		isHostedAccount = !isHostedAccount
 	}
 
 	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount)[:]
