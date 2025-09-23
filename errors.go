@@ -145,6 +145,7 @@ var (
 	ErrOriginalMessageSecretNotFound = errors.New("original message secret key not found")
 	ErrNotEncryptedReactionMessage   = errors.New("given message isn't an encrypted reaction message")
 	ErrNotEncryptedCommentMessage    = errors.New("given message isn't an encrypted comment message")
+	ErrNotSecretEncryptedMessage     = errors.New("given message isn't a secret encrypted message")
 	ErrNotPollUpdateMessage          = errors.New("given message isn't a poll update message")
 )
 
