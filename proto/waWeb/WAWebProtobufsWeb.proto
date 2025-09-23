@@ -307,6 +307,8 @@ message WebMessageInfo {
 	repeated string statusMentionSources = 71;
 	repeated Citation supportAiCitations = 72;
 	optional string botTargetID = 73;
+	optional GroupHistoryIndividualMessageInfo groupHistoryIndividualMessageInfo = 74;
+	optional GroupHistoryBundleMessage groupHistoryBundleMessage = 75;
 }
 
 message PaymentInfo {
@@ -468,6 +470,17 @@ message MessageAddOn {
 	optional LegacyMessage legacyMessage = 8;
 }
 
+message GroupHistoryBundleMessage {
+	enum ProcessState {
+		NOT_DOWNLOADED = 0;
+		DOWNLOADED = 1;
+		DOWNLOAD_FAILED = 2;
+	}
+
+	optional WAWebProtobufsE2E.MessageHistoryBundle messageHistoryBundle = 1;
+	optional ProcessState processState = 2;
+}
+
 message CommentMetadata {
 	optional WACommon.MessageKey commentParentKey = 1;
 	optional uint32 replyCount = 2;
@@ -578,4 +591,8 @@ message Citation {
 	required string subtitle = 2;
 	required string cmsID = 3;
 	required string imageURL = 4;
+}
+
+message GroupHistoryIndividualMessageInfo {
+	optional WACommon.MessageKey bundleMessageKey = 1;
 }
