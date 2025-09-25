@@ -38,7 +38,7 @@ func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.Mes
 			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, info.Sender, skdm.AxolotlSenderKeyDistributionMessage)
 		}
 	}
-	if dec.Message != nil {
+	if dec.Message != nil || dec.FBApplication != nil {
 		handlerFailed = cli.dispatchEvent(&dec)
 	}
 	handled = true
@@ -67,7 +67,8 @@ func decodeArmadillo(data []byte) (dec events.FBMessage, err error) {
 }
 
 func decodeFBArmadillo(transport *waMsgTransport.MessageTransport) (dec events.FBMessage, err error) {
-	application, err := transport.GetPayload().DecodeFB()
+	var application *waMsgApplication.MessageApplication
+	application, err = transport.GetPayload().DecodeFB()
 	if err != nil {
 		return dec, fmt.Errorf("failed to unmarshal application: %w", err)
 	}

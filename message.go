@@ -95,6 +95,29 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		}
 		if from.Server == types.BroadcastServer {
 			source.BroadcastListOwner = ag.OptionalJIDOrEmpty("recipient")
+			participants, ok := node.GetOptionalChildByTag("participants")
+			if ok && source.IsFromMe {
+				children := participants.GetChildren()
+				source.BroadcastRecipients = make([]types.BroadcastRecipient, 0, len(children))
+				for _, child := range children {
+					if child.Tag != "to" {
+						continue
+					}
+					cag := child.AttrGetter()
+					mainJID := cag.JID("jid")
+					if mainJID.Server == types.HiddenUserServer {
+						source.BroadcastRecipients = append(source.BroadcastRecipients, types.BroadcastRecipient{
+							LID: mainJID,
+							PN:  cag.OptionalJIDOrEmpty("peer_recipient_pn"),
+						})
+					} else {
+						source.BroadcastRecipients = append(source.BroadcastRecipients, types.BroadcastRecipient{
+							LID: cag.OptionalJIDOrEmpty("peer_recipient_lid"),
+							PN:  mainJID,
+						})
+					}
+				}
+			}
 		}
 	} else if from.Server == types.NewsletterServer {
 		source.Chat = from
@@ -346,7 +369,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 
 		if errors.Is(err, EventAlreadyProcessed) {
 			cli.Log.Debugf("Ignoring message %s from %s: %v", info.ID, info.SourceString(), err)
-			return
+			continue
 		} else if err != nil {
 			cli.Log.Warnf("Error decrypting message %s from %s: %v", info.ID, info.SourceString(), err)
 			if ctx.Err() != nil || errors.Is(err, context.Canceled) {
@@ -388,17 +411,20 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		}
 		if handlerFailed {
 			cli.Log.Warnf("Handler for %s failed", info.ID)
+			return
 		}
-		if ciphertextHash != nil && cli.EnableDecryptedEventBuffer && !handlerFailed {
+		if ciphertextHash != nil && cli.EnableDecryptedEventBuffer {
 			// Use the context passed to decryptMessages
 			err = cli.Store.EventBuffer.ClearBufferedEventPlaintext(ctx, *ciphertextHash)
 			if err != nil {
 				zerolog.Ctx(ctx).Err(err).
 					Hex("ciphertext_hash", ciphertextHash[:]).
+					Str("message_id", info.ID).
 					Msg("Failed to clear buffered event plaintext")
 			} else {
 				zerolog.Ctx(ctx).Debug().
 					Hex("ciphertext_hash", ciphertextHash[:]).
+					Str("message_id", info.ID).
 					Msg("Deleted event plaintext from buffer")
 			}
 
@@ -413,7 +439,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			}
 		}
 	}
-	if handled && !handlerFailed {
+	if handled {
 		go cli.sendMessageReceipt(info)
 	}
 	return

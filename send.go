@@ -579,13 +579,17 @@ func ParseDisappearingTimerString(val string) (time.Duration, bool) {
 // and in groups the server will just reject the change. You can use the DisappearingTimer<Duration> constants for convenience.
 //
 // In groups, the server will echo the change as a notification, so it'll show up as a *events.GroupInfo update.
-func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (err error) {
+func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration, settingTS time.Time) (err error) {
 	switch chat.Server {
 	case types.DefaultUserServer, types.HiddenUserServer:
+		if settingTS.IsZero() {
+			settingTS = time.Now()
+		}
 		_, err = cli.SendMessage(context.TODO(), chat, &waE2E.Message{
 			ProtocolMessage: &waE2E.ProtocolMessage{
-				Type:                waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
-				EphemeralExpiration: proto.Uint32(uint32(timer.Seconds())),
+				Type:                      waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
+				EphemeralExpiration:       proto.Uint32(uint32(timer.Seconds())),
+				EphemeralSettingTimestamp: proto.Int64(settingTS.Unix()),
 			},
 		})
 	case types.GroupServer:

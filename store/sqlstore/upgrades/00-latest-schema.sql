@@ -1,4 +1,4 @@
--- v0 -> v10 (compatible with v8+): Latest schema
+-- v0 -> v11 (compatible with v8+): Latest schema
 CREATE TABLE whatsmeow_device (
 	jid TEXT PRIMARY KEY,
 	lid TEXT,
@@ -98,12 +98,13 @@ CREATE TABLE whatsmeow_app_state_mutation_macs (
 );
 
 CREATE TABLE whatsmeow_contacts (
-	our_jid       TEXT,
-	their_jid     TEXT,
-	first_name    TEXT,
-	full_name     TEXT,
-	push_name     TEXT,
-	business_name TEXT,
+	our_jid        TEXT,
+	their_jid      TEXT,
+	first_name     TEXT,
+	full_name      TEXT,
+	push_name      TEXT,
+	business_name  TEXT,
+	redacted_phone TEXT,
 
 	PRIMARY KEY (our_jid, their_jid),
 	FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE

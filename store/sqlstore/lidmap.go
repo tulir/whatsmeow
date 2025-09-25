@@ -17,6 +17,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/dbutil"
+	"go.mau.fi/util/exslices"
 
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -154,6 +155,7 @@ func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.
 		}
 		return false
 	})
+	mappings = exslices.DeduplicateUnsortedOverwrite(mappings)
 	if len(mappings) == 0 {
 		return nil
 	}
