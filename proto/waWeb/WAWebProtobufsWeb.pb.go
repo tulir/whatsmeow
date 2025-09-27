@@ -1339,62 +1339,62 @@ func (MessageAddOn_MessageAddOnType) EnumDescriptor() ([]byte, []int) {
 	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{4, 0}
 }
 
-type GroupHistoryBundleMessage_ProcessState int32
+type GroupHistoryBundleInfo_ProcessState int32
 
 const (
-	GroupHistoryBundleMessage_NOT_DOWNLOADED  GroupHistoryBundleMessage_ProcessState = 0
-	GroupHistoryBundleMessage_DOWNLOADED      GroupHistoryBundleMessage_ProcessState = 1
-	GroupHistoryBundleMessage_DOWNLOAD_FAILED GroupHistoryBundleMessage_ProcessState = 2
+	GroupHistoryBundleInfo_NOT_DOWNLOADED  GroupHistoryBundleInfo_ProcessState = 0
+	GroupHistoryBundleInfo_DOWNLOADED      GroupHistoryBundleInfo_ProcessState = 1
+	GroupHistoryBundleInfo_DOWNLOAD_FAILED GroupHistoryBundleInfo_ProcessState = 2
 )
 
-// Enum value maps for GroupHistoryBundleMessage_ProcessState.
+// Enum value maps for GroupHistoryBundleInfo_ProcessState.
 var (
-	GroupHistoryBundleMessage_ProcessState_name = map[int32]string{
+	GroupHistoryBundleInfo_ProcessState_name = map[int32]string{
 		0: "NOT_DOWNLOADED",
 		1: "DOWNLOADED",
 		2: "DOWNLOAD_FAILED",
 	}
-	GroupHistoryBundleMessage_ProcessState_value = map[string]int32{
+	GroupHistoryBundleInfo_ProcessState_value = map[string]int32{
 		"NOT_DOWNLOADED":  0,
 		"DOWNLOADED":      1,
 		"DOWNLOAD_FAILED": 2,
 	}
 )
 
-func (x GroupHistoryBundleMessage_ProcessState) Enum() *GroupHistoryBundleMessage_ProcessState {
-	p := new(GroupHistoryBundleMessage_ProcessState)
+func (x GroupHistoryBundleInfo_ProcessState) Enum() *GroupHistoryBundleInfo_ProcessState {
+	p := new(GroupHistoryBundleInfo_ProcessState)
 	*p = x
 	return p
 }
 
-func (x GroupHistoryBundleMessage_ProcessState) String() string {
+func (x GroupHistoryBundleInfo_ProcessState) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (GroupHistoryBundleMessage_ProcessState) Descriptor() protoreflect.EnumDescriptor {
+func (GroupHistoryBundleInfo_ProcessState) Descriptor() protoreflect.EnumDescriptor {
 	return file_waWeb_WAWebProtobufsWeb_proto_enumTypes[9].Descriptor()
 }
 
-func (GroupHistoryBundleMessage_ProcessState) Type() protoreflect.EnumType {
+func (GroupHistoryBundleInfo_ProcessState) Type() protoreflect.EnumType {
 	return &file_waWeb_WAWebProtobufsWeb_proto_enumTypes[9]
 }
 
-func (x GroupHistoryBundleMessage_ProcessState) Number() protoreflect.EnumNumber {
+func (x GroupHistoryBundleInfo_ProcessState) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
 // Deprecated: Do not use.
-func (x *GroupHistoryBundleMessage_ProcessState) UnmarshalJSON(b []byte) error {
+func (x *GroupHistoryBundleInfo_ProcessState) UnmarshalJSON(b []byte) error {
 	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
 	if err != nil {
 		return err
 	}
-	*x = GroupHistoryBundleMessage_ProcessState(num)
+	*x = GroupHistoryBundleInfo_ProcessState(num)
 	return nil
 }
 
-// Deprecated: Use GroupHistoryBundleMessage_ProcessState.Descriptor instead.
-func (GroupHistoryBundleMessage_ProcessState) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use GroupHistoryBundleInfo_ProcessState.Descriptor instead.
+func (GroupHistoryBundleInfo_ProcessState) EnumDescriptor() ([]byte, []int) {
 	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{5, 0}
 }
 
@@ -1463,7 +1463,7 @@ type WebMessageInfo struct {
 	SupportAiCitations                []*Citation                        `protobuf:"bytes,72,rep,name=supportAiCitations" json:"supportAiCitations,omitempty"`
 	BotTargetID                       *string                            `protobuf:"bytes,73,opt,name=botTargetID" json:"botTargetID,omitempty"`
 	GroupHistoryIndividualMessageInfo *GroupHistoryIndividualMessageInfo `protobuf:"bytes,74,opt,name=groupHistoryIndividualMessageInfo" json:"groupHistoryIndividualMessageInfo,omitempty"`
-	GroupHistoryBundleMessage         *GroupHistoryBundleMessage         `protobuf:"bytes,75,opt,name=groupHistoryBundleMessage" json:"groupHistoryBundleMessage,omitempty"`
+	GroupHistoryBundleInfo            *GroupHistoryBundleInfo            `protobuf:"bytes,75,opt,name=groupHistoryBundleInfo" json:"groupHistoryBundleInfo,omitempty"`
 	unknownFields                     protoimpl.UnknownFields
 	sizeCache                         protoimpl.SizeCache
 }
@@ -1939,9 +1939,9 @@ func (x *WebMessageInfo) GetGroupHistoryIndividualMessageInfo() *GroupHistoryInd
 	return nil
 }
 
-func (x *WebMessageInfo) GetGroupHistoryBundleMessage() *GroupHistoryBundleMessage {
+func (x *WebMessageInfo) GetGroupHistoryBundleInfo() *GroupHistoryBundleInfo {
 	if x != nil {
-		return x.GroupHistoryBundleMessage
+		return x.GroupHistoryBundleInfo
 	}
 	return nil
 }
@@ -2658,28 +2658,28 @@ func (x *MessageAddOn) GetLegacyMessage() *LegacyMessage {
 	return nil
 }
 
-type GroupHistoryBundleMessage struct {
-	state                protoimpl.MessageState                  `protogen:"open.v1"`
-	MessageHistoryBundle *waE2E.MessageHistoryBundle             `protobuf:"bytes,1,opt,name=messageHistoryBundle" json:"messageHistoryBundle,omitempty"`
-	ProcessState         *GroupHistoryBundleMessage_ProcessState `protobuf:"varint,2,opt,name=processState,enum=WAWebProtobufsWeb.GroupHistoryBundleMessage_ProcessState" json:"processState,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+type GroupHistoryBundleInfo struct {
+	state                          protoimpl.MessageState               `protogen:"open.v1"`
+	DeprecatedMessageHistoryBundle *waE2E.MessageHistoryBundle          `protobuf:"bytes,1,opt,name=deprecatedMessageHistoryBundle" json:"deprecatedMessageHistoryBundle,omitempty"`
+	ProcessState                   *GroupHistoryBundleInfo_ProcessState `protobuf:"varint,2,opt,name=processState,enum=WAWebProtobufsWeb.GroupHistoryBundleInfo_ProcessState" json:"processState,omitempty"`
+	unknownFields                  protoimpl.UnknownFields
+	sizeCache                      protoimpl.SizeCache
 }
 
-func (x *GroupHistoryBundleMessage) Reset() {
-	*x = GroupHistoryBundleMessage{}
+func (x *GroupHistoryBundleInfo) Reset() {
+	*x = GroupHistoryBundleInfo{}
 	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GroupHistoryBundleMessage) String() string {
+func (x *GroupHistoryBundleInfo) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GroupHistoryBundleMessage) ProtoMessage() {}
+func (*GroupHistoryBundleInfo) ProtoMessage() {}
 
-func (x *GroupHistoryBundleMessage) ProtoReflect() protoreflect.Message {
+func (x *GroupHistoryBundleInfo) ProtoReflect() protoreflect.Message {
 	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2691,23 +2691,23 @@ func (x *GroupHistoryBundleMessage) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GroupHistoryBundleMessage.ProtoReflect.Descriptor instead.
-func (*GroupHistoryBundleMessage) Descriptor() ([]byte, []int) {
+// Deprecated: Use GroupHistoryBundleInfo.ProtoReflect.Descriptor instead.
+func (*GroupHistoryBundleInfo) Descriptor() ([]byte, []int) {
 	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GroupHistoryBundleMessage) GetMessageHistoryBundle() *waE2E.MessageHistoryBundle {
+func (x *GroupHistoryBundleInfo) GetDeprecatedMessageHistoryBundle() *waE2E.MessageHistoryBundle {
 	if x != nil {
-		return x.MessageHistoryBundle
+		return x.DeprecatedMessageHistoryBundle
 	}
 	return nil
 }
 
-func (x *GroupHistoryBundleMessage) GetProcessState() GroupHistoryBundleMessage_ProcessState {
+func (x *GroupHistoryBundleInfo) GetProcessState() GroupHistoryBundleInfo_ProcessState {
 	if x != nil && x.ProcessState != nil {
 		return *x.ProcessState
 	}
-	return GroupHistoryBundleMessage_NOT_DOWNLOADED
+	return GroupHistoryBundleInfo_NOT_DOWNLOADED
 }
 
 type CommentMetadata struct {
@@ -3882,7 +3882,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xebX\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xe2X\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -3950,8 +3950,8 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x14statusMentionSources\x18G \x03(\tR\x14statusMentionSources\x12K\n" +
 	"\x12supportAiCitations\x18H \x03(\v2\x1b.WAWebProtobufsWeb.CitationR\x12supportAiCitations\x12 \n" +
 	"\vbotTargetID\x18I \x01(\tR\vbotTargetID\x12\x82\x01\n" +
-	"!groupHistoryIndividualMessageInfo\x18J \x01(\v24.WAWebProtobufsWeb.GroupHistoryIndividualMessageInfoR!groupHistoryIndividualMessageInfo\x12j\n" +
-	"\x19groupHistoryBundleMessage\x18K \x01(\v2,.WAWebProtobufsWeb.GroupHistoryBundleMessageR\x19groupHistoryBundleMessage\"=\n" +
+	"!groupHistoryIndividualMessageInfo\x18J \x01(\v24.WAWebProtobufsWeb.GroupHistoryIndividualMessageInfoR!groupHistoryIndividualMessageInfo\x12a\n" +
+	"\x16groupHistoryBundleInfo\x18K \x01(\v2).WAWebProtobufsWeb.GroupHistoryBundleInfoR\x16groupHistoryBundleInfo\"=\n" +
 	"\x10BizPrivacyStatus\x12\b\n" +
 	"\x04E2EE\x10\x00\x12\x06\n" +
 	"\x02FB\x10\x02\x12\a\n" +
@@ -4345,10 +4345,10 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\bREACTION\x10\x01\x12\x12\n" +
 	"\x0eEVENT_RESPONSE\x10\x02\x12\x0f\n" +
 	"\vPOLL_UPDATE\x10\x03\x12\x0f\n" +
-	"\vPIN_IN_CHAT\x10\x04\"\xa0\x02\n" +
-	"\x19GroupHistoryBundleMessage\x12[\n" +
-	"\x14messageHistoryBundle\x18\x01 \x01(\v2'.WAWebProtobufsE2E.MessageHistoryBundleR\x14messageHistoryBundle\x12]\n" +
-	"\fprocessState\x18\x02 \x01(\x0e29.WAWebProtobufsWeb.GroupHistoryBundleMessage.ProcessStateR\fprocessState\"G\n" +
+	"\vPIN_IN_CHAT\x10\x04\"\xae\x02\n" +
+	"\x16GroupHistoryBundleInfo\x12o\n" +
+	"\x1edeprecatedMessageHistoryBundle\x18\x01 \x01(\v2'.WAWebProtobufsE2E.MessageHistoryBundleR\x1edeprecatedMessageHistoryBundle\x12Z\n" +
+	"\fprocessState\x18\x02 \x01(\x0e26.WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessStateR\fprocessState\"G\n" +
 	"\fProcessState\x12\x12\n" +
 	"\x0eNOT_DOWNLOADED\x10\x00\x12\x0e\n" +
 	"\n" +
@@ -4463,13 +4463,13 @@ var file_waWeb_WAWebProtobufsWeb_proto_goTypes = []any{
 	(WebFeatures_Flag)(0),                                // 6: WAWebProtobufsWeb.WebFeatures.Flag
 	(PinInChat_Type)(0),                                  // 7: WAWebProtobufsWeb.PinInChat.Type
 	(MessageAddOn_MessageAddOnType)(0),                   // 8: WAWebProtobufsWeb.MessageAddOn.MessageAddOnType
-	(GroupHistoryBundleMessage_ProcessState)(0),          // 9: WAWebProtobufsWeb.GroupHistoryBundleMessage.ProcessState
+	(GroupHistoryBundleInfo_ProcessState)(0),             // 9: WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
 	(*WebMessageInfo)(nil),                               // 10: WAWebProtobufsWeb.WebMessageInfo
 	(*PaymentInfo)(nil),                                  // 11: WAWebProtobufsWeb.PaymentInfo
 	(*WebFeatures)(nil),                                  // 12: WAWebProtobufsWeb.WebFeatures
 	(*PinInChat)(nil),                                    // 13: WAWebProtobufsWeb.PinInChat
 	(*MessageAddOn)(nil),                                 // 14: WAWebProtobufsWeb.MessageAddOn
-	(*GroupHistoryBundleMessage)(nil),                    // 15: WAWebProtobufsWeb.GroupHistoryBundleMessage
+	(*GroupHistoryBundleInfo)(nil),                       // 15: WAWebProtobufsWeb.GroupHistoryBundleInfo
 	(*CommentMetadata)(nil),                              // 16: WAWebProtobufsWeb.CommentMetadata
 	(*WebNotificationsInfo)(nil),                         // 17: WAWebProtobufsWeb.WebNotificationsInfo
 	(*NotificationMessageInfo)(nil),                      // 18: WAWebProtobufsWeb.NotificationMessageInfo
@@ -4529,7 +4529,7 @@ var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
 	33,  // 25: WAWebProtobufsWeb.WebMessageInfo.statusMentionMessageInfo:type_name -> WAWebProtobufsWeb.StatusMentionMessage
 	34,  // 26: WAWebProtobufsWeb.WebMessageInfo.supportAiCitations:type_name -> WAWebProtobufsWeb.Citation
 	35,  // 27: WAWebProtobufsWeb.WebMessageInfo.groupHistoryIndividualMessageInfo:type_name -> WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo
-	15,  // 28: WAWebProtobufsWeb.WebMessageInfo.groupHistoryBundleMessage:type_name -> WAWebProtobufsWeb.GroupHistoryBundleMessage
+	15,  // 28: WAWebProtobufsWeb.WebMessageInfo.groupHistoryBundleInfo:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo
 	5,   // 29: WAWebProtobufsWeb.PaymentInfo.currencyDeprecated:type_name -> WAWebProtobufsWeb.PaymentInfo.Currency
 	4,   // 30: WAWebProtobufsWeb.PaymentInfo.status:type_name -> WAWebProtobufsWeb.PaymentInfo.Status
 	36,  // 31: WAWebProtobufsWeb.PaymentInfo.requestMessageKey:type_name -> WACommon.MessageKey
@@ -4590,8 +4590,8 @@ var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
 	29,  // 86: WAWebProtobufsWeb.MessageAddOn.addOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
 	36,  // 87: WAWebProtobufsWeb.MessageAddOn.messageAddOnKey:type_name -> WACommon.MessageKey
 	32,  // 88: WAWebProtobufsWeb.MessageAddOn.legacyMessage:type_name -> WAWebProtobufsWeb.LegacyMessage
-	40,  // 89: WAWebProtobufsWeb.GroupHistoryBundleMessage.messageHistoryBundle:type_name -> WAWebProtobufsE2E.MessageHistoryBundle
-	9,   // 90: WAWebProtobufsWeb.GroupHistoryBundleMessage.processState:type_name -> WAWebProtobufsWeb.GroupHistoryBundleMessage.ProcessState
+	40,  // 89: WAWebProtobufsWeb.GroupHistoryBundleInfo.deprecatedMessageHistoryBundle:type_name -> WAWebProtobufsE2E.MessageHistoryBundle
+	9,   // 90: WAWebProtobufsWeb.GroupHistoryBundleInfo.processState:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
 	36,  // 91: WAWebProtobufsWeb.CommentMetadata.commentParentKey:type_name -> WACommon.MessageKey
 	10,  // 92: WAWebProtobufsWeb.WebNotificationsInfo.notifyMessages:type_name -> WAWebProtobufsWeb.WebMessageInfo
 	36,  // 93: WAWebProtobufsWeb.NotificationMessageInfo.key:type_name -> WACommon.MessageKey

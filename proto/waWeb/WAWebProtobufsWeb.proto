@@ -308,7 +308,7 @@ message WebMessageInfo {
 	repeated Citation supportAiCitations = 72;
 	optional string botTargetID = 73;
 	optional GroupHistoryIndividualMessageInfo groupHistoryIndividualMessageInfo = 74;
-	optional GroupHistoryBundleMessage groupHistoryBundleMessage = 75;
+	optional GroupHistoryBundleInfo groupHistoryBundleInfo = 75;
 }
 
 message PaymentInfo {
@@ -470,14 +470,14 @@ message MessageAddOn {
 	optional LegacyMessage legacyMessage = 8;
 }
 
-message GroupHistoryBundleMessage {
+message GroupHistoryBundleInfo {
 	enum ProcessState {
 		NOT_DOWNLOADED = 0;
 		DOWNLOADED = 1;
 		DOWNLOAD_FAILED = 2;
 	}
 
-	optional WAWebProtobufsE2E.MessageHistoryBundle messageHistoryBundle = 1;
+	optional WAWebProtobufsE2E.MessageHistoryBundle deprecatedMessageHistoryBundle = 1;
 	optional ProcessState processState = 2;
 }
 
