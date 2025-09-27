@@ -369,7 +369,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 
 		if errors.Is(err, EventAlreadyProcessed) {
 			cli.Log.Debugf("Ignoring message %s from %s: %v", info.ID, info.SourceString(), err)
-			return
+			continue
 		} else if err != nil {
 			cli.Log.Warnf("Error decrypting message %s from %s: %v", info.ID, info.SourceString(), err)
 			if ctx.Err() != nil || errors.Is(err, context.Canceled) {
@@ -411,17 +411,20 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		}
 		if handlerFailed {
 			cli.Log.Warnf("Handler for %s failed", info.ID)
+			return
 		}
-		if ciphertextHash != nil && cli.EnableDecryptedEventBuffer && !handlerFailed {
+		if ciphertextHash != nil && cli.EnableDecryptedEventBuffer {
 			// Use the context passed to decryptMessages
 			err = cli.Store.EventBuffer.ClearBufferedEventPlaintext(ctx, *ciphertextHash)
 			if err != nil {
 				zerolog.Ctx(ctx).Err(err).
 					Hex("ciphertext_hash", ciphertextHash[:]).
+					Str("message_id", info.ID).
 					Msg("Failed to clear buffered event plaintext")
 			} else {
 				zerolog.Ctx(ctx).Debug().
 					Hex("ciphertext_hash", ciphertextHash[:]).
+					Str("message_id", info.ID).
 					Msg("Deleted event plaintext from buffer")
 			}
 
@@ -436,7 +439,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			}
 		}
 	}
-	if handled && !handlerFailed {
+	if handled {
 		go cli.sendMessageReceipt(info)
 	}
 	return
