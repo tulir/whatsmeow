@@ -119,6 +119,12 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 	h := hmac.New(sha256.New, cli.Store.AdvSecretKey)
 	if isHostedAccount {
 		h.Write(AdvHostedAccountSignaturePrefix)
+
+		cli.Store.HostedID = types.NewJID(jid.User, types.HostedServer)
+		cli.Store.HostedID.Device = 99 // hosted ids come in the form of user:99@hosted
+		cli.Store.HostedLID = types.NewJID(lid.User, types.HostedLIDServer)
+		cli.Store.HostedID.Device = 99
+		cli.Store.IsHosted = true
 	}
 	h.Write(deviceIdentityContainer.Details)
 

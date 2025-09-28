@@ -205,10 +205,14 @@ type Device struct {
 	RegistrationID uint32
 	AdvSecretKey   []byte
 
-	ID           *types.JID
-	LID          types.JID
+	ID        *types.JID
+	LID       types.JID
+	HostedID  types.JID
+	HostedLID types.JID
+
 	Account      *waAdv.ADVSignedDeviceIdentity
 	Platform     string
+	IsHosted     bool
 	BusinessName string
 	PushName     string
 
