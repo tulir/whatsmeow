@@ -677,11 +677,22 @@ func parseDeviceList(user types.JID, deviceNode waBinary.Node) []types.JID {
 	devices := make([]types.JID, 0, len(children))
 	for _, device := range children {
 		deviceID, ok := device.AttrGetter().GetInt64("id", true)
+		isHosted := device.AttrGetter().Bool("is_hosted")
 		if device.Tag != "device" || !ok {
 			continue
 		}
 		user.Device = uint16(deviceID)
-		devices = append(devices, user)
+		if isHosted {
+			hostedUser := user // prevent mutation of the user variable
+			if user.Server == types.HiddenUserServer {
+				hostedUser.Server = types.HostedLIDServer
+			} else {
+				hostedUser.Server = types.HostedServer
+			}
+			devices = append(devices, hostedUser)
+		} else {
+			devices = append(devices, user)
+		}
 	}
 	return devices
 }
