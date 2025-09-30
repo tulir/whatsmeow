@@ -699,8 +699,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	group.OwnerJID = ag.OptionalJIDOrEmpty("creator")
 	group.OwnerPN = ag.OptionalJIDOrEmpty("creator_pn")
 
-	group.Name = ag.String("subject")
-	group.NameSetAt = ag.UnixTime("s_t")
+	group.Name = ag.OptionalString("subject")
+	group.NameSetAt = ag.OptionalUnixTime("s_t")
 	group.NameSetBy = ag.OptionalJIDOrEmpty("s_o")
 	group.NameSetByPN = ag.OptionalJIDOrEmpty("s_o_pn")
 
@@ -767,8 +767,8 @@ func parseGroupLinkTargetNode(groupNode *waBinary.Node) (types.GroupLinkTarget, 
 	return types.GroupLinkTarget{
 		JID: jidKey,
 		GroupName: types.GroupName{
-			Name:      ag.String("subject"),
-			NameSetAt: ag.UnixTime("s_t"),
+			Name:      ag.OptionalString("subject"),
+			NameSetAt: ag.OptionalUnixTime("s_t"),
 		},
 		GroupIsDefaultSub: types.GroupIsDefaultSub{
 			IsDefaultSubGroup: groupNode.GetChildByTag("default_sub_group").Tag == "default_sub_group",
