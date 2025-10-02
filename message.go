@@ -441,6 +441,8 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 	}
 	if handled {
 		go cli.sendMessageReceipt(info)
+		// cancel ack since we have a receipt
+		handlerFailed = true
 	}
 	return
 }
