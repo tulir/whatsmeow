@@ -120,8 +120,6 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 		h.Write(AdvHostedAccountSignaturePrefix)
 
 		cli.Store.IsHosted = true
-
-		cli.Store.Save(ctx)
 	}
 	h.Write(deviceIdentityContainer.Details)
 
