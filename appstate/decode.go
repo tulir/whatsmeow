@@ -166,6 +166,7 @@ func (proc *Processor) decodeMutations(ctx context.Context, mutations []*waServe
 		out.Mutations = append(out.Mutations, Mutation{
 			Operation: mutation.GetOperation(),
 			Action:    syncAction.GetValue(),
+			Version:   syncAction.GetVersion(),
 			Index:     index,
 			IndexMAC:  indexMAC,
 			ValueMAC:  valueMAC,
