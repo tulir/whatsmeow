@@ -134,7 +134,7 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 		return &PairProtoError{"failed to parse signed device identity in pair success message", err}
 	}
 
-	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount) {
+	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey) {
 		cli.sendPairError(reqID, 401, "signature-mismatch")
 		return ErrPairInvalidDeviceSignature
 	}
@@ -224,7 +224,7 @@ func concatBytes(data ...[]byte) []byte {
 	return output
 }
 
-func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair, isHostedAccount bool) bool {
+func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair) bool {
 	if len(deviceIdentity.AccountSignatureKey) != 32 || len(deviceIdentity.AccountSignature) != 64 {
 		return false
 	}
@@ -232,11 +232,7 @@ func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceI
 	signatureKey := ecc.NewDjbECPublicKey(*(*[32]byte)(deviceIdentity.AccountSignatureKey))
 	signature := *(*[64]byte)(deviceIdentity.AccountSignature)
 
-	prefix := AdvPrefixAccountSignature
-	if isHostedAccount {
-		prefix = AdvHostedPrefixDeviceIdentityAccountSignature
-	}
-	message := concatBytes(prefix, deviceIdentity.Details, ikp.Pub[:])
+	message := concatBytes(AdvPrefixAccountSignature, deviceIdentity.Details, ikp.Pub[:])
 	return ecc.VerifySignature(signatureKey, message, signature)
 }
 

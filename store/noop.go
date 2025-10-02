@@ -37,6 +37,7 @@ var NoopDevice = &Device{
 	MsgSecrets:    nilStore,
 	PrivacyTokens: nilStore,
 	EventBuffer:   nilStore,
+	LIDs:          nilStore,
 	Container:     nilStore,
 }
 
@@ -164,6 +165,10 @@ func (n *NoopStore) PutContactName(ctx context.Context, user types.JID, fullName
 }
 
 func (n *NoopStore) PutAllContactNames(ctx context.Context, contacts []ContactEntry) error {
+	return n.Error
+}
+
+func (n *NoopStore) PutManyRedactedPhones(ctx context.Context, entries []RedactedPhoneEntry) error {
 	return n.Error
 }
 

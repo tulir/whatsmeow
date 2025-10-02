@@ -56,6 +56,8 @@ type ProfilePictureInfo struct {
 	Type string `json:"type"` // The type of image. Known types include "image" (full res) and "preview" (thumbnail).
 
 	DirectPath string `json:"direct_path"` // The path to the image, probably not very useful
+
+	Hash []byte `json:"hash"` // Some kind of hash (format is unknown)
 }
 
 // ContactInfo contains the cached names of a WhatsApp user.
@@ -66,6 +68,8 @@ type ContactInfo struct {
 	FullName     string
 	PushName     string
 	BusinessName string
+	// Only for LID members encountered in groups, the phone number in the form "+1∙∙∙∙∙∙∙∙80"
+	RedactedPhone string
 }
 
 // LocalChatSettings contains the cached local settings for a chat.

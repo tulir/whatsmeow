@@ -18,6 +18,7 @@ message BackupMessage {
 		optional int32 payloadVersion = 5;
 		optional int32 futureProofBehavior = 6;
 		optional int32 threadTypeTag = 7;
+		optional int64 clientTimestampMS = 8;
 	}
 
 	oneof payload {

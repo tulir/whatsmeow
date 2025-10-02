@@ -65,6 +65,140 @@ message MiTransportAdminMessage {
 		optional Action action = 2;
 	}
 
+	message XmatUnpinMessageV2 {
+		optional string pinnedMessageID = 1;
+	}
+
+	message XmatPinMessageV2 {
+		optional string pinnedMessageID = 1;
+	}
+
+	message XmatUpdatePayments {
+		optional string receiverName = 1;
+		optional string senderName = 2;
+		optional float amount = 3;
+		optional int64 transactionID = 4;
+		optional int32 transactionStatus = 5;
+	}
+
+	message XmatThreadQuickReaction {
+		optional string threadQuickReactionEmoji = 1;
+		optional string threadQuickReactionInstructionKeyID = 2;
+	}
+
+	message XmatThreadNickname {
+		optional int64 participantID = 1;
+		optional string nickname = 2;
+	}
+
+	message XmatThreadIcon {
+		optional string threadIcon = 1;
+	}
+
+	message XmatThemeColor {
+		optional string themeID = 1;
+		optional string themeColor = 2;
+		repeated string gradient = 3;
+		optional bool shouldShowIcon = 4;
+		optional int32 themeType = 5;
+		optional string accessibilityLabel = 6;
+		optional string themeNameWithSubtitle = 7;
+		optional string themeEmoji = 8;
+	}
+
+	message XmatMessengerSharedAlbum {
+		optional string xmaDataclass = 1;
+	}
+
+	message XmatMessengerSharedAlbumRename {
+		optional int64 sharedAlbumID = 1;
+		optional string oldAlbumTitle = 2;
+		optional string newAlbumTitle = 3;
+	}
+
+	message XmatMessengerSharedAlbumDeletion {
+		optional int64 sharedAlbumID = 1;
+		optional string albumTitle = 2;
+	}
+
+	message XmatMessengerSharedAlbumContentRemoval {
+		message RemovedContentTuple {
+			optional int64 key = 1;
+			optional string value = 2;
+		}
+
+		optional int64 sharedAlbumID = 1;
+		repeated RemovedContentTuple removedContentMap = 2;
+		optional int64 removedContentCount = 3;
+		optional string albumTitle = 4;
+	}
+
+	message XmatMessengerSharedAlbumAddition {
+		optional int64 sharedAlbumID = 1;
+		optional string albumTitle = 2;
+		optional int64 numOfAttachments = 3;
+		optional bool isAlbumCreation = 4;
+	}
+
+	message XmatMessengerQRCodeScanned {
+		optional string receiverName = 1;
+		optional string senderName = 2;
+	}
+
+	message XmatMessagingLimitSharing {
+		optional string senderName = 1;
+		optional string senderID = 2;
+		optional string limitSharingType = 3;
+	}
+
+	message XmatMagicWords {
+		optional int64 newMagicWordCount = 1;
+		optional int64 removedMagicWordCount = 2;
+		optional string magicWord = 3;
+		optional string emojiEffect = 4;
+		optional bool isAllEdited = 5;
+		optional string themeName = 6;
+	}
+
+	message XmatLinkCTA {
+		optional string linkCtaXmatPrimaryText = 1;
+		optional string linkCtaXmatCtaText = 2;
+		optional string linkCtaXmatCtaURL = 3;
+		optional string linkCtaXmatCtaIosURL = 4;
+		optional string androidUri = 5;
+		optional string asyncURL = 6;
+		optional bool wwwIsAsyncURL = 7;
+		optional bool msiteEnabled = 8;
+		optional bool hideUriInFallback = 9;
+		optional bool showConfirmationDialog = 10;
+		optional string graphPayload = 11;
+		optional string identifierName = 12;
+		optional string threadID = 13;
+		optional bool hideCtaInFallback = 14;
+		optional string ctxAdConversationStarterInfo = 15;
+		optional string fbmUri = 16;
+		optional string initiatorUserID = 17;
+	}
+
+	message XmatInstantGameEncryptedDynamicCustomUpdate {
+		optional string senderName = 1;
+		optional string muteManagementAdminTextType = 2;
+		optional string gameName = 3;
+	}
+
+	message XmatFriendRequestConfirmedEncrypted {
+		optional string otherUserName = 1;
+		optional string isTurnOnCohort = 2;
+	}
+
+	message XmatDisappearingSetting {
+		optional int64 disappearingSettingTime = 1;
+		optional int64 oldDisappearingSettingTime = 2;
+		optional int64 disappearingSettingActorFbid = 3;
+		optional int64 newEphemeralityType = 4;
+		optional int64 oldEphemeralityType = 5;
+	}
+
 	message DisappearingSettingChanged {
 		optional int32 disappearingSettingDurationSeconds = 1;
 		optional int32 oldDisappearingSettingDurationSeconds = 2;
@@ -117,5 +251,24 @@ message MiTransportAdminMessage {
 		IconChanged iconChanged = 11;
 		DisappearingSettingChanged disappearingSettingChanged = 12;
 		LimitSharingChanged limitSharingChanged = 13;
+		XmatDisappearingSetting xmatDisappearingSetting = 14;
+		XmatFriendRequestConfirmedEncrypted xmatFriendRequestConfirmedEncrypted = 15;
+		XmatInstantGameEncryptedDynamicCustomUpdate xmatInstantGameEncryptedDynamicCustomUpdate = 16;
+		XmatLinkCTA xmatLinkCta = 17;
+		XmatMagicWords xmatMagicWords = 18;
+		XmatMessagingLimitSharing xmatMessagingLimitSharing = 19;
+		XmatMessengerQRCodeScanned xmatMessengerQrCodeScanned = 20;
+		XmatMessengerSharedAlbumAddition xmatMessengerSharedAlbumAddition = 21;
+		XmatMessengerSharedAlbumContentRemoval xmatMessengerSharedAlbumContentRemoval = 22;
+		XmatMessengerSharedAlbumDeletion xmatMessengerSharedAlbumDeletion = 23;
+		XmatMessengerSharedAlbumRename xmatMessengerSharedAlbumRename = 24;
+		XmatMessengerSharedAlbum xmatMessengerSharedAlbum = 25;
+		XmatThemeColor xmatThemeColor = 26;
+		XmatThreadIcon xmatThreadIcon = 27;
+		XmatThreadNickname xmatThreadNickname = 28;
+		XmatThreadQuickReaction xmatThreadQuickReaction = 29;
+		XmatUpdatePayments xmatUpdatePayments = 30;
+		XmatPinMessageV2 xmatPinMessageV2 = 31;
+		XmatUnpinMessageV2 xmatUnpinMessageV2 = 32;
 	}
 }

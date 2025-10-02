@@ -231,6 +231,29 @@ func (cli *Client) DecryptPollVote(ctx context.Context, vote *events.Message) (*
 	return &msg, nil
 }
 
+func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *events.Message) (*waE2E.Message, error) {
+	encMessage := evt.Message.GetSecretEncryptedMessage()
+	if encMessage == nil {
+		return nil, ErrNotSecretEncryptedMessage
+	}
+	if encMessage.GetSecretEncType() != waE2E.SecretEncryptedMessage_EVENT_EDIT {
+		return nil, fmt.Errorf("unsupported secret enc type: %s", encMessage.SecretEncType.String())
+	}
+	plaintext, err := cli.decryptMsgSecret(ctx, evt, EncSecretEventEdit, encMessage, encMessage.GetTargetMessageKey())
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt message: %w", err)
+	}
+	var msg waE2E.Message
+	err = proto.Unmarshal(plaintext, &msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode message protobuf: %w", err)
+	}
+	if evt.Message.MessageContextInfo != nil && msg.MessageContextInfo == nil {
+		msg.MessageContextInfo = evt.Message.MessageContextInfo
+	}
+	return &msg, nil
+}
+
 func getKeyFromInfo(msgInfo *types.MessageInfo) *waCommon.MessageKey {
 	creationKey := &waCommon.MessageKey{
 		RemoteJID: proto.String(msgInfo.Chat.String()),

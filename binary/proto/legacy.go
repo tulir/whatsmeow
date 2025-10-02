@@ -3,7 +3,9 @@
 package proto
 
 import (
+	"go.mau.fi/whatsmeow/proto/waAICommon"
 	"go.mau.fi/whatsmeow/proto/waAdv"
+	"go.mau.fi/whatsmeow/proto/waBotMetadata"
 	"go.mau.fi/whatsmeow/proto/waCert"
 	"go.mau.fi/whatsmeow/proto/waChatLockSettings"
 	"go.mau.fi/whatsmeow/proto/waCommon"
@@ -31,7 +33,7 @@ type (
 	MediaVisibility                                                                                                     = waHistorySync.MediaVisibility
 	DeviceProps_PlatformType                                                                                            = waCompanionReg.DeviceProps_PlatformType
 	ImageMessage_ImageSourceType                                                                                        = waE2E.ImageMessage_ImageSourceType
-	HistorySyncNotification_HistorySyncType                                                                             = waE2E.HistorySyncNotification_HistorySyncType
+	HistorySyncNotification_HistorySyncType                                                                             = waE2E.HistorySyncType
 	HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_DayOfWeekType                      = waE2E.HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_DayOfWeekType
 	HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_CalendarType                       = waE2E.HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_CalendarType
 	GroupInviteMessage_GroupType                                                                                        = waE2E.GroupInviteMessage_GroupType
@@ -44,9 +46,9 @@ type (
 	ButtonsResponseMessage_Type                                                                                         = waE2E.ButtonsResponseMessage_Type
 	ButtonsMessage_HeaderType                                                                                           = waE2E.ButtonsMessage_HeaderType
 	ButtonsMessage_Button_Type                                                                                          = waE2E.ButtonsMessage_Button_Type
-	BotFeedbackMessage_BotFeedbackKindMultiplePositive                                                                  = waE2E.BotFeedbackMessage_BotFeedbackKindMultiplePositive
-	BotFeedbackMessage_BotFeedbackKindMultipleNegative                                                                  = waE2E.BotFeedbackMessage_BotFeedbackKindMultipleNegative
-	BotFeedbackMessage_BotFeedbackKind                                                                                  = waE2E.BotFeedbackMessage_BotFeedbackKind
+	BotFeedbackMessage_BotFeedbackKindMultiplePositive                                                                  = waAICommon.BotFeedbackMessage_BotFeedbackKindMultiplePositive
+	BotFeedbackMessage_BotFeedbackKindMultipleNegative                                                                  = waAICommon.BotFeedbackMessage_BotFeedbackKindMultipleNegative
+	BotFeedbackMessage_BotFeedbackKind                                                                                  = waAICommon.BotFeedbackMessage_BotFeedbackKind
 	BCallMessage_MediaType                                                                                              = waE2E.BCallMessage_MediaType
 	HydratedTemplateButton_HydratedURLButton_WebviewPresentationType                                                    = waE2E.HydratedTemplateButton_HydratedURLButton_WebviewPresentationType
 	DisappearingMode_Trigger                                                                                            = waE2E.DisappearingMode_Trigger
@@ -54,8 +56,8 @@ type (
 	ContextInfo_ExternalAdReplyInfo_MediaType                                                                           = waE2E.ContextInfo_ExternalAdReplyInfo_MediaType
 	ContextInfo_AdReplyInfo_MediaType                                                                                   = waE2E.ContextInfo_AdReplyInfo_MediaType
 	ForwardedNewsletterMessageInfo_ContentType                                                                          = waE2E.ContextInfo_ForwardedNewsletterMessageInfo_ContentType
-	BotPluginMetadata_SearchProvider                                                                                    = waE2E.BotPluginMetadata_SearchProvider
-	BotPluginMetadata_PluginType                                                                                        = waE2E.BotPluginMetadata_PluginType
+	BotPluginMetadata_SearchProvider                                                                                    = waBotMetadata.BotPluginMetadata_SearchProvider
+	BotPluginMetadata_PluginType                                                                                        = waBotMetadata.BotPluginMetadata_PluginType
 	PaymentBackground_Type                                                                                              = waE2E.PaymentBackground_Type
 	VideoMessage_Attribution                                                                                            = waE2E.VideoMessage_Attribution
 	SecretEncryptedMessage_SecretEncType                                                                                = waE2E.SecretEncryptedMessage_SecretEncType
@@ -150,7 +152,7 @@ type (
 	ButtonsMessage_ImageMessage                                                                                         = waE2E.ButtonsMessage_ImageMessage
 	ButtonsMessage_VideoMessage                                                                                         = waE2E.ButtonsMessage_VideoMessage
 	ButtonsMessage_LocationMessage                                                                                      = waE2E.ButtonsMessage_LocationMessage
-	BotFeedbackMessage                                                                                                  = waE2E.BotFeedbackMessage
+	BotFeedbackMessage                                                                                                  = waAICommon.BotFeedbackMessage
 	BCallMessage                                                                                                        = waE2E.BCallMessage
 	AudioMessage                                                                                                        = waE2E.AudioMessage
 	AppStateSyncKey                                                                                                     = waE2E.AppStateSyncKey
@@ -174,10 +176,10 @@ type (
 	DeviceListMetadata                                                                                                  = waMsgTransport.DeviceListMetadata
 	ContextInfo                                                                                                         = waE2E.ContextInfo
 	ForwardedNewsletterMessageInfo                                                                                      = waE2E.ContextInfo_ForwardedNewsletterMessageInfo
-	BotSuggestedPromptMetadata                                                                                          = waE2E.BotSuggestedPromptMetadata
-	BotPluginMetadata                                                                                                   = waE2E.BotPluginMetadata
-	BotMetadata                                                                                                         = waE2E.BotMetadata
-	BotAvatarMetadata                                                                                                   = waE2E.BotAvatarMetadata
+	BotSuggestedPromptMetadata                                                                                          = waBotMetadata.BotSuggestedPromptMetadata
+	BotPluginMetadata                                                                                                   = waBotMetadata.BotPluginMetadata
+	BotMetadata                                                                                                         = waBotMetadata.BotMetadata
+	BotAvatarMetadata                                                                                                   = waBotMetadata.BotAvatarMetadata
 	ActionLink                                                                                                          = waE2E.ActionLink
 	TemplateButton                                                                                                      = waE2E.TemplateButton
 	TemplateButton_QuickReplyButton_                                                                                    = waE2E.TemplateButton_QuickReplyButton_
@@ -488,13 +490,13 @@ const (
 	ImageMessage_USER_IMAGE                                                                      = waE2E.ImageMessage_USER_IMAGE
 	ImageMessage_AI_GENERATED                                                                    = waE2E.ImageMessage_AI_GENERATED
 	ImageMessage_AI_MODIFIED                                                                     = waE2E.ImageMessage_AI_MODIFIED
-	HistorySyncNotification_INITIAL_BOOTSTRAP                                                    = waE2E.HistorySyncNotification_INITIAL_BOOTSTRAP
-	HistorySyncNotification_INITIAL_STATUS_V3                                                    = waE2E.HistorySyncNotification_INITIAL_STATUS_V3
-	HistorySyncNotification_FULL                                                                 = waE2E.HistorySyncNotification_FULL
-	HistorySyncNotification_RECENT                                                               = waE2E.HistorySyncNotification_RECENT
-	HistorySyncNotification_PUSH_NAME                                                            = waE2E.HistorySyncNotification_PUSH_NAME
-	HistorySyncNotification_NON_BLOCKING_DATA                                                    = waE2E.HistorySyncNotification_NON_BLOCKING_DATA
-	HistorySyncNotification_ON_DEMAND                                                            = waE2E.HistorySyncNotification_ON_DEMAND
+	HistorySyncNotification_INITIAL_BOOTSTRAP                                                    = waE2E.HistorySyncType_INITIAL_BOOTSTRAP
+	HistorySyncNotification_INITIAL_STATUS_V3                                                    = waE2E.HistorySyncType_INITIAL_STATUS_V3
+	HistorySyncNotification_FULL                                                                 = waE2E.HistorySyncType_FULL
+	HistorySyncNotification_RECENT                                                               = waE2E.HistorySyncType_RECENT
+	HistorySyncNotification_PUSH_NAME                                                            = waE2E.HistorySyncType_PUSH_NAME
+	HistorySyncNotification_NON_BLOCKING_DATA                                                    = waE2E.HistorySyncType_NON_BLOCKING_DATA
+	HistorySyncNotification_ON_DEMAND                                                            = waE2E.HistorySyncType_ON_DEMAND
 	HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_MONDAY      = waE2E.HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_MONDAY
 	HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_TUESDAY     = waE2E.HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_TUESDAY
 	HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_WEDNESDAY   = waE2E.HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_WEDNESDAY
@@ -548,26 +550,26 @@ const (
 	ButtonsMessage_Button_UNKNOWN                                                                = waE2E.ButtonsMessage_Button_UNKNOWN
 	ButtonsMessage_Button_RESPONSE                                                               = waE2E.ButtonsMessage_Button_RESPONSE
 	ButtonsMessage_Button_NATIVE_FLOW                                                            = waE2E.ButtonsMessage_Button_NATIVE_FLOW
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_POSITIVE_GENERIC                                    = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_POSITIVE_GENERIC
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_GENERIC                                    = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_GENERIC
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_HELPFUL                                    = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_HELPFUL
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_INTERESTING                                = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_INTERESTING
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_ACCURATE                                   = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_ACCURATE
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_SAFE                                       = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_SAFE
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_OTHER                                      = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_OTHER
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_REFUSED                                    = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_REFUSED
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_VISUALLY_APPEALING                     = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_VISUALLY_APPEALING
-	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_RELEVANT_TO_TEXT                       = waE2E.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_RELEVANT_TO_TEXT
-	BotFeedbackMessage_BOT_FEEDBACK_POSITIVE                                                     = waE2E.BotFeedbackMessage_BOT_FEEDBACK_POSITIVE
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_GENERIC                                             = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_GENERIC
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_HELPFUL                                             = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_HELPFUL
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_INTERESTING                                         = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_INTERESTING
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_ACCURATE                                            = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_ACCURATE
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_SAFE                                                = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_SAFE
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_OTHER                                               = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_OTHER
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_REFUSED                                             = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_REFUSED
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING                              = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING
-	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT                                = waE2E.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_POSITIVE_GENERIC                                    = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_POSITIVE_GENERIC
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_GENERIC                                    = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_GENERIC
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_HELPFUL                                    = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_HELPFUL
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_INTERESTING                                = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_INTERESTING
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_ACCURATE                                   = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_ACCURATE
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_SAFE                                       = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_SAFE
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_OTHER                                      = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_OTHER
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_REFUSED                                    = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_REFUSED
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_VISUALLY_APPEALING                     = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_VISUALLY_APPEALING
+	BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_RELEVANT_TO_TEXT                       = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_MULTIPLE_NEGATIVE_NOT_RELEVANT_TO_TEXT
+	BotFeedbackMessage_BOT_FEEDBACK_POSITIVE                                                     = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_POSITIVE
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_GENERIC                                             = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_GENERIC
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_HELPFUL                                             = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_HELPFUL
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_INTERESTING                                         = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_INTERESTING
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_ACCURATE                                            = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_ACCURATE
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_SAFE                                                = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_SAFE
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_OTHER                                               = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_OTHER
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_REFUSED                                             = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_REFUSED
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING                              = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_VISUALLY_APPEALING
+	BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT                                = waAICommon.BotFeedbackMessage_BOT_FEEDBACK_NEGATIVE_NOT_RELEVANT_TO_TEXT
 	BCallMessage_UNKNOWN                                                                         = waE2E.BCallMessage_UNKNOWN
 	BCallMessage_AUDIO                                                                           = waE2E.BCallMessage_AUDIO
 	BCallMessage_VIDEO                                                                           = waE2E.BCallMessage_VIDEO
@@ -592,10 +594,10 @@ const (
 	ForwardedNewsletterMessageInfo_UPDATE                                                        = waE2E.ContextInfo_ForwardedNewsletterMessageInfo_UPDATE
 	ForwardedNewsletterMessageInfo_UPDATE_CARD                                                   = waE2E.ContextInfo_ForwardedNewsletterMessageInfo_UPDATE_CARD
 	ForwardedNewsletterMessageInfo_LINK_CARD                                                     = waE2E.ContextInfo_ForwardedNewsletterMessageInfo_LINK_CARD
-	BotPluginMetadata_BING                                                                       = waE2E.BotPluginMetadata_BING
-	BotPluginMetadata_GOOGLE                                                                     = waE2E.BotPluginMetadata_GOOGLE
-	BotPluginMetadata_REELS                                                                      = waE2E.BotPluginMetadata_REELS
-	BotPluginMetadata_SEARCH                                                                     = waE2E.BotPluginMetadata_SEARCH
+	BotPluginMetadata_BING                                                                       = waBotMetadata.BotPluginMetadata_BING
+	BotPluginMetadata_GOOGLE                                                                     = waBotMetadata.BotPluginMetadata_GOOGLE
+	BotPluginMetadata_REELS                                                                      = waBotMetadata.BotPluginMetadata_REELS
+	BotPluginMetadata_SEARCH                                                                     = waBotMetadata.BotPluginMetadata_SEARCH
 	PaymentBackground_UNKNOWN                                                                    = waE2E.PaymentBackground_UNKNOWN
 	PaymentBackground_DEFAULT                                                                    = waE2E.PaymentBackground_DEFAULT
 	VideoMessage_NONE                                                                            = waE2E.VideoMessage_NONE
