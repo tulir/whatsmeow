@@ -119,8 +119,8 @@ func (cli *Client) sendIQAsyncAndGetData(query *infoQuery) (<-chan *waBinary.Nod
 		"xmlns": query.Namespace,
 		"type":  string(query.Type),
 	}
-	if query.SMaxId != "" {
-		attrs["smax_id"] = query.SMaxId
+	if query.SMaxID != "" {
+		attrs["smax_id"] = query.SMaxID
 	}
 	if !query.To.IsEmpty() {
 		attrs["to"] = query.To
