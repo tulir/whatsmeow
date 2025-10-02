@@ -22,6 +22,7 @@ import (
 type Mutation struct {
 	Operation waServerSync.SyncdMutation_SyncdOperation
 	Action    *waSyncAction.SyncActionValue
+	Version   int32
 	Index     []string
 	IndexMAC  []byte
 	ValueMAC  []byte

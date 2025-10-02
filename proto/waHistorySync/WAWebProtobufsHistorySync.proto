@@ -115,6 +115,7 @@ message Conversation {
 	optional int64 limitSharingSettingTimestamp = 51;
 	optional WACommon.LimitSharing.Trigger limitSharingTrigger = 52;
 	optional bool limitSharingInitiatedByMe = 53;
+	optional bool maibaAiThreadEnabled = 54;
 }
 
 message GroupParticipant {

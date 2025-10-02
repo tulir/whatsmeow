@@ -45,7 +45,11 @@ func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInf
 	if muteDuration > 0 {
 		muteEndTimestamp = proto.Int64(time.Now().Add(muteDuration).UnixMilli())
 	}
+	return BuildMuteAbs(target, mute, muteEndTimestamp)
+}
 
+// BuildMuteAbs builds an app state patch for muting or unmuting a chat with an absolute timestamp.
+func BuildMuteAbs(target types.JID, mute bool, muteEndTimestamp *int64) PatchInfo {
 	return PatchInfo{
 		Type: WAPatchRegularHigh,
 		Mutations: []MutationInfo{{
@@ -124,6 +128,36 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 	}
 
 	return result
+}
+
+// BuildMarkChatAsRead builds an app state patch for marking a chat as read or unread.
+func BuildMarkChatAsRead(target types.JID, read bool, lastMessageTimestamp time.Time, lastMessageKey *waCommon.MessageKey) PatchInfo {
+	if lastMessageTimestamp.IsZero() {
+		lastMessageTimestamp = time.Now()
+	}
+	action := &waSyncAction.MarkChatAsReadAction{
+		Read: proto.Bool(read),
+		MessageRange: &waSyncAction.SyncActionMessageRange{
+			LastMessageTimestamp: proto.Int64(lastMessageTimestamp.Unix()),
+		},
+	}
+	if lastMessageKey != nil {
+		action.MessageRange.Messages = []*waSyncAction.SyncActionMessage{{
+			Key:       lastMessageKey,
+			Timestamp: proto.Int64(lastMessageTimestamp.Unix()),
+		}}
+	}
+
+	return PatchInfo{
+		Type: WAPatchRegularLow,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexMarkChatAsRead, target.String()},
+			Version: 3,
+			Value: &waSyncAction.SyncActionValue{
+				MarkChatAsReadAction: action,
+			},
+		}},
+	}
 }
 
 func newLabelChatMutation(target types.JID, labelID string, labeled bool) MutationInfo {
