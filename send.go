@@ -1171,6 +1171,53 @@ func (cli *Client) encryptMessageForDevices(
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
 	var retryDevices, retryEncryptionIdentities []types.JID
+	jidLidMap := make(map[types.JID]types.JID)
+	usyncDeviceList := make(map[types.JID][]uint16) // bare JID -> device IDs
+
+	for _, jid := range allDevices {
+		if jid.Server == types.DefaultUserServer {
+			lidForPN, err := cli.Store.LIDs.GetLIDForPN(ctx, jid)
+			if err != nil {
+				cli.Log.Warnf("Failed to get LID for %s: %v", jid, err)
+			}
+
+			if !lidForPN.IsEmpty() {
+				jidLidMap[jid] = lidForPN
+			} else {
+				bare := jid.ToNonAD()
+				usyncDeviceList[bare] = append(usyncDeviceList[bare], jid.Device)
+			}
+
+		}
+	}
+
+	if len(usyncDeviceList) > 0 {
+		usyncJids := make([]types.JID, 0, len(usyncDeviceList))
+		for bare := range usyncDeviceList {
+			usyncJids = append(usyncJids, bare)
+		}
+
+		info, err := cli.GetUserInfo(usyncJids)
+		if err != nil {
+			cli.Log.Warnf("Failed to get LID info from USync, err: %v", err)
+		} else {
+			for bare, userInfo := range info {
+				if userInfo.LID.IsEmpty() {
+					continue
+				}
+				for _, deviceID := range usyncDeviceList[bare] {
+					jid := bare
+					jid.Device = deviceID
+
+					lid := userInfo.LID
+					lid.Device = deviceID
+
+					jidLidMap[jid] = lid
+				}
+			}
+		}
+	}
+
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
 		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
@@ -1179,14 +1226,12 @@ func (cli *Client) encryptMessageForDevices(
 			}
 			plaintext = dsmPlaintext
 		}
+
 		encryptionIdentity := jid
 		if jid.Server == types.DefaultUserServer {
-			lidForPN, err := cli.Store.LIDs.GetLIDForPN(ctx, jid)
-			if err != nil {
-				cli.Log.Warnf("Failed to get LID for %s: %v", jid, err)
-			} else if !lidForPN.IsEmpty() {
-				cli.migrateSessionStore(ctx, jid, lidForPN)
-				encryptionIdentity = lidForPN
+			if lid, ok := jidLidMap[jid]; ok && !lid.IsEmpty() {
+				cli.migrateSessionStore(ctx, jid, lid)
+				encryptionIdentity = lid
 			}
 		}
 
