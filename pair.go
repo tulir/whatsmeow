@@ -119,11 +119,9 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 	if deviceIdentityContainer.GetAccountType() == waAdv.ADVEncryptionType_HOSTED {
 		h.Write(AdvHostedAccountSignaturePrefix)
 
-		cli.Store.HostedID = types.NewJID(jid.User, types.HostedServer)
-		cli.Store.HostedID.Device = 99 // hosted ids come in the form of user:99@hosted
-		cli.Store.HostedLID = types.NewJID(lid.User, types.HostedLIDServer)
-		cli.Store.HostedID.Device = 99
 		cli.Store.IsHosted = true
+
+		cli.Store.Save(ctx)
 	}
 	h.Write(deviceIdentityContainer.Details)
 
@@ -240,7 +238,7 @@ func verifyAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *
 
 	prefix := AdvAccountSignaturePrefix
 	if isHostedAccount {
-		prefix = AdvHostedDeviceSignaturePrefix
+		prefix = AdvHostedAccountSignaturePrefix
 	}
 	message := concatBytes(prefix, deviceIdentity.Details, ikp.Pub[:])
 

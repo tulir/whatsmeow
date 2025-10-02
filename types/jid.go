@@ -118,7 +118,6 @@ func (jid JID) IsBot() bool {
 }
 
 // NewADJID creates a new AD JID.
-// todo: check if even used anymore
 func NewADJID(user string, agent, device uint8) JID {
 	var server string
 	switch agent {
