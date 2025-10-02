@@ -68,6 +68,8 @@ type ContactInfo struct {
 	FullName     string
 	PushName     string
 	BusinessName string
+	// Only for LID members encountered in groups, the phone number in the form "+1∙∙∙∙∙∙∙∙80"
+	RedactedPhone string
 }
 
 // LocalChatSettings contains the cached local settings for a chat.
