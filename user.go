@@ -14,13 +14,12 @@ import (
 	"slices"
 	"strings"
 
-	"go.mau.fi/whatsmeow/store"
-
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
 	"go.mau.fi/whatsmeow/proto/waVnameCert"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -213,7 +212,7 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		return nil, err
 	}
 	respData := make(map[types.JID]types.UserInfo, len(jids))
-	mappings := make([]store.LIDMapping, len(jids))
+	mappings := make([]store.LIDMapping, 0, len(jids))
 	for _, child := range list.GetChildren() {
 		jid, jidOK := child.Attrs["jid"].(types.JID)
 		if child.Tag != "user" || !jidOK {
@@ -232,7 +231,9 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		lidTag := child.GetChildByTag("lid")
 		info.LID = lidTag.AttrGetter().OptionalJIDOrEmpty("val")
 
-		mappings = append(mappings, store.LIDMapping{PN: jid, LID: info.LID})
+		if !info.LID.IsEmpty() {
+			mappings = append(mappings, store.LIDMapping{PN: jid, LID: info.LID})
+		}
 
 		if verifiedName != nil {
 			cli.updateBusinessName(context.TODO(), jid, nil, verifiedName.Details.GetVerifiedName())
@@ -240,7 +241,11 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		respData[jid] = info
 	}
 
-	cli.Store.LIDs.PutManyLIDMappings(context.TODO(), mappings)
+	err = cli.Store.LIDs.PutManyLIDMappings(context.TODO(), mappings)
+	if err != nil {
+		// not worth returning on the error, instead just post a log
+		cli.Log.Errorf("Failed to place LID mappings from USync call")
+	}
 
 	return respData, nil
 }
