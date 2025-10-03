@@ -226,7 +226,7 @@ func concatBytes(data ...[]byte) []byte {
 	return output
 }
 
-func verifyAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair, isHostedAccount bool) bool {
+func verifyAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair, isHosted bool) bool {
 	if len(deviceIdentity.AccountSignatureKey) != 32 || len(deviceIdentity.AccountSignature) != 64 {
 		return false
 	}
@@ -235,7 +235,7 @@ func verifyAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *
 	signature := *(*[64]byte)(deviceIdentity.AccountSignature)
 
 	prefix := AdvAccountSignaturePrefix
-	if isHostedAccount {
+	if isHosted {
 		prefix = AdvHostedAccountSignaturePrefix
 	}
 	message := concatBytes(prefix, deviceIdentity.Details, ikp.Pub[:])
