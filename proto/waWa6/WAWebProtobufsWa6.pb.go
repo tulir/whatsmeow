@@ -882,6 +882,8 @@ type ClientPayload struct {
 	AccountType            *ClientPayload_AccountType                   `protobuf:"varint,42,opt,name=accountType,enum=WAWebProtobufsWa6.ClientPayload_AccountType" json:"accountType,omitempty"`
 	ConnectionSequenceInfo *int32                                       `protobuf:"fixed32,43,opt,name=connectionSequenceInfo" json:"connectionSequenceInfo,omitempty"`
 	PaaLink                *bool                                        `protobuf:"varint,44,opt,name=paaLink" json:"paaLink,omitempty"`
+	PreacksCount           *int32                                       `protobuf:"varint,45,opt,name=preacksCount" json:"preacksCount,omitempty"`
+	ProcessingQueueSize    *int32                                       `protobuf:"varint,46,opt,name=processingQueueSize" json:"processingQueueSize,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -1138,6 +1140,20 @@ func (x *ClientPayload) GetPaaLink() bool {
 		return *x.PaaLink
 	}
 	return false
+}
+
+func (x *ClientPayload) GetPreacksCount() int32 {
+	if x != nil && x.PreacksCount != nil {
+		return *x.PreacksCount
+	}
+	return 0
+}
+
+func (x *ClientPayload) GetProcessingQueueSize() int32 {
+	if x != nil && x.ProcessingQueueSize != nil {
+		return *x.ProcessingQueueSize
+	}
+	return 0
 }
 
 type HandshakeMessage struct {
@@ -2052,7 +2068,7 @@ var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\x82*\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xd8*\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2088,7 +2104,9 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\rlidDbMigrated\x18) \x01(\bR\rlidDbMigrated\x12N\n" +
 	"\vaccountType\x18* \x01(\x0e2,.WAWebProtobufsWa6.ClientPayload.AccountTypeR\vaccountType\x126\n" +
 	"\x16connectionSequenceInfo\x18+ \x01(\x0fR\x16connectionSequenceInfo\x12\x18\n" +
-	"\apaaLink\x18, \x01(\bR\apaaLink\x1a\xea\x01\n" +
+	"\apaaLink\x18, \x01(\bR\apaaLink\x12\"\n" +
+	"\fpreacksCount\x18- \x01(\x05R\fpreacksCount\x120\n" +
+	"\x13processingQueueSize\x18. \x01(\x05R\x13processingQueueSize\x1a\xea\x01\n" +
 	"\tDNSSource\x12\\\n" +
 	"\tdnsMethod\x18\x0f \x01(\x0e2>.WAWebProtobufsWa6.ClientPayload.DNSSource.DNSResolutionMethodR\tdnsMethod\x12\x1c\n" +
 	"\tappCached\x18\x10 \x01(\bR\tappCached\"a\n" +

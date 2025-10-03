@@ -226,6 +226,7 @@ const (
 	StatusAttribution_ExternalShare_PINTEREST   StatusAttribution_ExternalShare_Source = 6
 	StatusAttribution_ExternalShare_THREADS     StatusAttribution_ExternalShare_Source = 7
 	StatusAttribution_ExternalShare_APPLE_MUSIC StatusAttribution_ExternalShare_Source = 8
+	StatusAttribution_ExternalShare_SHARECHAT   StatusAttribution_ExternalShare_Source = 9
 )
 
 // Enum value maps for StatusAttribution_ExternalShare_Source.
@@ -240,6 +241,7 @@ var (
 		6: "PINTEREST",
 		7: "THREADS",
 		8: "APPLE_MUSIC",
+		9: "SHARECHAT",
 	}
 	StatusAttribution_ExternalShare_Source_value = map[string]int32{
 		"UNKNOWN":     0,
@@ -251,6 +253,7 @@ var (
 		"PINTEREST":   6,
 		"THREADS":     7,
 		"APPLE_MUSIC": 8,
+		"SHARECHAT":   9,
 	}
 )
 
@@ -926,7 +929,7 @@ var File_waStatusAttributions_WAStatusAttributions_proto protoreflect.FileDescri
 
 const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\n" +
-	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\xc2\x11\n" +
+	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\xd1\x11\n" +
 	"\x11StatusAttribution\x12]\n" +
 	"\rstatusReshare\x18\x03 \x01(\v25.WAStatusAttributions.StatusAttribution.StatusReshareH\x00R\rstatusReshare\x12]\n" +
 	"\rexternalShare\x18\x04 \x01(\v25.WAStatusAttributions.StatusAttribution.ExternalShareH\x00R\rexternalShare\x12E\n" +
@@ -947,12 +950,12 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\x18\n" +
 	"\x14RAY_BAN_META_GLASSES\x10\x01\x12\x17\n" +
 	"\x13OAKLEY_META_GLASSES\x10\x02\x12\x15\n" +
-	"\x11HYPERNOVA_GLASSES\x10\x03\x1a\xd8\x02\n" +
+	"\x11HYPERNOVA_GLASSES\x10\x03\x1a\xe7\x02\n" +
 	"\rExternalShare\x12\x1c\n" +
 	"\tactionURL\x18\x01 \x01(\tR\tactionURL\x12T\n" +
 	"\x06source\x18\x02 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.ExternalShare.SourceR\x06source\x12\x1a\n" +
 	"\bduration\x18\x03 \x01(\x05R\bduration\x12,\n" +
-	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"\x88\x01\n" +
+	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"\x97\x01\n" +
 	"\x06Source\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\r\n" +
 	"\tINSTAGRAM\x10\x01\x12\f\n" +
@@ -962,7 +965,8 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\aYOUTUBE\x10\x05\x12\r\n" +
 	"\tPINTEREST\x10\x06\x12\v\n" +
 	"\aTHREADS\x10\a\x12\x0f\n" +
-	"\vAPPLE_MUSIC\x10\b\x1a\xcc\x03\n" +
+	"\vAPPLE_MUSIC\x10\b\x12\r\n" +
+	"\tSHARECHAT\x10\t\x1a\xcc\x03\n" +
 	"\rStatusReshare\x12T\n" +
 	"\x06source\x18\x01 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.StatusReshare.SourceR\x06source\x12Z\n" +
 	"\bmetadata\x18\x02 \x01(\v2>.WAStatusAttributions.StatusAttribution.StatusReshare.MetadataR\bmetadata\x1a\xa4\x01\n" +
