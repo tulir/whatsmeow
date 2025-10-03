@@ -527,9 +527,18 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	} else {
 		to = types.ServerJID
 		target = jid
+		var pictureContent []waBinary.Node
+		if token, _ := cli.Store.PrivacyTokens.GetPrivacyToken(context.TODO(), jid); token != nil {
+			pictureContent = []waBinary.Node{{
+				Tag:     "tctoken",
+				Content: token,
+			}}
+		}
+
 		content = []waBinary.Node{{
-			Tag:   "picture",
-			Attrs: attrs,
+			Tag:     "picture",
+			Attrs:   attrs,
+			Content: pictureContent,
 		}}
 	}
 	resp, err := cli.sendIQ(infoQuery{
