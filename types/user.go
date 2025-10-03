@@ -24,6 +24,7 @@ type UserInfo struct {
 	Status       string
 	PictureID    string
 	Devices      []JID
+	LID          JID
 }
 
 type BotListInfo struct {

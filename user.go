@@ -19,6 +19,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
 	"go.mau.fi/whatsmeow/proto/waVnameCert"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -205,11 +206,13 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		{Tag: "status"},
 		{Tag: "picture"},
 		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
+		{Tag: "lid"},
 	})
 	if err != nil {
 		return nil, err
 	}
 	respData := make(map[types.JID]types.UserInfo, len(jids))
+	mappings := make([]store.LIDMapping, 0, len(jids))
 	for _, child := range list.GetChildren() {
 		jid, jidOK := child.Attrs["jid"].(types.JID)
 		if child.Tag != "user" || !jidOK {
@@ -224,11 +227,26 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		info.Status = string(status)
 		info.PictureID, _ = child.GetChildByTag("picture").Attrs["id"].(string)
 		info.Devices = parseDeviceList(jid, child.GetChildByTag("devices"))
+
+		lidTag := child.GetChildByTag("lid")
+		info.LID = lidTag.AttrGetter().OptionalJIDOrEmpty("val")
+
+		if !info.LID.IsEmpty() {
+			mappings = append(mappings, store.LIDMapping{PN: jid, LID: info.LID})
+		}
+
 		if verifiedName != nil {
 			cli.updateBusinessName(context.TODO(), jid, nil, verifiedName.Details.GetVerifiedName())
 		}
 		respData[jid] = info
 	}
+
+	err = cli.Store.LIDs.PutManyLIDMappings(context.TODO(), mappings)
+	if err != nil {
+		// not worth returning on the error, instead just post a log
+		cli.Log.Errorf("Failed to place LID mappings from USync call")
+	}
+
 	return respData, nil
 }
 
@@ -787,6 +805,8 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 				Content: jid.String(),
 			}}
 		case types.DefaultUserServer, types.HiddenUserServer:
+			// NOTE: You can pass in an LID with a JID (<lid jid=...> user node)
+			// Not sure if you can just put the LID in the jid tag here (works for <devices> queries mainly)
 			userList[i].Attrs = waBinary.Attrs{"jid": jid}
 			if jid.IsBot() {
 				var personaID string
