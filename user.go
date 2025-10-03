@@ -433,8 +433,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 	if cli == nil {
 		return nil, ErrClientIsNil
 	}
-	cli.userDevicesCacheLock.Lock()
-	defer cli.userDevicesCacheLock.Unlock()
+	cli.userDevicesCacheLock.RLock()
 
 	var devices, jidsToSync, fbJIDsToSync []types.JID
 	for _, jid := range jids {
@@ -450,6 +449,8 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 			jidsToSync = append(jidsToSync, jid)
 		}
 	}
+	cli.userDevicesCacheLock.RUnlock()
+
 	if len(jidsToSync) > 0 {
 		list, err := cli.usync(ctx, jidsToSync, "query", "message", []waBinary.Node{
 			{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
@@ -458,6 +459,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 			return nil, err
 		}
 
+		cli.userDevicesCacheLock.Lock()
 		for _, user := range list.GetChildren() {
 			jid, jidOK := user.Attrs["jid"].(types.JID)
 			if user.Tag != "user" || !jidOK {
@@ -467,6 +469,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) 
 			cli.userDevicesCache[jid] = deviceCache{devices: userDevices, dhash: participantListHashV2(userDevices)}
 			devices = append(devices, userDevices...)
 		}
+		cli.userDevicesCacheLock.Unlock()
 	}
 
 	if len(fbJIDsToSync) > 0 {
@@ -738,6 +741,7 @@ func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) ([]type
 		if err != nil {
 			return nil, err
 		}
+		cli.userDevicesCacheLock.Lock()
 		for _, user := range list.GetChildren() {
 			jid, jidOK := user.Attrs["jid"].(types.JID)
 			if user.Tag != "user" || !jidOK {
@@ -747,6 +751,7 @@ func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) ([]type
 			cli.userDevicesCache[jid] = userDevices
 			devices = append(devices, userDevices.devices...)
 		}
+		cli.userDevicesCacheLock.Unlock()
 	}
 	return devices, nil
 }

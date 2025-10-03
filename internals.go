@@ -660,11 +660,11 @@ func (int *DangerousInternalClient) EncryptMessageForDevices(ctx context.Context
 }
 
 func (int *DangerousInternalClient) EncryptMessageForDeviceAndWrap(ctx context.Context, plaintext []byte, wireIdentity, encryptionIdentity types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
-	return int.c.encryptMessageForDeviceAndWrap(ctx, plaintext, wireIdentity, encryptionIdentity, bundle, encAttrs)
+	return int.c.encryptMessageForDeviceAndWrap(ctx, plaintext, wireIdentity, encryptionIdentity, bundle, encAttrs, nil)
 }
 
 func (int *DangerousInternalClient) EncryptMessageForDevice(ctx context.Context, plaintext []byte, to types.JID, bundle *prekey.Bundle, extraAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
-	return int.c.encryptMessageForDevice(ctx, plaintext, to, bundle, extraAttrs)
+	return int.c.encryptMessageForDevice(ctx, plaintext, to, bundle, extraAttrs, nil)
 }
 
 func (int *DangerousInternalClient) RawUpload(ctx context.Context, dataToUpload io.Reader, uploadSize uint64, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {

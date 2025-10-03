@@ -123,6 +123,79 @@ func (s *CachedLIDMap) GetPNForLID(ctx context.Context, lid types.JID) (types.JI
 	)
 }
 
+func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (map[types.JID]types.JID, error) {
+	if len(pns) == 0 {
+		return make(map[types.JID]types.JID), nil
+	}
+
+	result := make(map[types.JID]types.JID, len(pns))
+	var uncachedPNs []types.JID
+
+	s.lidCacheLock.RLock()
+	cacheFilled := s.cacheFilled
+	for _, pn := range pns {
+		if pn.Server != types.DefaultUserServer {
+			continue
+		}
+		if lidUser, ok := s.pnToLIDCache[pn.User]; ok && lidUser != "" {
+			result[pn] = types.JID{User: lidUser, Device: pn.Device, Server: types.HiddenUserServer}
+		} else if !cacheFilled {
+			uncachedPNs = append(uncachedPNs, pn)
+		}
+		// if cache is filled but no mapping exists, the result stays empty for that PN
+	}
+	s.lidCacheLock.RUnlock()
+
+	// if cache is filled or no uncached PNs, return what we have
+	if cacheFilled || len(uncachedPNs) == 0 {
+		return result, nil
+	}
+
+	s.lidCacheLock.Lock()
+	defer s.lidCacheLock.Unlock()
+
+	query := `SELECT pn, lid FROM whatsmeow_lid_map WHERE pn IN (`
+	args := make([]interface{}, 0, len(uncachedPNs))
+	for i, pn := range uncachedPNs {
+		if i > 0 {
+			query += ","
+		}
+		query += fmt.Sprintf("$%d", i+1)
+		args = append(args, pn.User)
+	}
+	query += ")"
+
+	rows, err := s.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var pnUser, lidUser string
+		if err := rows.Scan(&pnUser, &lidUser); err != nil {
+			return nil, err
+		}
+		s.pnToLIDCache[pnUser] = lidUser
+		s.lidToPNCache[lidUser] = pnUser
+
+		for _, pn := range uncachedPNs {
+			if pn.User == pnUser {
+				result[pn] = types.JID{User: lidUser, Device: pn.Device, Server: types.HiddenUserServer}
+				break
+			}
+		}
+	}
+
+	for _, pn := range uncachedPNs {
+		if _, ok := s.pnToLIDCache[pn.User]; !ok {
+			s.pnToLIDCache[pn.User] = ""
+		}
+	}
+
+	return result, rows.Err()
+}
+
 func (s *CachedLIDMap) PutLIDMapping(ctx context.Context, lid, pn types.JID) error {
 	if lid.Server != types.HiddenUserServer || pn.Server != types.DefaultUserServer {
 		return fmt.Errorf("invalid PutLIDMapping call %s/%s", lid, pn)

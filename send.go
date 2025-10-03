@@ -330,9 +330,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely
-	cli.messageSendLock.Lock()
+	// cli.messageSendLock.Lock()
 	resp.DebugTimings.Queue = time.Since(start)
-	defer cli.messageSendLock.Unlock()
+	// defer cli.messageSendLock.Unlock()
 
 	respChan := cli.waitResponse(req.ID)
 	// Peer message retries aren't implemented yet
@@ -1004,7 +1004,7 @@ func (cli *Client) preparePeerMessageNode(
 		}
 	}
 	start = time.Now()
-	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, nil, nil)
+	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, nil, nil, nil)
 	timings.PeerEncrypt = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
@@ -1170,6 +1170,39 @@ func (cli *Client) encryptMessageForDevices(
 	ownLID := cli.getOwnLID()
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
+
+	var pnDevices []types.JID
+	for _, jid := range allDevices {
+		if jid.Server == types.DefaultUserServer {
+			pnDevices = append(pnDevices, jid)
+		}
+	}
+	lidMappings, err := cli.Store.LIDs.GetManyLIDsForPNs(ctx, pnDevices)
+	if err != nil {
+		cli.Log.Warnf("Failed to batch fetch LID mappings: %v", err)
+		lidMappings = make(map[types.JID]types.JID)
+	}
+
+	encryptionIdentities := make(map[types.JID]types.JID, len(allDevices))
+	var sessionAddresses []string
+	for _, jid := range allDevices {
+		encryptionIdentity := jid
+		if jid.Server == types.DefaultUserServer {
+			if lidForPN, ok := lidMappings[jid]; ok && !lidForPN.IsEmpty() {
+				cli.migrateSessionStore(ctx, jid, lidForPN)
+				encryptionIdentity = lidForPN
+			}
+		}
+		encryptionIdentities[jid] = encryptionIdentity
+		sessionAddresses = append(sessionAddresses, encryptionIdentity.SignalAddress().String())
+	}
+
+	sessionExists, err := cli.Store.Sessions.HasManySessions(ctx, sessionAddresses)
+	if err != nil {
+		cli.Log.Warnf("Failed to batch check sessions: %v", err)
+		sessionExists = make(map[string]bool)
+	}
+
 	var retryDevices, retryEncryptionIdentities []types.JID
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
@@ -1179,19 +1212,10 @@ func (cli *Client) encryptMessageForDevices(
 			}
 			plaintext = dsmPlaintext
 		}
-		encryptionIdentity := jid
-		if jid.Server == types.DefaultUserServer {
-			lidForPN, err := cli.Store.LIDs.GetLIDForPN(ctx, jid)
-			if err != nil {
-				cli.Log.Warnf("Failed to get LID for %s: %v", jid, err)
-			} else if !lidForPN.IsEmpty() {
-				cli.migrateSessionStore(ctx, jid, lidForPN)
-				encryptionIdentity = lidForPN
-			}
-		}
+		encryptionIdentity := encryptionIdentities[jid]
 
 		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
-			ctx, plaintext, jid, encryptionIdentity, nil, encAttrs,
+			ctx, plaintext, jid, encryptionIdentity, nil, encAttrs, sessionExists,
 		)
 		if errors.Is(err, ErrNoSession) {
 			retryDevices = append(retryDevices, jid)
@@ -1224,7 +1248,7 @@ func (cli *Client) encryptMessageForDevices(
 					plaintext = dsmPlaintext
 				}
 				encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
-					ctx, plaintext, jid, retryEncryptionIdentities[i], resp.bundle, encAttrs,
+					ctx, plaintext, jid, retryEncryptionIdentities[i], resp.bundle, encAttrs, nil,
 				)
 				if err != nil {
 					// TODO return these errors if it's a fatal one (like context cancellation or database)
@@ -1248,9 +1272,10 @@ func (cli *Client) encryptMessageForDeviceAndWrap(
 	encryptionIdentity types.JID,
 	bundle *prekey.Bundle,
 	encAttrs waBinary.Attrs,
+	sessionExists map[string]bool,
 ) (*waBinary.Node, bool, error) {
 	node, includeDeviceIdentity, err := cli.encryptMessageForDevice(
-		ctx, plaintext, encryptionIdentity, bundle, encAttrs,
+		ctx, plaintext, encryptionIdentity, bundle, encAttrs, sessionExists,
 	)
 	if err != nil {
 		return nil, false, err
@@ -1274,6 +1299,7 @@ func (cli *Client) encryptMessageForDevice(
 	to types.JID,
 	bundle *prekey.Bundle,
 	extraAttrs waBinary.Attrs,
+	sessionExists map[string]bool,
 ) (*waBinary.Node, bool, error) {
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if bundle != nil {
@@ -1290,10 +1316,27 @@ func (cli *Client) encryptMessageForDevice(
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to process prekey bundle: %w", err)
 		}
-	} else if contains, err := cli.Store.ContainsSession(ctx, to.SignalAddress()); err != nil {
-		return nil, false, err
-	} else if !contains {
-		return nil, false, fmt.Errorf("%w with %s", ErrNoSession, to.SignalAddress().String())
+	} else {
+		var contains bool
+		var err error
+		if sessionExists != nil {
+			var ok bool
+			contains, ok = sessionExists[to.SignalAddress().String()]
+			if !ok {
+				contains, err = cli.Store.ContainsSession(ctx, to.SignalAddress())
+				if err != nil {
+					return nil, false, err
+				}
+			}
+		} else {
+			contains, err = cli.Store.ContainsSession(ctx, to.SignalAddress())
+			if err != nil {
+				return nil, false, err
+			}
+		}
+		if !contains {
+			return nil, false, fmt.Errorf("%w with %s", ErrNoSession, to.SignalAddress().String())
+		}
 	}
 	cipher := session.NewCipher(builder, to.SignalAddress())
 	ciphertext, err := cipher.Encrypt(ctx, padMessage(plaintext))

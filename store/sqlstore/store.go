@@ -159,6 +159,47 @@ func (s *SQLStore) HasSession(ctx context.Context, address string) (has bool, er
 	return
 }
 
+func (s *SQLStore) HasManySessions(ctx context.Context, addresses []string) (map[string]bool, error) {
+	if len(addresses) == 0 {
+		return make(map[string]bool), nil
+	}
+
+	result := make(map[string]bool, len(addresses))
+	for _, addr := range addresses {
+		result[addr] = false
+	}
+
+	// dynamic query
+	query := `SELECT their_id FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN (`
+	args := make([]interface{}, 0, len(addresses)+1)
+	args = append(args, s.JID)
+
+	for i, addr := range addresses {
+		if i > 0 {
+			query += ","
+		}
+		query += fmt.Sprintf("$%d", i+2)
+		args = append(args, addr)
+	}
+	query += ")"
+
+	rows, err := s.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var addr string
+		if err := rows.Scan(&addr); err != nil {
+			return nil, err
+		}
+		result[addr] = true
+	}
+
+	return result, rows.Err()
+}
+
 func (s *SQLStore) PutSession(ctx context.Context, address string, session []byte) error {
 	_, err := s.db.Exec(ctx, putSessionQuery, s.JID, address, session)
 	return err

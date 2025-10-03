@@ -130,7 +130,7 @@ type Client struct {
 	groupCache           map[types.JID]*groupMetaCache
 	groupCacheLock       sync.Mutex
 	userDevicesCache     map[types.JID]deviceCache
-	userDevicesCacheLock sync.Mutex
+	userDevicesCacheLock sync.RWMutex
 
 	recentMessagesMap  map[recentMessageKey]RecentMessage
 	recentMessagesList [recentMessagesSize]recentMessageKey
