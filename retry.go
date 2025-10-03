@@ -251,7 +251,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 				encryptionIdentity = lidForPN
 			}
 		}
-		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, encAttrs)
+		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, encAttrs, nil)
 	} else {
 		encrypted, err = cli.encryptMessageForDeviceV3(ctx, &waMsgTransport.MessageTransport_Payload{
 			ApplicationPayload: &waCommon.SubProtocol{

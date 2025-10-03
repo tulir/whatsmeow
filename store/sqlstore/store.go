@@ -109,9 +109,11 @@ func (s *SQLStore) IsTrustedIdentity(ctx context.Context, address string, key [3
 }
 
 const (
-	getSessionQuery = `SELECT session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
-	hasSessionQuery = `SELECT true FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
-	putSessionQuery = `
+	getSessionQuery             = `SELECT session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
+	hasSessionQuery             = `SELECT true FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
+	hasManySessionQueryPostgres = `SELECT their_id FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id = ANY($2)`
+	hasManySessionQueryGeneric  = `SELECT their_id FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN (%s)`
+	putSessionQuery             = `
 		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
 	`
@@ -157,6 +159,38 @@ func (s *SQLStore) HasSession(ctx context.Context, address string) (has bool, er
 		err = nil
 	}
 	return
+}
+
+var stringScanner = dbutil.ConvertRowFn[string](dbutil.ScanSingleColumn[string])
+
+func (s *SQLStore) HasManySessions(ctx context.Context, addresses []string) (map[string]bool, error) {
+	if len(addresses) == 0 {
+		return nil, nil
+	}
+
+	var rows dbutil.Rows
+	var err error
+	if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
+		rows, err = s.db.Query(ctx, hasManySessionQueryPostgres, s.JID, PostgresArrayWrapper(addresses))
+	} else {
+		args := make([]any, len(addresses)+1)
+		placeholders := make([]string, len(addresses))
+		args[0] = s.JID
+		for i, addr := range addresses {
+			args[i+1] = addr
+			placeholders[i] = fmt.Sprintf("$%d", i+2)
+		}
+		rows, err = s.db.Query(ctx, fmt.Sprintf(hasManySessionQueryGeneric, strings.Join(placeholders, ",")), args...)
+	}
+	result := make(map[string]bool, len(addresses))
+	for _, addr := range addresses {
+		result[addr] = false
+	}
+	err = stringScanner.NewRowIter(rows, err).Iter(func(s string) (bool, error) {
+		result[s] = true
+		return true, nil
+	})
+	return result, err
 }
 
 func (s *SQLStore) PutSession(ctx context.Context, address string, session []byte) error {

@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 
 	"github.com/rs/zerolog"
@@ -62,18 +63,30 @@ func (s *CachedLIDMap) FillCache(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
+	err = s.scanManyLids(rows, nil)
+	s.cacheFilled = err == nil
+	return err
+}
+
+func (s *CachedLIDMap) scanManyLids(rows dbutil.Rows, fn func(lid, pn string)) error {
+	if fn == nil {
+		fn = func(lid, pn string) {}
+	}
 	for rows.Next() {
 		var lid, pn string
-		err = rows.Scan(&lid, &pn)
+		err := rows.Scan(&lid, &pn)
 		if err != nil {
 			return err
 		}
 		s.pnToLIDCache[pn] = lid
 		s.lidToPNCache[lid] = pn
+		fn(lid, pn)
 	}
-	s.cacheFilled = true
-	return nil
+	err := rows.Close()
+	if err != nil {
+		return err
+	}
+	return rows.Err()
 }
 
 func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targetServer, query string, sourceToTarget, targetToSource map[string]string) (types.JID, error) {
@@ -121,6 +134,69 @@ func (s *CachedLIDMap) GetPNForLID(ctx context.Context, lid types.JID) (types.JI
 		ctx, lid, types.DefaultUserServer, getPNForLIDQuery,
 		s.lidToPNCache, s.pnToLIDCache,
 	)
+}
+
+func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (map[types.JID]types.JID, error) {
+	if len(pns) == 0 {
+		return nil, nil
+	}
+
+	result := make(map[types.JID]types.JID, len(pns))
+
+	s.lidCacheLock.RLock()
+	missingPNs := make([]string, 0, len(pns))
+	missingPNDevices := make(map[string][]types.JID)
+	for _, pn := range pns {
+		if pn.Server != types.DefaultUserServer {
+			continue
+		}
+		if lidUser, ok := s.pnToLIDCache[pn.User]; ok && lidUser != "" {
+			result[pn] = types.JID{User: lidUser, Device: pn.Device, Server: types.HiddenUserServer}
+		} else if !s.cacheFilled {
+			missingPNs = append(missingPNs, pn.User)
+			missingPNDevices[pn.User] = append(missingPNDevices[pn.User], pn)
+		}
+	}
+	s.lidCacheLock.RUnlock()
+
+	if len(missingPNs) == 0 {
+		return result, nil
+	}
+
+	s.lidCacheLock.Lock()
+	defer s.lidCacheLock.Unlock()
+
+	var rows dbutil.Rows
+	var err error
+	if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
+		rows, err = s.db.Query(
+			ctx,
+			`SELECT lid, pn FROM whatsmeow_lid_map WHERE pn = ANY($1)`,
+			PostgresArrayWrapper(missingPNs),
+		)
+	} else {
+		placeholders := make([]string, len(missingPNs))
+		for i := range missingPNs {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+		}
+		rows, err = s.db.Query(
+			ctx,
+			fmt.Sprintf(`SELECT lid, pn FROM whatsmeow_lid_map WHERE pn IN (%s)`, strings.Join(placeholders, ",")),
+			exslices.CastToAny(missingPNs)...,
+		)
+	}
+	if err != nil {
+		return nil, err
+	}
+	err = s.scanManyLids(rows, func(lid, pn string) {
+		for _, dev := range missingPNDevices[pn] {
+			lidDev := dev
+			lidDev.Server = types.HiddenUserServer
+			lidDev.User = lid
+			result[dev] = lidDev.ToNonAD()
+		}
+	})
+	return result, err
 }
 
 func (s *CachedLIDMap) PutLIDMapping(ctx context.Context, lid, pn types.JID) error {
