@@ -67,7 +67,7 @@ func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, raw
 	int.c.requestAppStateKeys(ctx, rawKeyIDs)
 }
 
-func (int *DangerousInternalClient) HandleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handled, handlerFailed bool) {
+func (int *DangerousInternalClient) HandleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed bool) {
 	return int.c.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
 }
 
@@ -291,8 +291,8 @@ func (int *DangerousInternalClient) MigrateSessionStore(ctx context.Context, pn,
 	int.c.migrateSessionStore(ctx, pn, lid)
 }
 
-func (int *DangerousInternalClient) DecryptMessages(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) (handlerFailed bool) {
-	return int.c.decryptMessages(ctx, info, node)
+func (int *DangerousInternalClient) DecryptMessages(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) {
+	int.c.decryptMessages(ctx, info, node)
 }
 
 func (int *DangerousInternalClient) ClearUntrustedIdentity(ctx context.Context, target types.JID) error {
