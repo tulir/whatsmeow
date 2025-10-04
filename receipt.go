@@ -233,25 +233,28 @@ func (cli *Client) SetForceActiveDeliveryReceipts(active bool) {
 	}
 }
 
-func (cli *Client) sendMessageReceipt(info *types.MessageInfo) {
+func buildBaseReceipt(id string, node *waBinary.Node) waBinary.Attrs {
 	attrs := waBinary.Attrs{
-		"id": info.ID,
+		"id": id,
+		"to": node.Attrs["from"],
 	}
+	if recipient, ok := node.Attrs["recipient"]; ok {
+		attrs["recipient"] = recipient
+	}
+	if participant, ok := node.Attrs["participant"]; ok {
+		attrs["participant"] = participant
+	}
+	return attrs
+}
+
+func (cli *Client) sendMessageReceipt(info *types.MessageInfo, node *waBinary.Node) {
+	attrs := buildBaseReceipt(info.ID, node)
 	if info.IsFromMe {
 		attrs["type"] = string(types.ReceiptTypeSender)
 	} else if info.Type == "peer_msg" {
 		attrs["type"] = string(types.ReceiptTypePeerMsg)
 	} else if cli.sendActiveReceipts.Load() == 0 {
 		attrs["type"] = string(types.ReceiptTypeInactive)
-	}
-	attrs["to"] = info.Chat
-	if info.IsGroup {
-		attrs["participant"] = info.Sender
-	} else if info.IsFromMe {
-		attrs["recipient"] = info.Sender
-	} else {
-		// Override the to attribute with the JID version with a device number
-		attrs["to"] = info.Sender
 	}
 	err := cli.sendNode(waBinary.Node{
 		Tag:   "receipt",

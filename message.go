@@ -439,9 +439,9 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		}
 	}
 	if cli.SynchronousAck {
-		cli.sendMessageReceipt(info)
+		cli.sendMessageReceipt(info, node)
 	} else {
-		go cli.sendMessageReceipt(info)
+		go cli.sendMessageReceipt(info, node)
 	}
 	return
 }

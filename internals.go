@@ -519,8 +519,8 @@ func (int *DangerousInternalClient) SendAck(node *waBinary.Node) {
 	int.c.sendAck(node)
 }
 
-func (int *DangerousInternalClient) SendMessageReceipt(info *types.MessageInfo) {
-	int.c.sendMessageReceipt(info)
+func (int *DangerousInternalClient) SendMessageReceipt(info *types.MessageInfo, node *waBinary.Node) {
+	int.c.sendMessageReceipt(info, node)
 }
 
 func (int *DangerousInternalClient) GenerateRequestID() string {
