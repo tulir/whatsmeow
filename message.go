@@ -371,6 +371,9 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		if errors.Is(err, EventAlreadyProcessed) {
 			cli.Log.Debugf("Ignoring message %s from %s: %v", info.ID, info.SourceString(), err)
 			continue
+		} else if errors.Is(err, signalerror.ErrOldCounter) {
+			cli.Log.Warnf("Ignoring message %s from %s: %v", info.ID, info.SourceString(), err)
+			continue
 		} else if err != nil {
 			cli.Log.Warnf("Error decrypting message %s from %s: %v", info.ID, info.SourceString(), err)
 			if ctx.Err() != nil || errors.Is(err, context.Canceled) {

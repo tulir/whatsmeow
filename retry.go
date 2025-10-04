@@ -409,6 +409,9 @@ func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, in
 	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
 	attrs := buildBaseReceipt(info.ID, node)
 	attrs["type"] = "retry"
+	if info.Type == "peer_msg" && info.IsFromMe {
+		attrs["category"] = "peer"
+	}
 	payload := waBinary.Node{
 		Tag:   "receipt",
 		Attrs: attrs,

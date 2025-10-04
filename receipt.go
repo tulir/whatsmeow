@@ -251,8 +251,9 @@ func (cli *Client) sendMessageReceipt(info *types.MessageInfo, node *waBinary.No
 	attrs := buildBaseReceipt(info.ID, node)
 	if info.IsFromMe {
 		attrs["type"] = string(types.ReceiptTypeSender)
-	} else if info.Type == "peer_msg" {
-		attrs["type"] = string(types.ReceiptTypePeerMsg)
+		if info.Type == "peer_msg" {
+			attrs["type"] = string(types.ReceiptTypePeerMsg)
+		}
 	} else if cli.sendActiveReceipts.Load() == 0 {
 		attrs["type"] = string(types.ReceiptTypeInactive)
 	}
