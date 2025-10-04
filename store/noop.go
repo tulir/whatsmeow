@@ -68,6 +68,10 @@ func (n *NoopStore) HasSession(ctx context.Context, address string) (bool, error
 	return false, n.Error
 }
 
+func (n *NoopStore) HasManySessions(ctx context.Context, addresses []string) (map[string]bool, error) {
+	return nil, n.Error
+}
+
 func (n *NoopStore) PutSession(ctx context.Context, address string, session []byte) error {
 	return n.Error
 }
@@ -246,6 +250,10 @@ func (n *NoopStore) DeleteOldBufferedHashes(ctx context.Context) error {
 
 func (n *NoopStore) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error) {
 	return types.JID{}, n.Error
+}
+
+func (n *NoopStore) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (map[types.JID]types.JID, error) {
+	return nil, n.Error
 }
 
 func (n *NoopStore) GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error) {

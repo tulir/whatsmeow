@@ -192,6 +192,17 @@ message PinInChatMessage {
 	optional int64 senderTimestampMS = 3;
 }
 
+message StatusStickerInteractionMessage {
+	enum StatusStickerType {
+		UNKNOWN = 0;
+		REACTION = 1;
+	}
+
+	optional WACommon.MessageKey key = 1;
+	optional string stickerKey = 2;
+	optional StatusStickerType type = 3;
+}
+
 message PollCreationMessage {
 	enum PollType {
 		POLL = 0;
@@ -374,7 +385,12 @@ message InteractiveMessage {
 	}
 
 	message Footer {
+		oneof media {
+			AudioMessage audioMessage = 2;
+		}
+
 		optional string text = 1;
+		optional bool hasMediaAttachment = 3;
 	}
 
 	message Body {
@@ -1026,6 +1042,8 @@ message ContextInfo {
 		HD_IMAGE_CHILD = 4;
 		MOTION_PHOTO_PARENT = 5;
 		MOTION_PHOTO_CHILD = 6;
+		HEVC_VIDEO_PARENT = 7;
+		HEVC_VIDEO_CHILD = 8;
 	}
 
 	enum StatusAttributionType {
@@ -1210,6 +1228,7 @@ message ContextInfo {
 	optional StatusAudienceMetadata statusAudienceMetadata = 69;
 	optional uint32 nonJIDMentions = 70;
 	optional QuotedType quotedType = 71;
+	optional WAAICommon.BotMessageSharingInfo botMessageSharingInfo = 72;
 }
 
 message MessageAssociation {
@@ -1232,6 +1251,8 @@ message MessageAssociation {
 		STATUS_ADD_YOURS_AI_IMAGINE = 15;
 		STATUS_QUESTION = 16;
 		STATUS_ADD_YOURS_DIWALI = 17;
+		STATUS_REACTION = 18;
+		HEVC_VIDEO_DUAL_UPLOAD = 19;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1487,6 +1508,7 @@ message Message {
 	optional QuestionResponseMessage questionResponseMessage = 107;
 	optional NewsletterFollowerInviteMessage newsletterFollowerInviteMessage = 108;
 	optional StatusQuotedMessage statusQuotedMessage = 109;
+	optional StatusStickerInteractionMessage statusStickerInteractionMessage = 110;
 }
 
 message AlbumMessage {

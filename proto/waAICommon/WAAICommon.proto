@@ -38,8 +38,10 @@ enum BotMetricsEntryPoint {
 	INVOKE_META_AI_GROUP = 30;
 	META_AI_FORWARD = 31;
 	NEW_CHAT_AI_CONTACT = 32;
-	MESSAGE_QUICK_ACTION = 33;
-	ATTACHMENT_TRAY = 34;
+	MESSAGE_QUICK_ACTION_1_ON_1_CHAT = 33;
+	MESSAGE_QUICK_ACTION_GROUP_CHAT = 34;
+	ATTACHMENT_TRAY_1_ON_1_CHAT = 35;
+	ATTACHMENT_TRAY_GROUP_CHAT = 36;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -337,6 +339,17 @@ message BotImagineMetadata {
 	optional ImagineType imagineType = 1;
 }
 
+message BotAgeCollectionMetadata {
+	enum AgeCollectionType {
+		O18_BINARY = 0;
+		WAFFLE = 1;
+	}
+
+	optional bool ageCollectionEligible = 1;
+	optional bool shouldTriggerAgeCollectionOnClient = 2;
+	optional AgeCollectionType ageCollectionType = 3;
+}
+
 message BotSourcesMetadata {
 	message BotSourceItem {
 		enum SourceProvider {
@@ -588,11 +601,6 @@ message BotMemuMetadata {
 	repeated BotMediaMetadata faceImages = 1;
 }
 
-message BotAgeCollectionMetadata {
-	optional bool ageCollectionEligible = 1;
-	optional bool shouldTriggerAgeCollectionOnClient = 2;
-}
-
 message InThreadSurveyMetadata {
 	message InThreadSurveyPrivacyStatementPart {
 		optional string text = 1;
@@ -688,6 +696,11 @@ message ForwardedAIBotMessageInfo {
 	optional string botName = 1;
 	optional string botJID = 2;
 	optional string creatorName = 3;
+}
+
+message BotMessageSharingInfo {
+	optional BotMetricsEntryPoint botEntryPointOrigin = 1;
+	optional uint32 forwardScore = 2;
 }
 
 message AIRichResponseImageURL {

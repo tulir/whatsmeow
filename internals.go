@@ -67,7 +67,7 @@ func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, raw
 	int.c.requestAppStateKeys(ctx, rawKeyIDs)
 }
 
-func (int *DangerousInternalClient) HandleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handled, handlerFailed bool) {
+func (int *DangerousInternalClient) HandleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed bool) {
 	return int.c.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
 }
 
@@ -291,8 +291,8 @@ func (int *DangerousInternalClient) MigrateSessionStore(ctx context.Context, pn,
 	int.c.migrateSessionStore(ctx, pn, lid)
 }
 
-func (int *DangerousInternalClient) DecryptMessages(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) (handlerFailed bool) {
-	return int.c.decryptMessages(ctx, info, node)
+func (int *DangerousInternalClient) DecryptMessages(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) {
+	int.c.decryptMessages(ctx, info, node)
 }
 
 func (int *DangerousInternalClient) ClearUntrustedIdentity(ctx context.Context, target types.JID) error {
@@ -655,16 +655,16 @@ func (int *DangerousInternalClient) MakeDeviceIdentityNode() waBinary.Node {
 	return int.c.makeDeviceIdentityNode()
 }
 
-func (int *DangerousInternalClient) EncryptMessageForDevices(ctx context.Context, allDevices []types.JID, id string, msgPlaintext, dsmPlaintext []byte, encAttrs waBinary.Attrs) ([]waBinary.Node, bool) {
+func (int *DangerousInternalClient) EncryptMessageForDevices(ctx context.Context, allDevices []types.JID, id string, msgPlaintext, dsmPlaintext []byte, encAttrs waBinary.Attrs) ([]waBinary.Node, bool, error) {
 	return int.c.encryptMessageForDevices(ctx, allDevices, id, msgPlaintext, dsmPlaintext, encAttrs)
 }
 
-func (int *DangerousInternalClient) EncryptMessageForDeviceAndWrap(ctx context.Context, plaintext []byte, wireIdentity, encryptionIdentity types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
-	return int.c.encryptMessageForDeviceAndWrap(ctx, plaintext, wireIdentity, encryptionIdentity, bundle, encAttrs)
+func (int *DangerousInternalClient) EncryptMessageForDeviceAndWrap(ctx context.Context, plaintext []byte, wireIdentity, encryptionIdentity types.JID, bundle *prekey.Bundle, encAttrs waBinary.Attrs, existingSessions map[string]bool) (*waBinary.Node, bool, error) {
+	return int.c.encryptMessageForDeviceAndWrap(ctx, plaintext, wireIdentity, encryptionIdentity, bundle, encAttrs, existingSessions)
 }
 
-func (int *DangerousInternalClient) EncryptMessageForDevice(ctx context.Context, plaintext []byte, to types.JID, bundle *prekey.Bundle, extraAttrs waBinary.Attrs) (*waBinary.Node, bool, error) {
-	return int.c.encryptMessageForDevice(ctx, plaintext, to, bundle, extraAttrs)
+func (int *DangerousInternalClient) EncryptMessageForDevice(ctx context.Context, plaintext []byte, to types.JID, bundle *prekey.Bundle, extraAttrs waBinary.Attrs, existingSessions map[string]bool) (*waBinary.Node, bool, error) {
+	return int.c.encryptMessageForDevice(ctx, plaintext, to, bundle, extraAttrs, existingSessions)
 }
 
 func (int *DangerousInternalClient) RawUpload(ctx context.Context, dataToUpload io.Reader, uploadSize uint64, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {

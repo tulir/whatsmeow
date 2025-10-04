@@ -56,6 +56,17 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message AvatarUpdatedAction {
+	enum AvatarEventType {
+		UPDATED = 0;
+		CREATED = 1;
+		DELETED = 2;
+	}
+
+	optional AvatarEventType eventType = 1;
+	repeated StickerAction recentAvatarStickers = 2;
+}
+
 message MaibaAIFeaturesControlAction {
 	enum MaibaAIFeatureStatus {
 		ENABLED = 0;
@@ -104,6 +115,14 @@ message MerchantPaymentPartnerAction {
 	required string country = 2;
 	optional string gatewayName = 3;
 	optional string credentialID = 4;
+}
+
+message GalaxyFlowAction {
+	enum GalaxyFlowActionType {
+		LAUNCH = 1;
+	}
+
+	required GalaxyFlowActionType type = 1;
 }
 
 message NoteEditAction {
@@ -186,6 +205,8 @@ message PatchDebugData {
 		DARWIN = 6;
 		IPAD = 7;
 		WEAROS = 8;
+		WASG = 9;
+		WEARM = 10;
 	}
 
 	optional bytes currentLthash = 1;
@@ -271,6 +292,8 @@ message SyncActionValue {
 	optional BusinessBroadcastListAction businessBroadcastListAction = 69;
 	optional MusicUserIdAction musicUserIDAction = 70;
 	optional StatusPostOptInNotificationPreferencesAction statusPostOptInNotificationPreferencesAction = 71;
+	optional AvatarUpdatedAction avatarUpdatedAction = 72;
+	optional GalaxyFlowAction galaxyFlowAction = 73;
 }
 
 message StatusPostOptInNotificationPreferencesAction {
