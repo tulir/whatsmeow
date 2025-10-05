@@ -479,6 +479,10 @@ func (int *DangerousInternalClient) UploadPreKeys(ctx context.Context) {
 	int.c.uploadPreKeys(ctx)
 }
 
+func (int *DangerousInternalClient) FetchPreKeysNoError(ctx context.Context, retryDevices []types.JID) map[types.JID]*prekey.Bundle {
+	return int.c.fetchPreKeysNoError(ctx, retryDevices)
+}
+
 func (int *DangerousInternalClient) FetchPreKeys(ctx context.Context, users []types.JID) (map[types.JID]preKeyResp, error) {
 	return int.c.fetchPreKeys(ctx, users)
 }
@@ -615,7 +619,7 @@ func (int *DangerousInternalClient) PrepareMessageNodeV3(ctx context.Context, to
 	return int.c.prepareMessageNodeV3(ctx, to, ownID, id, payload, skdm, msgAttrs, frankingTag, participants, timings)
 }
 
-func (int *DangerousInternalClient) EncryptMessageForDevicesV3(ctx context.Context, allDevices []types.JID, ownID types.JID, id string, payload *waMsgTransport.MessageTransport_Payload, skdm *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage, dsm *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage, encAttrs waBinary.Attrs) []waBinary.Node {
+func (int *DangerousInternalClient) EncryptMessageForDevicesV3(ctx context.Context, allDevices []types.JID, ownID types.JID, id string, payload *waMsgTransport.MessageTransport_Payload, skdm *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage, dsm *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage, encAttrs waBinary.Attrs) ([]waBinary.Node, error) {
 	return int.c.encryptMessageForDevicesV3(ctx, allDevices, ownID, id, payload, skdm, dsm, encAttrs)
 }
 

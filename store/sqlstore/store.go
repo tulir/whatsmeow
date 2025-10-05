@@ -111,8 +111,8 @@ func (s *SQLStore) IsTrustedIdentity(ctx context.Context, address string, key [3
 const (
 	getSessionQuery             = `SELECT session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
 	hasSessionQuery             = `SELECT true FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
-	hasManySessionQueryPostgres = `SELECT their_id FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id = ANY($2)`
-	hasManySessionQueryGeneric  = `SELECT their_id FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN (%s)`
+	getManySessionQueryPostgres = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id = ANY($2)`
+	getManySessionQueryGeneric  = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN (%s)`
 	putSessionQuery             = `
 		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
@@ -161,9 +161,17 @@ func (s *SQLStore) HasSession(ctx context.Context, address string) (has bool, er
 	return
 }
 
-var stringScanner = dbutil.ConvertRowFn[string](dbutil.ScanSingleColumn[string])
+type addressSessionTuple struct {
+	Address string
+	Session []byte
+}
 
-func (s *SQLStore) HasManySessions(ctx context.Context, addresses []string) (map[string]bool, error) {
+var sessionScanner = dbutil.ConvertRowFn[addressSessionTuple](func(row dbutil.Scannable) (out addressSessionTuple, err error) {
+	err = row.Scan(&out.Address, &out.Session)
+	return
+})
+
+func (s *SQLStore) GetManySessions(ctx context.Context, addresses []string) (map[string][]byte, error) {
 	if len(addresses) == 0 {
 		return nil, nil
 	}
@@ -171,7 +179,7 @@ func (s *SQLStore) HasManySessions(ctx context.Context, addresses []string) (map
 	var rows dbutil.Rows
 	var err error
 	if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
-		rows, err = s.db.Query(ctx, hasManySessionQueryPostgres, s.JID, PostgresArrayWrapper(addresses))
+		rows, err = s.db.Query(ctx, getManySessionQueryPostgres, s.JID, PostgresArrayWrapper(addresses))
 	} else {
 		args := make([]any, len(addresses)+1)
 		placeholders := make([]string, len(addresses))
@@ -180,17 +188,32 @@ func (s *SQLStore) HasManySessions(ctx context.Context, addresses []string) (map
 			args[i+1] = addr
 			placeholders[i] = fmt.Sprintf("$%d", i+2)
 		}
-		rows, err = s.db.Query(ctx, fmt.Sprintf(hasManySessionQueryGeneric, strings.Join(placeholders, ",")), args...)
+		rows, err = s.db.Query(ctx, fmt.Sprintf(getManySessionQueryGeneric, strings.Join(placeholders, ",")), args...)
 	}
-	result := make(map[string]bool, len(addresses))
+	result := make(map[string][]byte, len(addresses))
 	for _, addr := range addresses {
-		result[addr] = false
+		result[addr] = nil
 	}
-	err = stringScanner.NewRowIter(rows, err).Iter(func(s string) (bool, error) {
-		result[s] = true
+	err = sessionScanner.NewRowIter(rows, err).Iter(func(tuple addressSessionTuple) (bool, error) {
+		result[tuple.Address] = tuple.Session
 		return true, nil
 	})
-	return result, err
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *SQLStore) PutManySessions(ctx context.Context, sessions map[string][]byte) error {
+	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
+		for addr, sess := range sessions {
+			err := s.PutSession(ctx, addr, sess)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (s *SQLStore) PutSession(ctx context.Context, address string, session []byte) error {

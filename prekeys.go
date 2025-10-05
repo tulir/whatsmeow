@@ -93,6 +93,27 @@ func (cli *Client) uploadPreKeys(ctx context.Context) {
 	return
 }
 
+func (cli *Client) fetchPreKeysNoError(ctx context.Context, retryDevices []types.JID) map[types.JID]*prekey.Bundle {
+	if len(retryDevices) == 0 {
+		return nil
+	}
+	bundlesResp, err := cli.fetchPreKeys(ctx, retryDevices)
+	if err != nil {
+		cli.Log.Warnf("Failed to fetch prekeys for %v with no existing session: %v", retryDevices, err)
+		return nil
+	}
+	bundles := make(map[types.JID]*prekey.Bundle, len(retryDevices))
+	for _, jid := range retryDevices {
+		resp := bundlesResp[jid]
+		if resp.err != nil {
+			cli.Log.Warnf("Failed to fetch prekey for %s: %v", jid, resp.err)
+			continue
+		}
+		bundles[jid] = resp.bundle
+	}
+	return bundles
+}
+
 type preKeyResp struct {
 	bundle *prekey.Bundle
 	err    error

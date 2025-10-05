@@ -366,6 +366,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely
+	// This is also required for the session prefetching that makes group sends faster
+	// (everything will explode if you send a message to the same user twice in parallel)
 	cli.messageSendLock.Lock()
 	resp.DebugTimings.Queue = time.Since(start)
 	defer cli.messageSendLock.Unlock()
@@ -1226,7 +1228,8 @@ func (cli *Client) encryptMessageForDevices(
 	}
 
 	encryptionIdentities := make(map[types.JID]types.JID, len(allDevices))
-	var sessionAddresses []string
+	sessionAddressToJID := make(map[string]types.JID, len(allDevices))
+	sessionAddresses := make([]string, 0, len(allDevices))
 	for _, jid := range allDevices {
 		encryptionIdentity := jid
 		if jid.Server == types.DefaultUserServer {
@@ -1237,15 +1240,23 @@ func (cli *Client) encryptMessageForDevices(
 			}
 		}
 		encryptionIdentities[jid] = encryptionIdentity
-		sessionAddresses = append(sessionAddresses, encryptionIdentity.SignalAddress().String())
+		addr := encryptionIdentity.SignalAddress().String()
+		sessionAddresses = append(sessionAddresses, addr)
+		sessionAddressToJID[addr] = jid
 	}
 
-	existingSessions, err := cli.Store.Sessions.HasManySessions(ctx, sessionAddresses)
+	existingSessions, ctx, err := cli.Store.WithCachedSessions(ctx, sessionAddresses)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to check which sessions exist: %w", err)
+		return nil, false, fmt.Errorf("failed to prefetch sessions: %w", err)
 	}
+	var retryDevices []types.JID
+	for addr, exists := range existingSessions {
+		if !exists {
+			retryDevices = append(retryDevices, sessionAddressToJID[addr])
+		}
+	}
+	bundles := cli.fetchPreKeysNoError(ctx, retryDevices)
 
-	var retryDevices, retryEncryptionIdentities []types.JID
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
 		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
@@ -1254,16 +1265,10 @@ func (cli *Client) encryptMessageForDevices(
 			}
 			plaintext = dsmPlaintext
 		}
-		encryptionIdentity := encryptionIdentities[jid]
-
 		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
-			ctx, plaintext, jid, encryptionIdentity, nil, encAttrs, existingSessions,
+			ctx, plaintext, jid, encryptionIdentities[jid], bundles[jid], encAttrs, existingSessions,
 		)
-		if errors.Is(err, ErrNoSession) {
-			retryDevices = append(retryDevices, jid)
-			retryEncryptionIdentities = append(retryEncryptionIdentities, encryptionIdentity)
-			continue
-		} else if err != nil {
+		if err != nil {
 			// TODO return these errors if it's a fatal one (like context cancellation or database)
 			cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
 			if ctx.Err() != nil {
@@ -1277,35 +1282,9 @@ func (cli *Client) encryptMessageForDevices(
 			includeIdentity = true
 		}
 	}
-	if len(retryDevices) > 0 {
-		bundles, err := cli.fetchPreKeys(ctx, retryDevices)
-		if err != nil {
-			cli.Log.Warnf("Failed to fetch prekeys for %v to retry encryption: %v", retryDevices, err)
-		} else {
-			for i, jid := range retryDevices {
-				resp := bundles[jid]
-				if resp.err != nil {
-					cli.Log.Warnf("Failed to fetch prekey for %s: %v", jid, resp.err)
-					continue
-				}
-				plaintext := msgPlaintext
-				if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
-					plaintext = dsmPlaintext
-				}
-				encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
-					ctx, plaintext, jid, retryEncryptionIdentities[i], resp.bundle, encAttrs, nil,
-				)
-				if err != nil {
-					// TODO return these errors if it's a fatal one (like context cancellation or database)
-					cli.Log.Warnf("Failed to encrypt %s for %s (retry): %v", id, jid, err)
-					continue
-				}
-				participantNodes = append(participantNodes, *encrypted)
-				if isPreKey {
-					includeIdentity = true
-				}
-			}
-		}
+	err = cli.Store.PutCachedSessions(ctx)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to save cached sessions: %w", err)
 	}
 	return participantNodes, includeIdentity, nil
 }
