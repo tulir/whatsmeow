@@ -1074,7 +1074,7 @@ func (cli *Client) prepareMessageNode(
 	extraParams nodeExtraParams,
 ) (*waBinary.Node, []types.JID, error) {
 	start := time.Now()
-	allDevices, err := cli.GetUserDevicesContext(ctx, participants)
+	allDevices, err := cli.GetUserDevicesContext(ctx, participants, to.Server == types.GroupServer)
 	timings.GetDevices = time.Since(start)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get device list: %w", err)
