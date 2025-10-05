@@ -30,6 +30,7 @@ type SessionStore interface {
 	GetSession(ctx context.Context, address string) ([]byte, error)
 	HasSession(ctx context.Context, address string) (bool, error)
 	HasManySessions(ctx context.Context, addresses []string) (map[string]bool, error)
+	GetManySessions(ctx context.Context, addresses []string) (map[string][]byte, error)
 	PutSession(ctx context.Context, address string, session []byte) error
 	DeleteAllSessions(ctx context.Context, phone string) error
 	DeleteSession(ctx context.Context, address string) error

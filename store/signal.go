@@ -9,6 +9,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"go.mau.fi/libsignal/ecc"
 	groupRecord "go.mau.fi/libsignal/groups/state/record"
@@ -84,6 +85,21 @@ func (device *Device) ContainsPreKey(ctx context.Context, preKeyID uint32) (bool
 
 func (device *Device) LoadSession(ctx context.Context, address *protocol.SignalAddress) (*record.Session, error) {
 	addrString := address.String()
+
+	if cache := GetSessionCache(ctx); cache != nil {
+		if rawSess, ok := cache.Get(addrString); ok {
+			if rawSess == nil {
+				return record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State), nil
+			}
+			sess, err := record.NewSessionFromBytes(rawSess, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
+			if err != nil {
+				return nil, fmt.Errorf("failed to deserialize cached session with %s: %w", addrString, err)
+			}
+			return sess, nil
+		}
+	}
+
+	// Fall back to database
 	rawSess, err := device.Sessions.GetSession(ctx, addrString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load session with %s: %w", addrString, err)
@@ -179,4 +195,63 @@ func (device *Device) LoadSenderKey(ctx context.Context, senderKeyName *protocol
 		return nil, fmt.Errorf("failed to deserialize sender key from %s for %s: %w", senderString, groupID, err)
 	}
 	return key, nil
+}
+
+type sessionCacheContextKey struct{}
+type SessionCache struct {
+	mu       sync.RWMutex
+	sessions map[string][]byte
+}
+
+func NewSessionCache() *SessionCache {
+	return &SessionCache{
+		sessions: make(map[string][]byte),
+	}
+}
+
+func (c *SessionCache) Get(address string) ([]byte, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	session, ok := c.sessions[address]
+	return session, ok
+}
+
+func (c *SessionCache) Set(address string, session []byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.sessions[address] = session
+}
+
+func (c *SessionCache) SetMany(sessions map[string][]byte) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for addr, session := range sessions {
+		c.sessions[addr] = session
+	}
+}
+
+func WithSessionCache(ctx context.Context, cache *SessionCache) context.Context {
+	return context.WithValue(ctx, sessionCacheContextKey{}, cache)
+}
+
+func GetSessionCache(ctx context.Context) *SessionCache {
+	if cache, ok := ctx.Value(sessionCacheContextKey{}).(*SessionCache); ok {
+		return cache
+	}
+	return nil
+}
+
+func (device *Device) PrefetchSessions(ctx context.Context, addresses []string) error {
+	cache := GetSessionCache(ctx)
+	if cache == nil || len(addresses) == 0 {
+		return nil
+	}
+
+	sessions, err := device.Sessions.GetManySessions(ctx, addresses)
+	if err != nil {
+		return fmt.Errorf("failed to prefetch sessions: %w", err)
+	}
+
+	cache.SetMany(sessions)
+	return nil
 }

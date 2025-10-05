@@ -113,6 +113,8 @@ const (
 	hasSessionQuery             = `SELECT true FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
 	hasManySessionQueryPostgres = `SELECT their_id FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id = ANY($2)`
 	hasManySessionQueryGeneric  = `SELECT their_id FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN (%s)`
+	getManySessionQueryPostgres = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id = ANY($2)`
+	getManySessionQueryGeneric  = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN (%s)`
 	putSessionQuery             = `
 		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
@@ -191,6 +193,46 @@ func (s *SQLStore) HasManySessions(ctx context.Context, addresses []string) (map
 		return true, nil
 	})
 	return result, err
+}
+
+func (s *SQLStore) GetManySessions(ctx context.Context, addresses []string) (map[string][]byte, error) {
+	if len(addresses) == 0 {
+		return nil, nil
+	}
+
+	var rows dbutil.Rows
+	var err error
+	if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
+		rows, err = s.db.Query(ctx, getManySessionQueryPostgres, s.JID, PostgresArrayWrapper(addresses))
+	} else {
+		args := make([]any, len(addresses)+1)
+		placeholders := make([]string, len(addresses))
+		args[0] = s.JID
+		for i, addr := range addresses {
+			args[i+1] = addr
+			placeholders[i] = fmt.Sprintf("$%d", i+2)
+		}
+		rows, err = s.db.Query(ctx, fmt.Sprintf(getManySessionQueryGeneric, strings.Join(placeholders, ",")), args...)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string][]byte, len(addresses))
+	for rows.Next() {
+		var address string
+		var session []byte
+		err = rows.Scan(&address, &session)
+		if err != nil {
+			return nil, err
+		}
+		result[address] = session
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (s *SQLStore) PutSession(ctx context.Context, address string, session []byte) error {

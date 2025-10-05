@@ -605,14 +605,16 @@ func (cli *Client) cacheGroupInfo(groupInfo *types.GroupInfo, lock bool) ([]stor
 		}
 	}
 	if lock {
-		cli.groupCacheLock.Lock()
-		defer cli.groupCacheLock.Unlock()
+		unlock := cli.lockGroupForWrite(groupInfo.JID)
+		defer unlock()
 	}
+	cli.groupCacheLock.Lock()
 	cli.groupCache[groupInfo.JID] = &groupMetaCache{
 		AddressingMode:             groupInfo.AddressingMode,
 		CommunityAnnouncementGroup: groupInfo.IsAnnounce && groupInfo.IsDefaultSubGroup,
 		Members:                    participants,
 	}
+	cli.groupCacheLock.Unlock()
 	return lidPairs, redactedPhones
 }
 
@@ -650,16 +652,37 @@ func (cli *Client) getGroupInfo(ctx context.Context, jid types.JID, lockParticip
 }
 
 func (cli *Client) getCachedGroupData(ctx context.Context, jid types.JID) (*groupMetaCache, error) {
-	cli.groupCacheLock.Lock()
-	defer cli.groupCacheLock.Unlock()
-	if val, ok := cli.groupCache[jid]; ok {
+	cli.groupCacheLock.RLock()
+	val, ok := cli.groupCache[jid]
+	cli.groupCacheLock.RUnlock()
+
+	if ok {
 		return val, nil
 	}
+
+	unlock := cli.lockGroupForWrite(jid)
+	defer unlock()
+
+	// double check another goroutine might have populated the cache while we were waiting
+	cli.groupCacheLock.RLock()
+	val, ok = cli.groupCache[jid]
+	cli.groupCacheLock.RUnlock()
+
+	if ok {
+		return val, nil
+	}
+
+	// Actually fetch the group info (this will cache it)
 	_, err := cli.getGroupInfo(ctx, jid, false)
 	if err != nil {
 		return nil, err
 	}
-	return cli.groupCache[jid], nil
+
+	cli.groupCacheLock.RLock()
+	val = cli.groupCache[jid]
+	cli.groupCacheLock.RUnlock()
+
+	return val, nil
 }
 
 func parseParticipant(childAG *waBinary.AttrUtility, child *waBinary.Node) types.GroupParticipant {
@@ -960,12 +983,27 @@ func (cli *Client) updateGroupParticipantCache(evt *events.GroupInfo) {
 	if len(evt.Join) == 0 && len(evt.Leave) == 0 {
 		return
 	}
-	cli.groupCacheLock.Lock()
-	defer cli.groupCacheLock.Unlock()
+
+	// Check if we have this group cached
+	cli.groupCacheLock.RLock()
 	cached, ok := cli.groupCache[evt.JID]
+	cli.groupCacheLock.RUnlock()
+
 	if !ok {
 		return
 	}
+
+	unlock := cli.lockGroupForWrite(evt.JID)
+	defer unlock()
+
+	cli.groupCacheLock.RLock()
+	cached, ok = cli.groupCache[evt.JID]
+	cli.groupCacheLock.RUnlock()
+
+	if !ok {
+		return
+	}
+
 Outer:
 	for _, jid := range evt.Join {
 		for _, existingJID := range cached.Members {

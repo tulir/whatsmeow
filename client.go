@@ -128,9 +128,11 @@ type Client struct {
 	privacySettingsCache atomic.Value
 
 	groupCache           map[types.JID]*groupMetaCache
-	groupCacheLock       sync.Mutex
+	groupCacheLock       sync.RWMutex
+	groupLocks           map[types.JID]*sync.RWMutex
+	groupLocksLock       sync.Mutex
 	userDevicesCache     map[types.JID]deviceCache
-	userDevicesCacheLock sync.Mutex
+	userDevicesCacheLock sync.RWMutex
 
 	recentMessagesMap  map[recentMessageKey]RecentMessage
 	recentMessagesList [recentMessagesSize]recentMessageKey
@@ -245,6 +247,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
 		groupCache:       make(map[types.JID]*groupMetaCache),
+		groupLocks:       make(map[types.JID]*sync.RWMutex),
 		userDevicesCache: make(map[types.JID]deviceCache),
 
 		recentMessagesMap:      make(map[recentMessageKey]RecentMessage, recentMessagesSize),
@@ -927,4 +930,35 @@ func (cli *Client) StoreLIDPNMapping(ctx context.Context, first, second types.JI
 	if err != nil {
 		cli.Log.Errorf("Failed to store LID-PN mapping for %s -> %s: %v", lid, pn, err)
 	}
+}
+
+func (cli *Client) getGroupLock(jid types.JID) *sync.RWMutex {
+	cli.groupLocksLock.Lock()
+	defer cli.groupLocksLock.Unlock()
+
+	if lock, exists := cli.groupLocks[jid]; exists {
+		return lock
+	}
+
+	newLock := &sync.RWMutex{}
+	cli.groupLocks[jid] = newLock
+	return newLock
+}
+
+func (cli *Client) lockGroupForRead(jid types.JID) func() {
+	lock := cli.getGroupLock(jid)
+	lock.RLock()
+	return lock.RUnlock
+}
+
+func (cli *Client) lockGroupForWrite(jid types.JID) func() {
+	lock := cli.getGroupLock(jid)
+	lock.Lock()
+	return lock.Unlock
+}
+
+func (cli *Client) cleanupGroupLock(jid types.JID) {
+	cli.groupLocksLock.Lock()
+	defer cli.groupLocksLock.Unlock()
+	delete(cli.groupLocks, jid)
 }

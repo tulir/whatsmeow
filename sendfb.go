@@ -30,6 +30,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waConsumerApplication"
 	"go.mau.fi/whatsmeow/proto/waMsgApplication"
 	"go.mau.fi/whatsmeow/proto/waMsgTransport"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -201,6 +202,7 @@ func (cli *Client) SendFBMessage(
 		cli.groupCacheLock.Lock()
 		delete(cli.groupCache, to)
 		cli.groupCacheLock.Unlock()
+		cli.cleanupGroupLock(to)
 	}
 	return
 }
@@ -520,6 +522,20 @@ func (cli *Client) encryptMessageForDevicesV3(
 	encAttrs waBinary.Attrs,
 ) []waBinary.Node {
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
+
+	// Create session cache and prefetch all sessions in a single batch query
+	var sessionAddresses []string
+	for _, jid := range allDevices {
+		sessionAddresses = append(sessionAddresses, jid.SignalAddress().String())
+	}
+	sessionCache := store.NewSessionCache()
+	ctx = store.WithSessionCache(ctx, sessionCache)
+	err := cli.Store.PrefetchSessions(ctx, sessionAddresses)
+	if err != nil {
+		cli.Log.Warnf("Failed to prefetch sessions: %v (will fall back to individual queries)", err)
+		// Don't return error, we can still fall back to individual queries
+	}
+
 	var retryDevices []types.JID
 	for _, jid := range allDevices {
 		var dsmForDevice *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage

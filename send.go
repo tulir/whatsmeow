@@ -32,6 +32,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waAICommon"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -366,9 +367,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely
-	cli.messageSendLock.Lock()
+	// cli.messageSendLock.Lock()
 	resp.DebugTimings.Queue = time.Since(start)
-	defer cli.messageSendLock.Unlock()
+	// defer cli.messageSendLock.Unlock()
 
 	respChan := cli.waitResponse(req.ID)
 	// Peer message retries aren't implemented yet
@@ -445,6 +446,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		cli.groupCacheLock.Lock()
 		delete(cli.groupCache, to)
 		cli.groupCacheLock.Unlock()
+		// Clean up the per-group lock as well
+		cli.cleanupGroupLock(to)
 	}
 	return
 }
@@ -1243,6 +1246,14 @@ func (cli *Client) encryptMessageForDevices(
 	existingSessions, err := cli.Store.Sessions.HasManySessions(ctx, sessionAddresses)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to check which sessions exist: %w", err)
+	}
+
+	sessionCache := store.NewSessionCache()
+	ctx = store.WithSessionCache(ctx, sessionCache)
+	err = cli.Store.PrefetchSessions(ctx, sessionAddresses)
+	if err != nil {
+		cli.Log.Warnf("Failed to prefetch sessions: %v (will fall back to individual queries)", err)
+		// don't return error, we can still fall back to individual queries
 	}
 
 	var retryDevices, retryEncryptionIdentities []types.JID
