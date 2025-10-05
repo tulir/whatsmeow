@@ -67,7 +67,7 @@ func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, raw
 	int.c.requestAppStateKeys(ctx, rawKeyIDs)
 }
 
-func (int *DangerousInternalClient) HandleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed bool) {
+func (int *DangerousInternalClient) HandleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed, protobufFailed bool) {
 	return int.c.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
 }
 
@@ -511,12 +511,16 @@ func (int *DangerousInternalClient) ParseReceipt(node *waBinary.Node) (*events.R
 	return int.c.parseReceipt(node)
 }
 
+func (int *DangerousInternalClient) BackgroundIfAsyncAck(fn func()) {
+	int.c.backgroundIfAsyncAck(fn)
+}
+
 func (int *DangerousInternalClient) MaybeDeferredAck(ctx context.Context, node *waBinary.Node) func(...*bool) {
 	return int.c.maybeDeferredAck(ctx, node)
 }
 
-func (int *DangerousInternalClient) SendAck(node *waBinary.Node) {
-	int.c.sendAck(node)
+func (int *DangerousInternalClient) SendAck(node *waBinary.Node, error int) {
+	int.c.sendAck(node, error)
 }
 
 func (int *DangerousInternalClient) SendMessageReceipt(info *types.MessageInfo, node *waBinary.Node) {

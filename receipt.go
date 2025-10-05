@@ -101,6 +101,14 @@ func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, error) {
 	return &receipt, nil
 }
 
+func (cli *Client) backgroundIfAsyncAck(fn func()) {
+	if cli.SynchronousAck {
+		fn()
+	} else {
+		go fn()
+	}
+}
+
 func (cli *Client) maybeDeferredAck(ctx context.Context, node *waBinary.Node) func(cancelled ...*bool) {
 	if cli.SynchronousAck {
 		return func(cancelled ...*bool) {
@@ -113,15 +121,31 @@ func (cli *Client) maybeDeferredAck(ctx context.Context, node *waBinary.Node) fu
 					Msg("Not sending ack for node")
 				return
 			}
-			cli.sendAck(node)
+			cli.sendAck(node, 0)
 		}
 	} else {
-		go cli.sendAck(node)
+		go cli.sendAck(node, 0)
 		return func(...*bool) {}
 	}
 }
 
-func (cli *Client) sendAck(node *waBinary.Node) {
+const (
+	NackParsingError                 = 487
+	NackUnrecognizedStanza           = 488
+	NackUnrecognizedStanzaClass      = 489
+	NackUnrecognizedStanzaType       = 490
+	NackInvalidProtobuf              = 491
+	NackInvalidHostedCompanionStanza = 493
+	NackMissingMessageSecret         = 495
+	NackSignalErrorOldCounter        = 496
+	NackMessageDeletedOnPeer         = 499
+	NackUnhandledError               = 500
+	NackUnsupportedAdminRevoke       = 550
+	NackUnsupportedLIDGroup          = 551
+	NackDBOperationFailed            = 552
+)
+
+func (cli *Client) sendAck(node *waBinary.Node, error int) {
 	attrs := waBinary.Attrs{
 		"class": node.Tag,
 		"id":    node.Attrs["id"],
@@ -144,6 +168,9 @@ func (cli *Client) sendAck(node *waBinary.Node) {
 	}
 	if receiptType, ok := node.Attrs["type"]; node.Tag != "message" && ok {
 		attrs["type"] = receiptType
+	}
+	if error != 0 {
+		attrs["error"] = error
 	}
 	err := cli.sendNode(waBinary.Node{
 		Tag:   "ack",

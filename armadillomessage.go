@@ -22,10 +22,11 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed bool) {
+func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed, protobufFailed bool) {
 	dec, err := decodeArmadillo(decrypted)
 	if err != nil {
 		cli.Log.Warnf("Failed to decode armadillo message from %s: %v", info.SourceString(), err)
+		protobufFailed = true
 		return
 	}
 	dec.Info = *info
