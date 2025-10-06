@@ -1399,73 +1399,74 @@ func (GroupHistoryBundleInfo_ProcessState) EnumDescriptor() ([]byte, []int) {
 }
 
 type WebMessageInfo struct {
-	state                             protoimpl.MessageState             `protogen:"open.v1"`
-	Key                               *waCommon.MessageKey               `protobuf:"bytes,1,req,name=key" json:"key,omitempty"`
-	Message                           *waE2E.Message                     `protobuf:"bytes,2,opt,name=message" json:"message,omitempty"`
-	MessageTimestamp                  *uint64                            `protobuf:"varint,3,opt,name=messageTimestamp" json:"messageTimestamp,omitempty"`
-	Status                            *WebMessageInfo_Status             `protobuf:"varint,4,opt,name=status,enum=WAWebProtobufsWeb.WebMessageInfo_Status" json:"status,omitempty"`
-	Participant                       *string                            `protobuf:"bytes,5,opt,name=participant" json:"participant,omitempty"`
-	MessageC2STimestamp               *uint64                            `protobuf:"varint,6,opt,name=messageC2STimestamp" json:"messageC2STimestamp,omitempty"`
-	Ignore                            *bool                              `protobuf:"varint,16,opt,name=ignore" json:"ignore,omitempty"`
-	Starred                           *bool                              `protobuf:"varint,17,opt,name=starred" json:"starred,omitempty"`
-	Broadcast                         *bool                              `protobuf:"varint,18,opt,name=broadcast" json:"broadcast,omitempty"`
-	PushName                          *string                            `protobuf:"bytes,19,opt,name=pushName" json:"pushName,omitempty"`
-	MediaCiphertextSHA256             []byte                             `protobuf:"bytes,20,opt,name=mediaCiphertextSHA256" json:"mediaCiphertextSHA256,omitempty"`
-	Multicast                         *bool                              `protobuf:"varint,21,opt,name=multicast" json:"multicast,omitempty"`
-	UrlText                           *bool                              `protobuf:"varint,22,opt,name=urlText" json:"urlText,omitempty"`
-	UrlNumber                         *bool                              `protobuf:"varint,23,opt,name=urlNumber" json:"urlNumber,omitempty"`
-	MessageStubType                   *WebMessageInfo_StubType           `protobuf:"varint,24,opt,name=messageStubType,enum=WAWebProtobufsWeb.WebMessageInfo_StubType" json:"messageStubType,omitempty"`
-	ClearMedia                        *bool                              `protobuf:"varint,25,opt,name=clearMedia" json:"clearMedia,omitempty"`
-	MessageStubParameters             []string                           `protobuf:"bytes,26,rep,name=messageStubParameters" json:"messageStubParameters,omitempty"`
-	Duration                          *uint32                            `protobuf:"varint,27,opt,name=duration" json:"duration,omitempty"`
-	Labels                            []string                           `protobuf:"bytes,28,rep,name=labels" json:"labels,omitempty"`
-	PaymentInfo                       *PaymentInfo                       `protobuf:"bytes,29,opt,name=paymentInfo" json:"paymentInfo,omitempty"`
-	FinalLiveLocation                 *waE2E.LiveLocationMessage         `protobuf:"bytes,30,opt,name=finalLiveLocation" json:"finalLiveLocation,omitempty"`
-	QuotedPaymentInfo                 *PaymentInfo                       `protobuf:"bytes,31,opt,name=quotedPaymentInfo" json:"quotedPaymentInfo,omitempty"`
-	EphemeralStartTimestamp           *uint64                            `protobuf:"varint,32,opt,name=ephemeralStartTimestamp" json:"ephemeralStartTimestamp,omitempty"`
-	EphemeralDuration                 *uint32                            `protobuf:"varint,33,opt,name=ephemeralDuration" json:"ephemeralDuration,omitempty"`
-	EphemeralOffToOn                  *bool                              `protobuf:"varint,34,opt,name=ephemeralOffToOn" json:"ephemeralOffToOn,omitempty"`
-	EphemeralOutOfSync                *bool                              `protobuf:"varint,35,opt,name=ephemeralOutOfSync" json:"ephemeralOutOfSync,omitempty"`
-	BizPrivacyStatus                  *WebMessageInfo_BizPrivacyStatus   `protobuf:"varint,36,opt,name=bizPrivacyStatus,enum=WAWebProtobufsWeb.WebMessageInfo_BizPrivacyStatus" json:"bizPrivacyStatus,omitempty"`
-	VerifiedBizName                   *string                            `protobuf:"bytes,37,opt,name=verifiedBizName" json:"verifiedBizName,omitempty"`
-	MediaData                         *MediaData                         `protobuf:"bytes,38,opt,name=mediaData" json:"mediaData,omitempty"`
-	PhotoChange                       *PhotoChange                       `protobuf:"bytes,39,opt,name=photoChange" json:"photoChange,omitempty"`
-	UserReceipt                       []*UserReceipt                     `protobuf:"bytes,40,rep,name=userReceipt" json:"userReceipt,omitempty"`
-	Reactions                         []*Reaction                        `protobuf:"bytes,41,rep,name=reactions" json:"reactions,omitempty"`
-	QuotedStickerData                 *MediaData                         `protobuf:"bytes,42,opt,name=quotedStickerData" json:"quotedStickerData,omitempty"`
-	FutureproofData                   []byte                             `protobuf:"bytes,43,opt,name=futureproofData" json:"futureproofData,omitempty"`
-	StatusPsa                         *StatusPSA                         `protobuf:"bytes,44,opt,name=statusPsa" json:"statusPsa,omitempty"`
-	PollUpdates                       []*PollUpdate                      `protobuf:"bytes,45,rep,name=pollUpdates" json:"pollUpdates,omitempty"`
-	PollAdditionalMetadata            *PollAdditionalMetadata            `protobuf:"bytes,46,opt,name=pollAdditionalMetadata" json:"pollAdditionalMetadata,omitempty"`
-	AgentID                           *string                            `protobuf:"bytes,47,opt,name=agentID" json:"agentID,omitempty"`
-	StatusAlreadyViewed               *bool                              `protobuf:"varint,48,opt,name=statusAlreadyViewed" json:"statusAlreadyViewed,omitempty"`
-	MessageSecret                     []byte                             `protobuf:"bytes,49,opt,name=messageSecret" json:"messageSecret,omitempty"`
-	KeepInChat                        *KeepInChat                        `protobuf:"bytes,50,opt,name=keepInChat" json:"keepInChat,omitempty"`
-	OriginalSelfAuthorUserJIDString   *string                            `protobuf:"bytes,51,opt,name=originalSelfAuthorUserJIDString" json:"originalSelfAuthorUserJIDString,omitempty"`
-	RevokeMessageTimestamp            *uint64                            `protobuf:"varint,52,opt,name=revokeMessageTimestamp" json:"revokeMessageTimestamp,omitempty"`
-	PinInChat                         *PinInChat                         `protobuf:"bytes,54,opt,name=pinInChat" json:"pinInChat,omitempty"`
-	PremiumMessageInfo                *PremiumMessageInfo                `protobuf:"bytes,55,opt,name=premiumMessageInfo" json:"premiumMessageInfo,omitempty"`
-	Is1PBizBotMessage                 *bool                              `protobuf:"varint,56,opt,name=is1PBizBotMessage" json:"is1PBizBotMessage,omitempty"`
-	IsGroupHistoryMessage             *bool                              `protobuf:"varint,57,opt,name=isGroupHistoryMessage" json:"isGroupHistoryMessage,omitempty"`
-	BotMessageInvokerJID              *string                            `protobuf:"bytes,58,opt,name=botMessageInvokerJID" json:"botMessageInvokerJID,omitempty"`
-	CommentMetadata                   *CommentMetadata                   `protobuf:"bytes,59,opt,name=commentMetadata" json:"commentMetadata,omitempty"`
-	EventResponses                    []*EventResponse                   `protobuf:"bytes,61,rep,name=eventResponses" json:"eventResponses,omitempty"`
-	ReportingTokenInfo                *ReportingTokenInfo                `protobuf:"bytes,62,opt,name=reportingTokenInfo" json:"reportingTokenInfo,omitempty"`
-	NewsletterServerID                *uint64                            `protobuf:"varint,63,opt,name=newsletterServerID" json:"newsletterServerID,omitempty"`
-	EventAdditionalMetadata           *EventAdditionalMetadata           `protobuf:"bytes,64,opt,name=eventAdditionalMetadata" json:"eventAdditionalMetadata,omitempty"`
-	IsMentionedInStatus               *bool                              `protobuf:"varint,65,opt,name=isMentionedInStatus" json:"isMentionedInStatus,omitempty"`
-	StatusMentions                    []string                           `protobuf:"bytes,66,rep,name=statusMentions" json:"statusMentions,omitempty"`
-	TargetMessageID                   *waCommon.MessageKey               `protobuf:"bytes,67,opt,name=targetMessageID" json:"targetMessageID,omitempty"`
-	MessageAddOns                     []*MessageAddOn                    `protobuf:"bytes,68,rep,name=messageAddOns" json:"messageAddOns,omitempty"`
-	StatusMentionMessageInfo          *StatusMentionMessage              `protobuf:"bytes,69,opt,name=statusMentionMessageInfo" json:"statusMentionMessageInfo,omitempty"`
-	IsSupportAiMessage                *bool                              `protobuf:"varint,70,opt,name=isSupportAiMessage" json:"isSupportAiMessage,omitempty"`
-	StatusMentionSources              []string                           `protobuf:"bytes,71,rep,name=statusMentionSources" json:"statusMentionSources,omitempty"`
-	SupportAiCitations                []*Citation                        `protobuf:"bytes,72,rep,name=supportAiCitations" json:"supportAiCitations,omitempty"`
-	BotTargetID                       *string                            `protobuf:"bytes,73,opt,name=botTargetID" json:"botTargetID,omitempty"`
-	GroupHistoryIndividualMessageInfo *GroupHistoryIndividualMessageInfo `protobuf:"bytes,74,opt,name=groupHistoryIndividualMessageInfo" json:"groupHistoryIndividualMessageInfo,omitempty"`
-	GroupHistoryBundleInfo            *GroupHistoryBundleInfo            `protobuf:"bytes,75,opt,name=groupHistoryBundleInfo" json:"groupHistoryBundleInfo,omitempty"`
-	unknownFields                     protoimpl.UnknownFields
-	sizeCache                         protoimpl.SizeCache
+	state                                protoimpl.MessageState                `protogen:"open.v1"`
+	Key                                  *waCommon.MessageKey                  `protobuf:"bytes,1,req,name=key" json:"key,omitempty"`
+	Message                              *waE2E.Message                        `protobuf:"bytes,2,opt,name=message" json:"message,omitempty"`
+	MessageTimestamp                     *uint64                               `protobuf:"varint,3,opt,name=messageTimestamp" json:"messageTimestamp,omitempty"`
+	Status                               *WebMessageInfo_Status                `protobuf:"varint,4,opt,name=status,enum=WAWebProtobufsWeb.WebMessageInfo_Status" json:"status,omitempty"`
+	Participant                          *string                               `protobuf:"bytes,5,opt,name=participant" json:"participant,omitempty"`
+	MessageC2STimestamp                  *uint64                               `protobuf:"varint,6,opt,name=messageC2STimestamp" json:"messageC2STimestamp,omitempty"`
+	Ignore                               *bool                                 `protobuf:"varint,16,opt,name=ignore" json:"ignore,omitempty"`
+	Starred                              *bool                                 `protobuf:"varint,17,opt,name=starred" json:"starred,omitempty"`
+	Broadcast                            *bool                                 `protobuf:"varint,18,opt,name=broadcast" json:"broadcast,omitempty"`
+	PushName                             *string                               `protobuf:"bytes,19,opt,name=pushName" json:"pushName,omitempty"`
+	MediaCiphertextSHA256                []byte                                `protobuf:"bytes,20,opt,name=mediaCiphertextSHA256" json:"mediaCiphertextSHA256,omitempty"`
+	Multicast                            *bool                                 `protobuf:"varint,21,opt,name=multicast" json:"multicast,omitempty"`
+	UrlText                              *bool                                 `protobuf:"varint,22,opt,name=urlText" json:"urlText,omitempty"`
+	UrlNumber                            *bool                                 `protobuf:"varint,23,opt,name=urlNumber" json:"urlNumber,omitempty"`
+	MessageStubType                      *WebMessageInfo_StubType              `protobuf:"varint,24,opt,name=messageStubType,enum=WAWebProtobufsWeb.WebMessageInfo_StubType" json:"messageStubType,omitempty"`
+	ClearMedia                           *bool                                 `protobuf:"varint,25,opt,name=clearMedia" json:"clearMedia,omitempty"`
+	MessageStubParameters                []string                              `protobuf:"bytes,26,rep,name=messageStubParameters" json:"messageStubParameters,omitempty"`
+	Duration                             *uint32                               `protobuf:"varint,27,opt,name=duration" json:"duration,omitempty"`
+	Labels                               []string                              `protobuf:"bytes,28,rep,name=labels" json:"labels,omitempty"`
+	PaymentInfo                          *PaymentInfo                          `protobuf:"bytes,29,opt,name=paymentInfo" json:"paymentInfo,omitempty"`
+	FinalLiveLocation                    *waE2E.LiveLocationMessage            `protobuf:"bytes,30,opt,name=finalLiveLocation" json:"finalLiveLocation,omitempty"`
+	QuotedPaymentInfo                    *PaymentInfo                          `protobuf:"bytes,31,opt,name=quotedPaymentInfo" json:"quotedPaymentInfo,omitempty"`
+	EphemeralStartTimestamp              *uint64                               `protobuf:"varint,32,opt,name=ephemeralStartTimestamp" json:"ephemeralStartTimestamp,omitempty"`
+	EphemeralDuration                    *uint32                               `protobuf:"varint,33,opt,name=ephemeralDuration" json:"ephemeralDuration,omitempty"`
+	EphemeralOffToOn                     *bool                                 `protobuf:"varint,34,opt,name=ephemeralOffToOn" json:"ephemeralOffToOn,omitempty"`
+	EphemeralOutOfSync                   *bool                                 `protobuf:"varint,35,opt,name=ephemeralOutOfSync" json:"ephemeralOutOfSync,omitempty"`
+	BizPrivacyStatus                     *WebMessageInfo_BizPrivacyStatus      `protobuf:"varint,36,opt,name=bizPrivacyStatus,enum=WAWebProtobufsWeb.WebMessageInfo_BizPrivacyStatus" json:"bizPrivacyStatus,omitempty"`
+	VerifiedBizName                      *string                               `protobuf:"bytes,37,opt,name=verifiedBizName" json:"verifiedBizName,omitempty"`
+	MediaData                            *MediaData                            `protobuf:"bytes,38,opt,name=mediaData" json:"mediaData,omitempty"`
+	PhotoChange                          *PhotoChange                          `protobuf:"bytes,39,opt,name=photoChange" json:"photoChange,omitempty"`
+	UserReceipt                          []*UserReceipt                        `protobuf:"bytes,40,rep,name=userReceipt" json:"userReceipt,omitempty"`
+	Reactions                            []*Reaction                           `protobuf:"bytes,41,rep,name=reactions" json:"reactions,omitempty"`
+	QuotedStickerData                    *MediaData                            `protobuf:"bytes,42,opt,name=quotedStickerData" json:"quotedStickerData,omitempty"`
+	FutureproofData                      []byte                                `protobuf:"bytes,43,opt,name=futureproofData" json:"futureproofData,omitempty"`
+	StatusPsa                            *StatusPSA                            `protobuf:"bytes,44,opt,name=statusPsa" json:"statusPsa,omitempty"`
+	PollUpdates                          []*PollUpdate                         `protobuf:"bytes,45,rep,name=pollUpdates" json:"pollUpdates,omitempty"`
+	PollAdditionalMetadata               *PollAdditionalMetadata               `protobuf:"bytes,46,opt,name=pollAdditionalMetadata" json:"pollAdditionalMetadata,omitempty"`
+	AgentID                              *string                               `protobuf:"bytes,47,opt,name=agentID" json:"agentID,omitempty"`
+	StatusAlreadyViewed                  *bool                                 `protobuf:"varint,48,opt,name=statusAlreadyViewed" json:"statusAlreadyViewed,omitempty"`
+	MessageSecret                        []byte                                `protobuf:"bytes,49,opt,name=messageSecret" json:"messageSecret,omitempty"`
+	KeepInChat                           *KeepInChat                           `protobuf:"bytes,50,opt,name=keepInChat" json:"keepInChat,omitempty"`
+	OriginalSelfAuthorUserJIDString      *string                               `protobuf:"bytes,51,opt,name=originalSelfAuthorUserJIDString" json:"originalSelfAuthorUserJIDString,omitempty"`
+	RevokeMessageTimestamp               *uint64                               `protobuf:"varint,52,opt,name=revokeMessageTimestamp" json:"revokeMessageTimestamp,omitempty"`
+	PinInChat                            *PinInChat                            `protobuf:"bytes,54,opt,name=pinInChat" json:"pinInChat,omitempty"`
+	PremiumMessageInfo                   *PremiumMessageInfo                   `protobuf:"bytes,55,opt,name=premiumMessageInfo" json:"premiumMessageInfo,omitempty"`
+	Is1PBizBotMessage                    *bool                                 `protobuf:"varint,56,opt,name=is1PBizBotMessage" json:"is1PBizBotMessage,omitempty"`
+	IsGroupHistoryMessage                *bool                                 `protobuf:"varint,57,opt,name=isGroupHistoryMessage" json:"isGroupHistoryMessage,omitempty"`
+	BotMessageInvokerJID                 *string                               `protobuf:"bytes,58,opt,name=botMessageInvokerJID" json:"botMessageInvokerJID,omitempty"`
+	CommentMetadata                      *CommentMetadata                      `protobuf:"bytes,59,opt,name=commentMetadata" json:"commentMetadata,omitempty"`
+	EventResponses                       []*EventResponse                      `protobuf:"bytes,61,rep,name=eventResponses" json:"eventResponses,omitempty"`
+	ReportingTokenInfo                   *ReportingTokenInfo                   `protobuf:"bytes,62,opt,name=reportingTokenInfo" json:"reportingTokenInfo,omitempty"`
+	NewsletterServerID                   *uint64                               `protobuf:"varint,63,opt,name=newsletterServerID" json:"newsletterServerID,omitempty"`
+	EventAdditionalMetadata              *EventAdditionalMetadata              `protobuf:"bytes,64,opt,name=eventAdditionalMetadata" json:"eventAdditionalMetadata,omitempty"`
+	IsMentionedInStatus                  *bool                                 `protobuf:"varint,65,opt,name=isMentionedInStatus" json:"isMentionedInStatus,omitempty"`
+	StatusMentions                       []string                              `protobuf:"bytes,66,rep,name=statusMentions" json:"statusMentions,omitempty"`
+	TargetMessageID                      *waCommon.MessageKey                  `protobuf:"bytes,67,opt,name=targetMessageID" json:"targetMessageID,omitempty"`
+	MessageAddOns                        []*MessageAddOn                       `protobuf:"bytes,68,rep,name=messageAddOns" json:"messageAddOns,omitempty"`
+	StatusMentionMessageInfo             *StatusMentionMessage                 `protobuf:"bytes,69,opt,name=statusMentionMessageInfo" json:"statusMentionMessageInfo,omitempty"`
+	IsSupportAiMessage                   *bool                                 `protobuf:"varint,70,opt,name=isSupportAiMessage" json:"isSupportAiMessage,omitempty"`
+	StatusMentionSources                 []string                              `protobuf:"bytes,71,rep,name=statusMentionSources" json:"statusMentionSources,omitempty"`
+	SupportAiCitations                   []*Citation                           `protobuf:"bytes,72,rep,name=supportAiCitations" json:"supportAiCitations,omitempty"`
+	BotTargetID                          *string                               `protobuf:"bytes,73,opt,name=botTargetID" json:"botTargetID,omitempty"`
+	GroupHistoryIndividualMessageInfo    *GroupHistoryIndividualMessageInfo    `protobuf:"bytes,74,opt,name=groupHistoryIndividualMessageInfo" json:"groupHistoryIndividualMessageInfo,omitempty"`
+	GroupHistoryBundleInfo               *GroupHistoryBundleInfo               `protobuf:"bytes,75,opt,name=groupHistoryBundleInfo" json:"groupHistoryBundleInfo,omitempty"`
+	InteractiveMessageAdditionalMetadata *InteractiveMessageAdditionalMetadata `protobuf:"bytes,76,opt,name=interactiveMessageAdditionalMetadata" json:"interactiveMessageAdditionalMetadata,omitempty"`
+	unknownFields                        protoimpl.UnknownFields
+	sizeCache                            protoimpl.SizeCache
 }
 
 func (x *WebMessageInfo) Reset() {
@@ -1942,6 +1943,13 @@ func (x *WebMessageInfo) GetGroupHistoryIndividualMessageInfo() *GroupHistoryInd
 func (x *WebMessageInfo) GetGroupHistoryBundleInfo() *GroupHistoryBundleInfo {
 	if x != nil {
 		return x.GroupHistoryBundleInfo
+	}
+	return nil
+}
+
+func (x *WebMessageInfo) GetInteractiveMessageAdditionalMetadata() *InteractiveMessageAdditionalMetadata {
+	if x != nil {
+		return x.InteractiveMessageAdditionalMetadata
 	}
 	return nil
 }
@@ -3378,6 +3386,50 @@ func (x *PollAdditionalMetadata) GetPollInvalidated() bool {
 	return false
 }
 
+type InteractiveMessageAdditionalMetadata struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	IsGalaxyFlowCompleted *bool                  `protobuf:"varint,1,opt,name=isGalaxyFlowCompleted" json:"isGalaxyFlowCompleted,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *InteractiveMessageAdditionalMetadata) Reset() {
+	*x = InteractiveMessageAdditionalMetadata{}
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InteractiveMessageAdditionalMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InteractiveMessageAdditionalMetadata) ProtoMessage() {}
+
+func (x *InteractiveMessageAdditionalMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InteractiveMessageAdditionalMetadata.ProtoReflect.Descriptor instead.
+func (*InteractiveMessageAdditionalMetadata) Descriptor() ([]byte, []int) {
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *InteractiveMessageAdditionalMetadata) GetIsGalaxyFlowCompleted() bool {
+	if x != nil && x.IsGalaxyFlowCompleted != nil {
+		return *x.IsGalaxyFlowCompleted
+	}
+	return false
+}
+
 type EventAdditionalMetadata struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	IsStale       *bool                  `protobuf:"varint,1,opt,name=isStale" json:"isStale,omitempty"`
@@ -3387,7 +3439,7 @@ type EventAdditionalMetadata struct {
 
 func (x *EventAdditionalMetadata) Reset() {
 	*x = EventAdditionalMetadata{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[17]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3399,7 +3451,7 @@ func (x *EventAdditionalMetadata) String() string {
 func (*EventAdditionalMetadata) ProtoMessage() {}
 
 func (x *EventAdditionalMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[17]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3412,7 +3464,7 @@ func (x *EventAdditionalMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventAdditionalMetadata.ProtoReflect.Descriptor instead.
 func (*EventAdditionalMetadata) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{17}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *EventAdditionalMetadata) GetIsStale() bool {
@@ -3436,7 +3488,7 @@ type KeepInChat struct {
 
 func (x *KeepInChat) Reset() {
 	*x = KeepInChat{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[18]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3448,7 +3500,7 @@ func (x *KeepInChat) String() string {
 func (*KeepInChat) ProtoMessage() {}
 
 func (x *KeepInChat) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[18]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3461,7 +3513,7 @@ func (x *KeepInChat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KeepInChat.ProtoReflect.Descriptor instead.
 func (*KeepInChat) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{18}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *KeepInChat) GetKeepType() waE2E.KeepType {
@@ -3516,7 +3568,7 @@ type MessageAddOnContextInfo struct {
 
 func (x *MessageAddOnContextInfo) Reset() {
 	*x = MessageAddOnContextInfo{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[19]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3528,7 +3580,7 @@ func (x *MessageAddOnContextInfo) String() string {
 func (*MessageAddOnContextInfo) ProtoMessage() {}
 
 func (x *MessageAddOnContextInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[19]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3541,7 +3593,7 @@ func (x *MessageAddOnContextInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MessageAddOnContextInfo.ProtoReflect.Descriptor instead.
 func (*MessageAddOnContextInfo) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{19}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *MessageAddOnContextInfo) GetMessageAddOnDurationInSecs() uint32 {
@@ -3567,7 +3619,7 @@ type PremiumMessageInfo struct {
 
 func (x *PremiumMessageInfo) Reset() {
 	*x = PremiumMessageInfo{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[20]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3579,7 +3631,7 @@ func (x *PremiumMessageInfo) String() string {
 func (*PremiumMessageInfo) ProtoMessage() {}
 
 func (x *PremiumMessageInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[20]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3592,7 +3644,7 @@ func (x *PremiumMessageInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PremiumMessageInfo.ProtoReflect.Descriptor instead.
 func (*PremiumMessageInfo) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{20}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *PremiumMessageInfo) GetServerCampaignID() string {
@@ -3614,7 +3666,7 @@ type EventResponse struct {
 
 func (x *EventResponse) Reset() {
 	*x = EventResponse{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[21]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3626,7 +3678,7 @@ func (x *EventResponse) String() string {
 func (*EventResponse) ProtoMessage() {}
 
 func (x *EventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[21]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3639,7 +3691,7 @@ func (x *EventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventResponse.ProtoReflect.Descriptor instead.
 func (*EventResponse) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{21}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *EventResponse) GetEventResponseMessageKey() *waCommon.MessageKey {
@@ -3680,7 +3732,7 @@ type LegacyMessage struct {
 
 func (x *LegacyMessage) Reset() {
 	*x = LegacyMessage{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[22]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3692,7 +3744,7 @@ func (x *LegacyMessage) String() string {
 func (*LegacyMessage) ProtoMessage() {}
 
 func (x *LegacyMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[22]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3705,7 +3757,7 @@ func (x *LegacyMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LegacyMessage.ProtoReflect.Descriptor instead.
 func (*LegacyMessage) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{22}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *LegacyMessage) GetEventResponseMessage() *waE2E.EventResponseMessage {
@@ -3731,7 +3783,7 @@ type StatusMentionMessage struct {
 
 func (x *StatusMentionMessage) Reset() {
 	*x = StatusMentionMessage{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[23]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3743,7 +3795,7 @@ func (x *StatusMentionMessage) String() string {
 func (*StatusMentionMessage) ProtoMessage() {}
 
 func (x *StatusMentionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[23]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3756,7 +3808,7 @@ func (x *StatusMentionMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusMentionMessage.ProtoReflect.Descriptor instead.
 func (*StatusMentionMessage) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{23}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *StatusMentionMessage) GetQuotedStatus() *waE2E.Message {
@@ -3778,7 +3830,7 @@ type Citation struct {
 
 func (x *Citation) Reset() {
 	*x = Citation{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[24]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3790,7 +3842,7 @@ func (x *Citation) String() string {
 func (*Citation) ProtoMessage() {}
 
 func (x *Citation) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[24]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3803,7 +3855,7 @@ func (x *Citation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Citation.ProtoReflect.Descriptor instead.
 func (*Citation) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{24}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *Citation) GetTitle() string {
@@ -3843,7 +3895,7 @@ type GroupHistoryIndividualMessageInfo struct {
 
 func (x *GroupHistoryIndividualMessageInfo) Reset() {
 	*x = GroupHistoryIndividualMessageInfo{}
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[25]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3855,7 +3907,7 @@ func (x *GroupHistoryIndividualMessageInfo) String() string {
 func (*GroupHistoryIndividualMessageInfo) ProtoMessage() {}
 
 func (x *GroupHistoryIndividualMessageInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[25]
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3868,7 +3920,7 @@ func (x *GroupHistoryIndividualMessageInfo) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GroupHistoryIndividualMessageInfo.ProtoReflect.Descriptor instead.
 func (*GroupHistoryIndividualMessageInfo) Descriptor() ([]byte, []int) {
-	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{25}
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GroupHistoryIndividualMessageInfo) GetBundleMessageKey() *waCommon.MessageKey {
@@ -3882,7 +3934,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xe2X\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xf0Y\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -3951,7 +4003,8 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x12supportAiCitations\x18H \x03(\v2\x1b.WAWebProtobufsWeb.CitationR\x12supportAiCitations\x12 \n" +
 	"\vbotTargetID\x18I \x01(\tR\vbotTargetID\x12\x82\x01\n" +
 	"!groupHistoryIndividualMessageInfo\x18J \x01(\v24.WAWebProtobufsWeb.GroupHistoryIndividualMessageInfoR!groupHistoryIndividualMessageInfo\x12a\n" +
-	"\x16groupHistoryBundleInfo\x18K \x01(\v2).WAWebProtobufsWeb.GroupHistoryBundleInfoR\x16groupHistoryBundleInfo\"=\n" +
+	"\x16groupHistoryBundleInfo\x18K \x01(\v2).WAWebProtobufsWeb.GroupHistoryBundleInfoR\x16groupHistoryBundleInfo\x12\x8b\x01\n" +
+	"$interactiveMessageAdditionalMetadata\x18L \x01(\v27.WAWebProtobufsWeb.InteractiveMessageAdditionalMetadataR$interactiveMessageAdditionalMetadata\"=\n" +
 	"\x10BizPrivacyStatus\x12\b\n" +
 	"\x04E2EE\x10\x00\x12\x06\n" +
 	"\x02FB\x10\x02\x12\a\n" +
@@ -4405,7 +4458,9 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x11serverTimestampMS\x18\x04 \x01(\x03R\x11serverTimestampMS\x12\x16\n" +
 	"\x06unread\x18\x05 \x01(\bR\x06unread\"B\n" +
 	"\x16PollAdditionalMetadata\x12(\n" +
-	"\x0fpollInvalidated\x18\x01 \x01(\bR\x0fpollInvalidated\"3\n" +
+	"\x0fpollInvalidated\x18\x01 \x01(\bR\x0fpollInvalidated\"\\\n" +
+	"$InteractiveMessageAdditionalMetadata\x124\n" +
+	"\x15isGalaxyFlowCompleted\x18\x01 \x01(\bR\x15isGalaxyFlowCompleted\"3\n" +
 	"\x17EventAdditionalMetadata\x12\x18\n" +
 	"\aisStale\x18\x01 \x01(\bR\aisStale\"\x91\x02\n" +
 	"\n" +
@@ -4452,7 +4507,7 @@ func file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP() []byte {
 }
 
 var file_waWeb_WAWebProtobufsWeb_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
-var file_waWeb_WAWebProtobufsWeb_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_waWeb_WAWebProtobufsWeb_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_waWeb_WAWebProtobufsWeb_proto_goTypes = []any{
 	(WebMessageInfo_BizPrivacyStatus)(0),                 // 0: WAWebProtobufsWeb.WebMessageInfo.BizPrivacyStatus
 	(WebMessageInfo_StubType)(0),                         // 1: WAWebProtobufsWeb.WebMessageInfo.StubType
@@ -4481,32 +4536,33 @@ var file_waWeb_WAWebProtobufsWeb_proto_goTypes = []any{
 	(*Reaction)(nil),                                     // 24: WAWebProtobufsWeb.Reaction
 	(*PollUpdate)(nil),                                   // 25: WAWebProtobufsWeb.PollUpdate
 	(*PollAdditionalMetadata)(nil),                       // 26: WAWebProtobufsWeb.PollAdditionalMetadata
-	(*EventAdditionalMetadata)(nil),                      // 27: WAWebProtobufsWeb.EventAdditionalMetadata
-	(*KeepInChat)(nil),                                   // 28: WAWebProtobufsWeb.KeepInChat
-	(*MessageAddOnContextInfo)(nil),                      // 29: WAWebProtobufsWeb.MessageAddOnContextInfo
-	(*PremiumMessageInfo)(nil),                           // 30: WAWebProtobufsWeb.PremiumMessageInfo
-	(*EventResponse)(nil),                                // 31: WAWebProtobufsWeb.EventResponse
-	(*LegacyMessage)(nil),                                // 32: WAWebProtobufsWeb.LegacyMessage
-	(*StatusMentionMessage)(nil),                         // 33: WAWebProtobufsWeb.StatusMentionMessage
-	(*Citation)(nil),                                     // 34: WAWebProtobufsWeb.Citation
-	(*GroupHistoryIndividualMessageInfo)(nil),            // 35: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo
-	(*waCommon.MessageKey)(nil),                          // 36: WACommon.MessageKey
-	(*waE2E.Message)(nil),                                // 37: WAWebProtobufsE2E.Message
-	(*waE2E.LiveLocationMessage)(nil),                    // 38: WAWebProtobufsE2E.LiveLocationMessage
-	(*waE2E.Money)(nil),                                  // 39: WAWebProtobufsE2E.Money
-	(*waE2E.MessageHistoryBundle)(nil),                   // 40: WAWebProtobufsE2E.MessageHistoryBundle
-	(*waE2E.PollVoteMessage)(nil),                        // 41: WAWebProtobufsE2E.PollVoteMessage
-	(waE2E.KeepType)(0),                                  // 42: WAWebProtobufsE2E.KeepType
-	(waE2E.MessageContextInfo_MessageAddonExpiryType)(0), // 43: WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
-	(*waE2E.EventResponseMessage)(nil),                   // 44: WAWebProtobufsE2E.EventResponseMessage
+	(*InteractiveMessageAdditionalMetadata)(nil),         // 27: WAWebProtobufsWeb.InteractiveMessageAdditionalMetadata
+	(*EventAdditionalMetadata)(nil),                      // 28: WAWebProtobufsWeb.EventAdditionalMetadata
+	(*KeepInChat)(nil),                                   // 29: WAWebProtobufsWeb.KeepInChat
+	(*MessageAddOnContextInfo)(nil),                      // 30: WAWebProtobufsWeb.MessageAddOnContextInfo
+	(*PremiumMessageInfo)(nil),                           // 31: WAWebProtobufsWeb.PremiumMessageInfo
+	(*EventResponse)(nil),                                // 32: WAWebProtobufsWeb.EventResponse
+	(*LegacyMessage)(nil),                                // 33: WAWebProtobufsWeb.LegacyMessage
+	(*StatusMentionMessage)(nil),                         // 34: WAWebProtobufsWeb.StatusMentionMessage
+	(*Citation)(nil),                                     // 35: WAWebProtobufsWeb.Citation
+	(*GroupHistoryIndividualMessageInfo)(nil),            // 36: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo
+	(*waCommon.MessageKey)(nil),                          // 37: WACommon.MessageKey
+	(*waE2E.Message)(nil),                                // 38: WAWebProtobufsE2E.Message
+	(*waE2E.LiveLocationMessage)(nil),                    // 39: WAWebProtobufsE2E.LiveLocationMessage
+	(*waE2E.Money)(nil),                                  // 40: WAWebProtobufsE2E.Money
+	(*waE2E.MessageHistoryBundle)(nil),                   // 41: WAWebProtobufsE2E.MessageHistoryBundle
+	(*waE2E.PollVoteMessage)(nil),                        // 42: WAWebProtobufsE2E.PollVoteMessage
+	(waE2E.KeepType)(0),                                  // 43: WAWebProtobufsE2E.KeepType
+	(waE2E.MessageContextInfo_MessageAddonExpiryType)(0), // 44: WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
+	(*waE2E.EventResponseMessage)(nil),                   // 45: WAWebProtobufsE2E.EventResponseMessage
 }
 var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
-	36,  // 0: WAWebProtobufsWeb.WebMessageInfo.key:type_name -> WACommon.MessageKey
-	37,  // 1: WAWebProtobufsWeb.WebMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
+	37,  // 0: WAWebProtobufsWeb.WebMessageInfo.key:type_name -> WACommon.MessageKey
+	38,  // 1: WAWebProtobufsWeb.WebMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
 	2,   // 2: WAWebProtobufsWeb.WebMessageInfo.status:type_name -> WAWebProtobufsWeb.WebMessageInfo.Status
 	1,   // 3: WAWebProtobufsWeb.WebMessageInfo.messageStubType:type_name -> WAWebProtobufsWeb.WebMessageInfo.StubType
 	11,  // 4: WAWebProtobufsWeb.WebMessageInfo.paymentInfo:type_name -> WAWebProtobufsWeb.PaymentInfo
-	38,  // 5: WAWebProtobufsWeb.WebMessageInfo.finalLiveLocation:type_name -> WAWebProtobufsE2E.LiveLocationMessage
+	39,  // 5: WAWebProtobufsWeb.WebMessageInfo.finalLiveLocation:type_name -> WAWebProtobufsE2E.LiveLocationMessage
 	11,  // 6: WAWebProtobufsWeb.WebMessageInfo.quotedPaymentInfo:type_name -> WAWebProtobufsWeb.PaymentInfo
 	0,   // 7: WAWebProtobufsWeb.WebMessageInfo.bizPrivacyStatus:type_name -> WAWebProtobufsWeb.WebMessageInfo.BizPrivacyStatus
 	20,  // 8: WAWebProtobufsWeb.WebMessageInfo.mediaData:type_name -> WAWebProtobufsWeb.MediaData
@@ -4517,102 +4573,103 @@ var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
 	22,  // 13: WAWebProtobufsWeb.WebMessageInfo.statusPsa:type_name -> WAWebProtobufsWeb.StatusPSA
 	25,  // 14: WAWebProtobufsWeb.WebMessageInfo.pollUpdates:type_name -> WAWebProtobufsWeb.PollUpdate
 	26,  // 15: WAWebProtobufsWeb.WebMessageInfo.pollAdditionalMetadata:type_name -> WAWebProtobufsWeb.PollAdditionalMetadata
-	28,  // 16: WAWebProtobufsWeb.WebMessageInfo.keepInChat:type_name -> WAWebProtobufsWeb.KeepInChat
+	29,  // 16: WAWebProtobufsWeb.WebMessageInfo.keepInChat:type_name -> WAWebProtobufsWeb.KeepInChat
 	13,  // 17: WAWebProtobufsWeb.WebMessageInfo.pinInChat:type_name -> WAWebProtobufsWeb.PinInChat
-	30,  // 18: WAWebProtobufsWeb.WebMessageInfo.premiumMessageInfo:type_name -> WAWebProtobufsWeb.PremiumMessageInfo
+	31,  // 18: WAWebProtobufsWeb.WebMessageInfo.premiumMessageInfo:type_name -> WAWebProtobufsWeb.PremiumMessageInfo
 	16,  // 19: WAWebProtobufsWeb.WebMessageInfo.commentMetadata:type_name -> WAWebProtobufsWeb.CommentMetadata
-	31,  // 20: WAWebProtobufsWeb.WebMessageInfo.eventResponses:type_name -> WAWebProtobufsWeb.EventResponse
+	32,  // 20: WAWebProtobufsWeb.WebMessageInfo.eventResponses:type_name -> WAWebProtobufsWeb.EventResponse
 	19,  // 21: WAWebProtobufsWeb.WebMessageInfo.reportingTokenInfo:type_name -> WAWebProtobufsWeb.ReportingTokenInfo
-	27,  // 22: WAWebProtobufsWeb.WebMessageInfo.eventAdditionalMetadata:type_name -> WAWebProtobufsWeb.EventAdditionalMetadata
-	36,  // 23: WAWebProtobufsWeb.WebMessageInfo.targetMessageID:type_name -> WACommon.MessageKey
+	28,  // 22: WAWebProtobufsWeb.WebMessageInfo.eventAdditionalMetadata:type_name -> WAWebProtobufsWeb.EventAdditionalMetadata
+	37,  // 23: WAWebProtobufsWeb.WebMessageInfo.targetMessageID:type_name -> WACommon.MessageKey
 	14,  // 24: WAWebProtobufsWeb.WebMessageInfo.messageAddOns:type_name -> WAWebProtobufsWeb.MessageAddOn
-	33,  // 25: WAWebProtobufsWeb.WebMessageInfo.statusMentionMessageInfo:type_name -> WAWebProtobufsWeb.StatusMentionMessage
-	34,  // 26: WAWebProtobufsWeb.WebMessageInfo.supportAiCitations:type_name -> WAWebProtobufsWeb.Citation
-	35,  // 27: WAWebProtobufsWeb.WebMessageInfo.groupHistoryIndividualMessageInfo:type_name -> WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo
+	34,  // 25: WAWebProtobufsWeb.WebMessageInfo.statusMentionMessageInfo:type_name -> WAWebProtobufsWeb.StatusMentionMessage
+	35,  // 26: WAWebProtobufsWeb.WebMessageInfo.supportAiCitations:type_name -> WAWebProtobufsWeb.Citation
+	36,  // 27: WAWebProtobufsWeb.WebMessageInfo.groupHistoryIndividualMessageInfo:type_name -> WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo
 	15,  // 28: WAWebProtobufsWeb.WebMessageInfo.groupHistoryBundleInfo:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo
-	5,   // 29: WAWebProtobufsWeb.PaymentInfo.currencyDeprecated:type_name -> WAWebProtobufsWeb.PaymentInfo.Currency
-	4,   // 30: WAWebProtobufsWeb.PaymentInfo.status:type_name -> WAWebProtobufsWeb.PaymentInfo.Status
-	36,  // 31: WAWebProtobufsWeb.PaymentInfo.requestMessageKey:type_name -> WACommon.MessageKey
-	3,   // 32: WAWebProtobufsWeb.PaymentInfo.txnStatus:type_name -> WAWebProtobufsWeb.PaymentInfo.TxnStatus
-	39,  // 33: WAWebProtobufsWeb.PaymentInfo.primaryAmount:type_name -> WAWebProtobufsE2E.Money
-	39,  // 34: WAWebProtobufsWeb.PaymentInfo.exchangeAmount:type_name -> WAWebProtobufsE2E.Money
-	6,   // 35: WAWebProtobufsWeb.WebFeatures.labelsDisplay:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 36: WAWebProtobufsWeb.WebFeatures.voipIndividualOutgoing:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 37: WAWebProtobufsWeb.WebFeatures.groupsV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 38: WAWebProtobufsWeb.WebFeatures.groupsV3Create:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 39: WAWebProtobufsWeb.WebFeatures.changeNumberV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 40: WAWebProtobufsWeb.WebFeatures.queryStatusV3Thumbnail:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 41: WAWebProtobufsWeb.WebFeatures.liveLocations:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 42: WAWebProtobufsWeb.WebFeatures.queryVname:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 43: WAWebProtobufsWeb.WebFeatures.voipIndividualIncoming:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 44: WAWebProtobufsWeb.WebFeatures.quickRepliesQuery:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 45: WAWebProtobufsWeb.WebFeatures.payments:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 46: WAWebProtobufsWeb.WebFeatures.stickerPackQuery:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 47: WAWebProtobufsWeb.WebFeatures.liveLocationsFinal:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 48: WAWebProtobufsWeb.WebFeatures.labelsEdit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 49: WAWebProtobufsWeb.WebFeatures.mediaUpload:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 50: WAWebProtobufsWeb.WebFeatures.mediaUploadRichQuickReplies:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 51: WAWebProtobufsWeb.WebFeatures.vnameV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 52: WAWebProtobufsWeb.WebFeatures.videoPlaybackURL:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 53: WAWebProtobufsWeb.WebFeatures.statusRanking:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 54: WAWebProtobufsWeb.WebFeatures.voipIndividualVideo:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 55: WAWebProtobufsWeb.WebFeatures.thirdPartyStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 56: WAWebProtobufsWeb.WebFeatures.frequentlyForwardedSetting:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 57: WAWebProtobufsWeb.WebFeatures.groupsV4JoinPermission:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 58: WAWebProtobufsWeb.WebFeatures.recentStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 59: WAWebProtobufsWeb.WebFeatures.catalog:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 60: WAWebProtobufsWeb.WebFeatures.starredStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 61: WAWebProtobufsWeb.WebFeatures.voipGroupCall:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 62: WAWebProtobufsWeb.WebFeatures.templateMessage:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 63: WAWebProtobufsWeb.WebFeatures.templateMessageInteractivity:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 64: WAWebProtobufsWeb.WebFeatures.ephemeralMessages:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 65: WAWebProtobufsWeb.WebFeatures.e2ENotificationSync:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 66: WAWebProtobufsWeb.WebFeatures.recentStickersV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 67: WAWebProtobufsWeb.WebFeatures.recentStickersV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 68: WAWebProtobufsWeb.WebFeatures.userNotice:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 69: WAWebProtobufsWeb.WebFeatures.support:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 70: WAWebProtobufsWeb.WebFeatures.groupUiiCleanup:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 71: WAWebProtobufsWeb.WebFeatures.groupDogfoodingInternalOnly:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 72: WAWebProtobufsWeb.WebFeatures.settingsSync:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 73: WAWebProtobufsWeb.WebFeatures.archiveV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 74: WAWebProtobufsWeb.WebFeatures.ephemeralAllowGroupMembers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 75: WAWebProtobufsWeb.WebFeatures.ephemeral24HDuration:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 76: WAWebProtobufsWeb.WebFeatures.mdForceUpgrade:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 77: WAWebProtobufsWeb.WebFeatures.disappearingMode:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 78: WAWebProtobufsWeb.WebFeatures.externalMdOptInAvailable:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 79: WAWebProtobufsWeb.WebFeatures.noDeleteMessageTimeLimit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	7,   // 80: WAWebProtobufsWeb.PinInChat.type:type_name -> WAWebProtobufsWeb.PinInChat.Type
-	36,  // 81: WAWebProtobufsWeb.PinInChat.key:type_name -> WACommon.MessageKey
-	29,  // 82: WAWebProtobufsWeb.PinInChat.messageAddOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
-	8,   // 83: WAWebProtobufsWeb.MessageAddOn.messageAddOnType:type_name -> WAWebProtobufsWeb.MessageAddOn.MessageAddOnType
-	37,  // 84: WAWebProtobufsWeb.MessageAddOn.messageAddOn:type_name -> WAWebProtobufsE2E.Message
-	2,   // 85: WAWebProtobufsWeb.MessageAddOn.status:type_name -> WAWebProtobufsWeb.WebMessageInfo.Status
-	29,  // 86: WAWebProtobufsWeb.MessageAddOn.addOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
-	36,  // 87: WAWebProtobufsWeb.MessageAddOn.messageAddOnKey:type_name -> WACommon.MessageKey
-	32,  // 88: WAWebProtobufsWeb.MessageAddOn.legacyMessage:type_name -> WAWebProtobufsWeb.LegacyMessage
-	40,  // 89: WAWebProtobufsWeb.GroupHistoryBundleInfo.deprecatedMessageHistoryBundle:type_name -> WAWebProtobufsE2E.MessageHistoryBundle
-	9,   // 90: WAWebProtobufsWeb.GroupHistoryBundleInfo.processState:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
-	36,  // 91: WAWebProtobufsWeb.CommentMetadata.commentParentKey:type_name -> WACommon.MessageKey
-	10,  // 92: WAWebProtobufsWeb.WebNotificationsInfo.notifyMessages:type_name -> WAWebProtobufsWeb.WebMessageInfo
-	36,  // 93: WAWebProtobufsWeb.NotificationMessageInfo.key:type_name -> WACommon.MessageKey
-	37,  // 94: WAWebProtobufsWeb.NotificationMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
-	36,  // 95: WAWebProtobufsWeb.Reaction.key:type_name -> WACommon.MessageKey
-	36,  // 96: WAWebProtobufsWeb.PollUpdate.pollUpdateMessageKey:type_name -> WACommon.MessageKey
-	41,  // 97: WAWebProtobufsWeb.PollUpdate.vote:type_name -> WAWebProtobufsE2E.PollVoteMessage
-	42,  // 98: WAWebProtobufsWeb.KeepInChat.keepType:type_name -> WAWebProtobufsE2E.KeepType
-	36,  // 99: WAWebProtobufsWeb.KeepInChat.key:type_name -> WACommon.MessageKey
-	43,  // 100: WAWebProtobufsWeb.MessageAddOnContextInfo.messageAddOnExpiryType:type_name -> WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
-	36,  // 101: WAWebProtobufsWeb.EventResponse.eventResponseMessageKey:type_name -> WACommon.MessageKey
-	44,  // 102: WAWebProtobufsWeb.EventResponse.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
-	44,  // 103: WAWebProtobufsWeb.LegacyMessage.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
-	41,  // 104: WAWebProtobufsWeb.LegacyMessage.pollVote:type_name -> WAWebProtobufsE2E.PollVoteMessage
-	37,  // 105: WAWebProtobufsWeb.StatusMentionMessage.quotedStatus:type_name -> WAWebProtobufsE2E.Message
-	36,  // 106: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo.bundleMessageKey:type_name -> WACommon.MessageKey
-	107, // [107:107] is the sub-list for method output_type
-	107, // [107:107] is the sub-list for method input_type
-	107, // [107:107] is the sub-list for extension type_name
-	107, // [107:107] is the sub-list for extension extendee
-	0,   // [0:107] is the sub-list for field type_name
+	27,  // 29: WAWebProtobufsWeb.WebMessageInfo.interactiveMessageAdditionalMetadata:type_name -> WAWebProtobufsWeb.InteractiveMessageAdditionalMetadata
+	5,   // 30: WAWebProtobufsWeb.PaymentInfo.currencyDeprecated:type_name -> WAWebProtobufsWeb.PaymentInfo.Currency
+	4,   // 31: WAWebProtobufsWeb.PaymentInfo.status:type_name -> WAWebProtobufsWeb.PaymentInfo.Status
+	37,  // 32: WAWebProtobufsWeb.PaymentInfo.requestMessageKey:type_name -> WACommon.MessageKey
+	3,   // 33: WAWebProtobufsWeb.PaymentInfo.txnStatus:type_name -> WAWebProtobufsWeb.PaymentInfo.TxnStatus
+	40,  // 34: WAWebProtobufsWeb.PaymentInfo.primaryAmount:type_name -> WAWebProtobufsE2E.Money
+	40,  // 35: WAWebProtobufsWeb.PaymentInfo.exchangeAmount:type_name -> WAWebProtobufsE2E.Money
+	6,   // 36: WAWebProtobufsWeb.WebFeatures.labelsDisplay:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 37: WAWebProtobufsWeb.WebFeatures.voipIndividualOutgoing:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 38: WAWebProtobufsWeb.WebFeatures.groupsV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 39: WAWebProtobufsWeb.WebFeatures.groupsV3Create:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 40: WAWebProtobufsWeb.WebFeatures.changeNumberV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 41: WAWebProtobufsWeb.WebFeatures.queryStatusV3Thumbnail:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 42: WAWebProtobufsWeb.WebFeatures.liveLocations:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 43: WAWebProtobufsWeb.WebFeatures.queryVname:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 44: WAWebProtobufsWeb.WebFeatures.voipIndividualIncoming:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 45: WAWebProtobufsWeb.WebFeatures.quickRepliesQuery:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 46: WAWebProtobufsWeb.WebFeatures.payments:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 47: WAWebProtobufsWeb.WebFeatures.stickerPackQuery:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 48: WAWebProtobufsWeb.WebFeatures.liveLocationsFinal:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 49: WAWebProtobufsWeb.WebFeatures.labelsEdit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 50: WAWebProtobufsWeb.WebFeatures.mediaUpload:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 51: WAWebProtobufsWeb.WebFeatures.mediaUploadRichQuickReplies:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 52: WAWebProtobufsWeb.WebFeatures.vnameV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 53: WAWebProtobufsWeb.WebFeatures.videoPlaybackURL:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 54: WAWebProtobufsWeb.WebFeatures.statusRanking:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 55: WAWebProtobufsWeb.WebFeatures.voipIndividualVideo:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 56: WAWebProtobufsWeb.WebFeatures.thirdPartyStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 57: WAWebProtobufsWeb.WebFeatures.frequentlyForwardedSetting:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 58: WAWebProtobufsWeb.WebFeatures.groupsV4JoinPermission:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 59: WAWebProtobufsWeb.WebFeatures.recentStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 60: WAWebProtobufsWeb.WebFeatures.catalog:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 61: WAWebProtobufsWeb.WebFeatures.starredStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 62: WAWebProtobufsWeb.WebFeatures.voipGroupCall:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 63: WAWebProtobufsWeb.WebFeatures.templateMessage:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 64: WAWebProtobufsWeb.WebFeatures.templateMessageInteractivity:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 65: WAWebProtobufsWeb.WebFeatures.ephemeralMessages:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 66: WAWebProtobufsWeb.WebFeatures.e2ENotificationSync:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 67: WAWebProtobufsWeb.WebFeatures.recentStickersV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 68: WAWebProtobufsWeb.WebFeatures.recentStickersV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 69: WAWebProtobufsWeb.WebFeatures.userNotice:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 70: WAWebProtobufsWeb.WebFeatures.support:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 71: WAWebProtobufsWeb.WebFeatures.groupUiiCleanup:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 72: WAWebProtobufsWeb.WebFeatures.groupDogfoodingInternalOnly:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 73: WAWebProtobufsWeb.WebFeatures.settingsSync:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 74: WAWebProtobufsWeb.WebFeatures.archiveV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 75: WAWebProtobufsWeb.WebFeatures.ephemeralAllowGroupMembers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 76: WAWebProtobufsWeb.WebFeatures.ephemeral24HDuration:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 77: WAWebProtobufsWeb.WebFeatures.mdForceUpgrade:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 78: WAWebProtobufsWeb.WebFeatures.disappearingMode:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 79: WAWebProtobufsWeb.WebFeatures.externalMdOptInAvailable:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 80: WAWebProtobufsWeb.WebFeatures.noDeleteMessageTimeLimit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	7,   // 81: WAWebProtobufsWeb.PinInChat.type:type_name -> WAWebProtobufsWeb.PinInChat.Type
+	37,  // 82: WAWebProtobufsWeb.PinInChat.key:type_name -> WACommon.MessageKey
+	30,  // 83: WAWebProtobufsWeb.PinInChat.messageAddOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
+	8,   // 84: WAWebProtobufsWeb.MessageAddOn.messageAddOnType:type_name -> WAWebProtobufsWeb.MessageAddOn.MessageAddOnType
+	38,  // 85: WAWebProtobufsWeb.MessageAddOn.messageAddOn:type_name -> WAWebProtobufsE2E.Message
+	2,   // 86: WAWebProtobufsWeb.MessageAddOn.status:type_name -> WAWebProtobufsWeb.WebMessageInfo.Status
+	30,  // 87: WAWebProtobufsWeb.MessageAddOn.addOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
+	37,  // 88: WAWebProtobufsWeb.MessageAddOn.messageAddOnKey:type_name -> WACommon.MessageKey
+	33,  // 89: WAWebProtobufsWeb.MessageAddOn.legacyMessage:type_name -> WAWebProtobufsWeb.LegacyMessage
+	41,  // 90: WAWebProtobufsWeb.GroupHistoryBundleInfo.deprecatedMessageHistoryBundle:type_name -> WAWebProtobufsE2E.MessageHistoryBundle
+	9,   // 91: WAWebProtobufsWeb.GroupHistoryBundleInfo.processState:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
+	37,  // 92: WAWebProtobufsWeb.CommentMetadata.commentParentKey:type_name -> WACommon.MessageKey
+	10,  // 93: WAWebProtobufsWeb.WebNotificationsInfo.notifyMessages:type_name -> WAWebProtobufsWeb.WebMessageInfo
+	37,  // 94: WAWebProtobufsWeb.NotificationMessageInfo.key:type_name -> WACommon.MessageKey
+	38,  // 95: WAWebProtobufsWeb.NotificationMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
+	37,  // 96: WAWebProtobufsWeb.Reaction.key:type_name -> WACommon.MessageKey
+	37,  // 97: WAWebProtobufsWeb.PollUpdate.pollUpdateMessageKey:type_name -> WACommon.MessageKey
+	42,  // 98: WAWebProtobufsWeb.PollUpdate.vote:type_name -> WAWebProtobufsE2E.PollVoteMessage
+	43,  // 99: WAWebProtobufsWeb.KeepInChat.keepType:type_name -> WAWebProtobufsE2E.KeepType
+	37,  // 100: WAWebProtobufsWeb.KeepInChat.key:type_name -> WACommon.MessageKey
+	44,  // 101: WAWebProtobufsWeb.MessageAddOnContextInfo.messageAddOnExpiryType:type_name -> WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
+	37,  // 102: WAWebProtobufsWeb.EventResponse.eventResponseMessageKey:type_name -> WACommon.MessageKey
+	45,  // 103: WAWebProtobufsWeb.EventResponse.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
+	45,  // 104: WAWebProtobufsWeb.LegacyMessage.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
+	42,  // 105: WAWebProtobufsWeb.LegacyMessage.pollVote:type_name -> WAWebProtobufsE2E.PollVoteMessage
+	38,  // 106: WAWebProtobufsWeb.StatusMentionMessage.quotedStatus:type_name -> WAWebProtobufsE2E.Message
+	37,  // 107: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo.bundleMessageKey:type_name -> WACommon.MessageKey
+	108, // [108:108] is the sub-list for method output_type
+	108, // [108:108] is the sub-list for method input_type
+	108, // [108:108] is the sub-list for extension type_name
+	108, // [108:108] is the sub-list for extension extendee
+	0,   // [0:108] is the sub-list for field type_name
 }
 
 func init() { file_waWeb_WAWebProtobufsWeb_proto_init() }
@@ -4626,7 +4683,7 @@ func file_waWeb_WAWebProtobufsWeb_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waWeb_WAWebProtobufsWeb_proto_rawDesc), len(file_waWeb_WAWebProtobufsWeb_proto_rawDesc)),
 			NumEnums:      10,
-			NumMessages:   26,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

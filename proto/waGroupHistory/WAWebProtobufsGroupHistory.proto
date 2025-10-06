@@ -1,0 +1,9 @@
+syntax = "proto2";
+package WAWebProtobufsGroupHistory;
+option go_package = "go.mau.fi/whatsmeow/proto/waGroupHistory";
+
+import "waWeb/WAWebProtobufsWeb.proto";
+
+message GroupHistory {
+	repeated WAWebProtobufsWeb.WebMessageInfo messages = 1;
+}

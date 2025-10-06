@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog"
+
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -110,6 +112,7 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 }
 
 func (cli *Client) dispatchAppState(ctx context.Context, mutation appstate.Mutation, fullSync bool, emitOnFullSync bool) {
+	zerolog.Ctx(ctx).Trace().Any("mutation", mutation).Msg("Dispatching app state mutation")
 	dispatchEvts := !fullSync || emitOnFullSync
 
 	if mutation.Operation != waServerSync.SyncdMutation_SET {

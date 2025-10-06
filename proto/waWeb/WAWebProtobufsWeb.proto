@@ -309,6 +309,7 @@ message WebMessageInfo {
 	optional string botTargetID = 73;
 	optional GroupHistoryIndividualMessageInfo groupHistoryIndividualMessageInfo = 74;
 	optional GroupHistoryBundleInfo groupHistoryBundleInfo = 75;
+	optional InteractiveMessageAdditionalMetadata interactiveMessageAdditionalMetadata = 76;
 }
 
 message PaymentInfo {
@@ -546,6 +547,10 @@ message PollUpdate {
 
 message PollAdditionalMetadata {
 	optional bool pollInvalidated = 1;
+}
+
+message InteractiveMessageAdditionalMetadata {
+	optional bool isGalaxyFlowCompleted = 1;
 }
 
 message EventAdditionalMetadata {
