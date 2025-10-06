@@ -457,17 +457,23 @@ func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, in
 	if info.Type == "peer_msg" && info.IsFromMe {
 		attrs["category"] = "peer"
 	}
+
+	retryAttrs := waBinary.Attrs{
+		"count": retryCount,
+		"id":    id,
+		"t":     node.Attrs["t"],
+		"v":     1,
+	}
+
+	if errorCode != 0 {
+		retryAttrs["error"] = errorCode
+	}
+
 	payload := waBinary.Node{
 		Tag:   "receipt",
 		Attrs: attrs,
 		Content: []waBinary.Node{
-			{Tag: "retry", Attrs: waBinary.Attrs{
-				"count": retryCount,
-				"id":    id,
-				"t":     node.Attrs["t"],
-				"v":     1,
-				"error": errorCode, // this can be 0 for the case of Unknown reason
-			}},
+			{Tag: "retry", Attrs: retryAttrs},
 			{Tag: "registration", Content: registrationIDBytes[:]},
 		},
 	}
