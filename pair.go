@@ -118,8 +118,7 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 	h := hmac.New(sha256.New, cli.Store.AdvSecretKey)
 	if deviceIdentityContainer.GetAccountType() == waAdv.ADVEncryptionType_HOSTED {
 		h.Write(AdvHostedAccountSignaturePrefix)
-
-		cli.Store.IsHosted = true
+		//cli.Store.IsHosted = true
 	}
 	h.Write(deviceIdentityContainer.Details)
 
