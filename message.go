@@ -124,6 +124,11 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		source.Sender = from
 		// TODO IsFromMe?
 	} else if from.User == clientID.User || from.User == clientLID.User {
+		if from.Server == types.HostedServer {
+			from.Server = types.DefaultUserServer
+		} else if from.Server == types.HostedLIDServer {
+			from.Server = types.HiddenUserServer
+		}
 		source.IsFromMe = true
 		source.Sender = from
 		recipient := ag.OptionalJID("recipient")
@@ -132,7 +137,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		} else {
 			source.Chat = from.ToNonAD()
 		}
-		if source.Chat.Server == types.HiddenUserServer {
+		if source.Chat.Server == types.HiddenUserServer || source.Chat.Server == types.HostedLIDServer {
 			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_pn")
 		} else {
 			source.RecipientAlt = ag.OptionalJIDOrEmpty("peer_recipient_lid")
@@ -148,9 +153,14 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 			source.Chat = from
 		}
 	} else {
+		if from.Server == types.HostedServer {
+			from.Server = types.DefaultUserServer
+		} else if from.Server == types.HostedLIDServer {
+			from.Server = types.HiddenUserServer
+		}
 		source.Chat = from.ToNonAD()
 		source.Sender = from
-		if source.Sender.Server == types.HiddenUserServer {
+		if source.Sender.Server == types.HiddenUserServer || source.Chat.Server == types.HostedLIDServer {
 			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_pn")
 		} else {
 			source.SenderAlt = ag.OptionalJIDOrEmpty("sender_lid")
