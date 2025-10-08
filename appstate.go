@@ -351,13 +351,17 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 	}
 }
 
-// SendAppState sends the given app state patch, then resyncs that app state type from the server
+// SendAppState sends the given app state patch, then triggers a background resync of that app state type
 // to update local caches and send events for the updates.
 //
 // You can use the Build methods in the appstate package to build the parameter for this method, e.g.
 //
 //	cli.SendAppState(ctx, appstate.BuildMute(targetJID, true, 24 * time.Hour))
 func (cli *Client) SendAppState(ctx context.Context, patch appstate.PatchInfo) error {
+	return cli.sendAppState(ctx, patch, false)
+}
+
+func (cli *Client) sendAppState(ctx context.Context, patch appstate.PatchInfo, waitForSync bool) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -412,5 +416,16 @@ func (cli *Client) SendAppState(ctx context.Context, patch appstate.PatchInfo) e
 		return fmt.Errorf("%w: %s", ErrAppStateUpdate, respCollection.XMLString())
 	}
 
-	return cli.FetchAppState(ctx, patch.Type, false, false)
+	if waitForSync {
+		return cli.FetchAppState(ctx, patch.Type, false, false)
+	}
+
+	go func() {
+		err := cli.FetchAppState(ctx, patch.Type, false, false)
+		if err != nil {
+			cli.Log.Errorf("Failed to resync app state %s after sending update: %v", patch.Type, err)
+		}
+	}()
+
+	return nil
 }
