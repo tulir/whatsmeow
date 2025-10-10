@@ -11,8 +11,11 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"time"
+
+	"go.mau.fi/libsignal/signalerror"
 
 	"go.mau.fi/libsignal/ecc"
 	"go.mau.fi/libsignal/groups"
@@ -41,6 +44,48 @@ type recentMessageKey struct {
 type RecentMessage struct {
 	wa *waE2E.Message
 	fb *waMsgApplication.MessageApplication
+}
+
+var (
+	RetryReasonUnknownError                 = 0
+	RetryReasonSignalErrorNoSession         = 1
+	RetryReasonSignalErrorInvalidKey        = 2
+	RetryReasonSignalErrorInvalidKeyId      = 3
+	RetryReasonSignalErrorInvalidMessage    = 4
+	RetryReasonSignalErrorInvalidSignature  = 5
+	RetryReasonSignalErrorFutureMessage     = 6
+	RetryReasonSignalErrorBadMac            = 7
+	RetryReasonSignalErrorInvalidSession    = 8
+	RetryReasonSignalErrorInvalidMsgKey     = 9
+	RetryReasonBadBroadcastEphemeralSetting = 10
+	RetryReasonUnknownCompanionNoPrekey     = 11
+	RetryReasonAdvFailure                   = 12
+	RetryReasonStatusRevokeDelay            = 13
+)
+
+func getRetryReasonFromError(err error) int {
+	switch {
+	case errors.Is(err, signalerror.ErrBadMAC):
+		return RetryReasonSignalErrorBadMac
+	case errors.Is(err, signalerror.ErrNoSessionForUser):
+	case errors.Is(err, signalerror.ErrNoSenderKeyForUser):
+		return RetryReasonSignalErrorNoSession
+	case errors.Is(err, signalerror.ErrWrongMessageVersion):
+	case errors.Is(err, signalerror.ErrOldMessageVersion):
+	case errors.Is(err, signalerror.ErrUnknownMessageVersion):
+	case errors.Is(err, signalerror.ErrIncompleteMessage):
+		return RetryReasonSignalErrorInvalidMessage
+	case errors.Is(err, signalerror.ErrInvalidSignature):
+	case errors.Is(err, signalerror.ErrSenderKeyStateVerificationFailed):
+		return RetryReasonSignalErrorInvalidSignature
+	case errors.Is(err, signalerror.ErrNoSignedPreKey):
+		return RetryReasonSignalErrorInvalidKey
+	case errors.Is(err, signalerror.ErrNoSenderKeyStateForID):
+		return RetryReasonSignalErrorInvalidKeyId
+	case errors.Is(err, signalerror.ErrTooFarIntoFuture):
+		return RetryReasonSignalErrorFutureMessage
+	}
+	return RetryReasonUnknownError
 }
 
 func (rm RecentMessage) IsEmpty() bool {
@@ -376,7 +421,7 @@ func (cli *Client) clearDelayedMessageRequests() {
 }
 
 // sendRetryReceipt sends a retry receipt for an incoming message.
-func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
+func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool, errorCode int) {
 	id, _ := node.Attrs["id"].(string)
 	children := node.GetChildren()
 	var retryCountInMsg int
@@ -412,16 +457,23 @@ func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, in
 	if info.Type == "peer_msg" && info.IsFromMe {
 		attrs["category"] = "peer"
 	}
+
+	retryAttrs := waBinary.Attrs{
+		"count": retryCount,
+		"id":    id,
+		"t":     node.Attrs["t"],
+		"v":     1,
+	}
+
+	if errorCode != 0 {
+		retryAttrs["error"] = errorCode
+	}
+
 	payload := waBinary.Node{
 		Tag:   "receipt",
 		Attrs: attrs,
 		Content: []waBinary.Node{
-			{Tag: "retry", Attrs: waBinary.Attrs{
-				"count": retryCount,
-				"id":    id,
-				"t":     node.Attrs["t"],
-				"v":     1,
-			}},
+			{Tag: "retry", Attrs: retryAttrs},
 			{Tag: "registration", Content: registrationIDBytes[:]},
 		},
 	}
