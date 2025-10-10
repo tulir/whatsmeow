@@ -1342,22 +1342,25 @@ func (MessageAddOn_MessageAddOnType) EnumDescriptor() ([]byte, []int) {
 type GroupHistoryBundleInfo_ProcessState int32
 
 const (
-	GroupHistoryBundleInfo_NOT_DOWNLOADED  GroupHistoryBundleInfo_ProcessState = 0
-	GroupHistoryBundleInfo_DOWNLOADED      GroupHistoryBundleInfo_ProcessState = 1
-	GroupHistoryBundleInfo_DOWNLOAD_FAILED GroupHistoryBundleInfo_ProcessState = 2
+	GroupHistoryBundleInfo_NOT_INJECTED     GroupHistoryBundleInfo_ProcessState = 0
+	GroupHistoryBundleInfo_INJECTED         GroupHistoryBundleInfo_ProcessState = 1
+	GroupHistoryBundleInfo_INJECTED_PARTIAL GroupHistoryBundleInfo_ProcessState = 2
+	GroupHistoryBundleInfo_INJECTION_FAILED GroupHistoryBundleInfo_ProcessState = 3
 )
 
 // Enum value maps for GroupHistoryBundleInfo_ProcessState.
 var (
 	GroupHistoryBundleInfo_ProcessState_name = map[int32]string{
-		0: "NOT_DOWNLOADED",
-		1: "DOWNLOADED",
-		2: "DOWNLOAD_FAILED",
+		0: "NOT_INJECTED",
+		1: "INJECTED",
+		2: "INJECTED_PARTIAL",
+		3: "INJECTION_FAILED",
 	}
 	GroupHistoryBundleInfo_ProcessState_value = map[string]int32{
-		"NOT_DOWNLOADED":  0,
-		"DOWNLOADED":      1,
-		"DOWNLOAD_FAILED": 2,
+		"NOT_INJECTED":     0,
+		"INJECTED":         1,
+		"INJECTED_PARTIAL": 2,
+		"INJECTION_FAILED": 3,
 	}
 )
 
@@ -2715,7 +2718,7 @@ func (x *GroupHistoryBundleInfo) GetProcessState() GroupHistoryBundleInfo_Proces
 	if x != nil && x.ProcessState != nil {
 		return *x.ProcessState
 	}
-	return GroupHistoryBundleInfo_NOT_DOWNLOADED
+	return GroupHistoryBundleInfo_NOT_INJECTED
 }
 
 type CommentMetadata struct {
@@ -3887,10 +3890,11 @@ func (x *Citation) GetImageURL() string {
 }
 
 type GroupHistoryIndividualMessageInfo struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	BundleMessageKey *waCommon.MessageKey   `protobuf:"bytes,1,opt,name=bundleMessageKey" json:"bundleMessageKey,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"open.v1"`
+	BundleMessageKey             *waCommon.MessageKey   `protobuf:"bytes,1,opt,name=bundleMessageKey" json:"bundleMessageKey,omitempty"`
+	EditedAfterReceivedAsHistory *bool                  `protobuf:"varint,2,opt,name=editedAfterReceivedAsHistory" json:"editedAfterReceivedAsHistory,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *GroupHistoryIndividualMessageInfo) Reset() {
@@ -3928,6 +3932,13 @@ func (x *GroupHistoryIndividualMessageInfo) GetBundleMessageKey() *waCommon.Mess
 		return x.BundleMessageKey
 	}
 	return nil
+}
+
+func (x *GroupHistoryIndividualMessageInfo) GetEditedAfterReceivedAsHistory() bool {
+	if x != nil && x.EditedAfterReceivedAsHistory != nil {
+		return *x.EditedAfterReceivedAsHistory
+	}
+	return false
 }
 
 var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
@@ -4398,15 +4409,15 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\bREACTION\x10\x01\x12\x12\n" +
 	"\x0eEVENT_RESPONSE\x10\x02\x12\x0f\n" +
 	"\vPOLL_UPDATE\x10\x03\x12\x0f\n" +
-	"\vPIN_IN_CHAT\x10\x04\"\xae\x02\n" +
+	"\vPIN_IN_CHAT\x10\x04\"\xc1\x02\n" +
 	"\x16GroupHistoryBundleInfo\x12o\n" +
 	"\x1edeprecatedMessageHistoryBundle\x18\x01 \x01(\v2'.WAWebProtobufsE2E.MessageHistoryBundleR\x1edeprecatedMessageHistoryBundle\x12Z\n" +
-	"\fprocessState\x18\x02 \x01(\x0e26.WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessStateR\fprocessState\"G\n" +
-	"\fProcessState\x12\x12\n" +
-	"\x0eNOT_DOWNLOADED\x10\x00\x12\x0e\n" +
-	"\n" +
-	"DOWNLOADED\x10\x01\x12\x13\n" +
-	"\x0fDOWNLOAD_FAILED\x10\x02\"s\n" +
+	"\fprocessState\x18\x02 \x01(\x0e26.WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessStateR\fprocessState\"Z\n" +
+	"\fProcessState\x12\x10\n" +
+	"\fNOT_INJECTED\x10\x00\x12\f\n" +
+	"\bINJECTED\x10\x01\x12\x14\n" +
+	"\x10INJECTED_PARTIAL\x10\x02\x12\x14\n" +
+	"\x10INJECTION_FAILED\x10\x03\"s\n" +
 	"\x0fCommentMetadata\x12@\n" +
 	"\x10commentParentKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x10commentParentKey\x12\x1e\n" +
 	"\n" +
@@ -4490,9 +4501,10 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x05title\x18\x01 \x02(\tR\x05title\x12\x1a\n" +
 	"\bsubtitle\x18\x02 \x02(\tR\bsubtitle\x12\x14\n" +
 	"\x05cmsID\x18\x03 \x02(\tR\x05cmsID\x12\x1a\n" +
-	"\bimageURL\x18\x04 \x02(\tR\bimageURL\"e\n" +
+	"\bimageURL\x18\x04 \x02(\tR\bimageURL\"\xa9\x01\n" +
 	"!GroupHistoryIndividualMessageInfo\x12@\n" +
-	"\x10bundleMessageKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x10bundleMessageKeyB!Z\x1fgo.mau.fi/whatsmeow/proto/waWeb"
+	"\x10bundleMessageKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x10bundleMessageKey\x12B\n" +
+	"\x1ceditedAfterReceivedAsHistory\x18\x02 \x01(\bR\x1ceditedAfterReceivedAsHistoryB!Z\x1fgo.mau.fi/whatsmeow/proto/waWeb"
 
 var (
 	file_waWeb_WAWebProtobufsWeb_proto_rawDescOnce sync.Once

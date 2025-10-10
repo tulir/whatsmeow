@@ -9,6 +9,11 @@ import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
 import "waStatusAttributions/WAStatusAttributions.proto";
 
+enum PollType {
+	POLL = 0;
+	QUIZ = 1;
+}
+
 enum PollContentType {
 	UNKNOWN_POLL_CONTENT_TYPE = 0;
 	TEXT = 1;
@@ -27,6 +32,7 @@ enum PeerDataOperationRequestType {
 	COMPANION_SYNCD_SNAPSHOT_FATAL_RECOVERY = 8;
 	COMPANION_CANONICAL_USER_NONCE_FETCH = 9;
 	HISTORY_SYNC_CHUNK_RETRY = 10;
+	GALAXY_FLOW_ACTION = 11;
 }
 
 enum HistorySyncType {
@@ -201,27 +207,6 @@ message StatusStickerInteractionMessage {
 	optional WACommon.MessageKey key = 1;
 	optional string stickerKey = 2;
 	optional StatusStickerType type = 3;
-}
-
-message PollCreationMessage {
-	enum PollType {
-		POLL = 0;
-		QUIZ = 1;
-	}
-
-	message Option {
-		optional string optionName = 1;
-		optional string optionHash = 2;
-	}
-
-	optional bytes encKey = 1;
-	optional string name = 2;
-	repeated Option options = 3;
-	optional uint32 selectableOptionsCount = 4;
-	optional ContextInfo contextInfo = 5;
-	optional PollContentType pollContentType = 6;
-	optional PollType pollType = 7;
-	optional Option correctAnswer = 8;
 }
 
 message ButtonsResponseMessage {
@@ -705,6 +690,67 @@ message PeerDataOperationRequestResponseMessage {
 	repeated PeerDataOperationResult peerDataOperationResult = 3;
 }
 
+message PeerDataOperationRequestMessage {
+	message GalaxyFlowAction {
+		enum GalaxyFlowActionType {
+			NOTIFY_LAUNCH = 1;
+		}
+
+		optional GalaxyFlowActionType type = 1;
+		optional string flowID = 2;
+		optional string stanzaID = 3;
+	}
+
+	message HistorySyncChunkRetryRequest {
+		optional HistorySyncType syncType = 1;
+		optional uint32 chunkOrder = 2;
+		optional string chunkNotificationID = 3;
+		optional bool regenerateChunk = 4;
+	}
+
+	message SyncDCollectionFatalRecoveryRequest {
+		optional string collectionName = 1;
+		optional int64 timestamp = 2;
+	}
+
+	message PlaceholderMessageResendRequest {
+		optional WACommon.MessageKey messageKey = 1;
+	}
+
+	message FullHistorySyncOnDemandRequest {
+		optional FullHistorySyncOnDemandRequestMetadata requestMetadata = 1;
+		optional WACompanionReg.DeviceProps.HistorySyncConfig historySyncConfig = 2;
+	}
+
+	message HistorySyncOnDemandRequest {
+		optional string chatJID = 1;
+		optional string oldestMsgID = 2;
+		optional bool oldestMsgFromMe = 3;
+		optional int32 onDemandMsgCount = 4;
+		optional int64 oldestMsgTimestampMS = 5;
+		optional string accountLid = 6;
+	}
+
+	message RequestUrlPreview {
+		optional string URL = 1;
+		optional bool includeHqThumbnail = 2;
+	}
+
+	message RequestStickerReupload {
+		optional string fileSHA256 = 1;
+	}
+
+	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
+	repeated RequestStickerReupload requestStickerReupload = 2;
+	repeated RequestUrlPreview requestURLPreview = 3;
+	optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
+	repeated PlaceholderMessageResendRequest placeholderMessageResendRequest = 5;
+	optional FullHistorySyncOnDemandRequest fullHistorySyncOnDemandRequest = 6;
+	optional SyncDCollectionFatalRecoveryRequest syncdCollectionFatalRecoveryRequest = 7;
+	optional HistorySyncChunkRetryRequest historySyncChunkRetryRequest = 8;
+	optional GalaxyFlowAction galaxyFlowAction = 9;
+}
+
 message RequestWelcomeMessageMetadata {
 	enum LocalChatState {
 		EMPTY = 0;
@@ -895,6 +941,7 @@ message ExtendedTextMessage {
 	repeated VideoEndCard endCardTiles = 36;
 	optional string videoContentURL = 37;
 	optional EmbeddedMusic musicMetadata = 38;
+	optional PaymentExtendedMetadata paymentExtendedMetadata = 39;
 }
 
 message LinkPreviewMetadata {
@@ -913,6 +960,9 @@ message LinkPreviewMetadata {
 	optional uint32 linkMediaDuration = 4;
 	optional SocialMediaPostType socialMediaPostType = 5;
 	optional bool linkInlineVideoMuted = 6;
+	optional string videoContentURL = 7;
+	optional EmbeddedMusic musicMetadata = 8;
+	optional string videoContentCaption = 9;
 }
 
 message PaymentLinkMetadata {
@@ -1492,7 +1542,6 @@ message Message {
 	optional FutureProofMessage associatedChildMessage = 91;
 	optional FutureProofMessage groupStatusMentionMessage = 92;
 	optional FutureProofMessage pollCreationMessageV4 = 93;
-	optional FutureProofMessage pollCreationMessageV5 = 94;
 	optional FutureProofMessage statusAddYours = 95;
 	optional FutureProofMessage groupStatusMessage = 96;
 	optional AIRichResponseMessage richResponseMessage = 97;
@@ -1506,9 +1555,12 @@ message Message {
 	optional StatusQuestionAnswerMessage statusQuestionAnswerMessage = 105;
 	optional FutureProofMessage questionReplyMessage = 106;
 	optional QuestionResponseMessage questionResponseMessage = 107;
-	optional NewsletterFollowerInviteMessage newsletterFollowerInviteMessage = 108;
 	optional StatusQuotedMessage statusQuotedMessage = 109;
 	optional StatusStickerInteractionMessage statusStickerInteractionMessage = 110;
+	optional PollCreationMessage pollCreationMessageV5 = 111;
+	optional PollResultSnapshotMessage pollResultSnapshotMessageV2 = 112;
+	optional NewsletterFollowerInviteMessage newsletterFollowerInviteMessageV2 = 113;
+	optional RequestContactInfoMessage requestContactInfoMessage = 114;
 }
 
 message AlbumMessage {
@@ -1600,6 +1652,7 @@ message PollResultSnapshotMessage {
 	optional string name = 1;
 	repeated PollVote pollVotes = 2;
 	optional ContextInfo contextInfo = 3;
+	optional PollType pollType = 4;
 }
 
 message PollVoteMessage {
@@ -1619,6 +1672,22 @@ message PollUpdateMessage {
 	optional PollEncValue vote = 2;
 	optional PollUpdateMessageMetadata metadata = 3;
 	optional int64 senderTimestampMS = 4;
+}
+
+message PollCreationMessage {
+	message Option {
+		optional string optionName = 1;
+		optional string optionHash = 2;
+	}
+
+	optional bytes encKey = 1;
+	optional string name = 2;
+	repeated Option options = 3;
+	optional uint32 selectableOptionsCount = 4;
+	optional ContextInfo contextInfo = 5;
+	optional PollContentType pollContentType = 6;
+	optional PollType pollType = 7;
+	optional Option correctAnswer = 8;
 }
 
 message StickerSyncRMRMessage {
@@ -1642,6 +1711,12 @@ message DeviceSentMessage {
 	optional string destinationJID = 1;
 	optional Message message = 2;
 	optional string phash = 3;
+}
+
+message RequestContactInfoMessage {
+	optional string text = 1;
+	optional string ctaButtonText = 2;
+	optional ContextInfo contextInfo = 3;
 }
 
 message RequestPhoneNumberMessage {
@@ -1817,56 +1892,6 @@ message InitialSecurityNotificationSettingSync {
 	optional bool securityNotificationEnabled = 1;
 }
 
-message PeerDataOperationRequestMessage {
-	message HistorySyncChunkRetryRequest {
-		optional HistorySyncType syncType = 1;
-		optional uint32 chunkOrder = 2;
-		optional string chunkNotificationID = 3;
-		optional bool regenerateChunk = 4;
-	}
-
-	message SyncDCollectionFatalRecoveryRequest {
-		optional string collectionName = 1;
-		optional int64 timestamp = 2;
-	}
-
-	message PlaceholderMessageResendRequest {
-		optional WACommon.MessageKey messageKey = 1;
-	}
-
-	message FullHistorySyncOnDemandRequest {
-		optional FullHistorySyncOnDemandRequestMetadata requestMetadata = 1;
-		optional WACompanionReg.DeviceProps.HistorySyncConfig historySyncConfig = 2;
-	}
-
-	message HistorySyncOnDemandRequest {
-		optional string chatJID = 1;
-		optional string oldestMsgID = 2;
-		optional bool oldestMsgFromMe = 3;
-		optional int32 onDemandMsgCount = 4;
-		optional int64 oldestMsgTimestampMS = 5;
-		optional string accountLid = 6;
-	}
-
-	message RequestUrlPreview {
-		optional string URL = 1;
-		optional bool includeHqThumbnail = 2;
-	}
-
-	message RequestStickerReupload {
-		optional string fileSHA256 = 1;
-	}
-
-	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
-	repeated RequestStickerReupload requestStickerReupload = 2;
-	repeated RequestUrlPreview requestURLPreview = 3;
-	optional HistorySyncOnDemandRequest historySyncOnDemandRequest = 4;
-	repeated PlaceholderMessageResendRequest placeholderMessageResendRequest = 5;
-	optional FullHistorySyncOnDemandRequest fullHistorySyncOnDemandRequest = 6;
-	optional SyncDCollectionFatalRecoveryRequest syncdCollectionFatalRecoveryRequest = 7;
-	optional HistorySyncChunkRetryRequest historySyncChunkRetryRequest = 8;
-}
-
 message FullHistorySyncOnDemandRequestMetadata {
 	optional string requestID = 1;
 }
@@ -1988,6 +2013,12 @@ message URLMetadata {
 	optional uint32 fbExperimentID = 1;
 }
 
+message PaymentExtendedMetadata {
+	optional uint32 type = 1;
+	optional string platform = 2;
+	optional string messageParamsJSON = 3;
+}
+
 message MMSThumbnailMetadata {
 	optional string thumbnailDirectPath = 1;
 	optional bytes thumbnailSHA256 = 2;
@@ -2056,10 +2087,13 @@ message EmbeddedMusic {
 	optional string artworkDirectPath = 5;
 	optional bytes artworkSHA256 = 6;
 	optional bytes artworkEncSHA256 = 7;
-	optional bytes artworkMediaKey = 11;
 	optional string artistAttribution = 8;
 	optional bytes countryBlocklist = 9;
 	optional bool isExplicit = 10;
+	optional bytes artworkMediaKey = 11;
+	optional int64 musicSongStartTimeInMS = 12;
+	optional int64 derivedContentStartTimeInMS = 13;
+	optional int64 overlapDurationInMS = 14;
 }
 
 message EmbeddedContent {

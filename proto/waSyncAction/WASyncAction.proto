@@ -207,6 +207,7 @@ message PatchDebugData {
 		WEAROS = 8;
 		WASG = 9;
 		WEARM = 10;
+		CAPI = 11;
 	}
 
 	optional bytes currentLthash = 1;

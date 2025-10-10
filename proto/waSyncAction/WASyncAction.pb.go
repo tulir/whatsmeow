@@ -937,6 +937,7 @@ const (
 	PatchDebugData_WEAROS  PatchDebugData_Platform = 8
 	PatchDebugData_WASG    PatchDebugData_Platform = 9
 	PatchDebugData_WEARM   PatchDebugData_Platform = 10
+	PatchDebugData_CAPI    PatchDebugData_Platform = 11
 )
 
 // Enum value maps for PatchDebugData_Platform.
@@ -953,6 +954,7 @@ var (
 		8:  "WEAROS",
 		9:  "WASG",
 		10: "WEARM",
+		11: "CAPI",
 	}
 	PatchDebugData_Platform_value = map[string]int32{
 		"ANDROID": 0,
@@ -966,6 +968,7 @@ var (
 		"WEAROS":  8,
 		"WASG":    9,
 		"WEARM":   10,
+		"CAPI":    11,
 	}
 )
 
@@ -5756,7 +5759,7 @@ const file_waSyncAction_WASyncAction_proto_rawDesc = "" +
 	"\n" +
 	"\x06CUSTOM\x10\x05\x12\r\n" +
 	"\tCOMMUNITY\x10\x06\x12\x13\n" +
-	"\x0fSERVER_ASSIGNED\x10\a\"\x8e\x05\n" +
+	"\x0fSERVER_ASSIGNED\x10\a\"\x98\x05\n" +
 	"\x0ePatchDebugData\x12$\n" +
 	"\rcurrentLthash\x18\x01 \x01(\fR\rcurrentLthash\x12\x1c\n" +
 	"\tnewLthash\x18\x02 \x01(\fR\tnewLthash\x12\"\n" +
@@ -5769,7 +5772,7 @@ const file_waSyncAction_WASyncAction_proto_rawDesc = "" +
 	"\x0enumberOverride\x18\t \x01(\x05R\x0enumberOverride\x12M\n" +
 	"\x0esenderPlatform\x18\n" +
 	" \x01(\x0e2%.WASyncAction.PatchDebugData.PlatformR\x0esenderPlatform\x12(\n" +
-	"\x0fisSenderPrimary\x18\v \x01(\bR\x0fisSenderPrimary\"\x80\x01\n" +
+	"\x0fisSenderPrimary\x18\v \x01(\bR\x0fisSenderPrimary\"\x8a\x01\n" +
 	"\bPlatform\x12\v\n" +
 	"\aANDROID\x10\x00\x12\b\n" +
 	"\x04SMBA\x10\x01\x12\n" +
@@ -5785,7 +5788,8 @@ const file_waSyncAction_WASyncAction_proto_rawDesc = "" +
 	"\x06WEAROS\x10\b\x12\b\n" +
 	"\x04WASG\x10\t\x12\t\n" +
 	"\x05WEARM\x10\n" +
-	"\"A\n" +
+	"\x12\b\n" +
+	"\x04CAPI\x10\v\"A\n" +
 	"\x11RecentEmojiWeight\x12\x14\n" +
 	"\x05emoji\x18\x01 \x01(\tR\x05emoji\x12\x16\n" +
 	"\x06weight\x18\x02 \x01(\x02R\x06weight\"\xd6.\n" +
