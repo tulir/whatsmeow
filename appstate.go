@@ -115,7 +115,7 @@ func (cli *Client) dispatchAppState(ctx context.Context, mutation appstate.Mutat
 	zerolog.Ctx(ctx).Trace().Any("mutation", mutation).Msg("Dispatching app state mutation")
 	dispatchEvts := !fullSync || emitOnFullSync
 
-	if mutation.Operation != waServerSync.SyncdMutation_SET {
+	if (mutation.Action != nil && mutation.Action.ContactAction == nil) && mutation.Operation != waServerSync.SyncdMutation_SET {
 		return
 	}
 
