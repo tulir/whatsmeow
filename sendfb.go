@@ -439,7 +439,7 @@ func (cli *Client) prepareMessageNodeV3(
 	timings *MessageDebugTimings,
 ) (*waBinary.Node, []types.JID, error) {
 	start := time.Now()
-	allDevices, err := cli.GetUserDevicesContext(ctx, participants, false) // false since there are no "hosted devices" on FB
+	allDevices, err := cli.GetUserDevicesContext(ctx, participants)
 	timings.GetDevices = time.Since(start)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get device list: %w", err)

@@ -226,7 +226,7 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		status, _ := child.GetChildByTag("status").Content.([]byte)
 		info.Status = string(status)
 		info.PictureID, _ = child.GetChildByTag("picture").Attrs["id"].(string)
-		info.Devices = parseDeviceList(jid, child.GetChildByTag("devices"), false)
+		info.Devices = parseDeviceList(jid, child.GetChildByTag("devices"))
 
 		lidTag := child.GetChildByTag("lid")
 		info.LID = lidTag.AttrGetter().OptionalJIDOrEmpty("val")
@@ -443,11 +443,11 @@ func (cli *Client) GetBusinessProfile(jid types.JID) (*types.BusinessProfile, er
 // the output even if the user's JID is included in the input. All other devices will be included.
 //
 // Deprecated: use GetUserDevicesContext instead.
-func (cli *Client) GetUserDevices(jids []types.JID, isGroup bool) ([]types.JID, error) {
-	return cli.GetUserDevicesContext(context.Background(), jids, isGroup)
+func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
+	return cli.GetUserDevicesContext(context.Background(), jids)
 }
 
-func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID, isGroup bool) ([]types.JID, error) {
+func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) ([]types.JID, error) {
 	if cli == nil {
 		return nil, ErrClientIsNil
 	}
@@ -481,7 +481,7 @@ func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID, 
 			if user.Tag != "user" || !jidOK {
 				continue
 			}
-			userDevices := parseDeviceList(jid, user.GetChildByTag("devices"), isGroup)
+			userDevices := parseDeviceList(jid, user.GetChildByTag("devices"))
 			cli.userDevicesCache[jid] = deviceCache{devices: userDevices, dhash: participantListHashV2(userDevices)}
 			devices = append(devices, userDevices...)
 		}
@@ -695,7 +695,7 @@ func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedNa
 	}, nil
 }
 
-func parseDeviceList(user types.JID, deviceNode waBinary.Node, isGroup bool) []types.JID {
+func parseDeviceList(user types.JID, deviceNode waBinary.Node) []types.JID {
 	deviceList := deviceNode.GetChildByTag("device-list")
 	if deviceNode.Tag != "devices" || deviceList.Tag != "device-list" {
 		return nil
@@ -710,11 +710,7 @@ func parseDeviceList(user types.JID, deviceNode waBinary.Node, isGroup bool) []t
 		}
 		user.Device = uint16(deviceID)
 		if isHosted {
-			if isGroup {
-				continue // DO NOT SEND GROUP MESSAGES TO HOSTED DEVICES!
-			}
-
-			hostedUser := user // prevent mutation of the user variable
+			hostedUser := user
 			if user.Server == types.HiddenUserServer {
 				hostedUser.Server = types.HostedLIDServer
 			} else {

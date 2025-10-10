@@ -14,6 +14,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -1116,10 +1117,16 @@ func (cli *Client) prepareMessageNode(
 	extraParams nodeExtraParams,
 ) (*waBinary.Node, []types.JID, error) {
 	start := time.Now()
-	allDevices, err := cli.GetUserDevicesContext(ctx, participants, to.Server == types.GroupServer)
+	allDevices, err := cli.GetUserDevicesContext(ctx, participants)
 	timings.GetDevices = time.Since(start)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get device list: %w", err)
+	}
+
+	if to.Server == types.GroupServer {
+		allDevices = slices.DeleteFunc(allDevices, func(jid types.JID) bool {
+			return jid.Server == types.HostedServer || jid.Server == types.HostedLIDServer
+		})
 	}
 
 	msgType := getTypeFromMessage(message)

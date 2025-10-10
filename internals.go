@@ -67,6 +67,10 @@ func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, raw
 	int.c.requestAppStateKeys(ctx, rawKeyIDs)
 }
 
+func (int *DangerousInternalClient) SendAppState(ctx context.Context, patch appstate.PatchInfo, waitForSync bool) error {
+	return int.c.sendAppState(ctx, patch, waitForSync)
+}
+
 func (int *DangerousInternalClient) HandleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed, protobufFailed bool) {
 	return int.c.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
 }
