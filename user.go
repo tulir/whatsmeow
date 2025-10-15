@@ -502,6 +502,12 @@ type GetProfilePictureParams struct {
 	Preview     bool
 	ExistingID  string
 	IsCommunity bool
+	// This is a common group ID that you share with the target
+	CommonGID types.JID
+	// use this to query the profile photo of a group you don't have joined, but you have an invite code for
+	InviteCode string
+	// Persona ID when getting profile of Meta AI bots
+	PersonaID string
 }
 
 // GetProfilePictureInfo gets the URL where you can download a WhatsApp user's profile picture or group's photo.
@@ -526,6 +532,10 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	if params.ExistingID != "" {
 		attrs["id"] = params.ExistingID
 	}
+	if params.InviteCode != "" {
+		attrs["invite"] = params.InviteCode
+	}
+
 	var expectWrapped bool
 	var content []waBinary.Node
 	namespace := "w:profile:picture"
@@ -545,6 +555,15 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 	} else {
 		to = types.ServerJID
 		target = jid
+
+		if !params.CommonGID.IsEmpty() {
+			attrs["common_gid"] = params.CommonGID
+		}
+
+		if params.PersonaID != "" {
+			attrs["persona_id"] = params.PersonaID
+		}
+
 		var pictureContent []waBinary.Node
 		if token, _ := cli.Store.PrivacyTokens.GetPrivacyToken(context.TODO(), jid); token != nil {
 			pictureContent = []waBinary.Node{{
