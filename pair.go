@@ -96,13 +96,16 @@ func (cli *Client) handlePairSuccess(node *waBinary.Node) {
 	jid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
 	lid, _ := pairSuccess.GetChildByTag("device").Attrs["lid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
-	clientPropsBytes := pairSuccess.GetChildByTag("client-props").Content.([]byte)
+	clientPropsBytes, _ := pairSuccess.GetChildByTag("client-props").Content.([]byte)
 
 	var props waCompanionReg.ClientPairingProps
 	err := proto.Unmarshal(clientPropsBytes, &props)
+	if err != nil {
+		cli.Log.Warnf("Failed to parse client-props: %v", err)
+	}
 
 	go func() {
-		err = cli.handlePair(context.TODO(), deviceIdentityBytes, id, businessName, platform, jid, lid, &props)
+		err := cli.handlePair(context.TODO(), deviceIdentityBytes, id, businessName, platform, jid, lid, &props)
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
 			cli.Disconnect()
