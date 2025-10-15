@@ -24,7 +24,7 @@ import (
 
 const (
 	// WantedPreKeyCount is the number of prekeys that the client should upload to the WhatsApp servers in a single batch.
-	WantedPreKeyCount = 50
+	WantedPreKeyCount = 812
 	// MinPreKeyCount is the number of prekeys when the client will upload a new batch of prekeys to the WhatsApp servers.
 	MinPreKeyCount = 5
 )
