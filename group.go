@@ -653,11 +653,16 @@ func (cli *Client) getCachedGroupData(ctx context.Context, jid types.JID) (*grou
 	cli.groupCacheLock.Lock()
 	defer cli.groupCacheLock.Unlock()
 	if val, ok := cli.groupCache[jid]; ok {
+		cli.Log.Debugf("Group participants cache HIT for group %s (has %d members)", jid, len(val.Members))
 		return val, nil
 	}
+	cli.Log.Debugf("Group participants cache MISS for group %s, fetching from server", jid)
 	_, err := cli.getGroupInfo(ctx, jid, false)
 	if err != nil {
 		return nil, err
+	}
+	if cachedData := cli.groupCache[jid]; cachedData != nil {
+		cli.Log.Debugf("Group participants cache populated for %s with %d members", jid, len(cachedData.Members))
 	}
 	return cli.groupCache[jid], nil
 }
