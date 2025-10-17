@@ -26,10 +26,11 @@ import (
 )
 
 var (
-	AdvPrefixAccountSignature                                = []byte{6, 0}
-	AdvPrefixDeviceSignatureGenerate                         = []byte{6, 1}
-	AdvHostedPrefixDeviceIdentityAccountSignature            = []byte{6, 5}
-	AdvHostedPrefixDeviceIdentityDeviceSignatureVerification = []byte{6, 6}
+	AdvAccountSignaturePrefix = []byte{6, 0}
+	AdvDeviceSignaturePrefix  = []byte{6, 1}
+
+	AdvHostedAccountSignaturePrefix = []byte{6, 5}
+	AdvHostedDeviceSignaturePrefix  = []byte{6, 6}
 )
 
 func (cli *Client) handleIQ(node *waBinary.Node) {
@@ -113,11 +114,11 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 		cli.sendPairError(reqID, 500, "internal-error")
 		return &PairProtoError{"failed to parse device identity container in pair success message", err}
 	}
-	isHostedAccount := deviceIdentityContainer.AccountType != nil && *deviceIdentityContainer.AccountType == waAdv.ADVEncryptionType_HOSTED
 
 	h := hmac.New(sha256.New, cli.Store.AdvSecretKey)
-	if isHostedAccount {
-		h.Write(AdvHostedPrefixDeviceIdentityAccountSignature)
+	if deviceIdentityContainer.GetAccountType() == waAdv.ADVEncryptionType_HOSTED {
+		h.Write(AdvHostedAccountSignaturePrefix)
+		//cli.Store.IsHosted = true
 	}
 	h.Write(deviceIdentityContainer.Details)
 
@@ -134,19 +135,19 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 		return &PairProtoError{"failed to parse signed device identity in pair success message", err}
 	}
 
-	if !verifyDeviceIdentityAccountSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount) {
-		cli.sendPairError(reqID, 401, "signature-mismatch")
-		return ErrPairInvalidDeviceSignature
-	}
-
-	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Store.IdentityKey, isHostedAccount)[:]
-
 	var deviceIdentityDetails waAdv.ADVDeviceIdentity
 	err = proto.Unmarshal(deviceIdentity.Details, &deviceIdentityDetails)
 	if err != nil {
 		cli.sendPairError(reqID, 500, "internal-error")
 		return &PairProtoError{"failed to parse device identity details in pair success message", err}
 	}
+
+	if !verifyAccountSignature(&deviceIdentity, cli.Store.IdentityKey, deviceIdentityDetails.GetDeviceType() == waAdv.ADVEncryptionType_HOSTED) {
+		cli.sendPairError(reqID, 401, "signature-mismatch")
+		return ErrPairInvalidDeviceSignature
+	}
+
+	deviceIdentity.DeviceSignature = generateDeviceSignature(&deviceIdentity, cli.Store.IdentityKey)[:]
 
 	if cli.PrePairCallback != nil && !cli.PrePairCallback(jid, platform, businessName) {
 		cli.sendPairError(reqID, 500, "internal-error")
@@ -224,7 +225,7 @@ func concatBytes(data ...[]byte) []byte {
 	return output
 }
 
-func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair, isHostedAccount bool) bool {
+func verifyAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair, isHosted bool) bool {
 	if len(deviceIdentity.AccountSignatureKey) != 32 || len(deviceIdentity.AccountSignature) != 64 {
 		return false
 	}
@@ -232,19 +233,17 @@ func verifyDeviceIdentityAccountSignature(deviceIdentity *waAdv.ADVSignedDeviceI
 	signatureKey := ecc.NewDjbECPublicKey(*(*[32]byte)(deviceIdentity.AccountSignatureKey))
 	signature := *(*[64]byte)(deviceIdentity.AccountSignature)
 
-	prefix := AdvPrefixAccountSignature
-	if isHostedAccount {
-		prefix = AdvHostedPrefixDeviceIdentityAccountSignature
+	prefix := AdvAccountSignaturePrefix
+	if isHosted {
+		prefix = AdvHostedAccountSignaturePrefix
 	}
 	message := concatBytes(prefix, deviceIdentity.Details, ikp.Pub[:])
+
 	return ecc.VerifySignature(signatureKey, message, signature)
 }
 
-func generateDeviceSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair, isHostedAccount bool) *[64]byte {
-	prefix := AdvPrefixDeviceSignatureGenerate
-	if isHostedAccount {
-		prefix = AdvHostedPrefixDeviceIdentityDeviceSignatureVerification
-	}
+func generateDeviceSignature(deviceIdentity *waAdv.ADVSignedDeviceIdentity, ikp *keys.KeyPair) *[64]byte {
+	prefix := AdvDeviceSignaturePrefix
 	message := concatBytes(prefix, deviceIdentity.Details, ikp.Pub[:], deviceIdentity.AccountSignatureKey)
 	sig := ecc.CalculateSignature(ecc.NewDjbECPrivateKey(*ikp.Priv), message)
 	return &sig

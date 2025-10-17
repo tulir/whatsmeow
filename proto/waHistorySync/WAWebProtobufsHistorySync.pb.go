@@ -674,6 +674,7 @@ type Conversation struct {
 	LimitSharingSettingTimestamp *int64                                 `protobuf:"varint,51,opt,name=limitSharingSettingTimestamp" json:"limitSharingSettingTimestamp,omitempty"`
 	LimitSharingTrigger          *waCommon.LimitSharing_Trigger         `protobuf:"varint,52,opt,name=limitSharingTrigger,enum=WACommon.LimitSharing_Trigger" json:"limitSharingTrigger,omitempty"`
 	LimitSharingInitiatedByMe    *bool                                  `protobuf:"varint,53,opt,name=limitSharingInitiatedByMe" json:"limitSharingInitiatedByMe,omitempty"`
+	MaibaAiThreadEnabled         *bool                                  `protobuf:"varint,54,opt,name=maibaAiThreadEnabled" json:"maibaAiThreadEnabled,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -1075,6 +1076,13 @@ func (x *Conversation) GetLimitSharingTrigger() waCommon.LimitSharing_Trigger {
 func (x *Conversation) GetLimitSharingInitiatedByMe() bool {
 	if x != nil && x.LimitSharingInitiatedByMe != nil {
 		return *x.LimitSharingInitiatedByMe
+	}
+	return false
+}
+
+func (x *Conversation) GetMaibaAiThreadEnabled() bool {
+	if x != nil && x.MaibaAiThreadEnabled != nil {
+		return *x.MaibaAiThreadEnabled
 	}
 	return false
 }
@@ -1753,7 +1761,8 @@ type StickerMetadata struct {
 	Weight            *float32               `protobuf:"fixed32,10,opt,name=weight" json:"weight,omitempty"`
 	LastStickerSentTS *int64                 `protobuf:"varint,11,opt,name=lastStickerSentTS" json:"lastStickerSentTS,omitempty"`
 	IsLottie          *bool                  `protobuf:"varint,12,opt,name=isLottie" json:"isLottie,omitempty"`
-	IsAvatarSticker   *bool                  `protobuf:"varint,13,opt,name=isAvatarSticker" json:"isAvatarSticker,omitempty"`
+	ImageHash         *string                `protobuf:"bytes,13,opt,name=imageHash" json:"imageHash,omitempty"`
+	IsAvatarSticker   *bool                  `protobuf:"varint,14,opt,name=isAvatarSticker" json:"isAvatarSticker,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -1870,6 +1879,13 @@ func (x *StickerMetadata) GetIsLottie() bool {
 		return *x.IsLottie
 	}
 	return false
+}
+
+func (x *StickerMetadata) GetImageHash() string {
+	if x != nil && x.ImageHash != nil {
+		return *x.ImageHash
+	}
+	return ""
 }
 
 func (x *StickerMetadata) GetIsAvatarSticker() bool {
@@ -2104,7 +2120,7 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x06RECENT\x10\x03\x12\r\n" +
 	"\tPUSH_NAME\x10\x04\x12\x15\n" +
 	"\x11NON_BLOCKING_DATA\x10\x05\x12\r\n" +
-	"\tON_DEMAND\x10\x06\"\x87\x14\n" +
+	"\tON_DEMAND\x10\x06\"\xbb\x14\n" +
 	"\fConversation\x12\x0e\n" +
 	"\x02ID\x18\x01 \x02(\tR\x02ID\x12E\n" +
 	"\bmessages\x18\x02 \x03(\v2).WAWebProtobufsHistorySync.HistorySyncMsgR\bmessages\x12\x16\n" +
@@ -2165,7 +2181,8 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\flimitSharing\x182 \x01(\bR\flimitSharing\x12B\n" +
 	"\x1climitSharingSettingTimestamp\x183 \x01(\x03R\x1climitSharingSettingTimestamp\x12P\n" +
 	"\x13limitSharingTrigger\x184 \x01(\x0e2\x1e.WACommon.LimitSharing.TriggerR\x13limitSharingTrigger\x12<\n" +
-	"\x19limitSharingInitiatedByMe\x185 \x01(\bR\x19limitSharingInitiatedByMe\"\xbc\x01\n" +
+	"\x19limitSharingInitiatedByMe\x185 \x01(\bR\x19limitSharingInitiatedByMe\x122\n" +
+	"\x14maibaAiThreadEnabled\x186 \x01(\bR\x14maibaAiThreadEnabled\"\xbc\x01\n" +
 	"\x18EndOfHistoryTransferType\x120\n" +
 	",COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY\x10\x00\x122\n" +
 	".COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY\x10\x01\x12:\n" +
@@ -2231,7 +2248,7 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x0edownloadImages\x18\x01 \x01(\bR\x0edownloadImages\x12$\n" +
 	"\rdownloadAudio\x18\x02 \x01(\bR\rdownloadAudio\x12$\n" +
 	"\rdownloadVideo\x18\x03 \x01(\bR\rdownloadVideo\x12,\n" +
-	"\x11downloadDocuments\x18\x04 \x01(\bR\x11downloadDocuments\"\x9b\x03\n" +
+	"\x11downloadDocuments\x18\x04 \x01(\bR\x11downloadDocuments\"\xb9\x03\n" +
 	"\x0fStickerMetadata\x12\x10\n" +
 	"\x03URL\x18\x01 \x01(\tR\x03URL\x12\x1e\n" +
 	"\n" +
@@ -2251,8 +2268,9 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x06weight\x18\n" +
 	" \x01(\x02R\x06weight\x12,\n" +
 	"\x11lastStickerSentTS\x18\v \x01(\x03R\x11lastStickerSentTS\x12\x1a\n" +
-	"\bisLottie\x18\f \x01(\bR\bisLottie\x12(\n" +
-	"\x0fisAvatarSticker\x18\r \x01(\bR\x0fisAvatarSticker\"\x86\x01\n" +
+	"\bisLottie\x18\f \x01(\bR\bisLottie\x12\x1c\n" +
+	"\timageHash\x18\r \x01(\tR\timageHash\x12(\n" +
+	"\x0fisAvatarSticker\x18\x0e \x01(\bR\x0fisAvatarSticker\"\x86\x01\n" +
 	"\x10PastParticipants\x12\x1a\n" +
 	"\bgroupJID\x18\x01 \x01(\tR\bgroupJID\x12V\n" +
 	"\x10pastParticipants\x18\x02 \x03(\v2*.WAWebProtobufsHistorySync.PastParticipantR\x10pastParticipants\"D\n" +

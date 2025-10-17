@@ -1,9 +1,3 @@
-// Copyright (c) 2022 Tulir Asokan
-//
-// This Source Code Form is subject to the terms of the Mozilla Public
-// License, v. 2.0. If a copy of the MPL was not distributed with this
-// file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 package sqlstore
 
 import (
@@ -11,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	mathRand "math/rand/v2"
 
@@ -36,17 +31,25 @@ type Container struct {
 
 var _ store.DeviceContainer = (*Container)(nil)
 
+// NewContainer creates a new Container with the given pgxpool.Pool, business ID and logger.
 func NewContainer(dbPool *pgxpool.Pool, businessId string, log waLog.Logger) *Container {
 	if log == nil {
 		log = waLog.Noop
 	}
-	var container = &Container{
+	return &Container{
 		dbPool:     dbPool,
 		businessId: businessId,
 		log:        log,
 		LIDMap:     NewCachedLIDMap(dbPool, businessId),
 	}
-	return container
+}
+
+// Close will close the container's database pool
+func (c *Container) Close() error {
+	if c != nil && c.dbPool != nil {
+		c.dbPool.Close()
+	}
+	return nil
 }
 
 const getAllDevicesQuery = `
@@ -71,13 +74,12 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	var noisePriv, identityPriv, preKeyPriv, preKeySig []byte
 	var account waAdv.ADVSignedDeviceIdentity
 	var fbUUID uuid.NullUUID
-	var lidTS sql.NullInt64
 
 	err := row.Scan(
 		&device.ID, &device.LID, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
 		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
-		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID, &lidTS)
+		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID, &device.LIDMigrationTimestamp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan session: %w", err)
 	} else if len(noisePriv) != 32 || len(identityPriv) != 32 || len(preKeyPriv) != 32 || len(preKeySig) != 64 {
@@ -91,10 +93,6 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 	device.Account = &account
 	device.FacebookUUID = fbUUID.UUID
 
-	if lidTS.Valid {
-		device.LIDMigrationTimestamp = lidTS.Int64
-	}
-
 	c.initializeDevice(&device)
 
 	return &device, nil
@@ -103,10 +101,11 @@ func (c *Container) scanDevice(row scannable) (*store.Device, error) {
 // GetAllDevices finds all the devices in the database.
 func (c *Container) GetAllDevices(ctx context.Context) ([]*store.Device, error) {
 	res, err := c.dbPool.Query(ctx, getAllDevicesQuery, c.businessId)
-	defer res.Close()
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
+	defer res.Close()
+
 	sessions := make([]*store.Device, 0)
 	for res.Next() {
 		sess, scanErr := c.scanDevice(res)
@@ -118,9 +117,7 @@ func (c *Container) GetAllDevices(ctx context.Context) ([]*store.Device, error) 
 	return sessions, nil
 }
 
-// GetFirstDevice is a convenience method for getting the first device in the store. If there are
-// no devices, then a new device will be created. You should only use this if you don't want to
-// have multiple sessions simultaneously.
+// GetFirstDevice is a convenience method for getting the first device in the store.
 func (c *Container) GetFirstDevice(ctx context.Context) (*store.Device, error) {
 	devices, err := c.GetAllDevices(ctx)
 	if err != nil {
@@ -128,16 +125,11 @@ func (c *Container) GetFirstDevice(ctx context.Context) (*store.Device, error) {
 	}
 	if len(devices) == 0 {
 		return c.NewDevice(), nil
-	} else {
-		return devices[0], nil
 	}
+	return devices[0], nil
 }
 
 // GetDevice finds the device with the specified JID in the database.
-//
-// If the device is not found, nil is returned instead.
-//
-// Note that the parameter usually must be an AD-JID.
 func (c *Container) GetDevice(ctx context.Context, jid types.JID) (*store.Device, error) {
 	sess, err := c.scanDevice(c.dbPool.QueryRow(ctx, getDeviceQuery, c.businessId, jid))
 	if errors.Is(err, sql.ErrNoRows) {
@@ -163,10 +155,7 @@ const (
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE business_id=$1 AND jid=$2`
 )
 
-// NewDevice creates a new device in this database.
-//
-// No data is actually stored before Save is called. However, the pairing process will automatically
-// call Save after a successful pairing, so you most likely don't need to call it yourself.
+// NewDevice creates a new device in this database (not persisted until Save).
 func (c *Container) NewDevice() *store.Device {
 	device := &store.Device{
 		Log:       c.log,
@@ -186,8 +175,7 @@ func (c *Container) NewDevice() *store.Device {
 // ErrDeviceIDMustBeSet is the error returned by PutDevice if you try to save a device before knowing its JID.
 var ErrDeviceIDMustBeSet = errors.New("device JID must be known before accessing database")
 
-// PutDevice stores the given device in this database. This should be called through Device.Save()
-// (which usually doesn't need to be called manually, as the library does that automatically when relevant).
+// PutDevice stores the given device in this database.
 func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
@@ -208,6 +196,9 @@ func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 }
 
 func (c *Container) initializeDevice(device *store.Device) {
+	if device.Initialized {
+		return
+	}
 	innerStore := NewSQLStore(c, *device.ID)
 	device.Identities = innerStore
 	device.Sessions = innerStore
@@ -225,7 +216,7 @@ func (c *Container) initializeDevice(device *store.Device) {
 	device.Initialized = true
 }
 
-// DeleteDevice deletes the given device from this database. This should be called through Device.Delete()
+// DeleteDevice deletes the given device from this database.
 func (c *Container) DeleteDevice(ctx context.Context, store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
