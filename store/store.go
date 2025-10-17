@@ -200,7 +200,8 @@ type AllStores interface {
 }
 
 type Device struct {
-	Log waLog.Logger
+	Log                   waLog.Logger
+	DatabaseErrorHandler  func(device *Device, action string, attemptIndex int, err error) (retry bool)
 
 	NoiseKey       *keys.KeyPair
 	IdentityKey    *keys.KeyPair
