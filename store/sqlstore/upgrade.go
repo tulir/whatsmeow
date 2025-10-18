@@ -79,7 +79,7 @@ func (clientInstance *ClientInstance) Upgrade() error {
 func upgradeV1(tx pgx.Tx, _ *ClientInstance) error {
 	_, err := tx.Exec(context.Background(), `CREATE TABLE whatsmeow_device (
   	business_id TEXT NOT NULL,
-	jid TEXT PRIMARY KEY,
+	jid TEXT NOT NULL,
 	lid TEXT,
 
 	facebook_uuid uuid,
@@ -105,6 +105,9 @@ func upgradeV1(tx pgx.Tx, _ *ClientInstance) error {
 
 	lid_migration_ts BIGINT NOT NULL DEFAULT 0
 );
+
+	ALTER TABLE whatsmeow_device ADD constraint pk_whatsmeow_device primary key (business_id, jid) ;
+
 	CREATE TABLE whatsmeow_identity_keys (
     business_id TEXT NOT NULL,
 	our_jid  TEXT,
