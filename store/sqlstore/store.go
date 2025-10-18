@@ -225,7 +225,14 @@ func (s *SQLStore) PutManySessions(ctx context.Context, sessions map[string][]by
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+
+	defer func() {
+		if err != nil {
+			if rbErr := tx.Rollback(ctx); rbErr != nil {
+				fmt.Printf("Error rolling back transaction: %v", rbErr)
+			}
+		}
+	}()
 
 	for addr, sess := range sessions {
 		if _, err = tx.Exec(ctx, putSessionQuery, s.businessId, s.JID, addr, sess); err != nil {
@@ -236,6 +243,7 @@ func (s *SQLStore) PutManySessions(ctx context.Context, sessions map[string][]by
 	if err = tx.Commit(ctx); err != nil {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
+
 	return nil
 }
 
