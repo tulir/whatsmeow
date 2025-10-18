@@ -57,9 +57,9 @@ var _ store.AllSessionSpecificStores = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `
-		INSERT INTO whatsmeow_identity_keys (business_id, our_jid, their_id, identity) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET identity=excluded.identity
-	`
+    INSERT INTO whatsmeow_identity_keys (business_id, our_jid, their_id, identity) VALUES ($1, $2, $3, $4)
+    ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET identity=excluded.identity
+  `
 	deleteAllIdentitiesQuery = `DELETE FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3`
 	deleteIdentityQuery      = `DELETE FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
 	getIdentityQuery         = `SELECT identity FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
@@ -109,35 +109,35 @@ const (
 	getSessionQuery = `SELECT session FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
 	hasSessionQuery = `SELECT true FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
 	putSessionQuery = `
-		INSERT INTO whatsmeow_sessions (business_id, our_jid, their_id, session) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET session=excluded.session
-	`
+    INSERT INTO whatsmeow_sessions (business_id, our_jid, their_id, session) VALUES ($1, $2, $3, $4)
+    ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET session=excluded.session
+  `
 	deleteAllSessionsQuery = `DELETE FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3`
 	deleteSessionQuery     = `DELETE FROM whatsmeow_sessions WHERE business_id=$1 AND our_jid=$2 AND their_id=$3`
 
 	migratePNToLIDSessionsQuery = `
-		INSERT INTO whatsmeow_sessions (business_id, our_jid, their_id, session)
-		SELECT $1, our_jid, replace(their_id, $3, $4), session
-		FROM whatsmeow_sessions
-		WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3 || ':%'
-		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET session=excluded.session
-	`
+    INSERT INTO whatsmeow_sessions (business_id, our_jid, their_id, session)
+    SELECT $1, our_jid, replace(their_id, $3, $4), session
+    FROM whatsmeow_sessions
+    WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3 || ':%'
+    ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET session=excluded.session
+  `
 	deleteAllIdentityKeysQuery      = `DELETE FROM whatsmeow_identity_keys WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3`
 	migratePNToLIDIdentityKeysQuery = `
-		INSERT INTO whatsmeow_identity_keys (business_id, our_jid, their_id, identity)
-		SELECT $1, our_jid, replace(their_id, $3, $4), identity
-		FROM whatsmeow_identity_keys
-		WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3 || ':%'
-		ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET identity=excluded.identity
-	`
+    INSERT INTO whatsmeow_identity_keys (business_id, our_jid, their_id, identity)
+    SELECT $1, our_jid, replace(their_id, $3, $4), identity
+    FROM whatsmeow_identity_keys
+    WHERE business_id=$1 AND our_jid=$2 AND their_id LIKE $3 || ':%'
+    ON CONFLICT (business_id, our_jid, their_id) DO UPDATE SET identity=excluded.identity
+  `
 	deleteAllSenderKeysQuery      = `DELETE FROM whatsmeow_sender_keys WHERE business_id=$1 AND our_jid=$2 AND sender_id LIKE $3`
 	migratePNToLIDSenderKeysQuery = `
-		INSERT INTO whatsmeow_sender_keys (business_id, our_jid, chat_id, sender_id, sender_key)
-		SELECT $1, our_jid, chat_id, replace(sender_id, $3, $4), sender_key
-		FROM whatsmeow_sender_keys
-		WHERE business_id=$1 AND our_jid=$2 AND sender_id LIKE $3 || ':%'
-		ON CONFLICT (business_id, our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
-	`
+    INSERT INTO whatsmeow_sender_keys (business_id, our_jid, chat_id, sender_id, sender_key)
+    SELECT $1, our_jid, chat_id, replace(sender_id, $3, $4), sender_key
+    FROM whatsmeow_sender_keys
+    WHERE business_id=$1 AND our_jid=$2 AND sender_id LIKE $3 || ':%'
+    ON CONFLICT (business_id, our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
+  `
 )
 
 func (s *SQLStore) GetSession(ctx context.Context, address string) ([]byte, error) {
@@ -464,9 +464,9 @@ func (s *SQLStore) UploadedPreKeyCount(ctx context.Context) (count int, err erro
 const (
 	getSenderKeyQuery = `SELECT sender_key FROM whatsmeow_sender_keys WHERE business_id=$1 AND our_jid=$2 AND chat_id=$3 AND sender_id=$4`
 	putSenderKeyQuery = `
-		INSERT INTO whatsmeow_sender_keys (business_id, our_jid, chat_id, sender_id, sender_key) VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (business_id, our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
-	`
+    INSERT INTO whatsmeow_sender_keys (business_id, our_jid, chat_id, sender_id, sender_key) VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (business_id, our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
+  `
 )
 
 func (s *SQLStore) PutSenderKey(ctx context.Context, group, user string, session []byte) error {
@@ -485,11 +485,11 @@ func (s *SQLStore) GetSenderKey(ctx context.Context, group, user string) (key []
 
 const (
 	putAppStateSyncKeyQuery = `
-		INSERT INTO whatsmeow_app_state_sync_keys (business_id, jid, key_id, key_data, timestamp, fingerprint) VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (business_id, jid, key_id) DO UPDATE
-			SET key_data=excluded.key_data, timestamp=excluded.timestamp, fingerprint=excluded.fingerprint
-			WHERE excluded.timestamp > whatsmeow_app_state_sync_keys.timestamp
-	`
+    INSERT INTO whatsmeow_app_state_sync_keys (business_id, jid, key_id, key_data, timestamp, fingerprint) VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (business_id, jid, key_id) DO UPDATE
+      SET key_data=excluded.key_data, timestamp=excluded.timestamp, fingerprint=excluded.fingerprint
+      WHERE excluded.timestamp > whatsmeow_app_state_sync_keys.timestamp
+  `
 	getAppStateSyncKeyQuery         = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE business_id=$1 AND jid=$2 AND key_id=$3`
 	getLatestAppStateSyncKeyIDQuery = `SELECT key_id FROM whatsmeow_app_state_sync_keys WHERE business_id=$1 AND jid=$2 ORDER BY timestamp DESC LIMIT 1`
 )
@@ -524,9 +524,9 @@ func (s *SQLStore) GetLatestAppStateSyncKeyID(ctx context.Context) ([]byte, erro
 
 const (
 	putAppStateVersionQuery = `
-		INSERT INTO whatsmeow_app_state_version (business_id, jid, name, version, hash) VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (business_id, jid, name) DO UPDATE SET version=excluded.version, hash=excluded.hash
-	`
+    INSERT INTO whatsmeow_app_state_version (business_id, jid, name, version, hash) VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (business_id, jid, name) DO UPDATE SET version=excluded.version, hash=excluded.hash
+  `
 	getAppStateVersionQuery      = `SELECT version, hash FROM whatsmeow_app_state_version WHERE business_id=$1 AND jid=$2 AND name=$3`
 	deleteAppStateVersionQuery   = `DELETE FROM whatsmeow_app_state_version WHERE business_id=$1 AND jid=$2 AND name=$3`
 	putAppStateMutationMACsQuery = `INSERT INTO whatsmeow_app_state_mutation_macs (business_id, jid, name, version, index_mac, value_mac) VALUES `
@@ -638,32 +638,31 @@ func (s *SQLStore) GetAppStateMutationMAC(ctx context.Context, name string, inde
 
 const (
 	putContactNameQuery = `
-		INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, first_name, full_name) VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
-	`
+    INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, first_name, full_name) VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
+  `
 	putManyContactNamesQuery = `
-		INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, first_name, full_name)
-		VALUES (%s)
-		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
-	`
+    INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, first_name, full_name)
+    VALUES (%s)
+    ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
+  `
 	putPushNameQuery = `
-		INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, push_name) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET push_name=excluded.push_name
-	`
+    INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, push_name) VALUES ($1, $2, $3, $4)
+    ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET push_name=excluded.push_name
+  `
 	putBusinessNameQuery = `
-		INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, business_name) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET business_name=excluded.business_name
-	`
+    INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, business_name) VALUES ($1, $2, $3, $4)
+    ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET business_name=excluded.business_name
+  `
 	getContactQuery = `
-		SELECT business_id, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE business_id=$1 AND our_jid=$2 AND their_jid=$3
-	`
+    SELECT first_name, full_name, push_name, business_name, redacted_phone
+    FROM whatsmeow_contacts WHERE business_id=$1 AND our_jid=$2 AND their_jid=$3
+  `
 	getAllContactsQuery = `
-		SELECT c.their_jid, c.first_name, c.full_name, c.push_name, c.business_name, rp.redacted_phone
-		FROM whatsmeow_contacts c
-		LEFT JOIN whatsmeow_redacted_phones rp
-			ON rp.business_id = c.business_id AND rp.our_jid = c.our_jid AND rp.their_jid = c.their_jid
-		WHERE c.business_id=$1 AND c.our_jid=$2
-	`
+    SELECT their_jid, first_name, full_name, push_name, business_name, redacted_phone
+    FROM whatsmeow_contacts
+    WHERE business_id=$1 AND our_jid=$2
+  `
 )
 
 func (s *SQLStore) PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error) {
@@ -804,18 +803,19 @@ func (s *SQLStore) getContact(ctx context.Context, user types.JID) (*types.Conta
 		return cached, nil
 	}
 
-	var businessId, first, full, push, business sql.NullString
+	var first, full, push, business, redacted sql.NullString
 	row := s.dbPool.QueryRow(ctx, getContactQuery, s.businessId, s.JID, user)
-	err := row.Scan(&businessId, &first, &full, &push, &business)
+	err := row.Scan(&first, &full, &push, &business, &redacted)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
 	info := &types.ContactInfo{
-		Found:        err == nil,
-		FirstName:    first.String,
-		FullName:     full.String,
-		PushName:     push.String,
-		BusinessName: business.String,
+		Found:         err == nil,
+		FirstName:     first.String,
+		FullName:      full.String,
+		PushName:      push.String,
+		BusinessName:  business.String,
+		RedactedPhone: redacted.String,
 	}
 	s.contactCache[user] = info
 	return info, nil
@@ -849,7 +849,7 @@ func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.Cont
 		if err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
-		info := types.ContactInfo{
+		info := &types.ContactInfo{
 			Found:         true,
 			FirstName:     first.String,
 			FullName:      full.String,
@@ -857,8 +857,8 @@ func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.Cont
 			BusinessName:  business.String,
 			RedactedPhone: redactedPhone.String,
 		}
-		output[jid] = info
-		s.contactCache[jid] = &info
+		output[jid] = *info
+		s.contactCache[jid] = info
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
@@ -868,11 +868,11 @@ func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.Cont
 
 const (
 	putRedactedPhonesQuery = `
-		INSERT INTO whatsmeow_redacted_phones (business_id, our_jid, their_jid, redacted_phone)
-		VALUES ($1, $2, $3, $4)
-		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE
-		SET redacted_phone = EXCLUDED.redacted_phone
-	`
+    INSERT INTO whatsmeow_contacts (business_id, our_jid, their_jid, redacted_phone)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE
+    SET redacted_phone = EXCLUDED.redacted_phone
+  `
 )
 
 func (s *SQLStore) PutManyRedactedPhones(ctx context.Context, entries []store.RedactedPhoneEntry) error {
@@ -910,12 +910,12 @@ func (s *SQLStore) PutManyRedactedPhones(ctx context.Context, entries []store.Re
 
 const (
 	putChatSettingQuery = `
-		INSERT INTO whatsmeow_chat_settings (business_id, our_jid, chat_jid, %[1]s) VALUES ($1, $2, $3, $4)
-		ON CONFLICT (business_id, our_jid, chat_jid) DO UPDATE SET %[1]s=excluded.%[1]s
-	`
+    INSERT INTO whatsmeow_chat_settings (business_id, our_jid, chat_jid, %[1]s) VALUES ($1, $2, $3, $4)
+    ON CONFLICT (business_id, our_jid, chat_jid) DO UPDATE SET %[1]s=excluded.%[1]s
+  `
 	getChatSettingsQuery = `
-		SELECT muted_until, pinned, archived FROM whatsmeow_chat_settings WHERE business_id=$1 AND our_jid=$2 AND chat_jid=$3
-	`
+    SELECT muted_until, pinned, archived FROM whatsmeow_chat_settings WHERE business_id=$1 AND our_jid=$2 AND chat_jid=$3
+  `
 )
 
 func (s *SQLStore) PutMutedUntil(ctx context.Context, chat types.JID, mutedUntil time.Time) error {
@@ -960,29 +960,29 @@ func (s *SQLStore) GetChatSettings(ctx context.Context, chat types.JID) (setting
 
 const (
 	putMsgSecret = `
-		INSERT INTO whatsmeow_message_secrets (business_id, our_jid, chat_jid, sender_jid, message_id, key)
-		VALUES ($1, $2, $3, $4, $5, $6)
-		ON CONFLICT (business_id, our_jid, chat_jid, sender_jid, message_id) DO NOTHING
-	`
+    INSERT INTO whatsmeow_message_secrets (business_id, our_jid, chat_jid, sender_jid, message_id, key)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (business_id, our_jid, chat_jid, sender_jid, message_id) DO NOTHING
+  `
 	getMsgSecret = `
-		SELECT key, sender_jid
-		FROM whatsmeow_message_secrets
-		WHERE business_id=$1
-			AND our_jid=$2
-			AND chat_jid=$3
-			AND message_id=$4
-			AND (
-				sender_jid=$5
-				OR sender_jid=(
-					CASE
-						WHEN $5 LIKE '%@lid'
-							THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($5, '@lid', ''))
-						WHEN $5 LIKE '%@s.whatsapp.net'
-							THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE pn=replace($5, '@s.whatsapp.net', ''))
-					END
-				)
-			)
-	`
+    SELECT key, sender_jid
+    FROM whatsmeow_message_secrets
+    WHERE business_id=$1
+      AND our_jid=$2
+      AND chat_jid=$3
+      AND message_id=$4
+      AND (
+        sender_jid=$5
+        OR sender_jid=(
+          CASE
+            WHEN $5 LIKE '%@lid'
+              THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE business_id=$1 AND lid=replace($5, '@lid', ''))
+            WHEN $5 LIKE '%@s.whatsapp.net'
+              THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE business_id=$1 AND pn=replace($5, '@s.whatsapp.net', ''))
+          END
+        )
+      )
+  `
 )
 
 func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.MessageSecretInsert) (err error) {
@@ -1019,10 +1019,10 @@ func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID,
 
 const (
 	putPrivacyTokens = `
-		INSERT INTO whatsmeow_privacy_tokens (business_id, our_jid, their_jid, token, timestamp)
-		VALUES ($1, $2, $3, $4, $5)
-		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET token=EXCLUDED.token, timestamp=EXCLUDED.timestamp
-	`
+    INSERT INTO whatsmeow_privacy_tokens (business_id, our_jid, their_jid, token, timestamp)
+    VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET token=EXCLUDED.token, timestamp=EXCLUDED.timestamp
+  `
 	getPrivacyToken = `SELECT token, timestamp FROM whatsmeow_privacy_tokens WHERE business_id=$1 AND our_jid=$2 AND their_jid=$3`
 )
 
@@ -1063,18 +1063,19 @@ func (s *SQLStore) GetPrivacyToken(ctx context.Context, user types.JID) (*store.
 
 const (
 	getBufferedEventQuery = `
-		SELECT plaintext, server_timestamp, insert_timestamp FROM whatsmeow_event_buffer WHERE business_id = $1 AND our_jid = $2 AND ciphertext_hash = $3
-	`
+    SELECT plaintext, server_timestamp, insert_timestamp FROM whatsmeow_event_buffer WHERE business_id = $1 AND our_jid = $2 AND ciphertext_hash = $3
+  `
 	putBufferedEventQuery = `
-		INSERT INTO whatsmeow_event_buffer (business_id, our_jid, ciphertext_hash, plaintext, server_timestamp, insert_timestamp)
-		VALUES ($1, $2, $3, $4, $5, $6)
-	`
+    INSERT INTO whatsmeow_event_buffer (business_id, our_jid, ciphertext_hash, plaintext, server_timestamp, insert_timestamp)
+    VALUES ($1, $2, $3, $4, $5, $6)
+  `
 	clearBufferedEventPlaintextQuery = `
-		UPDATE whatsmeow_event_buffer SET plaintext = NULL WHERE business_id = $1 AND our_jid = $2 AND ciphertext_hash = $3
-	`
+    UPDATE whatsmeow_event_buffer SET plaintext = NULL WHERE business_id = $1 AND our_jid = $2 AND ciphertext_hash = $3
+  `
 	deleteOldBufferedHashesQuery = `
-		DELETE FROM whatsmeow_event_buffer WHERE insert_timestamp < $1
-	`
+    DELETE FROM whatsmeow_event_buffer
+    WHERE insert_timestamp < $1 AND business_id = $2 AND our_jid = $3
+  `
 )
 
 func (s *SQLStore) GetBufferedEvent(ctx context.Context, ciphertextHash [32]byte) (*store.BufferedEvent, error) {
@@ -1121,7 +1122,7 @@ func (s *SQLStore) ClearBufferedEventPlaintext(ctx context.Context, ciphertextHa
 }
 
 func (s *SQLStore) DeleteOldBufferedHashes(ctx context.Context) error {
-	_, err := s.dbPool.Exec(ctx, deleteOldBufferedHashesQuery, time.Now().Add(-14*24*time.Hour).UnixMilli())
+	_, err := s.dbPool.Exec(ctx, deleteOldBufferedHashesQuery, time.Now().Add(-14*24*time.Hour).UnixMilli(), s.businessId, s.JID)
 	return err
 }
 
