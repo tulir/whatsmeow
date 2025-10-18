@@ -40,10 +40,10 @@ func NewCachedLIDMap(dbPool *pgxpool.Pool, businessId string) *CachedLIDMap {
 const (
 	deleteExistingLIDMappingQuery = `DELETE FROM whatsmeow_lid_map WHERE business_id = $1 AND (lid<>$2 AND pn=$3)`
 	putLIDMappingQuery            = `
-    INSERT INTO whatsmeow_lid_map (business_id, lid, pn)
-    VALUES ($1, $2, $3)
-    ON CONFLICT (business_id, lid) DO UPDATE SET pn=excluded.pn WHERE whatsmeow_lid_map.pn<>excluded.pn
-  `
+		INSERT INTO whatsmeow_lid_map (business_id, lid, pn)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (business_id, lid) DO UPDATE SET pn=excluded.pn WHERE whatsmeow_lid_map.pn<>excluded.pn
+	`
 	getLIDForPNQuery       = `SELECT lid FROM whatsmeow_lid_map WHERE business_id=$1 AND pn=$2`
 	getPNForLIDQuery       = `SELECT pn FROM whatsmeow_lid_map WHERE business_id=$1 AND lid=$2`
 	getAllLIDMappingsQuery = `SELECT lid, pn FROM whatsmeow_lid_map WHERE business_id=$1`
