@@ -234,8 +234,9 @@ CREATE TABLE whatsmeow_privacy_tokens (
 
 CREATE TABLE whatsmeow_lid_map (
 	business_id TEXT NOT NULL,
-	lid TEXT PRIMARY KEY,
-	pn  TEXT UNIQUE NOT NULL
+	lid TEXT NOT NULL,
+	pn  TEXT UNIQUE NOT NULL,
+	PRIMARY KEY (business_id, lid)
 );
 
 CREATE TABLE whatsmeow_event_buffer (
