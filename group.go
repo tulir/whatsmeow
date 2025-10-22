@@ -603,6 +603,11 @@ func (cli *Client) cacheGroupInfo(groupInfo *types.GroupInfo, lock bool) ([]stor
 				RedactedPhone: part.DisplayName,
 			})
 		}
+		// 这里把JID中lid的格式改成默认的s.whatsapp.net格式
+		if part.JID.Server == types.HiddenUserServer && !part.PhoneNumber.IsEmpty() {
+			part.JID = part.PhoneNumber
+			groupInfo.Participants[i] = part
+		}
 	}
 	if lock {
 		cli.groupCacheLock.Lock()
