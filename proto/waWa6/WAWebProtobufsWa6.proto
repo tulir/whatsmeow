@@ -230,24 +230,30 @@ message ClientPayload {
 	optional AccountType accountType = 42;
 	optional sfixed32 connectionSequenceInfo = 43;
 	optional bool paaLink = 44;
+	optional int32 preacksCount = 45;
+	optional int32 processingQueueSize = 46;
 }
 
 message HandshakeMessage {
 	message ClientFinish {
 		optional bytes static = 1;
 		optional bytes payload = 2;
+		optional bytes extendedCiphertext = 3;
 	}
 
 	message ServerHello {
 		optional bytes ephemeral = 1;
 		optional bytes static = 2;
 		optional bytes payload = 3;
+		optional bytes extendedStatic = 4;
 	}
 
 	message ClientHello {
 		optional bytes ephemeral = 1;
 		optional bytes static = 2;
 		optional bytes payload = 3;
+		optional bool useExtended = 4;
+		optional bytes extendedCiphertext = 5;
 	}
 
 	optional ClientHello clientHello = 2;

@@ -29,7 +29,9 @@ type IdentityStore interface {
 type SessionStore interface {
 	GetSession(ctx context.Context, address string) ([]byte, error)
 	HasSession(ctx context.Context, address string) (bool, error)
+	GetManySessions(ctx context.Context, addresses []string) (map[string][]byte, error)
 	PutSession(ctx context.Context, address string, session []byte) error
+	PutManySessions(ctx context.Context, sessions map[string][]byte) error
 	DeleteAllSessions(ctx context.Context, phone string) error
 	DeleteSession(ctx context.Context, address string) error
 	MigratePNToLID(ctx context.Context, pn, lid types.JID) error
@@ -171,6 +173,7 @@ type LIDStore interface {
 	PutLIDMapping(ctx context.Context, lid, jid types.JID) error
 	GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error)
 	GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error)
+	GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (map[types.JID]types.JID, error)
 }
 
 type AllSessionSpecificStores interface {
@@ -205,8 +208,9 @@ type Device struct {
 	RegistrationID uint32
 	AdvSecretKey   []byte
 
-	ID           *types.JID
-	LID          types.JID
+	ID  *types.JID
+	LID types.JID
+
 	Account      *waAdv.ADVSignedDeviceIdentity
 	Platform     string
 	BusinessName string

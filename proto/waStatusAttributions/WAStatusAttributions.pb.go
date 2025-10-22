@@ -33,6 +33,7 @@ const (
 	StatusAttribution_GROUP_STATUS   StatusAttribution_Type = 5
 	StatusAttribution_RL_ATTRIBUTION StatusAttribution_Type = 6
 	StatusAttribution_AI_CREATED     StatusAttribution_Type = 7
+	StatusAttribution_LAYOUTS        StatusAttribution_Type = 8
 )
 
 // Enum value maps for StatusAttribution_Type.
@@ -46,6 +47,7 @@ var (
 		5: "GROUP_STATUS",
 		6: "RL_ATTRIBUTION",
 		7: "AI_CREATED",
+		8: "LAYOUTS",
 	}
 	StatusAttribution_Type_value = map[string]int32{
 		"UNKNOWN":        0,
@@ -56,6 +58,7 @@ var (
 		"GROUP_STATUS":   5,
 		"RL_ATTRIBUTION": 6,
 		"AI_CREATED":     7,
+		"LAYOUTS":        8,
 	}
 )
 
@@ -217,14 +220,16 @@ func (StatusAttribution_RLAttribution_Source) EnumDescriptor() ([]byte, []int) {
 type StatusAttribution_ExternalShare_Source int32
 
 const (
-	StatusAttribution_ExternalShare_UNKNOWN   StatusAttribution_ExternalShare_Source = 0
-	StatusAttribution_ExternalShare_INSTAGRAM StatusAttribution_ExternalShare_Source = 1
-	StatusAttribution_ExternalShare_FACEBOOK  StatusAttribution_ExternalShare_Source = 2
-	StatusAttribution_ExternalShare_MESSENGER StatusAttribution_ExternalShare_Source = 3
-	StatusAttribution_ExternalShare_SPOTIFY   StatusAttribution_ExternalShare_Source = 4
-	StatusAttribution_ExternalShare_YOUTUBE   StatusAttribution_ExternalShare_Source = 5
-	StatusAttribution_ExternalShare_PINTEREST StatusAttribution_ExternalShare_Source = 6
-	StatusAttribution_ExternalShare_THREADS   StatusAttribution_ExternalShare_Source = 7
+	StatusAttribution_ExternalShare_UNKNOWN     StatusAttribution_ExternalShare_Source = 0
+	StatusAttribution_ExternalShare_INSTAGRAM   StatusAttribution_ExternalShare_Source = 1
+	StatusAttribution_ExternalShare_FACEBOOK    StatusAttribution_ExternalShare_Source = 2
+	StatusAttribution_ExternalShare_MESSENGER   StatusAttribution_ExternalShare_Source = 3
+	StatusAttribution_ExternalShare_SPOTIFY     StatusAttribution_ExternalShare_Source = 4
+	StatusAttribution_ExternalShare_YOUTUBE     StatusAttribution_ExternalShare_Source = 5
+	StatusAttribution_ExternalShare_PINTEREST   StatusAttribution_ExternalShare_Source = 6
+	StatusAttribution_ExternalShare_THREADS     StatusAttribution_ExternalShare_Source = 7
+	StatusAttribution_ExternalShare_APPLE_MUSIC StatusAttribution_ExternalShare_Source = 8
+	StatusAttribution_ExternalShare_SHARECHAT   StatusAttribution_ExternalShare_Source = 9
 )
 
 // Enum value maps for StatusAttribution_ExternalShare_Source.
@@ -238,16 +243,20 @@ var (
 		5: "YOUTUBE",
 		6: "PINTEREST",
 		7: "THREADS",
+		8: "APPLE_MUSIC",
+		9: "SHARECHAT",
 	}
 	StatusAttribution_ExternalShare_Source_value = map[string]int32{
-		"UNKNOWN":   0,
-		"INSTAGRAM": 1,
-		"FACEBOOK":  2,
-		"MESSENGER": 3,
-		"SPOTIFY":   4,
-		"YOUTUBE":   5,
-		"PINTEREST": 6,
-		"THREADS":   7,
+		"UNKNOWN":     0,
+		"INSTAGRAM":   1,
+		"FACEBOOK":    2,
+		"MESSENGER":   3,
+		"SPOTIFY":     4,
+		"YOUTUBE":     5,
+		"PINTEREST":   6,
+		"THREADS":     7,
+		"APPLE_MUSIC": 8,
+		"SHARECHAT":   9,
 	}
 )
 
@@ -295,6 +304,7 @@ const (
 	StatusAttribution_StatusReshare_INTERNAL_RESHARE StatusAttribution_StatusReshare_Source = 1
 	StatusAttribution_StatusReshare_MENTION_RESHARE  StatusAttribution_StatusReshare_Source = 2
 	StatusAttribution_StatusReshare_CHANNEL_RESHARE  StatusAttribution_StatusReshare_Source = 3
+	StatusAttribution_StatusReshare_FORWARD          StatusAttribution_StatusReshare_Source = 4
 )
 
 // Enum value maps for StatusAttribution_StatusReshare_Source.
@@ -304,12 +314,14 @@ var (
 		1: "INTERNAL_RESHARE",
 		2: "MENTION_RESHARE",
 		3: "CHANNEL_RESHARE",
+		4: "FORWARD",
 	}
 	StatusAttribution_StatusReshare_Source_value = map[string]int32{
 		"UNKNOWN":          0,
 		"INTERNAL_RESHARE": 1,
 		"MENTION_RESHARE":  2,
 		"CHANNEL_RESHARE":  3,
+		"FORWARD":          4,
 	}
 )
 
@@ -920,7 +932,7 @@ var File_waStatusAttributions_WAStatusAttributions_proto protoreflect.FileDescri
 
 const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\n" +
-	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\xa3\x11\n" +
+	"/waStatusAttributions/WAStatusAttributions.proto\x12\x14WAStatusAttributions\"\xde\x11\n" +
 	"\x11StatusAttribution\x12]\n" +
 	"\rstatusReshare\x18\x03 \x01(\v25.WAStatusAttributions.StatusAttribution.StatusReshareH\x00R\rstatusReshare\x12]\n" +
 	"\rexternalShare\x18\x04 \x01(\v25.WAStatusAttributions.StatusAttribution.ExternalShareH\x00R\rexternalShare\x12E\n" +
@@ -941,12 +953,12 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\x18\n" +
 	"\x14RAY_BAN_META_GLASSES\x10\x01\x12\x17\n" +
 	"\x13OAKLEY_META_GLASSES\x10\x02\x12\x15\n" +
-	"\x11HYPERNOVA_GLASSES\x10\x03\x1a\xc6\x02\n" +
+	"\x11HYPERNOVA_GLASSES\x10\x03\x1a\xe7\x02\n" +
 	"\rExternalShare\x12\x1c\n" +
 	"\tactionURL\x18\x01 \x01(\tR\tactionURL\x12T\n" +
 	"\x06source\x18\x02 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.ExternalShare.SourceR\x06source\x12\x1a\n" +
 	"\bduration\x18\x03 \x01(\x05R\bduration\x12,\n" +
-	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"w\n" +
+	"\x11actionFallbackURL\x18\x04 \x01(\tR\x11actionFallbackURL\"\x97\x01\n" +
 	"\x06Source\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\r\n" +
 	"\tINSTAGRAM\x10\x01\x12\f\n" +
@@ -955,7 +967,9 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\aSPOTIFY\x10\x04\x12\v\n" +
 	"\aYOUTUBE\x10\x05\x12\r\n" +
 	"\tPINTEREST\x10\x06\x12\v\n" +
-	"\aTHREADS\x10\a\x1a\xbf\x03\n" +
+	"\aTHREADS\x10\a\x12\x0f\n" +
+	"\vAPPLE_MUSIC\x10\b\x12\r\n" +
+	"\tSHARECHAT\x10\t\x1a\xcc\x03\n" +
 	"\rStatusReshare\x12T\n" +
 	"\x06source\x18\x01 \x01(\x0e2<.WAStatusAttributions.StatusAttribution.StatusReshare.SourceR\x06source\x12Z\n" +
 	"\bmetadata\x18\x02 \x01(\v2>.WAStatusAttributions.StatusAttribution.StatusReshare.MetadataR\bmetadata\x1a\xa4\x01\n" +
@@ -965,12 +979,13 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"channelJID\x18\x02 \x01(\tR\n" +
 	"channelJID\x12*\n" +
 	"\x10channelMessageID\x18\x03 \x01(\x05R\x10channelMessageID\x120\n" +
-	"\x13hasMultipleReshares\x18\x04 \x01(\bR\x13hasMultipleReshares\"U\n" +
+	"\x13hasMultipleReshares\x18\x04 \x01(\bR\x13hasMultipleReshares\"b\n" +
 	"\x06Source\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x14\n" +
 	"\x10INTERNAL_RESHARE\x10\x01\x12\x13\n" +
 	"\x0fMENTION_RESHARE\x10\x02\x12\x13\n" +
-	"\x0fCHANNEL_RESHARE\x10\x03\x1a+\n" +
+	"\x0fCHANNEL_RESHARE\x10\x03\x12\v\n" +
+	"\aFORWARD\x10\x04\x1a+\n" +
 	"\vGroupStatus\x12\x1c\n" +
 	"\tauthorJID\x18\x01 \x01(\tR\tauthorJID\x1a\xbb\x01\n" +
 	"\x05Music\x12\x1e\n" +
@@ -983,7 +998,7 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\x11artistAttribution\x18\x05 \x01(\tR\x11artistAttribution\x12\x1e\n" +
 	"\n" +
 	"isExplicit\x18\x06 \x01(\bR\n" +
-	"isExplicit\"\x89\x01\n" +
+	"isExplicit\"\x96\x01\n" +
 	"\x04Type\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aRESHARE\x10\x01\x12\x12\n" +
@@ -993,7 +1008,8 @@ const file_waStatusAttributions_WAStatusAttributions_proto_rawDesc = "" +
 	"\fGROUP_STATUS\x10\x05\x12\x12\n" +
 	"\x0eRL_ATTRIBUTION\x10\x06\x12\x0e\n" +
 	"\n" +
-	"AI_CREATED\x10\aB\x11\n" +
+	"AI_CREATED\x10\a\x12\v\n" +
+	"\aLAYOUTS\x10\bB\x11\n" +
 	"\x0fattributionDataB0Z.go.mau.fi/whatsmeow/proto/waStatusAttributions"
 
 var (

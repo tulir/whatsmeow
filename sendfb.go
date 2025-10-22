@@ -468,7 +468,10 @@ func (cli *Client) prepareMessageNodeV3(
 	}
 
 	start = time.Now()
-	participantNodes := cli.encryptMessageForDevicesV3(ctx, allDevices, ownID, id, payload, skdm, dsm, encAttrs)
+	participantNodes, err := cli.encryptMessageForDevicesV3(ctx, allDevices, ownID, id, payload, skdm, dsm, encAttrs)
+	if err != nil {
+		return nil, nil, err
+	}
 	timings.PeerEncrypt = time.Since(start)
 	content := make([]waBinary.Node, 0, 4)
 	content = append(content, waBinary.Node{
@@ -518,9 +521,28 @@ func (cli *Client) encryptMessageForDevicesV3(
 	skdm *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage,
 	dsm *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage,
 	encAttrs waBinary.Attrs,
-) []waBinary.Node {
+) ([]waBinary.Node, error) {
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
+
+	sessionAddressToJID := make(map[string]types.JID, len(allDevices))
+	sessionAddresses := make([]string, 0, len(allDevices))
+	for _, jid := range allDevices {
+		addr := jid.SignalAddress().String()
+		sessionAddresses = append(sessionAddresses, addr)
+		sessionAddressToJID[addr] = jid
+	}
+	existingSessions, ctx, err := cli.Store.WithCachedSessions(ctx, sessionAddresses)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prefetch sessions: %w", err)
+	}
 	var retryDevices []types.JID
+	for addr, exists := range existingSessions {
+		if !exists {
+			retryDevices = append(retryDevices, sessionAddressToJID[addr])
+		}
+	}
+	bundles := cli.fetchPreKeysNoError(ctx, retryDevices)
+
 	for _, jid := range allDevices {
 		var dsmForDevice *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage
 		if jid.User == ownID.User {
@@ -529,43 +551,22 @@ func (cli *Client) encryptMessageForDevicesV3(
 			}
 			dsmForDevice = dsm
 		}
-		encrypted, err := cli.encryptMessageForDeviceAndWrapV3(ctx, payload, skdm, dsmForDevice, jid, nil, encAttrs)
-		if errors.Is(err, ErrNoSession) {
-			retryDevices = append(retryDevices, jid)
-			continue
-		} else if err != nil {
+		encrypted, err := cli.encryptMessageForDeviceAndWrapV3(ctx, payload, skdm, dsmForDevice, jid, bundles[jid], encAttrs)
+		if err != nil {
 			// TODO return these errors if it's a fatal one (like context cancellation or database)
 			cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
+			if ctx.Err() != nil {
+				return nil, err
+			}
 			continue
 		}
 		participantNodes = append(participantNodes, *encrypted)
 	}
-	if len(retryDevices) > 0 {
-		bundles, err := cli.fetchPreKeys(ctx, retryDevices)
-		if err != nil {
-			cli.Log.Warnf("Failed to fetch prekeys for %v to retry encryption: %v", retryDevices, err)
-		} else {
-			for _, jid := range retryDevices {
-				resp := bundles[jid]
-				if resp.err != nil {
-					cli.Log.Warnf("Failed to fetch prekey for %s: %v", jid, resp.err)
-					continue
-				}
-				var dsmForDevice *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage
-				if jid.User == ownID.User {
-					dsmForDevice = dsm
-				}
-				encrypted, err := cli.encryptMessageForDeviceAndWrapV3(ctx, payload, skdm, dsmForDevice, jid, resp.bundle, encAttrs)
-				if err != nil {
-					// TODO return these errors if it's a fatal one (like context cancellation or database)
-					cli.Log.Warnf("Failed to encrypt %s for %s (retry): %v", id, jid, err)
-					continue
-				}
-				participantNodes = append(participantNodes, *encrypted)
-			}
-		}
+	err = cli.Store.PutCachedSessions(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save cached sessions: %w", err)
 	}
-	return participantNodes
+	return participantNodes, nil
 }
 
 func (cli *Client) encryptMessageForDeviceAndWrapV3(

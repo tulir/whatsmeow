@@ -882,6 +882,8 @@ type ClientPayload struct {
 	AccountType            *ClientPayload_AccountType                   `protobuf:"varint,42,opt,name=accountType,enum=WAWebProtobufsWa6.ClientPayload_AccountType" json:"accountType,omitempty"`
 	ConnectionSequenceInfo *int32                                       `protobuf:"fixed32,43,opt,name=connectionSequenceInfo" json:"connectionSequenceInfo,omitempty"`
 	PaaLink                *bool                                        `protobuf:"varint,44,opt,name=paaLink" json:"paaLink,omitempty"`
+	PreacksCount           *int32                                       `protobuf:"varint,45,opt,name=preacksCount" json:"preacksCount,omitempty"`
+	ProcessingQueueSize    *int32                                       `protobuf:"varint,46,opt,name=processingQueueSize" json:"processingQueueSize,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -1138,6 +1140,20 @@ func (x *ClientPayload) GetPaaLink() bool {
 		return *x.PaaLink
 	}
 	return false
+}
+
+func (x *ClientPayload) GetPreacksCount() int32 {
+	if x != nil && x.PreacksCount != nil {
+		return *x.PreacksCount
+	}
+	return 0
+}
+
+func (x *ClientPayload) GetProcessingQueueSize() int32 {
+	if x != nil && x.ProcessingQueueSize != nil {
+		return *x.ProcessingQueueSize
+	}
+	return 0
 }
 
 type HandshakeMessage struct {
@@ -1845,11 +1861,12 @@ func (x *ClientPayload_UserAgent_AppVersion) GetQuinary() uint32 {
 }
 
 type HandshakeMessage_ClientFinish struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Static        []byte                 `protobuf:"bytes,1,opt,name=static" json:"static,omitempty"`
-	Payload       []byte                 `protobuf:"bytes,2,opt,name=payload" json:"payload,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Static             []byte                 `protobuf:"bytes,1,opt,name=static" json:"static,omitempty"`
+	Payload            []byte                 `protobuf:"bytes,2,opt,name=payload" json:"payload,omitempty"`
+	ExtendedCiphertext []byte                 `protobuf:"bytes,3,opt,name=extendedCiphertext" json:"extendedCiphertext,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *HandshakeMessage_ClientFinish) Reset() {
@@ -1896,13 +1913,21 @@ func (x *HandshakeMessage_ClientFinish) GetPayload() []byte {
 	return nil
 }
 
+func (x *HandshakeMessage_ClientFinish) GetExtendedCiphertext() []byte {
+	if x != nil {
+		return x.ExtendedCiphertext
+	}
+	return nil
+}
+
 type HandshakeMessage_ServerHello struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ephemeral     []byte                 `protobuf:"bytes,1,opt,name=ephemeral" json:"ephemeral,omitempty"`
-	Static        []byte                 `protobuf:"bytes,2,opt,name=static" json:"static,omitempty"`
-	Payload       []byte                 `protobuf:"bytes,3,opt,name=payload" json:"payload,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Ephemeral      []byte                 `protobuf:"bytes,1,opt,name=ephemeral" json:"ephemeral,omitempty"`
+	Static         []byte                 `protobuf:"bytes,2,opt,name=static" json:"static,omitempty"`
+	Payload        []byte                 `protobuf:"bytes,3,opt,name=payload" json:"payload,omitempty"`
+	ExtendedStatic []byte                 `protobuf:"bytes,4,opt,name=extendedStatic" json:"extendedStatic,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *HandshakeMessage_ServerHello) Reset() {
@@ -1956,13 +1981,22 @@ func (x *HandshakeMessage_ServerHello) GetPayload() []byte {
 	return nil
 }
 
+func (x *HandshakeMessage_ServerHello) GetExtendedStatic() []byte {
+	if x != nil {
+		return x.ExtendedStatic
+	}
+	return nil
+}
+
 type HandshakeMessage_ClientHello struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Ephemeral     []byte                 `protobuf:"bytes,1,opt,name=ephemeral" json:"ephemeral,omitempty"`
-	Static        []byte                 `protobuf:"bytes,2,opt,name=static" json:"static,omitempty"`
-	Payload       []byte                 `protobuf:"bytes,3,opt,name=payload" json:"payload,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Ephemeral          []byte                 `protobuf:"bytes,1,opt,name=ephemeral" json:"ephemeral,omitempty"`
+	Static             []byte                 `protobuf:"bytes,2,opt,name=static" json:"static,omitempty"`
+	Payload            []byte                 `protobuf:"bytes,3,opt,name=payload" json:"payload,omitempty"`
+	UseExtended        *bool                  `protobuf:"varint,4,opt,name=useExtended" json:"useExtended,omitempty"`
+	ExtendedCiphertext []byte                 `protobuf:"bytes,5,opt,name=extendedCiphertext" json:"extendedCiphertext,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *HandshakeMessage_ClientHello) Reset() {
@@ -2016,11 +2050,25 @@ func (x *HandshakeMessage_ClientHello) GetPayload() []byte {
 	return nil
 }
 
+func (x *HandshakeMessage_ClientHello) GetUseExtended() bool {
+	if x != nil && x.UseExtended != nil {
+		return *x.UseExtended
+	}
+	return false
+}
+
+func (x *HandshakeMessage_ClientHello) GetExtendedCiphertext() []byte {
+	if x != nil {
+		return x.ExtendedCiphertext
+	}
+	return nil
+}
+
 var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\x82*\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xd8*\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2056,7 +2104,9 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\rlidDbMigrated\x18) \x01(\bR\rlidDbMigrated\x12N\n" +
 	"\vaccountType\x18* \x01(\x0e2,.WAWebProtobufsWa6.ClientPayload.AccountTypeR\vaccountType\x126\n" +
 	"\x16connectionSequenceInfo\x18+ \x01(\x0fR\x16connectionSequenceInfo\x12\x18\n" +
-	"\apaaLink\x18, \x01(\bR\apaaLink\x1a\xea\x01\n" +
+	"\apaaLink\x18, \x01(\bR\apaaLink\x12\"\n" +
+	"\fpreacksCount\x18- \x01(\x05R\fpreacksCount\x120\n" +
+	"\x13processingQueueSize\x18. \x01(\x05R\x13processingQueueSize\x1a\xea\x01\n" +
 	"\tDNSSource\x12\\\n" +
 	"\tdnsMethod\x18\x0f \x01(\x0e2>.WAWebProtobufsWa6.ClientPayload.DNSSource.DNSResolutionMethodR\tdnsMethod\x12\x1c\n" +
 	"\tappCached\x18\x10 \x01(\bR\tappCached\"a\n" +
@@ -2236,22 +2286,26 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x0fIOSAppExtension\x12\x13\n" +
 	"\x0fSHARE_EXTENSION\x10\x00\x12\x15\n" +
 	"\x11SERVICE_EXTENSION\x10\x01\x12\x15\n" +
-	"\x11INTENTS_EXTENSION\x10\x02\"\x8e\x04\n" +
+	"\x11INTENTS_EXTENSION\x10\x02\"\xba\x05\n" +
 	"\x10HandshakeMessage\x12Q\n" +
 	"\vclientHello\x18\x02 \x01(\v2/.WAWebProtobufsWa6.HandshakeMessage.ClientHelloR\vclientHello\x12Q\n" +
 	"\vserverHello\x18\x03 \x01(\v2/.WAWebProtobufsWa6.HandshakeMessage.ServerHelloR\vserverHello\x12T\n" +
-	"\fclientFinish\x18\x04 \x01(\v20.WAWebProtobufsWa6.HandshakeMessage.ClientFinishR\fclientFinish\x1a@\n" +
+	"\fclientFinish\x18\x04 \x01(\v20.WAWebProtobufsWa6.HandshakeMessage.ClientFinishR\fclientFinish\x1ap\n" +
 	"\fClientFinish\x12\x16\n" +
 	"\x06static\x18\x01 \x01(\fR\x06static\x12\x18\n" +
-	"\apayload\x18\x02 \x01(\fR\apayload\x1a]\n" +
+	"\apayload\x18\x02 \x01(\fR\apayload\x12.\n" +
+	"\x12extendedCiphertext\x18\x03 \x01(\fR\x12extendedCiphertext\x1a\x85\x01\n" +
 	"\vServerHello\x12\x1c\n" +
 	"\tephemeral\x18\x01 \x01(\fR\tephemeral\x12\x16\n" +
 	"\x06static\x18\x02 \x01(\fR\x06static\x12\x18\n" +
-	"\apayload\x18\x03 \x01(\fR\apayload\x1a]\n" +
+	"\apayload\x18\x03 \x01(\fR\apayload\x12&\n" +
+	"\x0eextendedStatic\x18\x04 \x01(\fR\x0eextendedStatic\x1a\xaf\x01\n" +
 	"\vClientHello\x12\x1c\n" +
 	"\tephemeral\x18\x01 \x01(\fR\tephemeral\x12\x16\n" +
 	"\x06static\x18\x02 \x01(\fR\x06static\x12\x18\n" +
-	"\apayload\x18\x03 \x01(\fR\apayloadB!Z\x1fgo.mau.fi/whatsmeow/proto/waWa6"
+	"\apayload\x18\x03 \x01(\fR\apayload\x12 \n" +
+	"\vuseExtended\x18\x04 \x01(\bR\vuseExtended\x12.\n" +
+	"\x12extendedCiphertext\x18\x05 \x01(\fR\x12extendedCiphertextB!Z\x1fgo.mau.fi/whatsmeow/proto/waWa6"
 
 var (
 	file_waWa6_WAWebProtobufsWa6_proto_rawDescOnce sync.Once
