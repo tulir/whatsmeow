@@ -55,24 +55,17 @@ type phoneLinkingCache struct {
 }
 
 func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralKey []byte, encodedLinkingCode string) {
-	// 固定生成一个8个 'A' 字符的 linkingCode
-	linkingCode := []byte("AAAAAAAA")
-	encodedLinkingCode = linkingBase32.EncodeToString(linkingCode)
-
-	// 保留函数其余部分不变
 	ephemeralKeyPair = keys.NewKeyPair()
 	salt := random.Bytes(32)
 	iv := random.Bytes(16)
 
-	// 使用固定的 linkingCode 生成密钥
+	// Base32 编码中，八个"A"对应的是 5 个字节的 0
+	encodedLinkingCode = "AAAAAAAA" // 直接设置为八个A
+
 	linkCodeKey := pbkdf2.Key([]byte(encodedLinkingCode), salt, 2<<16, 32, sha256.New)
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
-
-	// 加密公钥
 	encryptedPubkey := ephemeralKeyPair.Pub[:]
 	cipher.NewCTR(linkCipherBlock, iv).XORKeyStream(encryptedPubkey, encryptedPubkey)
-
-	// 准备生成临时密钥
 	ephemeralKey = make([]byte, 80)
 	copy(ephemeralKey[0:32], salt)
 	copy(ephemeralKey[32:48], iv)
