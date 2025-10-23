@@ -255,9 +255,6 @@ func (cli *Client) DownloadMediaWithPath(
 	mediaType MediaType,
 	mmsType string,
 ) (data []byte, err error) {
-	if directPath == "" {
-		return nil, fmt.Errorf("media download path missing")
-	}
 	if !strings.HasPrefix(directPath, "/") {
 		return nil, fmt.Errorf("media download path does not start with slash: %s", directPath)
 	}
