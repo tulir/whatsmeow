@@ -607,8 +607,8 @@ func (int *DangerousInternalClient) ClearDelayedMessageRequests() {
 	int.c.clearDelayedMessageRequests()
 }
 
-func (int *DangerousInternalClient) SendRetryReceipt(ctx context.Context, node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
-	int.c.sendRetryReceipt(ctx, node, info, forceIncludeIdentity)
+func (int *DangerousInternalClient) SendRetryReceipt(ctx context.Context, node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool, errorCode int) {
+	int.c.sendRetryReceipt(ctx, node, info, forceIncludeIdentity, errorCode)
 }
 
 func (int *DangerousInternalClient) SendGroupV3(ctx context.Context, to, ownID types.JID, id types.MessageID, messageApp []byte, msgAttrs messageAttrs, frankingTag []byte, timings *MessageDebugTimings) (string, []byte, error) {

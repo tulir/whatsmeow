@@ -389,16 +389,19 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 				return
 			}
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
+
+			retryReason := getRetryReasonFromError(err)
+
 			if encType == "msmsg" {
 				cli.backgroundIfAsyncAck(func() {
 					cli.sendAck(node, NackMissingMessageSecret)
 				})
 			} else if cli.SynchronousAck {
-				cli.sendRetryReceipt(ctx, node, info, isUnavailable)
+				cli.sendRetryReceipt(ctx, node, info, isUnavailable, retryReason)
 				// TODO this probably isn't supposed to ack
 				cli.sendAck(node, 0)
 			} else {
-				go cli.sendRetryReceipt(context.WithoutCancel(ctx), node, info, isUnavailable)
+				go cli.sendRetryReceipt(context.WithoutCancel(ctx), node, info, isUnavailable, retryReason)
 				go cli.sendAck(node, 0)
 			}
 			cli.dispatchEvent(&events.UndecryptableMessage{
