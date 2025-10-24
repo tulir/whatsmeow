@@ -35,6 +35,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+	"go.mau.fi/whatsmeow/util/logging"
 )
 
 const WebMessageIDPrefix = "3EB0"
@@ -396,6 +397,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		if req.Peer {
 			data, err = cli.sendPeerMessage(ctx, to, req.ID, message, &resp.DebugTimings)
 		} else {
+			logging.StdOutLogger.Debugf("SendMessage sendDM ownID==> %s to ==> %s ", ownID.String(), to.String())
 			data, err = cli.sendDM(ctx, ownID, to, req.ID, message, &resp.DebugTimings, extraParams)
 		}
 	case types.NewsletterServer:
@@ -403,6 +405,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
+
+	logging.StdOutLogger.Debugf("SendMessage result ====> data ==> %s err ==> %s", hex.EncodeToString(data), err.Error())
 	start = time.Now()
 	if err != nil {
 		cli.cancelResponse(req.ID, respChan)
@@ -426,6 +430,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		err = ctx.Err()
 		return
 	}
+	logging.StdOutLogger.Debugf("SendMessage respNode ==> %s ", respNode.XMLString())
 	resp.DebugTimings.Resp = time.Since(start)
 	if isDisconnectNode(respNode) {
 		start = time.Now()
@@ -853,9 +858,11 @@ func (cli *Client) sendDM(
 	}
 
 	start = time.Now()
+	logging.StdOutLogger.Debugf("sendDM readyToSendNode nodeString ==> %s ", node.XMLString())
 	data, err := cli.sendNodeAndGetData(*node)
 	timings.Send = time.Since(start)
 	if err != nil {
+		logging.StdOutLogger.Debugf("failed to send message node: ==> %w ", err)
 		return nil, fmt.Errorf("failed to send message node: %w", err)
 	}
 	return data, nil
@@ -1142,7 +1149,7 @@ func (cli *Client) prepareMessageNode(
 		"type": msgType,
 		"to":   to,
 	}
-	
+
 	if participants[0].Server == types.HiddenUserServer {
 		attrs["addressing_mode"] = "lid"
 	}
