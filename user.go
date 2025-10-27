@@ -37,11 +37,11 @@ const (
 //
 // The links look like https://wa.me/message/<code> or https://api.whatsapp.com/message/<code>. You can either provide
 // the full link, or just the <code> part.
-func (cli *Client) ResolveBusinessMessageLink(code string) (*types.BusinessMessageLinkTarget, error) {
+func (cli *Client) ResolveBusinessMessageLink(ctx context.Context, code string) (*types.BusinessMessageLinkTarget, error) {
 	code = strings.TrimPrefix(code, BusinessMessageLinkPrefix)
 	code = strings.TrimPrefix(code, BusinessMessageLinkDirectPrefix)
 
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:qr",
 		Type:      iqGet,
 		// WhatsApp android doesn't seem to have a "to" field for this one at all, not sure why but it works
@@ -84,11 +84,11 @@ func (cli *Client) ResolveBusinessMessageLink(code string) (*types.BusinessMessa
 //
 // The links look like https://wa.me/qr/<code> or https://api.whatsapp.com/qr/<code>. You can either provide
 // the full link, or just the <code> part.
-func (cli *Client) ResolveContactQRLink(code string) (*types.ContactQRLinkTarget, error) {
+func (cli *Client) ResolveContactQRLink(ctx context.Context, code string) (*types.ContactQRLinkTarget, error) {
 	code = strings.TrimPrefix(code, ContactQRLinkPrefix)
 	code = strings.TrimPrefix(code, ContactQRLinkDirectPrefix)
 
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:qr",
 		Type:      iqGet,
 		Content: []waBinary.Node{{
@@ -119,12 +119,12 @@ func (cli *Client) ResolveContactQRLink(code string) (*types.ContactQRLinkTarget
 // (or scanned with the official apps when encoded as a QR code).
 //
 // If the revoke parameter is set to true, it will ask the server to revoke the previous link and generate a new one.
-func (cli *Client) GetContactQRLink(revoke bool) (string, error) {
+func (cli *Client) GetContactQRLink(ctx context.Context, revoke bool) (string, error) {
 	action := "get"
 	if revoke {
 		action = "revoke"
 	}
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:qr",
 		Type:      iqSet,
 		Content: []waBinary.Node{{
@@ -150,8 +150,8 @@ func (cli *Client) GetContactQRLink(revoke bool) (string, error) {
 //
 // This is different from the ephemeral status broadcast messages. Use SendMessage to types.StatusBroadcastJID to send
 // such messages.
-func (cli *Client) SetStatusMessage(msg string) error {
-	_, err := cli.sendIQ(infoQuery{
+func (cli *Client) SetStatusMessage(ctx context.Context, msg string) error {
+	_, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "status",
 		Type:      iqSet,
 		To:        types.ServerJID,
@@ -165,12 +165,12 @@ func (cli *Client) SetStatusMessage(msg string) error {
 
 // IsOnWhatsApp checks if the given phone numbers are registered on WhatsApp.
 // The phone numbers should be in international format, including the `+` prefix.
-func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, error) {
+func (cli *Client) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.IsOnWhatsAppResponse, error) {
 	jids := make([]types.JID, len(phones))
 	for i := range jids {
 		jids[i] = types.NewJID(phones[i], types.LegacyUserServer)
 	}
-	list, err := cli.usync(context.TODO(), jids, "query", "interactive", []waBinary.Node{
+	list, err := cli.usync(ctx, jids, "query", "interactive", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "contact"},
 	})
@@ -200,8 +200,8 @@ func (cli *Client) IsOnWhatsApp(phones []string) ([]types.IsOnWhatsAppResponse, 
 }
 
 // GetUserInfo gets basic user info (avatar, status, verified business name, device list).
-func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, error) {
-	list, err := cli.usync(context.TODO(), jids, "full", "background", []waBinary.Node{
+func (cli *Client) GetUserInfo(ctx context.Context, jids []types.JID) (map[types.JID]types.UserInfo, error) {
+	list, err := cli.usync(ctx, jids, "full", "background", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "status"},
 		{Tag: "picture"},
@@ -236,12 +236,12 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 		}
 
 		if verifiedName != nil {
-			cli.updateBusinessName(context.TODO(), jid, nil, verifiedName.Details.GetVerifiedName())
+			cli.updateBusinessName(ctx, jid, nil, verifiedName.Details.GetVerifiedName())
 		}
 		respData[jid] = info
 	}
 
-	err = cli.Store.LIDs.PutManyLIDMappings(context.TODO(), mappings)
+	err = cli.Store.LIDs.PutManyLIDMappings(ctx, mappings)
 	if err != nil {
 		// not worth returning on the error, instead just post a log
 		cli.Log.Errorf("Failed to place LID mappings from USync call")
@@ -250,8 +250,8 @@ func (cli *Client) GetUserInfo(jids []types.JID) (map[types.JID]types.UserInfo, 
 	return respData, nil
 }
 
-func (cli *Client) GetBotListV2() ([]types.BotListInfo, error) {
-	resp, err := cli.sendIQ(infoQuery{
+func (cli *Client) GetBotListV2(ctx context.Context) ([]types.BotListInfo, error) {
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		To:        types.ServerJID,
 		Namespace: "bot",
 		Type:      iqGet,
@@ -284,13 +284,13 @@ func (cli *Client) GetBotListV2() ([]types.BotListInfo, error) {
 	return list, nil
 }
 
-func (cli *Client) GetBotProfiles(botInfo []types.BotListInfo) ([]types.BotProfileInfo, error) {
+func (cli *Client) GetBotProfiles(ctx context.Context, botInfo []types.BotListInfo) ([]types.BotProfileInfo, error) {
 	jids := make([]types.JID, len(botInfo))
 	for i, bot := range botInfo {
 		jids[i] = bot.BotJID
 	}
 
-	list, err := cli.usync(context.TODO(), jids, "query", "interactive", []waBinary.Node{
+	list, err := cli.usync(ctx, jids, "query", "interactive", []waBinary.Node{
 		{Tag: "bot", Content: []waBinary.Node{{Tag: "profile", Attrs: waBinary.Attrs{"v": "1"}}}},
 	}, UsyncQueryExtras{
 		BotListInfo: botInfo,
@@ -410,8 +410,8 @@ func (cli *Client) parseBusinessProfile(node *waBinary.Node) (*types.BusinessPro
 }
 
 // GetBusinessProfile gets the profile info of a WhatsApp business account
-func (cli *Client) GetBusinessProfile(jid types.JID) (*types.BusinessProfile, error) {
-	resp, err := cli.sendIQ(infoQuery{
+func (cli *Client) GetBusinessProfile(ctx context.Context, jid types.JID) (*types.BusinessProfile, error) {
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Type:      iqGet,
 		To:        types.ServerJID,
 		Namespace: "w:biz",
@@ -438,16 +438,14 @@ func (cli *Client) GetBusinessProfile(jid types.JID) (*types.BusinessProfile, er
 	return cli.parseBusinessProfile(&node)
 }
 
+func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) ([]types.JID, error) {
+	return cli.GetUserDevices(ctx, jids)
+}
+
 // GetUserDevices gets the list of devices that the given user has. The input should be a list of
 // regular JIDs, and the output will be a list of AD JIDs. The local device will not be included in
 // the output even if the user's JID is included in the input. All other devices will be included.
-//
-// Deprecated: use GetUserDevicesContext instead.
-func (cli *Client) GetUserDevices(jids []types.JID) ([]types.JID, error) {
-	return cli.GetUserDevicesContext(context.Background(), jids)
-}
-
-func (cli *Client) GetUserDevicesContext(ctx context.Context, jids []types.JID) ([]types.JID, error) {
+func (cli *Client) GetUserDevices(ctx context.Context, jids []types.JID) ([]types.JID, error) {
 	if cli == nil {
 		return nil, ErrClientIsNil
 	}
@@ -516,7 +514,7 @@ type GetProfilePictureParams struct {
 // If the profile picture hasn't changed, this will return nil with no error.
 //
 // To get a community photo, you should pass `IsCommunity: true`, as otherwise you may get a 401 error.
-func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictureParams) (*types.ProfilePictureInfo, error) {
+func (cli *Client) GetProfilePictureInfo(ctx context.Context, jid types.JID, params *GetProfilePictureParams) (*types.ProfilePictureInfo, error) {
 	attrs := waBinary.Attrs{
 		"query": "url",
 	}
@@ -565,7 +563,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 		}
 
 		var pictureContent []waBinary.Node
-		if token, _ := cli.Store.PrivacyTokens.GetPrivacyToken(context.TODO(), jid); token != nil {
+		if token, _ := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, jid); token != nil {
 			pictureContent = []waBinary.Node{{
 				Tag:     "tctoken",
 				Content: token.Token,
@@ -578,7 +576,7 @@ func (cli *Client) GetProfilePictureInfo(jid types.JID, params *GetProfilePictur
 			Content: pictureContent,
 		}}
 	}
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: namespace,
 		Type:      "get",
 		To:        to,
@@ -769,8 +767,7 @@ func (cli *Client) getFBIDDevicesInternal(ctx context.Context, jids []types.JID)
 		users[i].Attrs = waBinary.Attrs{"jid": jid}
 		// TODO include dhash for users
 	}
-	resp, err := cli.sendIQ(infoQuery{
-		Context:   ctx,
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "fbid:devices",
 		Type:      iqGet,
 		To:        types.ServerJID,
@@ -857,8 +854,7 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 			return nil, fmt.Errorf("unknown user server '%s'", jid.Server)
 		}
 	}
-	resp, err := cli.sendIQ(infoQuery{
-		Context:   ctx,
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "usync",
 		Type:      "get",
 		To:        types.ServerJID,
@@ -904,8 +900,8 @@ func (cli *Client) parseBlocklist(node *waBinary.Node) *types.Blocklist {
 }
 
 // GetBlocklist gets the list of users that this user has blocked.
-func (cli *Client) GetBlocklist() (*types.Blocklist, error) {
-	resp, err := cli.sendIQ(infoQuery{
+func (cli *Client) GetBlocklist(ctx context.Context) (*types.Blocklist, error) {
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "blocklist",
 		Type:      iqGet,
 		To:        types.ServerJID,
@@ -921,8 +917,8 @@ func (cli *Client) GetBlocklist() (*types.Blocklist, error) {
 }
 
 // UpdateBlocklist updates the user's block list and returns the updated list.
-func (cli *Client) UpdateBlocklist(jid types.JID, action events.BlocklistChangeAction) (*types.Blocklist, error) {
-	resp, err := cli.sendIQ(infoQuery{
+func (cli *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action events.BlocklistChangeAction) (*types.Blocklist, error) {
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "blocklist",
 		Type:      iqSet,
 		To:        types.ServerJID,

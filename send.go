@@ -331,7 +331,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 			return
 		} else if toLID.IsEmpty() {
 			var info map[types.JID]types.UserInfo
-			info, err = cli.GetUserInfo([]types.JID{to})
+			info, err = cli.GetUserInfo(ctx, []types.JID{to})
 			if err != nil {
 				err = fmt.Errorf("failed to get user info for %s to fill LID cache: %w", to, err)
 				return
@@ -399,7 +399,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 			data, err = cli.sendDM(ctx, ownID, to, req.ID, message, &resp.DebugTimings, extraParams)
 		}
 	case types.NewsletterServer:
-		data, err = cli.sendNewsletter(to, req.ID, message, req.MediaHandle, &resp.DebugTimings)
+		data, err = cli.sendNewsletter(ctx, to, req.ID, message, req.MediaHandle, &resp.DebugTimings)
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
@@ -429,7 +429,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	resp.DebugTimings.Resp = time.Since(start)
 	if isDisconnectNode(respNode) {
 		start = time.Now()
-		respNode, err = cli.retryFrame("message send", req.ID, data, respNode, ctx, 0)
+		respNode, err = cli.retryFrame(ctx, "message send", req.ID, data, respNode, 0)
 		resp.DebugTimings.Retry = time.Since(start)
 		if err != nil {
 			return
@@ -458,8 +458,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 // The return value is the timestamp of the message from the server.
 //
 // Deprecated: This method is deprecated in favor of BuildRevoke
-func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (SendResponse, error) {
-	return cli.SendMessage(context.TODO(), chat, cli.BuildRevoke(chat, types.EmptyJID, id))
+func (cli *Client) RevokeMessage(ctx context.Context, chat types.JID, id types.MessageID) (SendResponse, error) {
+	return cli.SendMessage(ctx, chat, cli.BuildRevoke(chat, types.EmptyJID, id))
 }
 
 // BuildMessageKey builds a MessageKey object, which is used to refer to previous messages
@@ -618,13 +618,13 @@ func ParseDisappearingTimerString(val string) (time.Duration, bool) {
 // and in groups the server will just reject the change. You can use the DisappearingTimer<Duration> constants for convenience.
 //
 // In groups, the server will echo the change as a notification, so it'll show up as a *events.GroupInfo update.
-func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration, settingTS time.Time) (err error) {
+func (cli *Client) SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) (err error) {
 	switch chat.Server {
 	case types.DefaultUserServer, types.HiddenUserServer:
 		if settingTS.IsZero() {
 			settingTS = time.Now()
 		}
-		_, err = cli.SendMessage(context.TODO(), chat, &waE2E.Message{
+		_, err = cli.SendMessage(ctx, chat, &waE2E.Message{
 			ProtocolMessage: &waE2E.ProtocolMessage{
 				Type:                      waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
 				EphemeralExpiration:       proto.Uint32(uint32(timer.Seconds())),
@@ -633,9 +633,9 @@ func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration, set
 		})
 	case types.GroupServer:
 		if timer == 0 {
-			_, err = cli.sendGroupIQ(context.TODO(), iqSet, chat, waBinary.Node{Tag: "not_ephemeral"})
+			_, err = cli.sendGroupIQ(ctx, iqSet, chat, waBinary.Node{Tag: "not_ephemeral"})
 		} else {
-			_, err = cli.sendGroupIQ(context.TODO(), iqSet, chat, waBinary.Node{
+			_, err = cli.sendGroupIQ(ctx, iqSet, chat, waBinary.Node{
 				Tag: "ephemeral",
 				Attrs: waBinary.Attrs{
 					"expiration": strconv.Itoa(int(timer.Seconds())),
@@ -663,6 +663,7 @@ func participantListHashV2(participants []types.JID) string {
 }
 
 func (cli *Client) sendNewsletter(
+	ctx context.Context,
 	to types.JID,
 	id types.MessageID,
 	message *waE2E.Message,
@@ -706,7 +707,7 @@ func (cli *Client) sendNewsletter(
 		Content: []waBinary.Node{plaintextNode},
 	}
 	start = time.Now()
-	data, err := cli.sendNodeAndGetData(node)
+	data, err := cli.sendNodeAndGetData(ctx, node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message node: %w", err)
@@ -787,7 +788,7 @@ func (cli *Client) sendGroup(
 	}
 
 	start = time.Now()
-	data, err := cli.sendNodeAndGetData(*node)
+	data, err := cli.sendNodeAndGetData(ctx, *node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to send message node: %w", err)
@@ -807,7 +808,7 @@ func (cli *Client) sendPeerMessage(
 		return nil, err
 	}
 	start := time.Now()
-	data, err := cli.sendNodeAndGetData(*node)
+	data, err := cli.sendNodeAndGetData(ctx, *node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message node: %w", err)
@@ -853,7 +854,7 @@ func (cli *Client) sendDM(
 	}
 
 	start = time.Now()
-	data, err := cli.sendNodeAndGetData(*node)
+	data, err := cli.sendNodeAndGetData(ctx, *node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message node: %w", err)

@@ -295,7 +295,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 			{Tag: "franking", Content: []waBinary.Node{{Tag: "franking_tag", Content: frankingTag}}},
 		}
 	}
-	err = cli.sendNode(waBinary.Node{
+	err = cli.sendNode(ctx, waBinary.Node{
 		Tag:     "message",
 		Attrs:   attrs,
 		Content: content,
@@ -444,7 +444,7 @@ func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, in
 			})
 		}
 	}
-	err := cli.sendNode(payload)
+	err := cli.sendNode(ctx, payload)
 	if err != nil {
 		cli.Log.Errorf("Failed to send retry receipt for %s: %v", id, err)
 	}

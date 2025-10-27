@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2025 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,29 +12,30 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 type FrameSocket struct {
-	conn   *websocket.Conn
-	ctx    context.Context
-	cancel func()
-	log    waLog.Logger
-	lock   sync.Mutex
+	parentCtx context.Context
+	cancelCtx context.Context
+	cancel    context.CancelFunc
+	conn      *websocket.Conn
+	log       waLog.Logger
+	lock      sync.Mutex
 
 	URL         string
 	HTTPHeaders http.Header
+	HTTPClient  *http.Client
 
 	Frames       chan []byte
-	OnDisconnect func(remote bool)
-	WriteTimeout time.Duration
+	OnDisconnect func(ctx context.Context, remote bool)
 
 	Header []byte
-	Dialer websocket.Dialer
+
+	closed bool
 
 	incomingLength int
 	receivedLength int
@@ -42,17 +43,15 @@ type FrameSocket struct {
 	partialHeader  []byte
 }
 
-func NewFrameSocket(log waLog.Logger, dialer websocket.Dialer) *FrameSocket {
+func NewFrameSocket(log waLog.Logger, client *http.Client) *FrameSocket {
 	return &FrameSocket{
-		conn:   nil,
 		log:    log,
 		Header: WAConnHeader,
 		Frames: make(chan []byte),
 
 		URL:         URL,
 		HTTPHeaders: http.Header{"Origin": {Origin}},
-
-		Dialer: dialer,
+		HTTPClient:  client,
 	}
 }
 
@@ -60,11 +59,7 @@ func (fs *FrameSocket) IsConnected() bool {
 	return fs.conn != nil
 }
 
-func (fs *FrameSocket) Context() context.Context {
-	return fs.ctx
-}
-
-func (fs *FrameSocket) Close(code int) {
+func (fs *FrameSocket) Close(code websocket.StatusCode) {
 	fs.lock.Lock()
 	defer fs.lock.Unlock()
 
@@ -72,56 +67,54 @@ func (fs *FrameSocket) Close(code int) {
 		return
 	}
 
+	fs.closed = true
 	if code > 0 {
-		message := websocket.FormatCloseMessage(code, "")
-		err := fs.conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
+		err := fs.conn.Close(code, "")
 		if err != nil {
-			fs.log.Warnf("Error sending close message: %v", err)
+			fs.log.Warnf("Error sending close to websocket: %v", err)
+		}
+	} else {
+		err := fs.conn.CloseNow()
+		if err != nil {
+			fs.log.Debugf("Error force closing websocket: %v", err)
 		}
 	}
-
-	fs.cancel()
-	err := fs.conn.Close()
-	if err != nil {
-		fs.log.Errorf("Error closing websocket: %v", err)
-	}
 	fs.conn = nil
-	fs.ctx = nil
+	fs.cancel()
 	fs.cancel = nil
 	if fs.OnDisconnect != nil {
-		go fs.OnDisconnect(code == 0)
+		go fs.OnDisconnect(fs.parentCtx, code == 0)
 	}
 }
 
-func (fs *FrameSocket) Connect() error {
+func (fs *FrameSocket) Connect(ctx context.Context) error {
 	fs.lock.Lock()
 	defer fs.lock.Unlock()
-
 	if fs.conn != nil {
 		return ErrSocketAlreadyOpen
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	fs.parentCtx = ctx
+	fs.cancelCtx, fs.cancel = context.WithCancel(ctx)
 
 	fs.log.Debugf("Dialing %s", fs.URL)
-	conn, _, err := fs.Dialer.Dial(fs.URL, fs.HTTPHeaders)
-	if err != nil {
-		cancel()
-		return fmt.Errorf("couldn't dial whatsapp web websocket: %w", err)
-	}
-
-	fs.ctx, fs.cancel = ctx, cancel
-	fs.conn = conn
-	conn.SetCloseHandler(func(code int, text string) error {
-		fs.log.Debugf("Server closed websocket with status %d/%s", code, text)
-		cancel()
-		// from default CloseHandler
-		message := websocket.FormatCloseMessage(code, "")
-		_ = conn.WriteControl(websocket.CloseMessage, message, time.Now().Add(time.Second))
-		return nil
+	conn, _, err := websocket.Dial(ctx, fs.URL, &websocket.DialOptions{
+		HTTPClient: fs.HTTPClient,
+		HTTPHeader: fs.HTTPHeaders,
 	})
+	if err != nil {
+		fs.cancel()
+		return fmt.Errorf("failed to dial whatsapp web websocket: %w", err)
+	}
+	conn.SetReadLimit(FrameMaxSize)
+
+	fs.conn = conn
 
 	go fs.readPump(conn, ctx)
 	return nil
+}
+
+func (fs *FrameSocket) Context() context.Context {
+	return fs.cancelCtx
 }
 
 func (fs *FrameSocket) SendFrame(data []byte) error {
@@ -153,13 +146,7 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 	// Copy actual frame data
 	copy(wholeFrame[headerLength+FrameLengthSize:], data)
 
-	if fs.WriteTimeout > 0 {
-		err := conn.SetWriteDeadline(time.Now().Add(fs.WriteTimeout))
-		if err != nil {
-			fs.log.Warnf("Failed to set write deadline: %v", err)
-		}
-	}
-	return conn.WriteMessage(websocket.BinaryMessage, wholeFrame)
+	return conn.Write(fs.cancelCtx, websocket.MessageBinary, wholeFrame)
 }
 
 func (fs *FrameSocket) frameComplete() {
@@ -219,14 +206,14 @@ func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 		go fs.Close(0)
 	}()
 	for {
-		msgType, data, err := conn.ReadMessage()
+		msgType, data, err := conn.Read(ctx)
 		if err != nil {
 			// Ignore the error if the context has been closed
-			if !errors.Is(ctx.Err(), context.Canceled) {
+			if !fs.closed && !errors.Is(ctx.Err(), context.Canceled) {
 				fs.log.Errorf("Error reading from websocket: %v", err)
 			}
 			return
-		} else if msgType != websocket.BinaryMessage {
+		} else if msgType != websocket.MessageBinary {
 			fs.log.Warnf("Got unexpected websocket message type %d", msgType)
 			continue
 		}

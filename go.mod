@@ -6,8 +6,8 @@ toolchain go1.25.3
 
 require (
 	github.com/beeper/argo-go v1.1.2
+	github.com/coder/websocket v1.8.14
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/websocket v1.5.0
 	github.com/rs/zerolog v1.34.0
 	go.mau.fi/libsignal v0.2.1
 	go.mau.fi/util v0.9.2
