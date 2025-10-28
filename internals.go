@@ -695,12 +695,12 @@ func (int *DangerousInternalClient) HandleHistoricalPushNames(ctx context.Contex
 	int.c.handleHistoricalPushNames(ctx, names)
 }
 
-func (int *DangerousInternalClient) UpdatePushName(ctx context.Context, user types.JID, messageInfo *types.MessageInfo, name string) {
-	int.c.updatePushName(ctx, user, messageInfo, name)
+func (int *DangerousInternalClient) UpdatePushName(ctx context.Context, user, userAlt types.JID, messageInfo *types.MessageInfo, name string) {
+	int.c.updatePushName(ctx, user, userAlt, messageInfo, name)
 }
 
-func (int *DangerousInternalClient) UpdateBusinessName(ctx context.Context, user types.JID, messageInfo *types.MessageInfo, name string) {
-	int.c.updateBusinessName(ctx, user, messageInfo, name)
+func (int *DangerousInternalClient) UpdateBusinessName(ctx context.Context, user, userAlt types.JID, messageInfo *types.MessageInfo, name string) {
+	int.c.updateBusinessName(ctx, user, userAlt, messageInfo, name)
 }
 
 func (int *DangerousInternalClient) GetFBIDDevicesInternal(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {

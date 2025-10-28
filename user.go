@@ -236,7 +236,7 @@ func (cli *Client) GetUserInfo(ctx context.Context, jids []types.JID) (map[types
 		}
 
 		if verifiedName != nil {
-			cli.updateBusinessName(ctx, jid, nil, verifiedName.Details.GetVerifiedName())
+			cli.updateBusinessName(ctx, jid, info.LID, nil, verifiedName.Details.GetVerifiedName())
 		}
 		respData[jid] = info
 	}
@@ -642,7 +642,7 @@ func (cli *Client) handleHistoricalPushNames(ctx context.Context, names []*waHis
 	}
 }
 
-func (cli *Client) updatePushName(ctx context.Context, user types.JID, messageInfo *types.MessageInfo, name string) {
+func (cli *Client) updatePushName(ctx context.Context, user, userAlt types.JID, messageInfo *types.MessageInfo, name string) {
 	if cli.Store.Contacts == nil {
 		return
 	}
@@ -651,9 +651,20 @@ func (cli *Client) updatePushName(ctx context.Context, user types.JID, messageIn
 	if err != nil {
 		cli.Log.Errorf("Failed to save push name of %s in device store: %v", user, err)
 	} else if changed {
+		userAlt = userAlt.ToNonAD()
+		if userAlt.IsEmpty() {
+			userAlt, _ = cli.Store.GetAltJID(ctx, user)
+		}
+		if !userAlt.IsEmpty() {
+			_, _, err = cli.Store.Contacts.PutPushName(ctx, userAlt, name)
+			if err != nil {
+				cli.Log.Errorf("Failed to save push name of %s in device store: %v", userAlt, err)
+			}
+		}
 		cli.Log.Debugf("Push name of %s changed from %s to %s, dispatching event", user, previousName, name)
 		cli.dispatchEvent(&events.PushName{
 			JID:         user,
+			JIDAlt:      userAlt,
 			Message:     messageInfo,
 			OldPushName: previousName,
 			NewPushName: name,
@@ -661,7 +672,7 @@ func (cli *Client) updatePushName(ctx context.Context, user types.JID, messageIn
 	}
 }
 
-func (cli *Client) updateBusinessName(ctx context.Context, user types.JID, messageInfo *types.MessageInfo, name string) {
+func (cli *Client) updateBusinessName(ctx context.Context, user, userAlt types.JID, messageInfo *types.MessageInfo, name string) {
 	if cli.Store.Contacts == nil {
 		return
 	}
@@ -669,6 +680,16 @@ func (cli *Client) updateBusinessName(ctx context.Context, user types.JID, messa
 	if err != nil {
 		cli.Log.Errorf("Failed to save business name of %s in device store: %v", user, err)
 	} else if changed {
+		userAlt = userAlt.ToNonAD()
+		if userAlt.IsEmpty() {
+			userAlt, _ = cli.Store.GetAltJID(ctx, user)
+		}
+		if !userAlt.IsEmpty() {
+			_, _, err = cli.Store.Contacts.PutBusinessName(ctx, userAlt, name)
+			if err != nil {
+				cli.Log.Errorf("Failed to save push name of %s in device store: %v", userAlt, err)
+			}
+		}
 		cli.Log.Debugf("Business name of %s changed from %s to %s, dispatching event", user, previousName, name)
 		cli.dispatchEvent(&events.BusinessName{
 			JID:             user,

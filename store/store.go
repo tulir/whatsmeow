@@ -267,3 +267,15 @@ func (device *Device) Delete(ctx context.Context) error {
 	device.LID = types.EmptyJID
 	return nil
 }
+
+func (device *Device) GetAltJID(ctx context.Context, jid types.JID) (types.JID, error) {
+	if device == nil {
+		return types.EmptyJID, nil
+	} else if jid.Server == types.DefaultUserServer {
+		return device.LIDs.GetLIDForPN(ctx, jid)
+	} else if jid.Server == types.HiddenUserServer {
+		return device.LIDs.GetPNForLID(ctx, jid)
+	} else {
+		return types.EmptyJID, nil
+	}
+}
