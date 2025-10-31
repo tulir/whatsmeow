@@ -14,6 +14,7 @@ import (
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+	"go.mau.fi/whatsmeow/util/logging"
 )
 
 func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
@@ -26,10 +27,12 @@ func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 	case code == "515":
 		if cli.DisableLoginAutoReconnect {
 			cli.Log.Infof("Got 515 code, but login autoreconnect is disabled, not reconnecting")
+			logging.StdOutLogger.Debugf("Got 515 code, but login autoreconnect is disabled, not reconnecting")
 			cli.dispatchEvent(&events.ManualLoginReconnect{})
 			return
 		}
 		cli.Log.Infof("Got 515 code, reconnecting...")
+		logging.StdOutLogger.Debugf("Got 515 code, reconnecting...")
 		go func() {
 			cli.Disconnect()
 			err := cli.connect(ctx)
@@ -53,6 +56,7 @@ func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 		// This seems to happen when the server wants to restart or something.
 		// The disconnection will be emitted as an events.Disconnected and then the auto-reconnect will do its thing.
 		cli.Log.Warnf("Got 503 stream error, assuming automatic reconnect will handle it")
+		logging.StdOutLogger.Debugf("Got 503 stream error, assuming automatic reconnect will handle it")
 	case cli.RefreshCAT != nil && (code == events.ConnectFailureCATInvalid.NumberString() || code == events.ConnectFailureCATExpired.NumberString()):
 		cli.Log.Infof("Got %s stream error, refreshing CAT before reconnecting...", code)
 		cli.socketLock.RLock()
