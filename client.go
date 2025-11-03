@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"runtime/debug"
@@ -19,7 +20,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"go.mau.fi/util/exhttp"
 	"go.mau.fi/util/exsync"
 	"go.mau.fi/util/random"
@@ -41,7 +41,7 @@ import (
 // EventHandler is a function that can handle events from WhatsApp.
 type EventHandler func(evt any)
 type EventHandlerWithSuccessStatus func(evt any) bool
-type nodeHandler func(node *waBinary.Node)
+type nodeHandler func(ctx context.Context, node *waBinary.Node)
 
 var nextHandlerID uint32
 
@@ -65,7 +65,6 @@ type Client struct {
 	socket     *socket.NoiseSocket
 	socketLock sync.RWMutex
 	socketWait chan struct{}
-	wsDialer   *websocket.Dialer
 
 	isLoggedIn            atomic.Bool
 	expectedDisconnect    *exsync.Event
@@ -171,10 +170,9 @@ type Client struct {
 	uniqueID  string
 	idCounter atomic.Uint64
 
-	proxy          Proxy
-	socksProxy     proxy.Dialer
-	proxyOnlyLogin bool
-	http           *http.Client
+	mediaHTTP     *http.Client
+	websocketHTTP *http.Client
+	preLoginHTTP  *http.Client
 
 	// This field changes the client to act like a Messenger client instead of a WhatsApp one.
 	//
@@ -222,11 +220,13 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		log = waLog.Noop
 	}
 	uniqueIDPrefix := random.Bytes(2)
+	baseHTTPClient := &http.Client{
+		Transport: (http.DefaultTransport.(*http.Transport)).Clone(),
+	}
 	cli := &Client{
-		http: &http.Client{
-			Transport: (http.DefaultTransport.(*http.Transport)).Clone(),
-		},
-		proxy:              http.ProxyFromEnvironment,
+		mediaHTTP:          baseHTTPClient,
+		websocketHTTP:      baseHTTPClient,
+		preLoginHTTP:       baseHTTPClient,
 		Store:              deviceStore,
 		Log:                log,
 		recvLog:            log.Sub("Recv"),
@@ -292,7 +292,10 @@ func (cli *Client) SetProxyAddress(addr string, opts ...SetProxyOptions) error {
 	if parsed.Scheme == "http" || parsed.Scheme == "https" {
 		cli.SetProxy(http.ProxyURL(parsed), opts...)
 	} else if parsed.Scheme == "socks5" {
-		px, err := proxy.FromURL(parsed, proxy.Direct)
+		px, err := proxy.FromURL(parsed, &net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		})
 		if err != nil {
 			return err
 		}
@@ -330,21 +333,16 @@ func (cli *Client) SetProxy(proxy Proxy, opts ...SetProxyOptions) {
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
-	if !opt.NoWebsocket {
-		cli.proxy = proxy
-		cli.socksProxy = nil
-	}
-	if !opt.NoMedia {
-		transport := cli.http.Transport.(*http.Transport)
-		transport.Proxy = proxy
-		transport.Dial = nil
-		transport.DialContext = nil
-	}
+	transport := (http.DefaultTransport.(*http.Transport)).Clone()
+	transport.Proxy = proxy
+	cli.setTransport(transport, opt)
 }
 
 type SetProxyOptions struct {
 	// If NoWebsocket is true, the proxy won't be used for the websocket
 	NoWebsocket bool
+	// If OnlyLogin is true, the proxy will be used for the pre-login websocket, but not the post-login one
+	OnlyLogin bool
 	// If NoMedia is true, the proxy won't be used for media uploads/downloads
 	NoMedia bool
 }
@@ -357,27 +355,40 @@ func (cli *Client) SetSOCKSProxy(px proxy.Dialer, opts ...SetProxyOptions) {
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
+	transport := (http.DefaultTransport.(*http.Transport)).Clone()
+	pxc := px.(proxy.ContextDialer)
+	transport.DialContext = pxc.DialContext
+	cli.setTransport(transport, opt)
+}
+
+func (cli *Client) setTransport(transport *http.Transport, opt SetProxyOptions) {
 	if !opt.NoWebsocket {
-		cli.socksProxy = px
-		cli.proxy = nil
+		cli.preLoginHTTP.Transport = transport
+		if !opt.OnlyLogin {
+			cli.websocketHTTP.Transport = transport
+		}
 	}
 	if !opt.NoMedia {
-		transport := cli.http.Transport.(*http.Transport)
-		transport.Proxy = nil
-		transport.Dial = cli.socksProxy.Dial
-		contextDialer, ok := cli.socksProxy.(proxy.ContextDialer)
-		if ok {
-			transport.DialContext = contextDialer.DialContext
-		} else {
-			transport.DialContext = nil
-		}
+		cli.mediaHTTP.Transport = transport
 	}
 }
 
-// ToggleProxyOnlyForLogin changes whether the proxy set with SetProxy or related methods
-// is only used for the pre-login websocket and not authenticated websockets.
-func (cli *Client) ToggleProxyOnlyForLogin(only bool) {
-	cli.proxyOnlyLogin = only
+// SetMediaHTTPClient sets the HTTP client used to download media.
+// This will overwrite any set proxy calls.
+func (cli *Client) SetMediaHTTPClient(h *http.Client) {
+	cli.mediaHTTP = h
+}
+
+// SetWebsocketHTTPClient sets the HTTP client used to establish the websocket connection for logged-in sessions.
+// This will overwrite any set proxy calls.
+func (cli *Client) SetWebsocketHTTPClient(h *http.Client) {
+	cli.websocketHTTP = h
+}
+
+// SetPreLoginHTTPClient sets the HTTP client used to establish the websocket connection before login.
+// This will overwrite any set proxy calls.
+func (cli *Client) SetPreLoginHTTPClient(h *http.Client) {
+	cli.preLoginHTTP = h
 }
 
 func (cli *Client) getSocketWaitChan() <-chan struct{} {
@@ -430,13 +441,13 @@ func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	return true
 }
 
-func (cli *Client) SetWSDialer(dialer *websocket.Dialer) {
-	cli.wsDialer = dialer
-}
-
 // Connect connects the client to the WhatsApp web websocket. After connection, it will either
 // authenticate if there's data in the device store, or emit a QREvent to set up a new link.
 func (cli *Client) Connect() error {
+	return cli.ConnectContext(cli.BackgroundEventCtx)
+}
+
+func (cli *Client) ConnectContext(ctx context.Context) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -444,24 +455,24 @@ func (cli *Client) Connect() error {
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
 
-	err := cli.unlockedConnect()
+	err := cli.unlockedConnect(ctx)
 	if exhttp.IsNetworkError(err) && cli.InitialAutoReconnect && cli.EnableAutoReconnect {
 		cli.Log.Errorf("Initial connection failed but reconnecting in background (%v)", err)
 		go cli.dispatchEvent(&events.Disconnected{})
-		go cli.autoReconnect()
+		go cli.autoReconnect(ctx)
 		return nil
 	}
 	return err
 }
 
-func (cli *Client) connect() error {
+func (cli *Client) connect(ctx context.Context) error {
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
 
-	return cli.unlockedConnect()
+	return cli.unlockedConnect(ctx)
 }
 
-func (cli *Client) unlockedConnect() error {
+func (cli *Client) unlockedConnect(ctx context.Context) error {
 	if cli.socket != nil {
 		if !cli.socket.IsConnected() {
 			cli.unlockedDisconnect()
@@ -471,21 +482,11 @@ func (cli *Client) unlockedConnect() error {
 	}
 
 	cli.resetExpectedDisconnect()
-	var wsDialer websocket.Dialer
-	if cli.wsDialer != nil {
-		wsDialer = *cli.wsDialer
-	} else if !cli.proxyOnlyLogin || cli.Store.ID == nil {
-		if cli.proxy != nil {
-			wsDialer.Proxy = cli.proxy
-		} else if cli.socksProxy != nil {
-			wsDialer.NetDial = cli.socksProxy.Dial
-			contextDialer, ok := cli.socksProxy.(proxy.ContextDialer)
-			if ok {
-				wsDialer.NetDialContext = contextDialer.DialContext
-			}
-		}
+	client := cli.websocketHTTP
+	if cli.Store.ID == nil {
+		client = cli.preLoginHTTP
 	}
-	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), wsDialer)
+	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), client)
 	if cli.MessengerConfig != nil {
 		fs.URL = cli.MessengerConfig.WebsocketURL
 		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
@@ -496,15 +497,15 @@ func (cli *Client) unlockedConnect() error {
 		//fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
 		//fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
 	}
-	if err := fs.Connect(); err != nil {
+	if err := fs.Connect(ctx); err != nil {
 		fs.Close(0)
 		return err
-	} else if err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
+	} else if err = cli.doHandshake(ctx, fs, *keys.NewKeyPair()); err != nil {
 		fs.Close(0)
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
-	go cli.keepAliveLoop(cli.socket.Context())
-	go cli.handlerQueueLoop(cli.socket.Context())
+	go cli.keepAliveLoop(ctx, fs.Context())
+	go cli.handlerQueueLoop(ctx, fs.Context())
 	return nil
 }
 
@@ -513,7 +514,7 @@ func (cli *Client) IsLoggedIn() bool {
 	return cli != nil && cli.isLoggedIn.Load()
 }
 
-func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
+func (cli *Client) onDisconnect(ctx context.Context, ns *socket.NoiseSocket, remote bool) {
 	ns.Stop(false)
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
@@ -523,7 +524,7 @@ func (cli *Client) onDisconnect(ns *socket.NoiseSocket, remote bool) {
 		if !cli.isExpectedDisconnect() && remote {
 			cli.Log.Debugf("Emitting Disconnected event")
 			go cli.dispatchEvent(&events.Disconnected{})
-			go cli.autoReconnect()
+			go cli.autoReconnect(ctx)
 		} else if remote {
 			cli.Log.Debugf("OnDisconnect() called, but it was expected, so not emitting event")
 		} else {
@@ -546,7 +547,7 @@ func (cli *Client) isExpectedDisconnect() bool {
 	return cli.expectedDisconnect.IsSet()
 }
 
-func (cli *Client) autoReconnect() {
+func (cli *Client) autoReconnect(ctx context.Context) {
 	if !cli.EnableAutoReconnect || cli.Store.ID == nil {
 		return
 	}
@@ -554,15 +555,20 @@ func (cli *Client) autoReconnect() {
 		autoReconnectDelay := time.Duration(cli.AutoReconnectErrors) * 2 * time.Second
 		cli.Log.Debugf("Automatically reconnecting after %v", autoReconnectDelay)
 		cli.AutoReconnectErrors++
-		if cli.expectedDisconnect.WaitTimeout(autoReconnectDelay) {
+		if cli.expectedDisconnect.WaitTimeoutCtx(ctx, autoReconnectDelay) == nil {
+			cli.Log.Debugf("Cancelling automatic reconnect due to expected disconnect")
+			return
+		} else if ctx.Err() != nil {
+			cli.Log.Debugf("Cancelling automatic reconnect due to context cancellation")
 			return
 		}
-		err := cli.connect()
+		err := cli.connect(ctx)
 		if errors.Is(err, ErrAlreadyConnected) {
 			cli.Log.Debugf("Connect() said we're already connected after autoreconnect sleep")
 			return
 		} else if err != nil {
 			if cli.expectedDisconnect.IsSet() {
+				cli.Log.Debugf("Autoreconnect failed, but disconnect was expected, not reconnecting")
 				return
 			}
 			cli.Log.Errorf("Error reconnecting after autoreconnect sleep: %v", err)
@@ -629,7 +635,7 @@ func (cli *Client) Logout(ctx context.Context) error {
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
 	}
-	_, err := cli.sendIQ(infoQuery{
+	_, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "md",
 		Type:      "set",
 		To:        types.ServerJID,
@@ -737,7 +743,7 @@ func (cli *Client) RemoveEventHandlers() {
 	cli.eventHandlersLock.Unlock()
 }
 
-func (cli *Client) handleFrame(data []byte) {
+func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
 		cli.Log.Warnf("Failed to decompress frame: %v", err)
@@ -756,15 +762,19 @@ func (cli *Client) handleFrame(data []byte) {
 			cli.Log.Warnf("Received stream end frame")
 		}
 		// TODO should we do something else?
-	} else if cli.receiveResponse(node) {
+	} else if cli.receiveResponse(ctx, node) {
 		// handled
 	} else if _, ok := cli.nodeHandlers[node.Tag]; ok {
 		select {
 		case cli.handlerQueue <- node:
+		case <-ctx.Done():
 		default:
 			cli.Log.Warnf("Handler queue is full, message ordering is no longer guaranteed")
 			go func() {
-				cli.handlerQueue <- node
+				select {
+				case cli.handlerQueue <- node:
+				case <-ctx.Done():
+				}
 			}()
 		}
 	} else if node.Tag != "ack" {
@@ -772,7 +782,7 @@ func (cli *Client) handleFrame(data []byte) {
 	}
 }
 
-func (cli *Client) handlerQueueLoop(ctx context.Context) {
+func (cli *Client) handlerQueueLoop(evtCtx, connCtx context.Context) {
 	ticker := time.NewTicker(30 * time.Second)
 	ticker.Stop()
 	cli.Log.Debugf("Starting handler queue loop")
@@ -783,7 +793,7 @@ Loop:
 			doneChan := make(chan struct{}, 1)
 			start := time.Now()
 			go func() {
-				cli.nodeHandlers[node.Tag](node)
+				cli.nodeHandlers[node.Tag](evtCtx, node)
 				duration := time.Since(start)
 				doneChan <- struct{}{}
 				if duration > 5*time.Second {
@@ -802,14 +812,14 @@ Loop:
 			}
 			cli.Log.Warnf("Continuing handling of %s in background as it's taking too long", node.XMLString())
 			ticker.Stop()
-		case <-ctx.Done():
+		case <-connCtx.Done():
 			cli.Log.Debugf("Closing handler queue loop")
 			return
 		}
 	}
 }
 
-func (cli *Client) sendNodeAndGetData(node waBinary.Node) ([]byte, error) {
+func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) ([]byte, error) {
 	if cli == nil {
 		return nil, ErrClientIsNil
 	}
@@ -826,11 +836,11 @@ func (cli *Client) sendNodeAndGetData(node waBinary.Node) ([]byte, error) {
 	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())
-	return payload, sock.SendFrame(payload)
+	return payload, sock.SendFrame(ctx, payload)
 }
 
-func (cli *Client) sendNode(node waBinary.Node) error {
-	_, err := cli.sendNodeAndGetData(node)
+func (cli *Client) sendNode(ctx context.Context, node waBinary.Node) error {
+	_, err := cli.sendNodeAndGetData(ctx, node)
 	return err
 }
 

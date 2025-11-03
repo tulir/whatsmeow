@@ -409,8 +409,7 @@ func (cli *Client) handleStatusNotification(ctx context.Context, node *waBinary.
 	})
 }
 
-func (cli *Client) handleNotification(node *waBinary.Node) {
-	ctx := cli.BackgroundEventCtx
+func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
 	if !ag.OK() {

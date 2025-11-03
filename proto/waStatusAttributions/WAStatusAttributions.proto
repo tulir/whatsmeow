@@ -12,6 +12,7 @@ message StatusAttribution {
 		GROUP_STATUS = 5;
 		RL_ATTRIBUTION = 6;
 		AI_CREATED = 7;
+		LAYOUTS = 8;
 	}
 
 	message AiCreatedAttribution {
@@ -44,6 +45,8 @@ message StatusAttribution {
 			YOUTUBE = 5;
 			PINTEREST = 6;
 			THREADS = 7;
+			APPLE_MUSIC = 8;
+			SHARECHAT = 9;
 		}
 
 		optional string actionURL = 1;
@@ -58,6 +61,7 @@ message StatusAttribution {
 			INTERNAL_RESHARE = 1;
 			MENTION_RESHARE = 2;
 			CHANNEL_RESHARE = 3;
+			FORWARD = 4;
 		}
 
 		message Metadata {

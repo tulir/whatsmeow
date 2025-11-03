@@ -251,7 +251,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 				encryptionIdentity = lidForPN
 			}
 		}
-		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, encAttrs)
+		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, encAttrs, nil)
 	} else {
 		encrypted, err = cli.encryptMessageForDeviceV3(ctx, &waMsgTransport.MessageTransport_Payload{
 			ApplicationPayload: &waCommon.SubProtocol{
@@ -295,7 +295,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 			{Tag: "franking", Content: []waBinary.Node{{Tag: "franking_tag", Content: frankingTag}}},
 		}
 	}
-	err = cli.sendNode(waBinary.Node{
+	err = cli.sendNode(ctx, waBinary.Node{
 		Tag:     "message",
 		Attrs:   attrs,
 		Content: content,
@@ -407,16 +407,10 @@ func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, in
 
 	var registrationIDBytes [4]byte
 	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
-	attrs := waBinary.Attrs{
-		"id":   id,
-		"type": "retry",
-		"to":   node.Attrs["from"],
-	}
-	if recipient, ok := node.Attrs["recipient"]; ok {
-		attrs["recipient"] = recipient
-	}
-	if participant, ok := node.Attrs["participant"]; ok {
-		attrs["participant"] = participant
+	attrs := buildBaseReceipt(info.ID, node)
+	attrs["type"] = "retry"
+	if info.Type == "peer_msg" && info.IsFromMe {
+		attrs["category"] = "peer"
 	}
 	payload := waBinary.Node{
 		Tag:   "receipt",
@@ -450,7 +444,7 @@ func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, in
 			})
 		}
 	}
-	err := cli.sendNode(payload)
+	err := cli.sendNode(ctx, payload)
 	if err != nil {
 		cli.Log.Errorf("Failed to send retry receipt for %s: %v", id, err)
 	}
