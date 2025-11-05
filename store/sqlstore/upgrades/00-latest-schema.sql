@@ -1,7 +1,7 @@
 -- v0 -> v11 (compatible with v8+): Latest schema
 CREATE TABLE whatsmeow_device (
   	business_id TEXT NOT NULL,
-	jid TEXT PRIMARY KEY,
+	jid TEXT NOT NULL,
 	lid TEXT,
 
 	facebook_uuid uuid,
@@ -25,7 +25,9 @@ CREATE TABLE whatsmeow_device (
 	business_name TEXT NOT NULL DEFAULT '',
 	push_name     TEXT NOT NULL DEFAULT '',
 
-	lid_migration_ts BIGINT NOT NULL DEFAULT 0
+	lid_migration_ts BIGINT NOT NULL DEFAULT 0,
+
+	PRIMARY KEY (business_id, jid)
 );
 
 CREATE TABLE whatsmeow_identity_keys (
@@ -157,7 +159,8 @@ CREATE TABLE whatsmeow_privacy_tokens (
 	their_jid TEXT,
 	token     bytea  NOT NULL,
 	timestamp BIGINT NOT NULL,
-	PRIMARY KEY (business_id, our_jid, their_jid)
+	PRIMARY KEY (business_id, our_jid, their_jid),
+	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE whatsmeow_lid_map (
