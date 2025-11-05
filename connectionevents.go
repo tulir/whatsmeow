@@ -16,8 +16,7 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleStreamError(node *waBinary.Node) {
-	ctx := cli.BackgroundEventCtx
+func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 	cli.isLoggedIn.Store(false)
 	cli.clearResponseWaiters(node)
 	code, _ := node.Attrs["code"].(string)
@@ -33,7 +32,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		cli.Log.Infof("Got 515 code, reconnecting...")
 		go func() {
 			cli.Disconnect()
-			err := cli.connect()
+			err := cli.connect(ctx)
 			if err != nil {
 				cli.Log.Errorf("Failed to reconnect after 515 code: %v", err)
 			}
@@ -70,7 +69,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleIB(node *waBinary.Node) {
+func (cli *Client) handleIB(ctx context.Context, node *waBinary.Node) {
 	children := node.GetChildren()
 	for _, child := range children {
 		ag := child.AttrGetter()
@@ -93,8 +92,7 @@ func (cli *Client) handleIB(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleConnectFailure(node *waBinary.Node) {
-	ctx := cli.BackgroundEventCtx
+func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node) {
 	ag := node.AttrGetter()
 	reason := events.ConnectFailureReason(ag.Int("reason"))
 	message := ag.OptionalString("message")
@@ -150,8 +148,7 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
-	ctx := cli.BackgroundEventCtx
+func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node) {
 	cli.Log.Infof("Successfully authenticated")
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
@@ -205,11 +202,10 @@ func (cli *Client) SetPassive(ctx context.Context, passive bool) error {
 	if passive {
 		tag = "passive"
 	}
-	_, err := cli.sendIQ(infoQuery{
+	_, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "passive",
 		Type:      "set",
 		To:        types.ServerJID,
-		Context:   ctx,
 		Content:   []waBinary.Node{{Tag: tag}},
 	})
 	if err != nil {

@@ -234,6 +234,7 @@ message WebMessageInfo {
 		GROUP_MEMBER_LINK_MODE = 217;
 		BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE = 218;
 		PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE = 219;
+		QUARANTINED_MESSAGE = 220;
 	}
 
 	enum Status {
@@ -310,6 +311,7 @@ message WebMessageInfo {
 	optional GroupHistoryIndividualMessageInfo groupHistoryIndividualMessageInfo = 74;
 	optional GroupHistoryBundleInfo groupHistoryBundleInfo = 75;
 	optional InteractiveMessageAdditionalMetadata interactiveMessageAdditionalMetadata = 76;
+	optional QuarantinedMessage quarantinedMessage = 77;
 }
 
 message PaymentInfo {
@@ -602,4 +604,9 @@ message Citation {
 message GroupHistoryIndividualMessageInfo {
 	optional WACommon.MessageKey bundleMessageKey = 1;
 	optional bool editedAfterReceivedAsHistory = 2;
+}
+
+message QuarantinedMessage {
+	optional bytes originalData = 1;
+	optional string extractedText = 2;
 }

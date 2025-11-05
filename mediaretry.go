@@ -74,7 +74,7 @@ func encryptMediaRetryReceipt(messageID types.MessageID, mediaKey []byte) (ciphe
 //	    // Alternatively, you can use cli.DownloadMediaWithPath and provide the individual fields manually.
 //	  }
 //	}
-func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []byte) error {
+func (cli *Client) SendMediaRetryReceipt(ctx context.Context, message *types.MessageInfo, mediaKey []byte) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -100,7 +100,7 @@ func (cli *Client) SendMediaRetryReceipt(message *types.MessageInfo, mediaKey []
 		{Tag: "enc_iv", Content: iv},
 	}
 
-	err = cli.sendNode(waBinary.Node{
+	err = cli.sendNode(ctx, waBinary.Node{
 		Tag: "receipt",
 		Attrs: waBinary.Attrs{
 			"id":   message.ID,
