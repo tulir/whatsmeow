@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Tulir Asokan
+// Copyright (c) 2025 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,6 +12,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -26,12 +27,14 @@ import (
 )
 
 // ErrInvalidLength is returned by some database getters if the database returned a byte array with an unexpected length.
+// This should be impossible, as the database schema contains CHECK()s for all the relevant columns.
 var ErrInvalidLength = errors.New("database returned byte array with illegal length")
 
 type SQLStore struct {
 	*Container
 	businessId string
 	JID        string
+
 	preKeyLock sync.Mutex
 
 	contactCache     map[types.JID]*types.ContactInfo
@@ -42,6 +45,9 @@ type SQLStore struct {
 }
 
 // NewSQLStore creates a new SQLStore with the given database container and user JID.
+// It contains implementations of all the different stores in the store package.
+//
+// In general, you should use Container.NewDevice or Container.GetDevice instead of this.
 func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 	return &SQLStore{
 		Container:               c,
@@ -94,15 +100,14 @@ func (s *SQLStore) IsTrustedIdentity(ctx context.Context, address string, key [3
 	row := s.dbPool.QueryRow(ctx, getIdentityQuery, s.businessId, s.JID, address)
 	err := row.Scan(&existingIdentity)
 	if errors.Is(err, pgx.ErrNoRows) {
+		// Trust if not known, it'll be saved automatically later
 		return true, nil
 	} else if err != nil {
 		return false, err
 	} else if len(existingIdentity) != 32 {
 		return false, ErrInvalidLength
 	}
-	var arr [32]byte
-	copy(arr[:], existingIdentity)
-	return arr == key, nil
+	return *(*[32]byte)(existingIdentity) == key, nil
 }
 
 const (
@@ -256,17 +261,29 @@ func (s *SQLStore) PutSession(ctx context.Context, address string, session []byt
 }
 
 func (s *SQLStore) DeleteAllSessions(ctx context.Context, phone string) error {
-	_, err := s.dbPool.Exec(ctx, deleteAllSessionsQuery, s.businessId, s.JID, phone+":%")
-	if err != nil {
-		return fmt.Errorf("error deleting all sessions: %w", err)
-	}
-	return nil
+	return s.deleteAllSessions(ctx, phone)
 }
 
 func (s *SQLStore) deleteAllSessions(ctx context.Context, phone string) error {
 	_, err := s.dbPool.Exec(ctx, deleteAllSessionsQuery, s.businessId, s.JID, phone+":%")
 	if err != nil {
 		return fmt.Errorf("error in deleteAllSessions: %w", err)
+	}
+	return nil
+}
+
+func (s *SQLStore) deleteAllSenderKeys(ctx context.Context, phone string) error {
+	_, err := s.dbPool.Exec(ctx, deleteAllSenderKeysQuery, s.businessId, s.JID, phone+":%")
+	if err != nil {
+		return fmt.Errorf("error in deleteAllSenderKeys: %w", err)
+	}
+	return nil
+}
+
+func (s *SQLStore) deleteAllIdentityKeys(ctx context.Context, phone string) error {
+	_, err := s.dbPool.Exec(ctx, deleteAllIdentityKeysQuery, s.businessId, s.JID, phone+":%")
+	if err != nil {
+		return fmt.Errorf("error in deleteAllIdentityKeys: %w", err)
 	}
 	return nil
 }
@@ -394,9 +411,10 @@ func (s *SQLStore) GetOrGenPreKeys(ctx context.Context, count uint32) ([]*keys.P
 	newKeys := make([]*keys.PreKey, count)
 	var existingCount uint32
 	for res.Next() {
-		key, scanErr := scanPreKey(res)
-		if scanErr != nil {
-			return nil, scanErr
+		var key *keys.PreKey
+		key, err = scanPreKey(res)
+		if err != nil {
+			return nil, err
 		} else if key != nil {
 			newKeys[existingCount] = key
 			existingCount++
@@ -410,16 +428,19 @@ func (s *SQLStore) GetOrGenPreKeys(ctx context.Context, count uint32) ([]*keys.P
 			return nil, err
 		}
 		for i := existingCount; i < count; i++ {
-			newKey, genErr := s.genOnePreKey(ctx, nextKeyID, false)
-			if genErr != nil {
-				return nil, fmt.Errorf("failed to generate prekey: %w", genErr)
+			newKeys[i], err = s.genOnePreKey(ctx, nextKeyID, false)
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate prekey: %w", err)
 			}
-			newKeys[i] = newKey
 			nextKeyID++
 		}
 	}
 
 	return newKeys, nil
+}
+
+type scannable interface {
+	Scan(dest ...interface{}) error
 }
 
 func scanPreKey(row scannable) (*keys.PreKey, error) {
@@ -433,10 +454,8 @@ func scanPreKey(row scannable) (*keys.PreKey, error) {
 	} else if len(priv) != 32 {
 		return nil, ErrInvalidLength
 	}
-	var arr [32]byte
-	copy(arr[:], priv)
 	return &keys.PreKey{
-		KeyPair: *keys.NewKeyPairFromPrivateKey(arr),
+		KeyPair: *keys.NewKeyPairFromPrivateKey(*(*[32]byte)(priv)),
 		KeyID:   id,
 	}, nil
 }
@@ -543,13 +562,16 @@ func (s *SQLStore) GetAppStateVersion(ctx context.Context, name string) (version
 	row := s.dbPool.QueryRow(ctx, getAppStateVersionQuery, s.businessId, s.JID, name)
 	err = row.Scan(&version, &uncheckedHash)
 	if errors.Is(err, pgx.ErrNoRows) {
+		// version will be 0 and hash will be an empty array, which is the correct initial state
 		err = nil
 	} else if err != nil {
-		// propagate error
+		// There's an error, just return it
 	} else if len(uncheckedHash) != 128 {
+		// This shouldn't happen
 		err = ErrInvalidLength
 	} else {
-		copy(hash[:], uncheckedHash)
+		// No errors, convert hash slice to array
+		hash = *(*[128]byte)(uncheckedHash)
 	}
 	return
 }
@@ -589,14 +611,8 @@ func (s *SQLStore) PutAppStateMutationMACs(ctx context.Context, name string, ver
 	}
 	defer tx.Rollback(ctx)
 
-	for i := 0; i < len(mutations); i += mutationBatchSize {
-		var mutationSlice []store.AppStateMutationMAC
-		if len(mutations) > i+mutationBatchSize {
-			mutationSlice = mutations[i : i+mutationBatchSize]
-		} else {
-			mutationSlice = mutations[i:]
-		}
-		if err = s.putAppStateMutationMACs(tx, ctx, name, version, mutationSlice); err != nil {
+	for slice := range slices.Chunk(mutations, mutationBatchSize) {
+		if err = s.putAppStateMutationMACs(tx, ctx, name, version, slice); err != nil {
 			return err
 		}
 	}
@@ -655,14 +671,10 @@ const (
 		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE SET business_name=excluded.business_name
 	`
 	getContactQuery = `
-		SELECT business_id, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE business_id=$1 AND our_jid=$2 AND their_jid=$3
+		SELECT first_name, full_name, push_name, business_name, redacted_phone FROM whatsmeow_contacts WHERE business_id=$1 AND our_jid=$2 AND their_jid=$3
 	`
 	getAllContactsQuery = `
-		SELECT c.their_jid, c.first_name, c.full_name, c.push_name, c.business_name, rp.redacted_phone
-		FROM whatsmeow_contacts c
-		LEFT JOIN whatsmeow_redacted_phones rp
-			ON rp.business_id = c.business_id AND rp.our_jid = c.our_jid AND rp.their_jid = c.their_jid
-		WHERE c.business_id=$1 AND c.our_jid=$2
+		SELECT their_jid, first_name, full_name, push_name, business_name, redacted_phone FROM whatsmeow_contacts WHERE business_id=$1 AND our_jid=$2
 	`
 )
 
@@ -711,7 +723,7 @@ func (s *SQLStore) PutBusinessName(ctx context.Context, user types.JID, business
 	return false, "", nil
 }
 
-func (s *SQLStore) PutContactName(ctx context.Context, user types.JID, fullName, firstName string) error {
+func (s *SQLStore) PutContactName(ctx context.Context, user types.JID, firstName, fullName string) error {
 	s.contactCacheLock.Lock()
 	defer s.contactCacheLock.Unlock()
 
@@ -793,8 +805,56 @@ func (s *SQLStore) PutAllContactNames(ctx context.Context, contacts []store.Cont
 	}
 
 	s.contactCacheLock.Lock()
+	// Just clear the cache, fetching pushnames and business names would be too much effort
 	s.contactCache = make(map[types.JID]*types.ContactInfo)
 	s.contactCacheLock.Unlock()
+	return nil
+}
+
+const (
+	putRedactedPhonesQuery = `
+		INSERT INTO whatsmeow_redacted_phones (business_id, our_jid, their_jid, redacted_phone)
+		VALUES ($1, $2, $3, $4)
+		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE
+		SET redacted_phone = EXCLUDED.redacted_phone
+	`
+)
+
+func (s *SQLStore) PutManyRedactedPhones(ctx context.Context, entries []store.RedactedPhoneEntry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+
+	tx, err := s.dbPool.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	for _, entry := range entries {
+		if _, err = tx.Exec(ctx, putRedactedPhonesQuery,
+			s.businessId,
+			s.JID,
+			entry.JID.String(),
+			entry.RedactedPhone,
+		); err != nil {
+			return fmt.Errorf("failed to insert redacted phone for %s: %w", entry.JID, err)
+		}
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	s.contactCacheLock.Lock()
+	for _, entry := range entries {
+		if cached, ok := s.contactCache[entry.JID]; ok && cached.RedactedPhone == entry.RedactedPhone {
+			continue
+		}
+		delete(s.contactCache, entry.JID)
+	}
+	s.contactCacheLock.Unlock()
+
 	return nil
 }
 
@@ -804,18 +864,19 @@ func (s *SQLStore) getContact(ctx context.Context, user types.JID) (*types.Conta
 		return cached, nil
 	}
 
-	var businessId, first, full, push, business sql.NullString
+	var first, full, push, business, redactedPhone sql.NullString
 	row := s.dbPool.QueryRow(ctx, getContactQuery, s.businessId, s.JID, user)
-	err := row.Scan(&businessId, &first, &full, &push, &business)
+	err := row.Scan(&first, &full, &push, &business, &redactedPhone)
 	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 		return nil, err
 	}
 	info := &types.ContactInfo{
-		Found:        err == nil,
-		FirstName:    first.String,
-		FullName:     full.String,
-		PushName:     push.String,
-		BusinessName: business.String,
+		Found:         err == nil,
+		FirstName:     first.String,
+		FullName:      full.String,
+		PushName:      push.String,
+		BusinessName:  business.String,
+		RedactedPhone: redactedPhone.String,
 	}
 	s.contactCache[user] = info
 	return info, nil
@@ -864,48 +925,6 @@ func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.Cont
 		return nil, err
 	}
 	return output, nil
-}
-
-const (
-	putRedactedPhonesQuery = `
-		INSERT INTO whatsmeow_redacted_phones (business_id, our_jid, their_jid, redacted_phone)
-		VALUES ($1, $2, $3, $4)
-		ON CONFLICT (business_id, our_jid, their_jid) DO UPDATE
-		SET redacted_phone = EXCLUDED.redacted_phone
-	`
-)
-
-func (s *SQLStore) PutManyRedactedPhones(ctx context.Context, entries []store.RedactedPhoneEntry) error {
-	if len(entries) == 0 {
-		return nil
-	}
-
-	tx, err := s.dbPool.Begin(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer tx.Rollback(ctx)
-
-	for _, entry := range entries {
-		if _, err = tx.Exec(ctx, putRedactedPhonesQuery,
-			s.businessId,
-			s.JID,
-			entry.JID.String(),
-			entry.RedactedPhone,
-		); err != nil {
-			return fmt.Errorf("failed to insert redacted phone for %s: %w", entry.JID, err)
-		}
-	}
-
-	if err = tx.Commit(ctx); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	s.contactCacheLock.Lock()
-	s.contactCache = make(map[types.JID]*types.ContactInfo)
-	s.contactCacheLock.Unlock()
-
-	return nil
 }
 
 const (
@@ -986,6 +1005,9 @@ const (
 )
 
 func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.MessageSecretInsert) (err error) {
+	if len(inserts) == 0 {
+		return nil
+	}
 	tx, err := s.dbPool.Begin(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -1008,9 +1030,9 @@ func (s *SQLStore) PutMessageSecret(ctx context.Context, chat, sender types.JID,
 	return err
 }
 
-func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) (secret []byte, jid types.JID, err error) {
+func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) (secret []byte, realSender types.JID, err error) {
 	row := s.dbPool.QueryRow(ctx, getMsgSecret, s.businessId, s.JID, chat.ToNonAD(), id, sender.ToNonAD())
-	err = row.Scan(&secret, &jid)
+	err = row.Scan(&secret, &realSender)
 	if errors.Is(err, pgx.ErrNoRows) {
 		err = nil
 	}
@@ -1073,7 +1095,7 @@ const (
 		UPDATE whatsmeow_event_buffer SET plaintext = NULL WHERE business_id = $1 AND our_jid = $2 AND ciphertext_hash = $3
 	`
 	deleteOldBufferedHashesQuery = `
-		DELETE FROM whatsmeow_event_buffer WHERE insert_timestamp < $1
+		DELETE FROM whatsmeow_event_buffer WHERE business_id = $1 AND insert_timestamp < $2
 	`
 )
 
@@ -1121,16 +1143,8 @@ func (s *SQLStore) ClearBufferedEventPlaintext(ctx context.Context, ciphertextHa
 }
 
 func (s *SQLStore) DeleteOldBufferedHashes(ctx context.Context) error {
+	// The WhatsApp servers only buffer events for 14 days,
+	// so we can safely delete anything older than that.
 	_, err := s.dbPool.Exec(ctx, deleteOldBufferedHashesQuery, s.businessId, time.Now().Add(-14*24*time.Hour).UnixMilli())
-	return err
-}
-
-func (s *SQLStore) deleteAllSenderKeys(ctx context.Context, phone string) error {
-	_, err := s.dbPool.Exec(ctx, deleteAllSenderKeysQuery, s.businessId, s.JID, phone+":%")
-	return err
-}
-
-func (s *SQLStore) deleteAllIdentityKeys(ctx context.Context, phone string) error {
-	_, err := s.dbPool.Exec(ctx, deleteAllIdentityKeysQuery, s.businessId, s.JID, phone+":%")
 	return err
 }

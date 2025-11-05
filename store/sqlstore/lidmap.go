@@ -1,3 +1,10 @@
+// Copyright (c) 2025 Tulir Asokan
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+// Package sqlstore contains an SQL-backed implementation of the interfaces in the store package.
 package sqlstore
 
 import (
@@ -49,10 +56,10 @@ const (
 	getAllLIDMappingsQuery = `SELECT lid, pn FROM whatsmeow_lid_map WHERE business_id=$1`
 )
 
-func (s *CachedLIDMap) FillCache() error {
+func (s *CachedLIDMap) FillCache(ctx context.Context) error {
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
-	rows, err := s.dbPool.Query(context.Background(), getAllLIDMappingsQuery, s.businessId)
+	rows, err := s.dbPool.Query(ctx, getAllLIDMappingsQuery, s.businessId)
 	if err != nil {
 		return err
 	}
@@ -67,7 +74,8 @@ func (s *CachedLIDMap) scanManyLids(rows pgx.Rows, fn func(lid, pn string)) erro
 	}
 	for rows.Next() {
 		var lid, pn string
-		if err := rows.Scan(&lid, &pn); err != nil {
+		err := rows.Scan(&lid, &pn)
+		if err != nil {
 			rows.Close()
 			return err
 		}
@@ -76,7 +84,11 @@ func (s *CachedLIDMap) scanManyLids(rows pgx.Rows, fn func(lid, pn string)) erro
 		fn(lid, pn)
 	}
 	rows.Close()
-	return rows.Err()
+	err := rows.Err()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targetServer, query string, sourceToTarget, targetToSource map[string]string) (types.JID, error) {
@@ -128,31 +140,23 @@ func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targ
 }
 
 func (s *CachedLIDMap) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error) {
-	if pn.IsEmpty() {
-		return types.JID{}, fmt.Errorf("empty JID provided")
-	}
 	if pn.Server != types.DefaultUserServer {
 		return types.JID{}, fmt.Errorf("invalid GetLIDForPN call with non-PN JID %s", pn)
 	}
-	lid, err := s.getLIDMapping(ctx, pn, types.HiddenUserServer, getLIDForPNQuery, s.pnToLIDCache, s.lidToPNCache)
-	if err != nil {
-		return types.JID{}, fmt.Errorf("failed to get LID for PN %s: %w", pn, err)
-	}
-	return lid, nil
+	return s.getLIDMapping(
+		ctx, pn, types.HiddenUserServer, getLIDForPNQuery,
+		s.pnToLIDCache, s.lidToPNCache,
+	)
 }
 
 func (s *CachedLIDMap) GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error) {
-	if lid.IsEmpty() {
-		return types.JID{}, fmt.Errorf("empty LID provided")
-	}
 	if lid.Server != types.HiddenUserServer {
 		return types.JID{}, fmt.Errorf("invalid GetPNForLID call with non-LID JID %s", lid)
 	}
-	pn, err := s.getLIDMapping(ctx, lid, types.DefaultUserServer, getPNForLIDQuery, s.lidToPNCache, s.pnToLIDCache)
-	if err != nil {
-		return types.JID{}, fmt.Errorf("failed to get PN for LID %s: %w", lid, err)
-	}
-	return pn, nil
+	return s.getLIDMapping(
+		ctx, lid, types.DefaultUserServer, getPNForLIDQuery,
+		s.lidToPNCache, s.pnToLIDCache,
+	)
 }
 
 func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (map[types.JID]types.JID, error) {
@@ -161,10 +165,10 @@ func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (
 	}
 
 	result := make(map[types.JID]types.JID, len(pns))
+
 	s.lidCacheLock.RLock()
 	missingPNs := make([]string, 0, len(pns))
 	missingPNDevices := make(map[string][]types.JID)
-
 	for _, pn := range pns {
 		if pn.Server != types.DefaultUserServer {
 			continue
@@ -205,13 +209,11 @@ func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (
 	defer rows.Close()
 
 	err = s.scanManyLids(rows, func(lid, pn string) {
-		if devices, ok := missingPNDevices[pn]; ok {
-			for _, dev := range devices {
-				lidDev := dev
-				lidDev.Server = types.HiddenUserServer
-				lidDev.User = lid
-				result[dev] = lidDev.ToNonAD()
-			}
+		for _, dev := range missingPNDevices[pn] {
+			lidDev := dev
+			lidDev.Server = types.HiddenUserServer
+			lidDev.User = lid
+			result[dev] = lidDev.ToNonAD()
 		}
 	})
 
@@ -222,45 +224,22 @@ func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (
 	return result, nil
 }
 
-func (s *CachedLIDMap) putLIDMappingTx(ctx context.Context, tx pgx.Tx, lid, pn types.JID) error {
+func (s *CachedLIDMap) PutLIDMapping(ctx context.Context, lid, pn types.JID) error {
 	if lid.Server != types.HiddenUserServer || pn.Server != types.DefaultUserServer {
 		return fmt.Errorf("invalid PutLIDMapping call %s/%s", lid, pn)
 	}
-	if _, err := tx.Exec(ctx, deleteExistingLIDMappingQuery, s.businessId, lid.User, pn.User); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(ctx, putLIDMappingQuery, s.businessId, lid.User, pn.User); err != nil {
-		return err
-	}
-	s.pnToLIDCache[pn.User] = lid.User
-	s.lidToPNCache[lid.User] = pn.User
-	return nil
-}
-
-func (s *CachedLIDMap) PutLIDMapping(ctx context.Context, lid, pn types.JID) error {
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
-
 	cachedLID, ok := s.pnToLIDCache[pn.User]
 	if ok && cachedLID == lid.User {
 		return nil
 	}
-	tx, err := s.dbPool.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback(ctx)
-
-	if err := s.putLIDMappingTx(ctx, tx, lid, pn); err != nil {
-		return err
-	}
-	return tx.Commit(ctx)
+	return s.unlockedPutLIDMapping(ctx, lid, pn)
 }
 
 func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.LIDMapping) error {
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
-
 	mappings = slices.DeleteFunc(mappings, func(mapping store.LIDMapping) bool {
 		if mapping.LID.Server != types.HiddenUserServer || mapping.PN.Server != types.DefaultUserServer {
 			zerolog.Ctx(ctx).Debug().
@@ -270,7 +249,10 @@ func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.
 			return true
 		}
 		cachedLID, ok := s.pnToLIDCache[mapping.PN.User]
-		return ok && cachedLID == mapping.LID.User
+		if ok && cachedLID == mapping.LID.User {
+			return true
+		}
+		return false
 	})
 	mappings = exslices.DeduplicateUnsortedOverwrite(mappings)
 	if len(mappings) == 0 {
@@ -284,9 +266,41 @@ func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.
 	defer tx.Rollback(ctx)
 
 	for _, mapping := range mappings {
-		if err := s.putLIDMappingTx(ctx, tx, mapping.LID, mapping.PN); err != nil {
+		err := s.unlockedPutLIDMappingTx(ctx, tx, mapping.LID, mapping.PN)
+		if err != nil {
 			return err
 		}
 	}
 	return tx.Commit(ctx)
+}
+
+func (s *CachedLIDMap) unlockedPutLIDMapping(ctx context.Context, lid, pn types.JID) error {
+	tx, err := s.dbPool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	err = s.unlockedPutLIDMappingTx(ctx, tx, lid, pn)
+	if err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
+func (s *CachedLIDMap) unlockedPutLIDMappingTx(ctx context.Context, tx pgx.Tx, lid, pn types.JID) error {
+	if lid.Server != types.HiddenUserServer || pn.Server != types.DefaultUserServer {
+		return fmt.Errorf("invalid PutLIDMapping call %s/%s", lid, pn)
+	}
+	_, err := tx.Exec(ctx, deleteExistingLIDMappingQuery, s.businessId, lid.User, pn.User)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(ctx, putLIDMappingQuery, s.businessId, lid.User, pn.User)
+	if err != nil {
+		return err
+	}
+	s.pnToLIDCache[pn.User] = lid.User
+	s.lidToPNCache[lid.User] = pn.User
+	return nil
 }
