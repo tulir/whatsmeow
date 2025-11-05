@@ -439,10 +439,6 @@ func (s *SQLStore) GetOrGenPreKeys(ctx context.Context, count uint32) ([]*keys.P
 	return newKeys, nil
 }
 
-type scannable interface {
-	Scan(dest ...interface{}) error
-}
-
 func scanPreKey(row scannable) (*keys.PreKey, error) {
 	var priv []byte
 	var id uint32
