@@ -113,8 +113,16 @@ CREATE TABLE whatsmeow_contacts (
 	full_name      TEXT,
 	push_name      TEXT,
 	business_name  TEXT,
-	redacted_phone TEXT,
 
+	PRIMARY KEY (business_id, our_jid, their_jid),
+	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE whatsmeow_redacted_phones (
+	business_id TEXT NOT NULL,
+	our_jid        TEXT,
+	their_jid      TEXT,
+	redacted_phone TEXT,
 	PRIMARY KEY (business_id, our_jid, their_jid),
 	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
@@ -154,9 +162,10 @@ CREATE TABLE whatsmeow_privacy_tokens (
 
 CREATE TABLE whatsmeow_lid_map (
 	business_id TEXT NOT NULL,
-	lid TEXT PRIMARY KEY,
-	pn  TEXT UNIQUE NOT NULL,
-	PRIMARY KEY (business_id, lid)
+	lid TEXT,
+	pn  TEXT NOT NULL,
+	PRIMARY KEY (business_id, lid),
+	UNIQUE (business_id, pn)
 );
 
 CREATE TABLE whatsmeow_event_buffer (

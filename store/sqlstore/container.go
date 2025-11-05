@@ -1,3 +1,9 @@
+// Copyright (c) 2022 Tulir Asokan
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package sqlstore
 
 import (
@@ -117,7 +123,9 @@ func (c *Container) GetAllDevices(ctx context.Context) ([]*store.Device, error) 
 	return sessions, nil
 }
 
-// GetFirstDevice is a convenience method for getting the first device in the store.
+// GetFirstDevice is a convenience method for getting the first device in the store. If there are
+// no devices, then a new device will be created. You should only use this if you don't want to
+// have multiple sessions simultaneously.
 func (c *Container) GetFirstDevice(ctx context.Context) (*store.Device, error) {
 	devices, err := c.GetAllDevices(ctx)
 	if err != nil {
@@ -130,6 +138,10 @@ func (c *Container) GetFirstDevice(ctx context.Context) (*store.Device, error) {
 }
 
 // GetDevice finds the device with the specified JID in the database.
+//
+// If the device is not found, nil is returned instead.
+//
+// Note that the parameter usually must be an AD-JID.
 func (c *Container) GetDevice(ctx context.Context, jid types.JID) (*store.Device, error) {
 	sess, err := c.scanDevice(c.dbPool.QueryRow(ctx, getDeviceQuery, c.businessId, jid))
 	if errors.Is(err, sql.ErrNoRows) {
@@ -155,7 +167,10 @@ const (
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE business_id=$1 AND jid=$2`
 )
 
-// NewDevice creates a new device in this database (not persisted until Save).
+// NewDevice creates a new device in this database.
+//
+// No data is actually stored before Save is called. However, the pairing process will automatically
+// call Save after a successful pairing, so you most likely don't need to call it yourself.
 func (c *Container) NewDevice() *store.Device {
 	device := &store.Device{
 		Log:       c.log,
@@ -175,7 +190,8 @@ func (c *Container) NewDevice() *store.Device {
 // ErrDeviceIDMustBeSet is the error returned by PutDevice if you try to save a device before knowing its JID.
 var ErrDeviceIDMustBeSet = errors.New("device JID must be known before accessing database")
 
-// PutDevice stores the given device in this database.
+// PutDevice stores the given device in this database. This should be called through Device.Save()
+// (which usually doesn't need to be called manually, as the library does that automatically when relevant).
 func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 	if device.ID == nil {
 		return ErrDeviceIDMustBeSet
@@ -196,9 +212,6 @@ func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 }
 
 func (c *Container) initializeDevice(device *store.Device) {
-	if device.Initialized {
-		return
-	}
 	innerStore := NewSQLStore(c, *device.ID)
 	device.Identities = innerStore
 	device.Sessions = innerStore
@@ -216,7 +229,7 @@ func (c *Container) initializeDevice(device *store.Device) {
 	device.Initialized = true
 }
 
-// DeleteDevice deletes the given device from this database.
+// DeleteDevice deletes the given device from this database. This should be called through Device.Delete()
 func (c *Container) DeleteDevice(ctx context.Context, store *store.Device) error {
 	if store.ID == nil {
 		return ErrDeviceIDMustBeSet
