@@ -34,7 +34,7 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		}
 		cli.Log.Infof("Got prekey count from server: %s", node.XMLString())
 		if otksLeft < MinPreKeyCount {
-			cli.uploadPreKeys(ctx)
+			cli.uploadPreKeys(ctx, false)
 		}
 	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
 		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node.XMLString())

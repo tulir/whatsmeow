@@ -483,8 +483,8 @@ func (int *DangerousInternalClient) GetServerPreKeyCount(ctx context.Context) (i
 	return int.c.getServerPreKeyCount(ctx)
 }
 
-func (int *DangerousInternalClient) UploadPreKeys(ctx context.Context) {
-	int.c.uploadPreKeys(ctx)
+func (int *DangerousInternalClient) UploadPreKeys(ctx context.Context, initialUpload bool) {
+	int.c.uploadPreKeys(ctx, initialUpload)
 }
 
 func (int *DangerousInternalClient) FetchPreKeysNoError(ctx context.Context, retryDevices []types.JID) map[types.JID]*prekey.Bundle {
