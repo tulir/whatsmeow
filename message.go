@@ -1024,8 +1024,7 @@ func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.Messa
 }
 
 func (cli *Client) sendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) {
-	clientID := cli.Store.ID
-	if len(id) == 0 || clientID == nil {
+	if len(id) == 0 {
 		return
 	}
 	err := cli.sendNode(ctx, waBinary.Node{
@@ -1033,7 +1032,7 @@ func (cli *Client) sendProtocolMessageReceipt(ctx context.Context, id types.Mess
 		Attrs: waBinary.Attrs{
 			"id":   string(id),
 			"type": string(msgType),
-			"to":   types.NewJID(clientID.User, types.LegacyUserServer),
+			"to":   cli.getOwnID().ToNonAD(),
 		},
 		Content: nil,
 	})
