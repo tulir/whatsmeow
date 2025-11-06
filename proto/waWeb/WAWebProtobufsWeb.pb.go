@@ -311,6 +311,7 @@ const (
 	WebMessageInfo_BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE            WebMessageInfo_StubType = 218
 	WebMessageInfo_PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE              WebMessageInfo_StubType = 219
 	WebMessageInfo_QUARANTINED_MESSAGE                                      WebMessageInfo_StubType = 220
+	WebMessageInfo_GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE                    WebMessageInfo_StubType = 221
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -537,6 +538,7 @@ var (
 		218: "BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE",
 		219: "PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE",
 		220: "QUARANTINED_MESSAGE",
+		221: "GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -760,6 +762,7 @@ var (
 		"BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE":            218,
 		"PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE":              219,
 		"QUARANTINED_MESSAGE":                                      220,
+		"GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE":                    221,
 	}
 )
 
@@ -1345,10 +1348,11 @@ func (MessageAddOn_MessageAddOnType) EnumDescriptor() ([]byte, []int) {
 type GroupHistoryBundleInfo_ProcessState int32
 
 const (
-	GroupHistoryBundleInfo_NOT_INJECTED     GroupHistoryBundleInfo_ProcessState = 0
-	GroupHistoryBundleInfo_INJECTED         GroupHistoryBundleInfo_ProcessState = 1
-	GroupHistoryBundleInfo_INJECTED_PARTIAL GroupHistoryBundleInfo_ProcessState = 2
-	GroupHistoryBundleInfo_INJECTION_FAILED GroupHistoryBundleInfo_ProcessState = 3
+	GroupHistoryBundleInfo_NOT_INJECTED              GroupHistoryBundleInfo_ProcessState = 0
+	GroupHistoryBundleInfo_INJECTED                  GroupHistoryBundleInfo_ProcessState = 1
+	GroupHistoryBundleInfo_INJECTED_PARTIAL          GroupHistoryBundleInfo_ProcessState = 2
+	GroupHistoryBundleInfo_INJECTION_FAILED          GroupHistoryBundleInfo_ProcessState = 3
+	GroupHistoryBundleInfo_INJECTION_FAILED_NO_RETRY GroupHistoryBundleInfo_ProcessState = 4
 )
 
 // Enum value maps for GroupHistoryBundleInfo_ProcessState.
@@ -1358,12 +1362,14 @@ var (
 		1: "INJECTED",
 		2: "INJECTED_PARTIAL",
 		3: "INJECTION_FAILED",
+		4: "INJECTION_FAILED_NO_RETRY",
 	}
 	GroupHistoryBundleInfo_ProcessState_value = map[string]int32{
-		"NOT_INJECTED":     0,
-		"INJECTED":         1,
-		"INJECTED_PARTIAL": 2,
-		"INJECTION_FAILED": 3,
+		"NOT_INJECTED":              0,
+		"INJECTED":                  1,
+		"INJECTED_PARTIAL":          2,
+		"INJECTION_FAILED":          3,
+		"INJECTION_FAILED_NO_RETRY": 4,
 	}
 )
 
@@ -4008,7 +4014,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xe1Z\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\x8d[\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4085,7 +4091,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\xef:\n" +
+	"BSP_AND_FB\x10\x03\"\x9b;\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4311,7 +4317,8 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x16GROUP_MEMBER_LINK_MODE\x10\xd9\x01\x122\n" +
 	"-BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE\x10\xda\x01\x120\n" +
 	"+PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE\x10\xdb\x01\x12\x18\n" +
-	"\x13QUARANTINED_MESSAGE\x10\xdc\x01\"X\n" +
+	"\x13QUARANTINED_MESSAGE\x10\xdc\x01\x12*\n" +
+	"%GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE\x10\xdd\x01\"X\n" +
 	"\x06Status\x12\t\n" +
 	"\x05ERROR\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0e\n" +
@@ -4474,15 +4481,16 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\bREACTION\x10\x01\x12\x12\n" +
 	"\x0eEVENT_RESPONSE\x10\x02\x12\x0f\n" +
 	"\vPOLL_UPDATE\x10\x03\x12\x0f\n" +
-	"\vPIN_IN_CHAT\x10\x04\"\xc1\x02\n" +
+	"\vPIN_IN_CHAT\x10\x04\"\xe0\x02\n" +
 	"\x16GroupHistoryBundleInfo\x12o\n" +
 	"\x1edeprecatedMessageHistoryBundle\x18\x01 \x01(\v2'.WAWebProtobufsE2E.MessageHistoryBundleR\x1edeprecatedMessageHistoryBundle\x12Z\n" +
-	"\fprocessState\x18\x02 \x01(\x0e26.WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessStateR\fprocessState\"Z\n" +
+	"\fprocessState\x18\x02 \x01(\x0e26.WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessStateR\fprocessState\"y\n" +
 	"\fProcessState\x12\x10\n" +
 	"\fNOT_INJECTED\x10\x00\x12\f\n" +
 	"\bINJECTED\x10\x01\x12\x14\n" +
 	"\x10INJECTED_PARTIAL\x10\x02\x12\x14\n" +
-	"\x10INJECTION_FAILED\x10\x03\"s\n" +
+	"\x10INJECTION_FAILED\x10\x03\x12\x1d\n" +
+	"\x19INJECTION_FAILED_NO_RETRY\x10\x04\"s\n" +
 	"\x0fCommentMetadata\x12@\n" +
 	"\x10commentParentKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x10commentParentKey\x12\x1e\n" +
 	"\n" +

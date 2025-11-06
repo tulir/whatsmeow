@@ -153,6 +153,7 @@ message ClientPayload {
 			TEST = 34;
 			SMART_GLASSES = 35;
 			BLUE_VR = 36;
+			AR_WRIST = 37;
 		}
 
 		message AppVersion {
