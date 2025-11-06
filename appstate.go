@@ -427,3 +427,19 @@ func (cli *Client) sendAppState(ctx context.Context, patch appstate.PatchInfo, w
 
 	return nil
 }
+
+func (cli *Client) MarkNotDirty(ctx context.Context, cleanType string, ts time.Time) error {
+	_, err := cli.sendIQ(ctx, infoQuery{
+		Namespace: "urn:xmpp:whatsapp:dirty",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "clean",
+			Attrs: waBinary.Attrs{
+				"type":      cleanType,
+				"timestamp": ts.Unix(),
+			},
+		}},
+	})
+	return err
+}

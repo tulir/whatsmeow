@@ -88,6 +88,13 @@ func (cli *Client) handleIB(ctx context.Context, node *waBinary.Node) {
 			cli.dispatchEvent(&events.OfflineSyncCompleted{
 				Count: ag.Int("count"),
 			})
+		case "dirty":
+			//ts := ag.UnixTime("timestamp")
+			//typ := ag.String("type") // account_sync
+			//go func() {
+			//	err := cli.MarkNotDirty(ctx, typ, ts)
+			//	zerolog.Ctx(ctx).Debug().Err(err).Msg("Marked dirty item as clean")
+			//}()
 		}
 	}
 }
