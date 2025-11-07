@@ -3,10 +3,20 @@ package WAProtobufsDeviceCapabilities;
 option go_package = "go.mau.fi/whatsmeow/proto/waDeviceCapabilities";
 
 message DeviceCapabilities {
+	enum MemberNameTagPrimarySupport {
+		DISABLED = 0;
+		RECEIVER_ENABLED = 1;
+		SENDER_ENABLED = 2;
+	}
+
 	enum ChatLockSupportLevel {
 		NONE = 0;
 		MINIMAL = 1;
 		FULL = 2;
+	}
+
+	message UserHasAvatar {
+		optional bool userHasAvatar = 1;
 	}
 
 	message BusinessBroadcast {
@@ -20,4 +30,6 @@ message DeviceCapabilities {
 	optional ChatLockSupportLevel chatLockSupportLevel = 1;
 	optional LIDMigration lidMigration = 2;
 	optional BusinessBroadcast businessBroadcast = 3;
+	optional UserHasAvatar userHasAvatar = 4;
+	optional MemberNameTagPrimarySupport memberNameTagPrimarySupport = 5;
 }

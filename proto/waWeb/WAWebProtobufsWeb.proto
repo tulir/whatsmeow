@@ -234,6 +234,8 @@ message WebMessageInfo {
 		GROUP_MEMBER_LINK_MODE = 217;
 		BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE = 218;
 		PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE = 219;
+		QUARANTINED_MESSAGE = 220;
+		GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE = 221;
 	}
 
 	enum Status {
@@ -309,6 +311,8 @@ message WebMessageInfo {
 	optional string botTargetID = 73;
 	optional GroupHistoryIndividualMessageInfo groupHistoryIndividualMessageInfo = 74;
 	optional GroupHistoryBundleInfo groupHistoryBundleInfo = 75;
+	optional InteractiveMessageAdditionalMetadata interactiveMessageAdditionalMetadata = 76;
+	optional QuarantinedMessage quarantinedMessage = 77;
 }
 
 message PaymentInfo {
@@ -472,9 +476,11 @@ message MessageAddOn {
 
 message GroupHistoryBundleInfo {
 	enum ProcessState {
-		NOT_DOWNLOADED = 0;
-		DOWNLOADED = 1;
-		DOWNLOAD_FAILED = 2;
+		NOT_INJECTED = 0;
+		INJECTED = 1;
+		INJECTED_PARTIAL = 2;
+		INJECTION_FAILED = 3;
+		INJECTION_FAILED_NO_RETRY = 4;
 	}
 
 	optional WAWebProtobufsE2E.MessageHistoryBundle deprecatedMessageHistoryBundle = 1;
@@ -548,6 +554,10 @@ message PollAdditionalMetadata {
 	optional bool pollInvalidated = 1;
 }
 
+message InteractiveMessageAdditionalMetadata {
+	optional bool isGalaxyFlowCompleted = 1;
+}
+
 message EventAdditionalMetadata {
 	optional bool isStale = 1;
 }
@@ -595,4 +605,10 @@ message Citation {
 
 message GroupHistoryIndividualMessageInfo {
 	optional WACommon.MessageKey bundleMessageKey = 1;
+	optional bool editedAfterReceivedAsHistory = 2;
+}
+
+message QuarantinedMessage {
+	optional bytes originalData = 1;
+	optional string extractedText = 2;
 }

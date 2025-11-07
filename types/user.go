@@ -24,7 +24,7 @@ type UserInfo struct {
 	Status       string
 	PictureID    string
 	Devices      []JID
-	LID          *JID // The local ID (if available)
+	LID          JID
 }
 
 type BotListInfo struct {

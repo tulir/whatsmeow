@@ -49,6 +49,8 @@ message DeviceProps {
 		optional bool supportGroupHistory = 15;
 		optional bool onDemandReady = 16;
 		optional bool supportGuestChat = 17;
+		optional bool completeOnDemandReady = 18;
+		optional uint32 thumbnailSyncDaysLimit = 19;
 	}
 
 	message AppVersion {

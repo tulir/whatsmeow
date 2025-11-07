@@ -65,6 +65,10 @@ message MiTransportAdminMessage {
 		optional Action action = 2;
 	}
 
+	message XmatGenAITaskAdd {
+		optional int64 taskID = 1;
+	}
+
 	message XmatUnpinMessageV2 {
 		optional string pinnedMessageID = 1;
 	}
@@ -270,5 +274,9 @@ message MiTransportAdminMessage {
 		XmatUpdatePayments xmatUpdatePayments = 30;
 		XmatPinMessageV2 xmatPinMessageV2 = 31;
 		XmatUnpinMessageV2 xmatUnpinMessageV2 = 32;
+		XmatGenAITaskAdd xmatGenaiTaskAdd = 33;
 	}
+
+	optional bool skipBumpThread = 34;
+	optional bool skipSnippetUpdate = 35;
 }

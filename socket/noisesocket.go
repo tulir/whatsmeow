@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2025 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,7 +13,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 )
 
 type NoiseSocket struct {
@@ -28,10 +28,16 @@ type NoiseSocket struct {
 	stopConsumer chan struct{}
 }
 
-type DisconnectHandler func(socket *NoiseSocket, remote bool)
-type FrameHandler func([]byte)
+type DisconnectHandler func(ctx context.Context, socket *NoiseSocket, remote bool)
+type FrameHandler func(context.Context, []byte)
 
-func newNoiseSocket(fs *FrameSocket, writeKey, readKey cipher.AEAD, frameHandler FrameHandler, disconnectHandler DisconnectHandler) (*NoiseSocket, error) {
+func newNoiseSocket(
+	ctx context.Context,
+	fs *FrameSocket,
+	writeKey, readKey cipher.AEAD,
+	frameHandler FrameHandler,
+	disconnectHandler DisconnectHandler,
+) (*NoiseSocket, error) {
 	ns := &NoiseSocket{
 		fs:           fs,
 		writeKey:     writeKey,
@@ -39,10 +45,10 @@ func newNoiseSocket(fs *FrameSocket, writeKey, readKey cipher.AEAD, frameHandler
 		onFrame:      frameHandler,
 		stopConsumer: make(chan struct{}),
 	}
-	fs.OnDisconnect = func(remote bool) {
-		disconnectHandler(ns, remote)
+	fs.OnDisconnect = func(ctx context.Context, remote bool) {
+		disconnectHandler(ctx, ns, remote)
 	}
-	go ns.consumeFrames(fs.ctx, fs.Frames)
+	go ns.consumeFrames(ctx, fs.Frames)
 	return ns, nil
 }
 
@@ -55,7 +61,7 @@ func (ns *NoiseSocket) consumeFrames(ctx context.Context, frames <-chan []byte) 
 	for {
 		select {
 		case frame := <-frames:
-			ns.receiveEncryptedFrame(frame)
+			ns.receiveEncryptedFrame(ctx, frame)
 		case <-ctxDone:
 			return
 		case <-ns.stopConsumer:
@@ -70,37 +76,45 @@ func generateIV(count uint32) []byte {
 	return iv
 }
 
-func (ns *NoiseSocket) Context() context.Context {
-	return ns.fs.Context()
-}
-
 func (ns *NoiseSocket) Stop(disconnect bool) {
 	if ns.destroyed.CompareAndSwap(false, true) {
 		close(ns.stopConsumer)
 		ns.fs.OnDisconnect = nil
 		if disconnect {
-			ns.fs.Close(websocket.CloseNormalClosure)
+			ns.fs.Close(websocket.StatusNormalClosure)
 		}
 	}
 }
 
-func (ns *NoiseSocket) SendFrame(plaintext []byte) error {
+func (ns *NoiseSocket) SendFrame(ctx context.Context, plaintext []byte) error {
 	ns.writeLock.Lock()
+	defer ns.writeLock.Unlock()
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+	// Don't reuse plaintext slice for storage as it may be needed for retries
 	ciphertext := ns.writeKey.Seal(nil, generateIV(ns.writeCounter), plaintext, nil)
 	ns.writeCounter++
-	err := ns.fs.SendFrame(ciphertext)
-	ns.writeLock.Unlock()
-	return err
+	doneChan := make(chan error, 1)
+	go func() {
+		doneChan <- ns.fs.SendFrame(ciphertext)
+	}()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case retErr := <-doneChan:
+		return retErr
+	}
 }
 
-func (ns *NoiseSocket) receiveEncryptedFrame(ciphertext []byte) {
-	count := atomic.AddUint32(&ns.readCounter, 1) - 1
-	plaintext, err := ns.readKey.Open(nil, generateIV(count), ciphertext, nil)
+func (ns *NoiseSocket) receiveEncryptedFrame(ctx context.Context, ciphertext []byte) {
+	plaintext, err := ns.readKey.Open(ciphertext[:0], generateIV(ns.readCounter), ciphertext, nil)
+	ns.readCounter++
 	if err != nil {
 		ns.fs.log.Warnf("Failed to decrypt frame: %v", err)
 		return
 	}
-	ns.onFrame(plaintext)
+	ns.onFrame(ctx, plaintext)
 }
 
 func (ns *NoiseSocket) IsConnected() bool {

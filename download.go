@@ -255,6 +255,9 @@ func (cli *Client) DownloadMediaWithPath(
 	mediaType MediaType,
 	mmsType string,
 ) (data []byte, err error) {
+	if !strings.HasPrefix(directPath, "/") {
+		return nil, fmt.Errorf("media download path does not start with slash: %s", directPath)
+	}
 	var mediaConn *MediaConn
 	mediaConn, err = cli.refreshMediaConn(ctx, false)
 	if err != nil {
@@ -365,7 +368,7 @@ func (cli *Client) doMediaDownloadRequest(ctx context.Context, url string) (*htt
 		req.Header.Set("User-Agent", cli.MessengerConfig.UserAgent)
 	}
 	// TODO user agent for whatsapp downloads?
-	resp, err := cli.http.Do(req)
+	resp, err := cli.mediaHTTP.Do(req)
 	if err != nil {
 		return nil, err
 	}

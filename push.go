@@ -82,12 +82,11 @@ func (wpc *WebPushConfig) GetPushConfigAttrs() waBinary.Attrs {
 }
 
 func (cli *Client) GetServerPushNotificationConfig(ctx context.Context) (*waBinary.Node, error) {
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "urn:xmpp:whatsapp:push",
 		Type:      iqGet,
 		To:        types.ServerJID,
 		Content:   []waBinary.Node{{Tag: "settings"}},
-		Context:   ctx,
 	})
 	return resp, err
 }
@@ -96,7 +95,7 @@ func (cli *Client) GetServerPushNotificationConfig(ctx context.Context) (*waBina
 //
 // This is generally not necessary for anything. Don't use this if you don't know what you're doing.
 func (cli *Client) RegisterForPushNotifications(ctx context.Context, pc PushConfig) error {
-	_, err := cli.sendIQ(infoQuery{
+	_, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "urn:xmpp:whatsapp:push",
 		Type:      iqSet,
 		To:        types.ServerJID,
@@ -104,7 +103,6 @@ func (cli *Client) RegisterForPushNotifications(ctx context.Context, pc PushConf
 			Tag:   "config",
 			Attrs: pc.GetPushConfigAttrs(),
 		}},
-		Context: ctx,
 	})
 	return err
 }

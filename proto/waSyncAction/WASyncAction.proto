@@ -56,6 +56,35 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message InteractiveMessageAction {
+	enum InteractiveMessageActionMode {
+		DISABLE_CTA = 1;
+	}
+
+	required InteractiveMessageActionMode type = 1;
+}
+
+message PrivateProcessingSettingAction {
+	enum PrivateProcessingStatus {
+		UNDEFINED = 0;
+		ENABLED = 1;
+		DISABLED = 2;
+	}
+
+	optional PrivateProcessingStatus privateProcessingStatus = 1;
+}
+
+message AvatarUpdatedAction {
+	enum AvatarEventType {
+		UPDATED = 0;
+		CREATED = 1;
+		DELETED = 2;
+	}
+
+	optional AvatarEventType eventType = 1;
+	repeated StickerAction recentAvatarStickers = 2;
+}
+
 message MaibaAIFeaturesControlAction {
 	enum MaibaAIFeatureStatus {
 		ENABLED = 0;
@@ -89,6 +118,8 @@ message NotificationActivitySettingAction {
 message WaffleAccountLinkStateAction {
 	enum AccountLinkState {
 		ACTIVE = 0;
+		PAUSED = 1;
+		UNLINKED = 2;
 	}
 
 	optional AccountLinkState linkState = 2;
@@ -124,6 +155,7 @@ message StatusPrivacyAction {
 		ALLOW_LIST = 0;
 		DENY_LIST = 1;
 		CONTACTS = 2;
+		CLOSE_FRIENDS = 3;
 	}
 
 	optional StatusDistributionMode mode = 1;
@@ -163,6 +195,8 @@ message LabelEditAction {
 		CUSTOM = 5;
 		COMMUNITY = 6;
 		SERVER_ASSIGNED = 7;
+		DRAFTED = 8;
+		AI_HANDOFF = 9;
 	}
 
 	optional string name = 1;
@@ -173,6 +207,7 @@ message LabelEditAction {
 	optional bool isActive = 6;
 	optional ListType type = 7;
 	optional bool isImmutable = 8;
+	optional int64 muteEndTimeMS = 9;
 }
 
 message PatchDebugData {
@@ -186,6 +221,9 @@ message PatchDebugData {
 		DARWIN = 6;
 		IPAD = 7;
 		WEAROS = 8;
+		WASG = 9;
+		WEARM = 10;
+		CAPI = 11;
 	}
 
 	optional bytes currentLthash = 1;
@@ -212,7 +250,6 @@ message SyncActionValue {
 	optional ContactAction contactAction = 3;
 	optional MuteAction muteAction = 4;
 	optional PinAction pinAction = 5;
-	optional SecurityNotificationSetting securityNotificationSetting = 6;
 	optional PushNameSetting pushNameSetting = 7;
 	optional QuickReplyAction quickReplyAction = 8;
 	optional RecentEmojiWeightsAction recentEmojiWeightsAction = 11;
@@ -244,6 +281,7 @@ message SyncActionValue {
 	optional ExternalWebBetaAction externalWebBetaAction = 40;
 	optional PrivacySettingRelayAllCalls privacySettingRelayAllCalls = 41;
 	optional CallLogAction callLogAction = 42;
+	optional UGCBot ugcBot = 43;
 	optional StatusPrivacyAction statusPrivacy = 44;
 	optional BotWelcomeRequestAction botWelcomeRequestAction = 45;
 	optional DeleteIndividualCallLogAction deleteIndividualCallLog = 46;
@@ -271,6 +309,16 @@ message SyncActionValue {
 	optional BusinessBroadcastListAction businessBroadcastListAction = 69;
 	optional MusicUserIdAction musicUserIDAction = 70;
 	optional StatusPostOptInNotificationPreferencesAction statusPostOptInNotificationPreferencesAction = 71;
+	optional AvatarUpdatedAction avatarUpdatedAction = 72;
+	optional PrivateProcessingSettingAction privateProcessingSettingAction = 74;
+	optional NewsletterSavedInterestsAction newsletterSavedInterestsAction = 75;
+	optional AiThreadRenameAction aiThreadRenameAction = 76;
+	optional InteractiveMessageAction interactiveMessageAction = 77;
+}
+
+message AiThreadRenameAction {
+	optional string newTitle = 1;
+	optional bool isFromServer = 2;
 }
 
 message StatusPostOptInNotificationPreferencesAction {
@@ -300,7 +348,6 @@ message LidContactAction {
 	optional string fullName = 1;
 	optional string firstName = 2;
 	optional string username = 3;
-	optional bool saveOnPrimaryAddressbook = 4;
 }
 
 message FavoritesAction {
@@ -360,8 +407,18 @@ message BotWelcomeRequestAction {
 	optional bool isSent = 1;
 }
 
+message NewsletterSavedInterestsAction {
+	optional string newsletterSavedInterests = 1;
+}
+
 message MusicUserIdAction {
 	optional string musicUserID = 1;
+	// TODO switch to proto3 and enable this
+	//optional map<string, string> music_user_id_map = 2;
+}
+
+message UGCBot {
+	optional bytes definition = 1;
 }
 
 message CallLogAction {
@@ -516,10 +573,6 @@ message LocaleSetting {
 
 message PushNameSetting {
 	optional string name = 1;
-}
-
-message SecurityNotificationSetting {
-	optional bool showNotification = 1;
 }
 
 message PinAction {
