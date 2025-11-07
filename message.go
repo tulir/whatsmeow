@@ -36,6 +36,8 @@ import (
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+
+	"go.mau.fi/whatsmeow/util/logging"
 )
 
 var pbSerializer = store.SignalProtobufSerializer
@@ -44,6 +46,7 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 	info, err := cli.parseMessageInfo(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
+		logging.StdOutLogger.Warnf("Failed to parse message: %v", err)
 	} else {
 		if !info.SenderAlt.IsEmpty() {
 			cli.StoreLIDPNMapping(ctx, info.SenderAlt, info.Sender)
@@ -229,11 +232,13 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 			info.VerifiedName, err = parseVerifiedNameContent(child)
 			if err != nil {
 				cli.Log.Warnf("Failed to parse verified_name node in %s: %v", info.ID, err)
+				logging.StdOutLogger.Warnf("Failed to parse verified_name node in %s: %v", info.ID, err)
 			}
 		case "bot":
 			info.MsgBotInfo, err = cli.parseMsgBotInfo(child)
 			if err != nil {
 				cli.Log.Warnf("Failed to parse <bot> node in %s: %v", info.ID, err)
+				logging.StdOutLogger.Warnf("Failed to parse <bot> node in %s: %v", info.ID, err)
 			}
 		case "meta":
 			info.MsgMetaInfo, err = cli.parseMsgMetaInfo(child)
@@ -264,6 +269,7 @@ func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.Messa
 	plaintextBody, ok := plaintext.Content.([]byte)
 	if !ok {
 		cli.Log.Warnf("Plaintext message from %s doesn't have byte content", info.SourceString())
+		logging.StdOutLogger.Warnf("Plaintext message from %s doesn't have byte content", info.SourceString())
 		return
 	}
 
@@ -271,6 +277,7 @@ func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.Messa
 	err := proto.Unmarshal(plaintextBody, &msg)
 	if err != nil {
 		cli.Log.Warnf("Error unmarshaling plaintext message from %s: %v", info.SourceString(), err)
+		logging.StdOutLogger.Warnf("Error unmarshaling plaintext message from %s: %v", info.SourceString(), err)
 		return
 	}
 	cli.storeMessageSecret(ctx, info, &msg)
@@ -285,6 +292,7 @@ func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.Messa
 			OriginalTS: meta.AttrGetter().UnixTime("original_msg_t"),
 		}
 	}
+	logging.StdOutLogger.Debugf("Received message from %s: %s", info.SourceString(), hex.EncodeToString(plaintextBody))
 	return cli.dispatchEvent(evt.UnwrapRaw())
 }
 
@@ -364,15 +372,19 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			var messageSecret []byte
 			if messageSecret, _, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, info.Chat, targetSenderJID, info.MsgMetaInfo.TargetID); err != nil {
 				err = fmt.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
+				logging.StdOutLogger.Errorf("failed to get message secret for %s: %v", info.MsgMetaInfo.TargetID, err)
 			} else if messageSecret == nil {
 				err = fmt.Errorf("message secret for %s not found", info.MsgMetaInfo.TargetID)
+				logging.StdOutLogger.Errorf("message secret for %s not found", info.MsgMetaInfo.TargetID)
 			} else if err = proto.Unmarshal(child.Content.([]byte), &msMsg); err != nil {
 				err = fmt.Errorf("failed to unmarshal MessageSecretMessage protobuf: %v", err)
+				logging.StdOutLogger.Errorf("failed to unmarshal MessageSecretMessage protobuf: %v", err)
 			} else {
 				decrypted, err = cli.decryptBotMessage(ctx, messageSecret, &msMsg, decryptMessageID, targetSenderJID, info)
 			}
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
+			logging.StdOutLogger.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
 			continue
 		}
 
@@ -426,6 +438,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			handlerFailed, protobufFailed = cli.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
 		default:
 			cli.Log.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
+			logging.StdOutLogger.Warnf("Unknown version %d in decrypted message from %s", ag.Int("v"), info.SourceString())
 		}
 		if handlerFailed {
 			cli.Log.Warnf("Handler for %s failed", info.ID)
@@ -549,13 +562,17 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 	if isPreKey {
 		preKeyMsg, err := protocol.NewPreKeySignalMessageFromBytes(content, pbSerializer.PreKeySignalMessage, pbSerializer.SignalMessage)
 		if err != nil {
+			logging.StdOutLogger.Errorf("faile to parse prekey message: %w", err)
 			return nil, nil, fmt.Errorf("failed to parse prekey message: %w", err)
 		}
 		plaintext, ciphertextHash, err = cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
 			pt, innerErr := cipher.DecryptMessage(decryptCtx, preKeyMsg)
 			if cli.AutoTrustIdentity && errors.Is(innerErr, signalerror.ErrUntrustedIdentity) {
 				cli.Log.Warnf("Got %v error while trying to decrypt prekey message from %s, clearing stored identity and retrying", innerErr, from)
+				logging.StdOutLogger.Warnf("Got %v error while trying to decrypt prekey message from %s, clearing stored identity and retrying", innerErr, from)
 				if innerErr = cli.clearUntrustedIdentity(decryptCtx, from); innerErr != nil {
+
+					logging.StdOutLogger.Errorf("ffailed to clear untrusted identity: %w", innerErr)
 					innerErr = fmt.Errorf("failed to clear untrusted identity: %w", innerErr)
 					return nil, innerErr
 				}
@@ -564,31 +581,37 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 			return pt, innerErr
 		})
 		if err != nil {
+			logging.StdOutLogger.Errorf("failed to decrypt prekey message: %w", err)
 			return nil, nil, fmt.Errorf("failed to decrypt prekey message: %w", err)
 		}
 	} else {
 		msg, err := protocol.NewSignalMessageFromBytes(content, pbSerializer.SignalMessage)
 		if err != nil {
+			logging.StdOutLogger.Errorf("failed to parse normal message: %w", err)
 			return nil, nil, fmt.Errorf("failed to parse normal message: %w", err)
 		}
 		plaintext, ciphertextHash, err = cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
 			return cipher.Decrypt(decryptCtx, msg)
 		})
 		if err != nil {
+			logging.StdOutLogger.Errorf("failed to decrypt normal message: %w", err)
 			return nil, nil, fmt.Errorf("failed to decrypt normal message: %w", err)
 		}
 	}
 	var err error
 	plaintext, err = unpadMessage(plaintext, child.AttrGetter().Int("v"))
 	if err != nil {
+		logging.StdOutLogger.Errorf("failed to unpad message: %w", err)
 		return nil, nil, fmt.Errorf("failed to unpad message: %w", err)
 	}
+	logging.StdOutLogger.Debugf("Decrypted message: %s", hex.EncodeToString(plaintext))
 	return plaintext, &ciphertextHash, nil
 }
 
 func (cli *Client) decryptGroupMsg(ctx context.Context, child *waBinary.Node, from types.JID, chat types.JID, serverTS time.Time) ([]byte, *[32]byte, error) {
 	content, ok := child.Content.([]byte)
 	if !ok {
+		logging.StdOutLogger.Errorf("message content is not a byte slice")
 		return nil, nil, fmt.Errorf("message content is not a byte slice")
 	}
 
@@ -597,18 +620,21 @@ func (cli *Client) decryptGroupMsg(ctx context.Context, child *waBinary.Node, fr
 	cipher := groups.NewGroupCipher(builder, senderKeyName, cli.Store)
 	msg, err := protocol.NewSenderKeyMessageFromBytes(content, pbSerializer.SenderKeyMessage)
 	if err != nil {
+		logging.StdOutLogger.Errorf("failed to parse group message: %w", err)
 		return nil, nil, fmt.Errorf("failed to parse group message: %w", err)
 	}
 	plaintext, ciphertextHash, err := cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
 		return cipher.Decrypt(decryptCtx, msg)
 	})
 	if err != nil {
+		logging.StdOutLogger.Errorf("failed to decrypt group message: %w", err)
 		return nil, nil, fmt.Errorf("failed to decrypt group message: %w", err)
 	}
 	plaintext, err = unpadMessage(plaintext, child.AttrGetter().Int("v"))
 	if err != nil {
 		return nil, nil, err
 	}
+	logging.StdOutLogger.Debugf("Decrypted group message: %s", hex.EncodeToString(plaintext))
 	return plaintext, &ciphertextHash, nil
 }
 
@@ -829,6 +855,7 @@ func (cli *Client) processProtocolParts(ctx context.Context, info *types.Message
 	if msg.GetSenderKeyDistributionMessage() != nil {
 		if !info.IsGroup {
 			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
+			logging.StdOutLogger.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
 		} else {
 			encryptionIdentity := info.Sender
 			if encryptionIdentity.Server == types.DefaultUserServer && info.SenderAlt.Server == types.HiddenUserServer {
@@ -850,8 +877,10 @@ func (cli *Client) storeMessageSecret(ctx context.Context, info *types.MessageIn
 		err := cli.Store.MsgSecrets.PutMessageSecret(ctx, info.Chat, info.Sender, info.ID, msgSecret)
 		if err != nil {
 			cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
+			logging.StdOutLogger.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
 		} else {
 			cli.Log.Debugf("Stored message secret key for %s", info.ID)
+			logging.StdOutLogger.Debugf("Stored message secret key for %s", info.ID)
 		}
 	}
 }
