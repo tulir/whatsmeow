@@ -240,7 +240,7 @@ func (cli *Client) GetUserInfo(ctx context.Context, jids []types.JID) (map[types
 			if lid, err := cli.Store.LIDs.GetLIDForPN(context.TODO(), jid); err != nil {
 				cli.Log.Debugf("Failed to get LID for %s: %v", jid, err)
 			} else if !lid.IsEmpty() {
-				info.LID = &lid
+				info.LID = lid
 				cli.Log.Debugf("Found LID %s for %s", lid, jid)
 			} else {
 				cli.Log.Debugf("No LID found for %s", jid)
