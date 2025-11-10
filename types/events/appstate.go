@@ -25,7 +25,8 @@ type Contact struct {
 
 // PushName is emitted when a message is received with a different push name than the previous value cached for the same user.
 type PushName struct {
-	JID         types.JID          // The user whose push name changed.
+	JID         types.JID // The user whose push name changed.
+	JIDAlt      types.JID
 	Message     *types.MessageInfo // The message where this change was first noticed.
 	OldPushName string             // The previous push name from the local cache.
 	NewPushName string             // The new push name that was included in the message.

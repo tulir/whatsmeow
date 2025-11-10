@@ -22,10 +22,11 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handled, handlerFailed bool) {
+func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed, protobufFailed bool) {
 	dec, err := decodeArmadillo(decrypted)
 	if err != nil {
 		cli.Log.Warnf("Failed to decode armadillo message from %s: %v", info.SourceString(), err)
+		protobufFailed = true
 		return
 	}
 	dec.Info = *info
@@ -38,10 +39,9 @@ func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.Mes
 			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, info.Sender, skdm.AxolotlSenderKeyDistributionMessage)
 		}
 	}
-	if dec.Message != nil {
+	if dec.Message != nil || dec.FBApplication != nil {
 		handlerFailed = cli.dispatchEvent(&dec)
 	}
-	handled = true
 	return
 }
 
@@ -67,7 +67,8 @@ func decodeArmadillo(data []byte) (dec events.FBMessage, err error) {
 }
 
 func decodeFBArmadillo(transport *waMsgTransport.MessageTransport) (dec events.FBMessage, err error) {
-	application, err := transport.GetPayload().DecodeFB()
+	var application *waMsgApplication.MessageApplication
+	application, err = transport.GetPayload().DecodeFB()
 	if err != nil {
 		return dec, fmt.Errorf("failed to unmarshal application: %w", err)
 	}

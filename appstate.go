@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/rs/zerolog"
+
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -124,6 +126,7 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 }
 
 func (cli *Client) dispatchAppState(ctx context.Context, mutation appstate.Mutation, fullSync bool, emitOnFullSync bool) {
+	zerolog.Ctx(ctx).Trace().Any("mutation", mutation).Msg("Dispatching app state mutation")
 	dispatchEvts := !fullSync || emitOnFullSync
 
 	if mutation.Operation != waServerSync.SyncdMutation_SET {
@@ -319,8 +322,7 @@ func (cli *Client) fetchAppStatePatches(ctx context.Context, name appstate.WAPat
 	if !snapshot {
 		attrs["version"] = fromVersion
 	}
-	resp, err := cli.sendIQ(infoQuery{
-		Context:   ctx,
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:sync:app:state",
 		Type:      "set",
 		To:        types.ServerJID,
@@ -381,13 +383,17 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 	}
 }
 
-// SendAppState sends the given app state patch, then resyncs that app state type from the server
+// SendAppState sends the given app state patch, then triggers a background resync of that app state type
 // to update local caches and send events for the updates.
 //
 // You can use the Build methods in the appstate package to build the parameter for this method, e.g.
 //
 //	cli.SendAppState(ctx, appstate.BuildMute(targetJID, true, 24 * time.Hour))
 func (cli *Client) SendAppState(ctx context.Context, patch appstate.PatchInfo) error {
+	return cli.sendAppState(ctx, patch, false)
+}
+
+func (cli *Client) sendAppState(ctx context.Context, patch appstate.PatchInfo, waitForSync bool) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -410,8 +416,7 @@ func (cli *Client) SendAppState(ctx context.Context, patch appstate.PatchInfo) e
 		return err
 	}
 
-	resp, err := cli.sendIQ(infoQuery{
-		Context:   ctx,
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:sync:app:state",
 		Type:      iqSet,
 		To:        types.ServerJID,
@@ -442,5 +447,32 @@ func (cli *Client) SendAppState(ctx context.Context, patch appstate.PatchInfo) e
 		return fmt.Errorf("%w: %s", ErrAppStateUpdate, respCollection.XMLString())
 	}
 
-	return cli.FetchAppState(ctx, patch.Type, false, false)
+	if waitForSync {
+		return cli.FetchAppState(ctx, patch.Type, false, false)
+	}
+
+	go func() {
+		err := cli.FetchAppState(ctx, patch.Type, false, false)
+		if err != nil {
+			cli.Log.Errorf("Failed to resync app state %s after sending update: %v", patch.Type, err)
+		}
+	}()
+
+	return nil
+}
+
+func (cli *Client) MarkNotDirty(ctx context.Context, cleanType string, ts time.Time) error {
+	_, err := cli.sendIQ(ctx, infoQuery{
+		Namespace: "urn:xmpp:whatsapp:dirty",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag: "clean",
+			Attrs: waBinary.Attrs{
+				"type":      cleanType,
+				"timestamp": ts.Unix(),
+			},
+		}},
+	})
+	return err
 }

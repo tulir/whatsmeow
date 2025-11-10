@@ -11,6 +11,17 @@ message StatusAttribution {
 		STATUS_MENTION = 4;
 		GROUP_STATUS = 5;
 		RL_ATTRIBUTION = 6;
+		AI_CREATED = 7;
+		LAYOUTS = 8;
+	}
+
+	message AiCreatedAttribution {
+		enum Source {
+			UNKNOWN = 0;
+			STATUS_MIMICRY = 1;
+		}
+
+		optional Source source = 1;
 	}
 
 	message RLAttribution {
@@ -34,6 +45,9 @@ message StatusAttribution {
 			YOUTUBE = 5;
 			PINTEREST = 6;
 			THREADS = 7;
+			APPLE_MUSIC = 8;
+			SHARECHAT = 9;
+			GOOGLE_PHOTOS = 10;
 		}
 
 		optional string actionURL = 1;
@@ -48,6 +62,7 @@ message StatusAttribution {
 			INTERNAL_RESHARE = 1;
 			MENTION_RESHARE = 2;
 			CHANNEL_RESHARE = 3;
+			FORWARD = 4;
 		}
 
 		message Metadata {
@@ -80,6 +95,7 @@ message StatusAttribution {
 		Music music = 5;
 		GroupStatus groupStatus = 6;
 		RLAttribution rlAttribution = 7;
+		AiCreatedAttribution aiCreatedAttribution = 8;
 	}
 
 	optional Type type = 1;

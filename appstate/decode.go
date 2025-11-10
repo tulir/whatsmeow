@@ -168,6 +168,7 @@ func (proc *Processor) decodeMutations(ctx context.Context, mutations []*waServe
 			PatchVersion: patchVersion,
 			Operation:    mutation.GetOperation(),
 			Action:       syncAction.GetValue(),
+			Version:      syncAction.GetVersion(),
 			Index:        index,
 			IndexMAC:     indexMAC,
 			ValueMAC:     valueMAC,
