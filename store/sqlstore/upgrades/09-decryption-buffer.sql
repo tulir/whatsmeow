@@ -1,5 +1,5 @@
 -- v9 (compatible with v8+): Add decrypted event buffer
-CREATE TABLE whatsmeow_event_buffer (
+CREATE TABLE IF NOT EXISTS whatsmeow_event_buffer (
 	business_id TEXT NOT NULL,
 	our_jid          TEXT   NOT NULL,
 	ciphertext_hash  bytea  NOT NULL CHECK ( length(ciphertext_hash) = 32 ),

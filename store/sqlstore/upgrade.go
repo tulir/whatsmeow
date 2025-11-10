@@ -77,7 +77,7 @@ func (clientInstance *ClientInstance) Upgrade() error {
 }
 
 func upgradeV1(tx pgx.Tx, _ *ClientInstance) error {
-	_, err := tx.Exec(context.Background(), `CREATE TABLE whatsmeow_device (
+	_, err := tx.Exec(context.Background(), `CREATE TABLE IF NOT EXISTS whatsmeow_device (
   	business_id TEXT NOT NULL,
 	jid TEXT NOT NULL,
 	lid TEXT,
@@ -103,12 +103,12 @@ func upgradeV1(tx pgx.Tx, _ *ClientInstance) error {
 	business_name TEXT NOT NULL DEFAULT '',
 	push_name     TEXT NOT NULL DEFAULT '',
 
-	lid_migration_ts BIGINT NOT NULL DEFAULT 0
+	lid_migration_ts BIGINT NOT NULL DEFAULT 0,
+
+	PRIMARY KEY (business_id, jid)
 );
 
-	ALTER TABLE whatsmeow_device ADD constraint pk_whatsmeow_device primary key (business_id, jid) ;
-
-	CREATE TABLE whatsmeow_identity_keys (
+	CREATE TABLE IF NOT EXISTS whatsmeow_identity_keys (
     business_id TEXT NOT NULL,
 	our_jid  TEXT,
 	their_id TEXT,
@@ -118,7 +118,7 @@ func upgradeV1(tx pgx.Tx, _ *ClientInstance) error {
 	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_pre_keys (
+CREATE TABLE IF NOT EXISTS whatsmeow_pre_keys (
 	business_id TEXT NOT NULL,
 	jid      TEXT,
 	key_id   INTEGER          CHECK ( key_id >= 0 AND key_id < 16777216 ),
@@ -129,7 +129,7 @@ CREATE TABLE whatsmeow_pre_keys (
 	FOREIGN KEY (business_id, jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_sessions (
+CREATE TABLE IF NOT EXISTS whatsmeow_sessions (
 	business_id TEXT NOT NULL,
 	our_jid  TEXT,
 	their_id TEXT,
@@ -139,7 +139,7 @@ CREATE TABLE whatsmeow_sessions (
 	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_sender_keys (
+CREATE TABLE IF NOT EXISTS whatsmeow_sender_keys (
     business_id TEXT NOT NULL,
 	our_jid    TEXT,
 	chat_id    TEXT,
@@ -150,7 +150,7 @@ CREATE TABLE whatsmeow_sender_keys (
 	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_app_state_sync_keys (
+CREATE TABLE IF NOT EXISTS whatsmeow_app_state_sync_keys (
 	business_id TEXT NOT NULL,
 	jid         TEXT,
 	key_id      bytea,
@@ -162,7 +162,7 @@ CREATE TABLE whatsmeow_app_state_sync_keys (
 	FOREIGN KEY (business_id, jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_app_state_version (
+CREATE TABLE IF NOT EXISTS whatsmeow_app_state_version (
 	business_id TEXT NOT NULL,
 	jid     TEXT,
 	name    TEXT,
@@ -173,7 +173,7 @@ CREATE TABLE whatsmeow_app_state_version (
 	FOREIGN KEY (business_id, jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_app_state_mutation_macs (
+CREATE TABLE IF NOT EXISTS whatsmeow_app_state_mutation_macs (
 	business_id TEXT NOT NULL,
 	jid       TEXT,
 	name      TEXT,
@@ -185,7 +185,7 @@ CREATE TABLE whatsmeow_app_state_mutation_macs (
 	FOREIGN KEY (business_id, jid, name) REFERENCES whatsmeow_app_state_version(business_id, jid, name) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_contacts (
+CREATE TABLE IF NOT EXISTS whatsmeow_contacts (
 	business_id TEXT NOT NULL,
 	our_jid        TEXT,
 	their_jid      TEXT,
@@ -199,7 +199,7 @@ CREATE TABLE whatsmeow_contacts (
 	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_chat_settings (
+CREATE TABLE IF NOT EXISTS whatsmeow_chat_settings (
 	business_id TEXT NOT NULL,
 	our_jid       TEXT,
 	chat_jid      TEXT,
@@ -211,7 +211,7 @@ CREATE TABLE whatsmeow_chat_settings (
 	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_message_secrets (
+CREATE TABLE IF NOT EXISTS whatsmeow_message_secrets (
 	business_id TEXT NOT NULL,
 	our_jid    TEXT,
 	chat_jid   TEXT,
@@ -223,7 +223,7 @@ CREATE TABLE whatsmeow_message_secrets (
 	FOREIGN KEY (business_id, our_jid) REFERENCES whatsmeow_device(business_id, jid) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-CREATE TABLE whatsmeow_privacy_tokens (
+CREATE TABLE IF NOT EXISTS whatsmeow_privacy_tokens (
 	business_id TEXT NOT NULL,
 	our_jid   TEXT,
 	their_jid TEXT,
@@ -232,14 +232,14 @@ CREATE TABLE whatsmeow_privacy_tokens (
 	PRIMARY KEY (business_id, our_jid, their_jid)
 );
 
-CREATE TABLE whatsmeow_lid_map (
+CREATE TABLE IF NOT EXISTS whatsmeow_lid_map (
 	business_id TEXT NOT NULL,
 	lid TEXT NOT NULL,
 	pn  TEXT UNIQUE NOT NULL,
 	PRIMARY KEY (business_id, lid)
 );
 
-CREATE TABLE whatsmeow_event_buffer (
+CREATE TABLE IF NOT EXISTS whatsmeow_event_buffer (
 	business_id TEXT NOT NULL,
 	our_jid          TEXT   NOT NULL,
 	ciphertext_hash  bytea  NOT NULL CHECK ( length(ciphertext_hash) = 32 ),

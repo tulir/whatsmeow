@@ -1,5 +1,5 @@
 -- v4: Add privacy tokens table
-CREATE TABLE whatsmeow_privacy_tokens (
+CREATE TABLE IF NOT EXISTS whatsmeow_privacy_tokens (
 	business_id TEXT NOT NULL,
 	our_jid   TEXT,
 	their_jid TEXT,
