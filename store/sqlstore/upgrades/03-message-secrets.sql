@@ -1,5 +1,5 @@
 -- v3: Add message secrets table
-CREATE TABLE whatsmeow_message_secrets (
+CREATE TABLE IF NOT EXISTS whatsmeow_message_secrets (
 	business_id TEXT NOT NULL,
 	our_jid    TEXT,
 	chat_jid   TEXT,
