@@ -182,7 +182,7 @@ func (cli *Client) SendFBMessage(
 	resp.DebugTimings.Resp = time.Since(start)
 	if isDisconnectNode(respNode) {
 		start = time.Now()
-		respNode, err = cli.retryFrame("message send", req.ID, data, respNode, ctx, 0)
+		respNode, err = cli.retryFrame(ctx, "message send", req.ID, data, respNode, 0)
 		resp.DebugTimings.Retry = time.Since(start)
 		if err != nil {
 			return
@@ -293,7 +293,7 @@ func (cli *Client) sendGroupV3(
 	node.Content = append(node.GetChildren(), skMsg)
 
 	start = time.Now()
-	data, err := cli.sendNodeAndGetData(*node)
+	data, err := cli.sendNodeAndGetData(ctx, *node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to send message node: %w", err)
@@ -324,7 +324,7 @@ func (cli *Client) sendDMV3(
 		return nil, "", err
 	}
 	start := time.Now()
-	data, err := cli.sendNodeAndGetData(*node)
+	data, err := cli.sendNodeAndGetData(ctx, *node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to send message node: %w", err)

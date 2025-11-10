@@ -22,6 +22,65 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type DeviceCapabilities_MemberNameTagPrimarySupport int32
+
+const (
+	DeviceCapabilities_DISABLED         DeviceCapabilities_MemberNameTagPrimarySupport = 0
+	DeviceCapabilities_RECEIVER_ENABLED DeviceCapabilities_MemberNameTagPrimarySupport = 1
+	DeviceCapabilities_SENDER_ENABLED   DeviceCapabilities_MemberNameTagPrimarySupport = 2
+)
+
+// Enum value maps for DeviceCapabilities_MemberNameTagPrimarySupport.
+var (
+	DeviceCapabilities_MemberNameTagPrimarySupport_name = map[int32]string{
+		0: "DISABLED",
+		1: "RECEIVER_ENABLED",
+		2: "SENDER_ENABLED",
+	}
+	DeviceCapabilities_MemberNameTagPrimarySupport_value = map[string]int32{
+		"DISABLED":         0,
+		"RECEIVER_ENABLED": 1,
+		"SENDER_ENABLED":   2,
+	}
+)
+
+func (x DeviceCapabilities_MemberNameTagPrimarySupport) Enum() *DeviceCapabilities_MemberNameTagPrimarySupport {
+	p := new(DeviceCapabilities_MemberNameTagPrimarySupport)
+	*p = x
+	return p
+}
+
+func (x DeviceCapabilities_MemberNameTagPrimarySupport) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (DeviceCapabilities_MemberNameTagPrimarySupport) Descriptor() protoreflect.EnumDescriptor {
+	return file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes[0].Descriptor()
+}
+
+func (DeviceCapabilities_MemberNameTagPrimarySupport) Type() protoreflect.EnumType {
+	return &file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes[0]
+}
+
+func (x DeviceCapabilities_MemberNameTagPrimarySupport) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *DeviceCapabilities_MemberNameTagPrimarySupport) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = DeviceCapabilities_MemberNameTagPrimarySupport(num)
+	return nil
+}
+
+// Deprecated: Use DeviceCapabilities_MemberNameTagPrimarySupport.Descriptor instead.
+func (DeviceCapabilities_MemberNameTagPrimarySupport) EnumDescriptor() ([]byte, []int) {
+	return file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 0}
+}
+
 type DeviceCapabilities_ChatLockSupportLevel int32
 
 const (
@@ -55,11 +114,11 @@ func (x DeviceCapabilities_ChatLockSupportLevel) String() string {
 }
 
 func (DeviceCapabilities_ChatLockSupportLevel) Descriptor() protoreflect.EnumDescriptor {
-	return file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes[0].Descriptor()
+	return file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes[1].Descriptor()
 }
 
 func (DeviceCapabilities_ChatLockSupportLevel) Type() protoreflect.EnumType {
-	return &file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes[0]
+	return &file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes[1]
 }
 
 func (x DeviceCapabilities_ChatLockSupportLevel) Number() protoreflect.EnumNumber {
@@ -78,17 +137,18 @@ func (x *DeviceCapabilities_ChatLockSupportLevel) UnmarshalJSON(b []byte) error 
 
 // Deprecated: Use DeviceCapabilities_ChatLockSupportLevel.Descriptor instead.
 func (DeviceCapabilities_ChatLockSupportLevel) EnumDescriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 0}
+	return file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 1}
 }
 
 type DeviceCapabilities struct {
-	state                protoimpl.MessageState                   `protogen:"open.v1"`
-	ChatLockSupportLevel *DeviceCapabilities_ChatLockSupportLevel `protobuf:"varint,1,opt,name=chatLockSupportLevel,enum=WAProtobufsDeviceCapabilities.DeviceCapabilities_ChatLockSupportLevel" json:"chatLockSupportLevel,omitempty"`
-	LidMigration         *DeviceCapabilities_LIDMigration         `protobuf:"bytes,2,opt,name=lidMigration" json:"lidMigration,omitempty"`
-	BusinessBroadcast    *DeviceCapabilities_BusinessBroadcast    `protobuf:"bytes,3,opt,name=businessBroadcast" json:"businessBroadcast,omitempty"`
-	UserHasAvatar        *DeviceCapabilities_UserHasAvatar        `protobuf:"bytes,4,opt,name=userHasAvatar" json:"userHasAvatar,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state                       protoimpl.MessageState                          `protogen:"open.v1"`
+	ChatLockSupportLevel        *DeviceCapabilities_ChatLockSupportLevel        `protobuf:"varint,1,opt,name=chatLockSupportLevel,enum=WAProtobufsDeviceCapabilities.DeviceCapabilities_ChatLockSupportLevel" json:"chatLockSupportLevel,omitempty"`
+	LidMigration                *DeviceCapabilities_LIDMigration                `protobuf:"bytes,2,opt,name=lidMigration" json:"lidMigration,omitempty"`
+	BusinessBroadcast           *DeviceCapabilities_BusinessBroadcast           `protobuf:"bytes,3,opt,name=businessBroadcast" json:"businessBroadcast,omitempty"`
+	UserHasAvatar               *DeviceCapabilities_UserHasAvatar               `protobuf:"bytes,4,opt,name=userHasAvatar" json:"userHasAvatar,omitempty"`
+	MemberNameTagPrimarySupport *DeviceCapabilities_MemberNameTagPrimarySupport `protobuf:"varint,5,opt,name=memberNameTagPrimarySupport,enum=WAProtobufsDeviceCapabilities.DeviceCapabilities_MemberNameTagPrimarySupport" json:"memberNameTagPrimarySupport,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *DeviceCapabilities) Reset() {
@@ -147,6 +207,13 @@ func (x *DeviceCapabilities) GetUserHasAvatar() *DeviceCapabilities_UserHasAvata
 		return x.UserHasAvatar
 	}
 	return nil
+}
+
+func (x *DeviceCapabilities) GetMemberNameTagPrimarySupport() DeviceCapabilities_MemberNameTagPrimarySupport {
+	if x != nil && x.MemberNameTagPrimarySupport != nil {
+		return *x.MemberNameTagPrimarySupport
+	}
+	return DeviceCapabilities_DISABLED
 }
 
 type DeviceCapabilities_UserHasAvatar struct {
@@ -285,18 +352,23 @@ var File_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto protoreflect.F
 
 const file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDesc = "" +
 	"\n" +
-	"8waDeviceCapabilities/WAProtobufsDeviceCapabilities.proto\x12\x1dWAProtobufsDeviceCapabilities\"\xcd\x05\n" +
+	"8waDeviceCapabilities/WAProtobufsDeviceCapabilities.proto\x12\x1dWAProtobufsDeviceCapabilities\"\xb6\a\n" +
 	"\x12DeviceCapabilities\x12z\n" +
 	"\x14chatLockSupportLevel\x18\x01 \x01(\x0e2F.WAProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevelR\x14chatLockSupportLevel\x12b\n" +
 	"\flidMigration\x18\x02 \x01(\v2>.WAProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigrationR\flidMigration\x12q\n" +
 	"\x11businessBroadcast\x18\x03 \x01(\v2C.WAProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcastR\x11businessBroadcast\x12e\n" +
-	"\ruserHasAvatar\x18\x04 \x01(\v2?.WAProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatarR\ruserHasAvatar\x1a5\n" +
+	"\ruserHasAvatar\x18\x04 \x01(\v2?.WAProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatarR\ruserHasAvatar\x12\x8f\x01\n" +
+	"\x1bmemberNameTagPrimarySupport\x18\x05 \x01(\x0e2M.WAProtobufsDeviceCapabilities.DeviceCapabilities.MemberNameTagPrimarySupportR\x1bmemberNameTagPrimarySupport\x1a5\n" +
 	"\rUserHasAvatar\x12$\n" +
 	"\ruserHasAvatar\x18\x01 \x01(\bR\ruserHasAvatar\x1aA\n" +
 	"\x11BusinessBroadcast\x12,\n" +
 	"\x11importListEnabled\x18\x01 \x01(\bR\x11importListEnabled\x1aJ\n" +
 	"\fLIDMigration\x12:\n" +
-	"\x18chatDbMigrationTimestamp\x18\x01 \x01(\x04R\x18chatDbMigrationTimestamp\"7\n" +
+	"\x18chatDbMigrationTimestamp\x18\x01 \x01(\x04R\x18chatDbMigrationTimestamp\"U\n" +
+	"\x1bMemberNameTagPrimarySupport\x12\f\n" +
+	"\bDISABLED\x10\x00\x12\x14\n" +
+	"\x10RECEIVER_ENABLED\x10\x01\x12\x12\n" +
+	"\x0eSENDER_ENABLED\x10\x02\"7\n" +
 	"\x14ChatLockSupportLevel\x12\b\n" +
 	"\x04NONE\x10\x00\x12\v\n" +
 	"\aMINIMAL\x10\x01\x12\b\n" +
@@ -314,25 +386,27 @@ func file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDescGZIP()
 	return file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDescData
 }
 
-var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_goTypes = []any{
-	(DeviceCapabilities_ChatLockSupportLevel)(0), // 0: WAProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
-	(*DeviceCapabilities)(nil),                   // 1: WAProtobufsDeviceCapabilities.DeviceCapabilities
-	(*DeviceCapabilities_UserHasAvatar)(nil),     // 2: WAProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
-	(*DeviceCapabilities_BusinessBroadcast)(nil), // 3: WAProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
-	(*DeviceCapabilities_LIDMigration)(nil),      // 4: WAProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
+	(DeviceCapabilities_MemberNameTagPrimarySupport)(0), // 0: WAProtobufsDeviceCapabilities.DeviceCapabilities.MemberNameTagPrimarySupport
+	(DeviceCapabilities_ChatLockSupportLevel)(0),        // 1: WAProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
+	(*DeviceCapabilities)(nil),                          // 2: WAProtobufsDeviceCapabilities.DeviceCapabilities
+	(*DeviceCapabilities_UserHasAvatar)(nil),            // 3: WAProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
+	(*DeviceCapabilities_BusinessBroadcast)(nil),        // 4: WAProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
+	(*DeviceCapabilities_LIDMigration)(nil),             // 5: WAProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
 }
 var file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_depIdxs = []int32{
-	0, // 0: WAProtobufsDeviceCapabilities.DeviceCapabilities.chatLockSupportLevel:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
-	4, // 1: WAProtobufsDeviceCapabilities.DeviceCapabilities.lidMigration:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
-	3, // 2: WAProtobufsDeviceCapabilities.DeviceCapabilities.businessBroadcast:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
-	2, // 3: WAProtobufsDeviceCapabilities.DeviceCapabilities.userHasAvatar:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	1, // 0: WAProtobufsDeviceCapabilities.DeviceCapabilities.chatLockSupportLevel:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
+	5, // 1: WAProtobufsDeviceCapabilities.DeviceCapabilities.lidMigration:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
+	4, // 2: WAProtobufsDeviceCapabilities.DeviceCapabilities.businessBroadcast:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
+	3, // 3: WAProtobufsDeviceCapabilities.DeviceCapabilities.userHasAvatar:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
+	0, // 4: WAProtobufsDeviceCapabilities.DeviceCapabilities.memberNameTagPrimarySupport:type_name -> WAProtobufsDeviceCapabilities.DeviceCapabilities.MemberNameTagPrimarySupport
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_init() }
@@ -345,7 +419,7 @@ func file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDesc), len(file_waDeviceCapabilities_WAProtobufsDeviceCapabilities_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,

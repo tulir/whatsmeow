@@ -64,6 +64,8 @@ const (
 	BotMetricsEntryPoint_MESSAGE_QUICK_ACTION_GROUP_CHAT     BotMetricsEntryPoint = 34
 	BotMetricsEntryPoint_ATTACHMENT_TRAY_1_ON_1_CHAT         BotMetricsEntryPoint = 35
 	BotMetricsEntryPoint_ATTACHMENT_TRAY_GROUP_CHAT          BotMetricsEntryPoint = 36
+	BotMetricsEntryPoint_ASK_META_AI_MEDIA_VIEWER_1ON1       BotMetricsEntryPoint = 37
+	BotMetricsEntryPoint_ASK_META_AI_MEDIA_VIEWER_GROUP      BotMetricsEntryPoint = 38
 )
 
 // Enum value maps for BotMetricsEntryPoint.
@@ -106,6 +108,8 @@ var (
 		34: "MESSAGE_QUICK_ACTION_GROUP_CHAT",
 		35: "ATTACHMENT_TRAY_1_ON_1_CHAT",
 		36: "ATTACHMENT_TRAY_GROUP_CHAT",
+		37: "ASK_META_AI_MEDIA_VIEWER_1ON1",
+		38: "ASK_META_AI_MEDIA_VIEWER_GROUP",
 	}
 	BotMetricsEntryPoint_value = map[string]int32{
 		"UNDEFINED_ENTRY_POINT":               0,
@@ -145,6 +149,8 @@ var (
 		"MESSAGE_QUICK_ACTION_GROUP_CHAT":     34,
 		"ATTACHMENT_TRAY_1_ON_1_CHAT":         35,
 		"ATTACHMENT_TRAY_GROUP_CHAT":          36,
+		"ASK_META_AI_MEDIA_VIEWER_1ON1":       37,
+		"ASK_META_AI_MEDIA_VIEWER_GROUP":      38,
 	}
 )
 
@@ -1285,6 +1291,10 @@ const (
 	BotCapabilityMetadata_RICH_RESPONSE_UR_INLINE_REELS_ENABLED  BotCapabilityMetadata_BotCapabilityType = 43
 	BotCapabilityMetadata_RICH_RESPONSE_UR_MEDIA_GRID_ENABLED    BotCapabilityMetadata_BotCapabilityType = 44
 	BotCapabilityMetadata_RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER BotCapabilityMetadata_BotCapabilityType = 45
+	BotCapabilityMetadata_RICH_RESPONSE_IN_APP_SURVEY            BotCapabilityMetadata_BotCapabilityType = 46
+	BotCapabilityMetadata_AI_RESPONSE_MODEL_BRANDING             BotCapabilityMetadata_BotCapabilityType = 47
+	BotCapabilityMetadata_SESSION_TRANSPARENCY_SYSTEM_MESSAGE    BotCapabilityMetadata_BotCapabilityType = 48
+	BotCapabilityMetadata_RICH_RESPONSE_UR_REASONING             BotCapabilityMetadata_BotCapabilityType = 49
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -1336,6 +1346,10 @@ var (
 		43: "RICH_RESPONSE_UR_INLINE_REELS_ENABLED",
 		44: "RICH_RESPONSE_UR_MEDIA_GRID_ENABLED",
 		45: "RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER",
+		46: "RICH_RESPONSE_IN_APP_SURVEY",
+		47: "AI_RESPONSE_MODEL_BRANDING",
+		48: "SESSION_TRANSPARENCY_SYSTEM_MESSAGE",
+		49: "RICH_RESPONSE_UR_REASONING",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
 		"UNKNOWN":                                0,
@@ -1384,6 +1398,10 @@ var (
 		"RICH_RESPONSE_UR_INLINE_REELS_ENABLED":  43,
 		"RICH_RESPONSE_UR_MEDIA_GRID_ENABLED":    44,
 		"RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER": 45,
+		"RICH_RESPONSE_IN_APP_SURVEY":            46,
+		"AI_RESPONSE_MODEL_BRANDING":             47,
+		"SESSION_TRANSPARENCY_SYSTEM_MESSAGE":    48,
+		"RICH_RESPONSE_UR_REASONING":             49,
 	}
 )
 
@@ -2357,6 +2375,68 @@ func (AIRichResponseContentItemsMetadata_ContentType) EnumDescriptor() ([]byte, 
 	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{20, 0}
 }
 
+type AIHomeState_AIHomeOption_AIHomeActionType int32
+
+const (
+	AIHomeState_AIHomeOption_PROMPT        AIHomeState_AIHomeOption_AIHomeActionType = 0
+	AIHomeState_AIHomeOption_CREATE_IMAGE  AIHomeState_AIHomeOption_AIHomeActionType = 1
+	AIHomeState_AIHomeOption_ANIMATE_PHOTO AIHomeState_AIHomeOption_AIHomeActionType = 2
+	AIHomeState_AIHomeOption_ANALYZE_FILE  AIHomeState_AIHomeOption_AIHomeActionType = 3
+)
+
+// Enum value maps for AIHomeState_AIHomeOption_AIHomeActionType.
+var (
+	AIHomeState_AIHomeOption_AIHomeActionType_name = map[int32]string{
+		0: "PROMPT",
+		1: "CREATE_IMAGE",
+		2: "ANIMATE_PHOTO",
+		3: "ANALYZE_FILE",
+	}
+	AIHomeState_AIHomeOption_AIHomeActionType_value = map[string]int32{
+		"PROMPT":        0,
+		"CREATE_IMAGE":  1,
+		"ANIMATE_PHOTO": 2,
+		"ANALYZE_FILE":  3,
+	}
+)
+
+func (x AIHomeState_AIHomeOption_AIHomeActionType) Enum() *AIHomeState_AIHomeOption_AIHomeActionType {
+	p := new(AIHomeState_AIHomeOption_AIHomeActionType)
+	*p = x
+	return p
+}
+
+func (x AIHomeState_AIHomeOption_AIHomeActionType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AIHomeState_AIHomeOption_AIHomeActionType) Descriptor() protoreflect.EnumDescriptor {
+	return file_waAICommon_WAAICommon_proto_enumTypes[34].Descriptor()
+}
+
+func (AIHomeState_AIHomeOption_AIHomeActionType) Type() protoreflect.EnumType {
+	return &file_waAICommon_WAAICommon_proto_enumTypes[34]
+}
+
+func (x AIHomeState_AIHomeOption_AIHomeActionType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *AIHomeState_AIHomeOption_AIHomeActionType) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = AIHomeState_AIHomeOption_AIHomeActionType(num)
+	return nil
+}
+
+// Deprecated: Use AIHomeState_AIHomeOption_AIHomeActionType.Descriptor instead.
+func (AIHomeState_AIHomeOption_AIHomeActionType) EnumDescriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{21, 0, 0}
+}
+
 type BotPluginMetadata struct {
 	state                  protoimpl.MessageState            `protogen:"open.v1"`
 	Provider               *BotPluginMetadata_SearchProvider `protobuf:"varint,1,opt,name=provider,enum=WAAICommon.BotPluginMetadata_SearchProvider" json:"provider,omitempty"`
@@ -2825,6 +2905,7 @@ type BotModelMetadata struct {
 	state              protoimpl.MessageState               `protogen:"open.v1"`
 	ModelType          *BotModelMetadata_ModelType          `protobuf:"varint,1,opt,name=modelType,enum=WAAICommon.BotModelMetadata_ModelType" json:"modelType,omitempty"`
 	PremiumModelStatus *BotModelMetadata_PremiumModelStatus `protobuf:"varint,2,opt,name=premiumModelStatus,enum=WAAICommon.BotModelMetadata_PremiumModelStatus" json:"premiumModelStatus,omitempty"`
+	ModelNameOverride  *string                              `protobuf:"bytes,3,opt,name=modelNameOverride" json:"modelNameOverride,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -2871,6 +2952,13 @@ func (x *BotModelMetadata) GetPremiumModelStatus() BotModelMetadata_PremiumModel
 		return *x.PremiumModelStatus
 	}
 	return BotModelMetadata_UNKNOWN_STATUS
+}
+
+func (x *BotModelMetadata) GetModelNameOverride() string {
+	if x != nil && x.ModelNameOverride != nil {
+		return *x.ModelNameOverride
+	}
+	return ""
 }
 
 type BotProgressIndicatorMetadata struct {
@@ -3633,6 +3721,66 @@ func (x *AIRichResponseContentItemsMetadata) GetContentType() AIRichResponseCont
 	return AIRichResponseContentItemsMetadata_DEFAULT
 }
 
+type AIHomeState struct {
+	state               protoimpl.MessageState      `protogen:"open.v1"`
+	LastFetchTime       *int64                      `protobuf:"varint,1,opt,name=lastFetchTime" json:"lastFetchTime,omitempty"`
+	CapabilityOptions   []*AIHomeState_AIHomeOption `protobuf:"bytes,2,rep,name=capabilityOptions" json:"capabilityOptions,omitempty"`
+	ConversationOptions []*AIHomeState_AIHomeOption `protobuf:"bytes,3,rep,name=conversationOptions" json:"conversationOptions,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *AIHomeState) Reset() {
+	*x = AIHomeState{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AIHomeState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AIHomeState) ProtoMessage() {}
+
+func (x *AIHomeState) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AIHomeState.ProtoReflect.Descriptor instead.
+func (*AIHomeState) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *AIHomeState) GetLastFetchTime() int64 {
+	if x != nil && x.LastFetchTime != nil {
+		return *x.LastFetchTime
+	}
+	return 0
+}
+
+func (x *AIHomeState) GetCapabilityOptions() []*AIHomeState_AIHomeOption {
+	if x != nil {
+		return x.CapabilityOptions
+	}
+	return nil
+}
+
+func (x *AIHomeState) GetConversationOptions() []*AIHomeState_AIHomeOption {
+	if x != nil {
+		return x.ConversationOptions
+	}
+	return nil
+}
+
 type BotAvatarMetadata struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Sentiment     *uint32                `protobuf:"varint,1,opt,name=sentiment" json:"sentiment,omitempty"`
@@ -3646,7 +3794,7 @@ type BotAvatarMetadata struct {
 
 func (x *BotAvatarMetadata) Reset() {
 	*x = BotAvatarMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[21]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3658,7 +3806,7 @@ func (x *BotAvatarMetadata) String() string {
 func (*BotAvatarMetadata) ProtoMessage() {}
 
 func (x *BotAvatarMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[21]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3671,7 +3819,7 @@ func (x *BotAvatarMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotAvatarMetadata.ProtoReflect.Descriptor instead.
 func (*BotAvatarMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{21}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *BotAvatarMetadata) GetSentiment() uint32 {
@@ -3721,7 +3869,7 @@ type BotSuggestedPromptMetadata struct {
 
 func (x *BotSuggestedPromptMetadata) Reset() {
 	*x = BotSuggestedPromptMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[22]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3733,7 +3881,7 @@ func (x *BotSuggestedPromptMetadata) String() string {
 func (*BotSuggestedPromptMetadata) ProtoMessage() {}
 
 func (x *BotSuggestedPromptMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[22]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3746,7 +3894,7 @@ func (x *BotSuggestedPromptMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotSuggestedPromptMetadata.ProtoReflect.Descriptor instead.
 func (*BotSuggestedPromptMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{22}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *BotSuggestedPromptMetadata) GetSuggestedPrompts() []string {
@@ -3786,7 +3934,7 @@ type BotPromptSuggestions struct {
 
 func (x *BotPromptSuggestions) Reset() {
 	*x = BotPromptSuggestions{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[23]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3798,7 +3946,7 @@ func (x *BotPromptSuggestions) String() string {
 func (*BotPromptSuggestions) ProtoMessage() {}
 
 func (x *BotPromptSuggestions) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[23]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3811,7 +3959,7 @@ func (x *BotPromptSuggestions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotPromptSuggestions.ProtoReflect.Descriptor instead.
 func (*BotPromptSuggestions) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{23}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *BotPromptSuggestions) GetSuggestions() []*BotPromptSuggestion {
@@ -3831,7 +3979,7 @@ type BotPromptSuggestion struct {
 
 func (x *BotPromptSuggestion) Reset() {
 	*x = BotPromptSuggestion{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[24]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3843,7 +3991,7 @@ func (x *BotPromptSuggestion) String() string {
 func (*BotPromptSuggestion) ProtoMessage() {}
 
 func (x *BotPromptSuggestion) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[24]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3856,7 +4004,7 @@ func (x *BotPromptSuggestion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotPromptSuggestion.ProtoReflect.Descriptor instead.
 func (*BotPromptSuggestion) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{24}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *BotPromptSuggestion) GetPrompt() string {
@@ -3884,7 +4032,7 @@ type BotLinkedAccountsMetadata struct {
 
 func (x *BotLinkedAccountsMetadata) Reset() {
 	*x = BotLinkedAccountsMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[25]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3896,7 +4044,7 @@ func (x *BotLinkedAccountsMetadata) String() string {
 func (*BotLinkedAccountsMetadata) ProtoMessage() {}
 
 func (x *BotLinkedAccountsMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[25]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3909,7 +4057,7 @@ func (x *BotLinkedAccountsMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotLinkedAccountsMetadata.ProtoReflect.Descriptor instead.
 func (*BotLinkedAccountsMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{25}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *BotLinkedAccountsMetadata) GetAccounts() []*BotLinkedAccount {
@@ -3944,7 +4092,7 @@ type BotMemoryMetadata struct {
 
 func (x *BotMemoryMetadata) Reset() {
 	*x = BotMemoryMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[26]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3956,7 +4104,7 @@ func (x *BotMemoryMetadata) String() string {
 func (*BotMemoryMetadata) ProtoMessage() {}
 
 func (x *BotMemoryMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[26]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3969,7 +4117,7 @@ func (x *BotMemoryMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMemoryMetadata.ProtoReflect.Descriptor instead.
 func (*BotMemoryMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{26}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *BotMemoryMetadata) GetAddedFacts() []*BotMemoryFact {
@@ -4003,7 +4151,7 @@ type BotMemoryFact struct {
 
 func (x *BotMemoryFact) Reset() {
 	*x = BotMemoryFact{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[27]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4015,7 +4163,7 @@ func (x *BotMemoryFact) String() string {
 func (*BotMemoryFact) ProtoMessage() {}
 
 func (x *BotMemoryFact) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[27]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4028,7 +4176,7 @@ func (x *BotMemoryFact) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMemoryFact.ProtoReflect.Descriptor instead.
 func (*BotMemoryFact) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{27}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *BotMemoryFact) GetFact() string {
@@ -4054,7 +4202,7 @@ type BotSignatureVerificationMetadata struct {
 
 func (x *BotSignatureVerificationMetadata) Reset() {
 	*x = BotSignatureVerificationMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[28]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4066,7 +4214,7 @@ func (x *BotSignatureVerificationMetadata) String() string {
 func (*BotSignatureVerificationMetadata) ProtoMessage() {}
 
 func (x *BotSignatureVerificationMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[28]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4079,7 +4227,7 @@ func (x *BotSignatureVerificationMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotSignatureVerificationMetadata.ProtoReflect.Descriptor instead.
 func (*BotSignatureVerificationMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{28}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *BotSignatureVerificationMetadata) GetProofs() []*BotSignatureVerificationUseCaseProof {
@@ -4098,7 +4246,7 @@ type BotRenderingMetadata struct {
 
 func (x *BotRenderingMetadata) Reset() {
 	*x = BotRenderingMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[29]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4110,7 +4258,7 @@ func (x *BotRenderingMetadata) String() string {
 func (*BotRenderingMetadata) ProtoMessage() {}
 
 func (x *BotRenderingMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[29]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4123,7 +4271,7 @@ func (x *BotRenderingMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotRenderingMetadata.ProtoReflect.Descriptor instead.
 func (*BotRenderingMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{29}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *BotRenderingMetadata) GetKeywords() []*BotRenderingMetadata_Keyword {
@@ -4144,7 +4292,7 @@ type BotMetricsMetadata struct {
 
 func (x *BotMetricsMetadata) Reset() {
 	*x = BotMetricsMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[30]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4156,7 +4304,7 @@ func (x *BotMetricsMetadata) String() string {
 func (*BotMetricsMetadata) ProtoMessage() {}
 
 func (x *BotMetricsMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[30]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4169,7 +4317,7 @@ func (x *BotMetricsMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMetricsMetadata.ProtoReflect.Descriptor instead.
 func (*BotMetricsMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{30}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *BotMetricsMetadata) GetDestinationID() string {
@@ -4203,7 +4351,7 @@ type BotSessionMetadata struct {
 
 func (x *BotSessionMetadata) Reset() {
 	*x = BotSessionMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[31]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4215,7 +4363,7 @@ func (x *BotSessionMetadata) String() string {
 func (*BotSessionMetadata) ProtoMessage() {}
 
 func (x *BotSessionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[31]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4228,7 +4376,7 @@ func (x *BotSessionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotSessionMetadata.ProtoReflect.Descriptor instead.
 func (*BotSessionMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{31}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *BotSessionMetadata) GetSessionID() string {
@@ -4254,7 +4402,7 @@ type BotMemuMetadata struct {
 
 func (x *BotMemuMetadata) Reset() {
 	*x = BotMemuMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[32]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4266,7 +4414,7 @@ func (x *BotMemuMetadata) String() string {
 func (*BotMemuMetadata) ProtoMessage() {}
 
 func (x *BotMemuMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[32]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4279,7 +4427,7 @@ func (x *BotMemuMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMemuMetadata.ProtoReflect.Descriptor instead.
 func (*BotMemuMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{32}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *BotMemuMetadata) GetFaceImages() []*BotMediaMetadata {
@@ -4314,7 +4462,7 @@ type InThreadSurveyMetadata struct {
 
 func (x *InThreadSurveyMetadata) Reset() {
 	*x = InThreadSurveyMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[33]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4326,7 +4474,7 @@ func (x *InThreadSurveyMetadata) String() string {
 func (*InThreadSurveyMetadata) ProtoMessage() {}
 
 func (x *InThreadSurveyMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[33]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4339,7 +4487,7 @@ func (x *InThreadSurveyMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InThreadSurveyMetadata.ProtoReflect.Descriptor instead.
 func (*InThreadSurveyMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{33}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *InThreadSurveyMetadata) GetTessaSessionID() string {
@@ -4470,7 +4618,7 @@ type BotMessageOriginMetadata struct {
 
 func (x *BotMessageOriginMetadata) Reset() {
 	*x = BotMessageOriginMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[34]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4482,7 +4630,7 @@ func (x *BotMessageOriginMetadata) String() string {
 func (*BotMessageOriginMetadata) ProtoMessage() {}
 
 func (x *BotMessageOriginMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[34]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4495,7 +4643,7 @@ func (x *BotMessageOriginMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMessageOriginMetadata.ProtoReflect.Descriptor instead.
 func (*BotMessageOriginMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{34}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *BotMessageOriginMetadata) GetOrigins() []*BotMessageOrigin {
@@ -4515,7 +4663,7 @@ type BotUnifiedResponseMutation struct {
 
 func (x *BotUnifiedResponseMutation) Reset() {
 	*x = BotUnifiedResponseMutation{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[35]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4527,7 +4675,7 @@ func (x *BotUnifiedResponseMutation) String() string {
 func (*BotUnifiedResponseMutation) ProtoMessage() {}
 
 func (x *BotUnifiedResponseMutation) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[35]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4540,7 +4688,7 @@ func (x *BotUnifiedResponseMutation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotUnifiedResponseMutation.ProtoReflect.Descriptor instead.
 func (*BotUnifiedResponseMutation) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{35}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *BotUnifiedResponseMutation) GetSbsMetadata() *BotUnifiedResponseMutation_SideBySideMetadata {
@@ -4590,6 +4738,8 @@ type BotMetadata struct {
 	BotMessageOriginMetadata    *BotMessageOriginMetadata         `protobuf:"bytes,29,opt,name=botMessageOriginMetadata" json:"botMessageOriginMetadata,omitempty"`
 	InThreadSurveyMetadata      *InThreadSurveyMetadata           `protobuf:"bytes,30,opt,name=inThreadSurveyMetadata" json:"inThreadSurveyMetadata,omitempty"`
 	BotThreadInfo               *AIThreadInfo                     `protobuf:"bytes,31,opt,name=botThreadInfo" json:"botThreadInfo,omitempty"`
+	RegenerateMetadata          *AIRegenerateMetadata             `protobuf:"bytes,32,opt,name=regenerateMetadata" json:"regenerateMetadata,omitempty"`
+	SessionTransparencyMetadata *SessionTransparencyMetadata      `protobuf:"bytes,33,opt,name=sessionTransparencyMetadata" json:"sessionTransparencyMetadata,omitempty"`
 	InternalMetadata            []byte                            `protobuf:"bytes,999,opt,name=internalMetadata" json:"internalMetadata,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
@@ -4597,7 +4747,7 @@ type BotMetadata struct {
 
 func (x *BotMetadata) Reset() {
 	*x = BotMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[36]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4609,7 +4759,7 @@ func (x *BotMetadata) String() string {
 func (*BotMetadata) ProtoMessage() {}
 
 func (x *BotMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[36]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4622,7 +4772,7 @@ func (x *BotMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMetadata.ProtoReflect.Descriptor instead.
 func (*BotMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{36}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *BotMetadata) GetAvatarMetadata() *BotAvatarMetadata {
@@ -4842,6 +4992,20 @@ func (x *BotMetadata) GetBotThreadInfo() *AIThreadInfo {
 	return nil
 }
 
+func (x *BotMetadata) GetRegenerateMetadata() *AIRegenerateMetadata {
+	if x != nil {
+		return x.RegenerateMetadata
+	}
+	return nil
+}
+
+func (x *BotMetadata) GetSessionTransparencyMetadata() *SessionTransparencyMetadata {
+	if x != nil {
+		return x.SessionTransparencyMetadata
+	}
+	return nil
+}
+
 func (x *BotMetadata) GetInternalMetadata() []byte {
 	if x != nil {
 		return x.InternalMetadata
@@ -4860,7 +5024,7 @@ type ForwardedAIBotMessageInfo struct {
 
 func (x *ForwardedAIBotMessageInfo) Reset() {
 	*x = ForwardedAIBotMessageInfo{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[37]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4872,7 +5036,7 @@ func (x *ForwardedAIBotMessageInfo) String() string {
 func (*ForwardedAIBotMessageInfo) ProtoMessage() {}
 
 func (x *ForwardedAIBotMessageInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[37]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4885,7 +5049,7 @@ func (x *ForwardedAIBotMessageInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForwardedAIBotMessageInfo.ProtoReflect.Descriptor instead.
 func (*ForwardedAIBotMessageInfo) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{37}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ForwardedAIBotMessageInfo) GetBotName() string {
@@ -4919,7 +5083,7 @@ type BotMessageSharingInfo struct {
 
 func (x *BotMessageSharingInfo) Reset() {
 	*x = BotMessageSharingInfo{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[38]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4931,7 +5095,7 @@ func (x *BotMessageSharingInfo) String() string {
 func (*BotMessageSharingInfo) ProtoMessage() {}
 
 func (x *BotMessageSharingInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[38]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4944,7 +5108,7 @@ func (x *BotMessageSharingInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotMessageSharingInfo.ProtoReflect.Descriptor instead.
 func (*BotMessageSharingInfo) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{38}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *BotMessageSharingInfo) GetBotEntryPointOrigin() BotMetricsEntryPoint {
@@ -4972,7 +5136,7 @@ type AIRichResponseImageURL struct {
 
 func (x *AIRichResponseImageURL) Reset() {
 	*x = AIRichResponseImageURL{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[39]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4984,7 +5148,7 @@ func (x *AIRichResponseImageURL) String() string {
 func (*AIRichResponseImageURL) ProtoMessage() {}
 
 func (x *AIRichResponseImageURL) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[39]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4997,7 +5161,7 @@ func (x *AIRichResponseImageURL) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AIRichResponseImageURL.ProtoReflect.Descriptor instead.
 func (*AIRichResponseImageURL) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{39}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *AIRichResponseImageURL) GetImagePreviewURL() string {
@@ -5031,7 +5195,7 @@ type AIRichResponseGridImageMetadata struct {
 
 func (x *AIRichResponseGridImageMetadata) Reset() {
 	*x = AIRichResponseGridImageMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[40]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5043,7 +5207,7 @@ func (x *AIRichResponseGridImageMetadata) String() string {
 func (*AIRichResponseGridImageMetadata) ProtoMessage() {}
 
 func (x *AIRichResponseGridImageMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[40]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5056,7 +5220,7 @@ func (x *AIRichResponseGridImageMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AIRichResponseGridImageMetadata.ProtoReflect.Descriptor instead.
 func (*AIRichResponseGridImageMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{40}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *AIRichResponseGridImageMetadata) GetGridImageURL() *AIRichResponseImageURL {
@@ -5083,7 +5247,7 @@ type AIRichResponseTableMetadata struct {
 
 func (x *AIRichResponseTableMetadata) Reset() {
 	*x = AIRichResponseTableMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[41]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5095,7 +5259,7 @@ func (x *AIRichResponseTableMetadata) String() string {
 func (*AIRichResponseTableMetadata) ProtoMessage() {}
 
 func (x *AIRichResponseTableMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[41]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5108,7 +5272,7 @@ func (x *AIRichResponseTableMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AIRichResponseTableMetadata.ProtoReflect.Descriptor instead.
 func (*AIRichResponseTableMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{41}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *AIRichResponseTableMetadata) GetRows() []*AIRichResponseTableMetadata_AIRichResponseTableRow {
@@ -5134,7 +5298,7 @@ type AIRichResponseUnifiedResponse struct {
 
 func (x *AIRichResponseUnifiedResponse) Reset() {
 	*x = AIRichResponseUnifiedResponse{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[42]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5146,7 +5310,7 @@ func (x *AIRichResponseUnifiedResponse) String() string {
 func (*AIRichResponseUnifiedResponse) ProtoMessage() {}
 
 func (x *AIRichResponseUnifiedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[42]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5159,7 +5323,7 @@ func (x *AIRichResponseUnifiedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AIRichResponseUnifiedResponse.ProtoReflect.Descriptor instead.
 func (*AIRichResponseUnifiedResponse) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{42}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *AIRichResponseUnifiedResponse) GetData() []byte {
@@ -5179,7 +5343,7 @@ type AIRichResponseLatexMetadata struct {
 
 func (x *AIRichResponseLatexMetadata) Reset() {
 	*x = AIRichResponseLatexMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[43]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5191,7 +5355,7 @@ func (x *AIRichResponseLatexMetadata) String() string {
 func (*AIRichResponseLatexMetadata) ProtoMessage() {}
 
 func (x *AIRichResponseLatexMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[43]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5204,7 +5368,7 @@ func (x *AIRichResponseLatexMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AIRichResponseLatexMetadata.ProtoReflect.Descriptor instead.
 func (*AIRichResponseLatexMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{43}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *AIRichResponseLatexMetadata) GetText() string {
@@ -5235,7 +5399,7 @@ type AIRichResponseMapMetadata struct {
 
 func (x *AIRichResponseMapMetadata) Reset() {
 	*x = AIRichResponseMapMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[44]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5247,7 +5411,7 @@ func (x *AIRichResponseMapMetadata) String() string {
 func (*AIRichResponseMapMetadata) ProtoMessage() {}
 
 func (x *AIRichResponseMapMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[44]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5260,7 +5424,7 @@ func (x *AIRichResponseMapMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AIRichResponseMapMetadata.ProtoReflect.Descriptor instead.
 func (*AIRichResponseMapMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{44}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *AIRichResponseMapMetadata) GetCenterLatitude() float64 {
@@ -5323,7 +5487,7 @@ type AIRichResponseSubMessage struct {
 
 func (x *AIRichResponseSubMessage) Reset() {
 	*x = AIRichResponseSubMessage{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[45]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5335,7 +5499,7 @@ func (x *AIRichResponseSubMessage) String() string {
 func (*AIRichResponseSubMessage) ProtoMessage() {}
 
 func (x *AIRichResponseSubMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[45]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5348,7 +5512,7 @@ func (x *AIRichResponseSubMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AIRichResponseSubMessage.ProtoReflect.Descriptor instead.
 func (*AIRichResponseSubMessage) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{45}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *AIRichResponseSubMessage) GetMessageType() AIRichResponseSubMessageType {
@@ -5421,6 +5585,110 @@ func (x *AIRichResponseSubMessage) GetContentItemsMetadata() *AIRichResponseCont
 	return nil
 }
 
+type AIRegenerateMetadata struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	MessageKey          *waCommon.MessageKey   `protobuf:"bytes,1,opt,name=messageKey" json:"messageKey,omitempty"`
+	ResponseTimestampMS *int64                 `protobuf:"varint,2,opt,name=responseTimestampMS" json:"responseTimestampMS,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *AIRegenerateMetadata) Reset() {
+	*x = AIRegenerateMetadata{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AIRegenerateMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AIRegenerateMetadata) ProtoMessage() {}
+
+func (x *AIRegenerateMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AIRegenerateMetadata.ProtoReflect.Descriptor instead.
+func (*AIRegenerateMetadata) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *AIRegenerateMetadata) GetMessageKey() *waCommon.MessageKey {
+	if x != nil {
+		return x.MessageKey
+	}
+	return nil
+}
+
+func (x *AIRegenerateMetadata) GetResponseTimestampMS() int64 {
+	if x != nil && x.ResponseTimestampMS != nil {
+		return *x.ResponseTimestampMS
+	}
+	return 0
+}
+
+type SessionTransparencyMetadata struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	DisclaimerText *string                `protobuf:"bytes,1,opt,name=disclaimerText" json:"disclaimerText,omitempty"`
+	HcaID          *string                `protobuf:"bytes,2,opt,name=hcaID" json:"hcaID,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *SessionTransparencyMetadata) Reset() {
+	*x = SessionTransparencyMetadata{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SessionTransparencyMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SessionTransparencyMetadata) ProtoMessage() {}
+
+func (x *SessionTransparencyMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SessionTransparencyMetadata.ProtoReflect.Descriptor instead.
+func (*SessionTransparencyMetadata) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *SessionTransparencyMetadata) GetDisclaimerText() string {
+	if x != nil && x.DisclaimerText != nil {
+		return *x.DisclaimerText
+	}
+	return ""
+}
+
+func (x *SessionTransparencyMetadata) GetHcaID() string {
+	if x != nil && x.HcaID != nil {
+		return *x.HcaID
+	}
+	return ""
+}
+
 type BotProgressIndicatorMetadata_BotPlanningStepMetadata struct {
 	state            protoimpl.MessageState                                                                   `protogen:"open.v1"`
 	StatusTitle      *string                                                                                  `protobuf:"bytes,1,opt,name=statusTitle" json:"statusTitle,omitempty"`
@@ -5436,7 +5704,7 @@ type BotProgressIndicatorMetadata_BotPlanningStepMetadata struct {
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata) Reset() {
 	*x = BotProgressIndicatorMetadata_BotPlanningStepMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[46]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5448,7 +5716,7 @@ func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata) String() string {
 func (*BotProgressIndicatorMetadata_BotPlanningStepMetadata) ProtoMessage() {}
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[46]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5524,7 +5792,7 @@ type BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourc
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata) Reset() {
 	*x = BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[47]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5537,7 +5805,7 @@ func (*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSou
 }
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[47]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5585,7 +5853,7 @@ type BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSection
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata) Reset() {
 	*x = BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[48]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5598,7 +5866,7 @@ func (*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSecti
 }
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[48]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5647,7 +5915,7 @@ type BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourc
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata) Reset() {
 	*x = BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[49]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5660,7 +5928,7 @@ func (*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSou
 }
 
 func (x *BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[49]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5715,7 +5983,7 @@ type BotQuotaMetadata_BotFeatureQuotaMetadata struct {
 
 func (x *BotQuotaMetadata_BotFeatureQuotaMetadata) Reset() {
 	*x = BotQuotaMetadata_BotFeatureQuotaMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[50]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5727,7 +5995,7 @@ func (x *BotQuotaMetadata_BotFeatureQuotaMetadata) String() string {
 func (*BotQuotaMetadata_BotFeatureQuotaMetadata) ProtoMessage() {}
 
 func (x *BotQuotaMetadata_BotFeatureQuotaMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[50]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5779,7 +6047,7 @@ type BotSourcesMetadata_BotSourceItem struct {
 
 func (x *BotSourcesMetadata_BotSourceItem) Reset() {
 	*x = BotSourcesMetadata_BotSourceItem{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[51]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5791,7 +6059,7 @@ func (x *BotSourcesMetadata_BotSourceItem) String() string {
 func (*BotSourcesMetadata_BotSourceItem) ProtoMessage() {}
 
 func (x *BotSourcesMetadata_BotSourceItem) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[51]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5865,7 +6133,7 @@ type AIThreadInfo_AIThreadClientInfo struct {
 
 func (x *AIThreadInfo_AIThreadClientInfo) Reset() {
 	*x = AIThreadInfo_AIThreadClientInfo{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[52]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5877,7 +6145,7 @@ func (x *AIThreadInfo_AIThreadClientInfo) String() string {
 func (*AIThreadInfo_AIThreadClientInfo) ProtoMessage() {}
 
 func (x *AIThreadInfo_AIThreadClientInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[52]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5909,7 +6177,7 @@ type AIThreadInfo_AIThreadServerInfo struct {
 
 func (x *AIThreadInfo_AIThreadServerInfo) Reset() {
 	*x = AIThreadInfo_AIThreadServerInfo{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[53]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5921,7 +6189,7 @@ func (x *AIThreadInfo_AIThreadServerInfo) String() string {
 func (*AIThreadInfo_AIThreadServerInfo) ProtoMessage() {}
 
 func (x *AIThreadInfo_AIThreadServerInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[53]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5945,22 +6213,23 @@ func (x *AIThreadInfo_AIThreadServerInfo) GetTitle() string {
 }
 
 type BotFeedbackMessage_SideBySideSurveyMetadata struct {
-	state                     protoimpl.MessageState                                                     `protogen:"open.v1"`
-	SelectedRequestID         *string                                                                    `protobuf:"bytes,1,opt,name=selectedRequestID" json:"selectedRequestID,omitempty"`
-	SurveyID                  *uint32                                                                    `protobuf:"varint,2,opt,name=surveyID" json:"surveyID,omitempty"`
-	SimonSessionFbid          *string                                                                    `protobuf:"bytes,3,opt,name=simonSessionFbid" json:"simonSessionFbid,omitempty"`
-	ResponseOtid              *string                                                                    `protobuf:"bytes,4,opt,name=responseOtid" json:"responseOtid,omitempty"`
-	ResponseTimestampMSString *string                                                                    `protobuf:"bytes,5,opt,name=responseTimestampMSString" json:"responseTimestampMSString,omitempty"`
-	IsSelectedResponsePrimary *bool                                                                      `protobuf:"varint,6,opt,name=isSelectedResponsePrimary" json:"isSelectedResponsePrimary,omitempty"`
-	MessageIDToEdit           *string                                                                    `protobuf:"bytes,7,opt,name=messageIDToEdit" json:"messageIDToEdit,omitempty"`
-	AnalyticsData             *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData `protobuf:"bytes,8,opt,name=analyticsData" json:"analyticsData,omitempty"`
+	state                     protoimpl.MessageState                                                           `protogen:"open.v1"`
+	SelectedRequestID         *string                                                                          `protobuf:"bytes,1,opt,name=selectedRequestID" json:"selectedRequestID,omitempty"`
+	SurveyID                  *uint32                                                                          `protobuf:"varint,2,opt,name=surveyID" json:"surveyID,omitempty"`
+	SimonSessionFbid          *string                                                                          `protobuf:"bytes,3,opt,name=simonSessionFbid" json:"simonSessionFbid,omitempty"`
+	ResponseOtid              *string                                                                          `protobuf:"bytes,4,opt,name=responseOtid" json:"responseOtid,omitempty"`
+	ResponseTimestampMSString *string                                                                          `protobuf:"bytes,5,opt,name=responseTimestampMSString" json:"responseTimestampMSString,omitempty"`
+	IsSelectedResponsePrimary *bool                                                                            `protobuf:"varint,6,opt,name=isSelectedResponsePrimary" json:"isSelectedResponsePrimary,omitempty"`
+	MessageIDToEdit           *string                                                                          `protobuf:"bytes,7,opt,name=messageIDToEdit" json:"messageIDToEdit,omitempty"`
+	AnalyticsData             *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData       `protobuf:"bytes,8,opt,name=analyticsData" json:"analyticsData,omitempty"`
+	MetaAiAnalyticsData       *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData `protobuf:"bytes,9,opt,name=metaAiAnalyticsData" json:"metaAiAnalyticsData,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *BotFeedbackMessage_SideBySideSurveyMetadata) Reset() {
 	*x = BotFeedbackMessage_SideBySideSurveyMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[54]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5972,7 +6241,7 @@ func (x *BotFeedbackMessage_SideBySideSurveyMetadata) String() string {
 func (*BotFeedbackMessage_SideBySideSurveyMetadata) ProtoMessage() {}
 
 func (x *BotFeedbackMessage_SideBySideSurveyMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[54]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6044,17 +6313,134 @@ func (x *BotFeedbackMessage_SideBySideSurveyMetadata) GetAnalyticsData() *BotFee
 	return nil
 }
 
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata) GetMetaAiAnalyticsData() *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData {
+	if x != nil {
+		return x.MetaAiAnalyticsData
+	}
+	return nil
+}
+
+type BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData struct {
+	state               protoimpl.MessageState                                                                                                   `protogen:"open.v1"`
+	SurveyID            *uint32                                                                                                                  `protobuf:"varint,1,opt,name=surveyID" json:"surveyID,omitempty"`
+	PrimaryResponseID   *string                                                                                                                  `protobuf:"bytes,2,opt,name=primaryResponseID" json:"primaryResponseID,omitempty"`
+	TestArmName         *string                                                                                                                  `protobuf:"bytes,3,opt,name=testArmName" json:"testArmName,omitempty"`
+	TimestampMSString   *string                                                                                                                  `protobuf:"bytes,4,opt,name=timestampMSString" json:"timestampMSString,omitempty"`
+	CtaImpressionEvent  *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData  `protobuf:"bytes,5,opt,name=ctaImpressionEvent" json:"ctaImpressionEvent,omitempty"`
+	CtaClickEvent       *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData       `protobuf:"bytes,6,opt,name=ctaClickEvent" json:"ctaClickEvent,omitempty"`
+	CardImpressionEvent *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData `protobuf:"bytes,7,opt,name=cardImpressionEvent" json:"cardImpressionEvent,omitempty"`
+	ResponseEvent       *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData       `protobuf:"bytes,8,opt,name=responseEvent" json:"responseEvent,omitempty"`
+	AbandonEvent        *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData        `protobuf:"bytes,9,opt,name=abandonEvent" json:"abandonEvent,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) Reset() {
+	*x = BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) ProtoMessage() {
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData.ProtoReflect.Descriptor instead.
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{16, 0, 0}
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetSurveyID() uint32 {
+	if x != nil && x.SurveyID != nil {
+		return *x.SurveyID
+	}
+	return 0
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetPrimaryResponseID() string {
+	if x != nil && x.PrimaryResponseID != nil {
+		return *x.PrimaryResponseID
+	}
+	return ""
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetTestArmName() string {
+	if x != nil && x.TestArmName != nil {
+		return *x.TestArmName
+	}
+	return ""
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetTimestampMSString() string {
+	if x != nil && x.TimestampMSString != nil {
+		return *x.TimestampMSString
+	}
+	return ""
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetCtaImpressionEvent() *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData {
+	if x != nil {
+		return x.CtaImpressionEvent
+	}
+	return nil
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetCtaClickEvent() *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData {
+	if x != nil {
+		return x.CtaClickEvent
+	}
+	return nil
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetCardImpressionEvent() *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData {
+	if x != nil {
+		return x.CardImpressionEvent
+	}
+	return nil
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetResponseEvent() *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData {
+	if x != nil {
+		return x.ResponseEvent
+	}
+	return nil
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData) GetAbandonEvent() *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData {
+	if x != nil {
+		return x.AbandonEvent
+	}
+	return nil
+}
+
 type BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	TessaEvent       *string                `protobuf:"bytes,1,opt,name=tessaEvent" json:"tessaEvent,omitempty"`
 	TessaSessionFbid *string                `protobuf:"bytes,2,opt,name=tessaSessionFbid" json:"tessaSessionFbid,omitempty"`
+	SimonSessionFbid *string                `protobuf:"bytes,3,opt,name=simonSessionFbid" json:"simonSessionFbid,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
 
 func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData) Reset() {
 	*x = BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[55]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6066,7 +6452,7 @@ func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsDa
 func (*BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData) ProtoMessage() {}
 
 func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[55]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6079,7 +6465,7 @@ func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsDa
 
 // Deprecated: Use BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData.ProtoReflect.Descriptor instead.
 func (*BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{16, 0, 0}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{16, 0, 1}
 }
 
 func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData) GetTessaEvent() string {
@@ -6096,6 +6482,246 @@ func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsDa
 	return ""
 }
 
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData) GetSimonSessionFbid() string {
+	if x != nil && x.SimonSessionFbid != nil {
+		return *x.SimonSessionFbid
+	}
+	return ""
+}
+
+type BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData struct {
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	AbandonDwellTimeMSString *string                `protobuf:"bytes,1,opt,name=abandonDwellTimeMSString" json:"abandonDwellTimeMSString,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData) Reset() {
+	*x = BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData) ProtoMessage() {
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData.ProtoReflect.Descriptor instead.
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{16, 0, 0, 0}
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData) GetAbandonDwellTimeMSString() string {
+	if x != nil && x.AbandonDwellTimeMSString != nil {
+		return *x.AbandonDwellTimeMSString
+	}
+	return ""
+}
+
+type BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData struct {
+	state                     protoimpl.MessageState `protogen:"open.v1"`
+	ResponseDwellTimeMSString *string                `protobuf:"bytes,1,opt,name=responseDwellTimeMSString" json:"responseDwellTimeMSString,omitempty"`
+	SelectedResponseID        *string                `protobuf:"bytes,2,opt,name=selectedResponseID" json:"selectedResponseID,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData) Reset() {
+	*x = BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData) ProtoMessage() {
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData.ProtoReflect.Descriptor instead.
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{16, 0, 0, 1}
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData) GetResponseDwellTimeMSString() string {
+	if x != nil && x.ResponseDwellTimeMSString != nil {
+		return *x.ResponseDwellTimeMSString
+	}
+	return ""
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData) GetSelectedResponseID() string {
+	if x != nil && x.SelectedResponseID != nil {
+		return *x.SelectedResponseID
+	}
+	return ""
+}
+
+type BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData) Reset() {
+	*x = BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[62]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData) ProtoMessage() {
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[62]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData.ProtoReflect.Descriptor instead.
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{16, 0, 0, 2}
+}
+
+type BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	IsSurveyExpired        *bool                  `protobuf:"varint,1,opt,name=isSurveyExpired" json:"isSurveyExpired,omitempty"`
+	ClickDwellTimeMSString *string                `protobuf:"bytes,2,opt,name=clickDwellTimeMSString" json:"clickDwellTimeMSString,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData) Reset() {
+	*x = BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData) ProtoMessage() {
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData.ProtoReflect.Descriptor instead.
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{16, 0, 0, 3}
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData) GetIsSurveyExpired() bool {
+	if x != nil && x.IsSurveyExpired != nil {
+		return *x.IsSurveyExpired
+	}
+	return false
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData) GetClickDwellTimeMSString() string {
+	if x != nil && x.ClickDwellTimeMSString != nil {
+		return *x.ClickDwellTimeMSString
+	}
+	return ""
+}
+
+type BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	IsSurveyExpired *bool                  `protobuf:"varint,1,opt,name=isSurveyExpired" json:"isSurveyExpired,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData) Reset() {
+	*x = BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData) ProtoMessage() {
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData.ProtoReflect.Descriptor instead.
+func (*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{16, 0, 0, 4}
+}
+
+func (x *BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData) GetIsSurveyExpired() bool {
+	if x != nil && x.IsSurveyExpired != nil {
+		return *x.IsSurveyExpired
+	}
+	return false
+}
+
 type AIRichResponseCodeMetadata_AIRichResponseCodeBlock struct {
 	state         protoimpl.MessageState                                      `protogen:"open.v1"`
 	HighlightType *AIRichResponseCodeMetadata_AIRichResponseCodeHighlightType `protobuf:"varint,1,opt,name=highlightType,enum=WAAICommon.AIRichResponseCodeMetadata_AIRichResponseCodeHighlightType" json:"highlightType,omitempty"`
@@ -6106,7 +6732,7 @@ type AIRichResponseCodeMetadata_AIRichResponseCodeBlock struct {
 
 func (x *AIRichResponseCodeMetadata_AIRichResponseCodeBlock) Reset() {
 	*x = AIRichResponseCodeMetadata_AIRichResponseCodeBlock{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[56]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6118,7 +6744,7 @@ func (x *AIRichResponseCodeMetadata_AIRichResponseCodeBlock) String() string {
 func (*AIRichResponseCodeMetadata_AIRichResponseCodeBlock) ProtoMessage() {}
 
 func (x *AIRichResponseCodeMetadata_AIRichResponseCodeBlock) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[56]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6160,7 +6786,7 @@ type AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata struct
 
 func (x *AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata) Reset() {
 	*x = AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[57]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6172,7 +6798,7 @@ func (x *AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata) S
 func (*AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata) ProtoMessage() {}
 
 func (x *AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[57]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6227,7 +6853,7 @@ type AIRichResponseContentItemsMetadata_AIRichResponseReelItem struct {
 
 func (x *AIRichResponseContentItemsMetadata_AIRichResponseReelItem) Reset() {
 	*x = AIRichResponseContentItemsMetadata_AIRichResponseReelItem{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[58]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6239,7 +6865,7 @@ func (x *AIRichResponseContentItemsMetadata_AIRichResponseReelItem) String() str
 func (*AIRichResponseContentItemsMetadata_AIRichResponseReelItem) ProtoMessage() {}
 
 func (x *AIRichResponseContentItemsMetadata_AIRichResponseReelItem) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[58]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6283,6 +6909,98 @@ func (x *AIRichResponseContentItemsMetadata_AIRichResponseReelItem) GetVideoURL(
 	return ""
 }
 
+type AIHomeState_AIHomeOption struct {
+	state                protoimpl.MessageState                     `protogen:"open.v1"`
+	Type                 *AIHomeState_AIHomeOption_AIHomeActionType `protobuf:"varint,1,opt,name=type,enum=WAAICommon.AIHomeState_AIHomeOption_AIHomeActionType" json:"type,omitempty"`
+	Title                *string                                    `protobuf:"bytes,2,opt,name=title" json:"title,omitempty"`
+	PromptText           *string                                    `protobuf:"bytes,3,opt,name=promptText" json:"promptText,omitempty"`
+	SessionID            *string                                    `protobuf:"bytes,4,opt,name=sessionID" json:"sessionID,omitempty"`
+	ImageWdsIdentifier   *string                                    `protobuf:"bytes,5,opt,name=imageWdsIdentifier" json:"imageWdsIdentifier,omitempty"`
+	ImageTintColor       *string                                    `protobuf:"bytes,6,opt,name=imageTintColor" json:"imageTintColor,omitempty"`
+	ImageBackgroundColor *string                                    `protobuf:"bytes,7,opt,name=imageBackgroundColor" json:"imageBackgroundColor,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *AIHomeState_AIHomeOption) Reset() {
+	*x = AIHomeState_AIHomeOption{}
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[68]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AIHomeState_AIHomeOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AIHomeState_AIHomeOption) ProtoMessage() {}
+
+func (x *AIHomeState_AIHomeOption) ProtoReflect() protoreflect.Message {
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[68]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AIHomeState_AIHomeOption.ProtoReflect.Descriptor instead.
+func (*AIHomeState_AIHomeOption) Descriptor() ([]byte, []int) {
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{21, 0}
+}
+
+func (x *AIHomeState_AIHomeOption) GetType() AIHomeState_AIHomeOption_AIHomeActionType {
+	if x != nil && x.Type != nil {
+		return *x.Type
+	}
+	return AIHomeState_AIHomeOption_PROMPT
+}
+
+func (x *AIHomeState_AIHomeOption) GetTitle() string {
+	if x != nil && x.Title != nil {
+		return *x.Title
+	}
+	return ""
+}
+
+func (x *AIHomeState_AIHomeOption) GetPromptText() string {
+	if x != nil && x.PromptText != nil {
+		return *x.PromptText
+	}
+	return ""
+}
+
+func (x *AIHomeState_AIHomeOption) GetSessionID() string {
+	if x != nil && x.SessionID != nil {
+		return *x.SessionID
+	}
+	return ""
+}
+
+func (x *AIHomeState_AIHomeOption) GetImageWdsIdentifier() string {
+	if x != nil && x.ImageWdsIdentifier != nil {
+		return *x.ImageWdsIdentifier
+	}
+	return ""
+}
+
+func (x *AIHomeState_AIHomeOption) GetImageTintColor() string {
+	if x != nil && x.ImageTintColor != nil {
+		return *x.ImageTintColor
+	}
+	return ""
+}
+
+func (x *AIHomeState_AIHomeOption) GetImageBackgroundColor() string {
+	if x != nil && x.ImageBackgroundColor != nil {
+		return *x.ImageBackgroundColor
+	}
+	return ""
+}
+
 type BotRenderingMetadata_Keyword struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Value             *string                `protobuf:"bytes,1,opt,name=value" json:"value,omitempty"`
@@ -6293,7 +7011,7 @@ type BotRenderingMetadata_Keyword struct {
 
 func (x *BotRenderingMetadata_Keyword) Reset() {
 	*x = BotRenderingMetadata_Keyword{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[59]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6305,7 +7023,7 @@ func (x *BotRenderingMetadata_Keyword) String() string {
 func (*BotRenderingMetadata_Keyword) ProtoMessage() {}
 
 func (x *BotRenderingMetadata_Keyword) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[59]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6318,7 +7036,7 @@ func (x *BotRenderingMetadata_Keyword) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BotRenderingMetadata_Keyword.ProtoReflect.Descriptor instead.
 func (*BotRenderingMetadata_Keyword) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{29, 0}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{30, 0}
 }
 
 func (x *BotRenderingMetadata_Keyword) GetValue() string {
@@ -6345,7 +7063,7 @@ type InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart struct {
 
 func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) Reset() {
 	*x = InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[60]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6357,7 +7075,7 @@ func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) String() str
 func (*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) ProtoMessage() {}
 
 func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[60]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6370,7 +7088,7 @@ func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) ProtoReflect
 
 // Deprecated: Use InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart.ProtoReflect.Descriptor instead.
 func (*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{33, 0}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{34, 0}
 }
 
 func (x *InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart) GetText() string {
@@ -6398,7 +7116,7 @@ type InThreadSurveyMetadata_InThreadSurveyOption struct {
 
 func (x *InThreadSurveyMetadata_InThreadSurveyOption) Reset() {
 	*x = InThreadSurveyMetadata_InThreadSurveyOption{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[61]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6410,7 +7128,7 @@ func (x *InThreadSurveyMetadata_InThreadSurveyOption) String() string {
 func (*InThreadSurveyMetadata_InThreadSurveyOption) ProtoMessage() {}
 
 func (x *InThreadSurveyMetadata_InThreadSurveyOption) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[61]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6423,7 +7141,7 @@ func (x *InThreadSurveyMetadata_InThreadSurveyOption) ProtoReflect() protoreflec
 
 // Deprecated: Use InThreadSurveyMetadata_InThreadSurveyOption.ProtoReflect.Descriptor instead.
 func (*InThreadSurveyMetadata_InThreadSurveyOption) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{33, 1}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{34, 1}
 }
 
 func (x *InThreadSurveyMetadata_InThreadSurveyOption) GetStringValue() string {
@@ -6458,7 +7176,7 @@ type InThreadSurveyMetadata_InThreadSurveyQuestion struct {
 
 func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) Reset() {
 	*x = InThreadSurveyMetadata_InThreadSurveyQuestion{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[62]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6470,7 +7188,7 @@ func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) String() string {
 func (*InThreadSurveyMetadata_InThreadSurveyQuestion) ProtoMessage() {}
 
 func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[62]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6483,7 +7201,7 @@ func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) ProtoReflect() protorefl
 
 // Deprecated: Use InThreadSurveyMetadata_InThreadSurveyQuestion.ProtoReflect.Descriptor instead.
 func (*InThreadSurveyMetadata_InThreadSurveyQuestion) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{33, 2}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{34, 2}
 }
 
 func (x *InThreadSurveyMetadata_InThreadSurveyQuestion) GetQuestionText() string {
@@ -6518,7 +7236,7 @@ type BotUnifiedResponseMutation_MediaDetailsMetadata struct {
 
 func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) Reset() {
 	*x = BotUnifiedResponseMutation_MediaDetailsMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[63]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6530,7 +7248,7 @@ func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) String() string {
 func (*BotUnifiedResponseMutation_MediaDetailsMetadata) ProtoMessage() {}
 
 func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[63]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6543,7 +7261,7 @@ func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) ProtoReflect() protore
 
 // Deprecated: Use BotUnifiedResponseMutation_MediaDetailsMetadata.ProtoReflect.Descriptor instead.
 func (*BotUnifiedResponseMutation_MediaDetailsMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{35, 0}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{36, 0}
 }
 
 func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) GetID() string {
@@ -6568,15 +7286,16 @@ func (x *BotUnifiedResponseMutation_MediaDetailsMetadata) GetPreviewMedia() *Bot
 }
 
 type BotUnifiedResponseMutation_SideBySideMetadata struct {
-	state             protoimpl.MessageState `protogen:"open.v1"`
-	PrimaryResponseID *string                `protobuf:"bytes,1,opt,name=primaryResponseID" json:"primaryResponseID,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	PrimaryResponseID    *string                `protobuf:"bytes,1,opt,name=primaryResponseID" json:"primaryResponseID,omitempty"`
+	SurveyCtaHasRendered *bool                  `protobuf:"varint,2,opt,name=surveyCtaHasRendered" json:"surveyCtaHasRendered,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) Reset() {
 	*x = BotUnifiedResponseMutation_SideBySideMetadata{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[64]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6588,7 +7307,7 @@ func (x *BotUnifiedResponseMutation_SideBySideMetadata) String() string {
 func (*BotUnifiedResponseMutation_SideBySideMetadata) ProtoMessage() {}
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[64]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6601,7 +7320,7 @@ func (x *BotUnifiedResponseMutation_SideBySideMetadata) ProtoReflect() protorefl
 
 // Deprecated: Use BotUnifiedResponseMutation_SideBySideMetadata.ProtoReflect.Descriptor instead.
 func (*BotUnifiedResponseMutation_SideBySideMetadata) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{35, 1}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{36, 1}
 }
 
 func (x *BotUnifiedResponseMutation_SideBySideMetadata) GetPrimaryResponseID() string {
@@ -6609,6 +7328,13 @@ func (x *BotUnifiedResponseMutation_SideBySideMetadata) GetPrimaryResponseID() s
 		return *x.PrimaryResponseID
 	}
 	return ""
+}
+
+func (x *BotUnifiedResponseMutation_SideBySideMetadata) GetSurveyCtaHasRendered() bool {
+	if x != nil && x.SurveyCtaHasRendered != nil {
+		return *x.SurveyCtaHasRendered
+	}
+	return false
 }
 
 type AIRichResponseTableMetadata_AIRichResponseTableRow struct {
@@ -6621,7 +7347,7 @@ type AIRichResponseTableMetadata_AIRichResponseTableRow struct {
 
 func (x *AIRichResponseTableMetadata_AIRichResponseTableRow) Reset() {
 	*x = AIRichResponseTableMetadata_AIRichResponseTableRow{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[65]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6633,7 +7359,7 @@ func (x *AIRichResponseTableMetadata_AIRichResponseTableRow) String() string {
 func (*AIRichResponseTableMetadata_AIRichResponseTableRow) ProtoMessage() {}
 
 func (x *AIRichResponseTableMetadata_AIRichResponseTableRow) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[65]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6646,7 +7372,7 @@ func (x *AIRichResponseTableMetadata_AIRichResponseTableRow) ProtoReflect() prot
 
 // Deprecated: Use AIRichResponseTableMetadata_AIRichResponseTableRow.ProtoReflect.Descriptor instead.
 func (*AIRichResponseTableMetadata_AIRichResponseTableRow) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{41, 0}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{42, 0}
 }
 
 func (x *AIRichResponseTableMetadata_AIRichResponseTableRow) GetItems() []string {
@@ -6680,7 +7406,7 @@ type AIRichResponseLatexMetadata_AIRichResponseLatexExpression struct {
 
 func (x *AIRichResponseLatexMetadata_AIRichResponseLatexExpression) Reset() {
 	*x = AIRichResponseLatexMetadata_AIRichResponseLatexExpression{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[66]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6692,7 +7418,7 @@ func (x *AIRichResponseLatexMetadata_AIRichResponseLatexExpression) String() str
 func (*AIRichResponseLatexMetadata_AIRichResponseLatexExpression) ProtoMessage() {}
 
 func (x *AIRichResponseLatexMetadata_AIRichResponseLatexExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[66]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6705,7 +7431,7 @@ func (x *AIRichResponseLatexMetadata_AIRichResponseLatexExpression) ProtoReflect
 
 // Deprecated: Use AIRichResponseLatexMetadata_AIRichResponseLatexExpression.ProtoReflect.Descriptor instead.
 func (*AIRichResponseLatexMetadata_AIRichResponseLatexExpression) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{43, 0}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{44, 0}
 }
 
 func (x *AIRichResponseLatexMetadata_AIRichResponseLatexExpression) GetLatexExpression() string {
@@ -6784,7 +7510,7 @@ type AIRichResponseMapMetadata_AIRichResponseMapAnnotation struct {
 
 func (x *AIRichResponseMapMetadata_AIRichResponseMapAnnotation) Reset() {
 	*x = AIRichResponseMapMetadata_AIRichResponseMapAnnotation{}
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[67]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6796,7 +7522,7 @@ func (x *AIRichResponseMapMetadata_AIRichResponseMapAnnotation) String() string 
 func (*AIRichResponseMapMetadata_AIRichResponseMapAnnotation) ProtoMessage() {}
 
 func (x *AIRichResponseMapMetadata_AIRichResponseMapAnnotation) ProtoReflect() protoreflect.Message {
-	mi := &file_waAICommon_WAAICommon_proto_msgTypes[67]
+	mi := &file_waAICommon_WAAICommon_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6809,7 +7535,7 @@ func (x *AIRichResponseMapMetadata_AIRichResponseMapAnnotation) ProtoReflect() p
 
 // Deprecated: Use AIRichResponseMapMetadata_AIRichResponseMapAnnotation.ProtoReflect.Descriptor instead.
 func (*AIRichResponseMapMetadata_AIRichResponseMapAnnotation) Descriptor() ([]byte, []int) {
-	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{44, 0}
+	return file_waAICommon_WAAICommon_proto_rawDescGZIP(), []int{45, 0}
 }
 
 func (x *AIRichResponseMapMetadata_AIRichResponseMapAnnotation) GetAnnotationNumber() uint32 {
@@ -6939,10 +7665,11 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"\n" +
 	"\x06DELETE\x10\x03\x12\n" +
 	"\n" +
-	"\x06UPDATE\x10\x04\"\xd1\x02\n" +
+	"\x06UPDATE\x10\x04\"\xff\x02\n" +
 	"\x10BotModelMetadata\x12D\n" +
 	"\tmodelType\x18\x01 \x01(\x0e2&.WAAICommon.BotModelMetadata.ModelTypeR\tmodelType\x12_\n" +
-	"\x12premiumModelStatus\x18\x02 \x01(\x0e2/.WAAICommon.BotModelMetadata.PremiumModelStatusR\x12premiumModelStatus\"O\n" +
+	"\x12premiumModelStatus\x18\x02 \x01(\x0e2/.WAAICommon.BotModelMetadata.PremiumModelStatusR\x12premiumModelStatus\x12,\n" +
+	"\x11modelNameOverride\x18\x03 \x01(\tR\x11modelNameOverride\"O\n" +
 	"\x12PremiumModelStatus\x12\x12\n" +
 	"\x0eUNKNOWN_STATUS\x10\x00\x12\r\n" +
 	"\tAVAILABLE\x10\x01\x12\x16\n" +
@@ -6996,9 +7723,9 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPLANNED\x10\x01\x12\r\n" +
 	"\tEXECUTING\x10\x02\x12\f\n" +
-	"\bFINISHED\x10\x03\"\xbd\f\n" +
+	"\bFINISHED\x10\x03\"\xc7\r\n" +
 	"\x15BotCapabilityMetadata\x12W\n" +
-	"\fcapabilities\x18\x01 \x03(\x0e23.WAAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xca\v\n" +
+	"\fcapabilities\x18\x01 \x03(\x0e23.WAAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xd4\f\n" +
 	"\x11BotCapabilityType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x16\n" +
 	"\x12PROGRESS_INDICATOR\x10\x01\x12\x19\n" +
@@ -7047,7 +7774,11 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"&RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS\x10*\x12)\n" +
 	"%RICH_RESPONSE_UR_INLINE_REELS_ENABLED\x10+\x12'\n" +
 	"#RICH_RESPONSE_UR_MEDIA_GRID_ENABLED\x10,\x12*\n" +
-	"&RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER\x10-\"\xa7\x01\n" +
+	"&RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER\x10-\x12\x1f\n" +
+	"\x1bRICH_RESPONSE_IN_APP_SURVEY\x10.\x12\x1e\n" +
+	"\x1aAI_RESPONSE_MODEL_BRANDING\x10/\x12'\n" +
+	"#SESSION_TRANSPARENCY_SYSTEM_MESSAGE\x100\x12\x1e\n" +
+	"\x1aRICH_RESPONSE_UR_REASONING\x101\"\xa7\x01\n" +
 	"\x18BotModeSelectionMetadata\x12M\n" +
 	"\x04mode\x18\x01 \x03(\x0e29.WAAICommon.BotModeSelectionMetadata.BotUserSelectionModeR\x04mode\"<\n" +
 	"\x14BotUserSelectionMode\x12\x10\n" +
@@ -7114,7 +7845,7 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"\aDEFAULT\x10\x01\x12\r\n" +
 	"\tINCOGNITO\x10\x02\x1a*\n" +
 	"\x12AIThreadServerInfo\x12\x14\n" +
-	"\x05title\x18\x01 \x01(\tR\x05title\"\x8d\x11\n" +
+	"\x05title\x18\x01 \x01(\tR\x05title\"\xe5\x1e\n" +
 	"\x12BotFeedbackMessage\x124\n" +
 	"\n" +
 	"messageKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\n" +
@@ -7126,7 +7857,7 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"\n" +
 	"kindReport\x18\x06 \x01(\x0e2).WAAICommon.BotFeedbackMessage.ReportKindR\n" +
 	"kindReport\x12s\n" +
-	"\x18sideBySideSurveyMetadata\x18\a \x01(\v27.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadataR\x18sideBySideSurveyMetadata\x1a\xc4\x04\n" +
+	"\x18sideBySideSurveyMetadata\x18\a \x01(\v27.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadataR\x18sideBySideSurveyMetadata\x1a\x9c\x12\n" +
 	"\x18SideBySideSurveyMetadata\x12,\n" +
 	"\x11selectedRequestID\x18\x01 \x01(\tR\x11selectedRequestID\x12\x1a\n" +
 	"\bsurveyID\x18\x02 \x01(\rR\bsurveyID\x12*\n" +
@@ -7135,12 +7866,35 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"\x19responseTimestampMSString\x18\x05 \x01(\tR\x19responseTimestampMSString\x12<\n" +
 	"\x19isSelectedResponsePrimary\x18\x06 \x01(\bR\x19isSelectedResponsePrimary\x12(\n" +
 	"\x0fmessageIDToEdit\x18\a \x01(\tR\x0fmessageIDToEdit\x12{\n" +
-	"\ranalyticsData\x18\b \x01(\v2U.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SideBySideSurveyAnalyticsDataR\ranalyticsData\x1ak\n" +
+	"\ranalyticsData\x18\b \x01(\v2U.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SideBySideSurveyAnalyticsDataR\ranalyticsData\x12\x8d\x01\n" +
+	"\x13metaAiAnalyticsData\x18\t \x01(\v2[.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsDataR\x13metaAiAnalyticsData\x1a\x98\f\n" +
+	"#SidebySideSurveyMetaAiAnalyticsData\x12\x1a\n" +
+	"\bsurveyID\x18\x01 \x01(\rR\bsurveyID\x12,\n" +
+	"\x11primaryResponseID\x18\x02 \x01(\tR\x11primaryResponseID\x12 \n" +
+	"\vtestArmName\x18\x03 \x01(\tR\vtestArmName\x12,\n" +
+	"\x11timestampMSString\x18\x04 \x01(\tR\x11timestampMSString\x12\xb3\x01\n" +
+	"\x12ctaImpressionEvent\x18\x05 \x01(\v2\x82\x01.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCTAImpressionEventDataR\x12ctaImpressionEvent\x12\xa3\x01\n" +
+	"\rctaClickEvent\x18\x06 \x01(\v2}.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCTAClickEventDataR\rctaClickEvent\x12\xb6\x01\n" +
+	"\x13cardImpressionEvent\x18\a \x01(\v2\x83\x01.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCardImpressionEventDataR\x13cardImpressionEvent\x12\xa3\x01\n" +
+	"\rresponseEvent\x18\b \x01(\v2}.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyResponseEventDataR\rresponseEvent\x12\xa0\x01\n" +
+	"\fabandonEvent\x18\t \x01(\v2|.WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyAbandonEventDataR\fabandonEvent\x1a^\n" +
+	" SideBySideSurveyAbandonEventData\x12:\n" +
+	"\x18abandonDwellTimeMSString\x18\x01 \x01(\tR\x18abandonDwellTimeMSString\x1a\x91\x01\n" +
+	"!SideBySideSurveyResponseEventData\x12<\n" +
+	"\x19responseDwellTimeMSString\x18\x01 \x01(\tR\x19responseDwellTimeMSString\x12.\n" +
+	"\x12selectedResponseID\x18\x02 \x01(\tR\x12selectedResponseID\x1a)\n" +
+	"'SideBySideSurveyCardImpressionEventData\x1a\x85\x01\n" +
+	"!SideBySideSurveyCTAClickEventData\x12(\n" +
+	"\x0fisSurveyExpired\x18\x01 \x01(\bR\x0fisSurveyExpired\x126\n" +
+	"\x16clickDwellTimeMSString\x18\x02 \x01(\tR\x16clickDwellTimeMSString\x1aR\n" +
+	"&SideBySideSurveyCTAImpressionEventData\x12(\n" +
+	"\x0fisSurveyExpired\x18\x01 \x01(\bR\x0fisSurveyExpired\x1a\x97\x01\n" +
 	"\x1dSideBySideSurveyAnalyticsData\x12\x1e\n" +
 	"\n" +
 	"tessaEvent\x18\x01 \x01(\tR\n" +
 	"tessaEvent\x12*\n" +
-	"\x10tessaSessionFbid\x18\x02 \x01(\tR\x10tessaSessionFbid\"#\n" +
+	"\x10tessaSessionFbid\x18\x02 \x01(\tR\x10tessaSessionFbid\x12*\n" +
+	"\x10simonSessionFbid\x18\x03 \x01(\tR\x10simonSessionFbid\"#\n" +
 	"\n" +
 	"ReportKind\x12\b\n" +
 	"\x04NONE\x10\x00\x12\v\n" +
@@ -7222,7 +7976,27 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"\bvideoURL\x18\x04 \x01(\tR\bvideoURL\"(\n" +
 	"\vContentType\x12\v\n" +
 	"\aDEFAULT\x10\x00\x12\f\n" +
-	"\bCAROUSEL\x10\x01\"\xab\x01\n" +
+	"\bCAROUSEL\x10\x01\"\xf2\x04\n" +
+	"\vAIHomeState\x12$\n" +
+	"\rlastFetchTime\x18\x01 \x01(\x03R\rlastFetchTime\x12R\n" +
+	"\x11capabilityOptions\x18\x02 \x03(\v2$.WAAICommon.AIHomeState.AIHomeOptionR\x11capabilityOptions\x12V\n" +
+	"\x13conversationOptions\x18\x03 \x03(\v2$.WAAICommon.AIHomeState.AIHomeOptionR\x13conversationOptions\x1a\x90\x03\n" +
+	"\fAIHomeOption\x12I\n" +
+	"\x04type\x18\x01 \x01(\x0e25.WAAICommon.AIHomeState.AIHomeOption.AIHomeActionTypeR\x04type\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x1e\n" +
+	"\n" +
+	"promptText\x18\x03 \x01(\tR\n" +
+	"promptText\x12\x1c\n" +
+	"\tsessionID\x18\x04 \x01(\tR\tsessionID\x12.\n" +
+	"\x12imageWdsIdentifier\x18\x05 \x01(\tR\x12imageWdsIdentifier\x12&\n" +
+	"\x0eimageTintColor\x18\x06 \x01(\tR\x0eimageTintColor\x122\n" +
+	"\x14imageBackgroundColor\x18\a \x01(\tR\x14imageBackgroundColor\"U\n" +
+	"\x10AIHomeActionType\x12\n" +
+	"\n" +
+	"\x06PROMPT\x10\x00\x12\x10\n" +
+	"\fCREATE_IMAGE\x10\x01\x12\x11\n" +
+	"\rANIMATE_PHOTO\x10\x02\x12\x10\n" +
+	"\fANALYZE_FILE\x10\x03\"\xab\x01\n" +
 	"\x11BotAvatarMetadata\x12\x1c\n" +
 	"\tsentiment\x18\x01 \x01(\rR\tsentiment\x12$\n" +
 	"\rbehaviorGraph\x18\x02 \x01(\tR\rbehaviorGraph\x12\x16\n" +
@@ -7308,16 +8082,17 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"questionID\x12a\n" +
 	"\x0fquestionOptions\x18\x03 \x03(\v27.WAAICommon.InThreadSurveyMetadata.InThreadSurveyOptionR\x0fquestionOptions\"R\n" +
 	"\x18BotMessageOriginMetadata\x126\n" +
-	"\aorigins\x18\x01 \x03(\v2\x1c.WAAICommon.BotMessageOriginR\aorigins\"\xe3\x03\n" +
+	"\aorigins\x18\x01 \x03(\v2\x1c.WAAICommon.BotMessageOriginR\aorigins\"\x97\x04\n" +
 	"\x1aBotUnifiedResponseMutation\x12[\n" +
 	"\vsbsMetadata\x18\x01 \x01(\v29.WAAICommon.BotUnifiedResponseMutation.SideBySideMetadataR\vsbsMetadata\x12w\n" +
 	"\x18mediaDetailsMetadataList\x18\x02 \x03(\v2;.WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadataR\x18mediaDetailsMetadataList\x1a\xaa\x01\n" +
 	"\x14MediaDetailsMetadata\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\tR\x02ID\x12@\n" +
 	"\fhighResMedia\x18\x02 \x01(\v2\x1c.WAAICommon.BotMediaMetadataR\fhighResMedia\x12@\n" +
-	"\fpreviewMedia\x18\x03 \x01(\v2\x1c.WAAICommon.BotMediaMetadataR\fpreviewMedia\x1aB\n" +
+	"\fpreviewMedia\x18\x03 \x01(\v2\x1c.WAAICommon.BotMediaMetadataR\fpreviewMedia\x1av\n" +
 	"\x12SideBySideMetadata\x12,\n" +
-	"\x11primaryResponseID\x18\x01 \x01(\tR\x11primaryResponseID\"\xe2\x12\n" +
+	"\x11primaryResponseID\x18\x01 \x01(\tR\x11primaryResponseID\x122\n" +
+	"\x14surveyCtaHasRendered\x18\x02 \x01(\bR\x14surveyCtaHasRendered\"\x9f\x14\n" +
 	"\vBotMetadata\x12E\n" +
 	"\x0eavatarMetadata\x18\x01 \x01(\v2\x1d.WAAICommon.BotAvatarMetadataR\x0eavatarMetadata\x12\x1c\n" +
 	"\tpersonaID\x18\x02 \x01(\tR\tpersonaID\x12E\n" +
@@ -7352,7 +8127,9 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"\x17unifiedResponseMutation\x18\x1c \x01(\v2&.WAAICommon.BotUnifiedResponseMutationR\x17unifiedResponseMutation\x12`\n" +
 	"\x18botMessageOriginMetadata\x18\x1d \x01(\v2$.WAAICommon.BotMessageOriginMetadataR\x18botMessageOriginMetadata\x12Z\n" +
 	"\x16inThreadSurveyMetadata\x18\x1e \x01(\v2\".WAAICommon.InThreadSurveyMetadataR\x16inThreadSurveyMetadata\x12>\n" +
-	"\rbotThreadInfo\x18\x1f \x01(\v2\x18.WAAICommon.AIThreadInfoR\rbotThreadInfo\x12+\n" +
+	"\rbotThreadInfo\x18\x1f \x01(\v2\x18.WAAICommon.AIThreadInfoR\rbotThreadInfo\x12P\n" +
+	"\x12regenerateMetadata\x18  \x01(\v2 .WAAICommon.AIRegenerateMetadataR\x12regenerateMetadata\x12i\n" +
+	"\x1bsessionTransparencyMetadata\x18! \x01(\v2'.WAAICommon.SessionTransparencyMetadataR\x1bsessionTransparencyMetadata\x12+\n" +
 	"\x10internalMetadata\x18\xe7\a \x01(\fR\x10internalMetadata\"o\n" +
 	"\x19ForwardedAIBotMessageInfo\x12\x18\n" +
 	"\abotName\x18\x01 \x01(\tR\abotName\x12\x16\n" +
@@ -7415,7 +8192,15 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	"\rlatexMetadata\x18\b \x01(\v2'.WAAICommon.AIRichResponseLatexMetadataR\rlatexMetadata\x12G\n" +
 	"\vmapMetadata\x18\t \x01(\v2%.WAAICommon.AIRichResponseMapMetadataR\vmapMetadata\x12b\n" +
 	"\x14contentItemsMetadata\x18\n" +
-	" \x01(\v2..WAAICommon.AIRichResponseContentItemsMetadataR\x14contentItemsMetadata*\xec\a\n" +
+	" \x01(\v2..WAAICommon.AIRichResponseContentItemsMetadataR\x14contentItemsMetadata\"~\n" +
+	"\x14AIRegenerateMetadata\x124\n" +
+	"\n" +
+	"messageKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\n" +
+	"messageKey\x120\n" +
+	"\x13responseTimestampMS\x18\x02 \x01(\x03R\x13responseTimestampMS\"[\n" +
+	"\x1bSessionTransparencyMetadata\x12&\n" +
+	"\x0edisclaimerText\x18\x01 \x01(\tR\x0edisclaimerText\x12\x14\n" +
+	"\x05hcaID\x18\x02 \x01(\tR\x05hcaID*\xb3\b\n" +
 	"\x14BotMetricsEntryPoint\x12\x19\n" +
 	"\x15UNDEFINED_ENTRY_POINT\x10\x00\x12\v\n" +
 	"\aFAVICON\x10\x01\x12\f\n" +
@@ -7455,7 +8240,9 @@ const file_waAICommon_WAAICommon_proto_rawDesc = "" +
 	" MESSAGE_QUICK_ACTION_1_ON_1_CHAT\x10!\x12#\n" +
 	"\x1fMESSAGE_QUICK_ACTION_GROUP_CHAT\x10\"\x12\x1f\n" +
 	"\x1bATTACHMENT_TRAY_1_ON_1_CHAT\x10#\x12\x1e\n" +
-	"\x1aATTACHMENT_TRAY_GROUP_CHAT\x10$*\xa2\x01\n" +
+	"\x1aATTACHMENT_TRAY_GROUP_CHAT\x10$\x12!\n" +
+	"\x1dASK_META_AI_MEDIA_VIEWER_1ON1\x10%\x12\"\n" +
+	"\x1eASK_META_AI_MEDIA_VIEWER_GROUP\x10&*\xa2\x01\n" +
 	"\x1aBotMetricsThreadEntryPoint\x12\x11\n" +
 	"\rAI_TAB_THREAD\x10\x01\x12\x12\n" +
 	"\x0eAI_HOME_THREAD\x10\x02\x12 \n" +
@@ -7499,8 +8286,8 @@ func file_waAICommon_WAAICommon_proto_rawDescGZIP() []byte {
 	return file_waAICommon_WAAICommon_proto_rawDescData
 }
 
-var file_waAICommon_WAAICommon_proto_enumTypes = make([]protoimpl.EnumInfo, 34)
-var file_waAICommon_WAAICommon_proto_msgTypes = make([]protoimpl.MessageInfo, 68)
+var file_waAICommon_WAAICommon_proto_enumTypes = make([]protoimpl.EnumInfo, 35)
+var file_waAICommon_WAAICommon_proto_msgTypes = make([]protoimpl.MessageInfo, 78)
 var file_waAICommon_WAAICommon_proto_goTypes = []any{
 	(BotMetricsEntryPoint)(0),                                                         // 0: WAAICommon.BotMetricsEntryPoint
 	(BotMetricsThreadEntryPoint)(0),                                                   // 1: WAAICommon.BotMetricsThreadEntryPoint
@@ -7536,186 +8323,209 @@ var file_waAICommon_WAAICommon_proto_goTypes = []any{
 	(AIRichResponseCodeMetadata_AIRichResponseCodeHighlightType)(0),      // 31: WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeHighlightType
 	(AIRichResponseDynamicMetadata_AIRichResponseDynamicMetadataType)(0), // 32: WAAICommon.AIRichResponseDynamicMetadata.AIRichResponseDynamicMetadataType
 	(AIRichResponseContentItemsMetadata_ContentType)(0),                  // 33: WAAICommon.AIRichResponseContentItemsMetadata.ContentType
-	(*BotPluginMetadata)(nil),                                            // 34: WAAICommon.BotPluginMetadata
-	(*BotLinkedAccount)(nil),                                             // 35: WAAICommon.BotLinkedAccount
-	(*BotSignatureVerificationUseCaseProof)(nil),                         // 36: WAAICommon.BotSignatureVerificationUseCaseProof
-	(*BotPromotionMessageMetadata)(nil),                                  // 37: WAAICommon.BotPromotionMessageMetadata
-	(*BotMediaMetadata)(nil),                                             // 38: WAAICommon.BotMediaMetadata
-	(*BotReminderMetadata)(nil),                                          // 39: WAAICommon.BotReminderMetadata
-	(*BotModelMetadata)(nil),                                             // 40: WAAICommon.BotModelMetadata
-	(*BotProgressIndicatorMetadata)(nil),                                 // 41: WAAICommon.BotProgressIndicatorMetadata
-	(*BotCapabilityMetadata)(nil),                                        // 42: WAAICommon.BotCapabilityMetadata
-	(*BotModeSelectionMetadata)(nil),                                     // 43: WAAICommon.BotModeSelectionMetadata
-	(*BotQuotaMetadata)(nil),                                             // 44: WAAICommon.BotQuotaMetadata
-	(*BotImagineMetadata)(nil),                                           // 45: WAAICommon.BotImagineMetadata
-	(*BotAgeCollectionMetadata)(nil),                                     // 46: WAAICommon.BotAgeCollectionMetadata
-	(*BotSourcesMetadata)(nil),                                           // 47: WAAICommon.BotSourcesMetadata
-	(*BotMessageOrigin)(nil),                                             // 48: WAAICommon.BotMessageOrigin
-	(*AIThreadInfo)(nil),                                                 // 49: WAAICommon.AIThreadInfo
-	(*BotFeedbackMessage)(nil),                                           // 50: WAAICommon.BotFeedbackMessage
-	(*AIRichResponseInlineImageMetadata)(nil),                            // 51: WAAICommon.AIRichResponseInlineImageMetadata
-	(*AIRichResponseCodeMetadata)(nil),                                   // 52: WAAICommon.AIRichResponseCodeMetadata
-	(*AIRichResponseDynamicMetadata)(nil),                                // 53: WAAICommon.AIRichResponseDynamicMetadata
-	(*AIRichResponseContentItemsMetadata)(nil),                           // 54: WAAICommon.AIRichResponseContentItemsMetadata
-	(*BotAvatarMetadata)(nil),                                            // 55: WAAICommon.BotAvatarMetadata
-	(*BotSuggestedPromptMetadata)(nil),                                   // 56: WAAICommon.BotSuggestedPromptMetadata
-	(*BotPromptSuggestions)(nil),                                         // 57: WAAICommon.BotPromptSuggestions
-	(*BotPromptSuggestion)(nil),                                          // 58: WAAICommon.BotPromptSuggestion
-	(*BotLinkedAccountsMetadata)(nil),                                    // 59: WAAICommon.BotLinkedAccountsMetadata
-	(*BotMemoryMetadata)(nil),                                            // 60: WAAICommon.BotMemoryMetadata
-	(*BotMemoryFact)(nil),                                                // 61: WAAICommon.BotMemoryFact
-	(*BotSignatureVerificationMetadata)(nil),                             // 62: WAAICommon.BotSignatureVerificationMetadata
-	(*BotRenderingMetadata)(nil),                                         // 63: WAAICommon.BotRenderingMetadata
-	(*BotMetricsMetadata)(nil),                                           // 64: WAAICommon.BotMetricsMetadata
-	(*BotSessionMetadata)(nil),                                           // 65: WAAICommon.BotSessionMetadata
-	(*BotMemuMetadata)(nil),                                              // 66: WAAICommon.BotMemuMetadata
-	(*InThreadSurveyMetadata)(nil),                                       // 67: WAAICommon.InThreadSurveyMetadata
-	(*BotMessageOriginMetadata)(nil),                                     // 68: WAAICommon.BotMessageOriginMetadata
-	(*BotUnifiedResponseMutation)(nil),                                   // 69: WAAICommon.BotUnifiedResponseMutation
-	(*BotMetadata)(nil),                                                  // 70: WAAICommon.BotMetadata
-	(*ForwardedAIBotMessageInfo)(nil),                                    // 71: WAAICommon.ForwardedAIBotMessageInfo
-	(*BotMessageSharingInfo)(nil),                                        // 72: WAAICommon.BotMessageSharingInfo
-	(*AIRichResponseImageURL)(nil),                                       // 73: WAAICommon.AIRichResponseImageURL
-	(*AIRichResponseGridImageMetadata)(nil),                              // 74: WAAICommon.AIRichResponseGridImageMetadata
-	(*AIRichResponseTableMetadata)(nil),                                  // 75: WAAICommon.AIRichResponseTableMetadata
-	(*AIRichResponseUnifiedResponse)(nil),                                // 76: WAAICommon.AIRichResponseUnifiedResponse
-	(*AIRichResponseLatexMetadata)(nil),                                  // 77: WAAICommon.AIRichResponseLatexMetadata
-	(*AIRichResponseMapMetadata)(nil),                                    // 78: WAAICommon.AIRichResponseMapMetadata
-	(*AIRichResponseSubMessage)(nil),                                     // 79: WAAICommon.AIRichResponseSubMessage
-	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata)(nil),         // 80: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata
-	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata)(nil), // 81: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
-	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata)(nil),   // 82: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
-	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata)(nil),  // 83: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
-	(*BotQuotaMetadata_BotFeatureQuotaMetadata)(nil),                                              // 84: WAAICommon.BotQuotaMetadata.BotFeatureQuotaMetadata
-	(*BotSourcesMetadata_BotSourceItem)(nil),                                                      // 85: WAAICommon.BotSourcesMetadata.BotSourceItem
-	(*AIThreadInfo_AIThreadClientInfo)(nil),                                                       // 86: WAAICommon.AIThreadInfo.AIThreadClientInfo
-	(*AIThreadInfo_AIThreadServerInfo)(nil),                                                       // 87: WAAICommon.AIThreadInfo.AIThreadServerInfo
-	(*BotFeedbackMessage_SideBySideSurveyMetadata)(nil),                                           // 88: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata
-	(*BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData)(nil),             // 89: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SideBySideSurveyAnalyticsData
-	(*AIRichResponseCodeMetadata_AIRichResponseCodeBlock)(nil),                                    // 90: WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeBlock
-	(*AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata)(nil),                  // 91: WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseContentItemMetadata
-	(*AIRichResponseContentItemsMetadata_AIRichResponseReelItem)(nil),                             // 92: WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseReelItem
-	(*BotRenderingMetadata_Keyword)(nil),                                                          // 93: WAAICommon.BotRenderingMetadata.Keyword
-	(*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart)(nil),                             // 94: WAAICommon.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPart
-	(*InThreadSurveyMetadata_InThreadSurveyOption)(nil),                                           // 95: WAAICommon.InThreadSurveyMetadata.InThreadSurveyOption
-	(*InThreadSurveyMetadata_InThreadSurveyQuestion)(nil),                                         // 96: WAAICommon.InThreadSurveyMetadata.InThreadSurveyQuestion
-	(*BotUnifiedResponseMutation_MediaDetailsMetadata)(nil),                                       // 97: WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadata
-	(*BotUnifiedResponseMutation_SideBySideMetadata)(nil),                                         // 98: WAAICommon.BotUnifiedResponseMutation.SideBySideMetadata
-	(*AIRichResponseTableMetadata_AIRichResponseTableRow)(nil),                                    // 99: WAAICommon.AIRichResponseTableMetadata.AIRichResponseTableRow
-	(*AIRichResponseLatexMetadata_AIRichResponseLatexExpression)(nil),                             // 100: WAAICommon.AIRichResponseLatexMetadata.AIRichResponseLatexExpression
-	(*AIRichResponseMapMetadata_AIRichResponseMapAnnotation)(nil),                                 // 101: WAAICommon.AIRichResponseMapMetadata.AIRichResponseMapAnnotation
-	(*waCommon.MessageKey)(nil),                                                                   // 102: WACommon.MessageKey
+	(AIHomeState_AIHomeOption_AIHomeActionType)(0),                       // 34: WAAICommon.AIHomeState.AIHomeOption.AIHomeActionType
+	(*BotPluginMetadata)(nil),                                            // 35: WAAICommon.BotPluginMetadata
+	(*BotLinkedAccount)(nil),                                             // 36: WAAICommon.BotLinkedAccount
+	(*BotSignatureVerificationUseCaseProof)(nil),                         // 37: WAAICommon.BotSignatureVerificationUseCaseProof
+	(*BotPromotionMessageMetadata)(nil),                                  // 38: WAAICommon.BotPromotionMessageMetadata
+	(*BotMediaMetadata)(nil),                                             // 39: WAAICommon.BotMediaMetadata
+	(*BotReminderMetadata)(nil),                                          // 40: WAAICommon.BotReminderMetadata
+	(*BotModelMetadata)(nil),                                             // 41: WAAICommon.BotModelMetadata
+	(*BotProgressIndicatorMetadata)(nil),                                 // 42: WAAICommon.BotProgressIndicatorMetadata
+	(*BotCapabilityMetadata)(nil),                                        // 43: WAAICommon.BotCapabilityMetadata
+	(*BotModeSelectionMetadata)(nil),                                     // 44: WAAICommon.BotModeSelectionMetadata
+	(*BotQuotaMetadata)(nil),                                             // 45: WAAICommon.BotQuotaMetadata
+	(*BotImagineMetadata)(nil),                                           // 46: WAAICommon.BotImagineMetadata
+	(*BotAgeCollectionMetadata)(nil),                                     // 47: WAAICommon.BotAgeCollectionMetadata
+	(*BotSourcesMetadata)(nil),                                           // 48: WAAICommon.BotSourcesMetadata
+	(*BotMessageOrigin)(nil),                                             // 49: WAAICommon.BotMessageOrigin
+	(*AIThreadInfo)(nil),                                                 // 50: WAAICommon.AIThreadInfo
+	(*BotFeedbackMessage)(nil),                                           // 51: WAAICommon.BotFeedbackMessage
+	(*AIRichResponseInlineImageMetadata)(nil),                            // 52: WAAICommon.AIRichResponseInlineImageMetadata
+	(*AIRichResponseCodeMetadata)(nil),                                   // 53: WAAICommon.AIRichResponseCodeMetadata
+	(*AIRichResponseDynamicMetadata)(nil),                                // 54: WAAICommon.AIRichResponseDynamicMetadata
+	(*AIRichResponseContentItemsMetadata)(nil),                           // 55: WAAICommon.AIRichResponseContentItemsMetadata
+	(*AIHomeState)(nil),                                                  // 56: WAAICommon.AIHomeState
+	(*BotAvatarMetadata)(nil),                                            // 57: WAAICommon.BotAvatarMetadata
+	(*BotSuggestedPromptMetadata)(nil),                                   // 58: WAAICommon.BotSuggestedPromptMetadata
+	(*BotPromptSuggestions)(nil),                                         // 59: WAAICommon.BotPromptSuggestions
+	(*BotPromptSuggestion)(nil),                                          // 60: WAAICommon.BotPromptSuggestion
+	(*BotLinkedAccountsMetadata)(nil),                                    // 61: WAAICommon.BotLinkedAccountsMetadata
+	(*BotMemoryMetadata)(nil),                                            // 62: WAAICommon.BotMemoryMetadata
+	(*BotMemoryFact)(nil),                                                // 63: WAAICommon.BotMemoryFact
+	(*BotSignatureVerificationMetadata)(nil),                             // 64: WAAICommon.BotSignatureVerificationMetadata
+	(*BotRenderingMetadata)(nil),                                         // 65: WAAICommon.BotRenderingMetadata
+	(*BotMetricsMetadata)(nil),                                           // 66: WAAICommon.BotMetricsMetadata
+	(*BotSessionMetadata)(nil),                                           // 67: WAAICommon.BotSessionMetadata
+	(*BotMemuMetadata)(nil),                                              // 68: WAAICommon.BotMemuMetadata
+	(*InThreadSurveyMetadata)(nil),                                       // 69: WAAICommon.InThreadSurveyMetadata
+	(*BotMessageOriginMetadata)(nil),                                     // 70: WAAICommon.BotMessageOriginMetadata
+	(*BotUnifiedResponseMutation)(nil),                                   // 71: WAAICommon.BotUnifiedResponseMutation
+	(*BotMetadata)(nil),                                                  // 72: WAAICommon.BotMetadata
+	(*ForwardedAIBotMessageInfo)(nil),                                    // 73: WAAICommon.ForwardedAIBotMessageInfo
+	(*BotMessageSharingInfo)(nil),                                        // 74: WAAICommon.BotMessageSharingInfo
+	(*AIRichResponseImageURL)(nil),                                       // 75: WAAICommon.AIRichResponseImageURL
+	(*AIRichResponseGridImageMetadata)(nil),                              // 76: WAAICommon.AIRichResponseGridImageMetadata
+	(*AIRichResponseTableMetadata)(nil),                                  // 77: WAAICommon.AIRichResponseTableMetadata
+	(*AIRichResponseUnifiedResponse)(nil),                                // 78: WAAICommon.AIRichResponseUnifiedResponse
+	(*AIRichResponseLatexMetadata)(nil),                                  // 79: WAAICommon.AIRichResponseLatexMetadata
+	(*AIRichResponseMapMetadata)(nil),                                    // 80: WAAICommon.AIRichResponseMapMetadata
+	(*AIRichResponseSubMessage)(nil),                                     // 81: WAAICommon.AIRichResponseSubMessage
+	(*AIRegenerateMetadata)(nil),                                         // 82: WAAICommon.AIRegenerateMetadata
+	(*SessionTransparencyMetadata)(nil),                                  // 83: WAAICommon.SessionTransparencyMetadata
+	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata)(nil),         // 84: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata
+	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourcesMetadata)(nil),                                   // 85: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
+	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningStepSectionMetadata)(nil),                                     // 86: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
+	(*BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSourceMetadata)(nil),                                    // 87: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
+	(*BotQuotaMetadata_BotFeatureQuotaMetadata)(nil),                                                                                // 88: WAAICommon.BotQuotaMetadata.BotFeatureQuotaMetadata
+	(*BotSourcesMetadata_BotSourceItem)(nil),                                                                                        // 89: WAAICommon.BotSourcesMetadata.BotSourceItem
+	(*AIThreadInfo_AIThreadClientInfo)(nil),                                                                                         // 90: WAAICommon.AIThreadInfo.AIThreadClientInfo
+	(*AIThreadInfo_AIThreadServerInfo)(nil),                                                                                         // 91: WAAICommon.AIThreadInfo.AIThreadServerInfo
+	(*BotFeedbackMessage_SideBySideSurveyMetadata)(nil),                                                                             // 92: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata
+	(*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData)(nil),                                         // 93: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData
+	(*BotFeedbackMessage_SideBySideSurveyMetadata_SideBySideSurveyAnalyticsData)(nil),                                               // 94: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SideBySideSurveyAnalyticsData
+	(*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyAbandonEventData)(nil),        // 95: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyAbandonEventData
+	(*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyResponseEventData)(nil),       // 96: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyResponseEventData
+	(*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCardImpressionEventData)(nil), // 97: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCardImpressionEventData
+	(*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAClickEventData)(nil),       // 98: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCTAClickEventData
+	(*BotFeedbackMessage_SideBySideSurveyMetadata_SidebySideSurveyMetaAiAnalyticsData_SideBySideSurveyCTAImpressionEventData)(nil),  // 99: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCTAImpressionEventData
+	(*AIRichResponseCodeMetadata_AIRichResponseCodeBlock)(nil),                                                                      // 100: WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeBlock
+	(*AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata)(nil),                                                    // 101: WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseContentItemMetadata
+	(*AIRichResponseContentItemsMetadata_AIRichResponseReelItem)(nil),                                                               // 102: WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseReelItem
+	(*AIHomeState_AIHomeOption)(nil),                                                                                                // 103: WAAICommon.AIHomeState.AIHomeOption
+	(*BotRenderingMetadata_Keyword)(nil),                                                                                            // 104: WAAICommon.BotRenderingMetadata.Keyword
+	(*InThreadSurveyMetadata_InThreadSurveyPrivacyStatementPart)(nil),                                                               // 105: WAAICommon.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPart
+	(*InThreadSurveyMetadata_InThreadSurveyOption)(nil),                                                                             // 106: WAAICommon.InThreadSurveyMetadata.InThreadSurveyOption
+	(*InThreadSurveyMetadata_InThreadSurveyQuestion)(nil),                                                                           // 107: WAAICommon.InThreadSurveyMetadata.InThreadSurveyQuestion
+	(*BotUnifiedResponseMutation_MediaDetailsMetadata)(nil),                                                                         // 108: WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadata
+	(*BotUnifiedResponseMutation_SideBySideMetadata)(nil),                                                                           // 109: WAAICommon.BotUnifiedResponseMutation.SideBySideMetadata
+	(*AIRichResponseTableMetadata_AIRichResponseTableRow)(nil),                                                                      // 110: WAAICommon.AIRichResponseTableMetadata.AIRichResponseTableRow
+	(*AIRichResponseLatexMetadata_AIRichResponseLatexExpression)(nil),                                                               // 111: WAAICommon.AIRichResponseLatexMetadata.AIRichResponseLatexExpression
+	(*AIRichResponseMapMetadata_AIRichResponseMapAnnotation)(nil),                                                                   // 112: WAAICommon.AIRichResponseMapMetadata.AIRichResponseMapAnnotation
+	(*waCommon.MessageKey)(nil),                                                                                                     // 113: WACommon.MessageKey
 }
 var file_waAICommon_WAAICommon_proto_depIdxs = []int32{
 	6,   // 0: WAAICommon.BotPluginMetadata.provider:type_name -> WAAICommon.BotPluginMetadata.SearchProvider
 	5,   // 1: WAAICommon.BotPluginMetadata.pluginType:type_name -> WAAICommon.BotPluginMetadata.PluginType
-	102, // 2: WAAICommon.BotPluginMetadata.parentPluginMessageKey:type_name -> WACommon.MessageKey
+	113, // 2: WAAICommon.BotPluginMetadata.parentPluginMessageKey:type_name -> WACommon.MessageKey
 	5,   // 3: WAAICommon.BotPluginMetadata.deprecatedField:type_name -> WAAICommon.BotPluginMetadata.PluginType
 	5,   // 4: WAAICommon.BotPluginMetadata.parentPluginType:type_name -> WAAICommon.BotPluginMetadata.PluginType
 	7,   // 5: WAAICommon.BotLinkedAccount.type:type_name -> WAAICommon.BotLinkedAccount.BotLinkedAccountType
 	8,   // 6: WAAICommon.BotSignatureVerificationUseCaseProof.useCase:type_name -> WAAICommon.BotSignatureVerificationUseCaseProof.BotSignatureUseCase
 	9,   // 7: WAAICommon.BotPromotionMessageMetadata.promotionType:type_name -> WAAICommon.BotPromotionMessageMetadata.BotPromotionType
 	10,  // 8: WAAICommon.BotMediaMetadata.orientationType:type_name -> WAAICommon.BotMediaMetadata.OrientationType
-	102, // 9: WAAICommon.BotReminderMetadata.requestMessageKey:type_name -> WACommon.MessageKey
+	113, // 9: WAAICommon.BotReminderMetadata.requestMessageKey:type_name -> WACommon.MessageKey
 	12,  // 10: WAAICommon.BotReminderMetadata.action:type_name -> WAAICommon.BotReminderMetadata.ReminderAction
 	11,  // 11: WAAICommon.BotReminderMetadata.frequency:type_name -> WAAICommon.BotReminderMetadata.ReminderFrequency
 	14,  // 12: WAAICommon.BotModelMetadata.modelType:type_name -> WAAICommon.BotModelMetadata.ModelType
 	13,  // 13: WAAICommon.BotModelMetadata.premiumModelStatus:type_name -> WAAICommon.BotModelMetadata.PremiumModelStatus
-	80,  // 14: WAAICommon.BotProgressIndicatorMetadata.stepsMetadata:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata
+	84,  // 14: WAAICommon.BotProgressIndicatorMetadata.stepsMetadata:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata
 	18,  // 15: WAAICommon.BotCapabilityMetadata.capabilities:type_name -> WAAICommon.BotCapabilityMetadata.BotCapabilityType
 	19,  // 16: WAAICommon.BotModeSelectionMetadata.mode:type_name -> WAAICommon.BotModeSelectionMetadata.BotUserSelectionMode
-	84,  // 17: WAAICommon.BotQuotaMetadata.botFeatureQuotaMetadata:type_name -> WAAICommon.BotQuotaMetadata.BotFeatureQuotaMetadata
+	88,  // 17: WAAICommon.BotQuotaMetadata.botFeatureQuotaMetadata:type_name -> WAAICommon.BotQuotaMetadata.BotFeatureQuotaMetadata
 	21,  // 18: WAAICommon.BotImagineMetadata.imagineType:type_name -> WAAICommon.BotImagineMetadata.ImagineType
 	22,  // 19: WAAICommon.BotAgeCollectionMetadata.ageCollectionType:type_name -> WAAICommon.BotAgeCollectionMetadata.AgeCollectionType
-	85,  // 20: WAAICommon.BotSourcesMetadata.sources:type_name -> WAAICommon.BotSourcesMetadata.BotSourceItem
+	89,  // 20: WAAICommon.BotSourcesMetadata.sources:type_name -> WAAICommon.BotSourcesMetadata.BotSourceItem
 	24,  // 21: WAAICommon.BotMessageOrigin.type:type_name -> WAAICommon.BotMessageOrigin.BotMessageOriginType
-	87,  // 22: WAAICommon.AIThreadInfo.serverInfo:type_name -> WAAICommon.AIThreadInfo.AIThreadServerInfo
-	86,  // 23: WAAICommon.AIThreadInfo.clientInfo:type_name -> WAAICommon.AIThreadInfo.AIThreadClientInfo
-	102, // 24: WAAICommon.BotFeedbackMessage.messageKey:type_name -> WACommon.MessageKey
+	91,  // 22: WAAICommon.AIThreadInfo.serverInfo:type_name -> WAAICommon.AIThreadInfo.AIThreadServerInfo
+	90,  // 23: WAAICommon.AIThreadInfo.clientInfo:type_name -> WAAICommon.AIThreadInfo.AIThreadClientInfo
+	113, // 24: WAAICommon.BotFeedbackMessage.messageKey:type_name -> WACommon.MessageKey
 	29,  // 25: WAAICommon.BotFeedbackMessage.kind:type_name -> WAAICommon.BotFeedbackMessage.BotFeedbackKind
 	26,  // 26: WAAICommon.BotFeedbackMessage.kindReport:type_name -> WAAICommon.BotFeedbackMessage.ReportKind
-	88,  // 27: WAAICommon.BotFeedbackMessage.sideBySideSurveyMetadata:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata
-	73,  // 28: WAAICommon.AIRichResponseInlineImageMetadata.imageURL:type_name -> WAAICommon.AIRichResponseImageURL
+	92,  // 27: WAAICommon.BotFeedbackMessage.sideBySideSurveyMetadata:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata
+	75,  // 28: WAAICommon.AIRichResponseInlineImageMetadata.imageURL:type_name -> WAAICommon.AIRichResponseImageURL
 	30,  // 29: WAAICommon.AIRichResponseInlineImageMetadata.alignment:type_name -> WAAICommon.AIRichResponseInlineImageMetadata.AIRichResponseImageAlignment
-	90,  // 30: WAAICommon.AIRichResponseCodeMetadata.codeBlocks:type_name -> WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeBlock
+	100, // 30: WAAICommon.AIRichResponseCodeMetadata.codeBlocks:type_name -> WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeBlock
 	32,  // 31: WAAICommon.AIRichResponseDynamicMetadata.type:type_name -> WAAICommon.AIRichResponseDynamicMetadata.AIRichResponseDynamicMetadataType
-	91,  // 32: WAAICommon.AIRichResponseContentItemsMetadata.itemsMetadata:type_name -> WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseContentItemMetadata
+	101, // 32: WAAICommon.AIRichResponseContentItemsMetadata.itemsMetadata:type_name -> WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseContentItemMetadata
 	33,  // 33: WAAICommon.AIRichResponseContentItemsMetadata.contentType:type_name -> WAAICommon.AIRichResponseContentItemsMetadata.ContentType
-	57,  // 34: WAAICommon.BotSuggestedPromptMetadata.promptSuggestions:type_name -> WAAICommon.BotPromptSuggestions
-	58,  // 35: WAAICommon.BotPromptSuggestions.suggestions:type_name -> WAAICommon.BotPromptSuggestion
-	35,  // 36: WAAICommon.BotLinkedAccountsMetadata.accounts:type_name -> WAAICommon.BotLinkedAccount
-	61,  // 37: WAAICommon.BotMemoryMetadata.addedFacts:type_name -> WAAICommon.BotMemoryFact
-	61,  // 38: WAAICommon.BotMemoryMetadata.removedFacts:type_name -> WAAICommon.BotMemoryFact
-	36,  // 39: WAAICommon.BotSignatureVerificationMetadata.proofs:type_name -> WAAICommon.BotSignatureVerificationUseCaseProof
-	93,  // 40: WAAICommon.BotRenderingMetadata.keywords:type_name -> WAAICommon.BotRenderingMetadata.Keyword
-	0,   // 41: WAAICommon.BotMetricsMetadata.destinationEntryPoint:type_name -> WAAICommon.BotMetricsEntryPoint
-	1,   // 42: WAAICommon.BotMetricsMetadata.threadOrigin:type_name -> WAAICommon.BotMetricsThreadEntryPoint
-	2,   // 43: WAAICommon.BotSessionMetadata.sessionSource:type_name -> WAAICommon.BotSessionSource
-	38,  // 44: WAAICommon.BotMemuMetadata.faceImages:type_name -> WAAICommon.BotMediaMetadata
-	96,  // 45: WAAICommon.InThreadSurveyMetadata.questions:type_name -> WAAICommon.InThreadSurveyMetadata.InThreadSurveyQuestion
-	94,  // 46: WAAICommon.InThreadSurveyMetadata.privacyStatementParts:type_name -> WAAICommon.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPart
-	48,  // 47: WAAICommon.BotMessageOriginMetadata.origins:type_name -> WAAICommon.BotMessageOrigin
-	98,  // 48: WAAICommon.BotUnifiedResponseMutation.sbsMetadata:type_name -> WAAICommon.BotUnifiedResponseMutation.SideBySideMetadata
-	97,  // 49: WAAICommon.BotUnifiedResponseMutation.mediaDetailsMetadataList:type_name -> WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadata
-	55,  // 50: WAAICommon.BotMetadata.avatarMetadata:type_name -> WAAICommon.BotAvatarMetadata
-	34,  // 51: WAAICommon.BotMetadata.pluginMetadata:type_name -> WAAICommon.BotPluginMetadata
-	56,  // 52: WAAICommon.BotMetadata.suggestedPromptMetadata:type_name -> WAAICommon.BotSuggestedPromptMetadata
-	65,  // 53: WAAICommon.BotMetadata.sessionMetadata:type_name -> WAAICommon.BotSessionMetadata
-	66,  // 54: WAAICommon.BotMetadata.memuMetadata:type_name -> WAAICommon.BotMemuMetadata
-	39,  // 55: WAAICommon.BotMetadata.reminderMetadata:type_name -> WAAICommon.BotReminderMetadata
-	40,  // 56: WAAICommon.BotMetadata.modelMetadata:type_name -> WAAICommon.BotModelMetadata
-	41,  // 57: WAAICommon.BotMetadata.progressIndicatorMetadata:type_name -> WAAICommon.BotProgressIndicatorMetadata
-	42,  // 58: WAAICommon.BotMetadata.capabilityMetadata:type_name -> WAAICommon.BotCapabilityMetadata
-	45,  // 59: WAAICommon.BotMetadata.imagineMetadata:type_name -> WAAICommon.BotImagineMetadata
-	60,  // 60: WAAICommon.BotMetadata.memoryMetadata:type_name -> WAAICommon.BotMemoryMetadata
-	63,  // 61: WAAICommon.BotMetadata.renderingMetadata:type_name -> WAAICommon.BotRenderingMetadata
-	64,  // 62: WAAICommon.BotMetadata.botMetricsMetadata:type_name -> WAAICommon.BotMetricsMetadata
-	59,  // 63: WAAICommon.BotMetadata.botLinkedAccountsMetadata:type_name -> WAAICommon.BotLinkedAccountsMetadata
-	47,  // 64: WAAICommon.BotMetadata.richResponseSourcesMetadata:type_name -> WAAICommon.BotSourcesMetadata
-	37,  // 65: WAAICommon.BotMetadata.botPromotionMessageMetadata:type_name -> WAAICommon.BotPromotionMessageMetadata
-	43,  // 66: WAAICommon.BotMetadata.botModeSelectionMetadata:type_name -> WAAICommon.BotModeSelectionMetadata
-	44,  // 67: WAAICommon.BotMetadata.botQuotaMetadata:type_name -> WAAICommon.BotQuotaMetadata
-	46,  // 68: WAAICommon.BotMetadata.botAgeCollectionMetadata:type_name -> WAAICommon.BotAgeCollectionMetadata
-	62,  // 69: WAAICommon.BotMetadata.verificationMetadata:type_name -> WAAICommon.BotSignatureVerificationMetadata
-	69,  // 70: WAAICommon.BotMetadata.unifiedResponseMutation:type_name -> WAAICommon.BotUnifiedResponseMutation
-	68,  // 71: WAAICommon.BotMetadata.botMessageOriginMetadata:type_name -> WAAICommon.BotMessageOriginMetadata
-	67,  // 72: WAAICommon.BotMetadata.inThreadSurveyMetadata:type_name -> WAAICommon.InThreadSurveyMetadata
-	49,  // 73: WAAICommon.BotMetadata.botThreadInfo:type_name -> WAAICommon.AIThreadInfo
-	0,   // 74: WAAICommon.BotMessageSharingInfo.botEntryPointOrigin:type_name -> WAAICommon.BotMetricsEntryPoint
-	73,  // 75: WAAICommon.AIRichResponseGridImageMetadata.gridImageURL:type_name -> WAAICommon.AIRichResponseImageURL
-	73,  // 76: WAAICommon.AIRichResponseGridImageMetadata.imageURLs:type_name -> WAAICommon.AIRichResponseImageURL
-	99,  // 77: WAAICommon.AIRichResponseTableMetadata.rows:type_name -> WAAICommon.AIRichResponseTableMetadata.AIRichResponseTableRow
-	100, // 78: WAAICommon.AIRichResponseLatexMetadata.expressions:type_name -> WAAICommon.AIRichResponseLatexMetadata.AIRichResponseLatexExpression
-	101, // 79: WAAICommon.AIRichResponseMapMetadata.annotations:type_name -> WAAICommon.AIRichResponseMapMetadata.AIRichResponseMapAnnotation
-	4,   // 80: WAAICommon.AIRichResponseSubMessage.messageType:type_name -> WAAICommon.AIRichResponseSubMessageType
-	74,  // 81: WAAICommon.AIRichResponseSubMessage.gridImageMetadata:type_name -> WAAICommon.AIRichResponseGridImageMetadata
-	51,  // 82: WAAICommon.AIRichResponseSubMessage.imageMetadata:type_name -> WAAICommon.AIRichResponseInlineImageMetadata
-	52,  // 83: WAAICommon.AIRichResponseSubMessage.codeMetadata:type_name -> WAAICommon.AIRichResponseCodeMetadata
-	75,  // 84: WAAICommon.AIRichResponseSubMessage.tableMetadata:type_name -> WAAICommon.AIRichResponseTableMetadata
-	53,  // 85: WAAICommon.AIRichResponseSubMessage.dynamicMetadata:type_name -> WAAICommon.AIRichResponseDynamicMetadata
-	77,  // 86: WAAICommon.AIRichResponseSubMessage.latexMetadata:type_name -> WAAICommon.AIRichResponseLatexMetadata
-	78,  // 87: WAAICommon.AIRichResponseSubMessage.mapMetadata:type_name -> WAAICommon.AIRichResponseMapMetadata
-	54,  // 88: WAAICommon.AIRichResponseSubMessage.contentItemsMetadata:type_name -> WAAICommon.AIRichResponseContentItemsMetadata
-	81,  // 89: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sourcesMetadata:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
-	16,  // 90: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.status:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.PlanningStepStatus
-	82,  // 91: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sections:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
-	17,  // 92: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.provider:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.BotPlanningSearchSourceProvider
-	83,  // 93: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata.sourcesMetadata:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
-	15,  // 94: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata.provider:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotSearchSourceProvider
-	20,  // 95: WAAICommon.BotQuotaMetadata.BotFeatureQuotaMetadata.featureType:type_name -> WAAICommon.BotQuotaMetadata.BotFeatureQuotaMetadata.BotFeatureType
-	23,  // 96: WAAICommon.BotSourcesMetadata.BotSourceItem.provider:type_name -> WAAICommon.BotSourcesMetadata.BotSourceItem.SourceProvider
-	25,  // 97: WAAICommon.AIThreadInfo.AIThreadClientInfo.type:type_name -> WAAICommon.AIThreadInfo.AIThreadClientInfo.AIThreadType
-	89,  // 98: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.analyticsData:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SideBySideSurveyAnalyticsData
-	31,  // 99: WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeBlock.highlightType:type_name -> WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeHighlightType
-	92,  // 100: WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseContentItemMetadata.reelItem:type_name -> WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseReelItem
-	95,  // 101: WAAICommon.InThreadSurveyMetadata.InThreadSurveyQuestion.questionOptions:type_name -> WAAICommon.InThreadSurveyMetadata.InThreadSurveyOption
-	38,  // 102: WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadata.highResMedia:type_name -> WAAICommon.BotMediaMetadata
-	38,  // 103: WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadata.previewMedia:type_name -> WAAICommon.BotMediaMetadata
-	104, // [104:104] is the sub-list for method output_type
-	104, // [104:104] is the sub-list for method input_type
-	104, // [104:104] is the sub-list for extension type_name
-	104, // [104:104] is the sub-list for extension extendee
-	0,   // [0:104] is the sub-list for field type_name
+	103, // 34: WAAICommon.AIHomeState.capabilityOptions:type_name -> WAAICommon.AIHomeState.AIHomeOption
+	103, // 35: WAAICommon.AIHomeState.conversationOptions:type_name -> WAAICommon.AIHomeState.AIHomeOption
+	59,  // 36: WAAICommon.BotSuggestedPromptMetadata.promptSuggestions:type_name -> WAAICommon.BotPromptSuggestions
+	60,  // 37: WAAICommon.BotPromptSuggestions.suggestions:type_name -> WAAICommon.BotPromptSuggestion
+	36,  // 38: WAAICommon.BotLinkedAccountsMetadata.accounts:type_name -> WAAICommon.BotLinkedAccount
+	63,  // 39: WAAICommon.BotMemoryMetadata.addedFacts:type_name -> WAAICommon.BotMemoryFact
+	63,  // 40: WAAICommon.BotMemoryMetadata.removedFacts:type_name -> WAAICommon.BotMemoryFact
+	37,  // 41: WAAICommon.BotSignatureVerificationMetadata.proofs:type_name -> WAAICommon.BotSignatureVerificationUseCaseProof
+	104, // 42: WAAICommon.BotRenderingMetadata.keywords:type_name -> WAAICommon.BotRenderingMetadata.Keyword
+	0,   // 43: WAAICommon.BotMetricsMetadata.destinationEntryPoint:type_name -> WAAICommon.BotMetricsEntryPoint
+	1,   // 44: WAAICommon.BotMetricsMetadata.threadOrigin:type_name -> WAAICommon.BotMetricsThreadEntryPoint
+	2,   // 45: WAAICommon.BotSessionMetadata.sessionSource:type_name -> WAAICommon.BotSessionSource
+	39,  // 46: WAAICommon.BotMemuMetadata.faceImages:type_name -> WAAICommon.BotMediaMetadata
+	107, // 47: WAAICommon.InThreadSurveyMetadata.questions:type_name -> WAAICommon.InThreadSurveyMetadata.InThreadSurveyQuestion
+	105, // 48: WAAICommon.InThreadSurveyMetadata.privacyStatementParts:type_name -> WAAICommon.InThreadSurveyMetadata.InThreadSurveyPrivacyStatementPart
+	49,  // 49: WAAICommon.BotMessageOriginMetadata.origins:type_name -> WAAICommon.BotMessageOrigin
+	109, // 50: WAAICommon.BotUnifiedResponseMutation.sbsMetadata:type_name -> WAAICommon.BotUnifiedResponseMutation.SideBySideMetadata
+	108, // 51: WAAICommon.BotUnifiedResponseMutation.mediaDetailsMetadataList:type_name -> WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadata
+	57,  // 52: WAAICommon.BotMetadata.avatarMetadata:type_name -> WAAICommon.BotAvatarMetadata
+	35,  // 53: WAAICommon.BotMetadata.pluginMetadata:type_name -> WAAICommon.BotPluginMetadata
+	58,  // 54: WAAICommon.BotMetadata.suggestedPromptMetadata:type_name -> WAAICommon.BotSuggestedPromptMetadata
+	67,  // 55: WAAICommon.BotMetadata.sessionMetadata:type_name -> WAAICommon.BotSessionMetadata
+	68,  // 56: WAAICommon.BotMetadata.memuMetadata:type_name -> WAAICommon.BotMemuMetadata
+	40,  // 57: WAAICommon.BotMetadata.reminderMetadata:type_name -> WAAICommon.BotReminderMetadata
+	41,  // 58: WAAICommon.BotMetadata.modelMetadata:type_name -> WAAICommon.BotModelMetadata
+	42,  // 59: WAAICommon.BotMetadata.progressIndicatorMetadata:type_name -> WAAICommon.BotProgressIndicatorMetadata
+	43,  // 60: WAAICommon.BotMetadata.capabilityMetadata:type_name -> WAAICommon.BotCapabilityMetadata
+	46,  // 61: WAAICommon.BotMetadata.imagineMetadata:type_name -> WAAICommon.BotImagineMetadata
+	62,  // 62: WAAICommon.BotMetadata.memoryMetadata:type_name -> WAAICommon.BotMemoryMetadata
+	65,  // 63: WAAICommon.BotMetadata.renderingMetadata:type_name -> WAAICommon.BotRenderingMetadata
+	66,  // 64: WAAICommon.BotMetadata.botMetricsMetadata:type_name -> WAAICommon.BotMetricsMetadata
+	61,  // 65: WAAICommon.BotMetadata.botLinkedAccountsMetadata:type_name -> WAAICommon.BotLinkedAccountsMetadata
+	48,  // 66: WAAICommon.BotMetadata.richResponseSourcesMetadata:type_name -> WAAICommon.BotSourcesMetadata
+	38,  // 67: WAAICommon.BotMetadata.botPromotionMessageMetadata:type_name -> WAAICommon.BotPromotionMessageMetadata
+	44,  // 68: WAAICommon.BotMetadata.botModeSelectionMetadata:type_name -> WAAICommon.BotModeSelectionMetadata
+	45,  // 69: WAAICommon.BotMetadata.botQuotaMetadata:type_name -> WAAICommon.BotQuotaMetadata
+	47,  // 70: WAAICommon.BotMetadata.botAgeCollectionMetadata:type_name -> WAAICommon.BotAgeCollectionMetadata
+	64,  // 71: WAAICommon.BotMetadata.verificationMetadata:type_name -> WAAICommon.BotSignatureVerificationMetadata
+	71,  // 72: WAAICommon.BotMetadata.unifiedResponseMutation:type_name -> WAAICommon.BotUnifiedResponseMutation
+	70,  // 73: WAAICommon.BotMetadata.botMessageOriginMetadata:type_name -> WAAICommon.BotMessageOriginMetadata
+	69,  // 74: WAAICommon.BotMetadata.inThreadSurveyMetadata:type_name -> WAAICommon.InThreadSurveyMetadata
+	50,  // 75: WAAICommon.BotMetadata.botThreadInfo:type_name -> WAAICommon.AIThreadInfo
+	82,  // 76: WAAICommon.BotMetadata.regenerateMetadata:type_name -> WAAICommon.AIRegenerateMetadata
+	83,  // 77: WAAICommon.BotMetadata.sessionTransparencyMetadata:type_name -> WAAICommon.SessionTransparencyMetadata
+	0,   // 78: WAAICommon.BotMessageSharingInfo.botEntryPointOrigin:type_name -> WAAICommon.BotMetricsEntryPoint
+	75,  // 79: WAAICommon.AIRichResponseGridImageMetadata.gridImageURL:type_name -> WAAICommon.AIRichResponseImageURL
+	75,  // 80: WAAICommon.AIRichResponseGridImageMetadata.imageURLs:type_name -> WAAICommon.AIRichResponseImageURL
+	110, // 81: WAAICommon.AIRichResponseTableMetadata.rows:type_name -> WAAICommon.AIRichResponseTableMetadata.AIRichResponseTableRow
+	111, // 82: WAAICommon.AIRichResponseLatexMetadata.expressions:type_name -> WAAICommon.AIRichResponseLatexMetadata.AIRichResponseLatexExpression
+	112, // 83: WAAICommon.AIRichResponseMapMetadata.annotations:type_name -> WAAICommon.AIRichResponseMapMetadata.AIRichResponseMapAnnotation
+	4,   // 84: WAAICommon.AIRichResponseSubMessage.messageType:type_name -> WAAICommon.AIRichResponseSubMessageType
+	76,  // 85: WAAICommon.AIRichResponseSubMessage.gridImageMetadata:type_name -> WAAICommon.AIRichResponseGridImageMetadata
+	52,  // 86: WAAICommon.AIRichResponseSubMessage.imageMetadata:type_name -> WAAICommon.AIRichResponseInlineImageMetadata
+	53,  // 87: WAAICommon.AIRichResponseSubMessage.codeMetadata:type_name -> WAAICommon.AIRichResponseCodeMetadata
+	77,  // 88: WAAICommon.AIRichResponseSubMessage.tableMetadata:type_name -> WAAICommon.AIRichResponseTableMetadata
+	54,  // 89: WAAICommon.AIRichResponseSubMessage.dynamicMetadata:type_name -> WAAICommon.AIRichResponseDynamicMetadata
+	79,  // 90: WAAICommon.AIRichResponseSubMessage.latexMetadata:type_name -> WAAICommon.AIRichResponseLatexMetadata
+	80,  // 91: WAAICommon.AIRichResponseSubMessage.mapMetadata:type_name -> WAAICommon.AIRichResponseMapMetadata
+	55,  // 92: WAAICommon.AIRichResponseSubMessage.contentItemsMetadata:type_name -> WAAICommon.AIRichResponseContentItemsMetadata
+	113, // 93: WAAICommon.AIRegenerateMetadata.messageKey:type_name -> WACommon.MessageKey
+	85,  // 94: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sourcesMetadata:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata
+	16,  // 95: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.status:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.PlanningStepStatus
+	86,  // 96: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.sections:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata
+	17,  // 97: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.provider:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourcesMetadata.BotPlanningSearchSourceProvider
+	87,  // 98: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningStepSectionMetadata.sourcesMetadata:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata
+	15,  // 99: WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotPlanningSearchSourceMetadata.provider:type_name -> WAAICommon.BotProgressIndicatorMetadata.BotPlanningStepMetadata.BotSearchSourceProvider
+	20,  // 100: WAAICommon.BotQuotaMetadata.BotFeatureQuotaMetadata.featureType:type_name -> WAAICommon.BotQuotaMetadata.BotFeatureQuotaMetadata.BotFeatureType
+	23,  // 101: WAAICommon.BotSourcesMetadata.BotSourceItem.provider:type_name -> WAAICommon.BotSourcesMetadata.BotSourceItem.SourceProvider
+	25,  // 102: WAAICommon.AIThreadInfo.AIThreadClientInfo.type:type_name -> WAAICommon.AIThreadInfo.AIThreadClientInfo.AIThreadType
+	94,  // 103: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.analyticsData:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SideBySideSurveyAnalyticsData
+	93,  // 104: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.metaAiAnalyticsData:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData
+	99,  // 105: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.ctaImpressionEvent:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCTAImpressionEventData
+	98,  // 106: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.ctaClickEvent:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCTAClickEventData
+	97,  // 107: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.cardImpressionEvent:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyCardImpressionEventData
+	96,  // 108: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.responseEvent:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyResponseEventData
+	95,  // 109: WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.abandonEvent:type_name -> WAAICommon.BotFeedbackMessage.SideBySideSurveyMetadata.SidebySideSurveyMetaAiAnalyticsData.SideBySideSurveyAbandonEventData
+	31,  // 110: WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeBlock.highlightType:type_name -> WAAICommon.AIRichResponseCodeMetadata.AIRichResponseCodeHighlightType
+	102, // 111: WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseContentItemMetadata.reelItem:type_name -> WAAICommon.AIRichResponseContentItemsMetadata.AIRichResponseReelItem
+	34,  // 112: WAAICommon.AIHomeState.AIHomeOption.type:type_name -> WAAICommon.AIHomeState.AIHomeOption.AIHomeActionType
+	106, // 113: WAAICommon.InThreadSurveyMetadata.InThreadSurveyQuestion.questionOptions:type_name -> WAAICommon.InThreadSurveyMetadata.InThreadSurveyOption
+	39,  // 114: WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadata.highResMedia:type_name -> WAAICommon.BotMediaMetadata
+	39,  // 115: WAAICommon.BotUnifiedResponseMutation.MediaDetailsMetadata.previewMedia:type_name -> WAAICommon.BotMediaMetadata
+	116, // [116:116] is the sub-list for method output_type
+	116, // [116:116] is the sub-list for method input_type
+	116, // [116:116] is the sub-list for extension type_name
+	116, // [116:116] is the sub-list for extension extendee
+	0,   // [0:116] is the sub-list for field type_name
 }
 
 func init() { file_waAICommon_WAAICommon_proto_init() }
@@ -7723,7 +8533,7 @@ func file_waAICommon_WAAICommon_proto_init() {
 	if File_waAICommon_WAAICommon_proto != nil {
 		return
 	}
-	file_waAICommon_WAAICommon_proto_msgTypes[57].OneofWrappers = []any{
+	file_waAICommon_WAAICommon_proto_msgTypes[66].OneofWrappers = []any{
 		(*AIRichResponseContentItemsMetadata_AIRichResponseContentItemMetadata_ReelItem)(nil),
 	}
 	type x struct{}
@@ -7731,8 +8541,8 @@ func file_waAICommon_WAAICommon_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waAICommon_WAAICommon_proto_rawDesc), len(file_waAICommon_WAAICommon_proto_rawDesc)),
-			NumEnums:      34,
-			NumMessages:   68,
+			NumEnums:      35,
+			NumMessages:   78,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

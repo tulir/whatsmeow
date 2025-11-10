@@ -21,8 +21,7 @@ import (
 const InviteLinkPrefix = "https://chat.whatsapp.com/"
 
 func (cli *Client) sendGroupIQ(ctx context.Context, iqType infoQueryType, jid types.JID, content waBinary.Node) (*waBinary.Node, error) {
-	return cli.sendIQ(infoQuery{
-		Context:   ctx,
+	return cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:g2",
 		Type:      iqType,
 		To:        jid,
@@ -135,8 +134,8 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 }
 
 // UnlinkGroup removes a child group from a parent community.
-func (cli *Client) UnlinkGroup(parent, child types.JID) error {
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, parent, waBinary.Node{
+func (cli *Client) UnlinkGroup(ctx context.Context, parent, child types.JID) error {
+	_, err := cli.sendGroupIQ(ctx, iqSet, parent, waBinary.Node{
 		Tag:   "unlink",
 		Attrs: waBinary.Attrs{"unlink_type": string(types.GroupLinkChangeTypeSub)},
 		Content: []waBinary.Node{{
@@ -150,8 +149,8 @@ func (cli *Client) UnlinkGroup(parent, child types.JID) error {
 // LinkGroup adds an existing group as a child group in a community.
 //
 // To create a new group within a community, set LinkedParentJID in the CreateGroup request.
-func (cli *Client) LinkGroup(parent, child types.JID) error {
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, parent, waBinary.Node{
+func (cli *Client) LinkGroup(ctx context.Context, parent, child types.JID) error {
+	_, err := cli.sendGroupIQ(ctx, iqSet, parent, waBinary.Node{
 		Tag: "links",
 		Content: []waBinary.Node{{
 			Tag:   "link",
@@ -166,8 +165,8 @@ func (cli *Client) LinkGroup(parent, child types.JID) error {
 }
 
 // LeaveGroup leaves the specified group on WhatsApp.
-func (cli *Client) LeaveGroup(jid types.JID) error {
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, types.GroupServerJID, waBinary.Node{
+func (cli *Client) LeaveGroup(ctx context.Context, jid types.JID) error {
+	_, err := cli.sendGroupIQ(ctx, iqSet, types.GroupServerJID, waBinary.Node{
 		Tag: "leave",
 		Content: []waBinary.Node{{
 			Tag:   "group",
@@ -187,7 +186,7 @@ const (
 )
 
 // UpdateGroupParticipants can be used to add, remove, promote and demote members in a WhatsApp group.
-func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []types.JID, action ParticipantChange) ([]types.GroupParticipant, error) {
+func (cli *Client) UpdateGroupParticipants(ctx context.Context, jid types.JID, participantChanges []types.JID, action ParticipantChange) ([]types.GroupParticipant, error) {
 	content := make([]waBinary.Node, len(participantChanges))
 	for i, participantJID := range participantChanges {
 		content[i] = waBinary.Node{
@@ -195,7 +194,7 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []t
 			Attrs: waBinary.Attrs{"jid": participantJID},
 		}
 	}
-	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+	resp, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag:     string(action),
 		Content: content,
 	})
@@ -215,8 +214,8 @@ func (cli *Client) UpdateGroupParticipants(jid types.JID, participantChanges []t
 }
 
 // GetGroupRequestParticipants gets the list of participants that have requested to join the group.
-func (cli *Client) GetGroupRequestParticipants(jid types.JID) ([]types.GroupParticipantRequest, error) {
-	resp, err := cli.sendGroupIQ(context.TODO(), iqGet, jid, waBinary.Node{
+func (cli *Client) GetGroupRequestParticipants(ctx context.Context, jid types.JID) ([]types.GroupParticipantRequest, error) {
+	resp, err := cli.sendGroupIQ(ctx, iqGet, jid, waBinary.Node{
 		Tag: "membership_approval_requests",
 	})
 	if err != nil {
@@ -245,7 +244,7 @@ const (
 )
 
 // UpdateGroupRequestParticipants can be used to approve or reject requests to join the group.
-func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChanges []types.JID, action ParticipantRequestChange) ([]types.GroupParticipant, error) {
+func (cli *Client) UpdateGroupRequestParticipants(ctx context.Context, jid types.JID, participantChanges []types.JID, action ParticipantRequestChange) ([]types.GroupParticipant, error) {
 	content := make([]waBinary.Node, len(participantChanges))
 	for i, participantJID := range participantChanges {
 		content[i] = waBinary.Node{
@@ -253,7 +252,7 @@ func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChan
 			Attrs: waBinary.Attrs{"jid": participantJID},
 		}
 	}
-	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+	resp, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag: "membership_requests_action",
 		Content: []waBinary.Node{{
 			Tag:     string(action),
@@ -282,7 +281,7 @@ func (cli *Client) UpdateGroupRequestParticipants(jid types.JID, participantChan
 // SetGroupPhoto updates the group picture/icon of the given group on WhatsApp.
 // The avatar should be a JPEG photo, other formats may be rejected with ErrInvalidImageFormat.
 // The bytes can be nil to remove the photo. Returns the new picture ID.
-func (cli *Client) SetGroupPhoto(jid types.JID, avatar []byte) (string, error) {
+func (cli *Client) SetGroupPhoto(ctx context.Context, jid types.JID, avatar []byte) (string, error) {
 	var content interface{}
 	if avatar != nil {
 		content = []waBinary.Node{{
@@ -291,7 +290,7 @@ func (cli *Client) SetGroupPhoto(jid types.JID, avatar []byte) (string, error) {
 			Content: avatar,
 		}}
 	}
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:profile:picture",
 		Type:      iqSet,
 		To:        types.ServerJID,
@@ -314,8 +313,8 @@ func (cli *Client) SetGroupPhoto(jid types.JID, avatar []byte) (string, error) {
 }
 
 // SetGroupName updates the name (subject) of the given group on WhatsApp.
-func (cli *Client) SetGroupName(jid types.JID, name string) error {
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+func (cli *Client) SetGroupName(ctx context.Context, jid types.JID, name string) error {
+	_, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag:     "subject",
 		Content: []byte(name),
 	})
@@ -327,9 +326,9 @@ func (cli *Client) SetGroupName(jid types.JID, name string) error {
 // The previousID and newID fields are optional. If the previous ID is not specified, this will
 // automatically fetch the current group info to find the previous topic ID. If the new ID is not
 // specified, one will be generated with Client.GenerateMessageID().
-func (cli *Client) SetGroupTopic(jid types.JID, previousID, newID, topic string) error {
+func (cli *Client) SetGroupTopic(ctx context.Context, jid types.JID, previousID, newID, topic string) error {
 	if previousID == "" {
-		oldInfo, err := cli.GetGroupInfo(jid)
+		oldInfo, err := cli.GetGroupInfo(ctx, jid)
 		if err != nil {
 			return fmt.Errorf("failed to get old group info to update topic: %v", err)
 		}
@@ -352,7 +351,7 @@ func (cli *Client) SetGroupTopic(jid types.JID, previousID, newID, topic string)
 		attrs["delete"] = "true"
 		content = nil
 	}
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+	_, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag:     "description",
 		Attrs:   attrs,
 		Content: content,
@@ -361,34 +360,34 @@ func (cli *Client) SetGroupTopic(jid types.JID, previousID, newID, topic string)
 }
 
 // SetGroupLocked changes whether the group is locked (i.e. whether only admins can modify group info).
-func (cli *Client) SetGroupLocked(jid types.JID, locked bool) error {
+func (cli *Client) SetGroupLocked(ctx context.Context, jid types.JID, locked bool) error {
 	tag := "locked"
 	if !locked {
 		tag = "unlocked"
 	}
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{Tag: tag})
+	_, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{Tag: tag})
 	return err
 }
 
 // SetGroupAnnounce changes whether the group is in announce mode (i.e. whether only admins can send messages).
-func (cli *Client) SetGroupAnnounce(jid types.JID, announce bool) error {
+func (cli *Client) SetGroupAnnounce(ctx context.Context, jid types.JID, announce bool) error {
 	tag := "announcement"
 	if !announce {
 		tag = "not_announcement"
 	}
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{Tag: tag})
+	_, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{Tag: tag})
 	return err
 }
 
 // GetGroupInviteLink requests the invite link to the group from the WhatsApp servers.
 //
 // If reset is true, then the old invite link will be revoked and a new one generated.
-func (cli *Client) GetGroupInviteLink(jid types.JID, reset bool) (string, error) {
+func (cli *Client) GetGroupInviteLink(ctx context.Context, jid types.JID, reset bool) (string, error) {
 	iqType := iqGet
 	if reset {
 		iqType = iqSet
 	}
-	resp, err := cli.sendGroupIQ(context.TODO(), iqType, jid, waBinary.Node{Tag: "invite"})
+	resp, err := cli.sendGroupIQ(ctx, iqType, jid, waBinary.Node{Tag: "invite"})
 	if errors.Is(err, ErrIQNotAuthorized) {
 		return "", wrapIQError(ErrGroupInviteLinkUnauthorized, err)
 	} else if errors.Is(err, ErrIQNotFound) {
@@ -408,8 +407,8 @@ func (cli *Client) GetGroupInviteLink(jid types.JID, reset bool) (string, error)
 // GetGroupInfoFromInvite gets the group info from an invite message.
 //
 // Note that this is specifically for invite messages, not invite links. Use GetGroupInfoFromLink for resolving chat.whatsapp.com links.
-func (cli *Client) GetGroupInfoFromInvite(jid, inviter types.JID, code string, expiration int64) (*types.GroupInfo, error) {
-	resp, err := cli.sendGroupIQ(context.TODO(), iqGet, jid, waBinary.Node{
+func (cli *Client) GetGroupInfoFromInvite(ctx context.Context, jid, inviter types.JID, code string, expiration int64) (*types.GroupInfo, error) {
+	resp, err := cli.sendGroupIQ(ctx, iqGet, jid, waBinary.Node{
 		Tag: "query",
 		Content: []waBinary.Node{{
 			Tag: "add_request",
@@ -433,8 +432,8 @@ func (cli *Client) GetGroupInfoFromInvite(jid, inviter types.JID, code string, e
 // JoinGroupWithInvite joins a group using an invite message.
 //
 // Note that this is specifically for invite messages, not invite links. Use JoinGroupWithLink for joining with chat.whatsapp.com links.
-func (cli *Client) JoinGroupWithInvite(jid, inviter types.JID, code string, expiration int64) error {
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, waBinary.Node{
+func (cli *Client) JoinGroupWithInvite(ctx context.Context, jid, inviter types.JID, code string, expiration int64) error {
+	_, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag: "accept",
 		Attrs: waBinary.Attrs{
 			"code":       code,
@@ -447,9 +446,9 @@ func (cli *Client) JoinGroupWithInvite(jid, inviter types.JID, code string, expi
 
 // GetGroupInfoFromLink resolves the given invite link and asks the WhatsApp servers for info about the group.
 // This will not cause the user to join the group.
-func (cli *Client) GetGroupInfoFromLink(code string) (*types.GroupInfo, error) {
+func (cli *Client) GetGroupInfoFromLink(ctx context.Context, code string) (*types.GroupInfo, error) {
 	code = strings.TrimPrefix(code, InviteLinkPrefix)
-	resp, err := cli.sendGroupIQ(context.TODO(), iqGet, types.GroupServerJID, waBinary.Node{
+	resp, err := cli.sendGroupIQ(ctx, iqGet, types.GroupServerJID, waBinary.Node{
 		Tag:   "invite",
 		Attrs: waBinary.Attrs{"code": code},
 	})
@@ -468,9 +467,9 @@ func (cli *Client) GetGroupInfoFromLink(code string) (*types.GroupInfo, error) {
 }
 
 // JoinGroupWithLink joins the group using the given invite link.
-func (cli *Client) JoinGroupWithLink(code string) (types.JID, error) {
+func (cli *Client) JoinGroupWithLink(ctx context.Context, code string) (types.JID, error) {
 	code = strings.TrimPrefix(code, InviteLinkPrefix)
-	resp, err := cli.sendGroupIQ(context.TODO(), iqSet, types.GroupServerJID, waBinary.Node{
+	resp, err := cli.sendGroupIQ(ctx, iqSet, types.GroupServerJID, waBinary.Node{
 		Tag:   "invite",
 		Attrs: waBinary.Attrs{"code": code},
 	})
@@ -538,8 +537,8 @@ func (cli *Client) GetJoinedGroups(ctx context.Context) ([]*types.GroupInfo, err
 }
 
 // GetSubGroups gets the subgroups of the given community.
-func (cli *Client) GetSubGroups(community types.JID) ([]*types.GroupLinkTarget, error) {
-	res, err := cli.sendGroupIQ(context.TODO(), iqGet, community, waBinary.Node{Tag: "sub_groups"})
+func (cli *Client) GetSubGroups(ctx context.Context, community types.JID) ([]*types.GroupLinkTarget, error) {
+	res, err := cli.sendGroupIQ(ctx, iqGet, community, waBinary.Node{Tag: "sub_groups"})
 	if err != nil {
 		return nil, err
 	}
@@ -561,8 +560,8 @@ func (cli *Client) GetSubGroups(community types.JID) ([]*types.GroupLinkTarget, 
 }
 
 // GetLinkedGroupsParticipants gets all the participants in the groups of the given community.
-func (cli *Client) GetLinkedGroupsParticipants(community types.JID) ([]types.JID, error) {
-	res, err := cli.sendGroupIQ(context.TODO(), iqGet, community, waBinary.Node{Tag: "linked_groups_participants"})
+func (cli *Client) GetLinkedGroupsParticipants(ctx context.Context, community types.JID) ([]types.JID, error) {
+	res, err := cli.sendGroupIQ(ctx, iqGet, community, waBinary.Node{Tag: "linked_groups_participants"})
 	if err != nil {
 		return nil, err
 	}
@@ -572,7 +571,7 @@ func (cli *Client) GetLinkedGroupsParticipants(community types.JID) ([]types.JID
 	}
 	members, lidPairs := parseParticipantList(&participants)
 	if len(lidPairs) > 0 {
-		err = cli.Store.LIDs.PutManyLIDMappings(context.TODO(), lidPairs)
+		err = cli.Store.LIDs.PutManyLIDMappings(ctx, lidPairs)
 		if err != nil {
 			cli.Log.Warnf("Failed to store LID mappings for community participants: %v", err)
 		}
@@ -581,8 +580,8 @@ func (cli *Client) GetLinkedGroupsParticipants(community types.JID) ([]types.JID
 }
 
 // GetGroupInfo requests basic info about a group chat from the WhatsApp servers.
-func (cli *Client) GetGroupInfo(jid types.JID) (*types.GroupInfo, error) {
-	return cli.getGroupInfo(context.TODO(), jid, true)
+func (cli *Client) GetGroupInfo(ctx context.Context, jid types.JID) (*types.GroupInfo, error) {
+	return cli.getGroupInfo(ctx, jid, true)
 }
 
 func (cli *Client) cacheGroupInfo(groupInfo *types.GroupInfo, lock bool) ([]store.LIDMapping, []store.RedactedPhoneEntry) {
@@ -1001,7 +1000,7 @@ func (cli *Client) parseGroupNotification(node *waBinary.Node) (any, []store.LID
 }
 
 // SetGroupJoinApprovalMode sets the group join approval mode to 'on' or 'off'.
-func (cli *Client) SetGroupJoinApprovalMode(jid types.JID, mode bool) error {
+func (cli *Client) SetGroupJoinApprovalMode(ctx context.Context, jid types.JID, mode bool) error {
 	modeStr := "off"
 	if mode {
 		modeStr = "on"
@@ -1017,12 +1016,12 @@ func (cli *Client) SetGroupJoinApprovalMode(jid types.JID, mode bool) error {
 		},
 	}
 
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
+	_, err := cli.sendGroupIQ(ctx, iqSet, jid, content)
 	return err
 }
 
 // SetGroupMemberAddMode sets the group member add mode to 'admin_add' or 'all_member_add'.
-func (cli *Client) SetGroupMemberAddMode(jid types.JID, mode types.GroupMemberAddMode) error {
+func (cli *Client) SetGroupMemberAddMode(ctx context.Context, jid types.JID, mode types.GroupMemberAddMode) error {
 	if mode != types.GroupMemberAddModeAdmin && mode != types.GroupMemberAddModeAllMember {
 		return errors.New("invalid mode, must be 'admin_add' or 'all_member_add'")
 	}
@@ -1032,12 +1031,12 @@ func (cli *Client) SetGroupMemberAddMode(jid types.JID, mode types.GroupMemberAd
 		Content: []byte(mode),
 	}
 
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
+	_, err := cli.sendGroupIQ(ctx, iqSet, jid, content)
 	return err
 }
 
 // SetGroupDescription updates the group description.
-func (cli *Client) SetGroupDescription(jid types.JID, description string) error {
+func (cli *Client) SetGroupDescription(ctx context.Context, jid types.JID, description string) error {
 	content := waBinary.Node{
 		Tag: "description",
 		Content: []waBinary.Node{
@@ -1048,6 +1047,6 @@ func (cli *Client) SetGroupDescription(jid types.JID, description string) error 
 		},
 	}
 
-	_, err := cli.sendGroupIQ(context.TODO(), iqSet, jid, content)
+	_, err := cli.sendGroupIQ(ctx, iqSet, jid, content)
 	return err
 }
