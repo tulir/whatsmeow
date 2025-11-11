@@ -1,4 +1,4 @@
-module go.mau.fi/whatsmeow
+module go.mau.fi/whatsmeow/v2
 
 go 1.24.0
 
@@ -9,6 +9,7 @@ require (
 	github.com/coder/websocket v1.8.14
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.6
+	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/rs/zerolog v1.34.0
 	go.mau.fi/libsignal v0.2.1
 	go.mau.fi/util v0.9.2
