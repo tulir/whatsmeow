@@ -1,4 +1,4 @@
-module go.mau.fi/whatsmeow/v2
+module go.mau.fi/whatsmeow
 
 go 1.24.0
 
