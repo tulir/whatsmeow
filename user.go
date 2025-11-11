@@ -515,6 +515,9 @@ type GetProfilePictureParams struct {
 //
 // To get a community photo, you should pass `IsCommunity: true`, as otherwise you may get a 401 error.
 func (cli *Client) GetProfilePictureInfo(ctx context.Context, jid types.JID, params *GetProfilePictureParams) (*types.ProfilePictureInfo, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	attrs := waBinary.Attrs{
 		"query": "url",
 	}
