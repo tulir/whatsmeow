@@ -76,7 +76,7 @@ func (vc WAVersionContainer) ProtoAppVersion() *waWa6.ClientPayload_UserAgent_Ap
 }
 
 // waVersion is the WhatsApp web client version
-var waVersion = WAVersionContainer{2, 3000, 1029399661}
+var waVersion = WAVersionContainer{2, 3000, 1029489648}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
 var waVersionHash [16]byte
@@ -125,16 +125,15 @@ var BaseClientPayload = &waWa6.ClientPayload{
 }
 
 var DeviceProps = &waCompanionReg.DeviceProps{
-	Os: proto.String("whatsmeow"),
+	Os: proto.String("Windows"),
 	Version: &waCompanionReg.DeviceProps_AppVersion{
-		Primary:   proto.Uint32(0),
-		Secondary: proto.Uint32(1),
-		Tertiary:  proto.Uint32(0),
+		Primary: proto.Uint32(10),
+		// Secondary: proto.Uint32(1),
+		// Tertiary:  proto.Uint32(0),
 	},
 	HistorySyncConfig: &waCompanionReg.DeviceProps_HistorySyncConfig{
-		StorageQuotaMb:                           proto.Uint32(10240),
+		StorageQuotaMb:                           proto.Uint32(159232),
 		InlineInitialPayloadInE2EeMsg:            proto.Bool(true),
-		RecentSyncDaysLimit:                      nil,
 		SupportCallLogHistory:                    proto.Bool(false),
 		SupportBotUserAgentChatHistory:           proto.Bool(true),
 		SupportCagReactionsAndPolls:              proto.Bool(true),
@@ -142,15 +141,9 @@ var DeviceProps = &waCompanionReg.DeviceProps{
 		SupportRecentSyncChunkMessageCountTuning: proto.Bool(true),
 		SupportHostedGroupMsg:                    proto.Bool(true),
 		SupportFbidBotChatHistory:                proto.Bool(true),
-		SupportAddOnHistorySyncMigration:         nil,
 		SupportMessageAssociation:                proto.Bool(true),
-		SupportGroupHistory:                      proto.Bool(false),
-		OnDemandReady:                            nil,
-		SupportGuestChat:                         nil,
-		//CompleteOnDemandReady:                    nil,
-		//ThumbnailSyncDaysLimit:                   nil,
 	},
-	PlatformType:    waCompanionReg.DeviceProps_UNKNOWN.Enum(),
+	PlatformType:    waCompanionReg.DeviceProps_CHROME.Enum(),
 	RequireFullSync: proto.Bool(false),
 }
 
