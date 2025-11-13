@@ -491,6 +491,10 @@ type GroupInfo struct {
 	Promote []types.JID // Users who were promoted to admins
 	Demote  []types.JID // Users who were demoted to normal users
 
+	MembershipRequestsCreated []types.JID // Users that created membership requests
+	MembershipRequestsRevoked []types.JID // Users whose membership requests were revoked
+	MembershipRequestMethod   string      // How the membership request was created (invite_link, non_admin_add, etc.)
+
 	UnknownChanges []*waBinary.Node
 }
 
