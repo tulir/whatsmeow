@@ -11,6 +11,10 @@ import (
 	"go.mau.fi/whatsmeow/types"
 )
 
+type GenericCallEvent struct {
+	Node *waBinary.Node
+}
+
 // CallOffer is emitted when the user receives a call on WhatsApp.
 type CallOffer struct {
 	types.BasicCallMeta

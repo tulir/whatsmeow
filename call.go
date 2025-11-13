@@ -21,6 +21,9 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
 		return
 	}
+
+	cli.dispatchEvent(&events.GenericCallEvent{Node: node});
+
 	ag := node.AttrGetter()
 	child := node.GetChildren()[0]
 	cag := child.AttrGetter()
