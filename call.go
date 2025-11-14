@@ -7,13 +7,15 @@
 package whatsmeow
 
 import (
+	"context"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleCallEvent(node *waBinary.Node) {
-	defer cli.maybeDeferredAck(cli.BackgroundEventCtx, node)()
+func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
+	defer cli.maybeDeferredAck(ctx, node)()
 
 	if len(node.GetChildren()) != 1 {
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
@@ -101,13 +103,13 @@ func (cli *Client) handleCallEvent(node *waBinary.Node) {
 }
 
 // RejectCall reject an incoming call.
-func (cli *Client) RejectCall(callFrom types.JID, callID string) error {
+func (cli *Client) RejectCall(ctx context.Context, callFrom types.JID, callID string) error {
 	ownID := cli.getOwnID()
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
 	}
 	ownID, callFrom = ownID.ToNonAD(), callFrom.ToNonAD()
-	return cli.sendNode(waBinary.Node{
+	return cli.sendNode(ctx, waBinary.Node{
 		Tag:   "call",
 		Attrs: waBinary.Attrs{"id": cli.GenerateMessageID(), "from": ownID, "to": callFrom},
 		Content: []waBinary.Node{{
