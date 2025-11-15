@@ -607,7 +607,6 @@ func (cli *Client) Disconnect() {
 	cli.unlockedDisconnect()
 	cli.socketLock.Unlock()
 	cli.clearDelayedMessageRequests()
-	close(cli.historySyncNotifications)
 }
 
 // Disconnect closes the websocket connection.
