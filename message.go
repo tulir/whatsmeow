@@ -868,16 +868,17 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 		if chatJID.IsEmpty() {
 			continue
 		}
-		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
+		if (chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer) && conv.GetTcToken() != nil {
 			ts := conv.GetTcTokenSenderTimestamp()
 			if ts == 0 {
 				ts = conv.GetTcTokenTimestamp()
 			}
-			privacyTokens = append(privacyTokens, store.PrivacyToken{
-				User:      chatJID,
-				Token:     conv.GetTcToken(),
-				Timestamp: time.Unix(int64(ts), 0),
-			})
+			entries, err := cli.buildPrivacyTokenEntries(ctx, chatJID, conv.GetTcToken(), time.Unix(int64(ts), 0))
+			if err != nil {
+				cli.Log.Warnf("Failed to expand privacy token entries for %s in history sync: %v", chatJID, err)
+			} else {
+				privacyTokens = append(privacyTokens, entries...)
+			}
 		}
 		for _, msg := range conv.GetMessages() {
 			if secret := msg.GetMessage().GetMessageSecret(); secret != nil {

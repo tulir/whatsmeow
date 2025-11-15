@@ -17,7 +17,6 @@ import (
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
-	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -285,11 +284,15 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 			if !ag.OK() {
 				cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
 			}
-			err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
-				User:      sender,
-				Token:     token,
-				Timestamp: timestamp,
-			})
+			entries, err := cli.buildPrivacyTokenEntries(ctx, sender, token, timestamp)
+			if err != nil {
+				cli.Log.Errorf("Failed to prepare privacy token entries for %s: %v", sender, err)
+				continue
+			}
+			if len(entries) == 0 {
+				continue
+			}
+			err = cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, entries...)
 			if err != nil {
 				cli.Log.Errorf("Failed to save privacy token from %s: %v", sender, err)
 			} else {

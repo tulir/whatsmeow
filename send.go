@@ -854,7 +854,7 @@ func (cli *Client) sendDM(
 		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(messagePlaintext, message, ownID, to, id))
 	}
 
-	if tcToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, to); err != nil {
+	if tcToken, err := cli.getPrivacyToken(ctx, to); err != nil {
 		cli.Log.Warnf("Failed to get privacy token for %s: %v", to, err)
 	} else if tcToken != nil {
 		node.Content = append(node.GetChildren(), waBinary.Node{

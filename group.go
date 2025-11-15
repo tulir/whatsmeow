@@ -60,7 +60,7 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 			Tag:   "participant",
 			Attrs: waBinary.Attrs{"jid": participant},
 		}
-		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participant)
+		pt, err := cli.getPrivacyToken(ctx, participant)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participant, err)
 		} else if pt != nil {
