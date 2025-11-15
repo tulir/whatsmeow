@@ -76,7 +76,7 @@ func (vc WAVersionContainer) ProtoAppVersion() *waWa6.ClientPayload_UserAgent_Ap
 }
 
 // waVersion is the WhatsApp web client version
-var waVersion = WAVersionContainer{2, 3000, 1029399661}
+var waVersion = WAVersionContainer{2, 3000, 1029948479}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
 var waVersionHash [16]byte
@@ -147,8 +147,8 @@ var DeviceProps = &waCompanionReg.DeviceProps{
 		SupportGroupHistory:                      proto.Bool(false),
 		OnDemandReady:                            nil,
 		SupportGuestChat:                         nil,
-		//CompleteOnDemandReady:                    nil,
-		//ThumbnailSyncDaysLimit:                   nil,
+		CompleteOnDemandReady:                    nil,
+		ThumbnailSyncDaysLimit:                   nil,
 	},
 	PlatformType:    waCompanionReg.DeviceProps_UNKNOWN.Enum(),
 	RequireFullSync: proto.Bool(false),
