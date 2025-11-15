@@ -20,13 +20,13 @@ import (
 	"go.mau.fi/whatsmeow/argo"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waWa6"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 )
 
 // NewsletterSubscribeLiveUpdates subscribes to receive live updates from a WhatsApp channel temporarily (for the duration returned).
 func (cli *Client) NewsletterSubscribeLiveUpdates(ctx context.Context, jid types.JID) (time.Duration, error) {
-	resp, err := cli.sendIQ(infoQuery{
-		Context:   ctx,
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "newsletter",
 		Type:      iqSet,
 		To:        jid,
@@ -45,7 +45,7 @@ func (cli *Client) NewsletterSubscribeLiveUpdates(ctx context.Context, jid types
 // NewsletterMarkViewed marks a channel message as viewed, incrementing the view counter.
 //
 // This is not the same as marking the channel as read on your other devices, use the usual MarkRead function for that.
-func (cli *Client) NewsletterMarkViewed(jid types.JID, serverIDs []types.MessageServerID) error {
+func (cli *Client) NewsletterMarkViewed(ctx context.Context, jid types.JID, serverIDs []types.MessageServerID) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -60,7 +60,7 @@ func (cli *Client) NewsletterMarkViewed(jid types.JID, serverIDs []types.Message
 	}
 	reqID := cli.generateRequestID()
 	resp := cli.waitResponse(reqID)
-	err := cli.sendNode(waBinary.Node{
+	err := cli.sendNode(ctx, waBinary.Node{
 		Tag: "receipt",
 		Attrs: waBinary.Attrs{
 			"to":   jid,
@@ -85,7 +85,7 @@ func (cli *Client) NewsletterMarkViewed(jid types.JID, serverIDs []types.Message
 // To remove a reaction sent earlier, set reaction to an empty string.
 //
 // The last parameter is the message ID of the reaction itself. It can be left empty to let whatsmeow generate a random one.
-func (cli *Client) NewsletterSendReaction(jid types.JID, serverID types.MessageServerID, reaction string, messageID types.MessageID) error {
+func (cli *Client) NewsletterSendReaction(ctx context.Context, jid types.JID, serverID types.MessageServerID, reaction string, messageID types.MessageID) error {
 	if messageID == "" {
 		messageID = cli.GenerateMessageID()
 	}
@@ -101,7 +101,7 @@ func (cli *Client) NewsletterSendReaction(jid types.JID, serverID types.MessageS
 	} else {
 		messageAttrs["edit"] = string(types.EditAttributeSenderRevoke)
 	}
-	return cli.sendNode(waBinary.Node{
+	return cli.sendNode(ctx, waBinary.Node{
 		Tag:   "message",
 		Attrs: messageAttrs,
 		Content: []waBinary.Node{{
@@ -170,6 +170,9 @@ func convertQueryID(cli *Client, queryID string) string {
 }
 
 func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any) (json.RawMessage, error) {
+	if store.BaseClientPayload.GetUserAgent().GetPlatform() == waWa6.ClientPayload_UserAgent_MACOS {
+		return nil, fmt.Errorf("argo decoding is currently broken")
+	}
 	queryID = convertQueryID(cli, queryID)
 	payload, err := json.Marshal(map[string]any{
 		"variables": variables,
@@ -177,7 +180,7 @@ func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:mex",
 		Type:      iqGet,
 		To:        types.ServerJID,
@@ -188,7 +191,6 @@ func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any)
 			},
 			Content: payload,
 		}},
-		Context: ctx,
 	})
 	if err != nil {
 		return nil, err
@@ -202,6 +204,9 @@ func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any)
 		return nil, fmt.Errorf("unexpected content type %T in mex response", result.Content)
 	}
 	if result.AttrGetter().OptionalString("format") == "argo" {
+		if true {
+			return nil, fmt.Errorf("argo decoding is currently broken")
+		}
 		store, err := argo.GetStore()
 		if err != nil {
 			return nil, err
@@ -241,8 +246,8 @@ type respGetNewsletterInfo struct {
 	Newsletter *types.NewsletterMetadata `json:"xwa2_newsletter"`
 }
 
-func (cli *Client) getNewsletterInfo(input map[string]any, fetchViewerMeta bool) (*types.NewsletterMetadata, error) {
-	data, err := cli.sendMexIQ(context.TODO(), queryFetchNewsletter, map[string]any{
+func (cli *Client) getNewsletterInfo(ctx context.Context, input map[string]any, fetchViewerMeta bool) (*types.NewsletterMetadata, error) {
+	data, err := cli.sendMexIQ(ctx, queryFetchNewsletter, map[string]any{
 		"fetch_creation_time":   true,
 		"fetch_full_image":      true,
 		"fetch_viewer_metadata": fetchViewerMeta,
@@ -259,8 +264,8 @@ func (cli *Client) getNewsletterInfo(input map[string]any, fetchViewerMeta bool)
 }
 
 // GetNewsletterInfo gets the info of a newsletter that you're joined to.
-func (cli *Client) GetNewsletterInfo(jid types.JID) (*types.NewsletterMetadata, error) {
-	return cli.getNewsletterInfo(map[string]any{
+func (cli *Client) GetNewsletterInfo(ctx context.Context, jid types.JID) (*types.NewsletterMetadata, error) {
+	return cli.getNewsletterInfo(ctx, map[string]any{
 		"key":  jid.String(),
 		"type": types.NewsletterKeyTypeJID,
 	}, true)
@@ -271,8 +276,8 @@ func (cli *Client) GetNewsletterInfo(jid types.JID) (*types.NewsletterMetadata, 
 // You can either pass the full link (https://whatsapp.com/channel/...) or just the `...` part.
 //
 // Note that the ViewerMeta field of the returned NewsletterMetadata will be nil.
-func (cli *Client) GetNewsletterInfoWithInvite(key string) (*types.NewsletterMetadata, error) {
-	return cli.getNewsletterInfo(map[string]any{
+func (cli *Client) GetNewsletterInfoWithInvite(ctx context.Context, key string) (*types.NewsletterMetadata, error) {
+	return cli.getNewsletterInfo(ctx, map[string]any{
 		"key":  strings.TrimPrefix(key, NewsletterLinkPrefix),
 		"type": types.NewsletterKeyTypeInvite,
 	}, false)
@@ -283,8 +288,8 @@ type respGetSubscribedNewsletters struct {
 }
 
 // GetSubscribedNewsletters gets the info of all newsletters that you're joined to.
-func (cli *Client) GetSubscribedNewsletters() ([]*types.NewsletterMetadata, error) {
-	data, err := cli.sendMexIQ(context.TODO(), querySubscribedNewsletters, map[string]any{})
+func (cli *Client) GetSubscribedNewsletters(ctx context.Context) ([]*types.NewsletterMetadata, error) {
+	data, err := cli.sendMexIQ(ctx, querySubscribedNewsletters, map[string]any{})
 	var respData respGetSubscribedNewsletters
 	if data != nil {
 		jsonErr := json.Unmarshal(data, &respData)
@@ -306,8 +311,8 @@ type respCreateNewsletter struct {
 }
 
 // CreateNewsletter creates a new WhatsApp channel.
-func (cli *Client) CreateNewsletter(params CreateNewsletterParams) (*types.NewsletterMetadata, error) {
-	resp, err := cli.sendMexIQ(context.TODO(), mutationCreateNewsletter, map[string]any{
+func (cli *Client) CreateNewsletter(ctx context.Context, params CreateNewsletterParams) (*types.NewsletterMetadata, error) {
+	resp, err := cli.sendMexIQ(ctx, mutationCreateNewsletter, map[string]any{
 		"newsletter_input": &params,
 	})
 	if err != nil {
@@ -326,8 +331,8 @@ func (cli *Client) CreateNewsletter(params CreateNewsletterParams) (*types.Newsl
 // To accept the terms for creating newsletters, use
 //
 //	cli.AcceptTOSNotice("20601218", "5")
-func (cli *Client) AcceptTOSNotice(noticeID, stage string) error {
-	_, err := cli.sendIQ(infoQuery{
+func (cli *Client) AcceptTOSNotice(ctx context.Context, noticeID, stage string) error {
+	_, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "tos",
 		Type:      iqSet,
 		To:        types.ServerJID,
@@ -343,28 +348,28 @@ func (cli *Client) AcceptTOSNotice(noticeID, stage string) error {
 }
 
 // NewsletterToggleMute changes the mute status of a newsletter.
-func (cli *Client) NewsletterToggleMute(jid types.JID, mute bool) error {
+func (cli *Client) NewsletterToggleMute(ctx context.Context, jid types.JID, mute bool) error {
 	query := mutationUnmuteNewsletter
 	if mute {
 		query = mutationMuteNewsletter
 	}
-	_, err := cli.sendMexIQ(context.TODO(), query, map[string]any{
+	_, err := cli.sendMexIQ(ctx, query, map[string]any{
 		"newsletter_id": jid.String(),
 	})
 	return err
 }
 
 // FollowNewsletter makes the user follow (join) a WhatsApp channel.
-func (cli *Client) FollowNewsletter(jid types.JID) error {
-	_, err := cli.sendMexIQ(context.TODO(), mutationFollowNewsletter, map[string]any{
+func (cli *Client) FollowNewsletter(ctx context.Context, jid types.JID) error {
+	_, err := cli.sendMexIQ(ctx, mutationFollowNewsletter, map[string]any{
 		"newsletter_id": jid.String(),
 	})
 	return err
 }
 
 // UnfollowNewsletter makes the user unfollow (leave) a WhatsApp channel.
-func (cli *Client) UnfollowNewsletter(jid types.JID) error {
-	_, err := cli.sendMexIQ(context.TODO(), mutationUnfollowNewsletter, map[string]any{
+func (cli *Client) UnfollowNewsletter(ctx context.Context, jid types.JID) error {
+	_, err := cli.sendMexIQ(ctx, mutationUnfollowNewsletter, map[string]any{
 		"newsletter_id": jid.String(),
 	})
 	return err
@@ -376,7 +381,7 @@ type GetNewsletterMessagesParams struct {
 }
 
 // GetNewsletterMessages gets messages in a WhatsApp channel.
-func (cli *Client) GetNewsletterMessages(jid types.JID, params *GetNewsletterMessagesParams) ([]*types.NewsletterMessage, error) {
+func (cli *Client) GetNewsletterMessages(ctx context.Context, jid types.JID, params *GetNewsletterMessagesParams) ([]*types.NewsletterMessage, error) {
 	attrs := waBinary.Attrs{
 		"type": "jid",
 		"jid":  jid,
@@ -389,7 +394,7 @@ func (cli *Client) GetNewsletterMessages(jid types.JID, params *GetNewsletterMes
 			attrs["before"] = params.Before
 		}
 	}
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "newsletter",
 		Type:      iqGet,
 		To:        types.ServerJID,
@@ -397,7 +402,6 @@ func (cli *Client) GetNewsletterMessages(jid types.JID, params *GetNewsletterMes
 			Tag:   "messages",
 			Attrs: attrs,
 		}},
-		Context: context.TODO(),
 	})
 	if err != nil {
 		return nil, err
@@ -418,7 +422,7 @@ type GetNewsletterUpdatesParams struct {
 // GetNewsletterMessageUpdates gets updates in a WhatsApp channel.
 //
 // These are the same kind of updates that NewsletterSubscribeLiveUpdates triggers (reaction and view counts).
-func (cli *Client) GetNewsletterMessageUpdates(jid types.JID, params *GetNewsletterUpdatesParams) ([]*types.NewsletterMessage, error) {
+func (cli *Client) GetNewsletterMessageUpdates(ctx context.Context, jid types.JID, params *GetNewsletterUpdatesParams) ([]*types.NewsletterMessage, error) {
 	attrs := waBinary.Attrs{}
 	if params != nil {
 		if params.Count != 0 {
@@ -431,7 +435,7 @@ func (cli *Client) GetNewsletterMessageUpdates(jid types.JID, params *GetNewslet
 			attrs["after"] = params.After
 		}
 	}
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "newsletter",
 		Type:      iqGet,
 		To:        jid,
@@ -439,7 +443,6 @@ func (cli *Client) GetNewsletterMessageUpdates(jid types.JID, params *GetNewslet
 			Tag:   "message_updates",
 			Attrs: attrs,
 		}},
-		Context: context.TODO(),
 	})
 	if err != nil {
 		return nil, err

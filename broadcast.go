@@ -45,7 +45,7 @@ func (cli *Client) getBroadcastListParticipants(ctx context.Context, jid types.J
 }
 
 func (cli *Client) getStatusBroadcastRecipients(ctx context.Context) ([]types.JID, error) {
-	statusPrivacyOptions, err := cli.GetStatusPrivacy()
+	statusPrivacyOptions, err := cli.GetStatusPrivacy(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get status privacy: %w", err)
 	}
@@ -90,8 +90,8 @@ var DefaultStatusPrivacy = []types.StatusPrivacy{{
 // GetStatusPrivacy gets the user's status privacy settings (who to send status broadcasts to).
 //
 // There can be multiple different stored settings, the first one is always the default.
-func (cli *Client) GetStatusPrivacy() ([]types.StatusPrivacy, error) {
-	resp, err := cli.sendIQ(infoQuery{
+func (cli *Client) GetStatusPrivacy(ctx context.Context) ([]types.StatusPrivacy, error) {
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "status",
 		Type:      iqGet,
 		To:        types.ServerJID,

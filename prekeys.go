@@ -30,11 +30,10 @@ const (
 )
 
 func (cli *Client) getServerPreKeyCount(ctx context.Context) (int, error) {
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "encrypt",
 		Type:      "get",
 		To:        types.ServerJID,
-		Context:   ctx,
 		Content: []waBinary.Node{
 			{Tag: "count"},
 		},
@@ -48,7 +47,7 @@ func (cli *Client) getServerPreKeyCount(ctx context.Context) (int, error) {
 	return val, ag.Error()
 }
 
-func (cli *Client) uploadPreKeys(ctx context.Context) {
+func (cli *Client) uploadPreKeys(ctx context.Context, initialUpload bool) {
 	cli.uploadPreKeysLock.Lock()
 	defer cli.uploadPreKeysLock.Unlock()
 	if cli.lastPreKeyUpload.Add(10 * time.Minute).After(time.Now()) {
@@ -60,14 +59,17 @@ func (cli *Client) uploadPreKeys(ctx context.Context) {
 	}
 	var registrationIDBytes [4]byte
 	binary.BigEndian.PutUint32(registrationIDBytes[:], cli.Store.RegistrationID)
-	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(ctx, WantedPreKeyCount)
+	wantedCount := WantedPreKeyCount
+	if initialUpload {
+		wantedCount = 812
+	}
+	preKeys, err := cli.Store.PreKeys.GetOrGenPreKeys(ctx, uint32(wantedCount))
 	if err != nil {
 		cli.Log.Errorf("Failed to get prekeys to upload: %v", err)
 		return
 	}
 	cli.Log.Infof("Uploading %d new prekeys to server", len(preKeys))
-	_, err = cli.sendIQ(infoQuery{
-		Context:   ctx,
+	_, err = cli.sendIQ(ctx, infoQuery{
 		Namespace: "encrypt",
 		Type:      "set",
 		To:        types.ServerJID,
@@ -128,8 +130,7 @@ func (cli *Client) fetchPreKeys(ctx context.Context, users []types.JID) (map[typ
 			"reason": "identity",
 		}
 	}
-	resp, err := cli.sendIQ(infoQuery{
-		Context:   ctx,
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "encrypt",
 		Type:      "get",
 		To:        types.ServerJID,

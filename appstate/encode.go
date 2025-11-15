@@ -50,6 +50,9 @@ func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInf
 
 // BuildMuteAbs builds an app state patch for muting or unmuting a chat with an absolute timestamp.
 func BuildMuteAbs(target types.JID, mute bool, muteEndTimestamp *int64) PatchInfo {
+	if muteEndTimestamp == nil && mute {
+		muteEndTimestamp = proto.Int64(-1)
+	}
 	return PatchInfo{
 		Type: WAPatchRegularHigh,
 		Mutations: []MutationInfo{{

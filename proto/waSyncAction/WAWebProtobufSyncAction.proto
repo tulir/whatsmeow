@@ -1,10 +1,95 @@
 syntax = "proto2";
-package WASyncAction;
+package WAWebProtobufSyncAction;
 option go_package = "go.mau.fi/whatsmeow/proto/waSyncAction";
 
-import "waChatLockSettings/WAProtobufsChatLockSettings.proto";
-import "waDeviceCapabilities/WAProtobufsDeviceCapabilities.proto";
+import "waChatLockSettings/WAWebProtobufsChatLockSettings.proto";
+import "waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto";
 import "waCommon/WACommon.proto";
+
+enum CollectionName {
+	COLLECTION_NAME_UNKNOWN = 0;
+	REGULAR = 1;
+	REGULAR_LOW = 2;
+	REGULAR_HIGH = 3;
+	CRITICAL_BLOCK = 4;
+	CRITICAL_UNBLOCK_LOW = 5;
+}
+
+enum MutationProps {
+	STAR_ACTION = 2;
+	CONTACT_ACTION = 3;
+	MUTE_ACTION = 4;
+	PIN_ACTION = 5;
+	SECURITY_NOTIFICATION_SETTING = 6;
+	PUSH_NAME_SETTING = 7;
+	QUICK_REPLY_ACTION = 8;
+	RECENT_EMOJI_WEIGHTS_ACTION = 11;
+	LABEL_MESSAGE_ACTION = 13;
+	LABEL_EDIT_ACTION = 14;
+	LABEL_ASSOCIATION_ACTION = 15;
+	LOCALE_SETTING = 16;
+	ARCHIVE_CHAT_ACTION = 17;
+	DELETE_MESSAGE_FOR_ME_ACTION = 18;
+	KEY_EXPIRATION = 19;
+	MARK_CHAT_AS_READ_ACTION = 20;
+	CLEAR_CHAT_ACTION = 21;
+	DELETE_CHAT_ACTION = 22;
+	UNARCHIVE_CHATS_SETTING = 23;
+	PRIMARY_FEATURE = 24;
+	ANDROID_UNSUPPORTED_ACTIONS = 26;
+	AGENT_ACTION = 27;
+	SUBSCRIPTION_ACTION = 28;
+	USER_STATUS_MUTE_ACTION = 29;
+	TIME_FORMAT_ACTION = 30;
+	NUX_ACTION = 31;
+	PRIMARY_VERSION_ACTION = 32;
+	STICKER_ACTION = 33;
+	REMOVE_RECENT_STICKER_ACTION = 34;
+	CHAT_ASSIGNMENT = 35;
+	CHAT_ASSIGNMENT_OPENED_STATUS = 36;
+	PN_FOR_LID_CHAT_ACTION = 37;
+	MARKETING_MESSAGE_ACTION = 38;
+	MARKETING_MESSAGE_BROADCAST_ACTION = 39;
+	EXTERNAL_WEB_BETA_ACTION = 40;
+	PRIVACY_SETTING_RELAY_ALL_CALLS = 41;
+	CALL_LOG_ACTION = 42;
+	UGC_BOT = 43;
+	STATUS_PRIVACY = 44;
+	BOT_WELCOME_REQUEST_ACTION = 45;
+	DELETE_INDIVIDUAL_CALL_LOG = 46;
+	LABEL_REORDERING_ACTION = 47;
+	PAYMENT_INFO_ACTION = 48;
+	CUSTOM_PAYMENT_METHODS_ACTION = 49;
+	LOCK_CHAT_ACTION = 50;
+	CHAT_LOCK_SETTINGS = 51;
+	WAMO_USER_IDENTIFIER_ACTION = 52;
+	PRIVACY_SETTING_DISABLE_LINK_PREVIEWS_ACTION = 53;
+	DEVICE_CAPABILITIES = 54;
+	NOTE_EDIT_ACTION = 55;
+	FAVORITES_ACTION = 56;
+	MERCHANT_PAYMENT_PARTNER_ACTION = 57;
+	WAFFLE_ACCOUNT_LINK_STATE_ACTION = 58;
+	USERNAME_CHAT_START_MODE = 59;
+	NOTIFICATION_ACTIVITY_SETTING_ACTION = 60;
+	LID_CONTACT_ACTION = 61;
+	CTWA_PER_CUSTOMER_DATA_SHARING_ACTION = 62;
+	PAYMENT_TOS_ACTION = 63;
+	PRIVACY_SETTING_CHANNELS_PERSONALISED_RECOMMENDATION_ACTION = 64;
+	BUSINESS_BROADCAST_ASSOCIATION_ACTION = 65;
+	DETECTED_OUTCOMES_STATUS_ACTION = 66;
+	MAIBA_AI_FEATURES_CONTROL_ACTION = 68;
+	BUSINESS_BROADCAST_LIST_ACTION = 69;
+	MUSIC_USER_ID_ACTION = 70;
+	STATUS_POST_OPT_IN_NOTIFICATION_PREFERENCES_ACTION = 71;
+	AVATAR_UPDATED_ACTION = 72;
+	GALAXY_FLOW_ACTION = 73;
+	PRIVATE_PROCESSING_SETTING_ACTION = 74;
+	NEWSLETTER_SAVED_INTERESTS_ACTION = 75;
+	AI_THREAD_RENAME_ACTION = 76;
+	INTERACTIVE_MESSAGE_ACTION = 77;
+	SHARE_OWN_PN = 10001;
+	BUSINESS_BROADCAST_ACTION = 10002;
+}
 
 message CallLogRecord {
 	enum CallType {
@@ -56,6 +141,24 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message InteractiveMessageAction {
+	enum InteractiveMessageActionMode {
+		DISABLE_CTA = 1;
+	}
+
+	required InteractiveMessageActionMode type = 1;
+}
+
+message PrivateProcessingSettingAction {
+	enum PrivateProcessingStatus {
+		UNDEFINED = 0;
+		ENABLED = 1;
+		DISABLED = 2;
+	}
+
+	optional PrivateProcessingStatus privateProcessingStatus = 1;
+}
+
 message AvatarUpdatedAction {
 	enum AvatarEventType {
 		UPDATED = 0;
@@ -100,6 +203,8 @@ message NotificationActivitySettingAction {
 message WaffleAccountLinkStateAction {
 	enum AccountLinkState {
 		ACTIVE = 0;
+		PAUSED = 1;
+		UNLINKED = 2;
 	}
 
 	optional AccountLinkState linkState = 2;
@@ -115,14 +220,6 @@ message MerchantPaymentPartnerAction {
 	required string country = 2;
 	optional string gatewayName = 3;
 	optional string credentialID = 4;
-}
-
-message GalaxyFlowAction {
-	enum GalaxyFlowActionType {
-		LAUNCH = 1;
-	}
-
-	required GalaxyFlowActionType type = 1;
 }
 
 message NoteEditAction {
@@ -143,6 +240,7 @@ message StatusPrivacyAction {
 		ALLOW_LIST = 0;
 		DENY_LIST = 1;
 		CONTACTS = 2;
+		CLOSE_FRIENDS = 3;
 	}
 
 	optional StatusDistributionMode mode = 1;
@@ -182,6 +280,8 @@ message LabelEditAction {
 		CUSTOM = 5;
 		COMMUNITY = 6;
 		SERVER_ASSIGNED = 7;
+		DRAFTED = 8;
+		AI_HANDOFF = 9;
 	}
 
 	optional string name = 1;
@@ -192,6 +292,7 @@ message LabelEditAction {
 	optional bool isActive = 6;
 	optional ListType type = 7;
 	optional bool isImmutable = 8;
+	optional int64 muteEndTimeMS = 9;
 }
 
 message PatchDebugData {
@@ -223,6 +324,99 @@ message PatchDebugData {
 	optional bool isSenderPrimary = 11;
 }
 
+/*
+enum MutationName {
+	STAR_ACTION = star;
+	CONTACT_ACTION = contact;
+	MUTE_ACTION = mute;
+	PIN_ACTION = pin_v1;
+	SECURITY_NOTIFICATION_SETTING = setting_securityNotification;
+	PUSH_NAME_SETTING = setting_pushName;
+	QUICK_REPLY_ACTION = quick_reply;
+	RECENT_EMOJI_WEIGHTS_ACTION = recent_emoji_weights_action;
+	LABEL_MESSAGE_ACTION = label_message;
+	LABEL_EDIT_ACTION = label_edit;
+	LABEL_ASSOCIATION_ACTION = label_jid;
+	LOCALE_SETTING = setting_locale;
+	ARCHIVE_CHAT_ACTION = archive;
+	DELETE_MESSAGE_FOR_ME_ACTION = deleteMessageForMe;
+	KEY_EXPIRATION = sentinel;
+	MARK_CHAT_AS_READ_ACTION = markChatAsRead;
+	CLEAR_CHAT_ACTION = clearChat;
+	DELETE_CHAT_ACTION = deleteChat;
+	UNARCHIVE_CHATS_SETTING = setting_unarchiveChats;
+	PRIMARY_FEATURE = primary_feature;
+	ANDROID_UNSUPPORTED_ACTIONS = android_unsupported_actions;
+	AGENT_ACTION = deviceAgent;
+	SUBSCRIPTION_ACTION = subscription;
+	USER_STATUS_MUTE_ACTION = userStatusMute;
+	TIME_FORMAT_ACTION = time_format;
+	NUX_ACTION = nux;
+	PRIMARY_VERSION_ACTION = primary_version;
+	STICKER_ACTION = favoriteSticker;
+	REMOVE_RECENT_STICKER_ACTION = removeRecentSticker;
+	CHAT_ASSIGNMENT = agentChatAssignment;
+	CHAT_ASSIGNMENT_OPENED_STATUS = agentChatAssignmentOpenedStatus;
+	PN_FOR_LID_CHAT_ACTION = pnForLidChat;
+	MARKETING_MESSAGE_ACTION = marketingMessage;
+	MARKETING_MESSAGE_BROADCAST_ACTION = marketingMessageBroadcast;
+	EXTERNAL_WEB_BETA_ACTION = external_web_beta;
+	PRIVACY_SETTING_RELAY_ALL_CALLS = setting_relayAllCalls;
+	CALL_LOG_ACTION = call_log;
+	UGC_BOT = ugc_bot;
+	STATUS_PRIVACY = status_privacy;
+	BOT_WELCOME_REQUEST_ACTION = bot_welcome_request;
+	DELETE_INDIVIDUAL_CALL_LOG = delete_individual_call_log;
+	LABEL_REORDERING_ACTION = label_reordering;
+	PAYMENT_INFO_ACTION = payment_info;
+	CUSTOM_PAYMENT_METHODS_ACTION = custom_payment_methods;
+	LOCK_CHAT_ACTION = lock;
+	CHAT_LOCK_SETTINGS = setting_chatLock;
+	WAMO_USER_IDENTIFIER_ACTION = generated_wui;
+	PRIVACY_SETTING_DISABLE_LINK_PREVIEWS_ACTION = setting_disableLinkPreviews;
+	DEVICE_CAPABILITIES = device_capabilities;
+	NOTE_EDIT_ACTION = note_edit;
+	FAVORITES_ACTION = favorites;
+	MERCHANT_PAYMENT_PARTNER_ACTION = merchant_payment_partner;
+	WAFFLE_ACCOUNT_LINK_STATE_ACTION = waffle_account_link_state;
+	USERNAME_CHAT_START_MODE = usernameChatStartMode;
+	NOTIFICATION_ACTIVITY_SETTING_ACTION = notificationActivitySetting;
+	LID_CONTACT_ACTION = lid_contact;
+	CTWA_PER_CUSTOMER_DATA_SHARING_ACTION = ctwaPerCustomerDataSharing;
+	PAYMENT_TOS_ACTION = payment_tos;
+	PRIVACY_SETTING_CHANNELS_PERSONALISED_RECOMMENDATION_ACTION = setting_channels_personalised_recommendation_optout;
+	BUSINESS_BROADCAST_ASSOCIATION_ACTION = broadcast_jid;
+	DETECTED_OUTCOMES_STATUS_ACTION = detected_outcomes_status_action;
+	MAIBA_AI_FEATURES_CONTROL_ACTION = maiba_ai_features_control;
+	BUSINESS_BROADCAST_LIST_ACTION = business_broadcast_list;
+	MUSIC_USER_ID_ACTION = music_user_id;
+	STATUS_POST_OPT_IN_NOTIFICATION_PREFERENCES_ACTION = status_post_opt_in_notification_preferences_action;
+	AVATAR_UPDATED_ACTION = avatar_updated_action;
+	GALAXY_FLOW_ACTION = galaxy_flow_action;
+	PRIVATE_PROCESSING_SETTING_ACTION = private_processing_setting;
+	NEWSLETTER_SAVED_INTERESTS_ACTION = newsletter_saved_interests;
+	AI_THREAD_RENAME_ACTION = ai_thread_rename;
+	INTERACTIVE_MESSAGE_ACTION = interactive_message_action;
+	SHARE_OWN_PN = shareOwnPn;
+	BUSINESS_BROADCAST_ACTION = broadcast;
+}
+*/
+
+/*
+enum CollectionName {
+}
+*/
+
+/*
+enum CollectionNameStr {
+	REGULAR = regular;
+	REGULAR_LOW = regular_low;
+	REGULAR_HIGH = regular_high;
+	CRITICAL_BLOCK = critical_block;
+	CRITICAL_UNBLOCK_LOW = critical_unblock_low;
+}
+*/
+
 message RecentEmojiWeight {
 	optional string emoji = 1;
 	optional float weight = 2;
@@ -234,7 +428,6 @@ message SyncActionValue {
 	optional ContactAction contactAction = 3;
 	optional MuteAction muteAction = 4;
 	optional PinAction pinAction = 5;
-	optional SecurityNotificationSetting securityNotificationSetting = 6;
 	optional PushNameSetting pushNameSetting = 7;
 	optional QuickReplyAction quickReplyAction = 8;
 	optional RecentEmojiWeightsAction recentEmojiWeightsAction = 11;
@@ -266,6 +459,7 @@ message SyncActionValue {
 	optional ExternalWebBetaAction externalWebBetaAction = 40;
 	optional PrivacySettingRelayAllCalls privacySettingRelayAllCalls = 41;
 	optional CallLogAction callLogAction = 42;
+	optional UGCBot ugcBot = 43;
 	optional StatusPrivacyAction statusPrivacy = 44;
 	optional BotWelcomeRequestAction botWelcomeRequestAction = 45;
 	optional DeleteIndividualCallLogAction deleteIndividualCallLog = 46;
@@ -273,10 +467,10 @@ message SyncActionValue {
 	optional PaymentInfoAction paymentInfoAction = 48;
 	optional CustomPaymentMethodsAction customPaymentMethodsAction = 49;
 	optional LockChatAction lockChatAction = 50;
-	optional WAProtobufsChatLockSettings.ChatLockSettings chatLockSettings = 51;
+	optional WAWebProtobufsChatLockSettings.ChatLockSettings chatLockSettings = 51;
 	optional WamoUserIdentifierAction wamoUserIdentifierAction = 52;
 	optional PrivacySettingDisableLinkPreviewsAction privacySettingDisableLinkPreviewsAction = 53;
-	optional WAProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilities = 54;
+	optional WAWebProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilities = 54;
 	optional NoteEditAction noteEditAction = 55;
 	optional FavoritesAction favoritesAction = 56;
 	optional MerchantPaymentPartnerAction merchantPaymentPartnerAction = 57;
@@ -294,7 +488,14 @@ message SyncActionValue {
 	optional MusicUserIdAction musicUserIDAction = 70;
 	optional StatusPostOptInNotificationPreferencesAction statusPostOptInNotificationPreferencesAction = 71;
 	optional AvatarUpdatedAction avatarUpdatedAction = 72;
-	optional GalaxyFlowAction galaxyFlowAction = 73;
+	optional PrivateProcessingSettingAction privateProcessingSettingAction = 74;
+	optional NewsletterSavedInterestsAction newsletterSavedInterestsAction = 75;
+	optional AiThreadRenameAction aiThreadRenameAction = 76;
+	optional InteractiveMessageAction interactiveMessageAction = 77;
+}
+
+message AiThreadRenameAction {
+	optional string newTitle = 1;
 }
 
 message StatusPostOptInNotificationPreferencesAction {
@@ -324,7 +525,6 @@ message LidContactAction {
 	optional string fullName = 1;
 	optional string firstName = 2;
 	optional string username = 3;
-	optional bool saveOnPrimaryAddressbook = 4;
 }
 
 message FavoritesAction {
@@ -384,8 +584,18 @@ message BotWelcomeRequestAction {
 	optional bool isSent = 1;
 }
 
+message NewsletterSavedInterestsAction {
+	optional string newsletterSavedInterests = 1;
+}
+
 message MusicUserIdAction {
 	optional string musicUserID = 1;
+	// TODO switch to proto3 and enable this
+	//optional map<string, string> music_user_id_map = 2;
+}
+
+message UGCBot {
+	optional bytes definition = 1;
 }
 
 message CallLogAction {
@@ -540,10 +750,6 @@ message LocaleSetting {
 
 message PushNameSetting {
 	optional string name = 1;
-}
-
-message SecurityNotificationSetting {
-	optional bool showNotification = 1;
 }
 
 message PinAction {
