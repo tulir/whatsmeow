@@ -675,6 +675,9 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 	}()
 	ctx := cli.BackgroundEventCtx
 	for notif := range cli.historySyncNotifications {
+		if cli.HistorySyncLogout {
+			break
+		}
 		blob, err := cli.DownloadHistorySync(ctx, notif, false)
 		if err != nil {
 			cli.Log.Errorf("Failed to download history sync: %v", err)

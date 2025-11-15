@@ -97,6 +97,7 @@ type Client struct {
 
 	historySyncNotifications  chan *waE2E.HistorySyncNotification
 	historySyncHandlerStarted atomic.Bool
+	HistorySyncLogout         bool
 	ManualHistorySyncDownload bool
 
 	uploadPreKeysLock sync.Mutex
@@ -239,6 +240,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		appStateProc:       appstate.NewProcessor(deviceStore, log.Sub("AppState")),
 		socketWait:         make(chan struct{}),
 		expectedDisconnect: exsync.NewEvent(),
+		HistorySyncLogout:  false,
 
 		incomingRetryRequestCounter: make(map[incomingRetryKey]int),
 
@@ -607,7 +609,7 @@ func (cli *Client) Disconnect() {
 	cli.unlockedDisconnect()
 	cli.socketLock.Unlock()
 	cli.clearDelayedMessageRequests()
-	close(cli.historySyncNotifications)
+	cli.HistorySyncLogout = true
 }
 
 // Disconnect closes the websocket connection.
