@@ -116,7 +116,7 @@ func (cli *Client) PairPhone(ctx context.Context, phone string, showPushNotifica
 				{Tag: "companion_server_auth_key_pub", Content: cli.Store.NoiseKey.Pub[:]},
 				{Tag: "companion_platform_id", Content: strconv.Itoa(int(clientType))},
 				{Tag: "companion_platform_display", Content: clientDisplayName},
-				{Tag: "link_code_pairing_nonce", Content: []byte{0}},
+				{Tag: "link_code_pairing_nonce", Content: "0"},
 			},
 		}},
 	})
