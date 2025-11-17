@@ -79,7 +79,11 @@ func (device *Device) WithCachedSessions(ctx context.Context, addresses []string
 		return nil, ctx, fmt.Errorf("failed to prefetch sessions: %w", err)
 	}
 	wrapped := make(map[string]sessionCacheEntry, len(sessions))
-	existingSessions := make(map[string]bool, len(sessions))
+	existingSessions := make(map[string]bool, len(addresses))
+	// Initialize ALL addresses as not found
+	for _, addr := range addresses {
+		existingSessions[addr] = false
+	}
 	for addr, rawSess := range sessions {
 		var sessionRecord *record.Session
 		var found bool
