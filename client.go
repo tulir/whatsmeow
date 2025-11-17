@@ -608,7 +608,14 @@ func (cli *Client) Disconnect() {
 	cli.unlockedDisconnect()
 	cli.socketLock.Unlock()
 	cli.clearDelayedMessageRequests()
-	close(cli.quitHistorySync)
+	if cli.quitHistorySync != nil {
+		select {
+		case <-cli.quitHistorySync:
+			// 已经关闭，不做任何操作
+		default:
+			close(cli.quitHistorySync)
+		}
+	}
 }
 
 // Disconnect closes the websocket connection.
