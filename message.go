@@ -673,16 +673,22 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 			go cli.handleHistorySyncNotificationLoop()
 		}
 	}()
-	ctx := cli.BackgroundEventCtx
-	for notif := range cli.historySyncNotifications {
-		if cli.HistorySyncLogout {
-			break
-		}
-		blob, err := cli.DownloadHistorySync(ctx, notif, false)
-		if err != nil {
-			cli.Log.Errorf("Failed to download history sync: %v", err)
-		} else {
-			cli.dispatchEvent(&events.HistorySync{Data: blob})
+	for {
+		select {
+		case <-cli.quitHistorySync:
+			cli.Log.Debugf("HistorySync loop stopped (quit channel)")
+			return
+
+		case notif, ok := <-cli.historySyncNotifications:
+			if !ok {
+				return
+			}
+			blob, err := cli.DownloadHistorySync(cli.BackgroundEventCtx, notif, false)
+			if err != nil {
+				cli.Log.Errorf("Failed to download history sync: %v", err)
+			} else {
+				cli.dispatchEvent(&events.HistorySync{Data: blob})
+			}
 		}
 	}
 }
