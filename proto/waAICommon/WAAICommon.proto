@@ -82,6 +82,11 @@ enum AIRichResponseSubMessageType {
 	AI_RICH_RESPONSE_CONTENT_ITEMS = 9;
 }
 
+enum SessionTransparencyType {
+	UNKNOWN_TYPE = 0;
+	NY_AI_SAFETY_DISCLAIMER = 1;
+}
+
 message BotPluginMetadata {
 	enum PluginType {
 		UNKNOWN_PLUGIN = 0;
@@ -574,6 +579,15 @@ message AIRichResponseContentItemsMetadata {
 	optional ContentType contentType = 2;
 }
 
+message BotDocumentMessageMetadata {
+	enum DocumentPluginType {
+		TEXT_EXTRACTION = 0;
+		OCR_AND_IMAGES = 1;
+	}
+
+	optional DocumentPluginType pluginType = 1;
+}
+
 message AIHomeState {
 	message AIHomeOption {
 		enum AIHomeActionType {
@@ -701,6 +715,7 @@ message InThreadSurveyMetadata {
 	optional string privacyStatementFull = 15;
 	repeated InThreadSurveyPrivacyStatementPart privacyStatementParts = 16;
 	optional string feedbackToastText = 17;
+	optional int32 startQuestionIndex = 18;
 }
 
 message BotMessageOriginMetadata {
@@ -757,6 +772,7 @@ message BotMetadata {
 	optional AIThreadInfo botThreadInfo = 31;
 	optional AIRegenerateMetadata regenerateMetadata = 32;
 	optional SessionTransparencyMetadata sessionTransparencyMetadata = 33;
+	optional BotDocumentMessageMetadata botDocumentMessageMetadata = 34;
 	optional bytes internalMetadata = 999;
 }
 
@@ -851,4 +867,5 @@ message AIRegenerateMetadata {
 message SessionTransparencyMetadata {
 	optional string disclaimerText = 1;
 	optional string hcaID = 2;
+	optional SessionTransparencyType sessionTransparencyType = 3;
 }
