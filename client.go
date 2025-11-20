@@ -22,6 +22,7 @@ import (
 
 	"go.mau.fi/util/exhttp"
 	"go.mau.fi/util/exsync"
+	"go.mau.fi/util/ptr"
 	"go.mau.fi/util/random"
 	"golang.org/x/net/proxy"
 
@@ -224,9 +225,9 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		Transport: (http.DefaultTransport.(*http.Transport)).Clone(),
 	}
 	cli := &Client{
-		mediaHTTP:          baseHTTPClient,
-		websocketHTTP:      baseHTTPClient,
-		preLoginHTTP:       baseHTTPClient,
+		mediaHTTP:          ptr.Clone(baseHTTPClient),
+		websocketHTTP:      ptr.Clone(baseHTTPClient),
+		preLoginHTTP:       ptr.Clone(baseHTTPClient),
 		Store:              deviceStore,
 		Log:                log,
 		recvLog:            log.Sub("Recv"),
