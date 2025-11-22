@@ -236,7 +236,7 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, upload
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
 
-	httpResp, err := cli.http.Do(req)
+	httpResp, err := cli.mediaHTTP.Do(req)
 	if err != nil {
 		err = fmt.Errorf("failed to execute request: %w", err)
 	} else if httpResp.StatusCode != http.StatusOK {

@@ -15,7 +15,7 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleChatState(node *waBinary.Node) {
+func (cli *Client) handleChatState(ctx context.Context, node *waBinary.Node) {
 	source, err := cli.parseMessageSource(node, true)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse chat state update: %v", err)
@@ -36,7 +36,7 @@ func (cli *Client) handleChatState(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handlePresence(node *waBinary.Node) {
+func (cli *Client) handlePresence(ctx context.Context, node *waBinary.Node) {
 	var evt events.Presence
 	ag := node.AttrGetter()
 	evt.From = ag.JID("from")
@@ -61,7 +61,7 @@ func (cli *Client) handlePresence(node *waBinary.Node) {
 //
 // You should call this at least once after connecting so that the server has your pushname.
 // Otherwise, other users will see "-" as the name.
-func (cli *Client) SendPresence(state types.Presence) error {
+func (cli *Client) SendPresence(ctx context.Context, state types.Presence) error {
 	if cli == nil {
 		return ErrClientIsNil
 	} else if len(cli.Store.PushName) == 0 && cli.MessengerConfig == nil {
@@ -79,7 +79,7 @@ func (cli *Client) SendPresence(state types.Presence) error {
 	if cli.MessengerConfig == nil {
 		attrs["name"] = cli.Store.PushName
 	}
-	return cli.sendNode(waBinary.Node{
+	return cli.sendNode(ctx, waBinary.Node{
 		Tag:   "presence",
 		Attrs: attrs,
 	})
@@ -93,11 +93,11 @@ func (cli *Client) SendPresence(state types.Presence) error {
 // so you should mark yourself as online before trying to use this function:
 //
 //	cli.SendPresence(types.PresenceAvailable)
-func (cli *Client) SubscribePresence(jid types.JID) error {
+func (cli *Client) SubscribePresence(ctx context.Context, jid types.JID) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
-	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(context.TODO(), jid)
+	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, jid)
 	if err != nil {
 		return fmt.Errorf("failed to get privacy token: %w", err)
 	} else if privacyToken == nil {
@@ -120,13 +120,13 @@ func (cli *Client) SubscribePresence(jid types.JID) error {
 			Content: privacyToken.Token,
 		}}
 	}
-	return cli.sendNode(req)
+	return cli.sendNode(ctx, req)
 }
 
 // SendChatPresence updates the user's typing status in a specific chat.
 //
 // The media parameter can be set to indicate the user is recording media (like a voice message) rather than typing a text message.
-func (cli *Client) SendChatPresence(jid types.JID, state types.ChatPresence, media types.ChatPresenceMedia) error {
+func (cli *Client) SendChatPresence(ctx context.Context, jid types.JID, state types.ChatPresence, media types.ChatPresenceMedia) error {
 	ownID := cli.getOwnID()
 	if ownID.IsEmpty() {
 		return ErrNotLoggedIn
@@ -137,7 +137,7 @@ func (cli *Client) SendChatPresence(jid types.JID, state types.ChatPresence, med
 			"media": string(media),
 		}
 	}
-	return cli.sendNode(waBinary.Node{
+	return cli.sendNode(ctx, waBinary.Node{
 		Tag: "chatstate",
 		Attrs: waBinary.Attrs{
 			"from": ownID,

@@ -276,7 +276,6 @@ type (
 	StickerAction                                                                                                       = waSyncAction.StickerAction
 	StatusPrivacyAction                                                                                                 = waSyncAction.StatusPrivacyAction
 	StarAction                                                                                                          = waSyncAction.StarAction
-	SecurityNotificationSetting                                                                                         = waSyncAction.SecurityNotificationSetting
 	RemoveRecentStickerAction                                                                                           = waSyncAction.RemoveRecentStickerAction
 	RecentEmojiWeightsAction                                                                                            = waSyncAction.RecentEmojiWeightsAction
 	QuickReplyAction                                                                                                    = waSyncAction.QuickReplyAction
