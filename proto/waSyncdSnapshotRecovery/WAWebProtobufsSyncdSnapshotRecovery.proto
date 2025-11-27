@@ -2,7 +2,7 @@ syntax = "proto2";
 package WAWebProtobufsSyncdSnapshotRecovery;
 option go_package = "go.mau.fi/whatsmeow/proto/waSyncdSnapshotRecovery";
 
-import "waSyncAction/WASyncAction.proto";
+import "waSyncAction/WAWebProtobufSyncAction.proto";
 
 message SyncdSnapshotRecovery {
 	optional SyncdVersion version = 1;
@@ -12,7 +12,7 @@ message SyncdSnapshotRecovery {
 }
 
 message SyncdPlainTextRecord {
-	optional WASyncAction.SyncActionData value = 1;
+	optional WAWebProtobufSyncAction.SyncActionData value = 1;
 	optional bytes keyID = 2;
 	optional bytes mac = 3;
 }

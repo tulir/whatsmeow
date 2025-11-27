@@ -200,14 +200,14 @@ var File_waSyncdSnapshotRecovery_WAWebProtobufsSyncdSnapshotRecovery_proto proto
 
 const file_waSyncdSnapshotRecovery_WAWebProtobufsSyncdSnapshotRecovery_proto_rawDesc = "" +
 	"\n" +
-	"AwaSyncdSnapshotRecovery/WAWebProtobufsSyncdSnapshotRecovery.proto\x12#WAWebProtobufsSyncdSnapshotRecovery\x1a\x1fwaSyncAction/WASyncAction.proto\"\x9d\x02\n" +
+	"AwaSyncdSnapshotRecovery/WAWebProtobufsSyncdSnapshotRecovery.proto\x12#WAWebProtobufsSyncdSnapshotRecovery\x1a*waSyncAction/WAWebProtobufSyncAction.proto\"\x9d\x02\n" +
 	"\x15SyncdSnapshotRecovery\x12K\n" +
 	"\aversion\x18\x01 \x01(\v21.WAWebProtobufsSyncdSnapshotRecovery.SyncdVersionR\aversion\x12&\n" +
 	"\x0ecollectionName\x18\x02 \x01(\tR\x0ecollectionName\x12c\n" +
 	"\x0fmutationRecords\x18\x03 \x03(\v29.WAWebProtobufsSyncdSnapshotRecovery.SyncdPlainTextRecordR\x0fmutationRecords\x12*\n" +
-	"\x10collectionLthash\x18\x04 \x01(\fR\x10collectionLthash\"r\n" +
-	"\x14SyncdPlainTextRecord\x122\n" +
-	"\x05value\x18\x01 \x01(\v2\x1c.WASyncAction.SyncActionDataR\x05value\x12\x14\n" +
+	"\x10collectionLthash\x18\x04 \x01(\fR\x10collectionLthash\"}\n" +
+	"\x14SyncdPlainTextRecord\x12=\n" +
+	"\x05value\x18\x01 \x01(\v2'.WAWebProtobufSyncAction.SyncActionDataR\x05value\x12\x14\n" +
 	"\x05keyID\x18\x02 \x01(\fR\x05keyID\x12\x10\n" +
 	"\x03mac\x18\x03 \x01(\fR\x03mac\"(\n" +
 	"\fSyncdVersion\x12\x18\n" +
@@ -230,12 +230,12 @@ var file_waSyncdSnapshotRecovery_WAWebProtobufsSyncdSnapshotRecovery_proto_goTyp
 	(*SyncdSnapshotRecovery)(nil),       // 0: WAWebProtobufsSyncdSnapshotRecovery.SyncdSnapshotRecovery
 	(*SyncdPlainTextRecord)(nil),        // 1: WAWebProtobufsSyncdSnapshotRecovery.SyncdPlainTextRecord
 	(*SyncdVersion)(nil),                // 2: WAWebProtobufsSyncdSnapshotRecovery.SyncdVersion
-	(*waSyncAction.SyncActionData)(nil), // 3: WASyncAction.SyncActionData
+	(*waSyncAction.SyncActionData)(nil), // 3: WAWebProtobufSyncAction.SyncActionData
 }
 var file_waSyncdSnapshotRecovery_WAWebProtobufsSyncdSnapshotRecovery_proto_depIdxs = []int32{
 	2, // 0: WAWebProtobufsSyncdSnapshotRecovery.SyncdSnapshotRecovery.version:type_name -> WAWebProtobufsSyncdSnapshotRecovery.SyncdVersion
 	1, // 1: WAWebProtobufsSyncdSnapshotRecovery.SyncdSnapshotRecovery.mutationRecords:type_name -> WAWebProtobufsSyncdSnapshotRecovery.SyncdPlainTextRecord
-	3, // 2: WAWebProtobufsSyncdSnapshotRecovery.SyncdPlainTextRecord.value:type_name -> WASyncAction.SyncActionData
+	3, // 2: WAWebProtobufsSyncdSnapshotRecovery.SyncdPlainTextRecord.value:type_name -> WAWebProtobufSyncAction.SyncActionData
 	3, // [3:3] is the sub-list for method output_type
 	3, // [3:3] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name

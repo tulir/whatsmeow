@@ -2,8 +2,8 @@ syntax = "proto2";
 package WAWebProtobufsHistorySync;
 option go_package = "go.mau.fi/whatsmeow/proto/waHistorySync";
 
-import "waSyncAction/WASyncAction.proto";
-import "waChatLockSettings/WAProtobufsChatLockSettings.proto";
+import "waSyncAction/WAWebProtobufSyncAction.proto";
+import "waChatLockSettings/WAWebProtobufsChatLockSettings.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
 import "waCommon/WACommon.proto";
 import "waWeb/WAWebProtobufsWeb.proto";
@@ -47,7 +47,7 @@ message HistorySync {
 	optional uint32 threadDsTimeframeOffset = 10;
 	repeated StickerMetadata recentStickers = 11;
 	repeated PastParticipants pastParticipants = 12;
-	repeated WASyncAction.CallLogRecord callLogRecords = 13;
+	repeated WAWebProtobufSyncAction.CallLogRecord callLogRecords = 13;
 	optional BotAIWaitListState aiWaitListState = 14;
 	repeated PhoneNumberToLIDMapping phoneNumberToLidMappings = 15;
 	optional string companionMetaNonce = 16;
@@ -187,7 +187,7 @@ message GlobalSettings {
 	optional int32 photoQualityMode = 16;
 	optional NotificationSettings individualNotificationSettings = 17;
 	optional NotificationSettings groupNotificationSettings = 18;
-	optional WAProtobufsChatLockSettings.ChatLockSettings chatLockSettings = 19;
+	optional WAWebProtobufsChatLockSettings.ChatLockSettings chatLockSettings = 19;
 	optional int64 chatDbLidMigrationTimestamp = 20;
 }
 

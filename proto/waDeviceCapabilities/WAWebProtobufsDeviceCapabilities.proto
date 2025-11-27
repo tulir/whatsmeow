@@ -1,5 +1,5 @@
 syntax = "proto2";
-package WAProtobufsDeviceCapabilities;
+package WAWebProtobufsDeviceCapabilities;
 option go_package = "go.mau.fi/whatsmeow/proto/waDeviceCapabilities";
 
 message DeviceCapabilities {
@@ -13,6 +13,16 @@ message DeviceCapabilities {
 		NONE = 0;
 		MINIMAL = 1;
 		FULL = 2;
+	}
+
+	message AiThread {
+		enum SupportLevel {
+			NONE = 0;
+			INFRA = 1;
+			FULL = 2;
+		}
+
+		optional SupportLevel supportLevel = 1;
 	}
 
 	message UserHasAvatar {
@@ -32,4 +42,5 @@ message DeviceCapabilities {
 	optional BusinessBroadcast businessBroadcast = 3;
 	optional UserHasAvatar userHasAvatar = 4;
 	optional MemberNameTagPrimarySupport memberNameTagPrimarySupport = 5;
+	optional AiThread aiThread = 6;
 }

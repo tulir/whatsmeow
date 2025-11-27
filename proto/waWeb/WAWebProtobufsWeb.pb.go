@@ -312,6 +312,7 @@ const (
 	WebMessageInfo_PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE              WebMessageInfo_StubType = 219
 	WebMessageInfo_QUARANTINED_MESSAGE                                      WebMessageInfo_StubType = 220
 	WebMessageInfo_GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE                    WebMessageInfo_StubType = 221
+	WebMessageInfo_GROUP_OPEN_BOT_ADDED                                     WebMessageInfo_StubType = 222
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -539,6 +540,7 @@ var (
 		219: "PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE",
 		220: "QUARANTINED_MESSAGE",
 		221: "GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE",
+		222: "GROUP_OPEN_BOT_ADDED",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -763,6 +765,7 @@ var (
 		"PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE":              219,
 		"QUARANTINED_MESSAGE":                                      220,
 		"GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE":                    221,
+		"GROUP_OPEN_BOT_ADDED":                                     222,
 	}
 )
 
@@ -4014,7 +4017,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\x8d[\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xa8[\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4091,7 +4094,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\x9b;\n" +
+	"BSP_AND_FB\x10\x03\"\xb6;\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4318,7 +4321,8 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"-BIZ_AUTOMATICALLY_LABELED_CHAT_SYSTEM_MESSAGE\x10\xda\x01\x120\n" +
 	"+PHONE_NUMBER_HIDING_CHAT_DEPRECATED_MESSAGE\x10\xdb\x01\x12\x18\n" +
 	"\x13QUARANTINED_MESSAGE\x10\xdc\x01\x12*\n" +
-	"%GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE\x10\xdd\x01\"X\n" +
+	"%GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE\x10\xdd\x01\x12\x19\n" +
+	"\x14GROUP_OPEN_BOT_ADDED\x10\xde\x01\"X\n" +
 	"\x06Status\x12\t\n" +
 	"\x05ERROR\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0e\n" +
