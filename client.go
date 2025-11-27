@@ -245,6 +245,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		incomingRetryRequestCounter: make(map[incomingRetryKey]int),
 
 		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
+		quitHistorySync:          make(chan struct{}),
 
 		groupCache:       make(map[types.JID]*groupMetaCache),
 		userDevicesCache: make(map[types.JID]deviceCache),
