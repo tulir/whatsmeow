@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"regexp"
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
@@ -448,6 +449,19 @@ func (cli *Client) Connect() error {
 	return cli.ConnectContext(cli.BackgroundEventCtx)
 }
 
+var got5xxRegexp = regexp.MustCompile(`got 5[0-9][0-9]$`)
+
+func isRetryableConnectError(err error) bool {
+	if exhttp.IsNetworkError(err) {
+		return true
+	}
+	if got5xxRegexp.MatchString(err.Error()) {
+		return true
+	}
+
+	return false
+}
+
 func (cli *Client) ConnectContext(ctx context.Context) error {
 	if cli == nil {
 		return ErrClientIsNil
@@ -457,7 +471,7 @@ func (cli *Client) ConnectContext(ctx context.Context) error {
 	defer cli.socketLock.Unlock()
 
 	err := cli.unlockedConnect(ctx)
-	if exhttp.IsNetworkError(err) && cli.InitialAutoReconnect && cli.EnableAutoReconnect {
+	if isRetryableConnectError(err) && cli.InitialAutoReconnect && cli.EnableAutoReconnect {
 		cli.Log.Errorf("Initial connection failed but reconnecting in background (%v)", err)
 		go cli.dispatchEvent(&events.Disconnected{})
 		go cli.autoReconnect(ctx)
