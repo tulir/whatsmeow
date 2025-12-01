@@ -43,12 +43,20 @@ func (cli *Client) DangerousInternals() *DangerousInternalClient {
 type DangerousInfoQuery = infoQuery
 type DangerousInfoQueryType = infoQueryType
 
+func (int *DangerousInternalClient) FetchAppState(ctx context.Context, name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) ([]any, error) {
+	return int.c.fetchAppState(ctx, name, fullSync, onlyIfNotSynced)
+}
+
+func (int *DangerousInternalClient) ApplyAppStatePatches(ctx context.Context, name appstate.WAPatchName, state appstate.HashState, patches *appstate.PatchList, fullSync bool, eventsToDispatch *[]any) (appstate.HashState, error) {
+	return int.c.applyAppStatePatches(ctx, name, state, patches, fullSync, eventsToDispatch)
+}
+
 func (int *DangerousInternalClient) FilterContacts(mutations []appstate.Mutation) ([]appstate.Mutation, []store.ContactEntry) {
 	return int.c.filterContacts(mutations)
 }
 
-func (int *DangerousInternalClient) DispatchAppState(ctx context.Context, mutation appstate.Mutation, fullSync bool, emitOnFullSync bool) {
-	int.c.dispatchAppState(ctx, mutation, fullSync, emitOnFullSync)
+func (int *DangerousInternalClient) DispatchAppState(ctx context.Context, mutation appstate.Mutation, fullSync bool) (eventToDispatch any) {
+	return int.c.dispatchAppState(ctx, mutation, fullSync)
 }
 
 func (int *DangerousInternalClient) DownloadExternalAppStateBlob(ctx context.Context, ref *waServerSync.ExternalBlobReference) ([]byte, error) {
@@ -67,8 +75,8 @@ func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, raw
 	int.c.requestAppStateKeys(ctx, rawKeyIDs)
 }
 
-func (int *DangerousInternalClient) SendAppState(ctx context.Context, patch appstate.PatchInfo, waitForSync bool) error {
-	return int.c.sendAppState(ctx, patch, waitForSync)
+func (int *DangerousInternalClient) SendAppState(ctx context.Context, patch appstate.PatchInfo, allowRetry bool) error {
+	return int.c.sendAppState(ctx, patch, allowRetry)
 }
 
 func (int *DangerousInternalClient) HandleDecryptedArmadillo(ctx context.Context, info *types.MessageInfo, decrypted []byte, retryCount int) (handlerFailed, protobufFailed bool) {
