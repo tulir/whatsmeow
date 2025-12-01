@@ -944,6 +944,8 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 			evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
 				IsJoinApprovalRequired: true,
 			}
+		case "suspended":
+			evt.Suspended = true
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
