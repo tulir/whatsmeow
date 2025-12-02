@@ -193,6 +193,14 @@ func (cli *Client) UpdateGroupParticipants(ctx context.Context, jid types.JID, p
 			Tag:   "participant",
 			Attrs: waBinary.Attrs{"jid": participantJID},
 		}
+		if participantJID.Server == types.HiddenUserServer && action == ParticipantChangeAdd {
+			pn, err := cli.Store.LIDs.GetPNForLID(ctx, participantJID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get phone number for LID %s: %v", participantJID, err)
+			} else if !pn.IsEmpty() {
+				content[i].Attrs["phone_number"] = pn
+			}
+		}
 	}
 	resp, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag:     string(action),
