@@ -746,6 +746,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 			group.IsIncognito = true
 		case "membership_approval_mode":
 			group.IsJoinApprovalRequired = true
+		case "suspended":
+			group.Suspended = true
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
