@@ -102,7 +102,9 @@ func (fs *FrameSocket) Connect(ctx context.Context) error {
 		HTTPHeader: fs.HTTPHeaders,
 	})
 	if err != nil {
-		err = ErrWithStatusCode{err, resp.StatusCode}
+		if resp != nil {
+			err = ErrWithStatusCode{err, resp.StatusCode}
+		}
 		fs.cancel()
 		return fmt.Errorf("failed to dial whatsapp web websocket: %w", err)
 	}
