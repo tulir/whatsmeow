@@ -15,7 +15,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"regexp"
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
@@ -449,14 +448,17 @@ func (cli *Client) Connect() error {
 	return cli.ConnectContext(cli.BackgroundEventCtx)
 }
 
-var got5xxRegexp = regexp.MustCompile(`got 5[0-9][0-9]$`)
-
 func isRetryableConnectError(err error) bool {
 	if exhttp.IsNetworkError(err) {
 		return true
 	}
-	if got5xxRegexp.MatchString(err.Error()) {
-		return true
+
+	var statusErr socket.ErrWithStatusCode
+	if errors.As(err, &statusErr) {
+		switch statusErr.StatusCode {
+		case 408 | 500 | 501 | 502 | 503 | 504:
+			return true
+		}
 	}
 
 	return false
