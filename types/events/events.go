@@ -490,7 +490,8 @@ type GroupInfo struct {
 
 	Promote        []types.JID // Users who were promoted to admins
 	Demote         []types.JID // Users who were demoted to normal users
-	Suspended      bool        // whether the group is banned
+	Suspended      bool        // whether the group is suspended
+	Unsuspended    bool        // whether the group is unsuspended
 	UnknownChanges []*waBinary.Node
 }
 

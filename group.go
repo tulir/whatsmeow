@@ -948,6 +948,8 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 			}
 		case "suspended":
 			evt.Suspended = true
+		case "unsuspended":
+			evt.Unsuspended = true
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
