@@ -456,7 +456,7 @@ func isRetryableConnectError(err error) bool {
 	var statusErr socket.ErrWithStatusCode
 	if errors.As(err, &statusErr) {
 		switch statusErr.StatusCode {
-		case 408 | 500 | 501 | 502 | 503 | 504:
+		case 408, 500, 501, 502, 503, 504:
 			return true
 		}
 	}
