@@ -73,34 +73,92 @@ func (device *Device) WithCachedSessions(ctx context.Context, addresses []string
 	if len(addresses) == 0 {
 		return nil, ctx, nil
 	}
+	const batchSize = 900
 
-	sessions, err := device.Sessions.GetManySessions(ctx, addresses)
-	if err != nil {
-		return nil, ctx, fmt.Errorf("failed to prefetch sessions: %w", err)
-	}
-	wrapped := make(map[string]sessionCacheEntry, len(sessions))
-	existingSessions := make(map[string]bool, len(sessions))
-	for addr, rawSess := range sessions {
-		var sessionRecord *record.Session
-		var found bool
-		if rawSess == nil {
-			sessionRecord = record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
-		} else {
-			found = true
-			sessionRecord, err = record.NewSessionFromBytes(rawSess, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
-			if err != nil {
-				zerolog.Ctx(ctx).Err(err).
-					Str("address", addr).
-					Msg("Failed to deserialize session")
-				continue
+	allExistingSessions := make(map[string]bool)
+	wrapped := make(map[string]sessionCacheEntry)
+
+	// ctx 需要链式更新（因为 WithCachedSessions 会更新 context 中的 sessionCache）
+	batchCtx := ctx
+
+	for i := 0; i < len(addresses); i += batchSize {
+		end := i + batchSize
+		if end > len(addresses) {
+			end = len(addresses)
+		}
+		batch := addresses[i:end]
+
+		// 原始查询
+		sessions, err := device.Sessions.GetManySessions(batchCtx, batch)
+		if err != nil {
+			return nil, ctx, fmt.Errorf("failed to prefetch sessions: %w", err)
+		}
+
+		for addr, rawSess := range sessions {
+			var sessionRecord *record.Session
+			var found bool
+			var err error
+
+			if rawSess == nil {
+				sessionRecord = record.NewSession(
+					SignalProtobufSerializer.Session,
+					SignalProtobufSerializer.State,
+				)
+			} else {
+				found = true
+				sessionRecord, err = record.NewSessionFromBytes(
+					rawSess,
+					SignalProtobufSerializer.Session,
+					SignalProtobufSerializer.State,
+				)
+				if err != nil {
+					zerolog.Ctx(batchCtx).Err(err).
+						Str("address", addr).
+						Msg("Failed to deserialize session")
+					continue
+				}
+			}
+
+			allExistingSessions[addr] = found
+			wrapped[addr] = sessionCacheEntry{
+				Record: sessionRecord,
+				Found:  found,
 			}
 		}
-		existingSessions[addr] = found
-		wrapped[addr] = sessionCacheEntry{Record: sessionRecord, Found: found}
+
+		// 更新 batchCtx，但不覆盖别的 cache 数据
+		batchCtx = context.WithValue(batchCtx, contextKeySessionCache,
+			(*sessionCache)(exsync.NewMapWithData(wrapped)))
 	}
 
-	ctx = context.WithValue(ctx, contextKeySessionCache, (*sessionCache)(exsync.NewMapWithData(wrapped)))
-	return existingSessions, ctx, nil
+	return allExistingSessions, batchCtx, nil
+	// sessions, err := device.Sessions.GetManySessions(ctx, addresses)
+	// if err != nil {
+	// 	return nil, ctx, fmt.Errorf("failed to prefetch sessions: %w", err)
+	// }
+	// wrapped := make(map[string]sessionCacheEntry, len(sessions))
+	// existingSessions := make(map[string]bool, len(sessions))
+	// for addr, rawSess := range sessions {
+	// 	var sessionRecord *record.Session
+	// 	var found bool
+	// 	if rawSess == nil {
+	// 		sessionRecord = record.NewSession(SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
+	// 	} else {
+	// 		found = true
+	// 		sessionRecord, err = record.NewSessionFromBytes(rawSess, SignalProtobufSerializer.Session, SignalProtobufSerializer.State)
+	// 		if err != nil {
+	// 			zerolog.Ctx(ctx).Err(err).
+	// 				Str("address", addr).
+	// 				Msg("Failed to deserialize session")
+	// 			continue
+	// 		}
+	// 	}
+	// 	existingSessions[addr] = found
+	// 	wrapped[addr] = sessionCacheEntry{Record: sessionRecord, Found: found}
+	// }
+
+	// ctx = context.WithValue(ctx, contextKeySessionCache, (*sessionCache)(exsync.NewMapWithData(wrapped)))
+	// return existingSessions, ctx, nil
 }
 
 func (device *Device) PutCachedSessions(ctx context.Context) error {
