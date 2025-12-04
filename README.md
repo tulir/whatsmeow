@@ -104,7 +104,8 @@ func main() {
     dbLog := waLog.Stdout("Database", "INFO", true)
     
     // Initialize store
-    container, err := sqlstore.New(context.Background(), "sqlite3", "file:whatsmeow.db?_foreign_keys=on", dbLog)
+    ctx := context.Background()
+    container, err := sqlstore.New(ctx, "sqlite3", "file:whatsmeow.db?_foreign_keys=on", dbLog)
     if err != nil {
         panic(err)
     }
@@ -212,6 +213,7 @@ package main
 import (
     "context"
     "fmt"
+    "os"
     
     _ "github.com/mattn/go-sqlite3"
     "github.com/mdp/qrterminal/v3"
@@ -1171,9 +1173,6 @@ A: Make sure your event handler is properly registered before connecting. Check 
 // Enable detailed logging
 logger := waLog.Stdout("Client", "DEBUG", true)
 client := whatsmeow.NewClient(deviceStore, logger)
-
-// Log all binary protocol messages
-client.SetLogLevel("TRACE")
 ```
 
 ## 💬 Discussion
