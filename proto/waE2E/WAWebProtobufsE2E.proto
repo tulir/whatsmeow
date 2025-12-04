@@ -1151,6 +1151,7 @@ message ContextInfo {
 		optional string newsletterName = 3;
 		optional ContentType contentType = 4;
 		optional string accessibilityText = 5;
+		optional string profileName = 6;
 	}
 
 	message ExternalAdReplyInfo {
@@ -1567,6 +1568,7 @@ message Message {
 	optional PollCreationMessage pollCreationMessageV5 = 111;
 	optional NewsletterFollowerInviteMessage newsletterFollowerInviteMessageV2 = 113;
 	optional PollResultSnapshotMessage pollResultSnapshotMessageV3 = 115;
+	optional FutureProofMessage newsletterAdminProfileMessage = 116;
 }
 
 message AlbumMessage {
@@ -2024,7 +2026,6 @@ message URLMetadata {
 message PaymentExtendedMetadata {
 	optional uint32 type = 1;
 	optional string platform = 2;
-	optional string messageParamsJSON = 3;
 }
 
 message MMSThumbnailMetadata {

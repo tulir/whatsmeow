@@ -92,14 +92,13 @@ func parsePatchListInternal(ctx context.Context, collection *waBinary.Node, down
 }
 
 // ParsePatchList will decode an XML node containing app state patches, including downloading any external blobs.
-func ParsePatchList(ctx context.Context, node *waBinary.Node, downloadExternal DownloadExternalFunc) (*PatchList, error) {
-	collection := node.GetChildByTag("sync", "collection")
+func ParsePatchList(ctx context.Context, collection *waBinary.Node, downloadExternal DownloadExternalFunc) (*PatchList, error) {
 	ag := collection.AttrGetter()
-	snapshot, err := parseSnapshotInternal(ctx, &collection, downloadExternal)
+	snapshot, err := parseSnapshotInternal(ctx, collection, downloadExternal)
 	if err != nil {
 		return nil, err
 	}
-	patches, err := parsePatchListInternal(ctx, &collection, downloadExternal)
+	patches, err := parsePatchListInternal(ctx, collection, downloadExternal)
 	if err != nil {
 		return nil, err
 	}
