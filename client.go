@@ -853,7 +853,22 @@ func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) (
 	}
 
 	cli.sendLog.Debugf("%s", node.XMLString())
-	return payload, sock.SendFrame(ctx, payload)
+	
+	// 🔒 FIX: Log quando envia frame (INFO para garantir que apareça)
+	if node.Tag == "iq" {
+		if id, ok := node.Attrs["id"].(string); ok {
+			cli.Log.Infof("sendNodeAndGetData: sending IQ frame, id=%s, xmlns=%s", id, node.Attrs["xmlns"])
+		}
+	}
+	
+	err = sock.SendFrame(ctx, payload)
+	if err != nil {
+		cli.Log.Warnf("sendNodeAndGetData: SendFrame failed: %v", err)
+		return nil, err
+	}
+	
+	cli.Log.Infof("sendNodeAndGetData: frame sent successfully")
+	return payload, nil
 }
 
 func (cli *Client) sendNode(ctx context.Context, node waBinary.Node) error {

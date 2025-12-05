@@ -33,6 +33,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waAICommon"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -854,9 +855,16 @@ func (cli *Client) sendDM(
 		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(messagePlaintext, message, ownID, to, id))
 	}
 
-	if tcToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, to); err != nil {
-		cli.Log.Warnf("Failed to get privacy token for %s: %v", to, err)
-	} else if tcToken != nil {
+	// 🔒 FIX: Verificar se PrivacyTokens está inicializado antes de usar
+	var tcToken *store.PrivacyToken
+	if cli.Store != nil && cli.Store.PrivacyTokens != nil {
+		var err error
+		tcToken, err = cli.Store.PrivacyTokens.GetPrivacyToken(ctx, to)
+		if err != nil {
+			cli.Log.Warnf("Failed to get privacy token for %s: %v", to, err)
+		}
+	}
+	if tcToken != nil {
 		node.Content = append(node.GetChildren(), waBinary.Node{
 			Tag:     "tctoken",
 			Content: tcToken.Token,

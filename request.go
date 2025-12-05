@@ -77,13 +77,21 @@ func (cli *Client) receiveResponse(ctx context.Context, data *waBinary.Node) boo
 	waiter, ok := cli.responseWaiters[id]
 	if !ok {
 		cli.responseWaitersLock.Unlock()
+		// 🔒 FIX: Log quando não encontra waiter (pode ser resposta não esperada ou ID incorreto)
+		cli.Log.Infof("receiveResponse: no waiter found for id=%s, tag=%s", id, data.Tag)
 		return false
 	}
 	delete(cli.responseWaiters, id)
 	cli.responseWaitersLock.Unlock()
+
+	// 🔒 FIX: Log quando encontra waiter e envia resposta (INFO para garantir que apareça)
+	cli.Log.Infof("receiveResponse: found waiter for id=%s, tag=%s, sending response", id, data.Tag)
+
 	select {
 	case waiter <- data:
+		cli.Log.Infof("receiveResponse: response sent successfully for id=%s", id)
 	case <-ctx.Done():
+		cli.Log.Warnf("receiveResponse: context cancelled while sending response for id=%s", id)
 	}
 	return true
 }
@@ -130,15 +138,22 @@ func (cli *Client) sendIQAsyncAndGetData(ctx context.Context, query *infoQuery) 
 	if !query.Target.IsEmpty() {
 		attrs["target"] = query.Target
 	}
+
+	// 🔒 FIX: Log antes de enviar (INFO para garantir que apareça)
+	cli.Log.Infof("sendIQAsyncAndGetData: sending IQ, id=%s, namespace=%s, to=%s, target=%s", query.ID, query.Namespace, attrs["to"], attrs["target"])
+
 	data, err := cli.sendNodeAndGetData(ctx, waBinary.Node{
 		Tag:     "iq",
 		Attrs:   attrs,
 		Content: query.Content,
 	})
 	if err != nil {
+		cli.Log.Warnf("sendIQAsyncAndGetData: sendNodeAndGetData failed, id=%s, err=%v", query.ID, err)
 		cli.cancelResponse(query.ID, waiter)
 		return nil, data, err
 	}
+
+	cli.Log.Infof("sendIQAsyncAndGetData: IQ sent successfully, id=%s", query.ID)
 	return waiter, data, nil
 }
 
@@ -153,13 +168,23 @@ func (cli *Client) sendIQ(ctx context.Context, query infoQuery) (*waBinary.Node,
 	if query.Timeout == 0 {
 		query.Timeout = defaultRequestTimeout
 	}
+
+	// 🔒 FIX: Log da requisição IQ (INFO para garantir que apareça)
+	cli.Log.Infof("sendIQ: namespace=%s, id=%s, timeout=%v", query.Namespace, query.ID, query.Timeout)
+
 	resChan, data, err := cli.sendIQAsyncAndGetData(ctx, &query)
 	if err != nil {
+		cli.Log.Warnf("sendIQ: sendIQAsyncAndGetData failed: %v", err)
 		return nil, err
 	}
+
+	cli.Log.Infof("sendIQ: waiting for response, id=%s", query.ID)
+
 	select {
 	case res := <-resChan:
+		cli.Log.Infof("sendIQ: received response, id=%s, tag=%s", query.ID, res.Tag)
 		if isDisconnectNode(res) {
+			cli.Log.Warnf("sendIQ: received disconnect node, id=%s", query.ID)
 			if query.NoRetry {
 				return nil, &DisconnectedError{Action: "info query", Node: res}
 			}
@@ -176,8 +201,10 @@ func (cli *Client) sendIQ(ctx context.Context, query infoQuery) (*waBinary.Node,
 		}
 		return res, nil
 	case <-ctx.Done():
+		cli.Log.Warnf("sendIQ: context cancelled, id=%s, err=%v", query.ID, ctx.Err())
 		return nil, ctx.Err()
 	case <-time.After(query.Timeout):
+		cli.Log.Warnf("sendIQ: timeout after %v, id=%s", query.Timeout, query.ID)
 		return nil, ErrIQTimedOut
 	}
 }

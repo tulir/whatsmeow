@@ -594,11 +594,14 @@ func (cli *Client) GetProfilePictureInfo(ctx context.Context, jid types.JID, par
 		}
 
 		var pictureContent []waBinary.Node
-		if token, _ := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, jid); token != nil {
-			pictureContent = []waBinary.Node{{
-				Tag:     "tctoken",
-				Content: token.Token,
-			}}
+		// 🔒 FIX: Verificar se PrivacyTokens está inicializado antes de usar
+		if cli.Store != nil && cli.Store.PrivacyTokens != nil {
+			if token, _ := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, jid); token != nil {
+				pictureContent = []waBinary.Node{{
+					Tag:     "tctoken",
+					Content: token.Token,
+				}}
+			}
 		}
 
 		content = []waBinary.Node{{
@@ -607,6 +610,9 @@ func (cli *Client) GetProfilePictureInfo(ctx context.Context, jid types.JID, par
 			Content: pictureContent,
 		}}
 	}
+	// 🔒 FIX: Log da requisição antes de enviar (INFO para garantir que apareça)
+	cli.Log.Infof("Sending GetProfilePictureInfo IQ: namespace=%s, to=%s, target=%s", namespace, to, target)
+
 	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: namespace,
 		Type:      "get",
@@ -614,6 +620,14 @@ func (cli *Client) GetProfilePictureInfo(ctx context.Context, jid types.JID, par
 		Target:    target,
 		Content:   content,
 	})
+
+	// 🔒 FIX: Log do resultado
+	if err != nil {
+		cli.Log.Warnf("GetProfilePictureInfo IQ failed: %v", err)
+	} else {
+		cli.Log.Infof("GetProfilePictureInfo IQ succeeded")
+	}
+
 	if errors.Is(err, ErrIQNotAuthorized) {
 		return nil, wrapIQError(ErrProfilePictureUnauthorized, err)
 	} else if errors.Is(err, ErrIQNotFound) {

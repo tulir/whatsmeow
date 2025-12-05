@@ -130,18 +130,25 @@ func (cli *Client) fetchPreKeys(ctx context.Context, users []types.JID) (map[typ
 			"reason": "identity",
 		}
 	}
+	// 🔒 FIX: Reduzir timeout para operação crítica de busca de prekeys
+	// 30 segundos é suficiente para operações normais, mas muito mais rápido que 75s padrão
+	cli.Log.Infof("fetchPreKeys: requesting prekeys for %d users", len(users))
 	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "encrypt",
 		Type:      "get",
 		To:        types.ServerJID,
+		Timeout:   30 * time.Second, // Timeout reduzido para operação crítica
 		Content: []waBinary.Node{{
 			Tag:     "key",
 			Content: requests,
 		}},
 	})
 	if err != nil {
+		cli.Log.Warnf("fetchPreKeys: failed to get prekeys: %v", err)
 		return nil, fmt.Errorf("failed to send prekey request: %w", err)
-	} else if len(resp.GetChildren()) == 0 {
+	}
+	cli.Log.Infof("fetchPreKeys: received prekey response")
+	if len(resp.GetChildren()) == 0 {
 		return nil, fmt.Errorf("got empty response to prekey request")
 	}
 	list := resp.GetChildByTag("list")

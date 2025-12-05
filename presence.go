@@ -97,6 +97,13 @@ func (cli *Client) SubscribePresence(ctx context.Context, jid types.JID) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
+	// 🔒 FIX: Verificar se PrivacyTokens está inicializado antes de usar
+	if cli.Store == nil || cli.Store.PrivacyTokens == nil {
+		if cli.ErrorOnSubscribePresenceWithoutToken {
+			return fmt.Errorf("privacy token store not initialized")
+		}
+		return nil
+	}
 	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, jid)
 	if err != nil {
 		return fmt.Errorf("failed to get privacy token: %w", err)

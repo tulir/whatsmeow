@@ -60,10 +60,16 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 			Tag:   "participant",
 			Attrs: waBinary.Attrs{"jid": participant},
 		}
-		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participant)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participant, err)
-		} else if pt != nil {
+		// 🔒 FIX: Verificar se PrivacyTokens está inicializado antes de usar
+		var pt *store.PrivacyToken
+		var err error
+		if cli.Store != nil && cli.Store.PrivacyTokens != nil {
+			pt, err = cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participant)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participant, err)
+			}
+		}
+		if pt != nil {
 			participantNodes[i].Content = []waBinary.Node{{
 				Tag:     "privacy",
 				Content: pt.Token,
