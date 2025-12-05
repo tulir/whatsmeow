@@ -716,6 +716,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 
 	group.AnnounceVersionID = ag.OptionalString("a_v_id")
 	group.ParticipantVersionID = ag.OptionalString("p_v_id")
+	group.ParticipantCount = ag.OptionalInt("size")
 	group.AddressingMode = types.AddressingMode(ag.OptionalString("addressing_mode"))
 
 	for _, child := range groupNode.GetChildren() {

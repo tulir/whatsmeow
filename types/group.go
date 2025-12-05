@@ -41,6 +41,7 @@ type GroupInfo struct {
 
 	ParticipantVersionID string
 	Participants         []GroupParticipant
+	ParticipantCount     int
 
 	MemberAddMode GroupMemberAddMode
 
