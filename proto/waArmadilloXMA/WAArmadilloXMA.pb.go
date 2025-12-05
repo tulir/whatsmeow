@@ -24,6 +24,65 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type ExtendedContentMessage_XmaDataclassType int32
+
+const (
+	ExtendedContentMessage_SENDER_COPY   ExtendedContentMessage_XmaDataclassType = 0
+	ExtendedContentMessage_SERVER        ExtendedContentMessage_XmaDataclassType = 1
+	ExtendedContentMessage_SIGNED_CLIENT ExtendedContentMessage_XmaDataclassType = 2
+)
+
+// Enum value maps for ExtendedContentMessage_XmaDataclassType.
+var (
+	ExtendedContentMessage_XmaDataclassType_name = map[int32]string{
+		0: "SENDER_COPY",
+		1: "SERVER",
+		2: "SIGNED_CLIENT",
+	}
+	ExtendedContentMessage_XmaDataclassType_value = map[string]int32{
+		"SENDER_COPY":   0,
+		"SERVER":        1,
+		"SIGNED_CLIENT": 2,
+	}
+)
+
+func (x ExtendedContentMessage_XmaDataclassType) Enum() *ExtendedContentMessage_XmaDataclassType {
+	p := new(ExtendedContentMessage_XmaDataclassType)
+	*p = x
+	return p
+}
+
+func (x ExtendedContentMessage_XmaDataclassType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ExtendedContentMessage_XmaDataclassType) Descriptor() protoreflect.EnumDescriptor {
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[0].Descriptor()
+}
+
+func (ExtendedContentMessage_XmaDataclassType) Type() protoreflect.EnumType {
+	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[0]
+}
+
+func (x ExtendedContentMessage_XmaDataclassType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *ExtendedContentMessage_XmaDataclassType) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = ExtendedContentMessage_XmaDataclassType(num)
+	return nil
+}
+
+// Deprecated: Use ExtendedContentMessage_XmaDataclassType.Descriptor instead.
+func (ExtendedContentMessage_XmaDataclassType) EnumDescriptor() ([]byte, []int) {
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 0}
+}
+
 type ExtendedContentMessage_OverlayIconGlyph int32
 
 const (
@@ -78,11 +137,11 @@ func (x ExtendedContentMessage_OverlayIconGlyph) String() string {
 }
 
 func (ExtendedContentMessage_OverlayIconGlyph) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[0].Descriptor()
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[1].Descriptor()
 }
 
 func (ExtendedContentMessage_OverlayIconGlyph) Type() protoreflect.EnumType {
-	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[0]
+	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[1]
 }
 
 func (x ExtendedContentMessage_OverlayIconGlyph) Number() protoreflect.EnumNumber {
@@ -101,7 +160,7 @@ func (x *ExtendedContentMessage_OverlayIconGlyph) UnmarshalJSON(b []byte) error 
 
 // Deprecated: Use ExtendedContentMessage_OverlayIconGlyph.Descriptor instead.
 func (ExtendedContentMessage_OverlayIconGlyph) EnumDescriptor() ([]byte, []int) {
-	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 0}
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 1}
 }
 
 type ExtendedContentMessage_CtaButtonType int32
@@ -131,11 +190,11 @@ func (x ExtendedContentMessage_CtaButtonType) String() string {
 }
 
 func (ExtendedContentMessage_CtaButtonType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[1].Descriptor()
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[2].Descriptor()
 }
 
 func (ExtendedContentMessage_CtaButtonType) Type() protoreflect.EnumType {
-	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[1]
+	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[2]
 }
 
 func (x ExtendedContentMessage_CtaButtonType) Number() protoreflect.EnumNumber {
@@ -154,7 +213,7 @@ func (x *ExtendedContentMessage_CtaButtonType) UnmarshalJSON(b []byte) error {
 
 // Deprecated: Use ExtendedContentMessage_CtaButtonType.Descriptor instead.
 func (ExtendedContentMessage_CtaButtonType) EnumDescriptor() ([]byte, []int) {
-	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 1}
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 2}
 }
 
 type ExtendedContentMessage_XmaLayoutType int32
@@ -199,11 +258,11 @@ func (x ExtendedContentMessage_XmaLayoutType) String() string {
 }
 
 func (ExtendedContentMessage_XmaLayoutType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[2].Descriptor()
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[3].Descriptor()
 }
 
 func (ExtendedContentMessage_XmaLayoutType) Type() protoreflect.EnumType {
-	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[2]
+	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[3]
 }
 
 func (x ExtendedContentMessage_XmaLayoutType) Number() protoreflect.EnumNumber {
@@ -222,7 +281,7 @@ func (x *ExtendedContentMessage_XmaLayoutType) UnmarshalJSON(b []byte) error {
 
 // Deprecated: Use ExtendedContentMessage_XmaLayoutType.Descriptor instead.
 func (ExtendedContentMessage_XmaLayoutType) EnumDescriptor() ([]byte, []int) {
-	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 2}
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 3}
 }
 
 type ExtendedContentMessage_ExtendedContentType int32
@@ -262,6 +321,7 @@ const (
 	ExtendedContentMessage_FB_POST_MENTION                         ExtendedContentMessage_ExtendedContentType = 1011
 	ExtendedContentMessage_FB_PROFILE_DIRECTORY_ITEM               ExtendedContentMessage_ExtendedContentType = 1013
 	ExtendedContentMessage_FB_FEED_POST_REACTION_REPLY             ExtendedContentMessage_ExtendedContentType = 1014
+	ExtendedContentMessage_FB_QUICKSNAP_REPLY                      ExtendedContentMessage_ExtendedContentType = 1015
 	ExtendedContentMessage_MSG_EXTERNAL_LINK_SHARE                 ExtendedContentMessage_ExtendedContentType = 2000
 	ExtendedContentMessage_MSG_P2P_PAYMENT                         ExtendedContentMessage_ExtendedContentType = 2001
 	ExtendedContentMessage_MSG_LOCATION_SHARING                    ExtendedContentMessage_ExtendedContentType = 2002
@@ -287,6 +347,12 @@ const (
 	ExtendedContentMessage_MSG_NOTE_REPLY                          ExtendedContentMessage_ExtendedContentType = 2024
 	ExtendedContentMessage_MSG_NOTE_MENTION                        ExtendedContentMessage_ExtendedContentType = 2025
 	ExtendedContentMessage_GEN_AI_ENTITY                           ExtendedContentMessage_ExtendedContentType = 2026
+	ExtendedContentMessage_MSG_OPG_P2P_PAYMENT                     ExtendedContentMessage_ExtendedContentType = 2027
+	ExtendedContentMessage_GEN_AI_RICH_RESPONSE                    ExtendedContentMessage_ExtendedContentType = 2028
+	ExtendedContentMessage_MSG_MUSIC_STICKER                       ExtendedContentMessage_ExtendedContentType = 2029
+	ExtendedContentMessage_MSG_PHONE_NUMBER                        ExtendedContentMessage_ExtendedContentType = 2030
+	ExtendedContentMessage_AI_ACTIVITY_SHARE                       ExtendedContentMessage_ExtendedContentType = 2031
+	ExtendedContentMessage_MSG_PRIVATE_XMA                         ExtendedContentMessage_ExtendedContentType = 2032
 	ExtendedContentMessage_RTC_AUDIO_CALL                          ExtendedContentMessage_ExtendedContentType = 3000
 	ExtendedContentMessage_RTC_VIDEO_CALL                          ExtendedContentMessage_ExtendedContentType = 3001
 	ExtendedContentMessage_RTC_MISSED_AUDIO_CALL                   ExtendedContentMessage_ExtendedContentType = 3002
@@ -338,6 +404,7 @@ var (
 		1011: "FB_POST_MENTION",
 		1013: "FB_PROFILE_DIRECTORY_ITEM",
 		1014: "FB_FEED_POST_REACTION_REPLY",
+		1015: "FB_QUICKSNAP_REPLY",
 		2000: "MSG_EXTERNAL_LINK_SHARE",
 		2001: "MSG_P2P_PAYMENT",
 		2002: "MSG_LOCATION_SHARING",
@@ -363,6 +430,12 @@ var (
 		2024: "MSG_NOTE_REPLY",
 		2025: "MSG_NOTE_MENTION",
 		2026: "GEN_AI_ENTITY",
+		2027: "MSG_OPG_P2P_PAYMENT",
+		2028: "GEN_AI_RICH_RESPONSE",
+		2029: "MSG_MUSIC_STICKER",
+		2030: "MSG_PHONE_NUMBER",
+		2031: "AI_ACTIVITY_SHARE",
+		2032: "MSG_PRIVATE_XMA",
 		3000: "RTC_AUDIO_CALL",
 		3001: "RTC_VIDEO_CALL",
 		3002: "RTC_MISSED_AUDIO_CALL",
@@ -411,6 +484,7 @@ var (
 		"FB_POST_MENTION":                         1011,
 		"FB_PROFILE_DIRECTORY_ITEM":               1013,
 		"FB_FEED_POST_REACTION_REPLY":             1014,
+		"FB_QUICKSNAP_REPLY":                      1015,
 		"MSG_EXTERNAL_LINK_SHARE":                 2000,
 		"MSG_P2P_PAYMENT":                         2001,
 		"MSG_LOCATION_SHARING":                    2002,
@@ -436,6 +510,12 @@ var (
 		"MSG_NOTE_REPLY":                          2024,
 		"MSG_NOTE_MENTION":                        2025,
 		"GEN_AI_ENTITY":                           2026,
+		"MSG_OPG_P2P_PAYMENT":                     2027,
+		"GEN_AI_RICH_RESPONSE":                    2028,
+		"MSG_MUSIC_STICKER":                       2029,
+		"MSG_PHONE_NUMBER":                        2030,
+		"AI_ACTIVITY_SHARE":                       2031,
+		"MSG_PRIVATE_XMA":                         2032,
 		"RTC_AUDIO_CALL":                          3000,
 		"RTC_VIDEO_CALL":                          3001,
 		"RTC_MISSED_AUDIO_CALL":                   3002,
@@ -462,11 +542,11 @@ func (x ExtendedContentMessage_ExtendedContentType) String() string {
 }
 
 func (ExtendedContentMessage_ExtendedContentType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[3].Descriptor()
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[4].Descriptor()
 }
 
 func (ExtendedContentMessage_ExtendedContentType) Type() protoreflect.EnumType {
-	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[3]
+	return &file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes[4]
 }
 
 func (x ExtendedContentMessage_ExtendedContentType) Number() protoreflect.EnumNumber {
@@ -485,39 +565,41 @@ func (x *ExtendedContentMessage_ExtendedContentType) UnmarshalJSON(b []byte) err
 
 // Deprecated: Use ExtendedContentMessage_ExtendedContentType.Descriptor instead.
 func (ExtendedContentMessage_ExtendedContentType) EnumDescriptor() ([]byte, []int) {
-	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 3}
+	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP(), []int{0, 4}
 }
 
 type ExtendedContentMessage struct {
-	state                 protoimpl.MessageState                      `protogen:"open.v1"`
-	AssociatedMessage     *waCommon.SubProtocol                       `protobuf:"bytes,1,opt,name=associatedMessage" json:"associatedMessage,omitempty"`
-	TargetType            *ExtendedContentMessage_ExtendedContentType `protobuf:"varint,2,opt,name=targetType,enum=WAArmadilloXMA.ExtendedContentMessage_ExtendedContentType" json:"targetType,omitempty"`
-	TargetUsername        *string                                     `protobuf:"bytes,3,opt,name=targetUsername" json:"targetUsername,omitempty"`
-	TargetID              *string                                     `protobuf:"bytes,4,opt,name=targetID" json:"targetID,omitempty"`
-	TargetExpiringAtSec   *int64                                      `protobuf:"varint,5,opt,name=targetExpiringAtSec" json:"targetExpiringAtSec,omitempty"`
-	XmaLayoutType         *ExtendedContentMessage_XmaLayoutType       `protobuf:"varint,6,opt,name=xmaLayoutType,enum=WAArmadilloXMA.ExtendedContentMessage_XmaLayoutType" json:"xmaLayoutType,omitempty"`
-	Ctas                  []*ExtendedContentMessage_CTA               `protobuf:"bytes,7,rep,name=ctas" json:"ctas,omitempty"`
-	Previews              []*waCommon.SubProtocol                     `protobuf:"bytes,8,rep,name=previews" json:"previews,omitempty"`
-	TitleText             *string                                     `protobuf:"bytes,9,opt,name=titleText" json:"titleText,omitempty"`
-	SubtitleText          *string                                     `protobuf:"bytes,10,opt,name=subtitleText" json:"subtitleText,omitempty"`
-	MaxTitleNumOfLines    *uint32                                     `protobuf:"varint,11,opt,name=maxTitleNumOfLines" json:"maxTitleNumOfLines,omitempty"`
-	MaxSubtitleNumOfLines *uint32                                     `protobuf:"varint,12,opt,name=maxSubtitleNumOfLines" json:"maxSubtitleNumOfLines,omitempty"`
-	Favicon               *waCommon.SubProtocol                       `protobuf:"bytes,13,opt,name=favicon" json:"favicon,omitempty"`
-	HeaderImage           *waCommon.SubProtocol                       `protobuf:"bytes,14,opt,name=headerImage" json:"headerImage,omitempty"`
-	HeaderTitle           *string                                     `protobuf:"bytes,15,opt,name=headerTitle" json:"headerTitle,omitempty"`
-	OverlayIconGlyph      *ExtendedContentMessage_OverlayIconGlyph    `protobuf:"varint,16,opt,name=overlayIconGlyph,enum=WAArmadilloXMA.ExtendedContentMessage_OverlayIconGlyph" json:"overlayIconGlyph,omitempty"`
-	OverlayTitle          *string                                     `protobuf:"bytes,17,opt,name=overlayTitle" json:"overlayTitle,omitempty"`
-	OverlayDescription    *string                                     `protobuf:"bytes,18,opt,name=overlayDescription" json:"overlayDescription,omitempty"`
-	SentWithMessageID     *string                                     `protobuf:"bytes,19,opt,name=sentWithMessageID" json:"sentWithMessageID,omitempty"`
-	MessageText           *string                                     `protobuf:"bytes,20,opt,name=messageText" json:"messageText,omitempty"`
-	HeaderSubtitle        *string                                     `protobuf:"bytes,21,opt,name=headerSubtitle" json:"headerSubtitle,omitempty"`
-	XmaDataclass          *string                                     `protobuf:"bytes,22,opt,name=xmaDataclass" json:"xmaDataclass,omitempty"`
-	ContentRef            *string                                     `protobuf:"bytes,23,opt,name=contentRef" json:"contentRef,omitempty"`
-	MentionedJID          []string                                    `protobuf:"bytes,24,rep,name=mentionedJID" json:"mentionedJID,omitempty"`
-	Commands              []*waCommon.Command                         `protobuf:"bytes,25,rep,name=commands" json:"commands,omitempty"`
-	Mentions              []*waCommon.Mention                         `protobuf:"bytes,26,rep,name=mentions" json:"mentions,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                        protoimpl.MessageState                      `protogen:"open.v1"`
+	AssociatedMessage            *waCommon.SubProtocol                       `protobuf:"bytes,1,opt,name=associatedMessage" json:"associatedMessage,omitempty"`
+	TargetType                   *ExtendedContentMessage_ExtendedContentType `protobuf:"varint,2,opt,name=targetType,enum=WAArmadilloXMA.ExtendedContentMessage_ExtendedContentType" json:"targetType,omitempty"`
+	TargetUsername               *string                                     `protobuf:"bytes,3,opt,name=targetUsername" json:"targetUsername,omitempty"`
+	TargetID                     *string                                     `protobuf:"bytes,4,opt,name=targetID" json:"targetID,omitempty"`
+	TargetExpiringAtSec          *int64                                      `protobuf:"varint,5,opt,name=targetExpiringAtSec" json:"targetExpiringAtSec,omitempty"`
+	XmaLayoutType                *ExtendedContentMessage_XmaLayoutType       `protobuf:"varint,6,opt,name=xmaLayoutType,enum=WAArmadilloXMA.ExtendedContentMessage_XmaLayoutType" json:"xmaLayoutType,omitempty"`
+	Ctas                         []*ExtendedContentMessage_CTA               `protobuf:"bytes,7,rep,name=ctas" json:"ctas,omitempty"`
+	Previews                     []*waCommon.SubProtocol                     `protobuf:"bytes,8,rep,name=previews" json:"previews,omitempty"`
+	TitleText                    *string                                     `protobuf:"bytes,9,opt,name=titleText" json:"titleText,omitempty"`
+	SubtitleText                 *string                                     `protobuf:"bytes,10,opt,name=subtitleText" json:"subtitleText,omitempty"`
+	MaxTitleNumOfLines           *uint32                                     `protobuf:"varint,11,opt,name=maxTitleNumOfLines" json:"maxTitleNumOfLines,omitempty"`
+	MaxSubtitleNumOfLines        *uint32                                     `protobuf:"varint,12,opt,name=maxSubtitleNumOfLines" json:"maxSubtitleNumOfLines,omitempty"`
+	Favicon                      *waCommon.SubProtocol                       `protobuf:"bytes,13,opt,name=favicon" json:"favicon,omitempty"`
+	HeaderImage                  *waCommon.SubProtocol                       `protobuf:"bytes,14,opt,name=headerImage" json:"headerImage,omitempty"`
+	HeaderTitle                  *string                                     `protobuf:"bytes,15,opt,name=headerTitle" json:"headerTitle,omitempty"`
+	OverlayIconGlyph             *ExtendedContentMessage_OverlayIconGlyph    `protobuf:"varint,16,opt,name=overlayIconGlyph,enum=WAArmadilloXMA.ExtendedContentMessage_OverlayIconGlyph" json:"overlayIconGlyph,omitempty"`
+	OverlayTitle                 *string                                     `protobuf:"bytes,17,opt,name=overlayTitle" json:"overlayTitle,omitempty"`
+	OverlayDescription           *string                                     `protobuf:"bytes,18,opt,name=overlayDescription" json:"overlayDescription,omitempty"`
+	SentWithMessageID            *string                                     `protobuf:"bytes,19,opt,name=sentWithMessageID" json:"sentWithMessageID,omitempty"`
+	MessageText                  *string                                     `protobuf:"bytes,20,opt,name=messageText" json:"messageText,omitempty"`
+	HeaderSubtitle               *string                                     `protobuf:"bytes,21,opt,name=headerSubtitle" json:"headerSubtitle,omitempty"`
+	XmaDataclass                 *string                                     `protobuf:"bytes,22,opt,name=xmaDataclass" json:"xmaDataclass,omitempty"`
+	ContentRef                   *string                                     `protobuf:"bytes,23,opt,name=contentRef" json:"contentRef,omitempty"`
+	MentionedJID                 []string                                    `protobuf:"bytes,24,rep,name=mentionedJID" json:"mentionedJID,omitempty"`
+	Commands                     []*waCommon.Command                         `protobuf:"bytes,25,rep,name=commands" json:"commands,omitempty"`
+	Mentions                     []*waCommon.Mention                         `protobuf:"bytes,26,rep,name=mentions" json:"mentions,omitempty"`
+	XmaDataclassType             *ExtendedContentMessage_XmaDataclassType    `protobuf:"varint,27,opt,name=xmaDataclassType,enum=WAArmadilloXMA.ExtendedContentMessage_XmaDataclassType" json:"xmaDataclassType,omitempty"`
+	SignedXmaDataclassValidation *string                                     `protobuf:"bytes,28,opt,name=signedXmaDataclassValidation" json:"signedXmaDataclassValidation,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *ExtendedContentMessage) Reset() {
@@ -732,6 +814,20 @@ func (x *ExtendedContentMessage) GetMentions() []*waCommon.Mention {
 	return nil
 }
 
+func (x *ExtendedContentMessage) GetXmaDataclassType() ExtendedContentMessage_XmaDataclassType {
+	if x != nil && x.XmaDataclassType != nil {
+		return *x.XmaDataclassType
+	}
+	return ExtendedContentMessage_SENDER_COPY
+}
+
+func (x *ExtendedContentMessage) GetSignedXmaDataclassValidation() string {
+	if x != nil && x.SignedXmaDataclassValidation != nil {
+		return *x.SignedXmaDataclassValidation
+	}
+	return ""
+}
+
 type ExtendedContentMessage_CTA struct {
 	state             protoimpl.MessageState                `protogen:"open.v1"`
 	ButtonType        *ExtendedContentMessage_CtaButtonType `protobuf:"varint,1,opt,name=buttonType,enum=WAArmadilloXMA.ExtendedContentMessage_CtaButtonType" json:"buttonType,omitempty"`
@@ -820,7 +916,7 @@ var File_waArmadilloXMA_WAArmadilloXMA_proto protoreflect.FileDescriptor
 
 const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\n" +
-	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\xc6\x1d\n" +
+	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\xde \n" +
 	"\x16ExtendedContentMessage\x12C\n" +
 	"\x11associatedMessage\x18\x01 \x01(\v2\x15.WACommon.SubProtocolR\x11associatedMessage\x12Z\n" +
 	"\n" +
@@ -852,7 +948,9 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"contentRef\x12\"\n" +
 	"\fmentionedJID\x18\x18 \x03(\tR\fmentionedJID\x12-\n" +
 	"\bcommands\x18\x19 \x03(\v2\x11.WACommon.CommandR\bcommands\x12-\n" +
-	"\bmentions\x18\x1a \x03(\v2\x11.WACommon.MentionR\bmentions\x1a\xf5\x01\n" +
+	"\bmentions\x18\x1a \x03(\v2\x11.WACommon.MentionR\bmentions\x12c\n" +
+	"\x10xmaDataclassType\x18\x1b \x01(\x0e27.WAArmadilloXMA.ExtendedContentMessage.XmaDataclassTypeR\x10xmaDataclassType\x12B\n" +
+	"\x1csignedXmaDataclassValidation\x18\x1c \x01(\tR\x1csignedXmaDataclassValidation\x1a\xf5\x01\n" +
 	"\x03CTA\x12T\n" +
 	"\n" +
 	"buttonType\x18\x01 \x01(\x0e24.WAArmadilloXMA.ExtendedContentMessage.CtaButtonTypeR\n" +
@@ -861,7 +959,12 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\tactionURL\x18\x03 \x01(\tR\tactionURL\x12\x1c\n" +
 	"\tnativeURL\x18\x04 \x01(\tR\tnativeURL\x12\x18\n" +
 	"\actaType\x18\x05 \x01(\tR\actaType\x12,\n" +
-	"\x11actionContentBlob\x18\x06 \x01(\tR\x11actionContentBlob\"\xa1\x01\n" +
+	"\x11actionContentBlob\x18\x06 \x01(\tR\x11actionContentBlob\"B\n" +
+	"\x10XmaDataclassType\x12\x0f\n" +
+	"\vSENDER_COPY\x10\x00\x12\n" +
+	"\n" +
+	"\x06SERVER\x10\x01\x12\x11\n" +
+	"\rSIGNED_CLIENT\x10\x02\"\xa1\x01\n" +
 	"\x10OverlayIconGlyph\x12\b\n" +
 	"\x04INFO\x10\x00\x12\v\n" +
 	"\aEYE_OFF\x10\x01\x12\f\n" +
@@ -884,7 +987,7 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\bPORTRAIT\x10\x03\x12\x11\n" +
 	"\rSTANDARD_DXMA\x10\f\x12\r\n" +
 	"\tLIST_DXMA\x10\x0f\x12\b\n" +
-	"\x04GRID\x10\x10\"\xf8\x0e\n" +
+	"\x04GRID\x10\x10\"\xa3\x10\n" +
 	"\x13ExtendedContentType\x12\x0f\n" +
 	"\vUNSUPPORTED\x10\x00\x12\x1a\n" +
 	"\x16IG_STORY_PHOTO_MENTION\x10\x04\x12\x1e\n" +
@@ -920,7 +1023,8 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\x18FB_COMMENT_MENTION_SHARE\x10\xf2\a\x12\x14\n" +
 	"\x0fFB_POST_MENTION\x10\xf3\a\x12\x1e\n" +
 	"\x19FB_PROFILE_DIRECTORY_ITEM\x10\xf5\a\x12 \n" +
-	"\x1bFB_FEED_POST_REACTION_REPLY\x10\xf6\a\x12\x1c\n" +
+	"\x1bFB_FEED_POST_REACTION_REPLY\x10\xf6\a\x12\x17\n" +
+	"\x12FB_QUICKSNAP_REPLY\x10\xf7\a\x12\x1c\n" +
 	"\x17MSG_EXTERNAL_LINK_SHARE\x10\xd0\x0f\x12\x14\n" +
 	"\x0fMSG_P2P_PAYMENT\x10\xd1\x0f\x12\x19\n" +
 	"\x14MSG_LOCATION_SHARING\x10\xd2\x0f\x12\x1c\n" +
@@ -945,7 +1049,13 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"#MSG_GEN_AI_MEMU_ONBOARDING_RESPONSE\x10\xe7\x0f\x12\x13\n" +
 	"\x0eMSG_NOTE_REPLY\x10\xe8\x0f\x12\x15\n" +
 	"\x10MSG_NOTE_MENTION\x10\xe9\x0f\x12\x12\n" +
-	"\rGEN_AI_ENTITY\x10\xea\x0f\x12\x13\n" +
+	"\rGEN_AI_ENTITY\x10\xea\x0f\x12\x18\n" +
+	"\x13MSG_OPG_P2P_PAYMENT\x10\xeb\x0f\x12\x19\n" +
+	"\x14GEN_AI_RICH_RESPONSE\x10\xec\x0f\x12\x16\n" +
+	"\x11MSG_MUSIC_STICKER\x10\xed\x0f\x12\x15\n" +
+	"\x10MSG_PHONE_NUMBER\x10\xee\x0f\x12\x16\n" +
+	"\x11AI_ACTIVITY_SHARE\x10\xef\x0f\x12\x14\n" +
+	"\x0fMSG_PRIVATE_XMA\x10\xf0\x0f\x12\x13\n" +
 	"\x0eRTC_AUDIO_CALL\x10\xb8\x17\x12\x13\n" +
 	"\x0eRTC_VIDEO_CALL\x10\xb9\x17\x12\x1a\n" +
 	"\x15RTC_MISSED_AUDIO_CALL\x10\xba\x17\x12\x1a\n" +
@@ -971,36 +1081,38 @@ func file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescGZIP() []byte {
 	return file_waArmadilloXMA_WAArmadilloXMA_proto_rawDescData
 }
 
-var file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_waArmadilloXMA_WAArmadilloXMA_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
 var file_waArmadilloXMA_WAArmadilloXMA_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_waArmadilloXMA_WAArmadilloXMA_proto_goTypes = []any{
-	(ExtendedContentMessage_OverlayIconGlyph)(0),    // 0: WAArmadilloXMA.ExtendedContentMessage.OverlayIconGlyph
-	(ExtendedContentMessage_CtaButtonType)(0),       // 1: WAArmadilloXMA.ExtendedContentMessage.CtaButtonType
-	(ExtendedContentMessage_XmaLayoutType)(0),       // 2: WAArmadilloXMA.ExtendedContentMessage.XmaLayoutType
-	(ExtendedContentMessage_ExtendedContentType)(0), // 3: WAArmadilloXMA.ExtendedContentMessage.ExtendedContentType
-	(*ExtendedContentMessage)(nil),                  // 4: WAArmadilloXMA.ExtendedContentMessage
-	(*ExtendedContentMessage_CTA)(nil),              // 5: WAArmadilloXMA.ExtendedContentMessage.CTA
-	(*waCommon.SubProtocol)(nil),                    // 6: WACommon.SubProtocol
-	(*waCommon.Command)(nil),                        // 7: WACommon.Command
-	(*waCommon.Mention)(nil),                        // 8: WACommon.Mention
+	(ExtendedContentMessage_XmaDataclassType)(0),    // 0: WAArmadilloXMA.ExtendedContentMessage.XmaDataclassType
+	(ExtendedContentMessage_OverlayIconGlyph)(0),    // 1: WAArmadilloXMA.ExtendedContentMessage.OverlayIconGlyph
+	(ExtendedContentMessage_CtaButtonType)(0),       // 2: WAArmadilloXMA.ExtendedContentMessage.CtaButtonType
+	(ExtendedContentMessage_XmaLayoutType)(0),       // 3: WAArmadilloXMA.ExtendedContentMessage.XmaLayoutType
+	(ExtendedContentMessage_ExtendedContentType)(0), // 4: WAArmadilloXMA.ExtendedContentMessage.ExtendedContentType
+	(*ExtendedContentMessage)(nil),                  // 5: WAArmadilloXMA.ExtendedContentMessage
+	(*ExtendedContentMessage_CTA)(nil),              // 6: WAArmadilloXMA.ExtendedContentMessage.CTA
+	(*waCommon.SubProtocol)(nil),                    // 7: WACommon.SubProtocol
+	(*waCommon.Command)(nil),                        // 8: WACommon.Command
+	(*waCommon.Mention)(nil),                        // 9: WACommon.Mention
 }
 var file_waArmadilloXMA_WAArmadilloXMA_proto_depIdxs = []int32{
-	6,  // 0: WAArmadilloXMA.ExtendedContentMessage.associatedMessage:type_name -> WACommon.SubProtocol
-	3,  // 1: WAArmadilloXMA.ExtendedContentMessage.targetType:type_name -> WAArmadilloXMA.ExtendedContentMessage.ExtendedContentType
-	2,  // 2: WAArmadilloXMA.ExtendedContentMessage.xmaLayoutType:type_name -> WAArmadilloXMA.ExtendedContentMessage.XmaLayoutType
-	5,  // 3: WAArmadilloXMA.ExtendedContentMessage.ctas:type_name -> WAArmadilloXMA.ExtendedContentMessage.CTA
-	6,  // 4: WAArmadilloXMA.ExtendedContentMessage.previews:type_name -> WACommon.SubProtocol
-	6,  // 5: WAArmadilloXMA.ExtendedContentMessage.favicon:type_name -> WACommon.SubProtocol
-	6,  // 6: WAArmadilloXMA.ExtendedContentMessage.headerImage:type_name -> WACommon.SubProtocol
-	0,  // 7: WAArmadilloXMA.ExtendedContentMessage.overlayIconGlyph:type_name -> WAArmadilloXMA.ExtendedContentMessage.OverlayIconGlyph
-	7,  // 8: WAArmadilloXMA.ExtendedContentMessage.commands:type_name -> WACommon.Command
-	8,  // 9: WAArmadilloXMA.ExtendedContentMessage.mentions:type_name -> WACommon.Mention
-	1,  // 10: WAArmadilloXMA.ExtendedContentMessage.CTA.buttonType:type_name -> WAArmadilloXMA.ExtendedContentMessage.CtaButtonType
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	7,  // 0: WAArmadilloXMA.ExtendedContentMessage.associatedMessage:type_name -> WACommon.SubProtocol
+	4,  // 1: WAArmadilloXMA.ExtendedContentMessage.targetType:type_name -> WAArmadilloXMA.ExtendedContentMessage.ExtendedContentType
+	3,  // 2: WAArmadilloXMA.ExtendedContentMessage.xmaLayoutType:type_name -> WAArmadilloXMA.ExtendedContentMessage.XmaLayoutType
+	6,  // 3: WAArmadilloXMA.ExtendedContentMessage.ctas:type_name -> WAArmadilloXMA.ExtendedContentMessage.CTA
+	7,  // 4: WAArmadilloXMA.ExtendedContentMessage.previews:type_name -> WACommon.SubProtocol
+	7,  // 5: WAArmadilloXMA.ExtendedContentMessage.favicon:type_name -> WACommon.SubProtocol
+	7,  // 6: WAArmadilloXMA.ExtendedContentMessage.headerImage:type_name -> WACommon.SubProtocol
+	1,  // 7: WAArmadilloXMA.ExtendedContentMessage.overlayIconGlyph:type_name -> WAArmadilloXMA.ExtendedContentMessage.OverlayIconGlyph
+	8,  // 8: WAArmadilloXMA.ExtendedContentMessage.commands:type_name -> WACommon.Command
+	9,  // 9: WAArmadilloXMA.ExtendedContentMessage.mentions:type_name -> WACommon.Mention
+	0,  // 10: WAArmadilloXMA.ExtendedContentMessage.xmaDataclassType:type_name -> WAArmadilloXMA.ExtendedContentMessage.XmaDataclassType
+	2,  // 11: WAArmadilloXMA.ExtendedContentMessage.CTA.buttonType:type_name -> WAArmadilloXMA.ExtendedContentMessage.CtaButtonType
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_waArmadilloXMA_WAArmadilloXMA_proto_init() }
@@ -1013,7 +1125,7 @@ func file_waArmadilloXMA_WAArmadilloXMA_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc), len(file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc)),
-			NumEnums:      4,
+			NumEnums:      5,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,

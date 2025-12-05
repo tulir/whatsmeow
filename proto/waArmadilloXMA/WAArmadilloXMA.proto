@@ -5,6 +5,12 @@ option go_package = "go.mau.fi/whatsmeow/proto/waArmadilloXMA";
 import "waCommon/WACommon.proto";
 
 message ExtendedContentMessage {
+	enum XmaDataclassType {
+		SENDER_COPY = 0;
+		SERVER = 1;
+		SIGNED_CLIENT = 2;
+	}
+
 	enum OverlayIconGlyph {
 		INFO = 0;
 		EYE_OFF = 1;
@@ -66,6 +72,7 @@ message ExtendedContentMessage {
 		FB_POST_MENTION = 1011;
 		FB_PROFILE_DIRECTORY_ITEM = 1013;
 		FB_FEED_POST_REACTION_REPLY = 1014;
+		FB_QUICKSNAP_REPLY = 1015;
 		MSG_EXTERNAL_LINK_SHARE = 2000;
 		MSG_P2P_PAYMENT = 2001;
 		MSG_LOCATION_SHARING = 2002;
@@ -91,6 +98,12 @@ message ExtendedContentMessage {
 		MSG_NOTE_REPLY = 2024;
 		MSG_NOTE_MENTION = 2025;
 		GEN_AI_ENTITY = 2026;
+		MSG_OPG_P2P_PAYMENT = 2027;
+		GEN_AI_RICH_RESPONSE = 2028;
+		MSG_MUSIC_STICKER = 2029;
+		MSG_PHONE_NUMBER = 2030;
+		AI_ACTIVITY_SHARE = 2031;
+		MSG_PRIVATE_XMA = 2032;
 		RTC_AUDIO_CALL = 3000;
 		RTC_VIDEO_CALL = 3001;
 		RTC_MISSED_AUDIO_CALL = 3002;
@@ -140,4 +153,6 @@ message ExtendedContentMessage {
 	repeated string mentionedJID = 24;
 	repeated WACommon.Command commands = 25;
 	repeated WACommon.Mention mentions = 26;
+	optional XmaDataclassType xmaDataclassType = 27;
+	optional string signedXmaDataclassValidation = 28;
 }

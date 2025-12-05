@@ -193,6 +193,14 @@ func (cli *Client) UpdateGroupParticipants(ctx context.Context, jid types.JID, p
 			Tag:   "participant",
 			Attrs: waBinary.Attrs{"jid": participantJID},
 		}
+		if participantJID.Server == types.HiddenUserServer && action == ParticipantChangeAdd {
+			pn, err := cli.Store.LIDs.GetPNForLID(ctx, participantJID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get phone number for LID %s: %v", participantJID, err)
+			} else if !pn.IsEmpty() {
+				content[i].Attrs["phone_number"] = pn
+			}
+		}
 	}
 	resp, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag:     string(action),
@@ -746,6 +754,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 			group.IsIncognito = true
 		case "membership_approval_mode":
 			group.IsJoinApprovalRequired = true
+		case "suspended":
+			group.Suspended = true
 		default:
 			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
 		}
@@ -944,6 +954,10 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 			evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
 				IsJoinApprovalRequired: true,
 			}
+		case "suspended":
+			evt.Suspended = true
+		case "unsuspended":
+			evt.Unsuspended = true
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}

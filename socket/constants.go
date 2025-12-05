@@ -41,3 +41,8 @@ var (
 	ErrSocketClosed      = errors.New("frame socket is closed")
 	ErrSocketAlreadyOpen = errors.New("frame socket is already open")
 )
+
+type ErrWithStatusCode struct {
+	error
+	StatusCode int
+}

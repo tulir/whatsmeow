@@ -81,6 +81,121 @@ func (Armadillo_Signal_EncryptedBackupsSecrets_Epoch_EpochStatus) EnumDescriptor
 	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 3, 0, 0, 0}
 }
 
+type Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType int32
+
+const (
+	Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_UNKNOWN  Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType = 0
+	Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_NUDE     Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType = 1
+	Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_NOT_NUDE Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType = 2
+)
+
+// Enum value maps for Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType.
+var (
+	Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType_name = map[int32]string{
+		0: "UNKNOWN",
+		1: "NUDE",
+		2: "NOT_NUDE",
+	}
+	Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType_value = map[string]int32{
+		"UNKNOWN":  0,
+		"NUDE":     1,
+		"NOT_NUDE": 2,
+	}
+)
+
+func (x Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType) Enum() *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType {
+	p := new(Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType)
+	*p = x
+	return p
+}
+
+func (x Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType) Descriptor() protoreflect.EnumDescriptor {
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[1].Descriptor()
+}
+
+func (Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType) Type() protoreflect.EnumType {
+	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[1]
+}
+
+func (x Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType(num)
+	return nil
+}
+
+// Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType.Descriptor instead.
+func (Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType) EnumDescriptor() ([]byte, []int) {
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 0, 0}
+}
+
+type Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType int32
+
+const (
+	Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_TAKEDOWN Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType = 0
+	Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_RESTORE  Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType = 1
+)
+
+// Enum value maps for Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType.
+var (
+	Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType_name = map[int32]string{
+		0: "TAKEDOWN",
+		1: "RESTORE",
+	}
+	Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType_value = map[string]int32{
+		"TAKEDOWN": 0,
+		"RESTORE":  1,
+	}
+)
+
+func (x Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType) Enum() *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType {
+	p := new(Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType)
+	*p = x
+	return p
+}
+
+func (x Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType) Descriptor() protoreflect.EnumDescriptor {
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[2].Descriptor()
+}
+
+func (Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType) Type() protoreflect.EnumType {
+	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[2]
+}
+
+func (x Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType(num)
+	return nil
+}
+
+// Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType.Descriptor instead.
+func (Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType) EnumDescriptor() ([]byte, []int) {
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 1, 0}
+}
+
 type Armadillo_Content_PaymentsTransactionMessage_PaymentStatus int32
 
 const (
@@ -168,11 +283,11 @@ func (x Armadillo_Content_PaymentsTransactionMessage_PaymentStatus) String() str
 }
 
 func (Armadillo_Content_PaymentsTransactionMessage_PaymentStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[1].Descriptor()
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[3].Descriptor()
 }
 
 func (Armadillo_Content_PaymentsTransactionMessage_PaymentStatus) Type() protoreflect.EnumType {
-	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[1]
+	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[3]
 }
 
 func (x Armadillo_Content_PaymentsTransactionMessage_PaymentStatus) Number() protoreflect.EnumNumber {
@@ -224,11 +339,11 @@ func (x Armadillo_Content_ScreenshotAction_ScreenshotType) String() string {
 }
 
 func (Armadillo_Content_ScreenshotAction_ScreenshotType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[2].Descriptor()
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[4].Descriptor()
 }
 
 func (Armadillo_Content_ScreenshotAction_ScreenshotType) Type() protoreflect.EnumType {
-	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[2]
+	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[4]
 }
 
 func (x Armadillo_Content_ScreenshotAction_ScreenshotType) Number() protoreflect.EnumNumber {
@@ -283,11 +398,11 @@ func (x Armadillo_Content_RavenActionNotifMessage_ActionType) String() string {
 }
 
 func (Armadillo_Content_RavenActionNotifMessage_ActionType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[3].Descriptor()
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[5].Descriptor()
 }
 
 func (Armadillo_Content_RavenActionNotifMessage_ActionType) Type() protoreflect.EnumType {
-	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[3]
+	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[5]
 }
 
 func (x Armadillo_Content_RavenActionNotifMessage_ActionType) Number() protoreflect.EnumNumber {
@@ -342,11 +457,11 @@ func (x Armadillo_Content_RavenMessage_EphemeralType) String() string {
 }
 
 func (Armadillo_Content_RavenMessage_EphemeralType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[4].Descriptor()
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[6].Descriptor()
 }
 
 func (Armadillo_Content_RavenMessage_EphemeralType) Type() protoreflect.EnumType {
-	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[4]
+	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[6]
 }
 
 func (x Armadillo_Content_RavenMessage_EphemeralType) Number() protoreflect.EnumNumber {
@@ -401,11 +516,11 @@ func (x Armadillo_Content_CommonSticker_StickerType) String() string {
 }
 
 func (Armadillo_Content_CommonSticker_StickerType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[5].Descriptor()
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[7].Descriptor()
 }
 
 func (Armadillo_Content_CommonSticker_StickerType) Type() protoreflect.EnumType {
-	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[5]
+	return &file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes[7]
 }
 
 func (x Armadillo_Content_CommonSticker_StickerType) Number() protoreflect.EnumNumber {
@@ -1342,6 +1457,8 @@ type Armadillo_ApplicationData_MetadataSyncAction struct {
 	//
 	//	*Armadillo_ApplicationData_MetadataSyncAction_ChatAction
 	//	*Armadillo_ApplicationData_MetadataSyncAction_MessageAction
+	//	*Armadillo_ApplicationData_MetadataSyncAction_SpectraAction
+	//	*Armadillo_ApplicationData_MetadataSyncAction_AttachmentInterventionAction
 	ActionType      isArmadillo_ApplicationData_MetadataSyncAction_ActionType `protobuf_oneof:"actionType"`
 	ActionTimestamp *int64                                                    `protobuf:"varint,1,opt,name=actionTimestamp" json:"actionTimestamp,omitempty"`
 	unknownFields   protoimpl.UnknownFields
@@ -1403,6 +1520,24 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction) GetMessageAction() *Armad
 	return nil
 }
 
+func (x *Armadillo_ApplicationData_MetadataSyncAction) GetSpectraAction() *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction {
+	if x != nil {
+		if x, ok := x.ActionType.(*Armadillo_ApplicationData_MetadataSyncAction_SpectraAction); ok {
+			return x.SpectraAction
+		}
+	}
+	return nil
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction) GetAttachmentInterventionAction() *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction {
+	if x != nil {
+		if x, ok := x.ActionType.(*Armadillo_ApplicationData_MetadataSyncAction_AttachmentInterventionAction); ok {
+			return x.AttachmentInterventionAction
+		}
+	}
+	return nil
+}
+
 func (x *Armadillo_ApplicationData_MetadataSyncAction) GetActionTimestamp() int64 {
 	if x != nil && x.ActionTimestamp != nil {
 		return *x.ActionTimestamp
@@ -1422,10 +1557,24 @@ type Armadillo_ApplicationData_MetadataSyncAction_MessageAction struct {
 	MessageAction *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction `protobuf:"bytes,102,opt,name=messageAction,oneof"`
 }
 
+type Armadillo_ApplicationData_MetadataSyncAction_SpectraAction struct {
+	SpectraAction *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction `protobuf:"bytes,103,opt,name=spectraAction,oneof"`
+}
+
+type Armadillo_ApplicationData_MetadataSyncAction_AttachmentInterventionAction struct {
+	AttachmentInterventionAction *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction `protobuf:"bytes,104,opt,name=attachmentInterventionAction,oneof"`
+}
+
 func (*Armadillo_ApplicationData_MetadataSyncAction_ChatAction) isArmadillo_ApplicationData_MetadataSyncAction_ActionType() {
 }
 
 func (*Armadillo_ApplicationData_MetadataSyncAction_MessageAction) isArmadillo_ApplicationData_MetadataSyncAction_ActionType() {
+}
+
+func (*Armadillo_ApplicationData_MetadataSyncAction_SpectraAction) isArmadillo_ApplicationData_MetadataSyncAction_ActionType() {
+}
+
+func (*Armadillo_ApplicationData_MetadataSyncAction_AttachmentInterventionAction) isArmadillo_ApplicationData_MetadataSyncAction_ActionType() {
 }
 
 type Armadillo_ApplicationData_MetadataSyncNotification struct {
@@ -1472,6 +1621,127 @@ func (x *Armadillo_ApplicationData_MetadataSyncNotification) GetActions() []*Arm
 	return nil
 }
 
+type Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction struct {
+	state            protoimpl.MessageState                                                                          `protogen:"open.v1"`
+	MessageKey       *waCommon.MessageKey                                                                            `protobuf:"bytes,1,opt,name=messageKey" json:"messageKey,omitempty"`
+	InterventionType *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType `protobuf:"varint,2,opt,name=interventionType,enum=WAArmadilloApplication.Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType" json:"interventionType,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction) Reset() {
+	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction{}
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction) ProtoMessage() {
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction) ProtoReflect() protoreflect.Message {
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction.ProtoReflect.Descriptor instead.
+func (*Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction) Descriptor() ([]byte, []int) {
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 0}
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction) GetMessageKey() *waCommon.MessageKey {
+	if x != nil {
+		return x.MessageKey
+	}
+	return nil
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction) GetInterventionType() Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType {
+	if x != nil && x.InterventionType != nil {
+		return *x.InterventionType
+	}
+	return Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_UNKNOWN
+}
+
+type Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction struct {
+	state            protoimpl.MessageState                                                            `protogen:"open.v1"`
+	Key              *waCommon.MessageKey                                                              `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+	ActionType       *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType `protobuf:"varint,2,opt,name=actionType,enum=WAArmadilloApplication.Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType" json:"actionType,omitempty"`
+	TakedownActionID *int64                                                                            `protobuf:"varint,3,opt,name=takedownActionID" json:"takedownActionID,omitempty"`
+	Config           *string                                                                           `protobuf:"bytes,4,opt,name=config" json:"config,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) Reset() {
+	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction{}
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) ProtoMessage() {}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) ProtoReflect() protoreflect.Message {
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction.ProtoReflect.Descriptor instead.
+func (*Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) Descriptor() ([]byte, []int) {
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 1}
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) GetKey() *waCommon.MessageKey {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) GetActionType() Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType {
+	if x != nil && x.ActionType != nil {
+		return *x.ActionType
+	}
+	return Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_TAKEDOWN
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) GetTakedownActionID() int64 {
+	if x != nil && x.TakedownActionID != nil {
+		return *x.TakedownActionID
+	}
+	return 0
+}
+
+func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction) GetConfig() string {
+	if x != nil && x.Config != nil {
+		return *x.Config
+	}
+	return ""
+}
+
 type Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Action:
@@ -1485,7 +1755,7 @@ type Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction struct {
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction) Reset() {
 	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[13]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1497,7 +1767,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction) String(
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction) ProtoMessage() {}
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[13]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1510,7 +1780,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction) ProtoRe
 
 // Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction.ProtoReflect.Descriptor instead.
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction) Descriptor() ([]byte, []int) {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 0}
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 2}
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction) GetAction() isArmadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_Action {
@@ -1562,7 +1832,7 @@ type Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction struct {
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction) Reset() {
 	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[14]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1574,7 +1844,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction) String() s
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction) ProtoMessage() {}
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[14]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1587,7 +1857,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction) ProtoRefle
 
 // Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction.ProtoReflect.Descriptor instead.
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction) Descriptor() ([]byte, []int) {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 1}
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 3}
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction) GetAction() isArmadillo_ApplicationData_MetadataSyncAction_SyncChatAction_Action {
@@ -1666,7 +1936,7 @@ type Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage struct {
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage) Reset() {
 	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[15]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1678,7 +1948,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage) String(
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage) ProtoMessage() {}
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[15]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1691,7 +1961,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage) ProtoRe
 
 // Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage.ProtoReflect.Descriptor instead.
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage) Descriptor() ([]byte, []int) {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 2}
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 4}
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage) GetKey() *waCommon.MessageKey {
@@ -1719,7 +1989,7 @@ type Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange struct 
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange) Reset() {
 	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[16]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1731,7 +2001,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange) St
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange) ProtoMessage() {}
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[16]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1744,7 +2014,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange) Pr
 
 // Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange.ProtoReflect.Descriptor instead.
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange) Descriptor() ([]byte, []int) {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 3}
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 5}
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange) GetLastMessageTimestamp() int64 {
@@ -1776,7 +2046,7 @@ type Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMessag
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMessageDelete) Reset() {
 	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMessageDelete{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[17]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1789,7 +2059,7 @@ func (*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMess
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMessageDelete) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[17]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1802,7 +2072,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMe
 
 // Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMessageDelete.ProtoReflect.Descriptor instead.
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMessageDelete) Descriptor() ([]byte, []int) {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 0, 0}
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 2, 0}
 }
 
 type Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead struct {
@@ -1815,7 +2085,7 @@ type Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead 
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead) Reset() {
 	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[18]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1827,7 +2097,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatR
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead) ProtoMessage() {}
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[18]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1840,7 +2110,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatR
 
 // Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead.ProtoReflect.Descriptor instead.
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead) Descriptor() ([]byte, []int) {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 1, 0}
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 3, 0}
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead) GetMessageRange() *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange {
@@ -1866,7 +2136,7 @@ type Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelet
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete) Reset() {
 	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[19]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1878,7 +2148,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatD
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete) ProtoMessage() {}
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[19]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1891,7 +2161,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatD
 
 // Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete.ProtoReflect.Descriptor instead.
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete) Descriptor() ([]byte, []int) {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 1, 1}
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 3, 1}
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete) GetMessageRange() *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange {
@@ -1911,7 +2181,7 @@ type Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchi
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchive) Reset() {
 	*x = Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchive{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[20]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1924,7 +2194,7 @@ func (*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArc
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchive) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[20]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1937,7 +2207,7 @@ func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatA
 
 // Deprecated: Use Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchive.ProtoReflect.Descriptor instead.
 func (*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchive) Descriptor() ([]byte, []int) {
-	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 1, 2}
+	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP(), []int{0, 4, 2, 3, 2}
 }
 
 func (x *Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchive) GetMessageRange() *Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange {
@@ -1967,7 +2237,7 @@ type Armadillo_Content_PaymentsTransactionMessage struct {
 
 func (x *Armadillo_Content_PaymentsTransactionMessage) Reset() {
 	*x = Armadillo_Content_PaymentsTransactionMessage{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[21]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1979,7 +2249,7 @@ func (x *Armadillo_Content_PaymentsTransactionMessage) String() string {
 func (*Armadillo_Content_PaymentsTransactionMessage) ProtoMessage() {}
 
 func (x *Armadillo_Content_PaymentsTransactionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[21]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2039,7 +2309,7 @@ type Armadillo_Content_NetworkVerificationMessage struct {
 
 func (x *Armadillo_Content_NetworkVerificationMessage) Reset() {
 	*x = Armadillo_Content_NetworkVerificationMessage{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[22]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2051,7 +2321,7 @@ func (x *Armadillo_Content_NetworkVerificationMessage) String() string {
 func (*Armadillo_Content_NetworkVerificationMessage) ProtoMessage() {}
 
 func (x *Armadillo_Content_NetworkVerificationMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[22]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2091,7 +2361,7 @@ type Armadillo_Content_NoteReplyMessage struct {
 
 func (x *Armadillo_Content_NoteReplyMessage) Reset() {
 	*x = Armadillo_Content_NoteReplyMessage{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[23]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2103,7 +2373,7 @@ func (x *Armadillo_Content_NoteReplyMessage) String() string {
 func (*Armadillo_Content_NoteReplyMessage) ProtoMessage() {}
 
 func (x *Armadillo_Content_NoteReplyMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[23]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2208,7 +2478,7 @@ type Armadillo_Content_BumpExistingMessage struct {
 
 func (x *Armadillo_Content_BumpExistingMessage) Reset() {
 	*x = Armadillo_Content_BumpExistingMessage{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[24]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2220,7 +2490,7 @@ func (x *Armadillo_Content_BumpExistingMessage) String() string {
 func (*Armadillo_Content_BumpExistingMessage) ProtoMessage() {}
 
 func (x *Armadillo_Content_BumpExistingMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[24]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2252,7 +2522,7 @@ type Armadillo_Content_ImageGalleryMessage struct {
 
 func (x *Armadillo_Content_ImageGalleryMessage) Reset() {
 	*x = Armadillo_Content_ImageGalleryMessage{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[25]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2264,7 +2534,7 @@ func (x *Armadillo_Content_ImageGalleryMessage) String() string {
 func (*Armadillo_Content_ImageGalleryMessage) ProtoMessage() {}
 
 func (x *Armadillo_Content_ImageGalleryMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[25]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2296,7 +2566,7 @@ type Armadillo_Content_ScreenshotAction struct {
 
 func (x *Armadillo_Content_ScreenshotAction) Reset() {
 	*x = Armadillo_Content_ScreenshotAction{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[26]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2308,7 +2578,7 @@ func (x *Armadillo_Content_ScreenshotAction) String() string {
 func (*Armadillo_Content_ScreenshotAction) ProtoMessage() {}
 
 func (x *Armadillo_Content_ScreenshotAction) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[26]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2344,7 +2614,7 @@ type Armadillo_Content_ExtendedContentMessageWithSear struct {
 
 func (x *Armadillo_Content_ExtendedContentMessageWithSear) Reset() {
 	*x = Armadillo_Content_ExtendedContentMessageWithSear{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[27]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2356,7 +2626,7 @@ func (x *Armadillo_Content_ExtendedContentMessageWithSear) String() string {
 func (*Armadillo_Content_ExtendedContentMessageWithSear) ProtoMessage() {}
 
 func (x *Armadillo_Content_ExtendedContentMessageWithSear) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[27]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2418,7 +2688,7 @@ type Armadillo_Content_RavenActionNotifMessage struct {
 
 func (x *Armadillo_Content_RavenActionNotifMessage) Reset() {
 	*x = Armadillo_Content_RavenActionNotifMessage{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[28]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2430,7 +2700,7 @@ func (x *Armadillo_Content_RavenActionNotifMessage) String() string {
 func (*Armadillo_Content_RavenActionNotifMessage) ProtoMessage() {}
 
 func (x *Armadillo_Content_RavenActionNotifMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[28]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2481,7 +2751,7 @@ type Armadillo_Content_RavenMessage struct {
 
 func (x *Armadillo_Content_RavenMessage) Reset() {
 	*x = Armadillo_Content_RavenMessage{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[29]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2493,7 +2763,7 @@ func (x *Armadillo_Content_RavenMessage) String() string {
 func (*Armadillo_Content_RavenMessage) ProtoMessage() {}
 
 func (x *Armadillo_Content_RavenMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[29]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2566,7 +2836,7 @@ type Armadillo_Content_CommonSticker struct {
 
 func (x *Armadillo_Content_CommonSticker) Reset() {
 	*x = Armadillo_Content_CommonSticker{}
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[30]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2578,7 +2848,7 @@ func (x *Armadillo_Content_CommonSticker) String() string {
 func (*Armadillo_Content_CommonSticker) ProtoMessage() {}
 
 func (x *Armadillo_Content_CommonSticker) ProtoReflect() protoreflect.Message {
-	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[30]
+	mi := &file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2605,7 +2875,7 @@ var File_waArmadilloApplication_WAArmadilloApplication_proto protoreflect.FileDe
 
 const file_waArmadilloApplication_WAArmadilloApplication_proto_rawDesc = "" +
 	"\n" +
-	"3waArmadilloApplication/WAArmadilloApplication.proto\x12\x16WAArmadilloApplication\x1a#waArmadilloXMA/WAArmadilloXMA.proto\x1a\x17waCommon/WACommon.proto\"\x97?\n" +
+	"3waArmadilloApplication/WAArmadilloApplication.proto\x12\x16WAArmadilloApplication\x1a#waArmadilloXMA/WAArmadilloXMA.proto\x1a\x17waCommon/WACommon.proto\"\xbbF\n" +
 	"\tArmadillo\x12C\n" +
 	"\apayload\x18\x01 \x01(\v2).WAArmadilloApplication.Armadillo.PayloadR\apayload\x12F\n" +
 	"\bmetadata\x18\x02 \x01(\v2*.WAArmadilloApplication.Armadillo.MetadataR\bmetadata\x1a\n" +
@@ -2636,7 +2906,7 @@ const file_waArmadilloApplication_WAArmadilloApplication_proto_rawDesc = "" +
 	"\vEpochStatus\x12\v\n" +
 	"\aES_OPEN\x10\x01\x12\f\n" +
 	"\bES_CLOSE\x10\x02B\b\n" +
-	"\x06signal\x1a\xcf\x14\n" +
+	"\x06signal\x1a\xf3\x1b\n" +
 	"\x0fApplicationData\x12p\n" +
 	"\fmetadataSync\x18\x01 \x01(\v2J.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotificationH\x00R\fmetadataSync\x12n\n" +
 	"\raiBotResponse\x18\x02 \x01(\v2F.WAArmadilloApplication.Armadillo.ApplicationData.AIBotResponseMessageH\x00R\raiBotResponse\x12\x97\x01\n" +
@@ -2646,13 +2916,34 @@ const file_waArmadilloApplication_WAArmadilloApplication_proto_rawDesc = "" +
 	"\x14AIBotResponseMessage\x12 \n" +
 	"\vsummonToken\x18\x01 \x01(\tR\vsummonToken\x12 \n" +
 	"\vmessageText\x18\x02 \x01(\tR\vmessageText\x12*\n" +
-	"\x10serializedExtras\x18\x03 \x01(\tR\x10serializedExtras\x1a\xd3\x0e\n" +
+	"\x10serializedExtras\x18\x03 \x01(\tR\x10serializedExtras\x1a\xf7\x15\n" +
 	"\x12MetadataSyncAction\x12u\n" +
 	"\n" +
 	"chatAction\x18e \x01(\v2S.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatActionH\x00R\n" +
 	"chatAction\x12~\n" +
-	"\rmessageAction\x18f \x01(\v2V.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageActionH\x00R\rmessageAction\x12(\n" +
-	"\x0factionTimestamp\x18\x01 \x01(\x03R\x0factionTimestamp\x1a\xf1\x01\n" +
+	"\rmessageAction\x18f \x01(\v2V.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageActionH\x00R\rmessageAction\x12~\n" +
+	"\rspectraAction\x18g \x01(\v2V.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncSpectraActionH\x00R\rspectraAction\x12\xab\x01\n" +
+	"\x1cattachmentInterventionAction\x18h \x01(\v2e.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncAttachmentInterventionActionH\x00R\x1cattachmentInterventionAction\x12(\n" +
+	"\x0factionTimestamp\x18\x01 \x01(\x03R\x0factionTimestamp\x1a\xb6\x02\n" +
+	" SyncAttachmentInterventionAction\x124\n" +
+	"\n" +
+	"messageKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\n" +
+	"messageKey\x12\xa2\x01\n" +
+	"\x10interventionType\x18\x02 \x01(\x0e2v.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncAttachmentInterventionAction.InterventionTypeR\x10interventionType\"7\n" +
+	"\x10InterventionType\x12\v\n" +
+	"\aUNKNOWN\x10\x00\x12\b\n" +
+	"\x04NUDE\x10\x01\x12\f\n" +
+	"\bNOT_NUDE\x10\x02\x1a\xba\x02\n" +
+	"\x11SyncSpectraAction\x12&\n" +
+	"\x03key\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x03key\x12\x88\x01\n" +
+	"\n" +
+	"actionType\x18\x02 \x01(\x0e2h.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncSpectraAction.SpectraActionTypeR\n" +
+	"actionType\x12*\n" +
+	"\x10takedownActionID\x18\x03 \x01(\x03R\x10takedownActionID\x12\x16\n" +
+	"\x06config\x18\x04 \x01(\tR\x06config\".\n" +
+	"\x11SpectraActionType\x12\f\n" +
+	"\bTAKEDOWN\x10\x00\x12\v\n" +
+	"\aRESTORE\x10\x01\x1a\xf1\x01\n" +
 	"\x11SyncMessageAction\x12\x92\x01\n" +
 	"\rmessageDelete\x18e \x01(\v2j.WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.ActionMessageDeleteH\x00R\rmessageDelete\x12&\n" +
 	"\x03key\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x03key\x1a\x15\n" +
@@ -2798,113 +3089,123 @@ func file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescGZIP() []by
 	return file_waArmadilloApplication_WAArmadilloApplication_proto_rawDescData
 }
 
-var file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_waArmadilloApplication_WAArmadilloApplication_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
+var file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_waArmadilloApplication_WAArmadilloApplication_proto_goTypes = []any{
-	(Armadillo_Signal_EncryptedBackupsSecrets_Epoch_EpochStatus)(0), // 0: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch.EpochStatus
-	(Armadillo_Content_PaymentsTransactionMessage_PaymentStatus)(0), // 1: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.PaymentStatus
-	(Armadillo_Content_ScreenshotAction_ScreenshotType)(0),          // 2: WAArmadilloApplication.Armadillo.Content.ScreenshotAction.ScreenshotType
-	(Armadillo_Content_RavenActionNotifMessage_ActionType)(0),       // 3: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.ActionType
-	(Armadillo_Content_RavenMessage_EphemeralType)(0),               // 4: WAArmadilloApplication.Armadillo.Content.RavenMessage.EphemeralType
-	(Armadillo_Content_CommonSticker_StickerType)(0),                // 5: WAArmadilloApplication.Armadillo.Content.CommonSticker.StickerType
-	(*Armadillo)(nil),                                                                          // 6: WAArmadilloApplication.Armadillo
-	(*Armadillo_Metadata)(nil),                                                                 // 7: WAArmadilloApplication.Armadillo.Metadata
-	(*Armadillo_Payload)(nil),                                                                  // 8: WAArmadilloApplication.Armadillo.Payload
-	(*Armadillo_SubProtocolPayload)(nil),                                                       // 9: WAArmadilloApplication.Armadillo.SubProtocolPayload
-	(*Armadillo_Signal)(nil),                                                                   // 10: WAArmadilloApplication.Armadillo.Signal
-	(*Armadillo_ApplicationData)(nil),                                                          // 11: WAArmadilloApplication.Armadillo.ApplicationData
-	(*Armadillo_Content)(nil),                                                                  // 12: WAArmadilloApplication.Armadillo.Content
-	(*Armadillo_Signal_EncryptedBackupsSecrets)(nil),                                           // 13: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets
-	(*Armadillo_Signal_EncryptedBackupsSecrets_Epoch)(nil),                                     // 14: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch
-	(*Armadillo_ApplicationData_MessageHistoryDocumentMessage)(nil),                            // 15: WAArmadilloApplication.Armadillo.ApplicationData.MessageHistoryDocumentMessage
-	(*Armadillo_ApplicationData_AIBotResponseMessage)(nil),                                     // 16: WAArmadilloApplication.Armadillo.ApplicationData.AIBotResponseMessage
-	(*Armadillo_ApplicationData_MetadataSyncAction)(nil),                                       // 17: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction
-	(*Armadillo_ApplicationData_MetadataSyncNotification)(nil),                                 // 18: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotification
-	(*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction)(nil),                     // 19: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction
-	(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction)(nil),                        // 20: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction
-	(*Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage)(nil),                     // 21: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage
-	(*Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange)(nil),                // 22: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
-	(*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMessageDelete)(nil), // 23: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.ActionMessageDelete
-	(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead)(nil),         // 24: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead
-	(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete)(nil),       // 25: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete
-	(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchive)(nil),      // 26: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive
-	(*Armadillo_Content_PaymentsTransactionMessage)(nil),                                       // 27: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage
-	(*Armadillo_Content_NetworkVerificationMessage)(nil),                                       // 28: WAArmadilloApplication.Armadillo.Content.NetworkVerificationMessage
-	(*Armadillo_Content_NoteReplyMessage)(nil),                                                 // 29: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage
-	(*Armadillo_Content_BumpExistingMessage)(nil),                                              // 30: WAArmadilloApplication.Armadillo.Content.BumpExistingMessage
-	(*Armadillo_Content_ImageGalleryMessage)(nil),                                              // 31: WAArmadilloApplication.Armadillo.Content.ImageGalleryMessage
-	(*Armadillo_Content_ScreenshotAction)(nil),                                                 // 32: WAArmadilloApplication.Armadillo.Content.ScreenshotAction
-	(*Armadillo_Content_ExtendedContentMessageWithSear)(nil),                                   // 33: WAArmadilloApplication.Armadillo.Content.ExtendedContentMessageWithSear
-	(*Armadillo_Content_RavenActionNotifMessage)(nil),                                          // 34: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage
-	(*Armadillo_Content_RavenMessage)(nil),                                                     // 35: WAArmadilloApplication.Armadillo.Content.RavenMessage
-	(*Armadillo_Content_CommonSticker)(nil),                                                    // 36: WAArmadilloApplication.Armadillo.Content.CommonSticker
-	(waCommon.FutureProofBehavior)(0),                                                          // 37: WACommon.FutureProofBehavior
-	(*waArmadilloXMA.ExtendedContentMessage)(nil),                                              // 38: WAArmadilloXMA.ExtendedContentMessage
-	(*waCommon.SubProtocol)(nil),                                                               // 39: WACommon.SubProtocol
-	(*waCommon.MessageKey)(nil),                                                                // 40: WACommon.MessageKey
-	(*waCommon.MessageText)(nil),                                                               // 41: WACommon.MessageText
+	(Armadillo_Signal_EncryptedBackupsSecrets_Epoch_EpochStatus)(0),                                     // 0: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch.EpochStatus
+	(Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction_InterventionType)(0), // 1: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncAttachmentInterventionAction.InterventionType
+	(Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction_SpectraActionType)(0),               // 2: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncSpectraAction.SpectraActionType
+	(Armadillo_Content_PaymentsTransactionMessage_PaymentStatus)(0),                                     // 3: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.PaymentStatus
+	(Armadillo_Content_ScreenshotAction_ScreenshotType)(0),                                              // 4: WAArmadilloApplication.Armadillo.Content.ScreenshotAction.ScreenshotType
+	(Armadillo_Content_RavenActionNotifMessage_ActionType)(0),                                           // 5: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.ActionType
+	(Armadillo_Content_RavenMessage_EphemeralType)(0),                                                   // 6: WAArmadilloApplication.Armadillo.Content.RavenMessage.EphemeralType
+	(Armadillo_Content_CommonSticker_StickerType)(0),                                                    // 7: WAArmadilloApplication.Armadillo.Content.CommonSticker.StickerType
+	(*Armadillo)(nil),                                                                          // 8: WAArmadilloApplication.Armadillo
+	(*Armadillo_Metadata)(nil),                                                                 // 9: WAArmadilloApplication.Armadillo.Metadata
+	(*Armadillo_Payload)(nil),                                                                  // 10: WAArmadilloApplication.Armadillo.Payload
+	(*Armadillo_SubProtocolPayload)(nil),                                                       // 11: WAArmadilloApplication.Armadillo.SubProtocolPayload
+	(*Armadillo_Signal)(nil),                                                                   // 12: WAArmadilloApplication.Armadillo.Signal
+	(*Armadillo_ApplicationData)(nil),                                                          // 13: WAArmadilloApplication.Armadillo.ApplicationData
+	(*Armadillo_Content)(nil),                                                                  // 14: WAArmadilloApplication.Armadillo.Content
+	(*Armadillo_Signal_EncryptedBackupsSecrets)(nil),                                           // 15: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets
+	(*Armadillo_Signal_EncryptedBackupsSecrets_Epoch)(nil),                                     // 16: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch
+	(*Armadillo_ApplicationData_MessageHistoryDocumentMessage)(nil),                            // 17: WAArmadilloApplication.Armadillo.ApplicationData.MessageHistoryDocumentMessage
+	(*Armadillo_ApplicationData_AIBotResponseMessage)(nil),                                     // 18: WAArmadilloApplication.Armadillo.ApplicationData.AIBotResponseMessage
+	(*Armadillo_ApplicationData_MetadataSyncAction)(nil),                                       // 19: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction
+	(*Armadillo_ApplicationData_MetadataSyncNotification)(nil),                                 // 20: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotification
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncAttachmentInterventionAction)(nil),      // 21: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncAttachmentInterventionAction
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncSpectraAction)(nil),                     // 22: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncSpectraAction
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction)(nil),                     // 23: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction)(nil),                        // 24: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessage)(nil),                     // 25: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncActionMessageRange)(nil),                // 26: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_ActionMessageDelete)(nil), // 27: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.ActionMessageDelete
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatRead)(nil),         // 28: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatDelete)(nil),       // 29: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete
+	(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ActionChatArchive)(nil),      // 30: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive
+	(*Armadillo_Content_PaymentsTransactionMessage)(nil),                                       // 31: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage
+	(*Armadillo_Content_NetworkVerificationMessage)(nil),                                       // 32: WAArmadilloApplication.Armadillo.Content.NetworkVerificationMessage
+	(*Armadillo_Content_NoteReplyMessage)(nil),                                                 // 33: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage
+	(*Armadillo_Content_BumpExistingMessage)(nil),                                              // 34: WAArmadilloApplication.Armadillo.Content.BumpExistingMessage
+	(*Armadillo_Content_ImageGalleryMessage)(nil),                                              // 35: WAArmadilloApplication.Armadillo.Content.ImageGalleryMessage
+	(*Armadillo_Content_ScreenshotAction)(nil),                                                 // 36: WAArmadilloApplication.Armadillo.Content.ScreenshotAction
+	(*Armadillo_Content_ExtendedContentMessageWithSear)(nil),                                   // 37: WAArmadilloApplication.Armadillo.Content.ExtendedContentMessageWithSear
+	(*Armadillo_Content_RavenActionNotifMessage)(nil),                                          // 38: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage
+	(*Armadillo_Content_RavenMessage)(nil),                                                     // 39: WAArmadilloApplication.Armadillo.Content.RavenMessage
+	(*Armadillo_Content_CommonSticker)(nil),                                                    // 40: WAArmadilloApplication.Armadillo.Content.CommonSticker
+	(waCommon.FutureProofBehavior)(0),                                                          // 41: WACommon.FutureProofBehavior
+	(*waArmadilloXMA.ExtendedContentMessage)(nil),                                              // 42: WAArmadilloXMA.ExtendedContentMessage
+	(*waCommon.SubProtocol)(nil),                                                               // 43: WACommon.SubProtocol
+	(*waCommon.MessageKey)(nil),                                                                // 44: WACommon.MessageKey
+	(*waCommon.MessageText)(nil),                                                               // 45: WACommon.MessageText
 }
 var file_waArmadilloApplication_WAArmadilloApplication_proto_depIdxs = []int32{
-	8,  // 0: WAArmadilloApplication.Armadillo.payload:type_name -> WAArmadilloApplication.Armadillo.Payload
-	7,  // 1: WAArmadilloApplication.Armadillo.metadata:type_name -> WAArmadilloApplication.Armadillo.Metadata
-	12, // 2: WAArmadilloApplication.Armadillo.Payload.content:type_name -> WAArmadilloApplication.Armadillo.Content
-	11, // 3: WAArmadilloApplication.Armadillo.Payload.applicationData:type_name -> WAArmadilloApplication.Armadillo.ApplicationData
-	10, // 4: WAArmadilloApplication.Armadillo.Payload.signal:type_name -> WAArmadilloApplication.Armadillo.Signal
-	9,  // 5: WAArmadilloApplication.Armadillo.Payload.subProtocol:type_name -> WAArmadilloApplication.Armadillo.SubProtocolPayload
-	37, // 6: WAArmadilloApplication.Armadillo.SubProtocolPayload.futureProof:type_name -> WACommon.FutureProofBehavior
-	13, // 7: WAArmadilloApplication.Armadillo.Signal.encryptedBackupsSecrets:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets
-	18, // 8: WAArmadilloApplication.Armadillo.ApplicationData.metadataSync:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotification
-	16, // 9: WAArmadilloApplication.Armadillo.ApplicationData.aiBotResponse:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.AIBotResponseMessage
-	15, // 10: WAArmadilloApplication.Armadillo.ApplicationData.messageHistoryDocumentMessage:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MessageHistoryDocumentMessage
-	36, // 11: WAArmadilloApplication.Armadillo.Content.commonSticker:type_name -> WAArmadilloApplication.Armadillo.Content.CommonSticker
-	32, // 12: WAArmadilloApplication.Armadillo.Content.screenshotAction:type_name -> WAArmadilloApplication.Armadillo.Content.ScreenshotAction
-	38, // 13: WAArmadilloApplication.Armadillo.Content.extendedContentMessage:type_name -> WAArmadilloXMA.ExtendedContentMessage
-	35, // 14: WAArmadilloApplication.Armadillo.Content.ravenMessage:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage
-	34, // 15: WAArmadilloApplication.Armadillo.Content.ravenActionNotifMessage:type_name -> WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage
-	33, // 16: WAArmadilloApplication.Armadillo.Content.extendedMessageContentWithSear:type_name -> WAArmadilloApplication.Armadillo.Content.ExtendedContentMessageWithSear
-	31, // 17: WAArmadilloApplication.Armadillo.Content.imageGalleryMessage:type_name -> WAArmadilloApplication.Armadillo.Content.ImageGalleryMessage
-	27, // 18: WAArmadilloApplication.Armadillo.Content.paymentsTransactionMessage:type_name -> WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage
-	30, // 19: WAArmadilloApplication.Armadillo.Content.bumpExistingMessage:type_name -> WAArmadilloApplication.Armadillo.Content.BumpExistingMessage
-	29, // 20: WAArmadilloApplication.Armadillo.Content.noteReplyMessage:type_name -> WAArmadilloApplication.Armadillo.Content.NoteReplyMessage
-	35, // 21: WAArmadilloApplication.Armadillo.Content.ravenMessageMsgr:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage
-	28, // 22: WAArmadilloApplication.Armadillo.Content.networkVerificationMessage:type_name -> WAArmadilloApplication.Armadillo.Content.NetworkVerificationMessage
-	14, // 23: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.epoch:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch
+	10, // 0: WAArmadilloApplication.Armadillo.payload:type_name -> WAArmadilloApplication.Armadillo.Payload
+	9,  // 1: WAArmadilloApplication.Armadillo.metadata:type_name -> WAArmadilloApplication.Armadillo.Metadata
+	14, // 2: WAArmadilloApplication.Armadillo.Payload.content:type_name -> WAArmadilloApplication.Armadillo.Content
+	13, // 3: WAArmadilloApplication.Armadillo.Payload.applicationData:type_name -> WAArmadilloApplication.Armadillo.ApplicationData
+	12, // 4: WAArmadilloApplication.Armadillo.Payload.signal:type_name -> WAArmadilloApplication.Armadillo.Signal
+	11, // 5: WAArmadilloApplication.Armadillo.Payload.subProtocol:type_name -> WAArmadilloApplication.Armadillo.SubProtocolPayload
+	41, // 6: WAArmadilloApplication.Armadillo.SubProtocolPayload.futureProof:type_name -> WACommon.FutureProofBehavior
+	15, // 7: WAArmadilloApplication.Armadillo.Signal.encryptedBackupsSecrets:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets
+	20, // 8: WAArmadilloApplication.Armadillo.ApplicationData.metadataSync:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotification
+	18, // 9: WAArmadilloApplication.Armadillo.ApplicationData.aiBotResponse:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.AIBotResponseMessage
+	17, // 10: WAArmadilloApplication.Armadillo.ApplicationData.messageHistoryDocumentMessage:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MessageHistoryDocumentMessage
+	40, // 11: WAArmadilloApplication.Armadillo.Content.commonSticker:type_name -> WAArmadilloApplication.Armadillo.Content.CommonSticker
+	36, // 12: WAArmadilloApplication.Armadillo.Content.screenshotAction:type_name -> WAArmadilloApplication.Armadillo.Content.ScreenshotAction
+	42, // 13: WAArmadilloApplication.Armadillo.Content.extendedContentMessage:type_name -> WAArmadilloXMA.ExtendedContentMessage
+	39, // 14: WAArmadilloApplication.Armadillo.Content.ravenMessage:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage
+	38, // 15: WAArmadilloApplication.Armadillo.Content.ravenActionNotifMessage:type_name -> WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage
+	37, // 16: WAArmadilloApplication.Armadillo.Content.extendedMessageContentWithSear:type_name -> WAArmadilloApplication.Armadillo.Content.ExtendedContentMessageWithSear
+	35, // 17: WAArmadilloApplication.Armadillo.Content.imageGalleryMessage:type_name -> WAArmadilloApplication.Armadillo.Content.ImageGalleryMessage
+	31, // 18: WAArmadilloApplication.Armadillo.Content.paymentsTransactionMessage:type_name -> WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage
+	34, // 19: WAArmadilloApplication.Armadillo.Content.bumpExistingMessage:type_name -> WAArmadilloApplication.Armadillo.Content.BumpExistingMessage
+	33, // 20: WAArmadilloApplication.Armadillo.Content.noteReplyMessage:type_name -> WAArmadilloApplication.Armadillo.Content.NoteReplyMessage
+	39, // 21: WAArmadilloApplication.Armadillo.Content.ravenMessageMsgr:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage
+	32, // 22: WAArmadilloApplication.Armadillo.Content.networkVerificationMessage:type_name -> WAArmadilloApplication.Armadillo.Content.NetworkVerificationMessage
+	16, // 23: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.epoch:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch
 	0,  // 24: WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch.status:type_name -> WAArmadilloApplication.Armadillo.Signal.EncryptedBackupsSecrets.Epoch.EpochStatus
-	39, // 25: WAArmadilloApplication.Armadillo.ApplicationData.MessageHistoryDocumentMessage.document:type_name -> WACommon.SubProtocol
-	20, // 26: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.chatAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction
-	19, // 27: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.messageAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction
-	17, // 28: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotification.actions:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction
-	23, // 29: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.messageDelete:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.ActionMessageDelete
-	40, // 30: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.key:type_name -> WACommon.MessageKey
-	26, // 31: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatArchive:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive
-	25, // 32: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatDelete:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete
-	24, // 33: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatRead:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead
-	40, // 34: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage.key:type_name -> WACommon.MessageKey
-	21, // 35: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange.messages:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage
-	22, // 36: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
-	22, // 37: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
-	22, // 38: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
-	1,  // 39: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.paymentStatus:type_name -> WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.PaymentStatus
-	38, // 40: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.extendedContentMessage:type_name -> WAArmadilloXMA.ExtendedContentMessage
-	41, // 41: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.textContent:type_name -> WACommon.MessageText
-	39, // 42: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.stickerContent:type_name -> WACommon.SubProtocol
-	39, // 43: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.videoContent:type_name -> WACommon.SubProtocol
-	41, // 44: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.noteText:type_name -> WACommon.MessageText
-	40, // 45: WAArmadilloApplication.Armadillo.Content.BumpExistingMessage.key:type_name -> WACommon.MessageKey
-	39, // 46: WAArmadilloApplication.Armadillo.Content.ImageGalleryMessage.images:type_name -> WACommon.SubProtocol
-	2,  // 47: WAArmadilloApplication.Armadillo.Content.ScreenshotAction.screenshotType:type_name -> WAArmadilloApplication.Armadillo.Content.ScreenshotAction.ScreenshotType
-	39, // 48: WAArmadilloApplication.Armadillo.Content.ExtendedContentMessageWithSear.searAssociatedMessage:type_name -> WACommon.SubProtocol
-	40, // 49: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.key:type_name -> WACommon.MessageKey
-	3,  // 50: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.actionType:type_name -> WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.ActionType
-	39, // 51: WAArmadilloApplication.Armadillo.Content.RavenMessage.imageMessage:type_name -> WACommon.SubProtocol
-	39, // 52: WAArmadilloApplication.Armadillo.Content.RavenMessage.videoMessage:type_name -> WACommon.SubProtocol
-	4,  // 53: WAArmadilloApplication.Armadillo.Content.RavenMessage.ephemeralType:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage.EphemeralType
-	5,  // 54: WAArmadilloApplication.Armadillo.Content.CommonSticker.stickerType:type_name -> WAArmadilloApplication.Armadillo.Content.CommonSticker.StickerType
-	55, // [55:55] is the sub-list for method output_type
-	55, // [55:55] is the sub-list for method input_type
-	55, // [55:55] is the sub-list for extension type_name
-	55, // [55:55] is the sub-list for extension extendee
-	0,  // [0:55] is the sub-list for field type_name
+	43, // 25: WAArmadilloApplication.Armadillo.ApplicationData.MessageHistoryDocumentMessage.document:type_name -> WACommon.SubProtocol
+	24, // 26: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.chatAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction
+	23, // 27: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.messageAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction
+	22, // 28: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.spectraAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncSpectraAction
+	21, // 29: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.attachmentInterventionAction:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncAttachmentInterventionAction
+	19, // 30: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncNotification.actions:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction
+	44, // 31: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncAttachmentInterventionAction.messageKey:type_name -> WACommon.MessageKey
+	1,  // 32: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncAttachmentInterventionAction.interventionType:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncAttachmentInterventionAction.InterventionType
+	44, // 33: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncSpectraAction.key:type_name -> WACommon.MessageKey
+	2,  // 34: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncSpectraAction.actionType:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncSpectraAction.SpectraActionType
+	27, // 35: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.messageDelete:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.ActionMessageDelete
+	44, // 36: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncMessageAction.key:type_name -> WACommon.MessageKey
+	30, // 37: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatArchive:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive
+	29, // 38: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatDelete:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete
+	28, // 39: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.chatRead:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead
+	44, // 40: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage.key:type_name -> WACommon.MessageKey
+	25, // 41: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange.messages:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessage
+	26, // 42: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatRead.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
+	26, // 43: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatDelete.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
+	26, // 44: WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncChatAction.ActionChatArchive.messageRange:type_name -> WAArmadilloApplication.Armadillo.ApplicationData.MetadataSyncAction.SyncActionMessageRange
+	3,  // 45: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.paymentStatus:type_name -> WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.PaymentStatus
+	42, // 46: WAArmadilloApplication.Armadillo.Content.PaymentsTransactionMessage.extendedContentMessage:type_name -> WAArmadilloXMA.ExtendedContentMessage
+	45, // 47: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.textContent:type_name -> WACommon.MessageText
+	43, // 48: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.stickerContent:type_name -> WACommon.SubProtocol
+	43, // 49: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.videoContent:type_name -> WACommon.SubProtocol
+	45, // 50: WAArmadilloApplication.Armadillo.Content.NoteReplyMessage.noteText:type_name -> WACommon.MessageText
+	44, // 51: WAArmadilloApplication.Armadillo.Content.BumpExistingMessage.key:type_name -> WACommon.MessageKey
+	43, // 52: WAArmadilloApplication.Armadillo.Content.ImageGalleryMessage.images:type_name -> WACommon.SubProtocol
+	4,  // 53: WAArmadilloApplication.Armadillo.Content.ScreenshotAction.screenshotType:type_name -> WAArmadilloApplication.Armadillo.Content.ScreenshotAction.ScreenshotType
+	43, // 54: WAArmadilloApplication.Armadillo.Content.ExtendedContentMessageWithSear.searAssociatedMessage:type_name -> WACommon.SubProtocol
+	44, // 55: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.key:type_name -> WACommon.MessageKey
+	5,  // 56: WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.actionType:type_name -> WAArmadilloApplication.Armadillo.Content.RavenActionNotifMessage.ActionType
+	43, // 57: WAArmadilloApplication.Armadillo.Content.RavenMessage.imageMessage:type_name -> WACommon.SubProtocol
+	43, // 58: WAArmadilloApplication.Armadillo.Content.RavenMessage.videoMessage:type_name -> WACommon.SubProtocol
+	6,  // 59: WAArmadilloApplication.Armadillo.Content.RavenMessage.ephemeralType:type_name -> WAArmadilloApplication.Armadillo.Content.RavenMessage.EphemeralType
+	7,  // 60: WAArmadilloApplication.Armadillo.Content.CommonSticker.stickerType:type_name -> WAArmadilloApplication.Armadillo.Content.CommonSticker.StickerType
+	61, // [61:61] is the sub-list for method output_type
+	61, // [61:61] is the sub-list for method input_type
+	61, // [61:61] is the sub-list for extension type_name
+	61, // [61:61] is the sub-list for extension extendee
+	0,  // [0:61] is the sub-list for field type_name
 }
 
 func init() { file_waArmadilloApplication_WAArmadilloApplication_proto_init() }
@@ -2943,21 +3244,23 @@ func file_waArmadilloApplication_WAArmadilloApplication_proto_init() {
 	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[11].OneofWrappers = []any{
 		(*Armadillo_ApplicationData_MetadataSyncAction_ChatAction)(nil),
 		(*Armadillo_ApplicationData_MetadataSyncAction_MessageAction)(nil),
+		(*Armadillo_ApplicationData_MetadataSyncAction_SpectraAction)(nil),
+		(*Armadillo_ApplicationData_MetadataSyncAction_AttachmentInterventionAction)(nil),
 	}
-	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[13].OneofWrappers = []any{
+	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[15].OneofWrappers = []any{
 		(*Armadillo_ApplicationData_MetadataSyncAction_SyncMessageAction_MessageDelete)(nil),
 	}
-	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[14].OneofWrappers = []any{
+	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[16].OneofWrappers = []any{
 		(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ChatArchive)(nil),
 		(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ChatDelete)(nil),
 		(*Armadillo_ApplicationData_MetadataSyncAction_SyncChatAction_ChatRead)(nil),
 	}
-	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[23].OneofWrappers = []any{
+	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[25].OneofWrappers = []any{
 		(*Armadillo_Content_NoteReplyMessage_TextContent)(nil),
 		(*Armadillo_Content_NoteReplyMessage_StickerContent)(nil),
 		(*Armadillo_Content_NoteReplyMessage_VideoContent)(nil),
 	}
-	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[29].OneofWrappers = []any{
+	file_waArmadilloApplication_WAArmadilloApplication_proto_msgTypes[31].OneofWrappers = []any{
 		(*Armadillo_Content_RavenMessage_ImageMessage)(nil),
 		(*Armadillo_Content_RavenMessage_VideoMessage)(nil),
 	}
@@ -2966,8 +3269,8 @@ func file_waArmadilloApplication_WAArmadilloApplication_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waArmadilloApplication_WAArmadilloApplication_proto_rawDesc), len(file_waArmadilloApplication_WAArmadilloApplication_proto_rawDesc)),
-			NumEnums:      6,
-			NumMessages:   31,
+			NumEnums:      8,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -2432,11 +2432,12 @@ func (x *MiTransportAdminMessage_XmatInstantGameEncryptedDynamicCustomUpdate) Ge
 }
 
 type MiTransportAdminMessage_XmatFriendRequestConfirmedEncrypted struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	OtherUserName  *string                `protobuf:"bytes,1,opt,name=otherUserName" json:"otherUserName,omitempty"`
-	IsTurnOnCohort *string                `protobuf:"bytes,2,opt,name=isTurnOnCohort" json:"isTurnOnCohort,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"open.v1"`
+	OtherUserName                *string                `protobuf:"bytes,1,opt,name=otherUserName" json:"otherUserName,omitempty"`
+	IsTurnOnCohort               *string                `protobuf:"bytes,2,opt,name=isTurnOnCohort" json:"isTurnOnCohort,omitempty"`
+	UserWhoAcceptedFriendRequest *string                `protobuf:"bytes,3,opt,name=userWhoAcceptedFriendRequest" json:"userWhoAcceptedFriendRequest,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *MiTransportAdminMessage_XmatFriendRequestConfirmedEncrypted) Reset() {
@@ -2479,6 +2480,13 @@ func (x *MiTransportAdminMessage_XmatFriendRequestConfirmedEncrypted) GetOtherUs
 func (x *MiTransportAdminMessage_XmatFriendRequestConfirmedEncrypted) GetIsTurnOnCohort() string {
 	if x != nil && x.IsTurnOnCohort != nil {
 		return *x.IsTurnOnCohort
+	}
+	return ""
+}
+
+func (x *MiTransportAdminMessage_XmatFriendRequestConfirmedEncrypted) GetUserWhoAcceptedFriendRequest() string {
+	if x != nil && x.UserWhoAcceptedFriendRequest != nil {
+		return *x.UserWhoAcceptedFriendRequest
 	}
 	return ""
 }
@@ -3022,7 +3030,7 @@ var File_waArmadilloMiTransportAdminMessage_WAArmadilloMiTransportAdminMessage_p
 
 const file_waArmadilloMiTransportAdminMessage_WAArmadilloMiTransportAdminMessage_proto_rawDesc = "" +
 	"\n" +
-	"KwaArmadilloMiTransportAdminMessage/WAArmadilloMiTransportAdminMessage.proto\x12\"WAArmadilloMiTransportAdminMessage\"\xaaQ\n" +
+	"KwaArmadilloMiTransportAdminMessage/WAArmadilloMiTransportAdminMessage.proto\x12\"WAArmadilloMiTransportAdminMessage\"\xefQ\n" +
 	"\x17MiTransportAdminMessage\x12z\n" +
 	"\x10chatThemeChanged\x18\x01 \x01(\v2L.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.ChatThemeChangedH\x00R\x10chatThemeChanged\x12w\n" +
 	"\x0fnicknameChanged\x18\x02 \x01(\v2K.WAArmadilloMiTransportAdminMessage.MiTransportAdminMessage.NicknameChangedH\x00R\x0fnicknameChanged\x12\x8f\x01\n" +
@@ -3208,10 +3216,11 @@ const file_waArmadilloMiTransportAdminMessage_WAArmadilloMiTransportAdminMessage
 	"senderName\x18\x01 \x01(\tR\n" +
 	"senderName\x12@\n" +
 	"\x1bmuteManagementAdminTextType\x18\x02 \x01(\tR\x1bmuteManagementAdminTextType\x12\x1a\n" +
-	"\bgameName\x18\x03 \x01(\tR\bgameName\x1as\n" +
+	"\bgameName\x18\x03 \x01(\tR\bgameName\x1a\xb7\x01\n" +
 	"#XmatFriendRequestConfirmedEncrypted\x12$\n" +
 	"\rotherUserName\x18\x01 \x01(\tR\rotherUserName\x12&\n" +
-	"\x0eisTurnOnCohort\x18\x02 \x01(\tR\x0eisTurnOnCohort\x1a\xbb\x02\n" +
+	"\x0eisTurnOnCohort\x18\x02 \x01(\tR\x0eisTurnOnCohort\x12B\n" +
+	"\x1cuserWhoAcceptedFriendRequest\x18\x03 \x01(\tR\x1cuserWhoAcceptedFriendRequest\x1a\xbb\x02\n" +
 	"\x17XmatDisappearingSetting\x128\n" +
 	"\x17disappearingSettingTime\x18\x01 \x01(\x03R\x17disappearingSettingTime\x12>\n" +
 	"\x1aoldDisappearingSettingTime\x18\x02 \x01(\x03R\x1aoldDisappearingSettingTime\x12B\n" +

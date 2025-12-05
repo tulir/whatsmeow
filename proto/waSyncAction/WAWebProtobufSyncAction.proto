@@ -87,8 +87,10 @@ enum MutationProps {
 	NEWSLETTER_SAVED_INTERESTS_ACTION = 75;
 	AI_THREAD_RENAME_ACTION = 76;
 	INTERACTIVE_MESSAGE_ACTION = 77;
+	SETTINGS_SYNC_ACTION = 78;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
+	AI_THREAD_DELETE_ACTION = 10003;
 }
 
 message CallLogRecord {
@@ -139,6 +141,74 @@ message CallLogRecord {
 	optional string groupJID = 13;
 	repeated ParticipantInfo participants = 14;
 	optional CallType callType = 15;
+}
+
+message SettingsSyncAction {
+	enum DisplayMode {
+		DISPLAY_MODE_UNKNOWN = 0;
+		ALWAYS = 1;
+		NEVER = 2;
+		ONLY_WHEN_APP_IS_OPEN = 3;
+	}
+
+	enum SettingKey {
+		SETTING_KEY_UNKNOWN = 0;
+		START_AT_LOGIN = 1;
+		MINIMIZE_TO_TRAY = 2;
+		LANGUAGE = 3;
+		REPLACE_TEXT_WITH_EMOJI = 4;
+		BANNER_NOTIFICATION_DISPLAY_MODE = 5;
+		UNREAD_COUNTER_BADGE_DISPLAY_MODE = 6;
+		IS_MESSAGES_NOTIFICATION_ENABLED = 7;
+		IS_CALLS_NOTIFICATION_ENABLED = 8;
+		IS_REACTIONS_NOTIFICATION_ENABLED = 9;
+		IS_STATUS_REACTIONS_NOTIFICATION_ENABLED = 10;
+		IS_TEXT_PREVIEW_FOR_NOTIFICATION_ENABLED = 11;
+		DEFAULT_NOTIFICATION_TONE_ID = 12;
+		GROUP_DEFAULT_NOTIFICATION_TONE_ID = 13;
+		APP_THEME = 14;
+		WALLPAPER_ID = 15;
+		IS_DOODLE_WALLPAPER_ENABLED = 16;
+		FONT_SIZE = 17;
+		IS_PHOTOS_AUTODOWNLOAD_ENABLED = 18;
+		IS_AUDIOS_AUTODOWNLOAD_ENABLED = 19;
+		IS_VIDEOS_AUTODOWNLOAD_ENABLED = 20;
+		IS_DOCUMENTS_AUTODOWNLOAD_ENABLED = 21;
+		DISABLE_LINK_PREVIEWS = 22;
+		NOTIFICATION_TONE_ID = 23;
+	}
+
+	enum SettingPlatform {
+		PLATFORM_UNKNOWN = 0;
+		WEB = 1;
+		HYBRID = 2;
+		WINDOWS = 3;
+		MAC = 4;
+	}
+
+	optional bool startAtLogin = 1;
+	optional bool minimizeToTray = 2;
+	optional string language = 3;
+	optional bool replaceTextWithEmoji = 4;
+	optional DisplayMode bannerNotificationDisplayMode = 5;
+	optional DisplayMode unreadCounterBadgeDisplayMode = 6;
+	optional bool isMessagesNotificationEnabled = 7;
+	optional bool isCallsNotificationEnabled = 8;
+	optional bool isReactionsNotificationEnabled = 9;
+	optional bool isStatusReactionsNotificationEnabled = 10;
+	optional bool isTextPreviewForNotificationEnabled = 11;
+	optional int32 defaultNotificationToneID = 12;
+	optional int32 groupDefaultNotificationToneID = 13;
+	optional int32 appTheme = 14;
+	optional int32 wallpaperID = 15;
+	optional bool isDoodleWallpaperEnabled = 16;
+	optional int32 fontSize = 17;
+	optional bool isPhotosAutodownloadEnabled = 18;
+	optional bool isAudiosAutodownloadEnabled = 19;
+	optional bool isVideosAutodownloadEnabled = 20;
+	optional bool isDocumentsAutodownloadEnabled = 21;
+	optional bool disableLinkPreviews = 22;
+	optional int32 notificationToneID = 23;
 }
 
 message InteractiveMessageAction {
@@ -397,8 +467,10 @@ enum MutationName {
 	NEWSLETTER_SAVED_INTERESTS_ACTION = newsletter_saved_interests;
 	AI_THREAD_RENAME_ACTION = ai_thread_rename;
 	INTERACTIVE_MESSAGE_ACTION = interactive_message_action;
+	SETTINGS_SYNC_ACTION = settings_sync;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
+	AI_THREAD_DELETE_ACTION = ai_thread_delete;
 }
 */
 
@@ -481,7 +553,6 @@ message SyncActionValue {
 	optional CtwaPerCustomerDataSharingAction ctwaPerCustomerDataSharingAction = 62;
 	optional PaymentTosAction paymentTosAction = 63;
 	optional PrivacySettingChannelsPersonalisedRecommendationAction privacySettingChannelsPersonalisedRecommendationAction = 64;
-	optional BusinessBroadcastAssociationAction businessBroadcastAssociationAction = 65;
 	optional DetectedOutcomesStatusAction detectedOutcomesStatusAction = 66;
 	optional MaibaAIFeaturesControlAction maibaAiFeaturesControlAction = 68;
 	optional BusinessBroadcastListAction businessBroadcastListAction = 69;
@@ -492,6 +563,7 @@ message SyncActionValue {
 	optional NewsletterSavedInterestsAction newsletterSavedInterestsAction = 75;
 	optional AiThreadRenameAction aiThreadRenameAction = 76;
 	optional InteractiveMessageAction interactiveMessageAction = 77;
+	optional SettingsSyncAction settingsSyncAction = 78;
 }
 
 message AiThreadRenameAction {
