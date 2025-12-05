@@ -36,7 +36,7 @@ type GroupInfo struct {
 	GroupMembershipApprovalMode
 
 	AddressingMode     AddressingMode
-	GroupSize          int
+	ParticipantsCount  int
 	GroupCreated       time.Time
 	CreatorCountryCode string
 

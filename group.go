@@ -711,7 +711,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	group.NameSetBy = ag.OptionalJIDOrEmpty("s_o")
 	group.NameSetByPN = ag.OptionalJIDOrEmpty("s_o_pn")
 
-	group.GroupSize = ag.OptionalInt("size")
+	group.ParticipantsCount = ag.OptionalInt("size")
 	group.GroupCreated = ag.UnixTime("creation")
 	group.CreatorCountryCode = ag.OptionalString("creator_country_code")
 
