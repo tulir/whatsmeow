@@ -711,12 +711,12 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	group.NameSetBy = ag.OptionalJIDOrEmpty("s_o")
 	group.NameSetByPN = ag.OptionalJIDOrEmpty("s_o_pn")
 
-	group.ParticipantsCount = ag.OptionalInt("size")
 	group.GroupCreated = ag.UnixTime("creation")
 	group.CreatorCountryCode = ag.OptionalString("creator_country_code")
 
 	group.AnnounceVersionID = ag.OptionalString("a_v_id")
 	group.ParticipantVersionID = ag.OptionalString("p_v_id")
+	group.ParticipantCount = ag.OptionalInt("size")
 	group.AddressingMode = types.AddressingMode(ag.OptionalString("addressing_mode"))
 
 	for _, child := range groupNode.GetChildren() {

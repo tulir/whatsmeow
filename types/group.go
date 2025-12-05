@@ -36,12 +36,12 @@ type GroupInfo struct {
 	GroupMembershipApprovalMode
 
 	AddressingMode     AddressingMode
-	ParticipantsCount  int
 	GroupCreated       time.Time
 	CreatorCountryCode string
 
 	ParticipantVersionID string
 	Participants         []GroupParticipant
+	ParticipantCount     int
 
 	MemberAddMode GroupMemberAddMode
 
