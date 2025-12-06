@@ -249,3 +249,9 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, upload
 	}
 	return err
 }
+
+// RawUpload uploads the given attachment to WhatsApp servers.
+// Mautrix exposes this to allow streaming uploads without temporary files.
+func (cli *Client) RawUpload(ctx context.Context, dataToUpload io.Reader, uploadSize uint64, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {
+	return cli.rawUpload(ctx, dataToUpload, uploadSize, fileHash, appInfo, newsletter, resp)
+}
