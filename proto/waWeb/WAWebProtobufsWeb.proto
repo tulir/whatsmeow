@@ -315,6 +315,7 @@ message WebMessageInfo {
 	optional GroupHistoryBundleInfo groupHistoryBundleInfo = 75;
 	optional InteractiveMessageAdditionalMetadata interactiveMessageAdditionalMetadata = 76;
 	optional QuarantinedMessage quarantinedMessage = 77;
+	optional uint32 nonJIDMentions = 78;
 }
 
 message PaymentInfo {
