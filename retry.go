@@ -70,7 +70,13 @@ func (cli *Client) getRecentMessage(to types.JID, id types.MessageID) RecentMess
 }
 
 func (cli *Client) getMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (RecentMessage, error) {
-	msg := cli.getRecentMessage(receipt.Chat, messageID)
+	var msg RecentMessage
+	if receipt.Chat.Server == types.HiddenUserServer {
+		chat, _ := cli.Store.LIDs.GetPNForLID(ctx, receipt.Chat)
+		msg = cli.getRecentMessage(chat, messageID)
+	} else {
+		msg = cli.getRecentMessage(receipt.Chat, messageID)
+	}
 	if msg.IsEmpty() {
 		waMsg := cli.GetMessageForRetry(receipt.Sender, receipt.Chat, messageID)
 		if waMsg == nil {
