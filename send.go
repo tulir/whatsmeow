@@ -890,14 +890,6 @@ func getTypeFromMessage(msg *waE2E.Message) string {
 		return "reaction"
 	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
 		return "poll"
-	case msg.ButtonsMessage != nil:
-		return "interactive"
-	case msg.ListMessage != nil:
-		return "interactive"
-	case msg.InteractiveMessage != nil:
-		return "interactive"
-	case msg.TemplateMessage != nil:
-		return "interactive"
 	case getMediaTypeFromMessage(msg) != "":
 		return "media"
 	case msg.Conversation != nil, msg.ExtendedTextMessage != nil, msg.ProtocolMessage != nil:
@@ -980,8 +972,42 @@ func getButtonTypeFromMessage(msg *waE2E.Message) string {
 		return "list_response"
 	case msg.InteractiveResponseMessage != nil:
 		return "interactive_response"
+	case msg.InteractiveMessage != nil:
+		return "interactive"
 	default:
 		return ""
+	}
+}
+
+func getButtonContent(msg *waE2E.Message) []waBinary.Node {
+	switch {
+	case msg.InteractiveMessage != nil:
+		buttons := msg.InteractiveMessage.GetNativeFlowMessage().GetButtons()
+		isPaymentInfoButton := false
+		for _, button := range buttons {
+			if button.GetName() == "payment_info" {
+				isPaymentInfoButton = true
+				break
+			}
+		}
+		if isPaymentInfoButton {
+			return []waBinary.Node{{
+				Tag: "native_flow",
+				Attrs: waBinary.Attrs{
+					"name": "payment_info",
+				},
+			}}
+		} else {
+			return []waBinary.Node{{
+				Tag: "native_flow",
+				Attrs: waBinary.Attrs{
+					"v":    "2",
+					"name": "mixed",
+				},
+			}}
+		}
+	default:
+		return nil
 	}
 }
 
@@ -998,7 +1024,25 @@ func getButtonAttributes(msg *waE2E.Message) waBinary.Attrs {
 	case msg.ListMessage != nil:
 		return waBinary.Attrs{
 			"v":    "2",
-			"type": strings.ToLower(waE2E.ListMessage_ListType_name[int32(msg.ListMessage.GetListType())]),
+			"type": strings.ToLower(waE2E.ListMessage_ListType_name[int32(*waE2E.ListMessage_PRODUCT_LIST.Enum())]), // use this hackfix for now. need to refactor GetListType to map all biz correctly.
+		}
+	case msg.InteractiveMessage != nil:
+		isPaymentInfoButton := false
+		for _, button := range msg.InteractiveMessage.GetNativeFlowMessage().GetButtons() {
+			if button.GetName() == "payment_info" {
+				isPaymentInfoButton = true
+				break
+			}
+		}
+		if isPaymentInfoButton {
+			return waBinary.Attrs{
+				"v":    "1",
+				"type": "native_flow",
+			}
+		} else {
+			return waBinary.Attrs{
+				"type": "native_flow",
+			}
 		}
 	default:
 		return waBinary.Attrs{}
@@ -1122,8 +1166,9 @@ func (cli *Client) getMessageContent(
 		content = append(content, waBinary.Node{
 			Tag: "biz",
 			Content: []waBinary.Node{{
-				Tag:   buttonType,
-				Attrs: getButtonAttributes(message),
+				Tag:     buttonType,
+				Attrs:   getButtonAttributes(message),
+				Content: getButtonContent(message),
 			}},
 		})
 	}
