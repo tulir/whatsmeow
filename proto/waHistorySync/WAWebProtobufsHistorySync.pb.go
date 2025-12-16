@@ -276,9 +276,10 @@ func (HistorySync_HistorySyncType) EnumDescriptor() ([]byte, []int) {
 type Conversation_EndOfHistoryTransferType int32
 
 const (
-	Conversation_COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY           Conversation_EndOfHistoryTransferType = 0
-	Conversation_COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY         Conversation_EndOfHistoryTransferType = 1
-	Conversation_COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY Conversation_EndOfHistoryTransferType = 2
+	Conversation_COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY                   Conversation_EndOfHistoryTransferType = 0
+	Conversation_COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY                 Conversation_EndOfHistoryTransferType = 1
+	Conversation_COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY         Conversation_EndOfHistoryTransferType = 2
+	Conversation_COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS Conversation_EndOfHistoryTransferType = 3
 )
 
 // Enum value maps for Conversation_EndOfHistoryTransferType.
@@ -287,11 +288,13 @@ var (
 		0: "COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY",
 		1: "COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY",
 		2: "COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY",
+		3: "COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS",
 	}
 	Conversation_EndOfHistoryTransferType_value = map[string]int32{
-		"COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY":           0,
-		"COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY":         1,
-		"COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY": 2,
+		"COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY":                   0,
+		"COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY":                 1,
+		"COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY":         2,
+		"COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS": 3,
 	}
 )
 
@@ -2120,7 +2123,7 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x06RECENT\x10\x03\x12\r\n" +
 	"\tPUSH_NAME\x10\x04\x12\x15\n" +
 	"\x11NON_BLOCKING_DATA\x10\x05\x12\r\n" +
-	"\tON_DEMAND\x10\x06\"\xbb\x14\n" +
+	"\tON_DEMAND\x10\x06\"\xff\x14\n" +
 	"\fConversation\x12\x0e\n" +
 	"\x02ID\x18\x01 \x02(\tR\x02ID\x12E\n" +
 	"\bmessages\x18\x02 \x03(\v2).WAWebProtobufsHistorySync.HistorySyncMsgR\bmessages\x12\x16\n" +
@@ -2182,11 +2185,12 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x1climitSharingSettingTimestamp\x183 \x01(\x03R\x1climitSharingSettingTimestamp\x12P\n" +
 	"\x13limitSharingTrigger\x184 \x01(\x0e2\x1e.WACommon.LimitSharing.TriggerR\x13limitSharingTrigger\x12<\n" +
 	"\x19limitSharingInitiatedByMe\x185 \x01(\bR\x19limitSharingInitiatedByMe\x122\n" +
-	"\x14maibaAiThreadEnabled\x186 \x01(\bR\x14maibaAiThreadEnabled\"\xbc\x01\n" +
+	"\x14maibaAiThreadEnabled\x186 \x01(\bR\x14maibaAiThreadEnabled\"\x80\x02\n" +
 	"\x18EndOfHistoryTransferType\x120\n" +
 	",COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY\x10\x00\x122\n" +
 	".COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY\x10\x01\x12:\n" +
-	"6COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY\x10\x02\"\xe4\x01\n" +
+	"6COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY\x10\x02\x12B\n" +
+	">COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS\x10\x03\"\xe4\x01\n" +
 	"\x10GroupParticipant\x12\x18\n" +
 	"\auserJID\x18\x01 \x02(\tR\auserJID\x12D\n" +
 	"\x04rank\x18\x02 \x01(\x0e20.WAWebProtobufsHistorySync.GroupParticipant.RankR\x04rank\x12@\n" +

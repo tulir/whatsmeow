@@ -1484,6 +1484,7 @@ type WebMessageInfo struct {
 	GroupHistoryBundleInfo               *GroupHistoryBundleInfo               `protobuf:"bytes,75,opt,name=groupHistoryBundleInfo" json:"groupHistoryBundleInfo,omitempty"`
 	InteractiveMessageAdditionalMetadata *InteractiveMessageAdditionalMetadata `protobuf:"bytes,76,opt,name=interactiveMessageAdditionalMetadata" json:"interactiveMessageAdditionalMetadata,omitempty"`
 	QuarantinedMessage                   *QuarantinedMessage                   `protobuf:"bytes,77,opt,name=quarantinedMessage" json:"quarantinedMessage,omitempty"`
+	NonJIDMentions                       *uint32                               `protobuf:"varint,78,opt,name=nonJIDMentions" json:"nonJIDMentions,omitempty"`
 	unknownFields                        protoimpl.UnknownFields
 	sizeCache                            protoimpl.SizeCache
 }
@@ -1978,6 +1979,13 @@ func (x *WebMessageInfo) GetQuarantinedMessage() *QuarantinedMessage {
 		return x.QuarantinedMessage
 	}
 	return nil
+}
+
+func (x *WebMessageInfo) GetNonJIDMentions() uint32 {
+	if x != nil && x.NonJIDMentions != nil {
+		return *x.NonJIDMentions
+	}
+	return 0
 }
 
 type PaymentInfo struct {
@@ -4020,7 +4028,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xc2[\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xea[\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4091,7 +4099,8 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"!groupHistoryIndividualMessageInfo\x18J \x01(\v24.WAWebProtobufsWeb.GroupHistoryIndividualMessageInfoR!groupHistoryIndividualMessageInfo\x12a\n" +
 	"\x16groupHistoryBundleInfo\x18K \x01(\v2).WAWebProtobufsWeb.GroupHistoryBundleInfoR\x16groupHistoryBundleInfo\x12\x8b\x01\n" +
 	"$interactiveMessageAdditionalMetadata\x18L \x01(\v27.WAWebProtobufsWeb.InteractiveMessageAdditionalMetadataR$interactiveMessageAdditionalMetadata\x12U\n" +
-	"\x12quarantinedMessage\x18M \x01(\v2%.WAWebProtobufsWeb.QuarantinedMessageR\x12quarantinedMessage\"=\n" +
+	"\x12quarantinedMessage\x18M \x01(\v2%.WAWebProtobufsWeb.QuarantinedMessageR\x12quarantinedMessage\x12&\n" +
+	"\x0enonJIDMentions\x18N \x01(\rR\x0enonJIDMentions\"=\n" +
 	"\x10BizPrivacyStatus\x12\b\n" +
 	"\x04E2EE\x10\x00\x12\x06\n" +
 	"\x02FB\x10\x02\x12\a\n" +
