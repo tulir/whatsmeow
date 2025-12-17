@@ -150,7 +150,7 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 func (cli *Client) dispatchAppState(ctx context.Context, mutation appstate.Mutation, fullSync bool) (eventToDispatch any) {
 	zerolog.Ctx(ctx).Trace().Any("mutation", mutation).Msg("Dispatching app state mutation")
 
-	if mutation.Operation != waServerSync.SyncdMutation_SET {
+	if (mutation.Action != nil && mutation.Action.ContactAction == nil) && mutation.Operation != waServerSync.SyncdMutation_SET {
 		return
 	}
 
