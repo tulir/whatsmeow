@@ -12,6 +12,8 @@ import (
 	"net/http"
 	"time"
 
+	"go.mau.fi/whatsmeow/proto/waCompanionReg"
+
 	"go.mau.fi/libsignal/keys/prekey"
 
 	"go.mau.fi/whatsmeow/appstate"
@@ -479,8 +481,8 @@ func (int *DangerousInternalClient) HandlePairSuccess(ctx context.Context, node 
 	int.c.handlePairSuccess(ctx, node)
 }
 
-func (int *DangerousInternalClient) HandlePair(ctx context.Context, deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID) error {
-	return int.c.handlePair(ctx, deviceIdentityBytes, reqID, businessName, platform, jid, lid)
+func (int *DangerousInternalClient) HandlePair(ctx context.Context, deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID, props *waCompanionReg.ClientPairingProps) error {
+	return int.c.handlePair(ctx, deviceIdentityBytes, reqID, businessName, platform, jid, lid, props)
 }
 
 func (int *DangerousInternalClient) SendPairError(ctx context.Context, id string, code int, text string) {

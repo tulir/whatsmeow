@@ -14,6 +14,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"time"
+
+	"go.mau.fi/whatsmeow/proto/waCompanionReg"
 
 	"go.mau.fi/libsignal/ecc"
 	"google.golang.org/protobuf/proto"
@@ -93,9 +96,16 @@ func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
 	jid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
 	lid, _ := pairSuccess.GetChildByTag("device").Attrs["lid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
+	clientPropsBytes, _ := pairSuccess.GetChildByTag("client-props").Content.([]byte)
+
+	var props waCompanionReg.ClientPairingProps
+	err := proto.Unmarshal(clientPropsBytes, &props)
+	if err != nil {
+		cli.Log.Warnf("Failed to parse client-props: %v", err)
+	}
 
 	go func() {
-		err := cli.handlePair(ctx, deviceIdentityBytes, id, businessName, platform, jid, lid)
+		err := cli.handlePair(ctx, deviceIdentityBytes, id, businessName, platform, jid, lid, &props)
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
 			cli.Disconnect()
@@ -107,7 +117,7 @@ func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
 	}()
 }
 
-func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID) error {
+func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, reqID, businessName, platform string, jid, lid types.JID, props *waCompanionReg.ClientPairingProps) error {
 	var deviceIdentityContainer waAdv.ADVSignedDeviceIdentityHMAC
 	err := proto.Unmarshal(deviceIdentityBytes, &deviceIdentityContainer)
 	if err != nil {
@@ -171,6 +181,12 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 	cli.Store.LID = lid
 	cli.Store.BusinessName = businessName
 	cli.Store.Platform = platform
+
+	//todo: handle more properties of props
+	if props.GetIsChatDbLidMigrated() {
+		cli.Store.LIDMigrationTimestamp = time.Now().Unix()
+	}
+
 	err = cli.Store.Save(ctx)
 	if err != nil {
 		cli.sendPairError(ctx, reqID, 500, "internal-error")
