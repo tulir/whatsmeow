@@ -159,7 +159,8 @@ func (w *binaryEncoder) writeStringRaw(value string) {
 }
 
 func (w *binaryEncoder) writeJID(jid types.JID) {
-	if ((jid.Server == types.DefaultUserServer || jid.Server == types.HiddenUserServer) && jid.Device > 0) || jid.Server == types.HostedServer {
+	if ((jid.Server == types.DefaultUserServer || jid.Server == types.HiddenUserServer) && jid.Device > 0) ||
+		jid.Server == types.HostedServer || jid.Server == types.HostedLIDServer {
 		w.pushByte(token.ADJID)
 		w.pushByte(jid.ActualAgent())
 		w.pushByte(uint8(jid.Device))

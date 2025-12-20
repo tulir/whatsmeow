@@ -42,6 +42,8 @@ enum BotMetricsEntryPoint {
 	MESSAGE_QUICK_ACTION_GROUP_CHAT = 34;
 	ATTACHMENT_TRAY_1_ON_1_CHAT = 35;
 	ATTACHMENT_TRAY_GROUP_CHAT = 36;
+	ASK_META_AI_MEDIA_VIEWER_1ON1 = 37;
+	ASK_META_AI_MEDIA_VIEWER_GROUP = 38;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -78,6 +80,11 @@ enum AIRichResponseSubMessageType {
 	AI_RICH_RESPONSE_MAP = 7;
 	AI_RICH_RESPONSE_LATEX = 8;
 	AI_RICH_RESPONSE_CONTENT_ITEMS = 9;
+}
+
+enum SessionTransparencyType {
+	UNKNOWN_TYPE = 0;
+	NY_AI_SAFETY_DISCLAIMER = 1;
 }
 
 message BotPluginMetadata {
@@ -193,6 +200,7 @@ message BotModelMetadata {
 
 	optional ModelType modelType = 1;
 	optional PremiumModelStatus premiumModelStatus = 2;
+	optional string modelNameOverride = 3;
 }
 
 message BotProgressIndicatorMetadata {
@@ -298,6 +306,10 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_UR_INLINE_REELS_ENABLED = 43;
 		RICH_RESPONSE_UR_MEDIA_GRID_ENABLED = 44;
 		RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER = 45;
+		RICH_RESPONSE_IN_APP_SURVEY = 46;
+		AI_RESPONSE_MODEL_BRANDING = 47;
+		SESSION_TRANSPARENCY_SYSTEM_MESSAGE = 48;
+		RICH_RESPONSE_UR_REASONING = 49;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -440,9 +452,43 @@ message BotFeedbackMessage {
 	}
 
 	message SideBySideSurveyMetadata {
+		message SidebySideSurveyMetaAiAnalyticsData {
+			message SideBySideSurveyAbandonEventData {
+				optional string abandonDwellTimeMSString = 1;
+			}
+
+			message SideBySideSurveyResponseEventData {
+				optional string responseDwellTimeMSString = 1;
+				optional string selectedResponseID = 2;
+			}
+
+			message SideBySideSurveyCardImpressionEventData {
+			}
+
+			message SideBySideSurveyCTAClickEventData {
+				optional bool isSurveyExpired = 1;
+				optional string clickDwellTimeMSString = 2;
+			}
+
+			message SideBySideSurveyCTAImpressionEventData {
+				optional bool isSurveyExpired = 1;
+			}
+
+			optional uint32 surveyID = 1;
+			optional string primaryResponseID = 2;
+			optional string testArmName = 3;
+			optional string timestampMSString = 4;
+			optional SideBySideSurveyCTAImpressionEventData ctaImpressionEvent = 5;
+			optional SideBySideSurveyCTAClickEventData ctaClickEvent = 6;
+			optional SideBySideSurveyCardImpressionEventData cardImpressionEvent = 7;
+			optional SideBySideSurveyResponseEventData responseEvent = 8;
+			optional SideBySideSurveyAbandonEventData abandonEvent = 9;
+		}
+
 		message SideBySideSurveyAnalyticsData {
 			optional string tessaEvent = 1;
 			optional string tessaSessionFbid = 2;
+			optional string simonSessionFbid = 3;
 		}
 
 		optional string selectedRequestID = 1;
@@ -453,6 +499,7 @@ message BotFeedbackMessage {
 		optional bool isSelectedResponsePrimary = 6;
 		optional string messageIDToEdit = 7;
 		optional SideBySideSurveyAnalyticsData analyticsData = 8;
+		optional SidebySideSurveyMetaAiAnalyticsData metaAiAnalyticsData = 9;
 	}
 
 	optional WACommon.MessageKey messageKey = 1;
@@ -530,6 +577,38 @@ message AIRichResponseContentItemsMetadata {
 
 	repeated AIRichResponseContentItemMetadata itemsMetadata = 1;
 	optional ContentType contentType = 2;
+}
+
+message BotDocumentMessageMetadata {
+	enum DocumentPluginType {
+		TEXT_EXTRACTION = 0;
+		OCR_AND_IMAGES = 1;
+	}
+
+	optional DocumentPluginType pluginType = 1;
+}
+
+message AIHomeState {
+	message AIHomeOption {
+		enum AIHomeActionType {
+			PROMPT = 0;
+			CREATE_IMAGE = 1;
+			ANIMATE_PHOTO = 2;
+			ANALYZE_FILE = 3;
+		}
+
+		optional AIHomeActionType type = 1;
+		optional string title = 2;
+		optional string promptText = 3;
+		optional string sessionID = 4;
+		optional string imageWdsIdentifier = 5;
+		optional string imageTintColor = 6;
+		optional string imageBackgroundColor = 7;
+	}
+
+	optional int64 lastFetchTime = 1;
+	repeated AIHomeOption capabilityOptions = 2;
+	repeated AIHomeOption conversationOptions = 3;
 }
 
 message BotAvatarMetadata {
@@ -636,6 +715,7 @@ message InThreadSurveyMetadata {
 	optional string privacyStatementFull = 15;
 	repeated InThreadSurveyPrivacyStatementPart privacyStatementParts = 16;
 	optional string feedbackToastText = 17;
+	optional int32 startQuestionIndex = 18;
 }
 
 message BotMessageOriginMetadata {
@@ -651,6 +731,7 @@ message BotUnifiedResponseMutation {
 
 	message SideBySideMetadata {
 		optional string primaryResponseID = 1;
+		optional bool surveyCtaHasRendered = 2;
 	}
 
 	optional SideBySideMetadata sbsMetadata = 1;
@@ -689,6 +770,9 @@ message BotMetadata {
 	optional BotMessageOriginMetadata botMessageOriginMetadata = 29;
 	optional InThreadSurveyMetadata inThreadSurveyMetadata = 30;
 	optional AIThreadInfo botThreadInfo = 31;
+	optional AIRegenerateMetadata regenerateMetadata = 32;
+	optional SessionTransparencyMetadata sessionTransparencyMetadata = 33;
+	optional BotDocumentMessageMetadata botDocumentMessageMetadata = 34;
 	optional bytes internalMetadata = 999;
 }
 
@@ -773,4 +857,15 @@ message AIRichResponseSubMessage {
 	optional AIRichResponseLatexMetadata latexMetadata = 8;
 	optional AIRichResponseMapMetadata mapMetadata = 9;
 	optional AIRichResponseContentItemsMetadata contentItemsMetadata = 10;
+}
+
+message AIRegenerateMetadata {
+	optional WACommon.MessageKey messageKey = 1;
+	optional int64 responseTimestampMS = 2;
+}
+
+message SessionTransparencyMetadata {
+	optional string disclaimerText = 1;
+	optional string hcaID = 2;
+	optional SessionTransparencyType sessionTransparencyType = 3;
 }

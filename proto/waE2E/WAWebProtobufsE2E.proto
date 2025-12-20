@@ -44,6 +44,7 @@ enum HistorySyncType {
 	NON_BLOCKING_DATA = 5;
 	ON_DEMAND = 6;
 	NO_HISTORY = 7;
+	MESSAGE_ACCESS_STATUS = 8;
 }
 
 enum MediaKeyDomain {
@@ -52,6 +53,11 @@ enum MediaKeyDomain {
 	STATUS = 2;
 	CAPI = 3;
 	BOT = 4;
+}
+
+enum WebLinkRenderConfig {
+	WEBVIEW = 0;
+	SYSTEM = 1;
 }
 
 enum KeepType {
@@ -1145,6 +1151,7 @@ message ContextInfo {
 		optional string newsletterName = 3;
 		optional ContentType contentType = 4;
 		optional string accessibilityText = 5;
+		optional string profileName = 6;
 	}
 
 	message ExternalAdReplyInfo {
@@ -1342,6 +1349,7 @@ message MessageContextInfo {
 	optional WACommon.LimitSharing limitSharing = 13;
 	optional WACommon.LimitSharing limitSharingV2 = 14;
 	repeated ThreadID threadID = 15;
+	optional WebLinkRenderConfig weblinkRenderConfig = 16;
 }
 
 message InteractiveAnnotation {
@@ -1558,9 +1566,9 @@ message Message {
 	optional StatusQuotedMessage statusQuotedMessage = 109;
 	optional StatusStickerInteractionMessage statusStickerInteractionMessage = 110;
 	optional PollCreationMessage pollCreationMessageV5 = 111;
-	optional PollResultSnapshotMessage pollResultSnapshotMessageV2 = 112;
 	optional NewsletterFollowerInviteMessage newsletterFollowerInviteMessageV2 = 113;
-	optional RequestContactInfoMessage requestContactInfoMessage = 114;
+	optional PollResultSnapshotMessage pollResultSnapshotMessageV3 = 115;
+	optional FutureProofMessage newsletterAdminProfileMessage = 116;
 }
 
 message AlbumMessage {
@@ -1608,6 +1616,8 @@ message EventMessage {
 	optional int64 endTime = 8;
 	optional bool extraGuestsAllowed = 9;
 	optional bool isScheduleCall = 10;
+	optional bool hasReminder = 11;
+	optional int64 reminderOffsetSec = 12;
 }
 
 message CommentMessage {
@@ -1711,12 +1721,6 @@ message DeviceSentMessage {
 	optional string destinationJID = 1;
 	optional Message message = 2;
 	optional string phash = 3;
-}
-
-message RequestContactInfoMessage {
-	optional string text = 1;
-	optional string ctaButtonText = 2;
-	optional ContextInfo contextInfo = 3;
 }
 
 message RequestPhoneNumberMessage {
@@ -1945,6 +1949,11 @@ message HistorySyncNotification {
 	optional string peerDataRequestSessionID = 12;
 	optional FullHistorySyncOnDemandRequestMetadata fullHistorySyncOnDemandRequestMetadata = 13;
 	optional string encHandle = 14;
+	optional HistorySyncMessageAccessStatus messageAccessStatus = 15;
+}
+
+message HistorySyncMessageAccessStatus {
+	optional bool completeAccessGranted = 1;
 }
 
 message Chat {
@@ -1962,6 +1971,7 @@ message Call {
 	optional ContextInfo contextInfo = 7;
 	optional string nativeFlowCallButtonPayload = 8;
 	optional string deeplinkPayload = 9;
+	optional MessageContextInfo messageContextInfo = 10;
 }
 
 message AudioMessage {
@@ -2016,7 +2026,6 @@ message URLMetadata {
 message PaymentExtendedMetadata {
 	optional uint32 type = 1;
 	optional string platform = 2;
-	optional string messageParamsJSON = 3;
 }
 
 message MMSThumbnailMetadata {

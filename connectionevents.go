@@ -88,6 +88,13 @@ func (cli *Client) handleIB(ctx context.Context, node *waBinary.Node) {
 			cli.dispatchEvent(&events.OfflineSyncCompleted{
 				Count: ag.Int("count"),
 			})
+		case "dirty":
+			//ts := ag.UnixTime("timestamp")
+			//typ := ag.String("type") // account_sync
+			//go func() {
+			//	err := cli.MarkNotDirty(ctx, typ, ts)
+			//	zerolog.Ctx(ctx).Debug().Err(err).Msg("Marked dirty item as clean")
+			//}()
 		}
 	}
 }
@@ -179,7 +186,7 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 		} else {
 			cli.Log.Debugf("Database has %d prekeys, server says we have %d", dbCount, serverCount)
 			if serverCount < MinPreKeyCount || dbCount < MinPreKeyCount {
-				cli.uploadPreKeys(ctx)
+				cli.uploadPreKeys(ctx, dbCount == 0 && serverCount == 0)
 				sc, _ := cli.getServerPreKeyCount(ctx)
 				cli.Log.Debugf("Prekey count after upload: %d", sc)
 			}

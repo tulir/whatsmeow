@@ -427,12 +427,14 @@ func (ClientPayload_IOSAppExtension) EnumDescriptor() ([]byte, []int) {
 type ClientPayload_DNSSource_DNSResolutionMethod int32
 
 const (
-	ClientPayload_DNSSource_SYSTEM    ClientPayload_DNSSource_DNSResolutionMethod = 0
-	ClientPayload_DNSSource_GOOGLE    ClientPayload_DNSSource_DNSResolutionMethod = 1
-	ClientPayload_DNSSource_HARDCODED ClientPayload_DNSSource_DNSResolutionMethod = 2
-	ClientPayload_DNSSource_OVERRIDE  ClientPayload_DNSSource_DNSResolutionMethod = 3
-	ClientPayload_DNSSource_FALLBACK  ClientPayload_DNSSource_DNSResolutionMethod = 4
-	ClientPayload_DNSSource_MNS       ClientPayload_DNSSource_DNSResolutionMethod = 5
+	ClientPayload_DNSSource_SYSTEM        ClientPayload_DNSSource_DNSResolutionMethod = 0
+	ClientPayload_DNSSource_GOOGLE        ClientPayload_DNSSource_DNSResolutionMethod = 1
+	ClientPayload_DNSSource_HARDCODED     ClientPayload_DNSSource_DNSResolutionMethod = 2
+	ClientPayload_DNSSource_OVERRIDE      ClientPayload_DNSSource_DNSResolutionMethod = 3
+	ClientPayload_DNSSource_FALLBACK      ClientPayload_DNSSource_DNSResolutionMethod = 4
+	ClientPayload_DNSSource_MNS           ClientPayload_DNSSource_DNSResolutionMethod = 5
+	ClientPayload_DNSSource_MNS_SECONDARY ClientPayload_DNSSource_DNSResolutionMethod = 6
+	ClientPayload_DNSSource_SOCKS_PROXY   ClientPayload_DNSSource_DNSResolutionMethod = 7
 )
 
 // Enum value maps for ClientPayload_DNSSource_DNSResolutionMethod.
@@ -444,14 +446,18 @@ var (
 		3: "OVERRIDE",
 		4: "FALLBACK",
 		5: "MNS",
+		6: "MNS_SECONDARY",
+		7: "SOCKS_PROXY",
 	}
 	ClientPayload_DNSSource_DNSResolutionMethod_value = map[string]int32{
-		"SYSTEM":    0,
-		"GOOGLE":    1,
-		"HARDCODED": 2,
-		"OVERRIDE":  3,
-		"FALLBACK":  4,
-		"MNS":       5,
+		"SYSTEM":        0,
+		"GOOGLE":        1,
+		"HARDCODED":     2,
+		"OVERRIDE":      3,
+		"FALLBACK":      4,
+		"MNS":           5,
+		"MNS_SECONDARY": 6,
+		"SOCKS_PROXY":   7,
 	}
 )
 
@@ -727,6 +733,7 @@ const (
 	ClientPayload_UserAgent_TEST           ClientPayload_UserAgent_Platform = 34
 	ClientPayload_UserAgent_SMART_GLASSES  ClientPayload_UserAgent_Platform = 35
 	ClientPayload_UserAgent_BLUE_VR        ClientPayload_UserAgent_Platform = 36
+	ClientPayload_UserAgent_AR_WRIST       ClientPayload_UserAgent_Platform = 37
 )
 
 // Enum value maps for ClientPayload_UserAgent_Platform.
@@ -769,6 +776,7 @@ var (
 		34: "TEST",
 		35: "SMART_GLASSES",
 		36: "BLUE_VR",
+		37: "AR_WRIST",
 	}
 	ClientPayload_UserAgent_Platform_value = map[string]int32{
 		"ANDROID":        0,
@@ -808,6 +816,7 @@ var (
 		"TEST":           34,
 		"SMART_GLASSES":  35,
 		"BLUE_VR":        36,
+		"AR_WRIST":       37,
 	}
 )
 
@@ -1274,6 +1283,8 @@ type ClientPayload_WebInfo struct {
 	Version        *string                               `protobuf:"bytes,2,opt,name=version" json:"version,omitempty"`
 	WebdPayload    *ClientPayload_WebInfo_WebdPayload    `protobuf:"bytes,3,opt,name=webdPayload" json:"webdPayload,omitempty"`
 	WebSubPlatform *ClientPayload_WebInfo_WebSubPlatform `protobuf:"varint,4,opt,name=webSubPlatform,enum=WAWebProtobufsWa6.ClientPayload_WebInfo_WebSubPlatform" json:"webSubPlatform,omitempty"`
+	Browser        *string                               `protobuf:"bytes,5,opt,name=browser" json:"browser,omitempty"`
+	BrowserVersion *string                               `protobuf:"bytes,6,opt,name=browserVersion" json:"browserVersion,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1334,6 +1345,20 @@ func (x *ClientPayload_WebInfo) GetWebSubPlatform() ClientPayload_WebInfo_WebSub
 		return *x.WebSubPlatform
 	}
 	return ClientPayload_WebInfo_WEB_BROWSER
+}
+
+func (x *ClientPayload_WebInfo) GetBrowser() string {
+	if x != nil && x.Browser != nil {
+		return *x.Browser
+	}
+	return ""
+}
+
+func (x *ClientPayload_WebInfo) GetBrowserVersion() string {
+	if x != nil && x.BrowserVersion != nil {
+		return *x.BrowserVersion
+	}
+	return ""
 }
 
 type ClientPayload_UserAgent struct {
@@ -2068,7 +2093,7 @@ var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xd8*\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xcd+\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2106,10 +2131,10 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x16connectionSequenceInfo\x18+ \x01(\x0fR\x16connectionSequenceInfo\x12\x18\n" +
 	"\apaaLink\x18, \x01(\bR\apaaLink\x12\"\n" +
 	"\fpreacksCount\x18- \x01(\x05R\fpreacksCount\x120\n" +
-	"\x13processingQueueSize\x18. \x01(\x05R\x13processingQueueSize\x1a\xea\x01\n" +
+	"\x13processingQueueSize\x18. \x01(\x05R\x13processingQueueSize\x1a\x8f\x02\n" +
 	"\tDNSSource\x12\\\n" +
 	"\tdnsMethod\x18\x0f \x01(\x0e2>.WAWebProtobufsWa6.ClientPayload.DNSSource.DNSResolutionMethodR\tdnsMethod\x12\x1c\n" +
-	"\tappCached\x18\x10 \x01(\bR\tappCached\"a\n" +
+	"\tappCached\x18\x10 \x01(\bR\tappCached\"\x85\x01\n" +
 	"\x13DNSResolutionMethod\x12\n" +
 	"\n" +
 	"\x06SYSTEM\x10\x00\x12\n" +
@@ -2118,12 +2143,16 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\tHARDCODED\x10\x02\x12\f\n" +
 	"\bOVERRIDE\x10\x03\x12\f\n" +
 	"\bFALLBACK\x10\x04\x12\a\n" +
-	"\x03MNS\x10\x05\x1a\xf4\x06\n" +
+	"\x03MNS\x10\x05\x12\x11\n" +
+	"\rMNS_SECONDARY\x10\x06\x12\x0f\n" +
+	"\vSOCKS_PROXY\x10\a\x1a\xb6\a\n" +
 	"\aWebInfo\x12\x1a\n" +
 	"\brefToken\x18\x01 \x01(\tR\brefToken\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\tR\aversion\x12V\n" +
 	"\vwebdPayload\x18\x03 \x01(\v24.WAWebProtobufsWa6.ClientPayload.WebInfo.WebdPayloadR\vwebdPayload\x12_\n" +
-	"\x0ewebSubPlatform\x18\x04 \x01(\x0e27.WAWebProtobufsWa6.ClientPayload.WebInfo.WebSubPlatformR\x0ewebSubPlatform\x1a\x91\x04\n" +
+	"\x0ewebSubPlatform\x18\x04 \x01(\x0e27.WAWebProtobufsWa6.ClientPayload.WebInfo.WebSubPlatformR\x0ewebSubPlatform\x12\x18\n" +
+	"\abrowser\x18\x05 \x01(\tR\abrowser\x12&\n" +
+	"\x0ebrowserVersion\x18\x06 \x01(\tR\x0ebrowserVersion\x1a\x91\x04\n" +
 	"\vWebdPayload\x122\n" +
 	"\x14usesParticipantInKey\x18\x01 \x01(\bR\x14usesParticipantInKey\x128\n" +
 	"\x17supportsStarredMessages\x18\x02 \x01(\bR\x17supportsStarredMessages\x12:\n" +
@@ -2145,7 +2174,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x06DARWIN\x10\x03\x12\t\n" +
 	"\x05WIN32\x10\x04\x12\x0e\n" +
 	"\n" +
-	"WIN_HYBRID\x10\x05\x1a\xcf\f\n" +
+	"WIN_HYBRID\x10\x05\x1a\xdd\f\n" +
 	"\tUserAgent\x12O\n" +
 	"\bplatform\x18\x01 \x01(\x0e23.WAWebProtobufsWa6.ClientPayload.UserAgent.PlatformR\bplatform\x12U\n" +
 	"\n" +
@@ -2189,7 +2218,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\aRELEASE\x10\x00\x12\b\n" +
 	"\x04BETA\x10\x01\x12\t\n" +
 	"\x05ALPHA\x10\x02\x12\t\n" +
-	"\x05DEBUG\x10\x03\"\x97\x04\n" +
+	"\x05DEBUG\x10\x03\"\xa5\x04\n" +
 	"\bPlatform\x12\v\n" +
 	"\aANDROID\x10\x00\x12\a\n" +
 	"\x03IOS\x10\x01\x12\x11\n" +
@@ -2233,7 +2262,8 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x04IPAD\x10!\x12\b\n" +
 	"\x04TEST\x10\"\x12\x11\n" +
 	"\rSMART_GLASSES\x10#\x12\v\n" +
-	"\aBLUE_VR\x10$\x1aq\n" +
+	"\aBLUE_VR\x10$\x12\f\n" +
+	"\bAR_WRIST\x10%\x1aq\n" +
 	"\vInteropData\x12\x1c\n" +
 	"\taccountID\x18\x01 \x01(\x04R\taccountID\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\fR\x05token\x12.\n" +

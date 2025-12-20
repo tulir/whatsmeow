@@ -276,9 +276,10 @@ func (HistorySync_HistorySyncType) EnumDescriptor() ([]byte, []int) {
 type Conversation_EndOfHistoryTransferType int32
 
 const (
-	Conversation_COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY           Conversation_EndOfHistoryTransferType = 0
-	Conversation_COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY         Conversation_EndOfHistoryTransferType = 1
-	Conversation_COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY Conversation_EndOfHistoryTransferType = 2
+	Conversation_COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY                   Conversation_EndOfHistoryTransferType = 0
+	Conversation_COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY                 Conversation_EndOfHistoryTransferType = 1
+	Conversation_COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY         Conversation_EndOfHistoryTransferType = 2
+	Conversation_COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS Conversation_EndOfHistoryTransferType = 3
 )
 
 // Enum value maps for Conversation_EndOfHistoryTransferType.
@@ -287,11 +288,13 @@ var (
 		0: "COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY",
 		1: "COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY",
 		2: "COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY",
+		3: "COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS",
 	}
 	Conversation_EndOfHistoryTransferType_value = map[string]int32{
-		"COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY":           0,
-		"COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY":         1,
-		"COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY": 2,
+		"COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY":                   0,
+		"COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY":                 1,
+		"COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY":         2,
+		"COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS": 3,
 	}
 )
 
@@ -2087,7 +2090,7 @@ var File_waHistorySync_WAWebProtobufsHistorySync_proto protoreflect.FileDescript
 
 const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\n" +
-	"-waHistorySync/WAWebProtobufsHistorySync.proto\x12\x19WAWebProtobufsHistorySync\x1a\x1fwaSyncAction/WASyncAction.proto\x1a4waChatLockSettings/WAProtobufsChatLockSettings.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\x1a\x1dwaWeb/WAWebProtobufsWeb.proto\"\x8c\v\n" +
+	"-waHistorySync/WAWebProtobufsHistorySync.proto\x12\x19WAWebProtobufsHistorySync\x1a*waSyncAction/WAWebProtobufSyncAction.proto\x1a7waChatLockSettings/WAWebProtobufsChatLockSettings.proto\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\x1a\x1dwaWeb/WAWebProtobufsWeb.proto\"\x97\v\n" +
 	"\vHistorySync\x12R\n" +
 	"\bsyncType\x18\x01 \x02(\x0e26.WAWebProtobufsHistorySync.HistorySync.HistorySyncTypeR\bsyncType\x12M\n" +
 	"\rconversations\x18\x02 \x03(\v2'.WAWebProtobufsHistorySync.ConversationR\rconversations\x12M\n" +
@@ -2102,8 +2105,8 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x17threadDsTimeframeOffset\x18\n" +
 	" \x01(\rR\x17threadDsTimeframeOffset\x12R\n" +
 	"\x0erecentStickers\x18\v \x03(\v2*.WAWebProtobufsHistorySync.StickerMetadataR\x0erecentStickers\x12W\n" +
-	"\x10pastParticipants\x18\f \x03(\v2+.WAWebProtobufsHistorySync.PastParticipantsR\x10pastParticipants\x12C\n" +
-	"\x0ecallLogRecords\x18\r \x03(\v2\x1b.WASyncAction.CallLogRecordR\x0ecallLogRecords\x12c\n" +
+	"\x10pastParticipants\x18\f \x03(\v2+.WAWebProtobufsHistorySync.PastParticipantsR\x10pastParticipants\x12N\n" +
+	"\x0ecallLogRecords\x18\r \x03(\v2&.WAWebProtobufSyncAction.CallLogRecordR\x0ecallLogRecords\x12c\n" +
 	"\x0faiWaitListState\x18\x0e \x01(\x0e29.WAWebProtobufsHistorySync.HistorySync.BotAIWaitListStateR\x0faiWaitListState\x12n\n" +
 	"\x18phoneNumberToLidMappings\x18\x0f \x03(\v22.WAWebProtobufsHistorySync.PhoneNumberToLIDMappingR\x18phoneNumberToLidMappings\x12.\n" +
 	"\x12companionMetaNonce\x18\x10 \x01(\tR\x12companionMetaNonce\x12R\n" +
@@ -2120,7 +2123,7 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x06RECENT\x10\x03\x12\r\n" +
 	"\tPUSH_NAME\x10\x04\x12\x15\n" +
 	"\x11NON_BLOCKING_DATA\x10\x05\x12\r\n" +
-	"\tON_DEMAND\x10\x06\"\xbb\x14\n" +
+	"\tON_DEMAND\x10\x06\"\xff\x14\n" +
 	"\fConversation\x12\x0e\n" +
 	"\x02ID\x18\x01 \x02(\tR\x02ID\x12E\n" +
 	"\bmessages\x18\x02 \x03(\v2).WAWebProtobufsHistorySync.HistorySyncMsgR\bmessages\x12\x16\n" +
@@ -2182,11 +2185,12 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x1climitSharingSettingTimestamp\x183 \x01(\x03R\x1climitSharingSettingTimestamp\x12P\n" +
 	"\x13limitSharingTrigger\x184 \x01(\x0e2\x1e.WACommon.LimitSharing.TriggerR\x13limitSharingTrigger\x12<\n" +
 	"\x19limitSharingInitiatedByMe\x185 \x01(\bR\x19limitSharingInitiatedByMe\x122\n" +
-	"\x14maibaAiThreadEnabled\x186 \x01(\bR\x14maibaAiThreadEnabled\"\xbc\x01\n" +
+	"\x14maibaAiThreadEnabled\x186 \x01(\bR\x14maibaAiThreadEnabled\"\x80\x02\n" +
 	"\x18EndOfHistoryTransferType\x120\n" +
 	",COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY\x10\x00\x122\n" +
 	".COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY\x10\x01\x12:\n" +
-	"6COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY\x10\x02\"\xe4\x01\n" +
+	"6COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY\x10\x02\x12B\n" +
+	">COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS\x10\x03\"\xe4\x01\n" +
 	"\x10GroupParticipant\x12\x18\n" +
 	"\auserJID\x18\x01 \x02(\tR\auserJID\x12D\n" +
 	"\x04rank\x18\x02 \x01(\x0e20.WAWebProtobufsHistorySync.GroupParticipant.RankR\x04rank\x12@\n" +
@@ -2221,7 +2225,7 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\bpushname\x18\x02 \x01(\tR\bpushname\"I\n" +
 	"\x11WallpaperSettings\x12\x1a\n" +
 	"\bfilename\x18\x01 \x01(\tR\bfilename\x12\x18\n" +
-	"\aopacity\x18\x02 \x01(\rR\aopacity\"\x97\f\n" +
+	"\aopacity\x18\x02 \x01(\rR\aopacity\"\x9a\f\n" +
 	"\x0eGlobalSettings\x12^\n" +
 	"\x13lightThemeWallpaper\x18\x01 \x01(\v2,.WAWebProtobufsHistorySync.WallpaperSettingsR\x13lightThemeWallpaper\x12T\n" +
 	"\x0fmediaVisibility\x18\x02 \x01(\x0e2*.WAWebProtobufsHistorySync.MediaVisibilityR\x0fmediaVisibility\x12\\\n" +
@@ -2241,8 +2245,8 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x10videoQualityMode\x18\x0f \x01(\x05R\x10videoQualityMode\x12*\n" +
 	"\x10photoQualityMode\x18\x10 \x01(\x05R\x10photoQualityMode\x12w\n" +
 	"\x1eindividualNotificationSettings\x18\x11 \x01(\v2/.WAWebProtobufsHistorySync.NotificationSettingsR\x1eindividualNotificationSettings\x12m\n" +
-	"\x19groupNotificationSettings\x18\x12 \x01(\v2/.WAWebProtobufsHistorySync.NotificationSettingsR\x19groupNotificationSettings\x12Y\n" +
-	"\x10chatLockSettings\x18\x13 \x01(\v2-.WAProtobufsChatLockSettings.ChatLockSettingsR\x10chatLockSettings\x12@\n" +
+	"\x19groupNotificationSettings\x18\x12 \x01(\v2/.WAWebProtobufsHistorySync.NotificationSettingsR\x19groupNotificationSettings\x12\\\n" +
+	"\x10chatLockSettings\x18\x13 \x01(\v20.WAWebProtobufsChatLockSettings.ChatLockSettingsR\x10chatLockSettings\x12@\n" +
 	"\x1bchatDbLidMigrationTimestamp\x18\x14 \x01(\x03R\x1bchatDbLidMigrationTimestamp\"\xb8\x01\n" +
 	"\x14AutoDownloadSettings\x12&\n" +
 	"\x0edownloadImages\x18\x01 \x01(\bR\x0edownloadImages\x12$\n" +
@@ -2332,11 +2336,11 @@ var file_waHistorySync_WAWebProtobufsHistorySync_proto_goTypes = []any{
 	(*AvatarUserSettings)(nil),                  // 20: WAWebProtobufsHistorySync.AvatarUserSettings
 	(*NotificationSettings)(nil),                // 21: WAWebProtobufsHistorySync.NotificationSettings
 	(*waWeb.WebMessageInfo)(nil),                // 22: WAWebProtobufsWeb.WebMessageInfo
-	(*waSyncAction.CallLogRecord)(nil),          // 23: WASyncAction.CallLogRecord
+	(*waSyncAction.CallLogRecord)(nil),          // 23: WAWebProtobufSyncAction.CallLogRecord
 	(*waE2E.DisappearingMode)(nil),              // 24: WAWebProtobufsE2E.DisappearingMode
 	(waCommon.LimitSharing_Trigger)(0),          // 25: WACommon.LimitSharing.Trigger
 	(*waE2E.MemberLabel)(nil),                   // 26: WAWebProtobufsE2E.MemberLabel
-	(*waChatLockSettings.ChatLockSettings)(nil), // 27: WAProtobufsChatLockSettings.ChatLockSettings
+	(*waChatLockSettings.ChatLockSettings)(nil), // 27: WAWebProtobufsChatLockSettings.ChatLockSettings
 }
 var file_waHistorySync_WAWebProtobufsHistorySync_proto_depIdxs = []int32{
 	3,  // 0: WAWebProtobufsHistorySync.HistorySync.syncType:type_name -> WAWebProtobufsHistorySync.HistorySync.HistorySyncType
@@ -2346,7 +2350,7 @@ var file_waHistorySync_WAWebProtobufsHistorySync_proto_depIdxs = []int32{
 	16, // 4: WAWebProtobufsHistorySync.HistorySync.globalSettings:type_name -> WAWebProtobufsHistorySync.GlobalSettings
 	18, // 5: WAWebProtobufsHistorySync.HistorySync.recentStickers:type_name -> WAWebProtobufsHistorySync.StickerMetadata
 	19, // 6: WAWebProtobufsHistorySync.HistorySync.pastParticipants:type_name -> WAWebProtobufsHistorySync.PastParticipants
-	23, // 7: WAWebProtobufsHistorySync.HistorySync.callLogRecords:type_name -> WASyncAction.CallLogRecord
+	23, // 7: WAWebProtobufsHistorySync.HistorySync.callLogRecords:type_name -> WAWebProtobufSyncAction.CallLogRecord
 	2,  // 8: WAWebProtobufsHistorySync.HistorySync.aiWaitListState:type_name -> WAWebProtobufsHistorySync.HistorySync.BotAIWaitListState
 	11, // 9: WAWebProtobufsHistorySync.HistorySync.phoneNumberToLidMappings:type_name -> WAWebProtobufsHistorySync.PhoneNumberToLIDMapping
 	12, // 10: WAWebProtobufsHistorySync.HistorySync.accounts:type_name -> WAWebProtobufsHistorySync.Account
@@ -2371,7 +2375,7 @@ var file_waHistorySync_WAWebProtobufsHistorySync_proto_depIdxs = []int32{
 	20, // 29: WAWebProtobufsHistorySync.GlobalSettings.avatarUserSettings:type_name -> WAWebProtobufsHistorySync.AvatarUserSettings
 	21, // 30: WAWebProtobufsHistorySync.GlobalSettings.individualNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
 	21, // 31: WAWebProtobufsHistorySync.GlobalSettings.groupNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
-	27, // 32: WAWebProtobufsHistorySync.GlobalSettings.chatLockSettings:type_name -> WAProtobufsChatLockSettings.ChatLockSettings
+	27, // 32: WAWebProtobufsHistorySync.GlobalSettings.chatLockSettings:type_name -> WAWebProtobufsChatLockSettings.ChatLockSettings
 	10, // 33: WAWebProtobufsHistorySync.PastParticipants.pastParticipants:type_name -> WAWebProtobufsHistorySync.PastParticipant
 	34, // [34:34] is the sub-list for method output_type
 	34, // [34:34] is the sub-list for method input_type

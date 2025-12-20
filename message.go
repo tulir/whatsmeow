@@ -689,37 +689,41 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 // You only need to call this manually if you set [Client.ManualHistorySyncDownload] to true.
 // By default, whatsmeow will call this automatically and dispatch an [events.HistorySync] with the parsed data.
 func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.HistorySyncNotification, synchronousStorage bool) (*waHistorySync.HistorySync, error) {
-	var historySync waHistorySync.HistorySync
-	if data, err := cli.Download(ctx, notif); err != nil {
+	var data []byte
+	var err error
+	if notif.InitialHistBootstrapInlinePayload != nil {
+		data = notif.InitialHistBootstrapInlinePayload
+	} else if data, err = cli.Download(ctx, notif); err != nil {
 		return nil, fmt.Errorf("failed to download: %w", err)
-	} else if reader, err := zlib.NewReader(bytes.NewReader(data)); err != nil {
+	}
+	var historySync waHistorySync.HistorySync
+	if reader, err := zlib.NewReader(bytes.NewReader(data)); err != nil {
 		return nil, fmt.Errorf("failed to prepare to decompress: %w", err)
 	} else if rawData, err := io.ReadAll(reader); err != nil {
 		return nil, fmt.Errorf("failed to decompress: %w", err)
 	} else if err = proto.Unmarshal(rawData, &historySync); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal: %w", err)
-	} else {
-		cli.Log.Debugf("Received history sync (type %s, chunk %d, progress %d)", historySync.GetSyncType(), historySync.GetChunkOrder(), historySync.GetProgress())
-		doStorage := func(ctx context.Context) {
-			if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
-				cli.handleHistoricalPushNames(ctx, historySync.GetPushnames())
-			} else if len(historySync.GetConversations()) > 0 {
-				cli.storeHistoricalMessageSecrets(ctx, historySync.GetConversations())
-			}
-			if len(historySync.GetPhoneNumberToLidMappings()) > 0 {
-				cli.storeHistoricalPNLIDMappings(ctx, historySync.GetPhoneNumberToLidMappings())
-			}
-			if historySync.GlobalSettings != nil {
-				cli.storeGlobalSettings(ctx, historySync.GlobalSettings)
-			}
-		}
-		if synchronousStorage {
-			doStorage(ctx)
-		} else {
-			go doStorage(context.WithoutCancel(ctx))
-		}
-		return &historySync, nil
 	}
+	cli.Log.Debugf("Received history sync (type %s, chunk %d, progress %d)", historySync.GetSyncType(), historySync.GetChunkOrder(), historySync.GetProgress())
+	doStorage := func(ctx context.Context) {
+		if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
+			cli.handleHistoricalPushNames(ctx, historySync.GetPushnames())
+		} else if len(historySync.GetConversations()) > 0 {
+			cli.storeHistoricalMessageSecrets(ctx, historySync.GetConversations())
+		}
+		if len(historySync.GetPhoneNumberToLidMappings()) > 0 {
+			cli.storeHistoricalPNLIDMappings(ctx, historySync.GetPhoneNumberToLidMappings())
+		}
+		if historySync.GlobalSettings != nil {
+			cli.storeGlobalSettings(ctx, historySync.GlobalSettings)
+		}
+	}
+	if synchronousStorage {
+		doStorage(ctx)
+	} else {
+		go doStorage(context.WithoutCancel(ctx))
+	}
+	return &historySync, nil
 }
 
 func (cli *Client) handleAppStateSyncKeyShare(ctx context.Context, keys *waE2E.AppStateSyncKeyShare) {
@@ -1024,8 +1028,7 @@ func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.Messa
 }
 
 func (cli *Client) sendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) {
-	clientID := cli.Store.ID
-	if len(id) == 0 || clientID == nil {
+	if len(id) == 0 {
 		return
 	}
 	err := cli.sendNode(ctx, waBinary.Node{
@@ -1033,7 +1036,7 @@ func (cli *Client) sendProtocolMessageReceipt(ctx context.Context, id types.Mess
 		Attrs: waBinary.Attrs{
 			"id":   string(id),
 			"type": string(msgType),
-			"to":   types.NewJID(clientID.User, types.LegacyUserServer),
+			"to":   cli.getOwnID().ToNonAD(),
 		},
 		Content: nil,
 	})
