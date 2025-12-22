@@ -749,6 +749,36 @@ func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.History
 	} else {
 		go doStorage(context.WithoutCancel(ctx))
 	}
+
+	if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
+		modifiedPushnames := make([]*waHistorySync.Pushname, 0, len(historySync.GetPushnames()))
+		for _, user := range historySync.GetPushnames() {
+			if user.GetPushname() == "-" {
+				continue
+			}
+			newID := user.GetID()
+			if jid, err := types.ParseJID(user.GetID()); err == nil && jid.Server == types.HiddenUserServer {
+				if pnJID, err := cli.Store.LIDs.GetPNForLID(ctx, jid); err == nil && !pnJID.IsEmpty() {
+					newID = pnJID.String()
+				}
+			}
+			modifiedPushnames = append(modifiedPushnames, &waHistorySync.Pushname{
+				ID:       &newID,
+				Pushname: user.Pushname,
+			})
+		}
+		historySync.Pushnames = modifiedPushnames
+	} else if historySync.GetSyncType() == waHistorySync.HistorySync_RECENT {
+		for _, conv := range historySync.GetConversations() {
+			if jid, err := types.ParseJID(conv.GetID()); err == nil && jid.Server == types.HiddenUserServer {
+				if pnJID, err := cli.Store.LIDs.GetPNForLID(ctx, jid); err == nil && !pnJID.IsEmpty() {
+					newID := pnJID.String()
+					conv.ID = &newID
+				}
+			}
+		}
+	}
+
 	return &historySync, nil
 }
 
