@@ -140,6 +140,7 @@ struct MediaPreviewView: View {
     let message: Message
     @State private var loadedImage: UIImage?
     @State private var isLoading = false
+    @State private var loadTask: Task<Void, Never>?
 
     var body: some View {
         Group {
@@ -162,6 +163,10 @@ struct MediaPreviewView: View {
             if message.mediaType == .image {
                 loadMediaImage()
             }
+        }
+        .onDisappear {
+            // Cancel loading if view disappears (important for scrolling performance)
+            loadTask?.cancel()
         }
     }
 
@@ -194,11 +199,14 @@ struct MediaPreviewView: View {
 
         isLoading = true
 
-        // Load image on background thread
-        Task.detached(priority: .userInitiated) {
+        // Use cached image loader with downsampling for memory efficiency
+        loadTask = Task {
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                if let image = UIImage(data: data) {
+                // Downsample to actual display size (saves memory - 200x150 instead of full resolution)
+                let targetSize = CGSize(width: 200, height: 150)
+                let image = try await ImageCache.shared.loadImage(url: url, maxSize: targetSize)
+
+                if !Task.isCancelled {
                     await MainActor.run {
                         loadedImage = image
                         isLoading = false
@@ -206,8 +214,10 @@ struct MediaPreviewView: View {
                 }
             } catch {
                 print("Failed to load media image: \(error)")
-                await MainActor.run {
-                    isLoading = false
+                if !Task.isCancelled {
+                    await MainActor.run {
+                        isLoading = false
+                    }
                 }
             }
         }

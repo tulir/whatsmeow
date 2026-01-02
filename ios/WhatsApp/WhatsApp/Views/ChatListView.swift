@@ -221,7 +221,7 @@ struct ChatRowView: View {
     }
 }
 
-/// Profile picture view with URL loading and fallback
+/// Profile picture view with optimized caching and downsampling
 struct ProfilePictureView: View {
     let jid: String
     let profilePictureURL: String?
@@ -231,6 +231,7 @@ struct ProfilePictureView: View {
 
     @State private var loadedImage: UIImage?
     @State private var isLoading = false
+    @State private var loadTask: Task<Void, Never>?
 
     var body: some View {
         ZStack {
@@ -261,6 +262,10 @@ struct ProfilePictureView: View {
         .onAppear {
             loadProfilePicture()
         }
+        .onDisappear {
+            // Cancel loading if view disappears (important for scrolling performance)
+            loadTask?.cancel()
+        }
     }
 
     private func loadProfilePicture() {
@@ -269,19 +274,24 @@ struct ProfilePictureView: View {
 
         isLoading = true
 
-        // Load image on background thread
-        Task.detached(priority: .userInitiated) {
+        // Use cached image loader with downsampling for memory efficiency
+        loadTask = Task {
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
-                if let image = UIImage(data: data) {
+                // Downsample to actual display size (saves memory)
+                let targetSize = CGSize(width: size, height: size)
+                let image = try await ImageCache.shared.loadImage(url: url, maxSize: targetSize)
+
+                if !Task.isCancelled {
                     await MainActor.run {
                         loadedImage = image
                         isLoading = false
                     }
                 }
             } catch {
-                await MainActor.run {
-                    isLoading = false
+                if !Task.isCancelled {
+                    await MainActor.run {
+                        isLoading = false
+                    }
                 }
             }
         }
