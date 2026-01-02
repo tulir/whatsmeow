@@ -8,6 +8,10 @@ struct ChatView: View {
     @State private var showAttachmentMenu = false
     @FocusState private var isTextFieldFocused: Bool
 
+    // Cache grouped messages to avoid expensive grouping on every render
+    @State private var groupedMessages: [(key: Date, value: [Message])] = []
+    @State private var lastMessageCount = 0
+
     var messages: [Message] {
         viewModel.getMessages(for: chat.jid)
     }
@@ -18,7 +22,7 @@ struct ChatView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 2) {
-                        ForEach(messages.groupedByDate(), id: \.key) { date, dayMessages in
+                        ForEach(groupedMessages, id: \.key) { date, dayMessages in
                             // Date header
                             DateHeaderView(date: date)
                                 .padding(.top, 10)
@@ -34,7 +38,13 @@ struct ChatView: View {
                     .padding(.bottom, 10)
                 }
                 .background(Color.chatBackground)
-                .onChange(of: messages.count) { _, _ in
+                .onChange(of: messages.count) { _, newCount in
+                    // Only regroup if message count changed (performance optimization)
+                    if newCount != lastMessageCount {
+                        updateGroupedMessages()
+                        lastMessageCount = newCount
+                    }
+
                     if let lastMessage = messages.last {
                         withAnimation(.easeOut(duration: 0.2)) {
                             proxy.scrollTo(lastMessage.id, anchor: .bottom)
@@ -42,6 +52,10 @@ struct ChatView: View {
                     }
                 }
                 .onAppear {
+                    // Initial grouping on appear
+                    updateGroupedMessages()
+                    lastMessageCount = messages.count
+
                     if let lastMessage = messages.last {
                         proxy.scrollTo(lastMessage.id, anchor: .bottom)
                     }
@@ -168,6 +182,11 @@ struct ChatView: View {
         Task {
             await viewModel.sendMessage(to: chat.jid, text: text)
         }
+    }
+
+    /// Update grouped messages cache (only called when messages change)
+    private func updateGroupedMessages() {
+        groupedMessages = messages.groupedByDate()
     }
 }
 
