@@ -87,13 +87,14 @@ class PersistenceController {
         let model = Self.createManagedObjectModel()
         container = NSPersistentContainer(name: "WhatsAppModel", managedObjectModel: model)
 
-        // Enable WAL mode for better concurrent access (critical for preventing SQLITE_BUSY errors)
-        let description = container.persistentStoreDescriptions.first
-        description?.setOption(true as NSNumber, forKey: "journal_mode")
-        description?.setOption("WAL" as NSObject, forKey: "journal_mode")
+        // Configure persistent store for better concurrent access (critical for preventing SQLITE_BUSY errors)
+        if let description = container.persistentStoreDescriptions.first {
+            // Enable WAL (Write-Ahead Logging) mode for concurrent read/write access
+            description.setOption(["journal_mode": "WAL"] as NSDictionary, forKey: NSSQLitePragmasOption)
 
-        // Set timeout for database locks (10 seconds)
-        description?.setOption(10000 as NSNumber, forKey: NSSQLitePragmasOption)
+            // Set timeout for busy database (10 seconds in milliseconds)
+            description.setValue(10000, forKey: "timeout")
+        }
 
         container.loadPersistentStores { description, error in
             if let error = error {
