@@ -234,8 +234,8 @@ class PersistenceController {
             self?.performBatchSave()
         }
         saveWorkItem = workItem
-        // Debounce: wait 0.5 seconds before saving
-        saveQueue.asyncAfter(deadline: .now() + 0.5, execute: workItem)
+        // Debounce: wait 1.5 seconds before saving (reduced frequency for better performance)
+        saveQueue.asyncAfter(deadline: .now() + 1.5, execute: workItem)
     }
 
     private func performBatchSave() {
@@ -246,16 +246,42 @@ class PersistenceController {
 
         guard !messagesToSave.isEmpty || !chatsToSave.isEmpty else { return }
 
+        // Limit batch size to prevent UI lag (max 100 messages + 50 chats per batch)
+        let messagesBatch = Array(messagesToSave.prefix(100))
+        let chatsBatch = Array(chatsToSave.prefix(50))
+
+        // Re-queue excess items for next batch
+        var hasExcessItems = false
+        if messagesToSave.count > 100 {
+            for message in messagesToSave.dropFirst(100) {
+                pendingMessages[message.id] = message
+            }
+            hasExcessItems = true
+        }
+        if chatsToSave.count > 50 {
+            for chat in chatsToSave.dropFirst(50) {
+                pendingChats[chat.jid] = chat
+            }
+            hasExcessItems = true
+        }
+
+        // If we had to re-queue items, schedule next batch immediately (no debounce)
+        if hasExcessItems {
+            saveQueue.async { [weak self] in
+                self?.performBatchSave()
+            }
+        }
+
         let context = newBackgroundContext()
         context.perform {
             // OPTIMIZED: Fetch all existing message IDs in ONE query
-            if !messagesToSave.isEmpty {
-                let messageIDs = messagesToSave.map { $0.id }
+            if !messagesBatch.isEmpty {
+                let messageIDs = messagesBatch.map { $0.id }
                 let existingIDs = self.fetchExistingMessageIDs(ids: messageIDs, context: context)
 
                 // Only insert messages that don't exist
                 let messageEntity = context.persistentStoreCoordinator!.managedObjectModel.entitiesByName["MessageEntity"]!
-                for message in messagesToSave {
+                for message in messagesBatch {
                     if !existingIDs.contains(message.id) {
                         let entity = MessageEntity(entity: messageEntity, insertInto: context)
                         entity.id = message.id
@@ -277,12 +303,12 @@ class PersistenceController {
             }
 
             // OPTIMIZED: Fetch all existing chats in ONE query
-            if !chatsToSave.isEmpty {
-                let chatJIDs = chatsToSave.map { $0.jid }
+            if !chatsBatch.isEmpty {
+                let chatJIDs = chatsBatch.map { $0.jid }
                 let existingChats = self.fetchExistingChats(jids: chatJIDs, context: context)
 
                 let chatEntity = context.persistentStoreCoordinator!.managedObjectModel.entitiesByName["ChatEntity"]!
-                for chat in chatsToSave {
+                for chat in chatsBatch {
                     let entity: ChatEntity
                     if let existing = existingChats[chat.jid] {
                         entity = existing
@@ -321,7 +347,8 @@ class PersistenceController {
     }
 
     /// Save context with retry logic for SQLite busy errors
-    private func saveWithRetry(context: NSManagedObjectContext, retries: Int = 3) throws {
+    /// Uses immediate retries (no sleep) since WAL mode should prevent most locks
+    private func saveWithRetry(context: NSManagedObjectContext, retries: Int = 5) throws {
         var lastError: Error?
 
         for attempt in 0..<retries {
@@ -333,9 +360,10 @@ class PersistenceController {
 
                 // Check if it's a SQLite busy error (database locked)
                 if error.domain == NSCocoaErrorDomain && error.code == 134030 { // SQLITE_BUSY
-                    let delay = Double(attempt + 1) * 0.1 // Exponential backoff: 0.1s, 0.2s, 0.3s
-                    print("SQLite database locked (attempt \(attempt + 1)/\(retries)), retrying in \(delay)s...")
-                    Thread.sleep(forTimeInterval: delay)
+                    print("SQLite database locked (attempt \(attempt + 1)/\(retries)), retrying immediately...")
+                    // No sleep - just retry immediately
+                    // WAL mode + busy_timeout should handle most lock conflicts
+                    // Immediate retry is better for performance than blocking the thread
                     continue
                 } else {
                     // Not a busy error, don't retry
