@@ -109,7 +109,7 @@ func NewClient(dbPath string, callback EventCallback) (*Client, error) {
 
 	ctx := context.Background()
 
-	container, err := sqlstore.New(ctx, "sqlite", "file:"+dbPath+"?_foreign_keys=on", nil)
+	container, err := sqlstore.New(ctx, "sqlite", "file:"+dbPath+"?_pragma=foreign_keys(1)", nil)
 	if err != nil {
 		return nil, err
 	}
