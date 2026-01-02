@@ -109,7 +109,11 @@ func NewClient(dbPath string, callback EventCallback) (*Client, error) {
 
 	ctx := context.Background()
 
-	container, err := sqlstore.New(ctx, "sqlite", "file:"+dbPath+"?_pragma=foreign_keys(1)", nil)
+	// Enable WAL mode and set busy timeout to prevent SQLITE_BUSY errors
+	// WAL mode allows concurrent reads while writing (critical for iOS performance)
+	// busy_timeout=10000 gives 10 seconds for locked database instead of immediate failure
+	dbURI := "file:" + dbPath + "?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(10000)"
+	container, err := sqlstore.New(ctx, "sqlite", dbURI, nil)
 	if err != nil {
 		return nil, err
 	}
