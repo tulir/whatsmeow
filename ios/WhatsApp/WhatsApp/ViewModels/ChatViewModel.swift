@@ -38,14 +38,7 @@ class ChatViewModel: ObservableObject {
 
     private let client = WhatsAppClient.shared
     private var cancellables = Set<AnyCancellable>()
-    private let messagesFileURL: URL = {
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        return documentsPath.appendingPathComponent("messages.json")
-    }()
-    private let chatsFileURL: URL = {
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        return documentsPath.appendingPathComponent("chats.json")
-    }()
+    private let persistence = PersistenceController.shared
 
     // MARK: - Computed Properties
 
@@ -92,40 +85,26 @@ class ChatViewModel: ObservableObject {
         loadPersistedData()
     }
 
-    // MARK: - Persistence
+    // MARK: - Persistence (CoreData)
 
     private func loadPersistedData() {
-        // Load chats
-        if let data = try? Data(contentsOf: chatsFileURL),
-           let savedChats = try? JSONDecoder().decode([Chat].self, from: data) {
-            self.chats = savedChats
-        }
-
-        // Load messages
-        if let data = try? Data(contentsOf: messagesFileURL),
-           let savedMessages = try? JSONDecoder().decode([String: [Message]].self, from: data) {
-            self.messages = savedMessages
-        }
+        // Load from CoreData
+        self.chats = persistence.fetchAllChats()
+        self.messages = persistence.fetchAllMessages()
     }
 
-    private func saveChats() {
-        Task.detached { [chats = self.chats, url = self.chatsFileURL] in
-            if let data = try? JSONEncoder().encode(chats) {
-                try? data.write(to: url)
-            }
-        }
+    private func persistMessage(_ message: Message) {
+        // Queue for batch save (debounced)
+        persistence.queueMessage(message)
     }
 
-    private func saveMessages() {
-        Task.detached { [messages = self.messages, url = self.messagesFileURL] in
-            if let data = try? JSONEncoder().encode(messages) {
-                try? data.write(to: url)
-            }
-        }
+    private func persistChat(_ chat: Chat) {
+        // Queue for batch save (debounced)
+        persistence.queueChatUpdate(chat)
     }
 
     private func addMessage(_ message: Message) {
-        // Add to messages, avoiding duplicates
+        // Add to in-memory cache, avoiding duplicates
         if messages[message.chatJID] == nil {
             messages[message.chatJID] = []
         }
@@ -139,6 +118,9 @@ class ChatViewModel: ObservableObject {
 
         // Sort messages by timestamp
         messages[message.chatJID]?.sort { $0.timestamp < $1.timestamp }
+
+        // Persist to CoreData (batched)
+        persistMessage(message)
     }
 
     private func updateOrCreateChat(for message: Message) {
@@ -151,6 +133,8 @@ class ChatViewModel: ObservableObject {
             if !message.isFromMe {
                 chats[index].unreadCount += 1
             }
+            // Persist updated chat
+            persistChat(chats[index])
         } else {
             // Create new chat
             let newChat = Chat(
@@ -165,6 +149,8 @@ class ChatViewModel: ObservableObject {
                 isArchived: false
             )
             chats.append(newChat)
+            // Persist new chat
+            persistChat(newChat)
         }
     }
 
@@ -310,24 +296,25 @@ class ChatViewModel: ObservableObject {
 
             // Update message status and ID
             if let msgIndex = messages[chatJID]?.firstIndex(where: { $0.id == localMessage.id }) {
-                var updatedMessage = messages[chatJID]![msgIndex]
-                updatedMessage = Message(
+                let updatedMessage = Message(
                     id: messageID,
-                    chatJID: updatedMessage.chatJID,
-                    senderJID: updatedMessage.senderJID,
-                    senderName: updatedMessage.senderName,
-                    text: updatedMessage.text,
-                    timestamp: updatedMessage.timestamp,
-                    isFromMe: updatedMessage.isFromMe,
-                    isGroup: updatedMessage.isGroup,
+                    chatJID: chatJID,
+                    senderJID: myJID ?? "",
+                    senderName: "Me",
+                    text: text,
+                    timestamp: localMessage.timestamp,
+                    isFromMe: true,
+                    isGroup: chatJID.isGroupJID,
                     status: .sent
                 )
                 messages[chatJID]?[msgIndex] = updatedMessage
-            }
 
-            // Persist data
-            saveMessages()
-            saveChats()
+                // Persist to CoreData
+                persistMessage(updatedMessage)
+                if let index = chats.firstIndex(where: { $0.jid == chatJID }) {
+                    persistChat(chats[index])
+                }
+            }
 
             HapticFeedback.light()
         } catch {
@@ -563,23 +550,18 @@ extension ChatViewModel: WhatsAppClientDelegate {
             self.contacts = []
             self.messages = [:]
             UserDefaults.standard.set(false, forKey: .isLoggedIn)
-            // Clear persisted data
-            try? FileManager.default.removeItem(at: self.messagesFileURL)
-            try? FileManager.default.removeItem(at: self.chatsFileURL)
+            // Clear CoreData
+            self.persistence.clearAllData()
         }
     }
 
     nonisolated func didReceiveMessage(_ message: Message) {
         Task { @MainActor in
-            // Add message (handles duplicates and sorting)
+            // Add message (handles duplicates, sorting, and persistence)
             self.addMessage(message)
 
-            // Update or create chat
+            // Update or create chat (handles persistence)
             self.updateOrCreateChat(for: message)
-
-            // Persist data
-            self.saveMessages()
-            self.saveChats()
 
             HapticFeedback.light()
         }
