@@ -77,8 +77,8 @@ class PersistenceController {
     let container: NSPersistentContainer
 
     // Batch save queue to reduce disk writes
-    private var pendingMessages: [Message] = []
-    private var pendingChats: [Chat] = []
+    private var pendingMessages: [String: Message] = [:] // id -> message (deduped)
+    private var pendingChats: [String: Chat] = [:] // jid -> chat (deduped)
     private let saveQueue = DispatchQueue(label: "com.whatsapp.persistence", qos: .utility)
     private var saveWorkItem: DispatchWorkItem?
 
@@ -188,23 +188,18 @@ class PersistenceController {
 
     // MARK: - Batched Save (reduces CPU usage)
 
-    /// Queue a message for batch saving (debounced)
+    /// Queue a message for batch saving (debounced, deduped)
     func queueMessage(_ message: Message) {
         saveQueue.async { [weak self] in
-            self?.pendingMessages.append(message)
+            self?.pendingMessages[message.id] = message
             self?.scheduleBatchSave()
         }
     }
 
-    /// Queue a chat update for batch saving (debounced)
+    /// Queue a chat update for batch saving (debounced, deduped)
     func queueChatUpdate(_ chat: Chat) {
         saveQueue.async { [weak self] in
-            // Replace existing or append
-            if let index = self?.pendingChats.firstIndex(where: { $0.jid == chat.jid }) {
-                self?.pendingChats[index] = chat
-            } else {
-                self?.pendingChats.append(chat)
-            }
+            self?.pendingChats[chat.jid] = chat
             self?.scheduleBatchSave()
         }
     }
@@ -228,25 +223,25 @@ class PersistenceController {
     }
 
     private func performBatchSave() {
-        let messagesToSave = pendingMessages
-        let chatsToSave = pendingChats
-        pendingMessages = []
-        pendingChats = []
+        let messagesToSave = Array(pendingMessages.values)
+        let chatsToSave = Array(pendingChats.values)
+        pendingMessages = [:]
+        pendingChats = [:]
 
         guard !messagesToSave.isEmpty || !chatsToSave.isEmpty else { return }
 
         let context = newBackgroundContext()
         context.perform {
-            // Save messages
-            for message in messagesToSave {
-                let fetchRequest = NSFetchRequest<MessageEntity>(entityName: "MessageEntity")
-                fetchRequest.predicate = NSPredicate(format: "id == %@", message.id)
-                fetchRequest.fetchLimit = 1
+            // OPTIMIZED: Fetch all existing message IDs in ONE query
+            if !messagesToSave.isEmpty {
+                let messageIDs = messagesToSave.map { $0.id }
+                let existingIDs = self.fetchExistingMessageIDs(ids: messageIDs, context: context)
 
-                do {
-                    let existing = try context.fetch(fetchRequest)
-                    if existing.isEmpty {
-                        let entity = MessageEntity(entity: context.persistentStoreCoordinator!.managedObjectModel.entitiesByName["MessageEntity"]!, insertInto: context)
+                // Only insert messages that don't exist
+                let messageEntity = context.persistentStoreCoordinator!.managedObjectModel.entitiesByName["MessageEntity"]!
+                for message in messagesToSave {
+                    if !existingIDs.contains(message.id) {
+                        let entity = MessageEntity(entity: messageEntity, insertInto: context)
                         entity.id = message.id
                         entity.chatJID = message.chatJID
                         entity.senderJID = message.senderJID
@@ -262,24 +257,21 @@ class PersistenceController {
                         entity.quotedText = message.quotedText
                         entity.status = message.status.rawValue
                     }
-                } catch {
-                    print("Failed to check existing message: \(error)")
                 }
             }
 
-            // Save chats
-            for chat in chatsToSave {
-                let fetchRequest = NSFetchRequest<ChatEntity>(entityName: "ChatEntity")
-                fetchRequest.predicate = NSPredicate(format: "jid == %@", chat.jid)
-                fetchRequest.fetchLimit = 1
+            // OPTIMIZED: Fetch all existing chats in ONE query
+            if !chatsToSave.isEmpty {
+                let chatJIDs = chatsToSave.map { $0.jid }
+                let existingChats = self.fetchExistingChats(jids: chatJIDs, context: context)
 
-                do {
-                    let existing = try context.fetch(fetchRequest)
+                let chatEntity = context.persistentStoreCoordinator!.managedObjectModel.entitiesByName["ChatEntity"]!
+                for chat in chatsToSave {
                     let entity: ChatEntity
-                    if let existingChat = existing.first {
-                        entity = existingChat
+                    if let existing = existingChats[chat.jid] {
+                        entity = existing
                     } else {
-                        entity = ChatEntity(entity: context.persistentStoreCoordinator!.managedObjectModel.entitiesByName["ChatEntity"]!, insertInto: context)
+                        entity = ChatEntity(entity: chatEntity, insertInto: context)
                     }
 
                     entity.jid = chat.jid
@@ -293,23 +285,57 @@ class PersistenceController {
                     entity.isArchived = chat.isArchived
                     entity.profilePictureURL = chat.profilePictureURL
                     entity.participantCount = Int32(chat.participantCount ?? 0)
-                } catch {
-                    print("Failed to check existing chat: \(error)")
                 }
             }
 
             do {
-                try context.save()
+                if context.hasChanges {
+                    try context.save()
+                }
             } catch {
                 print("Failed batch save: \(error)")
             }
         }
     }
 
+    /// Fetch existing message IDs in one query
+    private func fetchExistingMessageIDs(ids: [String], context: NSManagedObjectContext) -> Set<String> {
+        guard !ids.isEmpty else { return [] }
+
+        let fetchRequest = NSFetchRequest<NSDictionary>(entityName: "MessageEntity")
+        fetchRequest.predicate = NSPredicate(format: "id IN %@", ids)
+        fetchRequest.resultType = .dictionaryResultType
+        fetchRequest.propertiesToFetch = ["id"]
+
+        do {
+            let results = try context.fetch(fetchRequest)
+            return Set(results.compactMap { $0["id"] as? String })
+        } catch {
+            return []
+        }
+    }
+
+    /// Fetch existing chats in one query
+    private func fetchExistingChats(jids: [String], context: NSManagedObjectContext) -> [String: ChatEntity] {
+        guard !jids.isEmpty else { return [:] }
+
+        let fetchRequest = NSFetchRequest<ChatEntity>(entityName: "ChatEntity")
+        fetchRequest.predicate = NSPredicate(format: "jid IN %@", jids)
+
+        do {
+            let results = try context.fetch(fetchRequest)
+            return Dictionary(uniqueKeysWithValues: results.compactMap { entity in
+                guard let jid = entity.jid else { return nil }
+                return (jid, entity)
+            })
+        } catch {
+            return [:]
+        }
+    }
+
     private func updateChatForMessageInternal(_ message: Message) {
         // Find existing chat in pending or create new
-        if let index = pendingChats.firstIndex(where: { $0.jid == message.chatJID }) {
-            var chat = pendingChats[index]
+        if var chat = pendingChats[message.chatJID] {
             if message.timestamp > chat.lastMessageTime {
                 chat.lastMessage = message.displayText
                 chat.lastMessageTime = message.timestamp
@@ -317,9 +343,9 @@ class PersistenceController {
             if !message.isFromMe {
                 chat.unreadCount += 1
             }
-            pendingChats[index] = chat
+            pendingChats[message.chatJID] = chat
         } else {
-            // Need to fetch from DB or create new
+            // Create new
             let newChat = Chat(
                 jid: message.chatJID,
                 name: message.senderName.isEmpty ? message.senderJID : message.senderName,
@@ -331,7 +357,7 @@ class PersistenceController {
                 isPinned: false,
                 isArchived: false
             )
-            pendingChats.append(newChat)
+            pendingChats[message.chatJID] = newChat
         }
     }
 
@@ -392,8 +418,8 @@ class PersistenceController {
 
     func clearAllData() {
         saveQueue.async { [weak self] in
-            self?.pendingMessages = []
-            self?.pendingChats = []
+            self?.pendingMessages = [:]
+            self?.pendingChats = [:]
         }
 
         let context = newBackgroundContext()
