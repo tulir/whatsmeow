@@ -234,6 +234,11 @@ class ChatViewModel: ObservableObject {
             chats.append(newChat)
             // Persist new chat
             persistChat(newChat)
+
+            // Load profile picture for new chat
+            Task.detached(priority: .utility) { [weak self] in
+                await self?.loadProfilePicture(for: message.chatJID)
+            }
         }
     }
 
@@ -345,11 +350,47 @@ class ChatViewModel: ObservableObject {
                 myPhoneNumber = "+\(phone)"
             }
 
+            // Load profile pictures for all chats (background task)
+            Task.detached(priority: .utility) { [weak self] in
+                await self?.loadAllProfilePictures()
+            }
+
         } catch {
             print("Failed to load initial data: \(error)")
         }
 
         isLoadingChats = false
+    }
+
+    /// Load profile pictures for all chats
+    private func loadAllProfilePictures() async {
+        for chat in chats {
+            // Skip if already has profile picture
+            if chat.profilePictureURL != nil && !chat.profilePictureURL!.isEmpty {
+                continue
+            }
+
+            await loadProfilePicture(for: chat.jid)
+
+            // Rate limit to avoid overwhelming the server
+            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms between requests
+        }
+    }
+
+    /// Load profile picture for a specific JID
+    private func loadProfilePicture(for jid: String) async {
+        do {
+            if let profileURL = try await client.getProfilePicture(jid: jid) {
+                await MainActor.run {
+                    if let index = chats.firstIndex(where: { $0.jid == jid }) {
+                        chats[index].profilePictureURL = profileURL
+                        persistChat(chats[index])
+                    }
+                }
+            }
+        } catch {
+            // Silently fail - profile picture is optional
+        }
     }
 
     // MARK: - Messaging
@@ -430,6 +471,13 @@ class ChatViewModel: ObservableObject {
     }
 
     func markAsRead(chatJID: String) async {
+        // Update unread count immediately for better UX
+        if let index = chats.firstIndex(where: { $0.jid == chatJID }) {
+            chats[index].unreadCount = 0
+            // Persist chat update
+            persistChat(chats[index])
+        }
+
         guard let chatMessages = messages[chatJID] else { return }
 
         let unreadMessageIDs = chatMessages
@@ -441,12 +489,18 @@ class ChatViewModel: ObservableObject {
         do {
             try await client.markAsRead(chatJID: chatJID, messageIDs: unreadMessageIDs)
 
-            // Update local state
-            if let index = chats.firstIndex(where: { $0.jid == chatJID }) {
-                chats[index].unreadCount = 0
+            // Update message statuses to read
+            for (idx, message) in chatMessages.enumerated() where unreadMessageIDs.contains(message.id) {
+                messages[chatJID]?[idx].status = .read
+                persistMessage(messages[chatJID]![idx])
             }
         } catch {
             print("Failed to mark as read: \(error)")
+            // Revert unread count on failure
+            if let index = chats.firstIndex(where: { $0.jid == chatJID }) {
+                chats[index].unreadCount = unreadMessageIDs.count
+                persistChat(chats[index])
+            }
         }
     }
 
@@ -548,6 +602,13 @@ class ChatViewModel: ObservableObject {
         )
 
         chats.insert(newChat, at: 0)
+        persistChat(newChat)
+
+        // Load profile picture in background
+        Task.detached(priority: .utility) { [weak self] in
+            await self?.loadProfilePicture(for: contact.jid)
+        }
+
         return newChat
     }
 

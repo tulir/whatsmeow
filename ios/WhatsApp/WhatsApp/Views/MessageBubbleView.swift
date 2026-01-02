@@ -138,6 +138,8 @@ struct QuotedMessageView: View {
 
 struct MediaPreviewView: View {
     let message: Message
+    @State private var loadedImage: UIImage?
+    @State private var isLoading = false
 
     var body: some View {
         Group {
@@ -156,6 +158,11 @@ struct MediaPreviewView: View {
                 EmptyView()
             }
         }
+        .onAppear {
+            if message.mediaType == .image {
+                loadMediaImage()
+            }
+        }
     }
 
     private var imagePreview: some View {
@@ -164,9 +171,45 @@ struct MediaPreviewView: View {
                 .fill(Color.gray.opacity(0.2))
                 .frame(width: 200, height: 150)
 
-            Image(systemName: "photo")
-                .font(.largeTitle)
-                .foregroundColor(.secondary)
+            if let image = loadedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 200, height: 150)
+                    .clipped()
+                    .cornerRadius(8)
+            } else if isLoading {
+                ProgressView()
+            } else {
+                Image(systemName: "photo")
+                    .font(.largeTitle)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+
+    private func loadMediaImage() {
+        guard let urlString = message.mediaURL, !urlString.isEmpty else { return }
+        guard let url = URL(string: urlString) else { return }
+
+        isLoading = true
+
+        // Load image on background thread
+        Task.detached(priority: .userInitiated) {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        loadedImage = image
+                        isLoading = false
+                    }
+                }
+            } catch {
+                print("Failed to load media image: \(error)")
+                await MainActor.run {
+                    isLoading = false
+                }
+            }
         }
     }
 

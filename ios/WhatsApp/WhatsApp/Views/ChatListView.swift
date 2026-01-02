@@ -149,25 +149,18 @@ struct ChatListView: View {
 
 struct ChatRowView: View {
     let chat: Chat
+    @EnvironmentObject var viewModel: ChatViewModel
 
     var body: some View {
         HStack(spacing: 12) {
-            // Avatar
-            ZStack {
-                Circle()
-                    .fill(Color.whatsappGreen.opacity(0.2))
-                    .frame(width: 56, height: 56)
-
-                if chat.isGroup {
-                    Image(systemName: "person.3.fill")
-                        .foregroundColor(.whatsappGreen)
-                } else {
-                    Text(chat.initials)
-                        .font(.title3)
-                        .fontWeight(.medium)
-                        .foregroundColor(.whatsappGreen)
-                }
-            }
+            // Avatar with profile picture loading
+            ProfilePictureView(
+                jid: chat.jid,
+                profilePictureURL: chat.profilePictureURL,
+                isGroup: chat.isGroup,
+                initials: chat.initials,
+                size: 56
+            )
 
             // Content
             VStack(alignment: .leading, spacing: 4) {
@@ -221,6 +214,73 @@ struct ChatRowView: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+/// Profile picture view with URL loading and fallback
+struct ProfilePictureView: View {
+    let jid: String
+    let profilePictureURL: String?
+    let isGroup: Bool
+    let initials: String
+    let size: CGFloat
+
+    @State private var loadedImage: UIImage?
+    @State private var isLoading = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.whatsappGreen.opacity(0.2))
+                .frame(width: size, height: size)
+
+            if let image = loadedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: size, height: size)
+                    .clipShape(Circle())
+            } else if isLoading {
+                ProgressView()
+                    .scaleEffect(0.8)
+            } else if isGroup {
+                Image(systemName: "person.3.fill")
+                    .foregroundColor(.whatsappGreen)
+                    .font(.system(size: size * 0.4))
+            } else {
+                Text(initials)
+                    .font(.system(size: size * 0.35))
+                    .fontWeight(.medium)
+                    .foregroundColor(.whatsappGreen)
+            }
+        }
+        .onAppear {
+            loadProfilePicture()
+        }
+    }
+
+    private func loadProfilePicture() {
+        guard let urlString = profilePictureURL, !urlString.isEmpty else { return }
+        guard let url = URL(string: urlString) else { return }
+
+        isLoading = true
+
+        // Load image on background thread
+        Task.detached(priority: .userInitiated) {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        loadedImage = image
+                        isLoading = false
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                }
+            }
+        }
     }
 }
 
