@@ -11,6 +11,25 @@ struct Contact: Identifiable, Codable, Hashable {
 
     var id: String { jid }
 
+    // CodingKeys to match Go JSON output
+    enum CodingKeys: String, CodingKey {
+        case jid = "JID"
+        case name = "Name"
+        case pushName = "PushName"
+        case phoneNumber = "PhoneNumber"
+        case isGroup = "IsGroup"
+        case profilePictureURL
+    }
+
+    init(jid: String, name: String, pushName: String, phoneNumber: String, isGroup: Bool, profilePictureURL: String? = nil) {
+        self.jid = jid
+        self.name = name
+        self.pushName = pushName
+        self.phoneNumber = phoneNumber
+        self.isGroup = isGroup
+        self.profilePictureURL = profilePictureURL
+    }
+
     var displayName: String {
         if !name.isEmpty {
             return name

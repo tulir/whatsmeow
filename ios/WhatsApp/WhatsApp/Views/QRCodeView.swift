@@ -48,16 +48,6 @@ struct QRCodeView: View {
 
             Spacer()
 
-            // Demo button (for testing)
-            Button(action: {
-                viewModel.demoLogin()
-            }) {
-                Text("Demo Mode (Skip QR)")
-                    .font(.footnote)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.bottom)
-
             // Refresh button
             Button(action: refreshQRCode) {
                 HStack {

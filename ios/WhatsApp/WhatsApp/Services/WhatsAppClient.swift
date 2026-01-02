@@ -1,9 +1,6 @@
 import Foundation
 import Combine
-
-// Note: This file bridges to the Go mobile framework.
-// When building, import the generated Mobile framework:
-// import Mobile
+import Mobile  // Import the Go mobile framework
 
 /// Protocol for WhatsApp event callbacks
 protocol WhatsAppClientDelegate: AnyObject {
@@ -43,7 +40,7 @@ struct UserPresence {
 
 /// WhatsApp client wrapper for iOS
 /// This class wraps the Go mobile framework and provides a Swift-friendly API
-class WhatsAppClient: ObservableObject {
+class WhatsAppClient: NSObject, ObservableObject {
     static let shared = WhatsAppClient()
 
     // Published properties for SwiftUI bindings
@@ -55,11 +52,13 @@ class WhatsAppClient: ObservableObject {
 
     weak var delegate: WhatsAppClientDelegate?
 
-    // Private properties
-    private var goClient: Any? // MobileClient from Go framework
+    // Go client from the Mobile framework
+    private var goClient: MobileClient?
     private let queue = DispatchQueue(label: "com.whatsapp.client", qos: .userInitiated)
 
-    private init() {}
+    private override init() {
+        super.init()
+    }
 
     // MARK: - Database Path
 
@@ -76,11 +75,15 @@ class WhatsAppClient: ObservableObject {
             guard let self = self else { return }
 
             do {
-                // In production, this would be:
-                // let client = try MobileNewClient(self.databasePath, self)
-                // self.goClient = client
+                // Create the Go client with database path and self as callback
+                var error: NSError?
+                let client = MobileNewClient(self.databasePath, self, &error)
 
-                // For now, we'll use a mock implementation
+                if let error = error {
+                    throw error
+                }
+
+                self.goClient = client
                 print("WhatsApp client initialized with database at: \(self.databasePath)")
             } catch {
                 DispatchQueue.main.async {
@@ -94,17 +97,15 @@ class WhatsAppClient: ObservableObject {
     /// Connect to WhatsApp servers
     func connect() {
         queue.async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self, let client = self.goClient else {
+                DispatchQueue.main.async {
+                    self?.connectionError = "Client not initialized"
+                }
+                return
+            }
 
             do {
-                // In production:
-                // try (self.goClient as? MobileClient)?.connect()
-
-                // Mock: Generate a sample QR code after a delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                    self.currentQRCode = "1@QRCodeDataHere,SampleQRCodeForTesting,1234567890"
-                    self.delegate?.didReceiveQRCode(self.currentQRCode!)
-                }
+                try client.connect()
             } catch {
                 DispatchQueue.main.async {
                     self.connectionError = "Connection failed: \(error.localizedDescription)"
@@ -119,8 +120,7 @@ class WhatsAppClient: ObservableObject {
         queue.async { [weak self] in
             guard let self = self else { return }
 
-            // In production:
-            // (self.goClient as? MobileClient)?.disconnect()
+            self.goClient?.disconnect()
 
             DispatchQueue.main.async {
                 self.isConnected = false
@@ -133,14 +133,13 @@ class WhatsAppClient: ObservableObject {
     func logout() async throws {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard let self = self else {
+                guard let self = self, let client = self.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // try (self.goClient as? MobileClient)?.logout()
+                    try client.logout()
 
                     DispatchQueue.main.async {
                         self.isLoggedIn = false
@@ -163,17 +162,19 @@ class WhatsAppClient: ObservableObject {
     func sendTextMessage(to chatJID: String, text: String) async throws -> String {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let messageID = try (self?.goClient as? MobileClient)?.sendTextMessage(chatJID, text)
+                    var error: NSError?
+                    let messageID = client.sendTextMessage(chatJID, text: text, error: &error)
 
-                    // Mock: Return a generated message ID
-                    let messageID = UUID().uuidString
+                    if let error = error {
+                        throw error
+                    }
+
                     continuation.resume(returning: messageID)
                 } catch {
                     continuation.resume(throwing: error)
@@ -186,17 +187,20 @@ class WhatsAppClient: ObservableObject {
     func sendImageMessage(to chatJID: String, imageData: Data, caption: String, mimeType: String = "image/jpeg") async throws -> String {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let base64Data = imageData.base64EncodedString()
-                    // let messageID = try (self?.goClient as? MobileClient)?.sendImageMessage(chatJID, base64Data, caption, mimeType)
+                    let base64Data = imageData.base64EncodedString()
+                    var error: NSError?
+                    let messageID = client.sendImageMessage(chatJID, imageDataBase64: base64Data, caption: caption, mimeType: mimeType, error: &error)
 
-                    let messageID = UUID().uuidString
+                    if let error = error {
+                        throw error
+                    }
+
                     continuation.resume(returning: messageID)
                 } catch {
                     continuation.resume(throwing: error)
@@ -209,17 +213,20 @@ class WhatsAppClient: ObservableObject {
     func sendDocumentMessage(to chatJID: String, documentData: Data, filename: String, caption: String, mimeType: String) async throws -> String {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let base64Data = documentData.base64EncodedString()
-                    // let messageID = try (self?.goClient as? MobileClient)?.sendDocumentMessage(chatJID, base64Data, filename, caption, mimeType)
+                    let base64Data = documentData.base64EncodedString()
+                    var error: NSError?
+                    let messageID = client.sendDocumentMessage(chatJID, documentDataBase64: base64Data, filename: filename, caption: caption, mimeType: mimeType, error: &error)
 
-                    let messageID = UUID().uuidString
+                    if let error = error {
+                        throw error
+                    }
+
                     continuation.resume(returning: messageID)
                 } catch {
                     continuation.resume(throwing: error)
@@ -232,16 +239,14 @@ class WhatsAppClient: ObservableObject {
     func markAsRead(chatJID: String, messageIDs: [String]) async throws {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let idsJSON = try JSONEncoder().encode(messageIDs)
-                    // try (self?.goClient as? MobileClient)?.markAsRead(chatJID, String(data: idsJSON, encoding: .utf8)!)
-
+                    let idsJSON = try String(data: JSONEncoder().encode(messageIDs), encoding: .utf8)!
+                    try client.markAsRead(chatJID, messageIDsJSON: idsJSON)
                     continuation.resume()
                 } catch {
                     continuation.resume(throwing: error)
@@ -254,15 +259,13 @@ class WhatsAppClient: ObservableObject {
     func sendTyping(to chatJID: String, isTyping: Bool) async throws {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // try (self?.goClient as? MobileClient)?.sendTyping(chatJID, isTyping)
-
+                    try client.sendTyping(chatJID, typing: isTyping)
                     continuation.resume()
                 } catch {
                     continuation.resume(throwing: error)
@@ -277,24 +280,31 @@ class WhatsAppClient: ObservableObject {
     func getContactInfo(jid: String) async throws -> Contact {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let contactData = try (self?.goClient as? MobileClient)?.getContactInfo(jid)
-                    // let contact = try JSONDecoder().decode(Contact.self, from: contactData!.data(using: .utf8)!)
+                    var error: NSError?
+                    let contactPtr = client.getContactInfo(jid, error: &error)
 
-                    // Mock contact
+                    if let error = error {
+                        throw error
+                    }
+
+                    guard let mobileContact = contactPtr else {
+                        throw WhatsAppError.unknown("Contact not found")
+                    }
+
                     let contact = Contact(
-                        jid: jid,
-                        name: "",
-                        pushName: "",
-                        phoneNumber: jid.components(separatedBy: "@").first ?? "",
-                        isGroup: jid.contains("@g.us")
+                        jid: mobileContact.jid,
+                        name: mobileContact.name,
+                        pushName: mobileContact.pushName,
+                        phoneNumber: mobileContact.phoneNumber,
+                        isGroup: mobileContact.isGroup
                     )
+
                     continuation.resume(returning: contact)
                 } catch {
                     continuation.resume(throwing: error)
@@ -307,18 +317,24 @@ class WhatsAppClient: ObservableObject {
     func getStoredContacts() async throws -> [Contact] {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let contactsJSON = try (self?.goClient as? MobileClient)?.getStoredContacts()
-                    // let contacts = try JSONDecoder().decode([Contact].self, from: contactsJSON!.data(using: .utf8)!)
+                    var error: NSError?
+                    let contactsJSON = client.getStoredContacts(&error)
 
-                    // Mock contacts
-                    let contacts = Contact.samples
+                    if let error = error {
+                        throw error
+                    }
+
+                    guard let jsonData = contactsJSON.data(using: .utf8) else {
+                        throw WhatsAppError.unknown("Invalid JSON response")
+                    }
+
+                    let contacts = try JSONDecoder().decode([Contact].self, from: jsonData)
                     continuation.resume(returning: contacts)
                 } catch {
                     continuation.resume(throwing: error)
@@ -328,21 +344,27 @@ class WhatsAppClient: ObservableObject {
     }
 
     /// Get all joined groups
-    func getJoinedGroups() async throws -> [Chat] {
+    func getJoinedGroups() async throws -> [GroupInfoResponse] {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let groupsJSON = try (self?.goClient as? MobileClient)?.getJoinedGroups()
-                    // parse and return
+                    var error: NSError?
+                    let groupsJSON = client.getJoinedGroups(&error)
 
-                    // Mock groups
-                    let groups = Chat.samples.filter { $0.isGroup }
+                    if let error = error {
+                        throw error
+                    }
+
+                    guard let jsonData = groupsJSON.data(using: .utf8) else {
+                        throw WhatsAppError.unknown("Invalid JSON response")
+                    }
+
+                    let groups = try JSONDecoder().decode([GroupInfoResponse].self, from: jsonData)
                     continuation.resume(returning: groups)
                 } catch {
                     continuation.resume(throwing: error)
@@ -355,17 +377,20 @@ class WhatsAppClient: ObservableObject {
     func isOnWhatsApp(phoneNumber: String) async throws -> Bool {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let result = try (self?.goClient as? MobileClient)?.isOnWhatsApp(phoneNumber)
+                    var error: NSError?
+                    let result = client.isOnWhatsApp(phoneNumber, error: &error)
 
-                    // Mock: assume all numbers are on WhatsApp
-                    continuation.resume(returning: true)
+                    if let error = error {
+                        throw error
+                    }
+
+                    continuation.resume(returning: result)
                 } catch {
                     continuation.resume(throwing: error)
                 }
@@ -377,16 +402,20 @@ class WhatsAppClient: ObservableObject {
     func getProfilePicture(jid: String) async throws -> String? {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let url = try (self?.goClient as? MobileClient)?.getProfilePicture(jid)
+                    var error: NSError?
+                    let url = client.getProfilePicture(jid, error: &error)
 
-                    continuation.resume(returning: nil)
+                    if let error = error {
+                        throw error
+                    }
+
+                    continuation.resume(returning: url.isEmpty ? nil : url)
                 } catch {
                     continuation.resume(throwing: error)
                 }
@@ -398,17 +427,20 @@ class WhatsAppClient: ObservableObject {
     func createGroup(name: String, participants: [String]) async throws -> String {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // let participantsJSON = try String(data: JSONEncoder().encode(participants), encoding: .utf8)!
-                    // let groupJID = try (self?.goClient as? MobileClient)?.createGroup(name, participantsJSON)
+                    let participantsJSON = try String(data: JSONEncoder().encode(participants), encoding: .utf8)!
+                    var error: NSError?
+                    let groupJID = client.createGroup(name, participantsJSON: participantsJSON, error: &error)
 
-                    let groupJID = "\(UUID().uuidString.prefix(18))@g.us"
+                    if let error = error {
+                        throw error
+                    }
+
                     continuation.resume(returning: groupJID)
                 } catch {
                     continuation.resume(throwing: error)
@@ -421,15 +453,13 @@ class WhatsAppClient: ObservableObject {
     func leaveGroup(groupJID: String) async throws {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // try (self?.goClient as? MobileClient)?.leaveGroup(groupJID)
-
+                    try client.leaveGroup(groupJID)
                     continuation.resume()
                 } catch {
                     continuation.resume(throwing: error)
@@ -444,15 +474,13 @@ class WhatsAppClient: ObservableObject {
     func setPresence(available: Bool) async throws {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
-                guard self != nil else {
+                guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
                 do {
-                    // In production:
-                    // try (self?.goClient as? MobileClient)?.setPresence(available)
-
+                    try client.setPresence(available)
                     continuation.resume()
                 } catch {
                     continuation.resume(throwing: error)
@@ -465,102 +493,176 @@ class WhatsAppClient: ObservableObject {
 
     /// Create a JID from a phone number
     static func createJID(phoneNumber: String) -> String {
-        let cleaned = phoneNumber.filter { $0.isNumber }
-        return "\(cleaned)@s.whatsapp.net"
+        // Use the Go utility function
+        return MobileCreateJID(phoneNumber)
     }
 
     /// Create a group JID
     static func createGroupJID(groupID: String) -> String {
-        return "\(groupID)@g.us"
+        return MobileCreateGroupJID(groupID)
+    }
+
+    /// Get the current user's JID
+    func getMyJIDString() -> String? {
+        return goClient?.getMyJID()
+    }
+
+    /// Check if connected
+    func checkIsConnected() -> Bool {
+        return goClient?.isConnected() ?? false
+    }
+
+    /// Check if logged in
+    func checkIsLoggedIn() -> Bool {
+        return goClient?.isLoggedIn() ?? false
     }
 }
 
-// MARK: - Event Callback Implementation
-// This extension would implement the Mobile.EventCallback protocol from Go
+// MARK: - MobileEventCallbackProtocol Implementation
 
-/*
- In production, implement:
+extension WhatsAppClient: MobileEventCallbackProtocol {
 
- extension WhatsAppClient: MobileEventCallback {
-     func onQRCode(_ code: String?) {
-         guard let code = code else { return }
-         DispatchQueue.main.async {
-             self.currentQRCode = code
-             self.delegate?.didReceiveQRCode(code)
-         }
-     }
+    func onQRCode(_ code: String?) {
+        guard let code = code, !code.isEmpty else { return }
+        DispatchQueue.main.async {
+            self.currentQRCode = code
+            self.delegate?.didReceiveQRCode(code)
+        }
+    }
 
-     func onConnected() {
-         DispatchQueue.main.async {
-             self.isConnected = true
-             self.isLoggedIn = true
-             self.currentQRCode = nil
-             self.delegate?.didConnect()
-         }
-     }
+    func onConnected() {
+        DispatchQueue.main.async {
+            self.isConnected = true
+            self.isLoggedIn = true
+            self.currentQRCode = nil
+            self.myJID = self.goClient?.getMyJID()
+            self.delegate?.didConnect()
+        }
+    }
 
-     func onDisconnected(_ reason: String?) {
-         DispatchQueue.main.async {
-             self.isConnected = false
-             self.delegate?.didDisconnect(reason: reason ?? "Unknown")
-         }
-     }
+    func onDisconnected(_ reason: String?) {
+        DispatchQueue.main.async {
+            self.isConnected = false
+            self.delegate?.didDisconnect(reason: reason ?? "Unknown")
+        }
+    }
 
-     func onLoggedOut(_ reason: String?) {
-         DispatchQueue.main.async {
-             self.isConnected = false
-             self.isLoggedIn = false
-             self.myJID = nil
-             self.delegate?.didLogout(reason: reason ?? "Unknown")
-         }
-     }
+    func onLoggedOut(_ reason: String?) {
+        DispatchQueue.main.async {
+            self.isConnected = false
+            self.isLoggedIn = false
+            self.myJID = nil
+            self.delegate?.didLogout(reason: reason ?? "Unknown")
+        }
+    }
 
-     func onMessage(_ msg: MobileMessage?) {
-         guard let msg = msg else { return }
-         let message = Message(
-             id: msg.id ?? "",
-             chatJID: msg.chatJID ?? "",
-             senderJID: msg.senderJID ?? "",
-             senderName: msg.senderName ?? "",
-             text: msg.text ?? "",
-             timestamp: Date(timeIntervalSince1970: TimeInterval(msg.timestamp)),
-             isFromMe: msg.isFromMe,
-             isGroup: msg.isGroup,
-             mediaType: Message.MediaType(rawValue: msg.mediaType ?? "") ?? .none,
-             mediaURL: msg.mediaURL,
-             mediaCaption: msg.mediaCaption,
-             quotedID: msg.quotedID,
-             quotedText: msg.quotedText,
-             status: .delivered
-         )
-         DispatchQueue.main.async {
-             self.delegate?.didReceiveMessage(message)
-         }
-     }
+    func onMessage(_ msg: MobileMessage?) {
+        guard let msg = msg else { return }
 
-     func onReceipt(_ receipt: MobileReceipt?) {
-         // Handle receipt
-     }
+        let mediaType: Message.MediaType
+        switch msg.mediaType {
+        case "image": mediaType = .image
+        case "video": mediaType = .video
+        case "audio": mediaType = .audio
+        case "document": mediaType = .document
+        case "sticker": mediaType = .sticker
+        default: mediaType = .none
+        }
 
-     func onPresence(_ presence: MobilePresence?) {
-         // Handle presence
-     }
+        let message = Message(
+            id: msg.id,
+            chatJID: msg.chatJID,
+            senderJID: msg.senderJID,
+            senderName: msg.senderName,
+            text: msg.text,
+            timestamp: Date(timeIntervalSince1970: TimeInterval(msg.timestamp)),
+            isFromMe: msg.isFromMe,
+            isGroup: msg.isGroup,
+            mediaType: mediaType,
+            mediaURL: msg.mediaURL.isEmpty ? nil : msg.mediaURL,
+            mediaCaption: msg.mediaCaption.isEmpty ? nil : msg.mediaCaption,
+            quotedID: msg.quotedID.isEmpty ? nil : msg.quotedID,
+            quotedText: msg.quotedText.isEmpty ? nil : msg.quotedText,
+            status: .delivered
+        )
 
-     func onHistorySync(_ progress: Int, total: Int) {
-         DispatchQueue.main.async {
-             self.delegate?.didReceiveHistorySync(progress: progress, total: total)
-         }
-     }
+        DispatchQueue.main.async {
+            self.delegate?.didReceiveMessage(message)
+        }
+    }
 
-     func onError(_ err: String?) {
-         guard let err = err else { return }
-         DispatchQueue.main.async {
-             self.connectionError = err
-             self.delegate?.didReceiveError(err)
-         }
-     }
- }
- */
+    func onReceipt(_ receipt: MobileReceipt?) {
+        guard let receipt = receipt else { return }
+
+        let receiptType: MessageReceipt.ReceiptType
+        switch receipt.type {
+        case "delivered": receiptType = .delivered
+        case "read": receiptType = .read
+        case "played": receiptType = .played
+        default: receiptType = .unknown
+        }
+
+        let messageReceipt = MessageReceipt(
+            messageID: receipt.messageID,
+            chatJID: receipt.chatJID,
+            senderJID: receipt.senderJID,
+            type: receiptType,
+            timestamp: Date(timeIntervalSince1970: TimeInterval(receipt.timestamp))
+        )
+
+        DispatchQueue.main.async {
+            self.delegate?.didReceiveReceipt(messageReceipt)
+        }
+    }
+
+    func onPresence(_ presence: MobilePresence?) {
+        guard let presence = presence else { return }
+
+        let userPresence = UserPresence(
+            jid: presence.jid,
+            isAvailable: presence.available,
+            lastSeen: presence.lastSeen > 0 ? Date(timeIntervalSince1970: TimeInterval(presence.lastSeen)) : nil
+        )
+
+        DispatchQueue.main.async {
+            self.delegate?.didReceivePresence(userPresence)
+        }
+    }
+
+    func onHistorySync(_ progress: Int, total: Int) {
+        DispatchQueue.main.async {
+            self.delegate?.didReceiveHistorySync(progress: progress, total: total)
+        }
+    }
+
+    func onError(_ err: String?) {
+        guard let err = err, !err.isEmpty else { return }
+        DispatchQueue.main.async {
+            self.connectionError = err
+            self.delegate?.didReceiveError(err)
+        }
+    }
+}
+
+// MARK: - Group Info Response (for JSON decoding)
+
+struct GroupInfoResponse: Codable {
+    let jid: String
+    let name: String
+    let topic: String
+    let participantCount: Int
+    let createdAt: Int64
+    let isAdmin: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case jid = "JID"
+        case name = "Name"
+        case topic = "Topic"
+        case participantCount = "ParticipantCount"
+        case createdAt = "CreatedAt"
+        case isAdmin = "IsAdmin"
+    }
+}
 
 // MARK: - Errors
 

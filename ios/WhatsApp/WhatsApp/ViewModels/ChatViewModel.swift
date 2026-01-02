@@ -74,6 +74,8 @@ class ChatViewModel: ObservableObject {
 
     init() {
         setupBindings()
+        // Set self as delegate
+        client.delegate = self
     }
 
     private func setupBindings() {
@@ -104,7 +106,7 @@ class ChatViewModel: ObservableObject {
     func initialize() {
         client.initialize()
 
-        // Check if we have stored credentials
+        // Check if we have stored credentials - auto connect if logged in before
         if UserDefaults.standard.bool(forKey: .isLoggedIn) {
             connect()
         }
@@ -114,12 +116,6 @@ class ChatViewModel: ObservableObject {
         isConnecting = true
         connectionError = nil
         client.connect()
-
-        // For demo, simulate connection after delay
-        Task {
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            isConnecting = false
-        }
     }
 
     func disconnect() {
@@ -142,70 +138,50 @@ class ChatViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Demo Login (for testing without real WhatsApp)
+    // MARK: - Data Loading
 
-    func demoLogin() {
-        isConnecting = true
+    /// Load contacts and groups after connection
+    func loadInitialData() async {
+        isLoadingChats = true
 
-        Task {
-            try? await Task.sleep(nanoseconds: 1_500_000_000)
+        do {
+            // Load contacts
+            contacts = try await client.getStoredContacts()
 
-            isConnecting = false
-            isLoggedIn = true
-            isConnected = true
-            currentQRCode = nil
-            myJID = "1234567890@s.whatsapp.net"
-            myName = "Demo User"
-            myPhoneNumber = "+1 (234) 567-890"
+            // Load joined groups
+            let groups = try await client.getJoinedGroups()
 
-            // Load demo data
-            loadDemoData()
+            // Convert groups to chats
+            for group in groups {
+                let chat = Chat(
+                    jid: group.jid,
+                    name: group.name,
+                    lastMessage: "",
+                    lastMessageTime: Date(timeIntervalSince1970: TimeInterval(group.createdAt)),
+                    unreadCount: 0,
+                    isGroup: true,
+                    isMuted: false,
+                    isPinned: false,
+                    isArchived: false,
+                    participantCount: group.participantCount
+                )
 
-            UserDefaults.standard.set(true, forKey: .isLoggedIn)
-        }
-    }
+                if !chats.contains(where: { $0.jid == chat.jid }) {
+                    chats.append(chat)
+                }
+            }
 
-    private func loadDemoData() {
-        chats = Chat.samples
-        contacts = Contact.samples
+            // Extract phone number from JID
+            if let jid = myJID {
+                let phone = jid.components(separatedBy: "@").first ?? ""
+                myPhoneNumber = "+\(phone)"
+            }
 
-        // Add some demo messages
-        for chat in chats {
-            messages[chat.jid] = generateDemoMessages(for: chat)
-        }
-    }
-
-    private func generateDemoMessages(for chat: Chat) -> [Message] {
-        let names = ["Alice", "Bob", "Carol", "David"]
-        let texts = [
-            "Hey, how are you?",
-            "I'm doing great, thanks!",
-            "Did you see the news?",
-            "Let's meet up tomorrow",
-            "Sounds good!",
-            "See you then!",
-        ]
-
-        var demoMessages: [Message] = []
-        let count = Int.random(in: 5...15)
-
-        for i in 0..<count {
-            let isFromMe = Bool.random()
-            let message = Message(
-                id: UUID().uuidString,
-                chatJID: chat.jid,
-                senderJID: isFromMe ? (myJID ?? "") : chat.jid,
-                senderName: isFromMe ? "Me" : (chat.isGroup ? names.randomElement()! : chat.name),
-                text: texts.randomElement()!,
-                timestamp: Date().addingTimeInterval(-Double(count - i) * 3600),
-                isFromMe: isFromMe,
-                isGroup: chat.isGroup,
-                status: isFromMe ? .read : .delivered
-            )
-            demoMessages.append(message)
+        } catch {
+            print("Failed to load initial data: \(error)")
         }
 
-        return demoMessages.sorted { $0.timestamp < $1.timestamp }
+        isLoadingChats = false
     }
 
     // MARK: - Messaging
@@ -242,10 +218,8 @@ class ChatViewModel: ObservableObject {
             // Send via client
             let messageID = try await client.sendTextMessage(to: chatJID, text: text)
 
-            // Update message status
+            // Update message status and ID
             if let msgIndex = messages[chatJID]?.firstIndex(where: { $0.id == localMessage.id }) {
-                messages[chatJID]?[msgIndex].status = .sent
-                // Update ID with server-assigned ID
                 var updatedMessage = messages[chatJID]![msgIndex]
                 updatedMessage = Message(
                     id: messageID,
@@ -267,6 +241,7 @@ class ChatViewModel: ObservableObject {
             if let msgIndex = messages[chatJID]?.firstIndex(where: { $0.id == localMessage.id }) {
                 messages[chatJID]?[msgIndex].status = .failed
             }
+            connectionError = error.localizedDescription
             HapticFeedback.error()
         }
     }
@@ -312,10 +287,8 @@ class ChatViewModel: ObservableObject {
 
     func loadMessages(for chatJID: String) async {
         isLoadingMessages = true
-
-        // For demo, messages are already loaded
-        // In production, fetch from database or server
-
+        // Messages are stored locally and received via callback
+        // In a full implementation, you might fetch from a local database
         isLoadingMessages = false
     }
 
@@ -469,13 +442,18 @@ extension ChatViewModel: WhatsAppClientDelegate {
             self.isLoggedIn = true
             self.currentQRCode = nil
             self.isConnecting = false
+            self.myJID = self.client.getMyJIDString()
             UserDefaults.standard.set(true, forKey: .isLoggedIn)
+
+            // Load initial data after connection
+            await self.loadInitialData()
         }
     }
 
     nonisolated func didDisconnect(reason: String) {
         Task { @MainActor in
             self.isConnected = false
+            self.isConnecting = false
             if reason != "User disconnected" {
                 self.connectionError = reason
             }
@@ -487,6 +465,9 @@ extension ChatViewModel: WhatsAppClientDelegate {
             self.isConnected = false
             self.isLoggedIn = false
             self.myJID = nil
+            self.chats = []
+            self.contacts = []
+            self.messages = [:]
             UserDefaults.standard.set(false, forKey: .isLoggedIn)
         }
     }
@@ -507,13 +488,13 @@ extension ChatViewModel: WhatsAppClientDelegate {
                     self.chats[index].unreadCount += 1
                 }
             } else {
-                // Create new chat
+                // Create new chat for incoming message
                 let newChat = Chat(
                     jid: message.chatJID,
-                    name: message.senderName,
+                    name: message.senderName.isEmpty ? message.senderJID : message.senderName,
                     lastMessage: message.displayText,
                     lastMessageTime: message.timestamp,
-                    unreadCount: 1,
+                    unreadCount: message.isFromMe ? 0 : 1,
                     isGroup: message.isGroup,
                     isMuted: false,
                     isPinned: false,
@@ -544,15 +525,21 @@ extension ChatViewModel: WhatsAppClientDelegate {
 
     nonisolated func didReceivePresence(_ presence: UserPresence) {
         // Update contact presence if needed
+        // Could be used to show "online" status
     }
 
     nonisolated func didReceiveHistorySync(progress: Int, total: Int) {
         // Handle history sync progress
+        // Could show a progress indicator
+        Task { @MainActor in
+            print("History sync: \(progress)/\(total)")
+        }
     }
 
     nonisolated func didReceiveError(_ error: String) {
         Task { @MainActor in
             self.connectionError = error
+            self.isConnecting = false
         }
     }
 }
