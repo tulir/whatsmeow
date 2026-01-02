@@ -1,0 +1,2 @@
+# This directory contains the generated Go mobile frameworks
+# Run ios/Scripts/build-framework.sh to generate them
