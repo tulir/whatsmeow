@@ -379,46 +379,18 @@ class ChatViewModel: ObservableObject {
         }
     }
 
-    /// Request profile picture loading for a JID (thread-safe, called from UI)
+    /// Request profile picture loading for a JID (DISABLED - causes CGO crashes)
     func requestProfilePicture(for jid: String) {
-        // Check if already loaded or loading
-        guard let chat = chats.first(where: { $0.jid == jid }) else { return }
-        if chat.profilePictureURL != nil && !chat.profilePictureURL!.isEmpty { return }
-
-        // Use serial queue to prevent concurrent Go calls (which cause crashes)
-        profileQueue.async { [weak self] in
-            guard let self = self else { return }
-
-            // Double-check not already loading
-            if self.loadingProfileJIDs.contains(jid) { return }
-            self.loadingProfileJIDs.insert(jid)
-
-            // Load on background thread
-            Task.detached(priority: .utility) { [weak self] in
-                await self?.loadProfilePicture(for: jid)
-
-                // Remove from loading set
-                self?.profileQueue.async {
-                    self?.loadingProfileJIDs.remove(jid)
-                }
-            }
-        }
+        // TEMPORARILY DISABLED: GetProfilePicture() causes fatal CGO crashes
+        // Error: bulkBarrierPreWrite: unaligned arguments
+        // TODO: Fix Go Mobile framework integration before re-enabling
+        return
     }
 
-    /// Load profile picture for a specific JID (internal, called from queue)
+    /// Load profile picture for a specific JID (DISABLED)
     private func loadProfilePicture(for jid: String) async {
-        do {
-            if let profileURL = try await client.getProfilePicture(jid: jid) {
-                await MainActor.run {
-                    if let index = chats.firstIndex(where: { $0.jid == jid }) {
-                        chats[index].profilePictureURL = profileURL
-                        persistChat(chats[index])
-                    }
-                }
-            }
-        } catch {
-            // Silently fail - profile picture is optional
-        }
+        // DISABLED: CGO crashes with Go Mobile framework
+        return
     }
 
     // MARK: - Messaging
