@@ -246,7 +246,7 @@ class WhatsAppClient: NSObject, ObservableObject {
 
                 do {
                     let idsJSON = try String(data: JSONEncoder().encode(messageIDs), encoding: .utf8)!
-                    try client.markAsRead(chatJID, messageIDsJSON: idsJSON)
+					try client.mark(asRead: chatJID, messageIDsJSON: idsJSON)
                     continuation.resume()
                 } catch {
                     continuation.resume(throwing: error)
@@ -287,14 +287,10 @@ class WhatsAppClient: NSObject, ObservableObject {
 
                 do {
                     var error: NSError?
-                    let contactPtr = client.getContactInfo(jid, error: &error)
+                    let mobileContact = try client.getContactInfo(jid)
 
                     if let error = error {
                         throw error
-                    }
-
-                    guard let mobileContact = contactPtr else {
-                        throw WhatsAppError.unknown("Contact not found")
                     }
 
                     let contact = Contact(
@@ -373,7 +369,8 @@ class WhatsAppClient: NSObject, ObservableObject {
         }
     }
 
-    /// Check if a phone number is on WhatsApp
+   
+	/// Check if a phone number is on WhatsApp
     func isOnWhatsApp(phoneNumber: String) async throws -> Bool {
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
@@ -383,14 +380,10 @@ class WhatsAppClient: NSObject, ObservableObject {
                 }
 
                 do {
-                    var error: NSError?
-                    let result = client.isOnWhatsApp(phoneNumber, error: &error)
+					var result: ObjCBool = false as ObjCBool
+					try client.is(onWhatsApp: phoneNumber, ret0_: &result)
 
-                    if let error = error {
-                        throw error
-                    }
-
-                    continuation.resume(returning: result)
+					continuation.resume(returning: result.boolValue)
                 } catch {
                     continuation.resume(throwing: error)
                 }
@@ -570,7 +563,7 @@ extension WhatsAppClient: MobileEventCallbackProtocol {
         }
 
         let message = Message(
-            id: msg.id,
+			id: msg.id_,
             chatJID: msg.chatJID,
             senderJID: msg.senderJID,
             senderName: msg.senderName,

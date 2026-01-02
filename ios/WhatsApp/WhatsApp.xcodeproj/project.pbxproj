@@ -25,7 +25,23 @@
 		E91234560016 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91234550016 /* NewChatView.swift */; };
 		E91234560017 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91234550017 /* ImagePicker.swift */; };
 		E91234560018 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91234550018 /* Extensions.swift */; };
+		F518DB052F0827DE007C3494 /* Mobile.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F518DB042F0827DE007C3494 /* Mobile.xcframework */; };
+		F518DB062F0827DE007C3494 /* Mobile.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F518DB042F0827DE007C3494 /* Mobile.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		F518DB072F0827DE007C3494 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				F518DB062F0827DE007C3494 /* Mobile.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		E91234550000 /* WhatsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhatsApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -48,6 +64,7 @@
 		E91234550017 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		E91234550018 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		E91234550019 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F518DB042F0827DE007C3494 /* Mobile.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Mobile.xcframework; path = ../../../Mobile.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,6 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F518DB052F0827DE007C3494 /* Mobile.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				E912345G0002 /* WhatsApp */,
+				F518DB032F0827DE007C3494 /* Frameworks */,
 				E912345G0003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -143,6 +162,14 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		F518DB032F0827DE007C3494 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F518DB042F0827DE007C3494 /* Mobile.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -153,6 +180,7 @@
 				E912345S0001 /* Sources */,
 				E912345F0001 /* Frameworks */,
 				E912345R0001 /* Resources */,
+				F518DB072F0827DE007C3494 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
