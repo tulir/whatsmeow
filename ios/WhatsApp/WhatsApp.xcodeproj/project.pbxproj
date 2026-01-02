@@ -25,18 +25,19 @@
 		E91234560016 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91234550016 /* NewChatView.swift */; };
 		E91234560017 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91234550017 /* ImagePicker.swift */; };
 		E91234560018 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E91234550018 /* Extensions.swift */; };
-		F518DB052F0827DE007C3494 /* Mobile.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F518DB042F0827DE007C3494 /* Mobile.xcframework */; };
-		F518DB062F0827DE007C3494 /* Mobile.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F518DB042F0827DE007C3494 /* Mobile.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		F5DEA88B2F08353B00B06C81 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5DEA88A2F08353B00B06C81 /* PersistenceController.swift */; };
+		F5DEA88C2F08355200B06C81 /* Mobile.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = F518DB042F0827DE007C3494 /* Mobile.xcframework */; };
+		F5DEA88D2F08355200B06C81 /* Mobile.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = F518DB042F0827DE007C3494 /* Mobile.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		F518DB072F0827DE007C3494 /* Embed Frameworks */ = {
+		F5DEA88E2F08355200B06C81 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				F518DB062F0827DE007C3494 /* Mobile.xcframework in Embed Frameworks */,
+				F5DEA88D2F08355200B06C81 /* Mobile.xcframework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -65,6 +66,7 @@
 		E91234550018 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		E91234550019 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F518DB042F0827DE007C3494 /* Mobile.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Mobile.xcframework; path = ../../../Mobile.xcframework; sourceTree = "<group>"; };
+		F5DEA88A2F08353B00B06C81 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,7 +74,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F518DB052F0827DE007C3494 /* Mobile.xcframework in Frameworks */,
+				F5DEA88C2F08355200B06C81 /* Mobile.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,6 +150,7 @@
 		E912345G0007 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				F5DEA88A2F08353B00B06C81 /* PersistenceController.swift */,
 				E91234550005 /* WhatsAppClient.swift */,
 				E91234550018 /* Extensions.swift */,
 			);
@@ -180,7 +183,7 @@
 				E912345S0001 /* Sources */,
 				E912345F0001 /* Frameworks */,
 				E912345R0001 /* Resources */,
-				F518DB072F0827DE007C3494 /* Embed Frameworks */,
+				F5DEA88E2F08355200B06C81 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -251,6 +254,7 @@
 				E91234560010 /* ChatListView.swift in Sources */,
 				E91234560011 /* ChatView.swift in Sources */,
 				E91234560012 /* QRCodeView.swift in Sources */,
+				F5DEA88B2F08353B00B06C81 /* PersistenceController.swift in Sources */,
 				E91234560013 /* MessageBubbleView.swift in Sources */,
 				E91234560014 /* SettingsView.swift in Sources */,
 				E91234560015 /* ContactsView.swift in Sources */,
