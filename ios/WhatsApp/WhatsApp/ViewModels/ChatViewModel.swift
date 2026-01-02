@@ -54,6 +54,10 @@ class ChatViewModel: ObservableObject {
     private var updateWorkItem: DispatchWorkItem?
     private let updateQueue = DispatchQueue(label: "com.whatsapp.updates", qos: .userInitiated)
 
+    // Profile picture loading queue (serial to prevent concurrent Go calls)
+    private let profileQueue = DispatchQueue(label: "com.whatsapp.profile", qos: .utility)
+    private var loadingProfileJIDs = Set<String>()
+
     // MARK: - Computed Properties
 
     var filteredChats: [Chat] {
@@ -235,10 +239,7 @@ class ChatViewModel: ObservableObject {
             // Persist new chat
             persistChat(newChat)
 
-            // Load profile picture for new chat
-            Task.detached(priority: .utility) { [weak self] in
-                await self?.loadProfilePicture(for: message.chatJID)
-            }
+            // Profile picture will be loaded when chat row appears
         }
     }
 
@@ -350,10 +351,11 @@ class ChatViewModel: ObservableObject {
                 myPhoneNumber = "+\(phone)"
             }
 
-            // Load profile pictures for all chats (background task)
-            Task.detached(priority: .utility) { [weak self] in
-                await self?.loadAllProfilePictures()
-            }
+            // Disable automatic profile picture loading to prevent crashes
+            // Profile pictures will be loaded on-demand when chat is opened
+            // Task.detached(priority: .utility) { [weak self] in
+            //     await self?.loadAllProfilePictures()
+            // }
 
         } catch {
             print("Failed to load initial data: \(error)")
@@ -377,7 +379,33 @@ class ChatViewModel: ObservableObject {
         }
     }
 
-    /// Load profile picture for a specific JID
+    /// Request profile picture loading for a JID (thread-safe, called from UI)
+    func requestProfilePicture(for jid: String) {
+        // Check if already loaded or loading
+        guard let chat = chats.first(where: { $0.jid == jid }) else { return }
+        if chat.profilePictureURL != nil && !chat.profilePictureURL!.isEmpty { return }
+
+        // Use serial queue to prevent concurrent Go calls (which cause crashes)
+        profileQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            // Double-check not already loading
+            if self.loadingProfileJIDs.contains(jid) { return }
+            self.loadingProfileJIDs.insert(jid)
+
+            // Load on background thread
+            Task.detached(priority: .utility) { [weak self] in
+                await self?.loadProfilePicture(for: jid)
+
+                // Remove from loading set
+                self?.profileQueue.async {
+                    self?.loadingProfileJIDs.remove(jid)
+                }
+            }
+        }
+    }
+
+    /// Load profile picture for a specific JID (internal, called from queue)
     private func loadProfilePicture(for jid: String) async {
         do {
             if let profileURL = try await client.getProfilePicture(jid: jid) {
@@ -604,10 +632,7 @@ class ChatViewModel: ObservableObject {
         chats.insert(newChat, at: 0)
         persistChat(newChat)
 
-        // Load profile picture in background
-        Task.detached(priority: .utility) { [weak self] in
-            await self?.loadProfilePicture(for: contact.jid)
-        }
+        // Profile picture will be loaded when chat row appears
 
         return newChat
     }

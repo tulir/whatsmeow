@@ -161,6 +161,10 @@ struct ChatRowView: View {
                 initials: chat.initials,
                 size: 56
             )
+            .onAppear {
+                // Lazy load profile picture when chat row appears
+                viewModel.requestProfilePicture(for: chat.jid)
+            }
 
             // Content
             VStack(alignment: .leading, spacing: 4) {
