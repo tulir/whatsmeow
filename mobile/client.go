@@ -616,13 +616,8 @@ func (c *Client) handleEvent(evt interface{}) {
 		c.callback.OnPresence(presence)
 
 	case *events.HistorySync:
-		// Report progress
-		progress := 0
-		total := 0
-		if v.Data.Progress != nil {
-			progress = int(*v.Data.Progress)
-		}
-		c.callback.OnHistorySync(progress, total)
+		// Process history sync messages
+		c.processHistorySync(v)
 
 	case *events.PairSuccess:
 		c.mu.Lock()
@@ -728,6 +723,143 @@ func (c *Client) convertMessage(evt *events.Message) *Message {
 	}
 
 	return msg
+}
+
+// processHistorySync extracts messages from history sync and sends them to callback
+func (c *Client) processHistorySync(evt *events.HistorySync) {
+	if c.callback == nil || evt.Data == nil {
+		return
+	}
+
+	// Report progress
+	progress := 0
+	total := 0
+	if evt.Data.Progress != nil {
+		progress = int(*evt.Data.Progress)
+	}
+	if evt.Data.Conversations != nil {
+		total = len(evt.Data.Conversations)
+	}
+	c.callback.OnHistorySync(progress, total)
+
+	// Process conversations
+	for _, conv := range evt.Data.Conversations {
+		if conv.ID == nil {
+			continue
+		}
+
+		chatJID := *conv.ID
+
+		// Process messages in this conversation
+		for _, historyMsg := range conv.Messages {
+			if historyMsg == nil || historyMsg.Message == nil || historyMsg.Message.Message == nil {
+				continue
+			}
+
+			msgInfo := historyMsg.Message
+			waMsg := msgInfo.Message
+
+			// Parse chat JID
+			parsedChatJID, err := types.ParseJID(chatJID)
+			if err != nil {
+				continue
+			}
+
+			// Build message
+			msg := &Message{
+				ChatJID:   chatJID,
+				IsGroup:   parsedChatJID.Server == types.GroupServer,
+				Timestamp: int64(msgInfo.GetMessageTimestamp()),
+			}
+
+			// Get message ID
+			if msgInfo.Key != nil && msgInfo.Key.ID != nil {
+				msg.ID = *msgInfo.Key.ID
+			}
+
+			// Determine sender
+			if msgInfo.Key != nil {
+				if msgInfo.Key.FromMe != nil && *msgInfo.Key.FromMe {
+					msg.IsFromMe = true
+					if c.client.Store.ID != nil {
+						msg.SenderJID = c.client.Store.ID.String()
+					}
+				} else if msgInfo.Key.Participant != nil {
+					msg.SenderJID = *msgInfo.Key.Participant
+				} else if msgInfo.Key.RemoteJID != nil {
+					msg.SenderJID = *msgInfo.Key.RemoteJID
+				}
+			}
+
+			// Get push name
+			if msgInfo.PushName != nil {
+				msg.SenderName = *msgInfo.PushName
+			}
+
+			// Extract message content
+			if waMsg.Conversation != nil {
+				msg.Text = *waMsg.Conversation
+			}
+
+			if extText := waMsg.ExtendedTextMessage; extText != nil {
+				if extText.Text != nil {
+					msg.Text = *extText.Text
+				}
+			}
+
+			if img := waMsg.ImageMessage; img != nil {
+				msg.MediaType = "image"
+				if img.URL != nil {
+					msg.MediaURL = *img.URL
+				}
+				if img.Caption != nil {
+					msg.MediaCaption = *img.Caption
+					if msg.Text == "" {
+						msg.Text = *img.Caption
+					}
+				}
+			}
+
+			if vid := waMsg.VideoMessage; vid != nil {
+				msg.MediaType = "video"
+				if vid.URL != nil {
+					msg.MediaURL = *vid.URL
+				}
+				if vid.Caption != nil {
+					msg.MediaCaption = *vid.Caption
+				}
+			}
+
+			if audio := waMsg.AudioMessage; audio != nil {
+				msg.MediaType = "audio"
+				if audio.URL != nil {
+					msg.MediaURL = *audio.URL
+				}
+			}
+
+			if doc := waMsg.DocumentMessage; doc != nil {
+				msg.MediaType = "document"
+				if doc.URL != nil {
+					msg.MediaURL = *doc.URL
+				}
+				if doc.Title != nil {
+					msg.Text = *doc.Title
+				}
+			}
+
+			if sticker := waMsg.StickerMessage; sticker != nil {
+				msg.MediaType = "sticker"
+				if sticker.URL != nil {
+					msg.MediaURL = *sticker.URL
+				}
+			}
+
+			// Only send if we have some content
+			if msg.ID != "" && (msg.Text != "" || msg.MediaType != "") {
+				c.callback.OnMessage(msg)
+			}
+		}
+	}
 }
 
 // Close cleans up resources

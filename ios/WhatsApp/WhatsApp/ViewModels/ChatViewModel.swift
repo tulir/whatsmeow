@@ -38,6 +38,14 @@ class ChatViewModel: ObservableObject {
 
     private let client = WhatsAppClient.shared
     private var cancellables = Set<AnyCancellable>()
+    private let messagesFileURL: URL = {
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return documentsPath.appendingPathComponent("messages.json")
+    }()
+    private let chatsFileURL: URL = {
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return documentsPath.appendingPathComponent("chats.json")
+    }()
 
     // MARK: - Computed Properties
 
@@ -80,6 +88,84 @@ class ChatViewModel: ObservableObject {
         setupBindings()
         // Set self as delegate
         client.delegate = self
+        // Load persisted data
+        loadPersistedData()
+    }
+
+    // MARK: - Persistence
+
+    private func loadPersistedData() {
+        // Load chats
+        if let data = try? Data(contentsOf: chatsFileURL),
+           let savedChats = try? JSONDecoder().decode([Chat].self, from: data) {
+            self.chats = savedChats
+        }
+
+        // Load messages
+        if let data = try? Data(contentsOf: messagesFileURL),
+           let savedMessages = try? JSONDecoder().decode([String: [Message]].self, from: data) {
+            self.messages = savedMessages
+        }
+    }
+
+    private func saveChats() {
+        Task.detached { [chats = self.chats, url = self.chatsFileURL] in
+            if let data = try? JSONEncoder().encode(chats) {
+                try? data.write(to: url)
+            }
+        }
+    }
+
+    private func saveMessages() {
+        Task.detached { [messages = self.messages, url = self.messagesFileURL] in
+            if let data = try? JSONEncoder().encode(messages) {
+                try? data.write(to: url)
+            }
+        }
+    }
+
+    private func addMessage(_ message: Message) {
+        // Add to messages, avoiding duplicates
+        if messages[message.chatJID] == nil {
+            messages[message.chatJID] = []
+        }
+
+        // Check for duplicate
+        if messages[message.chatJID]?.contains(where: { $0.id == message.id }) == true {
+            return
+        }
+
+        messages[message.chatJID]?.append(message)
+
+        // Sort messages by timestamp
+        messages[message.chatJID]?.sort { $0.timestamp < $1.timestamp }
+    }
+
+    private func updateOrCreateChat(for message: Message) {
+        if let index = chats.firstIndex(where: { $0.jid == message.chatJID }) {
+            // Update existing chat if message is newer
+            if message.timestamp > chats[index].lastMessageTime {
+                chats[index].lastMessage = message.displayText
+                chats[index].lastMessageTime = message.timestamp
+            }
+            if !message.isFromMe {
+                chats[index].unreadCount += 1
+            }
+        } else {
+            // Create new chat
+            let newChat = Chat(
+                jid: message.chatJID,
+                name: message.senderName.isEmpty ? message.senderJID : message.senderName,
+                lastMessage: message.displayText,
+                lastMessageTime: message.timestamp,
+                unreadCount: message.isFromMe ? 0 : 1,
+                isGroup: message.isGroup,
+                isMuted: false,
+                isPinned: false,
+                isArchived: false
+            )
+            chats.append(newChat)
+        }
     }
 
     private func setupBindings() {
@@ -239,6 +325,10 @@ class ChatViewModel: ObservableObject {
                 messages[chatJID]?[msgIndex] = updatedMessage
             }
 
+            // Persist data
+            saveMessages()
+            saveChats()
+
             HapticFeedback.light()
         } catch {
             // Mark as failed
@@ -297,7 +387,7 @@ class ChatViewModel: ObservableObject {
     }
 
     func getMessages(for chatJID: String) -> [Message] {
-        messages[chatJID] ?? []
+        (messages[chatJID] ?? []).sorted { $0.timestamp < $1.timestamp }
     }
 
     func deleteChat(_ chat: Chat) {
@@ -473,39 +563,23 @@ extension ChatViewModel: WhatsAppClientDelegate {
             self.contacts = []
             self.messages = [:]
             UserDefaults.standard.set(false, forKey: .isLoggedIn)
+            // Clear persisted data
+            try? FileManager.default.removeItem(at: self.messagesFileURL)
+            try? FileManager.default.removeItem(at: self.chatsFileURL)
         }
     }
 
     nonisolated func didReceiveMessage(_ message: Message) {
         Task { @MainActor in
-            // Add message to storage
-            if self.messages[message.chatJID] == nil {
-                self.messages[message.chatJID] = []
-            }
-            self.messages[message.chatJID]?.append(message)
+            // Add message (handles duplicates and sorting)
+            self.addMessage(message)
 
-            // Update chat
-            if let index = self.chats.firstIndex(where: { $0.jid == message.chatJID }) {
-                self.chats[index].lastMessage = message.displayText
-                self.chats[index].lastMessageTime = message.timestamp
-                if !message.isFromMe {
-                    self.chats[index].unreadCount += 1
-                }
-            } else {
-                // Create new chat for incoming message
-                let newChat = Chat(
-                    jid: message.chatJID,
-                    name: message.senderName.isEmpty ? message.senderJID : message.senderName,
-                    lastMessage: message.displayText,
-                    lastMessageTime: message.timestamp,
-                    unreadCount: message.isFromMe ? 0 : 1,
-                    isGroup: message.isGroup,
-                    isMuted: false,
-                    isPinned: false,
-                    isArchived: false
-                )
-                self.chats.insert(newChat, at: 0)
-            }
+            // Update or create chat
+            self.updateOrCreateChat(for: message)
+
+            // Persist data
+            self.saveMessages()
+            self.saveChats()
 
             HapticFeedback.light()
         }
