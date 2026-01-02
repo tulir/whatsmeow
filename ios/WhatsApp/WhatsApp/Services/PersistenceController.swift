@@ -87,6 +87,14 @@ class PersistenceController {
         let model = Self.createManagedObjectModel()
         container = NSPersistentContainer(name: "WhatsAppModel", managedObjectModel: model)
 
+        // Enable WAL mode for better concurrent access (critical for preventing SQLITE_BUSY errors)
+        let description = container.persistentStoreDescriptions.first
+        description?.setOption(true as NSNumber, forKey: "journal_mode")
+        description?.setOption("WAL" as NSObject, forKey: "journal_mode")
+
+        // Set timeout for database locks (10 seconds)
+        description?.setOption(10000 as NSNumber, forKey: NSSQLitePragmasOption)
+
         container.loadPersistentStores { description, error in
             if let error = error {
                 print("CoreData failed to load: \(error.localizedDescription)")
@@ -95,6 +103,9 @@ class PersistenceController {
 
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         container.viewContext.automaticallyMergesChangesFromParent = true
+
+        // Configure view context for concurrent access
+        container.viewContext.shouldDeleteInaccessibleFaults = true
     }
 
     private static func createManagedObjectModel() -> NSManagedObjectModel {
@@ -183,6 +194,10 @@ class PersistenceController {
     func newBackgroundContext() -> NSManagedObjectContext {
         let context = container.newBackgroundContext()
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        context.automaticallyMergesChangesFromParent = true
+        context.shouldDeleteInaccessibleFaults = true
+        // Prevent long-running fetch requests from blocking
+        context.stalenessInterval = 0.0
         return context
     }
 
@@ -290,12 +305,46 @@ class PersistenceController {
 
             do {
                 if context.hasChanges {
-                    try context.save()
+                    try self.saveWithRetry(context: context)
                 }
             } catch {
-                print("Failed batch save: \(error)")
+                print("Failed batch save after retries: \(error)")
+                if let nsError = error as NSError? {
+                    print("Error domain: \(nsError.domain), code: \(nsError.code)")
+                    if nsError.domain == NSCocoaErrorDomain {
+                        print("CoreData error details: \(nsError.userInfo)")
+                    }
+                }
             }
         }
+    }
+
+    /// Save context with retry logic for SQLite busy errors
+    private func saveWithRetry(context: NSManagedObjectContext, retries: Int = 3) throws {
+        var lastError: Error?
+
+        for attempt in 0..<retries {
+            do {
+                try context.save()
+                return // Success
+            } catch let error as NSError {
+                lastError = error
+
+                // Check if it's a SQLite busy error (database locked)
+                if error.domain == NSCocoaErrorDomain && error.code == 134030 { // SQLITE_BUSY
+                    let delay = Double(attempt + 1) * 0.1 // Exponential backoff: 0.1s, 0.2s, 0.3s
+                    print("SQLite database locked (attempt \(attempt + 1)/\(retries)), retrying in \(delay)s...")
+                    Thread.sleep(forTimeInterval: delay)
+                    continue
+                } else {
+                    // Not a busy error, don't retry
+                    throw error
+                }
+            }
+        }
+
+        // All retries failed
+        throw lastError ?? NSError(domain: "PersistenceController", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unknown save error"])
     }
 
     /// Fetch existing message IDs in one query
@@ -516,11 +565,22 @@ class PersistenceController {
         }
     }
 
-    /// Force save any pending data immediately
-    func flushPendingData() {
-        saveQueue.sync {
-            saveWorkItem?.cancel()
-            performBatchSave()
+    /// Force save any pending data immediately (async to prevent deadlocks)
+    func flushPendingData() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            saveQueue.async { [weak self] in
+                self?.saveWorkItem?.cancel()
+                self?.performBatchSave()
+                continuation.resume()
+            }
+        }
+    }
+
+    /// Synchronous flush (use sparingly, can block calling thread)
+    func flushPendingDataSync() {
+        saveQueue.async { [weak self] in
+            self?.saveWorkItem?.cancel()
+            self?.performBatchSave()
         }
     }
 }
