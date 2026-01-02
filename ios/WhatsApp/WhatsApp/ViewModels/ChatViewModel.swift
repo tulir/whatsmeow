@@ -38,6 +38,11 @@ class ChatViewModel: ObservableObject {
     @Published var isLoadingMessages = false
     @Published var searchText = "" // Cache invalidation is debounced in setupBindings()
 
+    // Sync state
+    @Published var isSyncing = false
+    @Published var syncProgress: Int = 0
+    @Published var syncTotal: Int = 0
+
     // MARK: - Private Properties
 
     private let client = WhatsAppClient.shared
@@ -319,7 +324,7 @@ class ChatViewModel: ObservableObject {
         isLoadingChats = true
 
         do {
-            // Load contacts
+            // Load contacts (avoiding database during sync reduces conflicts)
             contacts = try await client.getStoredContacts()
 
             // Load joined groups
@@ -342,20 +347,12 @@ class ChatViewModel: ObservableObject {
 
                 if !chats.contains(where: { $0.jid == chat.jid }) {
                     chats.append(chat)
+                    // Persist chat to CoreData (now safe after sync completes)
+                    persistChat(chat)
                 }
             }
 
-            // Extract phone number from JID
-            if let jid = myJID {
-                let phone = jid.components(separatedBy: "@").first ?? ""
-                myPhoneNumber = "+\(phone)"
-            }
-
-            // Disable automatic profile picture loading to prevent crashes
-            // Profile pictures will be loaded on-demand when chat is opened
-            // Task.detached(priority: .utility) { [weak self] in
-            //     await self?.loadAllProfilePictures()
-            // }
+            print("Loaded \(contacts.count) contacts and \(groups.count) groups")
 
         } catch {
             print("Failed to load initial data: \(error)")
@@ -702,8 +699,24 @@ extension ChatViewModel: WhatsAppClientDelegate {
             self.myJID = self.client.getMyJIDString()
             UserDefaults.standard.set(true, forKey: .isLoggedIn)
 
-            // Load initial data after connection
-            await self.loadInitialData()
+            // Set syncing state - wait for history sync to complete before loading data
+            self.isSyncing = true
+
+            // Extract phone number from JID
+            if let jid = self.myJID {
+                let phone = jid.components(separatedBy: "@").first ?? ""
+                self.myPhoneNumber = "+\(phone)"
+            }
+
+            // Fallback: If sync doesn't complete within 10 seconds, load data anyway
+            Task {
+                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+                if self.isSyncing {
+                    print("History sync timeout - loading data anyway")
+                    self.isSyncing = false
+                    await self.loadInitialData()
+                }
+            }
         }
     }
 
@@ -733,10 +746,29 @@ extension ChatViewModel: WhatsAppClientDelegate {
 
     nonisolated func didReceiveMessage(_ message: Message) {
         Task { @MainActor in
-            // Add message (handles duplicates, sorting, and persistence)
-            self.addMessage(message)
+            // During sync, only update in-memory state, skip database writes
+            // This prevents "database is locked" errors during WhatsApp app state sync
+            if self.isSyncing {
+                // Store in memory only during sync
+                if self.messages[message.chatJID] == nil {
+                    self.messages[message.chatJID] = []
+                }
 
-            // Update or create chat (handles persistence)
+                // Check for duplicate
+                guard self.messages[message.chatJID]?.contains(where: { $0.id == message.id }) == false else {
+                    return
+                }
+
+                // Add to memory (no persistence during sync)
+                let chatMessages = self.messages[message.chatJID]!
+                let insertIndex = chatMessages.insertionIndex(of: message) { $0.timestamp < $1.timestamp }
+                self.messages[message.chatJID]?.insert(message, at: insertIndex)
+
+                return
+            }
+
+            // After sync completes, normal flow with persistence
+            self.addMessage(message)
             self.updateOrCreateChat(for: message)
 
             HapticFeedback.light()
@@ -769,10 +801,22 @@ extension ChatViewModel: WhatsAppClientDelegate {
     }
 
     nonisolated func didReceiveHistorySync(progress: Int, total: Int) {
-        // Handle history sync progress
-        // Could show a progress indicator
         Task { @MainActor in
+            self.syncProgress = progress
+            self.syncTotal = total
             print("History sync: \(progress)/\(total)")
+
+            // When sync completes, load initial data
+            if progress >= total && total > 0 {
+                print("History sync completed - loading initial data")
+                self.isSyncing = false
+
+                // Small delay to let database finish any pending writes
+                try? await Task.sleep(nanoseconds: 500_000_000) // 500ms
+
+                // Now safe to load data without database conflicts
+                await self.loadInitialData()
+            }
         }
     }
 
