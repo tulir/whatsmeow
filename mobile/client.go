@@ -12,7 +12,6 @@ import (
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
-	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -108,12 +107,14 @@ func NewClient(dbPath string, callback EventCallback) (*Client, error) {
 		return nil, errors.New("database path is required")
 	}
 
-	container, err := sqlstore.New("sqlite", "file:"+dbPath+"?_foreign_keys=on", nil)
+	ctx := context.Background()
+
+	container, err := sqlstore.New(ctx, "sqlite", "file:"+dbPath+"?_foreign_keys=on", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	deviceStore, err := container.GetFirstDevice()
+	deviceStore, err := container.GetFirstDevice(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -121,13 +122,13 @@ func NewClient(dbPath string, callback EventCallback) (*Client, error) {
 	logger := waLog.Stdout("WhatsApp", "INFO", true)
 	waClient := whatsmeow.NewClient(deviceStore, logger)
 
-	ctx, cancel := context.WithCancel(context.Background())
+	clientCtx, cancel := context.WithCancel(context.Background())
 
 	c := &Client{
 		client:    waClient,
 		container: container,
 		callback:  callback,
-		ctx:       ctx,
+		ctx:       clientCtx,
 		cancel:    cancel,
 	}
 
@@ -190,7 +191,7 @@ func (c *Client) Logout() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	return c.client.Logout()
+	return c.client.Logout(c.ctx)
 }
 
 // IsConnected returns whether the client is connected
@@ -335,7 +336,7 @@ func (c *Client) MarkAsRead(chatJID string, messageIDsJSON string) error {
 		ids[i] = types.MessageID(id)
 	}
 
-	return c.client.MarkRead(ids, time.Now(), jid, jid)
+	return c.client.MarkRead(c.ctx, ids, time.Now(), jid, jid)
 }
 
 // SendTyping sends a typing indicator
@@ -350,7 +351,7 @@ func (c *Client) SendTyping(chatJID string, typing bool) error {
 		presence = types.ChatPresencePaused
 	}
 
-	return c.client.SendChatPresence(jid, presence, types.ChatPresenceMediaText)
+	return c.client.SendChatPresence(c.ctx, jid, presence, types.ChatPresenceMediaText)
 }
 
 // SetPresence sets the user's presence (online/offline)
@@ -359,7 +360,7 @@ func (c *Client) SetPresence(available bool) error {
 	if !available {
 		presence = types.PresenceUnavailable
 	}
-	return c.client.SendPresence(presence)
+	return c.client.SendPresence(c.ctx, presence)
 }
 
 // GetContactInfo gets information about a contact
@@ -369,27 +370,17 @@ func (c *Client) GetContactInfo(jidStr string) (*Contact, error) {
 		return nil, err
 	}
 
-	info, err := c.client.GetUserInfo([]types.JID{jid})
-	if err != nil {
-		return nil, err
-	}
-
-	userInfo, ok := info[jid]
-	if !ok {
-		return nil, errors.New("user not found")
-	}
-
 	contact := &Contact{
 		JID:         jid.String(),
-		PushName:    userInfo.PushName,
 		PhoneNumber: jid.User,
 		IsGroup:     jid.Server == types.GroupServer,
 	}
 
 	// Try to get stored contact name
-	stored, err := c.client.Store.Contacts.GetContact(jid)
+	stored, err := c.client.Store.Contacts.GetContact(c.ctx, jid)
 	if err == nil {
 		contact.Name = stored.FullName
+		contact.PushName = stored.PushName
 		if contact.Name == "" {
 			contact.Name = stored.PushName
 		}
@@ -405,7 +396,7 @@ func (c *Client) GetGroupInfo(groupJIDStr string) (*GroupInfo, error) {
 		return nil, err
 	}
 
-	info, err := c.client.GetGroupInfo(groupJID)
+	info, err := c.client.GetGroupInfo(c.ctx, groupJID)
 	if err != nil {
 		return nil, err
 	}
@@ -433,7 +424,7 @@ func (c *Client) GetGroupInfo(groupJIDStr string) (*GroupInfo, error) {
 
 // GetJoinedGroups returns all joined groups as JSON
 func (c *Client) GetJoinedGroups() (string, error) {
-	groups, err := c.client.GetJoinedGroups()
+	groups, err := c.client.GetJoinedGroups(c.ctx)
 	if err != nil {
 		return "", err
 	}
@@ -473,7 +464,7 @@ func (c *Client) GetJoinedGroups() (string, error) {
 // IsOnWhatsApp checks if a phone number is registered on WhatsApp
 // phoneNumber should include country code (e.g., "+1234567890")
 func (c *Client) IsOnWhatsApp(phoneNumber string) (bool, error) {
-	resp, err := c.client.IsOnWhatsApp([]string{phoneNumber})
+	resp, err := c.client.IsOnWhatsApp(c.ctx, []string{phoneNumber})
 	if err != nil {
 		return false, err
 	}
@@ -492,7 +483,7 @@ func (c *Client) GetProfilePicture(jidStr string) (string, error) {
 		return "", err
 	}
 
-	pic, err := c.client.GetProfilePictureInfo(jid, &whatsmeow.GetProfilePictureParams{})
+	pic, err := c.client.GetProfilePictureInfo(c.ctx, jid, &whatsmeow.GetProfilePictureParams{})
 	if err != nil {
 		return "", err
 	}
@@ -528,7 +519,7 @@ func (c *Client) CreateGroup(name string, participantsJSON string) (string, erro
 		participants[i] = jid
 	}
 
-	resp, err := c.client.CreateGroup(whatsmeow.ReqCreateGroup{
+	resp, err := c.client.CreateGroup(c.ctx, whatsmeow.ReqCreateGroup{
 		Name:         name,
 		Participants: participants,
 	})
@@ -546,7 +537,7 @@ func (c *Client) LeaveGroup(groupJIDStr string) error {
 		return err
 	}
 
-	return c.client.LeaveGroup(groupJID)
+	return c.client.LeaveGroup(c.ctx, groupJID)
 }
 
 // GetDeviceJID returns the device JID if logged in
@@ -747,7 +738,7 @@ func (c *Client) Close() {
 
 // GetStoredContacts returns all stored contacts as JSON
 func (c *Client) GetStoredContacts() (string, error) {
-	contacts, err := c.client.Store.Contacts.GetAllContacts()
+	contacts, err := c.client.Store.Contacts.GetAllContacts(c.ctx)
 	if err != nil {
 		return "", err
 	}

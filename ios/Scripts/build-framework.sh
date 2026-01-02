@@ -32,8 +32,12 @@ echo -e "${GREEN}Go version: $(go version)${NC}"
 if ! command -v gomobile &> /dev/null; then
     echo -e "${YELLOW}Installing gomobile...${NC}"
     go install golang.org/x/mobile/cmd/gomobile@latest
-    gomobile init
 fi
+
+# Ensure gomobile bind is available
+echo -e "${YELLOW}Setting up gomobile...${NC}"
+go get golang.org/x/mobile/cmd/gomobile
+gomobile init
 
 echo -e "${GREEN}gomobile installed${NC}"
 
