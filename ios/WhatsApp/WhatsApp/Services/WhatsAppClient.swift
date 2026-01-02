@@ -183,8 +183,13 @@ class WhatsAppClient: NSObject, ObservableObject {
         }
     }
 
-    /// Send an image message
+    /// Send an image message (optimized - encoding on background thread)
     func sendImageMessage(to chatJID: String, imageData: Data, caption: String, mimeType: String = "image/jpeg") async throws -> String {
+        // Encode to base64 on background thread first (heavy operation)
+        let base64Data = await Task.detached(priority: .userInitiated) {
+            imageData.base64EncodedString()
+        }.value
+
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
                 guard let client = self?.goClient else {
@@ -193,7 +198,6 @@ class WhatsAppClient: NSObject, ObservableObject {
                 }
 
                 do {
-                    let base64Data = imageData.base64EncodedString()
                     var error: NSError?
                     let messageID = client.sendImageMessage(chatJID, imageDataBase64: base64Data, caption: caption, mimeType: mimeType, error: &error)
 
@@ -209,8 +213,13 @@ class WhatsAppClient: NSObject, ObservableObject {
         }
     }
 
-    /// Send a document
+    /// Send a document (optimized - encoding on background thread)
     func sendDocumentMessage(to chatJID: String, documentData: Data, filename: String, caption: String, mimeType: String) async throws -> String {
+        // Encode to base64 on background thread first (heavy operation)
+        let base64Data = await Task.detached(priority: .userInitiated) {
+            documentData.base64EncodedString()
+        }.value
+
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
                 guard let client = self?.goClient else {
@@ -219,7 +228,6 @@ class WhatsAppClient: NSObject, ObservableObject {
                 }
 
                 do {
-                    let base64Data = documentData.base64EncodedString()
                     var error: NSError?
                     let messageID = client.sendDocumentMessage(chatJID, documentDataBase64: base64Data, filename: filename, caption: caption, mimeType: mimeType, error: &error)
 
@@ -235,8 +243,13 @@ class WhatsAppClient: NSObject, ObservableObject {
         }
     }
 
-    /// Mark messages as read
+    /// Mark messages as read (optimized - JSON encoding on background thread)
     func markAsRead(chatJID: String, messageIDs: [String]) async throws {
+        // Encode JSON on background thread first (can be heavy with many IDs)
+        let idsJSON = try await Task.detached(priority: .userInitiated) {
+            try String(data: JSONEncoder().encode(messageIDs), encoding: .utf8)!
+        }.value
+
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
                 guard let client = self?.goClient else {
@@ -245,8 +258,7 @@ class WhatsAppClient: NSObject, ObservableObject {
                 }
 
                 do {
-                    let idsJSON = try String(data: JSONEncoder().encode(messageIDs), encoding: .utf8)!
-					try client.mark(asRead: chatJID, messageIDsJSON: idsJSON)
+                    try client.mark(asRead: chatJID, messageIDsJSON: idsJSON)
                     continuation.resume()
                 } catch {
                     continuation.resume(throwing: error)
@@ -309,64 +321,62 @@ class WhatsAppClient: NSObject, ObservableObject {
         }
     }
 
-    /// Get all stored contacts
+    /// Get all stored contacts (optimized - JSON decoding on background thread)
     func getStoredContacts() async throws -> [Contact] {
-        return try await withCheckedThrowingContinuation { continuation in
+        let contactsJSON = try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
                 guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
-                do {
-                    var error: NSError?
-                    let contactsJSON = client.getStoredContacts(&error)
+                var error: NSError?
+                let contactsJSON = client.getStoredContacts(&error)
 
-                    if let error = error {
-                        throw error
-                    }
-
-                    guard let jsonData = contactsJSON.data(using: .utf8) else {
-                        throw WhatsAppError.unknown("Invalid JSON response")
-                    }
-
-                    let contacts = try JSONDecoder().decode([Contact].self, from: jsonData)
-                    continuation.resume(returning: contacts)
-                } catch {
+                if let error = error {
                     continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: contactsJSON)
                 }
             }
-        }
+        } as String
+
+        // Decode JSON on background thread (can be heavy with many contacts)
+        return try await Task.detached(priority: .userInitiated) {
+            guard let jsonData = contactsJSON.data(using: .utf8) else {
+                throw WhatsAppError.unknown("Invalid JSON response")
+            }
+            return try JSONDecoder().decode([Contact].self, from: jsonData)
+        }.value
     }
 
-    /// Get all joined groups
+    /// Get all joined groups (optimized - JSON decoding on background thread)
     func getJoinedGroups() async throws -> [GroupInfoResponse] {
-        return try await withCheckedThrowingContinuation { continuation in
+        let groupsJSON = try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
                 guard let client = self?.goClient else {
                     continuation.resume(throwing: WhatsAppError.clientNotInitialized)
                     return
                 }
 
-                do {
-                    var error: NSError?
-                    let groupsJSON = client.getJoinedGroups(&error)
+                var error: NSError?
+                let groupsJSON = client.getJoinedGroups(&error)
 
-                    if let error = error {
-                        throw error
-                    }
-
-                    guard let jsonData = groupsJSON.data(using: .utf8) else {
-                        throw WhatsAppError.unknown("Invalid JSON response")
-                    }
-
-                    let groups = try JSONDecoder().decode([GroupInfoResponse].self, from: jsonData)
-                    continuation.resume(returning: groups)
-                } catch {
+                if let error = error {
                     continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: groupsJSON)
                 }
             }
-        }
+        } as String
+
+        // Decode JSON on background thread (can be heavy with many groups)
+        return try await Task.detached(priority: .userInitiated) {
+            guard let jsonData = groupsJSON.data(using: .utf8) else {
+                throw WhatsAppError.unknown("Invalid JSON response")
+            }
+            return try JSONDecoder().decode([GroupInfoResponse].self, from: jsonData)
+        }.value
     }
 
    
@@ -416,8 +426,13 @@ class WhatsAppClient: NSObject, ObservableObject {
         }
     }
 
-    /// Create a new group
+    /// Create a new group (optimized - JSON encoding on background thread)
     func createGroup(name: String, participants: [String]) async throws -> String {
+        // Encode JSON on background thread first
+        let participantsJSON = try await Task.detached(priority: .userInitiated) {
+            try String(data: JSONEncoder().encode(participants), encoding: .utf8)!
+        }.value
+
         return try await withCheckedThrowingContinuation { continuation in
             queue.async { [weak self] in
                 guard let client = self?.goClient else {
@@ -426,7 +441,6 @@ class WhatsAppClient: NSObject, ObservableObject {
                 }
 
                 do {
-                    let participantsJSON = try String(data: JSONEncoder().encode(participants), encoding: .utf8)!
                     var error: NSError?
                     let groupJID = client.createGroup(name, participantsJSON: participantsJSON, error: &error)
 

@@ -119,6 +119,25 @@ extension Array where Element == Message {
     }
 }
 
+extension Array {
+    /// Binary search to find insertion index - O(log n) instead of O(n)
+    func insertionIndex(of element: Element, using areInIncreasingOrder: (Element, Element) -> Bool) -> Int {
+        var low = 0
+        var high = count
+
+        while low < high {
+            let mid = (low + high) / 2
+            if areInIncreasingOrder(self[mid], element) {
+                low = mid + 1
+            } else {
+                high = mid
+            }
+        }
+
+        return low
+    }
+}
+
 // MARK: - UserDefaults Keys
 
 enum UserDefaultsKey: String {

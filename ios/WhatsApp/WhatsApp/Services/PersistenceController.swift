@@ -361,7 +361,83 @@ class PersistenceController {
         }
     }
 
-    // MARK: - Fetch Operations
+    // MARK: - Fetch Operations (Async - Background Thread)
+
+    /// Async fetch all chats on background thread
+    func fetchAllChatsAsync() async -> [Chat] {
+        await withCheckedContinuation { continuation in
+            let context = newBackgroundContext()
+            context.perform {
+                let fetchRequest = NSFetchRequest<ChatEntity>(entityName: "ChatEntity")
+                fetchRequest.sortDescriptors = [
+                    NSSortDescriptor(key: "isPinned", ascending: false),
+                    NSSortDescriptor(key: "lastMessageTime", ascending: false)
+                ]
+
+                do {
+                    let entities = try context.fetch(fetchRequest)
+                    let chats = entities.map { $0.toChat() }
+                    continuation.resume(returning: chats)
+                } catch {
+                    print("Failed to fetch chats: \(error)")
+                    continuation.resume(returning: [])
+                }
+            }
+        }
+    }
+
+    /// Async fetch recent messages for all chats (limited) on background thread
+    func fetchRecentMessagesAsync(limit: Int = 50) async -> [String: [Message]] {
+        await withCheckedContinuation { continuation in
+            let context = newBackgroundContext()
+            context.perform {
+                let fetchRequest = NSFetchRequest<MessageEntity>(entityName: "MessageEntity")
+                fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+                fetchRequest.fetchLimit = limit
+
+                do {
+                    let entities = try context.fetch(fetchRequest)
+                    var result: [String: [Message]] = [:]
+                    for entity in entities {
+                        let message = entity.toMessage()
+                        if result[message.chatJID] == nil {
+                            result[message.chatJID] = []
+                        }
+                        result[message.chatJID]?.insert(message, at: 0) // Maintain chronological order
+                    }
+                    continuation.resume(returning: result)
+                } catch {
+                    print("Failed to fetch recent messages: \(error)")
+                    continuation.resume(returning: [:])
+                }
+            }
+        }
+    }
+
+    /// Async fetch messages for specific chat with pagination
+    func fetchMessagesAsync(for chatJID: String, limit: Int = 50, offset: Int = 0) async -> [Message] {
+        await withCheckedContinuation { continuation in
+            let context = newBackgroundContext()
+            context.perform {
+                let fetchRequest = NSFetchRequest<MessageEntity>(entityName: "MessageEntity")
+                fetchRequest.predicate = NSPredicate(format: "chatJID == %@", chatJID)
+                fetchRequest.sortDescriptors = [NSSortDescriptor(key: "timestamp", ascending: false)]
+                fetchRequest.fetchLimit = limit
+                fetchRequest.fetchOffset = offset
+
+                do {
+                    let entities = try context.fetch(fetchRequest)
+                    let messages = entities.map { $0.toMessage() }.reversed() // Reverse to get chronological order
+                    continuation.resume(returning: Array(messages))
+                } catch {
+                    print("Failed to fetch messages: \(error)")
+                    continuation.resume(returning: [])
+                }
+            }
+        }
+    }
+
+    // MARK: - Sync Fetch Operations (for backwards compatibility)
 
     func fetchMessages(for chatJID: String) -> [Message] {
         let fetchRequest = NSFetchRequest<MessageEntity>(entityName: "MessageEntity")

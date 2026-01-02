@@ -24,7 +24,11 @@ class ChatViewModel: ObservableObject {
     @Published var myPhoneNumber: String = ""
 
     // Data
-    @Published var chats: [Chat] = []
+    @Published var chats: [Chat] = [] {
+        didSet {
+            invalidateCache()
+        }
+    }
     @Published var contacts: [Contact] = []
     @Published var messages: [String: [Message]] = [:] // chatJID -> messages
     @Published var selectedChat: Chat?
@@ -32,7 +36,7 @@ class ChatViewModel: ObservableObject {
     // UI state
     @Published var isLoadingChats = false
     @Published var isLoadingMessages = false
-    @Published var searchText = ""
+    @Published var searchText = "" // Cache invalidation is debounced in setupBindings()
 
     // MARK: - Private Properties
 
@@ -40,26 +44,97 @@ class ChatViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private let persistence = PersistenceController.shared
 
+    // Cache for computed properties
+    private var _cachedSortedChats: [Chat]?
+    private var _cachedFilteredChats: [Chat]?
+    private let cacheQueue = DispatchQueue(label: "com.whatsapp.cache", qos: .userInitiated)
+
+    // Batch update mechanism
+    private var pendingUIUpdates: [() -> Void] = []
+    private var updateWorkItem: DispatchWorkItem?
+    private let updateQueue = DispatchQueue(label: "com.whatsapp.updates", qos: .userInitiated)
+
     // MARK: - Computed Properties
 
     var filteredChats: [Chat] {
+        if let cached = _cachedFilteredChats {
+            return cached
+        }
+
+        let filtered: [Chat]
         if searchText.isEmpty {
-            return sortedChats
+            filtered = sortedChats
+        } else {
+            let lowerSearch = searchText.lowercased()
+            filtered = sortedChats.filter {
+                $0.name.lowercased().contains(lowerSearch) ||
+                $0.lastMessage.lowercased().contains(lowerSearch)
+            }
         }
-        return sortedChats.filter {
-            $0.name.localizedCaseInsensitiveContains(searchText) ||
-            $0.lastMessage.localizedCaseInsensitiveContains(searchText)
-        }
+
+        _cachedFilteredChats = filtered
+        return filtered
     }
 
     var sortedChats: [Chat] {
-        chats.sorted { chat1, chat2 in
+        if let cached = _cachedSortedChats {
+            return cached
+        }
+
+        let sorted = chats.sorted { chat1, chat2 in
             // Pinned chats first
             if chat1.isPinned != chat2.isPinned {
                 return chat1.isPinned
             }
             // Then by last message time
             return chat1.lastMessageTime > chat2.lastMessageTime
+        }
+
+        _cachedSortedChats = sorted
+        return sorted
+    }
+
+    private func invalidateCache() {
+        _cachedSortedChats = nil
+        _cachedFilteredChats = nil
+    }
+
+    private func invalidateFilterCache() {
+        _cachedFilteredChats = nil
+    }
+
+    // MARK: - Batch UI Updates
+
+    /// Schedule a UI update to be batched (reduces main thread load)
+    private func scheduleBatchUpdate(_ update: @escaping () -> Void) {
+        updateQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.pendingUIUpdates.append(update)
+
+            // Cancel previous scheduled flush
+            self.updateWorkItem?.cancel()
+
+            // Schedule flush after 100ms of inactivity
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.flushPendingUpdates()
+            }
+            self.updateWorkItem = workItem
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: workItem)
+        }
+    }
+
+    /// Execute all pending UI updates at once
+    private func flushPendingUpdates() {
+        updateQueue.async { [weak self] in
+            guard let self = self else { return }
+            let updates = self.pendingUIUpdates
+            self.pendingUIUpdates = []
+
+            // Execute all updates on main thread in a single batch
+            DispatchQueue.main.async {
+                updates.forEach { $0() }
+            }
         }
     }
 
@@ -81,16 +156,24 @@ class ChatViewModel: ObservableObject {
         setupBindings()
         // Set self as delegate
         client.delegate = self
-        // Load persisted data
-        loadPersistedData()
+        // Load persisted data asynchronously on background thread
+        Task {
+            await loadPersistedData()
+        }
     }
 
     // MARK: - Persistence (CoreData)
 
-    private func loadPersistedData() {
-        // Load from CoreData
-        self.chats = persistence.fetchAllChats()
-        self.messages = persistence.fetchAllMessages()
+    private func loadPersistedData() async {
+        // Load from CoreData on background thread
+        let loadedChats = await persistence.fetchAllChatsAsync()
+        let loadedMessages = await persistence.fetchRecentMessagesAsync(limit: 50) // Load only recent messages
+
+        // Update UI on main thread
+        await MainActor.run {
+            self.chats = loadedChats
+            self.messages = loadedMessages
+        }
     }
 
     private func persistMessage(_ message: Message) {
@@ -110,16 +193,16 @@ class ChatViewModel: ObservableObject {
         }
 
         // Check for duplicate
-        if messages[message.chatJID]?.contains(where: { $0.id == message.id }) == true {
+        guard messages[message.chatJID]?.contains(where: { $0.id == message.id }) == false else {
             return
         }
 
-        messages[message.chatJID]?.append(message)
+        // Insert in sorted position (binary search for better performance)
+        let chatMessages = messages[message.chatJID]!
+        let insertIndex = chatMessages.insertionIndex(of: message) { $0.timestamp < $1.timestamp }
+        messages[message.chatJID]?.insert(message, at: insertIndex)
 
-        // Sort messages by timestamp
-        messages[message.chatJID]?.sort { $0.timestamp < $1.timestamp }
-
-        // Persist to CoreData (batched)
+        // Persist to CoreData (batched, on background thread)
         persistMessage(message)
     }
 
@@ -175,6 +258,15 @@ class ChatViewModel: ObservableObject {
         client.$connectionError
             .receive(on: DispatchQueue.main)
             .assign(to: &$connectionError)
+
+        // Debounce search text updates to reduce UI recalculations
+        $searchText
+            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .sink { [weak self] _ in
+                // Trigger cache invalidation only after user stops typing
+                self?.invalidateFilterCache()
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Connection
@@ -366,15 +458,41 @@ class ChatViewModel: ObservableObject {
 
     // MARK: - Chat Management
 
-    func loadMessages(for chatJID: String) async {
+    /// Load messages for a specific chat with pagination
+    func loadMessages(for chatJID: String, loadMore: Bool = false) async {
         isLoadingMessages = true
-        // Messages are stored locally and received via callback
-        // In a full implementation, you might fetch from a local database
-        isLoadingMessages = false
+
+        let currentCount = messages[chatJID]?.count ?? 0
+        let offset = loadMore ? currentCount : 0
+        let limit = 50
+
+        // Fetch from CoreData on background thread
+        let loadedMessages = await persistence.fetchMessagesAsync(for: chatJID, limit: limit, offset: offset)
+
+        // Update UI on main thread
+        await MainActor.run {
+            if loadMore {
+                // Append older messages
+                if messages[chatJID] == nil {
+                    messages[chatJID] = loadedMessages
+                } else {
+                    messages[chatJID]?.insert(contentsOf: loadedMessages, at: 0)
+                }
+            } else {
+                // Replace with fresh load
+                messages[chatJID] = loadedMessages
+            }
+            isLoadingMessages = false
+        }
     }
 
     func getMessages(for chatJID: String) -> [Message] {
-        (messages[chatJID] ?? []).sorted { $0.timestamp < $1.timestamp }
+        messages[chatJID] ?? []
+    }
+
+    /// Load more messages when scrolling to top
+    func loadMoreMessages(for chatJID: String) async {
+        await loadMessages(for: chatJID, loadMore: true)
     }
 
     func deleteChat(_ chat: Chat) {
@@ -568,16 +686,20 @@ extension ChatViewModel: WhatsAppClientDelegate {
     }
 
     nonisolated func didReceiveReceipt(_ receipt: MessageReceipt) {
+        // Batch receipt updates to avoid excessive UI refreshes
         Task { @MainActor in
-            if let messages = self.messages[receipt.chatJID],
-               let index = messages.firstIndex(where: { $0.id == receipt.messageID }) {
-                switch receipt.type {
-                case .delivered:
-                    self.messages[receipt.chatJID]?[index].status = .delivered
-                case .read:
-                    self.messages[receipt.chatJID]?[index].status = .read
-                default:
-                    break
+            self.scheduleBatchUpdate { [weak self] in
+                guard let self = self else { return }
+                if let messages = self.messages[receipt.chatJID],
+                   let index = messages.firstIndex(where: { $0.id == receipt.messageID }) {
+                    switch receipt.type {
+                    case .delivered:
+                        self.messages[receipt.chatJID]?[index].status = .delivered
+                    case .read:
+                        self.messages[receipt.chatJID]?[index].status = .read
+                    default:
+                        break
+                    }
                 }
             }
         }
