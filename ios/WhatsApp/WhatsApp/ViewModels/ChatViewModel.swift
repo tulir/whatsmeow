@@ -12,7 +12,11 @@ class ChatViewModel: ObservableObject {
     @Published var isConnected = false
     @Published var isLoggedIn = false
     @Published var currentQRCode: String?
-    @Published var connectionError: String?
+	@Published var connectionError: String? {
+		didSet {
+			print(connectionError)
+		}
+	}
 
     // User info
     @Published var myJID: String?
