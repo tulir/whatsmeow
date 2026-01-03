@@ -63,6 +63,8 @@ message ClientPayload {
 			OVERRIDE = 3;
 			FALLBACK = 4;
 			MNS = 5;
+			MNS_SECONDARY = 6;
+			SOCKS_PROXY = 7;
 		}
 
 		optional DNSResolutionMethod dnsMethod = 15;
@@ -97,6 +99,8 @@ message ClientPayload {
 		optional string version = 2;
 		optional WebdPayload webdPayload = 3;
 		optional WebSubPlatform webSubPlatform = 4;
+		optional string browser = 5;
+		optional string browserVersion = 6;
 	}
 
 	message UserAgent {
