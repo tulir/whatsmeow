@@ -3724,6 +3724,7 @@ type BusinessBroadcastListAction struct {
 	Deleted       *bool                       `protobuf:"varint,1,opt,name=deleted" json:"deleted,omitempty"`
 	Participants  []*BroadcastListParticipant `protobuf:"bytes,2,rep,name=participants" json:"participants,omitempty"`
 	ListName      *string                     `protobuf:"bytes,3,opt,name=listName" json:"listName,omitempty"`
+	LabelIDs      []string                    `protobuf:"bytes,4,rep,name=labelIDs" json:"labelIDs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3777,6 +3778,13 @@ func (x *BusinessBroadcastListAction) GetListName() string {
 		return *x.ListName
 	}
 	return ""
+}
+
+func (x *BusinessBroadcastListAction) GetLabelIDs() []string {
+	if x != nil {
+		return x.LabelIDs
+	}
+	return nil
 }
 
 type BusinessBroadcastAssociationAction struct {
@@ -6993,11 +7001,12 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\"H\n" +
 	"\x18BroadcastListParticipant\x12\x16\n" +
 	"\x06lidJID\x18\x01 \x02(\tR\x06lidJID\x12\x14\n" +
-	"\x05pnJID\x18\x02 \x01(\tR\x05pnJID\"\xaa\x01\n" +
+	"\x05pnJID\x18\x02 \x01(\tR\x05pnJID\"\xc6\x01\n" +
 	"\x1bBusinessBroadcastListAction\x12\x18\n" +
 	"\adeleted\x18\x01 \x01(\bR\adeleted\x12U\n" +
 	"\fparticipants\x18\x02 \x03(\v21.WAWebProtobufSyncAction.BroadcastListParticipantR\fparticipants\x12\x1a\n" +
-	"\blistName\x18\x03 \x01(\tR\blistName\">\n" +
+	"\blistName\x18\x03 \x01(\tR\blistName\x12\x1a\n" +
+	"\blabelIDs\x18\x04 \x03(\tR\blabelIDs\">\n" +
 	"\"BusinessBroadcastAssociationAction\x12\x18\n" +
 	"\adeleted\x18\x01 \x01(\bR\adeleted\"t\n" +
 	" CtwaPerCustomerDataSharingAction\x12P\n" +

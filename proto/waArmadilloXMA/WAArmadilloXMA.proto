@@ -155,4 +155,5 @@ message ExtendedContentMessage {
 	repeated WACommon.Mention mentions = 26;
 	optional XmaDataclassType xmaDataclassType = 27;
 	optional string signedXmaDataclassValidation = 28;
+	optional string featureSharedSessionID = 29;
 }
