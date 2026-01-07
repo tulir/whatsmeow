@@ -674,12 +674,17 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 		}
 	}()
 	ctx := cli.BackgroundEventCtx
-	for notif := range cli.historySyncNotifications {
-		blob, err := cli.DownloadHistorySync(ctx, notif, false)
-		if err != nil {
-			cli.Log.Errorf("Failed to download history sync: %v", err)
-		} else {
-			cli.dispatchEvent(&events.HistorySync{Data: blob})
+	for {
+		select {
+		case notif := <-cli.historySyncNotifications:
+			blob, err := cli.DownloadHistorySync(ctx, notif, false)
+			if err != nil {
+				cli.Log.Errorf("Failed to download history sync: %v", err)
+			} else {
+				cli.dispatchEvent(&events.HistorySync{Data: blob})
+			}
+		case <-time.After(1 * time.Minute):
+			return
 		}
 	}
 }
