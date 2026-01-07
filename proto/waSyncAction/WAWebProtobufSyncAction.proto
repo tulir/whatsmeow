@@ -583,6 +583,7 @@ message BusinessBroadcastListAction {
 	optional bool deleted = 1;
 	repeated BroadcastListParticipant participants = 2;
 	optional string listName = 3;
+	repeated string labelIDs = 4;
 }
 
 message BusinessBroadcastAssociationAction {
