@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -776,6 +777,9 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		return
 	}
 	cli.recvLog.Debugf("%s", node.XMLString())
+	if strings.Contains(node.XMLString(),"stream:error"){
+		logging.StdOutLogger.Infof(node.XMLString())
+	}
 	if node.Tag == "xmlstreamend" {
 		if !cli.isExpectedDisconnect() {
 			cli.Log.Warnf("Received stream end frame")
