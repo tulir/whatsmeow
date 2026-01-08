@@ -448,7 +448,7 @@ func (cli *Client) Connect() error {
 	return cli.ConnectContext(cli.BackgroundEventCtx)
 }
 
-func isRetryableConnectError(err error) bool {
+func IsRetryableConnectError(err error) bool {
 	if exhttp.IsNetworkError(err) {
 		return true
 	}
@@ -473,7 +473,7 @@ func (cli *Client) ConnectContext(ctx context.Context) error {
 	defer cli.socketLock.Unlock()
 
 	err := cli.unlockedConnect(ctx)
-	if isRetryableConnectError(err) && cli.InitialAutoReconnect && cli.EnableAutoReconnect {
+	if IsRetryableConnectError(err) && cli.InitialAutoReconnect && cli.EnableAutoReconnect {
 		cli.Log.Errorf("Initial connection failed but reconnecting in background (%v)", err)
 		go cli.dispatchEvent(&events.Disconnected{})
 		go cli.autoReconnect(ctx)
