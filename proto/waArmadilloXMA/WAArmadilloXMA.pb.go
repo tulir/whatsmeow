@@ -598,6 +598,7 @@ type ExtendedContentMessage struct {
 	Mentions                     []*waCommon.Mention                         `protobuf:"bytes,26,rep,name=mentions" json:"mentions,omitempty"`
 	XmaDataclassType             *ExtendedContentMessage_XmaDataclassType    `protobuf:"varint,27,opt,name=xmaDataclassType,enum=WAArmadilloXMA.ExtendedContentMessage_XmaDataclassType" json:"xmaDataclassType,omitempty"`
 	SignedXmaDataclassValidation *string                                     `protobuf:"bytes,28,opt,name=signedXmaDataclassValidation" json:"signedXmaDataclassValidation,omitempty"`
+	FeatureSharedSessionID       *string                                     `protobuf:"bytes,29,opt,name=featureSharedSessionID" json:"featureSharedSessionID,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -828,6 +829,13 @@ func (x *ExtendedContentMessage) GetSignedXmaDataclassValidation() string {
 	return ""
 }
 
+func (x *ExtendedContentMessage) GetFeatureSharedSessionID() string {
+	if x != nil && x.FeatureSharedSessionID != nil {
+		return *x.FeatureSharedSessionID
+	}
+	return ""
+}
+
 type ExtendedContentMessage_CTA struct {
 	state             protoimpl.MessageState                `protogen:"open.v1"`
 	ButtonType        *ExtendedContentMessage_CtaButtonType `protobuf:"varint,1,opt,name=buttonType,enum=WAArmadilloXMA.ExtendedContentMessage_CtaButtonType" json:"buttonType,omitempty"`
@@ -916,7 +924,7 @@ var File_waArmadilloXMA_WAArmadilloXMA_proto protoreflect.FileDescriptor
 
 const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\n" +
-	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\xde \n" +
+	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\x96!\n" +
 	"\x16ExtendedContentMessage\x12C\n" +
 	"\x11associatedMessage\x18\x01 \x01(\v2\x15.WACommon.SubProtocolR\x11associatedMessage\x12Z\n" +
 	"\n" +
@@ -950,7 +958,8 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\bcommands\x18\x19 \x03(\v2\x11.WACommon.CommandR\bcommands\x12-\n" +
 	"\bmentions\x18\x1a \x03(\v2\x11.WACommon.MentionR\bmentions\x12c\n" +
 	"\x10xmaDataclassType\x18\x1b \x01(\x0e27.WAArmadilloXMA.ExtendedContentMessage.XmaDataclassTypeR\x10xmaDataclassType\x12B\n" +
-	"\x1csignedXmaDataclassValidation\x18\x1c \x01(\tR\x1csignedXmaDataclassValidation\x1a\xf5\x01\n" +
+	"\x1csignedXmaDataclassValidation\x18\x1c \x01(\tR\x1csignedXmaDataclassValidation\x126\n" +
+	"\x16featureSharedSessionID\x18\x1d \x01(\tR\x16featureSharedSessionID\x1a\xf5\x01\n" +
 	"\x03CTA\x12T\n" +
 	"\n" +
 	"buttonType\x18\x01 \x01(\x0e24.WAArmadilloXMA.ExtendedContentMessage.CtaButtonTypeR\n" +
