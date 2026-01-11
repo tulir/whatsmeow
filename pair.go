@@ -102,6 +102,7 @@ func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
 			cli.dispatchEvent(&events.PairError{ID: jid, LID: lid, BusinessName: businessName, Platform: platform, Error: err})
 		} else {
 			cli.Log.Infof("Successfully paired %s", cli.Store.ID)
+			go cli.sendUnifiedSession(ctx)
 			cli.dispatchEvent(&events.PairSuccess{ID: jid, LID: lid, BusinessName: businessName, Platform: platform})
 		}
 	}()
