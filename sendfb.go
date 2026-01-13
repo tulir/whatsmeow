@@ -563,10 +563,12 @@ func (cli *Client) encryptMessageForDevicesV3(
 		participantNodes = append(participantNodes, *encrypted)
 	}
 	go func() {
-		err := recover()
-		if err != nil {
-			cli.Log.Warnf("panic occurred in PutCachedSessions: %v", err)
-		}
+		defer func() {
+			err := recover()
+			if err != nil {
+				cli.Log.Warnf("panic occurred in PutCachedSessions: %v", err)
+			}
+		}()
 		err = cli.Store.PutCachedSessions(ctx)
 		if err != nil {
 			cli.Log.Warnf("failed to save cached sessions: %w", err)
