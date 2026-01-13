@@ -1305,10 +1305,16 @@ func (cli *Client) encryptMessageForDevices(
 			includeIdentity = true
 		}
 	}
-	err = cli.Store.PutCachedSessions(ctx)
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to save cached sessions: %w", err)
-	}
+	go func() {
+		err := recover()
+		if err != nil {
+			cli.Log.Warnf("panic occurred in PutCachedSessions: %v", err)
+		}
+		err = cli.Store.PutCachedSessions(ctx)
+		if err != nil {
+			cli.Log.Warnf("failed to save cached sessions: %w", err)
+		}
+	}()
 	return participantNodes, includeIdentity, nil
 }
 

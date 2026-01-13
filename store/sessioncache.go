@@ -108,18 +108,21 @@ func (device *Device) PutCachedSessions(ctx context.Context) error {
 	if cache == nil {
 		return nil
 	}
-	dirtySessions := make(map[string][]byte)
+
+	// Save them one by one to avoid deadlocks for major issues
 	for addr, item := range cache.Iter() {
 		if item.Dirty {
-			dirtySessions[addr] = item.Record.Serialize()
+			err := device.Sessions.PutSession(ctx, addr, item.Record.Serialize())
+			if err != nil {
+				// Log the warning but continue to save other sessions
+				zerolog.Ctx(ctx).Warn().
+					Str("address", addr).
+					Err(err).
+					Msg("Failed to save session, continuing with others")
+			}
 		}
 	}
-	if len(dirtySessions) > 0 {
-		err := device.Sessions.PutManySessions(ctx, dirtySessions)
-		if err != nil {
-			return fmt.Errorf("failed to store cached sessions: %w", err)
-		}
-	}
+
 	cache.Clear()
 	return nil
 }
