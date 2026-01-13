@@ -172,6 +172,9 @@ type Client struct {
 	uniqueID  string
 	idCounter atomic.Uint64
 
+	// Calculated during handlePairSuccess or the initial success node by comparing the server's t attribute with local time
+	serverTimeOffset atomic.Int64
+
 	mediaHTTP     *http.Client
 	websocketHTTP *http.Client
 	preLoginHTTP  *http.Client
@@ -963,18 +966,21 @@ const (
 	OffsetMs = 3 * DayMs
 )
 
-func getUnifiedSessionID() string {
-	now := time.Now().UnixMilli()
+func (cli *Client) getUnifiedSessionID() string {
+	now := time.Now().UnixMilli() + cli.serverTimeOffset.Load()
 	id := (now + int64(OffsetMs)) % int64(WeekMs)
 	return strconv.FormatInt(id, 10)
 }
 
-func (cli *Client) sendUnifiedSession(ctx context.Context) {
+func (cli *Client) sendUnifiedSession() {
 	if cli == nil || !cli.IsConnected() {
 		return
 	}
 
-	sessionID := getUnifiedSessionID()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sessionID := cli.getUnifiedSessionID()
 
 	node := waBinary.Node{
 		Tag:   "ib",

@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -161,6 +162,16 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 	cli.AutoReconnectErrors = 0
 	cli.isLoggedIn.Store(true)
 	nodeLID := node.AttrGetter().JID("lid")
+
+	if tStr, ok := node.Attrs["t"].(string); ok {
+		serverTime, _ := strconv.ParseInt(tStr, 10, 64)
+		if serverTime > 0 {
+			localTime := time.Now().Unix()
+			cli.serverTimeOffset.Store((serverTime - localTime) * 1000)
+			cli.Log.Debugf("calculated server time skew from handleConnectSuccess: %dms", cli.serverTimeOffset.Load())
+		}
+	}
+
 	if !cli.Store.LID.IsEmpty() && !nodeLID.IsEmpty() && cli.Store.LID != nodeLID {
 		// This should probably never happen, but check just in case.
 		cli.Log.Warnf("Stored LID doesn't match one in connect success: %s != %s", cli.Store.LID, nodeLID)

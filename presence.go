@@ -68,7 +68,7 @@ func (cli *Client) SendPresence(ctx context.Context, state types.Presence) error
 		return ErrNoPushName
 	}
 	if state == types.PresenceAvailable {
-		go cli.sendUnifiedSession(ctx)
+		go cli.sendUnifiedSession()
 		cli.sendActiveReceipts.CompareAndSwap(0, 1)
 	} else {
 		cli.sendActiveReceipts.CompareAndSwap(1, 0)
