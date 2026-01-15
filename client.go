@@ -533,7 +533,7 @@ func (cli *Client) IsLoggedIn() bool {
 }
 
 func (cli *Client) onDisconnect(ctx context.Context, ns *socket.NoiseSocket, remote bool) {
-	ns.Stop(false)
+	ns.Stop(false, false)
 	cli.socketLock.Lock()
 	defer cli.socketLock.Unlock()
 	if cli.socket == ns {
@@ -637,14 +637,17 @@ func (cli *Client) ResetConnection() {
 	}
 	cli.socketLock.Lock()
 	cli.forceAutoReconnect.Store(true)
-	cli.unlockedDisconnect()
+	if cli.socket != nil {
+		cli.socket.Stop(true, true)
+		cli.clearResponseWaiters(xmlStreamEndNode)
+	}
 	cli.socketLock.Unlock()
 }
 
 // Disconnect closes the websocket connection.
 func (cli *Client) unlockedDisconnect() {
 	if cli.socket != nil {
-		cli.socket.Stop(true)
+		cli.socket.Stop(true, false)
 		cli.socket = nil
 		cli.clearResponseWaiters(xmlStreamEndNode)
 	}
