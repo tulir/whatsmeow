@@ -531,6 +531,7 @@ message PaymentInviteMessage {
 
 	optional ServiceType serviceType = 1;
 	optional int64 expiryTimestamp = 2;
+	optional bool incentiveEligible = 3;
 }
 
 message HighlyStructuredMessage {
@@ -1569,6 +1570,7 @@ message Message {
 	optional NewsletterFollowerInviteMessage newsletterFollowerInviteMessageV2 = 113;
 	optional PollResultSnapshotMessage pollResultSnapshotMessageV3 = 115;
 	optional FutureProofMessage newsletterAdminProfileMessage = 116;
+	optional FutureProofMessage newsletterAdminProfileMessageV2 = 117;
 }
 
 message AlbumMessage {
@@ -2058,6 +2060,7 @@ message ContactMessage {
 	optional string displayName = 1;
 	optional string vcard = 16;
 	optional ContextInfo contextInfo = 17;
+	optional bool isSelfContact = 18;
 }
 
 message SenderKeyDistributionMessage {
