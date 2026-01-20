@@ -12,6 +12,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"slices"
 
 	"google.golang.org/protobuf/proto"
 
@@ -117,7 +118,13 @@ type patchOutput struct {
 	Mutations   []Mutation
 }
 
-func (proc *Processor) decodeMutations(ctx context.Context, mutations []*waServerSync.SyncdMutation, out *patchOutput, validateMACs bool) error {
+func (proc *Processor) decodeMutations(
+	ctx context.Context,
+	mutations []*waServerSync.SyncdMutation,
+	out *patchOutput,
+	validateMACs bool,
+	patchVersion uint64,
+) error {
 	for i, mutation := range mutations {
 		keyID := mutation.GetRecord().GetKeyID().GetID()
 		keys, err := proc.getAppStateKey(ctx, keyID)
@@ -156,6 +163,10 @@ func (proc *Processor) decodeMutations(ctx context.Context, mutations []*waServe
 		}
 		if mutation.GetOperation() == waServerSync.SyncdMutation_REMOVE {
 			out.RemovedMACs = append(out.RemovedMACs, indexMAC)
+			// If the mutation was previously added in this patch, remove it from AddedMACs
+			out.AddedMACs = slices.DeleteFunc(out.AddedMACs, func(mac store.AppStateMutationMAC) bool {
+				return bytes.Equal(mac.IndexMAC, indexMAC)
+			})
 		} else if mutation.GetOperation() == waServerSync.SyncdMutation_SET {
 			out.AddedMACs = append(out.AddedMACs, store.AppStateMutationMAC{
 				IndexMAC: indexMAC,
@@ -169,24 +180,27 @@ func (proc *Processor) decodeMutations(ctx context.Context, mutations []*waServe
 			Index:     index,
 			IndexMAC:  indexMAC,
 			ValueMAC:  valueMAC,
+
+			PatchVersion: patchVersion,
 		})
 	}
 	return nil
 }
 
-func (proc *Processor) storeMACs(ctx context.Context, name WAPatchName, currentState HashState, out *patchOutput) {
+func (proc *Processor) storeMACs(ctx context.Context, name WAPatchName, currentState HashState, out *patchOutput) error {
 	err := proc.Store.AppState.PutAppStateVersion(ctx, string(name), currentState.Version, currentState.Hash)
 	if err != nil {
-		proc.Log.Errorf("Failed to update app state version in the database: %v", err)
+		return fmt.Errorf("failed to update app state version in the database: %w", err)
 	}
 	err = proc.Store.AppState.DeleteAppStateMutationMACs(ctx, string(name), out.RemovedMACs)
 	if err != nil {
-		proc.Log.Errorf("Failed to remove deleted mutation MACs from the database: %v", err)
+		return fmt.Errorf("failed to remove deleted mutation MACs from the database: %w", err)
 	}
 	err = proc.Store.AppState.PutAppStateMutationMACs(ctx, string(name), currentState.Version, out.AddedMACs)
 	if err != nil {
-		proc.Log.Errorf("Failed to insert added mutation MACs to the database: %v", err)
+		return fmt.Errorf("failed to insert added mutation MACs to the database: %w", err)
 	}
+	return nil
 }
 
 func (proc *Processor) validateSnapshotMAC(ctx context.Context, name WAPatchName, currentState HashState, keyID, expectedSnapshotMAC []byte) (keys ExpandedAppStateKeys, err error) {
@@ -235,12 +249,15 @@ func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss 
 
 	var out patchOutput
 	out.Mutations = newMutationsInput
-	err = proc.decodeMutations(ctx, encryptedMutations, &out, validateMACs)
+	err = proc.decodeMutations(ctx, encryptedMutations, &out, validateMACs, currentState.Version)
 	if err != nil {
 		err = fmt.Errorf("failed to decode snapshot of v%d: %w", currentState.Version, err)
 		return
 	}
-	proc.storeMACs(ctx, name, currentState, &out)
+	err = proc.storeMACs(ctx, name, currentState, &out)
+	if err != nil {
+		return
+	}
 	newMutations = out.Mutations
 	return
 }
@@ -271,8 +288,12 @@ func (proc *Processor) DecodePatches(ctx context.Context, list *PatchList, initi
 		warn, err = currentState.updateHash(patch.GetMutations(), func(indexMAC []byte, maxIndex int) ([]byte, error) {
 			for i := maxIndex - 1; i >= 0; i-- {
 				if bytes.Equal(patch.Mutations[i].GetRecord().GetIndex().GetBlob(), indexMAC) {
-					value := patch.Mutations[i].GetRecord().GetValue().GetBlob()
-					return value[len(value)-32:], nil
+					if patch.Mutations[i].GetOperation() == waServerSync.SyncdMutation_SET {
+						value := patch.Mutations[i].GetRecord().GetValue().GetBlob()
+						return value[len(value)-32:], nil
+					}
+					// Found a REMOVE operation, no previous value
+					return nil, nil
 				}
 			}
 			// Previous value not found in current patch, look in the database
@@ -301,11 +322,14 @@ func (proc *Processor) DecodePatches(ctx context.Context, list *PatchList, initi
 
 		var out patchOutput
 		out.Mutations = newMutations
-		err = proc.decodeMutations(ctx, patch.GetMutations(), &out, validateMACs)
+		err = proc.decodeMutations(ctx, patch.GetMutations(), &out, validateMACs, version)
 		if err != nil {
 			return
 		}
-		proc.storeMACs(ctx, list.Name, currentState, &out)
+		err = proc.storeMACs(ctx, list.Name, currentState, &out)
+		if err != nil {
+			return
+		}
 		newMutations = out.Mutations
 	}
 	return
