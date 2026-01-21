@@ -279,8 +279,60 @@ func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss 
 	return
 }
 
+func (proc *Processor) validatePatch(
+	ctx context.Context,
+	patchName WAPatchName,
+	patch *waServerSync.SyncdPatch,
+	currentState HashState,
+	validateMACs bool,
+) (newState HashState, warn []error, err error) {
+	version := patch.GetVersion().GetVersion()
+	newState = currentState
+	newState.Version = version
+	warn, err = newState.updateHash(patch.GetMutations(), func(indexMAC []byte, maxIndex int) ([]byte, error) {
+		for i := maxIndex - 1; i >= 0; i-- {
+			if bytes.Equal(patch.Mutations[i].GetRecord().GetIndex().GetBlob(), indexMAC) {
+				if patch.Mutations[i].GetOperation() == waServerSync.SyncdMutation_SET {
+					value := patch.Mutations[i].GetRecord().GetValue().GetBlob()
+					return value[len(value)-32:], nil
+				}
+				// Found a REMOVE operation, no previous value
+				return nil, nil
+			}
+		}
+		// Previous value not found in current patch, look in the database
+		return proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), indexMAC)
+	})
+	if len(warn) > 0 {
+		proc.Log.Warnf("Warnings while updating hash for %s: %+v", patchName, warn)
+	}
+	if err != nil {
+		err = fmt.Errorf("failed to update state hash: %w", err)
+		return
+	}
+
+	if validateMACs {
+		var keys ExpandedAppStateKeys
+		keys, err = proc.validateSnapshotMAC(ctx, patchName, newState, patch.GetKeyID().GetID(), patch.GetSnapshotMAC())
+		if err != nil {
+			return
+		}
+		patchMAC := generatePatchMAC(patch, patchName, keys.PatchMAC, patch.GetVersion().GetVersion())
+		if !bytes.Equal(patchMAC, patch.GetPatchMAC()) {
+			err = fmt.Errorf("failed to verify patch v%d: %w", version, ErrMismatchingPatchMAC)
+			return
+		}
+	}
+	return
+}
+
 // DecodePatches will decode all the patches in a PatchList into a list of app state mutations.
-func (proc *Processor) DecodePatches(ctx context.Context, list *PatchList, initialState HashState, validateMACs bool) (newMutations []Mutation, currentState HashState, err error) {
+func (proc *Processor) DecodePatches(
+	ctx context.Context,
+	list *PatchList,
+	initialState HashState,
+	validateMACs bool,
+) (newMutations []Mutation, currentState HashState, err error) {
 	currentState = initialState
 	var expectedLength int
 	if list.Snapshot != nil {
@@ -299,55 +351,28 @@ func (proc *Processor) DecodePatches(ctx context.Context, list *PatchList, initi
 	}
 
 	for _, patch := range list.Patches {
-		version := patch.GetVersion().GetVersion()
-		currentState.Version = version
 		var warn []error
-		warn, err = currentState.updateHash(patch.GetMutations(), func(indexMAC []byte, maxIndex int) ([]byte, error) {
-			for i := maxIndex - 1; i >= 0; i-- {
-				if bytes.Equal(patch.Mutations[i].GetRecord().GetIndex().GetBlob(), indexMAC) {
-					if patch.Mutations[i].GetOperation() == waServerSync.SyncdMutation_SET {
-						value := patch.Mutations[i].GetRecord().GetValue().GetBlob()
-						return value[len(value)-32:], nil
-					}
-					// Found a REMOVE operation, no previous value
-					return nil, nil
-				}
-			}
-			// Previous value not found in current patch, look in the database
-			return proc.Store.AppState.GetAppStateMutationMAC(ctx, string(list.Name), indexMAC)
-		})
+		var newState HashState
+		newState, warn, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs)
 		if len(warn) > 0 {
 			proc.Log.Warnf("Warnings while updating hash for %s: %+v", list.Name, warn)
 		}
 		if err != nil {
-			err = fmt.Errorf("failed to update state hash: %w", err)
 			return
-		}
-
-		if validateMACs {
-			var keys ExpandedAppStateKeys
-			keys, err = proc.validateSnapshotMAC(ctx, list.Name, currentState, patch.GetKeyID().GetID(), patch.GetSnapshotMAC())
-			if err != nil {
-				return
-			}
-			patchMAC := generatePatchMAC(patch, list.Name, keys.PatchMAC, patch.GetVersion().GetVersion())
-			if !bytes.Equal(patchMAC, patch.GetPatchMAC()) {
-				err = fmt.Errorf("failed to verify patch v%d: %w", version, ErrMismatchingPatchMAC)
-				return
-			}
 		}
 
 		var out patchOutput
 		out.Mutations = newMutations
-		err = proc.decodeMutations(ctx, patch.GetMutations(), &out, validateMACs, version)
+		err = proc.decodeMutations(ctx, patch.GetMutations(), &out, validateMACs, newState.Version)
 		if err != nil {
 			return
 		}
-		err = proc.storeMACs(ctx, list.Name, currentState, &out)
+		err = proc.storeMACs(ctx, list.Name, newState, &out)
 		if err != nil {
 			return
 		}
 		newMutations = out.Mutations
+		currentState = newState
 	}
 	return
 }
