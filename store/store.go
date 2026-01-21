@@ -61,6 +61,7 @@ type AppStateSyncKeyStore interface {
 	PutAppStateSyncKey(ctx context.Context, id []byte, key AppStateSyncKey) error
 	GetAppStateSyncKey(ctx context.Context, id []byte) (*AppStateSyncKey, error)
 	GetLatestAppStateSyncKeyID(ctx context.Context) ([]byte, error)
+	GetAllAppStateSyncKeys(ctx context.Context) ([]*AppStateSyncKey, error)
 }
 
 type AppStateMutationMAC struct {

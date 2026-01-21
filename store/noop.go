@@ -136,6 +136,10 @@ func (n *NoopStore) GetLatestAppStateSyncKeyID(ctx context.Context) ([]byte, err
 	return nil, n.Error
 }
 
+func (n *NoopStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*AppStateSyncKey, error) {
+	return nil, nil
+}
+
 func (n *NoopStore) PutAppStateVersion(ctx context.Context, name string, version uint64, hash [128]byte) error {
 	return n.Error
 }

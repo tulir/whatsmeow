@@ -215,6 +215,7 @@ func (proc *Processor) decodeMutations(
 			out.AddMAC(indexMAC, valueMAC)
 		}
 		out.Mutations = append(out.Mutations, Mutation{
+			KeyID:     mutation.GetRecord().GetKeyID().GetID(),
 			Operation: mutation.GetOperation(),
 			Action:    syncAction.GetValue(),
 			Version:   syncAction.GetVersion(),
@@ -257,7 +258,14 @@ func (proc *Processor) validateSnapshotMAC(ctx context.Context, name WAPatchName
 	return
 }
 
-func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss *waServerSync.SyncdSnapshot, initialState HashState, validateMACs bool, newMutationsInput []Mutation) (newMutations []Mutation, currentState HashState, err error) {
+func (proc *Processor) decodeSnapshot(
+	ctx context.Context,
+	name WAPatchName,
+	ss *waServerSync.SyncdSnapshot,
+	initialState HashState,
+	validateMACs bool,
+	newMutationsInput []Mutation,
+) (newMutations []Mutation, currentState HashState, err error) {
 	currentState = initialState
 	currentState.Version = ss.GetVersion().GetVersion()
 
@@ -269,9 +277,17 @@ func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss 
 		}
 	}
 
+	var fakeIndexesToRemove map[[32]byte][]byte
 	var warn []error
 	warn, err = currentState.updateHash(encryptedMutations, func(indexMAC []byte, maxIndex int) ([]byte, error) {
-		return nil, nil
+		vm, newIndexMAC, err := proc.evilHackForLIDMutation(ctx, name, indexMAC, encryptedMutations[maxIndex], maxIndex, encryptedMutations, false)
+		if vm != nil && newIndexMAC != nil && len(indexMAC) == 32 {
+			if fakeIndexesToRemove == nil {
+				fakeIndexesToRemove = make(map[[32]byte][]byte)
+			}
+			fakeIndexesToRemove[indexMACToArray(indexMAC)] = newIndexMAC
+		}
+		return vm, err
 	})
 	if len(warn) > 0 {
 		proc.Log.Warnf("Warnings while updating hash for %s: %+v", name, warn)
@@ -291,7 +307,7 @@ func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss 
 
 	var out patchOutput
 	out.Mutations = newMutationsInput
-	err = proc.decodeMutations(ctx, encryptedMutations, &out, validateMACs, currentState.Version, nil)
+	err = proc.decodeMutations(ctx, encryptedMutations, &out, validateMACs, currentState.Version, fakeIndexesToRemove)
 	if err != nil {
 		err = fmt.Errorf("failed to decode snapshot of v%d: %w", currentState.Version, err)
 		return
@@ -313,6 +329,8 @@ func (proc *Processor) evilHackForLIDMutation(
 	oldIndexMAC []byte,
 	mutation *waServerSync.SyncdMutation,
 	mutationNum int,
+	prevMutations []*waServerSync.SyncdMutation,
+	checkDatabase bool,
 ) (newValueMAC, newIndexMAC []byte, err error) {
 	_, _, index, _, keys, err := proc.decodeMutation(ctx, mutation, mutationNum, true)
 	if err != nil {
@@ -351,7 +369,44 @@ func (proc *Processor) evilHackForLIDMutation(
 		return nil, nil, fmt.Errorf("failed to marshal modified index for LID hack: %w", err)
 	}
 	newIndexMAC = concatAndHMAC(sha256.New, keys.Index, indexBytes)
-	newValueMAC, err = proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), newIndexMAC)
+	currentKeyID := mutation.GetRecord().GetKeyID().GetID()
+	for i := mutationNum - 1; i >= 0; i-- {
+		newKeyID := prevMutations[i].GetRecord().GetKeyID().GetID()
+		if !bytes.Equal(currentKeyID, newKeyID) {
+			keys, err = proc.getAppStateKey(ctx, newKeyID)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to get key %X to decode mutation for LID hack: %w", newKeyID, err)
+			}
+			currentKeyID = newKeyID
+			newIndexMAC = concatAndHMAC(sha256.New, keys.Index, indexBytes)
+		}
+		if bytes.Equal(prevMutations[i].GetRecord().GetIndex().GetBlob(), newIndexMAC) {
+			if prevMutations[i].GetOperation() == waServerSync.SyncdMutation_SET {
+				value := prevMutations[i].GetRecord().GetValue().GetBlob()
+				newValueMAC = value[len(value)-32:]
+			} else {
+				// Found a REMOVE operation, no previous value
+				return nil, nil, nil
+			}
+		}
+	}
+	if newValueMAC == nil && checkDatabase {
+		newValueMAC, err = proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), newIndexMAC)
+		if err == nil && newValueMAC == nil {
+			var allKeys []*store.AppStateSyncKey
+			allKeys, err = proc.Store.AppStateKeys.GetAllAppStateSyncKeys(ctx)
+			for _, key := range allKeys {
+				altIndexMAC := concatAndHMAC(sha256.New, expandAppStateKeys(key.Data).Index, indexBytes)
+				newValueMAC, err = proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), altIndexMAC)
+				if newValueMAC != nil {
+					newIndexMAC = altIndexMAC
+				}
+				if err != nil || newValueMAC != nil {
+					break
+				}
+			}
+		}
+	}
 	if err != nil {
 		// explosions (return is below)
 	} else if newValueMAC == nil {
@@ -402,7 +457,7 @@ func (proc *Processor) validatePatch(
 		if vm != nil || err != nil || !allowEvilLIDHack {
 			return vm, err
 		}
-		vm, newIndexMAC, err := proc.evilHackForLIDMutation(ctx, patchName, indexMAC, patch.Mutations[maxIndex], maxIndex)
+		vm, newIndexMAC, err := proc.evilHackForLIDMutation(ctx, patchName, indexMAC, patch.Mutations[maxIndex], maxIndex, patch.Mutations, true)
 		if vm != nil && newIndexMAC != nil && len(indexMAC) == 32 {
 			if fakeIndexesToRemove == nil {
 				fakeIndexesToRemove = make(map[[32]byte][]byte)

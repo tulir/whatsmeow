@@ -20,6 +20,7 @@ import (
 )
 
 type Mutation struct {
+	KeyID     []byte
 	Operation waServerSync.SyncdMutation_SyncdOperation
 	Action    *waSyncAction.SyncActionValue
 	Version   int32
