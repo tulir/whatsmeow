@@ -122,6 +122,21 @@ type patchOutput struct {
 	Mutations   []Mutation
 }
 
+func (out *patchOutput) RemoveMAC(indexMAC []byte) {
+	out.RemovedMACs = append(out.RemovedMACs, indexMAC)
+	// If the mutation was previously added in this patch, remove it from AddedMACs
+	out.AddedMACs = slices.DeleteFunc(out.AddedMACs, func(mac store.AppStateMutationMAC) bool {
+		return bytes.Equal(mac.IndexMAC, indexMAC)
+	})
+}
+
+func (out *patchOutput) AddMAC(indexMAC, valueMAC []byte) {
+	out.AddedMACs = append(out.AddedMACs, store.AppStateMutationMAC{
+		IndexMAC: indexMAC,
+		ValueMAC: valueMAC,
+	})
+}
+
 func (proc *Processor) decodeMutation(
 	ctx context.Context,
 	mutation *waServerSync.SyncdMutation,
@@ -170,12 +185,20 @@ func (proc *Processor) decodeMutation(
 	return
 }
 
+func indexMACToArray(indexMAC []byte) [32]byte {
+	if len(indexMAC) != 32 {
+		return [32]byte{}
+	}
+	return *(*[32]byte)(indexMAC)
+}
+
 func (proc *Processor) decodeMutations(
 	ctx context.Context,
 	mutations []*waServerSync.SyncdMutation,
 	out *patchOutput,
 	validateMACs bool,
 	patchVersion uint64,
+	fakeIndexesToRemove map[[32]byte][]byte,
 ) error {
 	for i, mutation := range mutations {
 		indexMAC, valueMAC, index, syncAction, _, err := proc.decodeMutation(ctx, mutation, i, validateMACs)
@@ -183,16 +206,13 @@ func (proc *Processor) decodeMutations(
 			return err
 		}
 		if mutation.GetOperation() == waServerSync.SyncdMutation_REMOVE {
-			out.RemovedMACs = append(out.RemovedMACs, indexMAC)
-			// If the mutation was previously added in this patch, remove it from AddedMACs
-			out.AddedMACs = slices.DeleteFunc(out.AddedMACs, func(mac store.AppStateMutationMAC) bool {
-				return bytes.Equal(mac.IndexMAC, indexMAC)
-			})
+			out.RemoveMAC(indexMAC)
+			altIndexMAC, ok := fakeIndexesToRemove[indexMACToArray(indexMAC)]
+			if ok && len(indexMAC) == 32 {
+				out.RemoveMAC(altIndexMAC)
+			}
 		} else if mutation.GetOperation() == waServerSync.SyncdMutation_SET {
-			out.AddedMACs = append(out.AddedMACs, store.AppStateMutationMAC{
-				IndexMAC: indexMAC,
-				ValueMAC: valueMAC,
-			})
+			out.AddMAC(indexMAC, valueMAC)
 		}
 		out.Mutations = append(out.Mutations, Mutation{
 			Operation: mutation.GetOperation(),
@@ -270,7 +290,7 @@ func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss 
 
 	var out patchOutput
 	out.Mutations = newMutationsInput
-	err = proc.decodeMutations(ctx, encryptedMutations, &out, validateMACs, currentState.Version)
+	err = proc.decodeMutations(ctx, encryptedMutations, &out, validateMACs, currentState.Version, nil)
 	if err != nil {
 		err = fmt.Errorf("failed to decode snapshot of v%d: %w", currentState.Version, err)
 		return
@@ -292,10 +312,10 @@ func (proc *Processor) evilHackForLIDMutation(
 	oldIndexMAC []byte,
 	mutation *waServerSync.SyncdMutation,
 	mutationNum int,
-) ([]byte, error) {
+) (newValueMAC, newIndexMAC []byte, err error) {
 	_, _, index, _, keys, err := proc.decodeMutation(ctx, mutation, mutationNum, true)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode mutation for LID hack: %w", err)
+		return nil, nil, fmt.Errorf("failed to decode mutation for LID hack: %w", err)
 	}
 	var newIndex []string
 	for i, part := range index {
@@ -308,14 +328,14 @@ func (proc *Processor) evilHackForLIDMutation(
 		}
 		replacementJID, err := proc.Store.LIDs.GetPNForLID(ctx, parsedJID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get PN for LID %s: %w", parsedJID, err)
+			return nil, nil, fmt.Errorf("failed to get PN for LID %s: %w", parsedJID, err)
 		} else if replacementJID.IsEmpty() {
 			zerolog.Ctx(ctx).Trace().
 				Str("patch_name", string(patchName)).
 				Strs("app_state_index", index).
 				Hex("index_mac", oldIndexMAC).
 				Msg("No phone number found for LID for evil app state LID hack")
-			return nil, nil
+			return nil, nil, nil
 		}
 		newIndex = slices.Clone(index)
 		newIndex[i] = replacementJID.String()
@@ -323,17 +343,17 @@ func (proc *Processor) evilHackForLIDMutation(
 	}
 	if newIndex == nil {
 		// No LIDs found in index
-		return nil, nil
+		return nil, nil, nil
 	}
 	indexBytes, err := json.Marshal(newIndex)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal modified index for LID hack: %w", err)
+		return nil, nil, fmt.Errorf("failed to marshal modified index for LID hack: %w", err)
 	}
-	newIndexMAC := concatAndHMAC(sha256.New, keys.Index, indexBytes)
-	vm, err := proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), newIndexMAC)
+	newIndexMAC = concatAndHMAC(sha256.New, keys.Index, indexBytes)
+	newValueMAC, err = proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), newIndexMAC)
 	if err != nil {
-		return nil, err
-	} else if vm == nil {
+		// explosions (return is below)
+	} else if newValueMAC == nil {
 		zerolog.Ctx(ctx).Trace().
 			Stringer("operation", mutation.GetOperation()).
 			Strs("old_index", index).
@@ -341,17 +361,17 @@ func (proc *Processor) evilHackForLIDMutation(
 			Strs("new_index", newIndex).
 			Hex("new_index_mac", newIndexMAC).
 			Msg("No PN value MAC found for LID mutation")
-		return nil, nil
+	} else {
+		zerolog.Ctx(ctx).Debug().
+			Stringer("operation", mutation.GetOperation()).
+			Strs("old_index", index).
+			Hex("old_index_mac", oldIndexMAC).
+			Strs("new_index", newIndex).
+			Hex("new_index_mac", newIndexMAC).
+			Hex("value_mac", newValueMAC).
+			Msg("Found matching PN value MAC for new LID mutation, using it for evil hack")
 	}
-	zerolog.Ctx(ctx).Debug().
-		Stringer("operation", mutation.GetOperation()).
-		Strs("old_index", index).
-		Hex("old_index_mac", oldIndexMAC).
-		Strs("new_index", newIndex).
-		Hex("new_index_mac", newIndexMAC).
-		Hex("value_mac", vm).
-		Msg("Found matching PN value MAC for new LID mutation, using it for evil hack")
-	return vm, nil
+	return
 }
 
 func (proc *Processor) validatePatch(
@@ -361,7 +381,7 @@ func (proc *Processor) validatePatch(
 	currentState HashState,
 	validateMACs bool,
 	allowEvilLIDHack bool,
-) (newState HashState, warn []error, err error) {
+) (newState HashState, warn []error, fakeIndexesToRemove map[[32]byte][]byte, err error) {
 	version := patch.GetVersion().GetVersion()
 	newState = currentState
 	newState.Version = version
@@ -381,7 +401,14 @@ func (proc *Processor) validatePatch(
 		if vm != nil || err != nil || !allowEvilLIDHack {
 			return vm, err
 		}
-		return proc.evilHackForLIDMutation(ctx, patchName, indexMAC, patch.Mutations[maxIndex], maxIndex)
+		vm, newIndexMAC, err := proc.evilHackForLIDMutation(ctx, patchName, indexMAC, patch.Mutations[maxIndex], maxIndex)
+		if vm != nil && newIndexMAC != nil && len(indexMAC) == 32 {
+			if fakeIndexesToRemove == nil {
+				fakeIndexesToRemove = make(map[[32]byte][]byte)
+			}
+			fakeIndexesToRemove[indexMACToArray(indexMAC)] = newIndexMAC
+		}
+		return vm, err
 	})
 	if len(warn) > 0 {
 		proc.Log.Warnf("Warnings while updating hash for %s: %+v", patchName, warn)
@@ -431,12 +458,14 @@ func (proc *Processor) DecodePatches(
 	}
 
 	for _, patch := range list.Patches {
+		var out patchOutput
 		var warn []error
 		var newState HashState
-		newState, warn, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, false)
+		var fakeIndexesToRemove map[[32]byte][]byte
+		newState, warn, _, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, false)
 		if errors.Is(err, ErrMismatchingLTHash) {
 			proc.Log.Warnf("Failed to validate patches for %s: %v (warnings: %+v) - retrying with evil LID hack", list.Name, err, warn)
-			newState, warn, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, true)
+			newState, warn, fakeIndexesToRemove, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, true)
 		}
 		if len(warn) > 0 {
 			proc.Log.Warnf("Warnings while updating hash for %s: %+v", list.Name, warn)
@@ -445,9 +474,8 @@ func (proc *Processor) DecodePatches(
 			return
 		}
 
-		var out patchOutput
 		out.Mutations = newMutations
-		err = proc.decodeMutations(ctx, patch.GetMutations(), &out, validateMACs, newState.Version)
+		err = proc.decodeMutations(ctx, patch.GetMutations(), &out, validateMACs, newState.Version, fakeIndexesToRemove)
 		if err != nil {
 			return
 		}
