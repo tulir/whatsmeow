@@ -284,6 +284,7 @@ func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss 
 	if validateMACs {
 		_, err = proc.validateSnapshotMAC(ctx, name, currentState, ss.GetKeyID().GetID(), ss.GetMac())
 		if err != nil {
+			err = fmt.Errorf("failed to verify snapshot: %w", err)
 			return
 		}
 	}
