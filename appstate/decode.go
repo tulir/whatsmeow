@@ -118,6 +118,54 @@ type patchOutput struct {
 	Mutations   []Mutation
 }
 
+func (proc *Processor) decodeMutation(
+	ctx context.Context,
+	mutation *waServerSync.SyncdMutation,
+	i int,
+	validateMACs bool,
+) (indexMAC, valueMAC []byte, index []string, syncAction *waSyncAction.SyncActionData, keys ExpandedAppStateKeys, err error) {
+	keyID := mutation.GetRecord().GetKeyID().GetID()
+	keys, err = proc.getAppStateKey(ctx, keyID)
+	if err != nil {
+		err = fmt.Errorf("failed to get key %X to decode mutation: %w", keyID, err)
+		return
+	}
+	content := bytes.Clone(mutation.GetRecord().GetValue().GetBlob())
+	content, valueMAC = content[:len(content)-32], content[len(content)-32:]
+	if validateMACs {
+		expectedValueMAC := generateContentMAC(mutation.GetOperation(), content, keyID, keys.ValueMAC)
+		if !bytes.Equal(expectedValueMAC, valueMAC) {
+			err = fmt.Errorf("failed to verify mutation #%d: %w", i+1, ErrMismatchingContentMAC)
+			return
+		}
+	}
+	iv, content := content[:16], content[16:]
+	plaintext, err := cbcutil.Decrypt(keys.ValueEncryption, iv, content)
+	if err != nil {
+		err = fmt.Errorf("failed to decrypt mutation #%d: %w", i+1, err)
+		return
+	}
+	syncAction = &waSyncAction.SyncActionData{}
+	err = proto.Unmarshal(plaintext, syncAction)
+	if err != nil {
+		err = fmt.Errorf("failed to unmarshal mutation #%d: %w", i+1, err)
+		return
+	}
+	indexMAC = mutation.GetRecord().GetIndex().GetBlob()
+	if validateMACs {
+		expectedIndexMAC := concatAndHMAC(sha256.New, keys.Index, syncAction.Index)
+		if !bytes.Equal(expectedIndexMAC, indexMAC) {
+			err = fmt.Errorf("failed to verify mutation #%d: %w", i+1, ErrMismatchingIndexMAC)
+			return
+		}
+	}
+	err = json.Unmarshal(syncAction.GetIndex(), &index)
+	if err != nil {
+		err = fmt.Errorf("failed to unmarshal index of mutation #%d: %w", i+1, err)
+	}
+	return
+}
+
 func (proc *Processor) decodeMutations(
 	ctx context.Context,
 	mutations []*waServerSync.SyncdMutation,
@@ -126,40 +174,9 @@ func (proc *Processor) decodeMutations(
 	patchVersion uint64,
 ) error {
 	for i, mutation := range mutations {
-		keyID := mutation.GetRecord().GetKeyID().GetID()
-		keys, err := proc.getAppStateKey(ctx, keyID)
+		indexMAC, valueMAC, index, syncAction, _, err := proc.decodeMutation(ctx, mutation, i, validateMACs)
 		if err != nil {
-			return fmt.Errorf("failed to get key %X to decode mutation: %w", keyID, err)
-		}
-		content := mutation.GetRecord().GetValue().GetBlob()
-		content, valueMAC := content[:len(content)-32], content[len(content)-32:]
-		if validateMACs {
-			expectedValueMAC := generateContentMAC(mutation.GetOperation(), content, keyID, keys.ValueMAC)
-			if !bytes.Equal(expectedValueMAC, valueMAC) {
-				return fmt.Errorf("failed to verify mutation #%d: %w", i+1, ErrMismatchingContentMAC)
-			}
-		}
-		iv, content := content[:16], content[16:]
-		plaintext, err := cbcutil.Decrypt(keys.ValueEncryption, iv, content)
-		if err != nil {
-			return fmt.Errorf("failed to decrypt mutation #%d: %w", i+1, err)
-		}
-		var syncAction waSyncAction.SyncActionData
-		err = proto.Unmarshal(plaintext, &syncAction)
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal mutation #%d: %w", i+1, err)
-		}
-		indexMAC := mutation.GetRecord().GetIndex().GetBlob()
-		if validateMACs {
-			expectedIndexMAC := concatAndHMAC(sha256.New, keys.Index, syncAction.Index)
-			if !bytes.Equal(expectedIndexMAC, indexMAC) {
-				return fmt.Errorf("failed to verify mutation #%d: %w", i+1, ErrMismatchingIndexMAC)
-			}
-		}
-		var index []string
-		err = json.Unmarshal(syncAction.GetIndex(), &index)
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal index of mutation #%d: %w", i+1, err)
+			return err
 		}
 		if mutation.GetOperation() == waServerSync.SyncdMutation_REMOVE {
 			out.RemovedMACs = append(out.RemovedMACs, indexMAC)
