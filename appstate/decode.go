@@ -11,15 +11,19 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
+	"github.com/rs/zerolog"
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waServerSync"
 	"go.mau.fi/whatsmeow/proto/waSyncAction"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 )
 
@@ -279,12 +283,84 @@ func (proc *Processor) decodeSnapshot(ctx context.Context, name WAPatchName, ss 
 	return
 }
 
+// Very evil hack for working around WhatsApp's inexplicable choice to locally mutate LIDs
+// instead of sending proper patches to clients. Don't try this at home.
+// TODO remove after the LID migration is complete.
+func (proc *Processor) evilHackForLIDMutation(
+	ctx context.Context,
+	patchName WAPatchName,
+	oldIndexMAC []byte,
+	mutation *waServerSync.SyncdMutation,
+	mutationNum int,
+) ([]byte, error) {
+	_, _, index, _, keys, err := proc.decodeMutation(ctx, mutation, mutationNum, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode mutation for LID hack: %w", err)
+	}
+	var newIndex []string
+	for i, part := range index {
+		if !strings.ContainsRune(part, '@') {
+			continue
+		}
+		parsedJID, err := types.ParseJID(part)
+		if err != nil || parsedJID.Server != types.HiddenUserServer {
+			continue
+		}
+		replacementJID, err := proc.Store.LIDs.GetPNForLID(ctx, parsedJID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get PN for LID %s: %w", parsedJID, err)
+		} else if replacementJID.IsEmpty() {
+			zerolog.Ctx(ctx).Trace().
+				Str("patch_name", string(patchName)).
+				Strs("app_state_index", index).
+				Hex("index_mac", oldIndexMAC).
+				Msg("No phone number found for LID for evil app state LID hack")
+			return nil, nil
+		}
+		newIndex = slices.Clone(index)
+		newIndex[i] = replacementJID.String()
+		break
+	}
+	if newIndex == nil {
+		// No LIDs found in index
+		return nil, nil
+	}
+	indexBytes, err := json.Marshal(newIndex)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal modified index for LID hack: %w", err)
+	}
+	newIndexMAC := concatAndHMAC(sha256.New, keys.Index, indexBytes)
+	vm, err := proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), newIndexMAC)
+	if err != nil {
+		return nil, err
+	} else if vm == nil {
+		zerolog.Ctx(ctx).Trace().
+			Stringer("operation", mutation.GetOperation()).
+			Strs("old_index", index).
+			Hex("old_index_mac", oldIndexMAC).
+			Strs("new_index", newIndex).
+			Hex("new_index_mac", newIndexMAC).
+			Msg("No PN value MAC found for LID mutation")
+		return nil, nil
+	}
+	zerolog.Ctx(ctx).Debug().
+		Stringer("operation", mutation.GetOperation()).
+		Strs("old_index", index).
+		Hex("old_index_mac", oldIndexMAC).
+		Strs("new_index", newIndex).
+		Hex("new_index_mac", newIndexMAC).
+		Hex("value_mac", vm).
+		Msg("Found matching PN value MAC for new LID mutation, using it for evil hack")
+	return vm, nil
+}
+
 func (proc *Processor) validatePatch(
 	ctx context.Context,
 	patchName WAPatchName,
 	patch *waServerSync.SyncdPatch,
 	currentState HashState,
 	validateMACs bool,
+	allowEvilLIDHack bool,
 ) (newState HashState, warn []error, err error) {
 	version := patch.GetVersion().GetVersion()
 	newState = currentState
@@ -301,7 +377,11 @@ func (proc *Processor) validatePatch(
 			}
 		}
 		// Previous value not found in current patch, look in the database
-		return proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), indexMAC)
+		vm, err := proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), indexMAC)
+		if vm != nil || err != nil || !allowEvilLIDHack {
+			return vm, err
+		}
+		return proc.evilHackForLIDMutation(ctx, patchName, indexMAC, patch.Mutations[maxIndex], maxIndex)
 	})
 	if len(warn) > 0 {
 		proc.Log.Warnf("Warnings while updating hash for %s: %+v", patchName, warn)
@@ -353,7 +433,11 @@ func (proc *Processor) DecodePatches(
 	for _, patch := range list.Patches {
 		var warn []error
 		var newState HashState
-		newState, warn, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs)
+		newState, warn, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, false)
+		if errors.Is(err, ErrMismatchingLTHash) {
+			proc.Log.Warnf("Failed to validate patches for %s: %v (warnings: %+v) - retrying with evil LID hack", list.Name, err, warn)
+			newState, warn, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, true)
+		}
 		if len(warn) > 0 {
 			proc.Log.Warnf("Warnings while updating hash for %s: %+v", list.Name, warn)
 		}
