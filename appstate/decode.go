@@ -280,7 +280,9 @@ func (proc *Processor) decodeSnapshot(
 	var fakeIndexesToRemove map[[32]byte][]byte
 	var warn []error
 	warn, err = currentState.updateHash(encryptedMutations, func(indexMAC []byte, maxIndex int) ([]byte, error) {
-		vm, newIndexMAC, err := proc.evilHackForLIDMutation(ctx, name, indexMAC, encryptedMutations[maxIndex], maxIndex, encryptedMutations, false)
+		vm, newIndexMAC, err := proc.evilHackForLIDMutation(
+			ctx, name, indexMAC, encryptedMutations[maxIndex], maxIndex, encryptedMutations, false,
+		)
 		if vm != nil && newIndexMAC != nil && len(indexMAC) == 32 {
 			if fakeIndexesToRemove == nil {
 				fakeIndexesToRemove = make(map[[32]byte][]byte)
@@ -289,9 +291,6 @@ func (proc *Processor) decodeSnapshot(
 		}
 		return vm, err
 	})
-	if len(warn) > 0 {
-		proc.Log.Warnf("Warnings while updating hash for %s: %+v", name, warn)
-	}
 	if err != nil {
 		err = fmt.Errorf("failed to update state hash: %w", err)
 		return
@@ -300,6 +299,9 @@ func (proc *Processor) decodeSnapshot(
 	if validateMACs {
 		_, err = proc.validateSnapshotMAC(ctx, name, currentState, ss.GetKeyID().GetID(), ss.GetMac())
 		if err != nil {
+			if len(warn) > 0 {
+				proc.Log.Warnf("Warnings while updating hash for %s: %+v", name, warn)
+			}
 			err = fmt.Errorf("failed to verify snapshot: %w", err)
 			return
 		}
@@ -457,7 +459,9 @@ func (proc *Processor) validatePatch(
 		if vm != nil || err != nil || !allowEvilLIDHack {
 			return vm, err
 		}
-		vm, newIndexMAC, err := proc.evilHackForLIDMutation(ctx, patchName, indexMAC, patch.Mutations[maxIndex], maxIndex, patch.Mutations, true)
+		vm, newIndexMAC, err := proc.evilHackForLIDMutation(
+			ctx, patchName, indexMAC, patch.Mutations[maxIndex], maxIndex, patch.Mutations, true,
+		)
 		if vm != nil && newIndexMAC != nil && len(indexMAC) == 32 {
 			if fakeIndexesToRemove == nil {
 				fakeIndexesToRemove = make(map[[32]byte][]byte)
@@ -466,9 +470,6 @@ func (proc *Processor) validatePatch(
 		}
 		return vm, err
 	})
-	if len(warn) > 0 {
-		proc.Log.Warnf("Warnings while updating hash for %s: %+v", patchName, warn)
-	}
 	if err != nil {
 		err = fmt.Errorf("failed to update state hash: %w", err)
 		return
@@ -523,10 +524,10 @@ func (proc *Processor) DecodePatches(
 			proc.Log.Warnf("Failed to validate patches for %s: %v (warnings: %+v) - retrying with evil LID hack", list.Name, err, warn)
 			newState, warn, fakeIndexesToRemove, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, true)
 		}
-		if len(warn) > 0 {
-			proc.Log.Warnf("Warnings while updating hash for %s: %+v", list.Name, warn)
-		}
 		if err != nil {
+			if len(warn) > 0 {
+				proc.Log.Warnf("Warnings while updating hash for %s: %+v", list.Name, warn)
+			}
 			return
 		}
 
