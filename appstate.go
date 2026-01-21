@@ -1,4 +1,4 @@
-// Copyright (c) 2022 Tulir Asokan
+// Copyright (c) 2026 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,6 +14,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"go.mau.fi/util/exslices"
+	"go.mau.fi/util/ptr"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -70,10 +72,14 @@ func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName,
 	}
 	for hasMore {
 		patches, err := cli.fetchAppStatePatches(ctx, name, state.Version, wantSnapshot)
-		wantSnapshot = false
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch app state %s patches: %w", name, err)
+		} else if !wantSnapshot && patches.Snapshot != nil {
+			return nil, fmt.Errorf("server unexpectedly returned snapshot for %s without asking", name)
+		} else if patches.Snapshot != nil && state != (appstate.HashState{}) {
+			return nil, fmt.Errorf("unexpected non-empty input state (v%d) for %s when applying snapshot", state.Version, name)
 		}
+		wantSnapshot = false
 		hasMore = patches.HasMorePatches
 		state, err = cli.applyAppStatePatches(ctx, name, state, patches, fullSync, eventsToDispatchPtr)
 		if err != nil {
@@ -120,7 +126,7 @@ func (cli *Client) applyAppStatePatches(
 		if eventsToDispatch != nil && mutation.Operation == waServerSync.SyncdMutation_SET {
 			*eventsToDispatch = append(*eventsToDispatch, &events.AppState{Index: mutation.Index, SyncActionValue: mutation.Action})
 		}
-		evt := cli.dispatchAppState(ctx, mutation, fullSync)
+		evt := cli.dispatchAppState(ctx, name, mutation, fullSync)
 		if eventsToDispatch != nil && evt != nil {
 			*eventsToDispatch = append(*eventsToDispatch, evt)
 		}
@@ -147,8 +153,24 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 	return filteredMutations, contacts
 }
 
-func (cli *Client) dispatchAppState(ctx context.Context, mutation appstate.Mutation, fullSync bool) (eventToDispatch any) {
-	zerolog.Ctx(ctx).Trace().Any("mutation", mutation).Msg("Dispatching app state mutation")
+func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchName, mutation appstate.Mutation, fullSync bool) (eventToDispatch any) {
+	logLevel := zerolog.TraceLevel
+	log := zerolog.Ctx(ctx)
+	if cli.AppStateDebugLogs && log.GetLevel() != zerolog.TraceLevel {
+		logLevel = zerolog.DebugLevel
+	}
+	logEvt := log.WithLevel(logLevel).
+		Str("patch_name", string(name)).
+		Uint64("patch_version", mutation.PatchVersion).
+		Stringer("operation", mutation.Operation).
+		Int32("version", mutation.Version).
+		Strs("index", mutation.Index).
+		Hex("index_mac", mutation.IndexMAC).
+		Hex("value_mac", mutation.ValueMAC)
+	if logLevel == zerolog.TraceLevel {
+		logEvt.Any("action", mutation.Action)
+	}
+	logEvt.Msg("Received app state mutation")
 
 	if mutation.Operation != waServerSync.SyncdMutation_SET {
 		return
@@ -498,4 +520,31 @@ func (cli *Client) MarkNotDirty(ctx context.Context, cleanType string, ts time.T
 		}},
 	})
 	return err
+}
+
+func (cli *Client) SendFatalAppStateExceptionNotification(ctx context.Context, collections ...appstate.WAPatchName) (SendResponse, error) {
+	if len(collections) == 0 {
+		return SendResponse{}, nil
+	}
+	return cli.SendMessage(
+		ctx,
+		cli.getOwnID().ToNonAD(),
+		BuildFatalAppStateExceptionNotification(collections...),
+		SendRequestExtra{Peer: true},
+	)
+}
+
+func BuildFatalAppStateExceptionNotification(collections ...appstate.WAPatchName) *waE2E.Message {
+	if len(collections) == 0 {
+		return nil
+	}
+	return &waE2E.Message{
+		ProtocolMessage: &waE2E.ProtocolMessage{
+			Type: waE2E.ProtocolMessage_APP_STATE_FATAL_EXCEPTION_NOTIFICATION.Enum(),
+			AppStateFatalExceptionNotification: &waE2E.AppStateFatalExceptionNotification{
+				CollectionNames: exslices.CastToString[string](collections),
+				Timestamp:       ptr.Ptr(time.Now().UnixMilli()),
+			},
+		},
+	}
 }

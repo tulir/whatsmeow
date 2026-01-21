@@ -26,6 +26,8 @@ type Mutation struct {
 	Index     []string
 	IndexMAC  []byte
 	ValueMAC  []byte
+
+	PatchVersion uint64
 }
 
 type HashState struct {
