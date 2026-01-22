@@ -10,10 +10,12 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/rs/zerolog"
@@ -194,6 +196,7 @@ func indexMACToArray(indexMAC []byte) [32]byte {
 
 func (proc *Processor) decodeMutations(
 	ctx context.Context,
+	name WAPatchName,
 	mutations []*waServerSync.SyncdMutation,
 	out *patchOutput,
 	validateMACs bool,
@@ -203,8 +206,25 @@ func (proc *Processor) decodeMutations(
 	for i, mutation := range mutations {
 		indexMAC, valueMAC, index, syncAction, _, err := proc.decodeMutation(ctx, mutation, i, validateMACs)
 		if err != nil {
+			zerolog.Ctx(ctx).Debug().
+				Str("patch_name", string(name)).
+				Uint64("patch_version", patchVersion).
+				Int("mutation_index", i).
+				Hex("key_id", mutation.GetRecord().GetKeyID().GetID()).
+				Err(err).
+				Msg("DEBUG: mutation failed to decode")
 			return err
 		}
+		zerolog.Ctx(ctx).Debug().
+			Str("patch_name", string(name)).
+			Uint64("patch_version", patchVersion).
+			Int("mutation_index", i).
+			Hex("key_id", mutation.GetRecord().GetKeyID().GetID()).
+			Hex("index_mac", indexMAC).
+			Hex("value_mac", valueMAC).
+			Strs("index", index).
+			Stringer("operation", mutation.GetOperation()).
+			Msg("DEBUG: mutation metadata")
 		if mutation.GetOperation() == waServerSync.SyncdMutation_REMOVE {
 			out.RemoveMAC(indexMAC)
 			altIndexMAC, ok := fakeIndexesToRemove[indexMACToArray(indexMAC)]
@@ -252,6 +272,13 @@ func (proc *Processor) validateSnapshotMAC(ctx context.Context, name WAPatchName
 		return
 	}
 	snapshotMAC := currentState.generateSnapshotMAC(name, keys.SnapshotMAC)
+	zerolog.Ctx(ctx).Debug().
+		Str("patch_name", string(name)).
+		Uint64("patch_version", currentState.Version).
+		Hex("got_mac", snapshotMAC).
+		Hex("expected_mac", expectedSnapshotMAC).
+		Hex("key_id", keyID).
+		Msg("Snapshot MAC")
 	if !bytes.Equal(snapshotMAC, expectedSnapshotMAC) {
 		err = fmt.Errorf("failed to verify patch v%d: %w", currentState.Version, ErrMismatchingLTHash)
 	}
@@ -302,6 +329,10 @@ func (proc *Processor) decodeSnapshot(
 			if len(warn) > 0 {
 				proc.Log.Warnf("Warnings while updating hash for %s: %+v", name, warn)
 			}
+			// DEBUG: REMOVE
+			if errors.Is(err, ErrMismatchingLTHash) {
+				_ = proc.decodeMutations(ctx, name, encryptedMutations, &patchOutput{}, true, currentState.Version, nil)
+			}
 			err = fmt.Errorf("failed to verify snapshot: %w", err)
 			return
 		}
@@ -309,7 +340,7 @@ func (proc *Processor) decodeSnapshot(
 
 	var out patchOutput
 	out.Mutations = newMutationsInput
-	err = proc.decodeMutations(ctx, encryptedMutations, &out, validateMACs, currentState.Version, fakeIndexesToRemove)
+	err = proc.decodeMutations(ctx, name, encryptedMutations, &out, validateMACs, currentState.Version, fakeIndexesToRemove)
 	if err != nil {
 		err = fmt.Errorf("failed to decode snapshot of v%d: %w", currentState.Version, err)
 		return
@@ -351,11 +382,11 @@ func (proc *Processor) evilHackForLIDMutation(
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get PN for LID %s: %w", parsedJID, err)
 		} else if replacementJID.IsEmpty() {
-			zerolog.Ctx(ctx).Trace().
+			zerolog.Ctx(ctx).Debug().
 				Str("patch_name", string(patchName)).
 				Strs("app_state_index", index).
 				Hex("index_mac", oldIndexMAC).
-				Msg("No phone number found for LID for evil app state LID hack")
+				Msg("DEBUG: No phone number found for LID for evil app state LID hack")
 			return nil, nil, nil
 		}
 		newIndex = slices.Clone(index)
@@ -372,6 +403,7 @@ func (proc *Processor) evilHackForLIDMutation(
 	}
 	newIndexMAC = concatAndHMAC(sha256.New, keys.Index, indexBytes)
 	currentKeyID := mutation.GetRecord().GetKeyID().GetID()
+	triedIndexMACs := map[string]string{hex.EncodeToString(currentKeyID): hex.EncodeToString(newIndexMAC)}
 	// Snapshots can have the previous mutation after this one.
 	// TODO can normal patches do that or are they properly ordered?
 	for i := len(prevMutations) - 1; i >= 0; i-- {
@@ -383,6 +415,7 @@ func (proc *Processor) evilHackForLIDMutation(
 			}
 			currentKeyID = newKeyID
 			newIndexMAC = concatAndHMAC(sha256.New, keys.Index, indexBytes)
+			triedIndexMACs[hex.EncodeToString(currentKeyID)] = hex.EncodeToString(newIndexMAC)
 		}
 		if bytes.Equal(prevMutations[i].GetRecord().GetIndex().GetBlob(), newIndexMAC) {
 			if prevMutations[i].GetOperation() == waServerSync.SyncdMutation_SET {
@@ -400,8 +433,9 @@ func (proc *Processor) evilHackForLIDMutation(
 		if err == nil && newValueMAC == nil {
 			var allKeys []*store.AppStateSyncKey
 			allKeys, err = proc.Store.AppStateKeys.GetAllAppStateSyncKeys(ctx)
-			for _, key := range allKeys {
+			for i, key := range allKeys {
 				altIndexMAC := concatAndHMAC(sha256.New, expandAppStateKeys(key.Data).Index, indexBytes)
+				triedIndexMACs[strconv.Itoa(i)] = hex.EncodeToString(newIndexMAC)
 				newValueMAC, err = proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), altIndexMAC)
 				if newValueMAC != nil {
 					newIndexMAC = altIndexMAC
@@ -415,13 +449,13 @@ func (proc *Processor) evilHackForLIDMutation(
 	if err != nil {
 		// explosions (return is below)
 	} else if newValueMAC == nil {
-		zerolog.Ctx(ctx).Trace().
+		zerolog.Ctx(ctx).Debug().
 			Stringer("operation", mutation.GetOperation()).
 			Strs("old_index", index).
 			Hex("old_index_mac", oldIndexMAC).
 			Strs("new_index", newIndex).
-			Hex("new_index_mac", newIndexMAC).
-			Msg("No PN value MAC found for LID mutation")
+			Any("new_index_macs_attempted", triedIndexMACs).
+			Msg("DEBUG: No PN value MAC found for LID mutation")
 	} else {
 		zerolog.Ctx(ctx).Debug().
 			Stringer("operation", mutation.GetOperation()).
@@ -430,6 +464,7 @@ func (proc *Processor) evilHackForLIDMutation(
 			Strs("new_index", newIndex).
 			Hex("new_index_mac", newIndexMAC).
 			Hex("value_mac", newValueMAC).
+			Any("new_index_macs_attempted", triedIndexMACs).
 			Msg("Found matching PN value MAC for new LID mutation, using it for evil hack")
 	}
 	return
@@ -531,11 +566,15 @@ func (proc *Processor) DecodePatches(
 			if len(warn) > 0 {
 				proc.Log.Warnf("Warnings while updating hash for %s: %+v", list.Name, warn)
 			}
+			// DEBUG: REMOVE
+			if errors.Is(err, ErrMismatchingLTHash) {
+				_ = proc.decodeMutations(ctx, list.Name, patch.GetMutations(), &patchOutput{}, true, newState.Version, nil)
+			}
 			return
 		}
 
 		out.Mutations = newMutations
-		err = proc.decodeMutations(ctx, patch.GetMutations(), &out, validateMACs, newState.Version, fakeIndexesToRemove)
+		err = proc.decodeMutations(ctx, list.Name, patch.GetMutations(), &out, validateMACs, newState.Version, fakeIndexesToRemove)
 		if err != nil {
 			return
 		}
