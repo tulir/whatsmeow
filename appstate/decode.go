@@ -372,7 +372,9 @@ func (proc *Processor) evilHackForLIDMutation(
 	}
 	newIndexMAC = concatAndHMAC(sha256.New, keys.Index, indexBytes)
 	currentKeyID := mutation.GetRecord().GetKeyID().GetID()
-	for i := mutationNum - 1; i >= 0; i-- {
+	// Snapshots can have the previous mutation after this one.
+	// TODO can normal patches do that or are they properly ordered?
+	for i := len(prevMutations) - 1; i >= 0; i-- {
 		newKeyID := prevMutations[i].GetRecord().GetKeyID().GetID()
 		if !bytes.Equal(currentKeyID, newKeyID) {
 			keys, err = proc.getAppStateKey(ctx, newKeyID)
@@ -386,6 +388,7 @@ func (proc *Processor) evilHackForLIDMutation(
 			if prevMutations[i].GetOperation() == waServerSync.SyncdMutation_SET {
 				value := prevMutations[i].GetRecord().GetValue().GetBlob()
 				newValueMAC = value[len(value)-32:]
+				break
 			} else {
 				// Found a REMOVE operation, no previous value
 				return nil, nil, nil
