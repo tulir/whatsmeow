@@ -9,11 +9,14 @@ package whatsmeow
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/rs/zerolog"
+	"go.mau.fi/util/exerrors"
 	"go.mau.fi/util/exslices"
 	"go.mau.fi/util/ptr"
 
@@ -22,6 +25,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waServerSync"
 	"go.mau.fi/whatsmeow/store"
+	"go.mau.fi/whatsmeow/store/sqlstore"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
@@ -38,6 +42,8 @@ func (cli *Client) FetchAppState(ctx context.Context, name appstate.WAPatchName,
 	}
 	return nil
 }
+
+var DumpAppStateToDisk = false
 
 func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) ([]any, error) {
 	if cli == nil {
@@ -78,6 +84,17 @@ func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName,
 			return nil, fmt.Errorf("server unexpectedly returned snapshot for %s without asking", name)
 		} else if patches.Snapshot != nil && state != (appstate.HashState{}) {
 			return nil, fmt.Errorf("unexpected non-empty input state (v%d) for %s when applying snapshot", state.Version, name)
+		}
+		if DumpAppStateToDisk {
+			f := exerrors.Must(os.OpenFile(fmt.Sprintf("/tmp/appstate-%s-v%d.json", name, state.Version), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600))
+			_ = json.NewEncoder(f).Encode(map[string]any{
+				"name":     name,
+				"patches":  patches.Patches,
+				"snapshot": patches.Snapshot,
+				"keys":     exerrors.Must(cli.Store.AppStateKeys.GetAllAppStateSyncKeys(ctx)),
+				"lids":     exerrors.Must(cli.Store.LIDs.(*sqlstore.CachedLIDMap).GetAll(ctx)),
+			})
+			_ = f.Close()
 		}
 		wantSnapshot = false
 		hasMore = patches.HasMorePatches

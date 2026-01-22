@@ -12,6 +12,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 	"sync"
@@ -59,6 +60,9 @@ const (
 func (s *CachedLIDMap) FillCache(ctx context.Context) error {
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
+	if s.cacheFilled {
+		return nil
+	}
 	rows, err := s.db.Query(ctx, getAllLIDMappingsQuery)
 	if err != nil {
 		return err
@@ -66,6 +70,11 @@ func (s *CachedLIDMap) FillCache(ctx context.Context) error {
 	err = s.scanManyLids(rows, nil)
 	s.cacheFilled = err == nil
 	return err
+}
+
+func (s *CachedLIDMap) GetAll(ctx context.Context) (map[string]string, error) {
+	err := s.FillCache(ctx)
+	return maps.Clone(s.lidToPNCache), err
 }
 
 func (s *CachedLIDMap) scanManyLids(rows dbutil.Rows, fn func(lid, pn string)) error {

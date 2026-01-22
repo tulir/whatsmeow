@@ -52,6 +52,7 @@ type SenderKeyStore interface {
 }
 
 type AppStateSyncKey struct {
+	KeyID       []byte
 	Data        []byte
 	Fingerprint []byte
 	Timestamp   int64
