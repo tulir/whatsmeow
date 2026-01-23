@@ -38,6 +38,8 @@ type PatchList struct {
 // DownloadExternalFunc is a function that can download a blob of external app state patches.
 type DownloadExternalFunc func(context.Context, *waServerSync.ExternalBlobReference) ([]byte, error)
 
+var HackyAppStateFixes = false
+
 func parseSnapshotInternal(ctx context.Context, collection *waBinary.Node, downloadExternal DownloadExternalFunc) (*waServerSync.SyncdSnapshot, error) {
 	snapshotNode := collection.GetChildByTag("snapshot")
 	rawSnapshot, ok := snapshotNode.Content.([]byte)
@@ -280,6 +282,9 @@ func (proc *Processor) decodeSnapshot(
 	var fakeIndexesToRemove map[[32]byte][]byte
 	var warn []error
 	warn, err = currentState.updateHash(encryptedMutations, func(indexMAC []byte, maxIndex int) ([]byte, error) {
+		if !HackyAppStateFixes {
+			return nil, nil
+		}
 		vm, newIndexMAC, err := proc.evilHackForLIDMutation(
 			ctx, name, indexMAC, encryptedMutations[maxIndex], maxIndex, encryptedMutations, false,
 		)
@@ -523,7 +528,7 @@ func (proc *Processor) DecodePatches(
 		var newState HashState
 		var fakeIndexesToRemove map[[32]byte][]byte
 		newState, warn, _, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, false)
-		if errors.Is(err, ErrMismatchingLTHash) {
+		if errors.Is(err, ErrMismatchingLTHash) && HackyAppStateFixes {
 			proc.Log.Warnf("Failed to validate patches for %s: %v (warnings: %+v) - retrying with evil LID hack", list.Name, err, warn)
 			newState, warn, fakeIndexesToRemove, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, true)
 		}
