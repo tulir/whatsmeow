@@ -70,17 +70,21 @@ func (cli *Client) getRecentMessage(to types.JID, id types.MessageID) RecentMess
 }
 
 func (cli *Client) getMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (RecentMessage, error) {
-	msg := cli.getRecentMessage(receipt.Chat, messageID)
+	to := receipt.Chat
+	if receipt.Chat.Server == types.HiddenUserServer {
+		to, _ = cli.Store.LIDs.GetPNForLID(ctx, to)
+	}
+	msg := cli.getRecentMessage(to, messageID)
 	if msg.IsEmpty() {
-		waMsg := cli.GetMessageForRetry(receipt.Sender, receipt.Chat, messageID)
+		waMsg := cli.GetMessageForRetry(receipt.Sender, to, messageID)
 		if waMsg == nil {
 			return RecentMessage{}, fmt.Errorf("couldn't find message %s", messageID)
 		} else {
-			cli.Log.Debugf("Found message in GetMessageForRetry to accept retry receipt for %s/%s from %s", receipt.Chat, messageID, receipt.Sender)
+			cli.Log.Debugf("Found message in GetMessageForRetry to accept retry receipt for %s/%s from %s", to, messageID, receipt.Sender)
 		}
 		msg = RecentMessage{wa: waMsg}
 	} else {
-		cli.Log.Debugf("Found message in local cache to accept retry receipt for %s/%s from %s", receipt.Chat, messageID, receipt.Sender)
+		cli.Log.Debugf("Found message in local cache to accept retry receipt for %s/%s from %s", to, messageID, receipt.Sender)
 	}
 	return msg, nil
 }
