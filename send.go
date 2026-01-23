@@ -1045,7 +1045,7 @@ func (cli *Client) preparePeerMessageNode(
 		"category": "peer",
 		"to":       to,
 	}
-	if message.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST || (message.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE && message.GetProtocolMessage().GetPeerDataOperationRequestMessage().GetSyncdCollectionFatalRecoveryRequest() != nil) {
+	if message.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST {
 		attrs["push_priority"] = "high"
 	}
 	start := time.Now()
