@@ -462,7 +462,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 }
 
 func (cli *Client) SendPeerMessage(ctx context.Context, message *waE2E.Message) (SendResponse, error) {
-	ownID := cli.getOwnID()
+	ownID := cli.getOwnID().ToNonAD()
 	if ownID.IsEmpty() {
 		return SendResponse{}, ErrNotLoggedIn
 	}
