@@ -325,6 +325,25 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		} else {
 			cli.Log.Warnf("No LID found for %s", info.Sender)
 		}
+	} else if info.Sender.Server == types.HiddenUserServer && !info.Sender.IsBot() {
+		ourJidTargetID := fmt.Sprintf("%s:%d", info.Sender.User, info.Sender.Device)
+		hasSession, err := cli.Store.Sessions.HasSession(ctx, ourJidTargetID)
+
+		if err == nil && !hasSession {
+			attrs := node.AttrGetter()
+
+			senderPN := attrs.JID("sender_pn")
+
+			if senderPN.IsEmpty() {
+				senderPN = attrs.JID("participant_pn")
+			}
+
+			if !senderPN.IsEmpty() {
+				senderPN.Device = info.Sender.Device
+				cli.Log.Infof("Message from LID %s without session, but found session for PN %s. Migrating...", info.Sender, senderPN)
+				cli.migrateSessionStore(ctx, senderPN, info.Sender)
+			}
+		}
 	}
 	var recognizedStanza, protobufFailed bool
 	for _, child := range children {
