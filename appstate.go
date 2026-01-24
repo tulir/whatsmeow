@@ -393,12 +393,11 @@ func (cli *Client) requestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) 
 			},
 		},
 	}
-	ownID := cli.getOwnID().ToNonAD()
-	if ownID.IsEmpty() || len(debugKeyIDs) == 0 {
+	if len(debugKeyIDs) == 0 {
 		return
 	}
 	cli.Log.Infof("Sending key request for app state keys %+v", debugKeyIDs)
-	_, err := cli.SendMessage(ctx, ownID, msg, SendRequestExtra{Peer: true})
+	_, err := cli.SendPeerMessage(ctx, msg)
 	if err != nil {
 		cli.Log.Warnf("Failed to send app state key request: %v", err)
 	}
@@ -522,28 +521,38 @@ func (cli *Client) MarkNotDirty(ctx context.Context, cleanType string, ts time.T
 	return err
 }
 
-func (cli *Client) SendFatalAppStateExceptionNotification(ctx context.Context, collections ...appstate.WAPatchName) (SendResponse, error) {
-	if len(collections) == 0 {
-		return SendResponse{}, nil
-	}
-	return cli.SendMessage(
-		ctx,
-		cli.getOwnID().ToNonAD(),
-		BuildFatalAppStateExceptionNotification(collections...),
-		SendRequestExtra{Peer: true},
-	)
-}
-
+// BuildFatalAppStateExceptionNotification builds a message to request the user's primary device
+// to reset specific app state collections. This will cause all linked devices to be logged out.
+//
+// The built message can be sent using Client.SendPeerMessage.
+// There is no response, as the client will get logged out.
 func BuildFatalAppStateExceptionNotification(collections ...appstate.WAPatchName) *waE2E.Message {
-	if len(collections) == 0 {
-		return nil
-	}
 	return &waE2E.Message{
 		ProtocolMessage: &waE2E.ProtocolMessage{
 			Type: waE2E.ProtocolMessage_APP_STATE_FATAL_EXCEPTION_NOTIFICATION.Enum(),
 			AppStateFatalExceptionNotification: &waE2E.AppStateFatalExceptionNotification{
 				CollectionNames: exslices.CastToString[string](collections),
 				Timestamp:       ptr.Ptr(time.Now().UnixMilli()),
+			},
+		},
+	}
+}
+
+// BuildAppStateRecoveryRequest builds a message to request the user's primary device to send
+// an unencrypted copy of the given app state collection.
+//
+// The built message can be sent using Client.SendPeerMessage.
+// The response will come as a ProtocolMessage with type `PEER_DATA_OPERATION_RESPONSE_MESSAGE`.
+func BuildAppStateRecoveryRequest(collection appstate.WAPatchName) *waE2E.Message {
+	return &waE2E.Message{
+		ProtocolMessage: &waE2E.ProtocolMessage{
+			Type: waE2E.ProtocolMessage_PEER_DATA_OPERATION_REQUEST_MESSAGE.Enum(),
+			PeerDataOperationRequestMessage: &waE2E.PeerDataOperationRequestMessage{
+				PeerDataOperationRequestType: waE2E.PeerDataOperationRequestType_COMPANION_SYNCD_SNAPSHOT_FATAL_RECOVERY.Enum(),
+				SyncdCollectionFatalRecoveryRequest: &waE2E.PeerDataOperationRequestMessage_SyncDCollectionFatalRecoveryRequest{
+					CollectionName: (*string)(&collection),
+					Timestamp:      ptr.Ptr(time.Now().Unix()),
+				},
 			},
 		},
 	}
