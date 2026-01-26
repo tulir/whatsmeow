@@ -184,7 +184,9 @@ type AppState struct {
 
 // AppStateSyncComplete is emitted when app state is resynced.
 type AppStateSyncComplete struct {
-	Name appstate.WAPatchName
+	Name     appstate.WAPatchName
+	Version  uint64
+	Recovery bool
 }
 
 type AppStateSyncError struct {

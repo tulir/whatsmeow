@@ -89,7 +89,7 @@ func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName,
 	}
 	if fullSync {
 		cli.Log.Debugf("Full sync of app state %s completed. Current version: %d", name, state.Version)
-		eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name})
+		eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name, Version: state.Version})
 	} else {
 		cli.Log.Debugf("Synced app state %s from version %d to %d", name, version, state.Version)
 	}
@@ -118,11 +118,12 @@ func (cli *Client) handleAppStateRecovery(
 		return true
 	}
 	name := appstate.WAPatchName(snapshot.GetCollectionName())
+	version := snapshot.GetVersion().GetVersion()
 	currentVersion, _, err := cli.Store.AppState.GetAppStateVersion(ctx, string(name))
 	if err != nil {
 		cli.Log.Errorf("Failed to get current app state %s version for %s: %v", name, reqID, err)
 		return true
-	} else if currentVersion >= snapshot.GetVersion().GetVersion() {
+	} else if currentVersion >= version {
 		cli.Log.Infof("Ignoring app state recovery response for %s as current version %d is newer than or equal to recovery version %d", reqID, currentVersion, snapshot.GetVersion().GetVersion())
 		return true
 	}
@@ -137,14 +138,14 @@ func (cli *Client) handleAppStateRecovery(
 		cli.Log.Warnf("Failed to collect app state events for %s: %v", reqID, err)
 		return true
 	}
-	eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name})
+	eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name, Version: version, Recovery: true})
 	for _, evt := range eventsToDispatch {
 		handlerFailed := cli.dispatchEvent(evt)
 		if handlerFailed {
 			return false
 		}
 	}
-	cli.Log.Debugf("Finished handling app state recovery response for %s (%s to v%d)", reqID, name, snapshot.GetVersion().GetVersion())
+	cli.Log.Debugf("Finished handling app state recovery response for %s (%s to v%d)", reqID, name, version)
 	return true
 }
 
