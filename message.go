@@ -810,8 +810,14 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 		cli.storeLIDSyncMessage(ctx, protoMsg.GetLidMigrationMappingSyncMessage().GetEncodedMappingPayload())
 	}
 
-	if protoMsg.GetPeerDataOperationRequestResponseMessage().GetPeerDataOperationRequestType() == waE2E.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND {
-		ok = cli.handlePlaceholderResendResponse(protoMsg.GetPeerDataOperationRequestResponseMessage()) && ok
+	if info.Sender.Device == 0 {
+		peerResp := protoMsg.GetPeerDataOperationRequestResponseMessage()
+		switch peerResp.GetPeerDataOperationRequestType() {
+		case waE2E.PeerDataOperationRequestType_PLACEHOLDER_MESSAGE_RESEND:
+			ok = cli.handlePlaceholderResendResponse(peerResp) && ok
+		case waE2E.PeerDataOperationRequestType_COMPANION_SYNCD_SNAPSHOT_FATAL_RECOVERY:
+			ok = cli.handleAppStateRecovery(ctx, peerResp.GetStanzaID(), peerResp.GetPeerDataOperationResult()) && ok
+		}
 	}
 
 	if protoMsg.GetAppStateSyncKeyShare() != nil {
