@@ -11,19 +11,15 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"slices"
-	"strings"
 
-	"github.com/rs/zerolog"
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waServerSync"
 	"go.mau.fi/whatsmeow/proto/waSyncAction"
 	"go.mau.fi/whatsmeow/store"
-	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 )
 
@@ -37,8 +33,6 @@ type PatchList struct {
 
 // DownloadExternalFunc is a function that can download a blob of external app state patches.
 type DownloadExternalFunc func(context.Context, *waServerSync.ExternalBlobReference) ([]byte, error)
-
-var HackyAppStateFixes = false
 
 func parseSnapshotInternal(ctx context.Context, collection *waBinary.Node, downloadExternal DownloadExternalFunc) (*waServerSync.SyncdSnapshot, error) {
 	snapshotNode := collection.GetChildByTag("snapshot")
@@ -282,19 +276,7 @@ func (proc *Processor) decodeSnapshot(
 	var fakeIndexesToRemove map[[32]byte][]byte
 	var warn []error
 	warn, err = currentState.updateHash(encryptedMutations, func(indexMAC []byte, maxIndex int) ([]byte, error) {
-		if !HackyAppStateFixes {
-			return nil, nil
-		}
-		vm, newIndexMAC, err := proc.evilHackForLIDMutation(
-			ctx, name, indexMAC, encryptedMutations[maxIndex], maxIndex, encryptedMutations, false,
-		)
-		if vm != nil && newIndexMAC != nil && len(indexMAC) == 32 {
-			if fakeIndexesToRemove == nil {
-				fakeIndexesToRemove = make(map[[32]byte][]byte)
-			}
-			fakeIndexesToRemove[indexMACToArray(indexMAC)] = newIndexMAC
-		}
-		return vm, err
+		return nil, nil
 	})
 	if err != nil {
 		err = fmt.Errorf("failed to update state hash: %w", err)
@@ -327,127 +309,13 @@ func (proc *Processor) decodeSnapshot(
 	return
 }
 
-// Very evil hack for working around WhatsApp's inexplicable choice to locally mutate LIDs
-// instead of sending proper patches to clients. Don't try this at home.
-// TODO remove after the LID migration is complete.
-func (proc *Processor) evilHackForLIDMutation(
-	ctx context.Context,
-	patchName WAPatchName,
-	oldIndexMAC []byte,
-	mutation *waServerSync.SyncdMutation,
-	mutationNum int,
-	prevMutations []*waServerSync.SyncdMutation,
-	checkDatabase bool,
-) (newValueMAC, newIndexMAC []byte, err error) {
-	_, _, index, _, keys, err := proc.decodeMutation(ctx, mutation, mutationNum, true)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to decode mutation for LID hack: %w", err)
-	}
-	var newIndex []string
-	for i, part := range index {
-		if !strings.ContainsRune(part, '@') {
-			continue
-		}
-		parsedJID, err := types.ParseJID(part)
-		if err != nil || parsedJID.Server != types.HiddenUserServer {
-			continue
-		}
-		replacementJID, err := proc.Store.LIDs.GetPNForLID(ctx, parsedJID)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get PN for LID %s: %w", parsedJID, err)
-		} else if replacementJID.IsEmpty() {
-			zerolog.Ctx(ctx).Trace().
-				Str("patch_name", string(patchName)).
-				Strs("app_state_index", index).
-				Hex("index_mac", oldIndexMAC).
-				Msg("No phone number found for LID for evil app state LID hack")
-			return nil, nil, nil
-		}
-		newIndex = slices.Clone(index)
-		newIndex[i] = replacementJID.String()
-		break
-	}
-	if newIndex == nil {
-		// No LIDs found in index
-		return nil, nil, nil
-	}
-	indexBytes, err := json.Marshal(newIndex)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to marshal modified index for LID hack: %w", err)
-	}
-	newIndexMAC = concatAndHMAC(sha256.New, keys.Index, indexBytes)
-	currentKeyID := mutation.GetRecord().GetKeyID().GetID()
-	// Snapshots can have the previous mutation after this one.
-	// TODO can normal patches do that or are they properly ordered?
-	for i := len(prevMutations) - 1; i >= 0; i-- {
-		newKeyID := prevMutations[i].GetRecord().GetKeyID().GetID()
-		if !bytes.Equal(currentKeyID, newKeyID) {
-			keys, err = proc.getAppStateKey(ctx, newKeyID)
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to get key %X to decode mutation for LID hack: %w", newKeyID, err)
-			}
-			currentKeyID = newKeyID
-			newIndexMAC = concatAndHMAC(sha256.New, keys.Index, indexBytes)
-		}
-		if bytes.Equal(prevMutations[i].GetRecord().GetIndex().GetBlob(), newIndexMAC) {
-			if prevMutations[i].GetOperation() == waServerSync.SyncdMutation_SET {
-				value := prevMutations[i].GetRecord().GetValue().GetBlob()
-				newValueMAC = value[len(value)-32:]
-				break
-			} else {
-				// Found a REMOVE operation, no previous value
-				return nil, nil, nil
-			}
-		}
-	}
-	if newValueMAC == nil && checkDatabase {
-		newValueMAC, err = proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), newIndexMAC)
-		if err == nil && newValueMAC == nil {
-			var allKeys []*store.AppStateSyncKey
-			allKeys, err = proc.Store.AppStateKeys.GetAllAppStateSyncKeys(ctx)
-			for _, key := range allKeys {
-				altIndexMAC := concatAndHMAC(sha256.New, expandAppStateKeys(key.Data).Index, indexBytes)
-				newValueMAC, err = proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), altIndexMAC)
-				if newValueMAC != nil {
-					newIndexMAC = altIndexMAC
-				}
-				if err != nil || newValueMAC != nil {
-					break
-				}
-			}
-		}
-	}
-	if err != nil {
-		// explosions (return is below)
-	} else if newValueMAC == nil {
-		zerolog.Ctx(ctx).Trace().
-			Stringer("operation", mutation.GetOperation()).
-			Strs("old_index", index).
-			Hex("old_index_mac", oldIndexMAC).
-			Strs("new_index", newIndex).
-			Hex("new_index_mac", newIndexMAC).
-			Msg("No PN value MAC found for LID mutation")
-	} else {
-		zerolog.Ctx(ctx).Debug().
-			Stringer("operation", mutation.GetOperation()).
-			Strs("old_index", index).
-			Hex("old_index_mac", oldIndexMAC).
-			Strs("new_index", newIndex).
-			Hex("new_index_mac", newIndexMAC).
-			Hex("value_mac", newValueMAC).
-			Msg("Found matching PN value MAC for new LID mutation, using it for evil hack")
-	}
-	return
-}
-
 func (proc *Processor) validatePatch(
 	ctx context.Context,
 	patchName WAPatchName,
 	patch *waServerSync.SyncdPatch,
 	currentState HashState,
 	validateMACs bool,
-	allowEvilLIDHack bool,
-) (newState HashState, warn []error, fakeIndexesToRemove map[[32]byte][]byte, err error) {
+) (newState HashState, warn []error, err error) {
 	version := patch.GetVersion().GetVersion()
 	newState = currentState
 	newState.Version = version
@@ -463,20 +331,7 @@ func (proc *Processor) validatePatch(
 			}
 		}
 		// Previous value not found in current patch, look in the database
-		vm, err := proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), indexMAC)
-		if vm != nil || err != nil || !allowEvilLIDHack {
-			return vm, err
-		}
-		vm, newIndexMAC, err := proc.evilHackForLIDMutation(
-			ctx, patchName, indexMAC, patch.Mutations[maxIndex], maxIndex, patch.Mutations, true,
-		)
-		if vm != nil && newIndexMAC != nil && len(indexMAC) == 32 {
-			if fakeIndexesToRemove == nil {
-				fakeIndexesToRemove = make(map[[32]byte][]byte)
-			}
-			fakeIndexesToRemove[indexMACToArray(indexMAC)] = newIndexMAC
-		}
-		return vm, err
+		return proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchName), indexMAC)
 	})
 	if err != nil {
 		err = fmt.Errorf("failed to update state hash: %w", err)
@@ -527,11 +382,7 @@ func (proc *Processor) DecodePatches(
 		var warn []error
 		var newState HashState
 		var fakeIndexesToRemove map[[32]byte][]byte
-		newState, warn, _, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, false)
-		if errors.Is(err, ErrMismatchingLTHash) && HackyAppStateFixes {
-			proc.Log.Warnf("Failed to validate patches for %s: %v (warnings: %+v) - retrying with evil LID hack", list.Name, err, warn)
-			newState, warn, fakeIndexesToRemove, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs, true)
-		}
+		newState, warn, err = proc.validatePatch(ctx, list.Name, patch, currentState, validateMACs)
 		if err != nil {
 			if len(warn) > 0 {
 				proc.Log.Warnf("Warnings while updating hash for %s: %+v", list.Name, warn)
