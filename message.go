@@ -782,7 +782,7 @@ func (cli *Client) handlePlaceholderResendResponse(msg *waE2E.PeerDataOperationR
 			cli.Log.Warnf("Failed to parse web message info in item #%d of response to %s: %v", i+1, reqID, err)
 		} else {
 			msgEvt.UnavailableRequestID = reqID
-			ok = cli.dispatchEvent(msgEvt) && ok
+			ok = !cli.dispatchEvent(msgEvt) && ok
 		}
 	}
 	return
@@ -1023,7 +1023,7 @@ func (cli *Client) storeHistoricalPNLIDMappings(ctx context.Context, mappings []
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) bool {
+func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) (handlerFailed bool) {
 	ok := cli.processProtocolParts(ctx, info, msg)
 	if !ok {
 		return false
