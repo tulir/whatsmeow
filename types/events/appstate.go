@@ -107,6 +107,7 @@ type ClearChat struct {
 
 	Action       *waSyncAction.ClearChatAction // Information about the clear.
 	FromFullSync bool                          // Whether the action is emitted because of a fullSync
+	DeleteMedia  bool
 }
 
 // DeleteChat is emitted when a chat is deleted on another device.
@@ -116,6 +117,7 @@ type DeleteChat struct {
 
 	Action       *waSyncAction.DeleteChatAction // Information about the deletion.
 	FromFullSync bool                           // Whether the action is emitted because of a fullSync
+	DeleteMedia  bool
 }
 
 // PushNameSetting is emitted when the user's push name is changed from another device.
@@ -182,5 +184,13 @@ type AppState struct {
 
 // AppStateSyncComplete is emitted when app state is resynced.
 type AppStateSyncComplete struct {
-	Name appstate.WAPatchName
+	Name     appstate.WAPatchName
+	Version  uint64
+	Recovery bool
+}
+
+type AppStateSyncError struct {
+	Name     appstate.WAPatchName
+	Error    error
+	FullSync bool
 }

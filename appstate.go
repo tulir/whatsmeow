@@ -83,16 +83,70 @@ func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName,
 		hasMore = patches.HasMorePatches
 		state, err = cli.applyAppStatePatches(ctx, name, state, patches, fullSync, eventsToDispatchPtr)
 		if err != nil {
+			cli.dispatchEvent(&events.AppStateSyncError{Name: name, FullSync: fullSync, Error: err})
 			return nil, err
 		}
 	}
 	if fullSync {
 		cli.Log.Debugf("Full sync of app state %s completed. Current version: %d", name, state.Version)
-		eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name})
+		eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name, Version: state.Version})
 	} else {
 		cli.Log.Debugf("Synced app state %s from version %d to %d", name, version, state.Version)
 	}
 	return eventsToDispatch, nil
+}
+
+func (cli *Client) handleAppStateRecovery(
+	ctx context.Context,
+	reqID types.MessageID,
+	result []*waE2E.PeerDataOperationRequestResponseMessage_PeerDataOperationResult,
+) bool {
+	if len(result) == 0 || result[0].GetSyncdSnapshotFatalRecoveryResponse() == nil {
+		cli.Log.Warnf("No app state recovery data received for %s", reqID)
+		return true
+	} else if len(result) > 1 {
+		cli.Log.Warnf("Unexpected number of app state recovery results for %s: %d", reqID, len(result))
+	}
+	var eventsToDispatch []any
+	eventsToDispatchPtr := &eventsToDispatch
+	if !cli.EmitAppStateEventsOnFullSync {
+		eventsToDispatchPtr = nil
+	}
+	snapshot, err := appstate.ParseRecovery(result[0].GetSyncdSnapshotFatalRecoveryResponse())
+	if err != nil {
+		cli.Log.Warnf("Failed to parse app state recovery blob for %s: %v", reqID, err)
+		return true
+	}
+	name := appstate.WAPatchName(snapshot.GetCollectionName())
+	version := snapshot.GetVersion().GetVersion()
+	currentVersion, _, err := cli.Store.AppState.GetAppStateVersion(ctx, string(name))
+	if err != nil {
+		cli.Log.Errorf("Failed to get current app state %s version for %s: %v", name, reqID, err)
+		return true
+	} else if currentVersion >= version {
+		cli.Log.Infof("Ignoring app state recovery response for %s as current version %d is newer than or equal to recovery version %d", reqID, currentVersion, snapshot.GetVersion().GetVersion())
+		return true
+	}
+	cli.Log.Debugf("Handling app state recovery response for %s", reqID)
+	mutations, err := cli.appStateProc.ProcessRecovery(ctx, snapshot)
+	if err != nil {
+		cli.Log.Warnf("Failed to parse app state recovery blob for %s: %v", reqID, err)
+		return true
+	}
+	err = cli.collectEventsToDispatch(ctx, name, mutations, true, eventsToDispatchPtr)
+	if err != nil {
+		cli.Log.Warnf("Failed to collect app state events for %s: %v", reqID, err)
+		return true
+	}
+	eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name, Version: version, Recovery: true})
+	for _, evt := range eventsToDispatch {
+		handlerFailed := cli.dispatchEvent(evt)
+		if handlerFailed {
+			return false
+		}
+	}
+	cli.Log.Debugf("Finished handling app state recovery response for %s (%s to v%d)", reqID, name, version)
+	return true
 }
 
 func (cli *Client) applyAppStatePatches(
@@ -110,16 +164,24 @@ func (cli *Client) applyAppStatePatches(
 		}
 		return state, fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 	}
-	wasFullSync := state.Version == 0 && patches.Snapshot != nil
-	state = newState
-	if name == appstate.WAPatchCriticalUnblockLow && wasFullSync && !cli.EmitAppStateEventsOnFullSync {
+	return newState, cli.collectEventsToDispatch(ctx, name, mutations, fullSync, eventsToDispatch)
+}
+
+func (cli *Client) collectEventsToDispatch(
+	ctx context.Context,
+	name appstate.WAPatchName,
+	mutations []appstate.Mutation,
+	fullSync bool,
+	eventsToDispatch *[]any,
+) error {
+	if name == appstate.WAPatchCriticalUnblockLow && fullSync && !cli.EmitAppStateEventsOnFullSync {
 		var contacts []store.ContactEntry
 		mutations, contacts = cli.filterContacts(mutations)
 		cli.Log.Debugf("Mass inserting app state snapshot with %d contacts into the store", len(contacts))
-		err = cli.Store.Contacts.PutAllContactNames(ctx, contacts)
+		err := cli.Store.Contacts.PutAllContactNames(ctx, contacts)
 		if err != nil {
 			// This is a fairly serious failure, so just abort the whole thing
-			return state, fmt.Errorf("failed to update contact store with data from snapshot: %v", err)
+			return fmt.Errorf("failed to update contact store with data from snapshot: %v", err)
 		}
 	}
 	for _, mutation := range mutations {
@@ -131,7 +193,7 @@ func (cli *Client) applyAppStatePatches(
 			*eventsToDispatch = append(*eventsToDispatch, evt)
 		}
 	}
-	return state, nil
+	return nil
 }
 
 func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mutation, []store.ContactEntry) {
@@ -218,10 +280,31 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 		}
 	case appstate.IndexClearChat:
 		act := mutation.Action.GetClearChatAction()
-		eventToDispatch = &events.ClearChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
+		var deleteMedia bool
+		// TODO what's index 2 here?
+		if len(mutation.Index) > 3 && mutation.Index[3] == "1" {
+			deleteMedia = true
+		}
+		eventToDispatch = &events.ClearChat{
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       act,
+			DeleteMedia:  deleteMedia,
+			FromFullSync: fullSync,
+		}
 	case appstate.IndexDeleteChat:
 		act := mutation.Action.GetDeleteChatAction()
-		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
+		var deleteMedia bool
+		if len(mutation.Index) > 2 && mutation.Index[2] == "1" {
+			deleteMedia = true
+		}
+		eventToDispatch = &events.DeleteChat{
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       act,
+			DeleteMedia:  deleteMedia,
+			FromFullSync: fullSync,
+		}
 	case appstate.IndexStar:
 		if len(mutation.Index) < 5 {
 			return

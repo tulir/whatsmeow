@@ -337,15 +337,19 @@ func (proc *Processor) EncodePatch(ctx context.Context, keyID []byte, state Hash
 }
 
 // BuildDeleteChat builds an app state patch for deleting a chat.
-func BuildDeleteChat(target types.JID, lastMessageTimestamp time.Time, lastMessageKey *waCommon.MessageKey) PatchInfo {
+func BuildDeleteChat(target types.JID, lastMessageTimestamp time.Time, lastMessageKey *waCommon.MessageKey, deleteMedia bool) PatchInfo {
 	action := &waSyncAction.DeleteChatAction{
 		MessageRange: newMessageRange(lastMessageTimestamp, lastMessageKey),
 	}
+	deleteMediaInt := "0"
+	if deleteMedia {
+		deleteMediaInt = "1"
+	}
 
 	return PatchInfo{
-		Type: WAPatchRegular,
+		Type: WAPatchRegularHigh,
 		Mutations: []MutationInfo{{
-			Index:   []string{IndexDeleteChat, target.String()},
+			Index:   []string{IndexDeleteChat, target.String(), deleteMediaInt},
 			Version: 6,
 			Value: &waSyncAction.SyncActionValue{
 				DeleteChatAction: action,
