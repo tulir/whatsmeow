@@ -186,3 +186,9 @@ type AppState struct {
 type AppStateSyncComplete struct {
 	Name appstate.WAPatchName
 }
+
+type AppStateSyncError struct {
+	Name     appstate.WAPatchName
+	Error    error
+	FullSync bool
+}
