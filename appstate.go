@@ -218,10 +218,31 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 		}
 	case appstate.IndexClearChat:
 		act := mutation.Action.GetClearChatAction()
-		eventToDispatch = &events.ClearChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
+		var deleteMedia bool
+		// TODO what's index 2 here?
+		if len(mutation.Index) > 3 && mutation.Index[3] == "1" {
+			deleteMedia = true
+		}
+		eventToDispatch = &events.ClearChat{
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       act,
+			DeleteMedia:  deleteMedia,
+			FromFullSync: fullSync,
+		}
 	case appstate.IndexDeleteChat:
 		act := mutation.Action.GetDeleteChatAction()
-		eventToDispatch = &events.DeleteChat{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
+		var deleteMedia bool
+		if len(mutation.Index) > 2 && mutation.Index[2] == "1" {
+			deleteMedia = true
+		}
+		eventToDispatch = &events.DeleteChat{
+			JID:          jid,
+			Timestamp:    ts,
+			Action:       act,
+			DeleteMedia:  deleteMedia,
+			FromFullSync: fullSync,
+		}
 	case appstate.IndexStar:
 		if len(mutation.Index) < 5 {
 			return
