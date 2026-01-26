@@ -591,7 +591,7 @@ func (int *DangerousInternalClient) GetRecentMessage(to types.JID, id types.Mess
 	return int.c.getRecentMessage(to, id)
 }
 
-func (int *DangerousInternalClient) GetMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (RecentMessage, error) {
+func (int *DangerousInternalClient) GetMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (*RecentMessage, error) {
 	return int.c.getMessageForRetry(ctx, receipt, messageID)
 }
 
