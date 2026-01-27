@@ -535,6 +535,9 @@ func (cli *Client) encryptMessageForDevicesV3(
 	if err != nil {
 		return nil, fmt.Errorf("failed to prefetch sessions: %w", err)
 	}
+	// Ensure sessions are persisted even if context is cancelled mid-encryption
+	defer cli.Store.PutCachedSessions(context.WithoutCancel(ctx))
+
 	var retryDevices []types.JID
 	for addr, exists := range existingSessions {
 		if !exists {
