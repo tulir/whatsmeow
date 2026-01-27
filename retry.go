@@ -64,25 +64,39 @@ func (cli *Client) addRecentMessage(to types.JID, id types.MessageID, wa *waE2E.
 
 func (cli *Client) getRecentMessage(to types.JID, id types.MessageID) RecentMessage {
 	cli.recentMessagesLock.RLock()
-	msg, _ := cli.recentMessagesMap[recentMessageKey{to, id}]
-	cli.recentMessagesLock.RUnlock()
-	return msg
+	defer cli.recentMessagesLock.RUnlock()
+	return cli.recentMessagesMap[recentMessageKey{to, id}]
 }
 
-func (cli *Client) getMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (RecentMessage, error) {
+func (cli *Client) getMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (*RecentMessage, error) {
 	msg := cli.getRecentMessage(receipt.Chat, messageID)
-	if msg.IsEmpty() {
-		waMsg := cli.GetMessageForRetry(receipt.Sender, receipt.Chat, messageID)
-		if waMsg == nil {
-			return RecentMessage{}, fmt.Errorf("couldn't find message %s", messageID)
-		} else {
-			cli.Log.Debugf("Found message in GetMessageForRetry to accept retry receipt for %s/%s from %s", receipt.Chat, messageID, receipt.Sender)
-		}
-		msg = RecentMessage{wa: waMsg}
-	} else {
+	if !msg.IsEmpty() {
 		cli.Log.Debugf("Found message in local cache to accept retry receipt for %s/%s from %s", receipt.Chat, messageID, receipt.Sender)
+		return &msg, nil
 	}
-	return msg, nil
+	var altChat types.JID
+	var err error
+	switch receipt.Chat.Server {
+	case types.DefaultUserServer:
+		altChat, err = cli.Store.LIDs.GetLIDForPN(ctx, receipt.Chat)
+	case types.HiddenUserServer:
+		altChat, err = cli.Store.LIDs.GetPNForLID(ctx, receipt.Chat)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get alternate JID for %s: %w", receipt.Chat, err)
+	} else if !altChat.IsEmpty() {
+		msg = cli.getRecentMessage(altChat, messageID)
+		if !msg.IsEmpty() {
+			cli.Log.Debugf("Found message in local cache with alternate chat JID %s to accept retry receipt for %s/%s from %s", altChat, receipt.Chat, messageID, receipt.Sender)
+			return &msg, nil
+		}
+	}
+	waMsg := cli.GetMessageForRetry(receipt.Sender, receipt.Chat, messageID)
+	if waMsg != nil {
+		cli.Log.Debugf("Found message in GetMessageForRetry to accept retry receipt for %s/%s from %s", receipt.Chat, messageID, receipt.Sender)
+		return &RecentMessage{wa: waMsg}, nil
+	}
+	return nil, nil
 }
 
 const recreateSessionTimeout = 1 * time.Hour
@@ -127,6 +141,8 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 	msg, err := cli.getMessageForRetry(ctx, receipt, messageID)
 	if err != nil {
 		return err
+	} else if msg == nil {
+		return fmt.Errorf("couldn't find message %s", messageID)
 	}
 	var fbConsumerMsg *waConsumerApplication.ConsumerApplication
 	if msg.fb != nil {
@@ -353,12 +369,7 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 }
 
 func (cli *Client) immediateRequestMessageFromPhone(ctx context.Context, info *types.MessageInfo) {
-	_, err := cli.SendMessage(
-		ctx,
-		cli.getOwnID().ToNonAD(),
-		cli.BuildUnavailableMessageRequest(info.Chat, info.Sender, info.ID),
-		SendRequestExtra{Peer: true},
-	)
+	_, err := cli.SendPeerMessage(ctx, cli.BuildUnavailableMessageRequest(info.Chat, info.Sender, info.ID))
 	if err != nil {
 		cli.Log.Warnf("Failed to send request for unavailable message %s to phone: %v", info.ID, err)
 	} else {

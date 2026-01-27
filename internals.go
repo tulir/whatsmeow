@@ -55,8 +55,8 @@ func (int *DangerousInternalClient) FilterContacts(mutations []appstate.Mutation
 	return int.c.filterContacts(mutations)
 }
 
-func (int *DangerousInternalClient) DispatchAppState(ctx context.Context, mutation appstate.Mutation, fullSync bool) (eventToDispatch any) {
-	return int.c.dispatchAppState(ctx, mutation, fullSync)
+func (int *DangerousInternalClient) DispatchAppState(ctx context.Context, name appstate.WAPatchName, mutation appstate.Mutation, fullSync bool) (eventToDispatch any) {
+	return int.c.dispatchAppState(ctx, name, mutation, fullSync)
 }
 
 func (int *DangerousInternalClient) DownloadExternalAppStateBlob(ctx context.Context, ref *waServerSync.ExternalBlobReference) ([]byte, error) {
@@ -591,7 +591,7 @@ func (int *DangerousInternalClient) GetRecentMessage(to types.JID, id types.Mess
 	return int.c.getRecentMessage(to, id)
 }
 
-func (int *DangerousInternalClient) GetMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (RecentMessage, error) {
+func (int *DangerousInternalClient) GetMessageForRetry(ctx context.Context, receipt *events.Receipt, messageID types.MessageID) (*RecentMessage, error) {
 	return int.c.getMessageForRetry(ctx, receipt, messageID)
 }
 

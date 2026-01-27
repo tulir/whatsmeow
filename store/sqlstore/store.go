@@ -442,6 +442,7 @@ const (
 			SET key_data=excluded.key_data, timestamp=excluded.timestamp, fingerprint=excluded.fingerprint
 			WHERE excluded.timestamp > whatsmeow_app_state_sync_keys.timestamp
 	`
+	getAllAppStateSyncKeysQuery     = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 ORDER BY timestamp DESC`
 	getAppStateSyncKeyQuery         = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 AND key_id=$2`
 	getLatestAppStateSyncKeyIDQuery = `SELECT key_id FROM whatsmeow_app_state_sync_keys WHERE jid=$1 ORDER BY timestamp DESC LIMIT 1`
 )
@@ -449,6 +450,25 @@ const (
 func (s *SQLStore) PutAppStateSyncKey(ctx context.Context, id []byte, key store.AppStateSyncKey) error {
 	_, err := s.db.Exec(ctx, putAppStateSyncKeyQuery, s.JID, id, key.Data, key.Timestamp, key.Fingerprint)
 	return err
+}
+
+func (s *SQLStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*store.AppStateSyncKey, error) {
+	rows, err := s.db.Query(ctx, getAllAppStateSyncKeysQuery, s.JID)
+	if err != nil {
+		return nil, err
+	}
+	var out []*store.AppStateSyncKey
+	for rows.Next() {
+		var item store.AppStateSyncKey
+		err = rows.Scan(&item.Data, &item.Timestamp, &item.Fingerprint)
+		if err != nil {
+			return nil, err
+		}
+		if len(item.Data) > 0 {
+			out = append(out, &item)
+		}
+	}
+	return out, rows.Close()
 }
 
 func (s *SQLStore) GetAppStateSyncKey(ctx context.Context, id []byte) (*store.AppStateSyncKey, error) {
@@ -498,6 +518,8 @@ func (s *SQLStore) GetAppStateVersion(ctx context.Context, name string) (version
 	} else if len(uncheckedHash) != 128 {
 		// This shouldn't happen
 		err = ErrInvalidLength
+	} else if version == 0 {
+		err = fmt.Errorf("invalid saved app state version 0 for name %s (hash %x)", name, uncheckedHash)
 	} else {
 		// No errors, convert hash slice to array
 		hash = *(*[128]byte)(uncheckedHash)
