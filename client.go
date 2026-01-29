@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -174,6 +175,9 @@ type Client struct {
 
 	uniqueID  string
 	idCounter atomic.Uint64
+
+	// Calculated during handlePairSuccess or the initial success node by comparing the server's t attribute with local time
+	serverTimeOffset atomic.Int64
 
 	mediaHTTP     *http.Client
 	websocketHTTP *http.Client
@@ -974,5 +978,46 @@ func (cli *Client) StoreLIDPNMapping(ctx context.Context, first, second types.JI
 	err := cli.Store.LIDs.PutLIDMapping(ctx, lid, pn)
 	if err != nil {
 		cli.Log.Errorf("Failed to store LID-PN mapping for %s -> %s: %v", lid, pn, err)
+	}
+}
+
+const (
+	DayMs    = 24 * 60 * 60 * 1000
+	WeekMs   = 7 * DayMs
+	OffsetMs = 3 * DayMs
+)
+
+func (cli *Client) getUnifiedSessionID() string {
+	now := time.Now().UnixMilli() + cli.serverTimeOffset.Load()
+	id := (now + int64(OffsetMs)) % int64(WeekMs)
+	return strconv.FormatInt(id, 10)
+}
+
+func (cli *Client) sendUnifiedSession() {
+	if cli == nil || !cli.IsConnected() {
+		return
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sessionID := cli.getUnifiedSessionID()
+
+	node := waBinary.Node{
+		Tag:   "ib",
+		Attrs: waBinary.Attrs{},
+		Content: []waBinary.Node{
+			{
+				Tag: "unified_session",
+				Attrs: waBinary.Attrs{
+					"id": sessionID,
+				},
+			},
+		},
+	}
+
+	err := cli.sendNode(ctx, node)
+	if err != nil {
+		cli.Log.Debugf("Failed to send unified_session telemetry: %v", err)
 	}
 }
