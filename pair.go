@@ -13,7 +13,9 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"go.mau.fi/libsignal/ecc"
 	"google.golang.org/protobuf/proto"
@@ -94,6 +96,15 @@ func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
 	lid, _ := pairSuccess.GetChildByTag("device").Attrs["lid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
 
+	if tStr, ok := node.Attrs["t"].(string); ok {
+		serverTime, _ := strconv.ParseInt(tStr, 10, 64)
+		if serverTime > 0 {
+			localTime := time.Now().Unix()
+			cli.serverTimeOffset.Store((serverTime - localTime) * 1000)
+			cli.Log.Debugf("calculated server time skew from handlePairSuccess: %dms", cli.serverTimeOffset.Load())
+		}
+	}
+
 	go func() {
 		err := cli.handlePair(ctx, deviceIdentityBytes, id, businessName, platform, jid, lid)
 		if err != nil {
@@ -102,6 +113,7 @@ func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
 			cli.dispatchEvent(&events.PairError{ID: jid, LID: lid, BusinessName: businessName, Platform: platform, Error: err})
 		} else {
 			cli.Log.Infof("Successfully paired %s", cli.Store.ID)
+			go cli.sendUnifiedSession()
 			cli.dispatchEvent(&events.PairSuccess{ID: jid, LID: lid, BusinessName: businessName, Platform: platform})
 		}
 	}()
