@@ -1,0 +1,281 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-29T14:38:02.205Z",
+  "stack": {
+    "primaryLanguage": "go",
+    "languages": [
+      "go"
+    ],
+    "frameworks": [],
+    "buildTools": [],
+    "testFrameworks": [],
+    "packageManager": null,
+    "isMonorepo": false,
+    "hasDocker": false,
+    "hasCI": true
+  },
+  "structure": {
+    "totalFiles": 221,
+    "topDirectories": [
+      {
+        "name": "AGENTS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "appstate",
+        "fileCount": 7
+      },
+      {
+        "name": "appstate.go",
+        "fileCount": 1
+      },
+      {
+        "name": "argo",
+        "fileCount": 3
+      },
+      {
+        "name": "armadillomessage.go",
+        "fileCount": 1
+      },
+      {
+        "name": "binary",
+        "fileCount": 10
+      },
+      {
+        "name": "broadcast.go",
+        "fileCount": 1
+      },
+      {
+        "name": "call.go",
+        "fileCount": 1
+      },
+      {
+        "name": "client_test.go",
+        "fileCount": 1
+      },
+      {
+        "name": "client.go",
+        "fileCount": 1
+      },
+      {
+        "name": "connectionevents.go",
+        "fileCount": 1
+      },
+      {
+        "name": "download-to-file.go",
+        "fileCount": 1
+      },
+      {
+        "name": "download.go",
+        "fileCount": 1
+      },
+      {
+        "name": "errors.go",
+        "fileCount": 1
+      },
+      {
+        "name": "go.mod",
+        "fileCount": 1
+      },
+      {
+        "name": "go.sum",
+        "fileCount": 1
+      },
+      {
+        "name": "group.go",
+        "fileCount": 1
+      },
+      {
+        "name": "handshake.go",
+        "fileCount": 1
+      },
+      {
+        "name": "internals_generate.go",
+        "fileCount": 1
+      },
+      {
+        "name": "internals.go",
+        "fileCount": 1
+      },
+      {
+        "name": "keepalive.go",
+        "fileCount": 1
+      },
+      {
+        "name": "LICENSE",
+        "fileCount": 1
+      },
+      {
+        "name": "mediaconn.go",
+        "fileCount": 1
+      },
+      {
+        "name": "mediaretry.go",
+        "fileCount": 1
+      },
+      {
+        "name": "message.go",
+        "fileCount": 1
+      },
+      {
+        "name": "msgsecret.go",
+        "fileCount": 1
+      },
+      {
+        "name": "newsletter.go",
+        "fileCount": 1
+      },
+      {
+        "name": "notification.go",
+        "fileCount": 1
+      },
+      {
+        "name": "pair-code.go",
+        "fileCount": 1
+      },
+      {
+        "name": "pair.go",
+        "fileCount": 1
+      },
+      {
+        "name": "prekeys.go",
+        "fileCount": 1
+      },
+      {
+        "name": "presence.go",
+        "fileCount": 1
+      },
+      {
+        "name": "privacysettings.go",
+        "fileCount": 1
+      },
+      {
+        "name": "proto",
+        "fileCount": 118
+      },
+      {
+        "name": "push.go",
+        "fileCount": 1
+      },
+      {
+        "name": "qrchan.go",
+        "fileCount": 1
+      },
+      {
+        "name": "README.md",
+        "fileCount": 1
+      },
+      {
+        "name": "receipt.go",
+        "fileCount": 1
+      },
+      {
+        "name": "reportingfields.json",
+        "fileCount": 1
+      },
+      {
+        "name": "reportingtoken.go",
+        "fileCount": 1
+      },
+      {
+        "name": "request.go",
+        "fileCount": 1
+      },
+      {
+        "name": "retry.go",
+        "fileCount": 1
+      },
+      {
+        "name": "send.go",
+        "fileCount": 1
+      },
+      {
+        "name": "sendfb.go",
+        "fileCount": 1
+      },
+      {
+        "name": "socket",
+        "fileCount": 4
+      },
+      {
+        "name": "store",
+        "fileCount": 19
+      },
+      {
+        "name": "types",
+        "fileCount": 11
+      },
+      {
+        "name": "update.go",
+        "fileCount": 1
+      },
+      {
+        "name": "upload.go",
+        "fileCount": 1
+      },
+      {
+        "name": "user.go",
+        "fileCount": 1
+      },
+      {
+        "name": "util",
+        "fileCount": 6
+      }
+    ],
+    "languageDistribution": [
+      {
+        "extension": ".go",
+        "count": 149
+      },
+      {
+        "extension": ".proto",
+        "count": 54
+      },
+      {
+        "extension": ".sql",
+        "count": 10
+      },
+      {
+        "extension": ".json",
+        "count": 2
+      },
+      {
+        "extension": ".md",
+        "count": 2
+      },
+      {
+        "extension": ".sum",
+        "count": 1
+      },
+      {
+        "extension": ".mod",
+        "count": 1
+      },
+      {
+        "extension": ".argo",
+        "count": 1
+      }
+    ]
+  },
+  "architecture": {
+    "layers": [],
+    "patterns": [],
+    "entryPoints": []
+  },
+  "symbols": {
+    "classes": [],
+    "interfaces": [],
+    "functions": [],
+    "types": [],
+    "enums": []
+  },
+  "publicAPI": [],
+  "dependencies": {
+    "mostImported": []
+  },
+  "stats": {
+    "totalSymbols": 0,
+    "exportedSymbols": 0,
+    "analysisTimeMs": 164
+  }
+}
