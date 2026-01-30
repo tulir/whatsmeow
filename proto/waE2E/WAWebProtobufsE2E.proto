@@ -1118,6 +1118,8 @@ message ContextInfo {
 		}
 
 		optional AudienceType audienceType = 1;
+		optional string listName = 2;
+		optional string listEmoji = 3;
 	}
 
 	message DataSharingContext {
