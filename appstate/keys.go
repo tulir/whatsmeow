@@ -79,7 +79,7 @@ const (
 	IndexMarketingMessage                                = "marketingMessage"
 	IndexMarketingMessageBroadcast                       = "marketingMessageBroadcast"
 	IndexExternalWebBeta                                 = "external_web_beta"
-	IndexSettingRrelayAllCalls                           = "setting_relayAllCalls"
+	IndexSettingRelayAllCalls                            = "setting_relayAllCalls"
 	IndexCallLog                                         = "call_log"
 	IndexDeleteIndividualCallLog                         = "delete_individual_call_log"
 	IndexLabelReordering                                 = "label_reordering"

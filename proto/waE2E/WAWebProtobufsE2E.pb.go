@@ -18683,6 +18683,8 @@ func (x *PaymentLinkMetadata_PaymentLinkButton) GetDisplayText() string {
 type ContextInfo_StatusAudienceMetadata struct {
 	state         protoimpl.MessageState                           `protogen:"open.v1"`
 	AudienceType  *ContextInfo_StatusAudienceMetadata_AudienceType `protobuf:"varint,1,opt,name=audienceType,enum=WAWebProtobufsE2E.ContextInfo_StatusAudienceMetadata_AudienceType" json:"audienceType,omitempty"`
+	ListName      *string                                          `protobuf:"bytes,2,opt,name=listName" json:"listName,omitempty"`
+	ListEmoji     *string                                          `protobuf:"bytes,3,opt,name=listEmoji" json:"listEmoji,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -18722,6 +18724,20 @@ func (x *ContextInfo_StatusAudienceMetadata) GetAudienceType() ContextInfo_Statu
 		return *x.AudienceType
 	}
 	return ContextInfo_StatusAudienceMetadata_UNKNOWN
+}
+
+func (x *ContextInfo_StatusAudienceMetadata) GetListName() string {
+	if x != nil && x.ListName != nil {
+		return *x.ListName
+	}
+	return ""
+}
+
+func (x *ContextInfo_StatusAudienceMetadata) GetListEmoji() string {
+	if x != nil && x.ListEmoji != nil {
+		return *x.ListEmoji
+	}
+	return ""
 }
 
 type ContextInfo_DataSharingContext struct {
@@ -21448,7 +21464,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"USER_IMAGE\x10\x00\x12\x10\n" +
 	"\fAI_GENERATED\x10\x01\x12\x0f\n" +
 	"\vAI_MODIFIED\x10\x02\x12\x1a\n" +
-	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xf99\n" +
+	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xb3:\n" +
 	"\vContextInfo\x12\x1a\n" +
 	"\bstanzaID\x18\x01 \x01(\tR\bstanzaID\x12 \n" +
 	"\vparticipant\x18\x02 \x01(\tR\vparticipant\x12@\n" +
@@ -21512,9 +21528,11 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\n" +
 	"quotedType\x18G \x01(\x0e2).WAWebProtobufsE2E.ContextInfo.QuotedTypeR\n" +
 	"quotedType\x12W\n" +
-	"\x15botMessageSharingInfo\x18H \x01(\v2!.WAAICommon.BotMessageSharingInfoR\x15botMessageSharingInfo\x1a\xb0\x01\n" +
+	"\x15botMessageSharingInfo\x18H \x01(\v2!.WAAICommon.BotMessageSharingInfoR\x15botMessageSharingInfo\x1a\xea\x01\n" +
 	"\x16StatusAudienceMetadata\x12f\n" +
-	"\faudienceType\x18\x01 \x01(\x0e2B.WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadata.AudienceTypeR\faudienceType\".\n" +
+	"\faudienceType\x18\x01 \x01(\x0e2B.WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadata.AudienceTypeR\faudienceType\x12\x1a\n" +
+	"\blistName\x18\x02 \x01(\tR\blistName\x12\x1c\n" +
+	"\tlistEmoji\x18\x03 \x01(\tR\tlistEmoji\".\n" +
 	"\fAudienceType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x11\n" +
 	"\rCLOSE_FRIENDS\x10\x01\x1a\xb8\x04\n" +
