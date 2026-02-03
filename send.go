@@ -35,6 +35,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+	"go.mau.fi/whatsmeow/util/logging"
 )
 
 const WebMessageIDPrefix = "3EB0"
@@ -403,6 +404,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
+
+	logging.StdOutLogger.Debugf("SendMessage result ====> data ==> %s err ==> %w", hex.EncodeToString(data), err)
 	start = time.Now()
 	if err != nil {
 		cli.cancelResponse(req.ID, respChan)
@@ -426,6 +429,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		err = ctx.Err()
 		return
 	}
+	logging.StdOutLogger.Debugf("SendMessage respNode ==> %s ", respNode.XMLString())
 	resp.DebugTimings.Resp = time.Since(start)
 	if isDisconnectNode(respNode) {
 		start = time.Now()
@@ -1028,6 +1032,8 @@ func getEditAttribute(msg *waE2E.Message) types.EditAttribute {
 		return types.EditAttributeSenderRevoke
 	case msg.KeepInChatMessage != nil && msg.KeepInChatMessage.GetKey().GetFromMe() && msg.KeepInChatMessage.GetKeepType() == waE2E.KeepType_UNDO_KEEP_FOR_ALL:
 		return types.EditAttributeSenderRevoke
+	case msg.PinInChatMessage != nil:
+		return types.EditAttributePinInChat
 	}
 	return types.EditAttributeEmpty
 }
@@ -1164,6 +1170,11 @@ func (cli *Client) prepareMessageNode(
 		"type": msgType,
 		"to":   to,
 	}
+
+	if participants[0].Server == types.HiddenUserServer {
+		attrs["addressing_mode"] = "lid"
+	}
+
 	// TODO this is a very hacky hack for announcement group messages, why is it pn anyway?
 	if extraParams.addressingMode != "" {
 		attrs["addressing_mode"] = string(extraParams.addressingMode)
