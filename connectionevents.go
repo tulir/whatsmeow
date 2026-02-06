@@ -39,7 +39,7 @@ func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 		}()
 	case code == "401" && conflictType == "device_removed":
 		cli.expectDisconnect()
-		cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session")
+		cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session -- %s", cli.getOwnID())
 		go cli.dispatchEvent(&events.LoggedOut{OnConnect: false, Reason: events.ConnectFailureLoggedOut})
 		err := cli.Store.Delete(ctx)
 		if err != nil {
@@ -52,7 +52,7 @@ func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 	case code == "503":
 		// This seems to happen when the server wants to restart or something.
 		// The disconnection will be emitted as an events.Disconnected and then the auto-reconnect will do its thing.
-		cli.Log.Warnf("Got 503 stream error, assuming automatic reconnect will handle it")
+		cli.Log.Warnf("Got 503 stream error, assuming automatic reconnect will handle it -- %s", cli.getOwnID())
 	case cli.RefreshCAT != nil && (code == events.ConnectFailureCATInvalid.NumberString() || code == events.ConnectFailureCATExpired.NumberString()):
 		cli.Log.Infof("Got %s stream error, refreshing CAT before reconnecting...", code)
 		cli.socketLock.RLock()
@@ -124,7 +124,7 @@ func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node
 		)
 	}
 	if reason.IsLoggedOut() {
-		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason)
+		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session -- %s", reason, cli.getOwnID())
 		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})
 		err := cli.Store.Delete(ctx)
 		if err != nil {

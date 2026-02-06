@@ -265,7 +265,7 @@ func TestExample(t *testing.T) {
 	// |------------------------------------------------------------------------------------------------------|
 
 	dbLog := waLog.Stdout("Database", "DEBUG", true)
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 20*time.Second)
 	container, err := sqlstore.New(ctx, "sqlite3", fmt.Sprintf("file:%sexamplestore.db?_foreign_keys=on", ignoreDir), dbLog)
 	if err != nil {
 		panic(err)
@@ -320,11 +320,12 @@ func TestExample(t *testing.T) {
 		log.Printf("GetLID -- %+v\n", client.Store.GetLID())
 		// 获取头像
 		infomap, _ := client.GetUserInfo(ctx, []types.JID{client.Store.GetLID()})
-		for _, v := range infomap {
+		for jid, v := range infomap {
 			//v.Status 是用户文字状态，一般非空
 			//v.PictureID 用户头像ID，为空表示无头像
 			//v.Devices 账户登录的设备JIDs，含当前
-			log.Printf("GetUserInfo -- %+v\n", v)
+			//v.VerifiedName
+			log.Printf("GetUserInfo jid=%s -%s|%s- %+v\n", jid, jid, client.Store.GetLID(), v)
 		}
 
 		glist, _ := client.GetJoinedGroups(ctx)
@@ -362,12 +363,12 @@ func TestExample(t *testing.T) {
 		}
 
 		jid := client.Store.GetJID()
-		jid.User = "919314613946@s.whatsapp.net"
-		b, err := client.GetBusinessProfile(ctx, jid)
+		//jid.User = "919314613946@s.whatsapp.net"
+		b, err := client.GetBusinessProfile(context.Background(), jid)
 		if err != nil {
 			log.Println("GetBusinessProfile --", err)
 		} else {
-			log.Printf("GetBusinessProfile -- %+v\n", b)
+			log.Printf("GetBusinessProfile -- %+v -- Jid.Empty=%t\n", b, b.JID.IsEmpty())
 		}
 
 	}
