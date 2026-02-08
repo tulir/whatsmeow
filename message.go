@@ -91,6 +91,13 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		}
 		if source.Sender.User == clientID.User || source.Sender.User == clientLID.User {
 			source.IsFromMe = true
+			if source.SenderAlt.IsEmpty() {
+				if source.Sender.Server == types.DefaultUserServer {
+					source.SenderAlt = clientLID
+				} else if source.Sender.Server == types.HiddenUserServer {
+					source.SenderAlt = clientID
+				}
+			}
 		}
 		if from.Server == types.BroadcastServer {
 			source.BroadcastListOwner = ag.OptionalJIDOrEmpty("recipient")
@@ -130,6 +137,14 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		}
 		source.IsFromMe = true
 		source.Sender = from
+		if source.Sender.Server == types.DefaultUserServer {
+			source.SenderAlt = clientLID
+		} else if source.Sender.Server == types.HiddenUserServer {
+			source.SenderAlt = clientID
+		}
+		if !source.SenderAlt.IsEmpty() {
+			source.SenderAlt.Device = source.Sender.Device
+		}
 		recipient := ag.OptionalJID("recipient")
 		if recipient != nil {
 			source.Chat = *recipient
