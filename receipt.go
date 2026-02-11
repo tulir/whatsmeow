@@ -30,6 +30,7 @@ func (cli *Client) handleReceipt(ctx context.Context, node *waBinary.Node) {
 			go func() {
 				err := cli.handleRetryReceipt(ctx, receipt, node)
 				if err != nil {
+					fmt.Println("Failed to handle retry receipt node: ", node.XMLString())
 					cli.Log.Errorf("Failed to handle retry receipt for %s/%s from %s: %v", receipt.Chat, receipt.MessageIDs[0], receipt.Sender, err)
 				}
 			}()
