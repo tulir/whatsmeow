@@ -122,6 +122,8 @@ const (
 	PrivacySettingMatchLastSeen    PrivacySetting = "match_last_seen"
 	PrivacySettingKnown            PrivacySetting = "known"
 	PrivacySettingNone             PrivacySetting = "none"
+	PrivacySettingOnStandard       PrivacySetting = "on_standard"
+	PrivacySettingOff              PrivacySetting = "off"
 )
 
 // PrivacySettingType is the type of privacy setting.
@@ -136,6 +138,7 @@ const (
 	PrivacySettingTypeOnline       PrivacySettingType = "online"       // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
 	PrivacySettingTypeCallAdd      PrivacySettingType = "calladd"      // Valid values: PrivacySettingAll, PrivacySettingKnown
 	PrivacySettingTypeMessages     PrivacySettingType = "messages"     // Valid values: PrivacySettingAll, PrivacySettingContacts
+	PrivacySettingTypeDefense      PrivacySettingType = "defense"      // Valid values: PrivacySettingOnStandard, PrivacySettingOff
 )
 
 // PrivacySettings contains the user's privacy settings.
@@ -148,6 +151,7 @@ type PrivacySettings struct {
 	CallAdd      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingKnown
 	Online       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
 	Messages     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts
+	Defense      PrivacySetting // Valid values: PrivacySettingOnStandard, PrivacySettingOff
 }
 
 // StatusPrivacyType is the type of list in StatusPrivacy.
