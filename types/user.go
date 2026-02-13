@@ -135,6 +135,7 @@ const (
 	PrivacySettingTypeReadReceipts PrivacySettingType = "readreceipts" // Valid values: PrivacySettingAll, PrivacySettingNone
 	PrivacySettingTypeOnline       PrivacySettingType = "online"       // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
 	PrivacySettingTypeCallAdd      PrivacySettingType = "calladd"      // Valid values: PrivacySettingAll, PrivacySettingKnown
+	PrivacySettingTypeMessages     PrivacySettingType = "messages"     // Valid values: PrivacySettingAll, PrivacySettingContacts
 )
 
 // PrivacySettings contains the user's privacy settings.
@@ -146,6 +147,7 @@ type PrivacySettings struct {
 	ReadReceipts PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingNone
 	CallAdd      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingKnown
 	Online       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
+	Messages     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts
 }
 
 // StatusPrivacyType is the type of list in StatusPrivacy.

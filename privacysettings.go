@@ -151,6 +151,9 @@ func (cli *Client) parsePrivacySettings(privacyNode *waBinary.Node, settings *ty
 		case types.PrivacySettingTypeCallAdd:
 			settings.CallAdd = value
 			evt.CallAddChanged = true
+		case types.PrivacySettingTypeMessages:
+			settings.Messages = value
+			evt.MessagesChanged = true
 		}
 	}
 	return &evt
