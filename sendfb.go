@@ -12,6 +12,8 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"runtime"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -543,24 +545,58 @@ func (cli *Client) encryptMessageForDevicesV3(
 	}
 	bundles := cli.fetchPreKeysNoError(ctx, retryDevices)
 
-	for _, jid := range allDevices {
-		var dsmForDevice *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage
-		if jid.User == ownID.User {
-			if jid == ownID {
-				continue
-			}
-			dsmForDevice = dsm
+	// Encrypt in parallel for large groups to reduce latency.
+	results := make([]*waBinary.Node, len(allDevices))
+	numWorkers := runtime.NumCPU() * 2
+	if numWorkers > 32 {
+		numWorkers = 32
+	}
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
+	chunkSize := (len(allDevices) + numWorkers - 1) / numWorkers
+	var wg sync.WaitGroup
+	for w := 0; w < numWorkers; w++ {
+		start := w * chunkSize
+		end := start + chunkSize
+		if end > len(allDevices) {
+			end = len(allDevices)
 		}
-		encrypted, err := cli.encryptMessageForDeviceAndWrapV3(ctx, payload, skdm, dsmForDevice, jid, bundles[jid], encAttrs)
-		if err != nil {
-			// TODO return these errors if it's a fatal one (like context cancellation or database)
-			cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
-			if ctx.Err() != nil {
-				return nil, err
-			}
-			continue
+		if start >= end {
+			break
 		}
-		participantNodes = append(participantNodes, *encrypted)
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+			for i := start; i < end; i++ {
+				jid := allDevices[i]
+				var dsmForDevice *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage
+				if jid.User == ownID.User {
+					if jid == ownID {
+						continue
+					}
+					dsmForDevice = dsm
+				}
+				encrypted, err := cli.encryptMessageForDeviceAndWrapV3(ctx, payload, skdm, dsmForDevice, jid, bundles[jid], encAttrs)
+				if err != nil {
+					cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
+					if ctx.Err() != nil {
+						return
+					}
+					continue
+				}
+				results[i] = encrypted
+			}
+		}(start, end)
+	}
+	wg.Wait()
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+	for _, node := range results {
+		if node != nil {
+			participantNodes = append(participantNodes, *node)
+		}
 	}
 	err = cli.Store.PutCachedSessions(ctx)
 	if err != nil {

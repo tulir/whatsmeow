@@ -467,21 +467,25 @@ func (cli *Client) GetUserDevices(ctx context.Context, jids []types.JID) ([]type
 		}
 	}
 	if len(jidsToSync) > 0 {
-		list, err := cli.usync(ctx, jidsToSync, "query", "message", []waBinary.Node{
-			{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		for _, user := range list.GetChildren() {
-			jid, jidOK := user.Attrs["jid"].(types.JID)
-			if user.Tag != "user" || !jidOK {
-				continue
+		// Batch usync to avoid oversized requests and timeouts in large groups
+		const usyncChunkSize = 256
+		for chunk := range slices.Chunk(jidsToSync, usyncChunkSize) {
+			list, err := cli.usync(ctx, chunk, "query", "message", []waBinary.Node{
+				{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
+			})
+			if err != nil {
+				return nil, err
 			}
-			userDevices := parseDeviceList(jid, user.GetChildByTag("devices"))
-			cli.userDevicesCache[jid] = deviceCache{devices: userDevices, dhash: participantListHashV2(userDevices)}
-			devices = append(devices, userDevices...)
+
+			for _, user := range list.GetChildren() {
+				jid, jidOK := user.Attrs["jid"].(types.JID)
+				if user.Tag != "user" || !jidOK {
+					continue
+				}
+				userDevices := parseDeviceList(jid, user.GetChildByTag("devices"))
+				cli.userDevicesCache[jid] = deviceCache{devices: userDevices, dhash: participantListHashV2(userDevices)}
+				devices = append(devices, userDevices...)
+			}
 		}
 	}
 

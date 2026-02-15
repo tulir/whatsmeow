@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"slices"
 	"time"
 
 	"go.mau.fi/libsignal/ecc"
@@ -121,38 +122,43 @@ type preKeyResp struct {
 	err    error
 }
 
+// preKeyFetchBatchSize limits prekey IQ size to avoid timeouts in large groups.
+const preKeyFetchBatchSize = 50
+
 func (cli *Client) fetchPreKeys(ctx context.Context, users []types.JID) (map[types.JID]preKeyResp, error) {
-	requests := make([]waBinary.Node, len(users))
-	for i, user := range users {
-		requests[i].Tag = "user"
-		requests[i].Attrs = waBinary.Attrs{
-			"jid":    user,
-			"reason": "identity",
+	respData := make(map[types.JID]preKeyResp, len(users))
+	for chunk := range slices.Chunk(users, preKeyFetchBatchSize) {
+		requests := make([]waBinary.Node, len(chunk))
+		for i, user := range chunk {
+			requests[i].Tag = "user"
+			requests[i].Attrs = waBinary.Attrs{
+				"jid":    user,
+				"reason": "identity",
+			}
 		}
-	}
-	resp, err := cli.sendIQ(ctx, infoQuery{
-		Namespace: "encrypt",
-		Type:      "get",
-		To:        types.ServerJID,
-		Content: []waBinary.Node{{
-			Tag:     "key",
-			Content: requests,
-		}},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to send prekey request: %w", err)
-	} else if len(resp.GetChildren()) == 0 {
-		return nil, fmt.Errorf("got empty response to prekey request")
-	}
-	list := resp.GetChildByTag("list")
-	respData := make(map[types.JID]preKeyResp)
-	for _, child := range list.GetChildren() {
-		if child.Tag != "user" {
-			continue
+		resp, err := cli.sendIQ(ctx, infoQuery{
+			Namespace: "encrypt",
+			Type:      "get",
+			To:        types.ServerJID,
+			Content: []waBinary.Node{{
+				Tag:     "key",
+				Content: requests,
+			}},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to send prekey request: %w", err)
+		} else if len(resp.GetChildren()) == 0 {
+			return nil, fmt.Errorf("got empty response to prekey request")
 		}
-		jid := child.AttrGetter().JID("jid")
-		bundle, err := nodeToPreKeyBundle(uint32(jid.Device), child)
-		respData[jid] = preKeyResp{bundle, err}
+		list := resp.GetChildByTag("list")
+		for _, child := range list.GetChildren() {
+			if child.Tag != "user" {
+				continue
+			}
+			jid := child.AttrGetter().JID("jid")
+			bundle, err := nodeToPreKeyBundle(uint32(jid.Device), child)
+			respData[jid] = preKeyResp{bundle, err}
+		}
 	}
 	return respData, nil
 }

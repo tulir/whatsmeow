@@ -14,10 +14,12 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"runtime"
 	"slices"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -1288,29 +1290,64 @@ func (cli *Client) encryptMessageForDevices(
 	}
 	bundles := cli.fetchPreKeysNoError(ctx, retryDevices)
 
-	for _, jid := range allDevices {
-		plaintext := msgPlaintext
-		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
-			if jid == ownJID || jid == ownLID {
-				continue
-			}
-			plaintext = dsmPlaintext
+	// Encrypt in parallel for large groups to reduce latency.
+	results := make([]*waBinary.Node, len(allDevices))
+	includeIdentityVec := make([]bool, len(allDevices))
+	numWorkers := runtime.NumCPU() * 2
+	if numWorkers > 32 {
+		numWorkers = 32
+	}
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
+	chunkSize := (len(allDevices) + numWorkers - 1) / numWorkers
+	var wg sync.WaitGroup
+	for w := 0; w < numWorkers; w++ {
+		start := w * chunkSize
+		end := start + chunkSize
+		if end > len(allDevices) {
+			end = len(allDevices)
 		}
-		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
-			ctx, plaintext, jid, encryptionIdentities[jid], bundles[jid], encAttrs, existingSessions,
-		)
-		if err != nil {
-			// TODO return these errors if it's a fatal one (like context cancellation or database)
-			cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
-			if ctx.Err() != nil {
-				return nil, false, err
-			}
-			continue
+		if start >= end {
+			break
 		}
-
-		participantNodes = append(participantNodes, *encrypted)
-		if isPreKey {
-			includeIdentity = true
+		wg.Add(1)
+		go func(start, end int) {
+			defer wg.Done()
+			for i := start; i < end; i++ {
+				jid := allDevices[i]
+				plaintext := msgPlaintext
+				if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
+					if jid == ownJID || jid == ownLID {
+						continue
+					}
+					plaintext = dsmPlaintext
+				}
+				encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
+					ctx, plaintext, jid, encryptionIdentities[jid], bundles[jid], encAttrs, existingSessions,
+				)
+				if err != nil {
+					cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
+					if ctx.Err() != nil {
+						return
+					}
+					continue
+				}
+				results[i] = encrypted
+				includeIdentityVec[i] = isPreKey
+			}
+		}(start, end)
+	}
+	wg.Wait()
+	if ctx.Err() != nil {
+		return nil, false, ctx.Err()
+	}
+	for i, node := range results {
+		if node != nil {
+			participantNodes = append(participantNodes, *node)
+			if includeIdentityVec[i] {
+				includeIdentity = true
+			}
 		}
 	}
 	err = cli.Store.PutCachedSessions(ctx)
