@@ -862,12 +862,14 @@ func (cli *Client) sendDM(
 		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(messagePlaintext, message, ownID, to, id))
 	}
 
-	if tcToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, to); err != nil {
-		cli.Log.Warnf("Failed to get privacy token for %s: %v", to, err)
-	} else if tcToken != nil {
+	tcTokenBytes, didFetchTcToken, tcErr := cli.ensureTcToken(ctx, to)
+	if tcErr != nil {
+		cli.Log.Warnf("Failed to get privacy token for %s: %v", to, tcErr)
+	}
+	if len(tcTokenBytes) > 0 {
 		node.Content = append(node.GetChildren(), waBinary.Node{
 			Tag:     "tctoken",
-			Content: tcToken.Token,
+			Content: tcTokenBytes,
 		})
 	}
 
@@ -877,6 +879,11 @@ func (cli *Client) sendDM(
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to send message node: %w", err)
 	}
+
+	if !didFetchTcToken && shouldSendNewTcToken(cli.getTcTokenSenderTs(cli.resolveTcTokenStorageLID(ctx, to))) {
+		cli.fireAndForgetTcTokenIssuance(ctx, to)
+	}
+
 	return phash, data, nil
 }
 

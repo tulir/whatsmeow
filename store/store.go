@@ -136,14 +136,16 @@ type MsgSecretStore interface {
 }
 
 type PrivacyToken struct {
-	User      types.JID
-	Token     []byte
-	Timestamp time.Time
+	User            types.JID
+	Token           []byte
+	Timestamp       time.Time
+	SenderTimestamp time.Time
 }
 
 type PrivacyTokenStore interface {
 	PutPrivacyTokens(ctx context.Context, tokens ...PrivacyToken) error
 	GetPrivacyToken(ctx context.Context, user types.JID) (*PrivacyToken, error)
+	DeleteExpiredPrivacyTokens(ctx context.Context, cutoff time.Time) (int64, error)
 }
 
 type BufferedEvent struct {

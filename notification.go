@@ -265,6 +265,7 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 	}
 	parentAG := node.AttrGetter()
 	sender := parentAG.JID("from")
+	senderLID := cli.resolveTcTokenStorageLID(ctx, sender)
 	if !parentAG.OK() {
 		cli.Log.Warnf("privacy_token notification didn't have a sender (%v)", parentAG.Error())
 		return
@@ -288,14 +289,14 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 				cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
 			}
 			err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
-				User:      sender,
+				User:      senderLID,
 				Token:     token,
 				Timestamp: timestamp,
 			})
 			if err != nil {
-				cli.Log.Errorf("Failed to save privacy token from %s: %v", sender, err)
+				cli.Log.Errorf("Failed to save privacy token from %s: %v", senderLID, err)
 			} else {
-				cli.Log.Debugf("Stored privacy token from %s (ts: %v)", sender, timestamp)
+				cli.Log.Debugf("Received privacy token from %s (ts: %v)", senderLID, timestamp)
 			}
 		}
 	}

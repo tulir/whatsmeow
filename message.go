@@ -880,14 +880,11 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 			continue
 		}
 		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
-			ts := conv.GetTcTokenSenderTimestamp()
-			if ts == 0 {
-				ts = conv.GetTcTokenTimestamp()
-			}
 			privacyTokens = append(privacyTokens, store.PrivacyToken{
-				User:      chatJID,
-				Token:     conv.GetTcToken(),
-				Timestamp: time.Unix(int64(ts), 0),
+				User:            chatJID,
+				Token:           conv.GetTcToken(),
+				Timestamp:       time.Unix(int64(conv.GetTcTokenTimestamp()), 0),
+				SenderTimestamp: time.Unix(int64(conv.GetTcTokenSenderTimestamp()), 0),
 			})
 		}
 		for _, msg := range conv.GetMessages() {
