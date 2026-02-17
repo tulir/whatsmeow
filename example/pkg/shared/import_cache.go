@@ -15,6 +15,7 @@ var (
 	chatMessages     = make(map[string][]MessageData)
 	mediaMessages    []MessageData
 	downloadableMsgs = make(map[string]whatsmeow.DownloadableMessage)
+	messageInfos     = make(map[string]*types.MessageInfo) // New: store full info for retries
 	statsLock        sync.Mutex
 )
 
@@ -109,6 +110,7 @@ func processImportMessage(info types.MessageInfo, msg *waE2E.Message) {
 		ID: string(info.ID), ChatJID: chatJID, Text: content, Caption: caption, Type: msgType, Timestamp: info.Timestamp.Unix(), FromMe: info.IsFromMe, HasMedia: hasMedia,
 		MimeType: mimeType, FileName: fileName,
 	}
+	messageInfos[string(info.ID)] = &info // Save original info
 	chatMessages[chatJID] = append(chatMessages[chatJID], msgData)
 	if hasMedia {
 		status.MediaCount++

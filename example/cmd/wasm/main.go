@@ -10,6 +10,7 @@ import (
 	_ "github.com/ncruces/go-sqlite3/vfs/memdb"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/store/sqlstore"
+	"go.mau.fi/whatsmeow/types/events"
 	waLog "go.mau.fi/whatsmeow/util/log"
 	"go_client/pkg/shared"
 )
@@ -41,6 +42,16 @@ func jsStartWhatsApp(this js.Value, args []js.Value) any {
 		
 		// Register WASM bridge logic locally
 		shared.RegisterWASMBridge(client)
+
+		// Add status update handlers
+		client.AddEventHandler(func(evt interface{}) {
+			switch evt.(type) {
+			case *events.Connected:
+				js.Global().Get("whatsappGateway").Call("updateStatus", "Connected", "#2e7d32", "#e8f5e9")
+			case *events.LoggedOut:
+				js.Global().Get("whatsappGateway").Call("updateStatus", "Logged Out", "#c62828", "#ffebee")
+			}
+		})
 
 		if client.Store.ID == nil {
 			qrChan, _ := client.GetQRChannel(ctx)

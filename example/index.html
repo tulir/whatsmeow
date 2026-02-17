@@ -183,7 +183,10 @@
     <div id="sidebar">
         <div class="header">
             <strong>WA Engine</strong>
-            <button class="btn" id="start-btn">Connect</button>
+            <div style="display: flex; gap: 5px;">
+                <button class="btn" style="background: #2196f3; padding: 8px 10px;" onclick="showQR()">QR</button>
+                <button class="btn" id="start-btn">Connect</button>
+            </div>
         </div>
         <div class="tabs">
             <div id="tab-contacts" class="tab active" onclick="switchTab('contacts')">Contacts</div>
@@ -208,6 +211,13 @@
             <div id="qr-code"></div>
             <p style="font-size: 14px; color: #666;">Scan this QR code with your phone to start.</p>
             <button class="btn" style="background: #ef5350;" onclick="document.getElementById('qr-container').style.display='none'">Cancel</button>
+        </div>
+
+        <div id="sync-loader" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:50; flex-direction:column; align-items:center; justify-content:center;">
+            <div class="media-icon" style="width:80px; height:80px; font-size:40px; margin-bottom:20px;">⏳</div>
+            <h3 style="color:var(--wa-dark)">Syncing WhatsApp Data...</h3>
+            <p style="color:#666">This might take a minute for large accounts.</p>
+            <div class="progress-bar-container" style="width:200px"><div class="progress-bar" style="width:100%"></div></div>
         </div>
     </div>
 
@@ -245,6 +255,21 @@
                     badge.style.color = color;
                     badge.style.background = bg;
                 }
+                
+                // UI Transitions based on status
+                if (msg === "Connected" || msg === "Authenticated") {
+                    document.getElementById('qr-container').style.display = 'none';
+                    // Show sync loader if we have no chats yet
+                    const summaryRaw = window.getImportSummary ? window.getImportSummary() : "{}";
+                    const chats = JSON.parse(summaryRaw);
+                    if (Object.keys(chats).length === 0) {
+                        document.getElementById('sync-loader').style.display = 'flex';
+                    }
+                }
+                
+                if (msg === "WASM Ready" || msg === "Logged Out") {
+                    document.getElementById('sync-loader').style.display = 'none';
+                }
             }
         };
 
@@ -277,6 +302,15 @@
             }
         };
 
+        function showQR() {
+            const qr = document.getElementById('qr-code');
+            if (qr.innerHTML) {
+                document.getElementById('qr-container').style.display = 'block';
+            } else {
+                alert("QR code not generated yet. Please click Connect.");
+            }
+        }
+
         function switchTab(tab) {
             activeTab = tab;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -285,6 +319,12 @@
             document.getElementById('contacts-list').style.display = tab === 'contacts' ? 'block' : 'none';
             document.getElementById('chats-list').style.display = tab === 'chats' ? 'block' : 'none';
             document.getElementById('media-list').style.display = tab === 'media' ? 'block' : 'none';
+            
+            // Show loader while switching
+            const currentList = document.getElementById(tab + '-list');
+            if (!currentList.innerHTML) {
+                currentList.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">Loading data...</div>';
+            }
             
             refreshListData();
         }
@@ -297,6 +337,13 @@
         }
 
         function refreshListData() {
+            const summaryRaw = window.getImportSummary ? window.getImportSummary() : "{}";
+            const chats = JSON.parse(summaryRaw);
+            
+            if (Object.keys(chats).length > 0) {
+                document.getElementById('sync-loader').style.display = 'none';
+            }
+
             if (activeTab === 'contacts') {
                 const contactsRaw = window.getContacts ? window.getContacts() : "{}";
                 const contacts = JSON.parse(contactsRaw);
@@ -311,8 +358,6 @@
                     list.appendChild(div);
                 });
             } else if (activeTab === 'chats') {
-                const summaryRaw = window.getImportSummary ? window.getImportSummary() : "{}";
-                const chats = JSON.parse(summaryRaw);
                 const list = document.getElementById('chats-list');
                 list.innerHTML = '';
                 Object.values(chats).sort((a,b) => b.message_count - a.message_count).forEach(chat => {
