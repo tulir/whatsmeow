@@ -97,10 +97,13 @@ func (fs *FrameSocket) Connect(ctx context.Context) error {
 	fs.cancelCtx, fs.cancel = context.WithCancel(ctx)
 
 	fs.log.Debugf("Dialing %s", fs.URL)
-	conn, resp, err := websocket.Dial(ctx, fs.URL, &websocket.DialOptions{
-		HTTPClient: fs.HTTPClient,
-		HTTPHeader: fs.HTTPHeaders,
-	})
+
+	dialOptions := &websocket.DialOptions{}
+	// WASM compatibility: HTTPClient and HTTPHeader are not available in DialOptions on js/wasm
+	// apply headers only if not on wasm
+	setDialOptions(dialOptions, fs.HTTPClient, fs.HTTPHeaders)
+
+	conn, resp, err := websocket.Dial(ctx, fs.URL, dialOptions)
 	if err != nil {
 		if resp != nil {
 			err = ErrWithStatusCode{err, resp.StatusCode}

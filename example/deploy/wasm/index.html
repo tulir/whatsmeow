@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp WASM Client</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <link rel="preload" href="wasm_exec.js" as="script">
+    <link rel="preload" href="main.wasm.gz" as="fetch" crossorigin>
+    <script src="wasm_exec.js"></script>
+    <style>
+        :root {
+            --wa-green: #25D366;
+            --wa-dark: #075E54;
+            --bg-light: #f0f2f5;
+            --text-main: #3b4a54;
+            --border: #ddd;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #sidebar {
+            width: 380px;
+            background: white;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #e5ddd5;
+            position: relative;
+        }
+        .header {
+            padding: 15px;
+            background: #ededed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .btn {
+            background: var(--wa-green);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        
+        #qr-container {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 100;
+        }
+        #qr-code { margin: 20px auto; padding: 10px; border: 1px solid #eee; }
+
+        .tabs { display: flex; background: #f0f2f5; border-bottom: 1px solid var(--border); }
+        .tab { 
+            flex: 1; 
+            padding: 12px; 
+            text-align: center; 
+            cursor: pointer; 
+            font-size: 13px; 
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .tab.active { 
+            background: white; 
+            color: var(--wa-green); 
+            border-bottom: 3px solid var(--wa-green); 
+        }
+
+        .list-container { overflow-y: auto; flex: 1; background: white; }
+        .list-item {
+            padding: 15px;
+            border-bottom: 1px solid #f2f2f2;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .list-item:hover { background: #f9f9f9; }
+        .list-item.active { background: #f0f2f5; }
+        .list-item strong { color: #111; font-size: 15px; }
+        .list-item small { color: #666; font-size: 12px; word-break: break-all; }
+        .list-item .tag {
+            font-size: 9px;
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            width: fit-content;
+            margin-top: 4px;
+        }
+
+        #messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        }
+        .msg-in { align-self: flex-start; background: white; border-top-left-radius: 0; }
+        .msg-out { align-self: flex-end; background: #dcf8c6; border-top-right-radius: 0; }
+        .msg-meta { font-size: 10px; color: #888; text-align: right; margin-top: 4px; display: block; }
+
+        /* Media Card Specifics */
+        .media-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .media-icon {
+            width: 45px;
+            height: 45px;
+            background: #f0f2f5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        .media-info { flex: 1; display: flex; flex-direction: column; }
+        .media-info b { font-size: 14px; color: #111; }
+        .media-info span { font-size: 11px; color: #888; margin-top: 2px; }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .progress-bar { height: 100%; background: var(--wa-green); width: 0%; transition: width 0.1s; }
+
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 2000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            color: white; padding: 20px;
+        }
+        #overlay-content { max-width: 95%; max-height: 80%; display: flex; justify-content: center; overflow: auto; }
+        #overlay-content img, #overlay-content video { max-width: 100%; max-height: 100%; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="header">
+            <strong>WA Engine</strong>
+            <button class="btn" id="start-btn">Connect</button>
+        </div>
+        <div class="tabs">
+            <div id="tab-contacts" class="tab active" onclick="switchTab('contacts')">Contacts</div>
+            <div id="tab-chats" class="tab" onclick="switchTab('chats')">Chats</div>
+            <div id="tab-media" class="tab" onclick="switchTab('media')">Media</div>
+        </div>
+        <div id="contacts-list" class="list-container"></div>
+        <div id="chats-list" class="list-container" style="display:none"></div>
+        <div id="media-list" class="list-container" style="display:none"></div>
+    </div>
+
+    <div id="main-content">
+        <div class="header">
+            <span id="chat-title" style="font-weight: 600;">Select a conversation</span>
+            <div id="status-badge" style="font-size: 11px; padding: 4px 10px; border-radius: 10px; background: #fff3e0; color: #ef6c00;">Initializing...</div>
+        </div>
+        
+        <div id="messages-container"></div>
+
+        <div id="qr-container">
+            <h3>Login to WhatsApp</h3>
+            <div id="qr-code"></div>
+            <p style="font-size: 14px; color: #666;">Scan this QR code with your phone to start.</p>
+            <button class="btn" style="background: #ef5350;" onclick="document.getElementById('qr-container').style.display='none'">Cancel</button>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <div id="overlay-content"></div>
+        <div style="margin-top: 25px; display: flex; gap: 15px;">
+            <a id="save-btn" href="#" download class="btn">Save to PC</a>
+            <button class="btn" style="background: #555;" onclick="closeOverlay()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const go = new Go();
+        let currentChatJid = null;
+        let activeTab = 'contacts';
+        const mediaBlobCache = new Map();
+
+        // JS Gateway for Go
+        window.whatsappGateway = {
+            onQRCode: (code) => {
+                console.log("QR Code received");
+                const qrDiv = document.getElementById('qr-code');
+                qrDiv.innerHTML = '';
+                const qr = qrcode(0, 'M');
+                qr.addData(code);
+                qr.make();
+                qrDiv.innerHTML = qr.createImgTag(6);
+                document.getElementById('qr-container').style.display = 'block';
+                window.whatsappGateway.updateStatus("QR Ready", "#ef6c00", "#fff3e0");
+            },
+            updateStatus: (msg, color = "#ef6c00", bg = "#fff3e0") => {
+                const badge = document.getElementById('status-badge');
+                if (badge) {
+                    badge.innerText = msg;
+                    badge.style.color = color;
+                    badge.style.background = bg;
+                }
+            }
+        };
+
+        async function loadWasm() {
+            try {
+                const response = await fetch("main.wasm.gz");
+                let decompressedStream;
+                if (typeof DecompressionStream !== 'undefined') {
+                    const ds = new DecompressionStream("gzip");
+                    decompressedStream = response.body.pipeThrough(ds);
+                } else {
+                    decompressedStream = response.body;
+                }
+                const wasmResponse = new Response(decompressedStream, { headers: { 'Content-Type': 'application/wasm' } });
+                const result = await WebAssembly.instantiateStreaming(wasmResponse, go.importObject);
+                go.run(result.instance);
+                window.whatsappGateway.updateStatus("WASM Ready", "#2e7d32", "#e8f5e9");
+            } catch (e) {
+                console.error("WASM Load Error", e);
+                window.whatsappGateway.updateStatus("WASM Error", "#c62828", "#ffebee");
+            }
+        }
+
+        document.getElementById('start-btn').onclick = () => {
+            if (typeof window.startWhatsApp === "function") {
+                window.startWhatsApp(window.whatsappGateway.onQRCode);
+                document.getElementById('start-btn').disabled = true;
+                window.whatsappGateway.updateStatus("Connecting...", "#1565c0", "#e3f2fd");
+                startDataPolling();
+            }
+        };
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            
+            document.getElementById('contacts-list').style.display = tab === 'contacts' ? 'block' : 'none';
+            document.getElementById('chats-list').style.display = tab === 'chats' ? 'block' : 'none';
+            document.getElementById('media-list').style.display = tab === 'media' ? 'block' : 'none';
+            
+            refreshListData();
+        }
+
+        function startDataPolling() {
+            setInterval(() => {
+                refreshListData();
+                if (currentChatJid) loadMessages(currentChatJid);
+            }, 4000);
+        }
+
+        function refreshListData() {
+            if (activeTab === 'contacts') {
+                const contactsRaw = window.getContacts ? window.getContacts() : "{}";
+                const contacts = JSON.parse(contactsRaw);
+                const list = document.getElementById('contacts-list');
+                list.innerHTML = '';
+                Object.entries(contacts).forEach(([jid, info]) => {
+                    const name = info.FullName || info.PushName || jid.split('@')[0];
+                    const div = document.createElement('div');
+                    div.className = `list-item ${currentChatJid === jid ? 'active' : ''}`;
+                    div.innerHTML = `<strong>${name}</strong><small>${jid}</small>`;
+                    div.onclick = () => selectChat(jid, name);
+                    list.appendChild(div);
+                });
+            } else if (activeTab === 'chats') {
+                const summaryRaw = window.getImportSummary ? window.getImportSummary() : "{}";
+                const chats = JSON.parse(summaryRaw);
+                const list = document.getElementById('chats-list');
+                list.innerHTML = '';
+                Object.values(chats).sort((a,b) => b.message_count - a.message_count).forEach(chat => {
+                    const div = document.createElement('div');
+                    div.className = `list-item ${currentChatJid === chat.jid ? 'active' : ''}`;
+                    const typeTag = chat.is_group ? '<span class="tag">GROUP</span>' : '<span class="tag">PRIVATE</span>';
+                    div.innerHTML = `<strong>${chat.name || chat.jid.split('@')[0]}</strong><small>${chat.jid}</small>${typeTag}<small>${chat.message_count} messages</small>`;
+                    div.onclick = () => selectChat(chat.jid, chat.name || chat.jid);
+                    list.appendChild(div);
+                });
+            } else if (activeTab === 'media') {
+                const mediaMsgsRaw = window.getAllMediaMessages ? window.getAllMediaMessages() : "[]";
+                const mediaMsgs = JSON.parse(mediaMsgsRaw);
+                const list = document.getElementById('media-list');
+                list.innerHTML = '';
+                mediaMsgs.reverse().forEach(msg => {
+                    const type = (msg.type || 'file').toUpperCase();
+                    const div = document.createElement('div');
+                    div.className = 'media-card';
+                    const icon = msg.type === 'image' ? '🖼️' : msg.type === 'video' ? '📹' : msg.type === 'audio' ? '🎵' : '📄';
+                    div.innerHTML = `
+                        <div class="media-icon">${icon}</div>
+                        <div class="media-info">
+                            <b>${msg.file_name || (type + ' Item')}</b>
+                            <span>${new Date(msg.timestamp * 1000).toLocaleString()}</span>
+                        </div>
+                        <button class="btn" style="font-size:11px; padding:5px 10px" onclick='downloadMedia(${JSON.stringify(msg)})'>View</button>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        function selectChat(jid, name) {
+            currentChatJid = jid;
+            document.getElementById('chat-title').innerText = name;
+            document.getElementById('qr-container').style.display = 'none';
+            loadMessages(jid);
+            refreshListData();
+        }
+
+        function loadMessages(jid) {
+            if (!window.getChatMessages) return;
+            const msgsRaw = window.getChatMessages(jid, 50);
+            const msgs = JSON.parse(msgsRaw);
+            const container = document.getElementById('messages-container');
+            
+            if (container.children.length === msgs.length && container.dataset.jid === jid) return;
+            container.dataset.jid = jid;
+            
+            container.innerHTML = '';
+            msgs.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `message ${msg.from_me ? 'msg-out' : 'msg-in'}`;
+                let content = msg.text || `<i style="color:#888">(${msg.type || 'media'})</i>`;
+                if (msg.has_media) {
+                    content += `<br><button class="btn" style="padding:4px 8px; font-size:10px; margin-top:8px; background:#5c6bc0" onclick='event.stopPropagation(); downloadMedia(${JSON.stringify(msg)})'>Download ${msg.type || 'Media'}</button>`;
+                }
+                div.innerHTML = `${content} <span class="msg-meta">${new Date(msg.timestamp * 1000).toLocaleTimeString()}</span>`;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function downloadMedia(msg) {
+            if (mediaBlobCache.has(msg.id)) {
+                showOverlay(msg, mediaBlobCache.get(msg.id));
+                return;
+            }
+
+            const loading = document.createElement('div');
+            loading.id = "loading-" + msg.id;
+            loading.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:3000; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;";
+            loading.innerHTML = `<h3>Downloading...</h3><div class="progress-bar-container" style="width:250px"><div class="progress-bar" id="progress-${msg.id}"></div></div>`;
+            document.body.appendChild(loading);
+
+            let chunks = [];
+            window.getMediaStreaming(msg.id, (event) => {
+                if (event.event === 'chunk') {
+                    const binary = atob(event.data);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+                    chunks.push(bytes);
+                    const progBar = document.getElementById('progress-' + msg.id);
+                    if (progBar) progBar.style.width = event.progress + '%';
+                } else if (event.event === 'complete') {
+                    const blob = new Blob(chunks, { type: msg.mime_type || 'application/octet-stream' });
+                    mediaBlobCache.set(msg.id, blob);
+                    if (document.getElementById("loading-" + msg.id)) document.body.removeChild(loading);
+                    showOverlay(msg, blob);
+                } else if (event.event === 'error') {
+                    alert("Error: " + event.message);
+                    if (document.getElementById("loading-" + msg.id)) document.body.removeChild(loading);
+                }
+            });
+        }
+
+        function showOverlay(msg, blob) {
+            const url = URL.createObjectURL(blob);
+            const content = document.getElementById('overlay-content');
+            content.innerHTML = '';
+            
+            if (msg.type === 'image') {
+                content.innerHTML = `<img src="${url}">`;
+            } else if (msg.type === 'video') {
+                content.innerHTML = `<video src="${url}" controls autoplay></video>`;
+            } else if (msg.type === 'audio') {
+                content.innerHTML = `<audio src="${url}" controls autoplay style="width:400px"></audio>`;
+            } else {
+                content.innerHTML = `<div style="text-align:center"><h3>Document</h3><p>${msg.file_name || 'No filename'}</p></div>`;
+            }
+
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.href = url;
+            saveBtn.download = msg.file_name || `whatsapp_${msg.type || 'file'}_${msg.timestamp}`;
+            
+            document.getElementById('overlay').style.display = 'flex';
+        }
+
+        function closeOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('overlay-content').innerHTML = '';
+        }
+
+        loadWasm();
+    </script>
+</body>
+</html>
