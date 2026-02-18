@@ -48,6 +48,8 @@ enum BotMetricsEntryPoint {
 	MEDIA_PICKER_GROUP_CHAT = 40;
 	ASK_META_AI_NO_SEARCH_RESULTS = 41;
 	META_AI_SETTINGS = 45;
+	WEB_INTRO_PANEL = 46;
+	WEB_NAVIGATION_BAR = 47;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -637,14 +639,7 @@ message BotInfrastructureDiagnostics {
 
 	optional BotBackend botBackend = 1;
 	repeated string toolsUsed = 2;
-}
-
-message BotAvatarMetadata {
-	optional uint32 sentiment = 1;
-	optional string behaviorGraph = 2;
-	optional uint32 action = 3;
-	optional uint32 intensity = 4;
-	optional uint32 wordCount = 5;
+	optional bool isThinking = 3;
 }
 
 message BotSuggestedPromptMetadata {
@@ -777,7 +772,6 @@ message AIMediaCollectionMessage {
 }
 
 message BotMetadata {
-	optional BotAvatarMetadata avatarMetadata = 1;
 	optional string personaID = 2;
 	optional BotPluginMetadata pluginMetadata = 3;
 	optional BotSuggestedPromptMetadata suggestedPromptMetadata = 4;

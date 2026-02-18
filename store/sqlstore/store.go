@@ -1028,3 +1028,33 @@ func (s *SQLStore) DeleteOldBufferedHashes(ctx context.Context) error {
 	_, err := s.db.Exec(ctx, deleteOldBufferedHashesQuery, time.Now().Add(-14*24*time.Hour).UnixMilli())
 	return err
 }
+
+const (
+	getOutgoingEventQuery = `
+		SELECT format, plaintext FROM whatsmeow_retry_buffer WHERE our_jid=$1 AND (chat_jid=$2 OR chat_jid=$3) AND message_id=$4
+	`
+	addOutgoingEventQuery = `
+		INSERT INTO whatsmeow_retry_buffer (our_jid, chat_jid, message_id, format, plaintext, timestamp)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (our_jid, chat_jid, message_id) DO UPDATE
+			SET format=excluded.format, plaintext=excluded.plaintext, timestamp=excluded.timestamp
+	`
+	deleteOldOutgoingEventsQuery = `
+		DELETE FROM whatsmeow_retry_buffer WHERE our_jid=$1 AND timestamp < $2
+	`
+)
+
+func (s *SQLStore) GetOutgoingEvent(ctx context.Context, chatJID, altChatJID types.JID, id types.MessageID) (format string, result []byte, err error) {
+	err = s.db.QueryRow(ctx, getOutgoingEventQuery, s.JID, chatJID, altChatJID, id).Scan(&format, &result)
+	return
+}
+
+func (s *SQLStore) AddOutgoingEvent(ctx context.Context, chatJID types.JID, id types.MessageID, format string, plaintext []byte) error {
+	_, err := s.db.Exec(ctx, addOutgoingEventQuery, s.JID, chatJID, id, format, plaintext, time.Now().UnixMilli())
+	return err
+}
+
+func (s *SQLStore) DeleteOldOutgoingEvents(ctx context.Context) error {
+	_, err := s.db.Exec(ctx, deleteOldOutgoingEventsQuery, s.JID, time.Now().Add(-7*24*time.Hour).UnixMilli())
+	return err
+}
