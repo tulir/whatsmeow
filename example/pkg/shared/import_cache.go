@@ -1,8 +1,12 @@
 package shared
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
+	"fmt"
 
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -15,9 +19,24 @@ var (
 	chatMessages     = make(map[string][]MessageData)
 	mediaMessages    []MessageData
 	downloadableMsgs = make(map[string]whatsmeow.DownloadableMessage)
-	messageInfos     = make(map[string]*types.MessageInfo) // New: store full info for retries
+	messageInfos     = make(map[string]*types.MessageInfo)
 	statsLock        sync.Mutex
 )
+
+// MockDownloadableMessage implements whatsmeow.DownloadableMessage for restoration
+type MockDownloadableMessage struct {
+	DirectPath    string
+	MediaKey      []byte
+	FileSHA256    []byte
+	FileEncSHA256 []byte
+}
+
+func (m *MockDownloadableMessage) GetDirectPath() string     { return m.DirectPath }
+func (m *MockDownloadableMessage) GetMediaKey() []byte       { return m.MediaKey }
+func (m *MockDownloadableMessage) GetFileSHA256() []byte     { return m.FileSHA256 }
+func (m *MockDownloadableMessage) GetFileEncSHA256() []byte  { return m.FileEncSHA256 }
+func (m *MockDownloadableMessage) GetFileLength() uint64     { return 0 } // Not needed usually
+func (m *MockDownloadableMessage) GetMimetype() string       { return "" } // Not needed usually
 
 // enableImportCache adds an event handler to the client that caches incoming messages in memory.
 func EnableImportCache(cli *whatsmeow.Client) {
@@ -110,7 +129,13 @@ func processImportMessage(info types.MessageInfo, msg *waE2E.Message) {
 		ID: string(info.ID), ChatJID: chatJID, Text: content, Caption: caption, Type: msgType, Timestamp: info.Timestamp.Unix(), FromMe: info.IsFromMe, HasMedia: hasMedia,
 		MimeType: mimeType, FileName: fileName,
 	}
-	messageInfos[string(info.ID)] = &info // Save original info
+	if downloadRef != nil {
+		msgData.DirectPath = downloadRef.GetDirectPath()
+		msgData.MediaKey = downloadRef.GetMediaKey()
+		msgData.FileSHA256 = downloadRef.GetFileSHA256()
+		msgData.FileEncSHA256 = downloadRef.GetFileEncSHA256()
+	}
+	messageInfos[string(info.ID)] = &info
 	chatMessages[chatJID] = append(chatMessages[chatJID], msgData)
 	if hasMedia {
 		status.MediaCount++
@@ -129,4 +154,70 @@ func getImportChatStatus(jid types.JID) *ChatStatus {
 	s := &ChatStatus{JID: jidStr, ImportStatus: "Partial", LastImported: time.Now(), IsGroup: jid.Server == types.GroupServer}
 	importStats[jidStr] = s
 	return s
+}
+
+func SaveState(filePath string) error {
+	statsLock.Lock()
+	defer statsLock.Unlock()
+
+	state := StateData{
+		ImportStats:   importStats,
+		ChatMessages:  chatMessages,
+		MediaMessages: mediaMessages,
+	}
+
+	data, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	dir := filepath.Dir(filePath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(filePath, data, 0644)
+}
+
+func LoadState(filePath string) error {
+	data, err := os.ReadFile(filePath)
+	if os.IsNotExist(err) {
+		return nil // Just start fresh
+	}
+	if err != nil {
+		return err
+	}
+
+	var state StateData
+	if err := json.Unmarshal(data, &state); err != nil {
+		return err
+	}
+
+	statsLock.Lock()
+	defer statsLock.Unlock()
+
+	if state.ImportStats != nil {
+		importStats = state.ImportStats
+	}
+	if state.ChatMessages != nil {
+		chatMessages = state.ChatMessages
+	}
+	if state.MediaMessages != nil {
+		mediaMessages = state.MediaMessages
+	}
+
+	// Rebuild downloadableMsgs map from MessageData
+	for _, msg := range mediaMessages {
+		if msg.HasMedia {
+			downloadableMsgs[msg.ID] = &MockDownloadableMessage{
+				DirectPath:    msg.DirectPath,
+				MediaKey:      msg.MediaKey,
+				FileSHA256:    msg.FileSHA256,
+				FileEncSHA256: msg.FileEncSHA256,
+			}
+		}
+	}
+	fmt.Printf("Loaded state: %d chats, %d media items\n", len(importStats), len(mediaMessages))
+
+	return nil
 }

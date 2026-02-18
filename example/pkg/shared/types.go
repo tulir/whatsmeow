@@ -26,4 +26,16 @@ type MessageData struct {
 	HasMedia  bool   `json:"has_media"`
 	MimeType  string `json:"mime_type,omitempty"`
 	FileName  string `json:"file_name,omitempty"`
+
+	// Media metadata for "links" export and reconstruction
+	DirectPath    string `json:"direct_path,omitempty"`
+	MediaKey      []byte `json:"media_key,omitempty"`
+	FileSHA256    []byte `json:"file_sha256,omitempty"`
+	FileEncSHA256 []byte `json:"file_enc_sha256,omitempty"`
+}
+
+type StateData struct {
+	ImportStats   map[string]*ChatStatus `json:"import_stats"`
+	ChatMessages  map[string][]MessageData `json:"chat_messages"`
+	MediaMessages []MessageData            `json:"media_messages"`
 }
