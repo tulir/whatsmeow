@@ -137,10 +137,13 @@ func (cli *Client) SendFBMessage(
 	resp.DebugTimings.Queue = time.Since(start)
 	defer cli.messageSendLock.Unlock()
 
-	respChan := cli.waitResponse(req.ID)
 	if !req.Peer {
-		cli.addRecentMessage(to, req.ID, nil, messageAppProto)
+		err = cli.addRecentMessage(ctx, to, req.ID, nil, messageAppProto)
+		if err != nil {
+			return
+		}
 	}
+	respChan := cli.waitResponse(req.ID)
 	var phash string
 	var data []byte
 	switch to.Server {
