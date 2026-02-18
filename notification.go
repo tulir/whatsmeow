@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -47,6 +48,16 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 			cli.Log.Warnf("Failed to delete all sessions of %s from store after identity change: %v", from, err)
 		}
 		ts := node.AttrGetter().UnixTime("t")
+		storageLID := cli.resolveTcTokenStorageLID(ctx, from)
+		pt, _ := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageLID)
+		storedSenderTs := time.Time{}
+		if pt != nil {
+			storedSenderTs = pt.SenderTimestamp
+		}
+		if cli.hasValidTcTokenSenderTs(storageLID, storedSenderTs) {
+			cli.Log.Debugf("Identity changed for %s, re-issuing tctoken", from)
+			cli.fireAndForgetTcTokenIssuance(ctx, from)
+		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
 		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
@@ -265,6 +276,7 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 	}
 	parentAG := node.AttrGetter()
 	sender := parentAG.JID("from")
+	senderLID := cli.resolveTcTokenStorageLID(ctx, sender)
 	if !parentAG.OK() {
 		cli.Log.Warnf("privacy_token notification didn't have a sender (%v)", parentAG.Error())
 		return
@@ -288,14 +300,14 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 				cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
 			}
 			err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
-				User:      sender,
+				User:      senderLID,
 				Token:     token,
 				Timestamp: timestamp,
 			})
 			if err != nil {
-				cli.Log.Errorf("Failed to save privacy token from %s: %v", sender, err)
+				cli.Log.Errorf("Failed to save privacy token from %s: %v", senderLID, err)
 			} else {
-				cli.Log.Debugf("Stored privacy token from %s (ts: %v)", sender, timestamp)
+				cli.Log.Debugf("Received privacy token from %s (ts: %v)", senderLID, timestamp)
 			}
 		}
 	}

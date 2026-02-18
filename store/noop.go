@@ -228,6 +228,10 @@ func (n *NoopStore) GetPrivacyToken(ctx context.Context, user types.JID) (*Priva
 	return nil, n.Error
 }
 
+func (n *NoopStore) DeleteExpiredPrivacyTokens(ctx context.Context, cutoff time.Time) (int64, error) {
+	return 0, n.Error
+}
+
 func (n *NoopStore) PutDevice(ctx context.Context, store *Device) error {
 	return n.Error
 }
