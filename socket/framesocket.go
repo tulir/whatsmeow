@@ -97,10 +97,7 @@ func (fs *FrameSocket) Connect(ctx context.Context) error {
 	fs.cancelCtx, fs.cancel = context.WithCancel(ctx)
 
 	fs.log.Debugf("Dialing %s", fs.URL)
-	conn, resp, err := websocket.Dial(ctx, fs.URL, &websocket.DialOptions{
-		HTTPClient: fs.HTTPClient,
-		HTTPHeader: fs.HTTPHeaders,
-	})
+	conn, resp, err := websocket.Dial(ctx, fs.URL, fs.makeDialOptions())
 	if err != nil {
 		if resp != nil {
 			err = ErrWithStatusCode{err, resp.StatusCode}
