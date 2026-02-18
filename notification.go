@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -47,6 +48,16 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 			cli.Log.Warnf("Failed to delete all sessions of %s from store after identity change: %v", from, err)
 		}
 		ts := node.AttrGetter().UnixTime("t")
+		storageLID := cli.resolveTcTokenStorageLID(ctx, from)
+		pt, _ := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageLID)
+		storedSenderTs := time.Time{}
+		if pt != nil {
+			storedSenderTs = pt.SenderTimestamp
+		}
+		if cli.hasValidTcTokenSenderTs(storageLID, storedSenderTs) {
+			cli.Log.Debugf("Identity changed for %s, re-issuing tctoken", from)
+			cli.fireAndForgetTcTokenIssuance(ctx, from)
+		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
 		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
