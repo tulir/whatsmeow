@@ -47,8 +47,16 @@ func (int *DangerousInternalClient) FetchAppState(ctx context.Context, name apps
 	return int.c.fetchAppState(ctx, name, fullSync, onlyIfNotSynced)
 }
 
+func (int *DangerousInternalClient) HandleAppStateRecovery(ctx context.Context, reqID types.MessageID, result []*waE2E.PeerDataOperationRequestResponseMessage_PeerDataOperationResult) bool {
+	return int.c.handleAppStateRecovery(ctx, reqID, result)
+}
+
 func (int *DangerousInternalClient) ApplyAppStatePatches(ctx context.Context, name appstate.WAPatchName, state appstate.HashState, patches *appstate.PatchList, fullSync bool, eventsToDispatch *[]any) (appstate.HashState, error) {
 	return int.c.applyAppStatePatches(ctx, name, state, patches, fullSync, eventsToDispatch)
+}
+
+func (int *DangerousInternalClient) CollectEventsToDispatch(ctx context.Context, name appstate.WAPatchName, mutations []appstate.Mutation, fullSync bool, eventsToDispatch *[]any) error {
+	return int.c.collectEventsToDispatch(ctx, name, mutations, fullSync, eventsToDispatch)
 }
 
 func (int *DangerousInternalClient) FilterContacts(mutations []appstate.Mutation) ([]appstate.Mutation, []store.ContactEntry) {
@@ -165,6 +173,14 @@ func (int *DangerousInternalClient) SendNode(ctx context.Context, node waBinary.
 
 func (int *DangerousInternalClient) DispatchEvent(evt any) (handlerFailed bool) {
 	return int.c.dispatchEvent(evt)
+}
+
+func (int *DangerousInternalClient) GetUnifiedSessionID() string {
+	return int.c.getUnifiedSessionID()
+}
+
+func (int *DangerousInternalClient) SendUnifiedSession() {
+	int.c.sendUnifiedSession()
 }
 
 func (int *DangerousInternalClient) HandleStreamError(ctx context.Context, node *waBinary.Node) {
@@ -371,7 +387,7 @@ func (int *DangerousInternalClient) StoreHistoricalPNLIDMappings(ctx context.Con
 	int.c.storeHistoricalPNLIDMappings(ctx, mappings)
 }
 
-func (int *DangerousInternalClient) HandleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) bool {
+func (int *DangerousInternalClient) HandleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) (handlerFailed bool) {
 	return int.c.handleDecryptedMessage(ctx, info, msg, retryCount)
 }
 
@@ -583,8 +599,8 @@ func (int *DangerousInternalClient) RetryFrame(ctx context.Context, reqType, id 
 	return int.c.retryFrame(ctx, reqType, id, data, origResp, timeout)
 }
 
-func (int *DangerousInternalClient) AddRecentMessage(to types.JID, id types.MessageID, wa *waE2E.Message, fb *waMsgApplication.MessageApplication) {
-	int.c.addRecentMessage(to, id, wa, fb)
+func (int *DangerousInternalClient) AddRecentMessage(ctx context.Context, to types.JID, id types.MessageID, wa *waE2E.Message, fb *waMsgApplication.MessageApplication) error {
+	return int.c.addRecentMessage(ctx, to, id, wa, fb)
 }
 
 func (int *DangerousInternalClient) GetRecentMessage(to types.JID, id types.MessageID) RecentMessage {

@@ -158,6 +158,10 @@ type EventBuffer interface {
 	DoDecryptionTxn(ctx context.Context, fn func(context.Context) error) error
 	ClearBufferedEventPlaintext(ctx context.Context, ciphertextHash [32]byte) error
 	DeleteOldBufferedHashes(ctx context.Context) error
+
+	GetOutgoingEvent(ctx context.Context, chatJID, altChatJID types.JID, id types.MessageID) (string, []byte, error)
+	AddOutgoingEvent(ctx context.Context, chatJID types.JID, id types.MessageID, format string, plaintext []byte) error
+	DeleteOldOutgoingEvents(ctx context.Context) error
 }
 
 type LIDMapping struct {

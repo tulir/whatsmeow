@@ -70,6 +70,8 @@ const (
 	BotMetricsEntryPoint_MEDIA_PICKER_GROUP_CHAT             BotMetricsEntryPoint = 40
 	BotMetricsEntryPoint_ASK_META_AI_NO_SEARCH_RESULTS       BotMetricsEntryPoint = 41
 	BotMetricsEntryPoint_META_AI_SETTINGS                    BotMetricsEntryPoint = 45
+	BotMetricsEntryPoint_WEB_INTRO_PANEL                     BotMetricsEntryPoint = 46
+	BotMetricsEntryPoint_WEB_NAVIGATION_BAR                  BotMetricsEntryPoint = 47
 )
 
 // Enum value maps for BotMetricsEntryPoint.
@@ -118,6 +120,8 @@ var (
 		40: "MEDIA_PICKER_GROUP_CHAT",
 		41: "ASK_META_AI_NO_SEARCH_RESULTS",
 		45: "META_AI_SETTINGS",
+		46: "WEB_INTRO_PANEL",
+		47: "WEB_NAVIGATION_BAR",
 	}
 	BotMetricsEntryPoint_value = map[string]int32{
 		"UNDEFINED_ENTRY_POINT":               0,
@@ -163,6 +167,8 @@ var (
 		"MEDIA_PICKER_GROUP_CHAT":             40,
 		"ASK_META_AI_NO_SEARCH_RESULTS":       41,
 		"META_AI_SETTINGS":                    45,
+		"WEB_INTRO_PANEL":                     46,
+		"WEB_NAVIGATION_BAR":                  47,
 	}
 )
 
@@ -4063,6 +4069,7 @@ type BotInfrastructureDiagnostics struct {
 	state         protoimpl.MessageState                   `protogen:"open.v1"`
 	BotBackend    *BotInfrastructureDiagnostics_BotBackend `protobuf:"varint,1,opt,name=botBackend,enum=WAWebProtobufsAICommon.BotInfrastructureDiagnostics_BotBackend" json:"botBackend,omitempty"`
 	ToolsUsed     []string                                 `protobuf:"bytes,2,rep,name=toolsUsed" json:"toolsUsed,omitempty"`
+	IsThinking    *bool                                    `protobuf:"varint,3,opt,name=isThinking" json:"isThinking,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4109,6 +4116,13 @@ func (x *BotInfrastructureDiagnostics) GetToolsUsed() []string {
 		return x.ToolsUsed
 	}
 	return nil
+}
+
+func (x *BotInfrastructureDiagnostics) GetIsThinking() bool {
+	if x != nil && x.IsThinking != nil {
+		return *x.IsThinking
+	}
+	return false
 }
 
 type BotAvatarMetadata struct {
@@ -8655,12 +8669,15 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\fCREATE_IMAGE\x10\x01\x12\x11\n" +
 	"\rANIMATE_PHOTO\x10\x02\x12\x10\n" +
 	"\fANALYZE_FILE\x10\x03\x12\x0f\n" +
-	"\vCOLLABORATE\x10\x04\"\xc1\x01\n" +
+	"\vCOLLABORATE\x10\x04\"\xe1\x01\n" +
 	"\x1cBotInfrastructureDiagnostics\x12_\n" +
 	"\n" +
 	"botBackend\x18\x01 \x01(\x0e2?.WAWebProtobufsAICommon.BotInfrastructureDiagnostics.BotBackendR\n" +
 	"botBackend\x12\x1c\n" +
-	"\ttoolsUsed\x18\x02 \x03(\tR\ttoolsUsed\"\"\n" +
+	"\ttoolsUsed\x18\x02 \x03(\tR\ttoolsUsed\x12\x1e\n" +
+	"\n" +
+	"isThinking\x18\x03 \x01(\bR\n" +
+	"isThinking\"\"\n" +
 	"\n" +
 	"BotBackend\x12\b\n" +
 	"\x04AAPI\x10\x00\x12\n" +
@@ -8889,7 +8906,7 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\x1bSessionTransparencyMetadata\x12&\n" +
 	"\x0edisclaimerText\x18\x01 \x01(\tR\x0edisclaimerText\x12\x14\n" +
 	"\x05hcaID\x18\x02 \x01(\tR\x05hcaID\x12i\n" +
-	"\x17sessionTransparencyType\x18\x03 \x01(\x0e2/.WAWebProtobufsAICommon.SessionTransparencyTypeR\x17sessionTransparencyType*\xa7\t\n" +
+	"\x17sessionTransparencyType\x18\x03 \x01(\x0e2/.WAWebProtobufsAICommon.SessionTransparencyTypeR\x17sessionTransparencyType*\xd4\t\n" +
 	"\x14BotMetricsEntryPoint\x12\x19\n" +
 	"\x15UNDEFINED_ENTRY_POINT\x10\x00\x12\v\n" +
 	"\aFAVICON\x10\x01\x12\f\n" +
@@ -8935,7 +8952,9 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\x18MEDIA_PICKER_1_ON_1_CHAT\x10'\x12\x1b\n" +
 	"\x17MEDIA_PICKER_GROUP_CHAT\x10(\x12!\n" +
 	"\x1dASK_META_AI_NO_SEARCH_RESULTS\x10)\x12\x14\n" +
-	"\x10META_AI_SETTINGS\x10-*\xa2\x01\n" +
+	"\x10META_AI_SETTINGS\x10-\x12\x13\n" +
+	"\x0fWEB_INTRO_PANEL\x10.\x12\x16\n" +
+	"\x12WEB_NAVIGATION_BAR\x10/*\xa2\x01\n" +
 	"\x1aBotMetricsThreadEntryPoint\x12\x11\n" +
 	"\rAI_TAB_THREAD\x10\x01\x12\x12\n" +
 	"\x0eAI_HOME_THREAD\x10\x02\x12 \n" +
