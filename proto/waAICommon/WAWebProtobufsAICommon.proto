@@ -642,6 +642,14 @@ message BotInfrastructureDiagnostics {
 	optional bool isThinking = 3;
 }
 
+message BotAvatarMetadata {
+	optional uint32 sentiment = 1;
+	optional string behaviorGraph = 2;
+	optional uint32 action = 3;
+	optional uint32 intensity = 4;
+	optional uint32 wordCount = 5;
+}
+
 message BotSuggestedPromptMetadata {
 	repeated string suggestedPrompts = 1;
 	optional uint32 selectedPromptIndex = 2;
@@ -772,6 +780,7 @@ message AIMediaCollectionMessage {
 }
 
 message BotMetadata {
+	optional BotAvatarMetadata avatarMetadata = 1;
 	optional string personaID = 2;
 	optional BotPluginMetadata pluginMetadata = 3;
 	optional BotSuggestedPromptMetadata suggestedPromptMetadata = 4;

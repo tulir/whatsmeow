@@ -78,6 +78,7 @@ message StickerPackMessage {
 		optional string accessibilityLabel = 4;
 		optional bool isLottie = 5;
 		optional string mimetype = 6;
+		optional int32 premium = 7;
 	}
 
 	optional string stickerPackID = 1;
@@ -795,12 +796,18 @@ message PeerDataOperationRequestMessage {
 }
 
 message RequestWelcomeMessageMetadata {
+	enum WelcomeTrigger {
+		CHAT_OPEN = 0;
+		COMPANION_PAIRING = 1;
+	}
+
 	enum LocalChatState {
 		EMPTY = 0;
 		NON_EMPTY = 1;
 	}
 
 	optional LocalChatState localChatState = 1;
+	optional WelcomeTrigger welcomeTrigger = 2;
 }
 
 message ProtocolMessage {
@@ -1334,6 +1341,7 @@ message ContextInfo {
 	optional bool isSpoiler = 73;
 	optional MediaDomainInfo mediaDomainInfo = 74;
 	optional PartiallySelectedContent partiallySelectedContent = 75;
+	optional uint32 afterReadDurationMS = 76;
 }
 
 message MessageAssociation {
