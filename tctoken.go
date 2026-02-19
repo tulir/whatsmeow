@@ -12,7 +12,6 @@ import (
 	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
-	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -166,41 +165,7 @@ func (cli *Client) issuePrivacyToken(ctx context.Context, jid types.JID, timesta
 	})
 }
 
-// storeTcTokensFromIQResult parses and stores tctokens from an IQ response.
-func (cli *Client) storeTcTokensFromIQResult(ctx context.Context, result *waBinary.Node, fallbackJID types.JID) error {
-	tokensNode, ok := result.GetOptionalChildByTag("tokens")
-	if !ok {
-		return nil
-	}
-	for _, tokenNode := range tokensNode.GetChildren() {
-		ag := tokenNode.AttrGetter()
-		if tokenNode.Tag != "token" || ag.String("type") != "trusted_contact" {
-			continue
-		}
-		tokenBytes, ok := tokenNode.Content.([]byte)
-		if !ok {
-			continue
-		}
-		jid := ag.OptionalJIDOrEmpty("jid")
-		if jid.IsEmpty() {
-			jid = fallbackJID
-		}
-		jid = cli.resolveTcTokenStorageLID(ctx, jid)
-		timestamp := ag.UnixTime("t")
-
-		err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
-			User:      jid,
-			Token:     tokenBytes,
-			Timestamp: timestamp,
-		})
-		if err != nil {
-			cli.Log.Errorf("Failed to store tctoken for %s: %v", jid, err)
-		}
-	}
-	return nil
-}
-
-// ensureTcToken returns a valid tctoken for the given JID.
+// ensureTcToken returns a stored non-expired tctoken for the given JID, if available.
 func (cli *Client) ensureTcToken(ctx context.Context, jid types.JID) (token []byte, err error) {
 	cli.cleanupExpiredTcTokensFromDBIfDue(ctx)
 	storageJID := cli.resolveTcTokenStorageLID(ctx, jid)
@@ -208,50 +173,24 @@ func (cli *Client) ensureTcToken(ctx context.Context, jid types.JID) (token []by
 	if err != nil {
 		return nil, fmt.Errorf("failed to get privacy token: %w", err)
 	}
-
-	if existing != nil && len(existing.Token) > 0 && !isTcTokenExpired(existing.Timestamp) {
-		cli.hasValidTcTokenSenderTs(storageJID, existing.SenderTimestamp)
-		return existing.Token, nil
-	}
-
-	cli.Log.Debugf("tctoken for %s is missing or expired, fetching from server", jid)
-	resp, err := cli.issuePrivacyToken(ctx, jid, time.Now().Unix())
-	if err != nil {
-		return nil, fmt.Errorf("failed to issue privacy token: %w", err)
-	}
-
-	if err := cli.storeTcTokensFromIQResult(ctx, resp, storageJID); err != nil {
-		return nil, err
-	}
-
-	senderTimestamp := time.Now()
-	cli.setTcTokenSenderTs(storageJID, senderTimestamp)
-
-	refreshed, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to re-read privacy token: %w", err)
-	}
-	if refreshed == nil || len(refreshed.Token) == 0 || isTcTokenExpired(refreshed.Timestamp) {
+	if existing == nil {
 		return nil, nil
 	}
-	refreshed.SenderTimestamp = senderTimestamp
-	if err = cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, *refreshed); err != nil {
-		cli.Log.Warnf("Failed to persist tctoken sender timestamp for %s: %v", jid, err)
+	cli.hasValidTcTokenSenderTs(storageJID, existing.SenderTimestamp)
+	if len(existing.Token) > 0 && !isTcTokenExpired(existing.Timestamp) {
+		return existing.Token, nil
 	}
-	return refreshed.Token, nil
+	return nil, nil
 }
 
 // Only called when a bucket boundary has been crossed since the last issuance.
 func (cli *Client) fireAndForgetTcTokenIssuance(ctx context.Context, jid types.JID, issueTimestamp int64) {
 	go func(ctx context.Context) {
 		storageJID := jid.ToNonAD()
-		resp, err := cli.issuePrivacyToken(ctx, storageJID, issueTimestamp)
+		_, err := cli.issuePrivacyToken(ctx, storageJID, issueTimestamp)
 		if err != nil {
 			cli.Log.Debugf("Fire-and-forget tctoken issuance failed for %s: %v", jid, err)
 			return
-		}
-		if err = cli.storeTcTokensFromIQResult(ctx, resp, storageJID); err != nil {
-			cli.Log.Debugf("Failed to parse fire-and-forget tctoken response for %s: %v", jid, err)
 		}
 		senderTimestamp := time.Unix(issueTimestamp, 0)
 		cli.setTcTokenSenderTs(storageJID, senderTimestamp)
