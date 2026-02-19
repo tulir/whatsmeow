@@ -79,6 +79,13 @@ func shouldSendNewTcToken(senderTimestamp time.Time) bool {
 	return now/tcTokenBucketDuration > senderTimestamp.Unix()/tcTokenBucketDuration
 }
 
+func shouldSendTcTokenInChatAction(jid types.JID) bool {
+	jid = jid.ToNonAD()
+	return (jid.Server == types.DefaultUserServer || jid.Server == types.HiddenUserServer) &&
+		jid.User != types.PSAJID.User &&
+		!jid.IsBot()
+}
+
 // getTcTokenSenderTs reads the in-memory sender timestamp for a JID.
 func (cli *Client) getTcTokenSenderTs(jid types.JID) time.Time {
 	if v, ok := cli.tcTokenSenderTs.Load(jid.ToNonAD()); ok {
@@ -194,27 +201,27 @@ func (cli *Client) storeTcTokensFromIQResult(ctx context.Context, result *waBina
 }
 
 // ensureTcToken returns a valid tctoken for the given JID.
-func (cli *Client) ensureTcToken(ctx context.Context, jid types.JID) (token []byte, fetched bool, err error) {
+func (cli *Client) ensureTcToken(ctx context.Context, jid types.JID) (token []byte, err error) {
 	cli.cleanupExpiredTcTokensFromDBIfDue(ctx)
 	storageJID := cli.resolveTcTokenStorageLID(ctx, jid)
 	existing, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to get privacy token: %w", err)
+		return nil, fmt.Errorf("failed to get privacy token: %w", err)
 	}
 
 	if existing != nil && len(existing.Token) > 0 && !isTcTokenExpired(existing.Timestamp) {
 		cli.hasValidTcTokenSenderTs(storageJID, existing.SenderTimestamp)
-		return existing.Token, false, nil
+		return existing.Token, nil
 	}
 
 	cli.Log.Debugf("tctoken for %s is missing or expired, fetching from server", jid)
 	resp, err := cli.issuePrivacyToken(ctx, jid, time.Now().Unix())
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to issue privacy token: %w", err)
+		return nil, fmt.Errorf("failed to issue privacy token: %w", err)
 	}
 
 	if err := cli.storeTcTokensFromIQResult(ctx, resp, storageJID); err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	senderTimestamp := time.Now()
@@ -222,23 +229,23 @@ func (cli *Client) ensureTcToken(ctx context.Context, jid types.JID) (token []by
 
 	refreshed, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
 	if err != nil {
-		return nil, true, fmt.Errorf("failed to re-read privacy token: %w", err)
+		return nil, fmt.Errorf("failed to re-read privacy token: %w", err)
 	}
 	if refreshed == nil || len(refreshed.Token) == 0 || isTcTokenExpired(refreshed.Timestamp) {
-		return nil, true, nil
+		return nil, nil
 	}
 	refreshed.SenderTimestamp = senderTimestamp
 	if err = cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, *refreshed); err != nil {
 		cli.Log.Warnf("Failed to persist tctoken sender timestamp for %s: %v", jid, err)
 	}
-	return refreshed.Token, true, nil
+	return refreshed.Token, nil
 }
 
 // Only called when a bucket boundary has been crossed since the last issuance.
-func (cli *Client) fireAndForgetTcTokenIssuance(ctx context.Context, jid types.JID) {
+func (cli *Client) fireAndForgetTcTokenIssuance(ctx context.Context, jid types.JID, issueTimestamp int64) {
 	go func(ctx context.Context) {
-		storageJID := cli.resolveTcTokenStorageLID(ctx, jid)
-		resp, err := cli.issuePrivacyToken(ctx, jid, time.Now().Unix())
+		storageJID := jid.ToNonAD()
+		resp, err := cli.issuePrivacyToken(ctx, storageJID, issueTimestamp)
 		if err != nil {
 			cli.Log.Debugf("Fire-and-forget tctoken issuance failed for %s: %v", jid, err)
 			return
@@ -246,7 +253,7 @@ func (cli *Client) fireAndForgetTcTokenIssuance(ctx context.Context, jid types.J
 		if err = cli.storeTcTokensFromIQResult(ctx, resp, storageJID); err != nil {
 			cli.Log.Debugf("Failed to parse fire-and-forget tctoken response for %s: %v", jid, err)
 		}
-		senderTimestamp := time.Now()
+		senderTimestamp := time.Unix(issueTimestamp, 0)
 		cli.setTcTokenSenderTs(storageJID, senderTimestamp)
 		existing, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
 		if err != nil {

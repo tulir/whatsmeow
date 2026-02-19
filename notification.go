@@ -49,14 +49,20 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		}
 		ts := node.AttrGetter().UnixTime("t")
 		storageLID := cli.resolveTcTokenStorageLID(ctx, from)
-		pt, _ := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageLID)
+		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageLID)
+		if err != nil {
+			cli.Log.Debugf("Failed to load tctoken for identity change re-issue %s: %v", storageLID, err)
+		}
 		storedSenderTs := time.Time{}
 		if pt != nil {
 			storedSenderTs = pt.SenderTimestamp
 		}
 		if cli.hasValidTcTokenSenderTs(storageLID, storedSenderTs) {
-			cli.Log.Debugf("Identity changed for %s, re-issuing tctoken", from)
-			cli.fireAndForgetTcTokenIssuance(ctx, from)
+			senderTs := cli.getTcTokenSenderTs(storageLID)
+			if !senderTs.IsZero() {
+				cli.Log.Debugf("Identity changed for %s, re-issuing tctoken", from)
+				cli.fireAndForgetTcTokenIssuance(ctx, storageLID, senderTs.Unix())
+			}
 		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
