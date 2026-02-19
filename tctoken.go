@@ -138,25 +138,23 @@ func (cli *Client) cleanupExpiredTcTokensFromDBIfDue(ctx context.Context) {
 	}()
 }
 
-// fetchPrivacyTokens sends an IQ to the server to request/issue privacy tokens for the given JIDs.
-func (cli *Client) fetchPrivacyTokens(ctx context.Context, jids []types.JID) (*waBinary.Node, error) {
-	tokenNodes := make([]waBinary.Node, len(jids))
-	for i, jid := range jids {
-		tokenNodes[i] = waBinary.Node{
-			Tag: "token",
-			Attrs: waBinary.Attrs{
-				"jid":  jid.ToNonAD(),
-				"type": "trusted_contact",
-			},
-		}
-	}
+// issuePrivacyToken sends an IQ to the server to issue a privacy token for the given JID.
+// Matches WAWebSetPrivacyTokensJob.issuePrivacyToken(targetJID, tokenTypes, timestamp).
+func (cli *Client) issuePrivacyToken(ctx context.Context, jid types.JID, timestamp int64) (*waBinary.Node, error) {
 	return cli.sendIQ(ctx, infoQuery{
 		Namespace: "privacy",
 		Type:      iqSet,
 		To:        types.ServerJID,
 		Content: []waBinary.Node{{
-			Tag:     "tokens",
-			Content: tokenNodes,
+			Tag: "tokens",
+			Content: []waBinary.Node{{
+				Tag: "token",
+				Attrs: waBinary.Attrs{
+					"jid":  jid.ToNonAD(),
+					"t":    fmt.Sprintf("%d", timestamp),
+					"type": "trusted_contact",
+				},
+			}},
 		}},
 	})
 }
@@ -210,9 +208,9 @@ func (cli *Client) ensureTcToken(ctx context.Context, jid types.JID) (token []by
 	}
 
 	cli.Log.Debugf("tctoken for %s is missing or expired, fetching from server", jid)
-	resp, err := cli.fetchPrivacyTokens(ctx, []types.JID{jid})
+	resp, err := cli.issuePrivacyToken(ctx, jid, time.Now().Unix())
 	if err != nil {
-		return nil, false, fmt.Errorf("failed to fetch privacy token: %w", err)
+		return nil, false, fmt.Errorf("failed to issue privacy token: %w", err)
 	}
 
 	if err := cli.storeTcTokensFromIQResult(ctx, resp, storageJID); err != nil {
@@ -240,7 +238,7 @@ func (cli *Client) ensureTcToken(ctx context.Context, jid types.JID) (token []by
 func (cli *Client) fireAndForgetTcTokenIssuance(ctx context.Context, jid types.JID) {
 	go func(ctx context.Context) {
 		storageJID := cli.resolveTcTokenStorageLID(ctx, jid)
-		resp, err := cli.fetchPrivacyTokens(ctx, []types.JID{jid})
+		resp, err := cli.issuePrivacyToken(ctx, jid, time.Now().Unix())
 		if err != nil {
 			cli.Log.Debugf("Fire-and-forget tctoken issuance failed for %s: %v", jid, err)
 			return
