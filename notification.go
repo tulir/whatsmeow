@@ -70,26 +70,67 @@ func (cli *Client) handleAppStateNotification(ctx context.Context, node *waBinar
 	}
 }
 
+// getJIDFromAttrs tries multiple keys and supports both types.JID and string values.
+func getJIDFromAttrs(attrs waBinary.Attrs, keys ...string) types.JID {
+	for _, k := range keys {
+		if v, ok := attrs[k]; ok && v != nil {
+			switch val := v.(type) {
+			case types.JID:
+				if !val.IsEmpty() {
+					return val
+				}
+			case string:
+				if val != "" {
+					jid, err := types.ParseJID(val)
+					if err == nil {
+						return jid
+					}
+				}
+			}
+		}
+	}
+	return types.EmptyJID
+}
+
+// getStringFromAttrs tries multiple keys and returns the first non-empty string found.
+func getStringFromAttrs(attrs waBinary.Attrs, keys ...string) string {
+	for _, k := range keys {
+		if v, ok := attrs[k]; ok {
+			if s, ok := v.(string); ok && s != "" {
+				return s
+			}
+		}
+	}
+	return ""
+}
+
 func (cli *Client) handlePictureNotification(ctx context.Context, node *waBinary.Node) {
 	ts := node.AttrGetter().UnixTime("t")
 	for _, child := range node.GetChildren() {
 		ag := child.AttrGetter()
 		var evt events.Picture
 		evt.Timestamp = ts
-		evt.JID = ag.JID("jid")
+		// Try "jid" first, fallback to "JID" (server may send uppercase)
+		evt.JID = getJIDFromAttrs(child.Attrs, "jid", "JID")
 		evt.Author = ag.OptionalJIDOrEmpty("author")
 		if child.Tag == "delete" {
 			evt.Remove = true
 		} else if child.Tag == "add" {
-			evt.PictureID = ag.String("id")
+			// Try "id" first, fallback to "ID" (server may send uppercase)
+			evt.PictureID = getStringFromAttrs(child.Attrs, "id", "ID")
 		} else if child.Tag == "set" {
 			// TODO sometimes there's a hash and no ID?
-			evt.PictureID = ag.String("id")
+			evt.PictureID = getStringFromAttrs(child.Attrs, "id", "ID")
 		} else {
 			continue
 		}
-		if !ag.OK() {
-			cli.Log.Debugf("Ignoring picture change notification with unexpected attributes: %v", ag.Error())
+		// Require JID for all events; PictureID for add/set
+		if evt.JID.IsEmpty() {
+			cli.Log.Debugf("Ignoring picture change notification: missing jid/JID attribute")
+			continue
+		}
+		if (child.Tag == "add" || child.Tag == "set") && evt.PictureID == "" {
+			cli.Log.Debugf("Ignoring picture change notification: missing id/ID attribute for %s", child.Tag)
 			continue
 		}
 		cli.dispatchEvent(&evt)
