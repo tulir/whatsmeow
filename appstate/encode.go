@@ -33,6 +33,8 @@ type PatchInfo struct {
 	Timestamp time.Time
 	// Type is the app state type being mutated.
 	Type WAPatchName
+	// Operation is SET / REMOVE
+	Operation waServerSync.SyncdMutation_SyncdOperation
 	// Mutations contains the individual mutations to apply to the app state in this patch.
 	Mutations []MutationInfo
 }
@@ -54,7 +56,8 @@ func BuildMuteAbs(target types.JID, mute bool, muteEndTimestamp *int64) PatchInf
 		muteEndTimestamp = proto.Int64(-1)
 	}
 	return PatchInfo{
-		Type: WAPatchRegularHigh,
+		Type:      WAPatchRegularHigh,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: []MutationInfo{{
 			Index:   []string{IndexMute, target.String()},
 			Version: 2,
@@ -63,6 +66,37 @@ func BuildMuteAbs(target types.JID, mute bool, muteEndTimestamp *int64) PatchInf
 					Muted:            proto.Bool(mute),
 					MuteEndTimestamp: muteEndTimestamp,
 				},
+			},
+		}},
+	}
+}
+
+func BuildContact(target types.JID, fullName string) PatchInfo {
+	return PatchInfo{
+		Type:      WAPatchCriticalUnblockLow,
+		Operation: waServerSync.SyncdMutation_SET,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexContact, target.String()},
+			Version: 2,
+			Value: &waSyncAction.SyncActionValue{
+				ContactAction: &waSyncAction.ContactAction{
+					FullName:                 &fullName,
+					SaveOnPrimaryAddressbook: proto.Bool(true),
+				},
+			},
+		}},
+	}
+}
+
+func RemoveContact(target types.JID) PatchInfo {
+	return PatchInfo{
+		Type:      WAPatchCriticalUnblockLow,
+		Operation: waServerSync.SyncdMutation_REMOVE,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexContact, target.String()},
+			Version: 2,
+			Value: &waSyncAction.SyncActionValue{
+				ContactAction: &waSyncAction.ContactAction{},
 			},
 		}},
 	}
@@ -83,7 +117,8 @@ func newPinMutationInfo(target types.JID, pin bool) MutationInfo {
 // BuildPin builds an app state patch for pinning or unpinning a chat.
 func BuildPin(target types.JID, pin bool) PatchInfo {
 	return PatchInfo{
-		Type: WAPatchRegularLow,
+		Type:      WAPatchRegularLow,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: []MutationInfo{
 			newPinMutationInfo(target, pin),
 		},
@@ -115,6 +150,7 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 
 	result := PatchInfo{
 		Type:      WAPatchRegularLow,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: mutations,
 	}
 
@@ -155,7 +191,8 @@ func newLabelChatMutation(target types.JID, labelID string, labeled bool) Mutati
 // BuildLabelChat builds an app state patch for labeling or un(labeling) a chat.
 func BuildLabelChat(target types.JID, labelID string, labeled bool) PatchInfo {
 	return PatchInfo{
-		Type: WAPatchRegular,
+		Type:      WAPatchRegular,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: []MutationInfo{
 			newLabelChatMutation(target, labelID, labeled),
 		},
@@ -177,7 +214,8 @@ func newLabelMessageMutation(target types.JID, labelID, messageID string, labele
 // BuildLabelMessage builds an app state patch for labeling or un(labeling) a message.
 func BuildLabelMessage(target types.JID, labelID, messageID string, labeled bool) PatchInfo {
 	return PatchInfo{
-		Type: WAPatchRegular,
+		Type:      WAPatchRegular,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: []MutationInfo{
 			newLabelMessageMutation(target, labelID, messageID, labeled),
 		},
@@ -201,7 +239,8 @@ func newLabelEditMutation(labelID string, labelName string, labelColor int32, de
 // BuildLabelEdit builds an app state patch for editing a label.
 func BuildLabelEdit(labelID string, labelName string, labelColor int32, deleted bool) PatchInfo {
 	return PatchInfo{
-		Type: WAPatchRegular,
+		Type:      WAPatchRegular,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: []MutationInfo{
 			newLabelEditMutation(labelID, labelName, labelColor, deleted),
 		},
@@ -223,7 +262,8 @@ func newSettingPushNameMutation(pushName string) MutationInfo {
 // BuildSettingPushName builds an app state patch for setting the push name.
 func BuildSettingPushName(pushName string) PatchInfo {
 	return PatchInfo{
-		Type: WAPatchCriticalBlock,
+		Type:      WAPatchCriticalBlock,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: []MutationInfo{
 			newSettingPushNameMutation(pushName),
 		},
@@ -253,7 +293,8 @@ func BuildStar(target, sender types.JID, messageID types.MessageID, fromMe, star
 		senderJID = "0"
 	}
 	return PatchInfo{
-		Type: WAPatchRegularHigh,
+		Type:      WAPatchRegularHigh,
+		Operation: waServerSync.SyncdMutation_SET,
 		Mutations: []MutationInfo{
 			newStarMutation(targetJID, senderJID, messageID, isFromMe, starred),
 		},
@@ -296,11 +337,11 @@ func (proc *Processor) EncodePatch(ctx context.Context, keyID []byte, state Hash
 			return nil, fmt.Errorf("failed to encrypt mutation: %w", err)
 		}
 
-		valueMac := generateContentMAC(waServerSync.SyncdMutation_SET, encryptedContent, keyID, keys.ValueMAC)
+		valueMac := generateContentMAC(patchInfo.Operation, encryptedContent, keyID, keys.ValueMAC)
 		indexMac := concatAndHMAC(sha256.New, keys.Index, indexBytes)
 
 		mutations = append(mutations, &waServerSync.SyncdMutation{
-			Operation: waServerSync.SyncdMutation_SET.Enum(),
+			Operation: patchInfo.Operation.Enum(),
 			Record: &waServerSync.SyncdRecord{
 				Index: &waServerSync.SyncdIndex{Blob: indexMac},
 				Value: &waServerSync.SyncdValue{Blob: append(encryptedContent, valueMac...)},

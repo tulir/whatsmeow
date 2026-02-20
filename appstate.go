@@ -234,7 +234,7 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 	}
 	logEvt.Msg("Received app state mutation")
 
-	if mutation.Operation != waServerSync.SyncdMutation_SET {
+	if (mutation.Action != nil && mutation.Action.ContactAction == nil) && mutation.Operation != waServerSync.SyncdMutation_SET {
 		return
 	}
 
