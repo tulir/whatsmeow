@@ -453,18 +453,29 @@ func (cli *Client) GetUserDevices(ctx context.Context, jids []types.JID) ([]type
 	defer cli.userDevicesCacheLock.Unlock()
 
 	var devices, jidsToSync, fbJIDsToSync []types.JID
+	var cacheHits, cacheMisses []types.JID
 	for _, jid := range jids {
 		cached, ok := cli.userDevicesCache[jid]
 		if ok && len(cached.devices) > 0 {
 			devices = append(devices, cached.devices...)
+			cacheHits = append(cacheHits, jid)
 		} else if jid.Server == types.MessengerServer {
 			fbJIDsToSync = append(fbJIDsToSync, jid)
+			cacheMisses = append(cacheMisses, jid)
 		} else if jid.IsBot() {
 			// Bot JIDs do not have devices, the usync query is empty
 			devices = append(devices, jid)
 		} else {
 			jidsToSync = append(jidsToSync, jid)
+			cacheMisses = append(cacheMisses, jid)
 		}
+	}
+
+	if len(cacheHits) > 0 {
+		cli.Log.Debugf("User devices cache HIT for %d JIDs: %v", len(cacheHits), cacheHits)
+	}
+	if len(cacheMisses) > 0 {
+		cli.Log.Debugf("User devices cache MISS for %d JIDs: %v", len(cacheMisses), cacheMisses)
 	}
 	if len(jidsToSync) > 0 {
 		list, err := cli.usync(ctx, jidsToSync, "query", "message", []waBinary.Node{

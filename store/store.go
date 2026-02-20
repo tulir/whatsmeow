@@ -179,6 +179,7 @@ type LIDStore interface {
 	GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error)
 	GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, error)
 	GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (map[types.JID]types.JID, error)
+	GetManyPNsForLIDs(ctx context.Context, lids []types.JID) (map[types.JID]types.JID, error)
 }
 
 type AllSessionSpecificStores interface {
