@@ -318,7 +318,13 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 				cli.Log.Warnf("Failed to get LID for %s: %v", receipt.Sender, err)
 			} else if !lidForPN.IsEmpty() {
 				cli.migrateSessionStore(ctx, receipt.Sender, lidForPN)
-				encryptionIdentity = lidForPN
+				if lidSessionExists, err := cli.Store.ContainsSession(ctx, lidForPN.SignalAddress()); err != nil {
+					cli.Log.Warnf("Failed to check LID session existence for %s: %v", lidForPN, err)
+				} else if lidSessionExists {
+					encryptionIdentity = lidForPN
+				} else {
+					cli.Log.Warnf("LID session for %s not found after migration, falling back to PN %s", lidForPN, receipt.Sender)
+				}
 			}
 		}
 		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, encAttrs, nil)
