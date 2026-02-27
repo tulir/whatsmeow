@@ -469,10 +469,12 @@ func isRetryableConnectError(err error) bool {
 		switch statusErr.StatusCode {
 		case 408, 500, 501, 502, 503, 504:
 			return true
+		default:
+			return false
 		}
 	}
 
-	return false
+	return errors.Is(err, socket.ErrDialFailed)
 }
 
 func (cli *Client) ConnectContext(ctx context.Context) error {

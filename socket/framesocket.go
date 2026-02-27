@@ -103,7 +103,7 @@ func (fs *FrameSocket) Connect(ctx context.Context) error {
 			err = ErrWithStatusCode{err, resp.StatusCode}
 		}
 		fs.cancel()
-		return fmt.Errorf("failed to dial whatsapp web websocket: %w", err)
+		return fmt.Errorf("%w: %w", ErrDialFailed, err)
 	}
 	conn.SetReadLimit(FrameMaxSize)
 

@@ -53,6 +53,7 @@ message HistorySync {
 	optional string companionMetaNonce = 16;
 	optional bytes shareableChatIdentifierEncryptionKey = 17;
 	repeated Account accounts = 18;
+	optional bytes nctSalt = 19;
 }
 
 message Conversation {
@@ -117,6 +118,7 @@ message Conversation {
 	optional WACommon.LimitSharing.Trigger limitSharingTrigger = 52;
 	optional bool limitSharingInitiatedByMe = 53;
 	optional bool maibaAiThreadEnabled = 54;
+	optional bool isMarketingMessageThread = 55;
 }
 
 message GroupParticipant {
@@ -167,6 +169,7 @@ message Pushname {
 message WallpaperSettings {
 	optional string filename = 1;
 	optional uint32 opacity = 2;
+	optional bool isGenAi = 3;
 }
 
 message GlobalSettings {
