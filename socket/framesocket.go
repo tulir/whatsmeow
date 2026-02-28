@@ -36,7 +36,7 @@ type FrameSocket struct {
 
 	Header []byte
 
-	closed	atomic.Bool
+	closed atomic.Bool
 
 	incomingLength int
 	receivedLength int
