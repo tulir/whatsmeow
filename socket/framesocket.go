@@ -97,7 +97,7 @@ func (fs *FrameSocket) Connect(ctx context.Context) error {
 
 	// Reset the closed state when opening a new connection.
 	fs.closed.Store(false)
-	
+
 	fs.parentCtx = ctx
 	fs.cancelCtx, fs.cancel = context.WithCancel(ctx)
 
