@@ -3,6 +3,7 @@ package WAWebProtobufsE2E;
 option go_package = "go.mau.fi/whatsmeow/proto/waE2E";
 
 import "waAICommon/WAWebProtobufsAICommon.proto";
+import "waAICommonDeprecated/WAWebProtobufsAICommonDeprecated.proto";
 import "waAdv/WAAdv.proto";
 import "waCompanionReg/WACompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
@@ -277,6 +278,18 @@ message ButtonsMessage {
 	optional HeaderType headerType = 10;
 }
 
+message ConditionalRevealMessage {
+	enum ConditionalRevealMessageType {
+		UNKNOWN = 0;
+		SCHEDULED_MESSAGE = 1;
+	}
+
+	optional bytes encPayload = 1;
+	optional bytes encIV = 2;
+	optional ConditionalRevealMessageType conditionalRevealMessageType = 3;
+	optional string revealKeyID = 4;
+}
+
 message SecretEncryptedMessage {
 	enum SecretEncType {
 		UNKNOWN = 0;
@@ -284,6 +297,7 @@ message SecretEncryptedMessage {
 		MESSAGE_EDIT = 2;
 		MESSAGE_SCHEDULE = 3;
 		POLL_EDIT = 4;
+		POLL_ADD_OPTION = 5;
 	}
 
 	optional WACommon.MessageKey targetMessageKey = 1;
@@ -867,7 +881,7 @@ message ProtocolMessage {
 	optional AIQueryFanout aiQueryFanout = 26;
 	optional MemberLabel memberLabel = 27;
 	optional WAWebProtobufsAICommon.AIMediaCollectionMessage aiMediaCollectionMessage = 28;
-	optional uint32 afterReadDurationMS = 29;
+	optional uint32 afterReadDuration = 29;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1341,7 +1355,7 @@ message ContextInfo {
 	optional bool isSpoiler = 73;
 	optional MediaDomainInfo mediaDomainInfo = 74;
 	optional PartiallySelectedContent partiallySelectedContent = 75;
-	optional uint32 afterReadDurationMS = 76;
+	optional uint32 afterReadDuration = 76;
 }
 
 message MessageAssociation {
@@ -1366,6 +1380,7 @@ message MessageAssociation {
 		STATUS_ADD_YOURS_DIWALI = 17;
 		STATUS_REACTION = 18;
 		HEVC_VIDEO_DUAL_UPLOAD = 19;
+		POLL_ADD_OPTION = 20;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1382,6 +1397,7 @@ message ThreadID {
 
 	optional ThreadType threadType = 1;
 	optional WACommon.MessageKey threadKey = 2;
+	optional string sourceChatJID = 3;
 }
 
 message MessageContextInfo {
@@ -1627,7 +1643,9 @@ message Message {
 	optional FutureProofMessage newsletterAdminProfileMessage = 116;
 	optional FutureProofMessage newsletterAdminProfileMessageV2 = 117;
 	optional FutureProofMessage spoilerMessage = 118;
-	optional FutureProofMessage pollCreationMessageV6 = 119;
+	optional PollCreationMessage pollCreationMessageV6 = 119;
+	optional ConditionalRevealMessage conditionalRevealMessage = 120;
+	optional PollAddOptionMessage pollAddOptionMessage = 121;
 }
 
 message AlbumMessage {
@@ -1725,6 +1743,11 @@ message PollResultSnapshotMessage {
 	optional PollType pollType = 4;
 }
 
+message PollAddOptionMessage {
+	optional WACommon.MessageKey pollCreationMessageKey = 1;
+	optional PollCreationMessage.Option addOption = 2;
+}
+
 message PollVoteMessage {
 	repeated bytes selectedOptions = 1;
 }
@@ -1760,6 +1783,7 @@ message PollCreationMessage {
 	optional Option correctAnswer = 8;
 	optional int64 endTime = 9;
 	optional bool hideParticipantName = 10;
+	optional bool allowAddOption = 11;
 }
 
 message StickerSyncRMRMessage {
@@ -2277,8 +2301,8 @@ message MemberLabel {
 }
 
 message AIRichResponseMessage {
-	optional WAWebProtobufsAICommon.AIRichResponseMessageType messageType = 1;
-	repeated WAWebProtobufsAICommon.AIRichResponseSubMessage submessages = 2;
+	optional WAWebProtobufsAICommonDeprecated.AIRichResponseMessageType messageType = 1;
+	repeated WAWebProtobufsAICommonDeprecated.AIRichResponseSubMessage submessages = 2;
 	optional WAWebProtobufsAICommon.AIRichResponseUnifiedResponse unifiedResponse = 3;
 	optional ContextInfo contextInfo = 4;
 }

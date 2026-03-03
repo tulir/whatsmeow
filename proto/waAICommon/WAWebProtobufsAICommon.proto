@@ -50,6 +50,7 @@ enum BotMetricsEntryPoint {
 	META_AI_SETTINGS = 45;
 	WEB_INTRO_PANEL = 46;
 	WEB_NAVIGATION_BAR = 47;
+	GROUP_MEMBER = 54;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -69,24 +70,6 @@ enum BotSessionSource {
 	EMU_FLASH_FOLLOWUP = 5;
 	VOICE = 6;
 	AI_HOME_SESSION = 7;
-}
-
-enum AIRichResponseMessageType {
-	AI_RICH_RESPONSE_TYPE_UNKNOWN = 0;
-	AI_RICH_RESPONSE_TYPE_STANDARD = 1;
-}
-
-enum AIRichResponseSubMessageType {
-	AI_RICH_RESPONSE_UNKNOWN = 0;
-	AI_RICH_RESPONSE_GRID_IMAGE = 1;
-	AI_RICH_RESPONSE_TEXT = 2;
-	AI_RICH_RESPONSE_INLINE_IMAGE = 3;
-	AI_RICH_RESPONSE_TABLE = 4;
-	AI_RICH_RESPONSE_CODE = 5;
-	AI_RICH_RESPONSE_DYNAMIC = 6;
-	AI_RICH_RESPONSE_MAP = 7;
-	AI_RICH_RESPONSE_LATEX = 8;
-	AI_RICH_RESPONSE_CONTENT_ITEMS = 9;
 }
 
 enum SessionTransparencyType {
@@ -134,6 +117,7 @@ message BotSignatureVerificationUseCaseProof {
 	enum BotSignatureUseCase {
 		UNSPECIFIED = 0;
 		WA_BOT_MSG = 1;
+		WA_TEE_BOT_MSG = 2;
 	}
 
 	optional int32 version = 1;
@@ -529,74 +513,6 @@ message BotFeedbackMessage {
 	optional SideBySideSurveyMetadata sideBySideSurveyMetadata = 7;
 }
 
-message AIRichResponseInlineImageMetadata {
-	enum AIRichResponseImageAlignment {
-		AI_RICH_RESPONSE_IMAGE_LAYOUT_LEADING_ALIGNED = 0;
-		AI_RICH_RESPONSE_IMAGE_LAYOUT_TRAILING_ALIGNED = 1;
-		AI_RICH_RESPONSE_IMAGE_LAYOUT_CENTER_ALIGNED = 2;
-	}
-
-	optional AIRichResponseImageURL imageURL = 1;
-	optional string imageText = 2;
-	optional AIRichResponseImageAlignment alignment = 3;
-	optional string tapLinkURL = 4;
-}
-
-message AIRichResponseCodeMetadata {
-	enum AIRichResponseCodeHighlightType {
-		AI_RICH_RESPONSE_CODE_HIGHLIGHT_DEFAULT = 0;
-		AI_RICH_RESPONSE_CODE_HIGHLIGHT_KEYWORD = 1;
-		AI_RICH_RESPONSE_CODE_HIGHLIGHT_METHOD = 2;
-		AI_RICH_RESPONSE_CODE_HIGHLIGHT_STRING = 3;
-		AI_RICH_RESPONSE_CODE_HIGHLIGHT_NUMBER = 4;
-		AI_RICH_RESPONSE_CODE_HIGHLIGHT_COMMENT = 5;
-	}
-
-	message AIRichResponseCodeBlock {
-		optional AIRichResponseCodeHighlightType highlightType = 1;
-		optional string codeContent = 2;
-	}
-
-	optional string codeLanguage = 1;
-	repeated AIRichResponseCodeBlock codeBlocks = 2;
-}
-
-message AIRichResponseDynamicMetadata {
-	enum AIRichResponseDynamicMetadataType {
-		AI_RICH_RESPONSE_DYNAMIC_METADATA_TYPE_UNKNOWN = 0;
-		AI_RICH_RESPONSE_DYNAMIC_METADATA_TYPE_IMAGE = 1;
-		AI_RICH_RESPONSE_DYNAMIC_METADATA_TYPE_GIF = 2;
-	}
-
-	optional AIRichResponseDynamicMetadataType type = 1;
-	optional uint64 version = 2;
-	optional string URL = 3;
-	optional uint32 loopCount = 4;
-}
-
-message AIRichResponseContentItemsMetadata {
-	enum ContentType {
-		DEFAULT = 0;
-		CAROUSEL = 1;
-	}
-
-	message AIRichResponseContentItemMetadata {
-		oneof aIRichResponseContentItem {
-			AIRichResponseReelItem reelItem = 1;
-		}
-	}
-
-	message AIRichResponseReelItem {
-		optional string title = 1;
-		optional string profileIconURL = 2;
-		optional string thumbnailURL = 3;
-		optional string videoURL = 4;
-	}
-
-	repeated AIRichResponseContentItemMetadata itemsMetadata = 1;
-	optional ContentType contentType = 2;
-}
-
 message BotDocumentMessageMetadata {
 	enum DocumentPluginType {
 		TEXT_EXTRACTION = 0;
@@ -640,14 +556,6 @@ message BotInfrastructureDiagnostics {
 	optional BotBackend botBackend = 1;
 	repeated string toolsUsed = 2;
 	optional bool isThinking = 3;
-}
-
-message BotAvatarMetadata {
-	optional uint32 sentiment = 1;
-	optional string behaviorGraph = 2;
-	optional uint32 action = 3;
-	optional uint32 intensity = 4;
-	optional uint32 wordCount = 5;
 }
 
 message BotSuggestedPromptMetadata {
@@ -780,7 +688,6 @@ message AIMediaCollectionMessage {
 }
 
 message BotMetadata {
-	optional BotAvatarMetadata avatarMetadata = 1;
 	optional string personaID = 2;
 	optional BotPluginMetadata pluginMetadata = 3;
 	optional BotSuggestedPromptMetadata suggestedPromptMetadata = 4;
@@ -845,76 +752,8 @@ message BotMessageSharingInfo {
 	optional uint32 forwardScore = 2;
 }
 
-message AIRichResponseImageURL {
-	optional string imagePreviewURL = 1;
-	optional string imageHighResURL = 2;
-	optional string sourceURL = 3;
-}
-
-message AIRichResponseGridImageMetadata {
-	optional AIRichResponseImageURL gridImageURL = 1;
-	repeated AIRichResponseImageURL imageURLs = 2;
-}
-
-message AIRichResponseTableMetadata {
-	message AIRichResponseTableRow {
-		repeated string items = 1;
-		optional bool isHeading = 2;
-	}
-
-	repeated AIRichResponseTableRow rows = 1;
-	optional string title = 2;
-}
-
 message AIRichResponseUnifiedResponse {
 	optional bytes data = 1;
-}
-
-message AIRichResponseLatexMetadata {
-	message AIRichResponseLatexExpression {
-		optional string latexExpression = 1;
-		optional string URL = 2;
-		optional double width = 3;
-		optional double height = 4;
-		optional double fontHeight = 5;
-		optional double imageTopPadding = 6;
-		optional double imageLeadingPadding = 7;
-		optional double imageBottomPadding = 8;
-		optional double imageTrailingPadding = 9;
-	}
-
-	optional string text = 1;
-	repeated AIRichResponseLatexExpression expressions = 2;
-}
-
-message AIRichResponseMapMetadata {
-	message AIRichResponseMapAnnotation {
-		optional uint32 annotationNumber = 1;
-		optional double latitude = 2;
-		optional double longitude = 3;
-		optional string title = 4;
-		optional string body = 5;
-	}
-
-	optional double centerLatitude = 1;
-	optional double centerLongitude = 2;
-	optional double latitudeDelta = 3;
-	optional double longitudeDelta = 4;
-	repeated AIRichResponseMapAnnotation annotations = 5;
-	optional bool showInfoList = 6;
-}
-
-message AIRichResponseSubMessage {
-	optional AIRichResponseSubMessageType messageType = 1;
-	optional AIRichResponseGridImageMetadata gridImageMetadata = 2;
-	optional string messageText = 3;
-	optional AIRichResponseInlineImageMetadata imageMetadata = 4;
-	optional AIRichResponseCodeMetadata codeMetadata = 5;
-	optional AIRichResponseTableMetadata tableMetadata = 6;
-	optional AIRichResponseDynamicMetadata dynamicMetadata = 7;
-	optional AIRichResponseLatexMetadata latexMetadata = 8;
-	optional AIRichResponseMapMetadata mapMetadata = 9;
-	optional AIRichResponseContentItemsMetadata contentItemsMetadata = 10;
 }
 
 message AIRegenerateMetadata {

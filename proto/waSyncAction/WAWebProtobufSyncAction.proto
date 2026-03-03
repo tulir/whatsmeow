@@ -90,9 +90,19 @@ enum MutationProps {
 	SETTINGS_SYNC_ACTION = 78;
 	OUT_CONTACT_ACTION = 79;
 	NCT_SALT_SYNC_ACTION = 80;
+	BUSINESS_BROADCAST_CAMPAIGN_ACTION = 81;
+	BUSINESS_BROADCAST_INSIGHTS_ACTION = 82;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
+}
+
+enum BusinessBroadcastCampaignStatus {
+	DRAFT = 1;
+	SCHEDULED = 2;
+	PROCESSING = 3;
+	FAILED = 4;
+	SENT = 5;
 }
 
 message CallLogRecord {
@@ -340,6 +350,8 @@ message StatusPrivacyAction {
 
 	optional StatusDistributionMode mode = 1;
 	repeated string userJID = 2;
+	optional bool shareToFB = 3;
+	optional bool shareToIG = 4;
 }
 
 message MarketingMessageAction {
@@ -377,6 +389,7 @@ message LabelEditAction {
 		SERVER_ASSIGNED = 7;
 		DRAFTED = 8;
 		AI_HANDOFF = 9;
+		CHANNELS = 10;
 	}
 
 	optional string name = 1;
@@ -495,6 +508,8 @@ enum MutationName {
 	SETTINGS_SYNC_ACTION = settings_sync;
 	OUT_CONTACT_ACTION = out_contact;
 	NCT_SALT_SYNC_ACTION = nct_salt_sync;
+	BUSINESS_BROADCAST_CAMPAIGN_ACTION = business_broadcast_campaign;
+	BUSINESS_BROADCAST_INSIGHTS_ACTION = business_broadcast_insights_sync;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -593,6 +608,16 @@ message SyncActionValue {
 	optional SettingsSyncAction settingsSyncAction = 78;
 	optional OutContactAction outContactAction = 79;
 	optional NctSaltSyncAction nctSaltSyncAction = 80;
+	optional BusinessBroadcastCampaignAction businessBroadcastCampaignAction = 81;
+	optional BusinessBroadcastInsightsAction businessBroadcastInsightsAction = 82;
+}
+
+message BusinessBroadcastInsightsAction {
+	optional int32 recipientCount = 1;
+	optional int32 deliveredCount = 2;
+	optional int32 readCount = 3;
+	optional int32 repliedCount = 4;
+	optional int32 quickReplyCount = 5;
 }
 
 message NctSaltSyncAction {
@@ -610,6 +635,18 @@ message StatusPostOptInNotificationPreferencesAction {
 message BroadcastListParticipant {
 	required string lidJID = 1;
 	optional string pnJID = 2;
+}
+
+message BusinessBroadcastCampaignAction {
+	optional int32 deviceID = 1;
+	optional string adID = 2;
+	optional string name = 3;
+	optional string msgID = 4;
+	optional string broadcastJID = 5;
+	optional int32 reservedQuota = 6;
+	optional int64 scheduledTimestamp = 7;
+	optional int64 createTimestamp = 8;
+	optional BusinessBroadcastCampaignStatus status = 9;
 }
 
 message BusinessBroadcastListAction {
