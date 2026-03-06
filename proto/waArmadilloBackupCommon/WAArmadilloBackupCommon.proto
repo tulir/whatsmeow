@@ -6,3 +6,19 @@ message Subprotocol {
 	optional bytes payload = 1;
 	optional int32 version = 2;
 }
+
+message FrankingMetadata {
+	optional bytes frankingTag = 3;
+	optional bytes reportingTag = 4;
+}
+
+message Metadata {
+	optional string senderID = 1;
+	optional string messageID = 2;
+	optional int64 timestampMS = 3;
+	optional FrankingMetadata frankingMetadata = 4;
+	optional int32 payloadVersion = 5;
+	optional int32 futureProofBehavior = 6;
+	optional int32 threadTypeTag = 7;
+	optional int64 clientTimestampMS = 8;
+}
