@@ -251,7 +251,7 @@ func TestExample(t *testing.T) {
 	}
 	clientLog := waLog.Stdout("Client", "DEBUG", true)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
-	client.CustomStoredMsgMaxNum = 11
+	client.CustomStoredMsgMaxNum = 12
 	client.AddEventHandler(makeEventHandler())
 
 	if client.Store.ID == nil {

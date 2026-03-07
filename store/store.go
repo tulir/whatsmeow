@@ -124,10 +124,11 @@ type DeviceContainer interface {
 }
 
 type MessageSecretInsert struct {
-	Chat   types.JID
-	Sender types.JID
-	ID     types.MessageID
-	Secret []byte
+	Chat      types.JID
+	Sender    types.JID
+	ID        types.MessageID
+	Secret    []byte
+	CreatedAt int64
 }
 
 type MessageSession struct {
@@ -137,8 +138,11 @@ type MessageSession struct {
 
 type MsgSecretStore interface {
 	GetMessageSecretCount(ctx context.Context) (int, error)
+	SaveLatestMessageSecrets(ctx context.Context, saves []MessageSecretInsert, max int) error
+	//Deprecated: use SaveLatestMessageSecrets
 	PutMessageSecrets(ctx context.Context, inserts []MessageSecretInsert) error
-	PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte) error
+	//Deprecated: use PutMessageSecrets
+	PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte, createdAt int64) error
 	GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) ([]byte, types.JID, error)
 	GetMessageSessionNumGroupByPeer(ctx context.Context) (map[types.JID]MessageSession, error)
 }

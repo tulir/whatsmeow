@@ -214,11 +214,15 @@ func (n *NoopStore) GetAllChatSettings(ctx context.Context) ([]types.LocalChatSe
 
 func (n *NoopStore) GetMessageSecretCount(ctx context.Context) (int, error) { return 0, n.Error }
 
+func (n *NoopStore) SaveLatestMessageSecrets(ctx context.Context, saves []MessageSecretInsert, max int) error {
+	return n.Error
+}
+
 func (n *NoopStore) PutMessageSecrets(ctx context.Context, inserts []MessageSecretInsert) error {
 	return n.Error
 }
 
-func (n *NoopStore) PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte) error {
+func (n *NoopStore) PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte, createdAt int64) error {
 	return n.Error
 }
 

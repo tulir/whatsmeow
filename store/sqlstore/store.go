@@ -927,9 +927,18 @@ const (
 		SELECT COUNT(*)
 		FROM whatsmeow_message_secrets
 		WHERE our_jid=$1`
+	deleteOldestMsgSecretQuery = `
+		DELETE FROM whatsmeow_message_secrets
+		WHERE (our_jid, chat_jid, sender_jid, message_id) IN (
+			SELECT our_jid, chat_jid, sender_jid, message_id
+			FROM whatsmeow_message_secrets
+			WHERE our_jid=$1
+			ORDER BY created_at ASC
+			LIMIT $2
+		)`
 	putMsgSecret = `
-		INSERT INTO whatsmeow_message_secrets (our_jid, chat_jid, sender_jid, message_id, key)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO whatsmeow_message_secrets (our_jid, chat_jid, sender_jid, message_id, key, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
 		ON CONFLICT (our_jid, chat_jid, sender_jid, message_id) DO NOTHING
 	`
 	getMsgSecret = `
@@ -965,13 +974,33 @@ func (s *SQLStore) GetMessageSecretCount(ctx context.Context) (int, error) {
 	return count, err
 }
 
+func (s *SQLStore) SaveLatestMessageSecrets(ctx context.Context, saves []store.MessageSecretInsert, max int) error {
+	if max <= 0 {
+		return s.PutMessageSecrets(ctx, saves)
+	}
+	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
+		count, err := s.GetMessageSecretCount(ctx)
+		if err != nil {
+			return err
+		}
+		deleteCount := count + len(saves) - max
+		if deleteCount > 0 {
+			_, err = s.db.Exec(ctx, deleteOldestMsgSecretQuery, s.JID, deleteCount)
+			if err != nil {
+				return err
+			}
+		}
+		return s.PutMessageSecrets(ctx, saves)
+	})
+}
+
 func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.MessageSecretInsert) (err error) {
 	if len(inserts) == 0 {
 		return nil
 	}
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		for _, insert := range inserts {
-			_, err = s.db.Exec(ctx, putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
+			_, err = s.db.Exec(ctx, putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret, insert.CreatedAt)
 			if err != nil {
 				return err
 			}
@@ -980,8 +1009,8 @@ func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.Messag
 	})
 }
 
-func (s *SQLStore) PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte) (err error) {
-	_, err = s.db.Exec(ctx, putMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, secret)
+func (s *SQLStore) PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte, createdAt int64) (err error) {
+	_, err = s.db.Exec(ctx, putMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id, secret, createdAt)
 	return
 }
 

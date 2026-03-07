@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"github.com/song-xiang13/whatsmeow/store"
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/keys/prekey"
 	"go.mau.fi/libsignal/protocol"
@@ -380,12 +381,16 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	if message.GetMessageContextInfo().GetMessageSecret() != nil {
-		err = cli.Store.MsgSecrets.PutMessageSecret(ctx, to, ownID, req.ID, message.GetMessageContextInfo().GetMessageSecret())
-		if err != nil {
-			cli.Log.Warnf("Failed to store message secret key for outgoing message %s: %v", req.ID, err)
-		} else {
-			cli.Log.Debugf("Stored message secret key for outgoing message %s", req.ID)
+		secrets := []store.MessageSecretInsert{
+			{
+				Chat:      to,
+				Sender:    ownID,
+				ID:        req.ID,
+				Secret:    message.GetMessageContextInfo().GetMessageSecret(),
+				CreatedAt: time.Now().Unix(),
+			},
 		}
+		cli.putMsgSecrets(ctx, secrets)
 	}
 	var phash string
 	var data []byte

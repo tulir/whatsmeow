@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"github.com/song-xiang13/whatsmeow/util"
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/protocol"
 	"go.mau.fi/libsignal/session"
@@ -860,10 +861,11 @@ func (cli *Client) storeMessageSecret(ctx context.Context, info *types.MessageIn
 	if msgSecret := msg.GetMessageContextInfo().GetMessageSecret(); len(msgSecret) > 0 {
 		secrets := []store.MessageSecretInsert{
 			{
-				Chat:   info.Chat,
-				Sender: info.Sender,
-				ID:     info.ID,
-				Secret: msgSecret,
+				Chat:      info.Chat,
+				Sender:    info.Sender,
+				ID:        info.ID,
+				Secret:    msgSecret,
+				CreatedAt: info.Timestamp.Unix(),
 			},
 		}
 		cli.putMsgSecrets(ctx, secrets)
@@ -916,11 +918,13 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 				if senderJID.IsEmpty() || msgKey.GetID() == "" {
 					continue
 				}
+
 				secrets = append(secrets, store.MessageSecretInsert{
-					Chat:   chatJID,
-					Sender: senderJID,
-					ID:     msgKey.GetID(),
-					Secret: secret,
+					Chat:      chatJID,
+					Sender:    senderJID,
+					ID:        msgKey.GetID(),
+					Secret:    secret,
+					CreatedAt: int64(util.UnwrapUInt64(msg.Message.MessageTimestamp)),
 				})
 			}
 		}
@@ -939,30 +943,16 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 	}
 }
 
+// 统一存储消息记录
 func (cli *Client) putMsgSecrets(ctx context.Context, secrets []store.MessageSecretInsert) {
-	if !(cli.cacheStoredMsgMaxNum < cli.CustomStoredMsgMaxNum || cli.CustomStoredMsgMaxNum == 0) {
-		cli.Log.Debugf("Not storing message secret keys in history sync, cacheStoredMsgMaxNum=%d, CustomStoredMsgMaxNum=%d", cli.cacheStoredMsgMaxNum, cli.CustomStoredMsgMaxNum)
-		return
-	}
-	ct := cli.cacheStoredMsgMaxNum
-	cut := false
-	if ct+len(secrets) > cli.CustomStoredMsgMaxNum && cli.CustomStoredMsgMaxNum > 0 {
-		cut = true
-		secrets = secrets[:cli.CustomStoredMsgMaxNum-ct] // 精确裁剪
+	if len(secrets) > cli.CustomStoredMsgMaxNum && cli.CustomStoredMsgMaxNum > 0 {
+		secrets = secrets[:cli.CustomStoredMsgMaxNum] // 精确裁剪
 	}
 
-	cli.Log.Debugf("Storing %d message secret keys in history sync, cut=%t", len(secrets), cut)
-	err := cli.Store.MsgSecrets.PutMessageSecrets(ctx, secrets)
+	cli.Log.Debugf("Storing %d latest message secret keys in history sync", len(secrets))
+	err := cli.Store.MsgSecrets.SaveLatestMessageSecrets(ctx, secrets, cli.CustomStoredMsgMaxNum)
 	if err != nil {
 		cli.Log.Errorf("Failed to store message secret keys in history sync: %v", err)
-	} else {
-		cli.Log.Infof("Successfully stored %d message secret keys from history sync", len(secrets))
-		ct, err = cli.Store.MsgSecrets.GetMessageSecretCount(ctx)
-		if err != nil {
-			cli.Log.Errorf("Failed to get message secret count: %v", err)
-		} else {
-			cli.cacheStoredMsgMaxNum = ct
-		}
 	}
 }
 
