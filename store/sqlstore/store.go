@@ -923,6 +923,10 @@ func (s *SQLStore) GetAllChatSettings(ctx context.Context) ([]types.LocalChatSet
 }
 
 const (
+	countMsgSecretQuery = `
+		SELECT COUNT(*)
+		FROM whatsmeow_message_secrets
+		WHERE our_jid=$1`
 	putMsgSecret = `
 		INSERT INTO whatsmeow_message_secrets (our_jid, chat_jid, sender_jid, message_id, key)
 		VALUES ($1, $2, $3, $4, $5)
@@ -952,6 +956,15 @@ const (
 	`
 )
 
+func (s *SQLStore) GetMessageSecretCount(ctx context.Context) (int, error) {
+	var count int
+	err := s.dbQueryRow(ctx, countMsgSecretQuery, s.JID).Scan(&count)
+	if errors.Is(err, sql.ErrNoRows) {
+		return 0, nil
+	}
+	return count, err
+}
+
 func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.MessageSecretInsert) (err error) {
 	if len(inserts) == 0 {
 		return nil
@@ -980,7 +993,7 @@ func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID,
 	return
 }
 
-func (s *SQLStore) GetMessageSessionNum(ctx context.Context) (map[types.JID]store.MessageSession, error) {
+func (s *SQLStore) GetMessageSessionNumGroupByPeer(ctx context.Context) (map[types.JID]store.MessageSession, error) {
 	rows, err := s.dbQuery(ctx, getMessageSessionNumQuery, s.JID)
 	if err != nil {
 		return nil, err

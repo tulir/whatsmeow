@@ -858,12 +858,22 @@ func (cli *Client) processProtocolParts(ctx context.Context, info *types.Message
 
 func (cli *Client) storeMessageSecret(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
 	if msgSecret := msg.GetMessageContextInfo().GetMessageSecret(); len(msgSecret) > 0 {
-		err := cli.Store.MsgSecrets.PutMessageSecret(ctx, info.Chat, info.Sender, info.ID, msgSecret)
-		if err != nil {
-			cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
-		} else {
-			cli.Log.Debugf("Stored message secret key for %s", info.ID)
+		secrets := []store.MessageSecretInsert{
+			{
+				Chat:   info.Chat,
+				Sender: info.Sender,
+				ID:     info.ID,
+				Secret: msgSecret,
+			},
 		}
+		cli.putMsgSecrets(ctx, secrets)
+		//err := cli.Store.MsgSecrets.PutMessageSecret(ctx, info.Chat, info.Sender, info.ID, msgSecret)
+		//if err != nil {
+		//	cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
+		//} else {
+		//	println(string(debug.Stack()))
+		//	cli.Log.Debugf("Stored message secret key for %s", info.ID)
+		//}
 	}
 }
 
@@ -916,13 +926,7 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 		}
 	}
 	if len(secrets) > 0 {
-		cli.Log.Debugf("Storing %d message secret keys in history sync", len(secrets))
-		err := cli.Store.MsgSecrets.PutMessageSecrets(ctx, secrets)
-		if err != nil {
-			cli.Log.Errorf("Failed to store message secret keys in history sync: %v", err)
-		} else {
-			cli.Log.Infof("Stored %d message secret keys from history sync", len(secrets))
-		}
+		cli.putMsgSecrets(ctx, secrets)
 	}
 	if len(privacyTokens) > 0 {
 		cli.Log.Debugf("Storing %d privacy tokens in history sync", len(privacyTokens))
@@ -931,6 +935,33 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 			cli.Log.Errorf("Failed to store privacy tokens in history sync: %v", err)
 		} else {
 			cli.Log.Infof("Stored %d privacy tokens from history sync", len(privacyTokens))
+		}
+	}
+}
+
+func (cli *Client) putMsgSecrets(ctx context.Context, secrets []store.MessageSecretInsert) {
+	if !(cli.cacheStoredMsgMaxNum < cli.CustomStoredMsgMaxNum || cli.CustomStoredMsgMaxNum == 0) {
+		cli.Log.Debugf("Not storing message secret keys in history sync, cacheStoredMsgMaxNum=%d, CustomStoredMsgMaxNum=%d", cli.cacheStoredMsgMaxNum, cli.CustomStoredMsgMaxNum)
+		return
+	}
+	ct := cli.cacheStoredMsgMaxNum
+	cut := false
+	if ct+len(secrets) > cli.CustomStoredMsgMaxNum && cli.CustomStoredMsgMaxNum > 0 {
+		cut = true
+		secrets = secrets[:cli.CustomStoredMsgMaxNum-ct] // 精确裁剪
+	}
+
+	cli.Log.Debugf("Storing %d message secret keys in history sync, cut=%t", len(secrets), cut)
+	err := cli.Store.MsgSecrets.PutMessageSecrets(ctx, secrets)
+	if err != nil {
+		cli.Log.Errorf("Failed to store message secret keys in history sync: %v", err)
+	} else {
+		cli.Log.Infof("Successfully stored %d message secret keys from history sync", len(secrets))
+		ct, err = cli.Store.MsgSecrets.GetMessageSecretCount(ctx)
+		if err != nil {
+			cli.Log.Errorf("Failed to get message secret count: %v", err)
+		} else {
+			cli.cacheStoredMsgMaxNum = ct
 		}
 	}
 }

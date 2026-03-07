@@ -136,11 +136,11 @@ type MessageSession struct {
 }
 
 type MsgSecretStore interface {
+	GetMessageSecretCount(ctx context.Context) (int, error)
 	PutMessageSecrets(ctx context.Context, inserts []MessageSecretInsert) error
 	PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte) error
 	GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) ([]byte, types.JID, error)
-	// GetMessageSessionNum 查询简单的会话列表以及会话内的消息数量
-	GetMessageSessionNum(ctx context.Context) (map[types.JID]MessageSession, error)
+	GetMessageSessionNumGroupByPeer(ctx context.Context) (map[types.JID]MessageSession, error)
 }
 
 type PrivacyToken struct {

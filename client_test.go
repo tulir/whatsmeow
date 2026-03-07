@@ -7,30 +7,32 @@
 package whatsmeow_test
 
 import (
+	"bytes"
 	"context"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"image/png"
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
+	"github.com/hajimehoshi/go-mp3"
 	_ "github.com/ncruces/go-sqlite3/driver"
 	_ "github.com/ncruces/go-sqlite3/embed"
 	"github.com/song-xiang13/whatsmeow"
+	"github.com/song-xiang13/whatsmeow/proto/waE2E"
 	"github.com/song-xiang13/whatsmeow/proto/waHistorySync"
 	"github.com/song-xiang13/whatsmeow/store/sqlstore"
 	"github.com/song-xiang13/whatsmeow/types"
 	"github.com/song-xiang13/whatsmeow/types/events"
 	waLog "github.com/song-xiang13/whatsmeow/util/log"
+	"go.mau.fi/util/dbutil"
+	"google.golang.org/protobuf/proto"
 )
 
 const ignoreDir = "./zzz/"
@@ -42,91 +44,6 @@ func printStr(str1 any) string {
 	}
 
 	return string([]rune(str)[:2000])
-}
-
-func writeConversationsCSV(path string, conversations []*waHistorySync.Conversation) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	w := csv.NewWriter(f)
-	defer w.Flush()
-
-	header := []string{
-		"用户名",
-		"谁创建",
-		"NEWJID",
-		"显示名称",
-		"备注/名称",
-		"未读消息数",
-		"未读@数",
-		"是否已归档",
-		"置顶等级",
-		"是否只读",
-		"是否客服会话",
-		"静音结束时间ms",
-		"静音结束时间ISO",
-		"最后消息时间ms",
-		"最后消息时间ISO",
-		"会话时间戳ms",
-		"会话时间戳ISO",
-		"参与者数量",
-		"参与者列表",
-	}
-	if err := w.Write(header); err != nil {
-		return err
-	}
-
-	formatTime := func(ms uint64) (string, string) {
-		if ms == 0 {
-			return "0", ""
-		}
-		t := time.UnixMilli(int64(ms)).UTC()
-		return strconv.FormatUint(ms, 10), t.Format(time.RFC3339)
-	}
-
-	for _, conv := range conversations {
-		log.Printf("GetMuteEndTime:%d\nGetLastMsgTimestamp:%d\nGetConversationTimestamp:%d\n",
-			conv.GetMuteEndTime(), conv.GetLastMsgTimestamp(), conv.GetConversationTimestamp())
-		pMuteMs, pMuteISO := formatTime(conv.GetMuteEndTime())
-		lastMsgMs, lastMsgISO := formatTime(conv.GetLastMsgTimestamp())
-		convMs, convISO := formatTime(conv.GetConversationTimestamp())
-
-		participants := make([]string, 0, len(conv.GetParticipant()))
-		for _, p := range conv.GetParticipant() {
-			participants = append(participants, p.GetUserJID())
-		}
-
-		row := []string{
-			conv.GetUsername(),
-			conv.GetCreatedBy(),
-			conv.GetNewJID(),
-			conv.GetDisplayName(),
-			conv.GetName(),
-			strconv.FormatUint(uint64(conv.GetUnreadCount()), 10),
-			strconv.FormatUint(uint64(conv.GetUnreadMentionCount()), 10),
-			strconv.FormatBool(conv.GetArchived()),
-			strconv.FormatUint(uint64(conv.GetPinned()), 10),
-			strconv.FormatBool(conv.GetReadOnly()),
-			strconv.FormatBool(conv.GetSupport()),
-			pMuteMs,
-			pMuteISO,
-			lastMsgMs,
-			lastMsgISO,
-			convMs,
-			convISO,
-			strconv.Itoa(len(participants)),
-			strings.Join(participants, "|"),
-		}
-		if err := w.Write(row); err != nil {
-			return err
-		}
-	}
-
-	w.Flush()
-	return w.Error()
 }
 
 func WriteFile(name string, msg any) {
@@ -259,6 +176,63 @@ func writeQRPNG(path, content string) error {
 	return png.Encode(f, scaled)
 }
 
+func sendImgTextMsg(client *whatsmeow.Client, to string, img []byte, t string) error {
+	resp, err := client.Upload(context.Background(), img, whatsmeow.MediaImage)
+	if err != nil {
+		return err
+	}
+
+	// 创建一个消息对象并发送
+	msg := &waE2E.Message{
+		ImageMessage: &waE2E.ImageMessage{
+			URL:           &resp.URL,
+			Mimetype:      &t,
+			Caption:       dbutil.StrPtr("哈哈哈"),
+			FileSHA256:    resp.FileSHA256,
+			FileLength:    &resp.FileLength,
+			MediaKey:      resp.MediaKey,
+			FileEncSHA256: resp.FileEncSHA256,
+			DirectPath:    &resp.DirectPath,
+		},
+	}
+
+	chat := types.NewJID(to, "s.whatsapp.net")
+
+	_, err = client.SendMessage(context.Background(), chat, msg)
+	return err
+}
+
+func sendAudioMsg(client *whatsmeow.Client, to string, file []byte, t string) error {
+	resp, err := client.Upload(context.Background(), file, whatsmeow.MediaAudio)
+	if err != nil {
+		return err
+	}
+
+	d, _ := mp3.NewDecoder(bytes.NewReader(file))
+	sec := float64(d.Length()) / float64(d.SampleRate()*4)
+	println(1111, int(sec))
+	// 创建一个消息对象并发送
+	msg := &waE2E.Message{
+		AudioMessage: &waE2E.AudioMessage{
+			URL:           &resp.URL,
+			Mimetype:      &t,
+			Seconds:       proto.Uint32(uint32(float64(d.Length()) / float64(d.SampleRate()*4))),
+			FileSHA256:    resp.FileSHA256,
+			FileLength:    &resp.FileLength,
+			MediaKey:      resp.MediaKey,
+			FileEncSHA256: resp.FileEncSHA256,
+			DirectPath:    &resp.DirectPath,
+			PTT:           proto.Bool(true),
+			//Waveform:
+		},
+	}
+
+	chat := types.NewJID(to, "s.whatsapp.net")
+
+	_, err = client.SendMessage(context.Background(), chat, msg)
+	return err
+}
+
 func TestExample(t *testing.T) {
 	// |------------------------------------------------------------------------------------------------------|
 	// | NOTE: You must also import the appropriate DB connector, e.g. github.com/mattn/go-sqlite3 for SQLite |
@@ -277,7 +251,7 @@ func TestExample(t *testing.T) {
 	}
 	clientLog := waLog.Stdout("Client", "DEBUG", true)
 	client := whatsmeow.NewClient(deviceStore, clientLog)
-
+	client.CustomStoredMsgMaxNum = 11
 	client.AddEventHandler(makeEventHandler())
 
 	if client.Store.ID == nil {
@@ -307,7 +281,7 @@ func TestExample(t *testing.T) {
 			panic(err)
 		}
 
-		rawList, err := client.Store.Contacts.GetAllContacts(context.Background(), false)
+		rawList, err := client.Store.Contacts.GetAllContacts(context.Background(), true)
 		if err != nil {
 			panic(err)
 		}
@@ -316,61 +290,81 @@ func TestExample(t *testing.T) {
 		//	log.Printf("Contact %+v -- Contact:%+v", jid, c)
 		//}
 		log.Printf("Contact Count:%d rawList:%d", len(contacts), len(rawList))
-
-		log.Printf("GetLID -- %+v\n", client.Store.GetLID())
+		//
+		//log.Printf("GetLID -- %+v\n", client.Store.GetLID())
 		// 获取头像
-		infomap, _ := client.GetUserInfo(ctx, []types.JID{client.Store.GetLID()})
-		for jid, v := range infomap {
-			//v.Status 是用户文字状态，一般非空
-			//v.PictureID 用户头像ID，为空表示无头像
-			//v.Devices 账户登录的设备JIDs，含当前
-			//v.VerifiedName
-			log.Printf("GetUserInfo jid=%s -%s|%s- %+v\n", jid, jid, client.Store.GetLID(), v)
-		}
+		//infomap, _ := client.GetUserInfo(ctx, []types.JID{client.Store.GetLID()})
+		//for jid, v := range infomap {
+		//	//v.Status 是用户文字状态，一般非空
+		//	//v.PictureID 用户头像ID，为空表示无头像
+		//	//v.Devices 账户登录的设备JIDs，含当前
+		//	//v.VerifiedName
+		//	log.Printf("GetUserInfo jid=%s -%s|%s- %+v\n", jid, jid, client.Store.GetLID(), v)
+		//}
 
-		glist, _ := client.GetJoinedGroups(ctx)
-		for _, g := range glist {
-			log.Printf("GetJoinedGroups -- %+v\n", g.Name)
-			WriteFile("group_msg_"+g.Name, g)
-		}
-		// 隐私
-		s := client.GetPrivacySettings(ctx)
-		log.Printf("GetPrivacySettings -- %+v\n", s)
-		// 查询会话数量
-		imap, err := client.Store.MsgSecrets.GetMessageSessionNum(ctx)
+		//glist, _ := client.GetJoinedGroups(ctx)
+		//for _, g := range glist {
+		//	log.Printf("GetJoinedGroups -- %+v\n", g.Name)
+		//	WriteFile("group_msg_"+g.Name, g)
+		//}
+		//// 隐私
+		//s := client.GetPrivacySettings(ctx)
+		//log.Printf("GetPrivacySettings -- %+v\n", s)
+		//// 查询会话数量
+		imap, err := client.Store.MsgSecrets.GetMessageSessionNumGroupByPeer(ctx)
 		if err != nil {
-			log.Println("GetMessageSessionNum failed --", err)
+			log.Println("GetMessageSessionNumGroupByPeer failed --", err)
 		} else {
 			for _, v := range imap {
-				log.Printf("GetMessageSessionNum OK -- %+v\n", v)
+				log.Printf("GetMessageSessionNumGroupByPeer OK -- %+v\n", v)
 			}
 		}
+		//
+		//clist, err := client.Store.ChatSettings.GetAllChatSettings(ctx)
+		//if err != nil {
+		//	log.Println("GetAllChatSettings --", err)
+		//} else {
+		//	for _, v := range clist {
+		//		log.Printf("GetAllChatSettings -- %+v\n", v)
+		//	}
+		//}
+		//
+		//blist, err := client.GetBlocklist(ctx)
+		//if err != nil {
+		//	log.Println("GetBlocklist --", err)
+		//} else {
+		//	log.Printf("GetBlocklist -- %+v\n", blist)
+		//}
+		//
+		//jid := client.Store.GetJID()
+		////jid.User = "919314613946@s.whatsapp.net"
+		//b, err := client.GetBusinessProfile(context.Background(), jid)
+		//if err != nil {
+		//	log.Println("GetBusinessProfile --", err)
+		//} else {
+		//	log.Printf("GetBusinessProfile -- %+v -- Jid.Empty=%t\n", b, b.JID.IsEmpty())
+		//}
 
-		clist, err := client.Store.ChatSettings.GetAllChatSettings(ctx)
-		if err != nil {
-			log.Println("GetAllChatSettings --", err)
-		} else {
-			for _, v := range clist {
-				log.Printf("GetAllChatSettings -- %+v\n", v)
-			}
-		}
+		// 发送图片+文字消息
+		//img, err := os.ReadFile("./zzz/car.jpg")
+		//if err != nil {
+		//	panic(err)
+		//}
+		//err = sendImgTextMsg(client, "201202883785", img, "image/jpeg")
+		//if err != nil {
+		//	log.Fatalf("sendImgTextMsg error: %v", err)
+		//}
 
-		blist, err := client.GetBlocklist(ctx)
-		if err != nil {
-			log.Println("GetBlocklist --", err)
-		} else {
-			log.Printf("GetBlocklist -- %+v\n", blist)
-		}
-
-		jid := client.Store.GetJID()
-		//jid.User = "919314613946@s.whatsapp.net"
-		b, err := client.GetBusinessProfile(context.Background(), jid)
-		if err != nil {
-			log.Println("GetBusinessProfile --", err)
-		} else {
-			log.Printf("GetBusinessProfile -- %+v -- Jid.Empty=%t\n", b, b.JID.IsEmpty())
-		}
-
+		// 发送语音消息
+		//audio, err := os.ReadFile("./zzz/sound.mp3")
+		//if err != nil {
+		//	panic(err)
+		//}
+		//
+		//err = sendAudioMsg(client, "201202883785", audio, "audio/ogg; codecs=opus")
+		//if err != nil {
+		//	log.Fatalf("sendAudioMsg error: %v", err)
+		//}
 	}
 
 	// Listen to Ctrl+C (you can also do something else that prevents the program from exiting)

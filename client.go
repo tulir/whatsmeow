@@ -67,6 +67,9 @@ type Client struct {
 	socketLock sync.RWMutex
 	socketWait chan struct{}
 
+	CustomStoredMsgMaxNum int // 控制存储消息数量
+	cacheStoredMsgMaxNum  int
+
 	isLoggedIn            atomic.Bool
 	expectedDisconnect    *exsync.Event
 	forceAutoReconnect    atomic.Bool
