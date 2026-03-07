@@ -67,7 +67,7 @@ type Client struct {
 	socketLock sync.RWMutex
 	socketWait chan struct{}
 
-	CustomStoredMsgMaxNum int // 控制存储消息数量
+	CustomStoredMsgMaxNum int // 控制存储消息数量（达到此值后，会删除旧的，写入新的）
 	cacheStoredMsgMaxNum  int
 
 	isLoggedIn            atomic.Bool
