@@ -136,6 +136,10 @@ func (n *NoopStore) GetLatestAppStateSyncKeyID(ctx context.Context) ([]byte, err
 	return nil, n.Error
 }
 
+func (n *NoopStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*AppStateSyncKey, error) {
+	return nil, nil
+}
+
 func (n *NoopStore) PutAppStateVersion(ctx context.Context, name string, version uint64, hash [128]byte) error {
 	return n.Error
 }
@@ -270,4 +274,16 @@ func (n *NoopStore) PutManyLIDMappings(ctx context.Context, mappings []LIDMappin
 
 func (n *NoopStore) PutLIDMapping(ctx context.Context, lid types.JID, jid types.JID) error {
 	return n.Error
+}
+
+func (n *NoopStore) DeleteOldOutgoingEvents(ctx context.Context) error {
+	return nil
+}
+
+func (n *NoopStore) GetOutgoingEvent(ctx context.Context, chatJID, altChatJID types.JID, id types.MessageID) (string, []byte, error) {
+	return "", nil, nil
+}
+
+func (n *NoopStore) AddOutgoingEvent(ctx context.Context, chatJID types.JID, id types.MessageID, format string, plaintext []byte) error {
+	return nil
 }

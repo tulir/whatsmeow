@@ -65,6 +65,46 @@ message MiTransportAdminMessage {
 		optional Action action = 2;
 	}
 
+	message XmatMessengerMessageReminderTriggered {
+		optional int64 offlineThreadingID = 1;
+		optional int64 scheduledTime = 2;
+	}
+
+	message XmatMessengerMessageReminderSet {
+		optional int64 offlineThreadingID = 1;
+		optional int64 scheduledTime = 2;
+	}
+
+	message XmatSetParticipantUpdateMode {
+		optional string participantUpdateMode = 1;
+		optional int64 setterID = 2;
+		optional int64 transportThreadFbid = 3;
+	}
+
+	message XmatGroupThreadCreated {
+		optional string threadSubtype = 1;
+	}
+
+	message XmatChangeThreadName {
+		optional string newThreadName = 1;
+	}
+
+	message XmatChangeThreadAdmins {
+		optional string adminEvent = 1;
+		optional int64 targetID = 2;
+		optional string threadCategory = 3;
+		optional string adminType = 4;
+	}
+
+	message XmatRemoveParticipant {
+		optional int64 removedParticipantFbid = 1;
+	}
+
+	message XmatAddParticipants {
+		repeated int64 participantsAdded = 1 [packed=true];
+		optional bool addedThroughJoinRequests = 2;
+	}
+
 	message XmatGenAITaskAdd {
 		optional int64 taskID = 1;
 	}
@@ -276,8 +316,17 @@ message MiTransportAdminMessage {
 		XmatPinMessageV2 xmatPinMessageV2 = 31;
 		XmatUnpinMessageV2 xmatUnpinMessageV2 = 32;
 		XmatGenAITaskAdd xmatGenaiTaskAdd = 33;
+		XmatAddParticipants xmatAddParticipants = 37;
+		XmatRemoveParticipant xmatRemoveParticipant = 38;
+		XmatChangeThreadAdmins xmatChangeThreadAdmins = 39;
+		XmatChangeThreadName xmatChangeThreadName = 40;
+		XmatGroupThreadCreated xmatGroupThreadCreated = 41;
+		XmatSetParticipantUpdateMode xmatSetParticipantUpdateMode = 42;
+		XmatMessengerMessageReminderSet xmatMessengerMessageReminderSet = 43;
+		XmatMessengerMessageReminderTriggered xmatMessengerMessageReminderTriggered = 44;
 	}
 
 	optional bool skipBumpThread = 34;
 	optional bool skipSnippetUpdate = 35;
+	optional string readonlyMetadataDataclass = 36;
 }
