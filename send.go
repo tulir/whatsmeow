@@ -1389,9 +1389,16 @@ func (cli *Client) encryptMessageForDevice(
 		}
 	}
 	cipher := session.NewCipher(builder, to.SignalAddress())
-	ciphertext, err := cipher.Encrypt(ctx, padMessage(plaintext))
-	if err != nil {
-		return nil, false, fmt.Errorf("cipher encryption failed: %w", err)
+	ciphertext, encryptErr := func() (cipherText protocol.CiphertextMessage, err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				err = fmt.Errorf("cipher encryption panicked (corrupt session for %s): %v", to.SignalAddress(), r)
+			}
+		}()
+		return cipher.Encrypt(ctx, padMessage(plaintext))
+	}()
+	if encryptErr != nil {
+		return nil, false, fmt.Errorf("cipher encryption failed: %w", encryptErr)
 	}
 
 	encAttrs := waBinary.Attrs{
