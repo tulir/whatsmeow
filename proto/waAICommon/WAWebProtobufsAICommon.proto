@@ -51,6 +51,7 @@ enum BotMetricsEntryPoint {
 	WEB_INTRO_PANEL = 46;
 	WEB_NAVIGATION_BAR = 47;
 	GROUP_MEMBER = 54;
+	CHATLIST_SEARCH = 55;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -310,6 +311,10 @@ message BotCapabilityMetadata {
 		RICH_RESPONSE_UR_BLOKS_ENABLED = 55;
 		RICH_RESPONSE_INLINE_LINKS_ENABLED = 56;
 		RICH_RESPONSE_UR_IMAGINE_VIDEO = 57;
+		JSON_PATCH_STREAMING = 58;
+		AI_TAB_FORCE_CLIPPY = 59;
+		UNIFIED_RESPONSE_EMBEDDED_SCREENS = 60;
+		AI_SUBSCRIPTION_ENABLED = 61;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -400,9 +405,11 @@ message AIThreadInfo {
 			UNKNOWN = 0;
 			DEFAULT = 1;
 			INCOGNITO = 2;
+			SIDE_CHAT = 3;
 		}
 
 		optional AIThreadType type = 1;
+		optional string sourceChatJID = 2;
 	}
 
 	message AIThreadServerInfo {
@@ -679,6 +686,7 @@ message BotUnifiedResponseMutation {
 
 message AIMediaCollectionMetadata {
 	optional string collectionID = 1;
+	optional uint32 uploadOrderIndex = 2;
 }
 
 message AIMediaCollectionMessage {
@@ -765,4 +773,12 @@ message SessionTransparencyMetadata {
 	optional string disclaimerText = 1;
 	optional string hcaID = 2;
 	optional SessionTransparencyType sessionTransparencyType = 3;
+}
+
+message BotAgentMetadata {
+	optional BotAgentDeepLinkMetadata deepLinkMetadata = 1;
+}
+
+message BotAgentDeepLinkMetadata {
+	optional string token = 1;
 }

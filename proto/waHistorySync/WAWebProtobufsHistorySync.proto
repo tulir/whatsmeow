@@ -119,6 +119,8 @@ message Conversation {
 	optional bool limitSharingInitiatedByMe = 53;
 	optional bool maibaAiThreadEnabled = 54;
 	optional bool isMarketingMessageThread = 55;
+	optional bool isSenderNewAccount = 56;
+	optional uint32 afterReadDuration = 57;
 }
 
 message GroupParticipant {
