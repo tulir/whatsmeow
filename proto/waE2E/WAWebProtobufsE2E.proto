@@ -3,7 +3,7 @@ package WAWebProtobufsE2E;
 option go_package = "go.mau.fi/whatsmeow/proto/waE2E";
 
 import "waAICommon/WAWebProtobufsAICommon.proto";
-import "waAICommonDeprecated/WAWebProtobufsAICommonDeprecated.proto";
+import "waAICommonDeprecated/WAAICommonDeprecated.proto";
 import "waAdv/WAAdv.proto";
 import "waCompanionReg/WACompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
@@ -21,6 +21,14 @@ enum PollContentType {
 	IMAGE = 2;
 }
 
+enum InsightDeliveryState {
+	SENT = 0;
+	DELIVERED = 1;
+	READ = 2;
+	REPLIED = 3;
+	QUICK_REPLIED = 4;
+}
+
 enum PeerDataOperationRequestType {
 	UPLOAD_STICKER = 0;
 	SEND_RECENT_STICKER_BOOTSTRAP = 1;
@@ -34,6 +42,8 @@ enum PeerDataOperationRequestType {
 	COMPANION_CANONICAL_USER_NONCE_FETCH = 9;
 	HISTORY_SYNC_CHUNK_RETRY = 10;
 	GALAXY_FLOW_ACTION = 11;
+	BUSINESS_BROADCAST_INSIGHTS_DELIVERED_TO = 12;
+	BUSINESS_BROADCAST_INSIGHTS_REFRESH = 13;
 }
 
 enum HistorySyncType {
@@ -546,6 +556,11 @@ message StatusQuotedMessage {
 }
 
 message PaymentInviteMessage {
+	enum InviteType {
+		DEFAULT = 0;
+		MAPPER = 1;
+	}
+
 	enum ServiceType {
 		UNKNOWN = 0;
 		FBPAY = 1;
@@ -557,6 +572,7 @@ message PaymentInviteMessage {
 	optional int64 expiryTimestamp = 2;
 	optional bool incentiveEligible = 3;
 	optional string referralID = 4;
+	optional InviteType inviteType = 5;
 }
 
 message HighlyStructuredMessage {
@@ -655,6 +671,17 @@ message PeerDataOperationRequestResponseMessage {
 			optional uint64 fileLength = 10;
 		}
 
+		message BizBroadcastInsightsContactListResponse {
+			optional string campaignID = 1;
+			optional int64 timestampMS = 2;
+			repeated BizBroadcastInsightsContactState contacts = 3;
+		}
+
+		message BizBroadcastInsightsContactState {
+			optional string contactJID = 1;
+			optional InsightDeliveryState state = 2;
+		}
+
 		message HistorySyncChunkRetryResponse {
 			optional HistorySyncType syncType = 1;
 			optional uint32 chunkOrder = 2;
@@ -732,6 +759,7 @@ message PeerDataOperationRequestResponseMessage {
 		optional CompanionCanonicalUserNonceFetchResponse companionCanonicalUserNonceFetchRequestResponse = 9;
 		optional HistorySyncChunkRetryResponse historySyncChunkRetryResponse = 10;
 		optional FlowResponsesCsvBundle flowResponsesCsvBundle = 11;
+		optional BizBroadcastInsightsContactListResponse bizBroadcastInsightsContactListResponse = 12;
 	}
 
 	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -751,6 +779,14 @@ message PeerDataOperationRequestMessage {
 		optional string stanzaID = 3;
 		optional string galaxyFlowDownloadRequestID = 4;
 		optional string agmID = 5;
+	}
+
+	message BizBroadcastInsightsRefreshRequest {
+		optional string campaignID = 1;
+	}
+
+	message BizBroadcastInsightsContactListRequest {
+		optional string campaignID = 1;
 	}
 
 	message CompanionCanonicalUserNonceFetchRequest {
@@ -807,6 +843,8 @@ message PeerDataOperationRequestMessage {
 	optional HistorySyncChunkRetryRequest historySyncChunkRetryRequest = 8;
 	optional GalaxyFlowAction galaxyFlowAction = 9;
 	optional CompanionCanonicalUserNonceFetchRequest companionCanonicalUserNonceFetchRequest = 10;
+	optional BizBroadcastInsightsContactListRequest bizBroadcastInsightsContactListRequest = 11;
+	optional BizBroadcastInsightsRefreshRequest bizBroadcastInsightsRefreshRequest = 12;
 }
 
 message RequestWelcomeMessageMetadata {
@@ -822,6 +860,7 @@ message RequestWelcomeMessageMetadata {
 
 	optional LocalChatState localChatState = 1;
 	optional WelcomeTrigger welcomeTrigger = 2;
+	optional WAWebProtobufsAICommon.BotAgentMetadata botAgentMetadata = 3;
 }
 
 message ProtocolMessage {
@@ -854,6 +893,7 @@ message ProtocolMessage {
 		GROUP_MEMBER_LABEL_CHANGE = 30;
 		AI_MEDIA_COLLECTION_MESSAGE = 31;
 		MESSAGE_UNSCHEDULE = 32;
+		BOT_UNLINK_MESSAGE = 33;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -1255,6 +1295,7 @@ message ContextInfo {
 		optional AdType adType = 25;
 		optional string wtwaWebsiteURL = 26;
 		optional string adPreviewURL = 27;
+		optional bool containsCtwaFlowsAutoReply = 28;
 	}
 
 	message AdReplyInfo {
@@ -1397,7 +1438,6 @@ message ThreadID {
 
 	optional ThreadType threadType = 1;
 	optional WACommon.MessageKey threadKey = 2;
-	optional string sourceChatJID = 3;
 }
 
 message MessageContextInfo {
@@ -1646,6 +1686,7 @@ message Message {
 	optional PollCreationMessage pollCreationMessageV6 = 119;
 	optional ConditionalRevealMessage conditionalRevealMessage = 120;
 	optional PollAddOptionMessage pollAddOptionMessage = 121;
+	optional EventInviteMessage eventInviteMessage = 122;
 }
 
 message AlbumMessage {
@@ -1656,9 +1697,10 @@ message AlbumMessage {
 
 message MessageHistoryMetadata {
 	repeated string historyReceivers = 1;
-	optional int64 oldestMessageTimestamp = 2;
+	optional int64 oldestMessageTimestampInWindow = 2;
 	optional int64 messageCount = 3;
 	repeated string nonHistoryReceivers = 4;
+	optional int64 oldestMessageTimestampInBundle = 5;
 }
 
 message MessageHistoryNotice {
@@ -1811,6 +1853,16 @@ message DeviceSentMessage {
 
 message RequestPhoneNumberMessage {
 	optional ContextInfo contextInfo = 1;
+}
+
+message EventInviteMessage {
+	optional ContextInfo contextInfo = 1;
+	optional string eventID = 2;
+	optional string eventTitle = 3;
+	optional bytes JPEGThumbnail = 4;
+	optional int64 startTime = 5;
+	optional string caption = 6;
+	optional bool isCanceled = 7;
 }
 
 message NewsletterFollowerInviteMessage {
@@ -2301,8 +2353,8 @@ message MemberLabel {
 }
 
 message AIRichResponseMessage {
-	optional WAWebProtobufsAICommonDeprecated.AIRichResponseMessageType messageType = 1;
-	repeated WAWebProtobufsAICommonDeprecated.AIRichResponseSubMessage submessages = 2;
+	optional WAAICommonDeprecated.AIRichResponseMessageType messageType = 1;
+	repeated WAAICommonDeprecated.AIRichResponseSubMessage submessages = 2;
 	optional WAWebProtobufsAICommon.AIRichResponseUnifiedResponse unifiedResponse = 3;
 	optional ContextInfo contextInfo = 4;
 }
