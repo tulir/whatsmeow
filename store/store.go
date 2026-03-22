@@ -9,6 +9,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -226,6 +227,7 @@ type Device struct {
 	FacebookUUID uuid.UUID
 
 	Initialized   bool
+	Deleted       bool
 	Identities    IdentityStore
 	Sessions      SessionStore
 	PreKeys       PreKeyStore
@@ -259,18 +261,42 @@ func (device *Device) GetLID() types.JID {
 	return device.LID
 }
 
+var ErrDeviceDeleted = errors.New("invalid use of deleted device")
+
 func (device *Device) Save(ctx context.Context) error {
+	if device.Deleted {
+		return ErrDeviceDeleted
+	}
 	return device.Container.PutDevice(ctx, device)
 }
 
 func (device *Device) Delete(ctx context.Context) error {
+	if device.Deleted {
+		return nil
+	}
 	err := device.Container.DeleteDevice(ctx, device)
 	if err != nil {
 		return err
 	}
 	device.ID = nil
 	device.LID = types.EmptyJID
+	device.Deleted = true
+	device.SetAllStores(&NoopStore{ErrDeviceDeleted})
 	return nil
+}
+
+func (device *Device) SetAllStores(store AllSessionSpecificStores) {
+	device.Identities = store
+	device.Sessions = store
+	device.PreKeys = store
+	device.SenderKeys = store
+	device.AppStateKeys = store
+	device.AppState = store
+	device.Contacts = store
+	device.ChatSettings = store
+	device.MsgSecrets = store
+	device.PrivacyTokens = store
+	device.EventBuffer = store
 }
 
 func (device *Device) GetAltJID(ctx context.Context, jid types.JID) (types.JID, error) {
