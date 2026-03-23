@@ -392,7 +392,7 @@ func (int *DangerousInternalClient) HandleDecryptedMessage(ctx context.Context, 
 }
 
 func (int *DangerousInternalClient) SendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) {
-	int.c.sendProtocolMessageReceipt(ctx, id, msgType)
+	_ = int.c.SendProtocolMessageReceipt(ctx, id, msgType)
 }
 
 func (int *DangerousInternalClient) DecryptMsgSecret(ctx context.Context, msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waCommon.MessageKey) ([]byte, error) {

@@ -658,11 +658,6 @@ func (cli *Client) handleSenderKeyDistributionMessage(ctx context.Context, chat,
 	cli.Log.Debugf("Processed sender key distribution message from %s in %s", senderKeyName.Sender().String(), senderKeyName.GroupID())
 }
 
-type historySyncItem struct {
-	Notification *waE2E.HistorySyncNotification
-	MsgID        types.MessageID
-}
-
 func (cli *Client) handleHistorySyncNotificationLoop() {
 	defer func() {
 		cli.historySyncHandlerStarted.Store(false)
@@ -681,24 +676,12 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 	ctx := cli.BackgroundEventCtx
 	for {
 		select {
-		case item := <-cli.historySyncNotifications:
-			blob, err := cli.DownloadHistorySync(ctx, item.Notification, true)
+		case notif := <-cli.historySyncNotifications:
+			blob, err := cli.DownloadHistorySync(ctx, notif, false)
 			if err != nil {
-				if !errors.Is(err, context.Canceled) &&
-					!errors.Is(err, context.DeadlineExceeded) &&
-					!shouldRetryMediaDownload(err) {
-					cli.Log.Errorf("History sync chunk %d failed with a non-retryable error, requesting re-upload: %v",
-						item.Notification.GetChunkOrder(), err)
-					go cli.sendHistorySyncServerErrorReceipt(ctx, item.MsgID, item.Notification.GetMediaKey())
-				} else {
-					cli.Log.Warnf("History sync chunk %d failed with a retryable transport error; leaving chunk unacknowledged: %v",
-						item.Notification.GetChunkOrder(), err)
-				}
-			} else if cli.dispatchEvent(&events.HistorySync{Data: blob}) {
-				cli.Log.Warnf("History sync chunk %d processed locally, but an event handler reported failure; leaving chunk unacknowledged",
-					item.Notification.GetChunkOrder())
+				cli.Log.Errorf("Failed to download history sync: %v", err)
 			} else {
-				go cli.sendProtocolMessageReceipt(ctx, item.MsgID, types.ReceiptTypeHistorySync)
+				cli.dispatchEvent(&events.HistorySync{Data: blob})
 			}
 		case <-time.After(1 * time.Minute):
 			return
@@ -706,15 +689,16 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 	}
 }
 
-func (cli *Client) sendHistorySyncServerErrorReceipt(ctx context.Context, msgID types.MessageID, mediaKey []byte) {
+// SendHistorySyncServerErrorReceipt sends a history sync server-error receipt, which
+// asks the phone to re-upload the referenced history sync payload.
+func (cli *Client) SendHistorySyncServerErrorReceipt(ctx context.Context, msgID types.MessageID, mediaKey []byte) error {
 	ciphertext, iv, err := encryptMediaRetryReceipt(msgID, mediaKey)
 	if err != nil {
-		cli.Log.Warnf("Failed to encrypt history sync server-error receipt for %s: %v", msgID, err)
-		return
+		return fmt.Errorf("failed to encrypt history sync server-error receipt: %w", err)
 	}
 	ownID := cli.getOwnID().ToNonAD()
 	if ownID.IsEmpty() {
-		return
+		return ErrNotLoggedIn
 	}
 	err = cli.sendNode(ctx, waBinary.Node{
 		Tag: "receipt",
@@ -732,8 +716,9 @@ func (cli *Client) sendHistorySyncServerErrorReceipt(ctx context.Context, msgID 
 		},
 	})
 	if err != nil {
-		cli.Log.Warnf("Failed to send history sync server-error receipt for %s: %v", msgID, err)
+		return fmt.Errorf("Failed to send history sync server-error receipt: %w", err)
 	}
+	return nil
 }
 
 // DownloadHistorySync will download and parse the history sync blob from the given history sync notification.
@@ -844,20 +829,19 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 	}
 
 	if protoMsg.GetHistorySyncNotification() != nil {
-		msgID := info.ID
-		if origID := protoMsg.GetHistorySyncNotification().GetOriginalMessageID(); origID != "" {
-			msgID = types.MessageID(origID)
-		}
 		if !cli.ManualHistorySyncDownload {
-			cli.historySyncNotifications <- &historySyncItem{
-				Notification: protoMsg.HistorySyncNotification,
-				MsgID:        msgID,
-			}
+			cli.historySyncNotifications <- protoMsg.HistorySyncNotification
 			if cli.historySyncHandlerStarted.CompareAndSwap(false, true) {
 				go cli.handleHistorySyncNotificationLoop()
 			}
-		} else {
-			go cli.sendProtocolMessageReceipt(ctx, msgID, types.ReceiptTypeHistorySync)
+		}
+		if !(cli.ManualHistorySyncDownload && cli.DisableManualHistorySyncReceipt) {
+			go func() {
+				err := cli.SendProtocolMessageReceipt(ctx, info.ID, types.ReceiptTypeHistorySync)
+				if err != nil {
+					cli.Log.Warnf("Failed to send acknowledgement for protocol message %s: %v", info.ID, err)
+				}
+			}()
 		}
 	}
 
@@ -880,7 +864,12 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 	}
 
 	if info.Category == "peer" {
-		go cli.sendProtocolMessageReceipt(ctx, info.ID, types.ReceiptTypePeerMsg)
+		go func() {
+			err := cli.SendProtocolMessageReceipt(ctx, info.ID, types.ReceiptTypePeerMsg)
+			if err != nil {
+				cli.Log.Warnf("Failed to send acknowledgement for protocol message %s: %v", info.ID, err)
+			}
+		}()
 	}
 	return
 }
@@ -1093,9 +1082,10 @@ func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.Messa
 	return cli.dispatchEvent(evt.UnwrapRaw())
 }
 
-func (cli *Client) sendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) {
+// SendProtocolMessageReceipt sends a receipt for a protocol message back to the phone.
+func (cli *Client) SendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) error {
 	if len(id) == 0 {
-		return
+		return nil
 	}
 	err := cli.sendNode(ctx, waBinary.Node{
 		Tag: "receipt",
@@ -1107,6 +1097,7 @@ func (cli *Client) sendProtocolMessageReceipt(ctx context.Context, id types.Mess
 		Content: nil,
 	})
 	if err != nil {
-		cli.Log.Warnf("Failed to send acknowledgement for protocol message %s: %v", id, err)
+		return err
 	}
+	return nil
 }
