@@ -658,6 +658,11 @@ func (cli *Client) handleSenderKeyDistributionMessage(ctx context.Context, chat,
 	cli.Log.Debugf("Processed sender key distribution message from %s in %s", senderKeyName.Sender().String(), senderKeyName.GroupID())
 }
 
+type historySyncItem struct {
+	Notification *waE2E.HistorySyncNotification
+	MsgID        types.MessageID
+}
+
 func (cli *Client) handleHistorySyncNotificationLoop() {
 	defer func() {
 		cli.historySyncHandlerStarted.Store(false)
@@ -676,16 +681,59 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 	ctx := cli.BackgroundEventCtx
 	for {
 		select {
-		case notif := <-cli.historySyncNotifications:
-			blob, err := cli.DownloadHistorySync(ctx, notif, false)
-			if err != nil {
-				cli.Log.Errorf("Failed to download history sync: %v", err)
+		case item := <-cli.historySyncNotifications:
+			blob, err := cli.DownloadHistorySync(ctx, item.Notification, true)
+			if err == nil {
+				handlerFailed := cli.dispatchEvent(&events.HistorySync{Data: blob})
+				if handlerFailed {
+					cli.Log.Warnf("History sync chunk %d processed locally, but an event handler reported failure; leaving chunk unacknowledged",
+						item.Notification.GetChunkOrder())
+				} else {
+					go cli.sendProtocolMessageReceipt(ctx, item.MsgID, types.ReceiptTypeHistorySync)
+				}
+			} else if !errors.Is(err, context.Canceled) &&
+				!errors.Is(err, context.DeadlineExceeded) &&
+				!shouldRetryMediaDownload(err) {
+				cli.Log.Errorf("History sync chunk %d failed with a non-retryable error, requesting re-upload: %v",
+					item.Notification.GetChunkOrder(), err)
+				go cli.sendHistorySyncServerErrorReceipt(ctx, item.MsgID, item.Notification.GetMediaKey())
 			} else {
-				cli.dispatchEvent(&events.HistorySync{Data: blob})
+				cli.Log.Warnf("History sync chunk %d failed with a retryable transport error; leaving chunk unacknowledged: %v",
+					item.Notification.GetChunkOrder(), err)
 			}
 		case <-time.After(1 * time.Minute):
 			return
 		}
+	}
+}
+
+func (cli *Client) sendHistorySyncServerErrorReceipt(ctx context.Context, msgID types.MessageID, mediaKey []byte) {
+	ciphertext, iv, err := encryptMediaRetryReceipt(msgID, mediaKey)
+	if err != nil {
+		cli.Log.Warnf("Failed to encrypt history sync server-error receipt for %s: %v", msgID, err)
+		return
+	}
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		return
+	}
+	err = cli.sendNode(ctx, waBinary.Node{
+		Tag: "receipt",
+		Attrs: waBinary.Attrs{
+			"id":       string(msgID),
+			"type":     "server-error",
+			"to":       ownID,
+			"category": "peer",
+		},
+		Content: []waBinary.Node{
+			{Tag: "encrypt", Content: []waBinary.Node{
+				{Tag: "enc_p", Content: ciphertext},
+				{Tag: "enc_iv", Content: iv},
+			}},
+		},
+	})
+	if err != nil {
+		cli.Log.Warnf("Failed to send history sync server-error receipt for %s: %v", msgID, err)
 	}
 }
 
@@ -797,13 +845,21 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 	}
 
 	if protoMsg.GetHistorySyncNotification() != nil {
+		msgID := info.ID
+		if origID := protoMsg.GetHistorySyncNotification().GetOriginalMessageID(); origID != "" {
+			msgID = types.MessageID(origID)
+		}
 		if !cli.ManualHistorySyncDownload {
-			cli.historySyncNotifications <- protoMsg.HistorySyncNotification
+			cli.historySyncNotifications <- &historySyncItem{
+				Notification: protoMsg.HistorySyncNotification,
+				MsgID:        msgID,
+			}
 			if cli.historySyncHandlerStarted.CompareAndSwap(false, true) {
 				go cli.handleHistorySyncNotificationLoop()
 			}
+		} else {
+			go cli.sendProtocolMessageReceipt(ctx, msgID, types.ReceiptTypeHistorySync)
 		}
-		go cli.sendProtocolMessageReceipt(ctx, info.ID, types.ReceiptTypeHistorySync)
 	}
 
 	if protoMsg.GetLidMigrationMappingSyncMessage() != nil {
