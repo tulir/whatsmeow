@@ -687,6 +687,8 @@ type Conversation struct {
 	LimitSharingInitiatedByMe    *bool                                  `protobuf:"varint,53,opt,name=limitSharingInitiatedByMe" json:"limitSharingInitiatedByMe,omitempty"`
 	MaibaAiThreadEnabled         *bool                                  `protobuf:"varint,54,opt,name=maibaAiThreadEnabled" json:"maibaAiThreadEnabled,omitempty"`
 	IsMarketingMessageThread     *bool                                  `protobuf:"varint,55,opt,name=isMarketingMessageThread" json:"isMarketingMessageThread,omitempty"`
+	IsSenderNewAccount           *bool                                  `protobuf:"varint,56,opt,name=isSenderNewAccount" json:"isSenderNewAccount,omitempty"`
+	AfterReadDuration            *uint32                                `protobuf:"varint,57,opt,name=afterReadDuration" json:"afterReadDuration,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -1104,6 +1106,20 @@ func (x *Conversation) GetIsMarketingMessageThread() bool {
 		return *x.IsMarketingMessageThread
 	}
 	return false
+}
+
+func (x *Conversation) GetIsSenderNewAccount() bool {
+	if x != nil && x.IsSenderNewAccount != nil {
+		return *x.IsSenderNewAccount
+	}
+	return false
+}
+
+func (x *Conversation) GetAfterReadDuration() uint32 {
+	if x != nil && x.AfterReadDuration != nil {
+		return *x.AfterReadDuration
+	}
+	return 0
 }
 
 type GroupParticipant struct {
@@ -2148,7 +2164,7 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x06RECENT\x10\x03\x12\r\n" +
 	"\tPUSH_NAME\x10\x04\x12\x15\n" +
 	"\x11NON_BLOCKING_DATA\x10\x05\x12\r\n" +
-	"\tON_DEMAND\x10\x06\"\xbb\x15\n" +
+	"\tON_DEMAND\x10\x06\"\x99\x16\n" +
 	"\fConversation\x12\x0e\n" +
 	"\x02ID\x18\x01 \x02(\tR\x02ID\x12E\n" +
 	"\bmessages\x18\x02 \x03(\v2).WAWebProtobufsHistorySync.HistorySyncMsgR\bmessages\x12\x16\n" +
@@ -2211,7 +2227,9 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x13limitSharingTrigger\x184 \x01(\x0e2\x1e.WACommon.LimitSharing.TriggerR\x13limitSharingTrigger\x12<\n" +
 	"\x19limitSharingInitiatedByMe\x185 \x01(\bR\x19limitSharingInitiatedByMe\x122\n" +
 	"\x14maibaAiThreadEnabled\x186 \x01(\bR\x14maibaAiThreadEnabled\x12:\n" +
-	"\x18isMarketingMessageThread\x187 \x01(\bR\x18isMarketingMessageThread\"\x80\x02\n" +
+	"\x18isMarketingMessageThread\x187 \x01(\bR\x18isMarketingMessageThread\x12.\n" +
+	"\x12isSenderNewAccount\x188 \x01(\bR\x12isSenderNewAccount\x12,\n" +
+	"\x11afterReadDuration\x189 \x01(\rR\x11afterReadDuration\"\x80\x02\n" +
 	"\x18EndOfHistoryTransferType\x120\n" +
 	",COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY\x10\x00\x122\n" +
 	".COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY\x10\x01\x12:\n" +
