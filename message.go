@@ -683,23 +683,22 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 		select {
 		case item := <-cli.historySyncNotifications:
 			blob, err := cli.DownloadHistorySync(ctx, item.Notification, true)
-			if err == nil {
-				handlerFailed := cli.dispatchEvent(&events.HistorySync{Data: blob})
-				if handlerFailed {
-					cli.Log.Warnf("History sync chunk %d processed locally, but an event handler reported failure; leaving chunk unacknowledged",
-						item.Notification.GetChunkOrder())
+			if err != nil {
+				if !errors.Is(err, context.Canceled) &&
+					!errors.Is(err, context.DeadlineExceeded) &&
+					!shouldRetryMediaDownload(err) {
+					cli.Log.Errorf("History sync chunk %d failed with a non-retryable error, requesting re-upload: %v",
+						item.Notification.GetChunkOrder(), err)
+					go cli.sendHistorySyncServerErrorReceipt(ctx, item.MsgID, item.Notification.GetMediaKey())
 				} else {
-					go cli.sendProtocolMessageReceipt(ctx, item.MsgID, types.ReceiptTypeHistorySync)
+					cli.Log.Warnf("History sync chunk %d failed with a retryable transport error; leaving chunk unacknowledged: %v",
+						item.Notification.GetChunkOrder(), err)
 				}
-			} else if !errors.Is(err, context.Canceled) &&
-				!errors.Is(err, context.DeadlineExceeded) &&
-				!shouldRetryMediaDownload(err) {
-				cli.Log.Errorf("History sync chunk %d failed with a non-retryable error, requesting re-upload: %v",
-					item.Notification.GetChunkOrder(), err)
-				go cli.sendHistorySyncServerErrorReceipt(ctx, item.MsgID, item.Notification.GetMediaKey())
+			} else if cli.dispatchEvent(&events.HistorySync{Data: blob}) {
+				cli.Log.Warnf("History sync chunk %d processed locally, but an event handler reported failure; leaving chunk unacknowledged",
+					item.Notification.GetChunkOrder())
 			} else {
-				cli.Log.Warnf("History sync chunk %d failed with a retryable transport error; leaving chunk unacknowledged: %v",
-					item.Notification.GetChunkOrder(), err)
+				go cli.sendProtocolMessageReceipt(ctx, item.MsgID, types.ReceiptTypeHistorySync)
 			}
 		case <-time.After(1 * time.Minute):
 			return
