@@ -92,6 +92,9 @@ enum MutationProps {
 	NCT_SALT_SYNC_ACTION = 80;
 	BUSINESS_BROADCAST_CAMPAIGN_ACTION = 81;
 	BUSINESS_BROADCAST_INSIGHTS_ACTION = 82;
+	CUSTOMER_DATA_ACTION = 83;
+	SUBSCRIPTIONS_SYNC_V2_ACTION = 84;
+	THREAD_PIN_ACTION = 85;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -346,12 +349,22 @@ message StatusPrivacyAction {
 		DENY_LIST = 1;
 		CONTACTS = 2;
 		CLOSE_FRIENDS = 3;
+		CUSTOM_LIST = 4;
+	}
+
+	message CustomList {
+		optional int64 ID = 1;
+		optional string name = 2;
+		optional string emoji = 3;
+		optional bool isSelected = 4;
+		repeated string userJID = 5;
 	}
 
 	optional StatusDistributionMode mode = 1;
 	repeated string userJID = 2;
 	optional bool shareToFB = 3;
 	optional bool shareToIG = 4;
+	repeated CustomList customLists = 5;
 }
 
 message MarketingMessageAction {
@@ -510,6 +523,9 @@ enum MutationName {
 	NCT_SALT_SYNC_ACTION = nct_salt_sync;
 	BUSINESS_BROADCAST_CAMPAIGN_ACTION = business_broadcast_campaign;
 	BUSINESS_BROADCAST_INSIGHTS_ACTION = business_broadcast_insights_sync;
+	CUSTOMER_DATA_ACTION = customer_data;
+	SUBSCRIPTIONS_SYNC_V2_ACTION = subscriptions_sync_v2;
+	THREAD_PIN_ACTION = thread_pin;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -610,6 +626,46 @@ message SyncActionValue {
 	optional NctSaltSyncAction nctSaltSyncAction = 80;
 	optional BusinessBroadcastCampaignAction businessBroadcastCampaignAction = 81;
 	optional BusinessBroadcastInsightsAction businessBroadcastInsightsAction = 82;
+	optional CustomerDataAction customerDataAction = 83;
+	optional SubscriptionsSyncV2Action subscriptionsSyncV2Action = 84;
+	optional ThreadPinAction threadPinAction = 85;
+}
+
+message SubscriptionsSyncV2Action {
+	message PaidFeature {
+		optional string name = 1;
+		optional bool enabled = 2;
+		optional int32 limit = 3;
+		optional int64 expirationTime = 4;
+	}
+
+	message SubscriptionInfo {
+		optional string ID = 1;
+		optional int32 tier = 2;
+		optional string status = 3;
+		optional int64 startTime = 4;
+		optional int64 endTime = 5;
+		optional bool isPlatformChanged = 6;
+		optional string source = 7;
+		optional int64 creationTime = 8;
+	}
+
+	repeated SubscriptionInfo subscriptions = 1;
+	repeated PaidFeature paidFeature = 2;
+}
+
+message CustomerDataAction {
+	optional string chatJID = 1;
+	optional int32 contactType = 2;
+	optional string email = 3;
+	optional string altPhoneNumbers = 4;
+	optional int64 birthday = 5;
+	optional string address = 6;
+	optional int32 acquisitionSource = 7;
+	optional int32 leadStage = 8;
+	optional int64 lastOrder = 9;
+	optional int64 createdAt = 10;
+	optional int64 modifiedAt = 11;
 }
 
 message BusinessBroadcastInsightsAction {
@@ -622,6 +678,10 @@ message BusinessBroadcastInsightsAction {
 
 message NctSaltSyncAction {
 	optional bytes salt = 1;
+}
+
+message ThreadPinAction {
+	optional bool pinned = 1;
 }
 
 message AiThreadRenameAction {
@@ -654,6 +714,7 @@ message BusinessBroadcastListAction {
 	repeated BroadcastListParticipant participants = 2;
 	optional string listName = 3;
 	repeated string labelIDs = 4;
+	optional string audienceExpression = 5;
 }
 
 message BusinessBroadcastAssociationAction {
