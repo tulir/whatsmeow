@@ -37,21 +37,32 @@ func (cli *Client) generateCsToken(ctx context.Context, jid types.JID) []byte {
 	if len(salt) == 0 {
 		return nil
 	}
-	recipientLID := jid.ToNonAD()
-	if recipientLID.Server == types.DefaultUserServer && cli.Store != nil && cli.Store.LIDs != nil {
-		lid, err := cli.Store.LIDs.GetLIDForPN(ctx, recipientLID)
+	var recipientLID types.JID
+	switch jid.Server {
+	case types.HiddenUserServer:
+		recipientLID = jid.ToNonAD()
+	case types.DefaultUserServer:
+		if cli.Store == nil || cli.Store.LIDs == nil {
+			return nil
+		}
+		pn := jid.ToNonAD()
+		lid, err := cli.Store.LIDs.GetLIDForPN(ctx, pn)
 		if err != nil {
-			cli.Log.Debugf("Failed to resolve LID for cstoken JID %s: %v", recipientLID, err)
+			cli.Log.Debugf("Failed to resolve LID for cstoken JID %s: %v", pn, err)
 			return nil
 		}
 		if lid.IsEmpty() {
 			return nil
 		}
 		recipientLID = lid.ToNonAD()
+	default:
+		return nil
 	}
+
 	if recipientLID.Server != types.HiddenUserServer {
 		return nil
 	}
+
 	h := hmac.New(sha256.New, salt)
 	h.Write([]byte(recipientLID.String()))
 	return h.Sum(nil)
