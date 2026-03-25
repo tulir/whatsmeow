@@ -873,6 +873,11 @@ func (cli *Client) sendDM(
 			Tag:     "tctoken",
 			Content: tcToken.Token,
 		})
+	} else if csToken := cli.generateCsToken(ctx, to); len(csToken) > 0 {
+		node.Content = append(node.GetChildren(), waBinary.Node{
+			Tag:     "cstoken",
+			Content: csToken,
+		})
 	}
 
 	start = time.Now()
