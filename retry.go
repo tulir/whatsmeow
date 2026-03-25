@@ -47,7 +47,34 @@ func (rm RecentMessage) IsEmpty() bool {
 	return rm.wa == nil && rm.fb == nil
 }
 
-func (cli *Client) addRecentMessage(to types.JID, id types.MessageID, wa *waE2E.Message, fb *waMsgApplication.MessageApplication) {
+func (cli *Client) addRecentMessage(ctx context.Context, to types.JID, id types.MessageID, wa *waE2E.Message, fb *waMsgApplication.MessageApplication) error {
+	if cli.UseRetryMessageStore {
+		var buf []byte
+		var format string
+		var err error
+		if wa != nil {
+			buf, err = proto.Marshal(wa)
+			format = "wa"
+		} else if fb != nil {
+			buf, err = proto.Marshal(fb)
+			format = "fb"
+		}
+		if err != nil {
+			return fmt.Errorf("failed to marshal message for retry store: %w", err)
+		}
+		if buf != nil {
+			err = cli.Store.EventBuffer.AddOutgoingEvent(ctx, to, id, format, buf)
+			if err != nil {
+				return fmt.Errorf("failed to add message to retry store: %w", err)
+			}
+			if time.Since(cli.lastRetryStoreClear) > 12*time.Hour {
+				err = cli.Store.EventBuffer.DeleteOldOutgoingEvents(ctx)
+				if err != nil {
+					return fmt.Errorf("failed to clear old messages from retry store: %w", err)
+				}
+			}
+		}
+	}
 	cli.recentMessagesLock.Lock()
 	key := recentMessageKey{to, id}
 	if cli.recentMessagesList[cli.recentMessagesPtr].ID != "" {
@@ -60,6 +87,7 @@ func (cli *Client) addRecentMessage(to types.JID, id types.MessageID, wa *waE2E.
 		cli.recentMessagesPtr = 0
 	}
 	cli.recentMessagesLock.Unlock()
+	return nil
 }
 
 func (cli *Client) getRecentMessage(to types.JID, id types.MessageID) RecentMessage {
@@ -91,12 +119,38 @@ func (cli *Client) getMessageForRetry(ctx context.Context, receipt *events.Recei
 			return &msg, nil
 		}
 	}
+	if cli.UseRetryMessageStore {
+		format, buf, err := cli.Store.EventBuffer.GetOutgoingEvent(ctx, receipt.Chat, altChat, messageID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get message from retry store: %w", err)
+		}
+		return parseRecentMessage(format, buf)
+	}
 	waMsg := cli.GetMessageForRetry(receipt.Sender, receipt.Chat, messageID)
 	if waMsg != nil {
 		cli.Log.Debugf("Found message in GetMessageForRetry to accept retry receipt for %s/%s from %s", receipt.Chat, messageID, receipt.Sender)
 		return &RecentMessage{wa: waMsg}, nil
 	}
 	return nil, nil
+}
+
+func parseRecentMessage(format string, buf []byte) (*RecentMessage, error) {
+	var rm RecentMessage
+	var err error
+	switch format {
+	case "wa":
+		rm.wa = &waE2E.Message{}
+		err = proto.Unmarshal(buf, rm.wa)
+	case "fb":
+		rm.fb = &waMsgApplication.MessageApplication{}
+		err = proto.Unmarshal(buf, rm.fb)
+	default:
+		err = fmt.Errorf("unknown format in retry store: %s", format)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal payload in retry store: %w", err)
+	}
+	return &rm, nil
 }
 
 const recreateSessionTimeout = 1 * time.Hour

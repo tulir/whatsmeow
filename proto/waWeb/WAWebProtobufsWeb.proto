@@ -316,6 +316,7 @@ message WebMessageInfo {
 	optional InteractiveMessageAdditionalMetadata interactiveMessageAdditionalMetadata = 76;
 	optional QuarantinedMessage quarantinedMessage = 77;
 	optional uint32 nonJIDMentions = 78;
+	optional string hsmTag = 79;
 }
 
 message PaymentInfo {

@@ -62,6 +62,9 @@ const (
 	IndexAIThreadRename            = "ai_thread_rename"
 	IndexInteractiveMessageAction  = "interactive_message_action"
 	IndexSettingsSync              = "settings_sync"
+	IndexOutContact                = "out_contact"
+	IndexCustomerData              = "customer_data"
+	IndexThreadPin                 = "thread_pin"
 )
 
 // Constants for the regular app state indexes.
@@ -96,6 +99,7 @@ const (
 	IndexNewsletterSavedInterests                        = "newsletter_saved_interests"
 	IndexShareOwnPN                                      = "shareOwnPn"
 	IndexBroadcast                                       = "broadcast"
+	IndexSubscriptionsSync                               = "subscriptions_sync_v2"
 )
 
 // Constants for the regular_high app state indexes.
@@ -115,6 +119,7 @@ const (
 	IndexStatusPostOptInNotificationPreferencesAction = "status_post_opt_in_notification_preferences_action"
 	IndexPrivateProcessingSetting                     = "private_processing_setting"
 	IndexAIThreadDelete                               = "ai_thread_delete"
+	IndexNCTSaltSync                                  = "nct_salt_sync"
 )
 
 // Constants for the critical_unblock_low app state indexes.

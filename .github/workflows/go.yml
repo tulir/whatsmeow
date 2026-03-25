@@ -11,8 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.24", "1.25"]
-    name: Build ${{ matrix.go-version == '1.25' && '(latest)' || '(old)' }}
+        go-version: ["1.25", "1.26"]
+    name: Build ${{ matrix.go-version == '1.26' && '(latest)' || '(old)' }}
 
     steps:
     - uses: actions/checkout@v6
