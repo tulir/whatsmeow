@@ -90,9 +90,22 @@ enum MutationProps {
 	SETTINGS_SYNC_ACTION = 78;
 	OUT_CONTACT_ACTION = 79;
 	NCT_SALT_SYNC_ACTION = 80;
+	BUSINESS_BROADCAST_CAMPAIGN_ACTION = 81;
+	BUSINESS_BROADCAST_INSIGHTS_ACTION = 82;
+	CUSTOMER_DATA_ACTION = 83;
+	SUBSCRIPTIONS_SYNC_V2_ACTION = 84;
+	THREAD_PIN_ACTION = 85;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
+}
+
+enum BusinessBroadcastCampaignStatus {
+	DRAFT = 1;
+	SCHEDULED = 2;
+	PROCESSING = 3;
+	FAILED = 4;
+	SENT = 5;
 }
 
 message CallLogRecord {
@@ -336,10 +349,22 @@ message StatusPrivacyAction {
 		DENY_LIST = 1;
 		CONTACTS = 2;
 		CLOSE_FRIENDS = 3;
+		CUSTOM_LIST = 4;
+	}
+
+	message CustomList {
+		optional int64 ID = 1;
+		optional string name = 2;
+		optional string emoji = 3;
+		optional bool isSelected = 4;
+		repeated string userJID = 5;
 	}
 
 	optional StatusDistributionMode mode = 1;
 	repeated string userJID = 2;
+	optional bool shareToFB = 3;
+	optional bool shareToIG = 4;
+	repeated CustomList customLists = 5;
 }
 
 message MarketingMessageAction {
@@ -377,6 +402,7 @@ message LabelEditAction {
 		SERVER_ASSIGNED = 7;
 		DRAFTED = 8;
 		AI_HANDOFF = 9;
+		CHANNELS = 10;
 	}
 
 	optional string name = 1;
@@ -495,6 +521,11 @@ enum MutationName {
 	SETTINGS_SYNC_ACTION = settings_sync;
 	OUT_CONTACT_ACTION = out_contact;
 	NCT_SALT_SYNC_ACTION = nct_salt_sync;
+	BUSINESS_BROADCAST_CAMPAIGN_ACTION = business_broadcast_campaign;
+	BUSINESS_BROADCAST_INSIGHTS_ACTION = business_broadcast_insights_sync;
+	CUSTOMER_DATA_ACTION = customer_data;
+	SUBSCRIPTIONS_SYNC_V2_ACTION = subscriptions_sync_v2;
+	THREAD_PIN_ACTION = thread_pin;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -593,10 +624,64 @@ message SyncActionValue {
 	optional SettingsSyncAction settingsSyncAction = 78;
 	optional OutContactAction outContactAction = 79;
 	optional NctSaltSyncAction nctSaltSyncAction = 80;
+	optional BusinessBroadcastCampaignAction businessBroadcastCampaignAction = 81;
+	optional BusinessBroadcastInsightsAction businessBroadcastInsightsAction = 82;
+	optional CustomerDataAction customerDataAction = 83;
+	optional SubscriptionsSyncV2Action subscriptionsSyncV2Action = 84;
+	optional ThreadPinAction threadPinAction = 85;
+}
+
+message SubscriptionsSyncV2Action {
+	message PaidFeature {
+		optional string name = 1;
+		optional bool enabled = 2;
+		optional int32 limit = 3;
+		optional int64 expirationTime = 4;
+	}
+
+	message SubscriptionInfo {
+		optional string ID = 1;
+		optional int32 tier = 2;
+		optional string status = 3;
+		optional int64 startTime = 4;
+		optional int64 endTime = 5;
+		optional bool isPlatformChanged = 6;
+		optional string source = 7;
+		optional int64 creationTime = 8;
+	}
+
+	repeated SubscriptionInfo subscriptions = 1;
+	repeated PaidFeature paidFeature = 2;
+}
+
+message CustomerDataAction {
+	optional string chatJID = 1;
+	optional int32 contactType = 2;
+	optional string email = 3;
+	optional string altPhoneNumbers = 4;
+	optional int64 birthday = 5;
+	optional string address = 6;
+	optional int32 acquisitionSource = 7;
+	optional int32 leadStage = 8;
+	optional int64 lastOrder = 9;
+	optional int64 createdAt = 10;
+	optional int64 modifiedAt = 11;
+}
+
+message BusinessBroadcastInsightsAction {
+	optional int32 recipientCount = 1;
+	optional int32 deliveredCount = 2;
+	optional int32 readCount = 3;
+	optional int32 repliedCount = 4;
+	optional int32 quickReplyCount = 5;
 }
 
 message NctSaltSyncAction {
 	optional bytes salt = 1;
+}
+
+message ThreadPinAction {
+	optional bool pinned = 1;
 }
 
 message AiThreadRenameAction {
@@ -612,11 +697,24 @@ message BroadcastListParticipant {
 	optional string pnJID = 2;
 }
 
+message BusinessBroadcastCampaignAction {
+	optional int32 deviceID = 1;
+	optional string adID = 2;
+	optional string name = 3;
+	optional string msgID = 4;
+	optional string broadcastJID = 5;
+	optional int32 reservedQuota = 6;
+	optional int64 scheduledTimestamp = 7;
+	optional int64 createTimestamp = 8;
+	optional BusinessBroadcastCampaignStatus status = 9;
+}
+
 message BusinessBroadcastListAction {
 	optional bool deleted = 1;
 	repeated BroadcastListParticipant participants = 2;
 	optional string listName = 3;
 	repeated string labelIDs = 4;
+	optional string audienceExpression = 5;
 }
 
 message BusinessBroadcastAssociationAction {

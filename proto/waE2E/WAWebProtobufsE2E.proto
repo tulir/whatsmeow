@@ -3,6 +3,7 @@ package WAWebProtobufsE2E;
 option go_package = "go.mau.fi/whatsmeow/proto/waE2E";
 
 import "waAICommon/WAWebProtobufsAICommon.proto";
+import "waAICommonDeprecated/WAAICommonDeprecated.proto";
 import "waAdv/WAAdv.proto";
 import "waCompanionReg/WACompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
@@ -20,6 +21,14 @@ enum PollContentType {
 	IMAGE = 2;
 }
 
+enum InsightDeliveryState {
+	SENT = 0;
+	DELIVERED = 1;
+	READ = 2;
+	REPLIED = 3;
+	QUICK_REPLIED = 4;
+}
+
 enum PeerDataOperationRequestType {
 	UPLOAD_STICKER = 0;
 	SEND_RECENT_STICKER_BOOTSTRAP = 1;
@@ -33,6 +42,8 @@ enum PeerDataOperationRequestType {
 	COMPANION_CANONICAL_USER_NONCE_FETCH = 9;
 	HISTORY_SYNC_CHUNK_RETRY = 10;
 	GALAXY_FLOW_ACTION = 11;
+	BUSINESS_BROADCAST_INSIGHTS_DELIVERED_TO = 12;
+	BUSINESS_BROADCAST_INSIGHTS_REFRESH = 13;
 }
 
 enum HistorySyncType {
@@ -78,6 +89,7 @@ message StickerPackMessage {
 		optional string accessibilityLabel = 4;
 		optional bool isLottie = 5;
 		optional string mimetype = 6;
+		optional int32 premium = 7;
 	}
 
 	optional string stickerPackID = 1;
@@ -276,6 +288,18 @@ message ButtonsMessage {
 	optional HeaderType headerType = 10;
 }
 
+message ConditionalRevealMessage {
+	enum ConditionalRevealMessageType {
+		UNKNOWN = 0;
+		SCHEDULED_MESSAGE = 1;
+	}
+
+	optional bytes encPayload = 1;
+	optional bytes encIV = 2;
+	optional ConditionalRevealMessageType conditionalRevealMessageType = 3;
+	optional string revealKeyID = 4;
+}
+
 message SecretEncryptedMessage {
 	enum SecretEncType {
 		UNKNOWN = 0;
@@ -283,6 +307,7 @@ message SecretEncryptedMessage {
 		MESSAGE_EDIT = 2;
 		MESSAGE_SCHEDULE = 3;
 		POLL_EDIT = 4;
+		POLL_ADD_OPTION = 5;
 	}
 
 	optional WACommon.MessageKey targetMessageKey = 1;
@@ -531,6 +556,11 @@ message StatusQuotedMessage {
 }
 
 message PaymentInviteMessage {
+	enum InviteType {
+		DEFAULT = 0;
+		MAPPER = 1;
+	}
+
 	enum ServiceType {
 		UNKNOWN = 0;
 		FBPAY = 1;
@@ -542,6 +572,7 @@ message PaymentInviteMessage {
 	optional int64 expiryTimestamp = 2;
 	optional bool incentiveEligible = 3;
 	optional string referralID = 4;
+	optional InviteType inviteType = 5;
 }
 
 message HighlyStructuredMessage {
@@ -640,6 +671,17 @@ message PeerDataOperationRequestResponseMessage {
 			optional uint64 fileLength = 10;
 		}
 
+		message BizBroadcastInsightsContactListResponse {
+			optional string campaignID = 1;
+			optional int64 timestampMS = 2;
+			repeated BizBroadcastInsightsContactState contacts = 3;
+		}
+
+		message BizBroadcastInsightsContactState {
+			optional string contactJID = 1;
+			optional InsightDeliveryState state = 2;
+		}
+
 		message HistorySyncChunkRetryResponse {
 			optional HistorySyncType syncType = 1;
 			optional uint32 chunkOrder = 2;
@@ -717,6 +759,7 @@ message PeerDataOperationRequestResponseMessage {
 		optional CompanionCanonicalUserNonceFetchResponse companionCanonicalUserNonceFetchRequestResponse = 9;
 		optional HistorySyncChunkRetryResponse historySyncChunkRetryResponse = 10;
 		optional FlowResponsesCsvBundle flowResponsesCsvBundle = 11;
+		optional BizBroadcastInsightsContactListResponse bizBroadcastInsightsContactListResponse = 12;
 	}
 
 	optional PeerDataOperationRequestType peerDataOperationRequestType = 1;
@@ -736,6 +779,14 @@ message PeerDataOperationRequestMessage {
 		optional string stanzaID = 3;
 		optional string galaxyFlowDownloadRequestID = 4;
 		optional string agmID = 5;
+	}
+
+	message BizBroadcastInsightsRefreshRequest {
+		optional string campaignID = 1;
+	}
+
+	message BizBroadcastInsightsContactListRequest {
+		optional string campaignID = 1;
 	}
 
 	message CompanionCanonicalUserNonceFetchRequest {
@@ -792,15 +843,24 @@ message PeerDataOperationRequestMessage {
 	optional HistorySyncChunkRetryRequest historySyncChunkRetryRequest = 8;
 	optional GalaxyFlowAction galaxyFlowAction = 9;
 	optional CompanionCanonicalUserNonceFetchRequest companionCanonicalUserNonceFetchRequest = 10;
+	optional BizBroadcastInsightsContactListRequest bizBroadcastInsightsContactListRequest = 11;
+	optional BizBroadcastInsightsRefreshRequest bizBroadcastInsightsRefreshRequest = 12;
 }
 
 message RequestWelcomeMessageMetadata {
+	enum WelcomeTrigger {
+		CHAT_OPEN = 0;
+		COMPANION_PAIRING = 1;
+	}
+
 	enum LocalChatState {
 		EMPTY = 0;
 		NON_EMPTY = 1;
 	}
 
 	optional LocalChatState localChatState = 1;
+	optional WelcomeTrigger welcomeTrigger = 2;
+	optional WAWebProtobufsAICommon.BotAgentMetadata botAgentMetadata = 3;
 }
 
 message ProtocolMessage {
@@ -833,6 +893,7 @@ message ProtocolMessage {
 		GROUP_MEMBER_LABEL_CHANGE = 30;
 		AI_MEDIA_COLLECTION_MESSAGE = 31;
 		MESSAGE_UNSCHEDULE = 32;
+		BOT_UNLINK_MESSAGE = 33;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -860,7 +921,7 @@ message ProtocolMessage {
 	optional AIQueryFanout aiQueryFanout = 26;
 	optional MemberLabel memberLabel = 27;
 	optional WAWebProtobufsAICommon.AIMediaCollectionMessage aiMediaCollectionMessage = 28;
-	optional uint32 afterReadDurationMS = 29;
+	optional uint32 afterReadDuration = 29;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1234,6 +1295,7 @@ message ContextInfo {
 		optional AdType adType = 25;
 		optional string wtwaWebsiteURL = 26;
 		optional string adPreviewURL = 27;
+		optional bool containsCtwaFlowsAutoReply = 28;
 	}
 
 	message AdReplyInfo {
@@ -1334,6 +1396,7 @@ message ContextInfo {
 	optional bool isSpoiler = 73;
 	optional MediaDomainInfo mediaDomainInfo = 74;
 	optional PartiallySelectedContent partiallySelectedContent = 75;
+	optional uint32 afterReadDuration = 76;
 }
 
 message MessageAssociation {
@@ -1358,6 +1421,7 @@ message MessageAssociation {
 		STATUS_ADD_YOURS_DIWALI = 17;
 		STATUS_REACTION = 18;
 		HEVC_VIDEO_DUAL_UPLOAD = 19;
+		POLL_ADD_OPTION = 20;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1619,7 +1683,10 @@ message Message {
 	optional FutureProofMessage newsletterAdminProfileMessage = 116;
 	optional FutureProofMessage newsletterAdminProfileMessageV2 = 117;
 	optional FutureProofMessage spoilerMessage = 118;
-	optional FutureProofMessage pollCreationMessageV6 = 119;
+	optional PollCreationMessage pollCreationMessageV6 = 119;
+	optional ConditionalRevealMessage conditionalRevealMessage = 120;
+	optional PollAddOptionMessage pollAddOptionMessage = 121;
+	optional EventInviteMessage eventInviteMessage = 122;
 }
 
 message AlbumMessage {
@@ -1630,9 +1697,10 @@ message AlbumMessage {
 
 message MessageHistoryMetadata {
 	repeated string historyReceivers = 1;
-	optional int64 oldestMessageTimestamp = 2;
+	optional int64 oldestMessageTimestampInWindow = 2;
 	optional int64 messageCount = 3;
 	repeated string nonHistoryReceivers = 4;
+	optional int64 oldestMessageTimestampInBundle = 5;
 }
 
 message MessageHistoryNotice {
@@ -1717,6 +1785,11 @@ message PollResultSnapshotMessage {
 	optional PollType pollType = 4;
 }
 
+message PollAddOptionMessage {
+	optional WACommon.MessageKey pollCreationMessageKey = 1;
+	optional PollCreationMessage.Option addOption = 2;
+}
+
 message PollVoteMessage {
 	repeated bytes selectedOptions = 1;
 }
@@ -1752,6 +1825,7 @@ message PollCreationMessage {
 	optional Option correctAnswer = 8;
 	optional int64 endTime = 9;
 	optional bool hideParticipantName = 10;
+	optional bool allowAddOption = 11;
 }
 
 message StickerSyncRMRMessage {
@@ -1779,6 +1853,16 @@ message DeviceSentMessage {
 
 message RequestPhoneNumberMessage {
 	optional ContextInfo contextInfo = 1;
+}
+
+message EventInviteMessage {
+	optional ContextInfo contextInfo = 1;
+	optional string eventID = 2;
+	optional string eventTitle = 3;
+	optional bytes JPEGThumbnail = 4;
+	optional int64 startTime = 5;
+	optional string caption = 6;
+	optional bool isCanceled = 7;
 }
 
 message NewsletterFollowerInviteMessage {
@@ -2269,8 +2353,8 @@ message MemberLabel {
 }
 
 message AIRichResponseMessage {
-	optional WAWebProtobufsAICommon.AIRichResponseMessageType messageType = 1;
-	repeated WAWebProtobufsAICommon.AIRichResponseSubMessage submessages = 2;
+	optional WAAICommonDeprecated.AIRichResponseMessageType messageType = 1;
+	repeated WAAICommonDeprecated.AIRichResponseSubMessage submessages = 2;
 	optional WAWebProtobufsAICommon.AIRichResponseUnifiedResponse unifiedResponse = 3;
 	optional ContextInfo contextInfo = 4;
 }
