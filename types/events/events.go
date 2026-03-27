@@ -492,6 +492,11 @@ type GroupInfo struct {
 	Demote         []types.JID // Users who were demoted to normal users
 	Suspended      bool        // whether the group is suspended
 	Unsuspended    bool        // whether the group is unsuspended
+
+	MembershipRequestsCreated []types.JID // Users that created membership requests
+	MembershipRequestsRevoked []types.JID // Users whose membership requests were revoked
+	MembershipRequestMethod   string      // How the membership request was created (invite_link, non_admin_add, etc.)
+
 	UnknownChanges []*waBinary.Node
 }
 
