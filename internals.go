@@ -43,6 +43,7 @@ func (cli *Client) DangerousInternals() *DangerousInternalClient {
 type DangerousInfoQuery = infoQuery
 type DangerousInfoQueryType = infoQueryType
 
+
 func (int *DangerousInternalClient) FetchAppState(ctx context.Context, name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) ([]any, error) {
 	return int.c.fetchAppState(ctx, name, fullSync, onlyIfNotSynced)
 }
@@ -399,8 +400,8 @@ func (int *DangerousInternalClient) DecryptMsgSecret(ctx context.Context, msg *e
 	return int.c.decryptMsgSecret(ctx, msg, useCase, encrypted, origMsgKey)
 }
 
-func (int *DangerousInternalClient) EncryptMsgSecret(ctx context.Context, ownID, chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
-	return int.c.encryptMsgSecret(ctx, ownID, chat, origSender, origMsgID, useCase, plaintext)
+func (int *DangerousInternalClient) EncryptMsgSecret(ctx context.Context, origMsgInfo *types.MessageInfo, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
+	return int.c.encryptMsgSecret(ctx, origMsgInfo, useCase, plaintext)
 }
 
 func (int *DangerousInternalClient) DecryptBotMessage(ctx context.Context, messageSecret []byte, msMsg messageEncryptedSecret, messageID types.MessageID, targetSenderJID types.JID, info *types.MessageInfo) ([]byte, error) {
@@ -547,11 +548,11 @@ func (int *DangerousInternalClient) ParseReceipt(node *waBinary.Node) (*events.R
 	return int.c.parseReceipt(node)
 }
 
-func (int *DangerousInternalClient) BackgroundIfAsyncAck(fn func()) {
+func (int *DangerousInternalClient) BackgroundIfAsyncAck(fn func() ) {
 	int.c.backgroundIfAsyncAck(fn)
 }
 
-func (int *DangerousInternalClient) MaybeDeferredAck(ctx context.Context, node *waBinary.Node) func(...*bool) {
+func (int *DangerousInternalClient) MaybeDeferredAck(ctx context.Context, node *waBinary.Node) func(...*bool)  {
 	return int.c.maybeDeferredAck(ctx, node)
 }
 
