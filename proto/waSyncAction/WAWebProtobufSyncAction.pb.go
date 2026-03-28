@@ -7448,7 +7448,7 @@ func (x *CallLogRecord_ParticipantInfo) GetCallResult() CallLogRecord_CallResult
 
 type StatusPrivacyAction_CustomList struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ID            *int64                 `protobuf:"varint,1,opt,name=ID" json:"ID,omitempty"`
+	ListID        *string                `protobuf:"bytes,1,opt,name=listID" json:"listID,omitempty"`
 	Name          *string                `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
 	Emoji         *string                `protobuf:"bytes,3,opt,name=emoji" json:"emoji,omitempty"`
 	IsSelected    *bool                  `protobuf:"varint,4,opt,name=isSelected" json:"isSelected,omitempty"`
@@ -7487,11 +7487,11 @@ func (*StatusPrivacyAction_CustomList) Descriptor() ([]byte, []int) {
 	return file_waSyncAction_WAWebProtobufSyncAction_proto_rawDescGZIP(), []int{11, 0}
 }
 
-func (x *StatusPrivacyAction_CustomList) GetID() int64 {
-	if x != nil && x.ID != nil {
-		return *x.ID
+func (x *StatusPrivacyAction_CustomList) GetListID() string {
+	if x != nil && x.ListID != nil {
+		return *x.ListID
 	}
-	return 0
+	return ""
 }
 
 func (x *StatusPrivacyAction_CustomList) GetName() string {
@@ -7941,16 +7941,16 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\bNoteType\x12\x10\n" +
 	"\fUNSTRUCTURED\x10\x01\x12\x0e\n" +
 	"\n" +
-	"STRUCTURED\x10\x02\"\x8d\x04\n" +
+	"STRUCTURED\x10\x02\"\x95\x04\n" +
 	"\x13StatusPrivacyAction\x12W\n" +
 	"\x04mode\x18\x01 \x01(\x0e2C.WAWebProtobufSyncAction.StatusPrivacyAction.StatusDistributionModeR\x04mode\x12\x18\n" +
 	"\auserJID\x18\x02 \x03(\tR\auserJID\x12\x1c\n" +
 	"\tshareToFB\x18\x03 \x01(\bR\tshareToFB\x12\x1c\n" +
 	"\tshareToIG\x18\x04 \x01(\bR\tshareToIG\x12Y\n" +
-	"\vcustomLists\x18\x05 \x03(\v27.WAWebProtobufSyncAction.StatusPrivacyAction.CustomListR\vcustomLists\x1a\x80\x01\n" +
+	"\vcustomLists\x18\x05 \x03(\v27.WAWebProtobufSyncAction.StatusPrivacyAction.CustomListR\vcustomLists\x1a\x88\x01\n" +
 	"\n" +
-	"CustomList\x12\x0e\n" +
-	"\x02ID\x18\x01 \x01(\x03R\x02ID\x12\x12\n" +
+	"CustomList\x12\x16\n" +
+	"\x06listID\x18\x01 \x01(\tR\x06listID\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05emoji\x18\x03 \x01(\tR\x05emoji\x12\x1e\n" +
 	"\n" +
