@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"sync/atomic"
 
 	"github.com/coder/websocket"
 
@@ -35,7 +36,7 @@ type FrameSocket struct {
 
 	Header []byte
 
-	closed bool
+	closed atomic.Bool
 
 	incomingLength int
 	receivedLength int
@@ -67,7 +68,7 @@ func (fs *FrameSocket) Close(code websocket.StatusCode) {
 		return
 	}
 
-	fs.closed = true
+	fs.closed.Store(true)
 	if code > 0 {
 		err := fs.conn.Close(code, "")
 		if err != nil {
@@ -93,6 +94,10 @@ func (fs *FrameSocket) Connect(ctx context.Context) error {
 	if fs.conn != nil {
 		return ErrSocketAlreadyOpen
 	}
+
+	// Reset the closed state when opening a new connection.
+	fs.closed.Store(false)
+
 	fs.parentCtx = ctx
 	fs.cancelCtx, fs.cancel = context.WithCancel(ctx)
 
@@ -209,7 +214,7 @@ func (fs *FrameSocket) readPump(conn *websocket.Conn, ctx context.Context) {
 		msgType, data, err := conn.Read(ctx)
 		if err != nil {
 			// Ignore the error if the context has been closed
-			if !fs.closed && !errors.Is(ctx.Err(), context.Canceled) {
+			if !fs.closed.Load() && !errors.Is(ctx.Err(), context.Canceled) {
 				fs.log.Errorf("Error reading from websocket: %v", err)
 			}
 			return
