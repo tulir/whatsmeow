@@ -353,7 +353,7 @@ message StatusPrivacyAction {
 	}
 
 	message CustomList {
-		optional int64 ID = 1;
+		optional string listID = 1;
 		optional string name = 2;
 		optional string emoji = 3;
 		optional bool isSelected = 4;
