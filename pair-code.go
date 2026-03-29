@@ -59,7 +59,7 @@ func generateCompanionEphemeralKey(pairingCode string) (ephemeralKeyPair *keys.K
 	salt := random.Bytes(32)
 	iv := random.Bytes(16)
     
-    if != "" && len(pairingCode) == 8 {
+    if pairingCode != "" && len(pairingCode) == 8 {
 		encodedLinkingCode = pairingCode
 	} else {
 		linkingCode := random.Bytes(5)
