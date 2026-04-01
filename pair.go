@@ -13,6 +13,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -82,7 +83,8 @@ func (cli *Client) makeQRData(ref string) string {
 	noise := base64.StdEncoding.EncodeToString(cli.Store.NoiseKey.Pub[:])
 	identity := base64.StdEncoding.EncodeToString(cli.Store.IdentityKey.Pub[:])
 	adv := base64.StdEncoding.EncodeToString(cli.Store.AdvSecretKey)
-	return strings.Join([]string{ref, noise, identity, adv}, ",")
+	// todo: add support for other pair client ids
+	return strings.Join([]string{"https://wa.me/settings/linked_devices#", ref, noise, identity, adv, strconv.Itoa(int(PairClientChrome))}, ",")
 }
 
 func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
