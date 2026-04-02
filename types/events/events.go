@@ -297,6 +297,7 @@ type Message struct {
 	IsViewOnceV2Extension bool // True if the message was unwrapped from a ViewOnceMessageV2Extension
 	IsDocumentWithCaption bool // True if the message was unwrapped from a DocumentWithCaptionMessage
 	IsLottieSticker       bool // True if the message was unwrapped from a LottieStickerMessage
+	IsBotInvoke           bool // True if the message was unwrapped from a BotInvokeMessage
 	IsEdit                bool // True if the message was unwrapped from an EditedMessage
 
 	// If this event was parsed from a WebMessageInfo (i.e. from a history sync or unavailable message request), the source data is here.
@@ -350,6 +351,10 @@ func (evt *Message) UnwrapRaw() *Message {
 		}
 		evt.Message = evt.Message.GetDeviceSentMessage().GetMessage()
 	}
+	if evt.Message.GetBotInvokeMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetBotInvokeMessage().GetMessage()
+		evt.IsBotInvoke = true
+	}
 	if evt.Message.GetEphemeralMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetEphemeralMessage().GetMessage()
 		evt.IsEphemeral = true
@@ -380,6 +385,9 @@ func (evt *Message) UnwrapRaw() *Message {
 	if evt.Message.GetEditedMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetEditedMessage().GetMessage()
 		evt.IsEdit = true
+	}
+	if evt.Message != nil && evt.RawMessage != nil && evt.Message.MessageContextInfo == nil && evt.RawMessage.MessageContextInfo != nil {
+		evt.Message.MessageContextInfo = evt.RawMessage.MessageContextInfo
 	}
 	return evt
 }
@@ -480,9 +488,10 @@ type GroupInfo struct {
 	Join  []types.JID // Users who joined or were added the group
 	Leave []types.JID // Users who left or were removed from the group
 
-	Promote []types.JID // Users who were promoted to admins
-	Demote  []types.JID // Users who were demoted to normal users
-
+	Promote        []types.JID // Users who were promoted to admins
+	Demote         []types.JID // Users who were demoted to normal users
+	Suspended      bool        // whether the group is suspended
+	Unsuspended    bool        // whether the group is unsuspended
 	UnknownChanges []*waBinary.Node
 }
 
@@ -524,6 +533,9 @@ type PrivacySettings struct {
 	ReadReceiptsChanged bool
 	OnlineChanged       bool
 	CallAddChanged      bool
+	MessagesChanged     bool
+	DefenseChanged      bool
+	StickersChanged     bool
 }
 
 // OfflineSyncPreview is emitted right after connecting if the server is going to send events that the client missed during downtime.

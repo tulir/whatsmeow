@@ -1,0 +1,24 @@
+syntax = "proto2";
+package WAWebProtobufsE2EGuest;
+option go_package = "go.mau.fi/whatsmeow/proto/waE2EGuest";
+
+message Message {
+	message ExtendedTextMessage {
+		optional string text = 1;
+		optional ContextInfo contextInfo = 17;
+	}
+
+	message ContextInfo {
+		optional string stanzaID = 1;
+		optional string participant = 2;
+		optional Message quotedMessage = 3;
+	}
+
+	optional string conversation = 1;
+	optional ExtendedTextMessage extendedTextMessage = 6;
+	optional MessageContextInfo messageContextInfo = 35;
+}
+
+message MessageContextInfo {
+	optional bytes messageSecret = 3;
+}

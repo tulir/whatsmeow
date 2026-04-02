@@ -1,4 +1,4 @@
-// Copyright (c) 2021 Tulir Asokan
+// Copyright (c) 2025 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -7,6 +7,7 @@
 package socket
 
 import (
+	"context"
 	"crypto/cipher"
 	"crypto/sha256"
 	"fmt"
@@ -74,14 +75,19 @@ func (nh *NoiseHandshake) Decrypt(ciphertext []byte) (plaintext []byte, err erro
 	return
 }
 
-func (nh *NoiseHandshake) Finish(fs *FrameSocket, frameHandler FrameHandler, disconnectHandler DisconnectHandler) (*NoiseSocket, error) {
+func (nh *NoiseHandshake) Finish(
+	ctx context.Context,
+	fs *FrameSocket,
+	frameHandler FrameHandler,
+	disconnectHandler DisconnectHandler,
+) (*NoiseSocket, error) {
 	if write, read, err := nh.extractAndExpand(nh.salt, nil); err != nil {
 		return nil, fmt.Errorf("failed to extract final keys: %w", err)
 	} else if writeKey, err := gcmutil.Prepare(write); err != nil {
 		return nil, fmt.Errorf("failed to create final write cipher: %w", err)
 	} else if readKey, err := gcmutil.Prepare(read); err != nil {
 		return nil, fmt.Errorf("failed to create final read cipher: %w", err)
-	} else if ns, err := newNoiseSocket(fs, writeKey, readKey, frameHandler, disconnectHandler); err != nil {
+	} else if ns, err := newNoiseSocket(ctx, fs, writeKey, readKey, frameHandler, disconnectHandler); err != nil {
 		return nil, fmt.Errorf("failed to create noise socket: %w", err)
 	} else {
 		return ns, nil

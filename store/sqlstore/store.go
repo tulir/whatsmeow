@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"go.mau.fi/util/dbutil"
+	"go.mau.fi/util/exslices"
 	"go.mau.fi/util/exsync"
 
 	"go.mau.fi/whatsmeow/store"
@@ -108,9 +109,11 @@ func (s *SQLStore) IsTrustedIdentity(ctx context.Context, address string, key [3
 }
 
 const (
-	getSessionQuery = `SELECT session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
-	hasSessionQuery = `SELECT true FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
-	putSessionQuery = `
+	getSessionQuery             = `SELECT session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
+	hasSessionQuery             = `SELECT true FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id=$2`
+	getManySessionQueryPostgres = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id = ANY($2)`
+	getManySessionQueryGeneric  = `SELECT their_id, session FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id IN (%s)`
+	putSessionQuery             = `
 		INSERT INTO whatsmeow_sessions (our_jid, their_id, session) VALUES ($1, $2, $3)
 		ON CONFLICT (our_jid, their_id) DO UPDATE SET session=excluded.session
 	`
@@ -156,6 +159,61 @@ func (s *SQLStore) HasSession(ctx context.Context, address string) (has bool, er
 		err = nil
 	}
 	return
+}
+
+type addressSessionTuple struct {
+	Address string
+	Session []byte
+}
+
+var sessionScanner = dbutil.ConvertRowFn[addressSessionTuple](func(row dbutil.Scannable) (out addressSessionTuple, err error) {
+	err = row.Scan(&out.Address, &out.Session)
+	return
+})
+
+func (s *SQLStore) GetManySessions(ctx context.Context, addresses []string) (map[string][]byte, error) {
+	if len(addresses) == 0 {
+		return nil, nil
+	}
+
+	var rows dbutil.Rows
+	var err error
+	if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
+		rows, err = s.db.Query(ctx, getManySessionQueryPostgres, s.JID, PostgresArrayWrapper(addresses))
+	} else {
+		args := make([]any, len(addresses)+1)
+		placeholders := make([]string, len(addresses))
+		args[0] = s.JID
+		for i, addr := range addresses {
+			args[i+1] = addr
+			placeholders[i] = fmt.Sprintf("$%d", i+2)
+		}
+		rows, err = s.db.Query(ctx, fmt.Sprintf(getManySessionQueryGeneric, strings.Join(placeholders, ",")), args...)
+	}
+	result := make(map[string][]byte, len(addresses))
+	for _, addr := range addresses {
+		result[addr] = nil
+	}
+	err = sessionScanner.NewRowIter(rows, err).Iter(func(tuple addressSessionTuple) (bool, error) {
+		result[tuple.Address] = tuple.Session
+		return true, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *SQLStore) PutManySessions(ctx context.Context, sessions map[string][]byte) error {
+	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
+		for addr, sess := range sessions {
+			err := s.PutSession(ctx, addr, sess)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (s *SQLStore) PutSession(ctx context.Context, address string, session []byte) error {
@@ -384,6 +442,7 @@ const (
 			SET key_data=excluded.key_data, timestamp=excluded.timestamp, fingerprint=excluded.fingerprint
 			WHERE excluded.timestamp > whatsmeow_app_state_sync_keys.timestamp
 	`
+	getAllAppStateSyncKeysQuery     = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 ORDER BY timestamp DESC`
 	getAppStateSyncKeyQuery         = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 AND key_id=$2`
 	getLatestAppStateSyncKeyIDQuery = `SELECT key_id FROM whatsmeow_app_state_sync_keys WHERE jid=$1 ORDER BY timestamp DESC LIMIT 1`
 )
@@ -391,6 +450,25 @@ const (
 func (s *SQLStore) PutAppStateSyncKey(ctx context.Context, id []byte, key store.AppStateSyncKey) error {
 	_, err := s.db.Exec(ctx, putAppStateSyncKeyQuery, s.JID, id, key.Data, key.Timestamp, key.Fingerprint)
 	return err
+}
+
+func (s *SQLStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*store.AppStateSyncKey, error) {
+	rows, err := s.db.Query(ctx, getAllAppStateSyncKeysQuery, s.JID)
+	if err != nil {
+		return nil, err
+	}
+	var out []*store.AppStateSyncKey
+	for rows.Next() {
+		var item store.AppStateSyncKey
+		err = rows.Scan(&item.Data, &item.Timestamp, &item.Fingerprint)
+		if err != nil {
+			return nil, err
+		}
+		if len(item.Data) > 0 {
+			out = append(out, &item)
+		}
+	}
+	return out, rows.Close()
 }
 
 func (s *SQLStore) GetAppStateSyncKey(ctx context.Context, id []byte) (*store.AppStateSyncKey, error) {
@@ -440,6 +518,8 @@ func (s *SQLStore) GetAppStateVersion(ctx context.Context, name string) (version
 	} else if len(uncheckedHash) != 128 {
 		// This shouldn't happen
 		err = ErrInvalidLength
+	} else if version == 0 {
+		err = fmt.Errorf("invalid saved app state version 0 for name %s (hash %x)", name, uncheckedHash)
 	} else {
 		// No errors, convert hash slice to array
 		hash = *(*[128]byte)(uncheckedHash)
@@ -522,10 +602,10 @@ const (
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name) VALUES ($1, $2, $3, $4)
 		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
 	`
-	putManyContactNamesQuery = `
-		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name)
-		VALUES %s
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
+	putRedactedPhoneQuery = `
+		INSERT INTO whatsmeow_contacts (our_jid, their_jid, redacted_phone)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET redacted_phone=excluded.redacted_phone
 	`
 	putPushNameQuery = `
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, push_name) VALUES ($1, $2, $3)
@@ -536,11 +616,19 @@ const (
 		ON CONFLICT (our_jid, their_jid) DO UPDATE SET business_name=excluded.business_name
 	`
 	getContactQuery = `
-		SELECT first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
+		SELECT first_name, full_name, push_name, business_name, redacted_phone FROM whatsmeow_contacts WHERE our_jid=$1 AND their_jid=$2
 	`
 	getAllContactsQuery = `
-		SELECT their_jid, first_name, full_name, push_name, business_name FROM whatsmeow_contacts WHERE our_jid=$1
+		SELECT their_jid, first_name, full_name, push_name, business_name, redacted_phone FROM whatsmeow_contacts WHERE our_jid=$1
 	`
+)
+
+var putContactNamesMassInsertBuilder = dbutil.NewMassInsertBuilder[store.ContactEntry, [1]any](
+	putContactNameQuery, "($1, $%d, $%d, $%d)",
+)
+
+var putRedactedPhonesMassInsertBuilder = dbutil.NewMassInsertBuilder[store.RedactedPhoneEntry, [1]any](
+	putRedactedPhoneQuery, "($1, $%d, $%d)",
 )
 
 func (s *SQLStore) PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error) {
@@ -607,44 +695,21 @@ func (s *SQLStore) PutContactName(ctx context.Context, user types.JID, firstName
 
 const contactBatchSize = 300
 
-func (s *SQLStore) putContactNamesBatch(ctx context.Context, contacts []store.ContactEntry) error {
-	values := make([]any, 1, 1+len(contacts)*3)
-	queryParts := make([]string, 0, len(contacts))
-	values[0] = s.JID
-	placeholderSyntax := "($1, $%d, $%d, $%d)"
-	if s.db.Dialect == dbutil.SQLite {
-		placeholderSyntax = "(?1, ?%d, ?%d, ?%d)"
-	}
-	i := 0
-	handledContacts := make(map[types.JID]struct{}, len(contacts))
-	for _, contact := range contacts {
-		if contact.JID.IsEmpty() {
-			s.log.Warnf("Empty contact info in mass insert: %+v", contact)
-			continue
-		}
-		// The whole query will break if there are duplicates, so make sure there aren't any duplicates
-		_, alreadyHandled := handledContacts[contact.JID]
-		if alreadyHandled {
-			s.log.Warnf("Duplicate contact info for %s in mass insert", contact.JID)
-			continue
-		}
-		handledContacts[contact.JID] = struct{}{}
-		baseIndex := i*3 + 1
-		values = append(values, contact.JID.String(), contact.FirstName, contact.FullName)
-		queryParts = append(queryParts, fmt.Sprintf(placeholderSyntax, baseIndex+1, baseIndex+2, baseIndex+3))
-		i++
-	}
-	_, err := s.db.Exec(ctx, fmt.Sprintf(putManyContactNamesQuery, strings.Join(queryParts, ",")), values...)
-	return err
-}
-
 func (s *SQLStore) PutAllContactNames(ctx context.Context, contacts []store.ContactEntry) error {
 	if len(contacts) == 0 {
 		return nil
 	}
+	origLen := len(contacts)
+	contacts = exslices.DeduplicateUnsortedOverwriteFunc(contacts, func(t store.ContactEntry) types.JID {
+		return t.JID
+	})
+	if origLen != len(contacts) {
+		s.log.Warnf("%d duplicate contacts found in PutAllContactNames", origLen-len(contacts))
+	}
 	err := s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		for slice := range slices.Chunk(contacts, contactBatchSize) {
-			err := s.putContactNamesBatch(ctx, slice)
+			query, vars := putContactNamesMassInsertBuilder.Build([1]any{s.JID}, slice)
+			_, err := s.db.Exec(ctx, query, vars...)
 			if err != nil {
 				return err
 			}
@@ -661,23 +726,59 @@ func (s *SQLStore) PutAllContactNames(ctx context.Context, contacts []store.Cont
 	return nil
 }
 
+func (s *SQLStore) PutManyRedactedPhones(ctx context.Context, entries []store.RedactedPhoneEntry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+	origLen := len(entries)
+	entries = exslices.DeduplicateUnsortedOverwriteFunc(entries, func(t store.RedactedPhoneEntry) types.JID {
+		return t.JID
+	})
+	if origLen != len(entries) {
+		s.log.Warnf("%d duplicate contacts found in PutManyRedactedPhones", origLen-len(entries))
+	}
+	err := s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
+		for slice := range slices.Chunk(entries, contactBatchSize) {
+			query, vars := putRedactedPhonesMassInsertBuilder.Build([1]any{s.JID}, slice)
+			_, err := s.db.Exec(ctx, query, vars...)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	s.contactCacheLock.Lock()
+	for _, entry := range entries {
+		if cached, ok := s.contactCache[entry.JID]; ok && cached.RedactedPhone == entry.RedactedPhone {
+			continue
+		}
+		delete(s.contactCache, entry.JID)
+	}
+	s.contactCacheLock.Unlock()
+	return nil
+}
+
 func (s *SQLStore) getContact(ctx context.Context, user types.JID) (*types.ContactInfo, error) {
 	cached, ok := s.contactCache[user]
 	if ok {
 		return cached, nil
 	}
 
-	var first, full, push, business sql.NullString
-	err := s.db.QueryRow(ctx, getContactQuery, s.JID, user).Scan(&first, &full, &push, &business)
+	var first, full, push, business, redactedPhone sql.NullString
+	err := s.db.QueryRow(ctx, getContactQuery, s.JID, user).Scan(&first, &full, &push, &business, &redactedPhone)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 	info := &types.ContactInfo{
-		Found:        err == nil,
-		FirstName:    first.String,
-		FullName:     full.String,
-		PushName:     push.String,
-		BusinessName: business.String,
+		Found:         err == nil,
+		FirstName:     first.String,
+		FullName:      full.String,
+		PushName:      push.String,
+		BusinessName:  business.String,
+		RedactedPhone: redactedPhone.String,
 	}
 	s.contactCache[user] = info
 	return info, nil
@@ -703,17 +804,18 @@ func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.Cont
 	output := make(map[types.JID]types.ContactInfo, len(s.contactCache))
 	for rows.Next() {
 		var jid types.JID
-		var first, full, push, business sql.NullString
-		err = rows.Scan(&jid, &first, &full, &push, &business)
+		var first, full, push, business, redactedPhone sql.NullString
+		err = rows.Scan(&jid, &first, &full, &push, &business, &redactedPhone)
 		if err != nil {
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 		info := types.ContactInfo{
-			Found:        true,
-			FirstName:    first.String,
-			FullName:     full.String,
-			PushName:     push.String,
-			BusinessName: business.String,
+			Found:         true,
+			FirstName:     first.String,
+			FullName:      full.String,
+			PushName:      push.String,
+			BusinessName:  business.String,
+			RedactedPhone: redactedPhone.String,
 		}
 		output[jid] = info
 		s.contactCache[jid] = &info
@@ -733,7 +835,9 @@ const (
 
 func (s *SQLStore) PutMutedUntil(ctx context.Context, chat types.JID, mutedUntil time.Time) error {
 	var val int64
-	if !mutedUntil.IsZero() {
+	if mutedUntil == store.MutedForever {
+		val = -1
+	} else if !mutedUntil.IsZero() {
 		val = mutedUntil.Unix()
 	}
 	_, err := s.db.Exec(ctx, fmt.Sprintf(putChatSettingQuery, "muted_until"), s.JID, chat, val)
@@ -760,7 +864,9 @@ func (s *SQLStore) GetChatSettings(ctx context.Context, chat types.JID) (setting
 	} else {
 		settings.Found = true
 	}
-	if mutedUntil != 0 {
+	if mutedUntil < 0 {
+		settings.MutedUntil = store.MutedForever
+	} else if mutedUntil > 0 {
 		settings.MutedUntil = time.Unix(mutedUntil, 0)
 	}
 	return
@@ -773,7 +879,23 @@ const (
 		ON CONFLICT (our_jid, chat_jid, sender_jid, message_id) DO NOTHING
 	`
 	getMsgSecret = `
-		SELECT key FROM whatsmeow_message_secrets WHERE our_jid=$1 AND chat_jid=$2 AND sender_jid=$3 AND message_id=$4
+		SELECT key, sender_jid
+		FROM whatsmeow_message_secrets
+		WHERE our_jid=$1 AND (chat_jid=$2 OR chat_jid=(
+			CASE
+				WHEN $2 LIKE '%@lid'
+					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($2, '@lid', ''))
+				WHEN $2 LIKE '%@s.whatsapp.net'
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE pn=replace($2, '@s.whatsapp.net', ''))
+			END
+		)) AND message_id=$4 AND (sender_jid=$3 OR sender_jid=(
+			CASE
+				WHEN $3 LIKE '%@lid'
+					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($3, '@lid', ''))
+				WHEN $3 LIKE '%@s.whatsapp.net'
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE pn=replace($3, '@s.whatsapp.net', ''))
+			END
+		))
 	`
 )
 
@@ -797,8 +919,8 @@ func (s *SQLStore) PutMessageSecret(ctx context.Context, chat, sender types.JID,
 	return
 }
 
-func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) (secret []byte, err error) {
-	err = s.db.QueryRow(ctx, getMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&secret)
+func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) (secret []byte, realSender types.JID, err error) {
+	err = s.db.QueryRow(ctx, getMsgSecret, s.JID, chat.ToNonAD(), sender.ToNonAD(), id).Scan(&secret, &realSender)
 	if errors.Is(err, sql.ErrNoRows) {
 		err = nil
 	}
@@ -811,7 +933,18 @@ const (
 		VALUES ($1, $2, $3, $4)
 		ON CONFLICT (our_jid, their_jid) DO UPDATE SET token=EXCLUDED.token, timestamp=EXCLUDED.timestamp
 	`
-	getPrivacyToken = `SELECT token, timestamp FROM whatsmeow_privacy_tokens WHERE our_jid=$1 AND their_jid=$2`
+	getPrivacyToken = `
+		SELECT token, timestamp FROM whatsmeow_privacy_tokens WHERE our_jid=$1 AND (their_jid=$2 OR their_jid=(
+			CASE
+				WHEN $2 LIKE '%@lid'
+					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($2, '@lid', ''))
+				WHEN $2 LIKE '%@s.whatsapp.net'
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE pn=replace($2, '@s.whatsapp.net', ''))
+				ELSE $2
+			END
+		))
+		ORDER BY timestamp DESC LIMIT 1
+	`
 )
 
 func (s *SQLStore) PutPrivacyTokens(ctx context.Context, tokens ...store.PrivacyToken) error {
@@ -893,5 +1026,35 @@ func (s *SQLStore) DeleteOldBufferedHashes(ctx context.Context) error {
 	// The WhatsApp servers only buffer events for 14 days,
 	// so we can safely delete anything older than that.
 	_, err := s.db.Exec(ctx, deleteOldBufferedHashesQuery, time.Now().Add(-14*24*time.Hour).UnixMilli())
+	return err
+}
+
+const (
+	getOutgoingEventQuery = `
+		SELECT format, plaintext FROM whatsmeow_retry_buffer WHERE our_jid=$1 AND (chat_jid=$2 OR chat_jid=$3) AND message_id=$4
+	`
+	addOutgoingEventQuery = `
+		INSERT INTO whatsmeow_retry_buffer (our_jid, chat_jid, message_id, format, plaintext, timestamp)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (our_jid, chat_jid, message_id) DO UPDATE
+			SET format=excluded.format, plaintext=excluded.plaintext, timestamp=excluded.timestamp
+	`
+	deleteOldOutgoingEventsQuery = `
+		DELETE FROM whatsmeow_retry_buffer WHERE our_jid=$1 AND timestamp < $2
+	`
+)
+
+func (s *SQLStore) GetOutgoingEvent(ctx context.Context, chatJID, altChatJID types.JID, id types.MessageID) (format string, result []byte, err error) {
+	err = s.db.QueryRow(ctx, getOutgoingEventQuery, s.JID, chatJID, altChatJID, id).Scan(&format, &result)
+	return
+}
+
+func (s *SQLStore) AddOutgoingEvent(ctx context.Context, chatJID types.JID, id types.MessageID, format string, plaintext []byte) error {
+	_, err := s.db.Exec(ctx, addOutgoingEventQuery, s.JID, chatJID, id, format, plaintext, time.Now().UnixMilli())
+	return err
+}
+
+func (s *SQLStore) DeleteOldOutgoingEvents(ctx context.Context) error {
+	_, err := s.db.Exec(ctx, deleteOldOutgoingEventsQuery, s.JID, time.Now().Add(-7*24*time.Hour).UnixMilli())
 	return err
 }

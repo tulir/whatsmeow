@@ -18,6 +18,11 @@ const (
 	AddressingModeLID AddressingMode = "lid"
 )
 
+type BroadcastRecipient struct {
+	LID JID
+	PN  JID
+}
+
 // MessageSource contains basic sender and chat information about a message.
 type MessageSource struct {
 	Chat     JID  // The chat where the message was sent.
@@ -31,7 +36,8 @@ type MessageSource struct {
 
 	// When sending a read receipt to a broadcast list message, the Chat is the broadcast list
 	// and Sender is you, so this field contains the recipient of the read receipt.
-	BroadcastListOwner JID
+	BroadcastListOwner  JID
+	BroadcastRecipients []BroadcastRecipient
 }
 
 // IsIncomingBroadcast returns true if the message was sent to a broadcast list instead of directly to the user.
@@ -78,6 +84,7 @@ type MsgMetaInfo struct {
 	// Bot things
 	TargetID     MessageID
 	TargetSender JID
+	TargetChat   JID
 
 	DeprecatedLIDSession *bool
 

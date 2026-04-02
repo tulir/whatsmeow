@@ -20,11 +20,15 @@ import (
 )
 
 type Mutation struct {
+	KeyID     []byte
 	Operation waServerSync.SyncdMutation_SyncdOperation
 	Action    *waSyncAction.SyncActionValue
+	Version   int32
 	Index     []string
 	IndexMAC  []byte
 	ValueMAC  []byte
+
+	PatchVersion uint64
 }
 
 type HashState struct {
@@ -80,7 +84,7 @@ func (hs *HashState) generateSnapshotMAC(name WAPatchName, key []byte) []byte {
 
 func generatePatchMAC(patch *waServerSync.SyncdPatch, name WAPatchName, key []byte, version uint64) []byte {
 	dataToHash := make([][]byte, len(patch.GetMutations())+3)
-	dataToHash[0] = patch.GetSnapshotMac()
+	dataToHash[0] = patch.GetSnapshotMAC()
 	for i, mutation := range patch.Mutations {
 		val := mutation.GetRecord().GetValue().GetBlob()
 		dataToHash[i+1] = val[len(val)-32:]

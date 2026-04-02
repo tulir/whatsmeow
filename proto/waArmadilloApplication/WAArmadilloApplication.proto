@@ -61,6 +61,29 @@ message Armadillo {
 		}
 
 		message MetadataSyncAction {
+			message SyncAttachmentInterventionAction {
+				enum InterventionType {
+					UNKNOWN = 0;
+					NUDE = 1;
+					NOT_NUDE = 2;
+				}
+
+				optional WACommon.MessageKey messageKey = 1;
+				optional InterventionType interventionType = 2;
+			}
+
+			message SyncSpectraAction {
+				enum SpectraActionType {
+					TAKEDOWN = 0;
+					RESTORE = 1;
+				}
+
+				optional WACommon.MessageKey key = 1;
+				optional SpectraActionType actionType = 2;
+				optional int64 takedownActionID = 3;
+				optional string config = 4;
+			}
+
 			message SyncMessageAction {
 				message ActionMessageDelete {
 				}
@@ -110,6 +133,8 @@ message Armadillo {
 			oneof actionType {
 				SyncChatAction chatAction = 101;
 				SyncMessageAction messageAction = 102;
+				SyncSpectraAction spectraAction = 103;
+				SyncAttachmentInterventionAction attachmentInterventionAction = 104;
 			}
 
 			optional int64 actionTimestamp = 1;

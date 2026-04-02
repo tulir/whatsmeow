@@ -9,10 +9,12 @@ package types
 import "time"
 
 type BasicCallMeta struct {
-	From        JID
-	Timestamp   time.Time
-	CallCreator JID
-	CallID      string
+	From           JID
+	Timestamp      time.Time
+	CallCreator    JID
+	CallCreatorAlt JID
+	CallID         string
+	GroupJID       JID
 }
 
 type CallRemoteMeta struct {

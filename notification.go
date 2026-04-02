@@ -34,7 +34,7 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		}
 		cli.Log.Infof("Got prekey count from server: %s", node.XMLString())
 		if otksLeft < MinPreKeyCount {
-			cli.uploadPreKeys(ctx)
+			cli.uploadPreKeys(ctx, false)
 		}
 	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
 		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node.XMLString())
@@ -118,10 +118,6 @@ func (cli *Client) handleDeviceNotification(ctx context.Context, node *waBinary.
 	}
 	cachedParticipantHash := participantListHashV2(cached.devices)
 	for _, child := range node.GetChildren() {
-		if child.Tag != "add" && child.Tag != "remove" {
-			cli.Log.Debugf("Unknown device list change tag %s", child.Tag)
-			continue
-		}
 		cag := child.AttrGetter()
 		deviceHash := cag.String("device_hash")
 		deviceLIDHash := cag.OptionalString("device_lid_hash")
@@ -144,7 +140,13 @@ func (cli *Client) handleDeviceNotification(ctx context.Context, node *waBinary.
 				})
 			}
 		case "update":
-			// ???
+			// Exact meaning of "update" is unknown, clear device list cache to be safe
+			cli.Log.Debugf("%s's device list updated, dropping cached devices", from)
+			delete(cli.userDevicesCache, from)
+			continue
+		default:
+			cli.Log.Debugf("Unknown device list change tag %s", child.Tag)
+			continue
 		}
 		newParticipantHash := participantListHashV2(cached.devices)
 		if newParticipantHash == deviceHash {
@@ -250,8 +252,9 @@ func (cli *Client) handleAccountSyncNotification(ctx context.Context, node *waBi
 }
 
 func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waBinary.Node) {
-	ownID := cli.getOwnID().ToNonAD()
-	if ownID.IsEmpty() {
+	ownJID := cli.getOwnID().ToNonAD()
+	ownLID := cli.getOwnLID().ToNonAD()
+	if ownJID.IsEmpty() {
 		cli.Log.Debugf("Ignoring privacy token notification, session was deleted")
 		return
 	}
@@ -270,8 +273,11 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 		ag := child.AttrGetter()
 		if child.Tag != "token" {
 			cli.Log.Warnf("privacy_token notification contained unexpected <%s> tag", child.Tag)
-		} else if targetUser := ag.JID("jid"); targetUser != ownID {
-			cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
+		} else if targetUser := ag.JID("jid"); targetUser != ownLID && targetUser != ownJID {
+			// Don't log about own privacy tokens for other users
+			if sender != ownJID && sender != ownLID {
+				cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
+			}
 		} else if tokenType := ag.String("type"); tokenType != "trusted_contact" {
 			cli.Log.Warnf("privacy_token notification contained unexpected token type %s", tokenType)
 		} else if token, ok := child.Content.([]byte); !ok {
@@ -405,8 +411,7 @@ func (cli *Client) handleStatusNotification(ctx context.Context, node *waBinary.
 	})
 }
 
-func (cli *Client) handleNotification(node *waBinary.Node) {
-	ctx := cli.BackgroundEventCtx
+func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) {
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
 	if !ag.OK() {
@@ -426,10 +431,18 @@ func (cli *Client) handleNotification(node *waBinary.Node) {
 	case "fbid:devices":
 		cli.handleFBDeviceNotification(ctx, node)
 	case "w:gp2":
-		evt, err := cli.parseGroupNotification(node)
+		evt, lidPairs, redactedPhones, err := cli.parseGroupNotification(node)
 		if err != nil {
 			cli.Log.Errorf("Failed to parse group notification: %v", err)
 		} else {
+			err = cli.Store.LIDs.PutManyLIDMappings(ctx, lidPairs)
+			if err != nil {
+				cli.Log.Errorf("Failed to store LID mappings from group notification: %v", err)
+			}
+			err = cli.Store.Contacts.PutManyRedactedPhones(ctx, redactedPhones)
+			if err != nil {
+				cli.Log.Warnf("Failed to store redacted phones from group notification: %v", err)
+			}
 			cancelled = cli.dispatchEvent(evt)
 		}
 	case "picture":

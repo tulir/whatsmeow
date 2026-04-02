@@ -24,6 +24,7 @@ type UserInfo struct {
 	Status       string
 	PictureID    string
 	Devices      []JID
+	LID          JID
 }
 
 type BotListInfo struct {
@@ -56,6 +57,8 @@ type ProfilePictureInfo struct {
 	Type string `json:"type"` // The type of image. Known types include "image" (full res) and "preview" (thumbnail).
 
 	DirectPath string `json:"direct_path"` // The path to the image, probably not very useful
+
+	Hash []byte `json:"hash"` // Some kind of hash (format is unknown)
 }
 
 // ContactInfo contains the cached names of a WhatsApp user.
@@ -66,6 +69,8 @@ type ContactInfo struct {
 	FullName     string
 	PushName     string
 	BusinessName string
+	// Only for LID members encountered in groups, the phone number in the form "+1∙∙∙∙∙∙∙∙80"
+	RedactedPhone string
 }
 
 // LocalChatSettings contains the cached local settings for a chat.
@@ -113,10 +118,13 @@ const (
 	PrivacySettingUndefined        PrivacySetting = ""
 	PrivacySettingAll              PrivacySetting = "all"
 	PrivacySettingContacts         PrivacySetting = "contacts"
+	PrivacySettingContactAllowlist PrivacySetting = "contact_allowlist"
 	PrivacySettingContactBlacklist PrivacySetting = "contact_blacklist"
 	PrivacySettingMatchLastSeen    PrivacySetting = "match_last_seen"
 	PrivacySettingKnown            PrivacySetting = "known"
 	PrivacySettingNone             PrivacySetting = "none"
+	PrivacySettingOnStandard       PrivacySetting = "on_standard"
+	PrivacySettingOff              PrivacySetting = "off"
 )
 
 // PrivacySettingType is the type of privacy setting.
@@ -130,6 +138,9 @@ const (
 	PrivacySettingTypeReadReceipts PrivacySettingType = "readreceipts" // Valid values: PrivacySettingAll, PrivacySettingNone
 	PrivacySettingTypeOnline       PrivacySettingType = "online"       // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
 	PrivacySettingTypeCallAdd      PrivacySettingType = "calladd"      // Valid values: PrivacySettingAll, PrivacySettingKnown
+	PrivacySettingTypeMessages     PrivacySettingType = "messages"     // Valid values: PrivacySettingAll, PrivacySettingContacts
+	PrivacySettingTypeDefense      PrivacySettingType = "defense"      // Valid values: PrivacySettingOnStandard, PrivacySettingOff
+	PrivacySettingTypeStickers     PrivacySettingType = "stickers"     // Valid values: PrivacySettingContacts, PrivacySettingContactAllowlist, PrivacySettingNone
 )
 
 // PrivacySettings contains the user's privacy settings.
@@ -141,6 +152,9 @@ type PrivacySettings struct {
 	ReadReceipts PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingNone
 	CallAdd      PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingKnown
 	Online       PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingMatchLastSeen
+	Messages     PrivacySetting // Valid values: PrivacySettingAll, PrivacySettingContacts
+	Defense      PrivacySetting // Valid values: PrivacySettingOnStandard, PrivacySettingOff
+	Stickers     PrivacySetting // Valid values: PrivacySettingContacts, PrivacySettingContactAllowlist, PrivacySettingNone
 }
 
 // StatusPrivacyType is the type of list in StatusPrivacy.

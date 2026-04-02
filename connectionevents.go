@@ -16,8 +16,7 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleStreamError(node *waBinary.Node) {
-	ctx := cli.BackgroundEventCtx
+func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 	cli.isLoggedIn.Store(false)
 	cli.clearResponseWaiters(node)
 	code, _ := node.Attrs["code"].(string)
@@ -33,7 +32,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 		cli.Log.Infof("Got 515 code, reconnecting...")
 		go func() {
 			cli.Disconnect()
-			err := cli.connect()
+			err := cli.connect(ctx)
 			if err != nil {
 				cli.Log.Errorf("Failed to reconnect after 515 code: %v", err)
 			}
@@ -70,7 +69,7 @@ func (cli *Client) handleStreamError(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleIB(node *waBinary.Node) {
+func (cli *Client) handleIB(ctx context.Context, node *waBinary.Node) {
 	children := node.GetChildren()
 	for _, child := range children {
 		ag := child.AttrGetter()
@@ -89,12 +88,18 @@ func (cli *Client) handleIB(node *waBinary.Node) {
 			cli.dispatchEvent(&events.OfflineSyncCompleted{
 				Count: ag.Int("count"),
 			})
+		case "dirty":
+			//ts := ag.UnixTime("timestamp")
+			//typ := ag.String("type") // account_sync
+			//go func() {
+			//	err := cli.MarkNotDirty(ctx, typ, ts)
+			//	zerolog.Ctx(ctx).Debug().Err(err).Msg("Marked dirty item as clean")
+			//}()
 		}
 	}
 }
 
-func (cli *Client) handleConnectFailure(node *waBinary.Node) {
-	ctx := cli.BackgroundEventCtx
+func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node) {
 	ag := node.AttrGetter()
 	reason := events.ConnectFailureReason(ag.Int("reason"))
 	message := ag.OptionalString("message")
@@ -150,13 +155,20 @@ func (cli *Client) handleConnectFailure(node *waBinary.Node) {
 	}
 }
 
-func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
-	ctx := cli.BackgroundEventCtx
+func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node) {
 	cli.Log.Infof("Successfully authenticated")
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
 	cli.isLoggedIn.Store(true)
-	nodeLID := node.AttrGetter().JID("lid")
+	ag := node.AttrGetter()
+	nodeLID := ag.JID("lid")
+	cli.serverTimeOffset.Store(int64(ag.UnixTime("t").Sub(time.Now().Round(time.Second))))
+
+	if !cli.Store.LID.IsEmpty() && !nodeLID.IsEmpty() && cli.Store.LID != nodeLID {
+		// This should probably never happen, but check just in case.
+		cli.Log.Warnf("Stored LID doesn't match one in connect success: %s != %s", cli.Store.LID, nodeLID)
+		cli.Store.LID = types.EmptyJID
+	}
 	if cli.Store.LID.IsEmpty() && !nodeLID.IsEmpty() {
 		cli.Store.LID = nodeLID
 		err := cli.Store.Save(ctx)
@@ -177,7 +189,7 @@ func (cli *Client) handleConnectSuccess(node *waBinary.Node) {
 		} else {
 			cli.Log.Debugf("Database has %d prekeys, server says we have %d", dbCount, serverCount)
 			if serverCount < MinPreKeyCount || dbCount < MinPreKeyCount {
-				cli.uploadPreKeys(ctx)
+				cli.uploadPreKeys(ctx, dbCount == 0 && serverCount == 0)
 				sc, _ := cli.getServerPreKeyCount(ctx)
 				cli.Log.Debugf("Prekey count after upload: %d", sc)
 			}
@@ -200,11 +212,10 @@ func (cli *Client) SetPassive(ctx context.Context, passive bool) error {
 	if passive {
 		tag = "passive"
 	}
-	_, err := cli.sendIQ(infoQuery{
+	_, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "passive",
 		Type:      "set",
 		To:        types.ServerJID,
-		Context:   ctx,
 		Content:   []waBinary.Node{{Tag: tag}},
 	})
 	if err != nil {

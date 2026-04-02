@@ -98,21 +98,9 @@ func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, us
 	if err != nil {
 		return nil, err
 	}
-	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
+	baseEncKey, origSender, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get original message secret key: %w", err)
-	}
-	if baseEncKey == nil && origMsgKey.GetFromMe() && origSender.Server == types.HiddenUserServer {
-		origSender, err = cli.Store.LIDs.GetPNForLID(ctx, origSender)
-		if err != nil {
-			return nil, fmt.Errorf("%w (also failed to get PN for LID: %w)", ErrOriginalMessageSecretNotFound, err)
-		} else if origSender.IsEmpty() {
-			return nil, fmt.Errorf("%w (PN for LID not found)", ErrOriginalMessageSecretNotFound)
-		}
-		baseEncKey, err = cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
-		if err != nil {
-			return nil, fmt.Errorf("failed to get original message secret key with PN: %w", err)
-		}
 	}
 	if baseEncKey == nil {
 		return nil, ErrOriginalMessageSecretNotFound
@@ -132,7 +120,7 @@ func (cli *Client) encryptMsgSecret(ctx context.Context, ownID, chat, origSender
 		return nil, nil, ErrNotLoggedIn
 	}
 
-	baseEncKey, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, chat, origSender, origMsgID)
+	baseEncKey, origSender, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, chat, origSender, origMsgID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get original message secret key: %w", err)
 	} else if baseEncKey == nil {
@@ -239,6 +227,29 @@ func (cli *Client) DecryptPollVote(ctx context.Context, vote *events.Message) (*
 	err = proto.Unmarshal(plaintext, &msg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode poll vote protobuf: %w", err)
+	}
+	return &msg, nil
+}
+
+func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *events.Message) (*waE2E.Message, error) {
+	encMessage := evt.Message.GetSecretEncryptedMessage()
+	if encMessage == nil {
+		return nil, ErrNotSecretEncryptedMessage
+	}
+	if encMessage.GetSecretEncType() != waE2E.SecretEncryptedMessage_EVENT_EDIT {
+		return nil, fmt.Errorf("unsupported secret enc type: %s", encMessage.SecretEncType.String())
+	}
+	plaintext, err := cli.decryptMsgSecret(ctx, evt, EncSecretEventEdit, encMessage, encMessage.GetTargetMessageKey())
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt message: %w", err)
+	}
+	var msg waE2E.Message
+	err = proto.Unmarshal(plaintext, &msg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode message protobuf: %w", err)
+	}
+	if evt.Message.MessageContextInfo != nil && msg.MessageContextInfo == nil {
+		msg.MessageContextInfo = evt.Message.MessageContextInfo
 	}
 	return &msg, nil
 }

@@ -14,6 +14,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -25,11 +26,11 @@ import (
 	"go.mau.fi/libsignal/protocol"
 	"go.mau.fi/libsignal/session"
 	"go.mau.fi/libsignal/signalerror"
-	"go.mau.fi/util/ptr"
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/proto/waAICommon"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
@@ -74,7 +75,8 @@ func GenerateMessageID() types.MessageID {
 }
 
 type MessageDebugTimings struct {
-	Queue time.Duration
+	LIDFetch time.Duration
+	Queue    time.Duration
 
 	Marshal         time.Duration
 	GetParticipants time.Duration
@@ -88,6 +90,9 @@ type MessageDebugTimings struct {
 }
 
 func (mdt MessageDebugTimings) MarshalZerologObject(evt *zerolog.Event) {
+	if mdt.LIDFetch != 0 {
+		evt.Dur("lid_fetch", mdt.LIDFetch)
+	}
 	evt.Dur("queue", mdt.Queue)
 	evt.Dur("marshal", mdt.Marshal)
 	if mdt.GetParticipants != 0 {
@@ -149,6 +154,8 @@ type SendRequestExtra struct {
 	MediaHandle string
 
 	Meta *types.MsgMetaInfo
+	// use this only if you know what you are doing
+	AdditionalNodes *[]waBinary.Node
 }
 
 // SendMessage sends the given message.
@@ -238,7 +245,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 
 	if isBotMode {
 		if message.MessageContextInfo.BotMetadata == nil {
-			message.MessageContextInfo.BotMetadata = &waE2E.BotMetadata{
+			message.MessageContextInfo.BotMetadata = &waAICommon.BotMetadata{
 				PersonaID: proto.String("867051314767696$760019659443059"),
 			}
 		}
@@ -272,7 +279,11 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 				return
 			}
 
-			participantNodes, _ := cli.encryptMessageForDevices(ctx, []types.JID{req.InlineBotJID}, resp.ID, messagePlaintext, nil, waBinary.Attrs{})
+			var participantNodes []waBinary.Node
+			participantNodes, _, err = cli.encryptMessageForDevices(ctx, []types.JID{req.InlineBotJID}, resp.ID, messagePlaintext, nil, waBinary.Attrs{})
+			if err != nil {
+				return
+			}
 			extraParams.botNode = &waBinary.Node{
 				Tag:     "bot",
 				Attrs:   nil,
@@ -296,10 +307,6 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 			if cachedData.AddressingMode == types.AddressingModeLID {
 				ownID = cli.getOwnLID()
 				extraParams.addressingMode = types.AddressingModeLID
-				if req.Meta == nil {
-					req.Meta = &types.MsgMetaInfo{}
-				}
-				req.Meta.DeprecatedLIDSession = ptr.Ptr(false)
 			} else if cachedData.CommunityAnnouncementGroup && req.Meta != nil {
 				ownID = cli.getOwnLID()
 				// Why is this set to PN?
@@ -315,11 +322,28 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		resp.DebugTimings.GetParticipants = time.Since(start)
 	} else if to.Server == types.HiddenUserServer {
 		ownID = cli.getOwnLID()
-		extraParams.addressingMode = types.AddressingModeLID
-		// if req.Meta == nil {
-		// 	req.Meta = &types.MsgMetaInfo{}
-		// }
-		// req.Meta.DeprecatedLIDSession = ptr.Ptr(false)
+	} else if to.Server == types.DefaultUserServer && cli.Store.LIDMigrationTimestamp > 0 && !req.Peer {
+		start := time.Now()
+		var toLID types.JID
+		toLID, err = cli.Store.LIDs.GetLIDForPN(ctx, to)
+		if err != nil {
+			err = fmt.Errorf("failed to get LID for PN %s: %w", to, err)
+			return
+		} else if toLID.IsEmpty() {
+			var info map[types.JID]types.UserInfo
+			info, err = cli.GetUserInfo(ctx, []types.JID{to})
+			if err != nil {
+				err = fmt.Errorf("failed to get user info for %s to fill LID cache: %w", to, err)
+				return
+			} else if toLID = info[to].LID; toLID.IsEmpty() {
+				err = fmt.Errorf("no LID found for %s from server", to)
+				return
+			}
+		}
+		resp.DebugTimings.LIDFetch = time.Since(start)
+		cli.Log.Debugf("Replacing SendMessage destination with LID as migration timestamp is set %s -> %s", to, toLID)
+		to = toLID
+		ownID = cli.getOwnLID()
 	}
 	if req.Meta != nil {
 		extraParams.metaNode = &waBinary.Node{
@@ -335,18 +359,26 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		}
 	}
 
+	if req.AdditionalNodes != nil {
+		extraParams.additionalNodes = req.AdditionalNodes
+	}
+
 	resp.Sender = ownID
 
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely
+	// This is also required for the session prefetching that makes group sends faster
+	// (everything will explode if you send a message to the same user twice in parallel)
 	cli.messageSendLock.Lock()
 	resp.DebugTimings.Queue = time.Since(start)
 	defer cli.messageSendLock.Unlock()
 
-	respChan := cli.waitResponse(req.ID)
 	// Peer message retries aren't implemented yet
 	if !req.Peer {
-		cli.addRecentMessage(to, req.ID, message, nil)
+		err = cli.addRecentMessage(ctx, to, req.ID, message, nil)
+		if err != nil {
+			return
+		}
 	}
 
 	if message.GetMessageContextInfo().GetMessageSecret() != nil {
@@ -357,6 +389,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 			cli.Log.Debugf("Stored message secret key for outgoing message %s", req.ID)
 		}
 	}
+
+	respChan := cli.waitResponse(req.ID)
 	var phash string
 	var data []byte
 	switch to.Server {
@@ -366,10 +400,10 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		if req.Peer {
 			data, err = cli.sendPeerMessage(ctx, to, req.ID, message, &resp.DebugTimings)
 		} else {
-			data, err = cli.sendDM(ctx, ownID, to, req.ID, message, &resp.DebugTimings, extraParams)
+			phash, data, err = cli.sendDM(ctx, ownID, to, req.ID, message, &resp.DebugTimings, extraParams)
 		}
 	case types.NewsletterServer:
-		data, err = cli.sendNewsletter(to, req.ID, message, req.MediaHandle, &resp.DebugTimings)
+		data, err = cli.sendNewsletter(ctx, to, req.ID, message, req.MediaHandle, &resp.DebugTimings)
 	default:
 		err = fmt.Errorf("%w %s", ErrUnknownServer, to.Server)
 	}
@@ -399,7 +433,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	resp.DebugTimings.Resp = time.Since(start)
 	if isDisconnectNode(respNode) {
 		start = time.Now()
-		respNode, err = cli.retryFrame("message send", req.ID, data, respNode, ctx, 0)
+		respNode, err = cli.retryFrame(ctx, "message send", req.ID, data, respNode, 0)
 		resp.DebugTimings.Retry = time.Since(start)
 		if err != nil {
 			return
@@ -413,13 +447,30 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 	expectedPHash := ag.OptionalString("phash")
 	if len(expectedPHash) > 0 && phash != expectedPHash {
-		cli.Log.Warnf("Server returned different participant list hash when sending to %s. Some devices may not have received the message.", to)
-		// TODO also invalidate device list caches
-		cli.groupCacheLock.Lock()
-		delete(cli.groupCache, to)
-		cli.groupCacheLock.Unlock()
+		cli.Log.Warnf("Server returned different participant list hash (%s != %s) when sending to %s. Some devices may not have received the message.", phash, expectedPHash, to)
+		switch to.Server {
+		case types.GroupServer:
+			// TODO also invalidate device list caches
+			cli.groupCacheLock.Lock()
+			delete(cli.groupCache, to)
+			cli.groupCacheLock.Unlock()
+		case types.BroadcastServer:
+			// TODO do something
+		case types.DefaultUserServer, types.HiddenUserServer, types.BotServer, types.HostedServer, types.HostedLIDServer:
+			cli.userDevicesCacheLock.Lock()
+			delete(cli.userDevicesCache, to)
+			cli.userDevicesCacheLock.Unlock()
+		}
 	}
 	return
+}
+
+func (cli *Client) SendPeerMessage(ctx context.Context, message *waE2E.Message) (SendResponse, error) {
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		return SendResponse{}, ErrNotLoggedIn
+	}
+	return cli.SendMessage(ctx, ownID, message, SendRequestExtra{Peer: true})
 }
 
 // RevokeMessage deletes the given message from everyone in the chat.
@@ -428,8 +479,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 // The return value is the timestamp of the message from the server.
 //
 // Deprecated: This method is deprecated in favor of BuildRevoke
-func (cli *Client) RevokeMessage(chat types.JID, id types.MessageID) (SendResponse, error) {
-	return cli.SendMessage(context.TODO(), chat, cli.BuildRevoke(chat, types.EmptyJID, id))
+func (cli *Client) RevokeMessage(ctx context.Context, chat types.JID, id types.MessageID) (SendResponse, error) {
+	return cli.SendMessage(ctx, chat, cli.BuildRevoke(chat, types.EmptyJID, id))
 }
 
 // BuildMessageKey builds a MessageKey object, which is used to refer to previous messages
@@ -487,7 +538,7 @@ func (cli *Client) BuildReaction(chat, sender types.JID, id types.MessageID, rea
 // BuildUnavailableMessageRequest builds a message to request the user's primary device to send
 // the copy of a message that this client was unable to decrypt.
 //
-// The built message can be sent using Client.SendMessage, but you must pass whatsmeow.SendRequestExtra{Peer: true} as the last parameter.
+// The built message can be sent using Client.SendPeerMessage.
 // The full response will come as a ProtocolMessage with type `PEER_DATA_OPERATION_REQUEST_RESPONSE_MESSAGE`.
 // The response events will also be dispatched as normal *events.Message's with UnavailableRequestID set to the request message ID.
 func (cli *Client) BuildUnavailableMessageRequest(chat, sender types.JID, id string) *waE2E.Message {
@@ -506,7 +557,7 @@ func (cli *Client) BuildUnavailableMessageRequest(chat, sender types.JID, id str
 
 // BuildHistorySyncRequest builds a message to request additional history from the user's primary device.
 //
-// The built message can be sent using Client.SendMessage, but you must pass whatsmeow.SendRequestExtra{Peer: true} as the last parameter.
+// The built message can be sent using Client.SendPeerMessage.
 // The response will come as an *events.HistorySync with type `ON_DEMAND`.
 //
 // The response will contain to `count` messages immediately before the given message.
@@ -518,11 +569,12 @@ func (cli *Client) BuildHistorySyncRequest(lastKnownMessageInfo *types.MessageIn
 			PeerDataOperationRequestMessage: &waE2E.PeerDataOperationRequestMessage{
 				PeerDataOperationRequestType: waE2E.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND.Enum(),
 				HistorySyncOnDemandRequest: &waE2E.PeerDataOperationRequestMessage_HistorySyncOnDemandRequest{
-					ChatJID:              proto.String(lastKnownMessageInfo.Chat.String()),
-					OldestMsgID:          proto.String(lastKnownMessageInfo.ID),
-					OldestMsgFromMe:      proto.Bool(lastKnownMessageInfo.IsFromMe),
-					OnDemandMsgCount:     proto.Int32(int32(count)),
-					OldestMsgTimestampMS: proto.Int64(lastKnownMessageInfo.Timestamp.UnixMilli()),
+					ChatJID:          proto.String(lastKnownMessageInfo.Chat.String()),
+					OldestMsgID:      proto.String(lastKnownMessageInfo.ID),
+					OldestMsgFromMe:  proto.Bool(lastKnownMessageInfo.IsFromMe),
+					OnDemandMsgCount: proto.Int32(int32(count)),
+					// Despite the field name saying "MS", this is actually supposed to contain seconds
+					OldestMsgTimestampMS: proto.Int64(lastKnownMessageInfo.Timestamp.Unix()),
 				},
 			},
 		},
@@ -588,20 +640,24 @@ func ParseDisappearingTimerString(val string) (time.Duration, bool) {
 // and in groups the server will just reject the change. You can use the DisappearingTimer<Duration> constants for convenience.
 //
 // In groups, the server will echo the change as a notification, so it'll show up as a *events.GroupInfo update.
-func (cli *Client) SetDisappearingTimer(chat types.JID, timer time.Duration) (err error) {
+func (cli *Client) SetDisappearingTimer(ctx context.Context, chat types.JID, timer time.Duration, settingTS time.Time) (err error) {
 	switch chat.Server {
 	case types.DefaultUserServer, types.HiddenUserServer:
-		_, err = cli.SendMessage(context.TODO(), chat, &waE2E.Message{
+		if settingTS.IsZero() {
+			settingTS = time.Now()
+		}
+		_, err = cli.SendMessage(ctx, chat, &waE2E.Message{
 			ProtocolMessage: &waE2E.ProtocolMessage{
-				Type:                waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
-				EphemeralExpiration: proto.Uint32(uint32(timer.Seconds())),
+				Type:                      waE2E.ProtocolMessage_EPHEMERAL_SETTING.Enum(),
+				EphemeralExpiration:       proto.Uint32(uint32(timer.Seconds())),
+				EphemeralSettingTimestamp: proto.Int64(settingTS.Unix()),
 			},
 		})
 	case types.GroupServer:
 		if timer == 0 {
-			_, err = cli.sendGroupIQ(context.TODO(), iqSet, chat, waBinary.Node{Tag: "not_ephemeral"})
+			_, err = cli.sendGroupIQ(ctx, iqSet, chat, waBinary.Node{Tag: "not_ephemeral"})
 		} else {
-			_, err = cli.sendGroupIQ(context.TODO(), iqSet, chat, waBinary.Node{
+			_, err = cli.sendGroupIQ(ctx, iqSet, chat, waBinary.Node{
 				Tag: "ephemeral",
 				Attrs: waBinary.Attrs{
 					"expiration": strconv.Itoa(int(timer.Seconds())),
@@ -629,6 +685,7 @@ func participantListHashV2(participants []types.JID) string {
 }
 
 func (cli *Client) sendNewsletter(
+	ctx context.Context,
 	to types.JID,
 	id types.MessageID,
 	message *waE2E.Message,
@@ -672,7 +729,7 @@ func (cli *Client) sendNewsletter(
 		Content: []waBinary.Node{plaintextNode},
 	}
 	start = time.Now()
-	data, err := cli.sendNodeAndGetData(node)
+	data, err := cli.sendNodeAndGetData(ctx, node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message node: %w", err)
@@ -681,9 +738,10 @@ func (cli *Client) sendNewsletter(
 }
 
 type nodeExtraParams struct {
-	botNode        *waBinary.Node
-	metaNode       *waBinary.Node
-	addressingMode types.AddressingMode
+	botNode         *waBinary.Node
+	metaNode        *waBinary.Node
+	additionalNodes *[]waBinary.Node
+	addressingMode  types.AddressingMode
 }
 
 func (cli *Client) sendGroup(
@@ -752,7 +810,7 @@ func (cli *Client) sendGroup(
 	}
 
 	start = time.Now()
-	data, err := cli.sendNodeAndGetData(*node)
+	data, err := cli.sendNodeAndGetData(ctx, *node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to send message node: %w", err)
@@ -772,7 +830,7 @@ func (cli *Client) sendPeerMessage(
 		return nil, err
 	}
 	start := time.Now()
-	data, err := cli.sendNodeAndGetData(*node)
+	data, err := cli.sendNodeAndGetData(ctx, *node)
 	timings.Send = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send message node: %w", err)
@@ -788,21 +846,22 @@ func (cli *Client) sendDM(
 	message *waE2E.Message,
 	timings *MessageDebugTimings,
 	extraParams nodeExtraParams,
-) ([]byte, error) {
+) (string, []byte, error) {
 	start := time.Now()
 	messagePlaintext, deviceSentMessagePlaintext, err := marshalMessage(to, message)
 	timings.Marshal = time.Since(start)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
-	node, _, err := cli.prepareMessageNode(
+	node, allDevices, err := cli.prepareMessageNode(
 		ctx, to, id, message, []types.JID{to, ownID.ToNonAD()},
 		messagePlaintext, deviceSentMessagePlaintext, timings, extraParams,
 	)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
+	phash := participantListHashV2(allDevices)
 
 	if cli.shouldIncludeReportingToken(message) && message.GetMessageContextInfo().GetMessageSecret() != nil {
 		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(messagePlaintext, message, ownID, to, id))
@@ -818,12 +877,12 @@ func (cli *Client) sendDM(
 	}
 
 	start = time.Now()
-	data, err := cli.sendNodeAndGetData(*node)
+	data, err := cli.sendNodeAndGetData(ctx, *node)
 	timings.Send = time.Since(start)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send message node: %w", err)
+		return "", nil, fmt.Errorf("failed to send message node: %w", err)
 	}
-	return data, nil
+	return phash, data, nil
 }
 
 func getTypeFromMessage(msg *waE2E.Message) string {
@@ -993,6 +1052,9 @@ func (cli *Client) preparePeerMessageNode(
 	}
 	if message.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST {
 		attrs["push_priority"] = "high"
+	} else if message.GetProtocolMessage().GetPeerDataOperationRequestMessage().GetPeerDataOperationRequestType() == waE2E.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND {
+		//attrs["push_priority"] = "high_force"
+		attrs["privacy_sensitive"] = "1"
 	}
 	start := time.Now()
 	plaintext, err := proto.Marshal(message)
@@ -1009,12 +1071,17 @@ func (cli *Client) preparePeerMessageNode(
 		}
 	}
 	start = time.Now()
-	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, nil, nil)
+	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, nil, nil, nil)
 	timings.PeerEncrypt = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
 	}
-	content := []waBinary.Node{*encrypted}
+	content := []waBinary.Node{{
+		Tag: "meta",
+		Attrs: waBinary.Attrs{
+			"appdata": "default",
+		},
+	}, *encrypted}
 	if isPreKey && cli.MessengerConfig == nil {
 		content = append(content, cli.makeDeviceIdentityNode())
 	}
@@ -1055,6 +1122,9 @@ func (cli *Client) getMessageContent(
 	if extraParams.metaNode != nil {
 		content = append(content, *extraParams.metaNode)
 	}
+	if extraParams.additionalNodes != nil {
+		content = append(content, *extraParams.additionalNodes...)
+	}
 
 	if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
 		content = append(content, waBinary.Node{
@@ -1079,10 +1149,16 @@ func (cli *Client) prepareMessageNode(
 	extraParams nodeExtraParams,
 ) (*waBinary.Node, []types.JID, error) {
 	start := time.Now()
-	allDevices, err := cli.GetUserDevicesContext(ctx, participants)
+	allDevices, err := cli.GetUserDevices(ctx, participants)
 	timings.GetDevices = time.Since(start)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get device list: %w", err)
+	}
+
+	if to.Server == types.GroupServer {
+		allDevices = slices.DeleteFunc(allDevices, func(jid types.JID) bool {
+			return jid.Server == types.HostedServer || jid.Server == types.HostedLIDServer
+		})
 	}
 
 	msgType := getTypeFromMessage(message)
@@ -1109,10 +1185,13 @@ func (cli *Client) prepareMessageNode(
 	}
 
 	start = time.Now()
-	participantNodes, includeIdentity := cli.encryptMessageForDevices(
+	participantNodes, includeIdentity, err := cli.encryptMessageForDevices(
 		ctx, allDevices, id, plaintext, dsmPlaintext, encAttrs,
 	)
 	timings.PeerEncrypt = time.Since(start)
+	if err != nil {
+		return nil, nil, err
+	}
 	participantNode := waBinary.Node{
 		Tag:     "participants",
 		Content: participantNodes,
@@ -1170,41 +1249,70 @@ func (cli *Client) encryptMessageForDevices(
 	id string,
 	msgPlaintext, dsmPlaintext []byte,
 	encAttrs waBinary.Attrs,
-) ([]waBinary.Node, bool) {
+) ([]waBinary.Node, bool, error) {
 	ownJID := cli.getOwnID()
 	ownLID := cli.getOwnLID()
 	includeIdentity := false
 	participantNodes := make([]waBinary.Node, 0, len(allDevices))
-	var retryDevices, retryEncryptionIdentities []types.JID
+
+	var pnDevices []types.JID
 	for _, jid := range allDevices {
-		plaintext := msgPlaintext
-		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
-			if jid == ownJID {
-				continue
-			}
-			plaintext = dsmPlaintext
+		if jid.Server == types.DefaultUserServer {
+			pnDevices = append(pnDevices, jid)
 		}
+	}
+	lidMappings, err := cli.Store.LIDs.GetManyLIDsForPNs(ctx, pnDevices)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to fetch LID mappings: %w", err)
+	}
+
+	encryptionIdentities := make(map[types.JID]types.JID, len(allDevices))
+	sessionAddressToJID := make(map[string]types.JID, len(allDevices))
+	sessionAddresses := make([]string, 0, len(allDevices))
+	for _, jid := range allDevices {
 		encryptionIdentity := jid
 		if jid.Server == types.DefaultUserServer {
-			lidForPN, err := cli.Store.LIDs.GetLIDForPN(ctx, jid)
-			if err != nil {
-				cli.Log.Warnf("Failed to get LID for %s: %v", jid, err)
-			} else if !lidForPN.IsEmpty() {
+			// TODO query LID from server for missing entries
+			if lidForPN, ok := lidMappings[jid]; ok && !lidForPN.IsEmpty() {
 				cli.migrateSessionStore(ctx, jid, lidForPN)
 				encryptionIdentity = lidForPN
 			}
 		}
+		encryptionIdentities[jid] = encryptionIdentity
+		addr := encryptionIdentity.SignalAddress().String()
+		sessionAddresses = append(sessionAddresses, addr)
+		sessionAddressToJID[addr] = jid
+	}
 
+	existingSessions, ctx, err := cli.Store.WithCachedSessions(ctx, sessionAddresses)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to prefetch sessions: %w", err)
+	}
+	var retryDevices []types.JID
+	for addr, exists := range existingSessions {
+		if !exists {
+			retryDevices = append(retryDevices, sessionAddressToJID[addr])
+		}
+	}
+	bundles := cli.fetchPreKeysNoError(ctx, retryDevices)
+
+	for _, jid := range allDevices {
+		plaintext := msgPlaintext
+		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
+			if jid == ownJID || jid == ownLID {
+				continue
+			}
+			plaintext = dsmPlaintext
+		}
 		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
-			ctx, plaintext, jid, encryptionIdentity, nil, encAttrs,
+			ctx, plaintext, jid, encryptionIdentities[jid], bundles[jid], encAttrs, existingSessions,
 		)
-		if errors.Is(err, ErrNoSession) {
-			retryDevices = append(retryDevices, jid)
-			retryEncryptionIdentities = append(retryEncryptionIdentities, encryptionIdentity)
-			continue
-		} else if err != nil {
+		if err != nil {
 			// TODO return these errors if it's a fatal one (like context cancellation or database)
 			cli.Log.Warnf("Failed to encrypt %s for %s: %v", id, jid, err)
+			if ctx.Err() != nil {
+				return nil, false, err
+			}
 			continue
 		}
 
@@ -1213,37 +1321,11 @@ func (cli *Client) encryptMessageForDevices(
 			includeIdentity = true
 		}
 	}
-	if len(retryDevices) > 0 {
-		bundles, err := cli.fetchPreKeys(ctx, retryDevices)
-		if err != nil {
-			cli.Log.Warnf("Failed to fetch prekeys for %v to retry encryption: %v", retryDevices, err)
-		} else {
-			for i, jid := range retryDevices {
-				resp := bundles[jid]
-				if resp.err != nil {
-					cli.Log.Warnf("Failed to fetch prekey for %s: %v", jid, resp.err)
-					continue
-				}
-				plaintext := msgPlaintext
-				if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
-					plaintext = dsmPlaintext
-				}
-				encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
-					ctx, plaintext, jid, retryEncryptionIdentities[i], resp.bundle, encAttrs,
-				)
-				if err != nil {
-					// TODO return these errors if it's a fatal one (like context cancellation or database)
-					cli.Log.Warnf("Failed to encrypt %s for %s (retry): %v", id, jid, err)
-					continue
-				}
-				participantNodes = append(participantNodes, *encrypted)
-				if isPreKey {
-					includeIdentity = true
-				}
-			}
-		}
+	err = cli.Store.PutCachedSessions(ctx)
+	if err != nil {
+		return nil, false, fmt.Errorf("failed to save cached sessions: %w", err)
 	}
-	return participantNodes, includeIdentity
+	return participantNodes, includeIdentity, nil
 }
 
 func (cli *Client) encryptMessageForDeviceAndWrap(
@@ -1253,9 +1335,10 @@ func (cli *Client) encryptMessageForDeviceAndWrap(
 	encryptionIdentity types.JID,
 	bundle *prekey.Bundle,
 	encAttrs waBinary.Attrs,
+	existingSessions map[string]bool,
 ) (*waBinary.Node, bool, error) {
 	node, includeDeviceIdentity, err := cli.encryptMessageForDevice(
-		ctx, plaintext, encryptionIdentity, bundle, encAttrs,
+		ctx, plaintext, encryptionIdentity, bundle, encAttrs, existingSessions,
 	)
 	if err != nil {
 		return nil, false, err
@@ -1279,6 +1362,7 @@ func (cli *Client) encryptMessageForDevice(
 	to types.JID,
 	bundle *prekey.Bundle,
 	extraAttrs waBinary.Attrs,
+	existingSessions map[string]bool,
 ) (*waBinary.Node, bool, error) {
 	builder := session.NewBuilderFromSignal(cli.Store, to.SignalAddress(), pbSerializer)
 	if bundle != nil {
@@ -1295,10 +1379,18 @@ func (cli *Client) encryptMessageForDevice(
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to process prekey bundle: %w", err)
 		}
-	} else if contains, err := cli.Store.ContainsSession(ctx, to.SignalAddress()); err != nil {
-		return nil, false, err
-	} else if !contains {
-		return nil, false, fmt.Errorf("%w with %s", ErrNoSession, to.SignalAddress().String())
+	} else {
+		sessionExists, checked := existingSessions[to.SignalAddress().String()]
+		if !checked {
+			var err error
+			sessionExists, err = cli.Store.ContainsSession(ctx, to.SignalAddress())
+			if err != nil {
+				return nil, false, err
+			}
+		}
+		if !sessionExists {
+			return nil, false, fmt.Errorf("%w with %s", ErrNoSession, to.SignalAddress().String())
+		}
 	}
 	cipher := session.NewCipher(builder, to.SignalAddress())
 	ciphertext, err := cipher.Encrypt(ctx, padMessage(plaintext))

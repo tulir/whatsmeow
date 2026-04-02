@@ -1,0 +1,49 @@
+syntax = "proto2";
+package WAWebProtobufsDeviceCapabilities;
+option go_package = "go.mau.fi/whatsmeow/proto/waDeviceCapabilities";
+
+message DeviceCapabilities {
+	enum MemberNameTagPrimarySupport {
+		DISABLED = 0;
+		RECEIVER_ENABLED = 1;
+		SENDER_ENABLED = 2;
+	}
+
+	enum ChatLockSupportLevel {
+		NONE = 0;
+		MINIMAL = 1;
+		FULL = 2;
+	}
+
+	message AiThread {
+		enum SupportLevel {
+			NONE = 0;
+			INFRA = 1;
+			FULL = 2;
+		}
+
+		optional SupportLevel supportLevel = 1;
+	}
+
+	message UserHasAvatar {
+		optional bool userHasAvatar = 1;
+	}
+
+	message BusinessBroadcast {
+		optional bool importListEnabled = 1;
+		optional bool companionSupportEnabled = 2;
+		optional bool campaignSyncEnabled = 3;
+		optional bool insightsSyncEnabled = 4;
+	}
+
+	message LIDMigration {
+		optional uint64 chatDbMigrationTimestamp = 1;
+	}
+
+	optional ChatLockSupportLevel chatLockSupportLevel = 1;
+	optional LIDMigration lidMigration = 2;
+	optional BusinessBroadcast businessBroadcast = 3;
+	optional UserHasAvatar userHasAvatar = 4;
+	optional MemberNameTagPrimarySupport memberNameTagPrimarySupport = 5;
+	optional AiThread aiThread = 6;
+}

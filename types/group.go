@@ -41,8 +41,12 @@ type GroupInfo struct {
 
 	ParticipantVersionID string
 	Participants         []GroupParticipant
+	ParticipantCount     int
 
 	MemberAddMode GroupMemberAddMode
+
+	// Suspended indicates whether the group is currently paused/suspended.
+	Suspended bool
 }
 
 type GroupMembershipApprovalMode struct {

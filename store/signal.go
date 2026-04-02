@@ -84,6 +84,10 @@ func (device *Device) ContainsPreKey(ctx context.Context, preKeyID uint32) (bool
 
 func (device *Device) LoadSession(ctx context.Context, address *protocol.SignalAddress) (*record.Session, error) {
 	addrString := address.String()
+	if sess := getCachedSession(ctx, addrString); sess != nil {
+		return sess, nil
+	}
+
 	rawSess, err := device.Sessions.GetSession(ctx, addrString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load session with %s: %w", addrString, err)
@@ -104,6 +108,10 @@ func (device *Device) GetSubDeviceSessions(ctx context.Context, name string) ([]
 
 func (device *Device) StoreSession(ctx context.Context, address *protocol.SignalAddress, record *record.Session) error {
 	addrString := address.String()
+	if putCachedSession(ctx, addrString, record) {
+		return nil
+	}
+
 	err := device.Sessions.PutSession(ctx, addrString, record.Serialize())
 	if err != nil {
 		return fmt.Errorf("failed to store session with %s: %w", addrString, err)

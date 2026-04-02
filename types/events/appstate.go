@@ -25,7 +25,8 @@ type Contact struct {
 
 // PushName is emitted when a message is received with a different push name than the previous value cached for the same user.
 type PushName struct {
-	JID         types.JID          // The user whose push name changed.
+	JID         types.JID // The user whose push name changed.
+	JIDAlt      types.JID
 	Message     *types.MessageInfo // The message where this change was first noticed.
 	OldPushName string             // The previous push name from the local cache.
 	NewPushName string             // The new push name that was included in the message.
@@ -106,6 +107,7 @@ type ClearChat struct {
 
 	Action       *waSyncAction.ClearChatAction // Information about the clear.
 	FromFullSync bool                          // Whether the action is emitted because of a fullSync
+	DeleteMedia  bool
 }
 
 // DeleteChat is emitted when a chat is deleted on another device.
@@ -115,6 +117,7 @@ type DeleteChat struct {
 
 	Action       *waSyncAction.DeleteChatAction // Information about the deletion.
 	FromFullSync bool                           // Whether the action is emitted because of a fullSync
+	DeleteMedia  bool
 }
 
 // PushNameSetting is emitted when the user's push name is changed from another device.
@@ -181,5 +184,13 @@ type AppState struct {
 
 // AppStateSyncComplete is emitted when app state is resynced.
 type AppStateSyncComplete struct {
-	Name appstate.WAPatchName
+	Name     appstate.WAPatchName
+	Version  uint64
+	Recovery bool
+}
+
+type AppStateSyncError struct {
+	Name     appstate.WAPatchName
+	Error    error
+	FullSync bool
 }

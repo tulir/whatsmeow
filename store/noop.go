@@ -37,6 +37,7 @@ var NoopDevice = &Device{
 	MsgSecrets:    nilStore,
 	PrivacyTokens: nilStore,
 	EventBuffer:   nilStore,
+	LIDs:          nilStore,
 	Container:     nilStore,
 }
 
@@ -67,7 +68,15 @@ func (n *NoopStore) HasSession(ctx context.Context, address string) (bool, error
 	return false, n.Error
 }
 
+func (n *NoopStore) GetManySessions(ctx context.Context, addresses []string) (map[string][]byte, error) {
+	return nil, n.Error
+}
+
 func (n *NoopStore) PutSession(ctx context.Context, address string, session []byte) error {
+	return n.Error
+}
+
+func (n *NoopStore) PutManySessions(ctx context.Context, sessions map[string][]byte) error {
 	return n.Error
 }
 
@@ -127,6 +136,10 @@ func (n *NoopStore) GetLatestAppStateSyncKeyID(ctx context.Context) ([]byte, err
 	return nil, n.Error
 }
 
+func (n *NoopStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*AppStateSyncKey, error) {
+	return nil, nil
+}
+
 func (n *NoopStore) PutAppStateVersion(ctx context.Context, name string, version uint64, hash [128]byte) error {
 	return n.Error
 }
@@ -167,6 +180,10 @@ func (n *NoopStore) PutAllContactNames(ctx context.Context, contacts []ContactEn
 	return n.Error
 }
 
+func (n *NoopStore) PutManyRedactedPhones(ctx context.Context, entries []RedactedPhoneEntry) error {
+	return n.Error
+}
+
 func (n *NoopStore) GetContact(ctx context.Context, user types.JID) (types.ContactInfo, error) {
 	return types.ContactInfo{}, n.Error
 }
@@ -199,8 +216,8 @@ func (n *NoopStore) PutMessageSecret(ctx context.Context, chat, sender types.JID
 	return n.Error
 }
 
-func (n *NoopStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) ([]byte, error) {
-	return nil, n.Error
+func (n *NoopStore) GetMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID) ([]byte, types.JID, error) {
+	return nil, types.EmptyJID, n.Error
 }
 
 func (n *NoopStore) PutPrivacyTokens(ctx context.Context, tokens ...PrivacyToken) error {
@@ -243,6 +260,10 @@ func (n *NoopStore) GetLIDForPN(ctx context.Context, pn types.JID) (types.JID, e
 	return types.JID{}, n.Error
 }
 
+func (n *NoopStore) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (map[types.JID]types.JID, error) {
+	return nil, n.Error
+}
+
 func (n *NoopStore) GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error) {
 	return types.JID{}, n.Error
 }
@@ -253,4 +274,16 @@ func (n *NoopStore) PutManyLIDMappings(ctx context.Context, mappings []LIDMappin
 
 func (n *NoopStore) PutLIDMapping(ctx context.Context, lid types.JID, jid types.JID) error {
 	return n.Error
+}
+
+func (n *NoopStore) DeleteOldOutgoingEvents(ctx context.Context) error {
+	return nil
+}
+
+func (n *NoopStore) GetOutgoingEvent(ctx context.Context, chatJID, altChatJID types.JID, id types.MessageID) (string, []byte, error) {
+	return "", nil, nil
+}
+
+func (n *NoopStore) AddOutgoingEvent(ctx context.Context, chatJID types.JID, id types.MessageID, format string, plaintext []byte) error {
+	return nil
 }

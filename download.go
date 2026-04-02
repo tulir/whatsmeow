@@ -45,6 +45,7 @@ const (
 	MediaHistory  MediaType = "WhatsApp History Keys"
 	MediaAppState MediaType = "WhatsApp App State Keys"
 
+	MediaStickerPack   MediaType = "WhatsApp Sticker Pack Keys"
 	MediaLinkThumbnail MediaType = "WhatsApp Link Thumbnail Keys"
 )
 
@@ -81,6 +82,7 @@ var (
 	_ DownloadableMessage   = (*waE2E.VideoMessage)(nil)
 	_ DownloadableMessage   = (*waE2E.DocumentMessage)(nil)
 	_ DownloadableMessage   = (*waE2E.StickerMessage)(nil)
+	_ DownloadableMessage   = (*waE2E.StickerPackMessage)(nil)
 	_ DownloadableMessage   = (*waHistorySync.StickerMetadata)(nil)
 	_ DownloadableMessage   = (*waE2E.HistorySyncNotification)(nil)
 	_ DownloadableMessage   = (*waServerSync.ExternalBlobReference)(nil)
@@ -110,6 +112,7 @@ var classToMediaType = map[protoreflect.Name]MediaType{
 	"StickerMessage":  MediaImage,
 	"StickerMetadata": MediaImage,
 
+	"StickerPackMessage":      MediaStickerPack,
 	"HistorySyncNotification": MediaHistory,
 	"ExternalBlobReference":   MediaAppState,
 }
@@ -126,10 +129,13 @@ var mediaTypeToMMSType = map[MediaType]string{
 	MediaHistory:  "md-msg-hist",
 	MediaAppState: "md-app-state",
 
+	MediaStickerPack:   "sticker-pack",
 	MediaLinkThumbnail: "thumbnail-link",
 }
 
 // DownloadAny loops through the downloadable parts of the given message and downloads the first non-nil item.
+//
+// Deprecated: it's recommended to find the specific message type you want to download manually and use the Download method instead.
 func (cli *Client) DownloadAny(ctx context.Context, msg *waE2E.Message) (data []byte, err error) {
 	if msg == nil {
 		return nil, ErrNothingDownloadableFound
@@ -249,6 +255,9 @@ func (cli *Client) DownloadMediaWithPath(
 	mediaType MediaType,
 	mmsType string,
 ) (data []byte, err error) {
+	if !strings.HasPrefix(directPath, "/") {
+		return nil, fmt.Errorf("media download path does not start with slash: %s", directPath)
+	}
 	var mediaConn *MediaConn
 	mediaConn, err = cli.refreshMediaConn(ctx, false)
 	if err != nil {
@@ -359,7 +368,7 @@ func (cli *Client) doMediaDownloadRequest(ctx context.Context, url string) (*htt
 		req.Header.Set("User-Agent", cli.MessengerConfig.UserAgent)
 	}
 	// TODO user agent for whatsapp downloads?
-	resp, err := cli.http.Do(req)
+	resp, err := cli.mediaHTTP.Do(req)
 	if err != nil {
 		return nil, err
 	}
