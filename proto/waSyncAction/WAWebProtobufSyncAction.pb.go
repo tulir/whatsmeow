@@ -815,6 +815,8 @@ const (
 	SettingsSyncAction_IS_STATUS_NOTIFICATION_ENABLED           SettingsSyncAction_SettingKey = 29
 	SettingsSyncAction_STATUS_NOTIFICATION_TONE_ID              SettingsSyncAction_SettingKey = 30
 	SettingsSyncAction_SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION  SettingsSyncAction_SettingKey = 31
+	SettingsSyncAction_CHAT_THEME_ID                            SettingsSyncAction_SettingKey = 32
+	SettingsSyncAction_COLOR_SCHEME_ID                          SettingsSyncAction_SettingKey = 33
 )
 
 // Enum value maps for SettingsSyncAction_SettingKey.
@@ -852,6 +854,8 @@ var (
 		29: "IS_STATUS_NOTIFICATION_ENABLED",
 		30: "STATUS_NOTIFICATION_TONE_ID",
 		31: "SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION",
+		32: "CHAT_THEME_ID",
+		33: "COLOR_SCHEME_ID",
 	}
 	SettingsSyncAction_SettingKey_value = map[string]int32{
 		"SETTING_KEY_UNKNOWN":                      0,
@@ -886,6 +890,8 @@ var (
 		"IS_STATUS_NOTIFICATION_ENABLED":           29,
 		"STATUS_NOTIFICATION_TONE_ID":              30,
 		"SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION":  31,
+		"CHAT_THEME_ID":                            32,
+		"COLOR_SCHEME_ID":                          33,
 	}
 )
 
@@ -1695,6 +1701,7 @@ const (
 	LabelEditAction_DRAFTED         LabelEditAction_ListType = 8
 	LabelEditAction_AI_HANDOFF      LabelEditAction_ListType = 9
 	LabelEditAction_CHANNELS        LabelEditAction_ListType = 10
+	LabelEditAction_AI_RESPONDING   LabelEditAction_ListType = 11
 )
 
 // Enum value maps for LabelEditAction_ListType.
@@ -1711,6 +1718,7 @@ var (
 		8:  "DRAFTED",
 		9:  "AI_HANDOFF",
 		10: "CHANNELS",
+		11: "AI_RESPONDING",
 	}
 	LabelEditAction_ListType_value = map[string]int32{
 		"NONE":            0,
@@ -1724,6 +1732,7 @@ var (
 		"DRAFTED":         8,
 		"AI_HANDOFF":      9,
 		"CHANNELS":        10,
+		"AI_RESPONDING":   11,
 	}
 )
 
@@ -2039,6 +2048,8 @@ type SettingsSyncAction struct {
 	IsStatusNotificationEnabled          *bool                                   `protobuf:"varint,29,opt,name=isStatusNotificationEnabled" json:"isStatusNotificationEnabled,omitempty"`
 	StatusNotificationToneID             *int32                                  `protobuf:"varint,30,opt,name=statusNotificationToneID" json:"statusNotificationToneID,omitempty"`
 	ShouldPlaySoundForCallNotification   *bool                                   `protobuf:"varint,31,opt,name=shouldPlaySoundForCallNotification" json:"shouldPlaySoundForCallNotification,omitempty"`
+	ChatThemeID                          *string                                 `protobuf:"bytes,32,opt,name=chatThemeID" json:"chatThemeID,omitempty"`
+	ColorSchemeID                        *string                                 `protobuf:"bytes,33,opt,name=colorSchemeID" json:"colorSchemeID,omitempty"`
 	unknownFields                        protoimpl.UnknownFields
 	sizeCache                            protoimpl.SizeCache
 }
@@ -2288,6 +2299,20 @@ func (x *SettingsSyncAction) GetShouldPlaySoundForCallNotification() bool {
 		return *x.ShouldPlaySoundForCallNotification
 	}
 	return false
+}
+
+func (x *SettingsSyncAction) GetChatThemeID() string {
+	if x != nil && x.ChatThemeID != nil {
+		return *x.ChatThemeID
+	}
+	return ""
+}
+
+func (x *SettingsSyncAction) GetColorSchemeID() string {
+	if x != nil && x.ColorSchemeID != nil {
+		return *x.ColorSchemeID
+	}
+	return ""
 }
 
 type InteractiveMessageAction struct {
@@ -7792,7 +7817,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\x06FAILED\x10\b\x12\r\n" +
 	"\tABANDONED\x10\t\x12\v\n" +
 	"\aONGOING\x10\n" +
-	"\"\x81\x1a\n" +
+	"\"\xf1\x1a\n" +
 	"\x12SettingsSyncAction\x12\"\n" +
 	"\fstartAtLogin\x18\x01 \x01(\bR\fstartAtLogin\x12&\n" +
 	"\x0eminimizeToTray\x18\x02 \x01(\bR\x0eminimizeToTray\x12\x1a\n" +
@@ -7825,7 +7850,9 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"#isGroupReactionsNotificationEnabled\x18\x1c \x01(\bR#isGroupReactionsNotificationEnabled\x12@\n" +
 	"\x1bisStatusNotificationEnabled\x18\x1d \x01(\bR\x1bisStatusNotificationEnabled\x12:\n" +
 	"\x18statusNotificationToneID\x18\x1e \x01(\x05R\x18statusNotificationToneID\x12N\n" +
-	"\"shouldPlaySoundForCallNotification\x18\x1f \x01(\bR\"shouldPlaySoundForCallNotification\"F\n" +
+	"\"shouldPlaySoundForCallNotification\x18\x1f \x01(\bR\"shouldPlaySoundForCallNotification\x12 \n" +
+	"\vchatThemeID\x18  \x01(\tR\vchatThemeID\x12$\n" +
+	"\rcolorSchemeID\x18! \x01(\tR\rcolorSchemeID\"F\n" +
 	"\x13MediaQualitySetting\x12\x19\n" +
 	"\x15MEDIA_QUALITY_UNKNOWN\x10\x00\x12\f\n" +
 	"\bSTANDARD\x10\x01\x12\x06\n" +
@@ -7835,7 +7862,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\n" +
 	"\x06ALWAYS\x10\x01\x12\t\n" +
 	"\x05NEVER\x10\x02\x12\x19\n" +
-	"\x15ONLY_WHEN_APP_IS_OPEN\x10\x03\"\x94\b\n" +
+	"\x15ONLY_WHEN_APP_IS_OPEN\x10\x03\"\xbc\b\n" +
 	"\n" +
 	"SettingKey\x12\x17\n" +
 	"\x13SETTING_KEY_UNKNOWN\x10\x00\x12\x12\n" +
@@ -7870,7 +7897,9 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"'IS_GROUP_REACTIONS_NOTIFICATION_ENABLED\x10\x1c\x12\"\n" +
 	"\x1eIS_STATUS_NOTIFICATION_ENABLED\x10\x1d\x12\x1f\n" +
 	"\x1bSTATUS_NOTIFICATION_TONE_ID\x10\x1e\x12+\n" +
-	"'SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION\x10\x1f\"R\n" +
+	"'SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION\x10\x1f\x12\x11\n" +
+	"\rCHAT_THEME_ID\x10 \x12\x13\n" +
+	"\x0fCOLOR_SCHEME_ID\x10!\"R\n" +
 	"\x0fSettingPlatform\x12\x14\n" +
 	"\x10PLATFORM_UNKNOWN\x10\x00\x12\a\n" +
 	"\x03WEB\x10\x01\x12\n" +
@@ -7980,7 +8009,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\rchatStartMode\x18\x01 \x01(\x0e2B.WAWebProtobufSyncAction.UsernameChatStartModeAction.ChatStartModeR\rchatStartMode\" \n" +
 	"\rChatStartMode\x12\a\n" +
 	"\x03LID\x10\x01\x12\x06\n" +
-	"\x02PN\x10\x02\"\xed\x03\n" +
+	"\x02PN\x10\x02\"\x80\x04\n" +
 	"\x0fLabelEditAction\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05color\x18\x02 \x01(\x05R\x05color\x12\"\n" +
@@ -7992,7 +8021,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\bisActive\x18\x06 \x01(\bR\bisActive\x12E\n" +
 	"\x04type\x18\a \x01(\x0e21.WAWebProtobufSyncAction.LabelEditAction.ListTypeR\x04type\x12 \n" +
 	"\visImmutable\x18\b \x01(\bR\visImmutable\x12$\n" +
-	"\rmuteEndTimeMS\x18\t \x01(\x03R\rmuteEndTimeMS\"\xa6\x01\n" +
+	"\rmuteEndTimeMS\x18\t \x01(\x03R\rmuteEndTimeMS\"\xb9\x01\n" +
 	"\bListType\x12\b\n" +
 	"\x04NONE\x10\x00\x12\n" +
 	"\n" +
@@ -8010,7 +8039,8 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\n" +
 	"AI_HANDOFF\x10\t\x12\f\n" +
 	"\bCHANNELS\x10\n" +
-	"\"\xa3\x05\n" +
+	"\x12\x11\n" +
+	"\rAI_RESPONDING\x10\v\"\xa3\x05\n" +
 	"\x0ePatchDebugData\x12$\n" +
 	"\rcurrentLthash\x18\x01 \x01(\fR\rcurrentLthash\x12\x1c\n" +
 	"\tnewLthash\x18\x02 \x01(\fR\tnewLthash\x12\"\n" +
