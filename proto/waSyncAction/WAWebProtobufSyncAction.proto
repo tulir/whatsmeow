@@ -205,6 +205,8 @@ message SettingsSyncAction {
 		IS_STATUS_NOTIFICATION_ENABLED = 29;
 		STATUS_NOTIFICATION_TONE_ID = 30;
 		SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION = 31;
+		CHAT_THEME_ID = 32;
+		COLOR_SCHEME_ID = 33;
 	}
 
 	enum SettingPlatform {
@@ -246,6 +248,8 @@ message SettingsSyncAction {
 	optional bool isStatusNotificationEnabled = 29;
 	optional int32 statusNotificationToneID = 30;
 	optional bool shouldPlaySoundForCallNotification = 31;
+	optional string chatThemeID = 32;
+	optional string colorSchemeID = 33;
 }
 
 message InteractiveMessageAction {
@@ -403,6 +407,7 @@ message LabelEditAction {
 		DRAFTED = 8;
 		AI_HANDOFF = 9;
 		CHANNELS = 10;
+		AI_RESPONDING = 11;
 	}
 
 	optional string name = 1;

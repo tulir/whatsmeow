@@ -50,6 +50,7 @@ message StatusAttribution {
 			APPLE_MUSIC = 8;
 			SHARECHAT = 9;
 			GOOGLE_PHOTOS = 10;
+			SOUNDCLOUD = 11;
 		}
 
 		optional string actionURL = 1;
