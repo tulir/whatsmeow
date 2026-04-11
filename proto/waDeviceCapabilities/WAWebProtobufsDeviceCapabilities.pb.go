@@ -377,6 +377,7 @@ type DeviceCapabilities_BusinessBroadcast struct {
 	CompanionSupportEnabled *bool                  `protobuf:"varint,2,opt,name=companionSupportEnabled" json:"companionSupportEnabled,omitempty"`
 	CampaignSyncEnabled     *bool                  `protobuf:"varint,3,opt,name=campaignSyncEnabled" json:"campaignSyncEnabled,omitempty"`
 	InsightsSyncEnabled     *bool                  `protobuf:"varint,4,opt,name=insightsSyncEnabled" json:"insightsSyncEnabled,omitempty"`
+	RecipientLimit          *int32                 `protobuf:"varint,5,opt,name=recipientLimit" json:"recipientLimit,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -439,6 +440,13 @@ func (x *DeviceCapabilities_BusinessBroadcast) GetInsightsSyncEnabled() bool {
 	return false
 }
 
+func (x *DeviceCapabilities_BusinessBroadcast) GetRecipientLimit() int32 {
+	if x != nil && x.RecipientLimit != nil {
+		return *x.RecipientLimit
+	}
+	return 0
+}
+
 type DeviceCapabilities_LIDMigration struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	ChatDbMigrationTimestamp *uint64                `protobuf:"varint,1,opt,name=chatDbMigrationTimestamp" json:"chatDbMigrationTimestamp,omitempty"`
@@ -487,8 +495,7 @@ var File_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto protoreflec
 
 const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc = "" +
 	"\n" +
-	";waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto\x12 WAWebProtobufsDeviceCapabilities\"\xeb\n" +
-	"\n" +
+	";waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto\x12 WAWebProtobufsDeviceCapabilities\"\x93\v\n" +
 	"\x12DeviceCapabilities\x12}\n" +
 	"\x14chatLockSupportLevel\x18\x01 \x01(\x0e2I.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevelR\x14chatLockSupportLevel\x12e\n" +
 	"\flidMigration\x18\x02 \x01(\v2A.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigrationR\flidMigration\x12t\n" +
@@ -503,12 +510,13 @@ const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc =
 	"\x05INFRA\x10\x01\x12\b\n" +
 	"\x04FULL\x10\x02\x1a5\n" +
 	"\rUserHasAvatar\x12$\n" +
-	"\ruserHasAvatar\x18\x01 \x01(\bR\ruserHasAvatar\x1a\xdf\x01\n" +
+	"\ruserHasAvatar\x18\x01 \x01(\bR\ruserHasAvatar\x1a\x87\x02\n" +
 	"\x11BusinessBroadcast\x12,\n" +
 	"\x11importListEnabled\x18\x01 \x01(\bR\x11importListEnabled\x128\n" +
 	"\x17companionSupportEnabled\x18\x02 \x01(\bR\x17companionSupportEnabled\x120\n" +
 	"\x13campaignSyncEnabled\x18\x03 \x01(\bR\x13campaignSyncEnabled\x120\n" +
-	"\x13insightsSyncEnabled\x18\x04 \x01(\bR\x13insightsSyncEnabled\x1aJ\n" +
+	"\x13insightsSyncEnabled\x18\x04 \x01(\bR\x13insightsSyncEnabled\x12&\n" +
+	"\x0erecipientLimit\x18\x05 \x01(\x05R\x0erecipientLimit\x1aJ\n" +
 	"\fLIDMigration\x12:\n" +
 	"\x18chatDbMigrationTimestamp\x18\x01 \x01(\x04R\x18chatDbMigrationTimestamp\"U\n" +
 	"\x1bMemberNameTagPrimarySupport\x12\f\n" +

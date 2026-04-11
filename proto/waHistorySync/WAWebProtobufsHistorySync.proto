@@ -54,6 +54,8 @@ message HistorySync {
 	optional bytes shareableChatIdentifierEncryptionKey = 17;
 	repeated Account accounts = 18;
 	optional bytes nctSalt = 19;
+	repeated InlineContact inlineContacts = 20;
+	optional bool inlineContactsProvided = 21;
 }
 
 message Conversation {
@@ -149,6 +151,14 @@ message PastParticipant {
 message PhoneNumberToLIDMapping {
 	optional string pnJID = 1;
 	optional string lidJID = 2;
+}
+
+message InlineContact {
+	optional string pnJID = 1;
+	optional string lidJID = 2;
+	optional string fullName = 3;
+	optional string firstName = 4;
+	optional string username = 5;
 }
 
 message Account {

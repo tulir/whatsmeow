@@ -34,6 +34,7 @@ message DeviceCapabilities {
 		optional bool companionSupportEnabled = 2;
 		optional bool campaignSyncEnabled = 3;
 		optional bool insightsSyncEnabled = 4;
+		optional int32 recipientLimit = 5;
 	}
 
 	message LIDMigration {

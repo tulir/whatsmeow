@@ -29,6 +29,7 @@ message HandshakeMessage {
 		optional bytes payload = 3;
 		optional bytes extendedStatic = 4;
 		optional bytes paddingBytes = 5;
+		optional bytes extendedCiphertext = 6;
 	}
 
 	message ClientHello {
@@ -41,6 +42,7 @@ message HandshakeMessage {
 		optional bool sendServerHelloPaddedBytes = 7;
 		optional bool simulateXxkemFs = 8;
 		optional HandshakePqMode pqMode = 9;
+		optional bytes extendedEphemeral = 10;
 	}
 
 	optional ClientHello clientHello = 2;

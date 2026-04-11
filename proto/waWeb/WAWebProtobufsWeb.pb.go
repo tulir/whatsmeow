@@ -314,6 +314,8 @@ const (
 	WebMessageInfo_GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE                    WebMessageInfo_StubType = 221
 	WebMessageInfo_GROUP_OPEN_BOT_ADDED                                     WebMessageInfo_StubType = 222
 	WebMessageInfo_GROUP_TEE_BOT_ADDED                                      WebMessageInfo_StubType = 223
+	WebMessageInfo_CONTACT_INFO                                             WebMessageInfo_StubType = 224
+	WebMessageInfo_SCHEDULED_MESSAGE_CREATED                                WebMessageInfo_StubType = 225
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -543,6 +545,8 @@ var (
 		221: "GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE",
 		222: "GROUP_OPEN_BOT_ADDED",
 		223: "GROUP_TEE_BOT_ADDED",
+		224: "CONTACT_INFO",
+		225: "SCHEDULED_MESSAGE_CREATED",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -769,6 +773,8 @@ var (
 		"GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE":                    221,
 		"GROUP_OPEN_BOT_ADDED":                                     222,
 		"GROUP_TEE_BOT_ADDED":                                      223,
+		"CONTACT_INFO":                                             224,
+		"SCHEDULED_MESSAGE_CREATED":                                225,
 	}
 )
 
@@ -1486,6 +1492,8 @@ type WebMessageInfo struct {
 	QuarantinedMessage                   *QuarantinedMessage                   `protobuf:"bytes,77,opt,name=quarantinedMessage" json:"quarantinedMessage,omitempty"`
 	NonJIDMentions                       *uint32                               `protobuf:"varint,78,opt,name=nonJIDMentions" json:"nonJIDMentions,omitempty"`
 	HsmTag                               *string                               `protobuf:"bytes,79,opt,name=hsmTag" json:"hsmTag,omitempty"`
+	EphemeralExpirationTimestamp         *uint64                               `protobuf:"varint,80,opt,name=ephemeralExpirationTimestamp" json:"ephemeralExpirationTimestamp,omitempty"`
+	ScheduledMessageMetadata             *ScheduledMessageMetadata             `protobuf:"bytes,81,opt,name=scheduledMessageMetadata" json:"scheduledMessageMetadata,omitempty"`
 	unknownFields                        protoimpl.UnknownFields
 	sizeCache                            protoimpl.SizeCache
 }
@@ -1994,6 +2002,20 @@ func (x *WebMessageInfo) GetHsmTag() string {
 		return *x.HsmTag
 	}
 	return ""
+}
+
+func (x *WebMessageInfo) GetEphemeralExpirationTimestamp() uint64 {
+	if x != nil && x.EphemeralExpirationTimestamp != nil {
+		return *x.EphemeralExpirationTimestamp
+	}
+	return 0
+}
+
+func (x *WebMessageInfo) GetScheduledMessageMetadata() *ScheduledMessageMetadata {
+	if x != nil {
+		return x.ScheduledMessageMetadata
+	}
+	return nil
 }
 
 type PaymentInfo struct {
@@ -4032,11 +4054,71 @@ func (x *QuarantinedMessage) GetExtractedText() string {
 	return ""
 }
 
+type ScheduledMessageMetadata struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RevealKeyID   *string                `protobuf:"bytes,1,opt,name=revealKeyID" json:"revealKeyID,omitempty"`
+	RevealKey     []byte                 `protobuf:"bytes,2,opt,name=revealKey" json:"revealKey,omitempty"`
+	ScheduledTime *uint64                `protobuf:"varint,3,opt,name=scheduledTime" json:"scheduledTime,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScheduledMessageMetadata) Reset() {
+	*x = ScheduledMessageMetadata{}
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScheduledMessageMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScheduledMessageMetadata) ProtoMessage() {}
+
+func (x *ScheduledMessageMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScheduledMessageMetadata.ProtoReflect.Descriptor instead.
+func (*ScheduledMessageMetadata) Descriptor() ([]byte, []int) {
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *ScheduledMessageMetadata) GetRevealKeyID() string {
+	if x != nil && x.RevealKeyID != nil {
+		return *x.RevealKeyID
+	}
+	return ""
+}
+
+func (x *ScheduledMessageMetadata) GetRevealKey() []byte {
+	if x != nil {
+		return x.RevealKey
+	}
+	return nil
+}
+
+func (x *ScheduledMessageMetadata) GetScheduledTime() uint64 {
+	if x != nil && x.ScheduledTime != nil {
+		return *x.ScheduledTime
+	}
+	return 0
+}
+
 var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\x82\\\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xe2]\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4109,13 +4191,15 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"$interactiveMessageAdditionalMetadata\x18L \x01(\v27.WAWebProtobufsWeb.InteractiveMessageAdditionalMetadataR$interactiveMessageAdditionalMetadata\x12U\n" +
 	"\x12quarantinedMessage\x18M \x01(\v2%.WAWebProtobufsWeb.QuarantinedMessageR\x12quarantinedMessage\x12&\n" +
 	"\x0enonJIDMentions\x18N \x01(\rR\x0enonJIDMentions\x12\x16\n" +
-	"\x06hsmTag\x18O \x01(\tR\x06hsmTag\"=\n" +
+	"\x06hsmTag\x18O \x01(\tR\x06hsmTag\x12B\n" +
+	"\x1cephemeralExpirationTimestamp\x18P \x01(\x04R\x1cephemeralExpirationTimestamp\x12g\n" +
+	"\x18scheduledMessageMetadata\x18Q \x01(\v2+.WAWebProtobufsWeb.ScheduledMessageMetadataR\x18scheduledMessageMetadata\"=\n" +
 	"\x10BizPrivacyStatus\x12\b\n" +
 	"\x04E2EE\x10\x00\x12\x06\n" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\xd0;\n" +
+	"BSP_AND_FB\x10\x03\"\x83<\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4344,7 +4428,9 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x13QUARANTINED_MESSAGE\x10\xdc\x01\x12*\n" +
 	"%GROUP_MEMBER_SHARE_GROUP_HISTORY_MODE\x10\xdd\x01\x12\x19\n" +
 	"\x14GROUP_OPEN_BOT_ADDED\x10\xde\x01\x12\x18\n" +
-	"\x13GROUP_TEE_BOT_ADDED\x10\xdf\x01\"X\n" +
+	"\x13GROUP_TEE_BOT_ADDED\x10\xdf\x01\x12\x11\n" +
+	"\fCONTACT_INFO\x10\xe0\x01\x12\x1e\n" +
+	"\x19SCHEDULED_MESSAGE_CREATED\x10\xe1\x01\"X\n" +
 	"\x06Status\x12\t\n" +
 	"\x05ERROR\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0e\n" +
@@ -4606,7 +4692,11 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x1ceditedAfterReceivedAsHistory\x18\x02 \x01(\bR\x1ceditedAfterReceivedAsHistory\"^\n" +
 	"\x12QuarantinedMessage\x12\"\n" +
 	"\foriginalData\x18\x01 \x01(\fR\foriginalData\x12$\n" +
-	"\rextractedText\x18\x02 \x01(\tR\rextractedTextB!Z\x1fgo.mau.fi/whatsmeow/proto/waWeb"
+	"\rextractedText\x18\x02 \x01(\tR\rextractedText\"\x80\x01\n" +
+	"\x18ScheduledMessageMetadata\x12 \n" +
+	"\vrevealKeyID\x18\x01 \x01(\tR\vrevealKeyID\x12\x1c\n" +
+	"\trevealKey\x18\x02 \x01(\fR\trevealKey\x12$\n" +
+	"\rscheduledTime\x18\x03 \x01(\x04R\rscheduledTimeB!Z\x1fgo.mau.fi/whatsmeow/proto/waWeb"
 
 var (
 	file_waWeb_WAWebProtobufsWeb_proto_rawDescOnce sync.Once
@@ -4621,7 +4711,7 @@ func file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP() []byte {
 }
 
 var file_waWeb_WAWebProtobufsWeb_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
-var file_waWeb_WAWebProtobufsWeb_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
+var file_waWeb_WAWebProtobufsWeb_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
 var file_waWeb_WAWebProtobufsWeb_proto_goTypes = []any{
 	(WebMessageInfo_BizPrivacyStatus)(0),                 // 0: WAWebProtobufsWeb.WebMessageInfo.BizPrivacyStatus
 	(WebMessageInfo_StubType)(0),                         // 1: WAWebProtobufsWeb.WebMessageInfo.StubType
@@ -4661,23 +4751,24 @@ var file_waWeb_WAWebProtobufsWeb_proto_goTypes = []any{
 	(*Citation)(nil),                                     // 35: WAWebProtobufsWeb.Citation
 	(*GroupHistoryIndividualMessageInfo)(nil),            // 36: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo
 	(*QuarantinedMessage)(nil),                           // 37: WAWebProtobufsWeb.QuarantinedMessage
-	(*waCommon.MessageKey)(nil),                          // 38: WACommon.MessageKey
-	(*waE2E.Message)(nil),                                // 39: WAWebProtobufsE2E.Message
-	(*waE2E.LiveLocationMessage)(nil),                    // 40: WAWebProtobufsE2E.LiveLocationMessage
-	(*waE2E.Money)(nil),                                  // 41: WAWebProtobufsE2E.Money
-	(*waE2E.MessageHistoryBundle)(nil),                   // 42: WAWebProtobufsE2E.MessageHistoryBundle
-	(*waE2E.PollVoteMessage)(nil),                        // 43: WAWebProtobufsE2E.PollVoteMessage
-	(waE2E.KeepType)(0),                                  // 44: WAWebProtobufsE2E.KeepType
-	(waE2E.MessageContextInfo_MessageAddonExpiryType)(0), // 45: WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
-	(*waE2E.EventResponseMessage)(nil),                   // 46: WAWebProtobufsE2E.EventResponseMessage
+	(*ScheduledMessageMetadata)(nil),                     // 38: WAWebProtobufsWeb.ScheduledMessageMetadata
+	(*waCommon.MessageKey)(nil),                          // 39: WACommon.MessageKey
+	(*waE2E.Message)(nil),                                // 40: WAWebProtobufsE2E.Message
+	(*waE2E.LiveLocationMessage)(nil),                    // 41: WAWebProtobufsE2E.LiveLocationMessage
+	(*waE2E.Money)(nil),                                  // 42: WAWebProtobufsE2E.Money
+	(*waE2E.MessageHistoryBundle)(nil),                   // 43: WAWebProtobufsE2E.MessageHistoryBundle
+	(*waE2E.PollVoteMessage)(nil),                        // 44: WAWebProtobufsE2E.PollVoteMessage
+	(waE2E.KeepType)(0),                                  // 45: WAWebProtobufsE2E.KeepType
+	(waE2E.MessageContextInfo_MessageAddonExpiryType)(0), // 46: WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
+	(*waE2E.EventResponseMessage)(nil),                   // 47: WAWebProtobufsE2E.EventResponseMessage
 }
 var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
-	38,  // 0: WAWebProtobufsWeb.WebMessageInfo.key:type_name -> WACommon.MessageKey
-	39,  // 1: WAWebProtobufsWeb.WebMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
+	39,  // 0: WAWebProtobufsWeb.WebMessageInfo.key:type_name -> WACommon.MessageKey
+	40,  // 1: WAWebProtobufsWeb.WebMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
 	2,   // 2: WAWebProtobufsWeb.WebMessageInfo.status:type_name -> WAWebProtobufsWeb.WebMessageInfo.Status
 	1,   // 3: WAWebProtobufsWeb.WebMessageInfo.messageStubType:type_name -> WAWebProtobufsWeb.WebMessageInfo.StubType
 	11,  // 4: WAWebProtobufsWeb.WebMessageInfo.paymentInfo:type_name -> WAWebProtobufsWeb.PaymentInfo
-	40,  // 5: WAWebProtobufsWeb.WebMessageInfo.finalLiveLocation:type_name -> WAWebProtobufsE2E.LiveLocationMessage
+	41,  // 5: WAWebProtobufsWeb.WebMessageInfo.finalLiveLocation:type_name -> WAWebProtobufsE2E.LiveLocationMessage
 	11,  // 6: WAWebProtobufsWeb.WebMessageInfo.quotedPaymentInfo:type_name -> WAWebProtobufsWeb.PaymentInfo
 	0,   // 7: WAWebProtobufsWeb.WebMessageInfo.bizPrivacyStatus:type_name -> WAWebProtobufsWeb.WebMessageInfo.BizPrivacyStatus
 	20,  // 8: WAWebProtobufsWeb.WebMessageInfo.mediaData:type_name -> WAWebProtobufsWeb.MediaData
@@ -4695,7 +4786,7 @@ var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
 	32,  // 20: WAWebProtobufsWeb.WebMessageInfo.eventResponses:type_name -> WAWebProtobufsWeb.EventResponse
 	19,  // 21: WAWebProtobufsWeb.WebMessageInfo.reportingTokenInfo:type_name -> WAWebProtobufsWeb.ReportingTokenInfo
 	28,  // 22: WAWebProtobufsWeb.WebMessageInfo.eventAdditionalMetadata:type_name -> WAWebProtobufsWeb.EventAdditionalMetadata
-	38,  // 23: WAWebProtobufsWeb.WebMessageInfo.targetMessageID:type_name -> WACommon.MessageKey
+	39,  // 23: WAWebProtobufsWeb.WebMessageInfo.targetMessageID:type_name -> WACommon.MessageKey
 	14,  // 24: WAWebProtobufsWeb.WebMessageInfo.messageAddOns:type_name -> WAWebProtobufsWeb.MessageAddOn
 	34,  // 25: WAWebProtobufsWeb.WebMessageInfo.statusMentionMessageInfo:type_name -> WAWebProtobufsWeb.StatusMentionMessage
 	35,  // 26: WAWebProtobufsWeb.WebMessageInfo.supportAiCitations:type_name -> WAWebProtobufsWeb.Citation
@@ -4703,89 +4794,90 @@ var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
 	15,  // 28: WAWebProtobufsWeb.WebMessageInfo.groupHistoryBundleInfo:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo
 	27,  // 29: WAWebProtobufsWeb.WebMessageInfo.interactiveMessageAdditionalMetadata:type_name -> WAWebProtobufsWeb.InteractiveMessageAdditionalMetadata
 	37,  // 30: WAWebProtobufsWeb.WebMessageInfo.quarantinedMessage:type_name -> WAWebProtobufsWeb.QuarantinedMessage
-	5,   // 31: WAWebProtobufsWeb.PaymentInfo.currencyDeprecated:type_name -> WAWebProtobufsWeb.PaymentInfo.Currency
-	4,   // 32: WAWebProtobufsWeb.PaymentInfo.status:type_name -> WAWebProtobufsWeb.PaymentInfo.Status
-	38,  // 33: WAWebProtobufsWeb.PaymentInfo.requestMessageKey:type_name -> WACommon.MessageKey
-	3,   // 34: WAWebProtobufsWeb.PaymentInfo.txnStatus:type_name -> WAWebProtobufsWeb.PaymentInfo.TxnStatus
-	41,  // 35: WAWebProtobufsWeb.PaymentInfo.primaryAmount:type_name -> WAWebProtobufsE2E.Money
-	41,  // 36: WAWebProtobufsWeb.PaymentInfo.exchangeAmount:type_name -> WAWebProtobufsE2E.Money
-	6,   // 37: WAWebProtobufsWeb.WebFeatures.labelsDisplay:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 38: WAWebProtobufsWeb.WebFeatures.voipIndividualOutgoing:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 39: WAWebProtobufsWeb.WebFeatures.groupsV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 40: WAWebProtobufsWeb.WebFeatures.groupsV3Create:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 41: WAWebProtobufsWeb.WebFeatures.changeNumberV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 42: WAWebProtobufsWeb.WebFeatures.queryStatusV3Thumbnail:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 43: WAWebProtobufsWeb.WebFeatures.liveLocations:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 44: WAWebProtobufsWeb.WebFeatures.queryVname:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 45: WAWebProtobufsWeb.WebFeatures.voipIndividualIncoming:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 46: WAWebProtobufsWeb.WebFeatures.quickRepliesQuery:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 47: WAWebProtobufsWeb.WebFeatures.payments:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 48: WAWebProtobufsWeb.WebFeatures.stickerPackQuery:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 49: WAWebProtobufsWeb.WebFeatures.liveLocationsFinal:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 50: WAWebProtobufsWeb.WebFeatures.labelsEdit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 51: WAWebProtobufsWeb.WebFeatures.mediaUpload:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 52: WAWebProtobufsWeb.WebFeatures.mediaUploadRichQuickReplies:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 53: WAWebProtobufsWeb.WebFeatures.vnameV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 54: WAWebProtobufsWeb.WebFeatures.videoPlaybackURL:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 55: WAWebProtobufsWeb.WebFeatures.statusRanking:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 56: WAWebProtobufsWeb.WebFeatures.voipIndividualVideo:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 57: WAWebProtobufsWeb.WebFeatures.thirdPartyStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 58: WAWebProtobufsWeb.WebFeatures.frequentlyForwardedSetting:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 59: WAWebProtobufsWeb.WebFeatures.groupsV4JoinPermission:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 60: WAWebProtobufsWeb.WebFeatures.recentStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 61: WAWebProtobufsWeb.WebFeatures.catalog:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 62: WAWebProtobufsWeb.WebFeatures.starredStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 63: WAWebProtobufsWeb.WebFeatures.voipGroupCall:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 64: WAWebProtobufsWeb.WebFeatures.templateMessage:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 65: WAWebProtobufsWeb.WebFeatures.templateMessageInteractivity:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 66: WAWebProtobufsWeb.WebFeatures.ephemeralMessages:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 67: WAWebProtobufsWeb.WebFeatures.e2ENotificationSync:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 68: WAWebProtobufsWeb.WebFeatures.recentStickersV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 69: WAWebProtobufsWeb.WebFeatures.recentStickersV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 70: WAWebProtobufsWeb.WebFeatures.userNotice:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 71: WAWebProtobufsWeb.WebFeatures.support:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 72: WAWebProtobufsWeb.WebFeatures.groupUiiCleanup:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 73: WAWebProtobufsWeb.WebFeatures.groupDogfoodingInternalOnly:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 74: WAWebProtobufsWeb.WebFeatures.settingsSync:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 75: WAWebProtobufsWeb.WebFeatures.archiveV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 76: WAWebProtobufsWeb.WebFeatures.ephemeralAllowGroupMembers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 77: WAWebProtobufsWeb.WebFeatures.ephemeral24HDuration:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 78: WAWebProtobufsWeb.WebFeatures.mdForceUpgrade:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 79: WAWebProtobufsWeb.WebFeatures.disappearingMode:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 80: WAWebProtobufsWeb.WebFeatures.externalMdOptInAvailable:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	6,   // 81: WAWebProtobufsWeb.WebFeatures.noDeleteMessageTimeLimit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
-	7,   // 82: WAWebProtobufsWeb.PinInChat.type:type_name -> WAWebProtobufsWeb.PinInChat.Type
-	38,  // 83: WAWebProtobufsWeb.PinInChat.key:type_name -> WACommon.MessageKey
-	30,  // 84: WAWebProtobufsWeb.PinInChat.messageAddOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
-	8,   // 85: WAWebProtobufsWeb.MessageAddOn.messageAddOnType:type_name -> WAWebProtobufsWeb.MessageAddOn.MessageAddOnType
-	39,  // 86: WAWebProtobufsWeb.MessageAddOn.messageAddOn:type_name -> WAWebProtobufsE2E.Message
-	2,   // 87: WAWebProtobufsWeb.MessageAddOn.status:type_name -> WAWebProtobufsWeb.WebMessageInfo.Status
-	30,  // 88: WAWebProtobufsWeb.MessageAddOn.addOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
-	38,  // 89: WAWebProtobufsWeb.MessageAddOn.messageAddOnKey:type_name -> WACommon.MessageKey
-	33,  // 90: WAWebProtobufsWeb.MessageAddOn.legacyMessage:type_name -> WAWebProtobufsWeb.LegacyMessage
-	42,  // 91: WAWebProtobufsWeb.GroupHistoryBundleInfo.deprecatedMessageHistoryBundle:type_name -> WAWebProtobufsE2E.MessageHistoryBundle
-	9,   // 92: WAWebProtobufsWeb.GroupHistoryBundleInfo.processState:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
-	38,  // 93: WAWebProtobufsWeb.CommentMetadata.commentParentKey:type_name -> WACommon.MessageKey
-	10,  // 94: WAWebProtobufsWeb.WebNotificationsInfo.notifyMessages:type_name -> WAWebProtobufsWeb.WebMessageInfo
-	38,  // 95: WAWebProtobufsWeb.NotificationMessageInfo.key:type_name -> WACommon.MessageKey
-	39,  // 96: WAWebProtobufsWeb.NotificationMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
-	38,  // 97: WAWebProtobufsWeb.Reaction.key:type_name -> WACommon.MessageKey
-	38,  // 98: WAWebProtobufsWeb.PollUpdate.pollUpdateMessageKey:type_name -> WACommon.MessageKey
-	43,  // 99: WAWebProtobufsWeb.PollUpdate.vote:type_name -> WAWebProtobufsE2E.PollVoteMessage
-	44,  // 100: WAWebProtobufsWeb.KeepInChat.keepType:type_name -> WAWebProtobufsE2E.KeepType
-	38,  // 101: WAWebProtobufsWeb.KeepInChat.key:type_name -> WACommon.MessageKey
-	45,  // 102: WAWebProtobufsWeb.MessageAddOnContextInfo.messageAddOnExpiryType:type_name -> WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
-	38,  // 103: WAWebProtobufsWeb.EventResponse.eventResponseMessageKey:type_name -> WACommon.MessageKey
-	46,  // 104: WAWebProtobufsWeb.EventResponse.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
-	46,  // 105: WAWebProtobufsWeb.LegacyMessage.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
-	43,  // 106: WAWebProtobufsWeb.LegacyMessage.pollVote:type_name -> WAWebProtobufsE2E.PollVoteMessage
-	39,  // 107: WAWebProtobufsWeb.StatusMentionMessage.quotedStatus:type_name -> WAWebProtobufsE2E.Message
-	38,  // 108: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo.bundleMessageKey:type_name -> WACommon.MessageKey
-	109, // [109:109] is the sub-list for method output_type
-	109, // [109:109] is the sub-list for method input_type
-	109, // [109:109] is the sub-list for extension type_name
-	109, // [109:109] is the sub-list for extension extendee
-	0,   // [0:109] is the sub-list for field type_name
+	38,  // 31: WAWebProtobufsWeb.WebMessageInfo.scheduledMessageMetadata:type_name -> WAWebProtobufsWeb.ScheduledMessageMetadata
+	5,   // 32: WAWebProtobufsWeb.PaymentInfo.currencyDeprecated:type_name -> WAWebProtobufsWeb.PaymentInfo.Currency
+	4,   // 33: WAWebProtobufsWeb.PaymentInfo.status:type_name -> WAWebProtobufsWeb.PaymentInfo.Status
+	39,  // 34: WAWebProtobufsWeb.PaymentInfo.requestMessageKey:type_name -> WACommon.MessageKey
+	3,   // 35: WAWebProtobufsWeb.PaymentInfo.txnStatus:type_name -> WAWebProtobufsWeb.PaymentInfo.TxnStatus
+	42,  // 36: WAWebProtobufsWeb.PaymentInfo.primaryAmount:type_name -> WAWebProtobufsE2E.Money
+	42,  // 37: WAWebProtobufsWeb.PaymentInfo.exchangeAmount:type_name -> WAWebProtobufsE2E.Money
+	6,   // 38: WAWebProtobufsWeb.WebFeatures.labelsDisplay:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 39: WAWebProtobufsWeb.WebFeatures.voipIndividualOutgoing:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 40: WAWebProtobufsWeb.WebFeatures.groupsV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 41: WAWebProtobufsWeb.WebFeatures.groupsV3Create:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 42: WAWebProtobufsWeb.WebFeatures.changeNumberV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 43: WAWebProtobufsWeb.WebFeatures.queryStatusV3Thumbnail:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 44: WAWebProtobufsWeb.WebFeatures.liveLocations:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 45: WAWebProtobufsWeb.WebFeatures.queryVname:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 46: WAWebProtobufsWeb.WebFeatures.voipIndividualIncoming:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 47: WAWebProtobufsWeb.WebFeatures.quickRepliesQuery:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 48: WAWebProtobufsWeb.WebFeatures.payments:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 49: WAWebProtobufsWeb.WebFeatures.stickerPackQuery:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 50: WAWebProtobufsWeb.WebFeatures.liveLocationsFinal:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 51: WAWebProtobufsWeb.WebFeatures.labelsEdit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 52: WAWebProtobufsWeb.WebFeatures.mediaUpload:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 53: WAWebProtobufsWeb.WebFeatures.mediaUploadRichQuickReplies:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 54: WAWebProtobufsWeb.WebFeatures.vnameV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 55: WAWebProtobufsWeb.WebFeatures.videoPlaybackURL:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 56: WAWebProtobufsWeb.WebFeatures.statusRanking:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 57: WAWebProtobufsWeb.WebFeatures.voipIndividualVideo:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 58: WAWebProtobufsWeb.WebFeatures.thirdPartyStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 59: WAWebProtobufsWeb.WebFeatures.frequentlyForwardedSetting:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 60: WAWebProtobufsWeb.WebFeatures.groupsV4JoinPermission:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 61: WAWebProtobufsWeb.WebFeatures.recentStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 62: WAWebProtobufsWeb.WebFeatures.catalog:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 63: WAWebProtobufsWeb.WebFeatures.starredStickers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 64: WAWebProtobufsWeb.WebFeatures.voipGroupCall:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 65: WAWebProtobufsWeb.WebFeatures.templateMessage:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 66: WAWebProtobufsWeb.WebFeatures.templateMessageInteractivity:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 67: WAWebProtobufsWeb.WebFeatures.ephemeralMessages:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 68: WAWebProtobufsWeb.WebFeatures.e2ENotificationSync:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 69: WAWebProtobufsWeb.WebFeatures.recentStickersV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 70: WAWebProtobufsWeb.WebFeatures.recentStickersV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 71: WAWebProtobufsWeb.WebFeatures.userNotice:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 72: WAWebProtobufsWeb.WebFeatures.support:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 73: WAWebProtobufsWeb.WebFeatures.groupUiiCleanup:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 74: WAWebProtobufsWeb.WebFeatures.groupDogfoodingInternalOnly:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 75: WAWebProtobufsWeb.WebFeatures.settingsSync:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 76: WAWebProtobufsWeb.WebFeatures.archiveV2:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 77: WAWebProtobufsWeb.WebFeatures.ephemeralAllowGroupMembers:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 78: WAWebProtobufsWeb.WebFeatures.ephemeral24HDuration:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 79: WAWebProtobufsWeb.WebFeatures.mdForceUpgrade:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 80: WAWebProtobufsWeb.WebFeatures.disappearingMode:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 81: WAWebProtobufsWeb.WebFeatures.externalMdOptInAvailable:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	6,   // 82: WAWebProtobufsWeb.WebFeatures.noDeleteMessageTimeLimit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
+	7,   // 83: WAWebProtobufsWeb.PinInChat.type:type_name -> WAWebProtobufsWeb.PinInChat.Type
+	39,  // 84: WAWebProtobufsWeb.PinInChat.key:type_name -> WACommon.MessageKey
+	30,  // 85: WAWebProtobufsWeb.PinInChat.messageAddOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
+	8,   // 86: WAWebProtobufsWeb.MessageAddOn.messageAddOnType:type_name -> WAWebProtobufsWeb.MessageAddOn.MessageAddOnType
+	40,  // 87: WAWebProtobufsWeb.MessageAddOn.messageAddOn:type_name -> WAWebProtobufsE2E.Message
+	2,   // 88: WAWebProtobufsWeb.MessageAddOn.status:type_name -> WAWebProtobufsWeb.WebMessageInfo.Status
+	30,  // 89: WAWebProtobufsWeb.MessageAddOn.addOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
+	39,  // 90: WAWebProtobufsWeb.MessageAddOn.messageAddOnKey:type_name -> WACommon.MessageKey
+	33,  // 91: WAWebProtobufsWeb.MessageAddOn.legacyMessage:type_name -> WAWebProtobufsWeb.LegacyMessage
+	43,  // 92: WAWebProtobufsWeb.GroupHistoryBundleInfo.deprecatedMessageHistoryBundle:type_name -> WAWebProtobufsE2E.MessageHistoryBundle
+	9,   // 93: WAWebProtobufsWeb.GroupHistoryBundleInfo.processState:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
+	39,  // 94: WAWebProtobufsWeb.CommentMetadata.commentParentKey:type_name -> WACommon.MessageKey
+	10,  // 95: WAWebProtobufsWeb.WebNotificationsInfo.notifyMessages:type_name -> WAWebProtobufsWeb.WebMessageInfo
+	39,  // 96: WAWebProtobufsWeb.NotificationMessageInfo.key:type_name -> WACommon.MessageKey
+	40,  // 97: WAWebProtobufsWeb.NotificationMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
+	39,  // 98: WAWebProtobufsWeb.Reaction.key:type_name -> WACommon.MessageKey
+	39,  // 99: WAWebProtobufsWeb.PollUpdate.pollUpdateMessageKey:type_name -> WACommon.MessageKey
+	44,  // 100: WAWebProtobufsWeb.PollUpdate.vote:type_name -> WAWebProtobufsE2E.PollVoteMessage
+	45,  // 101: WAWebProtobufsWeb.KeepInChat.keepType:type_name -> WAWebProtobufsE2E.KeepType
+	39,  // 102: WAWebProtobufsWeb.KeepInChat.key:type_name -> WACommon.MessageKey
+	46,  // 103: WAWebProtobufsWeb.MessageAddOnContextInfo.messageAddOnExpiryType:type_name -> WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
+	39,  // 104: WAWebProtobufsWeb.EventResponse.eventResponseMessageKey:type_name -> WACommon.MessageKey
+	47,  // 105: WAWebProtobufsWeb.EventResponse.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
+	47,  // 106: WAWebProtobufsWeb.LegacyMessage.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
+	44,  // 107: WAWebProtobufsWeb.LegacyMessage.pollVote:type_name -> WAWebProtobufsE2E.PollVoteMessage
+	40,  // 108: WAWebProtobufsWeb.StatusMentionMessage.quotedStatus:type_name -> WAWebProtobufsE2E.Message
+	39,  // 109: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo.bundleMessageKey:type_name -> WACommon.MessageKey
+	110, // [110:110] is the sub-list for method output_type
+	110, // [110:110] is the sub-list for method input_type
+	110, // [110:110] is the sub-list for extension type_name
+	110, // [110:110] is the sub-list for extension extendee
+	0,   // [0:110] is the sub-list for field type_name
 }
 
 func init() { file_waWeb_WAWebProtobufsWeb_proto_init() }
@@ -4799,7 +4891,7 @@ func file_waWeb_WAWebProtobufsWeb_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waWeb_WAWebProtobufsWeb_proto_rawDesc), len(file_waWeb_WAWebProtobufsWeb_proto_rawDesc)),
 			NumEnums:      10,
-			NumMessages:   28,
+			NumMessages:   29,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
