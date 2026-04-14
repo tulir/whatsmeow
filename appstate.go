@@ -83,7 +83,6 @@ func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName,
 		hasMore = patches.HasMorePatches
 		state, err = cli.applyAppStatePatches(ctx, name, state, patches, fullSync, eventsToDispatchPtr)
 		if err != nil {
-			cli.dispatchEvent(&events.AppStateSyncError{Name: name, FullSync: fullSync, Error: err})
 			return nil, err
 		}
 	}
@@ -161,6 +160,8 @@ func (cli *Client) applyAppStatePatches(
 	if err != nil {
 		if errors.Is(err, appstate.ErrKeyNotFound) {
 			go cli.requestMissingAppStateKeys(context.WithoutCancel(ctx), patches)
+		} else {
+			cli.dispatchEvent(&events.AppStateSyncError{Name: name, FullSync: fullSync, Error: err})
 		}
 		return state, fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 	}
