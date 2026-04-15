@@ -1113,7 +1113,7 @@ func (cli *Client) preparePeerMessageNode(
 	if message.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST {
 		attrs["push_priority"] = "high"
 	} else if message.GetProtocolMessage().GetPeerDataOperationRequestMessage().GetPeerDataOperationRequestType() == waE2E.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND {
-		//attrs["push_priority"] = "high_force"
+		attrs["push_priority"] = "high_force"
 		attrs["privacy_sensitive"] = "1"
 	}
 	start := time.Now()
