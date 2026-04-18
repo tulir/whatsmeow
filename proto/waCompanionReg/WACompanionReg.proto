@@ -54,6 +54,8 @@ message DeviceProps {
 		optional uint32 initialSyncMaxMessagesPerChat = 20;
 		optional bool supportManusHistory = 21;
 		optional bool supportHatchHistory = 22;
+		repeated string supportedBotChannelFbids = 23;
+		optional bool supportInlineContacts = 24;
 	}
 
 	message AppVersion {
@@ -107,4 +109,5 @@ message ClientPairingProps {
 	optional bool isSyncdPureLidSession = 2;
 	optional bool isSyncdSnapshotRecoveryEnabled = 3;
 	optional bool isHsThumbnailSyncEnabled = 4;
+	optional bytes subscriptionSyncPayload = 5;
 }

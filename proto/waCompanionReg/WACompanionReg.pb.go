@@ -549,6 +549,7 @@ type ClientPairingProps struct {
 	IsSyncdPureLidSession          *bool                  `protobuf:"varint,2,opt,name=isSyncdPureLidSession" json:"isSyncdPureLidSession,omitempty"`
 	IsSyncdSnapshotRecoveryEnabled *bool                  `protobuf:"varint,3,opt,name=isSyncdSnapshotRecoveryEnabled" json:"isSyncdSnapshotRecoveryEnabled,omitempty"`
 	IsHsThumbnailSyncEnabled       *bool                  `protobuf:"varint,4,opt,name=isHsThumbnailSyncEnabled" json:"isHsThumbnailSyncEnabled,omitempty"`
+	SubscriptionSyncPayload        []byte                 `protobuf:"bytes,5,opt,name=subscriptionSyncPayload" json:"subscriptionSyncPayload,omitempty"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -611,6 +612,13 @@ func (x *ClientPairingProps) GetIsHsThumbnailSyncEnabled() bool {
 	return false
 }
 
+func (x *ClientPairingProps) GetSubscriptionSyncPayload() []byte {
+	if x != nil {
+		return x.SubscriptionSyncPayload
+	}
+	return nil
+}
+
 type DeviceProps_HistorySyncConfig struct {
 	state                                    protoimpl.MessageState `protogen:"open.v1"`
 	FullSyncDaysLimit                        *uint32                `protobuf:"varint,1,opt,name=fullSyncDaysLimit" json:"fullSyncDaysLimit,omitempty"`
@@ -635,6 +643,8 @@ type DeviceProps_HistorySyncConfig struct {
 	InitialSyncMaxMessagesPerChat            *uint32                `protobuf:"varint,20,opt,name=initialSyncMaxMessagesPerChat" json:"initialSyncMaxMessagesPerChat,omitempty"`
 	SupportManusHistory                      *bool                  `protobuf:"varint,21,opt,name=supportManusHistory" json:"supportManusHistory,omitempty"`
 	SupportHatchHistory                      *bool                  `protobuf:"varint,22,opt,name=supportHatchHistory" json:"supportHatchHistory,omitempty"`
+	SupportedBotChannelFbids                 []string               `protobuf:"bytes,23,rep,name=supportedBotChannelFbids" json:"supportedBotChannelFbids,omitempty"`
+	SupportInlineContacts                    *bool                  `protobuf:"varint,24,opt,name=supportInlineContacts" json:"supportInlineContacts,omitempty"`
 	unknownFields                            protoimpl.UnknownFields
 	sizeCache                                protoimpl.SizeCache
 }
@@ -823,6 +833,20 @@ func (x *DeviceProps_HistorySyncConfig) GetSupportHatchHistory() bool {
 	return false
 }
 
+func (x *DeviceProps_HistorySyncConfig) GetSupportedBotChannelFbids() []string {
+	if x != nil {
+		return x.SupportedBotChannelFbids
+	}
+	return nil
+}
+
+func (x *DeviceProps_HistorySyncConfig) GetSupportInlineContacts() bool {
+	if x != nil && x.SupportInlineContacts != nil {
+		return *x.SupportInlineContacts
+	}
+	return false
+}
+
 type DeviceProps_AppVersion struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Primary       *uint32                `protobuf:"varint,1,opt,name=primary" json:"primary,omitempty"`
@@ -903,13 +927,14 @@ var File_waCompanionReg_WACompanionReg_proto protoreflect.FileDescriptor
 
 const file_waCompanionReg_WACompanionReg_proto_rawDesc = "" +
 	"\n" +
-	"#waCompanionReg/WACompanionReg.proto\x12\x0eWACompanionReg\"\xb1\x10\n" +
+	"#waCompanionReg/WACompanionReg.proto\x12\x0eWACompanionReg\"\xa3\x11\n" +
 	"\vDeviceProps\x12\x0e\n" +
 	"\x02os\x18\x01 \x01(\tR\x02os\x12@\n" +
 	"\aversion\x18\x02 \x01(\v2&.WACompanionReg.DeviceProps.AppVersionR\aversion\x12L\n" +
 	"\fplatformType\x18\x03 \x01(\x0e2(.WACompanionReg.DeviceProps.PlatformTypeR\fplatformType\x12(\n" +
 	"\x0frequireFullSync\x18\x04 \x01(\bR\x0frequireFullSync\x12[\n" +
-	"\x11historySyncConfig\x18\x05 \x01(\v2-.WACompanionReg.DeviceProps.HistorySyncConfigR\x11historySyncConfig\x1a\xfb\t\n" +
+	"\x11historySyncConfig\x18\x05 \x01(\v2-.WACompanionReg.DeviceProps.HistorySyncConfigR\x11historySyncConfig\x1a\xed\n" +
+	"\n" +
 	"\x11HistorySyncConfig\x12,\n" +
 	"\x11fullSyncDaysLimit\x18\x01 \x01(\rR\x11fullSyncDaysLimit\x120\n" +
 	"\x13fullSyncSizeMbLimit\x18\x02 \x01(\rR\x13fullSyncSizeMbLimit\x12&\n" +
@@ -933,7 +958,9 @@ const file_waCompanionReg_WACompanionReg_proto_rawDesc = "" +
 	"\x16thumbnailSyncDaysLimit\x18\x13 \x01(\rR\x16thumbnailSyncDaysLimit\x12D\n" +
 	"\x1dinitialSyncMaxMessagesPerChat\x18\x14 \x01(\rR\x1dinitialSyncMaxMessagesPerChat\x120\n" +
 	"\x13supportManusHistory\x18\x15 \x01(\bR\x13supportManusHistory\x120\n" +
-	"\x13supportHatchHistory\x18\x16 \x01(\bR\x13supportHatchHistory\x1a\x9a\x01\n" +
+	"\x13supportHatchHistory\x18\x16 \x01(\bR\x13supportHatchHistory\x12:\n" +
+	"\x18supportedBotChannelFbids\x18\x17 \x03(\tR\x18supportedBotChannelFbids\x124\n" +
+	"\x15supportInlineContacts\x18\x18 \x01(\bR\x15supportInlineContacts\x1a\x9a\x01\n" +
 	"\n" +
 	"AppVersion\x12\x18\n" +
 	"\aprimary\x18\x01 \x01(\rR\aprimary\x12\x1c\n" +
@@ -995,12 +1022,13 @@ const file_waCompanionReg_WACompanionReg_proto_rawDesc = "" +
 	"\tadvSecret\x18\x03 \x01(\fR\tadvSecret\"U\n" +
 	"\x17EncryptedPairingRequest\x12*\n" +
 	"\x10encryptedPayload\x18\x01 \x01(\fR\x10encryptedPayload\x12\x0e\n" +
-	"\x02IV\x18\x02 \x01(\fR\x02IV\"\x80\x02\n" +
+	"\x02IV\x18\x02 \x01(\fR\x02IV\"\xba\x02\n" +
 	"\x12ClientPairingProps\x120\n" +
 	"\x13isChatDbLidMigrated\x18\x01 \x01(\bR\x13isChatDbLidMigrated\x124\n" +
 	"\x15isSyncdPureLidSession\x18\x02 \x01(\bR\x15isSyncdPureLidSession\x12F\n" +
 	"\x1eisSyncdSnapshotRecoveryEnabled\x18\x03 \x01(\bR\x1eisSyncdSnapshotRecoveryEnabled\x12:\n" +
-	"\x18isHsThumbnailSyncEnabled\x18\x04 \x01(\bR\x18isHsThumbnailSyncEnabledB*Z(go.mau.fi/whatsmeow/proto/waCompanionReg"
+	"\x18isHsThumbnailSyncEnabled\x18\x04 \x01(\bR\x18isHsThumbnailSyncEnabled\x128\n" +
+	"\x17subscriptionSyncPayload\x18\x05 \x01(\fR\x17subscriptionSyncPayloadB*Z(go.mau.fi/whatsmeow/proto/waCompanionReg"
 
 var (
 	file_waCompanionReg_WACompanionReg_proto_rawDescOnce sync.Once
