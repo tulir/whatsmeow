@@ -27,12 +27,7 @@ func (cli *Client) handleReceipt(ctx context.Context, node *waBinary.Node) {
 		cli.Log.Warnf("Failed to parse receipt: %v", err)
 	} else if receipt != nil {
 		if receipt.Type == types.ReceiptTypeRetry {
-			go func() {
-				err := cli.handleRetryReceipt(ctx, receipt, node)
-				if err != nil {
-					cli.Log.Errorf("Failed to handle retry receipt for %s/%s from %s: %v", receipt.Chat, receipt.MessageIDs[0], receipt.Sender, err)
-				}
-			}()
+			go cli.tryHandleRetryReceipt(ctx, receipt, node)
 		}
 		cancelled = cli.dispatchEvent(receipt)
 	}
