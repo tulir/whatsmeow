@@ -123,6 +123,12 @@ type Client struct {
 	incomingRetryRequestCounter     map[incomingRetryKey]int
 	incomingRetryRequestCounterLock sync.Mutex
 
+	receiptQueue chan receiptTask
+	// ReceiptWorkerCount controls the number of concurrent receipt workers.
+	// 0 (default) means unlimited concurrency (each receipt gets its own goroutine).
+	// Set before calling Connect.
+	ReceiptWorkerCount int
+
 	appStateKeyRequests     map[string]time.Time
 	appStateKeyRequestsLock sync.RWMutex
 
@@ -539,6 +545,7 @@ func (cli *Client) unlockedConnect(ctx context.Context) error {
 	}
 	go cli.keepAliveLoop(ctx, fs.Context())
 	go cli.handlerQueueLoop(ctx, fs.Context())
+	cli.startReceiptWorkers(ctx)
 	return nil
 }
 

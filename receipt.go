@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -19,23 +20,69 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
-func (cli *Client) handleReceipt(ctx context.Context, node *waBinary.Node) {
+type receiptTask struct {
+	ctx  context.Context
+	node *waBinary.Node
+}
+
+func (cli *Client) startReceiptWorkers(ctx context.Context) {
+	if cli.ReceiptWorkerCount <= 0 {
+		return
+	}
+	cli.receiptQueue = make(chan receiptTask, 512)
+	for i := 0; i < cli.ReceiptWorkerCount; i++ {
+		go cli.receiptWorker(ctx)
+	}
+}
+
+func (cli *Client) receiptWorker(ctx context.Context) {
+	for {
+		select {
+		case task, ok := <-cli.receiptQueue:
+			if !ok {
+				return
+			}
+			cli.processReceiptTask(task.ctx, task.node)
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (cli *Client) processReceiptTask(ctx context.Context, node *waBinary.Node) {
+	defer func() {
+		if panicErr := recover(); panicErr != nil {
+			stack := debug.Stack()
+			cli.Log.Errorf("recover panic in receipt worker: %v, stack: %s", panicErr, string(stack))
+		}
+	}()
 	var cancelled bool
 	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 	receipt, err := cli.parseReceipt(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse receipt: %v", err)
-	} else if receipt != nil {
-		if receipt.Type == types.ReceiptTypeRetry {
-			go func() {
-				err := cli.handleRetryReceipt(ctx, receipt, node)
-				if err != nil {
-					cli.Log.Errorf("Failed to handle retry receipt for %s/%s from %s: %v", receipt.Chat, receipt.MessageIDs[0], receipt.Sender, err)
-				}
-			}()
-		}
-		cancelled = cli.dispatchEvent(receipt)
+		return
 	}
+	if receipt == nil {
+		return
+	}
+	if receipt.Type == types.ReceiptTypeRetry {
+		err := cli.handleRetryReceipt(cli.BackgroundEventCtx, receipt, node)
+		if err != nil {
+			cli.Log.Errorf("Failed to handle retry receipt for %s/%s from %s: %v", receipt.Chat, receipt.MessageIDs[0], receipt.Sender, err)
+		}
+	}
+	cancelled = cli.dispatchEvent(receipt)
+}
+
+func (cli *Client) handleReceipt(ctx context.Context, node *waBinary.Node) {
+	if cli.ReceiptWorkerCount <= 0 {
+		go cli.processReceiptTask(ctx, node)
+		return
+	}
+	go func() {
+		cli.receiptQueue <- receiptTask{ctx: ctx, node: node}
+	}()
 }
 
 func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participants *waBinary.Node) {
