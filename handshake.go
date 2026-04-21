@@ -7,8 +7,8 @@
 package whatsmeow
 
 import (
-	"bytes"
 	"context"
+	"crypto/hmac"
 	"fmt"
 	"time"
 
@@ -173,7 +173,7 @@ func verifyServerCert(certDecrypted, staticDecrypted []byte) error {
 		return fmt.Errorf("failed to unmarshal noise certificate details: %w", err)
 	} else if leafCertDetails.GetIssuerSerial() != intermediateCertDetails.GetSerial() {
 		return fmt.Errorf("unexpected leaf issuer serial %d (expected %d)", leafCertDetails.GetIssuerSerial(), intermediateCertDetails.GetSerial())
-	} else if !bytes.Equal(leafCertDetails.GetKey(), staticDecrypted) {
+	} else if !hmac.Equal(leafCertDetails.GetKey(), staticDecrypted) {
 		return fmt.Errorf("cert key doesn't match decrypted static")
 	} else if err = checkCertValidity(&leafCertDetails); err != nil {
 		return fmt.Errorf("leaf cert cert %w", err)

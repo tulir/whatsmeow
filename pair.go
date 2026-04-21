@@ -7,7 +7,6 @@
 package whatsmeow
 
 import (
-	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
@@ -125,7 +124,7 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 	}
 	h.Write(deviceIdentityContainer.Details)
 
-	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.HMAC) {
+	if !hmac.Equal(h.Sum(nil), deviceIdentityContainer.HMAC) {
 		cli.Log.Warnf("Invalid HMAC from pair success message")
 		cli.sendPairError(ctx, reqID, 401, "hmac-mismatch")
 		return ErrPairInvalidDeviceIdentityHMAC
