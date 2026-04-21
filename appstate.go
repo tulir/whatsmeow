@@ -161,11 +161,33 @@ func (cli *Client) applyAppStatePatches(
 		if errors.Is(err, appstate.ErrKeyNotFound) {
 			go cli.requestMissingAppStateKeys(context.WithoutCancel(ctx), patches)
 		} else {
+			if errors.Is(err, appstate.ErrMismatchingLTHash) || errors.Is(err, appstate.ErrMismatchingPatchMAC) {
+				// Local hash state has diverged from the server. Request a fresh recovery
+				// snapshot from the user's primary device. The response will be handled by
+				// handleAppStateRecovery, which deletes the local version and applies the
+				// server's snapshot.
+				go cli.requestAppStateRecovery(context.WithoutCancel(ctx), name)
+			}
 			cli.dispatchEvent(&events.AppStateSyncError{Name: name, FullSync: fullSync, Error: err})
 		}
 		return state, fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 	}
 	return newState, cli.collectEventsToDispatch(ctx, name, mutations, fullSync, eventsToDispatch)
+}
+
+// requestAppStateRecovery asks the primary device for a fresh snapshot of the given
+// app state collection. This is triggered automatically when DecodePatches returns
+// ErrMismatchingLTHash or ErrMismatchingPatchMAC, which indicate that the local
+// cached hash has diverged from the server's (usually after app state mutations
+// were made on another device while this one was offline, or after an upstream
+// proto version bump).
+func (cli *Client) requestAppStateRecovery(ctx context.Context, name appstate.WAPatchName) {
+	msg := BuildAppStateRecoveryRequest(name)
+	cli.Log.Infof("Requesting app state recovery snapshot for %s due to hash mismatch", name)
+	_, err := cli.SendPeerMessage(ctx, msg)
+	if err != nil {
+		cli.Log.Warnf("Failed to send app state recovery request for %s: %v", name, err)
+	}
 }
 
 func (cli *Client) collectEventsToDispatch(
