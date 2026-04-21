@@ -489,12 +489,20 @@ func (cli *Client) bufferedDecrypt(
 	ciphertext []byte,
 	serverTimestamp time.Time,
 	decrypt func(context.Context) ([]byte, error),
+	extraHashData ...string,
 ) (plaintext []byte, ciphertextHash [32]byte, err error) {
 	if !cli.EnableDecryptedEventBuffer {
 		plaintext, err = decrypt(ctx)
 		return
 	}
-	ciphertextHash = sha256.Sum256(ciphertext)
+	hasher := sha256.New()
+	hasher.Write(ciphertext)
+	for _, part := range extraHashData {
+		hasher.Write([]byte{0})
+		hasher.Write([]byte(part))
+	}
+	hasher.Write([]byte{0, 0})
+	ciphertextHash = *(*[32]byte)(hasher.Sum(nil))
 	var buf *store.BufferedEvent
 	buf, err = cli.Store.EventBuffer.GetBufferedEvent(ctx, ciphertextHash)
 	if err != nil {
@@ -562,7 +570,7 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 				pt, innerErr = cipher.DecryptMessage(decryptCtx, preKeyMsg)
 			}
 			return pt, innerErr
-		})
+		}, "prekey", from.String())
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to decrypt prekey message: %w", err)
 		}
@@ -573,7 +581,7 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 		}
 		plaintext, ciphertextHash, err = cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
 			return cipher.Decrypt(decryptCtx, msg)
-		})
+		}, "normal", from.String())
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to decrypt normal message: %w", err)
 		}
@@ -601,7 +609,7 @@ func (cli *Client) decryptGroupMsg(ctx context.Context, child *waBinary.Node, fr
 	}
 	plaintext, ciphertextHash, err := cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
 		return cipher.Decrypt(decryptCtx, msg)
-	})
+	}, "senderkey", chat.String(), from.String())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to decrypt group message: %w", err)
 	}
