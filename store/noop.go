@@ -264,6 +264,10 @@ func (n *NoopStore) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (map
 	return nil, n.Error
 }
 
+func (n *NoopStore) GetManyPNsForLIDs(ctx context.Context, lids []types.JID) (map[types.JID]types.JID, error) {
+	return nil, n.Error
+}
+
 func (n *NoopStore) GetPNForLID(ctx context.Context, lid types.JID) (types.JID, error) {
 	return types.JID{}, n.Error
 }
