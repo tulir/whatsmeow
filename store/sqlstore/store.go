@@ -929,12 +929,16 @@ func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID,
 
 const (
 	putPrivacyTokens = `
-		INSERT INTO whatsmeow_privacy_tokens (our_jid, their_jid, token, timestamp)
-		VALUES ($1, $2, $3, $4)
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET token=EXCLUDED.token, timestamp=EXCLUDED.timestamp
+		INSERT INTO whatsmeow_privacy_tokens (our_jid, their_jid, token, timestamp, sender_timestamp)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET
+			token=EXCLUDED.token,
+			timestamp=EXCLUDED.timestamp,
+			sender_timestamp=COALESCE(EXCLUDED.sender_timestamp, whatsmeow_privacy_tokens.sender_timestamp)
+		WHERE EXCLUDED.timestamp >= whatsmeow_privacy_tokens.timestamp
 	`
 	getPrivacyToken = `
-		SELECT token, timestamp FROM whatsmeow_privacy_tokens WHERE our_jid=$1 AND (their_jid=$2 OR their_jid=(
+		SELECT token, timestamp, sender_timestamp FROM whatsmeow_privacy_tokens WHERE our_jid=$1 AND (their_jid=$2 OR their_jid=(
 			CASE
 				WHEN $2 LIKE '%@lid'
 					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($2, '@lid', ''))
@@ -943,21 +947,30 @@ const (
 				ELSE $2
 			END
 		))
-		ORDER BY timestamp DESC LIMIT 1
+			ORDER BY timestamp DESC LIMIT 1
+	`
+	deleteExpiredPrivacyTokens = `
+		DELETE FROM whatsmeow_privacy_tokens
+		WHERE our_jid=$1 AND timestamp < $2
 	`
 )
 
 func (s *SQLStore) PutPrivacyTokens(ctx context.Context, tokens ...store.PrivacyToken) error {
-	args := make([]any, 1+len(tokens)*3)
+	args := make([]any, 1+len(tokens)*4)
 	placeholders := make([]string, len(tokens))
 	args[0] = s.JID
 	for i, token := range tokens {
-		args[i*3+1] = token.User.ToNonAD().String()
-		args[i*3+2] = token.Token
-		args[i*3+3] = token.Timestamp.Unix()
-		placeholders[i] = fmt.Sprintf("($1, $%d, $%d, $%d)", i*3+2, i*3+3, i*3+4)
+		args[i*4+1] = token.User.ToNonAD().String()
+		args[i*4+2] = token.Token
+		args[i*4+3] = token.Timestamp.Unix()
+		if token.SenderTimestamp.IsZero() {
+			args[i*4+4] = nil
+		} else {
+			args[i*4+4] = token.SenderTimestamp.Unix()
+		}
+		placeholders[i] = fmt.Sprintf("($1, $%d, $%d, $%d, $%d)", i*4+2, i*4+3, i*4+4, i*4+5)
 	}
-	query := strings.ReplaceAll(putPrivacyTokens, "($1, $2, $3, $4)", strings.Join(placeholders, ","))
+	query := strings.ReplaceAll(putPrivacyTokens, "($1, $2, $3, $4, $5)", strings.Join(placeholders, ","))
 	_, err := s.db.Exec(ctx, query, args...)
 	return err
 }
@@ -966,15 +979,31 @@ func (s *SQLStore) GetPrivacyToken(ctx context.Context, user types.JID) (*store.
 	var token store.PrivacyToken
 	token.User = user.ToNonAD()
 	var ts int64
-	err := s.db.QueryRow(ctx, getPrivacyToken, s.JID, token.User).Scan(&token.Token, &ts)
+	var senderTs sql.NullInt64
+	err := s.db.QueryRow(ctx, getPrivacyToken, s.JID, token.User).Scan(&token.Token, &ts, &senderTs)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	} else {
 		token.Timestamp = time.Unix(ts, 0)
+		if senderTs.Valid {
+			token.SenderTimestamp = time.Unix(senderTs.Int64, 0)
+		}
 		return &token, nil
 	}
+}
+
+func (s *SQLStore) DeleteExpiredPrivacyTokens(ctx context.Context, cutoff time.Time) (int64, error) {
+	res, err := s.db.Exec(ctx, deleteExpiredPrivacyTokens, s.JID, cutoff.Unix())
+	if err != nil {
+		return 0, err
+	}
+	deleted, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return deleted, nil
 }
 
 const (
