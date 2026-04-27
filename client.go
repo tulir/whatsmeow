@@ -132,9 +132,9 @@ type Client struct {
 
 	messageSendLock sync.Mutex
 
-	tcTokenSenderTs               sync.Map
-	tcTokenSenderTsCleanupStarted atomic.Bool
-	tcTokenDBPruneLock            sync.Mutex
+	tcTokenSenderTs     map[types.JID]time.Time
+	tcTokenSenderTsLock sync.Mutex
+	tcTokenDBPruneLock  sync.Mutex
 
 	privacySettingsCache atomic.Value
 
@@ -264,6 +264,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
+		tcTokenSenderTS:  make(map[types.JID]time.Time),
 		groupCache:       make(map[types.JID]*groupMetaCache),
 		userDevicesCache: make(map[types.JID]deviceCache),
 
