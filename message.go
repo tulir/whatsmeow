@@ -715,6 +715,11 @@ func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.History
 	}
 	cli.Log.Debugf("Received history sync (type %s, chunk %d, progress %d)", historySync.GetSyncType(), historySync.GetChunkOrder(), historySync.GetProgress())
 	doStorage := func(ctx context.Context) {
+		if salt := historySync.GetNctSalt(); len(salt) > 0 {
+			if err := cli.storeNCTSalt(ctx, salt); err != nil {
+				cli.Log.Warnf("Failed to store NCT salt from history sync: %v", err)
+			}
+		}
 		if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
 			cli.handleHistoricalPushNames(ctx, historySync.GetPushnames())
 		} else if len(historySync.GetConversations()) > 0 {
@@ -884,14 +889,11 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 			continue
 		}
 		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
-			ts := conv.GetTcTokenSenderTimestamp()
-			if ts == 0 {
-				ts = conv.GetTcTokenTimestamp()
-			}
 			privacyTokens = append(privacyTokens, store.PrivacyToken{
-				User:      chatJID,
-				Token:     conv.GetTcToken(),
-				Timestamp: time.Unix(int64(ts), 0),
+				User:            chatJID,
+				Token:           conv.GetTcToken(),
+				Timestamp:       time.Unix(int64(conv.GetTcTokenTimestamp()), 0),
+				SenderTimestamp: time.Unix(int64(conv.GetTcTokenSenderTimestamp()), 0),
 			})
 		}
 		for _, msg := range conv.GetMessages() {

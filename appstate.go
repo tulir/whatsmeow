@@ -235,6 +235,25 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 	}
 	logEvt.Msg("Received app state mutation")
 
+	if len(mutation.Index) > 0 &&
+		mutation.Index[0] == appstate.IndexNCTSaltSync &&
+		(mutation.Operation == waServerSync.SyncdMutation_SET || mutation.Operation == waServerSync.SyncdMutation_REMOVE) {
+		var err error
+		if mutation.Operation == waServerSync.SyncdMutation_SET {
+			if salt := mutation.Action.GetNctSaltSyncAction().GetSalt(); len(salt) > 0 {
+				err = cli.storeNCTSalt(ctx, salt)
+			} else {
+				err = cli.clearNCTSalt(ctx)
+			}
+		} else {
+			err = cli.clearNCTSalt(ctx)
+		}
+		if err != nil {
+			cli.Log.Warnf("Failed to update NCT salt from app state mutation: %v", err)
+		}
+		return
+	}
+
 	if mutation.Operation != waServerSync.SyncdMutation_SET {
 		return
 	}

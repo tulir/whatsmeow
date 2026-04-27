@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -47,6 +48,22 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 			cli.Log.Warnf("Failed to delete all sessions of %s from store after identity change: %v", from, err)
 		}
 		ts := node.AttrGetter().UnixTime("t")
+		storageLID := cli.resolveTcTokenStorageLID(ctx, from)
+		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageLID)
+		if err != nil {
+			cli.Log.Debugf("Failed to load tctoken for identity change re-issue %s: %v", storageLID, err)
+		}
+		storedSenderTs := time.Time{}
+		if pt != nil {
+			storedSenderTs = pt.SenderTimestamp
+		}
+		if cli.hasValidTcTokenSenderTs(storageLID, storedSenderTs) {
+			senderTs := cli.getTcTokenSenderTs(storageLID)
+			if !senderTs.IsZero() {
+				cli.Log.Debugf("Identity changed for %s, re-issuing tctoken", from)
+				cli.fireAndForgetTcTokenIssuance(ctx, storageLID, senderTs.Unix())
+			}
+		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
 		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
@@ -252,9 +269,7 @@ func (cli *Client) handleAccountSyncNotification(ctx context.Context, node *waBi
 }
 
 func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waBinary.Node) {
-	ownJID := cli.getOwnID().ToNonAD()
-	ownLID := cli.getOwnLID().ToNonAD()
-	if ownJID.IsEmpty() {
+	if cli.getOwnID().IsEmpty() {
 		cli.Log.Debugf("Ignoring privacy token notification, session was deleted")
 		return
 	}
@@ -264,7 +279,11 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 		return
 	}
 	parentAG := node.AttrGetter()
-	sender := parentAG.JID("from")
+	sender := parentAG.JID("from").ToNonAD()
+	senderLID := parentAG.OptionalJIDOrEmpty("sender_lid").ToNonAD()
+	if senderLID.IsEmpty() {
+		senderLID = cli.resolveTcTokenStorageLID(ctx, sender)
+	}
 	if !parentAG.OK() {
 		cli.Log.Warnf("privacy_token notification didn't have a sender (%v)", parentAG.Error())
 		return
@@ -273,30 +292,30 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 		ag := child.AttrGetter()
 		if child.Tag != "token" {
 			cli.Log.Warnf("privacy_token notification contained unexpected <%s> tag", child.Tag)
-		} else if targetUser := ag.JID("jid"); targetUser != ownLID && targetUser != ownJID {
-			// Don't log about own privacy tokens for other users
-			if sender != ownJID && sender != ownLID {
-				cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
-			}
-		} else if tokenType := ag.String("type"); tokenType != "trusted_contact" {
+			continue
+		}
+		if tokenType := ag.String("type"); tokenType != "trusted_contact" {
 			cli.Log.Warnf("privacy_token notification contained unexpected token type %s", tokenType)
-		} else if token, ok := child.Content.([]byte); !ok {
+			continue
+		}
+		token, ok := child.Content.([]byte)
+		if !ok {
 			cli.Log.Warnf("privacy_token notification contained non-binary token")
+			continue
+		}
+		timestamp := ag.UnixTime("t")
+		if !ag.OK() {
+			cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
+		}
+		err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
+			User:      senderLID,
+			Token:     token,
+			Timestamp: timestamp,
+		})
+		if err != nil {
+			cli.Log.Errorf("Failed to save privacy token from %s: %v", senderLID, err)
 		} else {
-			timestamp := ag.UnixTime("t")
-			if !ag.OK() {
-				cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
-			}
-			err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
-				User:      sender,
-				Token:     token,
-				Timestamp: timestamp,
-			})
-			if err != nil {
-				cli.Log.Errorf("Failed to save privacy token from %s: %v", sender, err)
-			} else {
-				cli.Log.Debugf("Stored privacy token from %s (ts: %v)", sender, timestamp)
-			}
+			cli.Log.Debugf("Received privacy token from %s (ts: %v)", senderLID, timestamp)
 		}
 	}
 }

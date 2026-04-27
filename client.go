@@ -83,6 +83,8 @@ type Client struct {
 	SynchronousAck             bool
 	EnableDecryptedEventBuffer bool
 	lastDecryptedBufferClear   time.Time
+	lastTcTokenSenderTsCleanup time.Time
+	lastTcTokenDBPrune         time.Time
 
 	DisableLoginAutoReconnect bool
 
@@ -129,6 +131,10 @@ type Client struct {
 	appStateKeyRequestsLock sync.RWMutex
 
 	messageSendLock sync.Mutex
+
+	tcTokenSenderTs               sync.Map
+	tcTokenSenderTsCleanupStarted atomic.Bool
+	tcTokenDBPruneStarted         atomic.Bool
 
 	privacySettingsCache atomic.Value
 
