@@ -147,6 +147,12 @@ type PrivacyTokenStore interface {
 	GetPrivacyToken(ctx context.Context, user types.JID) (*PrivacyToken, error)
 }
 
+type NCTSaltStore interface {
+	PutNCTSalt(ctx context.Context, salt []byte) error
+	GetNCTSalt(ctx context.Context) ([]byte, error)
+	DeleteNCTSalt(ctx context.Context) error
+}
+
 type BufferedEvent struct {
 	Plaintext  []byte
 	InsertTime time.Time
@@ -193,6 +199,7 @@ type AllSessionSpecificStores interface {
 	ChatSettingsStore
 	MsgSecretStore
 	PrivacyTokenStore
+	NCTSaltStore
 	EventBuffer
 }
 
@@ -238,6 +245,7 @@ type Device struct {
 	ChatSettings  ChatSettingsStore
 	MsgSecrets    MsgSecretStore
 	PrivacyTokens PrivacyTokenStore
+	NCTSalt       NCTSaltStore
 	EventBuffer   EventBuffer
 	LIDs          LIDStore
 	Container     DeviceContainer
@@ -296,6 +304,7 @@ func (device *Device) SetAllStores(store AllSessionSpecificStores) {
 	device.ChatSettings = store
 	device.MsgSecrets = store
 	device.PrivacyTokens = store
+	device.NCTSalt = store
 	device.EventBuffer = store
 }
 
