@@ -100,9 +100,10 @@ type Client struct {
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 
-	historySyncNotifications  chan *waE2E.HistorySyncNotification
-	historySyncHandlerStarted atomic.Bool
-	ManualHistorySyncDownload bool
+	historySyncNotifications        chan *waE2E.HistorySyncNotification
+	historySyncHandlerStarted       atomic.Bool
+	ManualHistorySyncDownload       bool
+	DisableManualHistorySyncReceipt bool
 
 	uploadPreKeysLock sync.Mutex
 	lastPreKeyUpload  time.Time
@@ -129,6 +130,12 @@ type Client struct {
 	appStateKeyRequestsLock sync.RWMutex
 
 	messageSendLock sync.Mutex
+
+	tcTokenSenderTS            map[types.JID]time.Time
+	tcTokenSenderTSLock        sync.Mutex
+	lastTCTokenSenderTSCleanup time.Time
+	tcTokenDBPruneLock         sync.Mutex
+	lastTCTokenDBPrune         time.Time
 
 	privacySettingsCache atomic.Value
 
@@ -258,6 +265,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
+		tcTokenSenderTS:  make(map[types.JID]time.Time),
 		groupCache:       make(map[types.JID]*groupMetaCache),
 		userDevicesCache: make(map[types.JID]deviceCache),
 

@@ -489,12 +489,20 @@ func (cli *Client) bufferedDecrypt(
 	ciphertext []byte,
 	serverTimestamp time.Time,
 	decrypt func(context.Context) ([]byte, error),
+	extraHashData ...string,
 ) (plaintext []byte, ciphertextHash [32]byte, err error) {
 	if !cli.EnableDecryptedEventBuffer {
 		plaintext, err = decrypt(ctx)
 		return
 	}
-	ciphertextHash = sha256.Sum256(ciphertext)
+	hasher := sha256.New()
+	hasher.Write(ciphertext)
+	for _, part := range extraHashData {
+		hasher.Write([]byte{0})
+		hasher.Write([]byte(part))
+	}
+	hasher.Write([]byte{0, 0})
+	ciphertextHash = *(*[32]byte)(hasher.Sum(nil))
 	var buf *store.BufferedEvent
 	buf, err = cli.Store.EventBuffer.GetBufferedEvent(ctx, ciphertextHash)
 	if err != nil {
@@ -562,7 +570,7 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 				pt, innerErr = cipher.DecryptMessage(decryptCtx, preKeyMsg)
 			}
 			return pt, innerErr
-		})
+		}, "prekey", from.String())
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to decrypt prekey message: %w", err)
 		}
@@ -573,7 +581,7 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 		}
 		plaintext, ciphertextHash, err = cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
 			return cipher.Decrypt(decryptCtx, msg)
-		})
+		}, "normal", from.String())
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to decrypt normal message: %w", err)
 		}
@@ -601,7 +609,7 @@ func (cli *Client) decryptGroupMsg(ctx context.Context, child *waBinary.Node, fr
 	}
 	plaintext, ciphertextHash, err := cli.bufferedDecrypt(ctx, content, serverTS, func(decryptCtx context.Context) ([]byte, error) {
 		return cipher.Decrypt(decryptCtx, msg)
-	})
+	}, "senderkey", chat.String(), from.String())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to decrypt group message: %w", err)
 	}
@@ -691,6 +699,38 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 			return
 		}
 	}
+}
+
+// SendHistorySyncServerErrorReceipt sends a history sync server-error receipt, which
+// asks the phone to re-upload the referenced history sync payload.
+func (cli *Client) SendHistorySyncServerErrorReceipt(ctx context.Context, msgID types.MessageID, mediaKey []byte) error {
+	ciphertext, iv, err := encryptMediaRetryReceipt(msgID, mediaKey)
+	if err != nil {
+		return fmt.Errorf("failed to encrypt history sync server-error receipt: %w", err)
+	}
+	ownID := cli.getOwnID().ToNonAD()
+	if ownID.IsEmpty() {
+		return ErrNotLoggedIn
+	}
+	err = cli.sendNode(ctx, waBinary.Node{
+		Tag: "receipt",
+		Attrs: waBinary.Attrs{
+			"id":       string(msgID),
+			"type":     "server-error",
+			"to":       ownID,
+			"category": "peer",
+		},
+		Content: []waBinary.Node{
+			{Tag: "encrypt", Content: []waBinary.Node{
+				{Tag: "enc_p", Content: ciphertext},
+				{Tag: "enc_iv", Content: iv},
+			}},
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("Failed to send history sync server-error receipt: %w", err)
+	}
+	return nil
 }
 
 // DownloadHistorySync will download and parse the history sync blob from the given history sync notification.
@@ -807,7 +847,14 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 				go cli.handleHistorySyncNotificationLoop()
 			}
 		}
-		go cli.sendProtocolMessageReceipt(ctx, info.ID, types.ReceiptTypeHistorySync)
+		if !(cli.ManualHistorySyncDownload && cli.DisableManualHistorySyncReceipt) {
+			go func() {
+				err := cli.SendProtocolMessageReceipt(ctx, info.ID, types.ReceiptTypeHistorySync)
+				if err != nil {
+					cli.Log.Warnf("Failed to send acknowledgement for protocol message %s: %v", info.ID, err)
+				}
+			}()
+		}
 	}
 
 	if protoMsg.GetLidMigrationMappingSyncMessage() != nil {
@@ -829,7 +876,12 @@ func (cli *Client) handleProtocolMessage(ctx context.Context, info *types.Messag
 	}
 
 	if info.Category == "peer" {
-		go cli.sendProtocolMessageReceipt(ctx, info.ID, types.ReceiptTypePeerMsg)
+		go func() {
+			err := cli.SendProtocolMessageReceipt(ctx, info.ID, types.ReceiptTypePeerMsg)
+			if err != nil {
+				cli.Log.Warnf("Failed to send acknowledgement for protocol message %s: %v", info.ID, err)
+			}
+		}()
 	}
 	return
 }
@@ -884,14 +936,11 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 			continue
 		}
 		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
-			ts := conv.GetTcTokenSenderTimestamp()
-			if ts == 0 {
-				ts = conv.GetTcTokenTimestamp()
-			}
 			privacyTokens = append(privacyTokens, store.PrivacyToken{
-				User:      chatJID,
-				Token:     conv.GetTcToken(),
-				Timestamp: time.Unix(int64(ts), 0),
+				User:            chatJID,
+				Token:           conv.GetTcToken(),
+				Timestamp:       time.Unix(int64(conv.GetTcTokenTimestamp()), 0),
+				SenderTimestamp: time.Unix(int64(conv.GetTcTokenSenderTimestamp()), 0),
 			})
 		}
 		for _, msg := range conv.GetMessages() {
@@ -1042,9 +1091,10 @@ func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.Messa
 	return cli.dispatchEvent(evt.UnwrapRaw())
 }
 
-func (cli *Client) sendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) {
+// SendProtocolMessageReceipt sends a receipt for a protocol message back to the phone.
+func (cli *Client) SendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) error {
 	if len(id) == 0 {
-		return
+		return nil
 	}
 	err := cli.sendNode(ctx, waBinary.Node{
 		Tag: "receipt",
@@ -1056,6 +1106,7 @@ func (cli *Client) sendProtocolMessageReceipt(ctx context.Context, id types.Mess
 		Content: nil,
 	})
 	if err != nil {
-		cli.Log.Warnf("Failed to send acknowledgement for protocol message %s: %v", id, err)
+		return err
 	}
+	return nil
 }
