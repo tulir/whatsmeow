@@ -123,23 +123,22 @@ func (cli *Client) cleanupExpiredTcTokensFromDBIfDue(ctx context.Context) {
 	if ctx.Err() != nil {
 		return
 	}
-	if !cli.tcTokenDBPruneStarted.CompareAndSwap(false, true) {
+	if !cli.tcTokenDBPruneLock.TryLock() {
 		return
 	}
-	now := time.Now()
-	if now.Sub(cli.lastTcTokenDBPrune) < tcTokenDBPruneInterval {
-		cli.tcTokenDBPruneStarted.Store(false)
+	if time.Since(cli.lastTcTokenDBPrune) < tcTokenDBPruneInterval {
+		cli.tcTokenDBPruneLock.Unlock()
 		return
 	}
-	cli.lastTcTokenDBPrune = now
+	cli.lastTcTokenDBPrune = time.Now()
 	go func() {
-		defer cli.tcTokenDBPruneStarted.Store(false)
+		defer cli.tcTokenDBPruneLock.Unlock()
 		cutoff := time.Unix(tcTokenCutoffTimestamp(time.Now().Unix()), 0)
-		deleted, err := cli.Store.PrivacyTokens.DeleteExpiredPrivacyTokens(context.WithoutCancel(ctx), cutoff)
+		deleted, err := cli.Store.PrivacyTokens.DeleteExpiredPrivacyTokens(cli.BackgroundEventCtx, cutoff)
 		if err != nil {
-			cli.Log.Warnf("Failed to clean expired tctokens from DB: %v", err)
+			cli.Log.Warnf("Failed to remove expired tctokens from DB: %v", err)
 		} else if deleted > 0 {
-			cli.Log.Debugf("Cleaned %d expired tctokens from DB", deleted)
+			cli.Log.Debugf("Removed %d expired tctokens from DB", deleted)
 		}
 	}()
 }

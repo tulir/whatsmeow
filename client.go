@@ -134,7 +134,7 @@ type Client struct {
 
 	tcTokenSenderTs               sync.Map
 	tcTokenSenderTsCleanupStarted atomic.Bool
-	tcTokenDBPruneStarted         atomic.Bool
+	tcTokenDBPruneLock            sync.Mutex
 
 	privacySettingsCache atomic.Value
 
