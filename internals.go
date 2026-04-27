@@ -391,10 +391,6 @@ func (int *DangerousInternalClient) HandleDecryptedMessage(ctx context.Context, 
 	return int.c.handleDecryptedMessage(ctx, info, msg, retryCount)
 }
 
-func (int *DangerousInternalClient) SendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) {
-	int.c.sendProtocolMessageReceipt(ctx, id, msgType)
-}
-
 func (int *DangerousInternalClient) DecryptMsgSecret(ctx context.Context, msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waCommon.MessageKey) ([]byte, error) {
 	return int.c.decryptMsgSecret(ctx, msg, useCase, encrypted, origMsgKey)
 }
