@@ -164,6 +164,7 @@ func (cli *Client) issuePrivacyTokenAndSave(jid types.JID, senderTimestamp time.
 		return
 	}
 	cli.setTCTokenSenderTS(storageJID, senderTimestamp)
+	// TODO replace with an UPDATE call instead of get+put
 	existing, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
 	if err != nil {
 		cli.Log.Errorf("Failed to load tctoken while persisting sender timestamp for %s: %v", jid, err)
