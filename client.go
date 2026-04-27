@@ -83,8 +83,6 @@ type Client struct {
 	SynchronousAck             bool
 	EnableDecryptedEventBuffer bool
 	lastDecryptedBufferClear   time.Time
-	lastTcTokenSenderTsCleanup time.Time
-	lastTcTokenDBPrune         time.Time
 
 	DisableLoginAutoReconnect bool
 
@@ -132,9 +130,11 @@ type Client struct {
 
 	messageSendLock sync.Mutex
 
-	tcTokenSenderTs     map[types.JID]time.Time
-	tcTokenSenderTsLock sync.Mutex
-	tcTokenDBPruneLock  sync.Mutex
+	tcTokenSenderTS            map[types.JID]time.Time
+	tcTokenSenderTSLock        sync.Mutex
+	lastTCTokenSenderTSCleanup time.Time
+	tcTokenDBPruneLock         sync.Mutex
+	lastTCTokenDBPrune         time.Time
 
 	privacySettingsCache atomic.Value
 

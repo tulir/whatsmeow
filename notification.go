@@ -48,20 +48,20 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 			cli.Log.Warnf("Failed to delete all sessions of %s from store after identity change: %v", from, err)
 		}
 		ts := node.AttrGetter().UnixTime("t")
-		storageLID := cli.resolveTcTokenStorageLID(ctx, from)
+		storageLID := cli.resolveTCTokenStorageLID(ctx, from)
 		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageLID)
 		if err != nil {
 			cli.Log.Debugf("Failed to load tctoken for identity change re-issue %s: %v", storageLID, err)
 		}
-		storedSenderTs := time.Time{}
+		storedSenderTS := time.Time{}
 		if pt != nil {
-			storedSenderTs = pt.SenderTimestamp
+			storedSenderTS = pt.SenderTimestamp
 		}
-		if cli.hasValidTcTokenSenderTs(storageLID, storedSenderTs) {
-			senderTs := cli.getTcTokenSenderTs(storageLID)
-			if !senderTs.IsZero() {
+		if cli.hasValidTCTokenSenderTS(storageLID, storedSenderTS) {
+			senderTS := cli.getTCTokenSenderTS(storageLID)
+			if !senderTS.IsZero() {
 				cli.Log.Debugf("Identity changed for %s, re-issuing tctoken", from)
-				cli.fireAndForgetTcTokenIssuance(ctx, storageLID, senderTs.Unix())
+				cli.fireAndForgetTCTokenIssuance(ctx, storageLID, senderTS.Unix())
 			}
 		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
@@ -282,7 +282,7 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 	sender := parentAG.JID("from").ToNonAD()
 	senderLID := parentAG.OptionalJIDOrEmpty("sender_lid").ToNonAD()
 	if senderLID.IsEmpty() {
-		senderLID = cli.resolveTcTokenStorageLID(ctx, sender)
+		senderLID = cli.resolveTCTokenStorageLID(ctx, sender)
 	}
 	if !parentAG.OK() {
 		cli.Log.Warnf("privacy_token notification didn't have a sender (%v)", parentAG.Error())

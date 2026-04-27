@@ -979,16 +979,16 @@ func (s *SQLStore) GetPrivacyToken(ctx context.Context, user types.JID) (*store.
 	var token store.PrivacyToken
 	token.User = user.ToNonAD()
 	var ts int64
-	var senderTs sql.NullInt64
-	err := s.db.QueryRow(ctx, getPrivacyToken, s.JID, token.User).Scan(&token.Token, &ts, &senderTs)
+	var senderTS sql.NullInt64
+	err := s.db.QueryRow(ctx, getPrivacyToken, s.JID, token.User).Scan(&token.Token, &ts, &senderTS)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	} else {
 		token.Timestamp = time.Unix(ts, 0)
-		if senderTs.Valid {
-			token.SenderTimestamp = time.Unix(senderTs.Int64, 0)
+		if senderTS.Valid {
+			token.SenderTimestamp = time.Unix(senderTS.Int64, 0)
 		}
 		return &token, nil
 	}
