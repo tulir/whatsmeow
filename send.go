@@ -887,7 +887,7 @@ func (cli *Client) sendDM(
 
 	storageJID := cli.resolveTCTokenStorageLID(ctx, to)
 	if shouldSendTCTokenInChatAction(to) && shouldSendNewTCToken(cli.getTCTokenSenderTS(storageJID)) {
-		cli.fireAndForgetTCTokenIssuance(ctx, storageJID, time.Now().Unix())
+		cli.fireAndForgetTCTokenIssuance(ctx, storageJID, time.Now())
 	}
 
 	return phash, data, nil

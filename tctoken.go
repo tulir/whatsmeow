@@ -78,7 +78,7 @@ func (cli *Client) getTCTokenSenderTS(jid types.JID) time.Time {
 	return cli.tcTokenSenderTS[jid.ToNonAD()]
 }
 
-func (cli *Client) hasValidTCTokenSenderTS(jid types.JID, storedSenderTimestamp time.Time) bool {
+func (cli *Client) validateAndSetTCTokenSenderTS(jid types.JID, storedSenderTimestamp time.Time) bool {
 	cli.tcTokenSenderTSLock.Lock()
 	defer cli.tcTokenSenderTSLock.Unlock()
 
@@ -127,7 +127,7 @@ func (cli *Client) ensureTCToken(ctx context.Context, jid types.JID) (token []by
 	if existing == nil {
 		return nil, nil
 	}
-	cli.hasValidTCTokenSenderTS(storageJID, existing.SenderTimestamp)
+	cli.validateAndSetTCTokenSenderTS(storageJID, existing.SenderTimestamp)
 	if len(existing.Token) > 0 && !isTCTokenExpired(existing.Timestamp) {
 		return existing.Token, nil
 	}
@@ -155,15 +155,14 @@ func (cli *Client) deleteExpiredPrivacyTokens() {
 }
 
 // Only called when a bucket boundary has been crossed since the last issuance.
-func (cli *Client) fireAndForgetTCTokenIssuance(ctx context.Context, jid types.JID, issueTimestamp int64) {
+func (cli *Client) fireAndForgetTCTokenIssuance(ctx context.Context, jid types.JID, senderTimestamp time.Time) {
 	go func(ctx context.Context) {
 		storageJID := jid.ToNonAD()
-		_, err := cli.issuePrivacyToken(ctx, storageJID, issueTimestamp)
+		_, err := cli.issuePrivacyToken(ctx, storageJID, senderTimestamp)
 		if err != nil {
 			cli.Log.Debugf("Fire-and-forget tctoken issuance failed for %s: %v", jid, err)
 			return
 		}
-		senderTimestamp := time.Unix(issueTimestamp, 0)
 		cli.setTCTokenSenderTS(storageJID, senderTimestamp)
 		existing, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
 		if err != nil {
@@ -181,7 +180,7 @@ func (cli *Client) fireAndForgetTCTokenIssuance(ctx context.Context, jid types.J
 }
 
 // issuePrivacyToken sends an IQ to the server to issue a privacy token for the given JID.
-func (cli *Client) issuePrivacyToken(ctx context.Context, jid types.JID, timestamp int64) (*waBinary.Node, error) {
+func (cli *Client) issuePrivacyToken(ctx context.Context, jid types.JID, timestamp time.Time) (*waBinary.Node, error) {
 	return cli.sendIQ(ctx, infoQuery{
 		Namespace: "privacy",
 		Type:      iqSet,
@@ -192,7 +191,7 @@ func (cli *Client) issuePrivacyToken(ctx context.Context, jid types.JID, timesta
 				Tag: "token",
 				Attrs: waBinary.Attrs{
 					"jid":  jid.ToNonAD(),
-					"t":    fmt.Sprintf("%d", timestamp),
+					"t":    fmt.Sprintf("%d", timestamp.Unix()),
 					"type": "trusted_contact",
 				},
 			}},
