@@ -52,6 +52,7 @@ enum BotMetricsEntryPoint {
 	WEB_NAVIGATION_BAR = 47;
 	GROUP_MEMBER = 54;
 	CHATLIST_SEARCH = 55;
+	NEW_CHAT_LIST = 56;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -695,6 +696,12 @@ message AIMediaCollectionMessage {
 	optional bool hasGlobalCaption = 3;
 }
 
+message BotCommandMetadata {
+	optional string commandName = 1;
+	optional string commandDescription = 2;
+	optional string commandPrompt = 3;
+}
+
 message BotMetadata {
 	optional string personaID = 2;
 	optional BotPluginMetadata pluginMetadata = 3;
@@ -733,6 +740,7 @@ message BotMetadata {
 	optional BotRenderingConfigMetadata botRenderingConfigMetadata = 36;
 	optional BotInfrastructureDiagnostics botInfrastructureDiagnostics = 37;
 	optional AIMediaCollectionMetadata aiMediaCollectionMetadata = 38;
+	optional BotCommandMetadata commandMetadata = 39;
 	optional bytes internalMetadata = 999;
 }
 
