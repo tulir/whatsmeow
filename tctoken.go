@@ -155,28 +155,27 @@ func (cli *Client) deleteExpiredPrivacyTokens() {
 }
 
 // Only called when a bucket boundary has been crossed since the last issuance.
-func (cli *Client) fireAndForgetTCTokenIssuance(ctx context.Context, jid types.JID, senderTimestamp time.Time) {
-	go func(ctx context.Context) {
-		storageJID := jid.ToNonAD()
-		_, err := cli.issuePrivacyToken(ctx, storageJID, senderTimestamp)
-		if err != nil {
-			cli.Log.Debugf("Fire-and-forget tctoken issuance failed for %s: %v", jid, err)
-			return
-		}
-		cli.setTCTokenSenderTS(storageJID, senderTimestamp)
-		existing, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
-		if err != nil {
-			cli.Log.Debugf("Failed to load tctoken while persisting sender timestamp for %s: %v", jid, err)
-			return
-		}
-		if existing == nil || len(existing.Token) == 0 {
-			return
-		}
-		existing.SenderTimestamp = senderTimestamp
-		if err = cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, *existing); err != nil {
-			cli.Log.Debugf("Failed to persist fire-and-forget sender timestamp for %s: %v", jid, err)
-		}
-	}(context.WithoutCancel(ctx))
+func (cli *Client) issuePrivacyTokenAndSave(jid types.JID, senderTimestamp time.Time) {
+	ctx := cli.BackgroundEventCtx
+	storageJID := jid.ToNonAD()
+	_, err := cli.issuePrivacyToken(ctx, storageJID, senderTimestamp)
+	if err != nil {
+		cli.Log.Errorf("Failed to issue privacy token for %s: %v", jid, err)
+		return
+	}
+	cli.setTCTokenSenderTS(storageJID, senderTimestamp)
+	existing, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
+	if err != nil {
+		cli.Log.Errorf("Failed to load tctoken while persisting sender timestamp for %s: %v", jid, err)
+		return
+	}
+	if existing == nil || len(existing.Token) == 0 {
+		return
+	}
+	existing.SenderTimestamp = senderTimestamp
+	if err = cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, *existing); err != nil {
+		cli.Log.Errorf("Failed to persist privacy token sender timestamp for %s: %v", jid, err)
+	}
 }
 
 // issuePrivacyToken sends an IQ to the server to issue a privacy token for the given JID.
