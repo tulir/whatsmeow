@@ -947,7 +947,7 @@ const (
 				ELSE $2
 			END
 		))
-			ORDER BY timestamp DESC LIMIT 1
+		ORDER BY timestamp DESC LIMIT 1
 	`
 	deleteExpiredPrivacyTokens = `
 		DELETE FROM whatsmeow_privacy_tokens
