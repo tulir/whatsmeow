@@ -54,16 +54,23 @@ type phoneLinkingCache struct {
 	pairingRef  string
 }
 
-func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralKey []byte, encodedLinkingCode string) {
+func generateCompanionEphemeralKey(pairingCode string) (ephemeralKeyPair *keys.KeyPair, ephemeralKey []byte, encodedLinkingCode string) {
 	ephemeralKeyPair = keys.NewKeyPair()
 	salt := random.Bytes(32)
 	iv := random.Bytes(16)
-	linkingCode := random.Bytes(5)
-	encodedLinkingCode = linkingBase32.EncodeToString(linkingCode)
+    
+    if pairingCode != "" && len(pairingCode) == 8 {
+		encodedLinkingCode = pairingCode
+	} else {
+		linkingCode := random.Bytes(5)
+		encodedLinkingCode = linkingBase32.EncodeToString(linkingCode)
+	}
+
 	linkCodeKey := pbkdf2.Key([]byte(encodedLinkingCode), salt, 2<<16, 32, sha256.New)
 	linkCipherBlock, _ := aes.NewCipher(linkCodeKey)
 	encryptedPubkey := ephemeralKeyPair.Pub[:]
 	cipher.NewCTR(linkCipherBlock, iv).XORKeyStream(encryptedPubkey, encryptedPubkey)
+	
 	ephemeralKey = make([]byte, 80)
 	copy(ephemeralKey[0:32], salt)
 	copy(ephemeralKey[32:48], iv)
@@ -86,12 +93,22 @@ func generateCompanionEphemeralKey() (ephemeralKeyPair *keys.KeyPair, ephemeralK
 // The client display name must be formatted as `Browser (OS)`, and only common browsers/OSes are allowed
 // (the server will validate it and return 400 if it's wrong).
 //
+// The optional pairingCode parameter allows specifying a custom 8-character pairing code using valid base32 characters.
+// If not provided or invalid, a random code will be generated.
+//
 // See https://faq.whatsapp.com/1324084875126592 for more info
-func (cli *Client) PairPhone(ctx context.Context, phone string, showPushNotification bool, clientType PairClientType, clientDisplayName string) (string, error) {
+func (cli *Client) PairPhone(ctx context.Context, phone string, showPushNotification bool, clientType PairClientType, clientDisplayName string, pairingCode ...string) (string, error) {
 	if cli == nil {
 		return "", ErrClientIsNil
 	}
-	ephemeralKeyPair, ephemeralKey, encodedLinkingCode := generateCompanionEphemeralKey()
+	
+	var pairCode string
+	if len(pairingCode) > 0 && pairingCode[0] != "" {
+		pairCode = pairingCode[0]
+	}
+
+	ephemeralKeyPair, ephemeralKey, encodedLinkingCode := generateCompanionEphemeralKey(pairCode)
+
 	phone = notNumbers.ReplaceAllString(phone, "")
 	if len(phone) <= 6 {
 		return "", ErrPhoneNumberTooShort
@@ -184,7 +201,7 @@ func (cli *Client) handleCodePairNotification(ctx context.Context, parentNode *w
 	keyBundleSalt := random.Bytes(32)
 	keyBundleNonce := random.Bytes(12)
 
-	// Decrypt the primary device's ephemeral public key, which was encrypted with the 8-character pairing code,
+	// Decrypt the primary device's ephemeral public key, which was encrypted with the pairing code,
 	// then compute the DH shared secret using our ephemeral private key we generated earlier.
 	primarySalt := wrappedPrimaryEphemeralPub[0:32]
 	primaryIV := wrappedPrimaryEphemeralPub[32:48]
