@@ -75,7 +75,7 @@ func (cli *Client) storeNCTSalt(ctx context.Context, salt []byte) error {
 	if len(salt) == 0 {
 		return cli.Store.NCTSalt.DeleteNCTSalt(ctx)
 	}
-	return cli.Store.NCTSalt.PutNCTSalt(ctx, append([]byte(nil), salt...))
+	return cli.Store.NCTSalt.PutNCTSalt(ctx, salt)
 }
 
 func (cli *Client) clearNCTSalt(ctx context.Context) error {
