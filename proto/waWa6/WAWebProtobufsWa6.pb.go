@@ -1387,14 +1387,15 @@ func (x *HandshakeMessage_ClientFinish) GetSimulateXxkemFs() bool {
 }
 
 type HandshakeMessage_ServerHello struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Ephemeral      []byte                 `protobuf:"bytes,1,opt,name=ephemeral" json:"ephemeral,omitempty"`
-	Static         []byte                 `protobuf:"bytes,2,opt,name=static" json:"static,omitempty"`
-	Payload        []byte                 `protobuf:"bytes,3,opt,name=payload" json:"payload,omitempty"`
-	ExtendedStatic []byte                 `protobuf:"bytes,4,opt,name=extendedStatic" json:"extendedStatic,omitempty"`
-	PaddingBytes   []byte                 `protobuf:"bytes,5,opt,name=paddingBytes" json:"paddingBytes,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Ephemeral          []byte                 `protobuf:"bytes,1,opt,name=ephemeral" json:"ephemeral,omitempty"`
+	Static             []byte                 `protobuf:"bytes,2,opt,name=static" json:"static,omitempty"`
+	Payload            []byte                 `protobuf:"bytes,3,opt,name=payload" json:"payload,omitempty"`
+	ExtendedStatic     []byte                 `protobuf:"bytes,4,opt,name=extendedStatic" json:"extendedStatic,omitempty"`
+	PaddingBytes       []byte                 `protobuf:"bytes,5,opt,name=paddingBytes" json:"paddingBytes,omitempty"`
+	ExtendedCiphertext []byte                 `protobuf:"bytes,6,opt,name=extendedCiphertext" json:"extendedCiphertext,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *HandshakeMessage_ServerHello) Reset() {
@@ -1462,6 +1463,13 @@ func (x *HandshakeMessage_ServerHello) GetPaddingBytes() []byte {
 	return nil
 }
 
+func (x *HandshakeMessage_ServerHello) GetExtendedCiphertext() []byte {
+	if x != nil {
+		return x.ExtendedCiphertext
+	}
+	return nil
+}
+
 type HandshakeMessage_ClientHello struct {
 	state                      protoimpl.MessageState            `protogen:"open.v1"`
 	Ephemeral                  []byte                            `protobuf:"bytes,1,opt,name=ephemeral" json:"ephemeral,omitempty"`
@@ -1473,6 +1481,7 @@ type HandshakeMessage_ClientHello struct {
 	SendServerHelloPaddedBytes *bool                             `protobuf:"varint,7,opt,name=sendServerHelloPaddedBytes" json:"sendServerHelloPaddedBytes,omitempty"`
 	SimulateXxkemFs            *bool                             `protobuf:"varint,8,opt,name=simulateXxkemFs" json:"simulateXxkemFs,omitempty"`
 	PqMode                     *HandshakeMessage_HandshakePqMode `protobuf:"varint,9,opt,name=pqMode,enum=WAWebProtobufsWa6.HandshakeMessage_HandshakePqMode" json:"pqMode,omitempty"`
+	ExtendedEphemeral          []byte                            `protobuf:"bytes,10,opt,name=extendedEphemeral" json:"extendedEphemeral,omitempty"`
 	unknownFields              protoimpl.UnknownFields
 	sizeCache                  protoimpl.SizeCache
 }
@@ -1568,6 +1577,13 @@ func (x *HandshakeMessage_ClientHello) GetPqMode() HandshakeMessage_HandshakePqM
 		return *x.PqMode
 	}
 	return HandshakeMessage_HANDSHAKE_PQ_MODE_UNKNOWN
+}
+
+func (x *HandshakeMessage_ClientHello) GetExtendedEphemeral() []byte {
+	if x != nil {
+		return x.ExtendedEphemeral
+	}
+	return nil
 }
 
 type ClientPayload_DNSSource struct {
@@ -2234,7 +2250,7 @@ var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xa0\t\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xfe\t\n" +
 	"\x10HandshakeMessage\x12Q\n" +
 	"\vclientHello\x18\x02 \x01(\v2/.WAWebProtobufsWa6.HandshakeMessage.ClientHelloR\vclientHello\x12Q\n" +
 	"\vserverHello\x18\x03 \x01(\v2/.WAWebProtobufsWa6.HandshakeMessage.ServerHelloR\vserverHello\x12T\n" +
@@ -2244,13 +2260,14 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\apayload\x18\x02 \x01(\fR\apayload\x12.\n" +
 	"\x12extendedCiphertext\x18\x03 \x01(\fR\x12extendedCiphertext\x12 \n" +
 	"\vpaddedBytes\x18\x04 \x01(\fR\vpaddedBytes\x12(\n" +
-	"\x0fsimulateXxkemFs\x18\x05 \x01(\bR\x0fsimulateXxkemFs\x1a\xa9\x01\n" +
+	"\x0fsimulateXxkemFs\x18\x05 \x01(\bR\x0fsimulateXxkemFs\x1a\xd9\x01\n" +
 	"\vServerHello\x12\x1c\n" +
 	"\tephemeral\x18\x01 \x01(\fR\tephemeral\x12\x16\n" +
 	"\x06static\x18\x02 \x01(\fR\x06static\x12\x18\n" +
 	"\apayload\x18\x03 \x01(\fR\apayload\x12&\n" +
 	"\x0eextendedStatic\x18\x04 \x01(\fR\x0eextendedStatic\x12\"\n" +
-	"\fpaddingBytes\x18\x05 \x01(\fR\fpaddingBytes\x1a\x88\x03\n" +
+	"\fpaddingBytes\x18\x05 \x01(\fR\fpaddingBytes\x12.\n" +
+	"\x12extendedCiphertext\x18\x06 \x01(\fR\x12extendedCiphertext\x1a\xb6\x03\n" +
 	"\vClientHello\x12\x1c\n" +
 	"\tephemeral\x18\x01 \x01(\fR\tephemeral\x12\x16\n" +
 	"\x06static\x18\x02 \x01(\fR\x06static\x12\x18\n" +
@@ -2260,7 +2277,9 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\vpaddedBytes\x18\x06 \x01(\fR\vpaddedBytes\x12>\n" +
 	"\x1asendServerHelloPaddedBytes\x18\a \x01(\bR\x1asendServerHelloPaddedBytes\x12(\n" +
 	"\x0fsimulateXxkemFs\x18\b \x01(\bR\x0fsimulateXxkemFs\x12K\n" +
-	"\x06pqMode\x18\t \x01(\x0e23.WAWebProtobufsWa6.HandshakeMessage.HandshakePqModeR\x06pqMode\"\x99\x01\n" +
+	"\x06pqMode\x18\t \x01(\x0e23.WAWebProtobufsWa6.HandshakeMessage.HandshakePqModeR\x06pqMode\x12,\n" +
+	"\x11extendedEphemeral\x18\n" +
+	" \x01(\fR\x11extendedEphemeral\"\x99\x01\n" +
 	"\x0fHandshakePqMode\x12\x1d\n" +
 	"\x19HANDSHAKE_PQ_MODE_UNKNOWN\x10\x00\x12\t\n" +
 	"\x05XXKEM\x10\x01\x12\f\n" +
