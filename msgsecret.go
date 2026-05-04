@@ -341,7 +341,11 @@ func (cli *Client) EncryptPollVote(ctx context.Context, pollInfo *types.MessageI
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal poll vote protobuf: %w", err)
 	}
-	ciphertext, iv, err := cli.encryptMsgSecret(ctx, cli.getOwnID(), pollInfo.Chat, pollInfo.Sender, pollInfo.ID, EncSecretPollVote, plaintext)
+	ownID := cli.getOwnLID()
+	if pollInfo.Sender.Server == types.DefaultUserServer {
+		ownID = cli.getOwnID()
+	}
+	ciphertext, iv, err := cli.encryptMsgSecret(ctx, ownID, pollInfo.Chat, pollInfo.Sender, pollInfo.ID, EncSecretPollVote, plaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt poll vote: %w", err)
 	}
@@ -360,7 +364,6 @@ func (cli *Client) EncryptComment(ctx context.Context, rootMsgInfo *types.Messag
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal comment protobuf: %w", err)
 	}
-	// TODO is hardcoding LID here correct? What about polls?
 	ciphertext, iv, err := cli.encryptMsgSecret(ctx, cli.getOwnLID(), rootMsgInfo.Chat, rootMsgInfo.Sender, rootMsgInfo.ID, EncSecretComment, plaintext)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt comment: %w", err)
