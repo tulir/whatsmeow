@@ -982,6 +982,7 @@ message QuickReplyAction {
 	repeated string keywords = 3;
 	optional int32 count = 4;
 	optional bool deleted = 5;
+	repeated string associatedLabelIDs = 6;
 }
 
 message LocaleSetting {
