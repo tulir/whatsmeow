@@ -166,6 +166,10 @@ type addressSessionTuple struct {
 	Session []byte
 }
 
+func (t addressSessionTuple) GetMassInsertValues() [2]any {
+	return [2]any{t.Address, t.Session}
+}
+
 var sessionScanner = dbutil.ConvertRowFn[addressSessionTuple](func(row dbutil.Scannable) (out addressSessionTuple, err error) {
 	err = row.Scan(&out.Address, &out.Session)
 	return
@@ -204,11 +208,20 @@ func (s *SQLStore) GetManySessions(ctx context.Context, addresses []string) (map
 	return result, nil
 }
 
+const sessionsBatchSize = 500
+
 func (s *SQLStore) PutManySessions(ctx context.Context, sessions map[string][]byte) error {
+	if len(sessions) == 0 {
+		return nil
+	}
+	rows := make([]addressSessionTuple, 0, len(sessions))
+	for addr, sess := range sessions {
+		rows = append(rows, addressSessionTuple{addr, sess})
+	}
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
-		for addr, sess := range sessions {
-			err := s.PutSession(ctx, addr, sess)
-			if err != nil {
+		for chunk := range slices.Chunk(rows, sessionsBatchSize) {
+			query, params := putSessionsMassInsertBuilder.Build([1]any{s.JID}, chunk)
+			if _, err := s.db.Exec(ctx, query, params...); err != nil {
 				return err
 			}
 		}
@@ -631,6 +644,14 @@ var putRedactedPhonesMassInsertBuilder = dbutil.NewMassInsertBuilder[store.Redac
 	putRedactedPhoneQuery, "($1, $%d, $%d)",
 )
 
+var putSessionsMassInsertBuilder = dbutil.NewMassInsertBuilder[addressSessionTuple, [1]any](
+	putSessionQuery, "($1, $%d, $%d)",
+)
+
+var putMsgSecretsMassInsertBuilder = dbutil.NewMassInsertBuilder[store.MessageSecretInsert, [1]any](
+	putMsgSecret, "($1, $%d, $%d, $%d, $%d)",
+)
+
 func (s *SQLStore) PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error) {
 	s.contactCacheLock.Lock()
 	defer s.contactCacheLock.Unlock()
@@ -899,14 +920,16 @@ const (
 	`
 )
 
-func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.MessageSecretInsert) (err error) {
+const msgSecretsBatchSize = 500
+
+func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.MessageSecretInsert) error {
 	if len(inserts) == 0 {
 		return nil
 	}
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
-		for _, insert := range inserts {
-			_, err = s.db.Exec(ctx, putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
-			if err != nil {
+		for chunk := range slices.Chunk(inserts, msgSecretsBatchSize) {
+			query, params := putMsgSecretsMassInsertBuilder.Build([1]any{s.JID}, chunk)
+			if _, err := s.db.Exec(ctx, query, params...); err != nil {
 				return err
 			}
 		}
