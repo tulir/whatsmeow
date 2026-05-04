@@ -755,6 +755,9 @@ func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.History
 	}
 	cli.Log.Debugf("Received history sync (type %s, chunk %d, progress %d)", historySync.GetSyncType(), historySync.GetChunkOrder(), historySync.GetProgress())
 	doStorage := func(ctx context.Context) {
+		if err := cli.storeNCTSalt(ctx, historySync.GetNctSalt()); err != nil {
+			cli.Log.Warnf("Failed to store NCT salt from history sync: %v", err)
+		}
 		if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
 			cli.handleHistoricalPushNames(ctx, historySync.GetPushnames())
 		} else if len(historySync.GetConversations()) > 0 {

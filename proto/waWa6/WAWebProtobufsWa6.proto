@@ -160,6 +160,13 @@ message ClientPayload {
 			VR = 4;
 		}
 
+		enum DistributionChannel {
+			APPSTORE = 0;
+			WEBSITE = 1;
+			TESTFLIGHT = 2;
+			INTERNAL = 3;
+		}
+
 		enum ReleaseChannel {
 			RELEASE = 0;
 			BETA = 1;
@@ -232,6 +239,7 @@ message ClientPayload {
 		optional string deviceExpID = 14;
 		optional DeviceType deviceType = 15;
 		optional string deviceModelType = 16;
+		optional DistributionChannel distributionChannel = 17;
 	}
 
 	message InteropData {
@@ -286,4 +294,5 @@ message ClientPayload {
 	optional int32 preacksCount = 45;
 	optional int32 processingQueueSize = 46;
 	repeated string pairedPeripherals = 47;
+	optional bytes testIsolationID = 48;
 }

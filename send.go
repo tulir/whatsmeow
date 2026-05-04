@@ -876,6 +876,11 @@ func (cli *Client) sendDM(
 			Tag:     "tctoken",
 			Content: tcTokenBytes,
 		})
+	} else if csToken := cli.generateCsToken(ctx, to); len(csToken) > 0 {
+		node.Content = append(node.GetChildren(), waBinary.Node{
+			Tag:     "cstoken",
+			Content: csToken,
+		})
 	}
 
 	start = time.Now()
@@ -1041,6 +1046,8 @@ func getEditAttribute(msg *waE2E.Message) types.EditAttribute {
 		return types.EditAttributeSenderRevoke
 	case msg.KeepInChatMessage != nil && msg.KeepInChatMessage.GetKey().GetFromMe() && msg.KeepInChatMessage.GetKeepType() == waE2E.KeepType_UNDO_KEEP_FOR_ALL:
 		return types.EditAttributeSenderRevoke
+	case msg.PinInChatMessage != nil:
+		return types.EditAttributePinInChat
 	}
 	return types.EditAttributeEmpty
 }

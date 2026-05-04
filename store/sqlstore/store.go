@@ -955,6 +955,15 @@ const (
 	`
 )
 
+const (
+	putNCTSaltQuery = `
+		INSERT INTO whatsmeow_nct_salt (our_jid, salt) VALUES ($1, $2)
+		ON CONFLICT (our_jid) DO UPDATE SET salt=excluded.salt
+	`
+	getNCTSaltQuery    = `SELECT salt FROM whatsmeow_nct_salt WHERE our_jid=$1`
+	deleteNCTSaltQuery = `DELETE FROM whatsmeow_nct_salt WHERE our_jid=$1`
+)
+
 func (s *SQLStore) PutPrivacyTokens(ctx context.Context, tokens ...store.PrivacyToken) error {
 	args := make([]any, 1+len(tokens)*4)
 	placeholders := make([]string, len(tokens))
@@ -992,6 +1001,27 @@ func (s *SQLStore) GetPrivacyToken(ctx context.Context, user types.JID) (*store.
 		}
 		return &token, nil
 	}
+}
+
+func (s *SQLStore) PutNCTSalt(ctx context.Context, salt []byte) error {
+	_, err := s.db.Exec(ctx, putNCTSaltQuery, s.JID, salt)
+	return err
+}
+
+func (s *SQLStore) GetNCTSalt(ctx context.Context) ([]byte, error) {
+	var salt []byte
+	err := s.db.QueryRow(ctx, getNCTSaltQuery, s.JID).Scan(&salt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return salt, nil
+}
+
+func (s *SQLStore) DeleteNCTSalt(ctx context.Context) error {
+	_, err := s.db.Exec(ctx, deleteNCTSaltQuery, s.JID)
+	return err
 }
 
 func (s *SQLStore) DeleteExpiredPrivacyTokens(ctx context.Context, cutoff time.Time) (int64, error) {
