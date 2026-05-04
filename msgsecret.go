@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"fmt"
+	"strings"
 	"time"
 
 	"go.mau.fi/util/random"
@@ -101,7 +102,7 @@ func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, us
 	if err != nil {
 		return nil, err
 	}
-	baseEncKey, origSender, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
+	baseEncKey, storedOrigSender, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, msg.Info.Chat, origSender, origMsgKey.GetID())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get original message secret key: %w", err)
 	}
@@ -111,7 +112,15 @@ func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, us
 	secretKey, additionalData := generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), origSender, baseEncKey)
 	plaintext, err := gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
+		// Hack for trying both the original sender in the new message and the one who we received the secret key from.
+		// This will hopefully become unnecessary when WhatsApp fully finishes their migration to LIDs.
+		if origSender != storedOrigSender && strings.Contains(err.Error(), "message authentication failed") {
+			secretKey, additionalData = generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), origSender, baseEncKey)
+			plaintext, err = gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
+		}
 	}
 	return plaintext, nil
 }
