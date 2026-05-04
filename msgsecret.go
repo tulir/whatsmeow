@@ -32,6 +32,9 @@ const (
 	EncSecretReportToken   MsgSecretType = "Report Token"
 	EncSecretEventResponse MsgSecretType = "Event Response"
 	EncSecretEventEdit     MsgSecretType = "Event Edit"
+	EncSecretMessageEdit   MsgSecretType = "Message Edit"
+	EncSecretPollEdit      MsgSecretType = "Poll Edit"
+	EncSecretPollAddOption MsgSecretType = "Poll Add Option"
 	EncSecretBotMsg        MsgSecretType = "Bot Message"
 )
 
@@ -236,10 +239,20 @@ func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *event
 	if encMessage == nil {
 		return nil, ErrNotSecretEncryptedMessage
 	}
-	if encMessage.GetSecretEncType() != waE2E.SecretEncryptedMessage_EVENT_EDIT {
+	var secretType MsgSecretType
+	switch encMessage.GetSecretEncType() {
+	case waE2E.SecretEncryptedMessage_EVENT_EDIT:
+		secretType = EncSecretEventEdit
+	case waE2E.SecretEncryptedMessage_POLL_EDIT:
+		secretType = EncSecretPollEdit
+	case waE2E.SecretEncryptedMessage_POLL_ADD_OPTION:
+		secretType = EncSecretPollEdit
+	case waE2E.SecretEncryptedMessage_MESSAGE_EDIT:
+		secretType = EncSecretMessageEdit
+	default:
 		return nil, fmt.Errorf("unsupported secret enc type: %s", encMessage.SecretEncType.String())
 	}
-	plaintext, err := cli.decryptMsgSecret(ctx, evt, EncSecretEventEdit, encMessage, encMessage.GetTargetMessageKey())
+	plaintext, err := cli.decryptMsgSecret(ctx, evt, secretType, encMessage, encMessage.GetTargetMessageKey())
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt message: %w", err)
 	}
