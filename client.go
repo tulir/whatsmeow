@@ -226,7 +226,7 @@ const handlerQueueSize = 2048
 //
 // The device store must be set. A default SQL-backed implementation is available in the store/sqlstore package.
 //
-//	container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
+//	container, err := sqlstore.New(context.Background(), "sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
 //	if err != nil {
 //		panic(err)
 //	}
