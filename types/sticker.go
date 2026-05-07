@@ -1,18 +1,18 @@
 package types
 
 type StickerPack struct {
-	StickerPackID    string            `json:"sticker-pack-id"`
-	Name             string            `json:"name"`
-	Publisher        string            `json:"publisher"`
-	Description      string            `json:"description"`
-	FileSize         string            `json:"file-size"`
-	ImageDataHash    string            `json:"image-data-hash"`
-	Stickers         []StickerPackItem `json:"stickers"`
-	Animated         int               `json:"animated"`
-	Lottie           int               `json:"lottie"`
-	PreviewImageIDs  []string          `json:"preview-image-ids"`
-	TrayImageID      string            `json:"tray-image-id"`
-	TrayImagePreview string            `json:"tray-image-preview"`
+	StickerPackID    string             `json:"sticker-pack-id"`
+	Name             string             `json:"name"`
+	Publisher        string             `json:"publisher"`
+	Description      string             `json:"description"`
+	FileSize         string             `json:"file-size"`
+	ImageDataHash    string             `json:"image-data-hash"`
+	Stickers         []*StickerPackItem `json:"stickers"`
+	Animated         int                `json:"animated"`
+	Lottie           int                `json:"lottie"`
+	PreviewImageIDs  []string           `json:"preview-image-ids"`
+	TrayImageID      string             `json:"tray-image-id"`
+	TrayImagePreview string             `json:"tray-image-preview"`
 }
 
 type StickerPackItem struct {

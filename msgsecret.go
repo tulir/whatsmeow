@@ -115,7 +115,7 @@ func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, us
 		// Hack for trying both the original sender in the new message and the one who we received the secret key from.
 		// This will hopefully become unnecessary when WhatsApp fully finishes their migration to LIDs.
 		if origSender != storedOrigSender && strings.Contains(err.Error(), "message authentication failed") {
-			secretKey, additionalData = generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), origSender, baseEncKey)
+			secretKey, additionalData = generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), storedOrigSender, baseEncKey)
 			plaintext, err = gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
 		}
 		if err != nil {
