@@ -16,9 +16,9 @@ import (
 )
 
 // GetOrderDetails fetches the details of a specific order using its ID and token.
-// Both token and orderID is found in the OrderMessage.
+// Both token and orderID are found in the OrderMessage.
 func (cli *Client) GetOrderDetails(ctx context.Context, orderID, tokenBase64 string) (*types.OrderDetails, error) {
-	resp, err := cli.sendIQ(infoQuery{
+	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "fb:thrift_iq",
 		Type:      iqGet,
 		SMaxID:    "5",
@@ -40,7 +40,6 @@ func (cli *Client) GetOrderDetails(ctx context.Context, orderID, tokenBase64 str
 				{Tag: "token", Content: []byte(tokenBase64)},
 			},
 		}},
-		Context: ctx,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to send order IQ: %w", err)
