@@ -1239,6 +1239,8 @@ type AudioTransport_Ancillary struct {
 	state         protoimpl.MessageState                `protogen:"open.v1"`
 	Seconds       *uint32                               `protobuf:"varint,1,opt,name=seconds" json:"seconds,omitempty"`
 	AvatarAudio   *AudioTransport_Ancillary_AvatarAudio `protobuf:"bytes,2,opt,name=avatarAudio" json:"avatarAudio,omitempty"`
+	WaveformData  *string                               `protobuf:"bytes,3,opt,name=waveformData" json:"waveformData,omitempty"`
+	Waveform      []byte                                `protobuf:"bytes,4,opt,name=waveform" json:"waveform,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1283,6 +1285,20 @@ func (x *AudioTransport_Ancillary) GetSeconds() uint32 {
 func (x *AudioTransport_Ancillary) GetAvatarAudio() *AudioTransport_Ancillary_AvatarAudio {
 	if x != nil {
 		return x.AvatarAudio
+	}
+	return nil
+}
+
+func (x *AudioTransport_Ancillary) GetWaveformData() string {
+	if x != nil && x.WaveformData != nil {
+		return *x.WaveformData
+	}
+	return ""
+}
+
+func (x *AudioTransport_Ancillary) GetWaveform() []byte {
+	if x != nil {
+		return x.Waveform
 	}
 	return nil
 }
@@ -1944,13 +1960,15 @@ const file_waMediaTransport_WAMediaTransport_proto_rawDesc = "" +
 	"\x05GIPHY\x10\x01\x12\t\n" +
 	"\x05TENOR\x10\x02\x1aL\n" +
 	"\bIntegral\x12@\n" +
-	"\ttransport\x18\x01 \x01(\v2\".WAMediaTransport.WAMediaTransportR\ttransport\"\xce\b\n" +
+	"\ttransport\x18\x01 \x01(\v2\".WAMediaTransport.WAMediaTransportR\ttransport\"\x8e\t\n" +
 	"\x0eAudioTransport\x12E\n" +
 	"\bintegral\x18\x01 \x01(\v2).WAMediaTransport.AudioTransport.IntegralR\bintegral\x12H\n" +
-	"\tancillary\x18\x02 \x01(\v2*.WAMediaTransport.AudioTransport.AncillaryR\tancillary\x1a\xdc\x05\n" +
+	"\tancillary\x18\x02 \x01(\v2*.WAMediaTransport.AudioTransport.AncillaryR\tancillary\x1a\x9c\x06\n" +
 	"\tAncillary\x12\x18\n" +
 	"\aseconds\x18\x01 \x01(\rR\aseconds\x12X\n" +
-	"\vavatarAudio\x18\x02 \x01(\v26.WAMediaTransport.AudioTransport.Ancillary.AvatarAudioR\vavatarAudio\x1a\xda\x04\n" +
+	"\vavatarAudio\x18\x02 \x01(\v26.WAMediaTransport.AudioTransport.Ancillary.AvatarAudioR\vavatarAudio\x12\"\n" +
+	"\fwaveformData\x18\x03 \x01(\tR\fwaveformData\x12\x1a\n" +
+	"\bwaveform\x18\x04 \x01(\fR\bwaveform\x1a\xda\x04\n" +
 	"\vAvatarAudio\x12\x16\n" +
 	"\x06poseID\x18\x01 \x01(\rR\x06poseID\x12\x7f\n" +
 	"\x10avatarAnimations\x18\x02 \x03(\v2S.WAMediaTransport.AudioTransport.Ancillary.AvatarAudio.DownloadableAvatarAnimationsR\x10avatarAnimations\x1a\xd9\x02\n" +

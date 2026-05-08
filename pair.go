@@ -7,13 +7,13 @@
 package whatsmeow
 
 import (
-	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"time"
 
 	"go.mau.fi/libsignal/ecc"
 	"google.golang.org/protobuf/proto"
@@ -93,6 +93,7 @@ func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
 	jid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
 	lid, _ := pairSuccess.GetChildByTag("device").Attrs["lid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
+	cli.serverTimeOffset.Store(int64(node.AttrGetter().UnixTime("t").Sub(time.Now().Round(time.Second))))
 
 	go func() {
 		err := cli.handlePair(ctx, deviceIdentityBytes, id, businessName, platform, jid, lid)
@@ -102,6 +103,7 @@ func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
 			cli.dispatchEvent(&events.PairError{ID: jid, LID: lid, BusinessName: businessName, Platform: platform, Error: err})
 		} else {
 			cli.Log.Infof("Successfully paired %s", cli.Store.ID)
+			go cli.sendUnifiedSession()
 			cli.dispatchEvent(&events.PairSuccess{ID: jid, LID: lid, BusinessName: businessName, Platform: platform})
 		}
 	}()
@@ -122,7 +124,7 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 	}
 	h.Write(deviceIdentityContainer.Details)
 
-	if !bytes.Equal(h.Sum(nil), deviceIdentityContainer.HMAC) {
+	if !hmac.Equal(h.Sum(nil), deviceIdentityContainer.HMAC) {
 		cli.Log.Warnf("Invalid HMAC from pair success message")
 		cli.sendPairError(ctx, reqID, 401, "hmac-mismatch")
 		return ErrPairInvalidDeviceIdentityHMAC

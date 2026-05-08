@@ -442,6 +442,7 @@ const (
 			SET key_data=excluded.key_data, timestamp=excluded.timestamp, fingerprint=excluded.fingerprint
 			WHERE excluded.timestamp > whatsmeow_app_state_sync_keys.timestamp
 	`
+	getAllAppStateSyncKeysQuery     = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 ORDER BY timestamp DESC`
 	getAppStateSyncKeyQuery         = `SELECT key_data, timestamp, fingerprint FROM whatsmeow_app_state_sync_keys WHERE jid=$1 AND key_id=$2`
 	getLatestAppStateSyncKeyIDQuery = `SELECT key_id FROM whatsmeow_app_state_sync_keys WHERE jid=$1 ORDER BY timestamp DESC LIMIT 1`
 )
@@ -449,6 +450,25 @@ const (
 func (s *SQLStore) PutAppStateSyncKey(ctx context.Context, id []byte, key store.AppStateSyncKey) error {
 	_, err := s.db.Exec(ctx, putAppStateSyncKeyQuery, s.JID, id, key.Data, key.Timestamp, key.Fingerprint)
 	return err
+}
+
+func (s *SQLStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*store.AppStateSyncKey, error) {
+	rows, err := s.db.Query(ctx, getAllAppStateSyncKeysQuery, s.JID)
+	if err != nil {
+		return nil, err
+	}
+	var out []*store.AppStateSyncKey
+	for rows.Next() {
+		var item store.AppStateSyncKey
+		err = rows.Scan(&item.Data, &item.Timestamp, &item.Fingerprint)
+		if err != nil {
+			return nil, err
+		}
+		if len(item.Data) > 0 {
+			out = append(out, &item)
+		}
+	}
+	return out, rows.Close()
 }
 
 func (s *SQLStore) GetAppStateSyncKey(ctx context.Context, id []byte) (*store.AppStateSyncKey, error) {
@@ -498,6 +518,8 @@ func (s *SQLStore) GetAppStateVersion(ctx context.Context, name string) (version
 	} else if len(uncheckedHash) != 128 {
 		// This shouldn't happen
 		err = ErrInvalidLength
+	} else if version == 0 {
+		err = fmt.Errorf("invalid saved app state version 0 for name %s (hash %x)", name, uncheckedHash)
 	} else {
 		// No errors, convert hash slice to array
 		hash = *(*[128]byte)(uncheckedHash)
@@ -864,14 +886,14 @@ const (
 				WHEN $2 LIKE '%@lid'
 					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($2, '@lid', ''))
 				WHEN $2 LIKE '%@s.whatsapp.net'
-					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE lid=replace($2, '@s.whatsapp.net', ''))
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE pn=replace($2, '@s.whatsapp.net', ''))
 			END
 		)) AND message_id=$4 AND (sender_jid=$3 OR sender_jid=(
 			CASE
 				WHEN $3 LIKE '%@lid'
 					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($3, '@lid', ''))
 				WHEN $3 LIKE '%@s.whatsapp.net'
-					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE lid=replace($3, '@s.whatsapp.net', ''))
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE pn=replace($3, '@s.whatsapp.net', ''))
 			END
 		))
 	`
@@ -907,24 +929,57 @@ func (s *SQLStore) GetMessageSecret(ctx context.Context, chat, sender types.JID,
 
 const (
 	putPrivacyTokens = `
-		INSERT INTO whatsmeow_privacy_tokens (our_jid, their_jid, token, timestamp)
-		VALUES ($1, $2, $3, $4)
-		ON CONFLICT (our_jid, their_jid) DO UPDATE SET token=EXCLUDED.token, timestamp=EXCLUDED.timestamp
+		INSERT INTO whatsmeow_privacy_tokens (our_jid, their_jid, token, timestamp, sender_timestamp)
+		VALUES ($1, $2, $3, $4, $5)
+		ON CONFLICT (our_jid, their_jid) DO UPDATE SET
+			token=EXCLUDED.token,
+			timestamp=EXCLUDED.timestamp,
+			sender_timestamp=COALESCE(EXCLUDED.sender_timestamp, whatsmeow_privacy_tokens.sender_timestamp)
+		WHERE EXCLUDED.timestamp >= whatsmeow_privacy_tokens.timestamp
 	`
-	getPrivacyToken = `SELECT token, timestamp FROM whatsmeow_privacy_tokens WHERE our_jid=$1 AND their_jid=$2`
+	getPrivacyToken = `
+		SELECT token, timestamp, sender_timestamp FROM whatsmeow_privacy_tokens WHERE our_jid=$1 AND (their_jid=$2 OR their_jid=(
+			CASE
+				WHEN $2 LIKE '%@lid'
+					THEN (SELECT pn || '@s.whatsapp.net' FROM whatsmeow_lid_map WHERE lid=replace($2, '@lid', ''))
+				WHEN $2 LIKE '%@s.whatsapp.net'
+					THEN (SELECT lid || '@lid' FROM whatsmeow_lid_map WHERE pn=replace($2, '@s.whatsapp.net', ''))
+				ELSE $2
+			END
+		))
+		ORDER BY timestamp DESC LIMIT 1
+	`
+	deleteExpiredPrivacyTokens = `
+		DELETE FROM whatsmeow_privacy_tokens
+		WHERE our_jid=$1 AND timestamp < $2
+	`
+)
+
+const (
+	putNCTSaltQuery = `
+		INSERT INTO whatsmeow_nct_salt (our_jid, salt) VALUES ($1, $2)
+		ON CONFLICT (our_jid) DO UPDATE SET salt=excluded.salt
+	`
+	getNCTSaltQuery    = `SELECT salt FROM whatsmeow_nct_salt WHERE our_jid=$1`
+	deleteNCTSaltQuery = `DELETE FROM whatsmeow_nct_salt WHERE our_jid=$1`
 )
 
 func (s *SQLStore) PutPrivacyTokens(ctx context.Context, tokens ...store.PrivacyToken) error {
-	args := make([]any, 1+len(tokens)*3)
+	args := make([]any, 1+len(tokens)*4)
 	placeholders := make([]string, len(tokens))
 	args[0] = s.JID
 	for i, token := range tokens {
-		args[i*3+1] = token.User.ToNonAD().String()
-		args[i*3+2] = token.Token
-		args[i*3+3] = token.Timestamp.Unix()
-		placeholders[i] = fmt.Sprintf("($1, $%d, $%d, $%d)", i*3+2, i*3+3, i*3+4)
+		args[i*4+1] = token.User.ToNonAD().String()
+		args[i*4+2] = token.Token
+		args[i*4+3] = token.Timestamp.Unix()
+		if token.SenderTimestamp.IsZero() {
+			args[i*4+4] = nil
+		} else {
+			args[i*4+4] = token.SenderTimestamp.Unix()
+		}
+		placeholders[i] = fmt.Sprintf("($1, $%d, $%d, $%d, $%d)", i*4+2, i*4+3, i*4+4, i*4+5)
 	}
-	query := strings.ReplaceAll(putPrivacyTokens, "($1, $2, $3, $4)", strings.Join(placeholders, ","))
+	query := strings.ReplaceAll(putPrivacyTokens, "($1, $2, $3, $4, $5)", strings.Join(placeholders, ","))
 	_, err := s.db.Exec(ctx, query, args...)
 	return err
 }
@@ -933,15 +988,52 @@ func (s *SQLStore) GetPrivacyToken(ctx context.Context, user types.JID) (*store.
 	var token store.PrivacyToken
 	token.User = user.ToNonAD()
 	var ts int64
-	err := s.db.QueryRow(ctx, getPrivacyToken, s.JID, token.User).Scan(&token.Token, &ts)
+	var senderTS sql.NullInt64
+	err := s.db.QueryRow(ctx, getPrivacyToken, s.JID, token.User).Scan(&token.Token, &ts, &senderTS)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	} else {
 		token.Timestamp = time.Unix(ts, 0)
+		if senderTS.Valid {
+			token.SenderTimestamp = time.Unix(senderTS.Int64, 0)
+		}
 		return &token, nil
 	}
+}
+
+func (s *SQLStore) PutNCTSalt(ctx context.Context, salt []byte) error {
+	_, err := s.db.Exec(ctx, putNCTSaltQuery, s.JID, salt)
+	return err
+}
+
+func (s *SQLStore) GetNCTSalt(ctx context.Context) ([]byte, error) {
+	var salt []byte
+	err := s.db.QueryRow(ctx, getNCTSaltQuery, s.JID).Scan(&salt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return salt, nil
+}
+
+func (s *SQLStore) DeleteNCTSalt(ctx context.Context) error {
+	_, err := s.db.Exec(ctx, deleteNCTSaltQuery, s.JID)
+	return err
+}
+
+func (s *SQLStore) DeleteExpiredPrivacyTokens(ctx context.Context, cutoff time.Time) (int64, error) {
+	res, err := s.db.Exec(ctx, deleteExpiredPrivacyTokens, s.JID, cutoff.Unix())
+	if err != nil {
+		return 0, err
+	}
+	deleted, err := res.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return deleted, nil
 }
 
 const (
@@ -993,5 +1085,35 @@ func (s *SQLStore) DeleteOldBufferedHashes(ctx context.Context) error {
 	// The WhatsApp servers only buffer events for 14 days,
 	// so we can safely delete anything older than that.
 	_, err := s.db.Exec(ctx, deleteOldBufferedHashesQuery, time.Now().Add(-14*24*time.Hour).UnixMilli())
+	return err
+}
+
+const (
+	getOutgoingEventQuery = `
+		SELECT format, plaintext FROM whatsmeow_retry_buffer WHERE our_jid=$1 AND (chat_jid=$2 OR chat_jid=$3) AND message_id=$4
+	`
+	addOutgoingEventQuery = `
+		INSERT INTO whatsmeow_retry_buffer (our_jid, chat_jid, message_id, format, plaintext, timestamp)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		ON CONFLICT (our_jid, chat_jid, message_id) DO UPDATE
+			SET format=excluded.format, plaintext=excluded.plaintext, timestamp=excluded.timestamp
+	`
+	deleteOldOutgoingEventsQuery = `
+		DELETE FROM whatsmeow_retry_buffer WHERE our_jid=$1 AND timestamp < $2
+	`
+)
+
+func (s *SQLStore) GetOutgoingEvent(ctx context.Context, chatJID, altChatJID types.JID, id types.MessageID) (format string, result []byte, err error) {
+	err = s.db.QueryRow(ctx, getOutgoingEventQuery, s.JID, chatJID, altChatJID, id).Scan(&format, &result)
+	return
+}
+
+func (s *SQLStore) AddOutgoingEvent(ctx context.Context, chatJID types.JID, id types.MessageID, format string, plaintext []byte) error {
+	_, err := s.db.Exec(ctx, addOutgoingEventQuery, s.JID, chatJID, id, format, plaintext, time.Now().UnixMilli())
+	return err
+}
+
+func (s *SQLStore) DeleteOldOutgoingEvents(ctx context.Context) error {
+	_, err := s.db.Exec(ctx, deleteOldOutgoingEventsQuery, s.JID, time.Now().Add(-7*24*time.Hour).UnixMilli())
 	return err
 }

@@ -2,8 +2,8 @@ syntax = "proto2";
 package WAWebProtobufsHistorySync;
 option go_package = "go.mau.fi/whatsmeow/proto/waHistorySync";
 
-import "waSyncAction/WASyncAction.proto";
-import "waChatLockSettings/WAProtobufsChatLockSettings.proto";
+import "waSyncAction/WAWebProtobufSyncAction.proto";
+import "waChatLockSettings/WAWebProtobufsChatLockSettings.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
 import "waCommon/WACommon.proto";
 import "waWeb/WAWebProtobufsWeb.proto";
@@ -47,19 +47,30 @@ message HistorySync {
 	optional uint32 threadDsTimeframeOffset = 10;
 	repeated StickerMetadata recentStickers = 11;
 	repeated PastParticipants pastParticipants = 12;
-	repeated WASyncAction.CallLogRecord callLogRecords = 13;
+	repeated WAWebProtobufSyncAction.CallLogRecord callLogRecords = 13;
 	optional BotAIWaitListState aiWaitListState = 14;
 	repeated PhoneNumberToLIDMapping phoneNumberToLidMappings = 15;
 	optional string companionMetaNonce = 16;
 	optional bytes shareableChatIdentifierEncryptionKey = 17;
 	repeated Account accounts = 18;
+	optional bytes nctSalt = 19;
+	repeated InlineContact inlineContacts = 20;
+	optional bool inlineContactsProvided = 21;
 }
 
 message Conversation {
+	enum GroupAppealStatus {
+		NO_APPEAL = 0;
+		APPEAL_IN_REVIEW = 1;
+		APPEAL_APPROVED = 2;
+		APPEAL_REJECTED = 3;
+	}
+
 	enum EndOfHistoryTransferType {
 		COMPLETE_BUT_MORE_MESSAGES_REMAIN_ON_PRIMARY = 0;
 		COMPLETE_AND_NO_MORE_MESSAGE_REMAIN_ON_PRIMARY = 1;
 		COMPLETE_ON_DEMAND_SYNC_BUT_MORE_MSG_REMAIN_ON_PRIMARY = 2;
+		COMPLETE_ON_DEMAND_SYNC_WITH_MORE_MSG_ON_PRIMARY_BUT_NO_ACCESS = 3;
 	}
 
 	required string ID = 1;
@@ -116,6 +127,14 @@ message Conversation {
 	optional WACommon.LimitSharing.Trigger limitSharingTrigger = 52;
 	optional bool limitSharingInitiatedByMe = 53;
 	optional bool maibaAiThreadEnabled = 54;
+	optional bool isMarketingMessageThread = 55;
+	optional bool isSenderNewAccount = 56;
+	optional uint32 afterReadDuration = 57;
+	optional bool isSenderSuspicious = 58;
+	optional GroupAppealStatus appealStatus = 59;
+	optional uint64 appealUpdateTime = 60;
+	optional string authAgentParentCompanyName = 61;
+	optional string authAgentObaPhoneNumber = 62;
 }
 
 message GroupParticipant {
@@ -146,6 +165,14 @@ message PhoneNumberToLIDMapping {
 	optional string lidJID = 2;
 }
 
+message InlineContact {
+	optional string pnJID = 1;
+	optional string lidJID = 2;
+	optional string fullName = 3;
+	optional string firstName = 4;
+	optional string username = 5;
+}
+
 message Account {
 	optional string lid = 1;
 	optional string username = 2;
@@ -166,6 +193,7 @@ message Pushname {
 message WallpaperSettings {
 	optional string filename = 1;
 	optional uint32 opacity = 2;
+	optional bool isGenAi = 3;
 }
 
 message GlobalSettings {
@@ -187,7 +215,7 @@ message GlobalSettings {
 	optional int32 photoQualityMode = 16;
 	optional NotificationSettings individualNotificationSettings = 17;
 	optional NotificationSettings groupNotificationSettings = 18;
-	optional WAProtobufsChatLockSettings.ChatLockSettings chatLockSettings = 19;
+	optional WAWebProtobufsChatLockSettings.ChatLockSettings chatLockSettings = 19;
 	optional int64 chatDbLidMigrationTimestamp = 20;
 }
 

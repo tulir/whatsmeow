@@ -160,7 +160,10 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
 	cli.isLoggedIn.Store(true)
-	nodeLID := node.AttrGetter().JID("lid")
+	ag := node.AttrGetter()
+	nodeLID := ag.JID("lid")
+	cli.serverTimeOffset.Store(int64(ag.UnixTime("t").Sub(time.Now().Round(time.Second))))
+
 	if !cli.Store.LID.IsEmpty() && !nodeLID.IsEmpty() && cli.Store.LID != nodeLID {
 		// This should probably never happen, but check just in case.
 		cli.Log.Warnf("Stored LID doesn't match one in connect success: %s != %s", cli.Store.LID, nodeLID)
@@ -174,10 +177,9 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 		} else {
 			cli.Log.Infof("Updated LID to %s", cli.Store.LID)
 		}
+		cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
 	}
-	// Some users are missing their own LID-PN mapping even though it's already in the device table,
-	// so do this unconditionally for a few months to ensure everyone gets the row.
-	cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
+	cli.deleteExpiredPrivacyTokens()
 	go func() {
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(ctx); err != nil {
 			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)

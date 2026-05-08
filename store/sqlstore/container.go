@@ -265,17 +265,7 @@ func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 
 func (c *Container) initializeDevice(device *store.Device) {
 	innerStore := NewSQLStore(c, *device.ID)
-	device.Identities = innerStore
-	device.Sessions = innerStore
-	device.PreKeys = innerStore
-	device.SenderKeys = innerStore
-	device.AppStateKeys = innerStore
-	device.AppState = innerStore
-	device.Contacts = innerStore
-	device.ChatSettings = innerStore
-	device.MsgSecrets = innerStore
-	device.PrivacyTokens = innerStore
-	device.EventBuffer = innerStore
+	device.SetAllStores(innerStore)
 	device.LIDs = c.LIDMap
 	device.Container = c
 	device.Initialized = true

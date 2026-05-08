@@ -76,14 +76,10 @@ func (vc WAVersionContainer) ProtoAppVersion() *waWa6.ClientPayload_UserAgent_Ap
 }
 
 // waVersion is the WhatsApp web client version
-var waVersion = WAVersionContainer{2, 3000, 1029399661}
+var waVersion = WAVersionContainer{2, 3000, 1038839325}
 
 // waVersionHash is the md5 hash of a dot-separated waVersion
-var waVersionHash [16]byte
-
-func init() {
-	waVersionHash = waVersion.Hash()
-}
+var waVersionHash = waVersion.Hash()
 
 // GetWAVersion gets the current WhatsApp web client version.
 func GetWAVersion() WAVersionContainer {
@@ -100,6 +96,7 @@ func SetWAVersion(version WAVersionContainer) {
 	}
 	waVersion = version
 	waVersionHash = version.Hash()
+	BaseClientPayload.UserAgent.AppVersion = waVersion.ProtoAppVersion()
 }
 
 var BaseClientPayload = &waWa6.ClientPayload{
@@ -132,6 +129,8 @@ var DeviceProps = &waCompanionReg.DeviceProps{
 		Tertiary:  proto.Uint32(0),
 	},
 	HistorySyncConfig: &waCompanionReg.DeviceProps_HistorySyncConfig{
+		FullSyncDaysLimit:                        nil,
+		FullSyncSizeMbLimit:                      nil,
 		StorageQuotaMb:                           proto.Uint32(10240),
 		InlineInitialPayloadInE2EeMsg:            proto.Bool(true),
 		RecentSyncDaysLimit:                      nil,
@@ -144,11 +143,14 @@ var DeviceProps = &waCompanionReg.DeviceProps{
 		SupportFbidBotChatHistory:                proto.Bool(true),
 		SupportAddOnHistorySyncMigration:         nil,
 		SupportMessageAssociation:                proto.Bool(true),
-		SupportGroupHistory:                      proto.Bool(false),
+		SupportGroupHistory:                      proto.Bool(true),
 		OnDemandReady:                            nil,
 		SupportGuestChat:                         nil,
-		//CompleteOnDemandReady:                    nil,
-		//ThumbnailSyncDaysLimit:                   nil,
+		CompleteOnDemandReady:                    nil,
+		ThumbnailSyncDaysLimit:                   proto.Uint32(60),
+		InitialSyncMaxMessagesPerChat:            nil,
+		SupportManusHistory:                      proto.Bool(true),
+		SupportHatchHistory:                      proto.Bool(true),
 	},
 	PlatformType:    waCompanionReg.DeviceProps_UNKNOWN.Enum(),
 	RequireFullSync: proto.Bool(false),
@@ -192,6 +194,9 @@ func (device *Device) getLoginPayload() *waWa6.ClientPayload {
 	payload.Passive = proto.Bool(true)
 	payload.Pull = proto.Bool(true)
 	payload.LidDbMigrated = proto.Bool(true)
+	if payload.Lc == nil {
+		payload.Lc = proto.Int32(1)
+	}
 	return payload
 }
 

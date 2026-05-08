@@ -40,4 +40,10 @@ var (
 	ErrFrameTooLarge     = errors.New("frame too large")
 	ErrSocketClosed      = errors.New("frame socket is closed")
 	ErrSocketAlreadyOpen = errors.New("frame socket is already open")
+	ErrDialFailed        = errors.New("failed to dial whatsapp web websocket")
 )
+
+type ErrWithStatusCode struct {
+	error
+	StatusCode int
+}

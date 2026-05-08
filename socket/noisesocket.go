@@ -76,10 +76,12 @@ func generateIV(count uint32) []byte {
 	return iv
 }
 
-func (ns *NoiseSocket) Stop(disconnect bool) {
+func (ns *NoiseSocket) Stop(disconnect, allowOnDisconnect bool) {
 	if ns.destroyed.CompareAndSwap(false, true) {
 		close(ns.stopConsumer)
-		ns.fs.OnDisconnect = nil
+		if !allowOnDisconnect {
+			ns.fs.OnDisconnect = nil
+		}
 		if disconnect {
 			ns.fs.Close(websocket.StatusNormalClosure)
 		}

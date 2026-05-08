@@ -122,6 +122,8 @@ message AudioTransport {
 
 		optional uint32 seconds = 1;
 		optional AvatarAudio avatarAudio = 2;
+		optional string waveformData = 3;
+		optional bytes waveform = 4;
 	}
 
 	message Integral {

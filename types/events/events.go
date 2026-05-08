@@ -488,9 +488,10 @@ type GroupInfo struct {
 	Join  []types.JID // Users who joined or were added the group
 	Leave []types.JID // Users who left or were removed from the group
 
-	Promote []types.JID // Users who were promoted to admins
-	Demote  []types.JID // Users who were demoted to normal users
-
+	Promote        []types.JID // Users who were promoted to admins
+	Demote         []types.JID // Users who were demoted to normal users
+	Suspended      bool        // whether the group is suspended
+	Unsuspended    bool        // whether the group is unsuspended
 	UnknownChanges []*waBinary.Node
 }
 
@@ -532,6 +533,9 @@ type PrivacySettings struct {
 	ReadReceiptsChanged bool
 	OnlineChanged       bool
 	CallAddChanged      bool
+	MessagesChanged     bool
+	DefenseChanged      bool
+	StickersChanged     bool
 }
 
 // OfflineSyncPreview is emitted right after connecting if the server is going to send events that the client missed during downtime.
