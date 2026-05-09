@@ -109,18 +109,48 @@ func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, us
 	if baseEncKey == nil {
 		return nil, ErrOriginalMessageSecretNotFound
 	}
-	secretKey, additionalData := generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), origSender, baseEncKey)
+	modSender := msg.Info.Sender
+	secretKey, additionalData := generateMsgSecretKey(useCase, modSender, origMsgKey.GetID(), origSender, baseEncKey)
 	plaintext, err := gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
+	if err != nil && strings.Contains(err.Error(), "message authentication failed") {
+		// Hack: LID-migration – WhatsApp uses PN on one side and LID on the other.
+		// Try all combinations of (modSender, origSender) x (LID, PN).
+		origSenderCandidates := []types.JID{origSender}
+		if origSender != storedOrigSender {
+			origSenderCandidates = append(origSenderCandidates, storedOrigSender)
+		}
+		modSenderCandidates := []types.JID{}
+		if modSender.Server == types.HiddenUserServer {
+			if pn, e := cli.Store.LIDs.GetPNForLID(ctx, modSender); e == nil && !pn.IsEmpty() {
+				modSenderCandidates = append(modSenderCandidates, pn)
+			}
+		} else if modSender.Server == types.DefaultUserServer {
+			if lid, e := cli.Store.LIDs.GetLIDForPN(ctx, modSender); e == nil && !lid.IsEmpty() {
+				modSenderCandidates = append(modSenderCandidates, lid)
+			}
+		}
+		// First: vary only origSender (original behaviour)
+		for _, os := range origSenderCandidates {
+			if os == origSender {
+				continue
+			}
+			secretKey, additionalData = generateMsgSecretKey(useCase, modSender, origMsgKey.GetID(), os, baseEncKey)
+			if plaintext, err = gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData); err == nil {
+				return plaintext, nil
+			}
+		}
+		// Second: vary modSender (LID <-> PN) with all origSender candidates
+		for _, ms := range modSenderCandidates {
+			for _, os := range origSenderCandidates {
+				secretKey, additionalData = generateMsgSecretKey(useCase, ms, origMsgKey.GetID(), os, baseEncKey)
+				if plaintext, err = gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData); err == nil {
+					return plaintext, nil
+				}
+			}
+		}
+	}
 	if err != nil {
-		// Hack for trying both the original sender in the new message and the one who we received the secret key from.
-		// This will hopefully become unnecessary when WhatsApp fully finishes their migration to LIDs.
-		if origSender != storedOrigSender && strings.Contains(err.Error(), "message authentication failed") {
-			secretKey, additionalData = generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), storedOrigSender, baseEncKey)
-			plaintext, err = gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
-		}
-		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
-		}
+		return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
 	}
 	return plaintext, nil
 }
