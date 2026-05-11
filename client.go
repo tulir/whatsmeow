@@ -46,6 +46,41 @@ type EventHandler func(evt any)
 type EventHandlerWithSuccessStatus func(evt any) bool
 type nodeHandler func(ctx context.Context, node *waBinary.Node)
 
+// RawNodeHandler is called for every inbound stanza node after Noise
+// transport decryption and binary decoding, but before standard
+// dispatch (tag-based routing, IQ response correlation).
+//
+// If the handler returns drop=true, the node is not dispatched further
+// (no tag handler runs, no IQ response is matched). If the handler
+// returns a non-nil modified node, it replaces the original for the
+// rest of the dispatch path.
+//
+// DANGEROUS: this is a low-level hook. Returning incorrect values
+// breaks Signal session continuity, IQ response correlation, app state
+// invariants, and other stateful parts of the protocol. Intended for
+// proxy implementations where an external system owns part of the
+// protocol state machine (see also [DisabledFeatures]).
+type RawNodeHandler func(ctx context.Context, node *waBinary.Node) (modified *waBinary.Node, drop bool)
+
+// DisabledFeatures lets callers turn off built-in whatsmeow processing
+// paths. Used by proxies where an external system owns parts of the
+// protocol state, e.g. an upstream service that holds the Signal
+// session and handles its own decryption.
+//
+// DANGEROUS: each flag disables a piece of state machinery the rest of
+// the library assumes is running. Toggle deliberately; the surrounding
+// code does not paper over the resulting gaps.
+type DisabledFeatures struct {
+	// Signal disables the library's Signal-session machinery. When set:
+	//   - Incoming `<message>` envelopes are not decrypted and not
+	//     ack'd. The actual decrypting client downstream is responsible
+	//     for ack'ing once it has processed the message.
+	//   - The periodic prekey-upload loop is a no-op.
+	// Combine with [RawNodeHandler] to forward the raw envelopes to the
+	// system that actually owns the Signal session.
+	Signal bool
+}
+
 var nextHandlerID uint32
 
 type wrappedEventHandler struct {
@@ -176,6 +211,14 @@ type Client struct {
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
 	// If false, decrypting a message from untrusted devices will fail.
 	AutoTrustIdentity bool
+
+	// RawNodeHandler, if non-nil, is called for every inbound node
+	// after decoding but before standard dispatch. See [RawNodeHandler].
+	RawNodeHandler RawNodeHandler
+
+	// DisabledFeatures controls which built-in processing paths are
+	// skipped. See [DisabledFeatures].
+	DisabledFeatures DisabledFeatures
 
 	// Should SubscribePresence return an error if no privacy token is stored for the user?
 	ErrorOnSubscribePresenceWithoutToken bool
@@ -825,6 +868,16 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		cli.Log.Warnf("Failed to decode node in frame: %v", err)
 		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(decompressed))
 		return
+	}
+	if h := cli.RawNodeHandler; h != nil {
+		modified, drop := h(ctx, node)
+		if drop {
+			cli.recvLog.Debugf("RawNodeHandler dropped node: %s", node.XMLString())
+			return
+		}
+		if modified != nil {
+			node = modified
+		}
 	}
 	cli.recvLog.Debugf("%s", node.XMLString())
 	if node.Tag == "xmlstreamend" {

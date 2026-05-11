@@ -48,6 +48,10 @@ func (cli *Client) getServerPreKeyCount(ctx context.Context) (int, error) {
 }
 
 func (cli *Client) uploadPreKeys(ctx context.Context, initialUpload bool) {
+	if cli.DisabledFeatures.Signal {
+		cli.Log.Debugf("Prekey upload skipped (DisabledFeatures.Signal)")
+		return
+	}
 	cli.uploadPreKeysLock.Lock()
 	defer cli.uploadPreKeysLock.Unlock()
 	if cli.lastPreKeyUpload.Add(10 * time.Minute).After(time.Now()) {
