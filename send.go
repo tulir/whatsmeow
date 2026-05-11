@@ -804,13 +804,6 @@ func (cli *Client) sendGroup(
 	if mediaType := getMediaTypeFromMessage(message); mediaType != "" {
 		skMsg.Attrs["mediatype"] = mediaType
 	}
-	if message.GetInteractiveResponseMessage() != nil {
-		name := message.GetInteractiveResponseMessage().GetNativeFlowResponseMessage().GetName()
-		if name == "" {
-			name = "menu_options"
-		}
-		skMsg.Attrs["native_flow_name"] = name
-	}
 	node.Content = append(node.GetChildren(), skMsg)
 	if cli.shouldIncludeReportingToken(message) && message.GetMessageContextInfo().GetMessageSecret() != nil {
 		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(plaintext, message, ownID, to, id))
@@ -982,10 +975,6 @@ func getMediaTypeFromMessage(msg *waE2E.Message) string {
 		return "product"
 	case msg.InteractiveResponseMessage != nil:
 		return "native_flow_response"
-	case msg.ButtonsMessage != nil:
-		return "buttons"
-	case msg.InteractiveMessage != nil:
-		return "native_flow"
 	default:
 		return ""
 	}
@@ -1088,16 +1077,10 @@ func getButtonTypeFromMessage(msg *waE2E.Message) string {
 		return getButtonTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.ButtonsMessage != nil:
 		return "buttons"
-	case msg.ButtonsResponseMessage != nil:
-		return "buttons_response"
 	case msg.ListMessage != nil:
 		return "list"
-	case msg.ListResponseMessage != nil:
-		return "list_response"
-	case msg.InteractiveMessage != nil:
+	case msg.InteractiveMessage != nil && msg.InteractiveMessage.GetNativeFlowMessage() != nil:
 		return "native_flow"
-	case msg.InteractiveResponseMessage != nil:
-		return "interactive_response"
 	default:
 		return ""
 	}
@@ -1238,11 +1221,25 @@ func (cli *Client) getMessageContent(
 		content = append(content, *extraParams.metaNode)
 	}
 	if extraParams.additionalNodes != nil {
-		content = append(content, *extraParams.additionalNodes...)
-	}
-
-	if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
-		content = append(content, buildBizNode(message, buttonType))
+		hasBiz := false
+		for _, n := range *extraParams.additionalNodes {
+			if n.Tag == "biz" || n.Tag == "hsm" {
+				hasBiz = true
+				break
+			}
+		}
+		if hasBiz {
+			content = append(content, *extraParams.additionalNodes...)
+		} else {
+			if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
+				content = append(content, buildBizNode(message, buttonType))
+			}
+			content = append(content, *extraParams.additionalNodes...)
+		}
+	} else {
+		if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
+			content = append(content, buildBizNode(message, buttonType))
+		}
 	}
 	return content
 }
@@ -1274,13 +1271,6 @@ func (cli *Client) prepareMessageNode(
 	encAttrs := waBinary.Attrs{}
 	if encMediaType := getMediaTypeFromMessage(message); encMediaType != "" {
 		encAttrs["mediatype"] = encMediaType
-	}
-	if message.GetInteractiveResponseMessage() != nil {
-		name := message.GetInteractiveResponseMessage().GetNativeFlowResponseMessage().GetName()
-		if name == "" {
-			name = "menu_options"
-		}
-		encAttrs["native_flow_name"] = name
 	}
 	attrs := waBinary.Attrs{
 		"id":   id,
