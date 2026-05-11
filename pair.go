@@ -83,7 +83,7 @@ func (cli *Client) makeQRData(ref string) string {
 	identity := base64.StdEncoding.EncodeToString(cli.Store.IdentityKey.Pub[:])
 	adv := base64.StdEncoding.EncodeToString(cli.Store.AdvSecretKey)
 	// todo: add support for other pair client ids
-	return strings.Join([]string{"https://wa.me/settings/linked_devices#", ref, noise, identity, adv, strconv.Itoa(int(PairClientChrome))}, ",")
+	return fmt.Sprintf("https://wa.me/settings/linked_devices#%s,%s,%s,%s,%d", ref, noise, identity, adv, PairClientChrome)
 }
 
 func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
