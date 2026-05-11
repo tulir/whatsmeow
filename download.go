@@ -11,6 +11,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -28,6 +29,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waMediaTransport"
 	"go.mau.fi/whatsmeow/proto/waServerSync"
 	"go.mau.fi/whatsmeow/socket"
+	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
 )
@@ -87,6 +89,7 @@ var (
 	_ DownloadableMessage   = (*waE2E.HistorySyncNotification)(nil)
 	_ DownloadableMessage   = (*waServerSync.ExternalBlobReference)(nil)
 	_ DownloadableThumbnail = (*waE2E.ExtendedTextMessage)(nil)
+	_ DownloadableMessage   = (*types.StickerPackItem)(nil)
 )
 
 type downloadableMessageWithLength interface {
@@ -191,15 +194,33 @@ func (cli *Client) DownloadThumbnail(ctx context.Context, msg DownloadableThumbn
 
 // GetMediaType returns the MediaType value corresponding to the given protobuf message.
 func GetMediaType(msg DownloadableMessage) MediaType {
-	protoReflecter, ok := msg.(proto.Message)
-	if !ok {
-		mediaTypeable, ok := msg.(MediaTypeable)
-		if !ok {
-			return ""
-		}
-		return mediaTypeable.GetMediaType()
+	switch typedMsg := msg.(type) {
+	case *types.StickerPackItem:
+		return MediaImage
+	case proto.Message:
+		return classToMediaType[typedMsg.ProtoReflect().Descriptor().Name()]
+	case MediaTypeable:
+		return typedMsg.GetMediaType()
+	default:
+		return ""
 	}
-	return classToMediaType[protoReflecter.ProtoReflect().Descriptor().Name()]
+}
+
+func (cli *Client) FetchStickerPack(ctx context.Context, packID string) (*types.StickerPack, error) {
+	url := fmt.Sprintf("https://static.whatsapp.net/sticker?lottie=1&cat=sticker_pack_data&id=%s&lg=en", packID)
+	resp, err := cli.doMediaDownloadRequest(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+	var packs []types.StickerPack
+	err = json.NewDecoder(resp.Body).Decode(&packs)
+	_ = resp.Body.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	} else if len(packs) == 0 {
+		return nil, fmt.Errorf("no sticker pack found in response")
+	}
+	return &packs[0], nil
 }
 
 // Download downloads the attachment from the given protobuf message.

@@ -9,6 +9,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -136,14 +137,22 @@ type MsgSecretStore interface {
 }
 
 type PrivacyToken struct {
-	User      types.JID
-	Token     []byte
-	Timestamp time.Time
+	User            types.JID
+	Token           []byte
+	Timestamp       time.Time
+	SenderTimestamp time.Time
 }
 
 type PrivacyTokenStore interface {
 	PutPrivacyTokens(ctx context.Context, tokens ...PrivacyToken) error
 	GetPrivacyToken(ctx context.Context, user types.JID) (*PrivacyToken, error)
+	DeleteExpiredPrivacyTokens(ctx context.Context, cutoff time.Time) (int64, error)
+}
+
+type NCTSaltStore interface {
+	PutNCTSalt(ctx context.Context, salt []byte) error
+	GetNCTSalt(ctx context.Context) ([]byte, error)
+	DeleteNCTSalt(ctx context.Context) error
 }
 
 type BufferedEvent struct {
@@ -192,6 +201,7 @@ type AllSessionSpecificStores interface {
 	ChatSettingsStore
 	MsgSecretStore
 	PrivacyTokenStore
+	NCTSaltStore
 	EventBuffer
 }
 
@@ -226,6 +236,7 @@ type Device struct {
 	FacebookUUID uuid.UUID
 
 	Initialized   bool
+	Deleted       bool
 	Identities    IdentityStore
 	Sessions      SessionStore
 	PreKeys       PreKeyStore
@@ -236,6 +247,7 @@ type Device struct {
 	ChatSettings  ChatSettingsStore
 	MsgSecrets    MsgSecretStore
 	PrivacyTokens PrivacyTokenStore
+	NCTSalt       NCTSaltStore
 	EventBuffer   EventBuffer
 	LIDs          LIDStore
 	Container     DeviceContainer
@@ -259,18 +271,43 @@ func (device *Device) GetLID() types.JID {
 	return device.LID
 }
 
+var ErrDeviceDeleted = errors.New("invalid use of deleted device")
+
 func (device *Device) Save(ctx context.Context) error {
+	if device.Deleted {
+		return ErrDeviceDeleted
+	}
 	return device.Container.PutDevice(ctx, device)
 }
 
 func (device *Device) Delete(ctx context.Context) error {
+	if device.Deleted {
+		return nil
+	}
 	err := device.Container.DeleteDevice(ctx, device)
 	if err != nil {
 		return err
 	}
 	device.ID = nil
 	device.LID = types.EmptyJID
+	device.Deleted = true
+	device.SetAllStores(&NoopStore{ErrDeviceDeleted})
 	return nil
+}
+
+func (device *Device) SetAllStores(store AllSessionSpecificStores) {
+	device.Identities = store
+	device.Sessions = store
+	device.PreKeys = store
+	device.SenderKeys = store
+	device.AppStateKeys = store
+	device.AppState = store
+	device.Contacts = store
+	device.ChatSettings = store
+	device.MsgSecrets = store
+	device.PrivacyTokens = store
+	device.NCTSalt = store
+	device.EventBuffer = store
 }
 
 func (device *Device) GetAltJID(ctx context.Context, jid types.JID) (types.JID, error) {

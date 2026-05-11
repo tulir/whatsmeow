@@ -353,7 +353,11 @@ const (
 	ExtendedContentMessage_MSG_PHONE_NUMBER                        ExtendedContentMessage_ExtendedContentType = 2030
 	ExtendedContentMessage_AI_ACTIVITY_SHARE                       ExtendedContentMessage_ExtendedContentType = 2031
 	ExtendedContentMessage_MSG_PRIVATE_XMA                         ExtendedContentMessage_ExtendedContentType = 2032
+	ExtendedContentMessage_MSG_SOCIAL_CUE_MEMORIES                 ExtendedContentMessage_ExtendedContentType = 2033
 	ExtendedContentMessage_MSG_MANUS_GROWTH_REFERRAL               ExtendedContentMessage_ExtendedContentType = 2060
+	ExtendedContentMessage_MSG_MOMENT_LINK                         ExtendedContentMessage_ExtendedContentType = 2061
+	ExtendedContentMessage_MSG_HORIZON_WEEL                        ExtendedContentMessage_ExtendedContentType = 2062
+	ExtendedContentMessage_MSG_MOMENT_ADDED                        ExtendedContentMessage_ExtendedContentType = 2063
 	ExtendedContentMessage_RTC_AUDIO_CALL                          ExtendedContentMessage_ExtendedContentType = 3000
 	ExtendedContentMessage_RTC_VIDEO_CALL                          ExtendedContentMessage_ExtendedContentType = 3001
 	ExtendedContentMessage_RTC_MISSED_AUDIO_CALL                   ExtendedContentMessage_ExtendedContentType = 3002
@@ -437,7 +441,11 @@ var (
 		2030: "MSG_PHONE_NUMBER",
 		2031: "AI_ACTIVITY_SHARE",
 		2032: "MSG_PRIVATE_XMA",
+		2033: "MSG_SOCIAL_CUE_MEMORIES",
 		2060: "MSG_MANUS_GROWTH_REFERRAL",
+		2061: "MSG_MOMENT_LINK",
+		2062: "MSG_HORIZON_WEEL",
+		2063: "MSG_MOMENT_ADDED",
 		3000: "RTC_AUDIO_CALL",
 		3001: "RTC_VIDEO_CALL",
 		3002: "RTC_MISSED_AUDIO_CALL",
@@ -518,7 +526,11 @@ var (
 		"MSG_PHONE_NUMBER":                        2030,
 		"AI_ACTIVITY_SHARE":                       2031,
 		"MSG_PRIVATE_XMA":                         2032,
+		"MSG_SOCIAL_CUE_MEMORIES":                 2033,
 		"MSG_MANUS_GROWTH_REFERRAL":               2060,
+		"MSG_MOMENT_LINK":                         2061,
+		"MSG_HORIZON_WEEL":                        2062,
+		"MSG_MOMENT_ADDED":                        2063,
 		"RTC_AUDIO_CALL":                          3000,
 		"RTC_VIDEO_CALL":                          3001,
 		"RTC_MISSED_AUDIO_CALL":                   3002,
@@ -927,7 +939,7 @@ var File_waArmadilloXMA_WAArmadilloXMA_proto protoreflect.FileDescriptor
 
 const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\n" +
-	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\xb6!\n" +
+	"#waArmadilloXMA/WAArmadilloXMA.proto\x12\x0eWAArmadilloXMA\x1a\x17waCommon/WACommon.proto\"\x98\"\n" +
 	"\x16ExtendedContentMessage\x12C\n" +
 	"\x11associatedMessage\x18\x01 \x01(\v2\x15.WACommon.SubProtocolR\x11associatedMessage\x12Z\n" +
 	"\n" +
@@ -999,7 +1011,7 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\bPORTRAIT\x10\x03\x12\x11\n" +
 	"\rSTANDARD_DXMA\x10\f\x12\r\n" +
 	"\tLIST_DXMA\x10\x0f\x12\b\n" +
-	"\x04GRID\x10\x10\"\xc3\x10\n" +
+	"\x04GRID\x10\x10\"\xa5\x11\n" +
 	"\x13ExtendedContentType\x12\x0f\n" +
 	"\vUNSUPPORTED\x10\x00\x12\x1a\n" +
 	"\x16IG_STORY_PHOTO_MENTION\x10\x04\x12\x1e\n" +
@@ -1067,8 +1079,12 @@ const file_waArmadilloXMA_WAArmadilloXMA_proto_rawDesc = "" +
 	"\x11MSG_MUSIC_STICKER\x10\xed\x0f\x12\x15\n" +
 	"\x10MSG_PHONE_NUMBER\x10\xee\x0f\x12\x16\n" +
 	"\x11AI_ACTIVITY_SHARE\x10\xef\x0f\x12\x14\n" +
-	"\x0fMSG_PRIVATE_XMA\x10\xf0\x0f\x12\x1e\n" +
-	"\x19MSG_MANUS_GROWTH_REFERRAL\x10\x8c\x10\x12\x13\n" +
+	"\x0fMSG_PRIVATE_XMA\x10\xf0\x0f\x12\x1c\n" +
+	"\x17MSG_SOCIAL_CUE_MEMORIES\x10\xf1\x0f\x12\x1e\n" +
+	"\x19MSG_MANUS_GROWTH_REFERRAL\x10\x8c\x10\x12\x14\n" +
+	"\x0fMSG_MOMENT_LINK\x10\x8d\x10\x12\x15\n" +
+	"\x10MSG_HORIZON_WEEL\x10\x8e\x10\x12\x15\n" +
+	"\x10MSG_MOMENT_ADDED\x10\x8f\x10\x12\x13\n" +
 	"\x0eRTC_AUDIO_CALL\x10\xb8\x17\x12\x13\n" +
 	"\x0eRTC_VIDEO_CALL\x10\xb9\x17\x12\x1a\n" +
 	"\x15RTC_MISSED_AUDIO_CALL\x10\xba\x17\x12\x1a\n" +

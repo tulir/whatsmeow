@@ -2,6 +2,54 @@ syntax = "proto2";
 package WAWebProtobufsWa6;
 option go_package = "go.mau.fi/whatsmeow/proto/waWa6";
 
+message HandshakeMessage {
+	enum HandshakePqMode {
+		HANDSHAKE_PQ_MODE_UNKNOWN = 0;
+		XXKEM = 1;
+		XXKEM_FS = 2;
+		WA_CLASSICAL = 3;
+		WA_PQ = 4;
+		IKKEM = 5;
+		IKKEM_FS = 6;
+		XXKEM_2 = 7;
+		IKKEM_2 = 8;
+	}
+
+	message ClientFinish {
+		optional bytes static = 1;
+		optional bytes payload = 2;
+		optional bytes extendedCiphertext = 3;
+		optional bytes paddedBytes = 4;
+		optional bool simulateXxkemFs = 5;
+	}
+
+	message ServerHello {
+		optional bytes ephemeral = 1;
+		optional bytes static = 2;
+		optional bytes payload = 3;
+		optional bytes extendedStatic = 4;
+		optional bytes paddingBytes = 5;
+		optional bytes extendedCiphertext = 6;
+	}
+
+	message ClientHello {
+		optional bytes ephemeral = 1;
+		optional bytes static = 2;
+		optional bytes payload = 3;
+		optional bool useExtended = 4;
+		optional bytes extendedCiphertext = 5;
+		optional bytes paddedBytes = 6;
+		optional bool sendServerHelloPaddedBytes = 7;
+		optional bool simulateXxkemFs = 8;
+		optional HandshakePqMode pqMode = 9;
+		optional bytes extendedEphemeral = 10;
+	}
+
+	optional ClientHello clientHello = 2;
+	optional ServerHello serverHello = 3;
+	optional ClientFinish clientFinish = 4;
+}
+
 message ClientPayload {
 	enum TrafficAnonymization {
 		OFF = 0;
@@ -112,6 +160,13 @@ message ClientPayload {
 			VR = 4;
 		}
 
+		enum DistributionChannel {
+			APPSTORE = 0;
+			WEBSITE = 1;
+			TESTFLIGHT = 2;
+			INTERNAL = 3;
+		}
+
 		enum ReleaseChannel {
 			RELEASE = 0;
 			BETA = 1;
@@ -184,6 +239,7 @@ message ClientPayload {
 		optional string deviceExpID = 14;
 		optional DeviceType deviceType = 15;
 		optional string deviceModelType = 16;
+		optional DistributionChannel distributionChannel = 17;
 	}
 
 	message InteropData {
@@ -237,31 +293,6 @@ message ClientPayload {
 	optional bool paaLink = 44;
 	optional int32 preacksCount = 45;
 	optional int32 processingQueueSize = 46;
-}
-
-message HandshakeMessage {
-	message ClientFinish {
-		optional bytes static = 1;
-		optional bytes payload = 2;
-		optional bytes extendedCiphertext = 3;
-	}
-
-	message ServerHello {
-		optional bytes ephemeral = 1;
-		optional bytes static = 2;
-		optional bytes payload = 3;
-		optional bytes extendedStatic = 4;
-	}
-
-	message ClientHello {
-		optional bytes ephemeral = 1;
-		optional bytes static = 2;
-		optional bytes payload = 3;
-		optional bool useExtended = 4;
-		optional bytes extendedCiphertext = 5;
-	}
-
-	optional ClientHello clientHello = 2;
-	optional ServerHello serverHello = 3;
-	optional ClientFinish clientFinish = 4;
+	repeated string pairedPeripherals = 47;
+	optional bytes testIsolationID = 48;
 }

@@ -569,11 +569,12 @@ func (cli *Client) BuildHistorySyncRequest(lastKnownMessageInfo *types.MessageIn
 			PeerDataOperationRequestMessage: &waE2E.PeerDataOperationRequestMessage{
 				PeerDataOperationRequestType: waE2E.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND.Enum(),
 				HistorySyncOnDemandRequest: &waE2E.PeerDataOperationRequestMessage_HistorySyncOnDemandRequest{
-					ChatJID:              proto.String(lastKnownMessageInfo.Chat.String()),
-					OldestMsgID:          proto.String(lastKnownMessageInfo.ID),
-					OldestMsgFromMe:      proto.Bool(lastKnownMessageInfo.IsFromMe),
-					OnDemandMsgCount:     proto.Int32(int32(count)),
-					OldestMsgTimestampMS: proto.Int64(lastKnownMessageInfo.Timestamp.UnixMilli()),
+					ChatJID:          proto.String(lastKnownMessageInfo.Chat.String()),
+					OldestMsgID:      proto.String(lastKnownMessageInfo.ID),
+					OldestMsgFromMe:  proto.Bool(lastKnownMessageInfo.IsFromMe),
+					OnDemandMsgCount: proto.Int32(int32(count)),
+					// Despite the field name saying "MS", this is actually supposed to contain seconds
+					OldestMsgTimestampMS: proto.Int64(lastKnownMessageInfo.Timestamp.Unix()),
 				},
 			},
 		},
@@ -866,12 +867,19 @@ func (cli *Client) sendDM(
 		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(messagePlaintext, message, ownID, to, id))
 	}
 
-	if tcToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, to); err != nil {
-		cli.Log.Warnf("Failed to get privacy token for %s: %v", to, err)
-	} else if tcToken != nil {
+	tcTokenBytes, tcErr := cli.ensureTCToken(ctx, to)
+	if tcErr != nil {
+		cli.Log.Warnf("Failed to get privacy token for %s: %v", to, tcErr)
+	}
+	if len(tcTokenBytes) > 0 {
 		node.Content = append(node.GetChildren(), waBinary.Node{
 			Tag:     "tctoken",
-			Content: tcToken.Token,
+			Content: tcTokenBytes,
+		})
+	} else if csToken := cli.generateCsToken(ctx, to); len(csToken) > 0 {
+		node.Content = append(node.GetChildren(), waBinary.Node{
+			Tag:     "cstoken",
+			Content: csToken,
 		})
 	}
 
@@ -881,6 +889,12 @@ func (cli *Client) sendDM(
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to send message node: %w", err)
 	}
+
+	storageJID := cli.resolveTCTokenStorageLID(ctx, to)
+	if shouldSendTCTokenInChatAction(to) && shouldSendNewTCToken(cli.getTCTokenSenderTS(storageJID)) {
+		go cli.issuePrivacyTokenAndSave(storageJID, time.Now())
+	}
+
 	return phash, data, nil
 }
 
@@ -1032,6 +1046,8 @@ func getEditAttribute(msg *waE2E.Message) types.EditAttribute {
 		return types.EditAttributeSenderRevoke
 	case msg.KeepInChatMessage != nil && msg.KeepInChatMessage.GetKey().GetFromMe() && msg.KeepInChatMessage.GetKeepType() == waE2E.KeepType_UNDO_KEEP_FOR_ALL:
 		return types.EditAttributeSenderRevoke
+	case msg.PinInChatMessage != nil:
+		return types.EditAttributePinInChat
 	}
 	return types.EditAttributeEmpty
 }
@@ -1051,6 +1067,9 @@ func (cli *Client) preparePeerMessageNode(
 	}
 	if message.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_APP_STATE_SYNC_KEY_REQUEST {
 		attrs["push_priority"] = "high"
+	} else if message.GetProtocolMessage().GetPeerDataOperationRequestMessage().GetPeerDataOperationRequestType() == waE2E.PeerDataOperationRequestType_HISTORY_SYNC_ON_DEMAND {
+		attrs["push_priority"] = "high_force"
+		attrs["privacy_sensitive"] = "1"
 	}
 	start := time.Now()
 	plaintext, err := proto.Marshal(message)

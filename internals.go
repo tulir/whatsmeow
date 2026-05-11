@@ -331,8 +331,8 @@ func (int *DangerousInternalClient) ClearUntrustedIdentity(ctx context.Context, 
 	return int.c.clearUntrustedIdentity(ctx, target)
 }
 
-func (int *DangerousInternalClient) BufferedDecrypt(ctx context.Context, ciphertext []byte, serverTimestamp time.Time, decrypt func(context.Context) ([]byte, error)) (plaintext []byte, ciphertextHash [32]byte, err error) {
-	return int.c.bufferedDecrypt(ctx, ciphertext, serverTimestamp, decrypt)
+func (int *DangerousInternalClient) BufferedDecrypt(ctx context.Context, ciphertext []byte, serverTimestamp time.Time, decrypt func(context.Context) ([]byte, error), extraHashData ...string) (plaintext []byte, ciphertextHash [32]byte, err error) {
+	return int.c.bufferedDecrypt(ctx, ciphertext, serverTimestamp, decrypt, extraHashData...)
 }
 
 func (int *DangerousInternalClient) DecryptDM(ctx context.Context, child *waBinary.Node, from types.JID, isPreKey bool, serverTS time.Time) ([]byte, *[32]byte, error) {
@@ -391,10 +391,6 @@ func (int *DangerousInternalClient) HandleDecryptedMessage(ctx context.Context, 
 	return int.c.handleDecryptedMessage(ctx, info, msg, retryCount)
 }
 
-func (int *DangerousInternalClient) SendProtocolMessageReceipt(ctx context.Context, id types.MessageID, msgType types.ReceiptType) {
-	int.c.sendProtocolMessageReceipt(ctx, id, msgType)
-}
-
 func (int *DangerousInternalClient) DecryptMsgSecret(ctx context.Context, msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waCommon.MessageKey) ([]byte, error) {
 	return int.c.decryptMsgSecret(ctx, msg, useCase, encrypted, origMsgKey)
 }
@@ -435,8 +431,8 @@ func (int *DangerousInternalClient) HandleFBDeviceNotification(ctx context.Conte
 	int.c.handleFBDeviceNotification(ctx, node)
 }
 
-func (int *DangerousInternalClient) HandleOwnDevicesNotification(ctx context.Context, node *waBinary.Node) {
-	int.c.handleOwnDevicesNotification(ctx, node)
+func (int *DangerousInternalClient) HandleOwnDevicesNotification(ctx context.Context, node *waBinary.Node, fromJID types.JID) {
+	int.c.handleOwnDevicesNotification(ctx, node, fromJID)
 }
 
 func (int *DangerousInternalClient) HandleBlocklist(ctx context.Context, node *waBinary.Node) {
@@ -487,8 +483,12 @@ func (int *DangerousInternalClient) HandlePairDevice(ctx context.Context, node *
 	int.c.handlePairDevice(ctx, node)
 }
 
-func (int *DangerousInternalClient) MakeQRData(ref string) string {
-	return int.c.makeQRData(ref)
+func (int *DangerousInternalClient) GetQRClientType() PairClientType {
+	return int.c.getQRClientType()
+}
+
+func (int *DangerousInternalClient) MakeQRData(ref []byte, clientType PairClientType) string {
+	return int.c.makeQRData(ref, clientType)
 }
 
 func (int *DangerousInternalClient) HandlePairSuccess(ctx context.Context, node *waBinary.Node) {
@@ -613,6 +613,10 @@ func (int *DangerousInternalClient) GetMessageForRetry(ctx context.Context, rece
 
 func (int *DangerousInternalClient) ShouldRecreateSession(ctx context.Context, retryCount int, jid types.JID) (reason string, recreate bool) {
 	return int.c.shouldRecreateSession(ctx, retryCount, jid)
+}
+
+func (int *DangerousInternalClient) TryHandleRetryReceipt(ctx context.Context, receipt *events.Receipt, node *waBinary.Node) {
+	int.c.tryHandleRetryReceipt(ctx, receipt, node)
 }
 
 func (int *DangerousInternalClient) HandleRetryReceipt(ctx context.Context, receipt *events.Receipt, node *waBinary.Node) error {

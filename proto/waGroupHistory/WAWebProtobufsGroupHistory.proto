@@ -10,6 +10,7 @@ message GroupHistory {
 	repeated WAWebProtobufsWeb.WebMessageInfo messages = 1;
 	repeated UnCountedAssociatedMessageList uncountedAssociatedMessageLists = 2;
 	repeated WAWebProtobufsWeb.WebMessageInfo commentMessages = 3;
+	repeated WAWebProtobufsWeb.WebMessageInfo outOfWindowPinnedMessages = 4;
 }
 
 message UnCountedAssociatedMessageList {
@@ -32,4 +33,5 @@ message GroupHistoryWithMessageBytes {
 	repeated WebMessageInfoWithMessageBytes messages = 1;
 	repeated UnCountedAssociatedMessageListWithMessageBytes uncountedAssociatedMessageLists = 2;
 	repeated WebMessageInfoWithMessageBytes commentMessages = 3;
+	repeated WebMessageInfoWithMessageBytes outOfWindowPinnedMessages = 4;
 }

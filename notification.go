@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"time"
 
 	"google.golang.org/protobuf/proto"
 
@@ -47,6 +48,22 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 			cli.Log.Warnf("Failed to delete all sessions of %s from store after identity change: %v", from, err)
 		}
 		ts := node.AttrGetter().UnixTime("t")
+		storageLID := cli.resolveTCTokenStorageLID(ctx, from)
+		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageLID)
+		if err != nil {
+			cli.Log.Debugf("Failed to load tctoken for identity change re-issue %s: %v", storageLID, err)
+		}
+		storedSenderTS := time.Time{}
+		if pt != nil {
+			storedSenderTS = pt.SenderTimestamp
+		}
+		if cli.validateAndSetTCTokenSenderTS(storageLID, storedSenderTS) {
+			senderTS := cli.getTCTokenSenderTS(storageLID)
+			if !senderTS.IsZero() {
+				cli.Log.Debugf("Identity changed for %s, re-issuing tctoken", from)
+				go cli.issuePrivacyTokenAndSave(storageLID, senderTS)
+			}
+		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
 		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
@@ -177,35 +194,50 @@ func (cli *Client) handleFBDeviceNotification(ctx context.Context, node *waBinar
 	cli.userDevicesCache[jid] = userDevices
 }
 
-func (cli *Client) handleOwnDevicesNotification(ctx context.Context, node *waBinary.Node) {
+func (cli *Client) handleOwnDevicesNotification(ctx context.Context, node *waBinary.Node, fromJID types.JID) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
+	ownLID := cli.getOwnLID().ToNonAD()
 	ownID := cli.getOwnID().ToNonAD()
 	if ownID.IsEmpty() {
 		cli.Log.Debugf("Ignoring own device change notification, session was deleted")
 		return
 	}
-	cached, ok := cli.userDevicesCache[ownID]
-	if !ok {
-		cli.Log.Debugf("Ignoring own device change notification, device list not cached")
+	fromJIDPlain := fromJID.ToNonAD()
+	var altJID types.JID
+	switch fromJIDPlain {
+	case ownID:
+		altJID = ownLID
+	case ownLID:
+		altJID = ownID
+	default:
+		cli.Log.Warnf("Unexpected own device notification sender %s", fromJID)
 		return
 	}
-	oldHash := participantListHashV2(cached.devices)
+	var oldHash string
+	if cached, ok := cli.userDevicesCache[fromJIDPlain]; ok {
+		oldHash = participantListHashV2(cached.devices)
+	}
 	expectedNewHash := node.AttrGetter().String("dhash")
-	var newDeviceList []types.JID
+	var newDeviceList, altDeviceList []types.JID
 	for _, child := range node.GetChildren() {
 		jid := child.AttrGetter().JID("jid")
 		if child.Tag == "device" && !jid.IsEmpty() {
 			newDeviceList = append(newDeviceList, jid)
+			altDeviceJID := altJID
+			altDeviceJID.Device = jid.Device
+			altDeviceList = append(altDeviceList, altDeviceJID)
 		}
 	}
 	newHash := participantListHashV2(newDeviceList)
 	if newHash != expectedNewHash {
-		cli.Log.Debugf("Received own device list change notification %s -> %s, but expected hash was %s", oldHash, newHash, expectedNewHash)
+		cli.Log.Debugf("Received own device list change notification %s -> %s from %s, but expected hash was %s", oldHash, newHash, fromJID, expectedNewHash)
 		delete(cli.userDevicesCache, ownID)
+		delete(cli.userDevicesCache, ownLID)
 	} else {
-		cli.Log.Debugf("Received own device list change notification %s -> %s", oldHash, newHash)
-		cli.userDevicesCache[ownID] = deviceCache{devices: newDeviceList, dhash: expectedNewHash}
+		cli.Log.Debugf("Received own device list change notification %s -> %s from %s", oldHash, newHash, fromJID)
+		cli.userDevicesCache[fromJIDPlain] = deviceCache{devices: newDeviceList, dhash: expectedNewHash}
+		cli.userDevicesCache[altJID] = deviceCache{devices: altDeviceList, dhash: participantListHashV2(altDeviceList)}
 	}
 }
 
@@ -237,7 +269,7 @@ func (cli *Client) handleAccountSyncNotification(ctx context.Context, node *waBi
 		case "privacy":
 			cli.handlePrivacySettingsNotification(ctx, &child)
 		case "devices":
-			cli.handleOwnDevicesNotification(ctx, &child)
+			cli.handleOwnDevicesNotification(ctx, &child, node.AttrGetter().JID("from"))
 		case "picture":
 			cli.dispatchEvent(&events.Picture{
 				Timestamp: node.AttrGetter().UnixTime("t"),
@@ -252,9 +284,7 @@ func (cli *Client) handleAccountSyncNotification(ctx context.Context, node *waBi
 }
 
 func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waBinary.Node) {
-	ownJID := cli.getOwnID().ToNonAD()
-	ownLID := cli.getOwnLID().ToNonAD()
-	if ownJID.IsEmpty() {
+	if cli.getOwnID().IsEmpty() {
 		cli.Log.Debugf("Ignoring privacy token notification, session was deleted")
 		return
 	}
@@ -264,7 +294,11 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 		return
 	}
 	parentAG := node.AttrGetter()
-	sender := parentAG.JID("from")
+	sender := parentAG.JID("from").ToNonAD()
+	senderLID := parentAG.OptionalJIDOrEmpty("sender_lid").ToNonAD()
+	if senderLID.IsEmpty() {
+		senderLID = cli.resolveTCTokenStorageLID(ctx, sender)
+	}
 	if !parentAG.OK() {
 		cli.Log.Warnf("privacy_token notification didn't have a sender (%v)", parentAG.Error())
 		return
@@ -273,30 +307,30 @@ func (cli *Client) handlePrivacyTokenNotification(ctx context.Context, node *waB
 		ag := child.AttrGetter()
 		if child.Tag != "token" {
 			cli.Log.Warnf("privacy_token notification contained unexpected <%s> tag", child.Tag)
-		} else if targetUser := ag.JID("jid"); targetUser != ownLID && targetUser != ownJID {
-			// Don't log about own privacy tokens for other users
-			if sender != ownJID && sender != ownLID {
-				cli.Log.Warnf("privacy_token notification contained token for different user %s", targetUser)
-			}
-		} else if tokenType := ag.String("type"); tokenType != "trusted_contact" {
+			continue
+		}
+		if tokenType := ag.String("type"); tokenType != "trusted_contact" {
 			cli.Log.Warnf("privacy_token notification contained unexpected token type %s", tokenType)
-		} else if token, ok := child.Content.([]byte); !ok {
+			continue
+		}
+		token, ok := child.Content.([]byte)
+		if !ok {
 			cli.Log.Warnf("privacy_token notification contained non-binary token")
+			continue
+		}
+		timestamp := ag.UnixTime("t")
+		if !ag.OK() {
+			cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
+		}
+		err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
+			User:      senderLID,
+			Token:     token,
+			Timestamp: timestamp,
+		})
+		if err != nil {
+			cli.Log.Errorf("Failed to save privacy token from %s: %v", senderLID, err)
 		} else {
-			timestamp := ag.UnixTime("t")
-			if !ag.OK() {
-				cli.Log.Warnf("privacy_token notification is missing some fields: %v", ag.Error())
-			}
-			err := cli.Store.PrivacyTokens.PutPrivacyTokens(ctx, store.PrivacyToken{
-				User:      sender,
-				Token:     token,
-				Timestamp: timestamp,
-			})
-			if err != nil {
-				cli.Log.Errorf("Failed to save privacy token from %s: %v", sender, err)
-			} else {
-				cli.Log.Debugf("Stored privacy token from %s (ts: %v)", sender, timestamp)
-			}
+			cli.Log.Debugf("Received privacy token from %s (ts: %v)", senderLID, timestamp)
 		}
 	}
 }

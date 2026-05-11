@@ -13,6 +13,8 @@ message StatusAttribution {
 		RL_ATTRIBUTION = 6;
 		AI_CREATED = 7;
 		LAYOUTS = 8;
+		NEWSLETTER_STATUS = 9;
+		STATUS_CLOSE_SHARING = 10;
 	}
 
 	message AiCreatedAttribution {
@@ -48,6 +50,7 @@ message StatusAttribution {
 			APPLE_MUSIC = 8;
 			SHARECHAT = 9;
 			GOOGLE_PHOTOS = 10;
+			SOUNDCLOUD = 11;
 		}
 
 		optional string actionURL = 1;

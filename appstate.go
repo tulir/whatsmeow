@@ -83,7 +83,6 @@ func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName,
 		hasMore = patches.HasMorePatches
 		state, err = cli.applyAppStatePatches(ctx, name, state, patches, fullSync, eventsToDispatchPtr)
 		if err != nil {
-			cli.dispatchEvent(&events.AppStateSyncError{Name: name, FullSync: fullSync, Error: err})
 			return nil, err
 		}
 	}
@@ -161,6 +160,8 @@ func (cli *Client) applyAppStatePatches(
 	if err != nil {
 		if errors.Is(err, appstate.ErrKeyNotFound) {
 			go cli.requestMissingAppStateKeys(context.WithoutCancel(ctx), patches)
+		} else {
+			cli.dispatchEvent(&events.AppStateSyncError{Name: name, FullSync: fullSync, Error: err})
 		}
 		return state, fmt.Errorf("failed to decode app state %s patches: %w", name, err)
 	}
@@ -233,6 +234,19 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 		logEvt.Any("action", mutation.Action)
 	}
 	logEvt.Msg("Received app state mutation")
+
+	if len(mutation.Index) == 1 && mutation.Index[0] == appstate.IndexNCTSaltSync {
+		var err error
+		if mutation.Operation == waServerSync.SyncdMutation_SET {
+			err = cli.storeNCTSalt(ctx, mutation.Action.GetNctSaltSyncAction().GetSalt())
+		} else if mutation.Operation == waServerSync.SyncdMutation_REMOVE {
+			err = cli.clearNCTSalt(ctx)
+		}
+		if err != nil {
+			cli.Log.Warnf("Failed to update NCT salt from app state mutation: %v", err)
+		}
+		return
+	}
 
 	if (mutation.Action != nil && mutation.Action.ContactAction == nil) && mutation.Operation != waServerSync.SyncdMutation_SET {
 		return

@@ -92,6 +92,11 @@ enum MutationProps {
 	NCT_SALT_SYNC_ACTION = 80;
 	BUSINESS_BROADCAST_CAMPAIGN_ACTION = 81;
 	BUSINESS_BROADCAST_INSIGHTS_ACTION = 82;
+	CUSTOMER_DATA_ACTION = 83;
+	SUBSCRIPTIONS_SYNC_V2_ACTION = 84;
+	THREAD_PIN_ACTION = 85;
+	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = 86;
+	BIZ_AI_SETTINGS_NUDGE_ACTION = 87;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -202,6 +207,8 @@ message SettingsSyncAction {
 		IS_STATUS_NOTIFICATION_ENABLED = 29;
 		STATUS_NOTIFICATION_TONE_ID = 30;
 		SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION = 31;
+		CHAT_THEME_ID = 32;
+		COLOR_SCHEME_ID = 33;
 	}
 
 	enum SettingPlatform {
@@ -243,6 +250,8 @@ message SettingsSyncAction {
 	optional bool isStatusNotificationEnabled = 29;
 	optional int32 statusNotificationToneID = 30;
 	optional bool shouldPlaySoundForCallNotification = 31;
+	optional string chatThemeID = 32;
+	optional string colorSchemeID = 33;
 }
 
 message InteractiveMessageAction {
@@ -273,6 +282,21 @@ message AvatarUpdatedAction {
 
 	optional AvatarEventType eventType = 1;
 	repeated StickerAction recentAvatarStickers = 2;
+}
+
+message BizAISettingsNudgeAction {
+	enum BizAISettingsCategory {
+		UNKNOWN = 0;
+		INSTRUCTIONS = 1;
+		RESPONSE_SETTINGS = 2;
+		EXAMPLE_RESPONSES = 3;
+		KNOWLEDGE = 4;
+		LEAD_GEN = 5;
+	}
+
+	optional BizAISettingsCategory category = 1;
+	optional int64 version = 2;
+	optional int64 updatedAtMS = 3;
 }
 
 message MaibaAIFeaturesControlAction {
@@ -346,12 +370,23 @@ message StatusPrivacyAction {
 		DENY_LIST = 1;
 		CONTACTS = 2;
 		CLOSE_FRIENDS = 3;
+		CUSTOM_LIST = 4;
+	}
+
+	message CustomList {
+		optional string listID = 1;
+		optional string name = 2;
+		optional string emoji = 3;
+		optional bool isSelected = 4;
+		repeated string userJID = 5;
 	}
 
 	optional StatusDistributionMode mode = 1;
 	repeated string userJID = 2;
 	optional bool shareToFB = 3;
 	optional bool shareToIG = 4;
+	repeated CustomList customLists = 5;
+	repeated StatusDistributionMode modes = 6;
 }
 
 message MarketingMessageAction {
@@ -390,6 +425,7 @@ message LabelEditAction {
 		DRAFTED = 8;
 		AI_HANDOFF = 9;
 		CHANNELS = 10;
+		AI_RESPONDING = 11;
 	}
 
 	optional string name = 1;
@@ -510,6 +546,11 @@ enum MutationName {
 	NCT_SALT_SYNC_ACTION = nct_salt_sync;
 	BUSINESS_BROADCAST_CAMPAIGN_ACTION = business_broadcast_campaign;
 	BUSINESS_BROADCAST_INSIGHTS_ACTION = business_broadcast_insights_sync;
+	CUSTOMER_DATA_ACTION = customer_data;
+	SUBSCRIPTIONS_SYNC_V2_ACTION = subscriptions_sync_v2;
+	THREAD_PIN_ACTION = thread_pin;
+	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = setting_autoOrganizeBusinessChat;
+	BIZ_AI_SETTINGS_NUDGE_ACTION = biz_ai_settings_nudge;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -610,6 +651,48 @@ message SyncActionValue {
 	optional NctSaltSyncAction nctSaltSyncAction = 80;
 	optional BusinessBroadcastCampaignAction businessBroadcastCampaignAction = 81;
 	optional BusinessBroadcastInsightsAction businessBroadcastInsightsAction = 82;
+	optional CustomerDataAction customerDataAction = 83;
+	optional SubscriptionsSyncV2Action subscriptionsSyncV2Action = 84;
+	optional ThreadPinAction threadPinAction = 85;
+	optional AutoOrganizeBusinessChatSetting autoOrganizeBusinessChatSetting = 86;
+	optional BizAISettingsNudgeAction bizAiSettingsNudgeAction = 87;
+}
+
+message SubscriptionsSyncV2Action {
+	message PaidFeature {
+		optional string name = 1;
+		optional bool enabled = 2;
+		optional int32 limit = 3;
+		optional int64 expirationTime = 4;
+	}
+
+	message SubscriptionInfo {
+		optional string ID = 1;
+		optional int32 tier = 2;
+		optional string status = 3;
+		optional int64 startTime = 4;
+		optional int64 endTime = 5;
+		optional bool isPlatformChanged = 6;
+		optional string source = 7;
+		optional int64 creationTime = 8;
+	}
+
+	repeated SubscriptionInfo subscriptions = 1;
+	repeated PaidFeature paidFeature = 2;
+}
+
+message CustomerDataAction {
+	optional string chatJID = 1;
+	optional int32 contactType = 2;
+	optional string email = 3;
+	optional string altPhoneNumbers = 4;
+	optional int64 birthday = 5;
+	optional string address = 6;
+	optional int32 acquisitionSource = 7;
+	optional int32 leadStage = 8;
+	optional int64 lastOrder = 9;
+	optional int64 createdAt = 10;
+	optional int64 modifiedAt = 11;
 }
 
 message BusinessBroadcastInsightsAction {
@@ -620,8 +703,16 @@ message BusinessBroadcastInsightsAction {
 	optional int32 quickReplyCount = 5;
 }
 
+message AutoOrganizeBusinessChatSetting {
+	optional bool autoOrganize = 1;
+}
+
 message NctSaltSyncAction {
 	optional bytes salt = 1;
+}
+
+message ThreadPinAction {
+	optional bool pinned = 1;
 }
 
 message AiThreadRenameAction {
@@ -654,6 +745,7 @@ message BusinessBroadcastListAction {
 	repeated BroadcastListParticipant participants = 2;
 	optional string listName = 3;
 	repeated string labelIDs = 4;
+	optional string audienceExpression = 5;
 }
 
 message BusinessBroadcastAssociationAction {
@@ -890,6 +982,7 @@ message QuickReplyAction {
 	repeated string keywords = 3;
 	optional int32 count = 4;
 	optional bool deleted = 5;
+	repeated string associatedLabelIDs = 6;
 }
 
 message LocaleSetting {
