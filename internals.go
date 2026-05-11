@@ -483,8 +483,12 @@ func (int *DangerousInternalClient) HandlePairDevice(ctx context.Context, node *
 	int.c.handlePairDevice(ctx, node)
 }
 
-func (int *DangerousInternalClient) MakeQRData(ref string) string {
-	return int.c.makeQRData(ref)
+func (int *DangerousInternalClient) GetQRClientType() PairClientType {
+	return int.c.getQRClientType()
+}
+
+func (int *DangerousInternalClient) MakeQRData(ref []byte, clientType PairClientType) string {
+	return int.c.makeQRData(ref, clientType)
 }
 
 func (int *DangerousInternalClient) HandlePairSuccess(ctx context.Context, node *waBinary.Node) {
