@@ -980,6 +980,93 @@ func getMediaTypeFromMessage(msg *waE2E.Message) string {
 	}
 }
 
+func buildBizNode(msg *waE2E.Message, buttonType string) waBinary.Node {
+	privacyTS := strconv.FormatInt(time.Now().Unix(), 10)
+
+	firstButtonName := ""
+	if msg.InteractiveMessage != nil {
+		if nf := msg.InteractiveMessage.GetNativeFlowMessage(); nf != nil {
+			if buttons := nf.GetButtons(); len(buttons) > 0 {
+				firstButtonName = buttons[0].GetName()
+			}
+		}
+	}
+
+	if firstButtonName == "review_and_pay" || firstButtonName == "payment_info" {
+		name := firstButtonName
+		if firstButtonName == "review_and_pay" {
+			name = "order_details"
+		}
+		return waBinary.Node{
+			Tag:   "biz",
+			Attrs: waBinary.Attrs{"native_flow_name": name},
+		}
+	}
+
+	nativeFlowSpecials := []string{
+		"mpm", "cta_catalog", "send_location",
+		"call_permission_request", "wa_payment_transaction_details",
+		"automated_greeting_message_view_catalog",
+	}
+	for _, s := range nativeFlowSpecials {
+		if firstButtonName == s {
+			return waBinary.Node{
+				Tag: "biz",
+				Attrs: waBinary.Attrs{
+					"actual_actors":    "2",
+					"host_storage":     "2",
+					"privacy_mode_ts":  privacyTS,
+				},
+				Content: []waBinary.Node{
+					{
+						Tag:   "interactive",
+						Attrs: waBinary.Attrs{"type": "native_flow", "v": "1"},
+						Content: []waBinary.Node{
+							{Tag: "native_flow", Attrs: waBinary.Attrs{"v": "2", "name": firstButtonName}},
+						},
+					},
+					{Tag: "quality_control", Attrs: waBinary.Attrs{"source_type": "third_party"}},
+				},
+			}
+		}
+	}
+
+	// listMessage
+	if buttonType == "list" {
+		return waBinary.Node{
+			Tag: "biz",
+			Attrs: waBinary.Attrs{
+				"actual_actors":   "2",
+				"host_storage":    "2",
+				"privacy_mode_ts": privacyTS,
+			},
+			Content: []waBinary.Node{
+				{Tag: "list", Attrs: waBinary.Attrs{"v": "2", "type": "product_list"}},
+				{Tag: "quality_control", Attrs: waBinary.Attrs{"source_type": "third_party"}},
+			},
+		}
+	}
+
+	return waBinary.Node{
+		Tag: "biz",
+		Attrs: waBinary.Attrs{
+			"actual_actors":   "2",
+			"host_storage":    "2",
+			"privacy_mode_ts": privacyTS,
+		},
+		Content: []waBinary.Node{
+			{
+				Tag:   "interactive",
+				Attrs: waBinary.Attrs{"type": "native_flow", "v": "1"},
+				Content: []waBinary.Node{
+					{Tag: "native_flow", Attrs: waBinary.Attrs{"v": "9", "name": "mixed"}},
+				},
+			},
+			{Tag: "quality_control", Attrs: waBinary.Attrs{"source_type": "third_party"}},
+		},
+	}
+}
+
 func getButtonTypeFromMessage(msg *waE2E.Message) string {
 	switch {
 	case msg.ViewOnceMessage != nil:
@@ -996,6 +1083,8 @@ func getButtonTypeFromMessage(msg *waE2E.Message) string {
 		return "list"
 	case msg.ListResponseMessage != nil:
 		return "list_response"
+	case msg.InteractiveMessage != nil:
+		return "native_flow"
 	case msg.InteractiveResponseMessage != nil:
 		return "interactive_response"
 	default:
@@ -1142,13 +1231,7 @@ func (cli *Client) getMessageContent(
 	}
 
 	if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
-		content = append(content, waBinary.Node{
-			Tag: "biz",
-			Content: []waBinary.Node{{
-				Tag:   buttonType,
-				Attrs: getButtonAttributes(message),
-			}},
-		})
+		content = append(content, buildBizNode(message, buttonType))
 	}
 	return content
 }
