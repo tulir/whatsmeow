@@ -804,6 +804,13 @@ func (cli *Client) sendGroup(
 	if mediaType := getMediaTypeFromMessage(message); mediaType != "" {
 		skMsg.Attrs["mediatype"] = mediaType
 	}
+	if message.GetInteractiveResponseMessage() != nil {
+		name := message.GetInteractiveResponseMessage().GetNativeFlowResponseMessage().GetName()
+		if name == "" {
+			name = "menu_options"
+		}
+		skMsg.Attrs["native_flow_name"] = name
+	}
 	node.Content = append(node.GetChildren(), skMsg)
 	if cli.shouldIncludeReportingToken(message) && message.GetMessageContextInfo().GetMessageSecret() != nil {
 		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(plaintext, message, ownID, to, id))
@@ -975,6 +982,10 @@ func getMediaTypeFromMessage(msg *waE2E.Message) string {
 		return "product"
 	case msg.InteractiveResponseMessage != nil:
 		return "native_flow_response"
+	case msg.ButtonsMessage != nil:
+		return "buttons"
+	case msg.InteractiveMessage != nil:
+		return "native_flow"
 	default:
 		return ""
 	}
@@ -1261,9 +1272,15 @@ func (cli *Client) prepareMessageNode(
 
 	msgType := getTypeFromMessage(message)
 	encAttrs := waBinary.Attrs{}
-	// Only include encMediaType for 1:1 messages (groups don't have a device-sent message plaintext)
-	if encMediaType := getMediaTypeFromMessage(message); dsmPlaintext != nil && encMediaType != "" {
+	if encMediaType := getMediaTypeFromMessage(message); encMediaType != "" {
 		encAttrs["mediatype"] = encMediaType
+	}
+	if message.GetInteractiveResponseMessage() != nil {
+		name := message.GetInteractiveResponseMessage().GetNativeFlowResponseMessage().GetName()
+		if name == "" {
+			name = "menu_options"
+		}
+		encAttrs["native_flow_name"] = name
 	}
 	attrs := waBinary.Attrs{
 		"id":   id,
