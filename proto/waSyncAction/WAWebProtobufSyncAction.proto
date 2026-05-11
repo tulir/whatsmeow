@@ -95,6 +95,8 @@ enum MutationProps {
 	CUSTOMER_DATA_ACTION = 83;
 	SUBSCRIPTIONS_SYNC_V2_ACTION = 84;
 	THREAD_PIN_ACTION = 85;
+	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = 86;
+	BIZ_AI_SETTINGS_NUDGE_ACTION = 87;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -282,6 +284,21 @@ message AvatarUpdatedAction {
 	repeated StickerAction recentAvatarStickers = 2;
 }
 
+message BizAISettingsNudgeAction {
+	enum BizAISettingsCategory {
+		UNKNOWN = 0;
+		INSTRUCTIONS = 1;
+		RESPONSE_SETTINGS = 2;
+		EXAMPLE_RESPONSES = 3;
+		KNOWLEDGE = 4;
+		LEAD_GEN = 5;
+	}
+
+	optional BizAISettingsCategory category = 1;
+	optional int64 version = 2;
+	optional int64 updatedAtMS = 3;
+}
+
 message MaibaAIFeaturesControlAction {
 	enum MaibaAIFeatureStatus {
 		ENABLED = 0;
@@ -369,6 +386,7 @@ message StatusPrivacyAction {
 	optional bool shareToFB = 3;
 	optional bool shareToIG = 4;
 	repeated CustomList customLists = 5;
+	repeated StatusDistributionMode modes = 6;
 }
 
 message MarketingMessageAction {
@@ -531,6 +549,8 @@ enum MutationName {
 	CUSTOMER_DATA_ACTION = customer_data;
 	SUBSCRIPTIONS_SYNC_V2_ACTION = subscriptions_sync_v2;
 	THREAD_PIN_ACTION = thread_pin;
+	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = setting_autoOrganizeBusinessChat;
+	BIZ_AI_SETTINGS_NUDGE_ACTION = biz_ai_settings_nudge;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -634,6 +654,8 @@ message SyncActionValue {
 	optional CustomerDataAction customerDataAction = 83;
 	optional SubscriptionsSyncV2Action subscriptionsSyncV2Action = 84;
 	optional ThreadPinAction threadPinAction = 85;
+	optional AutoOrganizeBusinessChatSetting autoOrganizeBusinessChatSetting = 86;
+	optional BizAISettingsNudgeAction bizAiSettingsNudgeAction = 87;
 }
 
 message SubscriptionsSyncV2Action {
@@ -679,6 +701,10 @@ message BusinessBroadcastInsightsAction {
 	optional int32 readCount = 3;
 	optional int32 repliedCount = 4;
 	optional int32 quickReplyCount = 5;
+}
+
+message AutoOrganizeBusinessChatSetting {
+	optional bool autoOrganize = 1;
 }
 
 message NctSaltSyncAction {
@@ -956,6 +982,7 @@ message QuickReplyAction {
 	repeated string keywords = 3;
 	optional int32 count = 4;
 	optional bool deleted = 5;
+	repeated string associatedLabelIDs = 6;
 }
 
 message LocaleSetting {

@@ -169,6 +169,8 @@ func (cli *Client) handleCodePairNotification(ctx context.Context, parentNode *w
 			Tag: "link_code_pairing_wrapped_primary_ephemeral_pub",
 			In:  "notification",
 		}
+	} else if len(wrappedPrimaryEphemeralPub) < 80 {
+		return fmt.Errorf("unexpected length of link_code_pairing_wrapped_primary_ephemeral_pub: %d", len(wrappedPrimaryEphemeralPub))
 	}
 	primaryIdentityPub, ok := node.GetChildByTag("primary_identity_pub").Content.([]byte)
 	if !ok {

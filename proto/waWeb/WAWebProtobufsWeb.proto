@@ -321,6 +321,8 @@ message WebMessageInfo {
 	optional string hsmTag = 79;
 	optional uint64 ephemeralExpirationTimestamp = 80;
 	optional ScheduledMessageMetadata scheduledMessageMetadata = 81;
+	optional string decisionID = 82;
+	repeated string decisionSources = 83;
 }
 
 message PaymentInfo {
