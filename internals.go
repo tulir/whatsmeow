@@ -431,8 +431,8 @@ func (int *DangerousInternalClient) HandleFBDeviceNotification(ctx context.Conte
 	int.c.handleFBDeviceNotification(ctx, node)
 }
 
-func (int *DangerousInternalClient) HandleOwnDevicesNotification(ctx context.Context, node *waBinary.Node) {
-	int.c.handleOwnDevicesNotification(ctx, node)
+func (int *DangerousInternalClient) HandleOwnDevicesNotification(ctx context.Context, node *waBinary.Node, fromJID types.JID) {
+	int.c.handleOwnDevicesNotification(ctx, node, fromJID)
 }
 
 func (int *DangerousInternalClient) HandleBlocklist(ctx context.Context, node *waBinary.Node) {

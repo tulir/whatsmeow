@@ -194,35 +194,50 @@ func (cli *Client) handleFBDeviceNotification(ctx context.Context, node *waBinar
 	cli.userDevicesCache[jid] = userDevices
 }
 
-func (cli *Client) handleOwnDevicesNotification(ctx context.Context, node *waBinary.Node) {
+func (cli *Client) handleOwnDevicesNotification(ctx context.Context, node *waBinary.Node, fromJID types.JID) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
+	ownLID := cli.getOwnLID().ToNonAD()
 	ownID := cli.getOwnID().ToNonAD()
 	if ownID.IsEmpty() {
 		cli.Log.Debugf("Ignoring own device change notification, session was deleted")
 		return
 	}
-	cached, ok := cli.userDevicesCache[ownID]
-	if !ok {
-		cli.Log.Debugf("Ignoring own device change notification, device list not cached")
+	fromJIDPlain := fromJID.ToNonAD()
+	var altJID types.JID
+	switch fromJIDPlain {
+	case ownID:
+		altJID = ownLID
+	case ownLID:
+		altJID = ownID
+	default:
+		cli.Log.Warnf("Unexpected own device notification sender %s", fromJID)
 		return
 	}
-	oldHash := participantListHashV2(cached.devices)
+	var oldHash string
+	if cached, ok := cli.userDevicesCache[fromJIDPlain]; ok {
+		oldHash = participantListHashV2(cached.devices)
+	}
 	expectedNewHash := node.AttrGetter().String("dhash")
-	var newDeviceList []types.JID
+	var newDeviceList, altDeviceList []types.JID
 	for _, child := range node.GetChildren() {
 		jid := child.AttrGetter().JID("jid")
 		if child.Tag == "device" && !jid.IsEmpty() {
 			newDeviceList = append(newDeviceList, jid)
+			altDeviceJID := altJID
+			altDeviceJID.Device = jid.Device
+			altDeviceList = append(altDeviceList, altDeviceJID)
 		}
 	}
 	newHash := participantListHashV2(newDeviceList)
 	if newHash != expectedNewHash {
-		cli.Log.Debugf("Received own device list change notification %s -> %s, but expected hash was %s", oldHash, newHash, expectedNewHash)
+		cli.Log.Debugf("Received own device list change notification %s -> %s from %s, but expected hash was %s", oldHash, newHash, fromJID, expectedNewHash)
 		delete(cli.userDevicesCache, ownID)
+		delete(cli.userDevicesCache, ownLID)
 	} else {
-		cli.Log.Debugf("Received own device list change notification %s -> %s", oldHash, newHash)
-		cli.userDevicesCache[ownID] = deviceCache{devices: newDeviceList, dhash: expectedNewHash}
+		cli.Log.Debugf("Received own device list change notification %s -> %s from %s", oldHash, newHash, fromJID)
+		cli.userDevicesCache[fromJIDPlain] = deviceCache{devices: newDeviceList, dhash: expectedNewHash}
+		cli.userDevicesCache[altJID] = deviceCache{devices: altDeviceList, dhash: participantListHashV2(altDeviceList)}
 	}
 }
 
@@ -254,7 +269,7 @@ func (cli *Client) handleAccountSyncNotification(ctx context.Context, node *waBi
 		case "privacy":
 			cli.handlePrivacySettingsNotification(ctx, &child)
 		case "devices":
-			cli.handleOwnDevicesNotification(ctx, &child)
+			cli.handleOwnDevicesNotification(ctx, &child, node.AttrGetter().JID("from"))
 		case "picture":
 			cli.dispatchEvent(&events.Picture{
 				Timestamp: node.AttrGetter().UnixTime("t"),
