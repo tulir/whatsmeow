@@ -12,8 +12,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 
 	"go.mau.fi/libsignal/ecc"
