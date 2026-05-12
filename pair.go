@@ -12,7 +12,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"strings"
 	"time"
 
 	"go.mau.fi/libsignal/ecc"
@@ -20,6 +19,9 @@ import (
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waAdv"
+	"go.mau.fi/whatsmeow/proto/waCompanionReg"
+	"go.mau.fi/whatsmeow/proto/waWa6"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 	"go.mau.fi/whatsmeow/util/keys"
@@ -71,17 +73,49 @@ func (cli *Client) handlePairDevice(ctx context.Context, node *waBinary.Node) {
 			cli.Log.Warnf("pair-device node contains unexpected child content type %T at index %d", child, i)
 			continue
 		}
-		evt.Codes = append(evt.Codes, cli.makeQRData(string(content)))
+		evt.Codes = append(evt.Codes, cli.makeQRData(content, cli.getQRClientType()))
 	}
 
 	cli.dispatchEvent(evt)
 }
 
-func (cli *Client) makeQRData(ref string) string {
+func (cli *Client) getQRClientType() PairClientType {
+	if cli.QRClientType != "" {
+		return cli.QRClientType
+	}
+	switch store.DeviceProps.GetPlatformType() {
+	case waCompanionReg.DeviceProps_CHROME:
+		return PairClientChrome
+	case waCompanionReg.DeviceProps_FIREFOX:
+		return PairClientFirefox
+	case waCompanionReg.DeviceProps_EDGE:
+		return PairClientEdge
+	case waCompanionReg.DeviceProps_IE:
+		return PairClientIE
+	case waCompanionReg.DeviceProps_OPERA:
+		return PairClientOpera
+	case waCompanionReg.DeviceProps_SAFARI:
+		return PairClientSafari
+	case waCompanionReg.DeviceProps_UWP:
+		return PairClientUWP
+	case waCompanionReg.DeviceProps_ANDROID_PHONE:
+		return PairClientAndroid
+	}
+	switch store.BaseClientPayload.UserAgent.GetPlatform() {
+	case waWa6.ClientPayload_UserAgent_WEB:
+		return PairClientOtherWebClient
+	case waWa6.ClientPayload_UserAgent_MACOS:
+		return PairClientMacOS
+	default:
+		return PairClientUnknown
+	}
+}
+
+func (cli *Client) makeQRData(ref []byte, clientType PairClientType) string {
 	noise := base64.StdEncoding.EncodeToString(cli.Store.NoiseKey.Pub[:])
 	identity := base64.StdEncoding.EncodeToString(cli.Store.IdentityKey.Pub[:])
 	adv := base64.StdEncoding.EncodeToString(cli.Store.AdvSecretKey)
-	return strings.Join([]string{ref, noise, identity, adv}, ",")
+	return fmt.Sprintf("https://wa.me/settings/linked_devices#%s,%s,%s,%s,%s", ref, noise, identity, adv, clientType)
 }
 
 func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
