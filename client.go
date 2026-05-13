@@ -880,6 +880,24 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		}
 	}
 	cli.recvLog.Debugf("%s", node.XMLString())
+	// Signal-disabled handoff: parse and dispatch UndecryptedMessage
+	// synchronously from the recv goroutine, so the event interleaves
+	// with [RawNodeHandler] callbacks in wire order. Going through the
+	// regular handlerQueue path would dispatch from a different
+	// goroutine and break ordering between `<message>` envelopes and
+	// any non-message stanzas the caller is forwarding via the hook.
+	// [handleEncryptedMessage]'s own DisabledFeatures.Signal branch
+	// stays as a fallback for direct callers (DangerousInternals,
+	// `<appdata>`).
+	if node.Tag == "message" && cli.DisabledFeatures.Signal {
+		info, err := cli.parseMessageInfo(node)
+		if err != nil {
+			cli.Log.Warnf("Failed to parse message for Signal-disabled handoff: %v", err)
+			return
+		}
+		cli.dispatchEvent(&events.UndecryptedMessage{Info: *info, Raw: node})
+		return
+	}
 	if node.Tag == "xmlstreamend" {
 		if !cli.isExpectedDisconnect() {
 			cli.Log.Warnf("Received stream end frame")
