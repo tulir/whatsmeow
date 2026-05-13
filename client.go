@@ -73,11 +73,10 @@ type RawNodeHandler func(ctx context.Context, node *waBinary.Node) (modified *wa
 type DisabledFeatures struct {
 	// Signal disables the library's Signal-session machinery. When set:
 	//   - Incoming `<message>` envelopes are not decrypted and not
-	//     ack'd. The actual decrypting client downstream is responsible
-	//     for ack'ing once it has processed the message.
+	//     ack'd. They are emitted as [events.UndecryptedMessage]; the
+	//     downstream system that owns the Signal session is responsible
+	//     for ack'ing once it has processed the envelope.
 	//   - The periodic prekey-upload loop is a no-op.
-	// Combine with [RawNodeHandler] to forward the raw envelopes to the
-	// system that actually owns the Signal session.
 	Signal bool
 }
 

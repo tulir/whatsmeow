@@ -65,6 +65,7 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 			// and we do not ack: the actual decrypting client downstream
 			// is responsible for ack'ing once it has received and
 			// processed the message.
+			cli.dispatchEvent(&events.UndecryptedMessage{Info: *info, Raw: node})
 		} else {
 			cli.decryptMessages(ctx, info, node)
 		}
