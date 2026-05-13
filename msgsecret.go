@@ -119,7 +119,7 @@ func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, us
 			plaintext, err = gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
+			return nil, fmt.Errorf("failed to decrypt secret message: %w (sender: %s, orig sender: %s and %s)", err, msg.Info.Sender, origSender, storedOrigSender)
 		}
 	}
 	return plaintext, nil
@@ -263,7 +263,7 @@ func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *event
 	}
 	plaintext, err := cli.decryptMsgSecret(ctx, evt, secretType, encMessage, encMessage.GetTargetMessageKey())
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt message: %w", err)
+		return nil, err
 	}
 	var msg waE2E.Message
 	err = proto.Unmarshal(plaintext, &msg)

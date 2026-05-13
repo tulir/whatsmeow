@@ -972,8 +972,15 @@ message RecentEmojiWeightsAction {
 	repeated RecentEmojiWeight weights = 1;
 }
 
+message ModelMetadata {
+	optional string modelName = 1;
+	optional bool isLatestModel = 2;
+	optional bool isDetected = 3;
+}
+
 message LabelAssociationAction {
 	optional bool labeled = 1;
+	repeated ModelMetadata modelMetaData = 2;
 }
 
 message QuickReplyAction {
