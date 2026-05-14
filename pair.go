@@ -100,10 +100,13 @@ func (cli *Client) getQRClientType() PairClientType {
 		return PairClientUWP
 	case waCompanionReg.DeviceProps_ANDROID_PHONE:
 		return PairClientAndroid
+	}
+	switch store.BaseClientPayload.UserAgent.GetPlatform() {
+	case waWa6.ClientPayload_UserAgent_WEB:
+		return PairClientOtherWebClient
+	case waWa6.ClientPayload_UserAgent_MACOS:
+		return PairClientMacOS
 	default:
-		if store.BaseClientPayload.UserAgent.GetPlatform() == waWa6.ClientPayload_UserAgent_WEB {
-			return PairClientOtherWebClient
-		}
 		return PairClientUnknown
 	}
 }
