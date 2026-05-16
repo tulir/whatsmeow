@@ -60,6 +60,12 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 			var cancelled bool
 			defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 			cancelled = cli.handlePlaintextMessage(ctx, info, node)
+		} else if cli.DisabledFeatures.Signal {
+			// External system owns the Signal session. We do not decrypt
+			// and we do not ack: the actual decrypting client downstream
+			// is responsible for ack'ing once it has received and
+			// processed the message.
+			cli.dispatchEvent(&events.UndecryptedMessage{Info: *info, Raw: node})
 		} else {
 			cli.decryptMessages(ctx, info, node)
 		}
