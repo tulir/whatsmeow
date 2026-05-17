@@ -816,6 +816,50 @@ func parseParticipantList(node *waBinary.Node) (participants []types.JID, lidPai
 	return
 }
 
+func parseMembershipRequestParticipants(node *waBinary.Node, fallbackParticipant types.JID, fallbackPN types.JID) (participants []types.JID, lidPairs []store.LIDMapping) {
+	if node == nil {
+		return nil, nil
+	}
+	children := node.GetChildren()
+	participants = make([]types.JID, 0, len(children))
+	for _, child := range children {
+		if child.Tag != "participant" && child.Tag != "membership_approval_request" {
+			continue
+		}
+		cag := child.AttrGetter()
+		jid := cag.JID("jid")
+		if !cag.OK() || jid.IsEmpty() {
+			continue
+		}
+		participants = append(participants, jid)
+		if jid.Server == types.HiddenUserServer {
+			if pn := cag.OptionalJID("phone_number"); pn != nil && !pn.IsEmpty() {
+				lidPairs = append(lidPairs, store.LIDMapping{
+					LID: jid,
+					PN:  *pn,
+				})
+			}
+		} else if jid.Server == types.DefaultUserServer {
+			if lid := cag.OptionalJID("lid"); lid != nil && !lid.IsEmpty() {
+				lidPairs = append(lidPairs, store.LIDMapping{
+					LID: *lid,
+					PN:  jid,
+				})
+			}
+		}
+	}
+	if len(participants) == 0 && !fallbackParticipant.IsEmpty() {
+		participants = append(participants, fallbackParticipant)
+		if fallbackParticipant.Server == types.HiddenUserServer && !fallbackPN.IsEmpty() {
+			lidPairs = append(lidPairs, store.LIDMapping{
+				LID: fallbackParticipant,
+				PN:  fallbackPN,
+			})
+		}
+	}
+	return
+}
+
 func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.JoinedGroup, []store.LIDMapping, []store.RedactedPhoneEntry, error) {
 	groupNode, ok := node.GetOptionalChildByTag("group")
 	if !ok {
@@ -849,6 +893,14 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 	evt.Timestamp = ag.UnixTime("t")
 	if !ag.OK() {
 		return nil, nil, fmt.Errorf("group change doesn't contain required attributes: %w", ag.Error())
+	}
+	sender := types.EmptyJID
+	if evt.Sender != nil {
+		sender = *evt.Sender
+	}
+	senderPN := types.EmptyJID
+	if evt.SenderPN != nil {
+		senderPN = *evt.SenderPN
 	}
 
 	var lidPairs []store.LIDMapping
@@ -959,6 +1011,25 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 			evt.Suspended = true
 		case "unsuspended":
 			evt.Unsuspended = true
+		case "created_membership_requests":
+			if method := strings.TrimSpace(cag.OptionalString("request_method")); method != "" {
+				evt.MembershipRequestMethod = method
+			}
+			requestParticipants, requestPairs := parseMembershipRequestParticipants(&child, sender, senderPN)
+			if len(requestParticipants) > 0 {
+				evt.MembershipRequestsCreated = append(evt.MembershipRequestsCreated, requestParticipants...)
+			}
+			if len(requestPairs) > 0 {
+				lidPairs = append(lidPairs, requestPairs...)
+			}
+		case "deleted_membership_requests", "revoked_membership_requests":
+			requestParticipants, requestPairs := parseMembershipRequestParticipants(&child, sender, senderPN)
+			if len(requestParticipants) > 0 {
+				evt.MembershipRequestsRevoked = append(evt.MembershipRequestsRevoked, requestParticipants...)
+			}
+			if len(requestPairs) > 0 {
+				lidPairs = append(lidPairs, requestPairs...)
+			}
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
