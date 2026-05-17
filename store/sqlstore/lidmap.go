@@ -35,6 +35,10 @@ type CachedLIDMap struct {
 
 var _ store.LIDStore = (*CachedLIDMap)(nil)
 
+var putLIDMappingsMassInsertBuilder = dbutil.NewMassInsertBuilder[store.LIDMapping, [0]any](
+	putLIDMappingQuery, "($%d, $%d)",
+)
+
 func NewCachedLIDMap(db *dbutil.Database) *CachedLIDMap {
 	return &CachedLIDMap{
 		db: db,
@@ -45,6 +49,7 @@ func NewCachedLIDMap(db *dbutil.Database) *CachedLIDMap {
 }
 
 const (
+	lidMappingBatchSize           = 500
 	deleteExistingLIDMappingQuery = `DELETE FROM whatsmeow_lid_map WHERE (lid<>$1 AND pn=$2)`
 	putLIDMappingQuery            = `
 		INSERT INTO whatsmeow_lid_map (lid, pn)
@@ -237,10 +242,19 @@ func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.
 	}
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		for _, mapping := range mappings {
-			err := s.unlockedPutLIDMapping(ctx, mapping.LID, mapping.PN)
-			if err != nil {
+			if _, err := s.db.Exec(ctx, deleteExistingLIDMappingQuery, mapping.LID.User, mapping.PN.User); err != nil {
 				return err
 			}
+		}
+		for chunk := range slices.Chunk(mappings, lidMappingBatchSize) {
+			query, params := putLIDMappingsMassInsertBuilder.Build([0]any{}, chunk)
+			if _, err := s.db.Exec(ctx, query, params...); err != nil {
+				return err
+			}
+		}
+		for _, mapping := range mappings {
+			s.pnToLIDCache[mapping.PN.User] = mapping.LID.User
+			s.lidToPNCache[mapping.LID.User] = mapping.PN.User
 		}
 		return nil
 	})
