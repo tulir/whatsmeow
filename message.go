@@ -938,7 +938,10 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 		if chatJID.IsEmpty() {
 			continue
 		}
-		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
+		// Also extract privacy tokens from LID-addressed conversations;
+		// without this, LID-only companions get zero tcTokens from history
+		// sync and 1:1 sends fail with WA error 463.
+		if (chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer) && conv.GetTcToken() != nil {
 			privacyTokens = append(privacyTokens, store.PrivacyToken{
 				User:            chatJID,
 				Token:           conv.GetTcToken(),
