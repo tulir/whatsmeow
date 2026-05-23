@@ -242,8 +242,37 @@ type StreamError struct {
 type Disconnected struct{}
 
 // HistorySync is emitted when the phone has sent a blob of historical messages.
+//
+// Each [waE2E.WebMessageInfo] inside Data.Conversations[].Messages may carry
+// previously-bundled poll vote records on its PollUpdates field. Those
+// records are already decrypted (the proto field is the plaintext
+// PollVoteMessage, not the encrypted PollUpdateMessage wrapper) — the
+// primary phone assembles them when packaging the history sync so newly
+// paired companions can render existing poll tallies that they never
+// received as live PollUpdateMessage events.
+//
+// Consumers that care about poll tallies should iterate
+// WebMessageInfo.GetPollUpdates() for every poll-creation message in the
+// sync; see [HistoricalPollUpdates] for a helper that flattens this.
 type HistorySync struct {
 	Data *waHistorySync.HistorySync
+}
+
+// HistoricalPollVote is a single previously-bundled poll vote record
+// extracted from [HistorySync.Data]. SelectedOptionHashes are the
+// SHA-256(optionName) digests of the voter's selections, matching the
+// hashes emitted by live [Client.DecryptPollVote] calls so a consumer's
+// tallying path can be identical for live and historical votes.
+type HistoricalPollVote struct {
+	Chat                 types.JID
+	PollCreationID       types.MessageID
+	Voter                types.JID
+	SelectedOptionHashes [][]byte
+	Timestamp            time.Time
+	// Source poll-creation message info — useful when the consumer wants
+	// to map back to the WebMessageInfo (e.g. to verify the poll's own
+	// option list and resolve hashes back to option names).
+	PollCreationFromMe bool
 }
 
 type DecryptFailMode string
