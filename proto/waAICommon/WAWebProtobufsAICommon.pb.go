@@ -1260,68 +1260,71 @@ func (BotProgressIndicatorMetadata_BotPlanningStepMetadata_BotPlanningSearchSour
 type BotCapabilityMetadata_BotCapabilityType int32
 
 const (
-	BotCapabilityMetadata_UNKNOWN                                   BotCapabilityMetadata_BotCapabilityType = 0
-	BotCapabilityMetadata_PROGRESS_INDICATOR                        BotCapabilityMetadata_BotCapabilityType = 1
-	BotCapabilityMetadata_RICH_RESPONSE_HEADING                     BotCapabilityMetadata_BotCapabilityType = 2
-	BotCapabilityMetadata_RICH_RESPONSE_NESTED_LIST                 BotCapabilityMetadata_BotCapabilityType = 3
-	BotCapabilityMetadata_AI_MEMORY                                 BotCapabilityMetadata_BotCapabilityType = 4
-	BotCapabilityMetadata_RICH_RESPONSE_THREAD_SURFING              BotCapabilityMetadata_BotCapabilityType = 5
-	BotCapabilityMetadata_RICH_RESPONSE_TABLE                       BotCapabilityMetadata_BotCapabilityType = 6
-	BotCapabilityMetadata_RICH_RESPONSE_CODE                        BotCapabilityMetadata_BotCapabilityType = 7
-	BotCapabilityMetadata_RICH_RESPONSE_STRUCTURED_RESPONSE         BotCapabilityMetadata_BotCapabilityType = 8
-	BotCapabilityMetadata_RICH_RESPONSE_INLINE_IMAGE                BotCapabilityMetadata_BotCapabilityType = 9
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_CONTROL           BotCapabilityMetadata_BotCapabilityType = 10
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_1          BotCapabilityMetadata_BotCapabilityType = 11
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_2          BotCapabilityMetadata_BotCapabilityType = 12
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_3          BotCapabilityMetadata_BotCapabilityType = 13
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_4          BotCapabilityMetadata_BotCapabilityType = 14
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_5          BotCapabilityMetadata_BotCapabilityType = 15
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_6          BotCapabilityMetadata_BotCapabilityType = 16
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_7          BotCapabilityMetadata_BotCapabilityType = 17
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_8          BotCapabilityMetadata_BotCapabilityType = 18
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_9          BotCapabilityMetadata_BotCapabilityType = 19
-	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_10         BotCapabilityMetadata_BotCapabilityType = 20
-	BotCapabilityMetadata_RICH_RESPONSE_SUB_HEADING                 BotCapabilityMetadata_BotCapabilityType = 21
-	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE                  BotCapabilityMetadata_BotCapabilityType = 22
-	BotCapabilityMetadata_AI_STUDIO_UGC_MEMORY                      BotCapabilityMetadata_BotCapabilityType = 23
-	BotCapabilityMetadata_RICH_RESPONSE_LATEX                       BotCapabilityMetadata_BotCapabilityType = 24
-	BotCapabilityMetadata_RICH_RESPONSE_MAPS                        BotCapabilityMetadata_BotCapabilityType = 25
-	BotCapabilityMetadata_RICH_RESPONSE_INLINE_REELS                BotCapabilityMetadata_BotCapabilityType = 26
-	BotCapabilityMetadata_AGENTIC_PLANNING                          BotCapabilityMetadata_BotCapabilityType = 27
-	BotCapabilityMetadata_ACCOUNT_LINKING                           BotCapabilityMetadata_BotCapabilityType = 28
-	BotCapabilityMetadata_STREAMING_DISAGGREGATION                  BotCapabilityMetadata_BotCapabilityType = 29
-	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE_3P               BotCapabilityMetadata_BotCapabilityType = 30
-	BotCapabilityMetadata_RICH_RESPONSE_LATEX_INLINE                BotCapabilityMetadata_BotCapabilityType = 31
-	BotCapabilityMetadata_QUERY_PLAN                                BotCapabilityMetadata_BotCapabilityType = 32
-	BotCapabilityMetadata_PROACTIVE_MESSAGE                         BotCapabilityMetadata_BotCapabilityType = 33
-	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_RESPONSE            BotCapabilityMetadata_BotCapabilityType = 34
-	BotCapabilityMetadata_PROMOTION_MESSAGE                         BotCapabilityMetadata_BotCapabilityType = 35
-	BotCapabilityMetadata_SIMPLIFIED_PROFILE_PAGE                   BotCapabilityMetadata_BotCapabilityType = 36
-	BotCapabilityMetadata_RICH_RESPONSE_SOURCES_IN_MESSAGE          BotCapabilityMetadata_BotCapabilityType = 37
-	BotCapabilityMetadata_RICH_RESPONSE_SIDE_BY_SIDE_SURVEY         BotCapabilityMetadata_BotCapabilityType = 38
-	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_TEXT_COMPONENT      BotCapabilityMetadata_BotCapabilityType = 39
-	BotCapabilityMetadata_AI_SHARED_MEMORY                          BotCapabilityMetadata_BotCapabilityType = 40
-	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_SOURCES             BotCapabilityMetadata_BotCapabilityType = 41
-	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS    BotCapabilityMetadata_BotCapabilityType = 42
-	BotCapabilityMetadata_RICH_RESPONSE_UR_INLINE_REELS_ENABLED     BotCapabilityMetadata_BotCapabilityType = 43
-	BotCapabilityMetadata_RICH_RESPONSE_UR_MEDIA_GRID_ENABLED       BotCapabilityMetadata_BotCapabilityType = 44
-	BotCapabilityMetadata_RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER    BotCapabilityMetadata_BotCapabilityType = 45
-	BotCapabilityMetadata_RICH_RESPONSE_IN_APP_SURVEY               BotCapabilityMetadata_BotCapabilityType = 46
-	BotCapabilityMetadata_AI_RESPONSE_MODEL_BRANDING                BotCapabilityMetadata_BotCapabilityType = 47
-	BotCapabilityMetadata_SESSION_TRANSPARENCY_SYSTEM_MESSAGE       BotCapabilityMetadata_BotCapabilityType = 48
-	BotCapabilityMetadata_RICH_RESPONSE_UR_REASONING                BotCapabilityMetadata_BotCapabilityType = 49
-	BotCapabilityMetadata_RICH_RESPONSE_UR_ZEITGEIST_CITATIONS      BotCapabilityMetadata_BotCapabilityType = 50
-	BotCapabilityMetadata_RICH_RESPONSE_UR_ZEITGEIST_CAROUSEL       BotCapabilityMetadata_BotCapabilityType = 51
-	BotCapabilityMetadata_AI_IMAGINE_LOADING_INDICATOR              BotCapabilityMetadata_BotCapabilityType = 52
-	BotCapabilityMetadata_RICH_RESPONSE_UR_IMAGINE                  BotCapabilityMetadata_BotCapabilityType = 53
-	BotCapabilityMetadata_AI_IMAGINE_UR_TO_NATIVE_LOADING_INDICATOR BotCapabilityMetadata_BotCapabilityType = 54
-	BotCapabilityMetadata_RICH_RESPONSE_UR_BLOKS_ENABLED            BotCapabilityMetadata_BotCapabilityType = 55
-	BotCapabilityMetadata_RICH_RESPONSE_INLINE_LINKS_ENABLED        BotCapabilityMetadata_BotCapabilityType = 56
-	BotCapabilityMetadata_RICH_RESPONSE_UR_IMAGINE_VIDEO            BotCapabilityMetadata_BotCapabilityType = 57
-	BotCapabilityMetadata_JSON_PATCH_STREAMING                      BotCapabilityMetadata_BotCapabilityType = 58
-	BotCapabilityMetadata_AI_TAB_FORCE_CLIPPY                       BotCapabilityMetadata_BotCapabilityType = 59
-	BotCapabilityMetadata_UNIFIED_RESPONSE_EMBEDDED_SCREENS         BotCapabilityMetadata_BotCapabilityType = 60
-	BotCapabilityMetadata_AI_SUBSCRIPTION_ENABLED                   BotCapabilityMetadata_BotCapabilityType = 61
+	BotCapabilityMetadata_UNKNOWN                                    BotCapabilityMetadata_BotCapabilityType = 0
+	BotCapabilityMetadata_PROGRESS_INDICATOR                         BotCapabilityMetadata_BotCapabilityType = 1
+	BotCapabilityMetadata_RICH_RESPONSE_HEADING                      BotCapabilityMetadata_BotCapabilityType = 2
+	BotCapabilityMetadata_RICH_RESPONSE_NESTED_LIST                  BotCapabilityMetadata_BotCapabilityType = 3
+	BotCapabilityMetadata_AI_MEMORY                                  BotCapabilityMetadata_BotCapabilityType = 4
+	BotCapabilityMetadata_RICH_RESPONSE_THREAD_SURFING               BotCapabilityMetadata_BotCapabilityType = 5
+	BotCapabilityMetadata_RICH_RESPONSE_TABLE                        BotCapabilityMetadata_BotCapabilityType = 6
+	BotCapabilityMetadata_RICH_RESPONSE_CODE                         BotCapabilityMetadata_BotCapabilityType = 7
+	BotCapabilityMetadata_RICH_RESPONSE_STRUCTURED_RESPONSE          BotCapabilityMetadata_BotCapabilityType = 8
+	BotCapabilityMetadata_RICH_RESPONSE_INLINE_IMAGE                 BotCapabilityMetadata_BotCapabilityType = 9
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_CONTROL            BotCapabilityMetadata_BotCapabilityType = 10
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_1           BotCapabilityMetadata_BotCapabilityType = 11
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_2           BotCapabilityMetadata_BotCapabilityType = 12
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_3           BotCapabilityMetadata_BotCapabilityType = 13
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_4           BotCapabilityMetadata_BotCapabilityType = 14
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_5           BotCapabilityMetadata_BotCapabilityType = 15
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_6           BotCapabilityMetadata_BotCapabilityType = 16
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_7           BotCapabilityMetadata_BotCapabilityType = 17
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_8           BotCapabilityMetadata_BotCapabilityType = 18
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_9           BotCapabilityMetadata_BotCapabilityType = 19
+	BotCapabilityMetadata_WA_IG_1P_PLUGIN_RANKING_UPDATE_10          BotCapabilityMetadata_BotCapabilityType = 20
+	BotCapabilityMetadata_RICH_RESPONSE_SUB_HEADING                  BotCapabilityMetadata_BotCapabilityType = 21
+	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE                   BotCapabilityMetadata_BotCapabilityType = 22
+	BotCapabilityMetadata_AI_STUDIO_UGC_MEMORY                       BotCapabilityMetadata_BotCapabilityType = 23
+	BotCapabilityMetadata_RICH_RESPONSE_LATEX                        BotCapabilityMetadata_BotCapabilityType = 24
+	BotCapabilityMetadata_RICH_RESPONSE_MAPS                         BotCapabilityMetadata_BotCapabilityType = 25
+	BotCapabilityMetadata_RICH_RESPONSE_INLINE_REELS                 BotCapabilityMetadata_BotCapabilityType = 26
+	BotCapabilityMetadata_AGENTIC_PLANNING                           BotCapabilityMetadata_BotCapabilityType = 27
+	BotCapabilityMetadata_ACCOUNT_LINKING                            BotCapabilityMetadata_BotCapabilityType = 28
+	BotCapabilityMetadata_STREAMING_DISAGGREGATION                   BotCapabilityMetadata_BotCapabilityType = 29
+	BotCapabilityMetadata_RICH_RESPONSE_GRID_IMAGE_3P                BotCapabilityMetadata_BotCapabilityType = 30
+	BotCapabilityMetadata_RICH_RESPONSE_LATEX_INLINE                 BotCapabilityMetadata_BotCapabilityType = 31
+	BotCapabilityMetadata_QUERY_PLAN                                 BotCapabilityMetadata_BotCapabilityType = 32
+	BotCapabilityMetadata_PROACTIVE_MESSAGE                          BotCapabilityMetadata_BotCapabilityType = 33
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_RESPONSE             BotCapabilityMetadata_BotCapabilityType = 34
+	BotCapabilityMetadata_PROMOTION_MESSAGE                          BotCapabilityMetadata_BotCapabilityType = 35
+	BotCapabilityMetadata_SIMPLIFIED_PROFILE_PAGE                    BotCapabilityMetadata_BotCapabilityType = 36
+	BotCapabilityMetadata_RICH_RESPONSE_SOURCES_IN_MESSAGE           BotCapabilityMetadata_BotCapabilityType = 37
+	BotCapabilityMetadata_RICH_RESPONSE_SIDE_BY_SIDE_SURVEY          BotCapabilityMetadata_BotCapabilityType = 38
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_TEXT_COMPONENT       BotCapabilityMetadata_BotCapabilityType = 39
+	BotCapabilityMetadata_AI_SHARED_MEMORY                           BotCapabilityMetadata_BotCapabilityType = 40
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_SOURCES              BotCapabilityMetadata_BotCapabilityType = 41
+	BotCapabilityMetadata_RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS     BotCapabilityMetadata_BotCapabilityType = 42
+	BotCapabilityMetadata_RICH_RESPONSE_UR_INLINE_REELS_ENABLED      BotCapabilityMetadata_BotCapabilityType = 43
+	BotCapabilityMetadata_RICH_RESPONSE_UR_MEDIA_GRID_ENABLED        BotCapabilityMetadata_BotCapabilityType = 44
+	BotCapabilityMetadata_RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER     BotCapabilityMetadata_BotCapabilityType = 45
+	BotCapabilityMetadata_RICH_RESPONSE_IN_APP_SURVEY                BotCapabilityMetadata_BotCapabilityType = 46
+	BotCapabilityMetadata_AI_RESPONSE_MODEL_BRANDING                 BotCapabilityMetadata_BotCapabilityType = 47
+	BotCapabilityMetadata_SESSION_TRANSPARENCY_SYSTEM_MESSAGE        BotCapabilityMetadata_BotCapabilityType = 48
+	BotCapabilityMetadata_RICH_RESPONSE_UR_REASONING                 BotCapabilityMetadata_BotCapabilityType = 49
+	BotCapabilityMetadata_RICH_RESPONSE_UR_ZEITGEIST_CITATIONS       BotCapabilityMetadata_BotCapabilityType = 50
+	BotCapabilityMetadata_RICH_RESPONSE_UR_ZEITGEIST_CAROUSEL        BotCapabilityMetadata_BotCapabilityType = 51
+	BotCapabilityMetadata_AI_IMAGINE_LOADING_INDICATOR               BotCapabilityMetadata_BotCapabilityType = 52
+	BotCapabilityMetadata_RICH_RESPONSE_UR_IMAGINE                   BotCapabilityMetadata_BotCapabilityType = 53
+	BotCapabilityMetadata_AI_IMAGINE_UR_TO_NATIVE_LOADING_INDICATOR  BotCapabilityMetadata_BotCapabilityType = 54
+	BotCapabilityMetadata_RICH_RESPONSE_UR_BLOKS_ENABLED             BotCapabilityMetadata_BotCapabilityType = 55
+	BotCapabilityMetadata_RICH_RESPONSE_INLINE_LINKS_ENABLED         BotCapabilityMetadata_BotCapabilityType = 56
+	BotCapabilityMetadata_RICH_RESPONSE_UR_IMAGINE_VIDEO             BotCapabilityMetadata_BotCapabilityType = 57
+	BotCapabilityMetadata_JSON_PATCH_STREAMING                       BotCapabilityMetadata_BotCapabilityType = 58
+	BotCapabilityMetadata_AI_TAB_FORCE_CLIPPY                        BotCapabilityMetadata_BotCapabilityType = 59
+	BotCapabilityMetadata_UNIFIED_RESPONSE_EMBEDDED_SCREENS          BotCapabilityMetadata_BotCapabilityType = 60
+	BotCapabilityMetadata_AI_SUBSCRIPTION_ENABLED                    BotCapabilityMetadata_BotCapabilityType = 61
+	BotCapabilityMetadata_UNIFIED_RESPONSE_AI_CONTENT_SEARCH_ENABLED BotCapabilityMetadata_BotCapabilityType = 62
+	BotCapabilityMetadata_UNIFIED_RESPONSE_MARKDOWN_LINKS_ENABLED    BotCapabilityMetadata_BotCapabilityType = 63
+	BotCapabilityMetadata_AI_RICH_RESPONSE_MAPS_V2_ENABLED           BotCapabilityMetadata_BotCapabilityType = 64
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -1389,70 +1392,76 @@ var (
 		59: "AI_TAB_FORCE_CLIPPY",
 		60: "UNIFIED_RESPONSE_EMBEDDED_SCREENS",
 		61: "AI_SUBSCRIPTION_ENABLED",
+		62: "UNIFIED_RESPONSE_AI_CONTENT_SEARCH_ENABLED",
+		63: "UNIFIED_RESPONSE_MARKDOWN_LINKS_ENABLED",
+		64: "AI_RICH_RESPONSE_MAPS_V2_ENABLED",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
-		"UNKNOWN":                                   0,
-		"PROGRESS_INDICATOR":                        1,
-		"RICH_RESPONSE_HEADING":                     2,
-		"RICH_RESPONSE_NESTED_LIST":                 3,
-		"AI_MEMORY":                                 4,
-		"RICH_RESPONSE_THREAD_SURFING":              5,
-		"RICH_RESPONSE_TABLE":                       6,
-		"RICH_RESPONSE_CODE":                        7,
-		"RICH_RESPONSE_STRUCTURED_RESPONSE":         8,
-		"RICH_RESPONSE_INLINE_IMAGE":                9,
-		"WA_IG_1P_PLUGIN_RANKING_CONTROL":           10,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_1":          11,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_2":          12,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_3":          13,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_4":          14,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_5":          15,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_6":          16,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_7":          17,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_8":          18,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_9":          19,
-		"WA_IG_1P_PLUGIN_RANKING_UPDATE_10":         20,
-		"RICH_RESPONSE_SUB_HEADING":                 21,
-		"RICH_RESPONSE_GRID_IMAGE":                  22,
-		"AI_STUDIO_UGC_MEMORY":                      23,
-		"RICH_RESPONSE_LATEX":                       24,
-		"RICH_RESPONSE_MAPS":                        25,
-		"RICH_RESPONSE_INLINE_REELS":                26,
-		"AGENTIC_PLANNING":                          27,
-		"ACCOUNT_LINKING":                           28,
-		"STREAMING_DISAGGREGATION":                  29,
-		"RICH_RESPONSE_GRID_IMAGE_3P":               30,
-		"RICH_RESPONSE_LATEX_INLINE":                31,
-		"QUERY_PLAN":                                32,
-		"PROACTIVE_MESSAGE":                         33,
-		"RICH_RESPONSE_UNIFIED_RESPONSE":            34,
-		"PROMOTION_MESSAGE":                         35,
-		"SIMPLIFIED_PROFILE_PAGE":                   36,
-		"RICH_RESPONSE_SOURCES_IN_MESSAGE":          37,
-		"RICH_RESPONSE_SIDE_BY_SIDE_SURVEY":         38,
-		"RICH_RESPONSE_UNIFIED_TEXT_COMPONENT":      39,
-		"AI_SHARED_MEMORY":                          40,
-		"RICH_RESPONSE_UNIFIED_SOURCES":             41,
-		"RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS":    42,
-		"RICH_RESPONSE_UR_INLINE_REELS_ENABLED":     43,
-		"RICH_RESPONSE_UR_MEDIA_GRID_ENABLED":       44,
-		"RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER":    45,
-		"RICH_RESPONSE_IN_APP_SURVEY":               46,
-		"AI_RESPONSE_MODEL_BRANDING":                47,
-		"SESSION_TRANSPARENCY_SYSTEM_MESSAGE":       48,
-		"RICH_RESPONSE_UR_REASONING":                49,
-		"RICH_RESPONSE_UR_ZEITGEIST_CITATIONS":      50,
-		"RICH_RESPONSE_UR_ZEITGEIST_CAROUSEL":       51,
-		"AI_IMAGINE_LOADING_INDICATOR":              52,
-		"RICH_RESPONSE_UR_IMAGINE":                  53,
-		"AI_IMAGINE_UR_TO_NATIVE_LOADING_INDICATOR": 54,
-		"RICH_RESPONSE_UR_BLOKS_ENABLED":            55,
-		"RICH_RESPONSE_INLINE_LINKS_ENABLED":        56,
-		"RICH_RESPONSE_UR_IMAGINE_VIDEO":            57,
-		"JSON_PATCH_STREAMING":                      58,
-		"AI_TAB_FORCE_CLIPPY":                       59,
-		"UNIFIED_RESPONSE_EMBEDDED_SCREENS":         60,
-		"AI_SUBSCRIPTION_ENABLED":                   61,
+		"UNKNOWN":                                    0,
+		"PROGRESS_INDICATOR":                         1,
+		"RICH_RESPONSE_HEADING":                      2,
+		"RICH_RESPONSE_NESTED_LIST":                  3,
+		"AI_MEMORY":                                  4,
+		"RICH_RESPONSE_THREAD_SURFING":               5,
+		"RICH_RESPONSE_TABLE":                        6,
+		"RICH_RESPONSE_CODE":                         7,
+		"RICH_RESPONSE_STRUCTURED_RESPONSE":          8,
+		"RICH_RESPONSE_INLINE_IMAGE":                 9,
+		"WA_IG_1P_PLUGIN_RANKING_CONTROL":            10,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_1":           11,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_2":           12,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_3":           13,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_4":           14,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_5":           15,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_6":           16,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_7":           17,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_8":           18,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_9":           19,
+		"WA_IG_1P_PLUGIN_RANKING_UPDATE_10":          20,
+		"RICH_RESPONSE_SUB_HEADING":                  21,
+		"RICH_RESPONSE_GRID_IMAGE":                   22,
+		"AI_STUDIO_UGC_MEMORY":                       23,
+		"RICH_RESPONSE_LATEX":                        24,
+		"RICH_RESPONSE_MAPS":                         25,
+		"RICH_RESPONSE_INLINE_REELS":                 26,
+		"AGENTIC_PLANNING":                           27,
+		"ACCOUNT_LINKING":                            28,
+		"STREAMING_DISAGGREGATION":                   29,
+		"RICH_RESPONSE_GRID_IMAGE_3P":                30,
+		"RICH_RESPONSE_LATEX_INLINE":                 31,
+		"QUERY_PLAN":                                 32,
+		"PROACTIVE_MESSAGE":                          33,
+		"RICH_RESPONSE_UNIFIED_RESPONSE":             34,
+		"PROMOTION_MESSAGE":                          35,
+		"SIMPLIFIED_PROFILE_PAGE":                    36,
+		"RICH_RESPONSE_SOURCES_IN_MESSAGE":           37,
+		"RICH_RESPONSE_SIDE_BY_SIDE_SURVEY":          38,
+		"RICH_RESPONSE_UNIFIED_TEXT_COMPONENT":       39,
+		"AI_SHARED_MEMORY":                           40,
+		"RICH_RESPONSE_UNIFIED_SOURCES":              41,
+		"RICH_RESPONSE_UNIFIED_DOMAIN_CITATIONS":     42,
+		"RICH_RESPONSE_UR_INLINE_REELS_ENABLED":      43,
+		"RICH_RESPONSE_UR_MEDIA_GRID_ENABLED":        44,
+		"RICH_RESPONSE_UR_TIMESTAMP_PLACEHOLDER":     45,
+		"RICH_RESPONSE_IN_APP_SURVEY":                46,
+		"AI_RESPONSE_MODEL_BRANDING":                 47,
+		"SESSION_TRANSPARENCY_SYSTEM_MESSAGE":        48,
+		"RICH_RESPONSE_UR_REASONING":                 49,
+		"RICH_RESPONSE_UR_ZEITGEIST_CITATIONS":       50,
+		"RICH_RESPONSE_UR_ZEITGEIST_CAROUSEL":        51,
+		"AI_IMAGINE_LOADING_INDICATOR":               52,
+		"RICH_RESPONSE_UR_IMAGINE":                   53,
+		"AI_IMAGINE_UR_TO_NATIVE_LOADING_INDICATOR":  54,
+		"RICH_RESPONSE_UR_BLOKS_ENABLED":             55,
+		"RICH_RESPONSE_INLINE_LINKS_ENABLED":         56,
+		"RICH_RESPONSE_UR_IMAGINE_VIDEO":             57,
+		"JSON_PATCH_STREAMING":                       58,
+		"AI_TAB_FORCE_CLIPPY":                        59,
+		"UNIFIED_RESPONSE_EMBEDDED_SCREENS":          60,
+		"AI_SUBSCRIPTION_ENABLED":                    61,
+		"UNIFIED_RESPONSE_AI_CONTENT_SEARCH_ENABLED": 62,
+		"UNIFIED_RESPONSE_MARKDOWN_LINKS_ENABLED":    63,
+		"AI_RICH_RESPONSE_MAPS_V2_ENABLED":           64,
 	}
 )
 
@@ -7211,9 +7220,9 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPLANNED\x10\x01\x12\r\n" +
 	"\tEXECUTING\x10\x02\x12\f\n" +
-	"\bFINISHED\x10\x03\"\xfc\x10\n" +
+	"\bFINISHED\x10\x03\"\xff\x11\n" +
 	"\x15BotCapabilityMetadata\x12c\n" +
-	"\fcapabilities\x18\x01 \x03(\x0e2?.WAWebProtobufsAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xfd\x0f\n" +
+	"\fcapabilities\x18\x01 \x03(\x0e2?.WAWebProtobufsAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\x80\x11\n" +
 	"\x11BotCapabilityType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x16\n" +
 	"\x12PROGRESS_INDICATOR\x10\x01\x12\x19\n" +
@@ -7278,7 +7287,10 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\x14JSON_PATCH_STREAMING\x10:\x12\x17\n" +
 	"\x13AI_TAB_FORCE_CLIPPY\x10;\x12%\n" +
 	"!UNIFIED_RESPONSE_EMBEDDED_SCREENS\x10<\x12\x1b\n" +
-	"\x17AI_SUBSCRIPTION_ENABLED\x10=\"\xd8\x01\n" +
+	"\x17AI_SUBSCRIPTION_ENABLED\x10=\x12.\n" +
+	"*UNIFIED_RESPONSE_AI_CONTENT_SEARCH_ENABLED\x10>\x12+\n" +
+	"'UNIFIED_RESPONSE_MARKDOWN_LINKS_ENABLED\x10?\x12$\n" +
+	" AI_RICH_RESPONSE_MAPS_V2_ENABLED\x10@\"\xd8\x01\n" +
 	"\x18BotModeSelectionMetadata\x12Y\n" +
 	"\x04mode\x18\x01 \x03(\x0e2E.WAWebProtobufsAICommon.BotModeSelectionMetadata.BotUserSelectionModeR\x04mode\x12\"\n" +
 	"\foverrideMode\x18\x02 \x03(\rR\foverrideMode\"=\n" +

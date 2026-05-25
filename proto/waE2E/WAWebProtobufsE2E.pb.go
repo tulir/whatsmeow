@@ -2028,136 +2028,136 @@ func (SplitPaymentParticipant_SplitPaymentStatus) EnumDescriptor() ([]byte, []in
 	return file_waE2E_WAWebProtobufsE2E_proto_rawDescGZIP(), []int{20, 0}
 }
 
-type P2PPaymentReminderNotification_ReminderState int32
+type PaymentReminderMessage_ReminderStatus int32
 
 const (
-	P2PPaymentReminderNotification_UNKNOWN_STATE P2PPaymentReminderNotification_ReminderState = 0
-	P2PPaymentReminderNotification_ACTIVE        P2PPaymentReminderNotification_ReminderState = 1
-	P2PPaymentReminderNotification_PAUSED        P2PPaymentReminderNotification_ReminderState = 2
-	P2PPaymentReminderNotification_STOPPED       P2PPaymentReminderNotification_ReminderState = 3
-	P2PPaymentReminderNotification_EXPIRED       P2PPaymentReminderNotification_ReminderState = 4
-	P2PPaymentReminderNotification_CANCELLED     P2PPaymentReminderNotification_ReminderState = 5
+	PaymentReminderMessage_REMINDER_STATUS_UNKNOWN PaymentReminderMessage_ReminderStatus = 0
+	PaymentReminderMessage_ACTIVE                  PaymentReminderMessage_ReminderStatus = 1
+	PaymentReminderMessage_CANCELLED_BY_CREATOR    PaymentReminderMessage_ReminderStatus = 2
+	PaymentReminderMessage_STOPPED_BY_RECEIVER     PaymentReminderMessage_ReminderStatus = 3
+	PaymentReminderMessage_EXPIRED                 PaymentReminderMessage_ReminderStatus = 4
+	PaymentReminderMessage_PAID                    PaymentReminderMessage_ReminderStatus = 5
 )
 
-// Enum value maps for P2PPaymentReminderNotification_ReminderState.
+// Enum value maps for PaymentReminderMessage_ReminderStatus.
 var (
-	P2PPaymentReminderNotification_ReminderState_name = map[int32]string{
-		0: "UNKNOWN_STATE",
+	PaymentReminderMessage_ReminderStatus_name = map[int32]string{
+		0: "REMINDER_STATUS_UNKNOWN",
 		1: "ACTIVE",
-		2: "PAUSED",
-		3: "STOPPED",
+		2: "CANCELLED_BY_CREATOR",
+		3: "STOPPED_BY_RECEIVER",
 		4: "EXPIRED",
-		5: "CANCELLED",
+		5: "PAID",
 	}
-	P2PPaymentReminderNotification_ReminderState_value = map[string]int32{
-		"UNKNOWN_STATE": 0,
-		"ACTIVE":        1,
-		"PAUSED":        2,
-		"STOPPED":       3,
-		"EXPIRED":       4,
-		"CANCELLED":     5,
+	PaymentReminderMessage_ReminderStatus_value = map[string]int32{
+		"REMINDER_STATUS_UNKNOWN": 0,
+		"ACTIVE":                  1,
+		"CANCELLED_BY_CREATOR":    2,
+		"STOPPED_BY_RECEIVER":     3,
+		"EXPIRED":                 4,
+		"PAID":                    5,
 	}
 )
 
-func (x P2PPaymentReminderNotification_ReminderState) Enum() *P2PPaymentReminderNotification_ReminderState {
-	p := new(P2PPaymentReminderNotification_ReminderState)
+func (x PaymentReminderMessage_ReminderStatus) Enum() *PaymentReminderMessage_ReminderStatus {
+	p := new(PaymentReminderMessage_ReminderStatus)
 	*p = x
 	return p
 }
 
-func (x P2PPaymentReminderNotification_ReminderState) String() string {
+func (x PaymentReminderMessage_ReminderStatus) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (P2PPaymentReminderNotification_ReminderState) Descriptor() protoreflect.EnumDescriptor {
+func (PaymentReminderMessage_ReminderStatus) Descriptor() protoreflect.EnumDescriptor {
 	return file_waE2E_WAWebProtobufsE2E_proto_enumTypes[33].Descriptor()
 }
 
-func (P2PPaymentReminderNotification_ReminderState) Type() protoreflect.EnumType {
+func (PaymentReminderMessage_ReminderStatus) Type() protoreflect.EnumType {
 	return &file_waE2E_WAWebProtobufsE2E_proto_enumTypes[33]
 }
 
-func (x P2PPaymentReminderNotification_ReminderState) Number() protoreflect.EnumNumber {
+func (x PaymentReminderMessage_ReminderStatus) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
 // Deprecated: Do not use.
-func (x *P2PPaymentReminderNotification_ReminderState) UnmarshalJSON(b []byte) error {
+func (x *PaymentReminderMessage_ReminderStatus) UnmarshalJSON(b []byte) error {
 	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
 	if err != nil {
 		return err
 	}
-	*x = P2PPaymentReminderNotification_ReminderState(num)
+	*x = PaymentReminderMessage_ReminderStatus(num)
 	return nil
 }
 
-// Deprecated: Use P2PPaymentReminderNotification_ReminderState.Descriptor instead.
-func (P2PPaymentReminderNotification_ReminderState) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use PaymentReminderMessage_ReminderStatus.Descriptor instead.
+func (PaymentReminderMessage_ReminderStatus) EnumDescriptor() ([]byte, []int) {
 	return file_waE2E_WAWebProtobufsE2E_proto_rawDescGZIP(), []int{21, 0}
 }
 
-type P2PPaymentReminderNotification_ReminderFrequency int32
+type PaymentReminderMessage_ReminderFrequency int32
 
 const (
-	P2PPaymentReminderNotification_UNKNOWN_FREQUENCY P2PPaymentReminderNotification_ReminderFrequency = 0
-	P2PPaymentReminderNotification_WEEKLY            P2PPaymentReminderNotification_ReminderFrequency = 1
-	P2PPaymentReminderNotification_BIWEEKLY          P2PPaymentReminderNotification_ReminderFrequency = 2
-	P2PPaymentReminderNotification_MONTHLY           P2PPaymentReminderNotification_ReminderFrequency = 3
-	P2PPaymentReminderNotification_CUSTOM            P2PPaymentReminderNotification_ReminderFrequency = 4
+	PaymentReminderMessage_REMINDER_FREQUENCY_UNKNOWN PaymentReminderMessage_ReminderFrequency = 0
+	PaymentReminderMessage_WEEKLY                     PaymentReminderMessage_ReminderFrequency = 1
+	PaymentReminderMessage_BI_WEEKLY                  PaymentReminderMessage_ReminderFrequency = 2
+	PaymentReminderMessage_MONTHLY                    PaymentReminderMessage_ReminderFrequency = 3
+	PaymentReminderMessage_QUARTERLY                  PaymentReminderMessage_ReminderFrequency = 4
 )
 
-// Enum value maps for P2PPaymentReminderNotification_ReminderFrequency.
+// Enum value maps for PaymentReminderMessage_ReminderFrequency.
 var (
-	P2PPaymentReminderNotification_ReminderFrequency_name = map[int32]string{
-		0: "UNKNOWN_FREQUENCY",
+	PaymentReminderMessage_ReminderFrequency_name = map[int32]string{
+		0: "REMINDER_FREQUENCY_UNKNOWN",
 		1: "WEEKLY",
-		2: "BIWEEKLY",
+		2: "BI_WEEKLY",
 		3: "MONTHLY",
-		4: "CUSTOM",
+		4: "QUARTERLY",
 	}
-	P2PPaymentReminderNotification_ReminderFrequency_value = map[string]int32{
-		"UNKNOWN_FREQUENCY": 0,
-		"WEEKLY":            1,
-		"BIWEEKLY":          2,
-		"MONTHLY":           3,
-		"CUSTOM":            4,
+	PaymentReminderMessage_ReminderFrequency_value = map[string]int32{
+		"REMINDER_FREQUENCY_UNKNOWN": 0,
+		"WEEKLY":                     1,
+		"BI_WEEKLY":                  2,
+		"MONTHLY":                    3,
+		"QUARTERLY":                  4,
 	}
 )
 
-func (x P2PPaymentReminderNotification_ReminderFrequency) Enum() *P2PPaymentReminderNotification_ReminderFrequency {
-	p := new(P2PPaymentReminderNotification_ReminderFrequency)
+func (x PaymentReminderMessage_ReminderFrequency) Enum() *PaymentReminderMessage_ReminderFrequency {
+	p := new(PaymentReminderMessage_ReminderFrequency)
 	*p = x
 	return p
 }
 
-func (x P2PPaymentReminderNotification_ReminderFrequency) String() string {
+func (x PaymentReminderMessage_ReminderFrequency) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (P2PPaymentReminderNotification_ReminderFrequency) Descriptor() protoreflect.EnumDescriptor {
+func (PaymentReminderMessage_ReminderFrequency) Descriptor() protoreflect.EnumDescriptor {
 	return file_waE2E_WAWebProtobufsE2E_proto_enumTypes[34].Descriptor()
 }
 
-func (P2PPaymentReminderNotification_ReminderFrequency) Type() protoreflect.EnumType {
+func (PaymentReminderMessage_ReminderFrequency) Type() protoreflect.EnumType {
 	return &file_waE2E_WAWebProtobufsE2E_proto_enumTypes[34]
 }
 
-func (x P2PPaymentReminderNotification_ReminderFrequency) Number() protoreflect.EnumNumber {
+func (x PaymentReminderMessage_ReminderFrequency) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
 // Deprecated: Do not use.
-func (x *P2PPaymentReminderNotification_ReminderFrequency) UnmarshalJSON(b []byte) error {
+func (x *PaymentReminderMessage_ReminderFrequency) UnmarshalJSON(b []byte) error {
 	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
 	if err != nil {
 		return err
 	}
-	*x = P2PPaymentReminderNotification_ReminderFrequency(num)
+	*x = PaymentReminderMessage_ReminderFrequency(num)
 	return nil
 }
 
-// Deprecated: Use P2PPaymentReminderNotification_ReminderFrequency.Descriptor instead.
-func (P2PPaymentReminderNotification_ReminderFrequency) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use PaymentReminderMessage_ReminderFrequency.Descriptor instead.
+func (PaymentReminderMessage_ReminderFrequency) EnumDescriptor() ([]byte, []int) {
 	return file_waE2E_WAWebProtobufsE2E_proto_rawDescGZIP(), []int{21, 1}
 }
 
@@ -4016,6 +4016,8 @@ const (
 	ContextInfo_BusinessInteractionPills_BESTSELLERS      ContextInfo_BusinessInteractionPills_PillType = 8
 	ContextInfo_BusinessInteractionPills_MENU             ContextInfo_BusinessInteractionPills_PillType = 9
 	ContextInfo_BusinessInteractionPills_ABOUT            ContextInfo_BusinessInteractionPills_PillType = 10
+	ContextInfo_BusinessInteractionPills_SHOP             ContextInfo_BusinessInteractionPills_PillType = 11
+	ContextInfo_BusinessInteractionPills_ORDER            ContextInfo_BusinessInteractionPills_PillType = 12
 )
 
 // Enum value maps for ContextInfo_BusinessInteractionPills_PillType.
@@ -4032,6 +4034,8 @@ var (
 		8:  "BESTSELLERS",
 		9:  "MENU",
 		10: "ABOUT",
+		11: "SHOP",
+		12: "ORDER",
 	}
 	ContextInfo_BusinessInteractionPills_PillType_value = map[string]int32{
 		"UNKNOWN":          0,
@@ -4045,6 +4049,8 @@ var (
 		"BESTSELLERS":      8,
 		"MENU":             9,
 		"ABOUT":            10,
+		"SHOP":             11,
+		"ORDER":            12,
 	}
 )
 
@@ -6925,37 +6931,35 @@ func (x *SplitPaymentParticipant) GetStatus() SplitPaymentParticipant_SplitPayme
 	return SplitPaymentParticipant_PENDING
 }
 
-type P2PPaymentReminderNotification struct {
-	state                 protoimpl.MessageState                            `protogen:"open.v1"`
-	ReminderID            *string                                           `protobuf:"bytes,1,opt,name=reminderID" json:"reminderID,omitempty"`
-	Amount                *Money                                            `protobuf:"bytes,2,opt,name=amount" json:"amount,omitempty"`
-	Frequency             *P2PPaymentReminderNotification_ReminderFrequency `protobuf:"varint,3,opt,name=frequency,enum=WAWebProtobufsE2E.P2PPaymentReminderNotification_ReminderFrequency" json:"frequency,omitempty"`
-	NextReminderTimestamp *int64                                            `protobuf:"varint,4,opt,name=nextReminderTimestamp" json:"nextReminderTimestamp,omitempty"`
-	ExpiryTimestamp       *int64                                            `protobuf:"varint,5,opt,name=expiryTimestamp" json:"expiryTimestamp,omitempty"`
-	State                 *P2PPaymentReminderNotification_ReminderState     `protobuf:"varint,6,opt,name=state,enum=WAWebProtobufsE2E.P2PPaymentReminderNotification_ReminderState" json:"state,omitempty"`
-	Description           *string                                           `protobuf:"bytes,7,opt,name=description" json:"description,omitempty"`
-	CreatorJID            *string                                           `protobuf:"bytes,8,opt,name=creatorJID" json:"creatorJID,omitempty"`
-	ReceiverJID           *string                                           `protobuf:"bytes,9,opt,name=receiverJID" json:"receiverJID,omitempty"`
-	UpiID                 *string                                           `protobuf:"bytes,10,opt,name=upiID" json:"upiID,omitempty"`
-	CreatedTimestamp      *int64                                            `protobuf:"varint,11,opt,name=createdTimestamp" json:"createdTimestamp,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+type PaymentReminderMessage struct {
+	state         protoimpl.MessageState                    `protogen:"open.v1"`
+	ReminderID    *string                                   `protobuf:"bytes,1,opt,name=reminderID" json:"reminderID,omitempty"`
+	InstanceID    *string                                   `protobuf:"bytes,2,opt,name=instanceID" json:"instanceID,omitempty"`
+	Description   *string                                   `protobuf:"bytes,3,opt,name=description" json:"description,omitempty"`
+	Frequency     *PaymentReminderMessage_ReminderFrequency `protobuf:"varint,4,opt,name=frequency,enum=WAWebProtobufsE2E.PaymentReminderMessage_ReminderFrequency" json:"frequency,omitempty"`
+	Status        *PaymentReminderMessage_ReminderStatus    `protobuf:"varint,5,opt,name=status,enum=WAWebProtobufsE2E.PaymentReminderMessage_ReminderStatus" json:"status,omitempty"`
+	PayeeVpa      *string                                   `protobuf:"bytes,6,opt,name=payeeVpa" json:"payeeVpa,omitempty"`
+	PayeeJID      *string                                   `protobuf:"bytes,7,opt,name=payeeJID" json:"payeeJID,omitempty"`
+	PayerJID      *string                                   `protobuf:"bytes,8,opt,name=payerJID" json:"payerJID,omitempty"`
+	Amount        *Money                                    `protobuf:"bytes,9,opt,name=amount" json:"amount,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *P2PPaymentReminderNotification) Reset() {
-	*x = P2PPaymentReminderNotification{}
+func (x *PaymentReminderMessage) Reset() {
+	*x = PaymentReminderMessage{}
 	mi := &file_waE2E_WAWebProtobufsE2E_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *P2PPaymentReminderNotification) String() string {
+func (x *PaymentReminderMessage) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*P2PPaymentReminderNotification) ProtoMessage() {}
+func (*PaymentReminderMessage) ProtoMessage() {}
 
-func (x *P2PPaymentReminderNotification) ProtoReflect() protoreflect.Message {
+func (x *PaymentReminderMessage) ProtoReflect() protoreflect.Message {
 	mi := &file_waE2E_WAWebProtobufsE2E_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -6967,86 +6971,72 @@ func (x *P2PPaymentReminderNotification) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use P2PPaymentReminderNotification.ProtoReflect.Descriptor instead.
-func (*P2PPaymentReminderNotification) Descriptor() ([]byte, []int) {
+// Deprecated: Use PaymentReminderMessage.ProtoReflect.Descriptor instead.
+func (*PaymentReminderMessage) Descriptor() ([]byte, []int) {
 	return file_waE2E_WAWebProtobufsE2E_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *P2PPaymentReminderNotification) GetReminderID() string {
+func (x *PaymentReminderMessage) GetReminderID() string {
 	if x != nil && x.ReminderID != nil {
 		return *x.ReminderID
 	}
 	return ""
 }
 
-func (x *P2PPaymentReminderNotification) GetAmount() *Money {
-	if x != nil {
-		return x.Amount
+func (x *PaymentReminderMessage) GetInstanceID() string {
+	if x != nil && x.InstanceID != nil {
+		return *x.InstanceID
 	}
-	return nil
+	return ""
 }
 
-func (x *P2PPaymentReminderNotification) GetFrequency() P2PPaymentReminderNotification_ReminderFrequency {
-	if x != nil && x.Frequency != nil {
-		return *x.Frequency
-	}
-	return P2PPaymentReminderNotification_UNKNOWN_FREQUENCY
-}
-
-func (x *P2PPaymentReminderNotification) GetNextReminderTimestamp() int64 {
-	if x != nil && x.NextReminderTimestamp != nil {
-		return *x.NextReminderTimestamp
-	}
-	return 0
-}
-
-func (x *P2PPaymentReminderNotification) GetExpiryTimestamp() int64 {
-	if x != nil && x.ExpiryTimestamp != nil {
-		return *x.ExpiryTimestamp
-	}
-	return 0
-}
-
-func (x *P2PPaymentReminderNotification) GetState() P2PPaymentReminderNotification_ReminderState {
-	if x != nil && x.State != nil {
-		return *x.State
-	}
-	return P2PPaymentReminderNotification_UNKNOWN_STATE
-}
-
-func (x *P2PPaymentReminderNotification) GetDescription() string {
+func (x *PaymentReminderMessage) GetDescription() string {
 	if x != nil && x.Description != nil {
 		return *x.Description
 	}
 	return ""
 }
 
-func (x *P2PPaymentReminderNotification) GetCreatorJID() string {
-	if x != nil && x.CreatorJID != nil {
-		return *x.CreatorJID
+func (x *PaymentReminderMessage) GetFrequency() PaymentReminderMessage_ReminderFrequency {
+	if x != nil && x.Frequency != nil {
+		return *x.Frequency
+	}
+	return PaymentReminderMessage_REMINDER_FREQUENCY_UNKNOWN
+}
+
+func (x *PaymentReminderMessage) GetStatus() PaymentReminderMessage_ReminderStatus {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return PaymentReminderMessage_REMINDER_STATUS_UNKNOWN
+}
+
+func (x *PaymentReminderMessage) GetPayeeVpa() string {
+	if x != nil && x.PayeeVpa != nil {
+		return *x.PayeeVpa
 	}
 	return ""
 }
 
-func (x *P2PPaymentReminderNotification) GetReceiverJID() string {
-	if x != nil && x.ReceiverJID != nil {
-		return *x.ReceiverJID
+func (x *PaymentReminderMessage) GetPayeeJID() string {
+	if x != nil && x.PayeeJID != nil {
+		return *x.PayeeJID
 	}
 	return ""
 }
 
-func (x *P2PPaymentReminderNotification) GetUpiID() string {
-	if x != nil && x.UpiID != nil {
-		return *x.UpiID
+func (x *PaymentReminderMessage) GetPayerJID() string {
+	if x != nil && x.PayerJID != nil {
+		return *x.PayerJID
 	}
 	return ""
 }
 
-func (x *P2PPaymentReminderNotification) GetCreatedTimestamp() int64 {
-	if x != nil && x.CreatedTimestamp != nil {
-		return *x.CreatedTimestamp
+func (x *PaymentReminderMessage) GetAmount() *Money {
+	if x != nil {
+		return x.Amount
 	}
-	return 0
+	return nil
 }
 
 type PaymentInviteMessage struct {
@@ -10466,8 +10456,9 @@ type Message struct {
 	PollAddOptionMessage                       *PollAddOptionMessage            `protobuf:"bytes,121,opt,name=pollAddOptionMessage" json:"pollAddOptionMessage,omitempty"`
 	EventInviteMessage                         *EventInviteMessage              `protobuf:"bytes,122,opt,name=eventInviteMessage" json:"eventInviteMessage,omitempty"`
 	GroupRootKeyShare                          *GroupRootKeyShare               `protobuf:"bytes,123,opt,name=groupRootKeyShare" json:"groupRootKeyShare,omitempty"`
-	P2PPaymentReminderNotification             *P2PPaymentReminderNotification  `protobuf:"bytes,124,opt,name=p2PPaymentReminderNotification" json:"p2PPaymentReminderNotification,omitempty"`
+	PaymentReminderMessage                     *PaymentReminderMessage          `protobuf:"bytes,124,opt,name=paymentReminderMessage" json:"paymentReminderMessage,omitempty"`
 	SplitPaymentMessage                        *SplitPaymentMessage             `protobuf:"bytes,125,opt,name=splitPaymentMessage" json:"splitPaymentMessage,omitempty"`
+	NewsletterAdminProfileStatusMessage        *FutureProofMessage              `protobuf:"bytes,126,opt,name=newsletterAdminProfileStatusMessage" json:"newsletterAdminProfileStatusMessage,omitempty"`
 	unknownFields                              protoimpl.UnknownFields
 	sizeCache                                  protoimpl.SizeCache
 }
@@ -11223,9 +11214,9 @@ func (x *Message) GetGroupRootKeyShare() *GroupRootKeyShare {
 	return nil
 }
 
-func (x *Message) GetP2PPaymentReminderNotification() *P2PPaymentReminderNotification {
+func (x *Message) GetPaymentReminderMessage() *PaymentReminderMessage {
 	if x != nil {
-		return x.P2PPaymentReminderNotification
+		return x.PaymentReminderMessage
 	}
 	return nil
 }
@@ -11233,6 +11224,13 @@ func (x *Message) GetP2PPaymentReminderNotification() *P2PPaymentReminderNotific
 func (x *Message) GetSplitPaymentMessage() *SplitPaymentMessage {
 	if x != nil {
 		return x.SplitPaymentMessage
+	}
+	return nil
+}
+
+func (x *Message) GetNewsletterAdminProfileStatusMessage() *FutureProofMessage {
+	if x != nil {
+		return x.NewsletterAdminProfileStatusMessage
 	}
 	return nil
 }
@@ -12783,6 +12781,7 @@ type EventInviteMessage struct {
 	Caption       *string                `protobuf:"bytes,6,opt,name=caption" json:"caption,omitempty"`
 	IsCanceled    *bool                  `protobuf:"varint,7,opt,name=isCanceled" json:"isCanceled,omitempty"`
 	EndTime       *int64                 `protobuf:"varint,8,opt,name=endTime" json:"endTime,omitempty"`
+	CallLink      *string                `protobuf:"bytes,9,opt,name=callLink" json:"callLink,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -12871,6 +12870,13 @@ func (x *EventInviteMessage) GetEndTime() int64 {
 		return *x.EndTime
 	}
 	return 0
+}
+
+func (x *EventInviteMessage) GetCallLink() string {
+	if x != nil && x.CallLink != nil {
+		return *x.CallLink
+	}
+	return ""
 }
 
 type NewsletterFollowerInviteMessage struct {
@@ -23708,41 +23714,36 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x06status\x18\x03 \x01(\x0e2=.WAWebProtobufsE2E.SplitPaymentParticipant.SplitPaymentStatusR\x06status\"+\n" +
 	"\x12SplitPaymentStatus\x12\v\n" +
 	"\aPENDING\x10\x00\x12\b\n" +
-	"\x04PAID\x10\x01\"\xf6\x05\n" +
-	"\x1eP2PPaymentReminderNotification\x12\x1e\n" +
+	"\x04PAID\x10\x01\"\x9f\x05\n" +
+	"\x16PaymentReminderMessage\x12\x1e\n" +
 	"\n" +
 	"reminderID\x18\x01 \x01(\tR\n" +
-	"reminderID\x120\n" +
-	"\x06amount\x18\x02 \x01(\v2\x18.WAWebProtobufsE2E.MoneyR\x06amount\x12a\n" +
-	"\tfrequency\x18\x03 \x01(\x0e2C.WAWebProtobufsE2E.P2PPaymentReminderNotification.ReminderFrequencyR\tfrequency\x124\n" +
-	"\x15nextReminderTimestamp\x18\x04 \x01(\x03R\x15nextReminderTimestamp\x12(\n" +
-	"\x0fexpiryTimestamp\x18\x05 \x01(\x03R\x0fexpiryTimestamp\x12U\n" +
-	"\x05state\x18\x06 \x01(\x0e2?.WAWebProtobufsE2E.P2PPaymentReminderNotification.ReminderStateR\x05state\x12 \n" +
-	"\vdescription\x18\a \x01(\tR\vdescription\x12\x1e\n" +
+	"reminderID\x12\x1e\n" +
 	"\n" +
-	"creatorJID\x18\b \x01(\tR\n" +
-	"creatorJID\x12 \n" +
-	"\vreceiverJID\x18\t \x01(\tR\vreceiverJID\x12\x14\n" +
-	"\x05upiID\x18\n" +
-	" \x01(\tR\x05upiID\x12*\n" +
-	"\x10createdTimestamp\x18\v \x01(\x03R\x10createdTimestamp\"c\n" +
-	"\rReminderState\x12\x11\n" +
-	"\rUNKNOWN_STATE\x10\x00\x12\n" +
+	"instanceID\x18\x02 \x01(\tR\n" +
+	"instanceID\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12Y\n" +
+	"\tfrequency\x18\x04 \x01(\x0e2;.WAWebProtobufsE2E.PaymentReminderMessage.ReminderFrequencyR\tfrequency\x12P\n" +
+	"\x06status\x18\x05 \x01(\x0e28.WAWebProtobufsE2E.PaymentReminderMessage.ReminderStatusR\x06status\x12\x1a\n" +
+	"\bpayeeVpa\x18\x06 \x01(\tR\bpayeeVpa\x12\x1a\n" +
+	"\bpayeeJID\x18\a \x01(\tR\bpayeeJID\x12\x1a\n" +
+	"\bpayerJID\x18\b \x01(\tR\bpayerJID\x120\n" +
+	"\x06amount\x18\t \x01(\v2\x18.WAWebProtobufsE2E.MoneyR\x06amount\"\x83\x01\n" +
+	"\x0eReminderStatus\x12\x1b\n" +
+	"\x17REMINDER_STATUS_UNKNOWN\x10\x00\x12\n" +
 	"\n" +
-	"\x06ACTIVE\x10\x01\x12\n" +
+	"\x06ACTIVE\x10\x01\x12\x18\n" +
+	"\x14CANCELLED_BY_CREATOR\x10\x02\x12\x17\n" +
+	"\x13STOPPED_BY_RECEIVER\x10\x03\x12\v\n" +
+	"\aEXPIRED\x10\x04\x12\b\n" +
+	"\x04PAID\x10\x05\"j\n" +
+	"\x11ReminderFrequency\x12\x1e\n" +
+	"\x1aREMINDER_FREQUENCY_UNKNOWN\x10\x00\x12\n" +
 	"\n" +
-	"\x06PAUSED\x10\x02\x12\v\n" +
-	"\aSTOPPED\x10\x03\x12\v\n" +
-	"\aEXPIRED\x10\x04\x12\r\n" +
-	"\tCANCELLED\x10\x05\"]\n" +
-	"\x11ReminderFrequency\x12\x15\n" +
-	"\x11UNKNOWN_FREQUENCY\x10\x00\x12\n" +
-	"\n" +
-	"\x06WEEKLY\x10\x01\x12\f\n" +
-	"\bBIWEEKLY\x10\x02\x12\v\n" +
-	"\aMONTHLY\x10\x03\x12\n" +
-	"\n" +
-	"\x06CUSTOM\x10\x04\"\x9a\x03\n" +
+	"\x06WEEKLY\x10\x01\x12\r\n" +
+	"\tBI_WEEKLY\x10\x02\x12\v\n" +
+	"\aMONTHLY\x10\x03\x12\r\n" +
+	"\tQUARTERLY\x10\x04\"\x9a\x03\n" +
 	"\x14PaymentInviteMessage\x12U\n" +
 	"\vserviceType\x18\x01 \x01(\x0e23.WAWebProtobufsE2E.PaymentInviteMessage.ServiceTypeR\vserviceType\x12(\n" +
 	"\x0fexpiryTimestamp\x18\x02 \x01(\x03R\x0fexpiryTimestamp\x12,\n" +
@@ -24303,7 +24304,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"USER_IMAGE\x10\x00\x12\x10\n" +
 	"\fAI_GENERATED\x10\x01\x12\x0f\n" +
 	"\vAI_MODIFIED\x10\x02\x12\x1a\n" +
-	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xb2G\n" +
+	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xc7G\n" +
 	"\vContextInfo\x12\x1a\n" +
 	"\bstanzaID\x18\x01 \x01(\tR\bstanzaID\x12 \n" +
 	"\vparticipant\x18\x02 \x01(\tR\vparticipant\x12@\n" +
@@ -24374,7 +24375,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x11afterReadDuration\x18L \x01(\rR\x11afterReadDuration\x12U\n" +
 	"\x0ecrossAppSource\x18M \x01(\x0e2-.WAWebProtobufsE2E.ContextInfo.CrossAppSourceR\x0ecrossAppSource\x12s\n" +
 	"\x18businessInteractionPills\x18N \x01(\v27.WAWebProtobufsE2E.ContextInfo.BusinessInteractionPillsR\x18businessInteractionPills\x12&\n" +
-	"\x0eposterStatusID\x18O \x01(\tR\x0eposterStatusID\x1a\xac\x05\n" +
+	"\x0eposterStatusID\x18O \x01(\tR\x0eposterStatusID\x1a\xc1\x05\n" +
 	"\x18BusinessInteractionPills\x12 \n" +
 	"\vbusinessJID\x18\x01 \x01(\tR\vbusinessJID\x12R\n" +
 	"\x05pills\x18\x02 \x03(\v2<.WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.PillR\x05pills\x12b\n" +
@@ -24392,7 +24393,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\fPHONE_NUMBER\x10\x03\x12\n" +
 	"\n" +
 	"\x06STATUS\x10\x04\x12\x1a\n" +
-	"\x16IN_THREAD_CONTEXT_CARD\x10\x05\"\xa0\x01\n" +
+	"\x16IN_THREAD_CONTEXT_CARD\x10\x05\"\xb5\x01\n" +
 	"\bPillType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x11\n" +
 	"\rVIEW_BUSINESS\x10\x01\x12\b\n" +
@@ -24406,7 +24407,9 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\vBESTSELLERS\x10\b\x12\b\n" +
 	"\x04MENU\x10\t\x12\t\n" +
 	"\x05ABOUT\x10\n" +
-	"\x1a\xea\x01\n" +
+	"\x12\b\n" +
+	"\x04SHOP\x10\v\x12\t\n" +
+	"\x05ORDER\x10\f\x1a\xea\x01\n" +
 	"\x16StatusAudienceMetadata\x12f\n" +
 	"\faudienceType\x18\x01 \x01(\x0e2B.WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadata.AudienceTypeR\faudienceType\x12\x1a\n" +
 	"\blistName\x18\x02 \x01(\tR\blistName\x12\x1c\n" +
@@ -24719,7 +24722,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\tUNDEFINED\x10\x00\x12\a\n" +
 	"\x03LOW\x10\x01\x12\a\n" +
 	"\x03MID\x10\x02\x12\b\n" +
-	"\x04HIGH\x10\x03\"\x88J\n" +
+	"\x04HIGH\x10\x03\"\xe9J\n" +
 	"\aMessage\x12\"\n" +
 	"\fconversation\x18\x01 \x01(\tR\fconversation\x12s\n" +
 	"\x1csenderKeyDistributionMessage\x18\x02 \x01(\v2/.WAWebProtobufsE2E.SenderKeyDistributionMessageR\x1csenderKeyDistributionMessage\x12C\n" +
@@ -24826,9 +24829,10 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x18conditionalRevealMessage\x18x \x01(\v2+.WAWebProtobufsE2E.ConditionalRevealMessageR\x18conditionalRevealMessage\x12[\n" +
 	"\x14pollAddOptionMessage\x18y \x01(\v2'.WAWebProtobufsE2E.PollAddOptionMessageR\x14pollAddOptionMessage\x12U\n" +
 	"\x12eventInviteMessage\x18z \x01(\v2%.WAWebProtobufsE2E.EventInviteMessageR\x12eventInviteMessage\x12R\n" +
-	"\x11groupRootKeyShare\x18{ \x01(\v2$.WAWebProtobufsE2E.GroupRootKeyShareR\x11groupRootKeyShare\x12y\n" +
-	"\x1ep2PPaymentReminderNotification\x18| \x01(\v21.WAWebProtobufsE2E.P2PPaymentReminderNotificationR\x1ep2PPaymentReminderNotification\x12X\n" +
-	"\x13splitPaymentMessage\x18} \x01(\v2&.WAWebProtobufsE2E.SplitPaymentMessageR\x13splitPaymentMessage\"\xb0\x01\n" +
+	"\x11groupRootKeyShare\x18{ \x01(\v2$.WAWebProtobufsE2E.GroupRootKeyShareR\x11groupRootKeyShare\x12a\n" +
+	"\x16paymentReminderMessage\x18| \x01(\v2).WAWebProtobufsE2E.PaymentReminderMessageR\x16paymentReminderMessage\x12X\n" +
+	"\x13splitPaymentMessage\x18} \x01(\v2&.WAWebProtobufsE2E.SplitPaymentMessageR\x13splitPaymentMessage\x12w\n" +
+	"#newsletterAdminProfileStatusMessage\x18~ \x01(\v2%.WAWebProtobufsE2E.FutureProofMessageR#newsletterAdminProfileStatusMessage\"\xb0\x01\n" +
 	"\fAlbumMessage\x12.\n" +
 	"\x12expectedImageCount\x18\x02 \x01(\rR\x12expectedImageCount\x12.\n" +
 	"\x12expectedVideoCount\x18\x03 \x01(\rR\x12expectedVideoCount\x12@\n" +
@@ -24964,7 +24968,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12\x14\n" +
 	"\x05phash\x18\x03 \x01(\tR\x05phash\"]\n" +
 	"\x19RequestPhoneNumberMessage\x12@\n" +
-	"\vcontextInfo\x18\x01 \x01(\v2\x1e.WAWebProtobufsE2E.ContextInfoR\vcontextInfo\"\xa8\x02\n" +
+	"\vcontextInfo\x18\x01 \x01(\v2\x1e.WAWebProtobufsE2E.ContextInfoR\vcontextInfo\"\xc4\x02\n" +
 	"\x12EventInviteMessage\x12@\n" +
 	"\vcontextInfo\x18\x01 \x01(\v2\x1e.WAWebProtobufsE2E.ContextInfoR\vcontextInfo\x12\x18\n" +
 	"\aeventID\x18\x02 \x01(\tR\aeventID\x12\x1e\n" +
@@ -24977,7 +24981,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\n" +
 	"isCanceled\x18\a \x01(\bR\n" +
 	"isCanceled\x12\x18\n" +
-	"\aendTime\x18\b \x01(\x03R\aendTime\"\xf1\x01\n" +
+	"\aendTime\x18\b \x01(\x03R\aendTime\x12\x1a\n" +
+	"\bcallLink\x18\t \x01(\tR\bcallLink\"\xf1\x01\n" +
 	"\x1fNewsletterFollowerInviteMessage\x12$\n" +
 	"\rnewsletterJID\x18\x01 \x01(\tR\rnewsletterJID\x12&\n" +
 	"\x0enewsletterName\x18\x02 \x01(\tR\x0enewsletterName\x12$\n" +
@@ -25567,8 +25572,8 @@ var file_waE2E_WAWebProtobufsE2E_proto_goTypes = []any{
 	(OrderMessage_OrderStatus)(0),                              // 30: WAWebProtobufsE2E.OrderMessage.OrderStatus
 	(StatusQuotedMessage_StatusQuotedMessageType)(0),           // 31: WAWebProtobufsE2E.StatusQuotedMessage.StatusQuotedMessageType
 	(SplitPaymentParticipant_SplitPaymentStatus)(0),            // 32: WAWebProtobufsE2E.SplitPaymentParticipant.SplitPaymentStatus
-	(P2PPaymentReminderNotification_ReminderState)(0),          // 33: WAWebProtobufsE2E.P2PPaymentReminderNotification.ReminderState
-	(P2PPaymentReminderNotification_ReminderFrequency)(0),      // 34: WAWebProtobufsE2E.P2PPaymentReminderNotification.ReminderFrequency
+	(PaymentReminderMessage_ReminderStatus)(0),                 // 33: WAWebProtobufsE2E.PaymentReminderMessage.ReminderStatus
+	(PaymentReminderMessage_ReminderFrequency)(0),              // 34: WAWebProtobufsE2E.PaymentReminderMessage.ReminderFrequency
 	(PaymentInviteMessage_InviteType)(0),                       // 35: WAWebProtobufsE2E.PaymentInviteMessage.InviteType
 	(PaymentInviteMessage_ServiceType)(0),                      // 36: WAWebProtobufsE2E.PaymentInviteMessage.ServiceType
 	(HighlyStructuredMessage_HSMLocalizableParameter_HSMDateTime_HSMDateTimeComponent_CalendarType)(0),       // 37: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.CalendarType
@@ -25634,7 +25639,7 @@ var file_waE2E_WAWebProtobufsE2E_proto_goTypes = []any{
 	(*OrderMessage)(nil),                                                  // 97: WAWebProtobufsE2E.OrderMessage
 	(*StatusQuotedMessage)(nil),                                           // 98: WAWebProtobufsE2E.StatusQuotedMessage
 	(*SplitPaymentParticipant)(nil),                                       // 99: WAWebProtobufsE2E.SplitPaymentParticipant
-	(*P2PPaymentReminderNotification)(nil),                                // 100: WAWebProtobufsE2E.P2PPaymentReminderNotification
+	(*PaymentReminderMessage)(nil),                                        // 100: WAWebProtobufsE2E.PaymentReminderMessage
 	(*PaymentInviteMessage)(nil),                                          // 101: WAWebProtobufsE2E.PaymentInviteMessage
 	(*HighlyStructuredMessage)(nil),                                       // 102: WAWebProtobufsE2E.HighlyStructuredMessage
 	(*PeerDataOperationRequestResponseMessage)(nil),                       // 103: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage
@@ -25905,9 +25910,9 @@ var file_waE2E_WAWebProtobufsE2E_proto_depIdxs = []int32{
 	296, // 55: WAWebProtobufsE2E.StatusQuotedMessage.originalStatusID:type_name -> WACommon.MessageKey
 	200, // 56: WAWebProtobufsE2E.SplitPaymentParticipant.amount:type_name -> WAWebProtobufsE2E.Money
 	32,  // 57: WAWebProtobufsE2E.SplitPaymentParticipant.status:type_name -> WAWebProtobufsE2E.SplitPaymentParticipant.SplitPaymentStatus
-	200, // 58: WAWebProtobufsE2E.P2PPaymentReminderNotification.amount:type_name -> WAWebProtobufsE2E.Money
-	34,  // 59: WAWebProtobufsE2E.P2PPaymentReminderNotification.frequency:type_name -> WAWebProtobufsE2E.P2PPaymentReminderNotification.ReminderFrequency
-	33,  // 60: WAWebProtobufsE2E.P2PPaymentReminderNotification.state:type_name -> WAWebProtobufsE2E.P2PPaymentReminderNotification.ReminderState
+	34,  // 58: WAWebProtobufsE2E.PaymentReminderMessage.frequency:type_name -> WAWebProtobufsE2E.PaymentReminderMessage.ReminderFrequency
+	33,  // 59: WAWebProtobufsE2E.PaymentReminderMessage.status:type_name -> WAWebProtobufsE2E.PaymentReminderMessage.ReminderStatus
+	200, // 60: WAWebProtobufsE2E.PaymentReminderMessage.amount:type_name -> WAWebProtobufsE2E.Money
 	36,  // 61: WAWebProtobufsE2E.PaymentInviteMessage.serviceType:type_name -> WAWebProtobufsE2E.PaymentInviteMessage.ServiceType
 	35,  // 62: WAWebProtobufsE2E.PaymentInviteMessage.inviteType:type_name -> WAWebProtobufsE2E.PaymentInviteMessage.InviteType
 	235, // 63: WAWebProtobufsE2E.HighlyStructuredMessage.localizableParams:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter
@@ -26140,194 +26145,195 @@ var file_waE2E_WAWebProtobufsE2E_proto_depIdxs = []int32{
 	138, // 290: WAWebProtobufsE2E.Message.pollAddOptionMessage:type_name -> WAWebProtobufsE2E.PollAddOptionMessage
 	149, // 291: WAWebProtobufsE2E.Message.eventInviteMessage:type_name -> WAWebProtobufsE2E.EventInviteMessage
 	210, // 292: WAWebProtobufsE2E.Message.groupRootKeyShare:type_name -> WAWebProtobufsE2E.GroupRootKeyShare
-	100, // 293: WAWebProtobufsE2E.Message.p2PPaymentReminderNotification:type_name -> WAWebProtobufsE2E.P2PPaymentReminderNotification
+	100, // 293: WAWebProtobufsE2E.Message.paymentReminderMessage:type_name -> WAWebProtobufsE2E.PaymentReminderMessage
 	157, // 294: WAWebProtobufsE2E.Message.splitPaymentMessage:type_name -> WAWebProtobufsE2E.SplitPaymentMessage
-	115, // 295: WAWebProtobufsE2E.AlbumMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 296: WAWebProtobufsE2E.MessageHistoryNotice.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	126, // 297: WAWebProtobufsE2E.MessageHistoryNotice.messageHistoryMetadata:type_name -> WAWebProtobufsE2E.MessageHistoryMetadata
-	115, // 298: WAWebProtobufsE2E.MessageHistoryBundle.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	126, // 299: WAWebProtobufsE2E.MessageHistoryBundle.messageHistoryMetadata:type_name -> WAWebProtobufsE2E.MessageHistoryMetadata
-	296, // 300: WAWebProtobufsE2E.EncEventResponseMessage.eventCreationMessageKey:type_name -> WACommon.MessageKey
-	115, // 301: WAWebProtobufsE2E.EventMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	187, // 302: WAWebProtobufsE2E.EventMessage.location:type_name -> WAWebProtobufsE2E.LocationMessage
-	124, // 303: WAWebProtobufsE2E.CommentMessage.message:type_name -> WAWebProtobufsE2E.Message
-	296, // 304: WAWebProtobufsE2E.CommentMessage.targetMessageKey:type_name -> WACommon.MessageKey
-	296, // 305: WAWebProtobufsE2E.EncCommentMessage.targetMessageKey:type_name -> WACommon.MessageKey
-	296, // 306: WAWebProtobufsE2E.EncReactionMessage.targetMessageKey:type_name -> WACommon.MessageKey
-	296, // 307: WAWebProtobufsE2E.KeepInChatMessage.key:type_name -> WACommon.MessageKey
-	7,   // 308: WAWebProtobufsE2E.KeepInChatMessage.keepType:type_name -> WAWebProtobufsE2E.KeepType
-	296, // 309: WAWebProtobufsE2E.QuestionResponseMessage.key:type_name -> WACommon.MessageKey
-	296, // 310: WAWebProtobufsE2E.StatusQuestionAnswerMessage.key:type_name -> WACommon.MessageKey
-	286, // 311: WAWebProtobufsE2E.PollResultSnapshotMessage.pollVotes:type_name -> WAWebProtobufsE2E.PollResultSnapshotMessage.PollVote
-	115, // 312: WAWebProtobufsE2E.PollResultSnapshotMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	0,   // 313: WAWebProtobufsE2E.PollResultSnapshotMessage.pollType:type_name -> WAWebProtobufsE2E.PollType
-	296, // 314: WAWebProtobufsE2E.PollAddOptionMessage.pollCreationMessageKey:type_name -> WACommon.MessageKey
-	287, // 315: WAWebProtobufsE2E.PollAddOptionMessage.addOption:type_name -> WAWebProtobufsE2E.PollCreationMessage.Option
-	296, // 316: WAWebProtobufsE2E.PollUpdateMessage.pollCreationMessageKey:type_name -> WACommon.MessageKey
-	140, // 317: WAWebProtobufsE2E.PollUpdateMessage.vote:type_name -> WAWebProtobufsE2E.PollEncValue
-	141, // 318: WAWebProtobufsE2E.PollUpdateMessage.metadata:type_name -> WAWebProtobufsE2E.PollUpdateMessageMetadata
-	287, // 319: WAWebProtobufsE2E.PollCreationMessage.options:type_name -> WAWebProtobufsE2E.PollCreationMessage.Option
-	115, // 320: WAWebProtobufsE2E.PollCreationMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	1,   // 321: WAWebProtobufsE2E.PollCreationMessage.pollContentType:type_name -> WAWebProtobufsE2E.PollContentType
-	0,   // 322: WAWebProtobufsE2E.PollCreationMessage.pollType:type_name -> WAWebProtobufsE2E.PollType
-	287, // 323: WAWebProtobufsE2E.PollCreationMessage.correctAnswer:type_name -> WAWebProtobufsE2E.PollCreationMessage.Option
-	296, // 324: WAWebProtobufsE2E.ReactionMessage.key:type_name -> WACommon.MessageKey
-	124, // 325: WAWebProtobufsE2E.FutureProofMessage.message:type_name -> WAWebProtobufsE2E.Message
-	124, // 326: WAWebProtobufsE2E.DeviceSentMessage.message:type_name -> WAWebProtobufsE2E.Message
-	115, // 327: WAWebProtobufsE2E.RequestPhoneNumberMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 328: WAWebProtobufsE2E.EventInviteMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 329: WAWebProtobufsE2E.NewsletterFollowerInviteMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 330: WAWebProtobufsE2E.NewsletterAdminInviteMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	288, // 331: WAWebProtobufsE2E.ProductMessage.product:type_name -> WAWebProtobufsE2E.ProductMessage.ProductSnapshot
-	289, // 332: WAWebProtobufsE2E.ProductMessage.catalog:type_name -> WAWebProtobufsE2E.ProductMessage.CatalogSnapshot
-	115, // 333: WAWebProtobufsE2E.ProductMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 334: WAWebProtobufsE2E.TemplateButtonReplyMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	291, // 335: WAWebProtobufsE2E.TemplateMessage.fourRowTemplate:type_name -> WAWebProtobufsE2E.TemplateMessage.FourRowTemplate
-	290, // 336: WAWebProtobufsE2E.TemplateMessage.hydratedFourRowTemplate:type_name -> WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate
-	94,  // 337: WAWebProtobufsE2E.TemplateMessage.interactiveMessageTemplate:type_name -> WAWebProtobufsE2E.InteractiveMessage
-	115, // 338: WAWebProtobufsE2E.TemplateMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	290, // 339: WAWebProtobufsE2E.TemplateMessage.hydratedTemplate:type_name -> WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate
-	115, // 340: WAWebProtobufsE2E.StickerMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 341: WAWebProtobufsE2E.LiveLocationMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	200, // 342: WAWebProtobufsE2E.SplitPaymentMessage.totalAmount:type_name -> WAWebProtobufsE2E.Money
-	99,  // 343: WAWebProtobufsE2E.SplitPaymentMessage.participants:type_name -> WAWebProtobufsE2E.SplitPaymentParticipant
-	115, // 344: WAWebProtobufsE2E.SplitPaymentMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	296, // 345: WAWebProtobufsE2E.CancelPaymentRequestMessage.key:type_name -> WACommon.MessageKey
-	296, // 346: WAWebProtobufsE2E.DeclinePaymentRequestMessage.key:type_name -> WACommon.MessageKey
-	124, // 347: WAWebProtobufsE2E.RequestPaymentMessage.noteMessage:type_name -> WAWebProtobufsE2E.Message
-	200, // 348: WAWebProtobufsE2E.RequestPaymentMessage.amount:type_name -> WAWebProtobufsE2E.Money
-	121, // 349: WAWebProtobufsE2E.RequestPaymentMessage.background:type_name -> WAWebProtobufsE2E.PaymentBackground
-	124, // 350: WAWebProtobufsE2E.SendPaymentMessage.noteMessage:type_name -> WAWebProtobufsE2E.Message
-	296, // 351: WAWebProtobufsE2E.SendPaymentMessage.requestMessageKey:type_name -> WACommon.MessageKey
-	121, // 352: WAWebProtobufsE2E.SendPaymentMessage.background:type_name -> WAWebProtobufsE2E.PaymentBackground
-	188, // 353: WAWebProtobufsE2E.ContactsArrayMessage.contacts:type_name -> WAWebProtobufsE2E.ContactMessage
-	115, // 354: WAWebProtobufsE2E.ContactsArrayMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	171, // 355: WAWebProtobufsE2E.AppStateSyncKeyRequest.keyIDs:type_name -> WAWebProtobufsE2E.AppStateSyncKeyId
-	172, // 356: WAWebProtobufsE2E.AppStateSyncKeyShare.keys:type_name -> WAWebProtobufsE2E.AppStateSyncKey
-	170, // 357: WAWebProtobufsE2E.AppStateSyncKeyData.fingerprint:type_name -> WAWebProtobufsE2E.AppStateSyncKeyFingerprint
-	171, // 358: WAWebProtobufsE2E.AppStateSyncKey.keyID:type_name -> WAWebProtobufsE2E.AppStateSyncKeyId
-	169, // 359: WAWebProtobufsE2E.AppStateSyncKey.keyData:type_name -> WAWebProtobufsE2E.AppStateSyncKeyData
-	4,   // 360: WAWebProtobufsE2E.HistorySyncNotification.syncType:type_name -> WAWebProtobufsE2E.HistorySyncType
-	165, // 361: WAWebProtobufsE2E.HistorySyncNotification.fullHistorySyncOnDemandRequestMetadata:type_name -> WAWebProtobufsE2E.FullHistorySyncOnDemandRequestMetadata
-	174, // 362: WAWebProtobufsE2E.HistorySyncNotification.messageAccessStatus:type_name -> WAWebProtobufsE2E.HistorySyncMessageAccessStatus
-	177, // 363: WAWebProtobufsE2E.ChatThemeSetting.defaultWallpaper:type_name -> WAWebProtobufsE2E.ChatDefaultWallpaper
-	176, // 364: WAWebProtobufsE2E.ChatThemeSetting.solidColor:type_name -> WAWebProtobufsE2E.ChatSolidColorWallpaper
-	175, // 365: WAWebProtobufsE2E.ChatThemeSetting.stockImage:type_name -> WAWebProtobufsE2E.ChatStockImageWallpaper
-	178, // 366: WAWebProtobufsE2E.ChatThemeSetting.customImage:type_name -> WAWebProtobufsE2E.ChatCustomImageWallpaper
-	115, // 367: WAWebProtobufsE2E.Call.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	118, // 368: WAWebProtobufsE2E.Call.messageContextInfo:type_name -> WAWebProtobufsE2E.MessageContextInfo
-	115, // 369: WAWebProtobufsE2E.AudioMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 370: WAWebProtobufsE2E.DocumentMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 371: WAWebProtobufsE2E.LocationMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	115, // 372: WAWebProtobufsE2E.ContactMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	5,   // 373: WAWebProtobufsE2E.MediaDomainInfo.mediaKeyDomain:type_name -> WAWebProtobufsE2E.MediaKeyDomain
-	305, // 374: WAWebProtobufsE2E.DeviceListMetadata.senderAccountType:type_name -> WAAdv.ADVEncryptionType
-	305, // 375: WAWebProtobufsE2E.DeviceListMetadata.receiverAccountType:type_name -> WAAdv.ADVEncryptionType
-	124, // 376: WAWebProtobufsE2E.EmbeddedMessage.message:type_name -> WAWebProtobufsE2E.Message
-	193, // 377: WAWebProtobufsE2E.EmbeddedContent.embeddedMessage:type_name -> WAWebProtobufsE2E.EmbeddedMessage
-	194, // 378: WAWebProtobufsE2E.EmbeddedContent.embeddedMusic:type_name -> WAWebProtobufsE2E.EmbeddedMusic
-	294, // 379: WAWebProtobufsE2E.TemplateButton.quickReplyButton:type_name -> WAWebProtobufsE2E.TemplateButton.QuickReplyButton
-	293, // 380: WAWebProtobufsE2E.TemplateButton.urlButton:type_name -> WAWebProtobufsE2E.TemplateButton.URLButton
-	292, // 381: WAWebProtobufsE2E.TemplateButton.callButton:type_name -> WAWebProtobufsE2E.TemplateButton.CallButton
-	295, // 382: WAWebProtobufsE2E.UrlTrackingMap.urlTrackingMapElements:type_name -> WAWebProtobufsE2E.UrlTrackingMap.UrlTrackingMapElement
-	306, // 383: WAWebProtobufsE2E.AIRichResponseMessage.messageType:type_name -> WAAICommonDeprecated.AIRichResponseMessageType
-	307, // 384: WAWebProtobufsE2E.AIRichResponseMessage.submessages:type_name -> WAAICommonDeprecated.AIRichResponseSubMessage
-	308, // 385: WAWebProtobufsE2E.AIRichResponseMessage.unifiedResponse:type_name -> WAWebProtobufsAICommon.AIRichResponseUnifiedResponse
-	115, // 386: WAWebProtobufsE2E.AIRichResponseMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
-	296, // 387: WAWebProtobufsE2E.AIQueryFanout.messageKey:type_name -> WACommon.MessageKey
-	124, // 388: WAWebProtobufsE2E.AIQueryFanout.message:type_name -> WAWebProtobufsE2E.Message
-	211, // 389: WAWebProtobufsE2E.GroupRootKeyShare.keys:type_name -> WAWebProtobufsE2E.GroupRootKeyShareEntry
-	11,  // 390: WAWebProtobufsE2E.CallLogMessage.CallParticipant.callOutcome:type_name -> WAWebProtobufsE2E.CallLogMessage.CallOutcome
-	216, // 391: WAWebProtobufsE2E.ButtonsMessage.Button.buttonText:type_name -> WAWebProtobufsE2E.ButtonsMessage.Button.ButtonText
-	20,  // 392: WAWebProtobufsE2E.ButtonsMessage.Button.type:type_name -> WAWebProtobufsE2E.ButtonsMessage.Button.Type
-	215, // 393: WAWebProtobufsE2E.ButtonsMessage.Button.nativeFlowInfo:type_name -> WAWebProtobufsE2E.ButtonsMessage.Button.NativeFlowInfo
-	24,  // 394: WAWebProtobufsE2E.InteractiveResponseMessage.Body.format:type_name -> WAWebProtobufsE2E.InteractiveResponseMessage.Body.Format
-	94,  // 395: WAWebProtobufsE2E.InteractiveMessage.CarouselMessage.cards:type_name -> WAWebProtobufsE2E.InteractiveMessage
-	25,  // 396: WAWebProtobufsE2E.InteractiveMessage.CarouselMessage.carouselCardType:type_name -> WAWebProtobufsE2E.InteractiveMessage.CarouselMessage.CarouselCardType
-	26,  // 397: WAWebProtobufsE2E.InteractiveMessage.ShopMessage.surface:type_name -> WAWebProtobufsE2E.InteractiveMessage.ShopMessage.Surface
-	227, // 398: WAWebProtobufsE2E.InteractiveMessage.NativeFlowMessage.buttons:type_name -> WAWebProtobufsE2E.InteractiveMessage.NativeFlowMessage.NativeFlowButton
-	182, // 399: WAWebProtobufsE2E.InteractiveMessage.Footer.audioMessage:type_name -> WAWebProtobufsE2E.AudioMessage
-	183, // 400: WAWebProtobufsE2E.InteractiveMessage.Header.documentMessage:type_name -> WAWebProtobufsE2E.DocumentMessage
-	114, // 401: WAWebProtobufsE2E.InteractiveMessage.Header.imageMessage:type_name -> WAWebProtobufsE2E.ImageMessage
-	108, // 402: WAWebProtobufsE2E.InteractiveMessage.Header.videoMessage:type_name -> WAWebProtobufsE2E.VideoMessage
-	187, // 403: WAWebProtobufsE2E.InteractiveMessage.Header.locationMessage:type_name -> WAWebProtobufsE2E.LocationMessage
-	152, // 404: WAWebProtobufsE2E.InteractiveMessage.Header.productMessage:type_name -> WAWebProtobufsE2E.ProductMessage
-	223, // 405: WAWebProtobufsE2E.InteractiveMessage.Header.bloksWidget:type_name -> WAWebProtobufsE2E.InteractiveMessage.BloksWidget
-	231, // 406: WAWebProtobufsE2E.ListMessage.ProductListInfo.productSections:type_name -> WAWebProtobufsE2E.ListMessage.ProductSection
-	230, // 407: WAWebProtobufsE2E.ListMessage.ProductListInfo.headerImage:type_name -> WAWebProtobufsE2E.ListMessage.ProductListHeaderImage
-	232, // 408: WAWebProtobufsE2E.ListMessage.ProductSection.products:type_name -> WAWebProtobufsE2E.ListMessage.Product
-	234, // 409: WAWebProtobufsE2E.ListMessage.Section.rows:type_name -> WAWebProtobufsE2E.ListMessage.Row
-	237, // 410: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.currency:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMCurrency
-	236, // 411: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.dateTime:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime
-	238, // 412: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.component:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent
-	239, // 413: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.unixEpoch:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeUnixEpoch
-	38,  // 414: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.dayOfWeek:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.DayOfWeekType
-	37,  // 415: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.calendar:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.CalendarType
-	309, // 416: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.mediaUploadResult:type_name -> WAMmsRetry.MediaRetryNotification.ResultType
-	155, // 417: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.stickerMessage:type_name -> WAWebProtobufsE2E.StickerMessage
-	251, // 418: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.linkPreviewResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse
-	250, // 419: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.placeholderMessageResendResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.PlaceholderMessageResendResponse
-	248, // 420: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.waffleNonceFetchRequestResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.WaffleNonceFetchResponse
-	249, // 421: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.fullHistorySyncOnDemandRequestResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FullHistorySyncOnDemandRequestResponse
-	247, // 422: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.companionMetaNonceFetchRequestResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.CompanionMetaNonceFetchResponse
-	245, // 423: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.syncdSnapshotFatalRecoveryResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.SyncDSnapshotFatalRecoveryResponse
-	246, // 424: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.companionCanonicalUserNonceFetchRequestResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.CompanionCanonicalUserNonceFetchResponse
-	244, // 425: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.historySyncChunkRetryResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.HistorySyncChunkRetryResponse
-	241, // 426: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.flowResponsesCsvBundle:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FlowResponsesCsvBundle
-	242, // 427: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.bizBroadcastInsightsContactListResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.BizBroadcastInsightsContactListResponse
-	243, // 428: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.BizBroadcastInsightsContactListResponse.contacts:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.BizBroadcastInsightsContactState
-	2,   // 429: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.BizBroadcastInsightsContactState.state:type_name -> WAWebProtobufsE2E.InsightDeliveryState
-	4,   // 430: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.HistorySyncChunkRetryResponse.syncType:type_name -> WAWebProtobufsE2E.HistorySyncType
-	39,  // 431: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.HistorySyncChunkRetryResponse.responseCode:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.HistorySyncChunkRetryResponseCode
-	165, // 432: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FullHistorySyncOnDemandRequestResponse.requestMetadata:type_name -> WAWebProtobufsE2E.FullHistorySyncOnDemandRequestMetadata
-	40,  // 433: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FullHistorySyncOnDemandRequestResponse.responseCode:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FullHistorySyncOnDemandResponseCode
-	253, // 434: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.hqThumbnail:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.LinkPreviewHighQualityThumbnail
-	252, // 435: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.previewMetadata:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.PaymentLinkPreviewMetadata
-	41,  // 436: WAWebProtobufsE2E.PeerDataOperationRequestMessage.GalaxyFlowAction.type:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestMessage.GalaxyFlowAction.GalaxyFlowActionType
-	4,   // 437: WAWebProtobufsE2E.PeerDataOperationRequestMessage.HistorySyncChunkRetryRequest.syncType:type_name -> WAWebProtobufsE2E.HistorySyncType
-	296, // 438: WAWebProtobufsE2E.PeerDataOperationRequestMessage.PlaceholderMessageResendRequest.messageKey:type_name -> WACommon.MessageKey
-	165, // 439: WAWebProtobufsE2E.PeerDataOperationRequestMessage.FullHistorySyncOnDemandRequest.requestMetadata:type_name -> WAWebProtobufsE2E.FullHistorySyncOnDemandRequestMetadata
-	310, // 440: WAWebProtobufsE2E.PeerDataOperationRequestMessage.FullHistorySyncOnDemandRequest.historySyncConfig:type_name -> WACompanionReg.DeviceProps.HistorySyncConfig
-	164, // 441: WAWebProtobufsE2E.PeerDataOperationRequestMessage.FullHistorySyncOnDemandRequest.fullHistorySyncOnDemandConfig:type_name -> WAWebProtobufsE2E.FullHistorySyncOnDemandConfig
-	52,  // 442: WAWebProtobufsE2E.PaymentLinkMetadata.PaymentLinkHeader.headerType:type_name -> WAWebProtobufsE2E.PaymentLinkMetadata.PaymentLinkHeader.PaymentLinkHeaderType
-	280, // 443: WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.pills:type_name -> WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.Pill
-	62,  // 444: WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.entryPoint:type_name -> WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.EntryPoint
-	64,  // 445: WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadata.audienceType:type_name -> WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadata.AudienceType
-	281, // 446: WAWebProtobufsE2E.ContextInfo.DataSharingContext.parameters:type_name -> WAWebProtobufsE2E.ContextInfo.DataSharingContext.Parameters
-	66,  // 447: WAWebProtobufsE2E.ContextInfo.ForwardedNewsletterMessageInfo.contentType:type_name -> WAWebProtobufsE2E.ContextInfo.ForwardedNewsletterMessageInfo.ContentType
-	68,  // 448: WAWebProtobufsE2E.ContextInfo.ExternalAdReplyInfo.mediaType:type_name -> WAWebProtobufsE2E.ContextInfo.ExternalAdReplyInfo.MediaType
-	67,  // 449: WAWebProtobufsE2E.ContextInfo.ExternalAdReplyInfo.adType:type_name -> WAWebProtobufsE2E.ContextInfo.ExternalAdReplyInfo.AdType
-	69,  // 450: WAWebProtobufsE2E.ContextInfo.AdReplyInfo.mediaType:type_name -> WAWebProtobufsE2E.ContextInfo.AdReplyInfo.MediaType
-	124, // 451: WAWebProtobufsE2E.ContextInfo.QuestionReplyQuotedMessage.quotedQuestion:type_name -> WAWebProtobufsE2E.Message
-	124, // 452: WAWebProtobufsE2E.ContextInfo.QuestionReplyQuotedMessage.quotedResponse:type_name -> WAWebProtobufsE2E.Message
-	63,  // 453: WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.Pill.pillType:type_name -> WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.PillType
-	281, // 454: WAWebProtobufsE2E.ContextInfo.DataSharingContext.Parameters.contents:type_name -> WAWebProtobufsE2E.ContextInfo.DataSharingContext.Parameters
-	74,  // 455: WAWebProtobufsE2E.HydratedTemplateButton.HydratedURLButton.webviewPresentation:type_name -> WAWebProtobufsE2E.HydratedTemplateButton.HydratedURLButton.WebviewPresentationType
-	114, // 456: WAWebProtobufsE2E.ProductMessage.ProductSnapshot.productImage:type_name -> WAWebProtobufsE2E.ImageMessage
-	114, // 457: WAWebProtobufsE2E.ProductMessage.CatalogSnapshot.catalogImage:type_name -> WAWebProtobufsE2E.ImageMessage
-	183, // 458: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.documentMessage:type_name -> WAWebProtobufsE2E.DocumentMessage
-	114, // 459: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.imageMessage:type_name -> WAWebProtobufsE2E.ImageMessage
-	108, // 460: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.videoMessage:type_name -> WAWebProtobufsE2E.VideoMessage
-	187, // 461: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.locationMessage:type_name -> WAWebProtobufsE2E.LocationMessage
-	120, // 462: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.hydratedButtons:type_name -> WAWebProtobufsE2E.HydratedTemplateButton
-	183, // 463: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.documentMessage:type_name -> WAWebProtobufsE2E.DocumentMessage
-	102, // 464: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.highlyStructuredMessage:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
-	114, // 465: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.imageMessage:type_name -> WAWebProtobufsE2E.ImageMessage
-	108, // 466: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.videoMessage:type_name -> WAWebProtobufsE2E.VideoMessage
-	187, // 467: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.locationMessage:type_name -> WAWebProtobufsE2E.LocationMessage
-	102, // 468: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.content:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
-	102, // 469: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.footer:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
-	199, // 470: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.buttons:type_name -> WAWebProtobufsE2E.TemplateButton
-	102, // 471: WAWebProtobufsE2E.TemplateButton.CallButton.displayText:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
-	102, // 472: WAWebProtobufsE2E.TemplateButton.CallButton.phoneNumber:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
-	102, // 473: WAWebProtobufsE2E.TemplateButton.URLButton.displayText:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
-	102, // 474: WAWebProtobufsE2E.TemplateButton.URLButton.URL:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
-	102, // 475: WAWebProtobufsE2E.TemplateButton.QuickReplyButton.displayText:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
-	476, // [476:476] is the sub-list for method output_type
-	476, // [476:476] is the sub-list for method input_type
-	476, // [476:476] is the sub-list for extension type_name
-	476, // [476:476] is the sub-list for extension extendee
-	0,   // [0:476] is the sub-list for field type_name
+	146, // 295: WAWebProtobufsE2E.Message.newsletterAdminProfileStatusMessage:type_name -> WAWebProtobufsE2E.FutureProofMessage
+	115, // 296: WAWebProtobufsE2E.AlbumMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 297: WAWebProtobufsE2E.MessageHistoryNotice.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	126, // 298: WAWebProtobufsE2E.MessageHistoryNotice.messageHistoryMetadata:type_name -> WAWebProtobufsE2E.MessageHistoryMetadata
+	115, // 299: WAWebProtobufsE2E.MessageHistoryBundle.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	126, // 300: WAWebProtobufsE2E.MessageHistoryBundle.messageHistoryMetadata:type_name -> WAWebProtobufsE2E.MessageHistoryMetadata
+	296, // 301: WAWebProtobufsE2E.EncEventResponseMessage.eventCreationMessageKey:type_name -> WACommon.MessageKey
+	115, // 302: WAWebProtobufsE2E.EventMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	187, // 303: WAWebProtobufsE2E.EventMessage.location:type_name -> WAWebProtobufsE2E.LocationMessage
+	124, // 304: WAWebProtobufsE2E.CommentMessage.message:type_name -> WAWebProtobufsE2E.Message
+	296, // 305: WAWebProtobufsE2E.CommentMessage.targetMessageKey:type_name -> WACommon.MessageKey
+	296, // 306: WAWebProtobufsE2E.EncCommentMessage.targetMessageKey:type_name -> WACommon.MessageKey
+	296, // 307: WAWebProtobufsE2E.EncReactionMessage.targetMessageKey:type_name -> WACommon.MessageKey
+	296, // 308: WAWebProtobufsE2E.KeepInChatMessage.key:type_name -> WACommon.MessageKey
+	7,   // 309: WAWebProtobufsE2E.KeepInChatMessage.keepType:type_name -> WAWebProtobufsE2E.KeepType
+	296, // 310: WAWebProtobufsE2E.QuestionResponseMessage.key:type_name -> WACommon.MessageKey
+	296, // 311: WAWebProtobufsE2E.StatusQuestionAnswerMessage.key:type_name -> WACommon.MessageKey
+	286, // 312: WAWebProtobufsE2E.PollResultSnapshotMessage.pollVotes:type_name -> WAWebProtobufsE2E.PollResultSnapshotMessage.PollVote
+	115, // 313: WAWebProtobufsE2E.PollResultSnapshotMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	0,   // 314: WAWebProtobufsE2E.PollResultSnapshotMessage.pollType:type_name -> WAWebProtobufsE2E.PollType
+	296, // 315: WAWebProtobufsE2E.PollAddOptionMessage.pollCreationMessageKey:type_name -> WACommon.MessageKey
+	287, // 316: WAWebProtobufsE2E.PollAddOptionMessage.addOption:type_name -> WAWebProtobufsE2E.PollCreationMessage.Option
+	296, // 317: WAWebProtobufsE2E.PollUpdateMessage.pollCreationMessageKey:type_name -> WACommon.MessageKey
+	140, // 318: WAWebProtobufsE2E.PollUpdateMessage.vote:type_name -> WAWebProtobufsE2E.PollEncValue
+	141, // 319: WAWebProtobufsE2E.PollUpdateMessage.metadata:type_name -> WAWebProtobufsE2E.PollUpdateMessageMetadata
+	287, // 320: WAWebProtobufsE2E.PollCreationMessage.options:type_name -> WAWebProtobufsE2E.PollCreationMessage.Option
+	115, // 321: WAWebProtobufsE2E.PollCreationMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	1,   // 322: WAWebProtobufsE2E.PollCreationMessage.pollContentType:type_name -> WAWebProtobufsE2E.PollContentType
+	0,   // 323: WAWebProtobufsE2E.PollCreationMessage.pollType:type_name -> WAWebProtobufsE2E.PollType
+	287, // 324: WAWebProtobufsE2E.PollCreationMessage.correctAnswer:type_name -> WAWebProtobufsE2E.PollCreationMessage.Option
+	296, // 325: WAWebProtobufsE2E.ReactionMessage.key:type_name -> WACommon.MessageKey
+	124, // 326: WAWebProtobufsE2E.FutureProofMessage.message:type_name -> WAWebProtobufsE2E.Message
+	124, // 327: WAWebProtobufsE2E.DeviceSentMessage.message:type_name -> WAWebProtobufsE2E.Message
+	115, // 328: WAWebProtobufsE2E.RequestPhoneNumberMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 329: WAWebProtobufsE2E.EventInviteMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 330: WAWebProtobufsE2E.NewsletterFollowerInviteMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 331: WAWebProtobufsE2E.NewsletterAdminInviteMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	288, // 332: WAWebProtobufsE2E.ProductMessage.product:type_name -> WAWebProtobufsE2E.ProductMessage.ProductSnapshot
+	289, // 333: WAWebProtobufsE2E.ProductMessage.catalog:type_name -> WAWebProtobufsE2E.ProductMessage.CatalogSnapshot
+	115, // 334: WAWebProtobufsE2E.ProductMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 335: WAWebProtobufsE2E.TemplateButtonReplyMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	291, // 336: WAWebProtobufsE2E.TemplateMessage.fourRowTemplate:type_name -> WAWebProtobufsE2E.TemplateMessage.FourRowTemplate
+	290, // 337: WAWebProtobufsE2E.TemplateMessage.hydratedFourRowTemplate:type_name -> WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate
+	94,  // 338: WAWebProtobufsE2E.TemplateMessage.interactiveMessageTemplate:type_name -> WAWebProtobufsE2E.InteractiveMessage
+	115, // 339: WAWebProtobufsE2E.TemplateMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	290, // 340: WAWebProtobufsE2E.TemplateMessage.hydratedTemplate:type_name -> WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate
+	115, // 341: WAWebProtobufsE2E.StickerMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 342: WAWebProtobufsE2E.LiveLocationMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	200, // 343: WAWebProtobufsE2E.SplitPaymentMessage.totalAmount:type_name -> WAWebProtobufsE2E.Money
+	99,  // 344: WAWebProtobufsE2E.SplitPaymentMessage.participants:type_name -> WAWebProtobufsE2E.SplitPaymentParticipant
+	115, // 345: WAWebProtobufsE2E.SplitPaymentMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	296, // 346: WAWebProtobufsE2E.CancelPaymentRequestMessage.key:type_name -> WACommon.MessageKey
+	296, // 347: WAWebProtobufsE2E.DeclinePaymentRequestMessage.key:type_name -> WACommon.MessageKey
+	124, // 348: WAWebProtobufsE2E.RequestPaymentMessage.noteMessage:type_name -> WAWebProtobufsE2E.Message
+	200, // 349: WAWebProtobufsE2E.RequestPaymentMessage.amount:type_name -> WAWebProtobufsE2E.Money
+	121, // 350: WAWebProtobufsE2E.RequestPaymentMessage.background:type_name -> WAWebProtobufsE2E.PaymentBackground
+	124, // 351: WAWebProtobufsE2E.SendPaymentMessage.noteMessage:type_name -> WAWebProtobufsE2E.Message
+	296, // 352: WAWebProtobufsE2E.SendPaymentMessage.requestMessageKey:type_name -> WACommon.MessageKey
+	121, // 353: WAWebProtobufsE2E.SendPaymentMessage.background:type_name -> WAWebProtobufsE2E.PaymentBackground
+	188, // 354: WAWebProtobufsE2E.ContactsArrayMessage.contacts:type_name -> WAWebProtobufsE2E.ContactMessage
+	115, // 355: WAWebProtobufsE2E.ContactsArrayMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	171, // 356: WAWebProtobufsE2E.AppStateSyncKeyRequest.keyIDs:type_name -> WAWebProtobufsE2E.AppStateSyncKeyId
+	172, // 357: WAWebProtobufsE2E.AppStateSyncKeyShare.keys:type_name -> WAWebProtobufsE2E.AppStateSyncKey
+	170, // 358: WAWebProtobufsE2E.AppStateSyncKeyData.fingerprint:type_name -> WAWebProtobufsE2E.AppStateSyncKeyFingerprint
+	171, // 359: WAWebProtobufsE2E.AppStateSyncKey.keyID:type_name -> WAWebProtobufsE2E.AppStateSyncKeyId
+	169, // 360: WAWebProtobufsE2E.AppStateSyncKey.keyData:type_name -> WAWebProtobufsE2E.AppStateSyncKeyData
+	4,   // 361: WAWebProtobufsE2E.HistorySyncNotification.syncType:type_name -> WAWebProtobufsE2E.HistorySyncType
+	165, // 362: WAWebProtobufsE2E.HistorySyncNotification.fullHistorySyncOnDemandRequestMetadata:type_name -> WAWebProtobufsE2E.FullHistorySyncOnDemandRequestMetadata
+	174, // 363: WAWebProtobufsE2E.HistorySyncNotification.messageAccessStatus:type_name -> WAWebProtobufsE2E.HistorySyncMessageAccessStatus
+	177, // 364: WAWebProtobufsE2E.ChatThemeSetting.defaultWallpaper:type_name -> WAWebProtobufsE2E.ChatDefaultWallpaper
+	176, // 365: WAWebProtobufsE2E.ChatThemeSetting.solidColor:type_name -> WAWebProtobufsE2E.ChatSolidColorWallpaper
+	175, // 366: WAWebProtobufsE2E.ChatThemeSetting.stockImage:type_name -> WAWebProtobufsE2E.ChatStockImageWallpaper
+	178, // 367: WAWebProtobufsE2E.ChatThemeSetting.customImage:type_name -> WAWebProtobufsE2E.ChatCustomImageWallpaper
+	115, // 368: WAWebProtobufsE2E.Call.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	118, // 369: WAWebProtobufsE2E.Call.messageContextInfo:type_name -> WAWebProtobufsE2E.MessageContextInfo
+	115, // 370: WAWebProtobufsE2E.AudioMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 371: WAWebProtobufsE2E.DocumentMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 372: WAWebProtobufsE2E.LocationMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	115, // 373: WAWebProtobufsE2E.ContactMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	5,   // 374: WAWebProtobufsE2E.MediaDomainInfo.mediaKeyDomain:type_name -> WAWebProtobufsE2E.MediaKeyDomain
+	305, // 375: WAWebProtobufsE2E.DeviceListMetadata.senderAccountType:type_name -> WAAdv.ADVEncryptionType
+	305, // 376: WAWebProtobufsE2E.DeviceListMetadata.receiverAccountType:type_name -> WAAdv.ADVEncryptionType
+	124, // 377: WAWebProtobufsE2E.EmbeddedMessage.message:type_name -> WAWebProtobufsE2E.Message
+	193, // 378: WAWebProtobufsE2E.EmbeddedContent.embeddedMessage:type_name -> WAWebProtobufsE2E.EmbeddedMessage
+	194, // 379: WAWebProtobufsE2E.EmbeddedContent.embeddedMusic:type_name -> WAWebProtobufsE2E.EmbeddedMusic
+	294, // 380: WAWebProtobufsE2E.TemplateButton.quickReplyButton:type_name -> WAWebProtobufsE2E.TemplateButton.QuickReplyButton
+	293, // 381: WAWebProtobufsE2E.TemplateButton.urlButton:type_name -> WAWebProtobufsE2E.TemplateButton.URLButton
+	292, // 382: WAWebProtobufsE2E.TemplateButton.callButton:type_name -> WAWebProtobufsE2E.TemplateButton.CallButton
+	295, // 383: WAWebProtobufsE2E.UrlTrackingMap.urlTrackingMapElements:type_name -> WAWebProtobufsE2E.UrlTrackingMap.UrlTrackingMapElement
+	306, // 384: WAWebProtobufsE2E.AIRichResponseMessage.messageType:type_name -> WAAICommonDeprecated.AIRichResponseMessageType
+	307, // 385: WAWebProtobufsE2E.AIRichResponseMessage.submessages:type_name -> WAAICommonDeprecated.AIRichResponseSubMessage
+	308, // 386: WAWebProtobufsE2E.AIRichResponseMessage.unifiedResponse:type_name -> WAWebProtobufsAICommon.AIRichResponseUnifiedResponse
+	115, // 387: WAWebProtobufsE2E.AIRichResponseMessage.contextInfo:type_name -> WAWebProtobufsE2E.ContextInfo
+	296, // 388: WAWebProtobufsE2E.AIQueryFanout.messageKey:type_name -> WACommon.MessageKey
+	124, // 389: WAWebProtobufsE2E.AIQueryFanout.message:type_name -> WAWebProtobufsE2E.Message
+	211, // 390: WAWebProtobufsE2E.GroupRootKeyShare.keys:type_name -> WAWebProtobufsE2E.GroupRootKeyShareEntry
+	11,  // 391: WAWebProtobufsE2E.CallLogMessage.CallParticipant.callOutcome:type_name -> WAWebProtobufsE2E.CallLogMessage.CallOutcome
+	216, // 392: WAWebProtobufsE2E.ButtonsMessage.Button.buttonText:type_name -> WAWebProtobufsE2E.ButtonsMessage.Button.ButtonText
+	20,  // 393: WAWebProtobufsE2E.ButtonsMessage.Button.type:type_name -> WAWebProtobufsE2E.ButtonsMessage.Button.Type
+	215, // 394: WAWebProtobufsE2E.ButtonsMessage.Button.nativeFlowInfo:type_name -> WAWebProtobufsE2E.ButtonsMessage.Button.NativeFlowInfo
+	24,  // 395: WAWebProtobufsE2E.InteractiveResponseMessage.Body.format:type_name -> WAWebProtobufsE2E.InteractiveResponseMessage.Body.Format
+	94,  // 396: WAWebProtobufsE2E.InteractiveMessage.CarouselMessage.cards:type_name -> WAWebProtobufsE2E.InteractiveMessage
+	25,  // 397: WAWebProtobufsE2E.InteractiveMessage.CarouselMessage.carouselCardType:type_name -> WAWebProtobufsE2E.InteractiveMessage.CarouselMessage.CarouselCardType
+	26,  // 398: WAWebProtobufsE2E.InteractiveMessage.ShopMessage.surface:type_name -> WAWebProtobufsE2E.InteractiveMessage.ShopMessage.Surface
+	227, // 399: WAWebProtobufsE2E.InteractiveMessage.NativeFlowMessage.buttons:type_name -> WAWebProtobufsE2E.InteractiveMessage.NativeFlowMessage.NativeFlowButton
+	182, // 400: WAWebProtobufsE2E.InteractiveMessage.Footer.audioMessage:type_name -> WAWebProtobufsE2E.AudioMessage
+	183, // 401: WAWebProtobufsE2E.InteractiveMessage.Header.documentMessage:type_name -> WAWebProtobufsE2E.DocumentMessage
+	114, // 402: WAWebProtobufsE2E.InteractiveMessage.Header.imageMessage:type_name -> WAWebProtobufsE2E.ImageMessage
+	108, // 403: WAWebProtobufsE2E.InteractiveMessage.Header.videoMessage:type_name -> WAWebProtobufsE2E.VideoMessage
+	187, // 404: WAWebProtobufsE2E.InteractiveMessage.Header.locationMessage:type_name -> WAWebProtobufsE2E.LocationMessage
+	152, // 405: WAWebProtobufsE2E.InteractiveMessage.Header.productMessage:type_name -> WAWebProtobufsE2E.ProductMessage
+	223, // 406: WAWebProtobufsE2E.InteractiveMessage.Header.bloksWidget:type_name -> WAWebProtobufsE2E.InteractiveMessage.BloksWidget
+	231, // 407: WAWebProtobufsE2E.ListMessage.ProductListInfo.productSections:type_name -> WAWebProtobufsE2E.ListMessage.ProductSection
+	230, // 408: WAWebProtobufsE2E.ListMessage.ProductListInfo.headerImage:type_name -> WAWebProtobufsE2E.ListMessage.ProductListHeaderImage
+	232, // 409: WAWebProtobufsE2E.ListMessage.ProductSection.products:type_name -> WAWebProtobufsE2E.ListMessage.Product
+	234, // 410: WAWebProtobufsE2E.ListMessage.Section.rows:type_name -> WAWebProtobufsE2E.ListMessage.Row
+	237, // 411: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.currency:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMCurrency
+	236, // 412: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.dateTime:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime
+	238, // 413: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.component:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent
+	239, // 414: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.unixEpoch:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeUnixEpoch
+	38,  // 415: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.dayOfWeek:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.DayOfWeekType
+	37,  // 416: WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.calendar:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage.HSMLocalizableParameter.HSMDateTime.HSMDateTimeComponent.CalendarType
+	309, // 417: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.mediaUploadResult:type_name -> WAMmsRetry.MediaRetryNotification.ResultType
+	155, // 418: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.stickerMessage:type_name -> WAWebProtobufsE2E.StickerMessage
+	251, // 419: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.linkPreviewResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse
+	250, // 420: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.placeholderMessageResendResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.PlaceholderMessageResendResponse
+	248, // 421: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.waffleNonceFetchRequestResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.WaffleNonceFetchResponse
+	249, // 422: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.fullHistorySyncOnDemandRequestResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FullHistorySyncOnDemandRequestResponse
+	247, // 423: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.companionMetaNonceFetchRequestResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.CompanionMetaNonceFetchResponse
+	245, // 424: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.syncdSnapshotFatalRecoveryResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.SyncDSnapshotFatalRecoveryResponse
+	246, // 425: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.companionCanonicalUserNonceFetchRequestResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.CompanionCanonicalUserNonceFetchResponse
+	244, // 426: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.historySyncChunkRetryResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.HistorySyncChunkRetryResponse
+	241, // 427: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.flowResponsesCsvBundle:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FlowResponsesCsvBundle
+	242, // 428: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.bizBroadcastInsightsContactListResponse:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.BizBroadcastInsightsContactListResponse
+	243, // 429: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.BizBroadcastInsightsContactListResponse.contacts:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.BizBroadcastInsightsContactState
+	2,   // 430: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.BizBroadcastInsightsContactState.state:type_name -> WAWebProtobufsE2E.InsightDeliveryState
+	4,   // 431: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.HistorySyncChunkRetryResponse.syncType:type_name -> WAWebProtobufsE2E.HistorySyncType
+	39,  // 432: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.HistorySyncChunkRetryResponse.responseCode:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.HistorySyncChunkRetryResponseCode
+	165, // 433: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FullHistorySyncOnDemandRequestResponse.requestMetadata:type_name -> WAWebProtobufsE2E.FullHistorySyncOnDemandRequestMetadata
+	40,  // 434: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FullHistorySyncOnDemandRequestResponse.responseCode:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.FullHistorySyncOnDemandResponseCode
+	253, // 435: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.hqThumbnail:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.LinkPreviewHighQualityThumbnail
+	252, // 436: WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.previewMetadata:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResult.LinkPreviewResponse.PaymentLinkPreviewMetadata
+	41,  // 437: WAWebProtobufsE2E.PeerDataOperationRequestMessage.GalaxyFlowAction.type:type_name -> WAWebProtobufsE2E.PeerDataOperationRequestMessage.GalaxyFlowAction.GalaxyFlowActionType
+	4,   // 438: WAWebProtobufsE2E.PeerDataOperationRequestMessage.HistorySyncChunkRetryRequest.syncType:type_name -> WAWebProtobufsE2E.HistorySyncType
+	296, // 439: WAWebProtobufsE2E.PeerDataOperationRequestMessage.PlaceholderMessageResendRequest.messageKey:type_name -> WACommon.MessageKey
+	165, // 440: WAWebProtobufsE2E.PeerDataOperationRequestMessage.FullHistorySyncOnDemandRequest.requestMetadata:type_name -> WAWebProtobufsE2E.FullHistorySyncOnDemandRequestMetadata
+	310, // 441: WAWebProtobufsE2E.PeerDataOperationRequestMessage.FullHistorySyncOnDemandRequest.historySyncConfig:type_name -> WACompanionReg.DeviceProps.HistorySyncConfig
+	164, // 442: WAWebProtobufsE2E.PeerDataOperationRequestMessage.FullHistorySyncOnDemandRequest.fullHistorySyncOnDemandConfig:type_name -> WAWebProtobufsE2E.FullHistorySyncOnDemandConfig
+	52,  // 443: WAWebProtobufsE2E.PaymentLinkMetadata.PaymentLinkHeader.headerType:type_name -> WAWebProtobufsE2E.PaymentLinkMetadata.PaymentLinkHeader.PaymentLinkHeaderType
+	280, // 444: WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.pills:type_name -> WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.Pill
+	62,  // 445: WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.entryPoint:type_name -> WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.EntryPoint
+	64,  // 446: WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadata.audienceType:type_name -> WAWebProtobufsE2E.ContextInfo.StatusAudienceMetadata.AudienceType
+	281, // 447: WAWebProtobufsE2E.ContextInfo.DataSharingContext.parameters:type_name -> WAWebProtobufsE2E.ContextInfo.DataSharingContext.Parameters
+	66,  // 448: WAWebProtobufsE2E.ContextInfo.ForwardedNewsletterMessageInfo.contentType:type_name -> WAWebProtobufsE2E.ContextInfo.ForwardedNewsletterMessageInfo.ContentType
+	68,  // 449: WAWebProtobufsE2E.ContextInfo.ExternalAdReplyInfo.mediaType:type_name -> WAWebProtobufsE2E.ContextInfo.ExternalAdReplyInfo.MediaType
+	67,  // 450: WAWebProtobufsE2E.ContextInfo.ExternalAdReplyInfo.adType:type_name -> WAWebProtobufsE2E.ContextInfo.ExternalAdReplyInfo.AdType
+	69,  // 451: WAWebProtobufsE2E.ContextInfo.AdReplyInfo.mediaType:type_name -> WAWebProtobufsE2E.ContextInfo.AdReplyInfo.MediaType
+	124, // 452: WAWebProtobufsE2E.ContextInfo.QuestionReplyQuotedMessage.quotedQuestion:type_name -> WAWebProtobufsE2E.Message
+	124, // 453: WAWebProtobufsE2E.ContextInfo.QuestionReplyQuotedMessage.quotedResponse:type_name -> WAWebProtobufsE2E.Message
+	63,  // 454: WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.Pill.pillType:type_name -> WAWebProtobufsE2E.ContextInfo.BusinessInteractionPills.PillType
+	281, // 455: WAWebProtobufsE2E.ContextInfo.DataSharingContext.Parameters.contents:type_name -> WAWebProtobufsE2E.ContextInfo.DataSharingContext.Parameters
+	74,  // 456: WAWebProtobufsE2E.HydratedTemplateButton.HydratedURLButton.webviewPresentation:type_name -> WAWebProtobufsE2E.HydratedTemplateButton.HydratedURLButton.WebviewPresentationType
+	114, // 457: WAWebProtobufsE2E.ProductMessage.ProductSnapshot.productImage:type_name -> WAWebProtobufsE2E.ImageMessage
+	114, // 458: WAWebProtobufsE2E.ProductMessage.CatalogSnapshot.catalogImage:type_name -> WAWebProtobufsE2E.ImageMessage
+	183, // 459: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.documentMessage:type_name -> WAWebProtobufsE2E.DocumentMessage
+	114, // 460: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.imageMessage:type_name -> WAWebProtobufsE2E.ImageMessage
+	108, // 461: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.videoMessage:type_name -> WAWebProtobufsE2E.VideoMessage
+	187, // 462: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.locationMessage:type_name -> WAWebProtobufsE2E.LocationMessage
+	120, // 463: WAWebProtobufsE2E.TemplateMessage.HydratedFourRowTemplate.hydratedButtons:type_name -> WAWebProtobufsE2E.HydratedTemplateButton
+	183, // 464: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.documentMessage:type_name -> WAWebProtobufsE2E.DocumentMessage
+	102, // 465: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.highlyStructuredMessage:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
+	114, // 466: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.imageMessage:type_name -> WAWebProtobufsE2E.ImageMessage
+	108, // 467: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.videoMessage:type_name -> WAWebProtobufsE2E.VideoMessage
+	187, // 468: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.locationMessage:type_name -> WAWebProtobufsE2E.LocationMessage
+	102, // 469: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.content:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
+	102, // 470: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.footer:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
+	199, // 471: WAWebProtobufsE2E.TemplateMessage.FourRowTemplate.buttons:type_name -> WAWebProtobufsE2E.TemplateButton
+	102, // 472: WAWebProtobufsE2E.TemplateButton.CallButton.displayText:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
+	102, // 473: WAWebProtobufsE2E.TemplateButton.CallButton.phoneNumber:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
+	102, // 474: WAWebProtobufsE2E.TemplateButton.URLButton.displayText:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
+	102, // 475: WAWebProtobufsE2E.TemplateButton.URLButton.URL:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
+	102, // 476: WAWebProtobufsE2E.TemplateButton.QuickReplyButton.displayText:type_name -> WAWebProtobufsE2E.HighlyStructuredMessage
+	477, // [477:477] is the sub-list for method output_type
+	477, // [477:477] is the sub-list for method input_type
+	477, // [477:477] is the sub-list for extension type_name
+	477, // [477:477] is the sub-list for extension extendee
+	0,   // [0:477] is the sub-list for field type_name
 }
 
 func init() { file_waE2E_WAWebProtobufsE2E_proto_init() }
