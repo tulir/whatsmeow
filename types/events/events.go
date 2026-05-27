@@ -278,6 +278,21 @@ type UndecryptableMessage struct {
 	DecryptFailMode DecryptFailMode
 }
 
+// UndecryptedMessage is emitted instead of attempting decryption when
+// [Client.DisabledFeatures.Signal] is set. The library does not call into
+// the Signal session machinery and does not ack the stanza; the downstream
+// system that owns the Signal session is responsible for ack'ing once it
+// has processed the envelope.
+//
+// Unlike [UndecryptableMessage], this is not an error: decryption was
+// intentionally skipped.
+type UndecryptedMessage struct {
+	Info types.MessageInfo
+	// Raw is the full <message> stanza including all <enc> children.
+	// Forward it verbatim to the downstream Signal session owner.
+	Raw *waBinary.Node
+}
+
 type NewsletterMessageMeta struct {
 	// When a newsletter message is edited, the message isn't wrapped in an EditedMessage like normal messages.
 	// Instead, the message is the new content, the ID is the original message ID, and the edit timestamp is here.
