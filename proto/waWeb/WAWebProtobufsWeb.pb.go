@@ -1365,6 +1365,7 @@ const (
 	GroupHistoryBundleInfo_INJECTED_PARTIAL          GroupHistoryBundleInfo_ProcessState = 2
 	GroupHistoryBundleInfo_INJECTION_FAILED          GroupHistoryBundleInfo_ProcessState = 3
 	GroupHistoryBundleInfo_INJECTION_FAILED_NO_RETRY GroupHistoryBundleInfo_ProcessState = 4
+	GroupHistoryBundleInfo_DEDUPED                   GroupHistoryBundleInfo_ProcessState = 5
 )
 
 // Enum value maps for GroupHistoryBundleInfo_ProcessState.
@@ -1375,6 +1376,7 @@ var (
 		2: "INJECTED_PARTIAL",
 		3: "INJECTION_FAILED",
 		4: "INJECTION_FAILED_NO_RETRY",
+		5: "DEDUPED",
 	}
 	GroupHistoryBundleInfo_ProcessState_value = map[string]int32{
 		"NOT_INJECTED":              0,
@@ -1382,6 +1384,7 @@ var (
 		"INJECTED_PARTIAL":          2,
 		"INJECTION_FAILED":          3,
 		"INJECTION_FAILED_NO_RETRY": 4,
+		"DEDUPED":                   5,
 	}
 )
 
@@ -4613,16 +4616,17 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\bREACTION\x10\x01\x12\x12\n" +
 	"\x0eEVENT_RESPONSE\x10\x02\x12\x0f\n" +
 	"\vPOLL_UPDATE\x10\x03\x12\x0f\n" +
-	"\vPIN_IN_CHAT\x10\x04\"\xe0\x02\n" +
+	"\vPIN_IN_CHAT\x10\x04\"\xee\x02\n" +
 	"\x16GroupHistoryBundleInfo\x12o\n" +
 	"\x1edeprecatedMessageHistoryBundle\x18\x01 \x01(\v2'.WAWebProtobufsE2E.MessageHistoryBundleR\x1edeprecatedMessageHistoryBundle\x12Z\n" +
-	"\fprocessState\x18\x02 \x01(\x0e26.WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessStateR\fprocessState\"y\n" +
+	"\fprocessState\x18\x02 \x01(\x0e26.WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessStateR\fprocessState\"\x86\x01\n" +
 	"\fProcessState\x12\x10\n" +
 	"\fNOT_INJECTED\x10\x00\x12\f\n" +
 	"\bINJECTED\x10\x01\x12\x14\n" +
 	"\x10INJECTED_PARTIAL\x10\x02\x12\x14\n" +
 	"\x10INJECTION_FAILED\x10\x03\x12\x1d\n" +
-	"\x19INJECTION_FAILED_NO_RETRY\x10\x04\"s\n" +
+	"\x19INJECTION_FAILED_NO_RETRY\x10\x04\x12\v\n" +
+	"\aDEDUPED\x10\x05\"s\n" +
 	"\x0fCommentMetadata\x12@\n" +
 	"\x10commentParentKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x10commentParentKey\x12\x1e\n" +
 	"\n" +

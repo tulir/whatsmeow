@@ -258,7 +258,15 @@ func (s *CachedLIDMap) unlockedPutLIDMapping(ctx context.Context, lid, pn types.
 	if err != nil {
 		return err
 	}
+	oldLID := s.pnToLIDCache[pn.User]
+	oldPN := s.lidToPNCache[lid.User]
 	s.pnToLIDCache[pn.User] = lid.User
 	s.lidToPNCache[lid.User] = pn.User
+	if oldPN != "" && oldPN != pn.User && s.pnToLIDCache[oldPN] == lid.User {
+		delete(s.pnToLIDCache, oldPN)
+	}
+	if oldLID != "" && oldLID != lid.User && s.lidToPNCache[oldLID] == pn.User {
+		delete(s.lidToPNCache, oldLID)
+	}
 	return nil
 }

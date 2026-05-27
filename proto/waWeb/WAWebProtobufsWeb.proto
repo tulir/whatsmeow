@@ -491,6 +491,7 @@ message GroupHistoryBundleInfo {
 		INJECTED_PARTIAL = 2;
 		INJECTION_FAILED = 3;
 		INJECTION_FAILED_NO_RETRY = 4;
+		DEDUPED = 5;
 	}
 
 	optional WAWebProtobufsE2E.MessageHistoryBundle deprecatedMessageHistoryBundle = 1;
