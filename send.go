@@ -1296,7 +1296,11 @@ func (cli *Client) encryptMessageForDevices(
 		encryptionIdentities[jid] = encryptionIdentity
 		addr := encryptionIdentity.SignalAddress().String()
 		sessionAddresses = append(sessionAddresses, addr)
-		sessionAddressToJID[addr] = jid
+		// Key by the encryption identity (LID when migrated) so prekey fetch
+		// requests and indexes the bundle under the same JID the server replies
+		// with. Keying by the PN here caused the LID-keyed bundle to be silently
+		// dropped, leaving the session unestablished ("no signal session").
+		sessionAddressToJID[addr] = encryptionIdentity
 	}
 
 	existingSessions, ctx, err := cli.Store.WithCachedSessions(ctx, sessionAddresses)
@@ -1320,7 +1324,7 @@ func (cli *Client) encryptMessageForDevices(
 			plaintext = dsmPlaintext
 		}
 		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
-			ctx, plaintext, jid, encryptionIdentities[jid], bundles[jid], encAttrs, existingSessions,
+			ctx, plaintext, jid, encryptionIdentities[jid], bundles[encryptionIdentities[jid]], encAttrs, existingSessions,
 		)
 		if err != nil {
 			// TODO return these errors if it's a fatal one (like context cancellation or database)
