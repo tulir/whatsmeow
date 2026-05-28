@@ -864,6 +864,15 @@ Loop:
 			doneChan := make(chan struct{}, 1)
 			start := time.Now()
 			go func() {
+				defer func() {
+					if err := recover(); err != nil {
+						cli.Log.Errorf("Node handler for %s panicked: %v\n%s", node.Tag, err, debug.Stack())
+						select {
+						case doneChan <- struct{}{}:
+						default:
+						}
+					}
+				}()
 				cli.nodeHandlers[node.Tag](evtCtx, node)
 				duration := time.Since(start)
 				doneChan <- struct{}{}
