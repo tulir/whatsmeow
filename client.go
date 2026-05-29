@@ -861,12 +861,12 @@ Loop:
 	for {
 		select {
 		case node := <-cli.handlerQueue:
-			doneChan := make(chan struct{}, 1)
+			doneChan := make(chan struct{})
 			start := time.Now()
 			go func() {
 				cli.nodeHandlers[node.Tag](evtCtx, node)
 				duration := time.Since(start)
-				doneChan <- struct{}{}
+				close(doneChan)
 				if duration > 5*time.Second {
 					cli.Log.Warnf("Node handling took %s for %s", duration, node.XMLString())
 				}
