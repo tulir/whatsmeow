@@ -405,6 +405,7 @@ message InteractiveMessage {
 		optional string uuid = 1;
 		optional string data = 2;
 		optional string type = 3;
+		optional string fallback = 4;
 	}
 
 	message Footer {
@@ -936,6 +937,7 @@ message ProtocolMessage {
 		AI_MEDIA_COLLECTION_MESSAGE = 31;
 		MESSAGE_UNSCHEDULE = 32;
 		CHAT_THEME_SETTING = 34;
+		AI_METADATA_OPERATION = 35;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -965,6 +967,7 @@ message ProtocolMessage {
 	optional WAWebProtobufsAICommon.AIMediaCollectionMessage aiMediaCollectionMessage = 28;
 	optional uint32 afterReadDuration = 29;
 	optional ChatThemeSetting chatThemeSetting = 30;
+	optional WAWebProtobufsAICommon.AIMetadataOperation aiMetadataOperation = 31;
 }
 
 message CloudAPIThreadControlNotification {
@@ -2520,4 +2523,5 @@ message GroupRootKeyShareEntry {
 	optional bytes groupRootKey = 1;
 	optional string keyID = 2;
 	optional int64 expiryTimestampMS = 3;
+	optional int64 createdTimestampMS = 4;
 }
