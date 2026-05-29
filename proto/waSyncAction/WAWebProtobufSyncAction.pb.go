@@ -1776,6 +1776,10 @@ const (
 	LabelEditAction_AI_HANDOFF      LabelEditAction_ListType = 9
 	LabelEditAction_CHANNELS        LabelEditAction_ListType = 10
 	LabelEditAction_AI_RESPONDING   LabelEditAction_ListType = 11
+	LabelEditAction_ARCHIVED        LabelEditAction_ListType = 12
+	LabelEditAction_LOCKED          LabelEditAction_ListType = 13
+	LabelEditAction_INVITES         LabelEditAction_ListType = 14
+	LabelEditAction_THIRD_PARTY     LabelEditAction_ListType = 15
 )
 
 // Enum value maps for LabelEditAction_ListType.
@@ -1793,6 +1797,10 @@ var (
 		9:  "AI_HANDOFF",
 		10: "CHANNELS",
 		11: "AI_RESPONDING",
+		12: "ARCHIVED",
+		13: "LOCKED",
+		14: "INVITES",
+		15: "THIRD_PARTY",
 	}
 	LabelEditAction_ListType_value = map[string]int32{
 		"NONE":            0,
@@ -1807,6 +1815,10 @@ var (
 		"AI_HANDOFF":      9,
 		"CHANNELS":        10,
 		"AI_RESPONDING":   11,
+		"ARCHIVED":        12,
+		"LOCKED":          13,
+		"INVITES":         14,
+		"THIRD_PARTY":     15,
 	}
 )
 
@@ -8299,7 +8311,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\rchatStartMode\x18\x01 \x01(\x0e2B.WAWebProtobufSyncAction.UsernameChatStartModeAction.ChatStartModeR\rchatStartMode\" \n" +
 	"\rChatStartMode\x12\a\n" +
 	"\x03LID\x10\x01\x12\x06\n" +
-	"\x02PN\x10\x02\"\x80\x04\n" +
+	"\x02PN\x10\x02\"\xb8\x04\n" +
 	"\x0fLabelEditAction\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05color\x18\x02 \x01(\x05R\x05color\x12\"\n" +
@@ -8311,7 +8323,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\bisActive\x18\x06 \x01(\bR\bisActive\x12E\n" +
 	"\x04type\x18\a \x01(\x0e21.WAWebProtobufSyncAction.LabelEditAction.ListTypeR\x04type\x12 \n" +
 	"\visImmutable\x18\b \x01(\bR\visImmutable\x12$\n" +
-	"\rmuteEndTimeMS\x18\t \x01(\x03R\rmuteEndTimeMS\"\xb9\x01\n" +
+	"\rmuteEndTimeMS\x18\t \x01(\x03R\rmuteEndTimeMS\"\xf1\x01\n" +
 	"\bListType\x12\b\n" +
 	"\x04NONE\x10\x00\x12\n" +
 	"\n" +
@@ -8330,7 +8342,12 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"AI_HANDOFF\x10\t\x12\f\n" +
 	"\bCHANNELS\x10\n" +
 	"\x12\x11\n" +
-	"\rAI_RESPONDING\x10\v\"\xa3\x05\n" +
+	"\rAI_RESPONDING\x10\v\x12\f\n" +
+	"\bARCHIVED\x10\f\x12\n" +
+	"\n" +
+	"\x06LOCKED\x10\r\x12\v\n" +
+	"\aINVITES\x10\x0e\x12\x0f\n" +
+	"\vTHIRD_PARTY\x10\x0f\"\xa3\x05\n" +
 	"\x0ePatchDebugData\x12$\n" +
 	"\rcurrentLthash\x18\x01 \x01(\fR\rcurrentLthash\x12\x1c\n" +
 	"\tnewLthash\x18\x02 \x01(\fR\tnewLthash\x12\"\n" +

@@ -44,25 +44,26 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 	info, err := cli.parseMessageInfo(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse message: %v", err)
+		cli.sendAck(ctx, node, NackParsingError)
+		return
+	}
+	if !info.SenderAlt.IsEmpty() {
+		cli.StoreLIDPNMapping(ctx, info.SenderAlt, info.Sender)
+	} else if !info.RecipientAlt.IsEmpty() {
+		cli.StoreLIDPNMapping(ctx, info.RecipientAlt, info.Chat)
+	}
+	if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
+		go cli.updateBusinessName(ctx, info.Sender, info.SenderAlt, info, info.VerifiedName.Details.GetVerifiedName())
+	}
+	if len(info.PushName) > 0 && info.PushName != "-" && (cli.MessengerConfig == nil || info.PushName != "username") {
+		go cli.updatePushName(ctx, info.Sender, info.SenderAlt, info, info.PushName)
+	}
+	if info.Sender.Server == types.NewsletterServer {
+		var cancelled bool
+		defer cli.maybeDeferredAck(ctx, node)(&cancelled)
+		cancelled = cli.handlePlaintextMessage(ctx, info, node)
 	} else {
-		if !info.SenderAlt.IsEmpty() {
-			cli.StoreLIDPNMapping(ctx, info.SenderAlt, info.Sender)
-		} else if !info.RecipientAlt.IsEmpty() {
-			cli.StoreLIDPNMapping(ctx, info.RecipientAlt, info.Chat)
-		}
-		if info.VerifiedName != nil && len(info.VerifiedName.Details.GetVerifiedName()) > 0 {
-			go cli.updateBusinessName(ctx, info.Sender, info.SenderAlt, info, info.VerifiedName.Details.GetVerifiedName())
-		}
-		if len(info.PushName) > 0 && info.PushName != "-" && (cli.MessengerConfig == nil || info.PushName != "username") {
-			go cli.updatePushName(ctx, info.Sender, info.SenderAlt, info, info.PushName)
-		}
-		if info.Sender.Server == types.NewsletterServer {
-			var cancelled bool
-			defer cli.maybeDeferredAck(ctx, node)(&cancelled)
-			cancelled = cli.handlePlaintextMessage(ctx, info, node)
-		} else {
-			cli.decryptMessages(ctx, info, node)
-		}
+		cli.decryptMessages(ctx, info, node)
 	}
 }
 
@@ -296,6 +297,12 @@ func (cli *Client) migrateSessionStore(ctx context.Context, pn, lid types.JID) {
 }
 
 func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) {
+	defer func() {
+		if err := recover(); err != nil {
+			cli.Log.Errorf("Message decryption for %s panicked: %v\n%s", info.ID, err, debug.Stack())
+			cli.sendAck(ctx, node, 0)
+		}
+	}()
 	unavailableNode, ok := node.GetOptionalChildByTag("unavailable")
 	if ok && len(node.GetChildrenByTag("enc")) == 0 {
 		uType := events.UnavailableType(unavailableNode.AttrGetter().String("type"))
