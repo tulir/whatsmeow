@@ -446,13 +446,13 @@ func (cli *Client) handleStatusNotification(ctx context.Context, node *waBinary.
 }
 
 func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) {
+	var cancelled bool
+	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
 	if !ag.OK() {
 		return
 	}
-	var cancelled bool
-	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 	switch notifType {
 	case "encrypt":
 		go cli.handleEncryptNotification(ctx, node)
