@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"go.mau.fi/util/fallocate"
@@ -46,23 +45,10 @@ func (cli *Client) DownloadToFile(ctx context.Context, msg DownloadableMessage, 
 	if mediaType == "" {
 		return fmt.Errorf("%w %T", ErrUnknownMediaType, msg)
 	}
-	urlable, ok := msg.(downloadableMessageWithURL)
-	var url string
-	var isWebWhatsappNetURL bool
-	if ok {
-		url = urlable.GetURL()
-		isWebWhatsappNetURL = strings.HasPrefix(url, "https://web.whatsapp.net")
-	}
-	if len(url) > 0 && !isWebWhatsappNetURL {
-		return cli.downloadAndDecryptToFile(ctx, url, msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSHA256(), msg.GetFileSHA256(), file)
-	} else if len(msg.GetDirectPath()) > 0 {
-		return cli.DownloadMediaWithPathToFile(ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType], file)
-	} else {
-		if isWebWhatsappNetURL {
-			cli.Log.Warnf("Got a media message with a web.whatsapp.net URL (%s) and no direct path", url)
-		}
+	if len(msg.GetDirectPath()) == 0 {
 		return ErrNoURLPresent
 	}
+	return cli.DownloadMediaWithPathToFile(ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType], file)
 }
 
 func (cli *Client) DownloadFBToFile(
