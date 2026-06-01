@@ -102,11 +102,6 @@ type downloadableMessageWithSizeBytes interface {
 	GetFileSizeBytes() uint64
 }
 
-type downloadableMessageWithURL interface {
-	DownloadableMessage
-	GetURL() string
-}
-
 var classToMediaType = map[protoreflect.Name]MediaType{
 	"ImageMessage":    MediaImage,
 	"AudioMessage":    MediaAudio,
@@ -240,23 +235,10 @@ func (cli *Client) Download(ctx context.Context, msg DownloadableMessage) ([]byt
 	if mediaType == "" {
 		return nil, fmt.Errorf("%w %T", ErrUnknownMediaType, msg)
 	}
-	urlable, ok := msg.(downloadableMessageWithURL)
-	var url string
-	var isWebWhatsappNetURL bool
-	if ok {
-		url = urlable.GetURL()
-		isWebWhatsappNetURL = strings.HasPrefix(url, "https://web.whatsapp.net")
-	}
-	if len(url) > 0 && !isWebWhatsappNetURL {
-		return cli.downloadAndDecrypt(ctx, url, msg.GetMediaKey(), mediaType, getSize(msg), msg.GetFileEncSHA256(), msg.GetFileSHA256())
-	} else if len(msg.GetDirectPath()) > 0 {
-		return cli.DownloadMediaWithPath(ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
-	} else {
-		if isWebWhatsappNetURL {
-			cli.Log.Warnf("Got a media message with a web.whatsapp.net URL (%s) and no direct path", url)
-		}
+	if len(msg.GetDirectPath()) == 0 {
 		return nil, ErrNoURLPresent
 	}
+	return cli.DownloadMediaWithPath(ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
 }
 
 func (cli *Client) DownloadFB(
