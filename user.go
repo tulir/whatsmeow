@@ -184,6 +184,7 @@ func (cli *Client) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.I
 	list, err := cli.usync(ctx, jids, "query", "interactive", []waBinary.Node{
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
 		{Tag: "contact"},
+		{Tag: "lid"},
 	})
 	if err != nil {
 		return nil, err
@@ -197,6 +198,8 @@ func (cli *Client) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.I
 		}
 		var info types.IsOnWhatsAppResponse
 		info.JID = jid
+		lidTag := child.GetChildByTag("lid")
+		info.LID = lidTag.AttrGetter().OptionalJIDOrEmpty("val")
 		info.VerifiedName, err = parseVerifiedName(child.GetChildByTag("business"))
 		if err != nil {
 			cli.Log.Warnf("Failed to parse %s's verified name details: %v", jid, err)

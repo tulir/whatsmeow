@@ -86,6 +86,7 @@ type LocalChatSettings struct {
 type IsOnWhatsAppResponse struct {
 	Query string // The query string used
 	JID   JID    // The canonical user ID
+	LID   JID    // The LID of the user, if available.
 	IsIn  bool   // Whether the phone is registered or not.
 
 	VerifiedName *VerifiedName // If the phone is a business, the verified business details.
