@@ -765,13 +765,13 @@ func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.History
 		if err := cli.storeNCTSalt(ctx, historySync.GetNctSalt()); err != nil {
 			cli.Log.Warnf("Failed to store NCT salt from history sync: %v", err)
 		}
+		if len(historySync.GetPhoneNumberToLidMappings()) > 0 {
+			cli.storeHistoricalPNLIDMappings(ctx, historySync.GetPhoneNumberToLidMappings())
+		}
 		if historySync.GetSyncType() == waHistorySync.HistorySync_PUSH_NAME {
 			cli.handleHistoricalPushNames(ctx, historySync.GetPushnames())
 		} else if len(historySync.GetConversations()) > 0 {
 			cli.storeHistoricalMessageSecrets(ctx, historySync.GetConversations())
-		}
-		if len(historySync.GetPhoneNumberToLidMappings()) > 0 {
-			cli.storeHistoricalPNLIDMappings(ctx, historySync.GetPhoneNumberToLidMappings())
 		}
 		if historySync.GlobalSettings != nil {
 			cli.storeGlobalSettings(ctx, historySync.GlobalSettings)
@@ -945,9 +945,15 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 		if chatJID.IsEmpty() {
 			continue
 		}
-		if chatJID.Server == types.DefaultUserServer && conv.GetTcToken() != nil {
+		var chatPN types.JID
+		if chatJID.Server == types.DefaultUserServer {
+			chatPN = chatJID
+		} else if chatJID.Server == types.HiddenUserServer {
+			chatPN, _ = cli.Store.LIDs.GetPNForLID(ctx, chatJID)
+		}
+		if !chatPN.IsEmpty() && conv.GetTcToken() != nil {
 			privacyTokens = append(privacyTokens, store.PrivacyToken{
-				User:            chatJID,
+				User:            chatPN,
 				Token:           conv.GetTcToken(),
 				Timestamp:       time.Unix(int64(conv.GetTcTokenTimestamp()), 0),
 				SenderTimestamp: time.Unix(int64(conv.GetTcTokenSenderTimestamp()), 0),
@@ -959,7 +965,7 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 				msgKey := msg.GetMessage().GetKey()
 				if msgKey.GetFromMe() {
 					senderJID = ownID
-				} else if chatJID.Server == types.DefaultUserServer {
+				} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer {
 					senderJID = chatJID
 				} else if msgKey.GetParticipant() != "" {
 					senderJID, _ = types.ParseJID(msgKey.GetParticipant())
