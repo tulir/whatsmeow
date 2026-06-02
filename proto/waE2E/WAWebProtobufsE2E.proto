@@ -405,6 +405,7 @@ message InteractiveMessage {
 		optional string uuid = 1;
 		optional string data = 2;
 		optional string type = 3;
+		optional string fallback = 4;
 	}
 
 	message Footer {
@@ -566,35 +567,33 @@ message SplitPaymentParticipant {
 	optional SplitPaymentStatus status = 3;
 }
 
-message P2PPaymentReminderNotification {
-	enum ReminderState {
-		UNKNOWN_STATE = 0;
+message PaymentReminderMessage {
+	enum ReminderStatus {
+		REMINDER_STATUS_UNKNOWN = 0;
 		ACTIVE = 1;
-		PAUSED = 2;
-		STOPPED = 3;
+		CANCELLED_BY_CREATOR = 2;
+		STOPPED_BY_RECEIVER = 3;
 		EXPIRED = 4;
-		CANCELLED = 5;
+		PAID = 5;
 	}
 
 	enum ReminderFrequency {
-		UNKNOWN_FREQUENCY = 0;
+		REMINDER_FREQUENCY_UNKNOWN = 0;
 		WEEKLY = 1;
-		BIWEEKLY = 2;
+		BI_WEEKLY = 2;
 		MONTHLY = 3;
-		CUSTOM = 4;
+		QUARTERLY = 4;
 	}
 
 	optional string reminderID = 1;
-	optional Money amount = 2;
-	optional ReminderFrequency frequency = 3;
-	optional int64 nextReminderTimestamp = 4;
-	optional int64 expiryTimestamp = 5;
-	optional ReminderState state = 6;
-	optional string description = 7;
-	optional string creatorJID = 8;
-	optional string receiverJID = 9;
-	optional string upiID = 10;
-	optional int64 createdTimestamp = 11;
+	optional string instanceID = 2;
+	optional string description = 3;
+	optional ReminderFrequency frequency = 4;
+	optional ReminderStatus status = 5;
+	optional string payeeVpa = 6;
+	optional string payeeJID = 7;
+	optional string payerJID = 8;
+	optional Money amount = 9;
 }
 
 message PaymentInviteMessage {
@@ -938,6 +937,7 @@ message ProtocolMessage {
 		AI_MEDIA_COLLECTION_MESSAGE = 31;
 		MESSAGE_UNSCHEDULE = 32;
 		CHAT_THEME_SETTING = 34;
+		AI_METADATA_OPERATION = 35;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -967,6 +967,7 @@ message ProtocolMessage {
 	optional WAWebProtobufsAICommon.AIMediaCollectionMessage aiMediaCollectionMessage = 28;
 	optional uint32 afterReadDuration = 29;
 	optional ChatThemeSetting chatThemeSetting = 30;
+	optional WAWebProtobufsAICommon.AIMetadataOperation aiMetadataOperation = 31;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1284,6 +1285,8 @@ message ContextInfo {
 			BESTSELLERS = 8;
 			MENU = 9;
 			ABOUT = 10;
+			SHOP = 11;
+			ORDER = 12;
 		}
 
 		message Pill {
@@ -1782,8 +1785,9 @@ message Message {
 	optional PollAddOptionMessage pollAddOptionMessage = 121;
 	optional EventInviteMessage eventInviteMessage = 122;
 	optional GroupRootKeyShare groupRootKeyShare = 123;
-	optional P2PPaymentReminderNotification p2PPaymentReminderNotification = 124;
+	optional PaymentReminderMessage paymentReminderMessage = 124;
 	optional SplitPaymentMessage splitPaymentMessage = 125;
+	optional FutureProofMessage newsletterAdminProfileStatusMessage = 126;
 }
 
 message AlbumMessage {
@@ -1961,6 +1965,7 @@ message EventInviteMessage {
 	optional string caption = 6;
 	optional bool isCanceled = 7;
 	optional int64 endTime = 8;
+	optional string callLink = 9;
 }
 
 message NewsletterFollowerInviteMessage {
@@ -2518,4 +2523,5 @@ message GroupRootKeyShareEntry {
 	optional bytes groupRootKey = 1;
 	optional string keyID = 2;
 	optional int64 expiryTimestampMS = 3;
+	optional int64 createdTimestampMS = 4;
 }
