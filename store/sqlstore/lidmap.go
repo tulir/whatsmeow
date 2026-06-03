@@ -72,6 +72,7 @@ func (s *CachedLIDMap) scanManyLids(rows dbutil.Rows, fn func(lid, pn string)) e
 	if fn == nil {
 		fn = func(lid, pn string) {}
 	}
+	defer rows.Close()
 	for rows.Next() {
 		var lid, pn string
 		err := rows.Scan(&lid, &pn)
@@ -81,10 +82,6 @@ func (s *CachedLIDMap) scanManyLids(rows dbutil.Rows, fn func(lid, pn string)) e
 		s.pnToLIDCache[pn] = lid
 		s.lidToPNCache[lid] = pn
 		fn(lid, pn)
-	}
-	err := rows.Close()
-	if err != nil {
-		return err
 	}
 	return rows.Err()
 }

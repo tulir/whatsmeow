@@ -347,6 +347,7 @@ func (s *SQLStore) GetOrGenPreKeys(ctx context.Context, count uint32) ([]*keys.P
 	if err != nil {
 		return nil, fmt.Errorf("failed to query existing prekeys: %w", err)
 	}
+	defer res.Close()
 	newKeys := make([]*keys.PreKey, count)
 	var existingCount uint32
 	for res.Next() {
@@ -457,6 +458,7 @@ func (s *SQLStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*store.AppStat
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	var out []*store.AppStateSyncKey
 	for rows.Next() {
 		var item store.AppStateSyncKey
@@ -468,7 +470,7 @@ func (s *SQLStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*store.AppStat
 			out = append(out, &item)
 		}
 	}
-	return out, rows.Close()
+	return out, rows.Err()
 }
 
 func (s *SQLStore) GetAppStateSyncKey(ctx context.Context, id []byte) (*store.AppStateSyncKey, error) {
@@ -801,6 +803,7 @@ func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.Cont
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 	output := make(map[types.JID]types.ContactInfo, len(s.contactCache))
 	for rows.Next() {
 		var jid types.JID

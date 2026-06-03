@@ -158,6 +158,7 @@ func (c *Container) GetAllDevices(ctx context.Context) ([]*store.Device, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to query sessions: %w", err)
 	}
+	defer res.Close()
 	sessions := make([]*store.Device, 0)
 	for res.Next() {
 		sess, scanErr := c.scanDevice(res)
