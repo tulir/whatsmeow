@@ -181,7 +181,10 @@ func (cli *Client) DownloadThumbnail(ctx context.Context, msg DownloadableThumbn
 	if !ok {
 		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
 	} else if len(msg.GetThumbnailDirectPath()) > 0 {
-		return cli.DownloadMediaWithPath(ctx, msg.GetThumbnailDirectPath(), msg.GetThumbnailEncSHA256(), msg.GetThumbnailSHA256(), msg.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType])
+		return cli.DownloadMediaWithPath(
+			ctx, msg.GetThumbnailDirectPath(), msg.GetThumbnailEncSHA256(), msg.GetThumbnailSHA256(), msg.GetMediaKey(),
+			-1, mediaType, mediaTypeToMMSType[mediaType], false,
+		)
 	} else {
 		return nil, ErrNoURLPresent
 	}
@@ -238,7 +241,10 @@ func (cli *Client) Download(ctx context.Context, msg DownloadableMessage) ([]byt
 	if len(msg.GetDirectPath()) == 0 {
 		return nil, ErrNoURLPresent
 	}
-	return cli.DownloadMediaWithPath(ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType])
+	return cli.DownloadMediaWithPath(
+		ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(),
+		getSize(msg), mediaType, mediaTypeToMMSType[mediaType], false,
+	)
 }
 
 func (cli *Client) DownloadFB(
@@ -246,7 +252,14 @@ func (cli *Client) DownloadFB(
 	transport *waMediaTransport.WAMediaTransport_Integral,
 	mediaType MediaType,
 ) ([]byte, error) {
-	return cli.DownloadMediaWithPath(ctx, transport.GetDirectPath(), transport.GetFileEncSHA256(), transport.GetFileSHA256(), transport.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType])
+	return cli.DownloadMediaWithPath(
+		ctx, transport.GetDirectPath(), transport.GetFileEncSHA256(), transport.GetFileSHA256(), transport.GetMediaKey(),
+		-1, mediaType, mediaTypeToMMSType[mediaType], false,
+	)
+}
+
+func (cli *Client) DownloadMediaWithOnlyPath(ctx context.Context, directPath string) ([]byte, error) {
+	return cli.DownloadMediaWithPath(ctx, directPath, nil, nil, nil, -1, "", "", true)
 }
 
 // DownloadMediaWithPath downloads an attachment by manually specifying the path and encryption details.
@@ -257,7 +270,11 @@ func (cli *Client) DownloadMediaWithPath(
 	fileLength int,
 	mediaType MediaType,
 	mmsType string,
+	allowNoHash bool,
 ) (data []byte, err error) {
+	if !allowNoHash && fileHash == nil {
+		fileHash = make([]byte, 32)
+	}
 	if !strings.HasPrefix(directPath, "/") {
 		return nil, fmt.Errorf("media download path does not start with slash: %s", directPath)
 	}
@@ -305,7 +322,7 @@ func (cli *Client) downloadAndDecrypt(
 	} else if mediaKey == nil && fileEncSHA256 == nil && mac == nil {
 		// Unencrypted media, just check the hash and return
 		data = ciphertext
-		if sha256.Sum256(data) != *(*[32]byte)(fileSHA256) {
+		if fileSHA256 != nil && (len(fileSHA256) != 32 || sha256.Sum256(data) != *(*[32]byte)(fileSHA256)) {
 			err = ErrInvalidUnencryptedMediaSHA256
 		}
 	} else if err = validateMedia(iv, ciphertext, macKey, mac); err != nil {
@@ -315,7 +332,7 @@ func (cli *Client) downloadAndDecrypt(
 	} else if ReturnDownloadWarnings {
 		if fileLength >= 0 && len(data) != fileLength {
 			err = fmt.Errorf("%w: expected %d, got %d", ErrFileLengthMismatch, fileLength, len(data))
-		} else if len(fileSHA256) == 32 && sha256.Sum256(data) != *(*[32]byte)(fileSHA256) {
+		} else if len(fileSHA256) != 32 || sha256.Sum256(data) != *(*[32]byte)(fileSHA256) {
 			// TODO maybe move this out of ReturnDownloadWarnings if whatsapp has started enforcing it in official clients
 			err = ErrInvalidMediaSHA256
 		}
@@ -399,6 +416,9 @@ func (cli *Client) downloadMedia(ctx context.Context, url string) ([]byte, error
 const mediaHMACLength = 10
 
 func (cli *Client) downloadEncryptedMedia(ctx context.Context, url string, checksum []byte) (file, mac []byte, err error) {
+	if len(checksum) != 32 {
+		return nil, nil, fmt.Errorf("invalid checksum length: expected 32, got %d", len(checksum))
+	}
 	data, err := cli.downloadMedia(ctx, url)
 	if err != nil {
 		return
@@ -407,7 +427,7 @@ func (cli *Client) downloadEncryptedMedia(ctx context.Context, url string, check
 		return
 	}
 	file, mac = data[:len(data)-mediaHMACLength], data[len(data)-mediaHMACLength:]
-	if len(checksum) == 32 && sha256.Sum256(data) != *(*[32]byte)(checksum) {
+	if sha256.Sum256(data) != *(*[32]byte)(checksum) {
 		err = ErrInvalidMediaEncSHA256
 	}
 	return
