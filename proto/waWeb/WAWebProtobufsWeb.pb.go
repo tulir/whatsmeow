@@ -3350,12 +3350,13 @@ func (x *Reaction) GetUnread() bool {
 }
 
 type PollUpdate struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	PollUpdateMessageKey *waCommon.MessageKey   `protobuf:"bytes,1,opt,name=pollUpdateMessageKey" json:"pollUpdateMessageKey,omitempty"`
-	Vote                 *waE2E.PollVoteMessage `protobuf:"bytes,2,opt,name=vote" json:"vote,omitempty"`
-	SenderTimestampMS    *int64                 `protobuf:"varint,3,opt,name=senderTimestampMS" json:"senderTimestampMS,omitempty"`
-	ServerTimestampMS    *int64                 `protobuf:"varint,4,opt,name=serverTimestampMS" json:"serverTimestampMS,omitempty"`
-	Unread               *bool                  `protobuf:"varint,5,opt,name=unread" json:"unread,omitempty"`
+	state                protoimpl.MessageState           `protogen:"open.v1"`
+	PollUpdateMessageKey *waCommon.MessageKey             `protobuf:"bytes,1,opt,name=pollUpdateMessageKey" json:"pollUpdateMessageKey,omitempty"`
+	Vote                 *waE2E.PollVoteMessage           `protobuf:"bytes,2,opt,name=vote" json:"vote,omitempty"`
+	SenderTimestampMS    *int64                           `protobuf:"varint,3,opt,name=senderTimestampMS" json:"senderTimestampMS,omitempty"`
+	ServerTimestampMS    *int64                           `protobuf:"varint,4,opt,name=serverTimestampMS" json:"serverTimestampMS,omitempty"`
+	Unread               *bool                            `protobuf:"varint,5,opt,name=unread" json:"unread,omitempty"`
+	Metadata             *waE2E.PollUpdateMessageMetadata `protobuf:"bytes,6,opt,name=metadata" json:"metadata,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -3425,11 +3426,19 @@ func (x *PollUpdate) GetUnread() bool {
 	return false
 }
 
+func (x *PollUpdate) GetMetadata() *waE2E.PollUpdateMessageMetadata {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
 type PollAdditionalMetadata struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	PollInvalidated *bool                  `protobuf:"varint,1,opt,name=pollInvalidated" json:"pollInvalidated,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state               protoimpl.MessageState                             `protogen:"open.v1"`
+	PollInvalidated     *bool                                              `protobuf:"varint,1,opt,name=pollInvalidated" json:"pollInvalidated,omitempty"`
+	PollNameHashHistory []*PollAdditionalMetadata_PollNameHashHistoryEntry `protobuf:"bytes,2,rep,name=pollNameHashHistory" json:"pollNameHashHistory,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *PollAdditionalMetadata) Reset() {
@@ -3467,6 +3476,13 @@ func (x *PollAdditionalMetadata) GetPollInvalidated() bool {
 		return *x.PollInvalidated
 	}
 	return false
+}
+
+func (x *PollAdditionalMetadata) GetPollNameHashHistory() []*PollAdditionalMetadata_PollNameHashHistoryEntry {
+	if x != nil {
+		return x.PollNameHashHistory
+	}
+	return nil
 }
 
 type InteractiveMessageAdditionalMetadata struct {
@@ -4133,6 +4149,58 @@ func (x *ScheduledMessageMetadata) GetScheduledTime() uint64 {
 	return 0
 }
 
+type PollAdditionalMetadata_PollNameHashHistoryEntry struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EditStanzaID  *string                `protobuf:"bytes,1,opt,name=editStanzaID" json:"editStanzaID,omitempty"`
+	PollNameHash  []byte                 `protobuf:"bytes,2,opt,name=pollNameHash" json:"pollNameHash,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PollAdditionalMetadata_PollNameHashHistoryEntry) Reset() {
+	*x = PollAdditionalMetadata_PollNameHashHistoryEntry{}
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollAdditionalMetadata_PollNameHashHistoryEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollAdditionalMetadata_PollNameHashHistoryEntry) ProtoMessage() {}
+
+func (x *PollAdditionalMetadata_PollNameHashHistoryEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_waWeb_WAWebProtobufsWeb_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollAdditionalMetadata_PollNameHashHistoryEntry.ProtoReflect.Descriptor instead.
+func (*PollAdditionalMetadata_PollNameHashHistoryEntry) Descriptor() ([]byte, []int) {
+	return file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP(), []int{16, 0}
+}
+
+func (x *PollAdditionalMetadata_PollNameHashHistoryEntry) GetEditStanzaID() string {
+	if x != nil && x.EditStanzaID != nil {
+		return *x.EditStanzaID
+	}
+	return ""
+}
+
+func (x *PollAdditionalMetadata_PollNameHashHistoryEntry) GetPollNameHash() []byte {
+	if x != nil {
+		return x.PollNameHash
+	}
+	return nil
+}
+
 var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
@@ -4669,16 +4737,21 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x04text\x18\x02 \x01(\tR\x04text\x12 \n" +
 	"\vgroupingKey\x18\x03 \x01(\tR\vgroupingKey\x12,\n" +
 	"\x11senderTimestampMS\x18\x04 \x01(\x03R\x11senderTimestampMS\x12\x16\n" +
-	"\x06unread\x18\x05 \x01(\bR\x06unread\"\x82\x02\n" +
+	"\x06unread\x18\x05 \x01(\bR\x06unread\"\xcc\x02\n" +
 	"\n" +
 	"PollUpdate\x12H\n" +
 	"\x14pollUpdateMessageKey\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x14pollUpdateMessageKey\x126\n" +
 	"\x04vote\x18\x02 \x01(\v2\".WAWebProtobufsE2E.PollVoteMessageR\x04vote\x12,\n" +
 	"\x11senderTimestampMS\x18\x03 \x01(\x03R\x11senderTimestampMS\x12,\n" +
 	"\x11serverTimestampMS\x18\x04 \x01(\x03R\x11serverTimestampMS\x12\x16\n" +
-	"\x06unread\x18\x05 \x01(\bR\x06unread\"B\n" +
+	"\x06unread\x18\x05 \x01(\bR\x06unread\x12H\n" +
+	"\bmetadata\x18\x06 \x01(\v2,.WAWebProtobufsE2E.PollUpdateMessageMetadataR\bmetadata\"\x9c\x02\n" +
 	"\x16PollAdditionalMetadata\x12(\n" +
-	"\x0fpollInvalidated\x18\x01 \x01(\bR\x0fpollInvalidated\"\\\n" +
+	"\x0fpollInvalidated\x18\x01 \x01(\bR\x0fpollInvalidated\x12t\n" +
+	"\x13pollNameHashHistory\x18\x02 \x03(\v2B.WAWebProtobufsWeb.PollAdditionalMetadata.PollNameHashHistoryEntryR\x13pollNameHashHistory\x1ab\n" +
+	"\x18PollNameHashHistoryEntry\x12\"\n" +
+	"\feditStanzaID\x18\x01 \x01(\tR\feditStanzaID\x12\"\n" +
+	"\fpollNameHash\x18\x02 \x01(\fR\fpollNameHash\"\\\n" +
 	"$InteractiveMessageAdditionalMetadata\x124\n" +
 	"\x15isGalaxyFlowCompleted\x18\x01 \x01(\bR\x15isGalaxyFlowCompleted\"3\n" +
 	"\x17EventAdditionalMetadata\x12\x18\n" +
@@ -4735,64 +4808,66 @@ func file_waWeb_WAWebProtobufsWeb_proto_rawDescGZIP() []byte {
 }
 
 var file_waWeb_WAWebProtobufsWeb_proto_enumTypes = make([]protoimpl.EnumInfo, 10)
-var file_waWeb_WAWebProtobufsWeb_proto_msgTypes = make([]protoimpl.MessageInfo, 29)
+var file_waWeb_WAWebProtobufsWeb_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
 var file_waWeb_WAWebProtobufsWeb_proto_goTypes = []any{
-	(WebMessageInfo_BizPrivacyStatus)(0),                 // 0: WAWebProtobufsWeb.WebMessageInfo.BizPrivacyStatus
-	(WebMessageInfo_StubType)(0),                         // 1: WAWebProtobufsWeb.WebMessageInfo.StubType
-	(WebMessageInfo_Status)(0),                           // 2: WAWebProtobufsWeb.WebMessageInfo.Status
-	(PaymentInfo_TxnStatus)(0),                           // 3: WAWebProtobufsWeb.PaymentInfo.TxnStatus
-	(PaymentInfo_Status)(0),                              // 4: WAWebProtobufsWeb.PaymentInfo.Status
-	(PaymentInfo_Currency)(0),                            // 5: WAWebProtobufsWeb.PaymentInfo.Currency
-	(WebFeatures_Flag)(0),                                // 6: WAWebProtobufsWeb.WebFeatures.Flag
-	(PinInChat_Type)(0),                                  // 7: WAWebProtobufsWeb.PinInChat.Type
-	(MessageAddOn_MessageAddOnType)(0),                   // 8: WAWebProtobufsWeb.MessageAddOn.MessageAddOnType
-	(GroupHistoryBundleInfo_ProcessState)(0),             // 9: WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
-	(*WebMessageInfo)(nil),                               // 10: WAWebProtobufsWeb.WebMessageInfo
-	(*PaymentInfo)(nil),                                  // 11: WAWebProtobufsWeb.PaymentInfo
-	(*WebFeatures)(nil),                                  // 12: WAWebProtobufsWeb.WebFeatures
-	(*PinInChat)(nil),                                    // 13: WAWebProtobufsWeb.PinInChat
-	(*MessageAddOn)(nil),                                 // 14: WAWebProtobufsWeb.MessageAddOn
-	(*GroupHistoryBundleInfo)(nil),                       // 15: WAWebProtobufsWeb.GroupHistoryBundleInfo
-	(*CommentMetadata)(nil),                              // 16: WAWebProtobufsWeb.CommentMetadata
-	(*WebNotificationsInfo)(nil),                         // 17: WAWebProtobufsWeb.WebNotificationsInfo
-	(*NotificationMessageInfo)(nil),                      // 18: WAWebProtobufsWeb.NotificationMessageInfo
-	(*ReportingTokenInfo)(nil),                           // 19: WAWebProtobufsWeb.ReportingTokenInfo
-	(*MediaData)(nil),                                    // 20: WAWebProtobufsWeb.MediaData
-	(*PhotoChange)(nil),                                  // 21: WAWebProtobufsWeb.PhotoChange
-	(*StatusPSA)(nil),                                    // 22: WAWebProtobufsWeb.StatusPSA
-	(*UserReceipt)(nil),                                  // 23: WAWebProtobufsWeb.UserReceipt
-	(*Reaction)(nil),                                     // 24: WAWebProtobufsWeb.Reaction
-	(*PollUpdate)(nil),                                   // 25: WAWebProtobufsWeb.PollUpdate
-	(*PollAdditionalMetadata)(nil),                       // 26: WAWebProtobufsWeb.PollAdditionalMetadata
-	(*InteractiveMessageAdditionalMetadata)(nil),         // 27: WAWebProtobufsWeb.InteractiveMessageAdditionalMetadata
-	(*EventAdditionalMetadata)(nil),                      // 28: WAWebProtobufsWeb.EventAdditionalMetadata
-	(*KeepInChat)(nil),                                   // 29: WAWebProtobufsWeb.KeepInChat
-	(*MessageAddOnContextInfo)(nil),                      // 30: WAWebProtobufsWeb.MessageAddOnContextInfo
-	(*PremiumMessageInfo)(nil),                           // 31: WAWebProtobufsWeb.PremiumMessageInfo
-	(*EventResponse)(nil),                                // 32: WAWebProtobufsWeb.EventResponse
-	(*LegacyMessage)(nil),                                // 33: WAWebProtobufsWeb.LegacyMessage
-	(*StatusMentionMessage)(nil),                         // 34: WAWebProtobufsWeb.StatusMentionMessage
-	(*Citation)(nil),                                     // 35: WAWebProtobufsWeb.Citation
-	(*GroupHistoryIndividualMessageInfo)(nil),            // 36: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo
-	(*QuarantinedMessage)(nil),                           // 37: WAWebProtobufsWeb.QuarantinedMessage
-	(*ScheduledMessageMetadata)(nil),                     // 38: WAWebProtobufsWeb.ScheduledMessageMetadata
-	(*waCommon.MessageKey)(nil),                          // 39: WACommon.MessageKey
-	(*waE2E.Message)(nil),                                // 40: WAWebProtobufsE2E.Message
-	(*waE2E.LiveLocationMessage)(nil),                    // 41: WAWebProtobufsE2E.LiveLocationMessage
-	(*waE2E.Money)(nil),                                  // 42: WAWebProtobufsE2E.Money
-	(*waE2E.MessageHistoryBundle)(nil),                   // 43: WAWebProtobufsE2E.MessageHistoryBundle
-	(*waE2E.PollVoteMessage)(nil),                        // 44: WAWebProtobufsE2E.PollVoteMessage
-	(waE2E.KeepType)(0),                                  // 45: WAWebProtobufsE2E.KeepType
-	(waE2E.MessageContextInfo_MessageAddonExpiryType)(0), // 46: WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
-	(*waE2E.EventResponseMessage)(nil),                   // 47: WAWebProtobufsE2E.EventResponseMessage
+	(WebMessageInfo_BizPrivacyStatus)(0),                    // 0: WAWebProtobufsWeb.WebMessageInfo.BizPrivacyStatus
+	(WebMessageInfo_StubType)(0),                            // 1: WAWebProtobufsWeb.WebMessageInfo.StubType
+	(WebMessageInfo_Status)(0),                              // 2: WAWebProtobufsWeb.WebMessageInfo.Status
+	(PaymentInfo_TxnStatus)(0),                              // 3: WAWebProtobufsWeb.PaymentInfo.TxnStatus
+	(PaymentInfo_Status)(0),                                 // 4: WAWebProtobufsWeb.PaymentInfo.Status
+	(PaymentInfo_Currency)(0),                               // 5: WAWebProtobufsWeb.PaymentInfo.Currency
+	(WebFeatures_Flag)(0),                                   // 6: WAWebProtobufsWeb.WebFeatures.Flag
+	(PinInChat_Type)(0),                                     // 7: WAWebProtobufsWeb.PinInChat.Type
+	(MessageAddOn_MessageAddOnType)(0),                      // 8: WAWebProtobufsWeb.MessageAddOn.MessageAddOnType
+	(GroupHistoryBundleInfo_ProcessState)(0),                // 9: WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
+	(*WebMessageInfo)(nil),                                  // 10: WAWebProtobufsWeb.WebMessageInfo
+	(*PaymentInfo)(nil),                                     // 11: WAWebProtobufsWeb.PaymentInfo
+	(*WebFeatures)(nil),                                     // 12: WAWebProtobufsWeb.WebFeatures
+	(*PinInChat)(nil),                                       // 13: WAWebProtobufsWeb.PinInChat
+	(*MessageAddOn)(nil),                                    // 14: WAWebProtobufsWeb.MessageAddOn
+	(*GroupHistoryBundleInfo)(nil),                          // 15: WAWebProtobufsWeb.GroupHistoryBundleInfo
+	(*CommentMetadata)(nil),                                 // 16: WAWebProtobufsWeb.CommentMetadata
+	(*WebNotificationsInfo)(nil),                            // 17: WAWebProtobufsWeb.WebNotificationsInfo
+	(*NotificationMessageInfo)(nil),                         // 18: WAWebProtobufsWeb.NotificationMessageInfo
+	(*ReportingTokenInfo)(nil),                              // 19: WAWebProtobufsWeb.ReportingTokenInfo
+	(*MediaData)(nil),                                       // 20: WAWebProtobufsWeb.MediaData
+	(*PhotoChange)(nil),                                     // 21: WAWebProtobufsWeb.PhotoChange
+	(*StatusPSA)(nil),                                       // 22: WAWebProtobufsWeb.StatusPSA
+	(*UserReceipt)(nil),                                     // 23: WAWebProtobufsWeb.UserReceipt
+	(*Reaction)(nil),                                        // 24: WAWebProtobufsWeb.Reaction
+	(*PollUpdate)(nil),                                      // 25: WAWebProtobufsWeb.PollUpdate
+	(*PollAdditionalMetadata)(nil),                          // 26: WAWebProtobufsWeb.PollAdditionalMetadata
+	(*InteractiveMessageAdditionalMetadata)(nil),            // 27: WAWebProtobufsWeb.InteractiveMessageAdditionalMetadata
+	(*EventAdditionalMetadata)(nil),                         // 28: WAWebProtobufsWeb.EventAdditionalMetadata
+	(*KeepInChat)(nil),                                      // 29: WAWebProtobufsWeb.KeepInChat
+	(*MessageAddOnContextInfo)(nil),                         // 30: WAWebProtobufsWeb.MessageAddOnContextInfo
+	(*PremiumMessageInfo)(nil),                              // 31: WAWebProtobufsWeb.PremiumMessageInfo
+	(*EventResponse)(nil),                                   // 32: WAWebProtobufsWeb.EventResponse
+	(*LegacyMessage)(nil),                                   // 33: WAWebProtobufsWeb.LegacyMessage
+	(*StatusMentionMessage)(nil),                            // 34: WAWebProtobufsWeb.StatusMentionMessage
+	(*Citation)(nil),                                        // 35: WAWebProtobufsWeb.Citation
+	(*GroupHistoryIndividualMessageInfo)(nil),               // 36: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo
+	(*QuarantinedMessage)(nil),                              // 37: WAWebProtobufsWeb.QuarantinedMessage
+	(*ScheduledMessageMetadata)(nil),                        // 38: WAWebProtobufsWeb.ScheduledMessageMetadata
+	(*PollAdditionalMetadata_PollNameHashHistoryEntry)(nil), // 39: WAWebProtobufsWeb.PollAdditionalMetadata.PollNameHashHistoryEntry
+	(*waCommon.MessageKey)(nil),                             // 40: WACommon.MessageKey
+	(*waE2E.Message)(nil),                                   // 41: WAWebProtobufsE2E.Message
+	(*waE2E.LiveLocationMessage)(nil),                       // 42: WAWebProtobufsE2E.LiveLocationMessage
+	(*waE2E.Money)(nil),                                     // 43: WAWebProtobufsE2E.Money
+	(*waE2E.MessageHistoryBundle)(nil),                      // 44: WAWebProtobufsE2E.MessageHistoryBundle
+	(*waE2E.PollVoteMessage)(nil),                           // 45: WAWebProtobufsE2E.PollVoteMessage
+	(*waE2E.PollUpdateMessageMetadata)(nil),                 // 46: WAWebProtobufsE2E.PollUpdateMessageMetadata
+	(waE2E.KeepType)(0),                                     // 47: WAWebProtobufsE2E.KeepType
+	(waE2E.MessageContextInfo_MessageAddonExpiryType)(0),    // 48: WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
+	(*waE2E.EventResponseMessage)(nil),                      // 49: WAWebProtobufsE2E.EventResponseMessage
 }
 var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
-	39,  // 0: WAWebProtobufsWeb.WebMessageInfo.key:type_name -> WACommon.MessageKey
-	40,  // 1: WAWebProtobufsWeb.WebMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
+	40,  // 0: WAWebProtobufsWeb.WebMessageInfo.key:type_name -> WACommon.MessageKey
+	41,  // 1: WAWebProtobufsWeb.WebMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
 	2,   // 2: WAWebProtobufsWeb.WebMessageInfo.status:type_name -> WAWebProtobufsWeb.WebMessageInfo.Status
 	1,   // 3: WAWebProtobufsWeb.WebMessageInfo.messageStubType:type_name -> WAWebProtobufsWeb.WebMessageInfo.StubType
 	11,  // 4: WAWebProtobufsWeb.WebMessageInfo.paymentInfo:type_name -> WAWebProtobufsWeb.PaymentInfo
-	41,  // 5: WAWebProtobufsWeb.WebMessageInfo.finalLiveLocation:type_name -> WAWebProtobufsE2E.LiveLocationMessage
+	42,  // 5: WAWebProtobufsWeb.WebMessageInfo.finalLiveLocation:type_name -> WAWebProtobufsE2E.LiveLocationMessage
 	11,  // 6: WAWebProtobufsWeb.WebMessageInfo.quotedPaymentInfo:type_name -> WAWebProtobufsWeb.PaymentInfo
 	0,   // 7: WAWebProtobufsWeb.WebMessageInfo.bizPrivacyStatus:type_name -> WAWebProtobufsWeb.WebMessageInfo.BizPrivacyStatus
 	20,  // 8: WAWebProtobufsWeb.WebMessageInfo.mediaData:type_name -> WAWebProtobufsWeb.MediaData
@@ -4810,7 +4885,7 @@ var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
 	32,  // 20: WAWebProtobufsWeb.WebMessageInfo.eventResponses:type_name -> WAWebProtobufsWeb.EventResponse
 	19,  // 21: WAWebProtobufsWeb.WebMessageInfo.reportingTokenInfo:type_name -> WAWebProtobufsWeb.ReportingTokenInfo
 	28,  // 22: WAWebProtobufsWeb.WebMessageInfo.eventAdditionalMetadata:type_name -> WAWebProtobufsWeb.EventAdditionalMetadata
-	39,  // 23: WAWebProtobufsWeb.WebMessageInfo.targetMessageID:type_name -> WACommon.MessageKey
+	40,  // 23: WAWebProtobufsWeb.WebMessageInfo.targetMessageID:type_name -> WACommon.MessageKey
 	14,  // 24: WAWebProtobufsWeb.WebMessageInfo.messageAddOns:type_name -> WAWebProtobufsWeb.MessageAddOn
 	34,  // 25: WAWebProtobufsWeb.WebMessageInfo.statusMentionMessageInfo:type_name -> WAWebProtobufsWeb.StatusMentionMessage
 	35,  // 26: WAWebProtobufsWeb.WebMessageInfo.supportAiCitations:type_name -> WAWebProtobufsWeb.Citation
@@ -4821,10 +4896,10 @@ var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
 	38,  // 31: WAWebProtobufsWeb.WebMessageInfo.scheduledMessageMetadata:type_name -> WAWebProtobufsWeb.ScheduledMessageMetadata
 	5,   // 32: WAWebProtobufsWeb.PaymentInfo.currencyDeprecated:type_name -> WAWebProtobufsWeb.PaymentInfo.Currency
 	4,   // 33: WAWebProtobufsWeb.PaymentInfo.status:type_name -> WAWebProtobufsWeb.PaymentInfo.Status
-	39,  // 34: WAWebProtobufsWeb.PaymentInfo.requestMessageKey:type_name -> WACommon.MessageKey
+	40,  // 34: WAWebProtobufsWeb.PaymentInfo.requestMessageKey:type_name -> WACommon.MessageKey
 	3,   // 35: WAWebProtobufsWeb.PaymentInfo.txnStatus:type_name -> WAWebProtobufsWeb.PaymentInfo.TxnStatus
-	42,  // 36: WAWebProtobufsWeb.PaymentInfo.primaryAmount:type_name -> WAWebProtobufsE2E.Money
-	42,  // 37: WAWebProtobufsWeb.PaymentInfo.exchangeAmount:type_name -> WAWebProtobufsE2E.Money
+	43,  // 36: WAWebProtobufsWeb.PaymentInfo.primaryAmount:type_name -> WAWebProtobufsE2E.Money
+	43,  // 37: WAWebProtobufsWeb.PaymentInfo.exchangeAmount:type_name -> WAWebProtobufsE2E.Money
 	6,   // 38: WAWebProtobufsWeb.WebFeatures.labelsDisplay:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
 	6,   // 39: WAWebProtobufsWeb.WebFeatures.voipIndividualOutgoing:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
 	6,   // 40: WAWebProtobufsWeb.WebFeatures.groupsV3:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
@@ -4871,37 +4946,39 @@ var file_waWeb_WAWebProtobufsWeb_proto_depIdxs = []int32{
 	6,   // 81: WAWebProtobufsWeb.WebFeatures.externalMdOptInAvailable:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
 	6,   // 82: WAWebProtobufsWeb.WebFeatures.noDeleteMessageTimeLimit:type_name -> WAWebProtobufsWeb.WebFeatures.Flag
 	7,   // 83: WAWebProtobufsWeb.PinInChat.type:type_name -> WAWebProtobufsWeb.PinInChat.Type
-	39,  // 84: WAWebProtobufsWeb.PinInChat.key:type_name -> WACommon.MessageKey
+	40,  // 84: WAWebProtobufsWeb.PinInChat.key:type_name -> WACommon.MessageKey
 	30,  // 85: WAWebProtobufsWeb.PinInChat.messageAddOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
 	8,   // 86: WAWebProtobufsWeb.MessageAddOn.messageAddOnType:type_name -> WAWebProtobufsWeb.MessageAddOn.MessageAddOnType
-	40,  // 87: WAWebProtobufsWeb.MessageAddOn.messageAddOn:type_name -> WAWebProtobufsE2E.Message
+	41,  // 87: WAWebProtobufsWeb.MessageAddOn.messageAddOn:type_name -> WAWebProtobufsE2E.Message
 	2,   // 88: WAWebProtobufsWeb.MessageAddOn.status:type_name -> WAWebProtobufsWeb.WebMessageInfo.Status
 	30,  // 89: WAWebProtobufsWeb.MessageAddOn.addOnContextInfo:type_name -> WAWebProtobufsWeb.MessageAddOnContextInfo
-	39,  // 90: WAWebProtobufsWeb.MessageAddOn.messageAddOnKey:type_name -> WACommon.MessageKey
+	40,  // 90: WAWebProtobufsWeb.MessageAddOn.messageAddOnKey:type_name -> WACommon.MessageKey
 	33,  // 91: WAWebProtobufsWeb.MessageAddOn.legacyMessage:type_name -> WAWebProtobufsWeb.LegacyMessage
-	43,  // 92: WAWebProtobufsWeb.GroupHistoryBundleInfo.deprecatedMessageHistoryBundle:type_name -> WAWebProtobufsE2E.MessageHistoryBundle
+	44,  // 92: WAWebProtobufsWeb.GroupHistoryBundleInfo.deprecatedMessageHistoryBundle:type_name -> WAWebProtobufsE2E.MessageHistoryBundle
 	9,   // 93: WAWebProtobufsWeb.GroupHistoryBundleInfo.processState:type_name -> WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessState
-	39,  // 94: WAWebProtobufsWeb.CommentMetadata.commentParentKey:type_name -> WACommon.MessageKey
+	40,  // 94: WAWebProtobufsWeb.CommentMetadata.commentParentKey:type_name -> WACommon.MessageKey
 	10,  // 95: WAWebProtobufsWeb.WebNotificationsInfo.notifyMessages:type_name -> WAWebProtobufsWeb.WebMessageInfo
-	39,  // 96: WAWebProtobufsWeb.NotificationMessageInfo.key:type_name -> WACommon.MessageKey
-	40,  // 97: WAWebProtobufsWeb.NotificationMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
-	39,  // 98: WAWebProtobufsWeb.Reaction.key:type_name -> WACommon.MessageKey
-	39,  // 99: WAWebProtobufsWeb.PollUpdate.pollUpdateMessageKey:type_name -> WACommon.MessageKey
-	44,  // 100: WAWebProtobufsWeb.PollUpdate.vote:type_name -> WAWebProtobufsE2E.PollVoteMessage
-	45,  // 101: WAWebProtobufsWeb.KeepInChat.keepType:type_name -> WAWebProtobufsE2E.KeepType
-	39,  // 102: WAWebProtobufsWeb.KeepInChat.key:type_name -> WACommon.MessageKey
-	46,  // 103: WAWebProtobufsWeb.MessageAddOnContextInfo.messageAddOnExpiryType:type_name -> WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
-	39,  // 104: WAWebProtobufsWeb.EventResponse.eventResponseMessageKey:type_name -> WACommon.MessageKey
-	47,  // 105: WAWebProtobufsWeb.EventResponse.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
-	47,  // 106: WAWebProtobufsWeb.LegacyMessage.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
-	44,  // 107: WAWebProtobufsWeb.LegacyMessage.pollVote:type_name -> WAWebProtobufsE2E.PollVoteMessage
-	40,  // 108: WAWebProtobufsWeb.StatusMentionMessage.quotedStatus:type_name -> WAWebProtobufsE2E.Message
-	39,  // 109: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo.bundleMessageKey:type_name -> WACommon.MessageKey
-	110, // [110:110] is the sub-list for method output_type
-	110, // [110:110] is the sub-list for method input_type
-	110, // [110:110] is the sub-list for extension type_name
-	110, // [110:110] is the sub-list for extension extendee
-	0,   // [0:110] is the sub-list for field type_name
+	40,  // 96: WAWebProtobufsWeb.NotificationMessageInfo.key:type_name -> WACommon.MessageKey
+	41,  // 97: WAWebProtobufsWeb.NotificationMessageInfo.message:type_name -> WAWebProtobufsE2E.Message
+	40,  // 98: WAWebProtobufsWeb.Reaction.key:type_name -> WACommon.MessageKey
+	40,  // 99: WAWebProtobufsWeb.PollUpdate.pollUpdateMessageKey:type_name -> WACommon.MessageKey
+	45,  // 100: WAWebProtobufsWeb.PollUpdate.vote:type_name -> WAWebProtobufsE2E.PollVoteMessage
+	46,  // 101: WAWebProtobufsWeb.PollUpdate.metadata:type_name -> WAWebProtobufsE2E.PollUpdateMessageMetadata
+	39,  // 102: WAWebProtobufsWeb.PollAdditionalMetadata.pollNameHashHistory:type_name -> WAWebProtobufsWeb.PollAdditionalMetadata.PollNameHashHistoryEntry
+	47,  // 103: WAWebProtobufsWeb.KeepInChat.keepType:type_name -> WAWebProtobufsE2E.KeepType
+	40,  // 104: WAWebProtobufsWeb.KeepInChat.key:type_name -> WACommon.MessageKey
+	48,  // 105: WAWebProtobufsWeb.MessageAddOnContextInfo.messageAddOnExpiryType:type_name -> WAWebProtobufsE2E.MessageContextInfo.MessageAddonExpiryType
+	40,  // 106: WAWebProtobufsWeb.EventResponse.eventResponseMessageKey:type_name -> WACommon.MessageKey
+	49,  // 107: WAWebProtobufsWeb.EventResponse.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
+	49,  // 108: WAWebProtobufsWeb.LegacyMessage.eventResponseMessage:type_name -> WAWebProtobufsE2E.EventResponseMessage
+	45,  // 109: WAWebProtobufsWeb.LegacyMessage.pollVote:type_name -> WAWebProtobufsE2E.PollVoteMessage
+	41,  // 110: WAWebProtobufsWeb.StatusMentionMessage.quotedStatus:type_name -> WAWebProtobufsE2E.Message
+	40,  // 111: WAWebProtobufsWeb.GroupHistoryIndividualMessageInfo.bundleMessageKey:type_name -> WACommon.MessageKey
+	112, // [112:112] is the sub-list for method output_type
+	112, // [112:112] is the sub-list for method input_type
+	112, // [112:112] is the sub-list for extension type_name
+	112, // [112:112] is the sub-list for extension extendee
+	0,   // [0:112] is the sub-list for field type_name
 }
 
 func init() { file_waWeb_WAWebProtobufsWeb_proto_init() }
@@ -4915,7 +4992,7 @@ func file_waWeb_WAWebProtobufsWeb_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waWeb_WAWebProtobufsWeb_proto_rawDesc), len(file_waWeb_WAWebProtobufsWeb_proto_rawDesc)),
 			NumEnums:      10,
-			NumMessages:   29,
+			NumMessages:   30,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

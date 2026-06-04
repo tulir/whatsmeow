@@ -300,6 +300,12 @@ message BizAISettingsNudgeAction {
 }
 
 message MaibaAIFeaturesControlAction {
+	enum MaibaAIReplyMode {
+		MUTED = 0;
+		AI_AGENT = 1;
+		SUGGESTIONS = 2;
+	}
+
 	enum MaibaAIFeatureStatus {
 		ENABLED = 0;
 		ENABLED_HAS_LEARNING = 1;
@@ -307,6 +313,7 @@ message MaibaAIFeaturesControlAction {
 	}
 
 	optional MaibaAIFeatureStatus aiFeatureStatus = 1;
+	optional MaibaAIReplyMode aiReplyMode = 2;
 }
 
 message PaymentTosAction {
@@ -976,15 +983,9 @@ message RecentEmojiWeightsAction {
 	repeated RecentEmojiWeight weights = 1;
 }
 
-message ModelMetadata {
-	optional string modelName = 1;
-	optional bool isLatestModel = 2;
-	optional bool isDetected = 3;
-}
-
 message LabelAssociationAction {
 	optional bool labeled = 1;
-	repeated ModelMetadata modelMetaData = 2;
+	optional string modelMetaData = 2;
 }
 
 message QuickReplyAction {

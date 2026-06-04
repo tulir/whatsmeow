@@ -49,7 +49,10 @@ func (cli *Client) DownloadToFile(ctx context.Context, msg DownloadableMessage, 
 	if len(msg.GetDirectPath()) == 0 {
 		return ErrNoURLPresent
 	}
-	return cli.DownloadMediaWithPathToFile(ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(), getSize(msg), mediaType, mediaTypeToMMSType[mediaType], file)
+	return cli.DownloadMediaWithPathToFile(
+		ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(),
+		mediaType, mediaTypeToMMSType[mediaType], false, file,
+	)
 }
 
 func (cli *Client) DownloadFBToFile(
@@ -58,18 +61,28 @@ func (cli *Client) DownloadFBToFile(
 	mediaType MediaType,
 	file File,
 ) error {
-	return cli.DownloadMediaWithPathToFile(ctx, transport.GetDirectPath(), transport.GetFileEncSHA256(), transport.GetFileSHA256(), transport.GetMediaKey(), -1, mediaType, mediaTypeToMMSType[mediaType], file)
+	return cli.DownloadMediaWithPathToFile(
+		ctx, transport.GetDirectPath(), transport.GetFileEncSHA256(), transport.GetFileSHA256(), transport.GetMediaKey(),
+		mediaType, mediaTypeToMMSType[mediaType], false, file,
+	)
+}
+
+func (cli *Client) DownloadMediaWithOnlyPathToFile(ctx context.Context, directPath string, file File) error {
+	return cli.DownloadMediaWithPathToFile(ctx, directPath, nil, nil, nil, "", "", true, file)
 }
 
 func (cli *Client) DownloadMediaWithPathToFile(
 	ctx context.Context,
 	directPath string,
 	encFileHash, fileHash, mediaKey []byte,
-	fileLength int,
 	mediaType MediaType,
 	mmsType string,
+	allowNoHash bool,
 	file File,
 ) error {
+	if !allowNoHash && fileHash == nil {
+		fileHash = make([]byte, 32)
+	}
 	if !strings.HasPrefix(directPath, "/") {
 		return fmt.Errorf("media download path does not start with slash: %s", directPath)
 	}
@@ -83,9 +96,8 @@ func (cli *Client) DownloadMediaWithPathToFile(
 	for i, host := range mediaConn.Hosts {
 		// TODO omit hash for unencrypted media?
 		mediaURL := fmt.Sprintf("https://%s%s&hash=%s&mms-type=%s&__wa-mms=", host.Hostname, directPath, base64.URLEncoding.EncodeToString(encFileHash), mmsType)
-		err = cli.downloadAndDecryptToFile(ctx, mediaURL, mediaKey, mediaType, fileLength, encFileHash, fileHash, file)
+		err = cli.downloadAndDecryptToFile(ctx, mediaURL, mediaKey, mediaType, encFileHash, fileHash, file)
 		if err == nil ||
-			errors.Is(err, ErrFileLengthMismatch) ||
 			errors.Is(err, ErrInvalidMediaSHA256) ||
 			errors.Is(err, ErrMediaDownloadFailedWith403) ||
 			errors.Is(err, ErrMediaDownloadFailedWith404) ||
@@ -105,7 +117,6 @@ func (cli *Client) downloadAndDecryptToFile(
 	url string,
 	mediaKey []byte,
 	appInfo MediaType,
-	fileLength int,
 	fileEncSHA256, fileSHA256 []byte,
 	file File,
 ) error {
@@ -115,6 +126,9 @@ func (cli *Client) downloadAndDecryptToFile(
 		return err
 	} else if mediaKey == nil && fileEncSHA256 == nil && mac == nil {
 		// Unencrypted media, just check the hash and return
+		if fileSHA256 == nil {
+			return nil
+		}
 		_, err = file.Seek(0, io.SeekStart)
 		if err != nil {
 			return fmt.Errorf("failed to seek to start of file: %w", err)
@@ -130,18 +144,12 @@ func (cli *Client) downloadAndDecryptToFile(
 		return fmt.Errorf("failed to seek to start of file after validating mac: %w", err)
 	} else if err = cbcutil.DecryptFile(cipherKey, iv, file); err != nil {
 		return fmt.Errorf("failed to decrypt file: %w", err)
-	} else if ReturnDownloadWarnings {
-		if info, err := file.Stat(); err != nil {
-			return fmt.Errorf("failed to stat file: %w", err)
-		} else if fileLength >= 0 && info.Size() != int64(fileLength) {
-			return fmt.Errorf("%w: expected %d, got %d", ErrFileLengthMismatch, fileLength, info.Size())
-		} else if _, err = file.Seek(0, io.SeekStart); err != nil {
-			return fmt.Errorf("failed to seek to start of file after decrypting: %w", err)
-		} else if _, err = io.Copy(hasher, file); err != nil {
-			return fmt.Errorf("failed to hash file: %w", err)
-		} else if !hmac.Equal(fileSHA256, hasher.Sum(nil)) {
-			return ErrInvalidMediaSHA256
-		}
+	} else if _, err = file.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("failed to seek to start of file after decrypting: %w", err)
+	} else if _, err = io.Copy(hasher, file); err != nil {
+		return fmt.Errorf("failed to hash file: %w", err)
+	} else if !hmac.Equal(fileSHA256, hasher.Sum(nil)) {
+		return ErrInvalidMediaSHA256
 	}
 	return nil
 }
@@ -194,12 +202,15 @@ func (cli *Client) downloadMediaToFile(ctx context.Context, url string, file io.
 }
 
 func (cli *Client) downloadEncryptedMediaToFile(ctx context.Context, url string, checksum []byte, file File) ([]byte, error) {
+	if len(checksum) != 32 {
+		return nil, fmt.Errorf("invalid checksum length: expected 32, got %d", len(checksum))
+	}
 	size, hash, err := cli.downloadMediaToFile(ctx, url, file)
 	if err != nil {
 		return nil, err
 	} else if size <= mediaHMACLength {
 		return nil, ErrTooShortFile
-	} else if len(checksum) == 32 && !hmac.Equal(checksum, hash) {
+	} else if checksum != nil && !hmac.Equal(checksum, hash) {
 		return nil, ErrInvalidMediaEncSHA256
 	}
 	mac := make([]byte, mediaHMACLength)

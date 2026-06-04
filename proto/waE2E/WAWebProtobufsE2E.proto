@@ -1289,6 +1289,11 @@ message ContextInfo {
 			ORDER = 12;
 		}
 
+		message SignedPayload {
+			optional string verifiedName = 1;
+			repeated Pill pills = 2;
+		}
+
 		message Pill {
 			optional PillType pillType = 1;
 			optional string actionURL = 2;
@@ -1297,6 +1302,8 @@ message ContextInfo {
 		optional string businessJID = 1;
 		repeated Pill pills = 2;
 		optional EntryPoint entryPoint = 3;
+		optional bytes signedPayload = 4;
+		optional WAWebProtobufsAICommon.BotSignatureVerificationMetadata signatureEnvelope = 5;
 	}
 
 	message StatusAudienceMetadata {
@@ -1788,6 +1795,7 @@ message Message {
 	optional PaymentReminderMessage paymentReminderMessage = 124;
 	optional SplitPaymentMessage splitPaymentMessage = 125;
 	optional FutureProofMessage newsletterAdminProfileStatusMessage = 126;
+	optional RootSecretDistributeMessage rootSecretDistributeMessage = 127;
 }
 
 message AlbumMessage {
@@ -1889,6 +1897,7 @@ message PollResultSnapshotMessage {
 message PollAddOptionMessage {
 	optional WACommon.MessageKey pollCreationMessageKey = 1;
 	optional PollCreationMessage.Option addOption = 2;
+	optional PollUpdateMessageMetadata metadata = 3;
 }
 
 message PollVoteMessage {
@@ -1901,6 +1910,8 @@ message PollEncValue {
 }
 
 message PollUpdateMessageMetadata {
+	optional bytes pollNameHash = 1;
+	optional string lastEditStanzaID = 2;
 }
 
 message PollUpdateMessage {
@@ -2352,6 +2363,10 @@ message ContactMessage {
 	optional string vcard = 16;
 	optional ContextInfo contextInfo = 17;
 	optional bool isSelfContact = 18;
+}
+
+message RootSecretDistributeMessage {
+	optional string chatJID = 1;
 }
 
 message SenderKeyDistributionMessage {

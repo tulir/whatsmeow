@@ -54,16 +54,20 @@ type qrChannel struct {
 	log       waLog.Logger
 	ctx       context.Context
 	handlerID uint32
-	closed    uint32
+	closed    atomic.Bool
 	output    chan<- QRChannelItem
 	stopQRs   chan struct{}
+}
+
+func (qrc *qrChannel) close() bool {
+	return qrc.closed.Swap(true) == false
 }
 
 func (qrc *qrChannel) emitQRs(codes []string) {
 	var nextCode string
 	for {
 		if len(codes) == 0 {
-			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
+			if qrc.close() {
 				qrc.log.Debugf("Ran out of QR codes, closing channel with status %s and disconnecting client", QRChannelTimeout)
 				qrc.output <- QRChannelTimeout
 				close(qrc.output)
@@ -73,7 +77,7 @@ func (qrc *qrChannel) emitQRs(codes []string) {
 				qrc.log.Debugf("Ran out of QR codes, but channel is already closed")
 			}
 			return
-		} else if atomic.LoadUint32(&qrc.closed) == 1 {
+		} else if qrc.closed.Load() {
 			qrc.log.Debugf("QR code channel is closed, exiting QR emitter")
 			return
 		}
@@ -87,7 +91,7 @@ func (qrc *qrChannel) emitQRs(codes []string) {
 		case qrc.output <- QRChannelItem{Code: nextCode, Timeout: timeout, Event: QRChannelEventCode}:
 		default:
 			qrc.log.Debugf("Output channel didn't accept code, exiting QR emitter")
-			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
+			if qrc.close() {
 				close(qrc.output)
 				go qrc.cli.RemoveEventHandler(qrc.handlerID)
 				qrc.cli.Disconnect()
@@ -99,9 +103,12 @@ func (qrc *qrChannel) emitQRs(codes []string) {
 		case <-qrc.stopQRs:
 			qrc.log.Debugf("Got signal to stop QR emitter")
 			return
+		case <-qrc.cli.expectedDisconnect.GetChan():
+			qrc.log.Debugf("Client is expected to disconnect, stopping QR emitter")
+			return
 		case <-qrc.ctx.Done():
 			qrc.log.Debugf("Context is done, stopping QR emitter")
-			if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
+			if qrc.close() {
 				close(qrc.output)
 				go qrc.cli.RemoveEventHandler(qrc.handlerID)
 				qrc.cli.Disconnect()
@@ -110,8 +117,8 @@ func (qrc *qrChannel) emitQRs(codes []string) {
 	}
 }
 
-func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
-	if atomic.LoadUint32(&qrc.closed) == 1 {
+func (qrc *qrChannel) handleEvent(rawEvt any) {
+	if qrc.closed.Load() {
 		qrc.log.Debugf("Dropping event of type %T, channel is closed", rawEvt)
 		return
 	}
@@ -142,7 +149,7 @@ func (qrc *qrChannel) handleEvent(rawEvt interface{}) {
 		return
 	}
 	close(qrc.stopQRs)
-	if atomic.CompareAndSwapUint32(&qrc.closed, 0, 1) {
+	if qrc.close() {
 		qrc.log.Debugf("Closing channel with status %+v", outputType)
 		qrc.output <- outputType
 		close(qrc.output)
