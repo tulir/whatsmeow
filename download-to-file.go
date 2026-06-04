@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"go.mau.fi/util/fallocate"
@@ -69,6 +70,9 @@ func (cli *Client) DownloadMediaWithPathToFile(
 	mmsType string,
 	file File,
 ) error {
+	if !strings.HasPrefix(directPath, "/") {
+		return fmt.Errorf("media download path does not start with slash: %s", directPath)
+	}
 	mediaConn, err := cli.refreshMediaConn(ctx, false)
 	if err != nil {
 		return fmt.Errorf("failed to refresh media connections: %w", err)
@@ -110,7 +114,15 @@ func (cli *Client) downloadAndDecryptToFile(
 	if mac, err := cli.downloadPossiblyEncryptedMediaWithRetriesToFile(ctx, url, fileEncSHA256, file); err != nil {
 		return err
 	} else if mediaKey == nil && fileEncSHA256 == nil && mac == nil {
-		// Unencrypted media, just return the downloaded data
+		// Unencrypted media, just check the hash and return
+		_, err = file.Seek(0, io.SeekStart)
+		if err != nil {
+			return fmt.Errorf("failed to seek to start of file: %w", err)
+		} else if _, err = io.Copy(hasher, file); err != nil {
+			return fmt.Errorf("failed to hash file: %w", err)
+		} else if !hmac.Equal(fileSHA256, hasher.Sum(nil)) {
+			return ErrInvalidUnencryptedMediaSHA256
+		}
 		return nil
 	} else if err = validateMediaFile(file, iv, macKey, mac); err != nil {
 		return err

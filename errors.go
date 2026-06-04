@@ -128,17 +128,18 @@ func (dhe DownloadHTTPError) Is(other error) bool {
 
 // Some errors that Client.Download can return
 var (
-	ErrMediaDownloadFailedWith403 = DownloadHTTPError{Response: &http.Response{StatusCode: 403}}
-	ErrMediaDownloadFailedWith404 = DownloadHTTPError{Response: &http.Response{StatusCode: 404}}
-	ErrMediaDownloadFailedWith410 = DownloadHTTPError{Response: &http.Response{StatusCode: 410}}
-	ErrNoURLPresent               = errors.New("no url present")
-	ErrFileLengthMismatch         = errors.New("file length does not match")
-	ErrTooShortFile               = errors.New("file too short")
-	ErrInvalidMediaHMAC           = errors.New("invalid media hmac")
-	ErrInvalidMediaEncSHA256      = errors.New("hash of media ciphertext doesn't match")
-	ErrInvalidMediaSHA256         = errors.New("hash of media plaintext doesn't match")
-	ErrUnknownMediaType           = errors.New("unknown media type")
-	ErrNothingDownloadableFound   = errors.New("didn't find any attachments in message")
+	ErrMediaDownloadFailedWith403    = DownloadHTTPError{Response: &http.Response{StatusCode: 403}}
+	ErrMediaDownloadFailedWith404    = DownloadHTTPError{Response: &http.Response{StatusCode: 404}}
+	ErrMediaDownloadFailedWith410    = DownloadHTTPError{Response: &http.Response{StatusCode: 410}}
+	ErrNoURLPresent                  = errors.New("no url present")
+	ErrFileLengthMismatch            = errors.New("file length does not match")
+	ErrTooShortFile                  = errors.New("file too short")
+	ErrInvalidMediaHMAC              = errors.New("invalid media hmac")
+	ErrInvalidMediaEncSHA256         = errors.New("hash of media ciphertext doesn't match")
+	ErrInvalidMediaSHA256            = errors.New("hash of media plaintext doesn't match")
+	ErrInvalidUnencryptedMediaSHA256 = errors.New("hash of unencrypted media doesn't match")
+	ErrUnknownMediaType              = errors.New("unknown media type")
+	ErrNothingDownloadableFound      = errors.New("didn't find any attachments in message")
 )
 
 var (

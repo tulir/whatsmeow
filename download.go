@@ -303,8 +303,11 @@ func (cli *Client) downloadAndDecrypt(
 	if ciphertext, mac, err = cli.downloadPossiblyEncryptedMediaWithRetries(ctx, url, fileEncSHA256); err != nil {
 
 	} else if mediaKey == nil && fileEncSHA256 == nil && mac == nil {
-		// Unencrypted media, just return the downloaded data
+		// Unencrypted media, just check the hash and return
 		data = ciphertext
+		if sha256.Sum256(data) != *(*[32]byte)(fileSHA256) {
+			err = ErrInvalidUnencryptedMediaSHA256
+		}
 	} else if err = validateMedia(iv, ciphertext, macKey, mac); err != nil {
 
 	} else if data, err = cbcutil.Decrypt(cipherKey, iv, ciphertext); err != nil {
@@ -313,6 +316,7 @@ func (cli *Client) downloadAndDecrypt(
 		if fileLength >= 0 && len(data) != fileLength {
 			err = fmt.Errorf("%w: expected %d, got %d", ErrFileLengthMismatch, fileLength, len(data))
 		} else if len(fileSHA256) == 32 && sha256.Sum256(data) != *(*[32]byte)(fileSHA256) {
+			// TODO maybe move this out of ReturnDownloadWarnings if whatsapp has started enforcing it in official clients
 			err = ErrInvalidMediaSHA256
 		}
 	}
