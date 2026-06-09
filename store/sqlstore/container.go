@@ -51,6 +51,7 @@ func New(ctx context.Context, dialect, address string, log waLog.Logger) (*Conta
 	container := NewWithDB(db, dialect, log)
 	err = container.Upgrade(ctx)
 	if err != nil {
+		_ = container.Close()
 		return nil, fmt.Errorf("failed to upgrade database: %w", err)
 	}
 	return container, nil
