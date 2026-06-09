@@ -960,9 +960,13 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
 	if info.IsFromMe {
-		info.Sender = cli.getOwnID().ToNonAD()
-		if info.Sender.IsEmpty() {
-			return nil, ErrNotLoggedIn
+		if webMsg.GetOriginalSelfAuthorUserJIDString() != "" {
+			info.Sender, err = types.ParseJID(webMsg.GetOriginalSelfAuthorUserJIDString())
+		} else {
+			info.Sender = cli.getOwnID().ToNonAD()
+			if info.Sender.IsEmpty() {
+				return nil, ErrNotLoggedIn
+			}
 		}
 	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer || chatJID.Server == types.NewsletterServer {
 		info.Sender = chatJID
