@@ -30,15 +30,15 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		ag := count.AttrGetter()
 		otksLeft := ag.Int("value")
 		if !ag.OK() {
-			cli.Log.Warnf("Didn't get number of OTKs left in encryption notification %s", node.XMLString())
+			cli.Log.Warnf("Didn't get number of OTKs left in encryption notification %s", node)
 			return
 		}
-		cli.Log.Infof("Got prekey count from server: %s", node.XMLString())
+		cli.Log.Infof("Got prekey count from server: %s", node)
 		if otksLeft < MinPreKeyCount {
 			cli.uploadPreKeys(ctx, false)
 		}
 	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
-		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node.XMLString())
+		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node)
 		err := cli.Store.Identities.DeleteAllIdentities(ctx, from.User)
 		if err != nil {
 			cli.Log.Warnf("Failed to delete all identities of %s from store after identity change: %v", from, err)
@@ -66,7 +66,7 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
-		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
+		cli.Log.Debugf("Got unknown encryption notification from server: %s", node)
 	}
 }
 
@@ -255,7 +255,7 @@ func (cli *Client) handleBlocklist(ctx context.Context, node *waBinary.Node) {
 			Action: events.BlocklistChangeAction(ag.String("action")),
 		}
 		if !ag.OK() {
-			cli.Log.Warnf("Unexpected data in blocklist event child %v: %v", child.XMLString(), ag.Error())
+			cli.Log.Warnf("Unexpected data in blocklist event child %s: %v", &child, ag.Error())
 			continue
 		}
 		evt.Changes = append(evt.Changes, change)

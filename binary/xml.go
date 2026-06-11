@@ -15,14 +15,14 @@ import (
 	"unicode/utf8"
 )
 
-// Options to control how Node.XMLString behaves.
+// Options to control how Node.String behaves.
 var (
 	IndentXML            = false
 	MaxBytesToPrintAsHex = 128
 )
 
-// XMLString converts the Node to its XML representation
-func (n *Node) XMLString() string {
+// String converts the Node to its XML representation
+func (n Node) String() string {
 	content := n.contentString()
 	if len(content) == 0 {
 		return fmt.Sprintf("<%[1]s%[2]s/>", n.Tag, n.attributeString())
@@ -66,7 +66,7 @@ func (n *Node) contentString() []string {
 	switch content := n.Content.(type) {
 	case []Node:
 		for _, item := range content {
-			split = append(split, strings.Split(item.XMLString(), "\n")...)
+			split = append(split, strings.Split(item.String(), "\n")...)
 		}
 	case []byte:
 		if strContent := printable(content); len(strContent) > 0 {

@@ -214,9 +214,9 @@ func parseIQError(node *waBinary.Node) error {
 func (iqe *IQError) Error() string {
 	if iqe.Code == 0 {
 		if iqe.ErrorNode != nil {
-			return fmt.Sprintf("info query returned unknown error: %s", iqe.ErrorNode.XMLString())
+			return fmt.Sprintf("info query returned unknown error: %s", iqe.ErrorNode)
 		} else if iqe.RawNode != nil {
-			return fmt.Sprintf("info query returned unexpected response: %s", iqe.RawNode.XMLString())
+			return fmt.Sprintf("info query returned unexpected response: %s", iqe.RawNode)
 		} else {
 			return "unknown info query error"
 		}
@@ -231,7 +231,7 @@ func (iqe *IQError) Is(other error) bool {
 	} else if iqe.Code != 0 && otherIQE.Code != 0 {
 		return otherIQE.Code == iqe.Code && otherIQE.Text == iqe.Text
 	} else if iqe.ErrorNode != nil && otherIQE.ErrorNode != nil {
-		return iqe.ErrorNode.XMLString() == otherIQE.ErrorNode.XMLString()
+		return iqe.ErrorNode.String() == otherIQE.ErrorNode.String()
 	} else {
 		return false
 	}
