@@ -1285,6 +1285,11 @@ func (cli *Client) encryptMessageForDevices(
 	sessionAddressToJID := make(map[string]types.JID, len(allDevices))
 	sessionAddresses := make([]string, 0, len(allDevices))
 	for _, jid := range allDevices {
+		if dsmPlaintext != nil && (jid == ownJID || jid == ownLID) {
+			// There's never a session with ourselves; prefetching one would
+			// put it in retryDevices and fetch prekeys on every message.
+			continue
+		}
 		encryptionIdentity := jid
 		if jid.Server == types.DefaultUserServer {
 			// TODO query LID from server for missing entries

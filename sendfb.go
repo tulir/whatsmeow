@@ -530,6 +530,11 @@ func (cli *Client) encryptMessageForDevicesV3(
 	sessionAddressToJID := make(map[string]types.JID, len(allDevices))
 	sessionAddresses := make([]string, 0, len(allDevices))
 	for _, jid := range allDevices {
+		if jid == ownID {
+			// There's never a session with ourselves; prefetching one would
+			// trigger a prekey fetch on every message.
+			continue
+		}
 		addr := jid.SignalAddress().String()
 		sessionAddresses = append(sessionAddresses, addr)
 		sessionAddressToJID[addr] = jid
