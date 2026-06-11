@@ -1176,6 +1176,33 @@ func (cli *Client) prepareMessageNode(
 		})
 	}
 
+	if dsmPlaintext != nil {
+		// usync can return own devices in both the PN and LID namespaces.
+		// WA Web only fans out own devices in the chat's namespace; without
+		// the dedupe each own device is encrypted to twice and the stanza
+		// mixes addressing namespaces. Only devices that also exist in the
+		// kept namespace are dropped, so none can be lost.
+		ownPN := cli.getOwnID().ToNonAD()
+		ownLID := cli.getOwnLID().ToNonAD()
+		if !ownPN.IsEmpty() && !ownLID.IsEmpty() {
+			keep, drop := ownPN, ownLID
+			if to.Server == types.HiddenUserServer {
+				keep, drop = ownLID, ownPN
+			}
+			keptDevices := make(map[uint16]bool)
+			for _, jid := range allDevices {
+				if jid.Server == keep.Server && jid.User == keep.User {
+					keptDevices[jid.Device] = true
+				}
+			}
+			if len(keptDevices) > 0 {
+				allDevices = slices.DeleteFunc(allDevices, func(jid types.JID) bool {
+					return jid.Server == drop.Server && jid.User == drop.User && keptDevices[jid.Device]
+				})
+			}
+		}
+	}
+
 	msgType := getTypeFromMessage(message)
 	encAttrs := waBinary.Attrs{}
 	// Only include encMediaType for 1:1 messages (groups don't have a device-sent message plaintext)
