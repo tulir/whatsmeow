@@ -102,7 +102,7 @@ type infoQuery struct {
 	Target    types.JID
 	ID        string
 	SMaxID    string
-	Content   interface{}
+	Content   any
 
 	Timeout time.Duration
 	NoRetry bool

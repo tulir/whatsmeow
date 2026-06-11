@@ -736,7 +736,7 @@ func (cli *Client) Logout(ctx context.Context) error {
 // All registered event handlers will receive all events. You should use a type switch statement to
 // filter the events you want:
 //
-//	func myEventHandler(evt interface{}) {
+//	func myEventHandler(evt any) {
 //		switch v := evt.(type) {
 //		case *events.Message:
 //			fmt.Println("Received a message!")
@@ -757,7 +757,7 @@ func (cli *Client) Logout(ctx context.Context) error {
 //		mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
 //	}
 //
-//	func (mycli *MyClient) myEventHandler(evt interface{}) {
+//	func (mycli *MyClient) myEventHandler(evt any) {
 //		// Handle event and access mycli.WAClient
 //	}
 func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
@@ -782,7 +782,7 @@ func (cli *Client) AddEventHandlerWithSuccessStatus(handler EventHandlerWithSucc
 // event dispatcher holds a read lock on the event handler list, and this method wants a write lock
 // on the same list. Instead run it in a goroutine:
 //
-//	func (mycli *MyClient) myEventHandler(evt interface{}) {
+//	func (mycli *MyClient) myEventHandler(evt any) {
 //		if noLongerWantEvents {
 //			go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
 //		}

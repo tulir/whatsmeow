@@ -290,7 +290,7 @@ func (cli *Client) UpdateGroupRequestParticipants(ctx context.Context, jid types
 // The avatar should be a JPEG photo, other formats may be rejected with ErrInvalidImageFormat.
 // The bytes can be nil to remove the photo. Returns the new picture ID.
 func (cli *Client) SetGroupPhoto(ctx context.Context, jid types.JID, avatar []byte) (string, error) {
-	var content interface{}
+	var content any
 	if avatar != nil {
 		content = []waBinary.Node{{
 			Tag:     "picture",

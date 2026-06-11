@@ -19,9 +19,9 @@ type Attrs = map[string]any
 
 // Node represents an XML element.
 type Node struct {
-	Tag     string      // The tag of the element.
-	Attrs   Attrs       // The attributes of the element.
-	Content interface{} // The content inside the element. Can be nil, a list of Nodes, or a byte array.
+	Tag     string // The tag of the element.
+	Attrs   Attrs  // The attributes of the element.
+	Content any    // The content inside the element. Can be nil, a list of Nodes, or a byte array.
 }
 
 type marshalableNode struct {
