@@ -191,11 +191,11 @@ func (cli *Client) retryFrame(
 	timeout time.Duration,
 ) (*waBinary.Node, error) {
 	if isAuthErrorDisconnect(origResp) {
-		cli.Log.Debugf("%s (%s) was interrupted by websocket disconnection (%s), not retrying as it looks like an auth error", id, reqType, origResp.XMLString())
+		cli.Log.Debugf("%s (%s) was interrupted by websocket disconnection (%s), not retrying as it looks like an auth error", id, reqType, origResp)
 		return nil, &DisconnectedError{Action: reqType, Node: origResp}
 	}
 
-	cli.Log.Debugf("%s (%s) was interrupted by websocket disconnection (%s), waiting for reconnect to retry...", id, reqType, origResp.XMLString())
+	cli.Log.Debugf("%s (%s) was interrupted by websocket disconnection (%s), waiting for reconnect to retry...", id, reqType, origResp)
 	if !cli.WaitForConnection(5 * time.Second) {
 		cli.Log.Debugf("Websocket didn't reconnect within 5 seconds of failed %s (%s)", reqType, id)
 		return nil, &DisconnectedError{Action: reqType, Node: origResp}
@@ -228,7 +228,7 @@ func (cli *Client) retryFrame(
 		return nil, ErrIQTimedOut
 	}
 	if isDisconnectNode(resp) {
-		cli.Log.Debugf("Retrying %s %s was interrupted by websocket disconnection (%v), not retrying anymore", reqType, id, resp.XMLString())
+		cli.Log.Debugf("Retrying %s %s was interrupted by websocket disconnection (%s), not retrying anymore", reqType, id, resp)
 		return nil, &DisconnectedError{Action: fmt.Sprintf("%s (retry)", reqType), Node: resp}
 	}
 	return resp, nil
