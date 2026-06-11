@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -28,7 +29,15 @@ import (
 
 // FetchAppState fetches updates to the given type of app state. If fullSync is true, the current
 // cached state will be removed and all app state patches will be re-fetched from the server.
+//
+// When Client.SkipBrokenAppStatePatches is true, any patch that permanently fails LTHash
+// verification or references a missing sync key is skipped: its version is written to the store
+// with a zeroed hash so the next fetch starts from the following version. See that field's
+// documentation for a full description of the trade-offs.
 func (cli *Client) FetchAppState(ctx context.Context, name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) error {
+	if cli.SkipBrokenAppStatePatches {
+		return cli.fetchAppStateWithSkip(ctx, name, fullSync, onlyIfNotSynced)
+	}
 	eventsToDispatch, err := cli.fetchAppState(ctx, name, fullSync, onlyIfNotSynced)
 	if err != nil {
 		return err
@@ -37,6 +46,85 @@ func (cli *Client) FetchAppState(ctx context.Context, name appstate.WAPatchName,
 		cli.dispatchEvent(evt)
 	}
 	return nil
+}
+
+// maxSkipBrokenPatches is the maximum number of unverifiable patches that fetchAppStateWithSkip
+// will skip in a single FetchAppState call before giving up.
+const maxSkipBrokenPatches = 200
+
+// skipBrokenPatchThrottle is the delay inserted between skip iterations to avoid exhausting the
+// per-connection IQ budget on the WhatsApp server when many patches need to be skipped.
+const skipBrokenPatchThrottle = 300 * time.Millisecond
+
+// isSkippableAppStateError reports whether err should be treated as a skippable patch failure
+// when SkipBrokenAppStatePatches is enabled. Only errors that are definitively caused by
+// server-side bad data (mismatching LTHash, missing sync key) are skippable; transient network
+// or protocol errors are not.
+func isSkippableAppStateError(err error) bool {
+	return errors.Is(err, appstate.ErrMismatchingLTHash) || errors.Is(err, appstate.ErrKeyNotFound)
+}
+
+// fetchAppStateWithSkip wraps fetchAppState with a bounded skip-and-retry loop for use when
+// SkipBrokenAppStatePatches is true. On each skippable error it advances the stored version
+// cursor past the failing patch (writing that version with a zeroed hash so the LTHash
+// accumulator starts fresh) and retries, up to maxSkipBrokenPatches times.
+func (cli *Client) fetchAppStateWithSkip(ctx context.Context, name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) error {
+	for skip := 0; skip < maxSkipBrokenPatches; skip++ {
+		eventsToDispatch, err := cli.fetchAppState(ctx, name, fullSync, onlyIfNotSynced)
+		if err == nil {
+			for _, evt := range eventsToDispatch {
+				cli.dispatchEvent(evt)
+			}
+			return nil
+		}
+		if !isSkippableAppStateError(err) {
+			return err
+		}
+
+		// Determine which version failed so we can advance past it. The error message
+		// from validateSnapshotMAC / getAppStateKey is of the form
+		// "failed to verify patch vN: ..." or "failed to get key ... to decode mutation: ...
+		// didn't find app state key". Extract the current stored version and advance by one.
+		currentVersion, _, storeErr := cli.Store.AppState.GetAppStateVersion(ctx, string(name))
+		if storeErr != nil {
+			return fmt.Errorf("failed to advance past broken patch (get version: %w; original error: %w)", storeErr, err)
+		}
+		nextVersion := currentVersion + 1
+
+		// Log at warn level: skipped mutations are lost, which the caller should know about.
+		cli.Log.Warnf("Skipping unverifiable app state %s patch at v%d (%s contains %v); advancing cursor to v%d",
+			name, currentVersion, extractVersionFromSkipError(err), err, nextVersion)
+
+		var zeroHash [128]byte
+		if putErr := cli.Store.AppState.PutAppStateVersion(ctx, string(name), nextVersion, zeroHash); putErr != nil {
+			return fmt.Errorf("failed to advance past broken patch v%d (put version: %w; original error: %w)", currentVersion, putErr, err)
+		}
+
+		// Throttle to avoid server-side IQ rate limiting when many patches need skipping.
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(skipBrokenPatchThrottle):
+		}
+
+		// After advancing the cursor, fetch incrementally (not a full sync) from the new version.
+		fullSync = false
+		onlyIfNotSynced = false
+	}
+	return fmt.Errorf("gave up after skipping %d unverifiable app state %s patches", maxSkipBrokenPatches, name)
+}
+
+// extractVersionFromSkipError tries to extract a useful short label from a skip error for logging.
+func extractVersionFromSkipError(err error) string {
+	msg := err.Error()
+	if idx := strings.Index(msg, "patch v"); idx >= 0 {
+		end := idx + 7
+		for end < len(msg) && (msg[end] >= '0' && msg[end] <= '9') {
+			end++
+		}
+		return msg[idx:end]
+	}
+	return "unknown version"
 }
 
 func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) ([]any, error) {
@@ -575,8 +663,20 @@ func (cli *Client) sendAppState(ctx context.Context, patch appstate.PatchInfo, a
 			patches, err := appstate.ParsePatchList(ctx, &respCollection, cli.downloadExternalAppStateBlob)
 			if err != nil {
 				return fmt.Errorf("%w (also, parsing patches in the response failed: %w)", mainErr, err)
-			} else if state, err = cli.applyAppStatePatches(ctx, patch.Type, state, patches, false, &eventsToDispatch); err != nil {
-				return fmt.Errorf("%w (also, applying patches in the response failed: %w)", mainErr, err)
+			}
+			applyErr := error(nil)
+			state, applyErr = cli.applyAppStatePatches(ctx, patch.Type, state, patches, false, &eventsToDispatch)
+			if applyErr != nil {
+				if cli.SkipBrokenAppStatePatches && isSkippableAppStateError(applyErr) {
+					// The conflicting patches themselves contain a broken patch. Heal by
+					// re-syncing the collection with the skip loop, then retry the send.
+					zerolog.Ctx(ctx).Warn().Err(applyErr).Msg("Conflicting patches contain unverifiable patch; re-syncing with skip loop before retrying")
+					if syncErr := cli.fetchAppStateWithSkip(ctx, patch.Type, false, false); syncErr != nil {
+						return fmt.Errorf("%w (also, re-sync after skip failed: %w)", mainErr, syncErr)
+					}
+				} else {
+					return fmt.Errorf("%w (also, applying patches in the response failed: %w)", mainErr, applyErr)
+				}
 			} else {
 				zerolog.Ctx(ctx).Debug().Msg("Retrying app state send after applying conflicting patches")
 				go func() {
@@ -584,8 +684,8 @@ func (cli *Client) sendAppState(ctx context.Context, patch appstate.PatchInfo, a
 						cli.dispatchEvent(evt)
 					}
 				}()
-				return cli.sendAppState(ctx, patch, false)
 			}
+			return cli.sendAppState(ctx, patch, false)
 		}
 		return mainErr
 	}
