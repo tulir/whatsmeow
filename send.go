@@ -1285,6 +1285,9 @@ func (cli *Client) encryptMessageForDevices(
 	sessionAddressToJID := make(map[string]types.JID, len(allDevices))
 	sessionAddresses := make([]string, 0, len(allDevices))
 	for _, jid := range allDevices {
+		if jid == ownJID || jid == ownLID {
+			continue
+		}
 		encryptionIdentity := jid
 		if jid.Server == types.DefaultUserServer {
 			// TODO query LID from server for missing entries
@@ -1313,10 +1316,10 @@ func (cli *Client) encryptMessageForDevices(
 
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
+		if jid == ownJID || jid == ownLID {
+			continue
+		}
 		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
-			if jid == ownJID || jid == ownLID {
-				continue
-			}
 			plaintext = dsmPlaintext
 		}
 		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
