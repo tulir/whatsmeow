@@ -93,6 +93,19 @@ type Client struct {
 	EmitAppStateEventsOnFullSync bool
 	AppStateDebugLogs            bool
 
+	// SkipBrokenAppStatePatches can be set to true to enable graceful handling of app state
+	// patches that permanently fail LTHash verification or reference missing sync keys.
+	// When enabled, FetchAppState and SendAppState will advance the stored version cursor past
+	// any unverifiable patch and retry fetching from the next version, rather than aborting the
+	// entire sync. Skipped patches are lost (their mutations are not applied), which is the same
+	// recovery behaviour used by WhatsApp Web itself when it requests a snapshot reset.
+	//
+	// This is opt-in because in the normal case a verification failure indicates a local bug or
+	// data corruption that should be surfaced, not silently skipped. Enable it only when you have
+	// a chain of server-side bad patches that the primary device cannot fix (see GitHub issues
+	// #382, #518, #651, #858).
+	SkipBrokenAppStatePatches bool
+
 	AutomaticMessageRerequestFromPhone bool
 	pendingPhoneRerequests             map[types.MessageID]context.CancelFunc
 	pendingPhoneRerequestsLock         sync.RWMutex
