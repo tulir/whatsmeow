@@ -814,6 +814,12 @@ func (cli *Client) RemoveEventHandlers() {
 	cli.eventHandlersLock.Unlock()
 }
 
+// lazyXMLString defers Node.XMLString until a logger actually formats the
+// message, so disabled debug logs don't pay for the XML serialization.
+type lazyXMLString struct{ node *waBinary.Node }
+
+func (l lazyXMLString) String() string { return l.node.XMLString() }
+
 func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
@@ -827,7 +833,7 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(decompressed))
 		return
 	}
-	cli.recvLog.Debugf("%s", node.XMLString())
+	cli.recvLog.Debugf("%s", lazyXMLString{node})
 	if node.Tag == "xmlstreamend" {
 		if !cli.isExpectedDisconnect() {
 			cli.Log.Warnf("Received stream end frame")
@@ -906,7 +912,7 @@ func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) (
 		return nil, fmt.Errorf("failed to marshal node: %w", err)
 	}
 
-	cli.sendLog.Debugf("%s", node.XMLString())
+	cli.sendLog.Debugf("%s", lazyXMLString{&node})
 	return payload, sock.SendFrame(ctx, payload)
 }
 
