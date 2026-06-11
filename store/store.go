@@ -10,6 +10,7 @@ package store
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -251,6 +252,10 @@ type Device struct {
 	EventBuffer   EventBuffer
 	LIDs          LIDStore
 	Container     DeviceContainer
+
+	// Per-address signal session locks, see LockSession.
+	// Zero value is ready to use; never copy a Device after first use.
+	sessionLocks sync.Map
 }
 
 func (device *Device) GetJID() types.JID {

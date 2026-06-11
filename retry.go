@@ -342,8 +342,11 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 				encryptionIdentity = lidForPN
 			}
 		}
+		unlockSession := cli.Store.LockSession(encryptionIdentity.SignalAddress().String())
 		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, encAttrs, nil)
+		unlockSession()
 	} else {
+		unlockSession := cli.Store.LockSession(receipt.Sender.SignalAddress().String())
 		encrypted, err = cli.encryptMessageForDeviceV3(ctx, &waMsgTransport.MessageTransport_Payload{
 			ApplicationPayload: &waCommon.SubProtocol{
 				Payload: plaintext,
@@ -351,6 +354,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 			},
 			FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER.Enum(),
 		}, fbSKDM, fbDSM, receipt.Sender, bundle, encAttrs)
+		unlockSession()
 	}
 	if err != nil {
 		return fmt.Errorf("failed to encrypt message for retry: %w", err)

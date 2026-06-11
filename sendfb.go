@@ -534,6 +534,10 @@ func (cli *Client) encryptMessageForDevicesV3(
 		sessionAddresses = append(sessionAddresses, addr)
 		sessionAddressToJID[addr] = jid
 	}
+	// See encryptMessageForDevices for the locking rationale.
+	unlockSessions := cli.Store.LockSessions(sessionAddresses)
+	defer func() { unlockSessions() }()
+	baseCtx := ctx
 	existingSessions, ctx, err := cli.Store.WithCachedSessions(ctx, sessionAddresses)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prefetch sessions: %w", err)
@@ -544,7 +548,18 @@ func (cli *Client) encryptMessageForDevicesV3(
 			retryDevices = append(retryDevices, sessionAddressToJID[addr])
 		}
 	}
-	bundles := cli.fetchPreKeysNoError(ctx, retryDevices)
+	var bundles map[types.JID]*prekey.Bundle
+	if len(retryDevices) > 0 {
+		// See encryptMessageForDevices.
+		unlockSessions()
+		unlockSessions = func() {}
+		bundles = cli.fetchPreKeysNoError(ctx, retryDevices)
+		unlockSessions = cli.Store.LockSessions(sessionAddresses)
+		existingSessions, ctx, err = cli.Store.WithCachedSessions(baseCtx, sessionAddresses)
+		if err != nil {
+			return nil, fmt.Errorf("failed to prefetch sessions: %w", err)
+		}
+	}
 
 	for _, jid := range allDevices {
 		var dsmForDevice *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage

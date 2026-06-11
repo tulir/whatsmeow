@@ -557,6 +557,11 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 		return nil, nil, fmt.Errorf("message content is not a byte slice")
 	}
 
+	// Without the lock, concurrent sends to the same address could overwrite
+	// this decrypt's ratchet advance (and vice versa).
+	unlockSession := cli.Store.LockSession(from.SignalAddress().String())
+	defer unlockSession()
+
 	builder := session.NewBuilderFromSignal(cli.Store, from.SignalAddress(), pbSerializer)
 	cipher := session.NewCipher(builder, from.SignalAddress())
 	var plaintext []byte

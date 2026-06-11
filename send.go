@@ -1086,7 +1086,9 @@ func (cli *Client) preparePeerMessageNode(
 		}
 	}
 	start = time.Now()
+	unlockSession := cli.Store.LockSession(encryptionIdentity.SignalAddress().String())
 	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, nil, nil, nil)
+	unlockSession()
 	timings.PeerEncrypt = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
@@ -1299,6 +1301,11 @@ func (cli *Client) encryptMessageForDevices(
 		sessionAddressToJID[addr] = jid
 	}
 
+	// The decrypt path does its own read-modify-write of the same session
+	// rows; without the lock, either side's ratchet advance can be lost.
+	unlockSessions := cli.Store.LockSessions(sessionAddresses)
+	defer func() { unlockSessions() }()
+	baseCtx := ctx
 	existingSessions, ctx, err := cli.Store.WithCachedSessions(ctx, sessionAddresses)
 	if err != nil {
 		return nil, false, fmt.Errorf("failed to prefetch sessions: %w", err)
@@ -1309,7 +1316,21 @@ func (cli *Client) encryptMessageForDevices(
 			retryDevices = append(retryDevices, sessionAddressToJID[addr])
 		}
 	}
-	bundles := cli.fetchPreKeysNoError(ctx, retryDevices)
+	var bundles map[types.JID]*prekey.Bundle
+	if len(retryDevices) > 0 {
+		// Don't hold the session locks across the network round trip. The
+		// sessions may change while unlocked, so re-read them after
+		// re-locking, otherwise PutCachedSessions would overwrite concurrent
+		// ratchet advances.
+		unlockSessions()
+		unlockSessions = func() {}
+		bundles = cli.fetchPreKeysNoError(ctx, retryDevices)
+		unlockSessions = cli.Store.LockSessions(sessionAddresses)
+		existingSessions, ctx, err = cli.Store.WithCachedSessions(baseCtx, sessionAddresses)
+		if err != nil {
+			return nil, false, fmt.Errorf("failed to prefetch sessions: %w", err)
+		}
+	}
 
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
