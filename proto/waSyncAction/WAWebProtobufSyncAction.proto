@@ -97,6 +97,8 @@ enum MutationProps {
 	THREAD_PIN_ACTION = 85;
 	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = 86;
 	BIZ_AI_SETTINGS_NUDGE_ACTION = 87;
+	COEX_V2_VERSION_ACTION = 88;
+	WASA_ROOT_SECRET_ACTION = 89;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -390,8 +392,8 @@ message StatusPrivacyAction {
 
 	optional StatusDistributionMode mode = 1;
 	repeated string userJID = 2;
-	optional bool shareToFB = 3;
-	optional bool shareToIG = 4;
+	optional bool shareToFb = 3;
+	optional bool shareToIg = 4;
 	repeated CustomList customLists = 5;
 	repeated StatusDistributionMode modes = 6;
 }
@@ -562,6 +564,8 @@ enum MutationName {
 	THREAD_PIN_ACTION = thread_pin;
 	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = setting_autoOrganizeBusinessChat;
 	BIZ_AI_SETTINGS_NUDGE_ACTION = biz_ai_settings_nudge;
+	COEX_V2_VERSION_ACTION = coexV2Version;
+	WASA_ROOT_SECRET_ACTION = wasa_root_secret;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -667,6 +671,22 @@ message SyncActionValue {
 	optional ThreadPinAction threadPinAction = 85;
 	optional AutoOrganizeBusinessChatSetting autoOrganizeBusinessChatSetting = 86;
 	optional BizAISettingsNudgeAction bizAiSettingsNudgeAction = 87;
+	optional CoexV2VersionAction coexV2VersionAction = 88;
+	optional WASARootSecretAction wasaRootSecretAction = 89;
+}
+
+message WASARootSecretAction {
+	message RootSecretEntry {
+		optional string ID = 1;
+		optional bytes rootSecret = 2;
+		optional int64 epoch = 3;
+	}
+
+	repeated RootSecretEntry secrets = 1;
+}
+
+message CoexV2VersionAction {
+	optional uint64 version = 1;
 }
 
 message SubscriptionsSyncV2Action {

@@ -1,0 +1,90 @@
+syntax = "proto2";
+package WAWebLabyrinthWaWasm;
+option go_package = "go.mau.fi/whatsmeow/proto/waWebLabyrinthWaWasm";
+
+message CreateBackupInput {
+	required string recoveryCode = 1;
+	required uint64 userID = 2;
+}
+
+message EncryptMessageInput {
+	required bytes epochRootKey = 1;
+	required bytes mailboxRootKey = 2;
+	required bytes orfClientState = 3;
+	required bytes epochAnonID = 4;
+	required uint64 epochID = 5;
+	required string threadID = 6;
+	required uint64 waCanonicalUserFbid = 7;
+	required uint64 timestampMS = 8;
+	required uint64 backupID = 9;
+	required bytes plaintextPayload = 10;
+	required string stanzaID = 11;
+}
+
+message DeviceOutput {
+	required bytes publicKey = 1;
+	required bytes epochAuthPublicKey = 2;
+	required bytes epochAuthPublicKeySig = 3;
+	required bytes epochStoragePublicKey = 4;
+	required bytes epochStoragePublicKeySig = 5;
+	repeated int32 supportedEncryptionVersions = 6;
+	required bytes encryptionVersionSignature = 7;
+	required int32 clientVersion = 8;
+	required bytes ocmfClientState = 9;
+}
+
+message EncryptedSecretValuesOutput {
+	required bytes encryptedDevicePrivateKey = 1;
+	required bytes encryptedObliviousValidationTokenBlob = 2;
+	required bytes encryptedEpochStoragePrivateKey = 3;
+	required bytes encryptedOcmfClientState = 4;
+	optional bytes encryptedOrfClientStateV2 = 5;
+	required bytes encryptedMailboxRootKeyBlob = 6;
+	required bytes encryptedEpochAnonID = 7;
+	required bytes encryptedEpochRootKey = 8;
+}
+
+message VirtualDeviceOutput {
+	required bytes vdID = 1;
+	required bytes vdPublicKey = 2;
+	required bytes vdEpochStoragePublicKey = 3;
+	required bytes vdEpochStoragePublicKeySig = 4;
+	required bytes ocmfRotationToken = 5;
+	required bytes deviceEpochHmac = 6;
+	required EncryptedSecretValuesOutput encryptedSecretValues = 7;
+}
+
+message Epoch0Output {
+	required uint64 epochFbid = 1;
+	required bytes epochAnonID = 2;
+	required bytes epochData = 3;
+	required bytes wrappedRootKeyForSelf = 4;
+	required bytes epochSignature = 5;
+	required bytes epochRootKeyFingerprint = 6;
+	optional bytes epochRootKey = 7;
+}
+
+message CreateBackupOutput {
+	optional DeviceOutput device = 1;
+	optional VirtualDeviceOutput virtualDevice = 2;
+	optional Epoch0Output epoch0 = 3;
+	optional bytes mailboxRootKey = 4;
+	optional string error = 5;
+}
+
+message EncryptMessageOutput {
+	optional bytes encryptedProtobuf = 1;
+	optional bytes orfThreadID = 2;
+	optional string valueSecretRef = 3;
+	optional uint64 offlineThreadingID = 4;
+	optional uint64 timestampMS = 5;
+	optional bytes messageKey = 6;
+	optional string error = 7;
+}
+
+message LabyrinthWaCommand {
+	oneof commandInput {
+		CreateBackupInput createBackupInput = 1;
+		EncryptMessageInput encryptMessageInput = 2;
+	}
+}
