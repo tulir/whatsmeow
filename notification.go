@@ -399,12 +399,17 @@ type newsletterEvent struct {
 	// _on_admin_metadata_update -> id, thread_metadata, messages
 	// _on_metadata_update
 	// _on_state_change -> id, is_requestor, state
+	NotifyAccountReachoutTimelock *events.NotifyAccountReachoutTimelock `json:"xwa2_notify_account_reachout_timelock"`
 }
 
 func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		if child.Tag != "update" {
 			continue
+		}
+		mnd := events.MexNotificationData{
+			Timestamp: node.AttrGetter().OptionalUnixTime("t"),
+			OpName:    child.AttrGetter().OptionalString("op_name"),
 		}
 		childData, ok := child.Content.([]byte)
 		if !ok {
@@ -417,11 +422,17 @@ func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Nod
 			continue
 		}
 		if wrapper.Data.Join != nil {
+			wrapper.Data.Join.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.Join)
 		} else if wrapper.Data.Leave != nil {
+			wrapper.Data.Leave.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.Leave)
 		} else if wrapper.Data.MuteChange != nil {
+			wrapper.Data.MuteChange.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.MuteChange)
+		} else if wrapper.Data.NotifyAccountReachoutTimelock != nil {
+			wrapper.Data.NotifyAccountReachoutTimelock.Mex = mnd
+			cli.dispatchEvent(wrapper.Data.NotifyAccountReachoutTimelock)
 		}
 	}
 }
