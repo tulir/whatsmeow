@@ -30,7 +30,12 @@ func newTestSQLStore(t *testing.T) (*SQLStore, func()) {
 
 	device := container.NewDevice()
 	device.ID = ptr(mustParseJID(t, "5511999999999:1@s.whatsapp.net"))
-	device.Account = &waAdv.ADVSignedDeviceIdentity{}
+	device.Account = &waAdv.ADVSignedDeviceIdentity{
+		Details:             []byte{},
+		AccountSignatureKey: make([]byte, 32),
+		AccountSignature:    make([]byte, 64),
+		DeviceSignature:     make([]byte, 64),
+	}
 	if err := device.Save(ctx); err != nil {
 		_ = container.Close()
 		t.Fatalf("failed to save test device: %v", err)
