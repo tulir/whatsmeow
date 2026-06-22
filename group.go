@@ -60,13 +60,13 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 			Tag:   "participant",
 			Attrs: waBinary.Attrs{"jid": participant},
 		}
-		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participant)
+		token, err := cli.ensureTCToken(ctx, participant)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participant, err)
-		} else if pt != nil {
+		} else if len(token) > 0 {
 			participantNodes[i].Content = []waBinary.Node{{
 				Tag:     "privacy",
-				Content: pt.Token,
+				Content: token,
 			}}
 		}
 	}
@@ -199,6 +199,17 @@ func (cli *Client) UpdateGroupParticipants(ctx context.Context, jid types.JID, p
 				return nil, fmt.Errorf("failed to get phone number for LID %s: %v", participantJID, err)
 			} else if !pn.IsEmpty() {
 				content[i].Attrs["phone_number"] = pn
+			}
+		}
+		if action == ParticipantChangeAdd {
+			token, err := cli.ensureTCToken(ctx, participantJID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participantJID, err)
+			} else if len(token) > 0 {
+				content[i].Content = []waBinary.Node{{
+					Tag:     "privacy",
+					Content: token,
+				}}
 			}
 		}
 	}

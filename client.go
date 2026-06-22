@@ -70,6 +70,7 @@ type Client struct {
 	socketWait chan struct{}
 
 	isLoggedIn            atomic.Bool
+	paired                atomic.Bool
 	expectedDisconnect    *exsync.Event
 	forceAutoReconnect    atomic.Bool
 	EnableAutoReconnect   bool
@@ -282,6 +283,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		BackgroundEventCtx: context.Background(),
 	}
+	cli.paired.Store(deviceStore.ID != nil)
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
 		"appdata":      cli.handleEncryptedMessage,
