@@ -604,6 +604,16 @@ const (
 	getAllContactsQuery = `
 		SELECT their_jid, first_name, full_name, push_name, business_name, redacted_phone FROM whatsmeow_contacts WHERE our_jid=$1
 	`
+	getContactsCountQuery = `
+		SELECT COUNT(*) FROM whatsmeow_contacts WHERE our_jid=$1
+	`
+	getContactsPageQuery = `
+		SELECT their_jid, first_name, full_name, push_name, business_name, redacted_phone
+		FROM whatsmeow_contacts
+		WHERE our_jid=$1
+		ORDER BY their_jid
+		LIMIT $2 OFFSET $3
+	`
 )
 
 var putContactNamesMassInsertBuilder = dbutil.NewMassInsertBuilder[store.ContactEntry, [1]any](
@@ -812,6 +822,49 @@ func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.Cont
 		return true, nil
 	})
 	return output, err
+}
+
+func (s *SQLStore) GetContactsPage(ctx context.Context, limit, offset int) (*store.ContactPage, error) {
+	if limit < 1 {
+		return &store.ContactPage{Items: []store.ContactPageItem{}}, nil
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	var total int
+	if err := s.db.QueryRow(ctx, getContactsCountQuery, s.JID).Scan(&total); err != nil {
+		return nil, err
+	}
+
+	page := &store.ContactPage{
+		Items: make([]store.ContactPageItem, 0, min(limit, total)),
+		Total: total,
+	}
+	if total == 0 || offset >= total {
+		return page, nil
+	}
+
+	rows, err := s.db.Query(ctx, getContactsPageQuery, s.JID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
+	err = convertContactRow.NewRowIter(rows, nil).Iter(func(tuple *contactTuple) (bool, error) {
+		page.Items = append(page.Items, store.ContactPageItem{
+			JID:  tuple.JID,
+			Info: *tuple.Info,
+		})
+		s.contactCache[tuple.JID] = tuple.Info
+		return true, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return page, nil
 }
 
 const (
