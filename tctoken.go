@@ -56,7 +56,7 @@ func shouldSendTCTokenInChatAction(jid types.JID) bool {
 
 func (cli *Client) resolveTCTokenStorageLID(ctx context.Context, jid types.JID) types.JID {
 	storageJID := jid.ToNonAD()
-	if storageJID.Server != types.DefaultUserServer || cli.Store == nil || cli.Store.LIDs == nil {
+	if storageJID.Server != types.DefaultUserServer {
 		return storageJID
 	}
 	lid, err := cli.Store.LIDs.GetLIDForPN(ctx, storageJID)
