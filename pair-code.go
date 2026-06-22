@@ -161,6 +161,7 @@ func (cli *Client) handleCodePairNotification(ctx context.Context, parentNode *w
 	if linkCache == nil {
 		return fmt.Errorf("received code pair notification without a pending pairing")
 	}
+	cli.paired.Store(false)
 	linkCodePairingRef, _ := node.GetChildByTag("link_code_pairing_ref").Content.([]byte)
 	if string(linkCodePairingRef) != linkCache.pairingRef {
 		return fmt.Errorf("pairing ref mismatch in code pair notification")

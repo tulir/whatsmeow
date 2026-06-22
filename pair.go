@@ -49,6 +49,7 @@ func (cli *Client) handleIQ(ctx context.Context, node *waBinary.Node) {
 }
 
 func (cli *Client) handlePairDevice(ctx context.Context, node *waBinary.Node) {
+	cli.paired.Store(false)
 	pairDevice := node.GetChildByTag("pair-device")
 	err := cli.sendNode(ctx, waBinary.Node{
 		Tag: "iq",
@@ -222,6 +223,7 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 
 	// Expect a disconnect after this and don't dispatch the usual Disconnected event
 	cli.expectDisconnect()
+	cli.paired.Store(true)
 
 	err = cli.sendNode(ctx, waBinary.Node{
 		Tag: "iq",
