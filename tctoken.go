@@ -118,6 +118,9 @@ func (cli *Client) unlockedCleanupTCTokenSenderTSMap() {
 
 // ensureTCToken returns a stored non-expired tctoken for the given JID, if available.
 func (cli *Client) ensureTCToken(ctx context.Context, jid types.JID) (token []byte, err error) {
+	if cli.getOwnID().IsEmpty() {
+		return nil, ErrNotLoggedIn
+	}
 	cli.deleteExpiredPrivacyTokens()
 	storageJID := cli.resolveTCTokenStorageLID(ctx, jid)
 	existing, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, storageJID)
