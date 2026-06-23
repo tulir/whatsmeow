@@ -45,6 +45,20 @@ type EventHandler func(evt any)
 type EventHandlerWithSuccessStatus func(evt any) bool
 type nodeHandler func(ctx context.Context, node *waBinary.Node)
 
+// IncomingMessageFilterDecision describes whether an incoming message node should
+// continue through the normal decrypt/event pipeline.
+type IncomingMessageFilterDecision struct {
+	Process bool
+	Reason  string
+}
+
+// IncomingMessageFilter can drop incoming message nodes after cheap metadata
+// parsing and before the expensive decrypt/event pipeline.
+//
+// Returning Process=false acknowledges the node and prevents decrypting it or
+// dispatching events.Message to application handlers.
+type IncomingMessageFilter func(info *types.MessageInfo, node *waBinary.Node) IncomingMessageFilterDecision
+
 var nextHandlerID uint32
 
 type wrappedEventHandler struct {
@@ -82,6 +96,10 @@ type Client struct {
 	SynchronousAck             bool
 	EnableDecryptedEventBuffer bool
 	lastDecryptedBufferClear   time.Time
+
+	// IncomingMessageFilter allows applications to ignore high-volume message
+	// classes, like groups/newsletters/status, before decrypting them.
+	IncomingMessageFilter IncomingMessageFilter
 
 	DisableLoginAutoReconnect bool
 

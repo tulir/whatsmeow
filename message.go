@@ -56,6 +56,17 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 		if len(info.PushName) > 0 && info.PushName != "-" && (cli.MessengerConfig == nil || info.PushName != "username") {
 			go cli.updatePushName(ctx, info.Sender, info.SenderAlt, info, info.PushName)
 		}
+		if cli.IncomingMessageFilter != nil {
+			decision := cli.IncomingMessageFilter(info, node)
+			if !decision.Process {
+				if decision.Reason == "" {
+					decision.Reason = "filtered"
+				}
+				cli.Log.Debugf("Incoming message %s from %s filtered before decrypt: %s", info.ID, info.Chat, decision.Reason)
+				cli.maybeDeferredAck(ctx, node)()
+				return
+			}
+		}
 		if info.Sender.Server == types.NewsletterServer {
 			var cancelled bool
 			defer cli.maybeDeferredAck(ctx, node)(&cancelled)
