@@ -64,7 +64,7 @@ func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 			go cli.dispatchEvent(&events.CATRefreshError{Error: err})
 		}
 	default:
-		cli.Log.Errorf("Unknown stream error: %s", node.XMLString())
+		cli.Log.Errorf("Unknown stream error: %s", node)
 		go cli.dispatchEvent(&events.StreamError{Code: code, Raw: node})
 	}
 }
@@ -131,7 +131,7 @@ func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node
 			cli.Log.Warnf("Failed to delete store after %d failure: %v", int(reason), err)
 		}
 	} else if reason == events.ConnectFailureTempBanned {
-		cli.Log.Warnf("Temporary ban connect failure: %s", node.XMLString())
+		cli.Log.Warnf("Temporary ban connect failure: %s", node)
 		go cli.dispatchEvent(&events.TemporaryBan{
 			Code:   events.TempBanReason(ag.Int("code")),
 			Expire: time.Duration(ag.Int("expire")) * time.Second,
@@ -150,12 +150,16 @@ func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node
 	} else if willAutoReconnect {
 		cli.Log.Warnf("Got %d/%s connect failure, assuming automatic reconnect will handle it", int(reason), message)
 	} else {
-		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())
+		cli.Log.Warnf("Unknown connect failure: %s", node)
 		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Message: message, Raw: node})
 	}
 }
 
 func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node) {
+	if !cli.paired.Load() {
+		cli.Log.Warnf("Received connect success without pairing, ignoring")
+		return
+	}
 	cli.Log.Infof("Successfully authenticated")
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0

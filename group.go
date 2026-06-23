@@ -60,13 +60,13 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 			Tag:   "participant",
 			Attrs: waBinary.Attrs{"jid": participant},
 		}
-		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participant)
+		token, err := cli.ensureTCToken(ctx, participant)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participant, err)
-		} else if pt != nil {
+		} else if len(token) > 0 {
 			participantNodes[i].Content = []waBinary.Node{{
 				Tag:     "privacy",
-				Content: pt.Token,
+				Content: token,
 			}}
 		}
 	}
@@ -201,6 +201,17 @@ func (cli *Client) UpdateGroupParticipants(ctx context.Context, jid types.JID, p
 				content[i].Attrs["phone_number"] = pn
 			}
 		}
+		if action == ParticipantChangeAdd {
+			token, err := cli.ensureTCToken(ctx, participantJID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participantJID, err)
+			} else if len(token) > 0 {
+				content[i].Content = []waBinary.Node{{
+					Tag:     "privacy",
+					Content: token,
+				}}
+			}
+		}
 	}
 	resp, err := cli.sendGroupIQ(ctx, iqSet, jid, waBinary.Node{
 		Tag:     string(action),
@@ -290,7 +301,7 @@ func (cli *Client) UpdateGroupRequestParticipants(ctx context.Context, jid types
 // The avatar should be a JPEG photo, other formats may be rejected with ErrInvalidImageFormat.
 // The bytes can be nil to remove the photo. Returns the new picture ID.
 func (cli *Client) SetGroupPhoto(ctx context.Context, jid types.JID, avatar []byte) (string, error) {
-	var content interface{}
+	var content any
 	if avatar != nil {
 		content = []waBinary.Node{{
 			Tag:     "picture",
@@ -523,7 +534,7 @@ func (cli *Client) GetJoinedGroups(ctx context.Context) ([]*types.GroupInfo, err
 	var allRedactedPhones []store.RedactedPhoneEntry
 	for _, child := range children {
 		if child.Tag != "group" {
-			cli.Log.Debugf("Unexpected child in group list response: %s", child.XMLString())
+			cli.Log.Debugf("Unexpected child in group list response: %s", &child)
 			continue
 		}
 		parsed, parseErr := cli.parseGroupNode(&child)
@@ -713,7 +724,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	group.NameSetBy = ag.OptionalJIDOrEmpty("s_o")
 	group.NameSetByPN = ag.OptionalJIDOrEmpty("s_o_pn")
 
-	group.GroupCreated = ag.UnixTime("creation")
+	group.GroupCreated = ag.OptionalUnixTime("creation")
 	group.CreatorCountryCode = ag.OptionalString("creator_country_code")
 
 	group.AnnounceVersionID = ag.OptionalString("a_v_id")
@@ -760,7 +771,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		case "suspended":
 			group.Suspended = true
 		default:
-			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
+			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), &child)
 		}
 		if !childAG.OK() {
 			cli.Log.Warnf("Possibly failed to parse %s element in group node: %+v", child.Tag, childAG.Errors)
@@ -890,7 +901,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 				topicChild := child.GetChildByTag("body")
 				topicBytes, ok := topicChild.Content.([]byte)
 				if !ok {
-					return nil, nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
+					return nil, nil, fmt.Errorf("group change description has unexpected body: %s", &topicChild)
 				}
 				topicStr = string(topicBytes)
 			}

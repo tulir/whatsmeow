@@ -248,7 +248,7 @@ func (jid JID) IsEmpty() bool {
 var _ sql.Scanner = (*JID)(nil)
 
 // Scan scans the given SQL value into this JID.
-func (jid *JID) Scan(src interface{}) error {
+func (jid *JID) Scan(src any) error {
 	if src == nil {
 		return nil
 	}

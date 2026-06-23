@@ -56,37 +56,36 @@ const (
 	getAllLIDMappingsQuery = `SELECT lid, pn FROM whatsmeow_lid_map`
 )
 
+var convertLIDRow = dbutil.ConvertRowFn[store.LIDMapping](func(rows dbutil.Scannable) (store.LIDMapping, error) {
+	var lidUser, pnUser string
+	err := rows.Scan(&lidUser, &pnUser)
+	if err != nil {
+		return store.LIDMapping{}, err
+	}
+	return store.LIDMapping{
+		LID: types.JID{User: lidUser, Server: types.DefaultUserServer},
+		PN:  types.JID{User: pnUser, Server: types.DefaultUserServer},
+	}, nil
+})
+
 func (s *CachedLIDMap) FillCache(ctx context.Context) error {
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
-	rows, err := s.db.Query(ctx, getAllLIDMappingsQuery)
-	if err != nil {
-		return err
-	}
-	err = s.scanManyLids(rows, nil)
+	res := convertLIDRow.NewRowIter(s.db.Query(ctx, getAllLIDMappingsQuery))
+	err := s.scanManyLids(res, nil)
 	s.cacheFilled = err == nil
 	return err
 }
 
-func (s *CachedLIDMap) scanManyLids(rows dbutil.Rows, fn func(lid, pn string)) error {
-	if fn == nil {
-		fn = func(lid, pn string) {}
-	}
-	for rows.Next() {
-		var lid, pn string
-		err := rows.Scan(&lid, &pn)
-		if err != nil {
-			return err
+func (s *CachedLIDMap) scanManyLids(res dbutil.RowIter[store.LIDMapping], fn func(lid, pn string)) error {
+	return res.Iter(func(mapping store.LIDMapping) (bool, error) {
+		s.pnToLIDCache[mapping.PN.User] = mapping.LID.User
+		s.lidToPNCache[mapping.LID.User] = mapping.PN.User
+		if fn != nil {
+			fn(mapping.LID.User, mapping.PN.User)
 		}
-		s.pnToLIDCache[pn] = lid
-		s.lidToPNCache[lid] = pn
-		fn(lid, pn)
-	}
-	err := rows.Close()
-	if err != nil {
-		return err
-	}
-	return rows.Err()
+		return true, nil
+	})
 }
 
 func (s *CachedLIDMap) getLIDMapping(ctx context.Context, source types.JID, targetServer, query string, sourceToTarget, targetToSource map[string]string) (types.JID, error) {
@@ -166,29 +165,25 @@ func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
 
-	var rows dbutil.Rows
-	var err error
+	var res dbutil.RowIter[store.LIDMapping]
 	if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
-		rows, err = s.db.Query(
+		res = convertLIDRow.NewRowIter(s.db.Query(
 			ctx,
 			`SELECT lid, pn FROM whatsmeow_lid_map WHERE pn = ANY($1)`,
 			PostgresArrayWrapper(missingPNs),
-		)
+		))
 	} else {
 		placeholders := make([]string, len(missingPNs))
 		for i := range missingPNs {
 			placeholders[i] = fmt.Sprintf("$%d", i+1)
 		}
-		rows, err = s.db.Query(
+		res = convertLIDRow.NewRowIter(s.db.Query(
 			ctx,
 			fmt.Sprintf(`SELECT lid, pn FROM whatsmeow_lid_map WHERE pn IN (%s)`, strings.Join(placeholders, ",")),
 			exslices.CastToAny(missingPNs)...,
-		)
+		))
 	}
-	if err != nil {
-		return nil, err
-	}
-	err = s.scanManyLids(rows, func(lid, pn string) {
+	err := s.scanManyLids(res, func(lid, pn string) {
 		for _, dev := range missingPNDevices[pn] {
 			lidDev := dev
 			lidDev.Server = types.HiddenUserServer

@@ -559,10 +559,17 @@ message PollUpdate {
 	optional int64 senderTimestampMS = 3;
 	optional int64 serverTimestampMS = 4;
 	optional bool unread = 5;
+	optional WAWebProtobufsE2E.PollUpdateMessageMetadata metadata = 6;
 }
 
 message PollAdditionalMetadata {
+	message PollNameHashHistoryEntry {
+		optional string editStanzaID = 1;
+		optional bytes pollNameHash = 2;
+	}
+
 	optional bool pollInvalidated = 1;
+	repeated PollNameHashHistoryEntry pollNameHashHistory = 2;
 }
 
 message InteractiveMessageAdditionalMetadata {

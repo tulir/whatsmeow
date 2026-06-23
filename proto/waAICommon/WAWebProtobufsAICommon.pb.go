@@ -655,6 +655,7 @@ const (
 	BotSignatureVerificationUseCaseProof_UNSPECIFIED    BotSignatureVerificationUseCaseProof_BotSignatureUseCase = 0
 	BotSignatureVerificationUseCaseProof_WA_BOT_MSG     BotSignatureVerificationUseCaseProof_BotSignatureUseCase = 1
 	BotSignatureVerificationUseCaseProof_WA_TEE_BOT_MSG BotSignatureVerificationUseCaseProof_BotSignatureUseCase = 2
+	BotSignatureVerificationUseCaseProof_P2P_PILLS      BotSignatureVerificationUseCaseProof_BotSignatureUseCase = 3
 )
 
 // Enum value maps for BotSignatureVerificationUseCaseProof_BotSignatureUseCase.
@@ -663,11 +664,13 @@ var (
 		0: "UNSPECIFIED",
 		1: "WA_BOT_MSG",
 		2: "WA_TEE_BOT_MSG",
+		3: "P2P_PILLS",
 	}
 	BotSignatureVerificationUseCaseProof_BotSignatureUseCase_value = map[string]int32{
 		"UNSPECIFIED":    0,
 		"WA_BOT_MSG":     1,
 		"WA_TEE_BOT_MSG": 2,
+		"P2P_PILLS":      3,
 	}
 )
 
@@ -7264,17 +7267,18 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\x10BotLinkedAccount\x12Q\n" +
 	"\x04type\x18\x01 \x01(\x0e2=.WAWebProtobufsAICommon.BotLinkedAccount.BotLinkedAccountTypeR\x04type\"6\n" +
 	"\x14BotLinkedAccountType\x12\x1e\n" +
-	"\x1aBOT_LINKED_ACCOUNT_TYPE_1P\x10\x00\"\xc2\x02\n" +
+	"\x1aBOT_LINKED_ACCOUNT_TYPE_1P\x10\x00\"\xd1\x02\n" +
 	"$BotSignatureVerificationUseCaseProof\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\x05R\aversion\x12j\n" +
 	"\auseCase\x18\x02 \x01(\x0e2P.WAWebProtobufsAICommon.BotSignatureVerificationUseCaseProof.BotSignatureUseCaseR\auseCase\x12\x1c\n" +
 	"\tsignature\x18\x03 \x01(\fR\tsignature\x12*\n" +
-	"\x10certificateChain\x18\x04 \x03(\fR\x10certificateChain\"J\n" +
+	"\x10certificateChain\x18\x04 \x03(\fR\x10certificateChain\"Y\n" +
 	"\x13BotSignatureUseCase\x12\x0f\n" +
 	"\vUNSPECIFIED\x10\x00\x12\x0e\n" +
 	"\n" +
 	"WA_BOT_MSG\x10\x01\x12\x12\n" +
-	"\x0eWA_TEE_BOT_MSG\x10\x02\"\xef\x01\n" +
+	"\x0eWA_TEE_BOT_MSG\x10\x02\x12\r\n" +
+	"\tP2P_PILLS\x10\x03\"\xef\x01\n" +
 	"\x1bBotPromotionMessageMetadata\x12j\n" +
 	"\rpromotionType\x18\x01 \x01(\x0e2D.WAWebProtobufsAICommon.BotPromotionMessageMetadata.BotPromotionTypeR\rpromotionType\x12 \n" +
 	"\vbuttonTitle\x18\x02 \x01(\tR\vbuttonTitle\"B\n" +

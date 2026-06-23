@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"time"
 
+	"go.mau.fi/util/jsontime"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	armadillo "go.mau.fi/whatsmeow/proto"
 	"go.mau.fi/whatsmeow/proto/instamadilloTransportPayload"
@@ -602,16 +604,24 @@ type BlocklistChange struct {
 	Action BlocklistChangeAction
 }
 
+type MexNotificationData struct {
+	Timestamp time.Time
+	OpName    string
+}
+
 type NewsletterJoin struct {
+	Mex MexNotificationData `json:"-"`
 	types.NewsletterMetadata
 }
 
 type NewsletterLeave struct {
+	Mex  MexNotificationData  `json:"-"`
 	ID   types.JID            `json:"id"`
 	Role types.NewsletterRole `json:"role"`
 }
 
 type NewsletterMuteChange struct {
+	Mex  MexNotificationData       `json:"-"`
 	ID   types.JID                 `json:"id"`
 	Mute types.NewsletterMuteState `json:"mute"`
 }
@@ -620,4 +630,11 @@ type NewsletterLiveUpdate struct {
 	JID      types.JID
 	Time     time.Time
 	Messages []*types.NewsletterMessage
+}
+
+type NotifyAccountReachoutTimelock struct {
+	Mex                 MexNotificationData `json:"-"`
+	EnforcementType     string              `json:"enforcement_type,omitempty"`
+	IsActive            bool                `json:"is_active,omitempty"`
+	TimeEnforcementEnds jsontime.UnixString `json:"time_enforcement_ends,omitzero"`
 }

@@ -70,6 +70,7 @@ type Client struct {
 	socketWait chan struct{}
 
 	isLoggedIn            atomic.Bool
+	paired                atomic.Bool
 	expectedDisconnect    *exsync.Event
 	forceAutoReconnect    atomic.Bool
 	EnableAutoReconnect   bool
@@ -227,7 +228,7 @@ const handlerQueueSize = 2048
 //
 // The device store must be set. A default SQL-backed implementation is available in the store/sqlstore package.
 //
-//	container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
+//	container, err := sqlstore.New(context.Background(), "sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
 //	if err != nil {
 //		panic(err)
 //	}
@@ -282,6 +283,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		BackgroundEventCtx: context.Background(),
 	}
+	cli.paired.Store(deviceStore.ID != nil)
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
 		"appdata":      cli.handleEncryptedMessage,
@@ -736,7 +738,7 @@ func (cli *Client) Logout(ctx context.Context) error {
 // All registered event handlers will receive all events. You should use a type switch statement to
 // filter the events you want:
 //
-//	func myEventHandler(evt interface{}) {
+//	func myEventHandler(evt any) {
 //		switch v := evt.(type) {
 //		case *events.Message:
 //			fmt.Println("Received a message!")
@@ -757,7 +759,7 @@ func (cli *Client) Logout(ctx context.Context) error {
 //		mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
 //	}
 //
-//	func (mycli *MyClient) myEventHandler(evt interface{}) {
+//	func (mycli *MyClient) myEventHandler(evt any) {
 //		// Handle event and access mycli.WAClient
 //	}
 func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
@@ -782,7 +784,7 @@ func (cli *Client) AddEventHandlerWithSuccessStatus(handler EventHandlerWithSucc
 // event dispatcher holds a read lock on the event handler list, and this method wants a write lock
 // on the same list. Instead run it in a goroutine:
 //
-//	func (mycli *MyClient) myEventHandler(evt interface{}) {
+//	func (mycli *MyClient) myEventHandler(evt any) {
 //		if noLongerWantEvents {
 //			go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
 //		}
@@ -827,7 +829,7 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(decompressed))
 		return
 	}
-	cli.recvLog.Debugf("%s", node.XMLString())
+	cli.recvLog.Debugf("%s", node)
 	if node.Tag == "xmlstreamend" {
 		if !cli.isExpectedDisconnect() {
 			cli.Log.Warnf("Received stream end frame")
@@ -868,7 +870,7 @@ Loop:
 				duration := time.Since(start)
 				close(doneChan)
 				if duration > 5*time.Second {
-					cli.Log.Warnf("Node handling took %s for %s", duration, node.XMLString())
+					cli.Log.Warnf("Node handling took %s for %s", duration, node)
 				}
 			}()
 			ticker.Reset(30 * time.Second)
@@ -878,10 +880,10 @@ Loop:
 					ticker.Stop()
 					continue Loop
 				case <-ticker.C:
-					cli.Log.Warnf("Node handling is taking long for %s (started %s ago)", node.XMLString(), time.Since(start))
+					cli.Log.Warnf("Node handling is taking long for %s (started %s ago)", node, time.Since(start))
 				}
 			}
-			cli.Log.Warnf("Continuing handling of %s in background as it's taking too long", node.XMLString())
+			cli.Log.Warnf("Continuing handling of %s in background as it's taking too long", node)
 			ticker.Stop()
 		case <-connCtx.Done():
 			cli.Log.Debugf("Closing handler queue loop")
@@ -906,7 +908,7 @@ func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) (
 		return nil, fmt.Errorf("failed to marshal node: %w", err)
 	}
 
-	cli.sendLog.Debugf("%s", node.XMLString())
+	cli.sendLog.Debugf("%s", &node)
 	return payload, sock.SendFrame(ctx, payload)
 }
 
@@ -960,9 +962,13 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
 	if info.IsFromMe {
-		info.Sender = cli.getOwnID().ToNonAD()
-		if info.Sender.IsEmpty() {
-			return nil, ErrNotLoggedIn
+		if webMsg.GetOriginalSelfAuthorUserJIDString() != "" {
+			info.Sender, err = types.ParseJID(webMsg.GetOriginalSelfAuthorUserJIDString())
+		} else {
+			info.Sender = cli.getOwnID().ToNonAD()
+			if info.Sender.IsEmpty() {
+				return nil, ErrNotLoggedIn
+			}
 		}
 	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer || chatJID.Server == types.NewsletterServer {
 		info.Sender = chatJID

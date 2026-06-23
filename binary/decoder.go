@@ -165,7 +165,7 @@ func (r *binaryDecoder) readListSize(tag int) (int, error) {
 	}
 }
 
-func (r *binaryDecoder) read(string bool) (interface{}, error) {
+func (r *binaryDecoder) read(string bool) (any, error) {
 	tagByte, err := r.readByte()
 	if err != nil {
 		return nil, err
@@ -222,7 +222,7 @@ func (r *binaryDecoder) read(string bool) (interface{}, error) {
 	}
 }
 
-func (r *binaryDecoder) readJIDPair() (interface{}, error) {
+func (r *binaryDecoder) readJIDPair() (any, error) {
 	user, err := r.read(true)
 	if err != nil {
 		return nil, err
@@ -238,7 +238,7 @@ func (r *binaryDecoder) readJIDPair() (interface{}, error) {
 	return types.NewJID(user.(string), server.(string)), nil
 }
 
-func (r *binaryDecoder) readInteropJID() (interface{}, error) {
+func (r *binaryDecoder) readInteropJID() (any, error) {
 	user, err := r.read(true)
 	if err != nil {
 		return nil, err
@@ -265,7 +265,7 @@ func (r *binaryDecoder) readInteropJID() (interface{}, error) {
 	}, nil
 }
 
-func (r *binaryDecoder) readFBJID() (interface{}, error) {
+func (r *binaryDecoder) readFBJID() (any, error) {
 	user, err := r.read(true)
 	if err != nil {
 		return nil, err
@@ -287,7 +287,7 @@ func (r *binaryDecoder) readFBJID() (interface{}, error) {
 	}, nil
 }
 
-func (r *binaryDecoder) readADJID() (interface{}, error) {
+func (r *binaryDecoder) readADJID() (any, error) {
 	agent, err := r.readByte()
 	if err != nil {
 		return nil, err
@@ -383,7 +383,7 @@ func (r *binaryDecoder) readNode() (*Node, error) {
 	return ret, err
 }
 
-func (r *binaryDecoder) readBytesOrString(length int, asString bool) (interface{}, error) {
+func (r *binaryDecoder) readBytesOrString(length int, asString bool) (any, error) {
 	data, err := r.readRaw(length)
 	if err != nil {
 		return nil, err

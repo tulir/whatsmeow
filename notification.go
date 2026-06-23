@@ -30,15 +30,15 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		ag := count.AttrGetter()
 		otksLeft := ag.Int("value")
 		if !ag.OK() {
-			cli.Log.Warnf("Didn't get number of OTKs left in encryption notification %s", node.XMLString())
+			cli.Log.Warnf("Didn't get number of OTKs left in encryption notification %s", node)
 			return
 		}
-		cli.Log.Infof("Got prekey count from server: %s", node.XMLString())
+		cli.Log.Infof("Got prekey count from server: %s", node)
 		if otksLeft < MinPreKeyCount {
 			cli.uploadPreKeys(ctx, false)
 		}
 	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
-		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node.XMLString())
+		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node)
 		err := cli.Store.Identities.DeleteAllIdentities(ctx, from.User)
 		if err != nil {
 			cli.Log.Warnf("Failed to delete all identities of %s from store after identity change: %v", from, err)
@@ -66,7 +66,7 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
-		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
+		cli.Log.Debugf("Got unknown encryption notification from server: %s", node)
 	}
 }
 
@@ -255,7 +255,7 @@ func (cli *Client) handleBlocklist(ctx context.Context, node *waBinary.Node) {
 			Action: events.BlocklistChangeAction(ag.String("action")),
 		}
 		if !ag.OK() {
-			cli.Log.Warnf("Unexpected data in blocklist event child %v: %v", child.XMLString(), ag.Error())
+			cli.Log.Warnf("Unexpected data in blocklist event child %s: %v", &child, ag.Error())
 			continue
 		}
 		evt.Changes = append(evt.Changes, change)
@@ -399,12 +399,17 @@ type newsletterEvent struct {
 	// _on_admin_metadata_update -> id, thread_metadata, messages
 	// _on_metadata_update
 	// _on_state_change -> id, is_requestor, state
+	NotifyAccountReachoutTimelock *events.NotifyAccountReachoutTimelock `json:"xwa2_notify_account_reachout_timelock"`
 }
 
 func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		if child.Tag != "update" {
 			continue
+		}
+		mnd := events.MexNotificationData{
+			Timestamp: node.AttrGetter().OptionalUnixTime("t"),
+			OpName:    child.AttrGetter().OptionalString("op_name"),
 		}
 		childData, ok := child.Content.([]byte)
 		if !ok {
@@ -417,11 +422,17 @@ func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Nod
 			continue
 		}
 		if wrapper.Data.Join != nil {
+			wrapper.Data.Join.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.Join)
 		} else if wrapper.Data.Leave != nil {
+			wrapper.Data.Leave.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.Leave)
 		} else if wrapper.Data.MuteChange != nil {
+			wrapper.Data.MuteChange.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.MuteChange)
+		} else if wrapper.Data.NotifyAccountReachoutTimelock != nil {
+			wrapper.Data.NotifyAccountReachoutTimelock.Mex = mnd
+			cli.dispatchEvent(wrapper.Data.NotifyAccountReachoutTimelock)
 		}
 	}
 }
