@@ -548,6 +548,13 @@ func teardownLocked() {
 
 // waMessage is the JSON shape delivered to the host for both live and
 // historical messages. It is intentionally flat and text-only for now.
+//
+// ChatJID/SenderJID are canonical (LID-preferred, see canonicalJID) so an
+// identity stays stable across the forms WhatsApp uses. Because a LID carries no
+// phone number, we additionally resolve — best effort, on-device — the dialable
+// phone for each JID and the user's saved address-book name for the chat
+// counterparty. The host uses the phone to unify a chat with an existing contact
+// and the contact name to label it, instead of surfacing the opaque LID id.
 type waMessage struct {
 	ChatJID       string `json:"chatJID"`
 	SenderJID     string `json:"senderJID"`
@@ -556,6 +563,12 @@ type waMessage struct {
 	Text          string `json:"text"`
 	PushName      string `json:"pushName"`
 	FromMe        bool   `json:"fromMe"`
+	// Dialable phone (digits only, no +) resolved from each JID's LID->PN
+	// mapping; empty when the device knows no phone for that identity.
+	SenderPhoneNumber string `json:"senderPhoneNumber"`
+	ChatPhoneNumber   string `json:"chatPhoneNumber"`
+	// The owner's saved address-book name for the chat counterparty, if any.
+	ContactName string `json:"contactName"`
 }
 
 type historySyncPayload struct {
@@ -595,13 +608,16 @@ func toWaMessage(ctx context.Context, c *whatsmeow.Client, m *events.Message) (w
 		return waMessage{}, false
 	}
 	return waMessage{
-		ChatJID:       canonicalJID(ctx, c, m.Info.Chat).String(),
-		SenderJID:     canonicalJID(ctx, c, m.Info.Sender).String(),
-		MessageID:     string(m.Info.ID),
-		TimestampSecs: m.Info.Timestamp.Unix(),
-		Text:          text,
-		PushName:      m.Info.PushName,
-		FromMe:        m.Info.IsFromMe,
+		ChatJID:           canonicalJID(ctx, c, m.Info.Chat).String(),
+		SenderJID:         canonicalJID(ctx, c, m.Info.Sender).String(),
+		MessageID:         string(m.Info.ID),
+		TimestampSecs:     m.Info.Timestamp.Unix(),
+		Text:              text,
+		PushName:          m.Info.PushName,
+		FromMe:            m.Info.IsFromMe,
+		SenderPhoneNumber: dialablePhone(ctx, c, m.Info.Sender),
+		ChatPhoneNumber:   dialablePhone(ctx, c, m.Info.Chat),
+		ContactName:       deviceContactName(ctx, c, m.Info.Chat),
 	}, true
 }
 
@@ -629,6 +645,79 @@ func canonicalJID(ctx context.Context, c *whatsmeow.Client, jid types.JID) types
 		return id
 	}
 	return lid.ToNonAD()
+}
+
+// phoneJID resolves a 1:1 user JID to its phone-number form
+// (`<pn>@s.whatsapp.net`). A phone JID is already in that form; a LID
+// (`<id>@lid`) is translated via the device's stored LID->PN mapping. Any other
+// server (or an unknown LID) yields an empty JID. This is the inverse of
+// canonicalJID, which prefers the LID for stable identity.
+func phoneJID(ctx context.Context, c *whatsmeow.Client, jid types.JID) types.JID {
+	id := jid.ToNonAD()
+	switch id.Server {
+	case types.DefaultUserServer:
+		return id
+	case types.HiddenUserServer:
+		if c == nil || c.Store == nil {
+			return types.JID{}
+		}
+		pn, err := c.Store.LIDs.GetPNForLID(ctx, id)
+		if err != nil || pn.IsEmpty() {
+			return types.JID{}
+		}
+		return pn.ToNonAD()
+	default:
+		return types.JID{}
+	}
+}
+
+// dialablePhone returns the dialable phone number (digits only, no +) for a 1:1
+// user JID, or "" when the device knows no phone for that identity (e.g. a LID
+// with no stored mapping). The digits match the host's phone convention.
+func dialablePhone(ctx context.Context, c *whatsmeow.Client, jid types.JID) string {
+	pn := phoneJID(ctx, c, jid)
+	if pn.IsEmpty() {
+		return ""
+	}
+	return pn.User
+}
+
+// deviceContactName returns the owner's saved address-book name for a 1:1 JID
+// (full name, then first name, then business name), or "" when the user isn't a
+// saved contact. The contact store is keyed by phone, so we look up both the JID
+// as observed and its resolved phone form. PushName is intentionally excluded
+// here — it already rides along on the message as PushName.
+func deviceContactName(ctx context.Context, c *whatsmeow.Client, jid types.JID) string {
+	if c == nil || c.Store == nil || c.Store.Contacts == nil {
+		return ""
+	}
+	candidates := []types.JID{jid.ToNonAD()}
+	if pn := phoneJID(ctx, c, jid); !pn.IsEmpty() && pn.String() != jid.ToNonAD().String() {
+		candidates = append(candidates, pn)
+	}
+	for _, candidate := range candidates {
+		if candidate.IsEmpty() {
+			continue
+		}
+		info, err := c.Store.Contacts.GetContact(ctx, candidate)
+		if err != nil || !info.Found {
+			continue
+		}
+		if name := firstNonEmpty(info.FullName, info.FirstName, info.BusinessName); name != "" {
+			return name
+		}
+	}
+	return ""
+}
+
+// firstNonEmpty returns the first value that is non-empty after trimming spaces.
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if strings.TrimSpace(v) != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 // resolveSendJID converts a caller-provided recipient into the JID we actually
@@ -677,13 +766,16 @@ func emitSentMessage(ctx context.Context, c *whatsmeow.Client, chat types.JID, i
 		ts = time.Now()
 	}
 	payload, err := json.Marshal(waMessage{
-		ChatJID:       chat.String(),
-		SenderJID:     canonicalJID(ctx, c, *c.Store.ID).String(),
-		MessageID:     id,
-		TimestampSecs: ts.Unix(),
-		Text:          text,
-		PushName:      c.Store.PushName,
-		FromMe:        true,
+		ChatJID:           chat.String(),
+		SenderJID:         canonicalJID(ctx, c, *c.Store.ID).String(),
+		MessageID:         id,
+		TimestampSecs:     ts.Unix(),
+		Text:              text,
+		PushName:          c.Store.PushName,
+		FromMe:            true,
+		SenderPhoneNumber: dialablePhone(ctx, c, *c.Store.ID),
+		ChatPhoneNumber:   dialablePhone(ctx, c, chat),
+		ContactName:       deviceContactName(ctx, c, chat),
 	})
 	if err != nil {
 		evt.OnError("encode_sent", err.Error())
