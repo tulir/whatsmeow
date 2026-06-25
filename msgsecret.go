@@ -408,3 +408,75 @@ func (cli *Client) EncryptReaction(ctx context.Context, rootMsgInfo *types.Messa
 		EncIV:            iv,
 	}, nil
 }
+
+// DecryptEventResponse decrypts an event response (RSVP) message. The response
+// references the event it answers via EncEventResponseMessage.EventCreationMessageKey,
+// and is encrypted with the original event's message secret (like poll votes).
+//
+//	if evt.Message.GetEncEventResponseMessage() != nil {
+//		resp, err := cli.DecryptEventResponse(ctx, evt)
+//		if err != nil {
+//			fmt.Println(":(", err)
+//			return
+//		}
+//		fmt.Println("RSVP:", resp.GetResponse())
+//	}
+func (cli *Client) DecryptEventResponse(ctx context.Context, evt *events.Message) (*waE2E.EventResponseMessage, error) {
+	encResp := evt.Message.GetEncEventResponseMessage()
+	if encResp == nil {
+		return nil, fmt.Errorf("message is not an event response message")
+	}
+	plaintext, err := cli.decryptMsgSecret(ctx, evt, EncSecretEventResponse, encResp, encResp.GetEventCreationMessageKey())
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt event response: %w", err)
+	}
+	var msg waE2E.EventResponseMessage
+	if err = proto.Unmarshal(plaintext, &msg); err != nil {
+		return nil, fmt.Errorf("failed to decode event response protobuf: %w", err)
+	}
+	return &msg, nil
+}
+
+// EncryptEventResponse encrypts an event response message against the original
+// event's message secret. Using BuildEventResponse is recommended.
+func (cli *Client) EncryptEventResponse(ctx context.Context, eventInfo *types.MessageInfo, response *waE2E.EventResponseMessage) (*waE2E.EncEventResponseMessage, error) {
+	plaintext, err := proto.Marshal(response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal event response protobuf: %w", err)
+	}
+	ownID := cli.getOwnLID()
+	if eventInfo.Sender.Server == types.DefaultUserServer {
+		ownID = cli.getOwnID()
+	}
+	ciphertext, iv, err := cli.encryptMsgSecret(ctx, ownID, eventInfo.Chat, eventInfo.Sender, eventInfo.ID, EncSecretEventResponse, plaintext)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt event response: %w", err)
+	}
+	return &waE2E.EncEventResponseMessage{
+		EventCreationMessageKey: getKeyFromInfo(eventInfo),
+		EncPayload:              ciphertext,
+		EncIV:                   iv,
+	}, nil
+}
+
+// BuildEventResponse builds an event response (RSVP) message replying to the
+// given event. The built message can be sent normally using Client.SendMessage.
+//
+//	if evt.Message.GetEventMessage() != nil {
+//		respMsg, err := cli.BuildEventResponse(ctx, &evt.Info, waE2E.EventResponseMessage_GOING)
+//		if err != nil {
+//			fmt.Println(":(", err)
+//			return
+//		}
+//		resp, err := cli.SendMessage(ctx, evt.Info.Chat, respMsg)
+//	}
+func (cli *Client) BuildEventResponse(ctx context.Context, eventInfo *types.MessageInfo, response waE2E.EventResponseMessage_EventResponseType) (*waE2E.Message, error) {
+	encResp, err := cli.EncryptEventResponse(ctx, eventInfo, &waE2E.EventResponseMessage{
+		Response:    response.Enum(),
+		TimestampMS: proto.Int64(time.Now().UnixMilli()),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &waE2E.Message{EncEventResponseMessage: encResp}, nil
+}
