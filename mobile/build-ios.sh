@@ -24,9 +24,11 @@ go get golang.org/x/mobile/bind >/dev/null 2>&1 || true
 go get modernc.org/sqlite >/dev/null 2>&1 || true
 
 # -ldflags "-s -w" strips the symbol table + DWARF (much smaller binary).
-# arm64-only target: arm64 device + arm64 simulator. We neither ship to nor
-# develop on Intel Macs, so the x86_64 simulator slice is pure dead weight.
-"$GOBIN/gomobile" bind -target=ios/arm64,iossimulator/arm64 -ldflags="-s -w" -o "$OUT" ./mobile/wa
+# Device-only target (ios/arm64): we develop and ship on physical devices via
+# `bun run ios:device`, so the arm64 simulator slice is pure dead weight that
+# also bloats the committed xcframework (~25MB). If you ever need to run the app
+# in the iOS Simulator, append `,iossimulator/arm64` to -target and rebuild.
+"$GOBIN/gomobile" bind -target=ios/arm64 -ldflags="-s -w" -o "$OUT" ./mobile/wa
 echo "Built: $OUT"
 
 # Install into the app module. Replace the destination outright: `cp -R` onto an
