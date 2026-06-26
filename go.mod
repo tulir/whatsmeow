@@ -15,6 +15,7 @@ require (
 	golang.org/x/net v0.56.0
 	golang.org/x/sync v0.21.0
 	google.golang.org/protobuf v1.36.11
+	modernc.org/sqlite v1.53.0
 )
 
 require (
@@ -36,5 +37,4 @@ require (
 	modernc.org/libc v1.73.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.53.0 // indirect
 )
