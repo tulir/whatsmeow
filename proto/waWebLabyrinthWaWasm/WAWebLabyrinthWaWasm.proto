@@ -21,6 +21,14 @@ message EncryptMessageInput {
 	required string stanzaID = 11;
 }
 
+message DecryptMessageInput {
+	required bytes epochRootKey = 1;
+	required bytes epochAnonID = 2;
+	required string threadID = 3;
+	required int32 encryptionVersion = 4;
+	required bytes ciphertext = 5;
+}
+
 message DeviceOutput {
 	required bytes publicKey = 1;
 	required bytes epochAuthPublicKey = 2;
@@ -82,9 +90,15 @@ message EncryptMessageOutput {
 	optional string error = 7;
 }
 
+message DecryptMessageOutput {
+	optional bytes plaintextPayload = 1;
+	optional string error = 2;
+}
+
 message LabyrinthWaCommand {
 	oneof commandInput {
 		CreateBackupInput createBackupInput = 1;
 		EncryptMessageInput encryptMessageInput = 2;
+		DecryptMessageInput decryptMessageInput = 3;
 	}
 }
