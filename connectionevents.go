@@ -10,6 +10,7 @@ import (
 	"context"
 	"time"
 
+	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
@@ -89,12 +90,27 @@ func (cli *Client) handleIB(ctx context.Context, node *waBinary.Node) {
 				Count: ag.Int("count"),
 			})
 		case "dirty":
-			//ts := ag.UnixTime("timestamp")
-			//typ := ag.String("type") // account_sync
-			//go func() {
-			//	err := cli.MarkNotDirty(ctx, typ, ts)
-			//	zerolog.Ctx(ctx).Debug().Err(err).Msg("Marked dirty item as clean")
-			//}()
+			ts := ag.UnixTime("timestamp")
+			typ := ag.String("type") // ex.: account_sync
+			go func() {
+				bgCtx := cli.BackgroundEventCtx
+				// account_sync: o servidor sinaliza que o estado da conta mudou e precisa de
+				// resync. Sem responder, mutações novas de app-state — como nct_salt_sync
+				// (o NCTSalt usado para derivar o cstoken) — nunca chegam, e mensagens diretas
+				// saem SEM tctoken/cstoken → o servidor rejeita com erro 463 (reach-out lock).
+				// O resync de app-state é leve (apenas IQ de patches), roda em segundo plano e
+				// NÃO baixa o histórico de mensagens (independe de ManualHistorySyncDownload).
+				if typ == "account_sync" {
+					for _, name := range appstate.AllPatchNames {
+						if err := cli.FetchAppState(bgCtx, name, false, false); err != nil {
+							cli.Log.Errorf("Failed to resync app state %s after dirty account_sync: %v", name, err)
+						}
+					}
+				}
+				if err := cli.MarkNotDirty(bgCtx, typ, ts); err != nil {
+					cli.Log.Warnf("Failed to mark dirty %s as clean: %v", typ, err)
+				}
+			}()
 		}
 	}
 }
