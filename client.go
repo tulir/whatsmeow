@@ -186,7 +186,10 @@ type Client struct {
 
 	BackgroundEventCtx context.Context
 
-	phoneLinkingCache *phoneLinkingCache
+	phoneLinkingCache    atomic.Pointer[phoneLinkingCache]
+	passkeyLinkingCache  atomic.Pointer[passkeyLinkingCache]
+	passkeyHandoffKey    atomic.Pointer[passkeyHandoffKey]
+	passkeySkipHandoffUX atomic.Bool
 
 	uniqueID  string
 	idCounter atomic.Uint64

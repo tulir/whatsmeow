@@ -59,6 +59,26 @@ type PairError struct {
 	Error        error
 }
 
+// PairPasskeyRequest is emitted when the pairing requires a passkey.
+// The client should generate a response and send it using Client.SendPasskeyResponse.
+type PairPasskeyRequest struct {
+	PublicKey *types.WebAuthnPublicKey
+}
+
+// PairPasskeyError is emitted if handling a passkey notification fails.
+type PairPasskeyError struct {
+	Error        error
+	Continuation bool // Whether this was from a continuation notification rather than the initial one
+}
+
+// PairPasskeyConfirmation is emitted after a successful SendPasskeyResponse call.
+// If SkipHandoffUX is false, the user should be shown the code and asked to verify that it matches the one on their phone.
+// After verification if needed, the client should call Client.SendPasskeyConfirmation to finish the pairing process.
+type PairPasskeyConfirmation struct {
+	Code          string
+	SkipHandoffUX bool
+}
+
 // QRScannedWithoutMultidevice is emitted when the pairing QR code is scanned, but the phone didn't have multidevice enabled.
 // The same QR code can still be scanned after this event, which means the user can just be told to enable multidevice and re-scan the code.
 type QRScannedWithoutMultidevice struct{}

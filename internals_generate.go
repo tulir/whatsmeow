@@ -101,11 +101,11 @@ func main() {
 	fset := token.NewFileSet()
 	fileNames := []string{
 		"appstate.go", "armadillomessage.go", "broadcast.go", "call.go", "client.go",
-		"connectionevents.go", "download.go", "download-to-file.go", "group.go", "handshake.go",
+		"connectionevents.go", "cstoken.go", "download.go", "download-to-file.go", "group.go", "handshake.go",
 		"keepalive.go", "mediaconn.go", "mediaretry.go", "message.go", "msgsecret.go",
-		"newsletter.go", "notification.go", "pair-code.go", "pair.go", "prekeys.go",
-		"presence.go", "privacysettings.go", "push.go", "qrchan.go", "receipt.go", "request.go",
-		"retry.go", "sendfb.go", "send.go", "upload.go", "user.go", "reportingtoken.go",
+		"newsletter.go", "notification.go", "pair-code.go", "pair.go", "pair-passkey.go", "prekeys.go",
+		"presence.go", "privacysettings.go", "push.go", "qrchan.go", "receipt.go", "reportingtoken.go",
+		"request.go", "retry.go", "send.go", "sendfb.go", "tctoken.go", "upload.go", "user.go",
 	}
 	files := make([]*ast.File, len(fileNames))
 	for i, name := range fileNames {
