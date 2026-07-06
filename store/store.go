@@ -10,6 +10,7 @@ package store
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -251,6 +252,12 @@ type Device struct {
 	EventBuffer   EventBuffer
 	LIDs          LIDStore
 	Container     DeviceContainer
+
+	// saveDeleteLock synchronizes Save and Delete so that a concurrent Delete
+	// (e.g. triggered by a 401 connect failure or device_removed stream error)
+	// can't set ID to nil in the middle of a Save, which would panic in
+	// Container.PutDevice.
+	saveDeleteLock sync.Mutex
 }
 
 func (device *Device) GetJID() types.JID {
@@ -274,6 +281,8 @@ func (device *Device) GetLID() types.JID {
 var ErrDeviceDeleted = errors.New("invalid use of deleted device")
 
 func (device *Device) Save(ctx context.Context) error {
+	device.saveDeleteLock.Lock()
+	defer device.saveDeleteLock.Unlock()
 	if device.Deleted {
 		return ErrDeviceDeleted
 	}
@@ -281,6 +290,8 @@ func (device *Device) Save(ctx context.Context) error {
 }
 
 func (device *Device) Delete(ctx context.Context) error {
+	device.saveDeleteLock.Lock()
+	defer device.saveDeleteLock.Unlock()
 	if device.Deleted {
 		return nil
 	}
