@@ -109,20 +109,34 @@ func (cli *Client) decryptMsgSecret(ctx context.Context, msg *events.Message, us
 	if baseEncKey == nil {
 		return nil, ErrOriginalMessageSecretNotFound
 	}
-	secretKey, additionalData := generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), origSender, baseEncKey)
-	plaintext, err := gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
-	if err != nil {
-		// Hack for trying both the original sender in the new message and the one who we received the secret key from.
-		// This will hopefully become unnecessary when WhatsApp fully finishes their migration to LIDs.
-		if origSender != storedOrigSender && strings.Contains(err.Error(), "message authentication failed") {
-			secretKey, additionalData = generateMsgSecretKey(useCase, msg.Info.Sender, origMsgKey.GetID(), storedOrigSender, baseEncKey)
+	// Hack for trying multiple pairs of senders (original, modification) when decrypting incoming messages:
+	// - the original sender in the message
+	// - the original sender who we received the secret key from
+	// - the modification sender from the message
+	// - the modification sender alternative address from the message
+	// This will hopefully become unnecessary when WhatsApp fully finishes their migration to LIDs.
+	origSenderOptions := []types.JID{origSender}
+	if origSender != storedOrigSender {
+		origSenderOptions = append(origSenderOptions, storedOrigSender)
+	}
+	modSenderOptions := []types.JID{msg.Info.Sender}
+	if !msg.Info.SenderAlt.IsEmpty() && msg.Info.SenderAlt.ToNonAD() != msg.Info.Sender.ToNonAD() {
+		modSenderOptions = append(modSenderOptions, msg.Info.SenderAlt)
+	}
+	var plaintext []byte
+	for _, origSenderOpt := range origSenderOptions {
+		for _, modSenderOpt := range modSenderOptions {
+			secretKey, additionalData := generateMsgSecretKey(useCase, modSenderOpt, origMsgKey.GetID(), origSenderOpt, baseEncKey)
 			plaintext, err = gcmutil.Decrypt(secretKey, encrypted.GetEncIV(), encrypted.GetEncPayload(), additionalData)
-		}
-		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt secret message: %w (sender: %s, orig sender: %s and %s)", err, msg.Info.Sender, origSender, storedOrigSender)
+			if err == nil {
+				return plaintext, nil
+			} else if !strings.Contains(err.Error(), "message authentication failed") {
+				// A non-authentication error won't be resolved by trying other identities.
+				return nil, fmt.Errorf("failed to decrypt secret message: %w", err)
+			}
 		}
 	}
-	return plaintext, nil
+	return nil, fmt.Errorf("failed to decrypt secret message: %w (sender: %s/%s, orig sender: %s and %s)", err, msg.Info.Sender, msg.Info.SenderAlt, origSender, storedOrigSender)
 }
 
 func (cli *Client) encryptMsgSecret(ctx context.Context, ownID, chat, origSender types.JID, origMsgID types.MessageID, useCase MsgSecretType, plaintext []byte) (ciphertext, iv []byte, err error) {
