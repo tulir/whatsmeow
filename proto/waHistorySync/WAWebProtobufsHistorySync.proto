@@ -135,6 +135,7 @@ message Conversation {
 	optional uint64 appealUpdateTime = 60;
 	optional string authAgentParentCompanyName = 61;
 	optional string authAgentObaPhoneNumber = 62;
+	optional IdentityVerificationState identityVerification = 63;
 }
 
 message GroupParticipant {
@@ -158,6 +159,11 @@ message PastParticipant {
 	optional string userJID = 1;
 	optional LeaveReason leaveReason = 2;
 	optional uint64 leaveTS = 3;
+}
+
+message IdentityVerificationState {
+	optional bool verified = 1;
+	optional uint64 actionSeq = 2;
 }
 
 message PhoneNumberToLIDMapping {

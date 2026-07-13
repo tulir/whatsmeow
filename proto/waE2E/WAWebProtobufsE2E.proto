@@ -5,9 +5,11 @@ option go_package = "go.mau.fi/whatsmeow/proto/waE2E";
 import "waAICommon/WAWebProtobufsAICommon.proto";
 import "waAICommonDeprecated/WAAICommonDeprecated.proto";
 import "waAdv/WAAdv.proto";
+import "waAea/WAWebProtobufsAea.proto";
 import "waCompanionReg/WACompanionReg.proto";
 import "waMmsRetry/WAMmsRetry.proto";
 import "waCommon/WACommon.proto";
+import "waServerSync/WAWebProtobufsServerSync.proto";
 import "waStatusAttributions/WAStatusAttributions.proto";
 
 enum PollType {
@@ -938,6 +940,8 @@ message ProtocolMessage {
 		MESSAGE_UNSCHEDULE = 32;
 		CHAT_THEME_SETTING = 34;
 		AI_METADATA_OPERATION = 35;
+		MARK_AS_VERIFIED_ACTION = 36;
+		COEX_STATE_SYNC = 37;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -968,6 +972,8 @@ message ProtocolMessage {
 	optional uint32 afterReadDuration = 29;
 	optional ChatThemeSetting chatThemeSetting = 30;
 	optional WAWebProtobufsAICommon.AIMetadataOperation aiMetadataOperation = 31;
+	optional MarkAsVerifiedAction markAsVerifiedAction = 32;
+	optional WAWebProtobufsServerSync.CoexStateSync coexStateSync = 33;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1089,7 +1095,7 @@ message ExtendedTextMessage {
 	optional bool viewOnce = 30;
 	optional uint32 videoHeight = 31;
 	optional uint32 videoWidth = 32;
-	optional MMSThumbnailMetadata faviconMMSMetadata = 33;
+	optional MMSThumbnailMetadata faviconMmsMetadata = 33;
 	optional LinkPreviewMetadata linkPreviewMetadata = 34;
 	optional PaymentLinkMetadata paymentLinkMetadata = 35;
 	repeated VideoEndCard endCardTiles = 36;
@@ -1289,6 +1295,13 @@ message ContextInfo {
 			ORDER = 12;
 		}
 
+		message UnauthenticatedBusinessMetadata {
+			optional string businessName = 1;
+			optional string businessCategory = 2;
+			optional bool businessIsOpen = 3;
+			optional int64 businessIsOpenSnapshotMS = 4;
+		}
+
 		message SignedPayload {
 			optional string verifiedName = 1;
 			repeated Pill pills = 2;
@@ -1304,6 +1317,7 @@ message ContextInfo {
 		optional EntryPoint entryPoint = 3;
 		optional bytes signedPayload = 4;
 		optional WAWebProtobufsAICommon.BotSignatureVerificationMetadata signatureEnvelope = 5;
+		optional UnauthenticatedBusinessMetadata unauthenticatedBusinessMetadata = 6;
 	}
 
 	message StatusAudienceMetadata {
@@ -1411,6 +1425,10 @@ message ContextInfo {
 		optional string caption = 17;
 	}
 
+	message InstagramThreadLink {
+		optional string URL = 1;
+	}
+
 	message PartiallySelectedContent {
 		optional string text = 1;
 	}
@@ -1500,6 +1518,8 @@ message ContextInfo {
 	optional CrossAppSource crossAppSource = 77;
 	optional BusinessInteractionPills businessInteractionPills = 78;
 	optional string posterStatusID = 79;
+	optional InstagramThreadLink instagramThreadLink = 80;
+	optional WAWebProtobufsAICommon.AIProvenance aiProvenance = 81;
 }
 
 message MessageAssociation {
@@ -1566,6 +1586,8 @@ message MessageContextInfo {
 	repeated ThreadID threadID = 15;
 	optional WebLinkRenderConfig weblinkRenderConfig = 16;
 	optional bytes teeBotMetadata = 17;
+	optional WAWebProtobufsAea.NonE2EEAttestation accountEncryptionAttestation = 18;
+	optional bytes associatedPrimaryIdentityKey = 19;
 }
 
 message InteractiveAnnotation {
@@ -1796,6 +1818,7 @@ message Message {
 	optional SplitPaymentMessage splitPaymentMessage = 125;
 	optional FutureProofMessage newsletterAdminProfileStatusMessage = 126;
 	optional RootSecretDistributeMessage rootSecretDistributeMessage = 127;
+	optional SplitPaymentUpdateMessage splitPaymentUpdateMessage = 128;
 }
 
 message AlbumMessage {
@@ -1812,9 +1835,21 @@ message MessageHistoryMetadata {
 	optional int64 oldestMessageTimestampInBundle = 5;
 }
 
+message HistoryShareMessageEntry {
+	optional string stanzaID = 1;
+	optional bytes messageSecretProof = 2;
+}
+
+message BotHistoryShareSyncMetadata {
+	optional string botJID = 1;
+	optional int64 historyShareCutoffTimestamp = 2;
+	repeated HistoryShareMessageEntry historyShareMessages = 3;
+}
+
 message MessageHistoryNotice {
 	optional ContextInfo contextInfo = 1;
 	optional MessageHistoryMetadata messageHistoryMetadata = 2;
+	optional BotHistoryShareSyncMetadata botHistoryShareSyncMetadata = 3;
 }
 
 message MessageHistoryBundle {
@@ -2114,6 +2149,11 @@ message LiveLocationMessage {
 	optional ContextInfo contextInfo = 17;
 }
 
+message SplitPaymentUpdateMessage {
+	optional string splitID = 1;
+	optional string participantJID = 2;
+}
+
 message SplitPaymentMessage {
 	optional string splitID = 1;
 	optional Money totalAmount = 2;
@@ -2262,6 +2302,13 @@ message ChatThemeSetting {
 	optional string colorSchemeID = 3;
 }
 
+message MarkAsVerifiedAction {
+	optional string userJIDString = 1;
+	optional bool verified = 2;
+	optional bytes verifiedIdentityKey = 3;
+	optional uint64 actionSeq = 4;
+}
+
 message Chat {
 	optional string displayName = 1;
 	optional string ID = 2;
@@ -2331,6 +2378,7 @@ message URLMetadata {
 message PaymentExtendedMetadata {
 	optional uint32 type = 1;
 	optional string platform = 2;
+	optional string messageParamsJSON = 3;
 }
 
 message MMSThumbnailMetadata {

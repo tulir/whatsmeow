@@ -1,0 +1,13 @@
+syntax = "proto2";
+package WAWebProtobufsAea;
+option go_package = "go.mau.fi/whatsmeow/proto/waAea";
+
+message NonE2EEAttestation {
+	enum AccountType {
+		E2EE = 0;
+		HYBRID_E2EE = 1;
+		NON_E2EE = 2;
+	}
+
+	optional AccountType accountType = 1;
+}

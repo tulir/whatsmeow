@@ -240,6 +240,10 @@ message WebMessageInfo {
 		GROUP_TEE_BOT_ADDED = 223;
 		CONTACT_INFO = 224;
 		SCHEDULED_MESSAGE_CREATED = 225;
+		IDENTITY_TRUST_MARKED = 226;
+		IDENTITY_TRUST_UNMARKED = 227;
+		IDENTITY_TRUST_REVOKED = 228;
+		CTWA_CONSUMER_DISCLOSURE = 230;
 	}
 
 	enum Status {
@@ -519,6 +523,7 @@ message NotificationMessageInfo {
 
 message ReportingTokenInfo {
 	optional bytes reportingTag = 1;
+	optional uint64 reportingTagTimestamp = 2;
 }
 
 message MediaData {

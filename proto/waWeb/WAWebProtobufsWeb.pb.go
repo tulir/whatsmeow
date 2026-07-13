@@ -316,6 +316,10 @@ const (
 	WebMessageInfo_GROUP_TEE_BOT_ADDED                                      WebMessageInfo_StubType = 223
 	WebMessageInfo_CONTACT_INFO                                             WebMessageInfo_StubType = 224
 	WebMessageInfo_SCHEDULED_MESSAGE_CREATED                                WebMessageInfo_StubType = 225
+	WebMessageInfo_IDENTITY_TRUST_MARKED                                    WebMessageInfo_StubType = 226
+	WebMessageInfo_IDENTITY_TRUST_UNMARKED                                  WebMessageInfo_StubType = 227
+	WebMessageInfo_IDENTITY_TRUST_REVOKED                                   WebMessageInfo_StubType = 228
+	WebMessageInfo_CTWA_CONSUMER_DISCLOSURE                                 WebMessageInfo_StubType = 230
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -547,6 +551,10 @@ var (
 		223: "GROUP_TEE_BOT_ADDED",
 		224: "CONTACT_INFO",
 		225: "SCHEDULED_MESSAGE_CREATED",
+		226: "IDENTITY_TRUST_MARKED",
+		227: "IDENTITY_TRUST_UNMARKED",
+		228: "IDENTITY_TRUST_REVOKED",
+		230: "CTWA_CONSUMER_DISCLOSURE",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -775,6 +783,10 @@ var (
 		"GROUP_TEE_BOT_ADDED":                                      223,
 		"CONTACT_INFO":                                             224,
 		"SCHEDULED_MESSAGE_CREATED":                                225,
+		"IDENTITY_TRUST_MARKED":                                    226,
+		"IDENTITY_TRUST_UNMARKED":                                  227,
+		"IDENTITY_TRUST_REVOKED":                                   228,
+		"CTWA_CONSUMER_DISCLOSURE":                                 230,
 	}
 )
 
@@ -2990,10 +3002,11 @@ func (x *NotificationMessageInfo) GetParticipant() string {
 }
 
 type ReportingTokenInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ReportingTag  []byte                 `protobuf:"bytes,1,opt,name=reportingTag" json:"reportingTag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	ReportingTag          []byte                 `protobuf:"bytes,1,opt,name=reportingTag" json:"reportingTag,omitempty"`
+	ReportingTagTimestamp *uint64                `protobuf:"varint,2,opt,name=reportingTagTimestamp" json:"reportingTagTimestamp,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ReportingTokenInfo) Reset() {
@@ -3031,6 +3044,13 @@ func (x *ReportingTokenInfo) GetReportingTag() []byte {
 		return x.ReportingTag
 	}
 	return nil
+}
+
+func (x *ReportingTokenInfo) GetReportingTagTimestamp() uint64 {
+	if x != nil && x.ReportingTagTimestamp != nil {
+		return *x.ReportingTagTimestamp
+	}
+	return 0
 }
 
 type MediaData struct {
@@ -4205,7 +4225,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xac^\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xa2_\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4290,7 +4310,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\x83<\n" +
+	"BSP_AND_FB\x10\x03\"\xf9<\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4521,7 +4541,11 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x14GROUP_OPEN_BOT_ADDED\x10\xde\x01\x12\x18\n" +
 	"\x13GROUP_TEE_BOT_ADDED\x10\xdf\x01\x12\x11\n" +
 	"\fCONTACT_INFO\x10\xe0\x01\x12\x1e\n" +
-	"\x19SCHEDULED_MESSAGE_CREATED\x10\xe1\x01\"X\n" +
+	"\x19SCHEDULED_MESSAGE_CREATED\x10\xe1\x01\x12\x1a\n" +
+	"\x15IDENTITY_TRUST_MARKED\x10\xe2\x01\x12\x1c\n" +
+	"\x17IDENTITY_TRUST_UNMARKED\x10\xe3\x01\x12\x1b\n" +
+	"\x16IDENTITY_TRUST_REVOKED\x10\xe4\x01\x12\x1d\n" +
+	"\x18CTWA_CONSUMER_DISCLOSURE\x10\xe6\x01\"X\n" +
 	"\x06Status\x12\t\n" +
 	"\x05ERROR\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0e\n" +
@@ -4709,9 +4733,10 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
 	"\x10messageTimestamp\x18\x03 \x01(\x04R\x10messageTimestamp\x12 \n" +
-	"\vparticipant\x18\x04 \x01(\tR\vparticipant\"8\n" +
+	"\vparticipant\x18\x04 \x01(\tR\vparticipant\"n\n" +
 	"\x12ReportingTokenInfo\x12\"\n" +
-	"\freportingTag\x18\x01 \x01(\fR\freportingTag\")\n" +
+	"\freportingTag\x18\x01 \x01(\fR\freportingTag\x124\n" +
+	"\x15reportingTagTimestamp\x18\x02 \x01(\x04R\x15reportingTagTimestamp\")\n" +
 	"\tMediaData\x12\x1c\n" +
 	"\tlocalPath\x18\x01 \x01(\tR\tlocalPath\"e\n" +
 	"\vPhotoChange\x12\x1a\n" +

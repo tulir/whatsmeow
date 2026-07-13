@@ -29,6 +29,11 @@ message DecryptMessageInput {
 	required bytes ciphertext = 5;
 }
 
+message OrfThreadIdInput {
+	required bytes orfClientState = 1;
+	required string threadID = 2;
+}
+
 message DeviceOutput {
 	required bytes publicKey = 1;
 	required bytes epochAuthPublicKey = 2;
@@ -95,10 +100,16 @@ message DecryptMessageOutput {
 	optional string error = 2;
 }
 
+message OrfThreadIdOutput {
+	optional bytes orfThreadID = 1;
+	optional string error = 2;
+}
+
 message LabyrinthWaCommand {
 	oneof commandInput {
 		CreateBackupInput createBackupInput = 1;
 		EncryptMessageInput encryptMessageInput = 2;
 		DecryptMessageInput decryptMessageInput = 3;
+		OrfThreadIdInput orfThreadIDInput = 4;
 	}
 }

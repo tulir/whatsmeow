@@ -67,6 +67,7 @@ const (
 	IndexThreadPin                       = "thread_pin"
 	IndexSettingAutoOrganizeBusinessChat = "setting_autoOrganizeBusinessChat"
 	IndexCoexV2Version                   = "coexV2Version"
+	IndexLockMessage                     = "lock_message"
 )
 
 // Constants for the regular app state indexes.

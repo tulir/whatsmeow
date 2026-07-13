@@ -328,6 +328,7 @@ message BotCapabilityMetadata {
 		UNIFIED_RESPONSE_MARKDOWN_LINKS_ENABLED = 63;
 		AI_RICH_RESPONSE_MAPS_V2_ENABLED = 64;
 		AI_SUBSCRIPTION_METERING_ENABLED = 65;
+		RICH_RESPONSE_SPORTS_WIDGET_ENABLED = 66;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -776,6 +777,7 @@ message BotMetadata {
 	optional BotResolvedToolCallMetadata resolvedToolCallMetadata = 40;
 	optional AISubscriptionUpsellMetadata subscriptionUpsellMetadata = 41;
 	optional BotPttPromptMetadata pttPromptMetadata = 42;
+	optional BotHistoryShareMetadata botHistoryShareMetadata = 43;
 	optional bytes internalMetadata = 999;
 }
 
@@ -784,6 +786,10 @@ message AISubscriptionUpsellMetadata {
 }
 
 message BotGroupMetadata {
+	repeated BotGroupParticipantMetadata participantsMetadata = 1;
+}
+
+message BotHistoryShareMetadata {
 	repeated BotGroupParticipantMetadata participantsMetadata = 1;
 }
 
@@ -828,4 +834,15 @@ message BotAgentMetadata {
 
 message BotAgentDeepLinkMetadata {
 	optional string token = 1;
+	optional bytes clientPublicKey = 2;
+}
+
+message AIProvenance {
+	message Metadata {
+		optional bool createdWithGenAi = 1;
+		optional bool editedWithGenAi = 2;
+	}
+
+	optional Metadata c2PaMetadata = 1;
+	optional Metadata iptcMetadata = 2;
 }
