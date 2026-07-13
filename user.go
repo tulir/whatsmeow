@@ -195,13 +195,17 @@ func (cli *Client) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.I
 	querySuffix := "@" + types.LegacyUserServer
 	for _, child := range list.GetChildren() {
 		ag := child.AttrGetter()
-		jid, jidOK := ag.GetJID("jid", true)
-		if child.Tag != "user" || !jidOK {
+		jid := ag.OptionalJIDOrEmpty("jid")
+		pnJID := ag.OptionalJIDOrEmpty("pn_jid")
+		if child.Tag != "user" || (jid.IsEmpty() && pnJID.IsEmpty()) {
 			continue
 		}
 		var info types.IsOnWhatsAppResponse
 		info.JID = jid
-		info.PhoneNumber = ag.OptionalJIDOrEmpty("pn_jid")
+		if jid.IsEmpty() {
+			info.JID = pnJID
+		}
+		info.PhoneNumber = pnJID
 		if info.JID.Server == types.HiddenUserServer && info.PhoneNumber.Server == types.DefaultUserServer {
 			lidEntries = append(lidEntries, store.LIDMapping{
 				LID: info.JID,
