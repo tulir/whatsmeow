@@ -114,14 +114,6 @@ func (cli *Client) RejectCall(ctx context.Context, callFrom types.JID, callID st
 		Attrs:   waBinary.Attrs{"call-id": callID, "call-creator": callFrom, "count": "0"},
 		Content: nil,
 	}
-	if token, err := cli.ensureTCToken(ctx, callFrom); err != nil {
-		cli.Log.Warnf("Failed to get privacy token for call reject to %s: %v", callFrom, err)
-	} else if len(token) > 0 {
-		rejectNode.Content = []waBinary.Node{{
-			Tag:     "tctoken",
-			Content: token,
-		}}
-	}
 	return cli.sendNode(ctx, waBinary.Node{
 		Tag:     "call",
 		Attrs:   waBinary.Attrs{"id": cli.GenerateMessageID(), "from": ownID, "to": callFrom},
