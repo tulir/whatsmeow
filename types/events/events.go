@@ -110,6 +110,13 @@ type LoggedOut struct {
 	OnConnect bool
 	// If OnConnect is true, then this field contains the reason code.
 	Reason ConnectFailureReason
+	// Message is the generic human-readable text Meta sends on the failure node, if any.
+	Message string
+	// MessageHeader and MessageSubtext are the human-readable logout text Meta sends on the
+	// failure node, if any. These can help distinguish a policy lockout from a routine re-link.
+	// They are only present on some logout paths (e.g. not on the 401 device_removed stream:error).
+	MessageHeader  string
+	MessageSubtext string
 }
 
 // StreamReplaced is emitted when the client is disconnected by another client connecting with the same keys.

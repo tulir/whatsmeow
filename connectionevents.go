@@ -116,16 +116,15 @@ func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node
 		cli.socketLock.RLock()
 		defer cli.socketLock.RUnlock()
 	}
-	if reason == 403 {
-		cli.Log.Debugf(
-			"Message for 403 connect failure: %s / %s",
-			ag.OptionalString("logout_message_header"),
-			ag.OptionalString("logout_message_subtext"),
-		)
-	}
 	if reason.IsLoggedOut() {
 		cli.Log.Infof("Got %s connect failure, sending LoggedOut event and deleting session", reason)
-		go cli.dispatchEvent(&events.LoggedOut{OnConnect: true, Reason: reason})
+		go cli.dispatchEvent(&events.LoggedOut{
+			OnConnect:      true,
+			Reason:         reason,
+			Message:        message,
+			MessageHeader:  ag.OptionalString("logout_message_header"),
+			MessageSubtext: ag.OptionalString("logout_message_subtext"),
+		})
 		err := cli.Store.Delete(ctx)
 		if err != nil {
 			cli.Log.Warnf("Failed to delete store after %d failure: %v", int(reason), err)
