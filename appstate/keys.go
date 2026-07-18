@@ -103,6 +103,7 @@ const (
 	IndexShareOwnPN                                      = "shareOwnPn"
 	IndexBroadcast                                       = "broadcast"
 	IndexSubscriptionsSync                               = "subscriptions_sync_v2"
+	IndexLabelSublist                                    = "label_sublist"
 )
 
 // Constants for the regular_high app state indexes.

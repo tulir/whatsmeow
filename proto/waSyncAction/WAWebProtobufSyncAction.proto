@@ -100,6 +100,7 @@ enum MutationProps {
 	COEX_V2_VERSION_ACTION = 88;
 	WASA_ROOT_SECRET_ACTION = 89;
 	BUBBLE_LOCK_MESSAGE_ACTION = 90;
+	LABEL_SUBLIST_ACTION = 91;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -161,6 +162,22 @@ message CallLogRecord {
 	optional string groupJID = 13;
 	repeated ParticipantInfo participants = 14;
 	optional CallType callType = 15;
+}
+
+message WASARootSecretAction {
+	message RootSecretEntry {
+		enum Status {
+			INACTIVE = 0;
+			ACTIVE = 1;
+		}
+
+		optional string ID = 1;
+		optional bytes rootSecret = 2;
+		optional int64 epoch = 3;
+		optional Status status = 4;
+	}
+
+	repeated RootSecretEntry secrets = 1;
 }
 
 message SettingsSyncAction {
@@ -568,6 +585,7 @@ enum MutationName {
 	COEX_V2_VERSION_ACTION = coexV2Version;
 	WASA_ROOT_SECRET_ACTION = wasa_root_secret;
 	BUBBLE_LOCK_MESSAGE_ACTION = lock_message;
+	LABEL_SUBLIST_ACTION = label_sublist;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -676,16 +694,7 @@ message SyncActionValue {
 	optional CoexV2VersionAction coexV2VersionAction = 88;
 	optional WASARootSecretAction wasaRootSecretAction = 89;
 	optional BubbleLockMessageAction bubbleLockMessageAction = 90;
-}
-
-message WASARootSecretAction {
-	message RootSecretEntry {
-		optional string ID = 1;
-		optional bytes rootSecret = 2;
-		optional int64 epoch = 3;
-	}
-
-	repeated RootSecretEntry secrets = 1;
+	optional LabelSublistAction labelSublistAction = 91;
 }
 
 message CoexV2VersionAction {
@@ -1009,6 +1018,10 @@ message ArchiveChatAction {
 
 message RecentEmojiWeightsAction {
 	repeated RecentEmojiWeight weights = 1;
+}
+
+message LabelSublistAction {
+	optional int32 subListID = 1;
 }
 
 message LabelAssociationAction {

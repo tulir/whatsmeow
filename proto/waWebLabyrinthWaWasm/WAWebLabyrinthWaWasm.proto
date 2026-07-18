@@ -34,6 +34,12 @@ message OrfThreadIdInput {
 	required string threadID = 2;
 }
 
+message DeriveMessageKeyInput {
+	required bytes epochRootKey = 1;
+	required bytes epochAnonID = 2;
+	required string threadID = 3;
+}
+
 message DeviceOutput {
 	required bytes publicKey = 1;
 	required bytes epochAuthPublicKey = 2;
@@ -105,11 +111,17 @@ message OrfThreadIdOutput {
 	optional string error = 2;
 }
 
+message DeriveMessageKeyOutput {
+	optional bytes messageKey = 1;
+	optional string error = 2;
+}
+
 message LabyrinthWaCommand {
 	oneof commandInput {
 		CreateBackupInput createBackupInput = 1;
 		EncryptMessageInput encryptMessageInput = 2;
 		DecryptMessageInput decryptMessageInput = 3;
 		OrfThreadIdInput orfThreadIDInput = 4;
+		DeriveMessageKeyInput deriveMessageKeyInput = 5;
 	}
 }

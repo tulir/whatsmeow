@@ -75,6 +75,7 @@ const (
 	BotMetricsEntryPoint_GROUP_MEMBER                        BotMetricsEntryPoint = 54
 	BotMetricsEntryPoint_CHATLIST_SEARCH                     BotMetricsEntryPoint = 55
 	BotMetricsEntryPoint_NEW_CHAT_LIST                       BotMetricsEntryPoint = 56
+	BotMetricsEntryPoint_CONTACTS_TAB                        BotMetricsEntryPoint = 57
 )
 
 // Enum value maps for BotMetricsEntryPoint.
@@ -128,6 +129,7 @@ var (
 		54: "GROUP_MEMBER",
 		55: "CHATLIST_SEARCH",
 		56: "NEW_CHAT_LIST",
+		57: "CONTACTS_TAB",
 	}
 	BotMetricsEntryPoint_value = map[string]int32{
 		"UNDEFINED_ENTRY_POINT":               0,
@@ -178,6 +180,7 @@ var (
 		"GROUP_MEMBER":                        54,
 		"CHATLIST_SEARCH":                     55,
 		"NEW_CHAT_LIST":                       56,
+		"CONTACTS_TAB":                        57,
 	}
 )
 
@@ -8024,7 +8027,7 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\fiptcMetadata\x18\x02 \x01(\v2-.WAWebProtobufsAICommon.AIProvenance.MetadataR\fiptcMetadata\x1a`\n" +
 	"\bMetadata\x12*\n" +
 	"\x10createdWithGenAi\x18\x01 \x01(\bR\x10createdWithGenAi\x12(\n" +
-	"\x0feditedWithGenAi\x18\x02 \x01(\bR\x0feditedWithGenAi*\x8e\n" +
+	"\x0feditedWithGenAi\x18\x02 \x01(\bR\x0feditedWithGenAi*\xa0\n" +
 	"\n" +
 	"\x14BotMetricsEntryPoint\x12\x19\n" +
 	"\x15UNDEFINED_ENTRY_POINT\x10\x00\x12\v\n" +
@@ -8076,7 +8079,8 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\x12WEB_NAVIGATION_BAR\x10/\x12\x10\n" +
 	"\fGROUP_MEMBER\x106\x12\x13\n" +
 	"\x0fCHATLIST_SEARCH\x107\x12\x11\n" +
-	"\rNEW_CHAT_LIST\x108*\xa2\x01\n" +
+	"\rNEW_CHAT_LIST\x108\x12\x10\n" +
+	"\fCONTACTS_TAB\x109*\xa2\x01\n" +
 	"\x1aBotMetricsThreadEntryPoint\x12\x11\n" +
 	"\rAI_TAB_THREAD\x10\x01\x12\x12\n" +
 	"\x0eAI_HOME_THREAD\x10\x02\x12 \n" +

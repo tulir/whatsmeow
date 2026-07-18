@@ -53,6 +53,7 @@ enum BotMetricsEntryPoint {
 	GROUP_MEMBER = 54;
 	CHATLIST_SEARCH = 55;
 	NEW_CHAT_LIST = 56;
+	CONTACTS_TAB = 57;
 }
 
 enum BotMetricsThreadEntryPoint {

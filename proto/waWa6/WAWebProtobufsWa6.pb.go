@@ -873,6 +873,7 @@ const (
 	ClientPayload_UserAgent_SMART_GLASSES  ClientPayload_UserAgent_Platform = 35
 	ClientPayload_UserAgent_BLUE_VR        ClientPayload_UserAgent_Platform = 36
 	ClientPayload_UserAgent_AR_WRIST       ClientPayload_UserAgent_Platform = 37
+	ClientPayload_UserAgent_WAIL           ClientPayload_UserAgent_Platform = 38
 )
 
 // Enum value maps for ClientPayload_UserAgent_Platform.
@@ -916,6 +917,7 @@ var (
 		35: "SMART_GLASSES",
 		36: "BLUE_VR",
 		37: "AR_WRIST",
+		38: "WAIL",
 	}
 	ClientPayload_UserAgent_Platform_value = map[string]int32{
 		"ANDROID":        0,
@@ -956,6 +958,7 @@ var (
 		"SMART_GLASSES":  35,
 		"BLUE_VR":        36,
 		"AR_WRIST":       37,
+		"WAIL":           38,
 	}
 )
 
@@ -2367,7 +2370,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x05IKKEM\x10\x05\x12\f\n" +
 	"\bIKKEM_FS\x10\x06\x12\v\n" +
 	"\aXXKEM_2\x10\a\x12\v\n" +
-	"\aIKKEM_2\x10\b\"\xe7-\n" +
+	"\aIKKEM_2\x10\b\"\xf1-\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2450,7 +2453,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x06DARWIN\x10\x03\x12\t\n" +
 	"\x05WIN32\x10\x04\x12\x0e\n" +
 	"\n" +
-	"WIN_HYBRID\x10\x05\x1a\x9f\x0e\n" +
+	"WIN_HYBRID\x10\x05\x1a\xa9\x0e\n" +
 	"\tUserAgent\x12O\n" +
 	"\bplatform\x18\x01 \x01(\x0e23.WAWebProtobufsWa6.ClientPayload.UserAgent.PlatformR\bplatform\x12U\n" +
 	"\n" +
@@ -2501,7 +2504,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\aRELEASE\x10\x00\x12\b\n" +
 	"\x04BETA\x10\x01\x12\t\n" +
 	"\x05ALPHA\x10\x02\x12\t\n" +
-	"\x05DEBUG\x10\x03\"\xa5\x04\n" +
+	"\x05DEBUG\x10\x03\"\xaf\x04\n" +
 	"\bPlatform\x12\v\n" +
 	"\aANDROID\x10\x00\x12\a\n" +
 	"\x03IOS\x10\x01\x12\x11\n" +
@@ -2546,7 +2549,8 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x04TEST\x10\"\x12\x11\n" +
 	"\rSMART_GLASSES\x10#\x12\v\n" +
 	"\aBLUE_VR\x10$\x12\f\n" +
-	"\bAR_WRIST\x10%\x1aq\n" +
+	"\bAR_WRIST\x10%\x12\b\n" +
+	"\x04WAIL\x10&\x1aq\n" +
 	"\vInteropData\x12\x1c\n" +
 	"\taccountID\x18\x01 \x01(\x04R\taccountID\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\fR\x05token\x12.\n" +

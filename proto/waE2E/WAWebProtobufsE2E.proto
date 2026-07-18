@@ -942,6 +942,7 @@ message ProtocolMessage {
 		AI_METADATA_OPERATION = 35;
 		MARK_AS_VERIFIED_ACTION = 36;
 		COEX_STATE_SYNC = 37;
+		SYNC_REQUEST_MUTATION_RETRY = 38;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -974,6 +975,7 @@ message ProtocolMessage {
 	optional WAWebProtobufsAICommon.AIMetadataOperation aiMetadataOperation = 31;
 	optional MarkAsVerifiedAction markAsVerifiedAction = 32;
 	optional WAWebProtobufsServerSync.CoexStateSync coexStateSync = 33;
+	optional SyncRequestMutationRetry syncRequestMutationRetry = 34;
 }
 
 message CloudAPIThreadControlNotification {
@@ -2215,6 +2217,16 @@ message AppStateFatalExceptionNotification {
 	optional int64 timestamp = 2;
 }
 
+message SyncRequestMutationRetry {
+	message Collection {
+		optional string name = 1;
+		optional uint64 storedSyncdVersion = 2;
+	}
+
+	repeated Collection collections = 1;
+	optional uint32 count = 2;
+}
+
 message AppStateSyncKeyRequest {
 	repeated AppStateSyncKeyId keyIDs = 1;
 }
@@ -2326,6 +2338,7 @@ message Call {
 	optional string deeplinkPayload = 9;
 	optional MessageContextInfo messageContextInfo = 10;
 	optional uint32 callEntryPoint = 11;
+	optional string callReason = 12;
 }
 
 message AudioMessage {
