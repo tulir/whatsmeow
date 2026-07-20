@@ -246,10 +246,23 @@ func (cli *Client) GetGroupRequestParticipants(ctx context.Context, jid types.JI
 	}
 	requestParticipants := request.GetChildrenByTag("membership_approval_request")
 	participants := make([]types.GroupParticipantRequest, len(requestParticipants))
+	var lidPairs []store.LIDMapping
 	for i, req := range requestParticipants {
+		cag := req.AttrGetter()
+		participantJID := cag.JID("jid")
 		participants[i] = types.GroupParticipantRequest{
-			JID:         req.AttrGetter().JID("jid"),
-			RequestedAt: req.AttrGetter().UnixTime("request_time"),
+			JID:         participantJID,
+			RequestedAt: cag.UnixTime("request_time"),
+		}
+		if participantJID.Server == types.HiddenUserServer {
+			if pn := cag.OptionalJID("phone_number"); pn != nil && !pn.IsEmpty() {
+				lidPairs = append(lidPairs, store.LIDMapping{LID: participantJID, PN: *pn})
+			}
+		}
+	}
+	if len(lidPairs) > 0 {
+		if err := cli.Store.LIDs.PutManyLIDMappings(ctx, lidPairs); err != nil {
+			cli.Log.Warnf("Failed to store LID mappings from group request participants: %v", err)
 		}
 	}
 	return participants, nil
