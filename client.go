@@ -289,6 +289,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 	cli.paired.Store(deviceStore.ID != nil)
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
+		"status":       cli.handleUnencryptedMessage,
 		"appdata":      cli.handleEncryptedMessage,
 		"receipt":      cli.handleReceipt,
 		"call":         cli.handleCallEvent,

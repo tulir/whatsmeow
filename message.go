@@ -67,6 +67,23 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 	}
 }
 
+func (cli *Client) handleUnencryptedMessage(ctx context.Context, node *waBinary.Node) {
+	info, err := cli.parseMessageInfo(node)
+	if err != nil {
+		cli.Log.Warnf("Failed to parse message: %v", err)
+		cli.sendAck(ctx, node, NackParsingError)
+		return
+	}
+	if info.Sender.Server != types.NewsletterServer {
+		cli.sendAck(ctx, node, 0)
+		return
+	}
+	info.IsNewsletterStatus = true
+	var cancelled bool
+	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
+	cancelled = cli.handlePlaintextMessage(ctx, info, node)
+}
+
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
 	clientID := cli.getOwnID()
 	clientLID := cli.getOwnLID()
@@ -218,8 +235,8 @@ func (cli *Client) parseMessageInfo(node *waBinary.Node) (*types.MessageInfo, er
 	info.Category = ag.OptionalString("category")
 	info.Type = ag.OptionalString("type")
 	info.Edit = types.EditAttribute(ag.OptionalString("edit"))
-	if !ag.OK() {
-		return nil, ag.Error()
+	if err = ag.Error(); err != nil {
+		return nil, err
 	}
 
 	for _, child := range node.GetChildren() {
