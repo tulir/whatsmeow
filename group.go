@@ -847,6 +847,9 @@ func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.Jo
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
 	}
+	if info.AddressingMode == "" {
+		info.AddressingMode = types.AddressingMode(pag.OptionalString("addressing_mode"))
+	}
 	evt.GroupInfo = *info
 	lidPairs, redactedPhones := cli.cacheGroupInfo(info, true)
 	return &evt, lidPairs, redactedPhones, nil
