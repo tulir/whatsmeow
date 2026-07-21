@@ -311,6 +311,10 @@ func (int *DangerousInternalClient) HandleEncryptedMessage(ctx context.Context, 
 	int.c.handleEncryptedMessage(ctx, node)
 }
 
+func (int *DangerousInternalClient) HandleUnencryptedMessage(ctx context.Context, node *waBinary.Node) {
+	int.c.handleUnencryptedMessage(ctx, node)
+}
+
 func (int *DangerousInternalClient) ParseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
 	return int.c.parseMessageSource(node, requireParticipant)
 }
@@ -571,12 +575,12 @@ func (int *DangerousInternalClient) HandleReceipt(ctx context.Context, node *waB
 	int.c.handleReceipt(ctx, node)
 }
 
-func (int *DangerousInternalClient) HandleGroupedReceipt(partialReceipt events.Receipt, participants *waBinary.Node) {
-	int.c.handleGroupedReceipt(partialReceipt, participants)
+func (int *DangerousInternalClient) HandleGroupedReceipt(partialReceipt events.Receipt, participants *waBinary.Node) (cancelled bool) {
+	return int.c.handleGroupedReceipt(partialReceipt, participants)
 }
 
-func (int *DangerousInternalClient) ParseReceipt(node *waBinary.Node) (*events.Receipt, error) {
-	return int.c.parseReceipt(node)
+func (int *DangerousInternalClient) ParseReceipt(ctx context.Context, node *waBinary.Node) (*events.Receipt, []waBinary.Node, error) {
+	return int.c.parseReceipt(ctx, node)
 }
 
 func (int *DangerousInternalClient) BackgroundIfAsyncAck(fn func()) {
