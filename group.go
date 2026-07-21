@@ -37,6 +37,7 @@ type ReqCreateGroup struct {
 	Participants []types.JID
 	// A create key can be provided to deduplicate the group create notification that will be triggered
 	// when the group is created. If provided, the JoinedGroup event will contain the same key.
+	// Deprecated: It seems like WhatsApp no longer sends this.
 	CreateKey types.MessageID
 
 	types.GroupEphemeral
@@ -56,9 +57,22 @@ type ReqCreateGroup struct {
 func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.GroupInfo, error) {
 	participantNodes := make([]waBinary.Node, len(req.Participants), len(req.Participants)+1)
 	for i, participant := range req.Participants {
+		participant = participant.ToNonAD()
+		var participantPN types.JID
+		if participant.Server == types.HiddenUserServer {
+			var err error
+			participantPN, err = cli.Store.LIDs.GetPNForLID(ctx, participant)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get phone number for participant %s: %v", participant, err)
+			}
+		}
+		participantAttrs := waBinary.Attrs{"jid": participant}
+		if !participantPN.IsEmpty() {
+			participantAttrs["phone_number"] = participantPN
+		}
 		participantNodes[i] = waBinary.Node{
 			Tag:   "participant",
-			Attrs: waBinary.Attrs{"jid": participant},
+			Attrs: participantAttrs,
 		}
 		token, err := cli.ensureTCToken(ctx, participant)
 		if err != nil {
@@ -69,9 +83,6 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 				Content: token,
 			}}
 		}
-	}
-	if req.CreateKey == "" {
-		req.CreateKey = cli.GenerateMessageID()
 	}
 	if req.IsParent {
 		if req.DefaultMembershipApprovalMode == "" {
@@ -113,14 +124,18 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 			}},
 		})
 	}
-	// WhatsApp web doesn't seem to include the static prefix for these
-	key := strings.TrimPrefix(req.CreateKey, "3EB0")
+	createAttrs := waBinary.Attrs{
+		"subject": req.Name,
+	}
+	if req.Name != "" {
+		createAttrs["subject"] = req.Name
+	}
+	if req.CreateKey != "" {
+		createAttrs["create_key"] = strings.TrimPrefix(req.CreateKey, "3EB0")
+	}
 	resp, err := cli.sendGroupIQ(ctx, iqSet, types.GroupServerJID, waBinary.Node{
-		Tag: "create",
-		Attrs: waBinary.Attrs{
-			"subject": req.Name,
-			"key":     key,
-		},
+		Tag:     "create",
+		Attrs:   createAttrs,
 		Content: participantNodes,
 	})
 	if err != nil {
