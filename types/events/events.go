@@ -269,6 +269,22 @@ type Disconnected struct{}
 // HistorySync is emitted when the phone has sent a blob of historical messages.
 type HistorySync struct {
 	Data *waHistorySync.HistorySync
+
+	// OriginalMessageID correlates an on-demand history sync back to the
+	// [Client.BuildHistorySyncRequest] that triggered it: it matches the message ID returned by the
+	// [Client.SendMessage]/[Client.SendPeerMessage] that sent the request. It is empty for
+	// unsolicited syncs (bootstrap, recent, push-name, etc.). Copied from the HistorySyncNotification.
+	//
+	// NOTE: for HISTORY_SYNC_ON_DEMAND (the peer-data-operation form used by
+	// [Client.BuildHistorySyncRequest]), WhatsApp leaves this empty and echoes the request id in
+	// PeerDataRequestSessionID instead — prefer that field for on-demand correlation.
+	OriginalMessageID string
+
+	// PeerDataRequestSessionID correlates an ON_DEMAND (peer-data-operation) history sync back to the
+	// request that triggered it: WhatsApp echoes the request message's ID here (equal to the ID
+	// returned by [Client.SendPeerMessage]). This is the field populated for HISTORY_SYNC_ON_DEMAND;
+	// OriginalMessageID is empty on that path. Empty for unsolicited syncs.
+	PeerDataRequestSessionID string
 }
 
 type DecryptFailMode string
