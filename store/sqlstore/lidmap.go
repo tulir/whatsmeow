@@ -22,6 +22,7 @@ import (
 
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
+	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
 type CachedLIDMap struct {
@@ -50,6 +51,19 @@ const (
 		INSERT INTO whatsmeow_lid_map (lid, pn)
 		VALUES ($1, $2)
 		ON CONFLICT (lid) DO UPDATE SET pn=excluded.pn WHERE whatsmeow_lid_map.pn<>excluded.pn
+	`
+	bulkPutLIDMappingQuery = `
+		INSERT INTO whatsmeow_lid_map (lid, pn)
+		VALUES %s
+		ON CONFLICT (lid) DO UPDATE
+		SET pn = excluded.pn
+		WHERE whatsmeow_lid_map.pn <> excluded.pn;
+	`
+	bulkDeleteExistingLIDMappingQuery = `
+		DELETE FROM whatsmeow_lid_map w
+		USING (VALUES %s) AS incoming(lid, pn)
+		WHERE w.pn = incoming.pn
+		AND w.lid <> incoming.lid;
 	`
 	getLIDForPNQuery       = `SELECT lid FROM whatsmeow_lid_map WHERE pn=$1`
 	getPNForLIDQuery       = `SELECT pn FROM whatsmeow_lid_map WHERE lid=$1`
@@ -210,8 +224,6 @@ func (s *CachedLIDMap) PutLIDMapping(ctx context.Context, lid, pn types.JID) err
 }
 
 func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.LIDMapping) error {
-	s.lidCacheLock.Lock()
-	defer s.lidCacheLock.Unlock()
 	mappings = slices.DeleteFunc(mappings, func(mapping store.LIDMapping) bool {
 		if mapping.LID.Server != types.HiddenUserServer || mapping.PN.Server != types.DefaultUserServer {
 			zerolog.Ctx(ctx).Debug().
@@ -230,12 +242,11 @@ func (s *CachedLIDMap) PutManyLIDMappings(ctx context.Context, mappings []store.
 	if len(mappings) == 0 {
 		return nil
 	}
+
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
-		for _, mapping := range mappings {
-			err := s.unlockedPutLIDMapping(ctx, mapping.LID, mapping.PN)
-			if err != nil {
-				return err
-			}
+		err := s.unlockedPutManyLIDMappings(ctx, &mappings)
+		if err != nil {
+			return err
 		}
 		return nil
 	})
@@ -263,5 +274,53 @@ func (s *CachedLIDMap) unlockedPutLIDMapping(ctx context.Context, lid, pn types.
 	if oldLID != "" && oldLID != lid.User && s.lidToPNCache[oldLID] == pn.User {
 		delete(s.lidToPNCache, oldLID)
 	}
+	return nil
+}
+
+func (s *CachedLIDMap) unlockedPutManyLIDMappings(ctx context.Context, mappings *[]store.LIDMapping) error {
+	logger := waLog.Stdout("Client", "DEBUG", true)
+	var values []string
+
+	for _, m := range *mappings {
+		if m.LID.Server != types.HiddenUserServer || m.PN.Server != types.DefaultUserServer {
+			logger.Errorf("invalid PutLIDMapping call %s/%s", m.LID, m.PN)
+			continue
+		}
+		values = append(values, fmt.Sprintf("('%s','%s')", m.LID, m.PN))
+	}
+
+	valuesSQL := strings.Join(values, ",")
+
+	deleteQuery := fmt.Sprintf(bulkDeleteExistingLIDMappingQuery, valuesSQL)
+
+	insertQuery := fmt.Sprintf(bulkPutLIDMappingQuery, valuesSQL)
+
+	_, err := s.db.Exec(ctx, deleteQuery)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(ctx, insertQuery)
+	if err != nil {
+		return err
+	}
+
+	s.lidCacheLock.Lock()
+	defer s.lidCacheLock.Unlock()
+	for _, mapping := range *mappings {
+		lid, pn := mapping.LID, mapping.PN
+
+		oldLID := s.pnToLIDCache[pn.User]
+		oldPN := s.lidToPNCache[lid.User]
+		s.pnToLIDCache[pn.User] = lid.User
+		s.lidToPNCache[lid.User] = pn.User
+		if oldPN != "" && oldPN != pn.User && s.pnToLIDCache[oldPN] == lid.User {
+			delete(s.pnToLIDCache, oldPN)
+		}
+		if oldLID != "" && oldLID != lid.User && s.lidToPNCache[oldLID] == pn.User {
+			delete(s.lidToPNCache, oldLID)
+		}
+
+	}
+
 	return nil
 }
