@@ -18,6 +18,64 @@ type BasicCallMeta struct {
 }
 
 type CallRemoteMeta struct {
-	RemotePlatform string // The platform of the caller's WhatsApp client
-	RemoteVersion  string // Version of the caller's WhatsApp client
+	RemotePlatform string
+	RemoteVersion  string
+}
+
+// CallDirection identifies which side originated a 1:1 call.
+type CallDirection uint8
+
+const (
+	CallDirectionIncoming CallDirection = iota
+	CallDirectionOutgoing
+)
+
+// CallVideoState is the state value carried by an in-call video stanza. Local and
+// remote video flows are independent: stopping one does not stop the other.
+type CallVideoState int
+
+const (
+	CallVideoStateDisabled         CallVideoState = 0
+	CallVideoStateEnabled          CallVideoState = 1
+	CallVideoStateUpgradeRequest   CallVideoState = 3
+	CallVideoStateUpgradeAccept    CallVideoState = 4
+	CallVideoStateUpgradeReject    CallVideoState = 5
+	CallVideoStateStopped          CallVideoState = 6
+	CallVideoStateUpgradeCancel    CallVideoState = 8
+	CallVideoStateUpgradeRequestV2 CallVideoState = 11
+)
+
+// CallCodec identifies which media codec a 1:1 call negotiated.
+type CallCodec uint8
+
+const (
+	CallCodecMLow CallCodec = iota
+	CallCodecOpus
+)
+
+// String returns a human-readable name for the codec.
+func (c CallCodec) String() string {
+	switch c {
+	case CallCodecMLow:
+		return "mlow"
+	case CallCodecOpus:
+		return "opus"
+	default:
+		return "unknown"
+	}
+}
+
+// RelayEndpoint is the elected media relay for a 1:1 call.
+type RelayEndpoint struct {
+	RelayID     uint32
+	TokenID     uint32
+	AuthTokenID uint32
+	RelayName   string
+	IsFNA       bool
+	IPv4        string
+	Port        uint16
+
+	Key       []byte
+	Token     []byte
+	AuthToken []byte
 }
