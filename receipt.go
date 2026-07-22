@@ -21,7 +21,7 @@ import (
 
 func (cli *Client) handleReceipt(ctx context.Context, node *waBinary.Node) {
 	var cancelled bool
-	receipt, participants, err := cli.parseReceipt(ctx, node)
+	receipt, participants, err := cli.parseReceipt(node)
 	if err != nil {
 		cli.Log.Warnf("Failed to parse receipt: %v", err)
 		go cli.sendAck(ctx, node, NackParsingError)
@@ -62,7 +62,7 @@ func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participa
 	return
 }
 
-func (cli *Client) parseReceipt(ctx context.Context, node *waBinary.Node) (*events.Receipt, []waBinary.Node, error) {
+func (cli *Client) parseReceipt(node *waBinary.Node) (*events.Receipt, []waBinary.Node, error) {
 	ag := node.AttrGetter()
 	source, err := cli.parseMessageSource(node, false)
 	if err != nil {
