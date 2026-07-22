@@ -28,8 +28,13 @@ Most core features are already present:
 * Reading and writing app state (contact list, chat pin/mute status, etc)
 * Sending and handling retry receipts if message decryption fails
 * Sending status messages (experimental, may not work for large contact lists)
+* Placing, receiving, accepting, rejecting and hanging up 1:1 calls
+  (`OfferCall`/`AcceptCall`/`RejectCall`/`HangupCall`/`SetCallMute`, plus the
+  `events.Call*` and `events.CallMedia*` events) — whatsmeow handles
+  signaling, call-key crypto and relay election; the caller supplies the RTP
+  media stack
 
 Things that are not yet implemented:
 
 * Sending broadcast list messages (this is not supported on WhatsApp web either)
-* Calls
+* Group calls
