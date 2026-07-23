@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -105,6 +106,7 @@ func (cli *Client) composeOffer(callID string, self, peer types.JID, deviceKeys 
 }
 
 func (cli *Client) newOutgoingCallState(callID string, self, peer types.JID, callKey []byte, video bool) *callState {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L117-L121
 	return &callState{
 		meta: types.BasicCallMeta{
 			From:        self,
@@ -120,6 +122,11 @@ func (cli *Client) newOutgoingCallState(callID string, self, peer types.JID, cal
 		callKey:     callKey,
 		localVideo:  video,
 		remoteVideo: video,
+		inviteSelfDevice: types.GroupCallDevice{
+			JID:               self,
+			CapabilityVersion: 1,
+			Capability:        bytes.Clone(voip.CapabilityOffer),
+		},
 	}
 }
 

@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"bytes"
 	"context"
 	"strings"
 	"testing"
@@ -112,6 +113,19 @@ func TestNewOutgoingCallStateMapsFields(t *testing.T) {
 	}
 	if string(cs.callKey) != string(callKey) {
 		t.Errorf("callKey = %v, want %v", cs.callKey, callKey)
+	}
+	if cs.inviteSelfDevice.JID != self || cs.inviteSelfDevice.CapabilityVersion != 1 {
+		t.Errorf("invite self device = %+v, want %s with capability version 1", cs.inviteSelfDevice, self)
+	}
+	if !bytes.Equal(cs.inviteSelfDevice.Capability, voip.CapabilityOffer) {
+		t.Errorf("invite self capability = %x, want advertised %x", cs.inviteSelfDevice.Capability, voip.CapabilityOffer)
+	}
+	if len(cs.inviteSelfDevice.Capability) > 0 {
+		original := bytes.Clone(voip.CapabilityOffer)
+		cs.inviteSelfDevice.Capability[0] ^= 0xff
+		if !bytes.Equal(voip.CapabilityOffer, original) {
+			t.Fatal("call state aliases mutable CapabilityOffer bytes")
+		}
 	}
 
 	cli.putCall("CID", cs)
