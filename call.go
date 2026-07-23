@@ -95,6 +95,9 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 		cli.onCallMuteV2(ctx, basicMeta, cag)
 	case "video":
 		cli.onCallVideo(basicMeta, &child)
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/48c2391ce9f7dcc2b3f223f72f1b5f0c627ad943/datasheets/voip-group-update-ingest.md#L112-L129
+	case "group_update":
+		cli.onCallGroupUpdate(ctx, &child, basicMeta)
 	default:
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
 	}
