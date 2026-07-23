@@ -32,9 +32,8 @@ func (cli *Client) applyGroupUpdate(update types.GroupCallUpdate) bool {
 // signalingTarget returns the destination for call-wide signaling.
 func (cs *callState) signalingTarget() types.JID {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/699185f41519da3177c17ea6a10f9d4aa48b6941/datasheets/voip-group-call-state.md#L62-L68
-	// TODO
-	// agent suggestion: return the existing direct target while group is nil; once
-	// group state exists, return types.NewJID(cs.meta.CallID, "call").
-	// human input:
-	return types.EmptyJID
+	if cs.group == nil {
+		return cs.to
+	}
+	return types.NewJID(cs.meta.CallID, "call")
 }

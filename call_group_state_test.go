@@ -115,7 +115,6 @@ func TestApplyGroupUpdateCorpus(t *testing.T) {
 func TestGroupCallSignalingTargetCorpus(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/699185f41519da3177c17ea6a10f9d4aa48b6941/datasheets/voip-group-call-state.md#L41-L43
 	corpus := loadGroupCallStateCorpus(t)
-	t.Skip("blocked: signalingTarget is a stub; enable when implemented")
 
 	for _, tc := range corpus.Cases {
 		if !tc.Registered {
