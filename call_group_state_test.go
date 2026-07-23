@@ -47,8 +47,9 @@ type groupCallStateVectorParticipant struct {
 	PID   *uint32 `json:"pid"`
 }
 
-func TestGroupCallStateCorpus(t *testing.T) {
+func loadGroupCallStateCorpus(t *testing.T) groupCallStateCorpus {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/699185f41519da3177c17ea6a10f9d4aa48b6941/datasheets/voip-group-call-state.md#L31-L44
+	t.Helper()
 	vector, err := os.ReadFile("testdata/group_call_state_corpus.json")
 	if err != nil {
 		t.Fatalf("read group-call state corpus: %v", err)
@@ -63,8 +64,12 @@ func TestGroupCallStateCorpus(t *testing.T) {
 	if len(corpus.Cases) != 6 {
 		t.Fatalf("corpus cases = %d, want 6", len(corpus.Cases))
 	}
-	t.Skip("blocked: group_call_state functions are stubs; enable when implemented")
+	return corpus
+}
 
+func TestApplyGroupUpdateCorpus(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/699185f41519da3177c17ea6a10f9d4aa48b6941/datasheets/voip-group-call-state.md#L31-L44
+	corpus := loadGroupCallStateCorpus(t)
 	for _, tc := range corpus.Cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			cli := &Client{calls: map[string]*callState{}}
@@ -103,6 +108,29 @@ func TestGroupCallStateCorpus(t *testing.T) {
 					t.Fatalf("group snapshot = %+v, want %+v", cs.group, want)
 				}
 			}
+		})
+	}
+}
+
+func TestGroupCallSignalingTargetCorpus(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/699185f41519da3177c17ea6a10f9d4aa48b6941/datasheets/voip-group-call-state.md#L41-L43
+	corpus := loadGroupCallStateCorpus(t)
+	t.Skip("blocked: signalingTarget is a stub; enable when implemented")
+
+	for _, tc := range corpus.Cases {
+		if !tc.Registered {
+			continue
+		}
+		t.Run(tc.Name, func(t *testing.T) {
+			cli := &Client{calls: map[string]*callState{}}
+			cli.putCall(tc.CallID, &callState{
+				meta: types.BasicCallMeta{CallID: tc.CallID},
+				to:   mustParseGroupStateJID(t, tc.DirectTarget),
+			})
+			for _, update := range tc.Updates {
+				cli.applyGroupUpdate(groupUpdateFromVector(t, tc.CallID, update))
+			}
+			cs := cli.getCall(tc.CallID)
 			if got, want := cs.signalingTarget(), mustParseGroupStateJID(t, tc.WantTarget); got != want {
 				t.Fatalf("signaling target = %s, want %s", got, want)
 			}
