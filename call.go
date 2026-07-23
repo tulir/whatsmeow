@@ -335,6 +335,7 @@ func (cli *Client) maybeEmitMediaReady(cs *callState) {
 }
 
 func (cli *Client) onCallAccept(meta types.BasicCallMeta, remote types.CallRemoteMeta, child *waBinary.Node) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
 	peer := meta.From
 	if cs := cli.getCall(meta.CallID); cs != nil {
 		cli.callsLock.Lock()
@@ -342,6 +343,7 @@ func (cli *Client) onCallAccept(meta types.BasicCallMeta, remote types.CallRemot
 			cs.peerLID = preferQualifiedCallPeer(cs.peerLID, meta.From)
 			cs.to = meta.From
 		}
+		cs.connected = true
 		peer = cs.peerLID
 		cli.callsLock.Unlock()
 	}

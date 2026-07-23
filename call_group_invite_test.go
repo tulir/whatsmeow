@@ -19,6 +19,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/types/events"
 	waLog "go.mau.fi/whatsmeow/util/log"
 	"go.mau.fi/whatsmeow/voip"
 )
@@ -419,6 +420,31 @@ func TestAcceptInboundOfferSeedsBothInviteDevices(t *testing.T) {
 	}
 	if !bytes.Equal(cs.invitePeerDevice.Capability, []byte{1, 5, 255, 9, 224, 250, 27}) {
 		t.Fatalf("incoming peer capability = %x", cs.invitePeerDevice.Capability)
+	}
+}
+
+func TestCallAcceptMarksOutgoingCallConnected(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	peerDevice := mustParticipantInviteJID(t, "200002:1@lid")
+	cli, _, captured := routerTestClient()
+	cs := &callState{}
+	cli.putCall("CID", cs)
+	meta := types.BasicCallMeta{CallID: "CID", From: peerDevice}
+
+	cli.onCallAccept(meta, types.CallRemoteMeta{}, &waBinary.Node{Tag: "accept"})
+
+	if !cs.connected {
+		t.Fatal("accepted outgoing call did not open the participant-invite gate")
+	}
+	if cs.peerLID != peerDevice || cs.to != peerDevice {
+		t.Fatalf("accepted peer routing = %s / %s, want %s", cs.peerLID, cs.to, peerDevice)
+	}
+	accepted := captured.filter(func(event any) bool {
+		_, ok := event.(*events.CallAccept)
+		return ok
+	})
+	if len(accepted) != 1 {
+		t.Fatalf("CallAccept event count = %d, want 1", len(accepted))
 	}
 }
 
