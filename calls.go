@@ -32,6 +32,7 @@ type callState struct {
 	mediaReadySent   bool
 	localVideo       bool
 	remoteVideo      bool
+	group            *groupCallState
 }
 
 // CallOfferOptions configures a new outgoing 1:1 call.
