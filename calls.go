@@ -33,6 +33,9 @@ type callState struct {
 	localVideo       bool
 	remoteVideo      bool
 	group            *groupCallState
+	connected        bool
+	inviteSelfDevice types.GroupCallDevice
+	invitePeerDevice types.GroupCallDevice
 }
 
 // CallOfferOptions configures a new outgoing 1:1 call.

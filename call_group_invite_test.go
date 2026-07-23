@@ -1,0 +1,252 @@
+// Copyright (c) 2021 Tulir Asokan
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+package whatsmeow
+
+import (
+	"bytes"
+	"context"
+	"encoding/hex"
+	"encoding/json"
+	"os"
+	"reflect"
+	"strings"
+	"testing"
+
+	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/types"
+	waLog "go.mau.fi/whatsmeow/util/log"
+)
+
+type groupParticipantInviteCorpus struct {
+	Schema          string                                 `json:"schema"`
+	CapabilityCases []groupParticipantInviteCapabilityCase `json:"capability_cases"`
+	RosterCases     []groupParticipantInviteRosterCase     `json:"roster_cases"`
+}
+
+type groupParticipantInviteCapabilityCase struct {
+	Name              string `json:"name"`
+	Device            string `json:"device"`
+	CapabilityVersion uint32 `json:"capability_version"`
+	CapabilityHex     string `json:"capability_hex"`
+}
+
+type groupParticipantInviteRosterCase struct {
+	Name              string                                    `json:"name"`
+	CallID            string                                    `json:"call_id"`
+	Creator           string                                    `json:"creator"`
+	Connected         bool                                      `json:"connected"`
+	SelfLID           string                                    `json:"self_lid"`
+	PeerLID           string                                    `json:"peer_lid"`
+	SelfDevice        groupParticipantInviteVectorDevice        `json:"self_device"`
+	PeerDevice        groupParticipantInviteVectorDevice        `json:"peer_device"`
+	GroupParticipants []groupParticipantInviteVectorParticipant `json:"group_participants"`
+	WantParticipants  []groupParticipantInviteVectorParticipant `json:"want_participants"`
+}
+
+type groupParticipantInviteVectorParticipant struct {
+	JID     string                               `json:"jid"`
+	State   string                               `json:"state"`
+	Devices []groupParticipantInviteVectorDevice `json:"devices"`
+}
+
+type groupParticipantInviteVectorDevice struct {
+	JID               string `json:"jid"`
+	CapabilityVersion uint32 `json:"capability_version"`
+	CapabilityHex     string `json:"capability_hex"`
+}
+
+func TestParseCallInviteDeviceCorpus(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L64
+	t.Skip("blocked: voip/group_participant_invite is a stub; enable when implemented")
+
+	corpus := loadGroupParticipantInviteCorpus(t)
+	for _, tc := range corpus.CapabilityCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			capability := mustInviteCapability(t, tc.CapabilityHex)
+			node := waBinary.Node{
+				Tag: "preaccept",
+				Content: []waBinary.Node{{
+					Tag:     "capability",
+					Attrs:   waBinary.Attrs{"ver": "1"},
+					Content: capability,
+				}},
+			}
+			got, err := parseCallInviteDevice(mustParticipantInviteJID(t, tc.Device), &node)
+			if err != nil {
+				t.Fatalf("parseCallInviteDevice: %v", err)
+			}
+			if got.JID != mustParticipantInviteJID(t, tc.Device) {
+				t.Errorf("device JID = %s, want %s", got.JID, tc.Device)
+			}
+			if got.CapabilityVersion != tc.CapabilityVersion {
+				t.Errorf("capability version = %d, want %d", got.CapabilityVersion, tc.CapabilityVersion)
+			}
+			if !bytes.Equal(got.Capability, capability) {
+				t.Errorf("capability mismatch")
+			}
+			capability[0] ^= 0xff
+			if bytes.Equal(got.Capability, capability) {
+				t.Error("parsed capability aliases the inbound node buffer")
+			}
+		})
+	}
+}
+
+func TestGroupInviteRosterCorpus(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	t.Skip("blocked: voip/group_participant_invite is a stub; enable when implemented")
+
+	corpus := loadGroupParticipantInviteCorpus(t)
+	for _, tc := range corpus.RosterCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			cs := &callState{
+				meta:             types.BasicCallMeta{CallID: tc.CallID},
+				creator:          mustParticipantInviteJID(t, tc.Creator),
+				connected:        tc.Connected,
+				selfLID:          mustParticipantInviteJID(t, tc.SelfLID),
+				peerLID:          mustParticipantInviteJID(t, tc.PeerLID),
+				inviteSelfDevice: participantInviteDeviceFromVector(t, tc.SelfDevice),
+				invitePeerDevice: participantInviteDeviceFromVector(t, tc.PeerDevice),
+			}
+			if len(tc.GroupParticipants) > 0 {
+				cs.group = &groupCallState{snapshot: types.GroupCallUpdate{
+					Participants: participantInviteRosterFromVector(t, tc.GroupParticipants),
+				}}
+			}
+			cli := &Client{calls: map[string]*callState{tc.CallID: cs}}
+
+			creator, got, err := cli.groupInviteRoster(tc.CallID)
+			if err != nil {
+				t.Fatalf("groupInviteRoster: %v", err)
+			}
+			if creator != mustParticipantInviteJID(t, tc.Creator) {
+				t.Errorf("creator = %s, want %s", creator, tc.Creator)
+			}
+			want := participantInviteRosterFromVector(t, tc.WantParticipants)
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("roster = %#v, want %#v", got, want)
+			}
+
+			got[0].Devices[0].Capability[0] ^= 0xff
+			if cs.group != nil && bytes.Equal(got[0].Devices[0].Capability, cs.group.snapshot.Participants[0].Devices[0].Capability) {
+				t.Error("returned roster aliases canonical group state")
+			}
+			if cs.group == nil && bytes.Equal(got[0].Devices[0].Capability, cs.inviteSelfDevice.Capability) {
+				t.Error("returned roster aliases direct invite state")
+			}
+		})
+	}
+}
+
+func TestInviteCallParticipantReachesSendWithoutOptimisticMutation(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	t.Skip("blocked: voip/group_participant_invite is a stub; enable when implemented")
+
+	self := mustParticipantInviteJID(t, "100001:14@lid")
+	peer := mustParticipantInviteJID(t, "200002@lid")
+	target := mustParticipantInviteJID(t, "200003@lid")
+	targetDevices := []types.JID{
+		mustParticipantInviteJID(t, "200003@lid"),
+		mustParticipantInviteJID(t, "200003:44@lid"),
+		mustParticipantInviteJID(t, "200003:45@lid"),
+		mustParticipantInviteJID(t, "200003:43@lid"),
+	}
+	cs := &callState{
+		meta:      types.BasicCallMeta{CallID: "CID"},
+		creator:   self,
+		connected: true,
+		selfLID:   self,
+		peerLID:   peer,
+		inviteSelfDevice: types.GroupCallDevice{
+			JID: self, CapabilityVersion: 1, Capability: []byte{1, 5, 247, 9, 224, 187, 83},
+		},
+		invitePeerDevice: types.GroupCallDevice{
+			JID: peer, CapabilityVersion: 1, Capability: []byte{1, 5, 255, 9, 224, 250, 27},
+		},
+	}
+	cli := &Client{
+		calls:            map[string]*callState{"CID": cs},
+		userDevicesCache: map[types.JID]deviceCache{target: {devices: targetDevices}},
+		Log:              waLog.Noop,
+	}
+
+	err := cli.InviteCallParticipant(context.Background(), "CID", target)
+	if err == nil || !strings.Contains(err.Error(), ErrNotConnected.Error()) {
+		t.Fatalf("InviteCallParticipant error = %v, want send error wrapping %v", err, ErrNotConnected)
+	}
+	if cs.group != nil {
+		t.Fatal("send failure created optimistic group state")
+	}
+}
+
+func loadGroupParticipantInviteCorpus(t *testing.T) groupParticipantInviteCorpus {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L20-L72
+	t.Helper()
+	raw, err := os.ReadFile("testdata/group_participant_invite_corpus.json")
+	if err != nil {
+		t.Fatalf("read group participant invite corpus: %v", err)
+	}
+	var corpus groupParticipantInviteCorpus
+	if err = json.Unmarshal(raw, &corpus); err != nil {
+		t.Fatalf("decode group participant invite corpus: %v", err)
+	}
+	if corpus.Schema != "whatsmeow.group-participant-invite-corpus.v1" {
+		t.Fatalf("corpus schema = %q", corpus.Schema)
+	}
+	if len(corpus.CapabilityCases) != 2 || len(corpus.RosterCases) != 2 {
+		t.Fatalf("corpus case counts = capability %d, roster %d", len(corpus.CapabilityCases), len(corpus.RosterCases))
+	}
+	return corpus
+}
+
+func participantInviteRosterFromVector(t *testing.T, vectors []groupParticipantInviteVectorParticipant) []types.GroupCallParticipant {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	t.Helper()
+	participants := make([]types.GroupCallParticipant, len(vectors))
+	for i, vector := range vectors {
+		devices := make([]types.GroupCallDevice, len(vector.Devices))
+		for j, device := range vector.Devices {
+			devices[j] = participantInviteDeviceFromVector(t, device)
+		}
+		participants[i] = types.GroupCallParticipant{
+			JID:     mustParticipantInviteJID(t, vector.JID),
+			State:   vector.State,
+			Devices: devices,
+		}
+	}
+	return participants
+}
+
+func participantInviteDeviceFromVector(t *testing.T, vector groupParticipantInviteVectorDevice) types.GroupCallDevice {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	t.Helper()
+	return types.GroupCallDevice{
+		JID:               mustParticipantInviteJID(t, vector.JID),
+		CapabilityVersion: vector.CapabilityVersion,
+		Capability:        mustInviteCapability(t, vector.CapabilityHex),
+	}
+}
+
+func mustInviteCapability(t *testing.T, raw string) []byte {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L64
+	t.Helper()
+	value, err := hex.DecodeString(raw)
+	if err != nil {
+		t.Fatalf("decode capability %q: %v", raw, err)
+	}
+	return value
+}
+
+func mustParticipantInviteJID(t *testing.T, raw string) types.JID {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	t.Helper()
+	jid, err := types.ParseJID(raw)
+	if err != nil {
+		t.Fatalf("parse JID %q: %v", raw, err)
+	}
+	return jid
+}
