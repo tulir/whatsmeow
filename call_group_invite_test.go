@@ -448,6 +448,27 @@ func TestCallAcceptMarksOutgoingCallConnected(t *testing.T) {
 	}
 }
 
+func TestMarkCallConnectedRequiresCurrentCallState(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	cli, _, _ := routerTestClient()
+	current := &callState{}
+	stale := &callState{}
+	cli.putCall("CID", current)
+
+	if cli.markCallConnected("CID", stale) {
+		t.Fatal("stale call state opened the participant-invite gate")
+	}
+	if current.connected || stale.connected {
+		t.Fatal("stale transition mutated call state")
+	}
+	if !cli.markCallConnected("CID", current) {
+		t.Fatal("current call state did not open the participant-invite gate")
+	}
+	if !current.connected {
+		t.Fatal("current call state remains disconnected")
+	}
+}
+
 func loadGroupParticipantInviteCorpus(t *testing.T) groupParticipantInviteCorpus {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L20-L72
 	t.Helper()

@@ -464,6 +464,9 @@ func TestMuteV2FirstFiresDeferredAcceptOnce(t *testing.T) {
 	if cs.acceptPending {
 		t.Error("acceptPending still true after first mute_v2, want cleared")
 	}
+	if cs.connected {
+		t.Error("failed deferred accept opened the participant-invite gate")
+	}
 	if !log.hasWarn("accept") {
 		t.Error("expected an accept send attempt (observed via the ErrNotConnected warning)")
 	}

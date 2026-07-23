@@ -260,6 +260,7 @@ func (cli *Client) onCallReject(child *waBinary.Node, meta types.BasicCallMeta) 
 }
 
 func (cli *Client) onCallMuteV2(ctx context.Context, meta types.BasicCallMeta, mv *waBinary.AttrUtility) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
 	cli.dispatchEvent(&events.CallMute{BasicCallMeta: meta, Muted: mv.String("mute-state") == "1"})
 
 	cs := cli.getCall(meta.CallID)
@@ -284,7 +285,21 @@ func (cli *Client) onCallMuteV2(ctx context.Context, meta types.BasicCallMeta, m
 	accept.Attrs["id"] = cli.generateRequestID()
 	if err := cli.sendNode(ctx, accept); err != nil {
 		cli.Log.Warnf("Failed to send call accept, call_id: %s: %v", meta.CallID, err)
+		return
 	}
+	// NOT VALIDATED: live incoming-call E2E validates the successful deferred accept send boundary.
+	cli.markCallConnected(meta.CallID, cs)
+}
+
+func (cli *Client) markCallConnected(callID string, expected *callState) bool {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	cli.callsLock.Lock()
+	defer cli.callsLock.Unlock()
+	if cli.calls[callID] != expected {
+		return false
+	}
+	expected.connected = true
+	return true
 }
 
 func (cli *Client) captureCallRelay(cs *callState, node *waBinary.Node) {
