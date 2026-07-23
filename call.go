@@ -67,6 +67,10 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 			RemoteVersion:  ag.String("version"),
 		}, &child)
 	case "preaccept":
+		// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+		if err := cli.capturePeerInviteDevice(basicMeta.CallID, basicMeta.From, &child); err != nil {
+			cli.Log.Warnf("Failed to capture peer invite device, call_id: %s: %v", basicMeta.CallID, err)
+		}
 		cli.dispatchEvent(&events.CallPreAccept{
 			BasicCallMeta: basicMeta,
 			CallRemoteMeta: types.CallRemoteMeta{

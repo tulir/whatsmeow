@@ -350,6 +350,40 @@ func TestCapturePeerInviteDeviceStoresOwnedCapability(t *testing.T) {
 	}
 }
 
+func TestPreacceptCapturesSelectedPeerInviteDevice(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	peerDevice := mustParticipantInviteJID(t, "200002:1@lid")
+	creator := mustParticipantInviteJID(t, "100001:14@lid")
+	cli, log, _ := routerTestClient()
+	cs := &callState{}
+	cli.putCall("CID", cs)
+	node := waBinary.Node{
+		Tag:   "call",
+		Attrs: waBinary.Attrs{"from": peerDevice, "t": "1", "platform": "iphone", "version": "2.26.15"},
+		Content: []waBinary.Node{{
+			Tag:   "preaccept",
+			Attrs: waBinary.Attrs{"call-id": "CID", "call-creator": creator},
+			Content: []waBinary.Node{{
+				Tag:     "capability",
+				Attrs:   waBinary.Attrs{"ver": "1"},
+				Content: []byte{1, 5, 255, 9, 224, 250, 27},
+			}},
+		}},
+	}
+
+	cli.handleCallEvent(context.Background(), &node)
+
+	if cs.invitePeerDevice.JID != peerDevice {
+		t.Fatalf("captured peer device = %s, want %s", cs.invitePeerDevice.JID, peerDevice)
+	}
+	if cs.invitePeerDevice.CapabilityVersion != 1 || !bytes.Equal(cs.invitePeerDevice.Capability, []byte{1, 5, 255, 9, 224, 250, 27}) {
+		t.Fatalf("captured peer capability = %+v", cs.invitePeerDevice)
+	}
+	if log.hasWarn("capture peer invite device") {
+		t.Fatal("valid peer capability emitted a capture warning")
+	}
+}
+
 func loadGroupParticipantInviteCorpus(t *testing.T) groupParticipantInviteCorpus {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L20-L72
 	t.Helper()
