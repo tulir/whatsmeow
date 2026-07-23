@@ -7,21 +7,47 @@
 package whatsmeow
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"fmt"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
+	"go.mau.fi/whatsmeow/voip"
 )
 
 var errGroupParticipantInviteNotImplemented = errors.New("whatsmeow: group participant invite is not implemented")
 
 func parseCallInviteDevice(device types.JID, node *waBinary.Node) (types.GroupCallDevice, error) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
-	// TODO
-	// agent suggestion: parse and clone the captured capability child into the selected active device.
-	// human input:
-	return types.GroupCallDevice{}, errGroupParticipantInviteNotImplemented
+	if device.IsEmpty() {
+		return types.GroupCallDevice{}, errors.New("whatsmeow: parse call invite device: device is required")
+	}
+	if node == nil {
+		return types.GroupCallDevice{}, errors.New("whatsmeow: parse call invite device: nil node")
+	}
+	capability := voip.FindChild(node, "capability")
+	if capability == nil {
+		return types.GroupCallDevice{}, errors.New("whatsmeow: parse call invite device: missing capability")
+	}
+	attrs := capability.AttrGetter()
+	version, ok := attrs.GetUint64("ver", true)
+	if err := attrs.Error(); err != nil {
+		return types.GroupCallDevice{}, fmt.Errorf("whatsmeow: parse call invite device capability: %w", err)
+	}
+	if !ok || version > uint64(^uint32(0)) {
+		return types.GroupCallDevice{}, fmt.Errorf("whatsmeow: parse call invite device: invalid capability version %d", version)
+	}
+	value := voip.NodeBytes(capability)
+	if len(value) == 0 {
+		return types.GroupCallDevice{}, errors.New("whatsmeow: parse call invite device: empty capability")
+	}
+	return types.GroupCallDevice{
+		JID:               device,
+		CapabilityVersion: uint32(version),
+		Capability:        bytes.Clone(value),
+	}, nil
 }
 
 func (cli *Client) capturePeerInviteDevice(callID string, device types.JID, node *waBinary.Node) error {

@@ -61,8 +61,6 @@ type groupParticipantInviteVectorDevice struct {
 
 func TestParseCallInviteDeviceCorpus(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L64
-	t.Skip("blocked: voip/group_participant_invite is a stub; enable when implemented")
-
 	corpus := loadGroupParticipantInviteCorpus(t)
 	for _, tc := range corpus.CapabilityCases {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -98,7 +96,7 @@ func TestParseCallInviteDeviceCorpus(t *testing.T) {
 
 func TestGroupInviteRosterCorpus(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
-	t.Skip("blocked: voip/group_participant_invite is a stub; enable when implemented")
+	t.Skip("blocked: groupInviteRoster is a stub; enable when implemented")
 
 	corpus := loadGroupParticipantInviteCorpus(t)
 	for _, tc := range corpus.RosterCases {
@@ -144,7 +142,7 @@ func TestGroupInviteRosterCorpus(t *testing.T) {
 
 func TestInviteCallParticipantReachesSendWithoutOptimisticMutation(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
-	t.Skip("blocked: voip/group_participant_invite is a stub; enable when implemented")
+	t.Skip("blocked: InviteCallParticipant is a stub; enable when implemented")
 
 	self := mustParticipantInviteJID(t, "100001:14@lid")
 	peer := mustParticipantInviteJID(t, "200002@lid")
@@ -180,6 +178,50 @@ func TestInviteCallParticipantReachesSendWithoutOptimisticMutation(t *testing.T)
 	}
 	if cs.group != nil {
 		t.Fatal("send failure created optimistic group state")
+	}
+}
+
+func TestParseCallInviteDeviceRejectsMalformedCapability(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L117-L121
+	device := mustParticipantInviteJID(t, "200002@lid")
+	cases := []struct {
+		name string
+		jid  types.JID
+		node *waBinary.Node
+		want string
+	}{
+		{name: "empty device", node: &waBinary.Node{}, want: "device is required"},
+		{name: "nil node", jid: device, want: "nil node"},
+		{name: "missing capability", jid: device, node: &waBinary.Node{Tag: "preaccept"}, want: "missing capability"},
+		{
+			name: "invalid version", jid: device,
+			node: &waBinary.Node{Tag: "preaccept", Content: []waBinary.Node{{
+				Tag: "capability", Attrs: waBinary.Attrs{"ver": "invalid"}, Content: []byte{1},
+			}}},
+			want: "parse call invite device capability",
+		},
+		{
+			name: "overflowing version", jid: device,
+			node: &waBinary.Node{Tag: "preaccept", Content: []waBinary.Node{{
+				Tag: "capability", Attrs: waBinary.Attrs{"ver": "4294967296"}, Content: []byte{1},
+			}}},
+			want: "invalid capability version",
+		},
+		{
+			name: "empty capability", jid: device,
+			node: &waBinary.Node{Tag: "preaccept", Content: []waBinary.Node{{
+				Tag: "capability", Attrs: waBinary.Attrs{"ver": "1"},
+			}}},
+			want: "empty capability",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := parseCallInviteDevice(tc.jid, tc.node)
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("error = %v, want substring %q", err, tc.want)
+			}
+		})
 	}
 }
 
