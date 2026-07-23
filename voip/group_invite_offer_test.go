@@ -14,7 +14,6 @@ import (
 	"strconv"
 	"testing"
 
-	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -46,8 +45,6 @@ type groupInviteOfferVectorDevice struct {
 
 func TestBuildGroupInviteOfferCorpus(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/25eda415afb0f926112ca375c5892b95b4bd6f60/datasheets/voip-group-invite-offer.md#L36-L76
-	t.Skip("blocked: voip/group_invite_offer is a stub; enable when implemented")
-
 	vector, err := os.ReadFile("../testdata/group_invite_offer_corpus.json")
 	if err != nil {
 		t.Fatalf("read group invite offer corpus: %v", err)
@@ -105,6 +102,9 @@ func TestBuildGroupInviteOfferCorpus(t *testing.T) {
 			if _, ok := call.Attrs["id"]; ok {
 				t.Fatal("low-level builder unexpectedly stamped a stanza ID")
 			}
+			if len(call.Attrs) != 1 {
+				t.Errorf("outer attrs = %#v, want only to", call.Attrs)
+			}
 
 			offer := stanzaContentNodes(t, call)[0]
 			if offer.Tag != "offer" {
@@ -115,6 +115,9 @@ func TestBuildGroupInviteOfferCorpus(t *testing.T) {
 			}
 			if got, ok := offer.Attrs["call-creator"].(types.JID); !ok || got != params.CallCreator {
 				t.Errorf("call-creator = %#v, want %s", offer.Attrs["call-creator"], params.CallCreator)
+			}
+			if len(offer.Attrs) != 2 {
+				t.Errorf("offer attrs = %#v, want only call-id and call-creator", offer.Attrs)
 			}
 			if got := stanzaChildTags(t, call); !stanzaEqTags(got, []string{"audio", "net", "destination", "group_info"}) {
 				t.Fatalf("offer child tags = %v", got)
@@ -130,6 +133,12 @@ func TestBuildGroupInviteOfferCorpus(t *testing.T) {
 			if got, _ := stanzaAttrString(children[1], "medium"); got != "2" {
 				t.Errorf("net medium = %q, want 2", got)
 			}
+			if len(children[0].Attrs) != 2 || len(children[1].Attrs) != 1 {
+				t.Errorf("media attrs = audio %#v, net %#v", children[0].Attrs, children[1].Attrs)
+			}
+			if len(children[2].Attrs) != 0 || len(children[3].Attrs) != 0 {
+				t.Errorf("container attrs = destination %#v, group_info %#v", children[2].Attrs, children[3].Attrs)
+			}
 
 			destinations := stanzaContentNodes(t, children[2])
 			if len(destinations) != len(params.TargetDevices) {
@@ -141,6 +150,9 @@ func TestBuildGroupInviteOfferCorpus(t *testing.T) {
 				}
 				if got, ok := destination.Attrs["jid"].(types.JID); !ok || got != params.TargetDevices[i] {
 					t.Errorf("destination %d JID = %#v, want %s", i, destination.Attrs["jid"], params.TargetDevices[i])
+				}
+				if len(destination.Attrs) != 1 {
+					t.Errorf("destination %d attrs = %#v, want only jid", i, destination.Attrs)
 				}
 			}
 
@@ -161,6 +173,13 @@ func TestBuildGroupInviteOfferCorpus(t *testing.T) {
 				} else if !hasState || gotState != wantParticipant.State {
 					t.Errorf("participant %d state = %q (present %t), want %q", i, gotState, hasState, wantParticipant.State)
 				}
+				wantUserAttrs := 1
+				if wantParticipant.State != "" {
+					wantUserAttrs = 2
+				}
+				if len(user.Attrs) != wantUserAttrs {
+					t.Errorf("participant %d attrs = %#v", i, user.Attrs)
+				}
 
 				devices := stanzaContentNodes(t, user)
 				if len(devices) != len(wantParticipant.Devices) {
@@ -171,7 +190,14 @@ func TestBuildGroupInviteOfferCorpus(t *testing.T) {
 					if got, ok := device.Attrs["jid"].(types.JID); !ok || got != wantDevice.JID {
 						t.Errorf("participant %d device %d JID = %#v, want %s", i, j, device.Attrs["jid"], wantDevice.JID)
 					}
-					capability := stanzaContentNodes(t, device)[0]
+					if len(device.Attrs) != 1 {
+						t.Errorf("participant %d device %d attrs = %#v, want only jid", i, j, device.Attrs)
+					}
+					deviceChildren := stanzaContentNodes(t, device)
+					if len(deviceChildren) != 1 {
+						t.Fatalf("participant %d device %d child count = %d, want 1", i, j, len(deviceChildren))
+					}
+					capability := deviceChildren[0]
 					if capability.Tag != "capability" {
 						t.Errorf("participant %d device %d child = %q, want capability", i, j, capability.Tag)
 					}
@@ -182,7 +208,52 @@ func TestBuildGroupInviteOfferCorpus(t *testing.T) {
 					if !ok || !bytes.Equal(gotCapability, wantDevice.Capability) {
 						t.Errorf("participant %d device %d capability mismatch", i, j)
 					}
+					if len(capability.Attrs) != 1 {
+						t.Errorf("participant %d device %d capability attrs = %#v, want only ver", i, j, capability.Attrs)
+					}
 				}
+			}
+		})
+	}
+}
+
+func TestBuildGroupInviteOfferRejectsMissingRequiredFields(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/25eda415afb0f926112ca375c5892b95b4bd6f60/datasheets/voip-group-invite-offer.md#L128-L136
+	peer := mustGroupInviteJID(t, "200003@lid")
+	creator := mustGroupInviteJID(t, "100001:14@lid")
+	participant := types.GroupCallParticipant{
+		JID: peer,
+		Devices: []types.GroupCallDevice{{
+			JID:               peer,
+			CapabilityVersion: 1,
+			Capability:        []byte{1, 5, 247, 9, 224, 250, 27},
+		}},
+	}
+	base := GroupInviteOfferParams{
+		CallID:        "0063F48A8B4CA7D1DAF665F1CC8EB545",
+		To:            peer,
+		CallCreator:   creator,
+		TargetDevices: []types.JID{peer},
+		Participants:  []types.GroupCallParticipant{participant},
+	}
+	cases := []struct {
+		name string
+		edit func(*GroupInviteOfferParams)
+		want string
+	}{
+		{name: "call ID", edit: func(params *GroupInviteOfferParams) { params.CallID = "" }, want: "call ID is required"},
+		{name: "target", edit: func(params *GroupInviteOfferParams) { params.To = types.EmptyJID }, want: "target is required"},
+		{name: "creator", edit: func(params *GroupInviteOfferParams) { params.CallCreator = types.EmptyJID }, want: "call creator is required"},
+		{name: "target devices", edit: func(params *GroupInviteOfferParams) { params.TargetDevices = nil }, want: "target devices are required"},
+		{name: "participants", edit: func(params *GroupInviteOfferParams) { params.Participants = nil }, want: "participants are required"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			params := base
+			tc.edit(&params)
+			_, err := BuildGroupInviteOffer(params)
+			if err == nil || err.Error() != "whatsmeow: build group invite offer: "+tc.want {
+				t.Fatalf("error = %v, want %q", err, "whatsmeow: build group invite offer: "+tc.want)
 			}
 		})
 	}
@@ -197,5 +268,3 @@ func mustGroupInviteJID(t *testing.T, raw string) types.JID {
 	}
 	return jid
 }
-
-var _ waBinary.Node
