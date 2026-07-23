@@ -54,7 +54,7 @@ func ParseGroupUpdate(node *waBinary.Node) (*types.GroupCallUpdate, error) {
 
 func parseGroupInfo(node *waBinary.Node, update *types.GroupCallUpdate) error {
 	attrs := node.AttrGetter()
-	update.GroupJID = attrs.JID("group-jid")
+	update.GroupJID = attrs.OptionalJIDOrEmpty("group-jid")
 	update.Media = attrs.String("media")
 	update.Joinable = attrs.OptionalString("joinable") == "1"
 	var err error

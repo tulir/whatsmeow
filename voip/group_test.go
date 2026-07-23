@@ -141,6 +141,40 @@ func TestParseGroupUpdateVideoRosterAndRelay(t *testing.T) {
 	}
 }
 
+func TestParseGroupUpdateAllowsAdHocGroupWithoutGroupJID(t *testing.T) {
+	creator := types.JID{User: "156535032389744", Device: 14, Server: types.HiddenUserServer}
+	peer := types.NewJID("242653052539031", types.HiddenUserServer)
+	node := waBinary.Node{
+		Tag: "group_update",
+		Attrs: waBinary.Attrs{
+			"call-creator": creator,
+			"call-id":      "00DD63A26643DC3496FCBD161E6E2AB1",
+		},
+		Content: []waBinary.Node{{
+			Tag: "group_info",
+			Attrs: waBinary.Attrs{
+				"call-creator":    creator,
+				"call-id":         "00DD63A26643DC3496FCBD161E6E2AB1",
+				"transaction-id":  "21",
+				"media":           "audio",
+				"connected-limit": "32",
+			},
+			Content: []waBinary.Node{groupUser(peer, "connected", "iphone", 1)},
+		}},
+	}
+
+	update, err := ParseGroupUpdate(&node)
+	if err != nil {
+		t.Fatalf("ParseGroupUpdate: %v", err)
+	}
+	if !update.GroupJID.IsEmpty() {
+		t.Errorf("GroupJID = %s, want empty for ad-hoc group", update.GroupJID)
+	}
+	if update.TransactionID != 21 || len(update.Participants) != 1 {
+		t.Errorf("group state = transaction %d with %d participants", update.TransactionID, len(update.Participants))
+	}
+}
+
 func TestParseGroupUpdateRejectsOverflowingTransactionID(t *testing.T) {
 	creator := types.JID{User: "156535032389744", Device: 14, Server: types.HiddenUserServer}
 	node := waBinary.Node{
