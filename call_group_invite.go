@@ -52,10 +52,18 @@ func parseCallInviteDevice(device types.JID, node *waBinary.Node) (types.GroupCa
 
 func (cli *Client) capturePeerInviteDevice(callID string, device types.JID, node *waBinary.Node) error {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
-	// TODO
-	// agent suggestion: parse the peer capability and atomically attach it to the existing call state.
-	// human input:
-	return errGroupParticipantInviteNotImplemented
+	parsed, err := parseCallInviteDevice(device, node)
+	if err != nil {
+		return err
+	}
+	cli.callsLock.Lock()
+	defer cli.callsLock.Unlock()
+	cs := cli.calls[callID]
+	if cs == nil {
+		return fmt.Errorf("whatsmeow: capture peer invite device: unknown call %s", callID)
+	}
+	cs.invitePeerDevice = parsed
+	return nil
 }
 
 func (cli *Client) groupInviteRoster(callID string) (types.JID, []types.GroupCallParticipant, error) {

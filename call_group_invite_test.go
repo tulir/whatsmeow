@@ -225,6 +225,40 @@ func TestParseCallInviteDeviceRejectsMalformedCapability(t *testing.T) {
 	}
 }
 
+func TestCapturePeerInviteDeviceStoresOwnedCapability(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	peer := mustParticipantInviteJID(t, "200002@lid")
+	capability := []byte{1, 5, 255, 9, 224, 250, 27}
+	node := waBinary.Node{
+		Tag: "preaccept",
+		Content: []waBinary.Node{{
+			Tag:     "capability",
+			Attrs:   waBinary.Attrs{"ver": "1"},
+			Content: capability,
+		}},
+	}
+	cs := &callState{}
+	cli := &Client{calls: map[string]*callState{"CID": cs}}
+
+	if err := cli.capturePeerInviteDevice("CID", peer, &node); err != nil {
+		t.Fatalf("capturePeerInviteDevice: %v", err)
+	}
+	if cs.invitePeerDevice.JID != peer || cs.invitePeerDevice.CapabilityVersion != 1 {
+		t.Fatalf("captured device = %+v", cs.invitePeerDevice)
+	}
+	if !bytes.Equal(cs.invitePeerDevice.Capability, capability) {
+		t.Fatal("captured capability mismatch")
+	}
+	capability[0] ^= 0xff
+	if bytes.Equal(cs.invitePeerDevice.Capability, capability) {
+		t.Fatal("stored capability aliases the inbound node")
+	}
+
+	if err := cli.capturePeerInviteDevice("UNKNOWN", peer, &node); err == nil || !strings.Contains(err.Error(), "unknown call") {
+		t.Fatalf("unknown-call error = %v", err)
+	}
+}
+
 func loadGroupParticipantInviteCorpus(t *testing.T) groupParticipantInviteCorpus {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L20-L72
 	t.Helper()
