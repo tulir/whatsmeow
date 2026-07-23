@@ -17,8 +17,6 @@ import (
 	"go.mau.fi/whatsmeow/voip"
 )
 
-var errGroupParticipantInviteNotImplemented = errors.New("whatsmeow: group participant invite is not implemented")
-
 func parseCallInviteDevice(device types.JID, node *waBinary.Node) (types.GroupCallDevice, error) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
 	if device.IsEmpty() {
@@ -134,8 +132,55 @@ func (cli *Client) groupInviteRoster(callID string) (types.JID, []types.GroupCal
 // InviteCallParticipant sends one singular invitation to add target to an active audio call.
 func (cli *Client) InviteCallParticipant(ctx context.Context, callID string, target types.JID) error {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
-	// TODO
-	// agent suggestion: resolve and validate one target, discover its devices, build one verified offer, stamp one ID, and send once.
-	// human input:
-	return errGroupParticipantInviteNotImplemented
+	if cli == nil {
+		return ErrClientIsNil
+	}
+	if callID == "" {
+		return errors.New("whatsmeow: invite call participant: call ID is required")
+	}
+	if target.IsEmpty() {
+		return errors.New("whatsmeow: invite call participant: target is required")
+	}
+
+	creator, participants, err := cli.groupInviteRoster(callID)
+	if err != nil {
+		return err
+	}
+	peer, err := cli.resolvePeerCallLID(ctx, target)
+	if err != nil {
+		return fmt.Errorf("whatsmeow: resolve call invite target: %w", err)
+	}
+	peer = peer.ToNonAD()
+	for _, participant := range participants {
+		if participant.JID.ToNonAD() == peer {
+			return fmt.Errorf("whatsmeow: invite target %s already belongs to the call", peer)
+		}
+	}
+
+	devices, err := cli.GetUserDevices(ctx, []types.JID{peer})
+	if err != nil {
+		return fmt.Errorf("whatsmeow: call invite device discovery: %w", err)
+	}
+	if len(devices) == 0 {
+		return fmt.Errorf("whatsmeow: call invite target %s has no devices", peer)
+	}
+	offer, err := voip.BuildGroupInviteOffer(voip.GroupInviteOfferParams{
+		CallID:        callID,
+		To:            peer,
+		CallCreator:   creator,
+		TargetDevices: devices,
+		Participants:  participants,
+	})
+	if err != nil {
+		return err
+	}
+	offer.Attrs["id"] = cli.GenerateMessageID()
+	if err = cli.sendNode(ctx, offer); err != nil {
+		return fmt.Errorf("whatsmeow: send group participant invite: %w", err)
+	}
+	cli.Log.Debugf(
+		"Sent group participant invite, call_id: %s, target_lid: %s, device_count: %d, participant_count: %d",
+		callID, peer, len(devices), len(participants),
+	)
+	return nil
 }

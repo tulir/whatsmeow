@@ -190,8 +190,6 @@ func TestGroupInviteRosterRejectsInvalidCallState(t *testing.T) {
 
 func TestInviteCallParticipantReachesSendWithoutOptimisticMutation(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
-	t.Skip("blocked: InviteCallParticipant is a stub; enable when implemented")
-
 	self := mustParticipantInviteJID(t, "100001:14@lid")
 	peer := mustParticipantInviteJID(t, "200002@lid")
 	target := mustParticipantInviteJID(t, "200003@lid")
@@ -226,6 +224,51 @@ func TestInviteCallParticipantReachesSendWithoutOptimisticMutation(t *testing.T)
 	}
 	if cs.group != nil {
 		t.Fatal("send failure created optimistic group state")
+	}
+}
+
+func TestInviteCallParticipantRejectsInvalidInputAndExistingParticipant(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L117-L137
+	var nilClient *Client
+	target := mustParticipantInviteJID(t, "200003@lid")
+	if err := nilClient.InviteCallParticipant(context.Background(), "CID", target); err != ErrClientIsNil {
+		t.Fatalf("nil-client error = %v, want %v", err, ErrClientIsNil)
+	}
+
+	self := mustParticipantInviteJID(t, "100001:14@lid")
+	peer := mustParticipantInviteJID(t, "200002@lid")
+	cs := &callState{
+		creator:   self,
+		connected: true,
+		selfLID:   self,
+		peerLID:   peer,
+		inviteSelfDevice: types.GroupCallDevice{
+			JID: self, CapabilityVersion: 1, Capability: []byte{1},
+		},
+		invitePeerDevice: types.GroupCallDevice{
+			JID: peer, CapabilityVersion: 1, Capability: []byte{2},
+		},
+	}
+	cli := &Client{calls: map[string]*callState{"CID": cs}, Log: waLog.Noop}
+	cases := []struct {
+		name   string
+		callID string
+		target types.JID
+		want   string
+	}{
+		{name: "empty call ID", target: target, want: "call ID is required"},
+		{name: "empty target", callID: "CID", want: "target is required"},
+		{name: "unknown call", callID: "UNKNOWN", target: target, want: "unknown call"},
+		{name: "self target", callID: "CID", target: self.ToNonAD(), want: "already belongs to the call"},
+		{name: "peer target", callID: "CID", target: peer, want: "already belongs to the call"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := cli.InviteCallParticipant(context.Background(), tc.callID, tc.target)
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("error = %v, want substring %q", err, tc.want)
+			}
+		})
 	}
 }
 
