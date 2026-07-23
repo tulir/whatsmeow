@@ -96,8 +96,6 @@ func TestParseCallInviteDeviceCorpus(t *testing.T) {
 
 func TestGroupInviteRosterCorpus(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
-	t.Skip("blocked: groupInviteRoster is a stub; enable when implemented")
-
 	corpus := loadGroupParticipantInviteCorpus(t)
 	for _, tc := range corpus.RosterCases {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -135,6 +133,56 @@ func TestGroupInviteRosterCorpus(t *testing.T) {
 			}
 			if cs.group == nil && bytes.Equal(got[0].Devices[0].Capability, cs.inviteSelfDevice.Capability) {
 				t.Error("returned roster aliases direct invite state")
+			}
+		})
+	}
+}
+
+func TestGroupInviteRosterRejectsInvalidCallState(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L117-L132
+	self := mustParticipantInviteJID(t, "100001:14@lid")
+	peer := mustParticipantInviteJID(t, "200002@lid")
+	validDevice := func(jid types.JID) types.GroupCallDevice {
+		return types.GroupCallDevice{
+			JID:               jid,
+			CapabilityVersion: 1,
+			Capability:        []byte{1, 5, 247, 9, 224, 187, 83},
+		}
+	}
+	valid := func() *callState {
+		return &callState{
+			creator:          self,
+			connected:        true,
+			selfLID:          self,
+			peerLID:          peer,
+			inviteSelfDevice: validDevice(self),
+			invitePeerDevice: validDevice(peer),
+		}
+	}
+	cases := []struct {
+		name string
+		edit func(*callState)
+		want string
+	}{
+		{name: "not connected", edit: func(cs *callState) { cs.connected = false }, want: "call is not connected"},
+		{name: "video", edit: func(cs *callState) { cs.localVideo = true }, want: "only supported for audio calls"},
+		{name: "missing local device", edit: func(cs *callState) { cs.inviteSelfDevice = types.GroupCallDevice{} }, want: "local active device capability is unavailable"},
+		{name: "missing peer device", edit: func(cs *callState) { cs.invitePeerDevice = types.GroupCallDevice{} }, want: "peer active device capability is unavailable"},
+		{name: "empty group roster", edit: func(cs *callState) { cs.group = &groupCallState{} }, want: "group roster is empty"},
+	}
+
+	cli := &Client{calls: map[string]*callState{}}
+	if _, _, err := cli.groupInviteRoster("UNKNOWN"); err == nil || !strings.Contains(err.Error(), "unknown call") {
+		t.Fatalf("unknown-call error = %v", err)
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cs := valid()
+			tc.edit(cs)
+			cli := &Client{calls: map[string]*callState{"CID": cs}}
+			_, _, err := cli.groupInviteRoster("CID")
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("error = %v, want substring %q", err, tc.want)
 			}
 		})
 	}
