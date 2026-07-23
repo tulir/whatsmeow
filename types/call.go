@@ -79,3 +79,64 @@ type RelayEndpoint struct {
 	Token     []byte
 	AuthToken []byte
 }
+
+// GroupCallUpdate is a server snapshot of group-call membership and transport state.
+type GroupCallUpdate struct {
+	CallID         string
+	CallCreator    JID
+	GroupJID       JID
+	TransactionID  uint32
+	Media          string
+	ConnectedLimit uint32
+	Joinable       bool
+	AVUpgradable   bool
+	Participants   []GroupCallParticipant
+	Relay          *GroupCallRelay
+}
+
+// GroupCallParticipant is one user in a group-call roster snapshot.
+type GroupCallParticipant struct {
+	JID     JID
+	PN      JID
+	State   string
+	Devices []GroupCallDevice
+}
+
+// GroupCallDevice is one participant device advertised in a group-call roster.
+type GroupCallDevice struct {
+	JID               JID
+	Platform          string
+	PID               uint32
+	HasPID            bool
+	CapabilityVersion uint32
+	Capability        []byte
+}
+
+// GroupCallRelay is the relay allocation attached to a group-call update.
+type GroupCallRelay struct {
+	TransactionID      uint32
+	SelfPID            uint32
+	HasSelfPID         bool
+	UUID               string
+	ParticipantUUID    string
+	AttributePadding   bool
+	WarpMITagLength    uint32
+	HasWarpMITagLength bool
+	Key                []byte
+	HBHKey             []byte
+	Tokens             [][]byte
+	AuthTokens         [][]byte
+	Endpoints          []GroupCallRelayEndpoint
+}
+
+// GroupCallRelayEndpoint is one address record in a group-call relay allocation.
+type GroupCallRelayEndpoint struct {
+	RelayID     uint32
+	TokenID     uint32
+	AuthTokenID uint32
+	RelayName   string
+	DomainName  string
+	RTT         uint32
+	IsFNA       bool
+	Address     []byte
+}
