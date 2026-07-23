@@ -55,6 +55,13 @@ type CallRelayLatency struct {
 	Data *waBinary.Node
 }
 
+// CallGroupUpdate is one parsed group-call roster and transport snapshot.
+type CallGroupUpdate struct {
+	types.BasicCallMeta
+	Update types.GroupCallUpdate
+	Data   *waBinary.Node
+}
+
 type CallTerminate struct {
 	types.BasicCallMeta
 	Reason string
