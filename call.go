@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"bytes"
 	"context"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -123,12 +124,27 @@ func (cli *Client) onCallOffer(ctx context.Context, child *waBinary.Node, meta t
 }
 
 func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node, meta types.BasicCallMeta, remote types.CallRemoteMeta, callKey []byte) *callState {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
 	peer := meta.CallCreator
 	if peer.IsEmpty() {
 		peer = meta.From
 	}
 	if relayPeer := voip.ParseRelayPeer(child); !relayPeer.IsEmpty() {
 		peer = relayPeer
+	}
+	peerDevice := meta.From
+	if peerDevice.IsEmpty() {
+		peerDevice = peer
+	}
+	invitePeerDevice, invitePeerErr := parseCallInviteDevice(peerDevice, child)
+	if invitePeerErr != nil {
+		cli.Log.Warnf("Failed to capture inbound peer invite device, call_id: %s: %v", meta.CallID, invitePeerErr)
+	}
+	self := cli.getOwnLID()
+	inviteSelfDevice := types.GroupCallDevice{
+		JID:               self,
+		CapabilityVersion: 1,
+		Capability:        bytes.Clone(voip.CapabilityOffer),
 	}
 	relay := voip.ParseRelay(child, types.CallDirectionIncoming)
 	isVideo := voip.OfferHasVideo(child)
@@ -137,15 +153,17 @@ func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node,
 	isNew := cs == nil
 	if isNew {
 		cs = &callState{
-			meta:        meta,
-			selfLID:     cli.getOwnLID(),
-			peerLID:     peer,
-			to:          meta.From,
-			creator:     meta.CallCreator,
-			callKey:     callKey,
-			relay:       relay,
-			localVideo:  isVideo,
-			remoteVideo: isVideo,
+			meta:             meta,
+			selfLID:          self,
+			peerLID:          peer,
+			to:               meta.From,
+			creator:          meta.CallCreator,
+			callKey:          callKey,
+			relay:            relay,
+			localVideo:       isVideo,
+			remoteVideo:      isVideo,
+			inviteSelfDevice: inviteSelfDevice,
+			invitePeerDevice: invitePeerDevice,
 		}
 		cli.putCall(meta.CallID, cs)
 	} else {
@@ -156,6 +174,10 @@ func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node,
 		}
 		if !peer.IsEmpty() {
 			cs.peerLID = preferQualifiedCallPeer(cs.peerLID, peer)
+		}
+		cs.inviteSelfDevice = inviteSelfDevice
+		if invitePeerErr == nil {
+			cs.invitePeerDevice = invitePeerDevice
 		}
 		cli.callsLock.Unlock()
 	}

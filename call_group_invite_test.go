@@ -17,8 +17,10 @@ import (
 	"testing"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	waLog "go.mau.fi/whatsmeow/util/log"
+	"go.mau.fi/whatsmeow/voip"
 )
 
 type groupParticipantInviteCorpus struct {
@@ -381,6 +383,42 @@ func TestPreacceptCapturesSelectedPeerInviteDevice(t *testing.T) {
 	}
 	if log.hasWarn("capture peer invite device") {
 		t.Fatal("valid peer capability emitted a capture warning")
+	}
+}
+
+func TestAcceptInboundOfferSeedsBothInviteDevices(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	self := mustParticipantInviteJID(t, "100001:14@lid")
+	peer := mustParticipantInviteJID(t, "200002:1@lid")
+	cli, _, _ := routerTestClient()
+	cli.Store = &store.Device{LID: self}
+	offer := waBinary.Node{
+		Tag: "offer",
+		Content: []waBinary.Node{{
+			Tag:     "capability",
+			Attrs:   waBinary.Attrs{"ver": "1"},
+			Content: []byte{1, 5, 255, 9, 224, 250, 27},
+		}},
+	}
+	meta := types.BasicCallMeta{
+		From:        peer,
+		CallCreator: peer,
+		CallID:      "CID",
+	}
+
+	cs := cli.acceptInboundOffer(context.Background(), &offer, meta, types.CallRemoteMeta{}, []byte{1, 2, 3})
+
+	if cs.inviteSelfDevice.JID != self || cs.inviteSelfDevice.CapabilityVersion != 1 {
+		t.Fatalf("incoming self invite device = %+v", cs.inviteSelfDevice)
+	}
+	if !bytes.Equal(cs.inviteSelfDevice.Capability, voip.CapabilityOffer) {
+		t.Fatalf("incoming self capability = %x, want %x", cs.inviteSelfDevice.Capability, voip.CapabilityOffer)
+	}
+	if cs.invitePeerDevice.JID != peer || cs.invitePeerDevice.CapabilityVersion != 1 {
+		t.Fatalf("incoming peer invite device = %+v", cs.invitePeerDevice)
+	}
+	if !bytes.Equal(cs.invitePeerDevice.Capability, []byte{1, 5, 255, 9, 224, 250, 27}) {
+		t.Fatalf("incoming peer capability = %x", cs.invitePeerDevice.Capability)
 	}
 }
 
