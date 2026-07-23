@@ -229,6 +229,7 @@ const (
 	PeerDataOperationRequestType_GALAXY_FLOW_ACTION                       PeerDataOperationRequestType = 11
 	PeerDataOperationRequestType_BUSINESS_BROADCAST_INSIGHTS_DELIVERED_TO PeerDataOperationRequestType = 12
 	PeerDataOperationRequestType_BUSINESS_BROADCAST_INSIGHTS_REFRESH      PeerDataOperationRequestType = 13
+	PeerDataOperationRequestType_CONTACT_REFRESH_REQUEST                  PeerDataOperationRequestType = 14
 )
 
 // Enum value maps for PeerDataOperationRequestType.
@@ -248,6 +249,7 @@ var (
 		11: "GALAXY_FLOW_ACTION",
 		12: "BUSINESS_BROADCAST_INSIGHTS_DELIVERED_TO",
 		13: "BUSINESS_BROADCAST_INSIGHTS_REFRESH",
+		14: "CONTACT_REFRESH_REQUEST",
 	}
 	PeerDataOperationRequestType_value = map[string]int32{
 		"UPLOAD_STICKER":                           0,
@@ -264,6 +266,7 @@ var (
 		"GALAXY_FLOW_ACTION":                       11,
 		"BUSINESS_BROADCAST_INSIGHTS_DELIVERED_TO": 12,
 		"BUSINESS_BROADCAST_INSIGHTS_REFRESH":      13,
+		"CONTACT_REFRESH_REQUEST":                  14,
 	}
 )
 
@@ -26271,7 +26274,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\tDELIVERED\x10\x01\x12\b\n" +
 	"\x04READ\x10\x02\x12\v\n" +
 	"\aREPLIED\x10\x03\x12\x11\n" +
-	"\rQUICK_REPLIED\x10\x04*\xf1\x03\n" +
+	"\rQUICK_REPLIED\x10\x04*\x8e\x04\n" +
 	"\x1cPeerDataOperationRequestType\x12\x12\n" +
 	"\x0eUPLOAD_STICKER\x10\x00\x12!\n" +
 	"\x1dSEND_RECENT_STICKER_BOOTSTRAP\x10\x01\x12\x19\n" +
@@ -26287,7 +26290,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x12\x16\n" +
 	"\x12GALAXY_FLOW_ACTION\x10\v\x12,\n" +
 	"(BUSINESS_BROADCAST_INSIGHTS_DELIVERED_TO\x10\f\x12'\n" +
-	"#BUSINESS_BROADCAST_INSIGHTS_REFRESH\x10\r*\xb5\x01\n" +
+	"#BUSINESS_BROADCAST_INSIGHTS_REFRESH\x10\r\x12\x1b\n" +
+	"\x17CONTACT_REFRESH_REQUEST\x10\x0e*\xb5\x01\n" +
 	"\x0fHistorySyncType\x12\x15\n" +
 	"\x11INITIAL_BOOTSTRAP\x10\x00\x12\x15\n" +
 	"\x11INITIAL_STATUS_V3\x10\x01\x12\b\n" +

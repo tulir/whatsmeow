@@ -713,7 +713,7 @@ func (cli *Client) handleHistorySyncNotificationLoop() {
 			if err != nil {
 				cli.Log.Errorf("Failed to download history sync: %v", err)
 			} else {
-				cli.dispatchEvent(&events.HistorySync{Data: blob})
+				cli.dispatchEvent(&events.HistorySync{Data: blob, Notification: notif})
 				err = cli.DeleteMedia(ctx, MediaHistory, notif.GetDirectPath(), notif.GetFileEncSHA256(), notif.GetEncHandle())
 				if err != nil {
 					cli.Log.Warnf("Failed to delete history sync media from server: %v", err)

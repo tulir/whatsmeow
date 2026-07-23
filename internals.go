@@ -579,8 +579,8 @@ func (int *DangerousInternalClient) HandleGroupedReceipt(partialReceipt events.R
 	return int.c.handleGroupedReceipt(partialReceipt, participants)
 }
 
-func (int *DangerousInternalClient) ParseReceipt(ctx context.Context, node *waBinary.Node) (*events.Receipt, []waBinary.Node, error) {
-	return int.c.parseReceipt(ctx, node)
+func (int *DangerousInternalClient) ParseReceipt(node *waBinary.Node) (*events.Receipt, []waBinary.Node, error) {
+	return int.c.parseReceipt(node)
 }
 
 func (int *DangerousInternalClient) BackgroundIfAsyncAck(fn func()) {
