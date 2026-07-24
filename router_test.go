@@ -118,6 +118,7 @@ func routerRelayAckNode(callID string) waBinary.Node {
 }
 
 func isCallOffer(e any) bool      { _, ok := e.(*events.CallOffer); return ok }
+func isCallAccept(e any) bool     { _, ok := e.(*events.CallAccept); return ok }
 func isCallMediaReady(e any) bool { _, ok := e.(*events.CallMediaReady); return ok }
 func isCallMediaStop(e any) bool  { _, ok := e.(*events.CallMediaStop); return ok }
 func isCallTerminate(e any) bool  { _, ok := e.(*events.CallTerminate); return ok }
@@ -211,6 +212,52 @@ func TestAcceptInboundOfferWithRelayFiresMediaReady(t *testing.T) {
 
 	if n := len(ce.filter(isCallMediaReady)); n != 1 {
 		t.Fatalf("CallMediaReady dispatch count = %d, want 1", n)
+	}
+}
+
+func TestAcceptInboundOfferUsesRelayElectedPeerDevice(t *testing.T) {
+	cli, _, ce := routerTestClient()
+	meta := routerCallMeta()
+	meta.CallID = "ROUTERDEVICECID"
+	companion := meta.CallCreator
+	companion.Device = 7
+	relay := syntheticRelayNode()
+	relay.Attrs = waBinary.Attrs{"peer_pid": "2"}
+	relay.Content = append(relay.GetChildren(),
+		waBinary.Node{Tag: "participant", Attrs: waBinary.Attrs{"pid": "2", "jid": companion}},
+	)
+	offerChild := waBinary.Node{Tag: "offer", Content: []waBinary.Node{relay}}
+
+	cli.acceptInboundOffer(context.Background(), &offerChild, meta, types.CallRemoteMeta{}, bytes.Repeat([]byte{0x02}, 32))
+
+	ready := ce.filter(isCallMediaReady)
+	if len(ready) != 1 {
+		t.Fatalf("CallMediaReady dispatch count = %d, want 1", len(ready))
+	}
+	if peer := ready[0].(*events.CallMediaReady).PeerLID; peer != companion {
+		t.Fatalf("CallMediaReady.PeerLID = %s, want %s", peer, companion)
+	}
+}
+
+func TestCallAcceptPreservesRelayElectedPeerDevice(t *testing.T) {
+	cli, _, ce := routerTestClient()
+	meta := routerCallMeta()
+	companion := meta.From
+	companion.Device = 7
+	cli.putCall(meta.CallID, &callState{meta: meta, peerLID: companion})
+
+	cli.onCallAccept(meta, types.CallRemoteMeta{}, &waBinary.Node{Tag: "accept"})
+
+	cs := cli.getCall(meta.CallID)
+	if cs.peerLID != companion {
+		t.Fatalf("call peer after accept = %s, want %s", cs.peerLID, companion)
+	}
+	accepts := ce.filter(isCallAccept)
+	if len(accepts) != 1 {
+		t.Fatalf("CallAccept dispatch count = %d, want 1", len(accepts))
+	}
+	if peer := accepts[0].(*events.CallAccept).PeerLID; peer != companion {
+		t.Fatalf("CallAccept.PeerLID = %s, want %s", peer, companion)
 	}
 }
 

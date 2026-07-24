@@ -120,6 +120,9 @@ func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node,
 	if peer.IsEmpty() {
 		peer = meta.From
 	}
+	if relayPeer := voip.ParseRelayPeer(child); !relayPeer.IsEmpty() {
+		peer = relayPeer
+	}
 	relay := voip.ParseRelay(child, types.CallDirectionIncoming)
 	isVideo := voip.OfferHasVideo(child)
 
@@ -143,6 +146,9 @@ func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node,
 		cs.callKey = callKey
 		if relay != nil {
 			cs.relay = relay
+		}
+		if !peer.IsEmpty() {
+			cs.peerLID = preferQualifiedCallPeer(cs.peerLID, peer)
 		}
 		cli.callsLock.Unlock()
 	}
@@ -261,8 +267,12 @@ func (cli *Client) captureCallRelay(cs *callState, node *waBinary.Node) {
 	if ep == nil {
 		return
 	}
+	peer := voip.ParseRelayPeer(node)
 	cli.callsLock.Lock()
 	cs.relay = ep
+	if !peer.IsEmpty() {
+		cs.peerLID = preferQualifiedCallPeer(cs.peerLID, peer)
+	}
 	cli.callsLock.Unlock()
 	cli.maybeEmitMediaReady(cs)
 }
@@ -296,15 +306,30 @@ func (cli *Client) maybeEmitMediaReady(cs *callState) {
 }
 
 func (cli *Client) onCallAccept(meta types.BasicCallMeta, remote types.CallRemoteMeta, child *waBinary.Node) {
+	peer := meta.From
 	if cs := cli.getCall(meta.CallID); cs != nil {
 		cli.callsLock.Lock()
 		if !meta.From.IsEmpty() {
-			cs.peerLID = meta.From
+			cs.peerLID = preferQualifiedCallPeer(cs.peerLID, meta.From)
 			cs.to = meta.From
 		}
+		peer = cs.peerLID
 		cli.callsLock.Unlock()
 	}
-	cli.dispatchEvent(&events.CallAccept{BasicCallMeta: meta, CallRemoteMeta: remote, Data: child})
+	cli.dispatchEvent(&events.CallAccept{BasicCallMeta: meta, CallRemoteMeta: remote, Data: child, PeerLID: peer})
+}
+
+func preferQualifiedCallPeer(current, signaled types.JID) types.JID {
+	if signaled.IsEmpty() {
+		return current
+	}
+	if current.User == signaled.User &&
+		current.Server == signaled.Server &&
+		current.Device != 0 &&
+		signaled.Device == 0 {
+		return current
+	}
+	return signaled
 }
 
 // RejectCall reject an incoming call.
