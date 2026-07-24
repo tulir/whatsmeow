@@ -23,7 +23,8 @@ type CallAccept struct {
 	types.BasicCallMeta
 	types.CallRemoteMeta
 
-	Data *waBinary.Node
+	Data    *waBinary.Node
+	PeerLID types.JID
 }
 
 type CallPreAccept struct {

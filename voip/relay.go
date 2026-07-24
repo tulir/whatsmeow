@@ -268,6 +268,27 @@ func parseElectedRelay(node *waBinary.Node, direction types.CallDirection) *type
 	return out
 }
 
+func parseRelayPeer(node *waBinary.Node) types.JID {
+	relay := findRelay(node)
+	if relay == nil {
+		return types.EmptyJID
+	}
+	peerPID := relay.AttrGetter().String("peer_pid")
+	if peerPID == "" {
+		return types.EmptyJID
+	}
+	children := relay.GetChildren()
+	for i := range children {
+		participant := &children[i]
+		if participant.Tag == "participant" && participant.AttrGetter().String("pid") == peerPID {
+			if jid := participant.AttrGetter().JID("jid"); !jid.IsEmpty() {
+				return jid
+			}
+		}
+	}
+	return types.EmptyJID
+}
+
 // NodeBytes returns a node's byte or string content as bytes.
 func NodeBytes(node *waBinary.Node) []byte {
 	return nodeBytes(node)
@@ -300,4 +321,9 @@ func ParseCodec(content []byte) (types.CallCodec, error) {
 // ParseRelay resolves the media endpoint appropriate for the call direction.
 func ParseRelay(node *waBinary.Node, direction types.CallDirection) *types.RelayEndpoint {
 	return parseElectedRelay(node, direction)
+}
+
+// ParseRelayPeer resolves the device-qualified media participant selected by peer_pid.
+func ParseRelayPeer(node *waBinary.Node) types.JID {
+	return parseRelayPeer(node)
 }

@@ -133,6 +133,22 @@ func TestRelayParseElectsEndpoint(t *testing.T) {
 	}
 }
 
+func TestRelayParseResolvesElectedPeerDevice(t *testing.T) {
+	primary := types.NewJID("242653052539031", types.HiddenUserServer)
+	companion := primary
+	companion.Device = 7
+	node := syntheticRelayNode()
+	node.Attrs = waBinary.Attrs{"peer_pid": "2", "self_pid": "1"}
+	node.Content = append(node.GetChildren(),
+		waBinary.Node{Tag: "participant", Attrs: waBinary.Attrs{"pid": "0", "jid": primary}},
+		waBinary.Node{Tag: "participant", Attrs: waBinary.Attrs{"pid": "2", "jid": companion}},
+	)
+
+	if peer := parseRelayPeer(&node); peer != companion {
+		t.Fatalf("parseRelayPeer = %s, want %s", peer, companion)
+	}
+}
+
 func TestRelayParseElectsFNAForIncomingCalls(t *testing.T) {
 	node := syntheticRelayNode()
 	children := node.GetChildren()
