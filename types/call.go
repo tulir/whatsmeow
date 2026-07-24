@@ -94,6 +94,17 @@ type GroupCallUpdate struct {
 	Relay          *GroupCallRelay
 }
 
+// GroupCallEncRekey is one encrypted participant key update for a group-call transaction.
+type GroupCallEncRekey struct {
+	CallID            string
+	CallCreator       JID
+	TransactionID     uint32
+	KeyGeneration     uint32
+	EncryptionType    string
+	EncryptionVersion uint32
+	Ciphertext        []byte
+}
+
 // GroupCallParticipant is one user in a group-call roster snapshot.
 type GroupCallParticipant struct {
 	JID     JID

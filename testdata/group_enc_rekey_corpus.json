@@ -1,0 +1,38 @@
+{
+  "schema": "whatsmeow.group-enc-rekey-corpus.v1",
+  "cases": [
+    {
+      "name": "live_tx17_normal_message",
+      "author": "111111111111111@lid",
+      "call_id": "SYNTHETIC-CALL-17",
+      "call_creator": "222222222222222:14@lid",
+      "transaction_id": 17,
+      "key_generation": 2,
+      "encryption_type": "msg",
+      "encryption_version": 2,
+      "ciphertext_length": 146
+    },
+    {
+      "name": "captured_short_normal_message",
+      "author": "333333333333333@lid",
+      "call_id": "SYNTHETIC-CALL-18",
+      "call_creator": "222222222222222:14@lid",
+      "transaction_id": 18,
+      "key_generation": 2,
+      "encryption_type": "msg",
+      "encryption_version": 2,
+      "ciphertext_length": 32
+    },
+    {
+      "name": "captured_prekey_message",
+      "author": "444444444444444@lid",
+      "call_id": "SYNTHETIC-CALL-24",
+      "call_creator": "222222222222222:14@lid",
+      "transaction_id": 24,
+      "key_generation": 2,
+      "encryption_type": "pkmsg",
+      "encryption_version": 2,
+      "ciphertext_length": 231
+    }
+  ]
+}

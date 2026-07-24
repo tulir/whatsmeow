@@ -103,6 +103,9 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/48c2391ce9f7dcc2b3f223f72f1b5f0c627ad943/datasheets/voip-group-update-ingest.md#L112-L129
 	case "group_update":
 		cli.onCallGroupUpdate(ctx, &child, basicMeta)
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/747c6a1b8a0370358ef18bbaa5e029b960c2f836/datasheets/voip-group-enc-rekey-ingest.md#L39-L73
+	case "enc_rekey":
+		cli.onCallEncRekey(ctx, &child, basicMeta)
 	default:
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
 	}
