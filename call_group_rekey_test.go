@@ -12,10 +12,36 @@ import (
 	"strings"
 	"testing"
 
+	"google.golang.org/protobuf/proto"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
+	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
 )
+
+func TestDecodeCallEncRekeyPlaintextUnwrapsCallKeyMessage(t *testing.T) {
+	rawKey := bytes.Repeat([]byte{0x52}, 32)
+	plaintext, err := proto.Marshal(&waE2E.Message{
+		Call: &waE2E.Call{CallKey: rawKey},
+	})
+	if err != nil {
+		t.Fatalf("marshal call key message: %v", err)
+	}
+	plaintext = append(plaintext, 0xfa, 0x07, 0x28)
+	plaintext = append(plaintext, bytes.Repeat([]byte{0x78}, 40)...)
+	if len(plaintext) != 79 {
+		t.Fatalf("plaintext length = %d, want live-observed 79", len(plaintext))
+	}
+
+	got, err := decodeCallEncRekeyPlaintext(plaintext)
+	if err != nil {
+		t.Fatalf("decodeCallEncRekeyPlaintext: %v", err)
+	}
+	if !bytes.Equal(got, rawKey) {
+		t.Fatal("decoder did not extract the 32-byte Call.callKey")
+	}
+}
 
 func TestNewCallEncRekeyEventClonesSensitiveBytes(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/747c6a1b8a0370358ef18bbaa5e029b960c2f836/datasheets/voip-group-enc-rekey-ingest.md#L75-L123
