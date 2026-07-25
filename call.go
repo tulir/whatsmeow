@@ -112,22 +112,39 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 }
 
 func (cli *Client) onCallOffer(ctx context.Context, child *waBinary.Node, meta types.BasicCallMeta, remote types.CallRemoteMeta) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L21-L54
 	cag := child.AttrGetter()
 	if cag.OptionalString("is_call_ended") == "1" || cag.OptionalString("terminate_reason") != "" {
 		cli.Log.Debugf("Ignoring already-ended call offer, call_id: %s", meta.CallID)
 		return
 	}
 
-	callKey, err := cli.decryptIncomingCallKey(ctx, &events.CallOffer{BasicCallMeta: meta, CallRemoteMeta: remote, Data: child})
+	group, isGroupInvite, err := voip.ParseGroupInviteSnapshot(child)
 	if err != nil {
-		cli.Log.Warnf("Failed to decrypt call key, call_id: %s: %v", meta.CallID, err)
+		cli.Log.Warnf("Failed to parse group invite snapshot, call_id: %s: %v", meta.CallID, err)
 		return
 	}
-	cli.acceptInboundOffer(ctx, child, meta, remote, callKey)
+	var callKey []byte
+	if !isGroupInvite {
+		callKey, err = cli.decryptIncomingCallKey(ctx, &events.CallOffer{BasicCallMeta: meta, CallRemoteMeta: remote, Data: child})
+		if err != nil {
+			cli.Log.Warnf("Failed to decrypt call key, call_id: %s: %v", meta.CallID, err)
+			return
+		}
+	}
+	cli.acceptInboundOffer(ctx, child, meta, remote, callKey, group)
 }
 
-func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node, meta types.BasicCallMeta, remote types.CallRemoteMeta, callKey []byte) *callState {
+func (cli *Client) acceptInboundOffer(
+	ctx context.Context,
+	child *waBinary.Node,
+	meta types.BasicCallMeta,
+	remote types.CallRemoteMeta,
+	callKey []byte,
+	group ...*types.GroupCallUpdate,
+) *callState {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L56-L88
 	peer := meta.CallCreator
 	if peer.IsEmpty() {
 		peer = meta.From
@@ -168,10 +185,15 @@ func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node,
 			inviteSelfDevice: inviteSelfDevice,
 			invitePeerDevice: invitePeerDevice,
 		}
+		if len(group) > 0 && group[0] != nil {
+			cs.group = &groupCallState{snapshot: *group[0]}
+		}
 		cli.putCall(meta.CallID, cs)
 	} else {
 		cli.callsLock.Lock()
-		cs.callKey = callKey
+		if callKey != nil {
+			cs.callKey = callKey
+		}
 		if relay != nil {
 			cs.relay = relay
 		}
@@ -182,11 +204,15 @@ func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node,
 		if invitePeerErr == nil {
 			cs.invitePeerDevice = invitePeerDevice
 		}
+		if len(group) > 0 && group[0] != nil &&
+			(cs.group == nil || group[0].TransactionID > cs.group.snapshot.TransactionID) {
+			cs.group = &groupCallState{snapshot: *group[0]}
+		}
 		cli.callsLock.Unlock()
 	}
 	cli.applyVoipSettingsCodec(cs, child, meta.CallID)
 
-	pre := voip.BuildEagerPreaccept(meta.CallID, meta.From, meta.CallCreator, cli.generateRequestID(), isVideo)
+	pre := buildInboundPreaccept(cs, meta, cli.generateRequestID(), isVideo)
 	if err := cli.sendNode(ctx, pre); err != nil {
 		cli.Log.Warnf("Failed to send call preaccept, call_id: %s: %v", meta.CallID, err)
 	}
@@ -196,6 +222,15 @@ func (cli *Client) acceptInboundOffer(ctx context.Context, child *waBinary.Node,
 	}
 	cli.maybeEmitMediaReady(cs)
 	return cs
+}
+
+func buildInboundPreaccept(cs *callState, meta types.BasicCallMeta, requestID string, video bool) waBinary.Node {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	target := meta.From
+	if cs != nil {
+		target = cs.signalingTarget()
+	}
+	return voip.BuildEagerPreaccept(meta.CallID, target, meta.CallCreator, requestID, video)
 }
 
 func (cli *Client) applyVoipSettingsCodec(cs *callState, node *waBinary.Node, callID string) {
@@ -279,12 +314,7 @@ func (cli *Client) onCallMuteV2(ctx context.Context, meta types.BasicCallMeta, m
 		return
 	}
 
-	accept := voip.BuildAccept(&voip.AcceptParams{
-		CallID: meta.CallID, To: meta.From, CallCreator: meta.CallCreator,
-		AudioRates: []string{"16000"},
-		Metadata:   waBinary.Attrs{"peer_abtest_bucket_id_list": "125208,94276"},
-		Video:      video,
-	})
+	accept := buildDeferredCallAccept(cs, meta, video)
 	accept.Attrs["id"] = cli.generateRequestID()
 	if err := cli.sendNode(ctx, accept); err != nil {
 		cli.Log.Warnf("Failed to send call accept, call_id: %s: %v", meta.CallID, err)
@@ -292,6 +322,22 @@ func (cli *Client) onCallMuteV2(ctx context.Context, meta types.BasicCallMeta, m
 	}
 	// NOT VALIDATED: live incoming-call E2E validates the successful deferred accept send boundary.
 	cli.markCallConnected(meta.CallID, cs)
+}
+
+func buildDeferredCallAccept(cs *callState, meta types.BasicCallMeta, video bool) waBinary.Node {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	target := meta.From
+	if cs != nil {
+		target = cs.signalingTarget()
+	}
+	return voip.BuildAccept(&voip.AcceptParams{
+		CallID:      meta.CallID,
+		To:          target,
+		CallCreator: meta.CallCreator,
+		AudioRates:  []string{"16000"},
+		Metadata:    waBinary.Attrs{"peer_abtest_bucket_id_list": "125208,94276"},
+		Video:       video,
+	})
 }
 
 func (cli *Client) markCallConnected(callID string, expected *callState) bool {

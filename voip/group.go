@@ -14,6 +14,48 @@ import (
 	"go.mau.fi/whatsmeow/types"
 )
 
+// ParseGroupInviteSnapshot parses the group snapshot embedded in an active-call invite offer.
+func ParseGroupInviteSnapshot(offer *waBinary.Node) (*types.GroupCallUpdate, bool, error) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L28-L40
+	if offer == nil {
+		return nil, false, fmt.Errorf("whatsmeow: parse group invite snapshot: nil offer")
+	}
+	if offer.Tag != "offer" {
+		return nil, false, fmt.Errorf("whatsmeow: parse group invite snapshot: unexpected tag %q", offer.Tag)
+	}
+	groupInfo, ok := offer.GetOptionalChildByTag("group_info")
+	if !ok {
+		return nil, false, nil
+	}
+
+	attrs := offer.AttrGetter()
+	update := &types.GroupCallUpdate{
+		CallID:      attrs.String("call-id"),
+		CallCreator: attrs.JID("call-creator"),
+	}
+	joinable := attrs.OptionalString("joinable") == "1"
+	if err := attrs.Error(); err != nil {
+		return nil, false, fmt.Errorf("whatsmeow: parse group invite offer attributes: %w", err)
+	}
+	groupAttrs := groupInfo.AttrGetter()
+	groupCallID := groupAttrs.OptionalString("call-id")
+	groupCreator := groupAttrs.OptionalJIDOrEmpty("call-creator")
+	if err := groupAttrs.Error(); err != nil {
+		return nil, false, fmt.Errorf("whatsmeow: parse group invite identity: %w", err)
+	}
+	if groupCallID != "" && groupCallID != update.CallID {
+		return nil, false, fmt.Errorf("whatsmeow: group invite call ID %q does not match offer %q", groupCallID, update.CallID)
+	}
+	if !groupCreator.IsEmpty() && groupCreator != update.CallCreator {
+		return nil, false, fmt.Errorf("whatsmeow: group invite creator %s does not match offer %s", groupCreator, update.CallCreator)
+	}
+	if err := parseGroupInfo(&groupInfo, update); err != nil {
+		return nil, false, err
+	}
+	update.Joinable = joinable
+	return update, true, nil
+}
+
 // ParseGroupUpdate parses a group_update call-signaling node.
 func ParseGroupUpdate(node *waBinary.Node) (*types.GroupCallUpdate, error) {
 	if node == nil {
