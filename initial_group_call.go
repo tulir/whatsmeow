@@ -22,6 +22,7 @@ import (
 // GroupCallOfferOptions configures a new outgoing group call.
 type GroupCallOfferOptions struct {
 	GroupJID types.JID
+	Video    bool
 }
 
 type initialGroupCallStartDependencies struct {
@@ -121,12 +122,13 @@ func runInitialGroupCallStart(
 		CallCreator:  selfDevice,
 		GroupJID:     options.GroupJID,
 		Participants: participants,
+		Video:        options.Video,
 	})
 	if err != nil {
 		return "", err
 	}
 	offer.Attrs["id"] = deps.requestID()
-	state := newOutgoingGroupCallState(callID, selfDevice, resolved, options.GroupJID)
+	state := newOutgoingGroupCallState(callID, selfDevice, resolved, options.GroupJID, options.Video)
 	deps.install(callID, state)
 	if err = deps.send(ctx, offer); err != nil {
 		deps.remove(callID, state)
@@ -193,6 +195,7 @@ func newOutgoingGroupCallState(
 	self types.JID,
 	targets []types.JID,
 	groupJID types.JID,
+	video bool,
 ) *callState {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L177-L181
 	participants := make([]types.GroupCallParticipant, 1, len(targets)+1)
@@ -209,11 +212,13 @@ func newOutgoingGroupCallState(
 			CallID:      callID,
 			GroupJID:    groupJID,
 		},
-		selfLID:  self,
-		peerLID:  firstTarget,
-		to:       firstTarget,
-		creator:  self,
-		outgoing: true,
+		selfLID:     self,
+		peerLID:     firstTarget,
+		to:          firstTarget,
+		creator:     self,
+		outgoing:    true,
+		localVideo:  video,
+		remoteVideo: video,
 		group: &groupCallState{snapshot: types.GroupCallUpdate{
 			CallID:       callID,
 			CallCreator:  self,

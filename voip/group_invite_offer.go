@@ -21,6 +21,7 @@ type GroupInviteOfferParams struct {
 	CallCreator   types.JID
 	TargetDevices []types.JID
 	Participants  []types.GroupCallParticipant
+	Video         bool
 }
 
 // BuildGroupInviteOffer builds a singular active-call participant invite offer.
@@ -77,9 +78,17 @@ func BuildGroupInviteOffer(params GroupInviteOfferParams) (waBinary.Node, error)
 
 	children := []waBinary.Node{
 		audioOpus("16000"),
-		{Tag: "net", Attrs: waBinary.Attrs{"medium": "2"}},
-		destinationTo(params.TargetDevices),
-		{Tag: "group_info", Content: users},
 	}
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/36d54857c74e45ccb08f6444a32d2afa13f20be9/datasheets/group-video-reactions.md#L21-L30
+	if params.Video {
+		// ASSUMPTION: an active-call invite carries the verified direct-call H.264
+		// node; a captured video add-person offer can invalidate this shape.
+		children = append(children, callVideoOfferNode())
+	}
+	children = append(children,
+		waBinary.Node{Tag: "net", Attrs: waBinary.Attrs{"medium": "2"}},
+		destinationTo(params.TargetDevices),
+		waBinary.Node{Tag: "group_info", Content: users},
+	)
 	return callWrap(params.To, nil, offerAction("offer", params.CallID, params.CallCreator, children)), nil
 }

@@ -118,7 +118,7 @@ func TestGroupInviteRosterCorpus(t *testing.T) {
 			}
 			cli := &Client{calls: map[string]*callState{tc.CallID: cs}}
 
-			creator, got, err := cli.groupInviteRoster(tc.CallID)
+			creator, got, _, err := cli.groupInviteRoster(tc.CallID)
 			if err != nil {
 				t.Fatalf("groupInviteRoster: %v", err)
 			}
@@ -168,14 +168,13 @@ func TestGroupInviteRosterRejectsInvalidCallState(t *testing.T) {
 		want string
 	}{
 		{name: "not connected", edit: func(cs *callState) { cs.connected = false }, want: "call is not connected"},
-		{name: "video", edit: func(cs *callState) { cs.localVideo = true }, want: "only supported for audio calls"},
 		{name: "missing local device", edit: func(cs *callState) { cs.inviteSelfDevice = types.GroupCallDevice{} }, want: "local active device capability is unavailable"},
 		{name: "missing peer device", edit: func(cs *callState) { cs.invitePeerDevice = types.GroupCallDevice{} }, want: "peer active device capability is unavailable"},
 		{name: "empty group roster", edit: func(cs *callState) { cs.group = &groupCallState{} }, want: "group roster is empty"},
 	}
 
 	cli := &Client{calls: map[string]*callState{}}
-	if _, _, err := cli.groupInviteRoster("UNKNOWN"); err == nil || !strings.Contains(err.Error(), "unknown call") {
+	if _, _, _, err := cli.groupInviteRoster("UNKNOWN"); err == nil || !strings.Contains(err.Error(), "unknown call") {
 		t.Fatalf("unknown-call error = %v", err)
 	}
 	for _, tc := range cases {
@@ -183,11 +182,44 @@ func TestGroupInviteRosterRejectsInvalidCallState(t *testing.T) {
 			cs := valid()
 			tc.edit(cs)
 			cli := &Client{calls: map[string]*callState{"CID": cs}}
-			_, _, err := cli.groupInviteRoster("CID")
+			_, _, _, err := cli.groupInviteRoster("CID")
 			if err == nil || !strings.Contains(err.Error(), tc.want) {
 				t.Fatalf("error = %v, want substring %q", err, tc.want)
 			}
 		})
+	}
+}
+
+func TestInviteCallParticipantAllowsActiveVideoCall(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/36d54857c74e45ccb08f6444a32d2afa13f20be9/datasheets/group-video-reactions.md#L21-L30
+	self := mustParticipantInviteJID(t, "100001:14@lid")
+	peer := mustParticipantInviteJID(t, "200002@lid")
+	target := mustParticipantInviteJID(t, "200003@lid")
+	cs := &callState{
+		meta:        types.BasicCallMeta{CallID: "CID"},
+		creator:     self,
+		connected:   true,
+		localVideo:  true,
+		remoteVideo: true,
+		selfLID:     self,
+		peerLID:     peer,
+		inviteSelfDevice: types.GroupCallDevice{
+			JID: self, CapabilityVersion: 1, Capability: []byte{1, 5, 247, 9, 224, 250, 19},
+		},
+		invitePeerDevice: types.GroupCallDevice{
+			JID: peer, CapabilityVersion: 1, Capability: []byte{1, 5, 247, 9, 224, 250, 19},
+		},
+	}
+	cli := &Client{
+		calls: map[string]*callState{"CID": cs},
+		userDevicesCache: map[types.JID]deviceCache{
+			target: {devices: []types.JID{target}},
+		},
+		Log: waLog.Noop,
+	}
+	err := cli.InviteCallParticipant(context.Background(), "CID", target)
+	if err == nil || !strings.Contains(err.Error(), ErrNotConnected.Error()) {
+		t.Fatalf("video participant invite error = %v, want send attempt wrapping %v", err, ErrNotConnected)
 	}
 }
 

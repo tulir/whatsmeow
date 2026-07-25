@@ -259,6 +259,37 @@ func TestBuildGroupInviteOfferRejectsMissingRequiredFields(t *testing.T) {
 	}
 }
 
+func TestBuildGroupInviteOfferCarriesVideoCapability(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/36d54857c74e45ccb08f6444a32d2afa13f20be9/datasheets/group-video-reactions.md#L21-L30
+	peer := mustGroupInviteJID(t, "200003@lid")
+	creator := mustGroupInviteJID(t, "100001:14@lid")
+	call, err := BuildGroupInviteOffer(GroupInviteOfferParams{
+		CallID:        "0063F48A8B4CA7D1DAF665F1CC8EB545",
+		To:            peer,
+		CallCreator:   creator,
+		TargetDevices: []types.JID{peer},
+		Participants: []types.GroupCallParticipant{{
+			JID: peer,
+			Devices: []types.GroupCallDevice{{
+				JID:               peer,
+				CapabilityVersion: 1,
+				Capability:        []byte{1, 5, 247, 9, 224, 250, 27},
+			}},
+		}},
+		Video: true,
+	})
+	if err != nil {
+		t.Fatalf("BuildGroupInviteOffer: %v", err)
+	}
+	if got := stanzaChildTags(t, call); !stanzaEqTags(got, []string{"audio", "video", "net", "destination", "group_info"}) {
+		t.Fatalf("video invite child tags = %v", got)
+	}
+	video := stanzaContentNodes(t, stanzaContentNodes(t, call)[0])[1]
+	if got, _ := stanzaAttrString(video, "enc"); got != "h.264" {
+		t.Fatalf("video enc = %q, want h.264", got)
+	}
+}
+
 func mustGroupInviteJID(t *testing.T, raw string) types.JID {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/25eda415afb0f926112ca375c5892b95b4bd6f60/datasheets/voip-group-invite-offer.md#L36-L76
 	t.Helper()

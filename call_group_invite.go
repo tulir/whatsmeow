@@ -64,30 +64,28 @@ func (cli *Client) capturePeerInviteDevice(callID string, device types.JID, node
 	return nil
 }
 
-func (cli *Client) groupInviteRoster(callID string) (types.JID, []types.GroupCallParticipant, error) {
+func (cli *Client) groupInviteRoster(callID string) (types.JID, []types.GroupCallParticipant, bool, error) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
 	if cli == nil {
-		return types.EmptyJID, nil, ErrClientIsNil
+		return types.EmptyJID, nil, false, ErrClientIsNil
 	}
 	cli.callsLock.Lock()
 	defer cli.callsLock.Unlock()
 	cs := cli.calls[callID]
 	if cs == nil {
-		return types.EmptyJID, nil, fmt.Errorf("whatsmeow: group invite roster: unknown call %s", callID)
+		return types.EmptyJID, nil, false, fmt.Errorf("whatsmeow: group invite roster: unknown call %s", callID)
 	}
 	if !cs.connected {
-		return types.EmptyJID, nil, errors.New("whatsmeow: group invite roster: call is not connected")
+		return types.EmptyJID, nil, false, errors.New("whatsmeow: group invite roster: call is not connected")
 	}
-	if cs.localVideo || cs.remoteVideo {
-		return types.EmptyJID, nil, errors.New("whatsmeow: group participant invite is only supported for audio calls")
-	}
+	video := cs.localVideo || cs.remoteVideo
 	if cs.creator.IsEmpty() {
-		return types.EmptyJID, nil, errors.New("whatsmeow: group invite roster: call creator is unavailable")
+		return types.EmptyJID, nil, false, errors.New("whatsmeow: group invite roster: call creator is unavailable")
 	}
 
 	if cs.group != nil {
 		if len(cs.group.snapshot.Participants) == 0 {
-			return types.EmptyJID, nil, errors.New("whatsmeow: group invite roster: group roster is empty")
+			return types.EmptyJID, nil, false, errors.New("whatsmeow: group invite roster: group roster is empty")
 		}
 		participants := make([]types.GroupCallParticipant, len(cs.group.snapshot.Participants))
 		for participantIndex, participant := range cs.group.snapshot.Participants {
@@ -97,14 +95,14 @@ func (cli *Client) groupInviteRoster(callID string) (types.JID, []types.GroupCal
 			}
 			participants[participantIndex] = participant
 		}
-		return cs.creator, participants, nil
+		return cs.creator, participants, video, nil
 	}
 
 	if cs.selfLID.IsEmpty() || cs.inviteSelfDevice.JID.IsEmpty() || len(cs.inviteSelfDevice.Capability) == 0 {
-		return types.EmptyJID, nil, errors.New("whatsmeow: group invite roster: local active device capability is unavailable")
+		return types.EmptyJID, nil, false, errors.New("whatsmeow: group invite roster: local active device capability is unavailable")
 	}
 	if cs.peerLID.IsEmpty() || cs.invitePeerDevice.JID.IsEmpty() || len(cs.invitePeerDevice.Capability) == 0 {
-		return types.EmptyJID, nil, errors.New("whatsmeow: group invite roster: peer active device capability is unavailable")
+		return types.EmptyJID, nil, false, errors.New("whatsmeow: group invite roster: peer active device capability is unavailable")
 	}
 	participants := []types.GroupCallParticipant{
 		{
@@ -126,7 +124,7 @@ func (cli *Client) groupInviteRoster(callID string) (types.JID, []types.GroupCal
 			}},
 		},
 	}
-	return cs.creator, participants, nil
+	return cs.creator, participants, video, nil
 }
 
 // InviteCallParticipant sends one singular invitation to add target to an active audio call.
@@ -142,7 +140,7 @@ func (cli *Client) InviteCallParticipant(ctx context.Context, callID string, tar
 		return errors.New("whatsmeow: invite call participant: target is required")
 	}
 
-	creator, participants, err := cli.groupInviteRoster(callID)
+	creator, participants, video, err := cli.groupInviteRoster(callID)
 	if err != nil {
 		return err
 	}
@@ -170,6 +168,7 @@ func (cli *Client) InviteCallParticipant(ctx context.Context, callID string, tar
 		CallCreator:   creator,
 		TargetDevices: devices,
 		Participants:  participants,
+		Video:         video,
 	})
 	if err != nil {
 		return err

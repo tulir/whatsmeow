@@ -203,6 +203,41 @@ func TestBuildInitialGroupOfferRejectsIncompleteEnvelope(t *testing.T) {
 	}
 }
 
+func TestBuildInitialGroupOfferCarriesVideoCapability(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/36d54857c74e45ccb08f6444a32d2afa13f20be9/datasheets/group-video-reactions.md#L21-L30
+	self := mustInitialGroupCallJID(t, "100001:14@lid")
+	first := mustInitialGroupCallJID(t, "200002@lid")
+	second := mustInitialGroupCallJID(t, "200003@lid")
+	call, err := BuildInitialGroupOffer(InitialGroupOfferParams{
+		CallID:      "0063F48A8B4CA7D1DAF665F1CC8EB545",
+		CallCreator: self,
+		Video:       true,
+		Participants: []types.GroupCallParticipant{
+			{JID: self, Devices: []types.GroupCallDevice{{
+				JID: self, CapabilityVersion: 1, Capability: bytes.Clone(CapabilityOffer),
+			}}},
+			{JID: first, Devices: []types.GroupCallDevice{{JID: first}}},
+			{JID: second, Devices: []types.GroupCallDevice{{JID: second}}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("BuildInitialGroupOffer: %v", err)
+	}
+	if got := stanzaChildTags(t, call); !stanzaEqTags(got, []string{"audio", "audio", "video", "net", "group_info"}) {
+		t.Fatalf("video group offer child tags = %v", got)
+	}
+	children := stanzaContentNodes(t, stanzaContentNodes(t, call)[0])
+	if got, _ := stanzaAttrString(children[2], "enc"); got != "h.264" {
+		t.Fatalf("video enc = %q, want h.264", got)
+	}
+	groupInfo := children[4]
+	selfDevice := stanzaContentNodes(t, stanzaContentNodes(t, groupInfo)[0])[0]
+	capability := stanzaContentNodes(t, selfDevice)[0]
+	if got, ok := capability.Content.([]byte); !ok || bytes.Equal(got, CapabilityOffer) {
+		t.Fatalf("video group offer retained audio-only capability: %x", got)
+	}
+}
+
 func TestParseInitialGroupCallAckCorpus(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L27-L33
 	corpus := loadInitialGroupCallCorpus(t)

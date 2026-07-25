@@ -21,6 +21,7 @@ type InitialGroupOfferParams struct {
 	CallCreator  types.JID
 	GroupJID     types.JID
 	Participants []types.GroupCallParticipant
+	Video        bool
 }
 
 // BuildInitialGroupOffer builds the initial offer for an ad-hoc or group-bound group call.
@@ -55,6 +56,14 @@ func BuildInitialGroupOffer(params InitialGroupOfferParams) (waBinary.Node, erro
 			}
 			var content []waBinary.Node
 			if device.Capability != nil {
+				capabilityValue := bytes.Clone(device.Capability)
+				// Source of truth: https://github.com/purpshell/meowcaller/blob/36d54857c74e45ccb08f6444a32d2afa13f20be9/datasheets/group-video-reactions.md#L21-L30
+				if params.Video && device.JID == params.CallCreator &&
+					bytes.Equal(capabilityValue, capabilityOffer) {
+					// ASSUMPTION: group video uses the direct-call video capability
+					// for the creator device; a live group-video offer can invalidate this.
+					capabilityValue = bytes.Clone(capabilityVideoOffer)
+				}
 				capabilityAttrs := make(waBinary.Attrs)
 				if device.CapabilityVersion != 0 {
 					capabilityAttrs["ver"] = strconv.FormatUint(uint64(device.CapabilityVersion), 10)
@@ -62,7 +71,7 @@ func BuildInitialGroupOffer(params InitialGroupOfferParams) (waBinary.Node, erro
 				content = []waBinary.Node{{
 					Tag:     "capability",
 					Attrs:   capabilityAttrs,
-					Content: bytes.Clone(device.Capability),
+					Content: capabilityValue,
 				}}
 			}
 			devices[deviceIndex] = waBinary.Node{
@@ -81,9 +90,17 @@ func BuildInitialGroupOffer(params InitialGroupOfferParams) (waBinary.Node, erro
 	children := []waBinary.Node{
 		audioOpus("8000"),
 		audioOpus("16000"),
-		{Tag: "net", Attrs: waBinary.Attrs{"medium": "3"}},
-		{Tag: "group_info", Content: users},
 	}
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/36d54857c74e45ccb08f6444a32d2afa13f20be9/datasheets/group-video-reactions.md#L21-L30
+	if params.Video {
+		// ASSUMPTION: the group offer carries the verified direct-call H.264 node;
+		// a captured group-video offer can invalidate its exact shape or position.
+		children = append(children, callVideoOfferNode())
+	}
+	children = append(children,
+		waBinary.Node{Tag: "net", Attrs: waBinary.Attrs{"medium": "3"}},
+		waBinary.Node{Tag: "group_info", Content: users},
+	)
 	offer := offerAction("offer", params.CallID, params.CallCreator, children)
 	if !params.GroupJID.IsEmpty() {
 		offer.Attrs["group-jid"] = params.GroupJID
