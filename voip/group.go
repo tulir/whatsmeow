@@ -57,6 +57,8 @@ func parseGroupInfo(node *waBinary.Node, update *types.GroupCallUpdate) error {
 	update.GroupJID = attrs.OptionalJIDOrEmpty("group-jid")
 	update.Media = attrs.String("media")
 	update.Joinable = attrs.OptionalString("joinable") == "1"
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/68f039c1d44407788d543f2a510afd550c25591c/datasheets/voip-group-rekey-directive.md#L25-L33
+	update.RekeyRequested = attrs.OptionalString("rekey") == "1"
 	var err error
 	update.TransactionID, err = requiredUint32Attr(attrs, "transaction-id")
 	if err != nil {

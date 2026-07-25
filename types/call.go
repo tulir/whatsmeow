@@ -90,6 +90,7 @@ type GroupCallUpdate struct {
 	ConnectedLimit uint32
 	Joinable       bool
 	AVUpgradable   bool
+	RekeyRequested bool
 	Participants   []GroupCallParticipant
 	Relay          *GroupCallRelay
 }
