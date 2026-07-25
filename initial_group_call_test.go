@@ -97,7 +97,7 @@ func loadInitialGroupStartCorpus(t *testing.T) initialGroupStartCorpus {
 	return corpus
 }
 
-func TestRunInitialGroupCallStartBuildsOrderedOfferThenInstallsState(t *testing.T) {
+func TestRunInitialGroupCallStartInstallsExactStateBeforeSendingOrderedOffer(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L164-L181
 	self := mustInitialGroupStartJID(t, "100001:14@lid")
 	rawTargets := []types.JID{
@@ -122,7 +122,7 @@ func TestRunInitialGroupCallStartBuildsOrderedOfferThenInstallsState(t *testing.
 	var sent waBinary.Node
 	var installedCallID string
 	var installed *callState
-	sendSawInstalled := false
+	var stateAtSend *callState
 
 	gotCallID, err := runInitialGroupCallStart(
 		context.Background(),
@@ -146,13 +146,16 @@ func TestRunInitialGroupCallStartBuildsOrderedOfferThenInstallsState(t *testing.
 			callID:    func() string { return "GROUP-CALL-ID" },
 			requestID: func() string { return "request-id" },
 			send: func(_ context.Context, node waBinary.Node) error {
-				sendSawInstalled = installed != nil
+				stateAtSend = installed
 				sent = node
 				return nil
 			},
 			install: func(callID string, cs *callState) {
 				installedCallID = callID
 				installed = cs
+			},
+			remove: func(string, *callState) {
+				t.Fatal("successful group start removed its provisional call state")
 			},
 		},
 	)
@@ -168,11 +171,14 @@ func TestRunInitialGroupCallStartBuildsOrderedOfferThenInstallsState(t *testing.
 	if !equalInitialGroupJIDs(discoveredInputs, lids) {
 		t.Fatalf("device discovery targets = %v, want %v", discoveredInputs, lids)
 	}
-	if sendSawInstalled {
-		t.Fatal("call state was installed before the offer send succeeded")
+	if stateAtSend == nil {
+		t.Fatal("offer send could not observe the provisional call state")
 	}
 	if installed == nil || installedCallID != "GROUP-CALL-ID" {
 		t.Fatalf("installed state = %p for %q", installed, installedCallID)
+	}
+	if installed != stateAtSend {
+		t.Fatalf("successful send retained state %p, want exact provisional state %p", installed, stateAtSend)
 	}
 	if installed.group == nil || installed.group.snapshot.CallID != "GROUP-CALL-ID" ||
 		installed.group.snapshot.GroupJID != groupJID {
@@ -291,7 +297,7 @@ func TestRunInitialGroupCallStartRejectsInvalidOrFailedPreparationWithoutState(t
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			installed := false
+			var installed *callState
 			deps := initialGroupCallStartDependencies{
 				resolve: func(_ context.Context, target types.JID) (types.JID, error) {
 					return target.ToNonAD(), nil
@@ -302,7 +308,12 @@ func TestRunInitialGroupCallStartRejectsInvalidOrFailedPreparationWithoutState(t
 				callID:    func() string { return "CID" },
 				requestID: func() string { return "request-id" },
 				send:      func(context.Context, waBinary.Node) error { return nil },
-				install:   func(string, *callState) { installed = true },
+				install:   func(_ string, state *callState) { installed = state },
+				remove: func(_ string, state *callState) {
+					if installed == state {
+						installed = nil
+					}
+				},
 			}
 			if tc.edit != nil {
 				tc.edit(&deps)
@@ -317,10 +328,78 @@ func TestRunInitialGroupCallStartRejectsInvalidOrFailedPreparationWithoutState(t
 			if err == nil || !strings.Contains(strings.ToLower(err.Error()), strings.ToLower(tc.want)) {
 				t.Fatalf("error = %v, want containing %q", err, tc.want)
 			}
-			if installed {
-				t.Fatal("failed group start installed call state")
+			if installed != nil {
+				t.Fatalf("failed group start retained call state %p", installed)
 			}
 		})
+	}
+}
+
+func TestRunInitialGroupCallStartSendFailurePreservesReplacementState(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L178-L180
+	self := mustInitialGroupStartJID(t, "100001:14@lid")
+	targets := []types.JID{
+		mustInitialGroupStartJID(t, "200001@lid"),
+		mustInitialGroupStartJID(t, "200002@lid"),
+	}
+	replacement := &callState{meta: types.BasicCallMeta{CallID: "replacement"}}
+	var installed *callState
+	var provisional *callState
+	_, err := runInitialGroupCallStart(
+		context.Background(),
+		self,
+		targets,
+		GroupCallOfferOptions{},
+		initialGroupCallStartDependencies{
+			resolve: func(_ context.Context, target types.JID) (types.JID, error) {
+				return target.ToNonAD(), nil
+			},
+			discover: func(_ context.Context, targets []types.JID) ([]types.JID, error) {
+				return append([]types.JID(nil), targets...), nil
+			},
+			callID:    func() string { return "CID" },
+			requestID: func() string { return "request-id" },
+			install: func(_ string, state *callState) {
+				installed = state
+			},
+			send: func(context.Context, waBinary.Node) error {
+				provisional = installed
+				installed = replacement
+				return errors.New("send failed")
+			},
+			remove: func(_ string, state *callState) {
+				if installed == state {
+					installed = nil
+				}
+			},
+		},
+	)
+	if err == nil {
+		t.Fatal("runInitialGroupCallStart accepted failed send")
+	}
+	if provisional == nil {
+		t.Fatal("send did not observe provisional call state")
+	}
+	if installed != replacement {
+		t.Fatalf("failed send cleanup retained %p, want replacement %p", installed, replacement)
+	}
+}
+
+func TestRemoveCallIfSameDeletesOnlyExpectedState(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L178-L180
+	cli, _, _ := routerTestClient()
+	provisional := &callState{meta: types.BasicCallMeta{CallID: "CID"}}
+	replacement := &callState{meta: types.BasicCallMeta{CallID: "replacement"}}
+	cli.calls["CID"] = replacement
+
+	cli.removeCallIfSame("CID", provisional)
+	if got := cli.getCall("CID"); got != replacement {
+		t.Fatalf("mismatched cleanup retained %p, want replacement %p", got, replacement)
+	}
+
+	cli.removeCallIfSame("CID", replacement)
+	if got := cli.getCall("CID"); got != nil {
+		t.Fatalf("matched cleanup retained state %p", got)
 	}
 }
 

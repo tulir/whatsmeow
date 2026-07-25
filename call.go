@@ -168,6 +168,7 @@ func (cli *Client) acceptInboundOffer(
 	}
 	relay := voip.ParseRelay(child, types.CallDirectionIncoming)
 	isVideo := voip.OfferHasVideo(child)
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L190-L191
 	var groupSnapshot *types.GroupCallUpdate
 	if len(group) > 0 && group[0] != nil {
 		cloned := cloneGroupCallUpdate(*group[0])
@@ -441,6 +442,7 @@ func (cli *Client) onCallAccept(meta types.BasicCallMeta, remote types.CallRemot
 	peer := meta.From
 	if cs := cli.getCall(meta.CallID); cs != nil {
 		cli.callsLock.Lock()
+		// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L181-L182
 		if cs.group == nil && !meta.From.IsEmpty() {
 			cs.peerLID = preferQualifiedCallPeer(cs.peerLID, meta.From)
 			cs.to = meta.From

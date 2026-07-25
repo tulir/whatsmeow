@@ -31,6 +31,7 @@ type initialGroupCallStartDependencies struct {
 	requestID func() string
 	send      func(context.Context, waBinary.Node) error
 	install   func(string, *callState)
+	remove    func(string, *callState)
 }
 
 func runInitialGroupCallStart(
@@ -48,7 +49,7 @@ func runInitialGroupCallStart(
 		return "", fmt.Errorf("whatsmeow: start group call: at least two remote targets are required")
 	}
 	if deps.resolve == nil || deps.discover == nil || deps.callID == nil ||
-		deps.requestID == nil || deps.send == nil || deps.install == nil {
+		deps.requestID == nil || deps.send == nil || deps.install == nil || deps.remove == nil {
 		return "", fmt.Errorf("whatsmeow: start group call: incomplete dependencies")
 	}
 
@@ -126,10 +127,11 @@ func runInitialGroupCallStart(
 	}
 	offer.Attrs["id"] = deps.requestID()
 	state := newOutgoingGroupCallState(callID, selfDevice, resolved, options.GroupJID)
+	deps.install(callID, state)
 	if err = deps.send(ctx, offer); err != nil {
+		deps.remove(callID, state)
 		return callID, fmt.Errorf("whatsmeow: send initial group call offer: %w", err)
 	}
-	deps.install(callID, state)
 	return callID, nil
 }
 
@@ -162,6 +164,7 @@ func (cli *Client) OfferGroupCall(
 			},
 			send:    cli.sendNode,
 			install: cli.putCall,
+			remove:  cli.removeCallIfSame,
 		},
 	)
 	if err != nil {
@@ -174,6 +177,15 @@ func (cli *Client) OfferGroupCall(
 		!opts.GroupJID.IsEmpty(),
 	)
 	return callID, nil
+}
+
+func (cli *Client) removeCallIfSame(callID string, state *callState) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L178-L180
+	cli.callsLock.Lock()
+	defer cli.callsLock.Unlock()
+	if cli.calls[callID] == state {
+		delete(cli.calls, callID)
+	}
 }
 
 func newOutgoingGroupCallState(

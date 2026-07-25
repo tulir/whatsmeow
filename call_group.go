@@ -49,6 +49,7 @@ func (cli *Client) onCallGroupUpdate(ctx context.Context, child *waBinary.Node, 
 			)
 		}
 	}
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L183-L189
 	if cs := cli.getCall(update.CallID); cs != nil {
 		cli.maybeEmitMediaReady(cs)
 	}
