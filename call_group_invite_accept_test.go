@@ -164,6 +164,110 @@ func TestAcceptCallActiveGroupSendFailureRemainsRetryable(t *testing.T) {
 	}
 }
 
+func TestAcceptCallActiveGroupSequentialSuccessSendsOnce(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
+	cli := &Client{calls: map[string]*callState{}}
+	cs := &callState{
+		meta:    types.BasicCallMeta{CallID: "ACTIVE-AD-HOC-CALL", CallCreator: creator},
+		to:      creator,
+		creator: creator,
+		group:   &groupCallState{},
+	}
+	cli.putCall(cs.meta.CallID, cs)
+	requestIDs := 0
+	sendCalls := 0
+	requestID := func() string {
+		requestIDs++
+		return "request-id"
+	}
+	send := func(context.Context, waBinary.Node) error {
+		sendCalls++
+		return nil
+	}
+
+	for i := 0; i < 2; i++ {
+		if err := cli.acceptCallWithDependencies(
+			context.Background(),
+			cs.meta.CallID,
+			requestID,
+			send,
+		); err != nil {
+			t.Fatalf("accept call %d: %v", i+1, err)
+		}
+	}
+	if sendCalls != 1 {
+		t.Fatalf("send calls = %d, want 1", sendCalls)
+	}
+	if requestIDs != 1 {
+		t.Fatalf("request ID calls = %d, want 1", requestIDs)
+	}
+	if !cs.connected {
+		t.Fatal("sequential successful accept did not leave the call connected")
+	}
+}
+
+func TestAcceptCallActiveGroupConcurrentBlockedSendSendsOnce(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
+	cli := &Client{calls: map[string]*callState{}}
+	cs := &callState{
+		meta:    types.BasicCallMeta{CallID: "ACTIVE-AD-HOC-CALL", CallCreator: creator},
+		to:      creator,
+		creator: creator,
+		group:   &groupCallState{},
+	}
+	cli.putCall(cs.meta.CallID, cs)
+	sendStarted := make(chan struct{}, 2)
+	releaseSend := make(chan struct{})
+	send := func(context.Context, waBinary.Node) error {
+		sendStarted <- struct{}{}
+		<-releaseSend
+		return nil
+	}
+	accept := func() error {
+		return cli.acceptCallWithDependencies(
+			context.Background(),
+			cs.meta.CallID,
+			func() string { return "request-id" },
+			send,
+		)
+	}
+
+	firstDone := make(chan error, 1)
+	go func() {
+		firstDone <- accept()
+	}()
+	<-sendStarted
+
+	secondDone := make(chan error, 1)
+	go func() {
+		secondDone <- accept()
+	}()
+
+	select {
+	case err := <-secondDone:
+		if err != nil {
+			close(releaseSend)
+			<-firstDone
+			t.Fatalf("coalesced accept: %v", err)
+		}
+		close(releaseSend)
+		if err = <-firstDone; err != nil {
+			t.Fatalf("first accept: %v", err)
+		}
+	case <-sendStarted:
+		close(releaseSend)
+		<-firstDone
+		<-secondDone
+		t.Fatal("concurrent accept entered a second send")
+	}
+
+	if !cs.connected {
+		t.Fatal("successful blocked send did not mark the call connected")
+	}
+}
+
 func TestAcceptCallActiveGroupDoesNotConnectReplacementState(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
 	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
@@ -193,6 +297,47 @@ func TestAcceptCallActiveGroupDoesNotConnectReplacementState(t *testing.T) {
 	)
 	if err == nil || !strings.Contains(err.Error(), "call state changed") {
 		t.Fatalf("replacement-state error = %v, want call state changed", err)
+	}
+	if original.connected || replacement.connected {
+		t.Fatalf("connected state = original %t replacement %t, want both false",
+			original.connected, replacement.connected)
+	}
+}
+
+func TestAcceptCallActiveGroupFailureDoesNotClearReplacementInFlight(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
+	cli := &Client{calls: map[string]*callState{}}
+	original := &callState{
+		meta:    types.BasicCallMeta{CallID: "ACTIVE-AD-HOC-CALL", CallCreator: creator},
+		to:      creator,
+		creator: creator,
+		group:   &groupCallState{},
+	}
+	replacement := &callState{
+		meta:           original.meta,
+		to:             creator,
+		creator:        creator,
+		group:          &groupCallState{},
+		acceptInFlight: true,
+	}
+	cli.putCall(original.meta.CallID, original)
+	sendFailure := errors.New("synthetic send failure")
+
+	err := cli.acceptCallWithDependencies(
+		context.Background(),
+		original.meta.CallID,
+		func() string { return "request-id" },
+		func(context.Context, waBinary.Node) error {
+			cli.putCall(original.meta.CallID, replacement)
+			return sendFailure
+		},
+	)
+	if !errors.Is(err, sendFailure) {
+		t.Fatalf("replacement-state error = %v, want it to wrap %v", err, sendFailure)
+	}
+	if !replacement.acceptInFlight {
+		t.Fatal("failed send for stale state cleared replacement accept-in-flight")
 	}
 	if original.connected || replacement.connected {
 		t.Fatalf("connected state = original %t replacement %t, want both false",

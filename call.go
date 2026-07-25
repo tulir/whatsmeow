@@ -364,6 +364,7 @@ func (cli *Client) markCallConnected(callID string, expected *callState) bool {
 	if cli.calls[callID] != expected {
 		return false
 	}
+	expected.acceptInFlight = false
 	expected.connected = true
 	return true
 }

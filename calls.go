@@ -30,6 +30,7 @@ type callState struct {
 	relay                 *types.RelayEndpoint
 	codec                 types.CallCodec
 	acceptPending         bool
+	acceptInFlight        bool
 	mediaReadySent        bool
 	localVideo            bool
 	remoteVideo           bool
@@ -207,21 +208,37 @@ func (cli *Client) acceptCallWithDependencies(
 		cli.callsLock.Unlock()
 		return nil
 	}
+	if cs.connected || cs.acceptInFlight {
+		cli.callsLock.Unlock()
+		return nil
+	}
 	cs.acceptPending = false
+	cs.acceptInFlight = true
 	creator := cs.creator
 	cli.callsLock.Unlock()
 
 	if requestID == nil || send == nil {
+		cli.clearCallAcceptInFlight(callID, cs)
 		return fmt.Errorf("whatsmeow: accept active group call: incomplete dependencies")
 	}
 	accept := buildImmediateGroupCallAccept(callID, creator, requestID())
 	if err := send(ctx, accept); err != nil {
+		cli.clearCallAcceptInFlight(callID, cs)
 		return fmt.Errorf("whatsmeow: send active group call accept: %w", err)
 	}
 	if !cli.markCallConnected(callID, cs) {
 		return fmt.Errorf("whatsmeow: active group call state changed while sending accept")
 	}
 	return nil
+}
+
+func (cli *Client) clearCallAcceptInFlight(callID string, expected *callState) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	cli.callsLock.Lock()
+	defer cli.callsLock.Unlock()
+	if cli.calls[callID] == expected {
+		expected.acceptInFlight = false
+	}
 }
 
 func buildImmediateGroupCallAccept(callID string, creator types.JID, requestID string) waBinary.Node {
