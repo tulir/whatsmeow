@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"testing"
 
+	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 )
 
@@ -134,6 +135,60 @@ func TestGroupCallSignalingTargetCorpus(t *testing.T) {
 				t.Fatalf("signaling target = %s, want %s", got, want)
 			}
 		})
+	}
+}
+
+func TestGroupCallControlsUseCallScopedSignalingTarget(t *testing.T) {
+	callID := "0032CD59A427AD3B9B48F33A71C85FE8"
+	creator := mustParseGroupStateJID(t, "74170125783269:43@lid")
+	peer := mustParseGroupStateJID(t, "242653052539031@lid")
+	cs := &callState{
+		to:      peer,
+		creator: creator,
+		meta:    types.BasicCallMeta{CallID: callID},
+		group: &groupCallState{snapshot: types.GroupCallUpdate{
+			CallID: callID,
+		}},
+	}
+	want := types.NewJID(callID, "call")
+
+	nodes := []waBinary.Node{
+		buildCallTerminate(cs, callID, "terminate-id"),
+		buildCallMute(cs, callID, "mute-id", "1"),
+		buildCallVideoState(cs, callID, "video-id", types.CallVideoStateEnabled, nil),
+	}
+	for _, node := range nodes {
+		action := node.GetChildren()[0]
+		got, ok := node.Attrs["to"].(types.JID)
+		if !ok {
+			t.Fatalf("%s to attribute is %T, want types.JID", action.Tag, node.Attrs["to"])
+		}
+		if got != want {
+			t.Errorf("%s target = %s, want %s", action.Tag, got, want)
+		}
+	}
+}
+
+func TestDirectCallControlsKeepPeerSignalingTarget(t *testing.T) {
+	callID := "DIRECT"
+	creator := mustParseGroupStateJID(t, "74170125783269:43@lid")
+	peer := mustParseGroupStateJID(t, "242653052539031@lid")
+	cs := &callState{to: peer, creator: creator}
+
+	nodes := []waBinary.Node{
+		buildCallTerminate(cs, callID, "terminate-id"),
+		buildCallMute(cs, callID, "mute-id", "0"),
+		buildCallVideoState(cs, callID, "video-id", types.CallVideoStateDisabled, nil),
+	}
+	for _, node := range nodes {
+		action := node.GetChildren()[0]
+		got, ok := node.Attrs["to"].(types.JID)
+		if !ok {
+			t.Fatalf("%s to attribute is %T, want types.JID", action.Tag, node.Attrs["to"])
+		}
+		if got != peer {
+			t.Errorf("%s target = %s, want %s", action.Tag, got, peer)
+		}
 	}
 }
 

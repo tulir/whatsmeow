@@ -198,8 +198,7 @@ func (cli *Client) HangupCall(ctx context.Context, callID string) error {
 	if cs == nil {
 		return fmt.Errorf("whatsmeow: unknown call %s", callID)
 	}
-	term := voip.BuildTerminate(&voip.TerminateParams{CallID: callID, To: cs.to, CallCreator: cs.creator})
-	term.Attrs["id"] = cli.GenerateMessageID()
+	term := buildCallTerminate(cs, callID, cli.GenerateMessageID())
 	sendErr := cli.sendNode(ctx, term)
 	cli.dispatchEvent(&events.CallMediaStop{BasicCallMeta: cs.meta, Reason: "hangup"})
 	if sendErr != nil {
@@ -208,6 +207,15 @@ func (cli *Client) HangupCall(ctx context.Context, callID string) error {
 	cli.dropCall(callID)
 	cli.Log.Debugf("Sent call terminate, call_id: %s", callID)
 	return nil
+}
+
+func buildCallTerminate(cs *callState, callID, requestID string) waBinary.Node {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	term := voip.BuildTerminate(&voip.TerminateParams{
+		CallID: callID, To: cs.signalingTarget(), CallCreator: cs.creator,
+	})
+	term.Attrs["id"] = requestID
+	return term
 }
 
 // SetCallMute sends our local mute-state change for callID.
@@ -220,11 +228,17 @@ func (cli *Client) SetCallMute(ctx context.Context, callID string, muted bool) e
 	if muted {
 		state = "1"
 	}
-	mute := voip.BuildMute(callID, cs.to, cs.creator, state)
-	mute.Attrs["id"] = cli.GenerateMessageID()
+	mute := buildCallMute(cs, callID, cli.GenerateMessageID(), state)
 	if err := cli.sendNode(ctx, mute); err != nil {
 		return fmt.Errorf("whatsmeow: send call mute: %w", err)
 	}
 	cli.Log.Debugf("Sent call mute, call_id: %s, muted: %t", callID, muted)
 	return nil
+}
+
+func buildCallMute(cs *callState, callID, requestID, state string) waBinary.Node {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	mute := voip.BuildMute(callID, cs.signalingTarget(), cs.creator, state)
+	mute.Attrs["id"] = requestID
+	return mute
 }

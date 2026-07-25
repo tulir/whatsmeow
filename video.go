@@ -68,7 +68,7 @@ func (cli *Client) SetCallVideo(ctx context.Context, callID string, state types.
 	if cs == nil {
 		return fmt.Errorf("whatsmeow: unknown call %s", callID)
 	}
-	node := voip.BuildVideoState(callID, cs.to, cs.creator, cli.generateRequestID(), state, orientation)
+	node := buildCallVideoState(cs, callID, cli.generateRequestID(), state, orientation)
 	if err := cli.sendNode(ctx, node); err != nil {
 		return fmt.Errorf("whatsmeow: send call video state: %w", err)
 	}
@@ -81,4 +81,21 @@ func (cli *Client) SetCallVideo(ctx context.Context, callID string, state types.
 	}
 	cli.callsLock.Unlock()
 	return nil
+}
+
+func buildCallVideoState(
+	cs *callState,
+	callID, requestID string,
+	state types.CallVideoState,
+	orientation *int,
+) waBinary.Node {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	return voip.BuildVideoState(
+		callID,
+		cs.signalingTarget(),
+		cs.creator,
+		requestID,
+		state,
+		orientation,
+	)
 }
