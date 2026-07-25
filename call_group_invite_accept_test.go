@@ -8,12 +8,197 @@ package whatsmeow
 
 import (
 	"context"
+	"errors"
+	"strings"
 	"testing"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 )
+
+func TestAcceptCallSendsActiveGroupAcceptImmediately(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
+	cli := &Client{calls: map[string]*callState{}}
+	cs := &callState{
+		meta: types.BasicCallMeta{
+			From:        creator,
+			CallCreator: creator,
+			CallID:      "ACTIVE-AD-HOC-CALL",
+		},
+		to:      creator,
+		creator: creator,
+		group: &groupCallState{snapshot: types.GroupCallUpdate{
+			CallID:        "ACTIVE-AD-HOC-CALL",
+			CallCreator:   creator,
+			TransactionID: 7,
+		}},
+	}
+	cli.putCall(cs.meta.CallID, cs)
+
+	var sent []waBinary.Node
+	err := cli.acceptCallWithDependencies(
+		context.Background(),
+		cs.meta.CallID,
+		func() string { return "request-id" },
+		func(_ context.Context, node waBinary.Node) error {
+			sent = append(sent, node)
+			return nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("acceptCallWithDependencies: %v", err)
+	}
+	if len(sent) != 1 {
+		t.Fatalf("sent node count = %d, want 1", len(sent))
+	}
+	if !cs.connected {
+		t.Fatal("successful active-group accept did not mark the exact call state connected")
+	}
+	if cs.acceptPending {
+		t.Fatal("active-group accept armed the direct-call deferred accept")
+	}
+
+	node := sent[0]
+	if node.Tag != "call" {
+		t.Fatalf("wrapper tag = %q, want call", node.Tag)
+	}
+	if got := node.AttrGetter().JID("to"); got != types.NewJID(cs.meta.CallID, "call") {
+		t.Fatalf("accept target = %s, want %s@call", got, cs.meta.CallID)
+	}
+	if got := node.AttrGetter().String("id"); got != "request-id" {
+		t.Fatalf("wrapper id = %q, want request-id", got)
+	}
+	actions := node.GetChildren()
+	if len(actions) != 1 || actions[0].Tag != "accept" {
+		t.Fatalf("wrapper children = %+v, want one accept", actions)
+	}
+	accept := actions[0]
+	if got := accept.AttrGetter().String("call-id"); got != cs.meta.CallID {
+		t.Fatalf("accept call-id = %q, want %q", got, cs.meta.CallID)
+	}
+	if got := accept.AttrGetter().JID("call-creator"); got != creator {
+		t.Fatalf("accept call-creator = %s, want %s", got, creator)
+	}
+	children := accept.GetChildren()
+	if len(children) != 3 {
+		t.Fatalf("accept child count = %d, want 3: audio, net, encopt", len(children))
+	}
+	wantTags := []string{"audio", "net", "encopt"}
+	for i, want := range wantTags {
+		if children[i].Tag != want {
+			t.Fatalf("accept child %d tag = %q, want %q", i, children[i].Tag, want)
+		}
+	}
+	if got := children[0].AttrGetter().String("enc"); got != "opus" {
+		t.Fatalf("audio enc = %q, want opus", got)
+	}
+	if got := children[0].AttrGetter().String("rate"); got != "16000" {
+		t.Fatalf("audio rate = %q, want 16000", got)
+	}
+	if got := children[1].AttrGetter().String("medium"); got != "2" {
+		t.Fatalf("net medium = %q, want 2", got)
+	}
+	if got := children[2].AttrGetter().String("keygen"); got != "2" {
+		t.Fatalf("encopt keygen = %q, want 2", got)
+	}
+	for _, child := range children {
+		if child.Tag == "metadata" {
+			t.Fatal("active-group accept contains forbidden 1:1 metadata")
+		}
+	}
+}
+
+func TestAcceptCallActiveGroupSendFailureRemainsRetryable(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
+	cli := &Client{calls: map[string]*callState{}}
+	cs := &callState{
+		meta:    types.BasicCallMeta{CallID: "ACTIVE-AD-HOC-CALL", CallCreator: creator},
+		to:      creator,
+		creator: creator,
+		group:   &groupCallState{},
+	}
+	cli.putCall(cs.meta.CallID, cs)
+	sendFailure := errors.New("synthetic send failure")
+	sendCalls := 0
+	send := func(context.Context, waBinary.Node) error {
+		sendCalls++
+		if sendCalls == 1 {
+			return sendFailure
+		}
+		return nil
+	}
+
+	err := cli.acceptCallWithDependencies(
+		context.Background(),
+		cs.meta.CallID,
+		func() string { return "request-id" },
+		send,
+	)
+	if !errors.Is(err, sendFailure) {
+		t.Fatalf("first accept error = %v, want it to wrap %v", err, sendFailure)
+	}
+	if cs.connected {
+		t.Fatal("failed active-group accept marked call connected")
+	}
+	if cs.acceptPending {
+		t.Fatal("failed active-group accept armed the direct-call deferred accept")
+	}
+
+	err = cli.acceptCallWithDependencies(
+		context.Background(),
+		cs.meta.CallID,
+		func() string { return "request-id-retry" },
+		send,
+	)
+	if err != nil {
+		t.Fatalf("retry active-group accept: %v", err)
+	}
+	if sendCalls != 2 {
+		t.Fatalf("send calls = %d, want 2", sendCalls)
+	}
+	if !cs.connected {
+		t.Fatal("successful retry did not mark call connected")
+	}
+}
+
+func TestAcceptCallActiveGroupDoesNotConnectReplacementState(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
+	cli := &Client{calls: map[string]*callState{}}
+	original := &callState{
+		meta:    types.BasicCallMeta{CallID: "ACTIVE-AD-HOC-CALL", CallCreator: creator},
+		to:      creator,
+		creator: creator,
+		group:   &groupCallState{},
+	}
+	replacement := &callState{
+		meta:    original.meta,
+		to:      creator,
+		creator: creator,
+		group:   &groupCallState{},
+	}
+	cli.putCall(original.meta.CallID, original)
+
+	err := cli.acceptCallWithDependencies(
+		context.Background(),
+		original.meta.CallID,
+		func() string { return "request-id" },
+		func(context.Context, waBinary.Node) error {
+			cli.putCall(original.meta.CallID, replacement)
+			return nil
+		},
+	)
+	if err == nil || !strings.Contains(err.Error(), "call state changed") {
+		t.Fatalf("replacement-state error = %v, want call state changed", err)
+	}
+	if original.connected || replacement.connected {
+		t.Fatalf("connected state = original %t replacement %t, want both false",
+			original.connected, replacement.connected)
+	}
+}
 
 func TestOnCallOfferRegistersActiveGroupInviteWithoutOfferKey(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L21-L54

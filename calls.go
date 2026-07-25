@@ -180,16 +180,60 @@ func (cli *Client) OfferCall(ctx context.Context, target types.JID, options ...C
 	return callID, nil
 }
 
-// AcceptCall arms the deferred accept for an inbound call.
+// AcceptCall accepts an inbound call.
 func (cli *Client) AcceptCall(ctx context.Context, callID string) error {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	return cli.acceptCallWithDependencies(ctx, callID, cli.generateRequestID, cli.sendNode)
+}
+
+func (cli *Client) acceptCallWithDependencies(
+	ctx context.Context,
+	callID string,
+	requestID func() string,
+	send func(context.Context, waBinary.Node) error,
+) error {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	if cli == nil {
+		return ErrClientIsNil
+	}
 	cli.callsLock.Lock()
-	defer cli.callsLock.Unlock()
 	cs := cli.calls[callID]
 	if cs == nil {
+		cli.callsLock.Unlock()
 		return fmt.Errorf("whatsmeow: unknown call %s", callID)
 	}
-	cs.acceptPending = true
+	if cs.group == nil {
+		cs.acceptPending = true
+		cli.callsLock.Unlock()
+		return nil
+	}
+	cs.acceptPending = false
+	creator := cs.creator
+	cli.callsLock.Unlock()
+
+	if requestID == nil || send == nil {
+		return fmt.Errorf("whatsmeow: accept active group call: incomplete dependencies")
+	}
+	accept := buildImmediateGroupCallAccept(callID, creator, requestID())
+	if err := send(ctx, accept); err != nil {
+		return fmt.Errorf("whatsmeow: send active group call accept: %w", err)
+	}
+	if !cli.markCallConnected(callID, cs) {
+		return fmt.Errorf("whatsmeow: active group call state changed while sending accept")
+	}
 	return nil
+}
+
+func buildImmediateGroupCallAccept(callID string, creator types.JID, requestID string) waBinary.Node {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	accept := voip.BuildAccept(&voip.AcceptParams{
+		CallID:      callID,
+		To:          types.NewJID(callID, "call"),
+		CallCreator: creator,
+		AudioRates:  []string{"16000"},
+	})
+	accept.Attrs["id"] = requestID
+	return accept
 }
 
 // HangupCall ends callID (either call direction).
