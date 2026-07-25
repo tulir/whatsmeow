@@ -188,7 +188,7 @@ func (cli *Client) OfferCall(ctx context.Context, target types.JID, options ...C
 
 // AcceptCall accepts an inbound call.
 func (cli *Client) AcceptCall(ctx context.Context, callID string) error {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/412d4b75759ed65f6182703398be47ca109f4e19/datasheets/voip-group-invite-accept.md#L96-L106
 	return cli.acceptCallWithDependencies(ctx, callID, cli.generateRequestID, cli.sendNode)
 }
 
@@ -198,7 +198,7 @@ func (cli *Client) acceptCallWithDependencies(
 	requestID func() string,
 	send func(context.Context, waBinary.Node) error,
 ) error {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/412d4b75759ed65f6182703398be47ca109f4e19/datasheets/voip-group-invite-accept.md#L96-L106
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -246,7 +246,7 @@ func (cli *Client) completeCallAcceptAttempt(
 	attempt *callAcceptAttempt,
 	result error,
 ) error {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/412d4b75759ed65f6182703398be47ca109f4e19/datasheets/voip-group-invite-accept.md#L96-L106
 	cli.callsLock.Lock()
 	defer cli.callsLock.Unlock()
 	if cli.calls[callID] != expected || expected.acceptAttempt != attempt {
