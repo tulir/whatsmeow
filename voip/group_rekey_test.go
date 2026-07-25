@@ -7,6 +7,7 @@
 package voip
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"strconv"
@@ -15,6 +16,96 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 )
+
+func TestBuildGroupEncRekeyMatchesCapturedDirectStanza(t *testing.T) {
+	recipient := mustParseGroupEncRekeyJID(t, "300003:43@lid")
+	creator := mustParseGroupEncRekeyJID(t, "100001:14@lid")
+	ciphertext := []byte{0x11, 0x22, 0x33, 0x44}
+	node, err := BuildGroupEncRekey(GroupEncRekeyParams{
+		CallID:        "D66652FC17BF1F8BBA898DE097B428FA",
+		To:            recipient,
+		CallCreator:   creator,
+		TransactionID: 14,
+		RequestID:     "3EB0CAPTURED",
+		DeviceKey: DeviceKey{
+			DeviceJID:  recipient,
+			Ciphertext: ciphertext,
+			EncType:    "msg",
+		},
+	})
+	if err != nil {
+		t.Fatalf("BuildGroupEncRekey: %v", err)
+	}
+	if node.Tag != "call" || node.AttrGetter().JID("to") != recipient || node.AttrGetter().String("id") != "3EB0CAPTURED" {
+		t.Fatalf("outer call = %+v", node)
+	}
+	actions := node.GetChildren()
+	if len(actions) != 1 || actions[0].Tag != "enc_rekey" {
+		t.Fatalf("actions = %+v", actions)
+	}
+	action := actions[0]
+	attrs := action.AttrGetter()
+	if attrs.String("call-id") != "D66652FC17BF1F8BBA898DE097B428FA" ||
+		attrs.JID("call-creator") != creator ||
+		attrs.String("transaction-id") != "14" ||
+		attrs.Error() != nil {
+		t.Fatalf("enc_rekey attrs = %+v", action.Attrs)
+	}
+	children := action.GetChildren()
+	if len(children) != 2 || children[0].Tag != "encopt" || children[1].Tag != "enc" {
+		t.Fatalf("enc_rekey children = %+v", children)
+	}
+	if children[0].AttrGetter().String("keygen") != "2" {
+		t.Fatalf("encopt attrs = %+v", children[0].Attrs)
+	}
+	encAttrs := children[1].AttrGetter()
+	if encAttrs.String("v") != "2" || encAttrs.String("type") != "msg" || encAttrs.String("count") != "0" {
+		t.Fatalf("enc attrs = %+v", children[1].Attrs)
+	}
+	gotCiphertext, ok := children[1].Content.([]byte)
+	if !ok || !bytes.Equal(gotCiphertext, ciphertext) {
+		t.Fatalf("ciphertext = %x, want %x", gotCiphertext, ciphertext)
+	}
+	ciphertext[0] ^= 0xff
+	if gotCiphertext[0] == ciphertext[0] {
+		t.Fatal("built stanza aliases caller ciphertext")
+	}
+}
+
+func TestBuildGroupEncRekeyRejectsMalformedParams(t *testing.T) {
+	recipient := mustParseGroupEncRekeyJID(t, "300003:43@lid")
+	creator := mustParseGroupEncRekeyJID(t, "100001:14@lid")
+	valid := GroupEncRekeyParams{
+		CallID:        "CID",
+		To:            recipient,
+		CallCreator:   creator,
+		TransactionID: 14,
+		RequestID:     "REQ",
+		DeviceKey:     DeviceKey{DeviceJID: recipient, Ciphertext: []byte{1}, EncType: "msg"},
+	}
+	cases := []struct {
+		name string
+		edit func(*GroupEncRekeyParams)
+	}{
+		{name: "call ID", edit: func(p *GroupEncRekeyParams) { p.CallID = "" }},
+		{name: "recipient", edit: func(p *GroupEncRekeyParams) { p.To = types.JID{} }},
+		{name: "creator", edit: func(p *GroupEncRekeyParams) { p.CallCreator = types.JID{} }},
+		{name: "transaction", edit: func(p *GroupEncRekeyParams) { p.TransactionID = 0 }},
+		{name: "request ID", edit: func(p *GroupEncRekeyParams) { p.RequestID = "" }},
+		{name: "device mismatch", edit: func(p *GroupEncRekeyParams) { p.DeviceKey.DeviceJID = creator }},
+		{name: "ciphertext", edit: func(p *GroupEncRekeyParams) { p.DeviceKey.Ciphertext = nil }},
+		{name: "type", edit: func(p *GroupEncRekeyParams) { p.DeviceKey.EncType = "skmsg" }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			params := valid
+			tc.edit(&params)
+			if _, err := BuildGroupEncRekey(params); err == nil {
+				t.Fatalf("BuildGroupEncRekey accepted missing/invalid %s", tc.name)
+			}
+		})
+	}
+}
 
 type groupEncRekeyCorpus struct {
 	Schema string                  `json:"schema"`

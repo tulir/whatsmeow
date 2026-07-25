@@ -22,21 +22,23 @@ import (
 )
 
 type callState struct {
-	meta             types.BasicCallMeta
-	selfLID, peerLID types.JID
-	to, creator      types.JID
-	outgoing         bool
-	callKey          []byte
-	relay            *types.RelayEndpoint
-	codec            types.CallCodec
-	acceptPending    bool
-	mediaReadySent   bool
-	localVideo       bool
-	remoteVideo      bool
-	group            *groupCallState
-	connected        bool
-	inviteSelfDevice types.GroupCallDevice
-	invitePeerDevice types.GroupCallDevice
+	meta                  types.BasicCallMeta
+	selfLID, peerLID      types.JID
+	to, creator           types.JID
+	outgoing              bool
+	callKey               []byte
+	relay                 *types.RelayEndpoint
+	codec                 types.CallCodec
+	acceptPending         bool
+	mediaReadySent        bool
+	localVideo            bool
+	remoteVideo           bool
+	group                 *groupCallState
+	groupKeyTransactionID uint32
+	hasGroupKeyEpoch      bool
+	connected             bool
+	inviteSelfDevice      types.GroupCallDevice
+	invitePeerDevice      types.GroupCallDevice
 }
 
 // CallOfferOptions configures a new outgoing 1:1 call.

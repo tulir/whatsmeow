@@ -85,7 +85,89 @@ func (cli *Client) onCallEncRekey(ctx context.Context, child *waBinary.Node, met
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: child})
 		return
 	}
-	cli.dispatchEvent(event)
+	if err = cli.installGroupKeyEpoch(
+		event.BasicCallMeta,
+		event.Rekey,
+		event.RawKey,
+		event.Data,
+		false,
+	); err != nil {
+		cli.Log.Warnf(
+			"Failed to install group call key epoch, call_id: %s, transaction_id: %d, author: %s, raw_key_bytes: %d: %v",
+			meta.CallID,
+			rekey.TransactionID,
+			meta.From,
+			len(rawKey),
+			err,
+		)
+		cli.dispatchEvent(&events.UnknownCallEvent{Node: child})
+	}
+}
+
+func (cli *Client) installGroupKeyEpoch(
+	meta types.BasicCallMeta,
+	rekey types.GroupCallEncRekey,
+	rawKey []byte,
+	data *waBinary.Node,
+	local bool,
+) error {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/d9df3eb9d96ea5260ffcd4036b6669499a1c1bc2/datasheets/voip-group-key-epoch-fanout.md#L85-L143
+	if cli == nil {
+		return ErrClientIsNil
+	}
+	if meta.CallID == "" || rekey.CallID == "" || meta.CallID != rekey.CallID {
+		return fmt.Errorf("whatsmeow: install group key epoch: call ID mismatch")
+	}
+	if rekey.TransactionID == 0 {
+		return fmt.Errorf("whatsmeow: install group key epoch: transaction ID is required")
+	}
+	if len(rawKey) != 32 {
+		return fmt.Errorf("whatsmeow: install group key epoch: raw key is %d bytes, want 32", len(rawKey))
+	}
+
+	cli.callsLock.Lock()
+	cs := cli.calls[meta.CallID]
+	if cs == nil {
+		cli.callsLock.Unlock()
+		return fmt.Errorf("whatsmeow: install group key epoch: unknown call %s", meta.CallID)
+	}
+	if cs.group == nil {
+		cli.callsLock.Unlock()
+		return fmt.Errorf("whatsmeow: install group key epoch: call %s has no group state", meta.CallID)
+	}
+	if cs.hasGroupKeyEpoch {
+		switch {
+		case rekey.TransactionID < cs.groupKeyTransactionID:
+			cli.callsLock.Unlock()
+			return nil
+		case rekey.TransactionID == cs.groupKeyTransactionID &&
+			bytes.Equal(cs.callKey, rawKey):
+			cli.callsLock.Unlock()
+			return nil
+		case rekey.TransactionID == cs.groupKeyTransactionID:
+			cli.callsLock.Unlock()
+			return fmt.Errorf(
+				"whatsmeow: install group key epoch: conflicting key for transaction %d",
+				rekey.TransactionID,
+			)
+		}
+	}
+	cs.callKey = bytes.Clone(rawKey)
+	cs.groupKeyTransactionID = rekey.TransactionID
+	cs.hasGroupKeyEpoch = true
+	cli.callsLock.Unlock()
+
+	eventRekey := rekey
+	eventRekey.Ciphertext = bytes.Clone(rekey.Ciphertext)
+	cli.dispatchEvent(&events.CallEncRekey{
+		BasicCallMeta: meta,
+		Rekey:         eventRekey,
+		RawKey:        bytes.Clone(rawKey),
+		Data:          data,
+		Local:         local,
+	})
+	cli.maybeEmitMediaReady(cs)
+	return nil
 }
 
 func decodeCallEncRekeyPlaintext(plaintext []byte) ([]byte, error) {

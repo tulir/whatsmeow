@@ -8,6 +8,8 @@ package whatsmeow
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"strconv"
 	"strings"
 	"testing"
@@ -18,6 +20,7 @@ import (
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
+	"go.mau.fi/whatsmeow/voip"
 )
 
 func TestDecodeCallEncRekeyPlaintextUnwrapsCallKeyMessage(t *testing.T) {
@@ -87,6 +90,273 @@ func TestNewCallEncRekeyEventRequiresExactRawKeyLength(t *testing.T) {
 				t.Fatalf("newCallEncRekeyEvent accepted %d-byte raw key", length)
 			}
 		})
+	}
+}
+
+func TestInstallGroupKeyEpochStartsKeylessAddedParticipantMedia(t *testing.T) {
+	cli, _, captured := routerTestClient()
+	self := mustParseCallEncRekeyJID(t, "300003:14@lid")
+	peer := mustParseCallEncRekeyJID(t, "100001:1@lid")
+	meta := types.BasicCallMeta{CallID: "ACTIVE-AD-HOC-CALL", From: peer, CallCreator: peer}
+	cli.calls[meta.CallID] = &callState{
+		meta:    meta,
+		selfLID: self,
+		peerLID: peer,
+		creator: peer,
+		relay:   &types.RelayEndpoint{RelayName: "euc1"},
+		group: &groupCallState{snapshot: types.GroupCallUpdate{
+			CallID: meta.CallID, TransactionID: 14,
+		}},
+	}
+	rawKey := bytes.Repeat([]byte{0x71}, 32)
+	rekey := types.GroupCallEncRekey{
+		CallID: meta.CallID, CallCreator: peer, TransactionID: 14,
+		KeyGeneration: 2, EncryptionType: "msg", EncryptionVersion: 2,
+	}
+	if err := cli.installGroupKeyEpoch(meta, rekey, rawKey, &waBinary.Node{Tag: "enc_rekey"}, false); err != nil {
+		t.Fatalf("installGroupKeyEpoch: %v", err)
+	}
+	rawKey[0] ^= 0xff
+
+	cs := cli.getCall(meta.CallID)
+	if cs == nil || len(cs.callKey) != 32 || cs.callKey[0] != 0x71 {
+		t.Fatalf("installed call key = %x", cs.callKey)
+	}
+	if !cs.mediaReadySent || !cs.hasGroupKeyEpoch || cs.groupKeyTransactionID != 14 {
+		t.Fatalf("installed state = ready %t has_epoch %t tx %d", cs.mediaReadySent, cs.hasGroupKeyEpoch, cs.groupKeyTransactionID)
+	}
+	rekeys := captured.filter(isCallEncRekey)
+	if len(rekeys) != 1 {
+		t.Fatalf("CallEncRekey count = %d, want 1", len(rekeys))
+	}
+	event := rekeys[0].(*events.CallEncRekey)
+	if event.Local || event.From != peer || event.RawKey[0] != 0x71 {
+		t.Fatalf("inbound epoch event = %+v", event)
+	}
+	ready := captured.filter(isCallMediaReady)
+	if len(ready) != 1 {
+		t.Fatalf("CallMediaReady count = %d, want 1", len(ready))
+	}
+	if got := ready[0].(*events.CallMediaReady); got.CallKey[0] != 0x71 || got.SelfLID != self {
+		t.Fatalf("media ready = %+v", got)
+	}
+}
+
+func TestInstallGroupKeyEpochDeduplicatesAndDoesNotRestartActiveMedia(t *testing.T) {
+	cli, _, captured := routerTestClient()
+	self := mustParseCallEncRekeyJID(t, "100001:14@lid")
+	distributor := mustParseCallEncRekeyJID(t, "300003:43@lid")
+	meta := types.BasicCallMeta{CallID: "ACTIVE-CALL", From: distributor, CallCreator: self}
+	cli.calls[meta.CallID] = &callState{
+		meta:           meta,
+		selfLID:        self,
+		peerLID:        distributor,
+		creator:        self,
+		callKey:        bytes.Repeat([]byte{0x11}, 32),
+		relay:          &types.RelayEndpoint{RelayName: "euc1"},
+		mediaReadySent: true,
+		group: &groupCallState{snapshot: types.GroupCallUpdate{
+			CallID: meta.CallID, TransactionID: 18,
+		}},
+	}
+	rawKey := bytes.Repeat([]byte{0x72}, 32)
+	rekey := types.GroupCallEncRekey{
+		CallID: meta.CallID, CallCreator: self, TransactionID: 17,
+		KeyGeneration: 2, EncryptionType: "msg", EncryptionVersion: 2,
+	}
+	if err := cli.installGroupKeyEpoch(meta, rekey, rawKey, nil, false); err != nil {
+		t.Fatalf("first install: %v", err)
+	}
+	if err := cli.installGroupKeyEpoch(meta, rekey, rawKey, nil, false); err != nil {
+		t.Fatalf("identical duplicate: %v", err)
+	}
+	conflicting := bytes.Repeat([]byte{0x27}, 32)
+	if err := cli.installGroupKeyEpoch(meta, rekey, conflicting, nil, false); err == nil {
+		t.Fatal("conflicting duplicate was accepted")
+	}
+	stale := rekey
+	stale.TransactionID = 16
+	if err := cli.installGroupKeyEpoch(meta, stale, bytes.Repeat([]byte{0x33}, 32), nil, false); err != nil {
+		t.Fatalf("stale epoch: %v", err)
+	}
+	if n := len(captured.filter(isCallEncRekey)); n != 1 {
+		t.Fatalf("CallEncRekey count = %d, want 1", n)
+	}
+	if n := len(captured.filter(isCallMediaReady)); n != 0 {
+		t.Fatalf("active media restarted %d times", n)
+	}
+	cs := cli.getCall(meta.CallID)
+	if cs.callKey[0] != 0x72 || cs.groupKeyTransactionID != 17 {
+		t.Fatalf("final epoch = key %x tx %d", cs.callKey[0], cs.groupKeyTransactionID)
+	}
+}
+
+func TestGroupRekeyRecipientsSelectsConnectedPIDDevicesInRosterOrder(t *testing.T) {
+	self := mustParseCallEncRekeyJID(t, "100001:14@lid")
+	peer := mustParseCallEncRekeyJID(t, "200002@lid")
+	added := mustParseCallEncRekeyJID(t, "300003:43@lid")
+	receipt := mustParseCallEncRekeyJID(t, "400004:63@lid")
+	noPID := mustParseCallEncRekeyJID(t, "500005:9@lid")
+	update := types.GroupCallUpdate{
+		CallID: "CID", TransactionID: 14,
+		Participants: []types.GroupCallParticipant{
+			{
+				JID: self.ToNonAD(), State: "connected",
+				Devices: []types.GroupCallDevice{{JID: self, PID: 1, HasPID: true}},
+			},
+			{
+				JID: peer.ToNonAD(), State: "connected",
+				Devices: []types.GroupCallDevice{{JID: peer, PID: 0, HasPID: true}},
+			},
+			{
+				JID: added.ToNonAD(), State: "connected",
+				Devices: []types.GroupCallDevice{
+					{JID: added, PID: 2, HasPID: true},
+					{JID: added, PID: 2, HasPID: true},
+					{JID: noPID},
+				},
+			},
+			{
+				JID: receipt.ToNonAD(), State: "receipt",
+				Devices: []types.GroupCallDevice{{JID: receipt, PID: 3, HasPID: true}},
+			},
+		},
+	}
+	got := groupRekeyRecipients(update, self)
+	want := []types.JID{peer, added}
+	if len(got) != len(want) {
+		t.Fatalf("recipients = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("recipient %d = %s, want %s", i, got[i], want[i])
+		}
+	}
+}
+
+func TestRunRequestedGroupEpochFanoutUsesOneRootAndInstallsAfterAllSends(t *testing.T) {
+	self := mustParseCallEncRekeyJID(t, "100001:14@lid")
+	creator := self
+	peer := mustParseCallEncRekeyJID(t, "200002@lid")
+	added := mustParseCallEncRekeyJID(t, "300003:43@lid")
+	meta := types.BasicCallMeta{CallID: "CID", CallCreator: creator}
+	update := types.GroupCallUpdate{
+		CallID: "CID", CallCreator: creator, TransactionID: 14, RekeyRequested: true,
+		Participants: []types.GroupCallParticipant{
+			{JID: self.ToNonAD(), State: "connected", Devices: []types.GroupCallDevice{{JID: self, PID: 1, HasPID: true}}},
+			{JID: peer.ToNonAD(), State: "connected", Devices: []types.GroupCallDevice{{JID: peer, PID: 0, HasPID: true}}},
+			{JID: added.ToNonAD(), State: "connected", Devices: []types.GroupCallDevice{{JID: added, PID: 2, HasPID: true}}},
+		},
+	}
+	root := bytes.Repeat([]byte{0x84}, 32)
+	var encryptedRoot []byte
+	var sent []waBinary.Node
+	var installedRoot []byte
+	var installedAfter int
+	requestIDs := []string{"REQ-A", "REQ-B"}
+	nextID := 0
+	deps := groupEpochFanoutDependencies{
+		random: bytes.NewReader(root),
+		encrypt: func(_ context.Context, recipients []types.JID, rawKey []byte) ([]voip.DeviceKey, error) {
+			if len(recipients) != 2 || recipients[0] != peer || recipients[1] != added {
+				t.Fatalf("encrypt recipients = %v", recipients)
+			}
+			encryptedRoot = bytes.Clone(rawKey)
+			return []voip.DeviceKey{
+				{DeviceJID: peer, Ciphertext: []byte{0x21}, EncType: "msg"},
+				{DeviceJID: added, Ciphertext: []byte{0x22}, EncType: "msg"},
+			}, nil
+		},
+		requestID: func() string {
+			id := requestIDs[nextID]
+			nextID++
+			return id
+		},
+		send: func(_ context.Context, node waBinary.Node) error {
+			if installedRoot != nil {
+				t.Fatal("local epoch installed before all sends")
+			}
+			sent = append(sent, node)
+			return nil
+		},
+		install: func(gotMeta types.BasicCallMeta, rekey types.GroupCallEncRekey, rawKey []byte, _ *waBinary.Node, local bool) error {
+			if gotMeta.From != self || rekey.TransactionID != 14 || !local {
+				t.Fatalf("local install metadata = %+v/%+v local=%t", gotMeta, rekey, local)
+			}
+			installedRoot = bytes.Clone(rawKey)
+			installedAfter = len(sent)
+			return nil
+		},
+	}
+	if err := runRequestedGroupEpochFanout(context.Background(), meta, update, self, deps); err != nil {
+		t.Fatalf("runRequestedGroupEpochFanout: %v", err)
+	}
+	if !bytes.Equal(encryptedRoot, root) || !bytes.Equal(installedRoot, root) {
+		t.Fatal("encryption and local install did not receive the same root")
+	}
+	if len(sent) != 2 || installedAfter != 2 {
+		t.Fatalf("sent/install order = %d/%d", len(sent), installedAfter)
+	}
+	for i, node := range sent {
+		if node.AttrGetter().JID("to") != []types.JID{peer, added}[i] ||
+			node.AttrGetter().String("id") != requestIDs[i] {
+			t.Fatalf("stanza %d outer attrs = %+v", i, node.Attrs)
+		}
+		action := node.GetChildren()[0]
+		if action.Tag != "enc_rekey" || action.AttrGetter().String("transaction-id") != "14" {
+			t.Fatalf("stanza %d action = %+v", i, action)
+		}
+	}
+}
+
+func TestRunRequestedGroupEpochFanoutDoesNotInstallAfterSendFailure(t *testing.T) {
+	self := mustParseCallEncRekeyJID(t, "100001:14@lid")
+	peer := mustParseCallEncRekeyJID(t, "200002@lid")
+	added := mustParseCallEncRekeyJID(t, "300003:43@lid")
+	update := types.GroupCallUpdate{
+		CallID: "CID", CallCreator: self, TransactionID: 14, RekeyRequested: true,
+		Participants: []types.GroupCallParticipant{
+			{JID: self.ToNonAD(), State: "connected", Devices: []types.GroupCallDevice{{JID: self, PID: 1, HasPID: true}}},
+			{JID: peer.ToNonAD(), State: "connected", Devices: []types.GroupCallDevice{{JID: peer, PID: 0, HasPID: true}}},
+			{JID: added.ToNonAD(), State: "connected", Devices: []types.GroupCallDevice{{JID: added, PID: 2, HasPID: true}}},
+		},
+	}
+	sentinel := errors.New("send failed")
+	sends := 0
+	installed := false
+	deps := groupEpochFanoutDependencies{
+		random: bytes.NewReader(bytes.Repeat([]byte{0x85}, 32)),
+		encrypt: func(_ context.Context, recipients []types.JID, _ []byte) ([]voip.DeviceKey, error) {
+			return []voip.DeviceKey{
+				{DeviceJID: recipients[0], Ciphertext: []byte{1}, EncType: "msg"},
+				{DeviceJID: recipients[1], Ciphertext: []byte{2}, EncType: "msg"},
+			}, nil
+		},
+		requestID: func() string { return "REQ" },
+		send: func(context.Context, waBinary.Node) error {
+			sends++
+			if sends == 2 {
+				return sentinel
+			}
+			return nil
+		},
+		install: func(types.BasicCallMeta, types.GroupCallEncRekey, []byte, *waBinary.Node, bool) error {
+			installed = true
+			return nil
+		},
+	}
+	err := runRequestedGroupEpochFanout(
+		context.Background(),
+		types.BasicCallMeta{CallID: "CID", CallCreator: self},
+		update,
+		self,
+		deps,
+	)
+	if !errors.Is(err, sentinel) {
+		t.Fatalf("fanout error = %v, want %v", err, sentinel)
+	}
+	if installed {
+		t.Fatal("failed fanout installed the local epoch")
 	}
 }
 

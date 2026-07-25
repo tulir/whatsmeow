@@ -38,4 +38,15 @@ func (cli *Client) onCallGroupUpdate(ctx context.Context, child *waBinary.Node, 
 		Update:        *update,
 		Data:          child,
 	})
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/d9df3eb9d96ea5260ffcd4036b6669499a1c1bc2/datasheets/voip-group-key-epoch-fanout.md#L99-L162
+	if update.RekeyRequested {
+		if err = cli.distributeRequestedGroupEpoch(ctx, meta, *update); err != nil {
+			cli.Log.Warnf(
+				"Failed to distribute requested group call key epoch, call_id: %s, transaction_id: %d: %v",
+				update.CallID,
+				update.TransactionID,
+				err,
+			)
+		}
+	}
 }

@@ -95,7 +95,7 @@ type GroupCallUpdate struct {
 	Relay          *GroupCallRelay
 }
 
-// GroupCallEncRekey is one encrypted participant key update for a group-call transaction.
+// GroupCallEncRekey is one encrypted shared key epoch for a group-call transaction.
 type GroupCallEncRekey struct {
 	CallID            string
 	CallCreator       JID

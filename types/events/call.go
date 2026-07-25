@@ -62,12 +62,13 @@ type CallGroupUpdate struct {
 	Data   *waBinary.Node
 }
 
-// CallEncRekey is one decrypted participant key update for a group call.
+// CallEncRekey is one shared raw media-key epoch for a group call.
 type CallEncRekey struct {
 	types.BasicCallMeta
 	Rekey  types.GroupCallEncRekey
 	RawKey []byte
 	Data   *waBinary.Node
+	Local  bool
 }
 
 type CallTerminate struct {
