@@ -364,8 +364,6 @@ func (cli *Client) markCallConnected(callID string, expected *callState) bool {
 	if cli.calls[callID] != expected {
 		return false
 	}
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
-	expected.acceptInFlight = false
 	expected.connected = true
 	return true
 }

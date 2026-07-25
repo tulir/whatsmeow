@@ -10,7 +10,9 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/store"
@@ -247,24 +249,115 @@ func TestAcceptCallActiveGroupConcurrentBlockedSendSendsOnce(t *testing.T) {
 
 	select {
 	case err := <-secondDone:
-		if err != nil {
-			close(releaseSend)
-			<-firstDone
-			t.Fatalf("coalesced accept: %v", err)
-		}
 		close(releaseSend)
-		if err = <-firstDone; err != nil {
-			t.Fatalf("first accept: %v", err)
-		}
+		<-firstDone
+		t.Fatalf("coalesced accept returned before the shared send completed: %v", err)
 	case <-sendStarted:
 		close(releaseSend)
 		<-firstDone
 		<-secondDone
 		t.Fatal("concurrent accept entered a second send")
+	case <-time.After(25 * time.Millisecond):
 	}
 
+	close(releaseSend)
+	if err := <-firstDone; err != nil {
+		t.Fatalf("first accept: %v", err)
+	}
+	if err := <-secondDone; err != nil {
+		t.Fatalf("coalesced accept: %v", err)
+	}
 	if !cs.connected {
 		t.Fatal("successful blocked send did not mark the call connected")
+	}
+}
+
+func TestAcceptCallActiveGroupConcurrentFailureSharesResultAndRetries(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
+	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
+	cli := &Client{calls: map[string]*callState{}}
+	cs := &callState{
+		meta:    types.BasicCallMeta{CallID: "ACTIVE-AD-HOC-CALL", CallCreator: creator},
+		to:      creator,
+		creator: creator,
+		group:   &groupCallState{},
+	}
+	cli.putCall(cs.meta.CallID, cs)
+	sendFailure := errors.New("synthetic send failure")
+	sendStarted := make(chan int32, 2)
+	releaseFirstSend := make(chan struct{})
+	var sendCalls atomic.Int32
+	send := func(context.Context, waBinary.Node) error {
+		attempt := sendCalls.Add(1)
+		sendStarted <- attempt
+		if attempt == 1 {
+			<-releaseFirstSend
+			return sendFailure
+		}
+		return nil
+	}
+	accept := func() error {
+		return cli.acceptCallWithDependencies(
+			context.Background(),
+			cs.meta.CallID,
+			func() string { return "request-id" },
+			send,
+		)
+	}
+
+	firstDone := make(chan error, 1)
+	go func() {
+		firstDone <- accept()
+	}()
+	if attempt := <-sendStarted; attempt != 1 {
+		t.Fatalf("first send attempt = %d, want 1", attempt)
+	}
+
+	secondDone := make(chan error, 1)
+	go func() {
+		secondDone <- accept()
+	}()
+
+	select {
+	case err := <-secondDone:
+		close(releaseFirstSend)
+		<-firstDone
+		t.Fatalf("coalesced accept returned before the shared send failed: %v", err)
+	case attempt := <-sendStarted:
+		close(releaseFirstSend)
+		<-firstDone
+		<-secondDone
+		t.Fatalf("concurrent accept entered send attempt %d, want one shared attempt", attempt)
+	case <-time.After(25 * time.Millisecond):
+	}
+
+	close(releaseFirstSend)
+	firstErr := <-firstDone
+	secondErr := <-secondDone
+	if !errors.Is(firstErr, sendFailure) {
+		t.Fatalf("first accept error = %v, want it to wrap %v", firstErr, sendFailure)
+	}
+	if !errors.Is(secondErr, sendFailure) {
+		t.Fatalf("coalesced accept error = %v, want it to wrap %v", secondErr, sendFailure)
+	}
+	if firstErr != secondErr {
+		t.Fatalf("coalesced callers received different attempt errors: %T and %T", firstErr, secondErr)
+	}
+	if got := sendCalls.Load(); got != 1 {
+		t.Fatalf("failed shared send calls = %d, want 1", got)
+	}
+	if cs.connected {
+		t.Fatal("failed shared send marked call connected")
+	}
+
+	if err := accept(); err != nil {
+		t.Fatalf("retry after shared failure: %v", err)
+	}
+	if got := sendCalls.Load(); got != 2 {
+		t.Fatalf("send calls after retry = %d, want 2", got)
+	}
+	if !cs.connected {
+		t.Fatal("successful retry did not mark call connected")
 	}
 }
 
@@ -315,12 +408,15 @@ func TestAcceptCallActiveGroupFailureDoesNotClearReplacementInFlight(t *testing.
 		group:   &groupCallState{},
 	}
 	replacement := &callState{
-		meta:           original.meta,
-		to:             creator,
-		creator:        creator,
-		group:          &groupCallState{},
-		acceptInFlight: true,
+		meta:    original.meta,
+		to:      creator,
+		creator: creator,
+		group:   &groupCallState{},
+		acceptAttempt: &callAcceptAttempt{
+			done: make(chan struct{}),
+		},
 	}
+	replacementAttempt := replacement.acceptAttempt
 	cli.putCall(original.meta.CallID, original)
 	sendFailure := errors.New("synthetic send failure")
 
@@ -336,7 +432,7 @@ func TestAcceptCallActiveGroupFailureDoesNotClearReplacementInFlight(t *testing.
 	if !errors.Is(err, sendFailure) {
 		t.Fatalf("replacement-state error = %v, want it to wrap %v", err, sendFailure)
 	}
-	if !replacement.acceptInFlight {
+	if replacement.acceptAttempt != replacementAttempt {
 		t.Fatal("failed send for stale state cleared replacement accept-in-flight")
 	}
 	if original.connected || replacement.connected {

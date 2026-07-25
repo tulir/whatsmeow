@@ -30,7 +30,7 @@ type callState struct {
 	relay                 *types.RelayEndpoint
 	codec                 types.CallCodec
 	acceptPending         bool
-	acceptInFlight        bool
+	acceptAttempt         *callAcceptAttempt
 	mediaReadySent        bool
 	localVideo            bool
 	remoteVideo           bool
@@ -40,6 +40,11 @@ type callState struct {
 	connected             bool
 	inviteSelfDevice      types.GroupCallDevice
 	invitePeerDevice      types.GroupCallDevice
+}
+
+type callAcceptAttempt struct {
+	done chan struct{}
+	err  error
 }
 
 // CallOfferOptions configures a new outgoing 1:1 call.
@@ -208,37 +213,55 @@ func (cli *Client) acceptCallWithDependencies(
 		cli.callsLock.Unlock()
 		return nil
 	}
-	if cs.connected || cs.acceptInFlight {
+	if cs.connected {
 		cli.callsLock.Unlock()
 		return nil
 	}
+	if attempt := cs.acceptAttempt; attempt != nil {
+		cli.callsLock.Unlock()
+		<-attempt.done
+		return attempt.err
+	}
 	cs.acceptPending = false
-	cs.acceptInFlight = true
+	attempt := &callAcceptAttempt{done: make(chan struct{})}
+	cs.acceptAttempt = attempt
 	creator := cs.creator
 	cli.callsLock.Unlock()
 
+	var result error
 	if requestID == nil || send == nil {
-		cli.clearCallAcceptInFlight(callID, cs)
-		return fmt.Errorf("whatsmeow: accept active group call: incomplete dependencies")
+		result = fmt.Errorf("whatsmeow: accept active group call: incomplete dependencies")
+	} else {
+		accept := buildImmediateGroupCallAccept(callID, creator, requestID())
+		if err := send(ctx, accept); err != nil {
+			result = fmt.Errorf("whatsmeow: send active group call accept: %w", err)
+		}
 	}
-	accept := buildImmediateGroupCallAccept(callID, creator, requestID())
-	if err := send(ctx, accept); err != nil {
-		cli.clearCallAcceptInFlight(callID, cs)
-		return fmt.Errorf("whatsmeow: send active group call accept: %w", err)
-	}
-	if !cli.markCallConnected(callID, cs) {
-		return fmt.Errorf("whatsmeow: active group call state changed while sending accept")
-	}
-	return nil
+	return cli.completeCallAcceptAttempt(callID, cs, attempt, result)
 }
 
-func (cli *Client) clearCallAcceptInFlight(callID string, expected *callState) {
+func (cli *Client) completeCallAcceptAttempt(
+	callID string,
+	expected *callState,
+	attempt *callAcceptAttempt,
+	result error,
+) error {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
 	cli.callsLock.Lock()
 	defer cli.callsLock.Unlock()
-	if cli.calls[callID] == expected {
-		expected.acceptInFlight = false
+	if cli.calls[callID] != expected || expected.acceptAttempt != attempt {
+		if result == nil {
+			result = fmt.Errorf("whatsmeow: active group call state changed while sending accept")
+		}
+	} else {
+		expected.acceptAttempt = nil
+		if result == nil {
+			expected.connected = true
+		}
 	}
+	attempt.err = result
+	close(attempt.done)
+	return result
 }
 
 func buildImmediateGroupCallAccept(callID string, creator types.JID, requestID string) waBinary.Node {
