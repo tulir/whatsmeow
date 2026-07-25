@@ -923,8 +923,25 @@ func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) (
 		return nil, fmt.Errorf("failed to marshal node: %w", err)
 	}
 
-	cli.sendLog.Debugf("%s", &node)
+	safeNode := sanitizeNodeForLog(node)
+	cli.sendLog.Debugf("%s", &safeNode)
 	return payload, sock.SendFrame(ctx, payload)
+}
+
+func sanitizeNodeForLog(node waBinary.Node) waBinary.Node {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/d9df3eb9d96ea5260ffcd4036b6669499a1c1bc2/datasheets/voip-group-key-epoch-fanout.md#L145-L162
+	sanitized := node
+	switch content := node.Content.(type) {
+	case []byte:
+		sanitized.Content = fmt.Sprintf("<!-- %d bytes redacted -->", len(content))
+	case []waBinary.Node:
+		children := make([]waBinary.Node, len(content))
+		for i := range content {
+			children[i] = sanitizeNodeForLog(content[i])
+		}
+		sanitized.Content = children
+	}
+	return sanitized
 }
 
 func (cli *Client) sendNode(ctx context.Context, node waBinary.Node) error {
