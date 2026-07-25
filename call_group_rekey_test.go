@@ -103,9 +103,27 @@ func TestInstallGroupKeyEpochStartsKeylessAddedParticipantMedia(t *testing.T) {
 		selfLID: self,
 		peerLID: peer,
 		creator: peer,
-		relay:   &types.RelayEndpoint{RelayName: "euc1"},
 		group: &groupCallState{snapshot: types.GroupCallUpdate{
 			CallID: meta.CallID, TransactionID: 14,
+			Participants: []types.GroupCallParticipant{
+				{
+					JID: self.ToNonAD(), State: "connected",
+					Devices: []types.GroupCallDevice{{JID: self, PID: 0, HasPID: true}},
+				},
+				{
+					JID: peer.ToNonAD(), State: "connected",
+					Devices: []types.GroupCallDevice{{JID: peer, PID: 1, HasPID: true}},
+				},
+			},
+			Relay: &types.GroupCallRelay{
+				Key:        bytes.Repeat([]byte{0x41}, 24),
+				Tokens:     [][]byte{bytes.Repeat([]byte{0x42}, 16)},
+				AuthTokens: [][]byte{bytes.Repeat([]byte{0x43}, 16)},
+				Endpoints: []types.GroupCallRelayEndpoint{{
+					RelayName: "euc1",
+					Address:   []byte{157, 240, 17, 133, 0x0d, 0x96},
+				}},
+			},
 		}},
 	}
 	rawKey := bytes.Repeat([]byte{0x71}, 32)

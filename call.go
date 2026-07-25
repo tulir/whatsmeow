@@ -168,6 +168,11 @@ func (cli *Client) acceptInboundOffer(
 	}
 	relay := voip.ParseRelay(child, types.CallDirectionIncoming)
 	isVideo := voip.OfferHasVideo(child)
+	var groupSnapshot *types.GroupCallUpdate
+	if len(group) > 0 && group[0] != nil {
+		cloned := cloneGroupCallUpdate(*group[0])
+		groupSnapshot = &cloned
+	}
 
 	cs := cli.getCall(meta.CallID)
 	isNew := cs == nil
@@ -185,8 +190,8 @@ func (cli *Client) acceptInboundOffer(
 			inviteSelfDevice: inviteSelfDevice,
 			invitePeerDevice: invitePeerDevice,
 		}
-		if len(group) > 0 && group[0] != nil {
-			cs.group = &groupCallState{snapshot: *group[0]}
+		if groupSnapshot != nil {
+			cs.group = &groupCallState{snapshot: *groupSnapshot}
 		}
 		cli.putCall(meta.CallID, cs)
 	} else {
@@ -204,9 +209,9 @@ func (cli *Client) acceptInboundOffer(
 		if invitePeerErr == nil {
 			cs.invitePeerDevice = invitePeerDevice
 		}
-		if len(group) > 0 && group[0] != nil &&
-			(cs.group == nil || group[0].TransactionID > cs.group.snapshot.TransactionID) {
-			cs.group = &groupCallState{snapshot: *group[0]}
+		if groupSnapshot != nil &&
+			(cs.group == nil || groupSnapshot.TransactionID > cs.group.snapshot.TransactionID) {
+			cs.group = &groupCallState{snapshot: *groupSnapshot}
 		}
 		cli.callsLock.Unlock()
 	}
@@ -218,7 +223,18 @@ func (cli *Client) acceptInboundOffer(
 	}
 
 	if isNew {
-		cli.dispatchEvent(&events.CallOffer{BasicCallMeta: meta, CallRemoteMeta: remote, Data: child, Video: isVideo})
+		var eventGroup *types.GroupCallUpdate
+		if groupSnapshot != nil {
+			cloned := cloneGroupCallUpdate(*groupSnapshot)
+			eventGroup = &cloned
+		}
+		cli.dispatchEvent(&events.CallOffer{
+			BasicCallMeta:  meta,
+			CallRemoteMeta: remote,
+			Data:           child,
+			Video:          isVideo,
+			Group:          eventGroup,
+		})
 	}
 	cli.maybeEmitMediaReady(cs)
 	return cs
@@ -371,13 +387,35 @@ func (cli *Client) captureCallRelay(cs *callState, node *waBinary.Node) {
 }
 
 func (cli *Client) maybeEmitMediaReady(cs *callState) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L183-L189
 	cli.callsLock.Lock()
-	if cs.callKey == nil || cs.relay == nil || cs.mediaReadySent {
+	if cs.callKey == nil || cs.mediaReadySent {
 		cli.callsLock.Unlock()
 		return
 	}
+	peer := cs.peerLID
+	var relay types.RelayEndpoint
+	if cs.group == nil {
+		if cs.relay == nil {
+			cli.callsLock.Unlock()
+			return
+		}
+		relay = *cs.relay
+	} else {
+		// NOT VALIDATED: clear when live group transport emits media readiness after its first installed key epoch.
+		var ok bool
+		if !cs.hasGroupKeyEpoch || len(cs.callKey) != 32 {
+			cli.callsLock.Unlock()
+			return
+		}
+		peer, relay, ok = groupMediaReadyFields(cs.selfLID, cs.group.snapshot)
+		if !ok {
+			cli.callsLock.Unlock()
+			return
+		}
+	}
 	cs.mediaReadySent = true
-	meta, self, peer, callKey, relay, codec := cs.meta, cs.selfLID, cs.peerLID, cs.callKey, *cs.relay, cs.codec
+	meta, self, callKey, codec := cs.meta, cs.selfLID, bytes.Clone(cs.callKey), cs.codec
 	direction := types.CallDirectionIncoming
 	if cs.outgoing {
 		direction = types.CallDirectionOutgoing
@@ -403,7 +441,7 @@ func (cli *Client) onCallAccept(meta types.BasicCallMeta, remote types.CallRemot
 	peer := meta.From
 	if cs := cli.getCall(meta.CallID); cs != nil {
 		cli.callsLock.Lock()
-		if !meta.From.IsEmpty() {
+		if cs.group == nil && !meta.From.IsEmpty() {
 			cs.peerLID = preferQualifiedCallPeer(cs.peerLID, meta.From)
 			cs.to = meta.From
 		}

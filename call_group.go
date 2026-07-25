@@ -49,4 +49,7 @@ func (cli *Client) onCallGroupUpdate(ctx context.Context, child *waBinary.Node, 
 			)
 		}
 	}
+	if cs := cli.getCall(update.CallID); cs != nil {
+		cli.maybeEmitMediaReady(cs)
+	}
 }

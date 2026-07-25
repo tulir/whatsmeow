@@ -6,7 +6,11 @@
 
 package whatsmeow
 
-import "go.mau.fi/whatsmeow/types"
+import (
+	"bytes"
+
+	"go.mau.fi/whatsmeow/types"
+)
 
 type groupCallState struct {
 	snapshot types.GroupCallUpdate
@@ -36,4 +40,38 @@ func (cs *callState) signalingTarget() types.JID {
 		return cs.to
 	}
 	return types.NewJID(cs.meta.CallID, "call")
+}
+
+func cloneGroupCallUpdate(update types.GroupCallUpdate) types.GroupCallUpdate {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/7cb6045001dafd2514f53e85cd8c3e419c13adbe/datasheets/voip-initial-group-call.md#L183-L191
+	cloned := update
+	cloned.Participants = make([]types.GroupCallParticipant, len(update.Participants))
+	for i, participant := range update.Participants {
+		cloned.Participants[i] = participant
+		cloned.Participants[i].Devices = make([]types.GroupCallDevice, len(participant.Devices))
+		for j, device := range participant.Devices {
+			cloned.Participants[i].Devices[j] = device
+			cloned.Participants[i].Devices[j].Capability = bytes.Clone(device.Capability)
+		}
+	}
+	if update.Relay != nil {
+		relay := *update.Relay
+		relay.Key = bytes.Clone(update.Relay.Key)
+		relay.HBHKey = bytes.Clone(update.Relay.HBHKey)
+		relay.Tokens = make([][]byte, len(update.Relay.Tokens))
+		for i, token := range update.Relay.Tokens {
+			relay.Tokens[i] = bytes.Clone(token)
+		}
+		relay.AuthTokens = make([][]byte, len(update.Relay.AuthTokens))
+		for i, token := range update.Relay.AuthTokens {
+			relay.AuthTokens[i] = bytes.Clone(token)
+		}
+		relay.Endpoints = make([]types.GroupCallRelayEndpoint, len(update.Relay.Endpoints))
+		for i, endpoint := range update.Relay.Endpoints {
+			relay.Endpoints[i] = endpoint
+			relay.Endpoints[i].Address = bytes.Clone(endpoint.Address)
+		}
+		cloned.Relay = &relay
+	}
+	return cloned
 }

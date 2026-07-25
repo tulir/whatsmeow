@@ -17,6 +17,7 @@ type CallOffer struct {
 
 	Data  *waBinary.Node
 	Video bool
+	Group *types.GroupCallUpdate
 }
 
 type CallAccept struct {
