@@ -183,7 +183,7 @@ func (cli *Client) OfferCall(ctx context.Context, target types.JID, options ...C
 
 // AcceptCall accepts an inbound call.
 func (cli *Client) AcceptCall(ctx context.Context, callID string) error {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
 	return cli.acceptCallWithDependencies(ctx, callID, cli.generateRequestID, cli.sendNode)
 }
 
@@ -193,7 +193,7 @@ func (cli *Client) acceptCallWithDependencies(
 	requestID func() string,
 	send func(context.Context, waBinary.Node) error,
 ) error {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
 	if cli == nil {
 		return ErrClientIsNil
 	}
@@ -233,7 +233,7 @@ func (cli *Client) acceptCallWithDependencies(
 }
 
 func (cli *Client) clearCallAcceptInFlight(callID string, expected *callState) {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
 	cli.callsLock.Lock()
 	defer cli.callsLock.Unlock()
 	if cli.calls[callID] == expected {
@@ -242,7 +242,7 @@ func (cli *Client) clearCallAcceptInFlight(callID string, expected *callState) {
 }
 
 func buildImmediateGroupCallAccept(callID string, creator types.JID, requestID string) waBinary.Node {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L26-L45
 	accept := voip.BuildAccept(&voip.AcceptParams{
 		CallID:      callID,
 		To:          types.NewJID(callID, "call"),

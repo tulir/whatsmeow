@@ -18,7 +18,7 @@ import (
 )
 
 func TestAcceptCallSendsActiveGroupAcceptImmediately(t *testing.T) {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L26-L45
 	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
 	cli := &Client{calls: map[string]*callState{}}
 	cs := &callState{
@@ -111,7 +111,7 @@ func TestAcceptCallSendsActiveGroupAcceptImmediately(t *testing.T) {
 }
 
 func TestAcceptCallActiveGroupSendFailureRemainsRetryable(t *testing.T) {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L26-L45
 	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
 	cli := &Client{calls: map[string]*callState{}}
 	cs := &callState{
@@ -165,7 +165,7 @@ func TestAcceptCallActiveGroupSendFailureRemainsRetryable(t *testing.T) {
 }
 
 func TestAcceptCallActiveGroupSequentialSuccessSendsOnce(t *testing.T) {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
 	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
 	cli := &Client{calls: map[string]*callState{}}
 	cs := &callState{
@@ -208,7 +208,7 @@ func TestAcceptCallActiveGroupSequentialSuccessSendsOnce(t *testing.T) {
 }
 
 func TestAcceptCallActiveGroupConcurrentBlockedSendSendsOnce(t *testing.T) {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
 	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
 	cli := &Client{calls: map[string]*callState{}}
 	cs := &callState{
@@ -269,7 +269,7 @@ func TestAcceptCallActiveGroupConcurrentBlockedSendSendsOnce(t *testing.T) {
 }
 
 func TestAcceptCallActiveGroupDoesNotConnectReplacementState(t *testing.T) {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
 	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
 	cli := &Client{calls: map[string]*callState{}}
 	original := &callState{
@@ -305,7 +305,7 @@ func TestAcceptCallActiveGroupDoesNotConnectReplacementState(t *testing.T) {
 }
 
 func TestAcceptCallActiveGroupFailureDoesNotClearReplacementInFlight(t *testing.T) {
-	// Source of truth: https://github.com/purpshell/meowcaller/blob/33854919e64bdd4b053054ac9764d8fc63027b57/datasheets/voip-group-invite-accept.md#L35-L39
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/676ebee3eca513b5348fab36cae5c560cc791238/datasheets/voip-group-invite-accept.md#L74-L104
 	creator := mustGroupInviteAcceptRouterJID(t, "100001:43@lid")
 	cli := &Client{calls: map[string]*callState{}}
 	original := &callState{
