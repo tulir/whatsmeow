@@ -32,6 +32,7 @@ func (cli *Client) onCallGroupUpdate(ctx context.Context, child *waBinary.Node, 
 		)
 		return
 	}
+	cli.clearDepartedParticipantState(*update)
 	meta.GroupJID = update.GroupJID
 	cli.dispatchEvent(&events.CallGroupUpdate{
 		BasicCallMeta: meta,

@@ -137,7 +137,10 @@ func TestInstallGroupKeyEpochStartsKeylessAddedParticipantMedia(t *testing.T) {
 	rawKey[0] ^= 0xff
 
 	cs := cli.getCall(meta.CallID)
-	if cs == nil || len(cs.callKey) != 32 || cs.callKey[0] != 0x71 {
+	if cs == nil {
+		t.Fatal("call state missing after install")
+	}
+	if len(cs.callKey) != 32 || cs.callKey[0] != 0x71 {
 		t.Fatalf("installed call key = %x", cs.callKey)
 	}
 	if !cs.mediaReadySent || !cs.hasGroupKeyEpoch || cs.groupKeyTransactionID != 14 {
@@ -327,7 +330,7 @@ func TestRunRequestedGroupEpochFanoutUsesOneRootAndInstallsAfterAllSends(t *test
 	}
 }
 
-func TestRunRequestedGroupEpochFanoutDoesNotInstallAfterSendFailure(t *testing.T) {
+func TestRunRequestedGroupEpochFanoutInstallsAfterPartialSendFailure(t *testing.T) {
 	self := mustParseCallEncRekeyJID(t, "100001:14@lid")
 	peer := mustParseCallEncRekeyJID(t, "200002@lid")
 	added := mustParseCallEncRekeyJID(t, "300003:43@lid")
@@ -353,7 +356,7 @@ func TestRunRequestedGroupEpochFanoutDoesNotInstallAfterSendFailure(t *testing.T
 		requestID: func() string { return "REQ" },
 		send: func(context.Context, waBinary.Node) error {
 			sends++
-			if sends == 2 {
+			if sends == 1 {
 				return sentinel
 			}
 			return nil
@@ -373,8 +376,53 @@ func TestRunRequestedGroupEpochFanoutDoesNotInstallAfterSendFailure(t *testing.T
 	if !errors.Is(err, sentinel) {
 		t.Fatalf("fanout error = %v, want %v", err, sentinel)
 	}
-	if installed {
-		t.Fatal("failed fanout installed the local epoch")
+	if sends != 2 {
+		t.Fatalf("send attempts = %d, want 2", sends)
+	}
+	if !installed {
+		t.Fatal("partial fanout did not install the local epoch")
+	}
+}
+
+func TestRunRequestedGroupEpochFanoutPreservesSendAndInstallFailures(t *testing.T) {
+	self := mustParseCallEncRekeyJID(t, "100001:14@lid")
+	peer := mustParseCallEncRekeyJID(t, "200002@lid")
+	update := types.GroupCallUpdate{
+		CallID: "CID", CallCreator: self, TransactionID: 14, RekeyRequested: true,
+		Participants: []types.GroupCallParticipant{
+			{JID: self.ToNonAD(), State: "connected", Devices: []types.GroupCallDevice{{JID: self, PID: 1, HasPID: true}}},
+			{JID: peer.ToNonAD(), State: "connected", Devices: []types.GroupCallDevice{{JID: peer, PID: 0, HasPID: true}}},
+		},
+	}
+	sendErr := errors.New("send failed")
+	installErr := errors.New("install failed")
+	deps := groupEpochFanoutDependencies{
+		random: bytes.NewReader(bytes.Repeat([]byte{0x86}, 32)),
+		encrypt: func(_ context.Context, recipients []types.JID, _ []byte) ([]voip.DeviceKey, error) {
+			return []voip.DeviceKey{{
+				DeviceJID: recipients[0], Ciphertext: []byte{1}, EncType: "msg",
+			}}, nil
+		},
+		requestID: func() string { return "REQ" },
+		send: func(context.Context, waBinary.Node) error {
+			return sendErr
+		},
+		install: func(types.BasicCallMeta, types.GroupCallEncRekey, []byte, *waBinary.Node, bool) error {
+			return installErr
+		},
+	}
+	err := runRequestedGroupEpochFanout(
+		context.Background(),
+		types.BasicCallMeta{CallID: "CID", CallCreator: self},
+		update,
+		self,
+		deps,
+	)
+	if !errors.Is(err, sendErr) {
+		t.Fatalf("fanout error = %v, missing %v", err, sendErr)
+	}
+	if !errors.Is(err, installErr) {
+		t.Fatalf("fanout error = %v, missing %v", err, installErr)
 	}
 }
 

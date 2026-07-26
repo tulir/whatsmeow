@@ -307,6 +307,76 @@ func TestInviteCallParticipantRejectsInvalidInputAndExistingParticipant(t *testi
 	}
 }
 
+func TestRingCallParticipantsSelectsDisconnectedTargetAndConnectedRoster(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/25eda415afb0f926112ca375c5892b95b4bd6f60/datasheets/voip-group-invite-offer.md#L81-L106
+	// Capture group-unanswered-ringing-v2-20260726-035236 covers the
+	// inviteToCall/group-update sequence.
+	self := mustParticipantInviteJID(t, "156535032389744@lid")
+	peer := mustParticipantInviteJID(t, "242653052539031@lid")
+	target := mustParticipantInviteJID(t, "74170125783269@lid")
+	participants := []types.GroupCallParticipant{
+		{JID: self, State: "connected"},
+		{JID: peer, State: "connected"},
+		{JID: target, State: "invited"},
+	}
+
+	got, err := ringCallParticipants(participants, target)
+	if err != nil {
+		t.Fatalf("ringCallParticipants: %v", err)
+	}
+	if len(got) != 2 || got[0].JID != self || got[1].JID != peer {
+		t.Fatalf("ring group_info participants = %+v, want connected self and peer", got)
+	}
+}
+
+func TestRingCallParticipantsRejectsMissingAndConnectedTargets(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L117-L137
+	target := mustParticipantInviteJID(t, "74170125783269@lid")
+	other := mustParticipantInviteJID(t, "242653052539031@lid")
+	if _, err := ringCallParticipants([]types.GroupCallParticipant{{
+		JID: other, State: "connected",
+	}}, target); err == nil || !strings.Contains(err.Error(), "does not belong") {
+		t.Fatalf("missing-target error = %v", err)
+	}
+	if _, err := ringCallParticipants([]types.GroupCallParticipant{{
+		JID: target, State: "connected",
+	}}, target); err == nil || !strings.Contains(err.Error(), "already connected") {
+		t.Fatalf("connected-target error = %v", err)
+	}
+}
+
+func TestRingCallParticipantReachesSendForInvitedRosterTarget(t *testing.T) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	self := mustParticipantInviteJID(t, "156535032389744:15@lid")
+	peer := mustParticipantInviteJID(t, "242653052539031@lid")
+	target := mustParticipantInviteJID(t, "74170125783269@lid")
+	targetDevice := mustParticipantInviteJID(t, "74170125783269:43@lid")
+	cs := &callState{
+		meta:      types.BasicCallMeta{CallID: "CID"},
+		creator:   self,
+		connected: true,
+		group: &groupCallState{snapshot: types.GroupCallUpdate{
+			Participants: []types.GroupCallParticipant{
+				{JID: self.ToNonAD(), State: "connected"},
+				{JID: peer, State: "connected"},
+				{JID: target, State: "invited"},
+			},
+		}},
+	}
+	cli := &Client{
+		calls: map[string]*callState{"CID": cs},
+		userDevicesCache: map[types.JID]deviceCache{
+			target: {devices: []types.JID{targetDevice}},
+		},
+		Log: waLog.Noop,
+	}
+
+	err := cli.RingCallParticipant(context.Background(), "CID", target)
+	if err == nil || !strings.Contains(err.Error(), ErrNotConnected.Error()) {
+		t.Fatalf("RingCallParticipant error = %v, want send attempt wrapping %v", err, ErrNotConnected)
+	}
+}
+
 func TestParseCallInviteDeviceRejectsMalformedCapability(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L117-L121
 	device := mustParticipantInviteJID(t, "200002@lid")

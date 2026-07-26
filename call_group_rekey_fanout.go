@@ -9,6 +9,7 @@ package whatsmeow
 import (
 	"context"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 
@@ -101,9 +102,13 @@ func runRequestedGroupEpochFanout(
 			return err
 		}
 	}
-	for _, node := range nodes {
+	var fanoutErrors []error
+	for i, node := range nodes {
 		if err = deps.send(ctx, node); err != nil {
-			return fmt.Errorf("whatsmeow: send group key epoch: %w", err)
+			fanoutErrors = append(
+				fanoutErrors,
+				fmt.Errorf("whatsmeow: send group key epoch to %s: %w", recipients[i], err),
+			)
 		}
 	}
 	localMeta := meta
@@ -122,9 +127,12 @@ func runRequestedGroupEpochFanout(
 		data = &action
 	}
 	if err = deps.install(localMeta, rekey, rawKey, data, true); err != nil {
-		return fmt.Errorf("whatsmeow: install local group key epoch: %w", err)
+		fanoutErrors = append(
+			fanoutErrors,
+			fmt.Errorf("whatsmeow: install local group key epoch: %w", err),
+		)
 	}
-	return nil
+	return errors.Join(fanoutErrors...)
 }
 
 func (cli *Client) distributeRequestedGroupEpoch(

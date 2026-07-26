@@ -113,6 +113,50 @@ func TestApplyGroupUpdateCorpus(t *testing.T) {
 	}
 }
 
+func TestApplyGroupUpdateOwnsStoredSnapshot(t *testing.T) {
+	callID := "OWNED-SNAPSHOT"
+	cli := &Client{calls: map[string]*callState{}}
+	cli.putCall(callID, &callState{meta: types.BasicCallMeta{CallID: callID}})
+	update := types.GroupCallUpdate{
+		CallID:        callID,
+		TransactionID: 1,
+		Participants: []types.GroupCallParticipant{{
+			Devices: []types.GroupCallDevice{{
+				Capability: []byte{0x11},
+			}},
+		}},
+		Relay: &types.GroupCallRelay{
+			Key:        []byte{0x21},
+			HBHKey:     []byte{0x22},
+			Tokens:     [][]byte{{0x23}},
+			AuthTokens: [][]byte{{0x24}},
+			Endpoints: []types.GroupCallRelayEndpoint{{
+				Address: []byte{0x25},
+			}},
+		},
+	}
+	if !cli.applyGroupUpdate(update) {
+		t.Fatal("group update was not applied")
+	}
+
+	update.Participants[0].Devices[0].Capability[0] = 0xff
+	update.Relay.Key[0] = 0xff
+	update.Relay.HBHKey[0] = 0xff
+	update.Relay.Tokens[0][0] = 0xff
+	update.Relay.AuthTokens[0][0] = 0xff
+	update.Relay.Endpoints[0].Address[0] = 0xff
+
+	stored := cli.getCall(callID).group.snapshot
+	if stored.Participants[0].Devices[0].Capability[0] != 0x11 ||
+		stored.Relay.Key[0] != 0x21 ||
+		stored.Relay.HBHKey[0] != 0x22 ||
+		stored.Relay.Tokens[0][0] != 0x23 ||
+		stored.Relay.AuthTokens[0][0] != 0x24 ||
+		stored.Relay.Endpoints[0].Address[0] != 0x25 {
+		t.Fatalf("stored snapshot aliases caller-owned data: %+v", stored)
+	}
+}
+
 func TestGroupCallSignalingTargetCorpus(t *testing.T) {
 	// Source of truth: https://github.com/purpshell/meowcaller/blob/699185f41519da3177c17ea6a10f9d4aa48b6941/datasheets/voip-group-call-state.md#L41-L43
 	corpus := loadGroupCallStateCorpus(t)

@@ -22,6 +22,61 @@ type CallRemoteMeta struct {
 	RemoteVersion  string
 }
 
+// CallLinkMedia identifies the media mode encoded in a WhatsApp call link.
+type CallLinkMedia string
+
+const (
+	CallLinkMediaAudio CallLinkMedia = "audio"
+	CallLinkMediaVideo CallLinkMedia = "video"
+)
+
+// CallLink is a reusable token returned by the call-link service.
+type CallLink struct {
+	Token string
+	Media CallLinkMedia
+}
+
+// CallLinkPreview is the service metadata returned before joining a link.
+type CallLinkPreview struct {
+	Token              string
+	Media              CallLinkMedia
+	Creator            JID
+	CreatorPN          JID
+	WaitingRoomEnabled bool
+	IsAdmin            bool
+}
+
+// CallLinkJoin is the result of joining a reusable link.
+type CallLinkJoin struct {
+	Token              string
+	Media              CallLinkMedia
+	CallID             string
+	CallCreator        JID
+	WaitingRoomEnabled bool
+	InWaitingRoom      bool
+	IsAdmin            bool
+	Group              *GroupCallUpdate
+}
+
+// CallLinkWaitingRoom is one authoritative waiting-room snapshot.
+type CallLinkWaitingRoom struct {
+	CallID        string
+	CallCreator   JID
+	LinkToken     string
+	Media         CallLinkMedia
+	Enabled       bool
+	IsAdmin       bool
+	TransactionID uint32
+	Users         []CallLinkWaitingRoomUser
+}
+
+// CallLinkWaitingRoomUser is one user in a waiting-room snapshot.
+type CallLinkWaitingRoomUser struct {
+	JID   JID
+	PN    JID
+	State string
+}
+
 // CallDirection identifies which side originated a 1:1 call.
 type CallDirection uint8
 
@@ -44,6 +99,22 @@ const (
 	CallVideoStateUpgradeCancel    CallVideoState = 8
 	CallVideoStateUpgradeRequestV2 CallVideoState = 11
 )
+
+// CallScreenShareState identifies one independent screen-share transition.
+type CallScreenShareState int
+
+const (
+	CallScreenShareStateStarted CallScreenShareState = 1
+	CallScreenShareStateStopped CallScreenShareState = 2
+)
+
+// CallScreenShare is the parsed state of one participant's screen-share stream.
+type CallScreenShare struct {
+	State            CallScreenShareState
+	Version          uint32
+	ScreenShareID    uint32
+	HasScreenShareID bool
+}
 
 // CallCodec identifies which media codec a 1:1 call negotiated.
 type CallCodec uint8
@@ -111,6 +182,7 @@ type GroupCallParticipant struct {
 	JID     JID
 	PN      JID
 	State   string
+	Type    string
 	Devices []GroupCallDevice
 }
 

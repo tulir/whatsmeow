@@ -23,7 +23,13 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
 		return
 	}
-	if children[0].Tag == "video" {
+	if children[0].Tag == "waiting_room_update" {
+		cli.handleCallWaitingRoomUpdate(ctx, node, cli.sendNode)
+		return
+	} else if children[0].Tag == "user_action" || children[0].Tag == "screen_share" {
+		cli.handleCallParticipantState(ctx, node, cli.sendNode)
+		return
+	} else if children[0].Tag == "video" {
 		cli.sendCallVideoAck(ctx, node)
 	} else {
 		defer cli.maybeDeferredAck(ctx, node)()

@@ -183,3 +183,88 @@ func (cli *Client) InviteCallParticipant(ctx context.Context, callID string, tar
 	)
 	return nil
 }
+
+func ringCallParticipants(
+	participants []types.GroupCallParticipant,
+	target types.JID,
+) ([]types.GroupCallParticipant, error) {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	target = target.ToNonAD()
+	found := false
+	connected := make([]types.GroupCallParticipant, 0, len(participants))
+	for _, participant := range participants {
+		participantJID := participant.JID.ToNonAD()
+		if participantJID == target {
+			found = true
+			if participant.State == "connected" {
+				return nil, fmt.Errorf("whatsmeow: ring target %s is already connected", target)
+			}
+			continue
+		}
+		if participant.State == "connected" {
+			connected = append(connected, participant)
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("whatsmeow: ring target %s does not belong to the call", target)
+	}
+	if len(connected) == 0 {
+		return nil, errors.New("whatsmeow: ring call participant: no connected participants")
+	}
+	return connected, nil
+}
+
+// RingCallParticipant rings one non-connected participant already present in an active call roster.
+func (cli *Client) RingCallParticipant(ctx context.Context, callID string, target types.JID) error {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/1ebd064663ac336ff3d1fc65d9baa974148fe73e/datasheets/voip-group-participant-invite.md#L36-L72
+	if cli == nil {
+		return ErrClientIsNil
+	}
+	if callID == "" {
+		return errors.New("whatsmeow: ring call participant: call ID is required")
+	}
+	if target.IsEmpty() {
+		return errors.New("whatsmeow: ring call participant: target is required")
+	}
+
+	creator, participants, video, err := cli.groupInviteRoster(callID)
+	if err != nil {
+		return err
+	}
+	peer, err := cli.resolvePeerCallLID(ctx, target)
+	if err != nil {
+		return fmt.Errorf("whatsmeow: resolve ring target: %w", err)
+	}
+	peer = peer.ToNonAD()
+	participants, err = ringCallParticipants(participants, peer)
+	if err != nil {
+		return err
+	}
+	devices, err := cli.GetUserDevices(ctx, []types.JID{peer})
+	if err != nil {
+		return fmt.Errorf("whatsmeow: ring target device discovery: %w", err)
+	}
+	if len(devices) == 0 {
+		return fmt.Errorf("whatsmeow: ring target %s has no devices", peer)
+	}
+	offer, err := voip.BuildGroupInviteOffer(voip.GroupInviteOfferParams{
+		CallID:        callID,
+		To:            peer,
+		CallCreator:   creator,
+		TargetDevices: devices,
+		Participants:  participants,
+		Video:         video,
+	})
+	if err != nil {
+		return err
+	}
+	offer.Attrs["id"] = cli.GenerateMessageID()
+	if err = cli.sendNode(ctx, offer); err != nil {
+		return fmt.Errorf("whatsmeow: send participant ring: %w", err)
+	}
+	cli.Log.Debugf(
+		"Sent participant ring, call_id: %s, target_lid: %s, device_count: %d, participant_count: %d",
+		callID, peer, len(devices), len(participants),
+	)
+	return nil
+}

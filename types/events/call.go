@@ -63,6 +63,13 @@ type CallGroupUpdate struct {
 	Data   *waBinary.Node
 }
 
+// CallWaitingRoomUpdate is one authoritative call-link waiting-room snapshot.
+type CallWaitingRoomUpdate struct {
+	types.BasicCallMeta
+	WaitingRoom types.CallLinkWaitingRoom
+	Data        *waBinary.Node
+}
+
 // CallEncRekey is one shared raw media-key epoch for a group call.
 type CallEncRekey struct {
 	types.BasicCallMeta
@@ -126,4 +133,23 @@ type CallVideo struct {
 	Orientation    int
 	HasOrientation bool
 	Data           *waBinary.Node
+}
+
+// CallHandRaise describes one persistent participant hand-state transition.
+type CallHandRaise struct {
+	types.BasicCallMeta
+
+	Participant types.JID
+	Raised      bool
+	Data        *waBinary.Node
+}
+
+// CallScreenShare describes one participant's independent screen-share transition.
+type CallScreenShare struct {
+	types.BasicCallMeta
+	types.CallScreenShare
+
+	Participant types.JID
+	Data        *waBinary.Node
+	Synthetic   bool
 }

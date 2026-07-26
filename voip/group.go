@@ -133,6 +133,7 @@ func parseGroupParticipant(node *waBinary.Node) (types.GroupCallParticipant, err
 		JID:   attrs.JID("jid"),
 		PN:    attrs.OptionalJIDOrEmpty("user_pn"),
 		State: attrs.String("state"),
+		Type:  attrs.OptionalString("type"),
 	}
 	if err := attrs.Error(); err != nil {
 		return participant, fmt.Errorf("whatsmeow: parse group participant attributes: %w", err)

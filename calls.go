@@ -40,6 +40,12 @@ type callState struct {
 	connected             bool
 	inviteSelfDevice      types.GroupCallDevice
 	invitePeerDevice      types.GroupCallDevice
+	raisedHands           map[types.JID]bool
+	screenShares          map[types.JID]types.CallScreenShare
+	linkToken             string
+	waitingRoom           *types.CallLinkWaitingRoom
+	inWaitingRoom         bool
+	waitingRoomCancel     context.CancelFunc
 }
 
 type callAcceptAttempt struct {
@@ -66,8 +72,16 @@ func (cli *Client) putCall(callID string, cs *callState) {
 
 func (cli *Client) dropCall(callID string) {
 	cli.callsLock.Lock()
-	defer cli.callsLock.Unlock()
+	cs := cli.calls[callID]
+	var cancel context.CancelFunc
+	if cs != nil {
+		cancel = cs.waitingRoomCancel
+	}
 	delete(cli.calls, callID)
+	cli.callsLock.Unlock()
+	if cancel != nil {
+		cancel()
+	}
 }
 
 func newCallID() string {
