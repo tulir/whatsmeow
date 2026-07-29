@@ -263,6 +263,12 @@ func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *event
 	encMessage := evt.Message.GetSecretEncryptedMessage()
 	if encMessage == nil {
 		return nil, ErrNotSecretEncryptedMessage
+	} else if encMessage.GetTargetMessageKey().GetID() == "" {
+		return nil, fmt.Errorf("secret encrypted message target key is missing")
+	} else if len(encMessage.GetEncIV()) != 12 {
+		return nil, fmt.Errorf("invalid secret encrypted message IV length: %d", len(encMessage.GetEncIV()))
+	} else if len(encMessage.GetEncPayload()) == 0 {
+		return nil, fmt.Errorf("secret encrypted message payload is missing")
 	}
 	var secretType MsgSecretType
 	switch encMessage.GetSecretEncType() {
@@ -290,6 +296,36 @@ func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *event
 		msg.MessageContextInfo = evt.Message.MessageContextInfo
 	}
 	return &msg, nil
+}
+
+// decryptSecretEncryptedMessageEdit decrypts a MESSAGE_EDIT envelope and
+// exposes it in the same event shape as the legacy EditedMessage wrapper.
+func (cli *Client) decryptSecretEncryptedMessageEdit(ctx context.Context, evt *events.Message) error {
+	encMessage := evt.Message.GetSecretEncryptedMessage()
+	if encMessage == nil || encMessage.GetSecretEncType() != waE2E.SecretEncryptedMessage_MESSAGE_EDIT {
+		return ErrNotSecretEncryptedMessage
+	}
+	decrypted, err := cli.DecryptSecretEncryptedMessage(ctx, evt)
+	if err != nil {
+		return fmt.Errorf("failed to decrypt secret encrypted message edit: %w", err)
+	}
+
+	// Some protocol versions encrypt only the edited content, while older
+	// implementations encrypted the full protocol message. Normalize both to
+	// the event shape produced by an EditedMessage wrapper.
+	if decrypted.GetProtocolMessage().GetType() != waE2E.ProtocolMessage_MESSAGE_EDIT {
+		decrypted = &waE2E.Message{
+			ProtocolMessage: &waE2E.ProtocolMessage{
+				Key:           encMessage.GetTargetMessageKey(),
+				Type:          waE2E.ProtocolMessage_MESSAGE_EDIT.Enum(),
+				EditedMessage: decrypted,
+				TimestampMS:   proto.Int64(evt.Info.Timestamp.UnixMilli()),
+			},
+		}
+	}
+	evt.Message = decrypted
+	evt.IsEdit = true
+	return nil
 }
 
 func getKeyFromInfo(msgInfo *types.MessageInfo) *waCommon.MessageKey {

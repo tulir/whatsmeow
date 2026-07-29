@@ -1121,7 +1121,14 @@ func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.Messa
 		return false
 	}
 	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount}
-	return cli.dispatchEvent(evt.UnwrapRaw())
+	evt.UnwrapRaw()
+	if evt.Message.GetSecretEncryptedMessage().GetSecretEncType() == waE2E.SecretEncryptedMessage_MESSAGE_EDIT {
+		err := cli.decryptSecretEncryptedMessageEdit(ctx, evt)
+		if err != nil {
+			cli.Log.Warnf("Failed to decrypt secret encrypted message edit %s: %v", info.ID, err)
+		}
+	}
+	return cli.dispatchEvent(evt)
 }
 
 // SendProtocolMessageReceipt sends a receipt for a protocol message back to the phone.
