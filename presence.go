@@ -98,7 +98,7 @@ func (cli *Client) SubscribePresence(ctx context.Context, jid types.JID) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
-	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, jid)
+	privacyToken, err := cli.ensureTCToken(ctx, jid)
 	if err != nil {
 		return fmt.Errorf("failed to get privacy token: %w", err)
 	} else if privacyToken == nil {
@@ -118,7 +118,7 @@ func (cli *Client) SubscribePresence(ctx context.Context, jid types.JID) error {
 	if privacyToken != nil {
 		req.Content = []waBinary.Node{{
 			Tag:     "tctoken",
-			Content: privacyToken.Token,
+			Content: privacyToken,
 		}}
 	}
 	return cli.sendNode(ctx, req)

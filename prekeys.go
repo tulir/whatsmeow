@@ -180,7 +180,7 @@ func preKeyToNode(key *keys.PreKey) waBinary.Node {
 func nodeToPreKeyBundle(deviceID uint32, node waBinary.Node) (*prekey.Bundle, error) {
 	errorNode, ok := node.GetOptionalChildByTag("error")
 	if ok && errorNode.Tag == "error" {
-		return nil, fmt.Errorf("got error getting prekeys: %s", errorNode.XMLString())
+		return nil, fmt.Errorf("got error getting prekeys: %s", &errorNode)
 	}
 
 	registrationBytes, ok := node.GetChildByTag("registration").Content.([]byte)

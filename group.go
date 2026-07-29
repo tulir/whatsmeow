@@ -37,6 +37,7 @@ type ReqCreateGroup struct {
 	Participants []types.JID
 	// A create key can be provided to deduplicate the group create notification that will be triggered
 	// when the group is created. If provided, the JoinedGroup event will contain the same key.
+	// Deprecated: It seems like WhatsApp no longer sends this.
 	CreateKey types.MessageID
 
 	types.GroupEphemeral
@@ -56,22 +57,32 @@ type ReqCreateGroup struct {
 func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.GroupInfo, error) {
 	participantNodes := make([]waBinary.Node, len(req.Participants), len(req.Participants)+1)
 	for i, participant := range req.Participants {
+		participant = participant.ToNonAD()
+		var participantPN types.JID
+		if participant.Server == types.HiddenUserServer {
+			var err error
+			participantPN, err = cli.Store.LIDs.GetPNForLID(ctx, participant)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get phone number for participant %s: %v", participant, err)
+			}
+		}
+		participantAttrs := waBinary.Attrs{"jid": participant}
+		if !participantPN.IsEmpty() {
+			participantAttrs["phone_number"] = participantPN
+		}
 		participantNodes[i] = waBinary.Node{
 			Tag:   "participant",
-			Attrs: waBinary.Attrs{"jid": participant},
+			Attrs: participantAttrs,
 		}
-		pt, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, participant)
+		token, err := cli.ensureTCToken(ctx, participant)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participant, err)
-		} else if pt != nil {
+		} else if len(token) > 0 {
 			participantNodes[i].Content = []waBinary.Node{{
 				Tag:     "privacy",
-				Content: pt.Token,
+				Content: token,
 			}}
 		}
-	}
-	if req.CreateKey == "" {
-		req.CreateKey = cli.GenerateMessageID()
 	}
 	if req.IsParent {
 		if req.DefaultMembershipApprovalMode == "" {
@@ -113,14 +124,18 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 			}},
 		})
 	}
-	// WhatsApp web doesn't seem to include the static prefix for these
-	key := strings.TrimPrefix(req.CreateKey, "3EB0")
+	createAttrs := waBinary.Attrs{
+		"subject": req.Name,
+	}
+	if req.Name != "" {
+		createAttrs["subject"] = req.Name
+	}
+	if req.CreateKey != "" {
+		createAttrs["create_key"] = strings.TrimPrefix(req.CreateKey, "3EB0")
+	}
 	resp, err := cli.sendGroupIQ(ctx, iqSet, types.GroupServerJID, waBinary.Node{
-		Tag: "create",
-		Attrs: waBinary.Attrs{
-			"subject": req.Name,
-			"key":     key,
-		},
+		Tag:     "create",
+		Attrs:   createAttrs,
 		Content: participantNodes,
 	})
 	if err != nil {
@@ -199,6 +214,17 @@ func (cli *Client) UpdateGroupParticipants(ctx context.Context, jid types.JID, p
 				return nil, fmt.Errorf("failed to get phone number for LID %s: %v", participantJID, err)
 			} else if !pn.IsEmpty() {
 				content[i].Attrs["phone_number"] = pn
+			}
+		}
+		if action == ParticipantChangeAdd {
+			token, err := cli.ensureTCToken(ctx, participantJID)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get privacy token for participant %s: %v", participantJID, err)
+			} else if len(token) > 0 {
+				content[i].Content = []waBinary.Node{{
+					Tag:     "privacy",
+					Content: token,
+				}}
 			}
 		}
 	}
@@ -290,7 +316,7 @@ func (cli *Client) UpdateGroupRequestParticipants(ctx context.Context, jid types
 // The avatar should be a JPEG photo, other formats may be rejected with ErrInvalidImageFormat.
 // The bytes can be nil to remove the photo. Returns the new picture ID.
 func (cli *Client) SetGroupPhoto(ctx context.Context, jid types.JID, avatar []byte) (string, error) {
-	var content interface{}
+	var content any
 	if avatar != nil {
 		content = []waBinary.Node{{
 			Tag:     "picture",
@@ -455,10 +481,11 @@ func (cli *Client) JoinGroupWithInvite(ctx context.Context, jid, inviter types.J
 // GetGroupInfoFromLink resolves the given invite link and asks the WhatsApp servers for info about the group.
 // This will not cause the user to join the group.
 func (cli *Client) GetGroupInfoFromLink(ctx context.Context, code string) (*types.GroupInfo, error) {
-	code = strings.TrimPrefix(code, InviteLinkPrefix)
 	resp, err := cli.sendGroupIQ(ctx, iqGet, types.GroupServerJID, waBinary.Node{
-		Tag:   "invite",
-		Attrs: waBinary.Attrs{"code": code},
+		Tag: "invite",
+		Attrs: waBinary.Attrs{
+			"code": stripURLPrefix(code, InviteLinkPrefix),
+		},
 	})
 	if errors.Is(err, ErrIQGone) {
 		return nil, wrapIQError(ErrInviteLinkRevoked, err)
@@ -476,10 +503,11 @@ func (cli *Client) GetGroupInfoFromLink(ctx context.Context, code string) (*type
 
 // JoinGroupWithLink joins the group using the given invite link.
 func (cli *Client) JoinGroupWithLink(ctx context.Context, code string) (types.JID, error) {
-	code = strings.TrimPrefix(code, InviteLinkPrefix)
 	resp, err := cli.sendGroupIQ(ctx, iqSet, types.GroupServerJID, waBinary.Node{
-		Tag:   "invite",
-		Attrs: waBinary.Attrs{"code": code},
+		Tag: "invite",
+		Attrs: waBinary.Attrs{
+			"code": stripURLPrefix(code, InviteLinkPrefix),
+		},
 	})
 	if errors.Is(err, ErrIQGone) {
 		return types.EmptyJID, wrapIQError(ErrInviteLinkRevoked, err)
@@ -521,7 +549,7 @@ func (cli *Client) GetJoinedGroups(ctx context.Context) ([]*types.GroupInfo, err
 	var allRedactedPhones []store.RedactedPhoneEntry
 	for _, child := range children {
 		if child.Tag != "group" {
-			cli.Log.Debugf("Unexpected child in group list response: %s", child.XMLString())
+			cli.Log.Debugf("Unexpected child in group list response: %s", &child)
 			continue
 		}
 		parsed, parseErr := cli.parseGroupNode(&child)
@@ -711,7 +739,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 	group.NameSetBy = ag.OptionalJIDOrEmpty("s_o")
 	group.NameSetByPN = ag.OptionalJIDOrEmpty("s_o_pn")
 
-	group.GroupCreated = ag.UnixTime("creation")
+	group.GroupCreated = ag.OptionalUnixTime("creation")
 	group.CreatorCountryCode = ag.OptionalString("creator_country_code")
 
 	group.AnnounceVersionID = ag.OptionalString("a_v_id")
@@ -758,7 +786,7 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		case "suspended":
 			group.Suspended = true
 		default:
-			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), child.XMLString())
+			cli.Log.Debugf("Unknown element in group node %s: %s", group.JID.String(), &child)
 		}
 		if !childAG.OK() {
 			cli.Log.Warnf("Possibly failed to parse %s element in group node: %+v", child.Tag, childAG.Errors)
@@ -834,6 +862,9 @@ func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.Jo
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to parse group info in create notification: %w", err)
 	}
+	if info.AddressingMode == "" {
+		info.AddressingMode = types.AddressingMode(pag.OptionalString("addressing_mode"))
+	}
 	evt.GroupInfo = *info
 	lidPairs, redactedPhones := cli.cacheGroupInfo(info, true)
 	return &evt, lidPairs, redactedPhones, nil
@@ -888,7 +919,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 				topicChild := child.GetChildByTag("body")
 				topicBytes, ok := topicChild.Content.([]byte)
 				if !ok {
-					return nil, nil, fmt.Errorf("group change description has unexpected body: %s", topicChild.XMLString())
+					return nil, nil, fmt.Errorf("group change description has unexpected body: %s", &topicChild)
 				}
 				topicStr = string(topicBytes)
 			}

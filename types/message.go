@@ -108,6 +108,8 @@ type MessageInfo struct {
 	MsgBotInfo  MsgBotInfo
 	MsgMetaInfo MsgMetaInfo
 
+	IsNewsletterStatus bool
+
 	VerifiedName   *VerifiedName
 	DeviceSentMeta *DeviceSentMeta // Metadata for direct messages sent from another one of the user's own devices.
 }

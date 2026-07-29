@@ -240,6 +240,10 @@ message WebMessageInfo {
 		GROUP_TEE_BOT_ADDED = 223;
 		CONTACT_INFO = 224;
 		SCHEDULED_MESSAGE_CREATED = 225;
+		IDENTITY_TRUST_MARKED = 226;
+		IDENTITY_TRUST_UNMARKED = 227;
+		IDENTITY_TRUST_REVOKED = 228;
+		CTWA_CONSUMER_DISCLOSURE = 230;
 	}
 
 	enum Status {
@@ -491,6 +495,7 @@ message GroupHistoryBundleInfo {
 		INJECTED_PARTIAL = 2;
 		INJECTION_FAILED = 3;
 		INJECTION_FAILED_NO_RETRY = 4;
+		DEDUPED = 5;
 	}
 
 	optional WAWebProtobufsE2E.MessageHistoryBundle deprecatedMessageHistoryBundle = 1;
@@ -518,6 +523,7 @@ message NotificationMessageInfo {
 
 message ReportingTokenInfo {
 	optional bytes reportingTag = 1;
+	optional uint64 reportingTagTimestamp = 2;
 }
 
 message MediaData {
@@ -558,10 +564,17 @@ message PollUpdate {
 	optional int64 senderTimestampMS = 3;
 	optional int64 serverTimestampMS = 4;
 	optional bool unread = 5;
+	optional WAWebProtobufsE2E.PollUpdateMessageMetadata metadata = 6;
 }
 
 message PollAdditionalMetadata {
+	message PollNameHashHistoryEntry {
+		optional string editStanzaID = 1;
+		optional bytes pollNameHash = 2;
+	}
+
 	optional bool pollInvalidated = 1;
+	repeated PollNameHashHistoryEntry pollNameHashHistory = 2;
 }
 
 message InteractiveMessageAdditionalMetadata {

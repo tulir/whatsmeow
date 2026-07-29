@@ -32,15 +32,29 @@ const (
 	NewsletterLinkPrefix            = "https://whatsapp.com/channel/"
 )
 
+func stripQuery(link string) string {
+	if idx := strings.Index(link, "?"); idx > 0 {
+		return link[:idx]
+	}
+	return link
+}
+
+func stripURLPrefix(link string, prefixes ...string) string {
+	for _, prefix := range prefixes {
+		unprefixed, ok := strings.CutPrefix(link, prefix)
+		if ok {
+			return stripQuery(unprefixed)
+		}
+	}
+	return link
+}
+
 // ResolveBusinessMessageLink resolves a business message short link and returns the target JID, business name and
 // text to prefill in the input field (if any).
 //
 // The links look like https://wa.me/message/<code> or https://api.whatsapp.com/message/<code>. You can either provide
 // the full link, or just the <code> part.
 func (cli *Client) ResolveBusinessMessageLink(ctx context.Context, code string) (*types.BusinessMessageLinkTarget, error) {
-	code = strings.TrimPrefix(code, BusinessMessageLinkPrefix)
-	code = strings.TrimPrefix(code, BusinessMessageLinkDirectPrefix)
-
 	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:qr",
 		Type:      iqGet,
@@ -48,7 +62,7 @@ func (cli *Client) ResolveBusinessMessageLink(ctx context.Context, code string) 
 		Content: []waBinary.Node{{
 			Tag: "qr",
 			Attrs: waBinary.Attrs{
-				"code": code,
+				"code": stripURLPrefix(code, BusinessMessageLinkPrefix, BusinessMessageLinkDirectPrefix),
 			},
 		}},
 	})
@@ -85,16 +99,13 @@ func (cli *Client) ResolveBusinessMessageLink(ctx context.Context, code string) 
 // The links look like https://wa.me/qr/<code> or https://api.whatsapp.com/qr/<code>. You can either provide
 // the full link, or just the <code> part.
 func (cli *Client) ResolveContactQRLink(ctx context.Context, code string) (*types.ContactQRLinkTarget, error) {
-	code = strings.TrimPrefix(code, ContactQRLinkPrefix)
-	code = strings.TrimPrefix(code, ContactQRLinkDirectPrefix)
-
 	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "w:qr",
 		Type:      iqGet,
 		Content: []waBinary.Node{{
 			Tag: "qr",
 			Attrs: waBinary.Attrs{
-				"code": code,
+				"code": stripURLPrefix(code, ContactQRLinkPrefix, ContactQRLinkDirectPrefix),
 			},
 		}},
 	})
@@ -171,21 +182,36 @@ func (cli *Client) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.I
 		jids[i] = types.NewJID(phones[i], types.LegacyUserServer)
 	}
 	list, err := cli.usync(ctx, jids, "query", "interactive", []waBinary.Node{
+		{Tag: "contact", Attrs: waBinary.Attrs{"addressing_mode": "lid"}},
 		{Tag: "business", Content: []waBinary.Node{{Tag: "verified_name"}}},
-		{Tag: "contact"},
+		{Tag: "disappearing_mode"},
+		{Tag: "username"},
 	})
 	if err != nil {
 		return nil, err
 	}
 	output := make([]types.IsOnWhatsAppResponse, 0, len(jids))
+	lidEntries := make([]store.LIDMapping, 0, len(jids))
 	querySuffix := "@" + types.LegacyUserServer
 	for _, child := range list.GetChildren() {
-		jid, jidOK := child.Attrs["jid"].(types.JID)
-		if child.Tag != "user" || !jidOK {
+		ag := child.AttrGetter()
+		jid := ag.OptionalJIDOrEmpty("jid")
+		pnJID := ag.OptionalJIDOrEmpty("pn_jid")
+		if child.Tag != "user" || (jid.IsEmpty() && pnJID.IsEmpty()) {
 			continue
 		}
 		var info types.IsOnWhatsAppResponse
 		info.JID = jid
+		if jid.IsEmpty() {
+			info.JID = pnJID
+		}
+		info.PhoneNumber = pnJID
+		if info.JID.Server == types.HiddenUserServer && info.PhoneNumber.Server == types.DefaultUserServer {
+			lidEntries = append(lidEntries, store.LIDMapping{
+				LID: info.JID,
+				PN:  info.PhoneNumber,
+			})
+		}
 		info.VerifiedName, err = parseVerifiedName(child.GetChildByTag("business"))
 		if err != nil {
 			cli.Log.Warnf("Failed to parse %s's verified name details: %v", jid, err)
@@ -195,6 +221,12 @@ func (cli *Client) IsOnWhatsApp(ctx context.Context, phones []string) ([]types.I
 		contactQuery, _ := contactNode.Content.([]byte)
 		info.Query = strings.TrimSuffix(string(contactQuery), querySuffix)
 		output = append(output, info)
+	}
+	if len(lidEntries) > 0 {
+		err = cli.Store.LIDs.PutManyLIDMappings(ctx, lidEntries)
+		if err != nil {
+			return output, fmt.Errorf("failed to store LID mappings: %w", err)
+		}
 	}
 	return output, nil
 }
@@ -207,6 +239,8 @@ func (cli *Client) GetUserInfo(ctx context.Context, jids []types.JID) (map[types
 		{Tag: "picture"},
 		{Tag: "devices", Attrs: waBinary.Attrs{"version": "2"}},
 		{Tag: "lid"},
+	}, UsyncQueryExtras{
+		IncludePrivacyToken: true,
 	})
 	if err != nil {
 		return nil, err
@@ -566,10 +600,10 @@ func (cli *Client) GetProfilePictureInfo(ctx context.Context, jid types.JID, par
 		}
 
 		var pictureContent []waBinary.Node
-		if token, _ := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, jid); token != nil {
+		if token, _ := cli.ensureTCToken(ctx, jid); token != nil {
 			pictureContent = []waBinary.Node{{
 				Tag:     "tctoken",
-				Content: token.Token,
+				Content: token,
 			}}
 		}
 
@@ -730,9 +764,16 @@ func parseVerifiedNameContent(verifiedNameNode waBinary.Node) (*types.VerifiedNa
 	if err != nil {
 		return nil, err
 	}
+	ag := verifiedNameNode.AttrGetter()
 	return &types.VerifiedName{
 		Certificate: &cert,
 		Details:     &certDetails,
+
+		VerifiedLevel: ag.String("verified_level"),
+		Version:       ag.Int("v"),
+		HostStorage:   ag.Int("host_storage"),
+		ActualActors:  ag.Int("actual_actors"),
+		PrivacyModeTS: ag.UnixTime("privacy_mode_ts"),
 	}, nil
 }
 
@@ -830,7 +871,8 @@ func (cli *Client) getFBIDDevices(ctx context.Context, jids []types.JID) ([]type
 }
 
 type UsyncQueryExtras struct {
-	BotListInfo []types.BotListInfo
+	BotListInfo         []types.BotListInfo
+	IncludePrivacyToken bool
 }
 
 func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context string, query []waBinary.Node, extra ...UsyncQueryExtras) (*waBinary.Node, error) {
@@ -873,6 +915,16 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 						Attrs: waBinary.Attrs{"persona_id": personaID},
 					}},
 				}}
+			} else if extras.IncludePrivacyToken {
+				token, err := cli.ensureTCToken(ctx, jid)
+				if err != nil {
+					cli.Log.Warnf("Failed to get privacy token for usync status query to %s: %v", jid, err)
+				} else if len(token) > 0 {
+					userList[i].Content = []waBinary.Node{{
+						Tag:     "tctoken",
+						Content: token,
+					}}
+				}
 			}
 		default:
 			return nil, fmt.Errorf("unknown user server '%s'", jid.Server)

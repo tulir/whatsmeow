@@ -565,9 +565,9 @@ func (cli *Client) sendAppState(ctx context.Context, patch appstate.PatchInfo, a
 	if respCollectionAttr.OptionalString("type") == "error" {
 		errorTag, ok := respCollection.GetOptionalChildByTag("error")
 
-		mainErr := fmt.Errorf("%w: %s", ErrAppStateUpdate, respCollection.XMLString())
+		mainErr := fmt.Errorf("%w: %s", ErrAppStateUpdate, &respCollection)
 		if ok {
-			mainErr = fmt.Errorf("%w (%s): %s", ErrAppStateUpdate, patch.Type, errorTag.XMLString())
+			mainErr = fmt.Errorf("%w (%s): %s", ErrAppStateUpdate, patch.Type, &errorTag)
 		}
 		if ok && errorTag.AttrGetter().Int("code") == 409 && allowRetry {
 			zerolog.Ctx(ctx).Warn().Err(mainErr).Msg("Failed to update app state, trying to apply conflicts and retry")

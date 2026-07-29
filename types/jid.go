@@ -214,7 +214,9 @@ func (jid JID) ADString() string {
 // String converts the JID to a string representation.
 // The output string can be parsed with ParseJID.
 func (jid JID) String() string {
-	if jid.RawAgent > 0 {
+	if jid.Server == "" {
+		return ""
+	} else if jid.RawAgent > 0 {
 		return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.RawAgent, jid.Device, jid.Server)
 	} else if jid.Device > 0 {
 		return fmt.Sprintf("%s:%d@%s", jid.User, jid.Device, jid.Server)
@@ -245,10 +247,14 @@ func (jid JID) IsEmpty() bool {
 	return len(jid.Server) == 0
 }
 
+func (jid JID) IsZero() bool {
+	return jid.IsEmpty()
+}
+
 var _ sql.Scanner = (*JID)(nil)
 
 // Scan scans the given SQL value into this JID.
-func (jid *JID) Scan(src interface{}) error {
+func (jid *JID) Scan(src any) error {
 	if src == nil {
 		return nil
 	}

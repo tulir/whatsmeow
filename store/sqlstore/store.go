@@ -343,30 +343,20 @@ func (s *SQLStore) GetOrGenPreKeys(ctx context.Context, count uint32) ([]*keys.P
 	s.preKeyLock.Lock()
 	defer s.preKeyLock.Unlock()
 
-	res, err := s.db.Query(ctx, getUnuploadedPreKeysQuery, s.JID, count)
+	newKeys, err := scanPreKey.NewRowIter(s.db.Query(ctx, getUnuploadedPreKeysQuery, s.JID, count)).AsList()
 	if err != nil {
 		return nil, fmt.Errorf("failed to query existing prekeys: %w", err)
 	}
-	newKeys := make([]*keys.PreKey, count)
-	var existingCount uint32
-	for res.Next() {
-		var key *keys.PreKey
-		key, err = scanPreKey(res)
-		if err != nil {
-			return nil, err
-		} else if key != nil {
-			newKeys[existingCount] = key
-			existingCount++
-		}
-	}
 
-	if existingCount < uint32(len(newKeys)) {
+	alreadyGeneratedCount := uint32(len(newKeys))
+	if count > alreadyGeneratedCount {
 		var nextKeyID uint32
 		nextKeyID, err = s.getNextPreKeyID(ctx)
 		if err != nil {
 			return nil, err
 		}
-		for i := existingCount; i < count; i++ {
+		newKeys = slices.Grow(newKeys, int(count)-len(newKeys))[:count]
+		for i := alreadyGeneratedCount; i < count; i++ {
 			newKeys[i], err = s.genOnePreKey(ctx, nextKeyID, false)
 			if err != nil {
 				return nil, fmt.Errorf("failed to generate prekey: %w", err)
@@ -378,7 +368,7 @@ func (s *SQLStore) GetOrGenPreKeys(ctx context.Context, count uint32) ([]*keys.P
 	return newKeys, nil
 }
 
-func scanPreKey(row dbutil.Scannable) (*keys.PreKey, error) {
+var scanPreKey = dbutil.ConvertRowFn[*keys.PreKey](func(row dbutil.Scannable) (*keys.PreKey, error) {
 	var priv []byte
 	var id uint32
 	err := row.Scan(&id, &priv)
@@ -393,7 +383,7 @@ func scanPreKey(row dbutil.Scannable) (*keys.PreKey, error) {
 		KeyPair: *keys.NewKeyPairFromPrivateKey(*(*[32]byte)(priv)),
 		KeyID:   id,
 	}, nil
-}
+})
 
 func (s *SQLStore) GetPreKey(ctx context.Context, id uint32) (*keys.PreKey, error) {
 	return scanPreKey(s.db.QueryRow(ctx, getPreKeyQuery, s.JID, id))
@@ -452,32 +442,25 @@ func (s *SQLStore) PutAppStateSyncKey(ctx context.Context, id []byte, key store.
 	return err
 }
 
-func (s *SQLStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*store.AppStateSyncKey, error) {
-	rows, err := s.db.Query(ctx, getAllAppStateSyncKeysQuery, s.JID)
+var convertAppStateSyncKeyRow = dbutil.ConvertRowFn[*store.AppStateSyncKey](func(rows dbutil.Scannable) (*store.AppStateSyncKey, error) {
+	var item store.AppStateSyncKey
+	err := rows.Scan(&item.Data, &item.Timestamp, &item.Fingerprint)
 	if err != nil {
 		return nil, err
 	}
-	var out []*store.AppStateSyncKey
-	for rows.Next() {
-		var item store.AppStateSyncKey
-		err = rows.Scan(&item.Data, &item.Timestamp, &item.Fingerprint)
-		if err != nil {
-			return nil, err
-		}
-		if len(item.Data) > 0 {
-			out = append(out, &item)
-		}
-	}
-	return out, rows.Close()
+	return &item, nil
+})
+
+func (s *SQLStore) GetAllAppStateSyncKeys(ctx context.Context) ([]*store.AppStateSyncKey, error) {
+	return convertAppStateSyncKeyRow.NewRowIter(s.db.Query(ctx, getAllAppStateSyncKeysQuery, s.JID)).AsList()
 }
 
 func (s *SQLStore) GetAppStateSyncKey(ctx context.Context, id []byte) (*store.AppStateSyncKey, error) {
-	var key store.AppStateSyncKey
-	err := s.db.QueryRow(ctx, getAppStateSyncKeyQuery, s.JID, id).Scan(&key.Data, &key.Timestamp, &key.Fingerprint)
+	key, err := convertAppStateSyncKeyRow(s.db.QueryRow(ctx, getAppStateSyncKeyQuery, s.JID, id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
-	return &key, err
+	return key, err
 }
 
 func (s *SQLStore) GetLatestAppStateSyncKeyID(ctx context.Context) ([]byte, error) {
@@ -794,33 +777,41 @@ func (s *SQLStore) GetContact(ctx context.Context, user types.JID) (types.Contac
 	return *info, nil
 }
 
-func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error) {
-	s.contactCacheLock.Lock()
-	defer s.contactCacheLock.Unlock()
-	rows, err := s.db.Query(ctx, getAllContactsQuery, s.JID)
+type contactTuple struct {
+	JID  types.JID
+	Info *types.ContactInfo
+}
+
+var convertContactRow = dbutil.ConvertRowFn[*contactTuple](func(rows dbutil.Scannable) (*contactTuple, error) {
+	var jid types.JID
+	var first, full, push, business, redactedPhone sql.NullString
+	err := rows.Scan(&jid, &first, &full, &push, &business, &redactedPhone)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error scanning row: %w", err)
 	}
-	output := make(map[types.JID]types.ContactInfo, len(s.contactCache))
-	for rows.Next() {
-		var jid types.JID
-		var first, full, push, business, redactedPhone sql.NullString
-		err = rows.Scan(&jid, &first, &full, &push, &business, &redactedPhone)
-		if err != nil {
-			return nil, fmt.Errorf("error scanning row: %w", err)
-		}
-		info := types.ContactInfo{
+	return &contactTuple{
+		JID: jid,
+		Info: &types.ContactInfo{
 			Found:         true,
 			FirstName:     first.String,
 			FullName:      full.String,
 			PushName:      push.String,
 			BusinessName:  business.String,
 			RedactedPhone: redactedPhone.String,
-		}
-		output[jid] = info
-		s.contactCache[jid] = &info
-	}
-	return output, nil
+		},
+	}, nil
+})
+
+func (s *SQLStore) GetAllContacts(ctx context.Context) (map[types.JID]types.ContactInfo, error) {
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
+	output := make(map[types.JID]types.ContactInfo, len(s.contactCache))
+	err := convertContactRow.NewRowIter(s.db.Query(ctx, getAllContactsQuery, s.JID)).Iter(func(tuple *contactTuple) (bool, error) {
+		output[tuple.JID] = *tuple.Info
+		s.contactCache[tuple.JID] = tuple.Info
+		return true, nil
+	})
+	return output, err
 }
 
 const (

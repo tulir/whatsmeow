@@ -30,15 +30,15 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		ag := count.AttrGetter()
 		otksLeft := ag.Int("value")
 		if !ag.OK() {
-			cli.Log.Warnf("Didn't get number of OTKs left in encryption notification %s", node.XMLString())
+			cli.Log.Warnf("Didn't get number of OTKs left in encryption notification %s", node)
 			return
 		}
-		cli.Log.Infof("Got prekey count from server: %s", node.XMLString())
+		cli.Log.Infof("Got prekey count from server: %s", node)
 		if otksLeft < MinPreKeyCount {
 			cli.uploadPreKeys(ctx, false)
 		}
 	} else if _, ok := node.GetOptionalChildByTag("identity"); ok {
-		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node.XMLString())
+		cli.Log.Debugf("Got identity change for %s: %s, deleting all identities/sessions for that number", from, node)
 		err := cli.Store.Identities.DeleteAllIdentities(ctx, from.User)
 		if err != nil {
 			cli.Log.Warnf("Failed to delete all identities of %s from store after identity change: %v", from, err)
@@ -66,7 +66,7 @@ func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary
 		}
 		cli.dispatchEvent(&events.IdentityChange{JID: from, Timestamp: ts})
 	} else {
-		cli.Log.Debugf("Got unknown encryption notification from server: %s", node.XMLString())
+		cli.Log.Debugf("Got unknown encryption notification from server: %s", node)
 	}
 }
 
@@ -194,35 +194,50 @@ func (cli *Client) handleFBDeviceNotification(ctx context.Context, node *waBinar
 	cli.userDevicesCache[jid] = userDevices
 }
 
-func (cli *Client) handleOwnDevicesNotification(ctx context.Context, node *waBinary.Node) {
+func (cli *Client) handleOwnDevicesNotification(ctx context.Context, node *waBinary.Node, fromJID types.JID) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
+	ownLID := cli.getOwnLID().ToNonAD()
 	ownID := cli.getOwnID().ToNonAD()
 	if ownID.IsEmpty() {
 		cli.Log.Debugf("Ignoring own device change notification, session was deleted")
 		return
 	}
-	cached, ok := cli.userDevicesCache[ownID]
-	if !ok {
-		cli.Log.Debugf("Ignoring own device change notification, device list not cached")
+	fromJIDPlain := fromJID.ToNonAD()
+	var altJID types.JID
+	switch fromJIDPlain {
+	case ownID:
+		altJID = ownLID
+	case ownLID:
+		altJID = ownID
+	default:
+		cli.Log.Warnf("Unexpected own device notification sender %s", fromJID)
 		return
 	}
-	oldHash := participantListHashV2(cached.devices)
+	var oldHash string
+	if cached, ok := cli.userDevicesCache[fromJIDPlain]; ok {
+		oldHash = participantListHashV2(cached.devices)
+	}
 	expectedNewHash := node.AttrGetter().String("dhash")
-	var newDeviceList []types.JID
+	var newDeviceList, altDeviceList []types.JID
 	for _, child := range node.GetChildren() {
 		jid := child.AttrGetter().JID("jid")
 		if child.Tag == "device" && !jid.IsEmpty() {
 			newDeviceList = append(newDeviceList, jid)
+			altDeviceJID := altJID
+			altDeviceJID.Device = jid.Device
+			altDeviceList = append(altDeviceList, altDeviceJID)
 		}
 	}
 	newHash := participantListHashV2(newDeviceList)
 	if newHash != expectedNewHash {
-		cli.Log.Debugf("Received own device list change notification %s -> %s, but expected hash was %s", oldHash, newHash, expectedNewHash)
+		cli.Log.Debugf("Received own device list change notification %s -> %s from %s, but expected hash was %s", oldHash, newHash, fromJID, expectedNewHash)
 		delete(cli.userDevicesCache, ownID)
+		delete(cli.userDevicesCache, ownLID)
 	} else {
-		cli.Log.Debugf("Received own device list change notification %s -> %s", oldHash, newHash)
-		cli.userDevicesCache[ownID] = deviceCache{devices: newDeviceList, dhash: expectedNewHash}
+		cli.Log.Debugf("Received own device list change notification %s -> %s from %s", oldHash, newHash, fromJID)
+		cli.userDevicesCache[fromJIDPlain] = deviceCache{devices: newDeviceList, dhash: expectedNewHash}
+		cli.userDevicesCache[altJID] = deviceCache{devices: altDeviceList, dhash: participantListHashV2(altDeviceList)}
 	}
 }
 
@@ -240,7 +255,7 @@ func (cli *Client) handleBlocklist(ctx context.Context, node *waBinary.Node) {
 			Action: events.BlocklistChangeAction(ag.String("action")),
 		}
 		if !ag.OK() {
-			cli.Log.Warnf("Unexpected data in blocklist event child %v: %v", child.XMLString(), ag.Error())
+			cli.Log.Warnf("Unexpected data in blocklist event child %s: %v", &child, ag.Error())
 			continue
 		}
 		evt.Changes = append(evt.Changes, change)
@@ -254,7 +269,7 @@ func (cli *Client) handleAccountSyncNotification(ctx context.Context, node *waBi
 		case "privacy":
 			cli.handlePrivacySettingsNotification(ctx, &child)
 		case "devices":
-			cli.handleOwnDevicesNotification(ctx, &child)
+			cli.handleOwnDevicesNotification(ctx, &child, node.AttrGetter().JID("from"))
 		case "picture":
 			cli.dispatchEvent(&events.Picture{
 				Timestamp: node.AttrGetter().UnixTime("t"),
@@ -384,12 +399,17 @@ type newsletterEvent struct {
 	// _on_admin_metadata_update -> id, thread_metadata, messages
 	// _on_metadata_update
 	// _on_state_change -> id, is_requestor, state
+	NotifyAccountReachoutTimelock *events.NotifyAccountReachoutTimelock `json:"xwa2_notify_account_reachout_timelock"`
 }
 
 func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		if child.Tag != "update" {
 			continue
+		}
+		mnd := events.MexNotificationData{
+			Timestamp: node.AttrGetter().OptionalUnixTime("t"),
+			OpName:    child.AttrGetter().OptionalString("op_name"),
 		}
 		childData, ok := child.Content.([]byte)
 		if !ok {
@@ -402,11 +422,17 @@ func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Nod
 			continue
 		}
 		if wrapper.Data.Join != nil {
+			wrapper.Data.Join.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.Join)
 		} else if wrapper.Data.Leave != nil {
+			wrapper.Data.Leave.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.Leave)
 		} else if wrapper.Data.MuteChange != nil {
+			wrapper.Data.MuteChange.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.MuteChange)
+		} else if wrapper.Data.NotifyAccountReachoutTimelock != nil {
+			wrapper.Data.NotifyAccountReachoutTimelock.Mex = mnd
+			cli.dispatchEvent(wrapper.Data.NotifyAccountReachoutTimelock)
 		}
 	}
 }
@@ -431,13 +457,13 @@ func (cli *Client) handleStatusNotification(ctx context.Context, node *waBinary.
 }
 
 func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) {
+	var cancelled bool
+	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 	ag := node.AttrGetter()
 	notifType := ag.String("type")
 	if !ag.OK() {
 		return
 	}
-	var cancelled bool
-	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 	switch notifType {
 	case "encrypt":
 		go cli.handleEncryptNotification(ctx, node)
@@ -478,6 +504,10 @@ func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) 
 		cli.handleMexNotification(ctx, node)
 	case "status":
 		cli.handleStatusNotification(ctx, node)
+	case "passkey_prologue_request":
+		cli.handlePasskeyNotification(ctx, node)
+	case "crsc_continuation":
+		go cli.tryHandlePasskeyContinuationNotification(ctx, node)
 	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)
