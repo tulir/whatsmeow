@@ -40,6 +40,13 @@ func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 	case code == "401" && conflictType == "device_removed":
 		cli.expectDisconnect()
 		cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session")
+		// WASBOT: dump the full stanza. ~35% of successful links die on this
+		// error, and the handler above discards everything except code +
+		// conflict type. Any extra attribute the server sets (a reason, an
+		// actor, a timestamp) is our only lead on whether the removal is
+		// user-initiated or server-side anti-abuse. Warn-level so it survives
+		// the production log filter.
+		cli.Log.Warnf("device_removed raw stanza: %s", node)
 		go cli.dispatchEvent(&events.LoggedOut{OnConnect: false, Reason: events.ConnectFailureLoggedOut})
 		err := cli.Store.Delete(ctx)
 		if err != nil {
