@@ -861,7 +861,6 @@ type EncryptMessageOutput struct {
 	ValueSecretRef     *string                `protobuf:"bytes,3,opt,name=valueSecretRef" json:"valueSecretRef,omitempty"`
 	OfflineThreadingID *uint64                `protobuf:"varint,4,opt,name=offlineThreadingID" json:"offlineThreadingID,omitempty"`
 	TimestampMS        *uint64                `protobuf:"varint,5,opt,name=timestampMS" json:"timestampMS,omitempty"`
-	MessageKey         []byte                 `protobuf:"bytes,6,opt,name=messageKey" json:"messageKey,omitempty"`
 	Error              *string                `protobuf:"bytes,7,opt,name=error" json:"error,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -930,13 +929,6 @@ func (x *EncryptMessageOutput) GetTimestampMS() uint64 {
 		return *x.TimestampMS
 	}
 	return 0
-}
-
-func (x *EncryptMessageOutput) GetMessageKey() []byte {
-	if x != nil {
-		return x.MessageKey
-	}
-	return nil
 }
 
 func (x *EncryptMessageOutput) GetError() string {
@@ -1308,16 +1300,13 @@ const file_waWebLabyrinthWaWasm_WAWebLabyrinthWaWasm_proto_rawDesc = "" +
 	"\rvirtualDevice\x18\x02 \x01(\v2).WAWebLabyrinthWaWasm.VirtualDeviceOutputR\rvirtualDevice\x12:\n" +
 	"\x06epoch0\x18\x03 \x01(\v2\".WAWebLabyrinthWaWasm.Epoch0OutputR\x06epoch0\x12&\n" +
 	"\x0emailboxRootKey\x18\x04 \x01(\fR\x0emailboxRootKey\x12\x14\n" +
-	"\x05error\x18\x05 \x01(\tR\x05error\"\x96\x02\n" +
+	"\x05error\x18\x05 \x01(\tR\x05error\"\xf6\x01\n" +
 	"\x14EncryptMessageOutput\x12,\n" +
 	"\x11encryptedProtobuf\x18\x01 \x01(\fR\x11encryptedProtobuf\x12 \n" +
 	"\vorfThreadID\x18\x02 \x01(\fR\vorfThreadID\x12&\n" +
 	"\x0evalueSecretRef\x18\x03 \x01(\tR\x0evalueSecretRef\x12.\n" +
 	"\x12offlineThreadingID\x18\x04 \x01(\x04R\x12offlineThreadingID\x12 \n" +
-	"\vtimestampMS\x18\x05 \x01(\x04R\vtimestampMS\x12\x1e\n" +
-	"\n" +
-	"messageKey\x18\x06 \x01(\fR\n" +
-	"messageKey\x12\x14\n" +
+	"\vtimestampMS\x18\x05 \x01(\x04R\vtimestampMS\x12\x14\n" +
 	"\x05error\x18\a \x01(\tR\x05error\"X\n" +
 	"\x14DecryptMessageOutput\x12*\n" +
 	"\x10plaintextPayload\x18\x01 \x01(\fR\x10plaintextPayload\x12\x14\n" +

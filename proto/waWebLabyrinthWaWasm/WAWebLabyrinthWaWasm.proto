@@ -97,7 +97,6 @@ message EncryptMessageOutput {
 	optional string valueSecretRef = 3;
 	optional uint64 offlineThreadingID = 4;
 	optional uint64 timestampMS = 5;
-	optional bytes messageKey = 6;
 	optional string error = 7;
 }
 

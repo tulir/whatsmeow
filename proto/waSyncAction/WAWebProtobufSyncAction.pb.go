@@ -1245,12 +1245,13 @@ func (AvatarUpdatedAction_AvatarEventType) EnumDescriptor() ([]byte, []int) {
 type BizAISettingsNudgeAction_BizAISettingsCategory int32
 
 const (
-	BizAISettingsNudgeAction_UNKNOWN           BizAISettingsNudgeAction_BizAISettingsCategory = 0
-	BizAISettingsNudgeAction_INSTRUCTIONS      BizAISettingsNudgeAction_BizAISettingsCategory = 1
-	BizAISettingsNudgeAction_RESPONSE_SETTINGS BizAISettingsNudgeAction_BizAISettingsCategory = 2
-	BizAISettingsNudgeAction_EXAMPLE_RESPONSES BizAISettingsNudgeAction_BizAISettingsCategory = 3
-	BizAISettingsNudgeAction_KNOWLEDGE         BizAISettingsNudgeAction_BizAISettingsCategory = 4
-	BizAISettingsNudgeAction_LEAD_GEN          BizAISettingsNudgeAction_BizAISettingsCategory = 5
+	BizAISettingsNudgeAction_UNKNOWN                BizAISettingsNudgeAction_BizAISettingsCategory = 0
+	BizAISettingsNudgeAction_INSTRUCTIONS           BizAISettingsNudgeAction_BizAISettingsCategory = 1
+	BizAISettingsNudgeAction_RESPONSE_SETTINGS      BizAISettingsNudgeAction_BizAISettingsCategory = 2
+	BizAISettingsNudgeAction_EXAMPLE_RESPONSES      BizAISettingsNudgeAction_BizAISettingsCategory = 3
+	BizAISettingsNudgeAction_KNOWLEDGE              BizAISettingsNudgeAction_BizAISettingsCategory = 4
+	BizAISettingsNudgeAction_LEAD_GEN               BizAISettingsNudgeAction_BizAISettingsCategory = 5
+	BizAISettingsNudgeAction_HANDOFF_REMOVAL_TIMING BizAISettingsNudgeAction_BizAISettingsCategory = 6
 )
 
 // Enum value maps for BizAISettingsNudgeAction_BizAISettingsCategory.
@@ -1262,14 +1263,16 @@ var (
 		3: "EXAMPLE_RESPONSES",
 		4: "KNOWLEDGE",
 		5: "LEAD_GEN",
+		6: "HANDOFF_REMOVAL_TIMING",
 	}
 	BizAISettingsNudgeAction_BizAISettingsCategory_value = map[string]int32{
-		"UNKNOWN":           0,
-		"INSTRUCTIONS":      1,
-		"RESPONSE_SETTINGS": 2,
-		"EXAMPLE_RESPONSES": 3,
-		"KNOWLEDGE":         4,
-		"LEAD_GEN":          5,
+		"UNKNOWN":                0,
+		"INSTRUCTIONS":           1,
+		"RESPONSE_SETTINGS":      2,
+		"EXAMPLE_RESPONSES":      3,
+		"KNOWLEDGE":              4,
+		"LEAD_GEN":               5,
+		"HANDOFF_REMOVAL_TIMING": 6,
 	}
 )
 
@@ -8589,18 +8592,19 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\x0fAvatarEventType\x12\v\n" +
 	"\aUPDATED\x10\x00\x12\v\n" +
 	"\aCREATED\x10\x01\x12\v\n" +
-	"\aDELETED\x10\x02\"\xbf\x02\n" +
+	"\aDELETED\x10\x02\"\xdb\x02\n" +
 	"\x18BizAISettingsNudgeAction\x12c\n" +
 	"\bcategory\x18\x01 \x01(\x0e2G.WAWebProtobufSyncAction.BizAISettingsNudgeAction.BizAISettingsCategoryR\bcategory\x12\x18\n" +
 	"\aversion\x18\x02 \x01(\x03R\aversion\x12 \n" +
-	"\vupdatedAtMS\x18\x03 \x01(\x03R\vupdatedAtMS\"\x81\x01\n" +
+	"\vupdatedAtMS\x18\x03 \x01(\x03R\vupdatedAtMS\"\x9d\x01\n" +
 	"\x15BizAISettingsCategory\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x10\n" +
 	"\fINSTRUCTIONS\x10\x01\x12\x15\n" +
 	"\x11RESPONSE_SETTINGS\x10\x02\x12\x15\n" +
 	"\x11EXAMPLE_RESPONSES\x10\x03\x12\r\n" +
 	"\tKNOWLEDGE\x10\x04\x12\f\n" +
-	"\bLEAD_GEN\x10\x05\"\x89\x03\n" +
+	"\bLEAD_GEN\x10\x05\x12\x1a\n" +
+	"\x16HANDOFF_REMOVAL_TIMING\x10\x06\"\x89\x03\n" +
 	"\x1cMaibaAIFeaturesControlAction\x12t\n" +
 	"\x0faiFeatureStatus\x18\x01 \x01(\x0e2J.WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIFeatureStatusR\x0faiFeatureStatus\x12h\n" +
 	"\vaiReplyMode\x18\x02 \x01(\x0e2F.WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIReplyModeR\vaiReplyMode\"<\n" +
