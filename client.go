@@ -80,6 +80,22 @@ type Client struct {
 	// AutoReconnectHook is called when auto-reconnection fails. If the function returns false,
 	// the client will not attempt to reconnect. The number of retries can be read from AutoReconnectErrors.
 	AutoReconnectHook func(error) bool
+	// PreSendHook, if set, is called with every node the client is about to send,
+	// immediately before it is marshaled and written to the socket. It is called
+	// synchronously on the sending goroutine.
+	//
+	// Returning false drops the node: it is not sent, and sendNode reports
+	// ErrNodeDroppedByHook to the caller.
+	//
+	// The node must not be modified. It is passed by pointer only to avoid
+	// copying; treat it as read-only.
+	//
+	// This does not observe the Noise handshake frames, which are written before
+	// any binary node exists.
+	//
+	// Intended for egress observability and policy enforcement in clients that
+	// need to audit or restrict their own outbound traffic.
+	PreSendHook func(node *waBinary.Node) bool
 	// If SynchronousAck is set, acks for messages will only be sent after all event handlers return.
 	SynchronousAck             bool
 	EnableDecryptedEventBuffer bool
@@ -899,6 +915,10 @@ Loop:
 func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) ([]byte, error) {
 	if cli == nil {
 		return nil, ErrClientIsNil
+	}
+	if cli.PreSendHook != nil && !cli.PreSendHook(&node) {
+		cli.sendLog.Debugf("Dropping %s: PreSendHook returned false", &node)
+		return nil, ErrNodeDroppedByHook
 	}
 	cli.socketLock.RLock()
 	sock := cli.socket
