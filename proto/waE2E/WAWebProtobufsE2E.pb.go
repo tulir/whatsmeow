@@ -20112,14 +20112,13 @@ func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_FlowRes
 }
 
 type PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ContactRefreshResponse struct {
-	state                          protoimpl.MessageState `protogen:"open.v1"`
-	CoveredRequestIDs              []string               `protobuf:"bytes,1,rep,name=coveredRequestIDs" json:"coveredRequestIDs,omitempty"`
-	CollectionVersion              *uint64                `protobuf:"varint,2,opt,name=collectionVersion" json:"collectionVersion,omitempty"`
-	PrimaryProcessStartTimestampMS *int64                 `protobuf:"varint,3,opt,name=primaryProcessStartTimestampMS" json:"primaryProcessStartTimestampMS,omitempty"`
-	PrimaryProcessEndTimestampMS   *int64                 `protobuf:"varint,4,opt,name=primaryProcessEndTimestampMS" json:"primaryProcessEndTimestampMS,omitempty"`
-	UploadedContactCount           *uint32                `protobuf:"varint,5,opt,name=uploadedContactCount" json:"uploadedContactCount,omitempty"`
-	unknownFields                  protoimpl.UnknownFields
-	sizeCache                      protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	CoveredRequestIDs  []string               `protobuf:"bytes,1,rep,name=coveredRequestIDs" json:"coveredRequestIDs,omitempty"`
+	CollectionVersion  *uint64                `protobuf:"varint,2,opt,name=collectionVersion" json:"collectionVersion,omitempty"`
+	PrimaryDurationMS  *int64                 `protobuf:"varint,3,opt,name=primaryDurationMS" json:"primaryDurationMS,omitempty"`
+	UniqueContactCount *uint32                `protobuf:"varint,4,opt,name=uniqueContactCount" json:"uniqueContactCount,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ContactRefreshResponse) Reset() {
@@ -20167,23 +20166,16 @@ func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_Contact
 	return 0
 }
 
-func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ContactRefreshResponse) GetPrimaryProcessStartTimestampMS() int64 {
-	if x != nil && x.PrimaryProcessStartTimestampMS != nil {
-		return *x.PrimaryProcessStartTimestampMS
+func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ContactRefreshResponse) GetPrimaryDurationMS() int64 {
+	if x != nil && x.PrimaryDurationMS != nil {
+		return *x.PrimaryDurationMS
 	}
 	return 0
 }
 
-func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ContactRefreshResponse) GetPrimaryProcessEndTimestampMS() int64 {
-	if x != nil && x.PrimaryProcessEndTimestampMS != nil {
-		return *x.PrimaryProcessEndTimestampMS
-	}
-	return 0
-}
-
-func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ContactRefreshResponse) GetUploadedContactCount() uint32 {
-	if x != nil && x.UploadedContactCount != nil {
-		return *x.UploadedContactCount
+func (x *PeerDataOperationRequestResponseMessage_PeerDataOperationResult_ContactRefreshResponse) GetUniqueContactCount() uint32 {
+	if x != nil && x.UniqueContactCount != nil {
+		return *x.UniqueContactCount
 	}
 	return 0
 }
@@ -24634,11 +24626,11 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"amount1000\x18\x02 \x01(\x03R\n" +
 	"amount1000B\f\n" +
 	"\n" +
-	"paramOneof\"\x9d1\n" +
+	"paramOneof\"\xbb0\n" +
 	"'PeerDataOperationRequestResponseMessage\x12s\n" +
 	"\x1cpeerDataOperationRequestType\x18\x01 \x01(\x0e2/.WAWebProtobufsE2E.PeerDataOperationRequestTypeR\x1cpeerDataOperationRequestType\x12\x1a\n" +
 	"\bstanzaID\x18\x02 \x01(\tR\bstanzaID\x12\x8c\x01\n" +
-	"\x17peerDataOperationResult\x18\x03 \x03(\v2R.WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResultR\x17peerDataOperationResult\x1a\xd1.\n" +
+	"\x17peerDataOperationResult\x18\x03 \x03(\v2R.WAWebProtobufsE2E.PeerDataOperationRequestResponseMessage.PeerDataOperationResultR\x17peerDataOperationResult\x1a\xef-\n" +
 	"\x17PeerDataOperationResult\x12[\n" +
 	"\x11mediaUploadResult\x18\x01 \x01(\x0e2-.WAMmsRetry.MediaRetryNotification.ResultTypeR\x11mediaUploadResult\x12I\n" +
 	"\x0estickerMessage\x18\x02 \x01(\v2!.WAWebProtobufsE2E.StickerMessageR\x0estickerMessage\x12\x98\x01\n" +
@@ -24671,13 +24663,12 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\n" +
 	"fileLength\x18\n" +
 	" \x01(\x04R\n" +
-	"fileLength\x1a\xb4\x02\n" +
+	"fileLength\x1a\xd2\x01\n" +
 	"\x16ContactRefreshResponse\x12,\n" +
 	"\x11coveredRequestIDs\x18\x01 \x03(\tR\x11coveredRequestIDs\x12,\n" +
-	"\x11collectionVersion\x18\x02 \x01(\x04R\x11collectionVersion\x12F\n" +
-	"\x1eprimaryProcessStartTimestampMS\x18\x03 \x01(\x03R\x1eprimaryProcessStartTimestampMS\x12B\n" +
-	"\x1cprimaryProcessEndTimestampMS\x18\x04 \x01(\x03R\x1cprimaryProcessEndTimestampMS\x122\n" +
-	"\x14uploadedContactCount\x18\x05 \x01(\rR\x14uploadedContactCount\x1a\xfd\x01\n" +
+	"\x11collectionVersion\x18\x02 \x01(\x04R\x11collectionVersion\x12,\n" +
+	"\x11primaryDurationMS\x18\x03 \x01(\x03R\x11primaryDurationMS\x12.\n" +
+	"\x12uniqueContactCount\x18\x04 \x01(\rR\x12uniqueContactCount\x1a\xfd\x01\n" +
 	"'BizBroadcastInsightsContactListResponse\x12\x1e\n" +
 	"\n" +
 	"campaignID\x18\x01 \x01(\tR\n" +

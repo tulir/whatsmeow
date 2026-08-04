@@ -101,6 +101,7 @@ enum MutationProps {
 	WASA_ROOT_SECRET_ACTION = 89;
 	BUBBLE_LOCK_MESSAGE_ACTION = 90;
 	LABEL_SUBLIST_ACTION = 91;
+	DEVICE_CAPABILITIES_V2 = 92;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -588,6 +589,7 @@ enum MutationName {
 	WASA_ROOT_SECRET_ACTION = wasa_root_secret;
 	BUBBLE_LOCK_MESSAGE_ACTION = lock_message;
 	LABEL_SUBLIST_ACTION = label_sublist;
+	DEVICE_CAPABILITIES_V2 = device_capabilities_v2;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -697,6 +699,7 @@ message SyncActionValue {
 	optional WASARootSecretAction wasaRootSecretAction = 89;
 	optional BubbleLockMessageAction bubbleLockMessageAction = 90;
 	optional LabelSublistAction labelSublistAction = 91;
+	optional WAWebProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilitiesV2 = 92;
 }
 
 message CoexV2VersionAction {

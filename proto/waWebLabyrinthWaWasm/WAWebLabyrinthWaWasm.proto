@@ -115,6 +115,37 @@ message DeriveMessageKeyOutput {
 	optional string error = 2;
 }
 
+message RotateEpochMemberInput {
+	required uint64 deviceID = 1;
+	required bytes epochStoragePublicKey = 2;
+	required bytes devicePublicKey = 3;
+}
+
+message RotateEpochInput {
+	required bytes currentEpochRootKey = 1;
+	required uint64 currentEpochAnonID = 2;
+	required uint64 currentEpochFbid = 3;
+	required uint64 newEpochFbid = 4;
+	required bytes epochStoragePrivateKey = 5;
+	repeated RotateEpochMemberInput members = 6;
+}
+
+message RotateEpochMemberEdge {
+	optional uint64 deviceID = 1;
+	optional bytes encryptedEpochKey = 2;
+	optional bytes deviceEpochHmac = 3;
+}
+
+message RotateEpochOutput {
+	optional bytes newEpochRootKey = 1;
+	optional uint64 newEpochAnonID = 2;
+	optional bytes epochAnonID = 3;
+	optional bytes epochData = 4;
+	repeated RotateEpochMemberEdge memberEdges = 5;
+	optional bytes epochRootKeyFingerprint = 6;
+	optional string error = 7;
+}
+
 message LabyrinthWaCommand {
 	oneof commandInput {
 		CreateBackupInput createBackupInput = 1;
@@ -122,5 +153,6 @@ message LabyrinthWaCommand {
 		DecryptMessageInput decryptMessageInput = 3;
 		OrfThreadIdInput orfThreadIDInput = 4;
 		DeriveMessageKeyInput deriveMessageKeyInput = 5;
+		RotateEpochInput rotateEpochInput = 6;
 	}
 }
