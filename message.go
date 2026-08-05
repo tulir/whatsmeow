@@ -793,6 +793,9 @@ func (cli *Client) DownloadHistorySync(ctx context.Context, notif *waE2E.History
 		if historySync.GlobalSettings != nil {
 			cli.storeGlobalSettings(ctx, historySync.GlobalSettings)
 		}
+		if historySync.CompanionMetaNonce != nil {
+			cli.storeCompanionMetaNonce(ctx, historySync.GetCompanionMetaNonce())
+		}
 	}
 	if synchronousStorage {
 		doStorage(ctx)
@@ -1072,6 +1075,20 @@ func (cli *Client) storeGlobalSettings(ctx context.Context, settings *waHistoryS
 			zerolog.Ctx(ctx).Debug().
 				Int64("lid_migration_timestamp", cli.Store.LIDMigrationTimestamp).
 				Msg("Saved chat DB LID migration timestamp")
+		}
+	}
+}
+
+func (cli *Client) storeCompanionMetaNonce(ctx context.Context, nonce string) {
+	if nonce != "" && nonce != cli.Store.CompanionMetaNonce {
+		cli.Store.CompanionMetaNonce = nonce
+		err := cli.Store.Save(ctx)
+		if err != nil {
+			zerolog.Ctx(ctx).Err(err).
+				Msg("Failed to save companion meta nonce")
+		} else {
+			zerolog.Ctx(ctx).Debug().
+				Msg("Saved companion meta nonce")
 		}
 	}
 }
