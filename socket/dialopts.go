@@ -8,7 +8,8 @@ import (
 
 func (fs *FrameSocket) makeDialOptions() *websocket.DialOptions {
 	return &websocket.DialOptions{
-		HTTPClient: fs.HTTPClient,
-		HTTPHeader: fs.HTTPHeaders,
+		HTTPClient:      fs.HTTPClient,
+		HTTPHeader:      fs.HTTPHeaders,
+		CompressionMode: websocket.CompressionContextTakeover,
 	}
 }
