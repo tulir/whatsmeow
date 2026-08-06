@@ -61,7 +61,7 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 	// TODO member_share_group_history_mode
 	participantNodes = append(participantNodes, waBinary.Node{
 		Tag:     "member_add_mode",
-		Content: cmp.Or(req.MemberAddMode, types.GroupMemberAddModeAllMember),
+		Content: string(cmp.Or(req.MemberAddMode, types.GroupMemberAddModeAllMember)),
 	})
 	for i, participant := range req.Participants {
 		participant = participant.ToNonAD()
