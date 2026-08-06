@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -44,6 +45,7 @@ type ReqCreateGroup struct {
 	types.GroupAnnounce
 	types.GroupLocked
 	types.GroupMembershipApprovalMode
+	MemberAddMode types.GroupMemberAddMode
 	// Set IsParent to true to create a community instead of a normal group.
 	// When creating a community, the linked announcement group will be created automatically by the server.
 	types.GroupParent
@@ -56,6 +58,11 @@ type ReqCreateGroup struct {
 // See ReqCreateGroup for parameters.
 func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.GroupInfo, error) {
 	participantNodes := make([]waBinary.Node, len(req.Participants), len(req.Participants)+1)
+	// TODO member_share_group_history_mode
+	participantNodes = append(participantNodes, waBinary.Node{
+		Tag:     "member_add_mode",
+		Content: cmp.Or(req.MemberAddMode, types.GroupMemberAddModeAllMember),
+	})
 	for i, participant := range req.Participants {
 		participant = participant.ToNonAD()
 		var participantPN types.JID
@@ -114,19 +121,24 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 				"trigger":    "1", // TODO what's this?
 			},
 		})
-	}
-	if req.IsJoinApprovalRequired {
+	} else {
 		participantNodes = append(participantNodes, waBinary.Node{
-			Tag: "membership_approval_mode",
-			Content: []waBinary.Node{{
-				Tag:   "group_join",
-				Attrs: waBinary.Attrs{"state": "on"},
-			}},
+			Tag:   "ephemeral",
+			Attrs: waBinary.Attrs{"expiration": 0},
 		})
 	}
-	createAttrs := waBinary.Attrs{
-		"subject": req.Name,
+	approvalState := "off"
+	if req.IsJoinApprovalRequired {
+		approvalState = "on"
 	}
+	participantNodes = append(participantNodes, waBinary.Node{
+		Tag: "membership_approval_mode",
+		Content: []waBinary.Node{{
+			Tag:   "group_join",
+			Attrs: waBinary.Attrs{"state": approvalState},
+		}},
+	})
+	createAttrs := waBinary.Attrs{}
 	if req.Name != "" {
 		createAttrs["subject"] = req.Name
 	}
