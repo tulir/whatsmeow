@@ -30,6 +30,8 @@ const (
 	BusinessMessageLinkDirectPrefix = "https://api.whatsapp.com/message/"
 	ContactQRLinkDirectPrefix       = "https://api.whatsapp.com/qr/"
 	NewsletterLinkPrefix            = "https://whatsapp.com/channel/"
+
+	querySetStatusMessage = "9152604461510864"
 )
 
 func stripQuery(link string) string {
@@ -159,10 +161,40 @@ func (cli *Client) GetContactQRLink(ctx context.Context, revoke bool) (string, e
 
 // SetStatusMessage updates the current user's status text, which is shown in the "About" section in the user profile.
 //
+// This is equivalent to calling SetStatusMessageEphemeral(ctx, msg, "", 86400).
 // This is different from the ephemeral status broadcast messages. Use SendMessage to types.StatusBroadcastJID to send
 // such messages.
 func (cli *Client) SetStatusMessage(ctx context.Context, msg string) error {
-	_, err := cli.sendIQ(ctx, infoQuery{
+	return cli.SetStatusMessageEphemeral(ctx, msg, "", 86400)
+}
+
+// SetStatusMessageEphemeral updates the current user's status, which is shown in the "About" section in the user profile.
+//
+// This is different from the ephemeral status broadcast messages. Use SendMessage to types.StatusBroadcastJID to send
+// such messages.
+func (cli *Client) SetStatusMessageEphemeral(ctx context.Context, msg string, emoji string, duration uint32) error {
+	input := map[string]any{
+		"text":                   msg,
+		"ephemeral_duration_sec": duration,
+	}
+
+	if emoji != "" {
+		input["emoji"] = map[string]string{
+			"content": emoji,
+		}
+	}
+
+	variables := map[string]any{
+		"input": input,
+	}
+
+	_, err := cli.sendMexIQ(ctx, querySetStatusMessage, variables)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = cli.sendIQ(ctx, infoQuery{
 		Namespace: "status",
 		Type:      iqSet,
 		To:        types.ServerJID,
@@ -171,6 +203,7 @@ func (cli *Client) SetStatusMessage(ctx context.Context, msg string) error {
 			Content: msg,
 		}},
 	})
+
 	return err
 }
 
