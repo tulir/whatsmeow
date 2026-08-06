@@ -965,15 +965,20 @@ func (cli *Client) storeHistoricalMessageSecrets(ctx context.Context, conversati
 		if chatJID.IsEmpty() {
 			continue
 		}
-		var chatPN types.JID
-		if chatJID.Server == types.DefaultUserServer {
-			chatPN = chatJID
-		} else if chatJID.Server == types.HiddenUserServer {
-			chatPN, _ = cli.Store.LIDs.GetPNForLID(ctx, chatJID)
+		var userJID types.JID
+		if chatJID.Server == types.HiddenUserServer {
+			userJID = chatJID
+		} else if chatJID.Server == types.DefaultUserServer {
+			userJID, _ = cli.Store.LIDs.GetLIDForPN(ctx, chatJID)
+			if userJID.IsEmpty() {
+				// Privacy token queries will check both LIDs and phone numbers, so while we prefer storing with LIDs,
+				// it's still better to store with the phone number than not at all.
+				userJID = chatJID
+			}
 		}
-		if !chatPN.IsEmpty() && conv.GetTcToken() != nil {
+		if !userJID.IsEmpty() && conv.GetTcToken() != nil {
 			privacyTokens = append(privacyTokens, store.PrivacyToken{
-				User:            chatPN,
+				User:            userJID,
 				Token:           conv.GetTcToken(),
 				Timestamp:       time.Unix(int64(conv.GetTcTokenTimestamp()), 0),
 				SenderTimestamp: time.Unix(int64(conv.GetTcTokenSenderTimestamp()), 0),
