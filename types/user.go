@@ -9,6 +9,8 @@ package types
 import (
 	"time"
 
+	"go.mau.fi/util/jsontime"
+
 	"go.mau.fi/whatsmeow/proto/waVnameCert"
 )
 
@@ -183,6 +185,16 @@ type StatusPrivacy struct {
 	List []JID
 
 	IsDefault bool
+}
+
+type SetStatusEmoji struct {
+	Content string `json:"content"`
+}
+
+type SetStatusInput struct {
+	Text     *string          `json:"text"`
+	Emoji    *SetStatusEmoji  `json:"emoji,omitempty"`
+	Duration jsontime.Seconds `json:"ephemeral_duration_sec"`
 }
 
 // Blocklist contains the user's current list of blocked users.
