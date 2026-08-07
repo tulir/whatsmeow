@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"go.mau.fi/util/random"
 
@@ -243,6 +244,62 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, upload
 		err = fmt.Errorf("upload failed with status code %d", httpResp.StatusCode)
 	} else if err = json.NewDecoder(httpResp.Body).Decode(&resp); err != nil {
 		err = fmt.Errorf("failed to parse upload response: %w", err)
+	}
+	if httpResp != nil {
+		_ = httpResp.Body.Close()
+	}
+	return err
+}
+
+// DeleteMedia deletes the media at the given direct path from WhatsApp servers.
+//
+// This is only used for things like history syncs, which should be deleted after processing.
+func (cli *Client) DeleteMedia(ctx context.Context, appInfo MediaType, directPath string, encFileHash []byte, encHandle string) error {
+	if directPath == "" {
+		return nil
+	}
+	mediaConn, err := cli.refreshMediaConn(ctx, false)
+	if err != nil {
+		return fmt.Errorf("failed to refresh media connections: %w", err)
+	}
+
+	queryStart := strings.IndexByte(directPath, '?')
+	if queryStart > 0 {
+		directPath = directPath[:queryStart]
+	}
+
+	token := base64.URLEncoding.EncodeToString(encFileHash)
+	query := url.Values{
+		"token": []string{token},
+		"d_md":  []string{base64.RawURLEncoding.EncodeToString([]byte(directPath))},
+		"auth":  []string{mediaConn.Auth},
+	}
+	if encHandle != "" {
+		query.Set("e_handle", encHandle)
+	}
+	deleteURL := url.URL{
+		Scheme:   "https",
+		Host:     mediaConn.Hosts[0].Hostname,
+		Path:     fmt.Sprintf("/mms/%s/%s", mediaTypeToMMSType[appInfo], token),
+		RawQuery: query.Encode(),
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, deleteURL.String(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to prepare request: %w", err)
+	}
+
+	req.Header.Set("Origin", socket.Origin)
+	req.Header.Set("Referer", socket.Origin+"/")
+	if cmn := cli.Store.CompanionMetaNonce; cmn != "" && encHandle != "" {
+		req.Header.Set("Companion_User_Secret", cli.Store.CompanionMetaNonce)
+	}
+
+	httpResp, err := cli.mediaHTTP.Do(req)
+	if err != nil {
+		err = fmt.Errorf("failed to execute request: %w", err)
+	} else if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		err = fmt.Errorf("media delete failed with status code %d", httpResp.StatusCode)
 	}
 	if httpResp != nil {
 		_ = httpResp.Body.Close()

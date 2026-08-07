@@ -30,7 +30,7 @@ func (n *Node) AttrGetter() *AttrUtility {
 }
 
 func (au *AttrUtility) GetJID(key string, require bool) (jidVal types.JID, ok bool) {
-	var val interface{}
+	var val any
 	if val, ok = au.Attrs[key]; !ok {
 		if require {
 			au.Errors = append(au.Errors, fmt.Errorf("didn't find required JID attribute '%s'", key))
@@ -69,7 +69,7 @@ func (au *AttrUtility) JID(key string) types.JID {
 }
 
 func (au *AttrUtility) GetString(key string, require bool) (strVal string, ok bool) {
-	var val interface{}
+	var val any
 	if val, ok = au.Attrs[key]; !ok {
 		if require {
 			au.Errors = append(au.Errors, fmt.Errorf("didn't find required attribute '%s'", key))

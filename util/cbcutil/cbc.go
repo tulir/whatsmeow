@@ -34,8 +34,8 @@ func Decrypt(key, iv, ciphertext []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
-	} else if len(ciphertext) < aes.BlockSize {
-		return nil, fmt.Errorf("ciphertext is shorter then block size: %d / %d", len(ciphertext), aes.BlockSize)
+	} else if len(ciphertext) == 0 || len(ciphertext)%aes.BlockSize != 0 {
+		return nil, fmt.Errorf("ciphertext isn't a multiple of block size: %d / %d", len(ciphertext), aes.BlockSize)
 	}
 
 	cbc := cipher.NewCBCDecrypter(block, iv)

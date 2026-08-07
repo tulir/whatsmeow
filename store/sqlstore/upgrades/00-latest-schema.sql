@@ -1,4 +1,4 @@
--- v0 -> v13 (compatible with v8+): Latest schema
+-- v0 -> v15 (compatible with v8+): Latest schema
 CREATE TABLE whatsmeow_device (
 	jid TEXT PRIMARY KEY,
 	lid TEXT,
@@ -24,7 +24,9 @@ CREATE TABLE whatsmeow_device (
 	business_name TEXT NOT NULL DEFAULT '',
 	push_name     TEXT NOT NULL DEFAULT '',
 
-	lid_migration_ts BIGINT NOT NULL DEFAULT 0
+	lid_migration_ts BIGINT NOT NULL DEFAULT 0,
+
+	companion_meta_nonce TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE whatsmeow_identity_keys (
@@ -143,6 +145,12 @@ CREATE TABLE whatsmeow_privacy_tokens (
 
 CREATE INDEX idx_whatsmeow_privacy_tokens_our_jid_timestamp
 ON whatsmeow_privacy_tokens (our_jid, timestamp);
+
+CREATE TABLE whatsmeow_nct_salt (
+	our_jid TEXT PRIMARY KEY,
+	salt    bytea NOT NULL,
+	FOREIGN KEY (our_jid) REFERENCES whatsmeow_device(jid) ON DELETE CASCADE ON UPDATE CASCADE
+);
 
 CREATE TABLE whatsmeow_lid_map (
 	lid TEXT PRIMARY KEY,

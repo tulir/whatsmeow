@@ -11,7 +11,9 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/binary"
+	"errors"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"go.mau.fi/libsignal/ecc"
@@ -177,6 +179,29 @@ func (cli *Client) shouldRecreateSession(ctx context.Context, retryCount int, ji
 type incomingRetryKey struct {
 	jid       types.JID
 	messageID types.MessageID
+}
+
+func (cli *Client) tryHandleRetryReceipt(ctx context.Context, receipt *events.Receipt, node *waBinary.Node) {
+	var cancelled bool
+	defer func() {
+		err := recover()
+		if err != nil {
+			cli.Log.Errorf("Retry receipt handler panicked: %v\n%s", err, debug.Stack())
+		}
+	}()
+	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
+	if cli.retrySema != nil {
+		err := cli.retrySema.Acquire(ctx, 1)
+		if err != nil {
+			return
+		}
+		defer cli.retrySema.Release(1)
+	}
+	err := cli.handleRetryReceipt(ctx, receipt, node)
+	if err != nil {
+		cli.Log.Errorf("Failed to handle retry receipt for %s/%s from %s: %v", receipt.Chat, receipt.MessageIDs[0], receipt.Sender, err)
+		cancelled = errors.Is(err, context.Canceled) || errors.Is(err, ErrNotConnected)
+	}
 }
 
 // handleRetryReceipt handles an incoming retry receipt for an outgoing message.

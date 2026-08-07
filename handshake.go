@@ -7,8 +7,8 @@
 package whatsmeow
 
 import (
-	"bytes"
 	"context"
+	"crypto/hmac"
 	"fmt"
 	"time"
 
@@ -128,6 +128,18 @@ func (cli *Client) doHandshake(ctx context.Context, fs *socket.FrameSocket, ephe
 	return nil
 }
 
+func checkCertValidity(cert *waCert.CertChain_NoiseCertificate_Details) error {
+	notBefore := time.Unix(int64(cert.GetNotBefore()), 0)
+	notAfter := time.Unix(int64(cert.GetNotAfter()), 0)
+	now := time.Now()
+	if now.Before(notBefore) {
+		return fmt.Errorf("certificate not valid yet (current time %s is before %s)", now, notBefore)
+	} else if now.After(notAfter) {
+		return fmt.Errorf("certificate expired (current time %s is after %s)", now, notAfter)
+	}
+	return nil
+}
+
 func verifyServerCert(certDecrypted, staticDecrypted []byte) error {
 	var certChain waCert.CertChain
 	err := proto.Unmarshal(certDecrypted, &certChain)
@@ -155,12 +167,16 @@ func verifyServerCert(certDecrypted, staticDecrypted []byte) error {
 		return fmt.Errorf("unexpected length of intermediate cert key %d (expected 32)", len(intermediateCertDetails.GetKey()))
 	} else if !ecc.VerifySignature(ecc.NewDjbECPublicKey([32]byte(intermediateCertDetails.GetKey())), leafCertDetailsRaw, [64]byte(leafCertSignature)) {
 		return fmt.Errorf("failed to verify intermediate cert signature")
+	} else if err = checkCertValidity(&intermediateCertDetails); err != nil {
+		return fmt.Errorf("intermediate cert %w", err)
 	} else if err = proto.Unmarshal(leafCertDetailsRaw, &leafCertDetails); err != nil {
 		return fmt.Errorf("failed to unmarshal noise certificate details: %w", err)
 	} else if leafCertDetails.GetIssuerSerial() != intermediateCertDetails.GetSerial() {
 		return fmt.Errorf("unexpected leaf issuer serial %d (expected %d)", leafCertDetails.GetIssuerSerial(), intermediateCertDetails.GetSerial())
-	} else if !bytes.Equal(leafCertDetails.GetKey(), staticDecrypted) {
+	} else if !hmac.Equal(leafCertDetails.GetKey(), staticDecrypted) {
 		return fmt.Errorf("cert key doesn't match decrypted static")
+	} else if err = checkCertValidity(&leafCertDetails); err != nil {
+		return fmt.Errorf("leaf cert cert %w", err)
 	}
 	return nil
 }

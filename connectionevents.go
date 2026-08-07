@@ -64,7 +64,7 @@ func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 			go cli.dispatchEvent(&events.CATRefreshError{Error: err})
 		}
 	default:
-		cli.Log.Errorf("Unknown stream error: %s", node.XMLString())
+		cli.Log.Errorf("Unknown stream error: %s", node)
 		go cli.dispatchEvent(&events.StreamError{Code: code, Raw: node})
 	}
 }
@@ -131,7 +131,7 @@ func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node
 			cli.Log.Warnf("Failed to delete store after %d failure: %v", int(reason), err)
 		}
 	} else if reason == events.ConnectFailureTempBanned {
-		cli.Log.Warnf("Temporary ban connect failure: %s", node.XMLString())
+		cli.Log.Warnf("Temporary ban connect failure: %s", node)
 		go cli.dispatchEvent(&events.TemporaryBan{
 			Code:   events.TempBanReason(ag.Int("code")),
 			Expire: time.Duration(ag.Int("expire")) * time.Second,
@@ -150,12 +150,16 @@ func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node
 	} else if willAutoReconnect {
 		cli.Log.Warnf("Got %d/%s connect failure, assuming automatic reconnect will handle it", int(reason), message)
 	} else {
-		cli.Log.Warnf("Unknown connect failure: %s", node.XMLString())
+		cli.Log.Warnf("Unknown connect failure: %s", node)
 		go cli.dispatchEvent(&events.ConnectFailure{Reason: reason, Message: message, Raw: node})
 	}
 }
 
 func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node) {
+	if !cli.paired.Load() {
+		cli.Log.Warnf("Received connect success without pairing, ignoring")
+		return
+	}
 	cli.Log.Infof("Successfully authenticated")
 	cli.LastSuccessfulConnect = time.Now()
 	cli.AutoReconnectErrors = 0
@@ -177,10 +181,9 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 		} else {
 			cli.Log.Infof("Updated LID to %s", cli.Store.LID)
 		}
+		cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
 	}
-	// Some users are missing their own LID-PN mapping even though it's already in the device table,
-	// so do this unconditionally for a few months to ensure everyone gets the row.
-	cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
+	cli.deleteExpiredPrivacyTokens()
 	go func() {
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(ctx); err != nil {
 			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)

@@ -52,6 +52,8 @@ enum BotMetricsEntryPoint {
 	WEB_NAVIGATION_BAR = 47;
 	GROUP_MEMBER = 54;
 	CHATLIST_SEARCH = 55;
+	NEW_CHAT_LIST = 56;
+	CONTACTS_TAB = 57;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -71,6 +73,13 @@ enum BotSessionSource {
 	EMU_FLASH_FOLLOWUP = 5;
 	VOICE = 6;
 	AI_HOME_SESSION = 7;
+}
+
+enum AISubscriptionRequestType {
+	UNSPECIFIED = 0;
+	THINK_HARD = 1;
+	IMAGE_GEN = 2;
+	VIDEO_GEN = 3;
 }
 
 enum SessionTransparencyType {
@@ -119,6 +128,7 @@ message BotSignatureVerificationUseCaseProof {
 		UNSPECIFIED = 0;
 		WA_BOT_MSG = 1;
 		WA_TEE_BOT_MSG = 2;
+		P2P_PILLS = 3;
 	}
 
 	optional int32 version = 1;
@@ -315,6 +325,14 @@ message BotCapabilityMetadata {
 		AI_TAB_FORCE_CLIPPY = 59;
 		UNIFIED_RESPONSE_EMBEDDED_SCREENS = 60;
 		AI_SUBSCRIPTION_ENABLED = 61;
+		UNIFIED_RESPONSE_AI_CONTENT_SEARCH_ENABLED = 62;
+		UNIFIED_RESPONSE_MARKDOWN_LINKS_ENABLED = 63;
+		AI_RICH_RESPONSE_MAPS_V2_ENABLED = 64;
+		AI_SUBSCRIPTION_METERING_ENABLED = 65;
+		RICH_RESPONSE_SPORTS_WIDGET_ENABLED = 66;
+		AI_RICH_RESPONSE_ARTIFACTS_ENABLED = 67;
+		AI_RICH_RESPONSE_EMAIL_CALENDAR_ENABLED = 68;
+		AI_RICH_RESPONSE_REMINDERS_ENABLED = 69;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -537,6 +555,7 @@ message AIHomeState {
 			ANIMATE_PHOTO = 2;
 			ANALYZE_FILE = 3;
 			COLLABORATE = 4;
+			OPEN_GREETING_CARD = 5;
 		}
 
 		optional AIHomeActionType type = 1;
@@ -695,6 +714,31 @@ message AIMediaCollectionMessage {
 	optional bool hasGlobalCaption = 3;
 }
 
+message HatchMetadataSync {
+	optional bytes data = 1;
+	optional int64 timestampMS = 2;
+	optional string requestID = 3;
+}
+
+message AIMetadataOperation {
+	optional HatchMetadataSync hatchMetadataSync = 1;
+}
+
+message BotCommandMetadata {
+	optional string commandName = 1;
+	optional string commandDescription = 2;
+	optional string commandPrompt = 3;
+}
+
+message BotResolvedToolCallMetadata {
+	optional string toolCallID = 1;
+	optional string resolutionDataSerialized = 2;
+}
+
+message BotPttPromptMetadata {
+	optional string transcript = 1;
+}
+
 message BotMetadata {
 	optional string personaID = 2;
 	optional BotPluginMetadata pluginMetadata = 3;
@@ -733,10 +777,23 @@ message BotMetadata {
 	optional BotRenderingConfigMetadata botRenderingConfigMetadata = 36;
 	optional BotInfrastructureDiagnostics botInfrastructureDiagnostics = 37;
 	optional AIMediaCollectionMetadata aiMediaCollectionMetadata = 38;
+	optional BotCommandMetadata commandMetadata = 39;
+	optional BotResolvedToolCallMetadata resolvedToolCallMetadata = 40;
+	optional AISubscriptionUpsellMetadata subscriptionUpsellMetadata = 41;
+	optional BotPttPromptMetadata pttPromptMetadata = 42;
+	optional BotHistoryShareMetadata botHistoryShareMetadata = 43;
 	optional bytes internalMetadata = 999;
 }
 
+message AISubscriptionUpsellMetadata {
+	optional AISubscriptionRequestType requestType = 1;
+}
+
 message BotGroupMetadata {
+	repeated BotGroupParticipantMetadata participantsMetadata = 1;
+}
+
+message BotHistoryShareMetadata {
 	repeated BotGroupParticipantMetadata participantsMetadata = 1;
 }
 
@@ -781,4 +838,15 @@ message BotAgentMetadata {
 
 message BotAgentDeepLinkMetadata {
 	optional string token = 1;
+	optional bytes clientPublicKey = 2;
+}
+
+message AIProvenance {
+	message Metadata {
+		optional bool createdWithGenAi = 1;
+		optional bool editedWithGenAi = 2;
+	}
+
+	optional Metadata c2PaMetadata = 1;
+	optional Metadata iptcMetadata = 2;
 }

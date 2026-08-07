@@ -98,7 +98,7 @@ func (w *binaryEncoder) writeNode(n Node) {
 	}
 }
 
-func (w *binaryEncoder) write(data interface{}) {
+func (w *binaryEncoder) write(data any) {
 	switch typedData := data.(type) {
 	case nil:
 		w.pushByte(token.ListEmpty)

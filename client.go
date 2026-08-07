@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"maps"
 	"net"
 	"net/http"
 	"net/url"
@@ -26,6 +27,7 @@ import (
 	"go.mau.fi/util/ptr"
 	"go.mau.fi/util/random"
 	"golang.org/x/net/proxy"
+	"golang.org/x/sync/semaphore"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -69,6 +71,7 @@ type Client struct {
 	socketWait chan struct{}
 
 	isLoggedIn            atomic.Bool
+	paired                atomic.Bool
 	expectedDisconnect    *exsync.Event
 	forceAutoReconnect    atomic.Bool
 	EnableAutoReconnect   bool
@@ -99,9 +102,10 @@ type Client struct {
 	appStateProc     *appstate.Processor
 	appStateSyncLock sync.Mutex
 
-	historySyncNotifications  chan *waE2E.HistorySyncNotification
-	historySyncHandlerStarted atomic.Bool
-	ManualHistorySyncDownload bool
+	historySyncNotifications        chan *waE2E.HistorySyncNotification
+	historySyncHandlerStarted       atomic.Bool
+	ManualHistorySyncDownload       bool
+	DisableManualHistorySyncReceipt bool
 
 	uploadPreKeysLock sync.Mutex
 	lastPreKeyUpload  time.Time
@@ -119,6 +123,7 @@ type Client struct {
 
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
+	retrySema          *semaphore.Weighted
 
 	incomingRetryRequestCounter     map[incomingRetryKey]int
 	incomingRetryRequestCounterLock sync.Mutex
@@ -127,6 +132,12 @@ type Client struct {
 	appStateKeyRequestsLock sync.RWMutex
 
 	messageSendLock sync.Mutex
+
+	tcTokenSenderTS            map[types.JID]time.Time
+	tcTokenSenderTSLock        sync.Mutex
+	lastTCTokenSenderTSCleanup time.Time
+	tcTokenDBPruneLock         sync.Mutex
+	lastTCTokenDBPrune         time.Time
 
 	privacySettingsCache atomic.Value
 
@@ -162,6 +173,7 @@ type Client struct {
 	// GetClientPayload is called to get the client payload for connecting to the server.
 	// This should NOT be used for WhatsApp (to change the OS name, update fields in store.BaseClientPayload directly).
 	GetClientPayload func() *waWa6.ClientPayload
+	QRClientType     PairClientType
 
 	// Should untrusted identity errors be handled automatically? If true, the stored identity and existing signal
 	// sessions will be removed on untrusted identity errors, and an events.IdentityChange will be dispatched.
@@ -175,7 +187,10 @@ type Client struct {
 
 	BackgroundEventCtx context.Context
 
-	phoneLinkingCache *phoneLinkingCache
+	phoneLinkingCache    atomic.Pointer[phoneLinkingCache]
+	passkeyLinkingCache  atomic.Pointer[passkeyLinkingCache]
+	passkeyHandoffKey    atomic.Pointer[passkeyHandoffKey]
+	passkeySkipHandoffUX atomic.Bool
 
 	uniqueID  string
 	idCounter atomic.Uint64
@@ -193,6 +208,9 @@ type Client struct {
 	// The library is currently embedded in mautrix-meta (https://github.com/mautrix/meta), but may be separated later.
 	MessengerConfig *MessengerConfig
 	RefreshCAT      func(context.Context) error
+	// The user agent to use (for non-Messenger connections).
+	UserAgent        string
+	WebSocketHeaders http.Header
 }
 
 type groupMetaCache struct {
@@ -217,7 +235,7 @@ const handlerQueueSize = 2048
 //
 // The device store must be set. A default SQL-backed implementation is available in the store/sqlstore package.
 //
-//	container, err := sqlstore.New("sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
+//	container, err := sqlstore.New(context.Background(), "sqlite3", "file:yoursqlitefile.db?_foreign_keys=on", nil)
 //	if err != nil {
 //		panic(err)
 //	}
@@ -256,6 +274,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 
 		historySyncNotifications: make(chan *waE2E.HistorySyncNotification, 32),
 
+		tcTokenSenderTS:  make(map[types.JID]time.Time),
 		groupCache:       make(map[types.JID]*groupMetaCache),
 		userDevicesCache: make(map[types.JID]deviceCache),
 
@@ -270,9 +289,14 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		AutoTrustIdentity:   true,
 
 		BackgroundEventCtx: context.Background(),
+
+		UserAgent:        "",
+		WebSocketHeaders: http.Header{},
 	}
+	cli.paired.Store(deviceStore.ID != nil)
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
+		"status":       cli.handleUnencryptedMessage,
 		"appdata":      cli.handleEncryptedMessage,
 		"receipt":      cli.handleReceipt,
 		"call":         cli.handleCallEvent,
@@ -403,6 +427,16 @@ func (cli *Client) SetPreLoginHTTPClient(h *http.Client) {
 	cli.preLoginHTTP = h
 }
 
+// SetMaxParallelRetryReceiptHandling sets how many retry receipts can be handled in parallel.
+// Defaults to unlimited. This should only be set before connecting, changing it afterwards can cause data races.
+func (cli *Client) SetMaxParallelRetryReceiptHandling(n int64) {
+	if n <= 0 {
+		cli.retrySema = nil
+	} else {
+		cli.retrySema = semaphore.NewWeighted(n)
+	}
+}
+
 func (cli *Client) getSocketWaitChan() <-chan struct{} {
 	cli.socketLock.RLock()
 	ch := cli.socketWait
@@ -429,6 +463,13 @@ func (cli *Client) getOwnLID() types.JID {
 		return types.EmptyJID
 	}
 	return cli.Store.GetLID()
+}
+
+func (cli *Client) getUserAgent() string {
+	if cli.MessengerConfig != nil {
+		return cli.MessengerConfig.UserAgent
+	}
+	return cli.UserAgent
 }
 
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
@@ -520,16 +561,14 @@ func (cli *Client) unlockedConnect(ctx context.Context) error {
 		client = cli.preLoginHTTP
 	}
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), client)
+	if userAgent := cli.getUserAgent(); userAgent != "" {
+		fs.HTTPHeaders.Set("User-Agent", userAgent)
+	}
 	if cli.MessengerConfig != nil {
 		fs.URL = cli.MessengerConfig.WebsocketURL
 		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
-		fs.HTTPHeaders.Set("User-Agent", cli.MessengerConfig.UserAgent)
-		fs.HTTPHeaders.Set("Cache-Control", "no-cache")
-		fs.HTTPHeaders.Set("Pragma", "no-cache")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
 	}
+	maps.Copy(fs.HTTPHeaders, cli.WebSocketHeaders)
 	if err := fs.Connect(ctx); err != nil {
 		fs.Close(0)
 		return err
@@ -715,7 +754,7 @@ func (cli *Client) Logout(ctx context.Context) error {
 // All registered event handlers will receive all events. You should use a type switch statement to
 // filter the events you want:
 //
-//	func myEventHandler(evt interface{}) {
+//	func myEventHandler(evt any) {
 //		switch v := evt.(type) {
 //		case *events.Message:
 //			fmt.Println("Received a message!")
@@ -736,7 +775,7 @@ func (cli *Client) Logout(ctx context.Context) error {
 //		mycli.eventHandlerID = mycli.WAClient.AddEventHandler(mycli.myEventHandler)
 //	}
 //
-//	func (mycli *MyClient) myEventHandler(evt interface{}) {
+//	func (mycli *MyClient) myEventHandler(evt any) {
 //		// Handle event and access mycli.WAClient
 //	}
 func (cli *Client) AddEventHandler(handler EventHandler) uint32 {
@@ -761,7 +800,7 @@ func (cli *Client) AddEventHandlerWithSuccessStatus(handler EventHandlerWithSucc
 // event dispatcher holds a read lock on the event handler list, and this method wants a write lock
 // on the same list. Instead run it in a goroutine:
 //
-//	func (mycli *MyClient) myEventHandler(evt interface{}) {
+//	func (mycli *MyClient) myEventHandler(evt any) {
 //		if noLongerWantEvents {
 //			go mycli.WAClient.RemoveEventHandler(mycli.eventHandlerID)
 //		}
@@ -806,7 +845,7 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(decompressed))
 		return
 	}
-	cli.recvLog.Debugf("%s", node.XMLString())
+	cli.recvLog.Debugf("%s", node)
 	if node.Tag == "xmlstreamend" {
 		if !cli.isExpectedDisconnect() {
 			cli.Log.Warnf("Received stream end frame")
@@ -840,14 +879,14 @@ Loop:
 	for {
 		select {
 		case node := <-cli.handlerQueue:
-			doneChan := make(chan struct{}, 1)
+			doneChan := make(chan struct{})
 			start := time.Now()
 			go func() {
 				cli.nodeHandlers[node.Tag](evtCtx, node)
 				duration := time.Since(start)
-				doneChan <- struct{}{}
+				close(doneChan)
 				if duration > 5*time.Second {
-					cli.Log.Warnf("Node handling took %s for %s", duration, node.XMLString())
+					cli.Log.Warnf("Node handling took %s for %s", duration, node)
 				}
 			}()
 			ticker.Reset(30 * time.Second)
@@ -857,10 +896,10 @@ Loop:
 					ticker.Stop()
 					continue Loop
 				case <-ticker.C:
-					cli.Log.Warnf("Node handling is taking long for %s (started %s ago)", node.XMLString(), time.Since(start))
+					cli.Log.Warnf("Node handling is taking long for %s (started %s ago)", node, time.Since(start))
 				}
 			}
-			cli.Log.Warnf("Continuing handling of %s in background as it's taking too long", node.XMLString())
+			cli.Log.Warnf("Continuing handling of %s in background as it's taking too long", node)
 			ticker.Stop()
 		case <-connCtx.Done():
 			cli.Log.Debugf("Closing handler queue loop")
@@ -885,7 +924,7 @@ func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) (
 		return nil, fmt.Errorf("failed to marshal node: %w", err)
 	}
 
-	cli.sendLog.Debugf("%s", node.XMLString())
+	cli.sendLog.Debugf("%s", &node)
 	return payload, sock.SendFrame(ctx, payload)
 }
 
@@ -939,9 +978,13 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		Timestamp: time.Unix(int64(webMsg.GetMessageTimestamp()), 0),
 	}
 	if info.IsFromMe {
-		info.Sender = cli.getOwnID().ToNonAD()
-		if info.Sender.IsEmpty() {
-			return nil, ErrNotLoggedIn
+		if webMsg.GetOriginalSelfAuthorUserJIDString() != "" {
+			info.Sender, err = types.ParseJID(webMsg.GetOriginalSelfAuthorUserJIDString())
+		} else {
+			info.Sender = cli.getOwnID().ToNonAD()
+			if info.Sender.IsEmpty() {
+				return nil, ErrNotLoggedIn
+			}
 		}
 	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer || chatJID.Server == types.NewsletterServer {
 		info.Sender = chatJID

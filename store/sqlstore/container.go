@@ -51,6 +51,7 @@ func New(ctx context.Context, dialect, address string, log waLog.Logger) (*Conta
 	container := NewWithDB(db, dialect, log)
 	err = container.Upgrade(ctx)
 	if err != nil {
+		_ = container.Close()
 		return nil, fmt.Errorf("failed to upgrade database: %w", err)
 	}
 	return container, nil
@@ -115,7 +116,7 @@ const getAllDevicesQuery = `
 SELECT jid, lid, registration_id, noise_key, identity_key,
        signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
        adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
-       platform, business_name, push_name, facebook_uuid, lid_migration_ts
+       platform, business_name, push_name, facebook_uuid, lid_migration_ts, companion_meta_nonce
 FROM whatsmeow_device
 `
 
@@ -133,7 +134,7 @@ func (c *Container) scanDevice(row dbutil.Scannable) (*store.Device, error) {
 		&device.ID, &device.LID, &device.RegistrationID, &noisePriv, &identityPriv,
 		&preKeyPriv, &device.SignedPreKey.KeyID, &preKeySig,
 		&device.AdvSecretKey, &account.Details, &account.AccountSignature, &account.AccountSignatureKey, &account.DeviceSignature,
-		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID, &device.LIDMigrationTimestamp)
+		&device.Platform, &device.BusinessName, &device.PushName, &fbUUID, &device.LIDMigrationTimestamp, &device.CompanionMetaNonce)
 	if err != nil {
 		return nil, fmt.Errorf("failed to scan session: %w", err)
 	} else if len(noisePriv) != 32 || len(identityPriv) != 32 || len(preKeyPriv) != 32 || len(preKeySig) != 64 {
@@ -155,18 +156,7 @@ func (c *Container) scanDevice(row dbutil.Scannable) (*store.Device, error) {
 // GetAllDevices finds all the devices in the database.
 func (c *Container) GetAllDevices(ctx context.Context) ([]*store.Device, error) {
 	res, err := c.db.Query(ctx, getAllDevicesQuery)
-	if err != nil {
-		return nil, fmt.Errorf("failed to query sessions: %w", err)
-	}
-	sessions := make([]*store.Device, 0)
-	for res.Next() {
-		sess, scanErr := c.scanDevice(res)
-		if scanErr != nil {
-			return sessions, scanErr
-		}
-		sessions = append(sessions, sess)
-	}
-	return sessions, nil
+	return dbutil.NewRowIterWithError(res, c.scanDevice, err).AsList()
 }
 
 // GetFirstDevice is a convenience method for getting the first device in the store. If there are
@@ -202,14 +192,15 @@ const (
 		INSERT INTO whatsmeow_device (jid, lid, registration_id, noise_key, identity_key,
 									  signed_pre_key, signed_pre_key_id, signed_pre_key_sig,
 									  adv_key, adv_details, adv_account_sig, adv_account_sig_key, adv_device_sig,
-									  platform, business_name, push_name, facebook_uuid, lid_migration_ts)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+									  platform, business_name, push_name, facebook_uuid, lid_migration_ts, companion_meta_nonce)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
 		ON CONFLICT (jid) DO UPDATE
 			SET lid=excluded.lid,
 				platform=excluded.platform,
 				business_name=excluded.business_name,
 				push_name=excluded.push_name,
-				lid_migration_ts=excluded.lid_migration_ts
+				lid_migration_ts=excluded.lid_migration_ts,
+				companion_meta_nonce=excluded.companion_meta_nonce
 	`
 	deleteDeviceQuery = `DELETE FROM whatsmeow_device WHERE jid=$1`
 )
@@ -254,7 +245,7 @@ func (c *Container) PutDevice(ctx context.Context, device *store.Device) error {
 		device.SignedPreKey.Priv[:], device.SignedPreKey.KeyID, device.SignedPreKey.Signature[:],
 		device.AdvSecretKey, device.Account.Details, device.Account.AccountSignature, device.Account.AccountSignatureKey, device.Account.DeviceSignature,
 		device.Platform, device.BusinessName, device.PushName, uuid.NullUUID{UUID: device.FacebookUUID, Valid: device.FacebookUUID != uuid.Nil},
-		device.LIDMigrationTimestamp,
+		device.LIDMigrationTimestamp, device.CompanionMetaNonce,
 	)
 
 	if !device.Initialized {

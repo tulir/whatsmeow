@@ -98,7 +98,7 @@ func (cli *Client) SubscribePresence(ctx context.Context, jid types.JID) error {
 	if cli == nil {
 		return ErrClientIsNil
 	}
-	privacyToken, err := cli.Store.PrivacyTokens.GetPrivacyToken(ctx, jid)
+	privacyToken, err := cli.ensureTCToken(ctx, jid)
 	if err != nil {
 		return fmt.Errorf("failed to get privacy token: %w", err)
 	} else if privacyToken == nil {
@@ -118,7 +118,7 @@ func (cli *Client) SubscribePresence(ctx context.Context, jid types.JID) error {
 	if privacyToken != nil {
 		req.Content = []waBinary.Node{{
 			Tag:     "tctoken",
-			Content: privacyToken.Token,
+			Content: privacyToken,
 		}}
 	}
 	return cli.sendNode(ctx, req)
@@ -128,10 +128,6 @@ func (cli *Client) SubscribePresence(ctx context.Context, jid types.JID) error {
 //
 // The media parameter can be set to indicate the user is recording media (like a voice message) rather than typing a text message.
 func (cli *Client) SendChatPresence(ctx context.Context, jid types.JID, state types.ChatPresence, media types.ChatPresenceMedia) error {
-	ownID := cli.getOwnID()
-	if ownID.IsEmpty() {
-		return ErrNotLoggedIn
-	}
 	content := []waBinary.Node{{Tag: string(state)}}
 	if state == types.ChatPresenceComposing && len(media) > 0 {
 		content[0].Attrs = waBinary.Attrs{
@@ -141,8 +137,7 @@ func (cli *Client) SendChatPresence(ctx context.Context, jid types.JID, state ty
 	return cli.sendNode(ctx, waBinary.Node{
 		Tag: "chatstate",
 		Attrs: waBinary.Attrs{
-			"from": ownID,
-			"to":   jid,
+			"to": jid,
 		},
 		Content: content,
 	})
