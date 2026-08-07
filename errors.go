@@ -16,12 +16,14 @@ import (
 
 // Miscellaneous errors
 var (
-	ErrClientIsNil     = errors.New("client is nil")
-	ErrNoSession       = errors.New("can't encrypt message for device: no signal session established")
-	ErrIQTimedOut      = errors.New("info query timed out")
-	ErrNotConnected    = errors.New("websocket not connected")
-	ErrNotLoggedIn     = errors.New("the store doesn't contain a device JID")
-	ErrMessageTimedOut = errors.New("timed out waiting for message send response")
+	ErrClientIsNil  = errors.New("client is nil")
+	ErrNoSession    = errors.New("can't encrypt message for device: no signal session established")
+	ErrIQTimedOut   = errors.New("info query timed out")
+	ErrNotConnected = errors.New("websocket not connected")
+	// ErrNodeDroppedByHook is returned when Client.PreSendHook rejected an outgoing node.
+	ErrNodeDroppedByHook = errors.New("outgoing node was dropped by PreSendHook")
+	ErrNotLoggedIn       = errors.New("the store doesn't contain a device JID")
+	ErrMessageTimedOut   = errors.New("timed out waiting for message send response")
 
 	ErrAlreadyConnected = errors.New("websocket is already connected")
 
