@@ -133,6 +133,29 @@ func TestRelayParseElectsEndpoint(t *testing.T) {
 	}
 }
 
+func TestRelayParseCopiesCredentials(t *testing.T) {
+	node := syntheticRelayNode()
+	ep := parseElectedRelay(&node, types.CallDirectionOutgoing)
+	if ep == nil {
+		t.Fatal("parseElectedRelay = nil, want a resolved endpoint")
+	}
+
+	ep.Key[0] = 'X'
+	ep.Token[0] = 'X'
+	ep.AuthToken[0] = 'X'
+
+	children := node.GetChildren()
+	if got := string(children[0].Content.([]byte)); got != "relay-integrity-key" {
+		t.Errorf("relay key source mutated through parsed endpoint: %q", got)
+	}
+	if got := string(children[1].Content.([]byte)); got != "token-zero" {
+		t.Errorf("relay token source mutated through parsed endpoint: %q", got)
+	}
+	if got := string(children[2].Content.([]byte)); got != "token-one" {
+		t.Errorf("relay auth token source mutated through parsed endpoint: %q", got)
+	}
+}
+
 func TestRelayParseResolvesElectedPeerDevice(t *testing.T) {
 	primary := types.NewJID("242653052539031", types.HiddenUserServer)
 	companion := primary

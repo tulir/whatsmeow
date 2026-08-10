@@ -257,9 +257,12 @@ func parseElectedRelay(node *waBinary.Node, direction types.CallDirection) *type
 		AuthTokenID: ep.authTokenID,
 		RelayName:   ep.relayName,
 		IsFNA:       ep.isFNA,
-		Key:         rd.relayKeyASCII,
-		Token:       relayToken(rd.relayTokens, ep.tokenID),
-		AuthToken:   relayToken(rd.relayTokens, ep.authTokenID),
+		// Relay credentials are handed to the external media backend through
+		// CallMediaReady. Keep the public result independent from the incoming
+		// stanza buffers and from the parser's token table.
+		Key:       bytes.Clone(rd.relayKeyASCII),
+		Token:     bytes.Clone(relayToken(rd.relayTokens, ep.tokenID)),
+		AuthToken: bytes.Clone(relayToken(rd.relayTokens, ep.authTokenID)),
 	}
 	if len(ep.addresses) > 0 {
 		out.IPv4 = ep.addresses[0].ipv4
