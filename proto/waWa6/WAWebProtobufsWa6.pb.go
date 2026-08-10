@@ -28,6 +28,7 @@ const (
 	HandshakeMessage_HANDSHAKE_PQ_MODE_UNKNOWN HandshakeMessage_HandshakePqMode = 0
 	HandshakeMessage_XXKEM                     HandshakeMessage_HandshakePqMode = 1
 	HandshakeMessage_XXKEM_FS                  HandshakeMessage_HandshakePqMode = 2
+	HandshakeMessage_XXKEM_EPH                 HandshakeMessage_HandshakePqMode = 9
 	HandshakeMessage_WA_CLASSICAL              HandshakeMessage_HandshakePqMode = 3
 	HandshakeMessage_WA_PQ                     HandshakeMessage_HandshakePqMode = 4
 	HandshakeMessage_IKKEM                     HandshakeMessage_HandshakePqMode = 5
@@ -42,6 +43,7 @@ var (
 		0: "HANDSHAKE_PQ_MODE_UNKNOWN",
 		1: "XXKEM",
 		2: "XXKEM_FS",
+		9: "XXKEM_EPH",
 		3: "WA_CLASSICAL",
 		4: "WA_PQ",
 		5: "IKKEM",
@@ -53,6 +55,7 @@ var (
 		"HANDSHAKE_PQ_MODE_UNKNOWN": 0,
 		"XXKEM":                     1,
 		"XXKEM_FS":                  2,
+		"XXKEM_EPH":                 9,
 		"WA_CLASSICAL":              3,
 		"WA_PQ":                     4,
 		"IKKEM":                     5,
@@ -2331,7 +2334,8 @@ var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xfe\t\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\x8d\n" +
+	"\n" +
 	"\x10HandshakeMessage\x12Q\n" +
 	"\vclientHello\x18\x02 \x01(\v2/.WAWebProtobufsWa6.HandshakeMessage.ClientHelloR\vclientHello\x12Q\n" +
 	"\vserverHello\x18\x03 \x01(\v2/.WAWebProtobufsWa6.HandshakeMessage.ServerHelloR\vserverHello\x12T\n" +
@@ -2360,11 +2364,12 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x0fsimulateXxkemFs\x18\b \x01(\bR\x0fsimulateXxkemFs\x12K\n" +
 	"\x06pqMode\x18\t \x01(\x0e23.WAWebProtobufsWa6.HandshakeMessage.HandshakePqModeR\x06pqMode\x12,\n" +
 	"\x11extendedEphemeral\x18\n" +
-	" \x01(\fR\x11extendedEphemeral\"\x99\x01\n" +
+	" \x01(\fR\x11extendedEphemeral\"\xa8\x01\n" +
 	"\x0fHandshakePqMode\x12\x1d\n" +
 	"\x19HANDSHAKE_PQ_MODE_UNKNOWN\x10\x00\x12\t\n" +
 	"\x05XXKEM\x10\x01\x12\f\n" +
-	"\bXXKEM_FS\x10\x02\x12\x10\n" +
+	"\bXXKEM_FS\x10\x02\x12\r\n" +
+	"\tXXKEM_EPH\x10\t\x12\x10\n" +
 	"\fWA_CLASSICAL\x10\x03\x12\t\n" +
 	"\x05WA_PQ\x10\x04\x12\t\n" +
 	"\x05IKKEM\x10\x05\x12\f\n" +

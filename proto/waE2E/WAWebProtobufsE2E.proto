@@ -78,6 +78,17 @@ enum KeepType {
 	UNDO_KEEP_FOR_ALL = 2;
 }
 
+message StatusLinkPreviewMetadata {
+	enum Style {
+		AUTO = 0;
+		COMPACT = 1;
+		FULL = 2;
+		IMMERSIVE = 3;
+	}
+
+	optional Style style = 1;
+}
+
 message StickerPackMessage {
 	enum StickerPackOrigin {
 		FIRST_PARTY = 0;
@@ -610,6 +621,7 @@ message PaymentInviteMessage {
 		FBPAY = 1;
 		NOVI = 2;
 		UPI = 3;
+		PIX = 4;
 	}
 
 	optional ServiceType serviceType = 1;
@@ -951,7 +963,6 @@ message ProtocolMessage {
 		AI_METADATA_OPERATION = 35;
 		MARK_AS_VERIFIED_ACTION = 36;
 		COEX_STATE_SYNC = 37;
-		SYNC_REQUEST_MUTATION_RETRY = 38;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -984,7 +995,6 @@ message ProtocolMessage {
 	optional WAWebProtobufsAICommon.AIMetadataOperation aiMetadataOperation = 31;
 	optional MarkAsVerifiedAction markAsVerifiedAction = 32;
 	optional WAWebProtobufsServerSync.CoexStateSync coexStateSync = 33;
-	optional SyncRequestMutationRetry syncRequestMutationRetry = 34;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1051,6 +1061,19 @@ message VideoMessage {
 	optional uint64 motionPhotoPresentationOffsetMS = 29;
 	optional string metadataURL = 30;
 	optional VideoSourceType videoSourceType = 31;
+}
+
+message MusicMessage {
+	enum MusicMessageStyle {
+		UNKNOWN = 0;
+		VINYL = 1;
+	}
+
+	optional EmbeddedMusic embeddedMusic = 1;
+	optional string songUri = 2;
+	optional string artworkUri = 3;
+	optional int32 style = 4;
+	optional ContextInfo contextInfo = 5;
 }
 
 message ExtendedTextMessage {
@@ -1165,6 +1188,7 @@ message StatusNotificationMessage {
 		STATUS_ADD_YOURS = 1;
 		STATUS_RESHARE = 2;
 		STATUS_QUESTION_ANSWER_RESHARE = 3;
+		STATUS_GROUP_STATUS_REPLY = 4;
 	}
 
 	optional WACommon.MessageKey responseMessageKey = 1;
@@ -1830,6 +1854,9 @@ message Message {
 	optional FutureProofMessage newsletterAdminProfileStatusMessage = 126;
 	optional RootSecretDistributeMessage rootSecretDistributeMessage = 127;
 	optional SplitPaymentUpdateMessage splitPaymentUpdateMessage = 128;
+	optional MusicMessage musicMessage = 129;
+	optional StatusLinkPreviewMetadata statusLinkPreviewMetadata = 130;
+	optional FutureProofMessage botPlatformRegistrationSuccessMessage = 131;
 }
 
 message AlbumMessage {
@@ -2224,16 +2251,6 @@ message FullHistorySyncOnDemandRequestMetadata {
 message AppStateFatalExceptionNotification {
 	repeated string collectionNames = 1;
 	optional int64 timestamp = 2;
-}
-
-message SyncRequestMutationRetry {
-	message Collection {
-		optional string name = 1;
-		optional uint64 storedSyncdVersion = 2;
-	}
-
-	repeated Collection collections = 1;
-	optional uint32 count = 2;
 }
 
 message AppStateSyncKeyRequest {

@@ -208,6 +208,7 @@ type DeviceCapabilities struct {
 	MemberNameTagPrimarySupport *DeviceCapabilities_MemberNameTagPrimarySupport `protobuf:"varint,5,opt,name=memberNameTagPrimarySupport,enum=WAWebProtobufsDeviceCapabilities.DeviceCapabilities_MemberNameTagPrimarySupport" json:"memberNameTagPrimarySupport,omitempty"`
 	AiThread                    *DeviceCapabilities_AiThread                    `protobuf:"bytes,6,opt,name=aiThread" json:"aiThread,omitempty"`
 	AiFbidMigration             *DeviceCapabilities_AiFbidMigration             `protobuf:"bytes,7,opt,name=aiFbidMigration" json:"aiFbidMigration,omitempty"`
+	BizAiSettingsSync           *DeviceCapabilities_BizAiSettingsSync           `protobuf:"bytes,8,opt,name=bizAiSettingsSync" json:"bizAiSettingsSync,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -291,6 +292,13 @@ func (x *DeviceCapabilities) GetAiFbidMigration() *DeviceCapabilities_AiFbidMigr
 	return nil
 }
 
+func (x *DeviceCapabilities) GetBizAiSettingsSync() *DeviceCapabilities_BizAiSettingsSync {
+	if x != nil {
+		return x.BizAiSettingsSync
+	}
+	return nil
+}
+
 type DeviceCapabilities_AiThread struct {
 	state         protoimpl.MessageState                    `protogen:"open.v1"`
 	SupportLevel  *DeviceCapabilities_AiThread_SupportLevel `protobuf:"varint,1,opt,name=supportLevel,enum=WAWebProtobufsDeviceCapabilities.DeviceCapabilities_AiThread_SupportLevel" json:"supportLevel,omitempty"`
@@ -335,6 +343,50 @@ func (x *DeviceCapabilities_AiThread) GetSupportLevel() DeviceCapabilities_AiThr
 	return DeviceCapabilities_AiThread_NONE
 }
 
+type DeviceCapabilities_BizAiSettingsSync struct {
+	state                       protoimpl.MessageState `protogen:"open.v1"`
+	HandoffRemovalTimingEnabled *bool                  `protobuf:"varint,1,opt,name=handoffRemovalTimingEnabled" json:"handoffRemovalTimingEnabled,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
+}
+
+func (x *DeviceCapabilities_BizAiSettingsSync) Reset() {
+	*x = DeviceCapabilities_BizAiSettingsSync{}
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeviceCapabilities_BizAiSettingsSync) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeviceCapabilities_BizAiSettingsSync) ProtoMessage() {}
+
+func (x *DeviceCapabilities_BizAiSettingsSync) ProtoReflect() protoreflect.Message {
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeviceCapabilities_BizAiSettingsSync.ProtoReflect.Descriptor instead.
+func (*DeviceCapabilities_BizAiSettingsSync) Descriptor() ([]byte, []int) {
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 1}
+}
+
+func (x *DeviceCapabilities_BizAiSettingsSync) GetHandoffRemovalTimingEnabled() bool {
+	if x != nil && x.HandoffRemovalTimingEnabled != nil {
+		return *x.HandoffRemovalTimingEnabled
+	}
+	return false
+}
+
 type DeviceCapabilities_AiFbidMigration struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	ChatDbMigrationTimestamp *uint64                `protobuf:"varint,1,opt,name=chatDbMigrationTimestamp" json:"chatDbMigrationTimestamp,omitempty"`
@@ -344,7 +396,7 @@ type DeviceCapabilities_AiFbidMigration struct {
 
 func (x *DeviceCapabilities_AiFbidMigration) Reset() {
 	*x = DeviceCapabilities_AiFbidMigration{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[2]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -356,7 +408,7 @@ func (x *DeviceCapabilities_AiFbidMigration) String() string {
 func (*DeviceCapabilities_AiFbidMigration) ProtoMessage() {}
 
 func (x *DeviceCapabilities_AiFbidMigration) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[2]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -369,7 +421,7 @@ func (x *DeviceCapabilities_AiFbidMigration) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DeviceCapabilities_AiFbidMigration.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_AiFbidMigration) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 1}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 2}
 }
 
 func (x *DeviceCapabilities_AiFbidMigration) GetChatDbMigrationTimestamp() uint64 {
@@ -388,7 +440,7 @@ type DeviceCapabilities_UserHasAvatar struct {
 
 func (x *DeviceCapabilities_UserHasAvatar) Reset() {
 	*x = DeviceCapabilities_UserHasAvatar{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[3]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -400,7 +452,7 @@ func (x *DeviceCapabilities_UserHasAvatar) String() string {
 func (*DeviceCapabilities_UserHasAvatar) ProtoMessage() {}
 
 func (x *DeviceCapabilities_UserHasAvatar) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[3]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -413,7 +465,7 @@ func (x *DeviceCapabilities_UserHasAvatar) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeviceCapabilities_UserHasAvatar.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_UserHasAvatar) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 2}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 3}
 }
 
 func (x *DeviceCapabilities_UserHasAvatar) GetUserHasAvatar() bool {
@@ -436,7 +488,7 @@ type DeviceCapabilities_BusinessBroadcast struct {
 
 func (x *DeviceCapabilities_BusinessBroadcast) Reset() {
 	*x = DeviceCapabilities_BusinessBroadcast{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[4]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -448,7 +500,7 @@ func (x *DeviceCapabilities_BusinessBroadcast) String() string {
 func (*DeviceCapabilities_BusinessBroadcast) ProtoMessage() {}
 
 func (x *DeviceCapabilities_BusinessBroadcast) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[4]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -461,7 +513,7 @@ func (x *DeviceCapabilities_BusinessBroadcast) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use DeviceCapabilities_BusinessBroadcast.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_BusinessBroadcast) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 3}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 4}
 }
 
 func (x *DeviceCapabilities_BusinessBroadcast) GetImportListEnabled() bool {
@@ -508,7 +560,7 @@ type DeviceCapabilities_LIDMigration struct {
 
 func (x *DeviceCapabilities_LIDMigration) Reset() {
 	*x = DeviceCapabilities_LIDMigration{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[5]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -520,7 +572,7 @@ func (x *DeviceCapabilities_LIDMigration) String() string {
 func (*DeviceCapabilities_LIDMigration) ProtoMessage() {}
 
 func (x *DeviceCapabilities_LIDMigration) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[5]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -533,7 +585,7 @@ func (x *DeviceCapabilities_LIDMigration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeviceCapabilities_LIDMigration.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_LIDMigration) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 4}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 5}
 }
 
 func (x *DeviceCapabilities_LIDMigration) GetChatDbMigrationTimestamp() uint64 {
@@ -547,7 +599,7 @@ var File_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto protoreflec
 
 const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc = "" +
 	"\n" +
-	";waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto\x12 WAWebProtobufsDeviceCapabilities\"\xd2\f\n" +
+	";waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto\x12 WAWebProtobufsDeviceCapabilities\"\x9f\x0e\n" +
 	"\x12DeviceCapabilities\x12}\n" +
 	"\x14chatLockSupportLevel\x18\x01 \x01(\x0e2I.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevelR\x14chatLockSupportLevel\x12e\n" +
 	"\flidMigration\x18\x02 \x01(\v2A.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigrationR\flidMigration\x12t\n" +
@@ -555,13 +607,16 @@ const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc =
 	"\ruserHasAvatar\x18\x04 \x01(\v2B.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatarR\ruserHasAvatar\x12\x92\x01\n" +
 	"\x1bmemberNameTagPrimarySupport\x18\x05 \x01(\x0e2P.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.MemberNameTagPrimarySupportR\x1bmemberNameTagPrimarySupport\x12Y\n" +
 	"\baiThread\x18\x06 \x01(\v2=.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThreadR\baiThread\x12n\n" +
-	"\x0faiFbidMigration\x18\a \x01(\v2D.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigrationR\x0faiFbidMigration\x1a\xa9\x01\n" +
+	"\x0faiFbidMigration\x18\a \x01(\v2D.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigrationR\x0faiFbidMigration\x12t\n" +
+	"\x11bizAiSettingsSync\x18\b \x01(\v2F.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiSettingsSyncR\x11bizAiSettingsSync\x1a\xa9\x01\n" +
 	"\bAiThread\x12n\n" +
 	"\fsupportLevel\x18\x01 \x01(\x0e2J.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.SupportLevelR\fsupportLevel\"-\n" +
 	"\fSupportLevel\x12\b\n" +
 	"\x04NONE\x10\x00\x12\t\n" +
 	"\x05INFRA\x10\x01\x12\b\n" +
-	"\x04FULL\x10\x02\x1aM\n" +
+	"\x04FULL\x10\x02\x1aU\n" +
+	"\x11BizAiSettingsSync\x12@\n" +
+	"\x1bhandoffRemovalTimingEnabled\x18\x01 \x01(\bR\x1bhandoffRemovalTimingEnabled\x1aM\n" +
 	"\x0fAiFbidMigration\x12:\n" +
 	"\x18chatDbMigrationTimestamp\x18\x01 \x01(\x04R\x18chatDbMigrationTimestamp\x1a5\n" +
 	"\rUserHasAvatar\x12$\n" +
@@ -596,32 +651,34 @@ func file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZI
 }
 
 var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_goTypes = []any{
 	(DeviceCapabilities_MemberNameTagPrimarySupport)(0), // 0: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.MemberNameTagPrimarySupport
 	(DeviceCapabilities_ChatLockSupportLevel)(0),        // 1: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
 	(DeviceCapabilities_AiThread_SupportLevel)(0),       // 2: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.SupportLevel
 	(*DeviceCapabilities)(nil),                          // 3: WAWebProtobufsDeviceCapabilities.DeviceCapabilities
 	(*DeviceCapabilities_AiThread)(nil),                 // 4: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread
-	(*DeviceCapabilities_AiFbidMigration)(nil),          // 5: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigration
-	(*DeviceCapabilities_UserHasAvatar)(nil),            // 6: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
-	(*DeviceCapabilities_BusinessBroadcast)(nil),        // 7: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
-	(*DeviceCapabilities_LIDMigration)(nil),             // 8: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
+	(*DeviceCapabilities_BizAiSettingsSync)(nil),        // 5: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiSettingsSync
+	(*DeviceCapabilities_AiFbidMigration)(nil),          // 6: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigration
+	(*DeviceCapabilities_UserHasAvatar)(nil),            // 7: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
+	(*DeviceCapabilities_BusinessBroadcast)(nil),        // 8: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
+	(*DeviceCapabilities_LIDMigration)(nil),             // 9: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
 }
 var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_depIdxs = []int32{
 	1, // 0: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.chatLockSupportLevel:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
-	8, // 1: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.lidMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
-	7, // 2: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.businessBroadcast:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
-	6, // 3: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.userHasAvatar:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
+	9, // 1: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.lidMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
+	8, // 2: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.businessBroadcast:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
+	7, // 3: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.userHasAvatar:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
 	0, // 4: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.memberNameTagPrimarySupport:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.MemberNameTagPrimarySupport
 	4, // 5: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.aiThread:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread
-	5, // 6: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.aiFbidMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigration
-	2, // 7: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.supportLevel:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.SupportLevel
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	6, // 6: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.aiFbidMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigration
+	5, // 7: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.bizAiSettingsSync:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiSettingsSync
+	2, // 8: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.supportLevel:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.SupportLevel
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	9, // [9:9] is the sub-list for extension type_name
+	9, // [9:9] is the sub-list for extension extendee
+	0, // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_init() }
@@ -635,7 +692,7 @@ func file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc), len(file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -894,6 +894,7 @@ const (
 	SettingsSyncAction_SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION  SettingsSyncAction_SettingKey = 31
 	SettingsSyncAction_CHAT_THEME_ID                            SettingsSyncAction_SettingKey = 32
 	SettingsSyncAction_COLOR_SCHEME_ID                          SettingsSyncAction_SettingKey = 33
+	SettingsSyncAction_STOCK_WALLPAPER_IMAGE_ID                 SettingsSyncAction_SettingKey = 34
 )
 
 // Enum value maps for SettingsSyncAction_SettingKey.
@@ -933,6 +934,7 @@ var (
 		31: "SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION",
 		32: "CHAT_THEME_ID",
 		33: "COLOR_SCHEME_ID",
+		34: "STOCK_WALLPAPER_IMAGE_ID",
 	}
 	SettingsSyncAction_SettingKey_value = map[string]int32{
 		"SETTING_KEY_UNKNOWN":                      0,
@@ -969,6 +971,7 @@ var (
 		"SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION":  31,
 		"CHAT_THEME_ID":                            32,
 		"COLOR_SCHEME_ID":                          33,
+		"STOCK_WALLPAPER_IMAGE_ID":                 34,
 	}
 )
 
@@ -1897,23 +1900,24 @@ func (UsernameChatStartModeAction_ChatStartMode) EnumDescriptor() ([]byte, []int
 type LabelEditAction_ListType int32
 
 const (
-	LabelEditAction_NONE            LabelEditAction_ListType = 0
-	LabelEditAction_UNREAD          LabelEditAction_ListType = 1
-	LabelEditAction_GROUPS          LabelEditAction_ListType = 2
-	LabelEditAction_FAVORITES       LabelEditAction_ListType = 3
-	LabelEditAction_PREDEFINED      LabelEditAction_ListType = 4
-	LabelEditAction_CUSTOM          LabelEditAction_ListType = 5
-	LabelEditAction_COMMUNITY       LabelEditAction_ListType = 6
-	LabelEditAction_SERVER_ASSIGNED LabelEditAction_ListType = 7
-	LabelEditAction_DRAFTED         LabelEditAction_ListType = 8
-	LabelEditAction_AI_HANDOFF      LabelEditAction_ListType = 9
-	LabelEditAction_CHANNELS        LabelEditAction_ListType = 10
-	LabelEditAction_AI_RESPONDING   LabelEditAction_ListType = 11
-	LabelEditAction_ARCHIVED        LabelEditAction_ListType = 12
-	LabelEditAction_LOCKED          LabelEditAction_ListType = 13
-	LabelEditAction_INVITES         LabelEditAction_ListType = 14
-	LabelEditAction_THIRD_PARTY     LabelEditAction_ListType = 15
-	LabelEditAction_LEAD            LabelEditAction_ListType = 16
+	LabelEditAction_NONE                 LabelEditAction_ListType = 0
+	LabelEditAction_UNREAD               LabelEditAction_ListType = 1
+	LabelEditAction_GROUPS               LabelEditAction_ListType = 2
+	LabelEditAction_FAVORITES            LabelEditAction_ListType = 3
+	LabelEditAction_PREDEFINED           LabelEditAction_ListType = 4
+	LabelEditAction_CUSTOM               LabelEditAction_ListType = 5
+	LabelEditAction_COMMUNITY            LabelEditAction_ListType = 6
+	LabelEditAction_SERVER_ASSIGNED      LabelEditAction_ListType = 7
+	LabelEditAction_DRAFTED              LabelEditAction_ListType = 8
+	LabelEditAction_AI_HANDOFF           LabelEditAction_ListType = 9
+	LabelEditAction_CHANNELS             LabelEditAction_ListType = 10
+	LabelEditAction_AI_RESPONDING        LabelEditAction_ListType = 11
+	LabelEditAction_ARCHIVED             LabelEditAction_ListType = 12
+	LabelEditAction_LOCKED               LabelEditAction_ListType = 13
+	LabelEditAction_INVITES              LabelEditAction_ListType = 14
+	LabelEditAction_THIRD_PARTY          LabelEditAction_ListType = 15
+	LabelEditAction_LEAD                 LabelEditAction_ListType = 16
+	LabelEditAction_MENTIONS_AND_REPLIES LabelEditAction_ListType = 17
 )
 
 // Enum value maps for LabelEditAction_ListType.
@@ -1936,25 +1940,27 @@ var (
 		14: "INVITES",
 		15: "THIRD_PARTY",
 		16: "LEAD",
+		17: "MENTIONS_AND_REPLIES",
 	}
 	LabelEditAction_ListType_value = map[string]int32{
-		"NONE":            0,
-		"UNREAD":          1,
-		"GROUPS":          2,
-		"FAVORITES":       3,
-		"PREDEFINED":      4,
-		"CUSTOM":          5,
-		"COMMUNITY":       6,
-		"SERVER_ASSIGNED": 7,
-		"DRAFTED":         8,
-		"AI_HANDOFF":      9,
-		"CHANNELS":        10,
-		"AI_RESPONDING":   11,
-		"ARCHIVED":        12,
-		"LOCKED":          13,
-		"INVITES":         14,
-		"THIRD_PARTY":     15,
-		"LEAD":            16,
+		"NONE":                 0,
+		"UNREAD":               1,
+		"GROUPS":               2,
+		"FAVORITES":            3,
+		"PREDEFINED":           4,
+		"CUSTOM":               5,
+		"COMMUNITY":            6,
+		"SERVER_ASSIGNED":      7,
+		"DRAFTED":              8,
+		"AI_HANDOFF":           9,
+		"CHANNELS":             10,
+		"AI_RESPONDING":        11,
+		"ARCHIVED":             12,
+		"LOCKED":               13,
+		"INVITES":              14,
+		"THIRD_PARTY":          15,
+		"LEAD":                 16,
+		"MENTIONS_AND_REPLIES": 17,
 	}
 )
 
@@ -2316,6 +2322,7 @@ type SettingsSyncAction struct {
 	ShouldPlaySoundForCallNotification   *bool                                   `protobuf:"varint,31,opt,name=shouldPlaySoundForCallNotification" json:"shouldPlaySoundForCallNotification,omitempty"`
 	ChatThemeID                          *string                                 `protobuf:"bytes,32,opt,name=chatThemeID" json:"chatThemeID,omitempty"`
 	ColorSchemeID                        *string                                 `protobuf:"bytes,33,opt,name=colorSchemeID" json:"colorSchemeID,omitempty"`
+	StockWallpaperImageID                *string                                 `protobuf:"bytes,34,opt,name=stockWallpaperImageID" json:"stockWallpaperImageID,omitempty"`
 	unknownFields                        protoimpl.UnknownFields
 	sizeCache                            protoimpl.SizeCache
 }
@@ -2577,6 +2584,13 @@ func (x *SettingsSyncAction) GetChatThemeID() string {
 func (x *SettingsSyncAction) GetColorSchemeID() string {
 	if x != nil && x.ColorSchemeID != nil {
 		return *x.ColorSchemeID
+	}
+	return ""
+}
+
+func (x *SettingsSyncAction) GetStockWallpaperImageID() string {
+	if x != nil && x.StockWallpaperImageID != nil {
+		return *x.StockWallpaperImageID
 	}
 	return ""
 }
@@ -8496,7 +8510,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\x06Status\x12\f\n" +
 	"\bINACTIVE\x10\x00\x12\n" +
 	"\n" +
-	"\x06ACTIVE\x10\x01\"\xf1\x1a\n" +
+	"\x06ACTIVE\x10\x01\"\xc5\x1b\n" +
 	"\x12SettingsSyncAction\x12\"\n" +
 	"\fstartAtLogin\x18\x01 \x01(\bR\fstartAtLogin\x12&\n" +
 	"\x0eminimizeToTray\x18\x02 \x01(\bR\x0eminimizeToTray\x12\x1a\n" +
@@ -8531,7 +8545,8 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\x18statusNotificationToneID\x18\x1e \x01(\x05R\x18statusNotificationToneID\x12N\n" +
 	"\"shouldPlaySoundForCallNotification\x18\x1f \x01(\bR\"shouldPlaySoundForCallNotification\x12 \n" +
 	"\vchatThemeID\x18  \x01(\tR\vchatThemeID\x12$\n" +
-	"\rcolorSchemeID\x18! \x01(\tR\rcolorSchemeID\"F\n" +
+	"\rcolorSchemeID\x18! \x01(\tR\rcolorSchemeID\x124\n" +
+	"\x15stockWallpaperImageID\x18\" \x01(\tR\x15stockWallpaperImageID\"F\n" +
 	"\x13MediaQualitySetting\x12\x19\n" +
 	"\x15MEDIA_QUALITY_UNKNOWN\x10\x00\x12\f\n" +
 	"\bSTANDARD\x10\x01\x12\x06\n" +
@@ -8541,7 +8556,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\n" +
 	"\x06ALWAYS\x10\x01\x12\t\n" +
 	"\x05NEVER\x10\x02\x12\x19\n" +
-	"\x15ONLY_WHEN_APP_IS_OPEN\x10\x03\"\xbc\b\n" +
+	"\x15ONLY_WHEN_APP_IS_OPEN\x10\x03\"\xda\b\n" +
 	"\n" +
 	"SettingKey\x12\x17\n" +
 	"\x13SETTING_KEY_UNKNOWN\x10\x00\x12\x12\n" +
@@ -8578,7 +8593,8 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\x1bSTATUS_NOTIFICATION_TONE_ID\x10\x1e\x12+\n" +
 	"'SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION\x10\x1f\x12\x11\n" +
 	"\rCHAT_THEME_ID\x10 \x12\x13\n" +
-	"\x0fCOLOR_SCHEME_ID\x10!\"R\n" +
+	"\x0fCOLOR_SCHEME_ID\x10!\x12\x1c\n" +
+	"\x18STOCK_WALLPAPER_IMAGE_ID\x10\"\"R\n" +
 	"\x0fSettingPlatform\x12\x14\n" +
 	"\x10PLATFORM_UNKNOWN\x10\x00\x12\a\n" +
 	"\x03WEB\x10\x01\x12\n" +
@@ -8706,7 +8722,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\rchatStartMode\x18\x01 \x01(\x0e2B.WAWebProtobufSyncAction.UsernameChatStartModeAction.ChatStartModeR\rchatStartMode\" \n" +
 	"\rChatStartMode\x12\a\n" +
 	"\x03LID\x10\x01\x12\x06\n" +
-	"\x02PN\x10\x02\"\xc2\x04\n" +
+	"\x02PN\x10\x02\"\xdc\x04\n" +
 	"\x0fLabelEditAction\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05color\x18\x02 \x01(\x05R\x05color\x12\"\n" +
@@ -8718,7 +8734,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\bisActive\x18\x06 \x01(\bR\bisActive\x12E\n" +
 	"\x04type\x18\a \x01(\x0e21.WAWebProtobufSyncAction.LabelEditAction.ListTypeR\x04type\x12 \n" +
 	"\visImmutable\x18\b \x01(\bR\visImmutable\x12$\n" +
-	"\rmuteEndTimeMS\x18\t \x01(\x03R\rmuteEndTimeMS\"\xfb\x01\n" +
+	"\rmuteEndTimeMS\x18\t \x01(\x03R\rmuteEndTimeMS\"\x95\x02\n" +
 	"\bListType\x12\b\n" +
 	"\x04NONE\x10\x00\x12\n" +
 	"\n" +
@@ -8743,7 +8759,8 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\x06LOCKED\x10\r\x12\v\n" +
 	"\aINVITES\x10\x0e\x12\x0f\n" +
 	"\vTHIRD_PARTY\x10\x0f\x12\b\n" +
-	"\x04LEAD\x10\x10\"\xa3\x05\n" +
+	"\x04LEAD\x10\x10\x12\x18\n" +
+	"\x14MENTIONS_AND_REPLIES\x10\x11\"\xa3\x05\n" +
 	"\x0ePatchDebugData\x12$\n" +
 	"\rcurrentLthash\x18\x01 \x01(\fR\rcurrentLthash\x12\x1c\n" +
 	"\tnewLthash\x18\x02 \x01(\fR\tnewLthash\x12\"\n" +

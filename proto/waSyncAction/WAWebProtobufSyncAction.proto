@@ -230,6 +230,7 @@ message SettingsSyncAction {
 		SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION = 31;
 		CHAT_THEME_ID = 32;
 		COLOR_SCHEME_ID = 33;
+		STOCK_WALLPAPER_IMAGE_ID = 34;
 	}
 
 	enum SettingPlatform {
@@ -273,6 +274,7 @@ message SettingsSyncAction {
 	optional bool shouldPlaySoundForCallNotification = 31;
 	optional string chatThemeID = 32;
 	optional string colorSchemeID = 33;
+	optional string stockWallpaperImageID = 34;
 }
 
 message InteractiveMessageAction {
@@ -460,6 +462,7 @@ message LabelEditAction {
 		INVITES = 14;
 		THIRD_PARTY = 15;
 		LEAD = 16;
+		MENTIONS_AND_REPLIES = 17;
 	}
 
 	optional string name = 1;
