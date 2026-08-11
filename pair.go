@@ -49,6 +49,7 @@ func (cli *Client) handleIQ(ctx context.Context, node *waBinary.Node) {
 }
 
 func (cli *Client) handlePairDevice(ctx context.Context, node *waBinary.Node) {
+	cli.paired.Store(false)
 	pairDevice := node.GetChildByTag("pair-device")
 	err := cli.sendNode(ctx, waBinary.Node{
 		Tag: "iq",
@@ -119,6 +120,7 @@ func (cli *Client) makeQRData(ref []byte, clientType PairClientType) string {
 }
 
 func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
+	cli.serverTimeOffset.Store(int64(node.AttrGetter().UnixTime("t").Sub(time.Now().Round(time.Second))))
 	id := node.Attrs["id"].(string)
 	pairSuccess := node.GetChildByTag("pair-success")
 
@@ -127,18 +129,22 @@ func (cli *Client) handlePairSuccess(ctx context.Context, node *waBinary.Node) {
 	jid, _ := pairSuccess.GetChildByTag("device").Attrs["jid"].(types.JID)
 	lid, _ := pairSuccess.GetChildByTag("device").Attrs["lid"].(types.JID)
 	platform, _ := pairSuccess.GetChildByTag("platform").Attrs["name"].(string)
-	cli.serverTimeOffset.Store(int64(node.AttrGetter().UnixTime("t").Sub(time.Now().Round(time.Second))))
+	clientPropsBytes, _ := pairSuccess.GetChildByTag("client-props").Content.([]byte)
+	var props waCompanionReg.ClientPairingProps
+	if err := proto.Unmarshal(clientPropsBytes, &props); err != nil {
+		cli.Log.Warnf("Failed to parse client pairing props: %v", err)
+	}
 
 	go func() {
 		err := cli.handlePair(ctx, deviceIdentityBytes, id, businessName, platform, jid, lid)
 		if err != nil {
 			cli.Log.Errorf("Failed to pair device: %v", err)
 			cli.Disconnect()
-			cli.dispatchEvent(&events.PairError{ID: jid, LID: lid, BusinessName: businessName, Platform: platform, Error: err})
+			cli.dispatchEvent(&events.PairError{ID: jid, LID: lid, BusinessName: businessName, Platform: platform, Props: &props, Error: err})
 		} else {
 			cli.Log.Infof("Successfully paired %s", cli.Store.ID)
 			go cli.sendUnifiedSession()
-			cli.dispatchEvent(&events.PairSuccess{ID: jid, LID: lid, BusinessName: businessName, Platform: platform})
+			cli.dispatchEvent(&events.PairSuccess{ID: jid, LID: lid, BusinessName: businessName, Platform: platform, Props: &props})
 		}
 	}()
 }
@@ -222,6 +228,7 @@ func (cli *Client) handlePair(ctx context.Context, deviceIdentityBytes []byte, r
 
 	// Expect a disconnect after this and don't dispatch the usual Disconnected event
 	cli.expectDisconnect()
+	cli.paired.Store(true)
 
 	err = cli.sendNode(ctx, waBinary.Node{
 		Tag: "iq",

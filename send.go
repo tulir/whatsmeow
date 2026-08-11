@@ -322,7 +322,11 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		resp.DebugTimings.GetParticipants = time.Since(start)
 	} else if to.Server == types.HiddenUserServer {
 		ownID = cli.getOwnLID()
-	} else if to.Server == types.DefaultUserServer && cli.Store.LIDMigrationTimestamp > 0 && !req.Peer {
+		extraParams.peerRecipientPN, err = cli.Store.LIDs.GetPNForLID(ctx, to)
+		if err != nil {
+			cli.Log.Warnf("Failed to get peer recipient PN for %s: %v", to, err)
+		}
+	} else if to.Server == types.DefaultUserServer && !req.Peer {
 		start := time.Now()
 		var toLID types.JID
 		toLID, err = cli.Store.LIDs.GetLIDForPN(ctx, to)
@@ -331,6 +335,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 			return
 		} else if toLID.IsEmpty() {
 			var info map[types.JID]types.UserInfo
+			cli.Log.Debugf("LID for %s not found, fetching user info", to)
 			info, err = cli.GetUserInfo(ctx, []types.JID{to})
 			if err != nil {
 				err = fmt.Errorf("failed to get user info for %s to fill LID cache: %w", to, err)
@@ -341,7 +346,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 			}
 		}
 		resp.DebugTimings.LIDFetch = time.Since(start)
-		cli.Log.Debugf("Replacing SendMessage destination with LID as migration timestamp is set %s -> %s", to, toLID)
+		cli.Log.Debugf("Replacing SendMessage destination with LID %s -> %s", to, toLID)
+		extraParams.peerRecipientPN = to
 		to = toLID
 		ownID = cli.getOwnLID()
 	}
@@ -742,6 +748,7 @@ type nodeExtraParams struct {
 	metaNode        *waBinary.Node
 	additionalNodes *[]waBinary.Node
 	addressingMode  types.AddressingMode
+	peerRecipientPN types.JID
 }
 
 func (cli *Client) sendGroup(
@@ -1187,6 +1194,9 @@ func (cli *Client) prepareMessageNode(
 		"type": msgType,
 		"to":   to,
 	}
+	if !extraParams.peerRecipientPN.IsEmpty() {
+		attrs["peer_recipient_pn"] = extraParams.peerRecipientPN
+	}
 	// TODO this is a very hacky hack for announcement group messages, why is it pn anyway?
 	if extraParams.addressingMode != "" {
 		attrs["addressing_mode"] = string(extraParams.addressingMode)
@@ -1285,6 +1295,9 @@ func (cli *Client) encryptMessageForDevices(
 	sessionAddressToJID := make(map[string]types.JID, len(allDevices))
 	sessionAddresses := make([]string, 0, len(allDevices))
 	for _, jid := range allDevices {
+		if jid == ownJID || jid == ownLID {
+			continue
+		}
 		encryptionIdentity := jid
 		if jid.Server == types.DefaultUserServer {
 			// TODO query LID from server for missing entries
@@ -1313,10 +1326,10 @@ func (cli *Client) encryptMessageForDevices(
 
 	for _, jid := range allDevices {
 		plaintext := msgPlaintext
+		if jid == ownJID || jid == ownLID {
+			continue
+		}
 		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
-			if jid == ownJID || jid == ownLID {
-				continue
-			}
 			plaintext = dsmPlaintext
 		}
 		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(

@@ -97,6 +97,11 @@ enum MutationProps {
 	THREAD_PIN_ACTION = 85;
 	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = 86;
 	BIZ_AI_SETTINGS_NUDGE_ACTION = 87;
+	COEX_V2_VERSION_ACTION = 88;
+	WASA_ROOT_SECRET_ACTION = 89;
+	BUBBLE_LOCK_MESSAGE_ACTION = 90;
+	LABEL_SUBLIST_ACTION = 91;
+	DEVICE_CAPABILITIES_V2 = 92;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -160,6 +165,22 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message WASARootSecretAction {
+	message RootSecretEntry {
+		enum Status {
+			INACTIVE = 0;
+			ACTIVE = 1;
+		}
+
+		optional string ID = 1;
+		optional bytes rootSecret = 2;
+		optional int64 epoch = 3;
+		optional Status status = 4;
+	}
+
+	repeated RootSecretEntry secrets = 1;
+}
+
 message SettingsSyncAction {
 	enum MediaQualitySetting {
 		MEDIA_QUALITY_UNKNOWN = 0;
@@ -209,6 +230,7 @@ message SettingsSyncAction {
 		SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION = 31;
 		CHAT_THEME_ID = 32;
 		COLOR_SCHEME_ID = 33;
+		STOCK_WALLPAPER_IMAGE_ID = 34;
 	}
 
 	enum SettingPlatform {
@@ -252,6 +274,7 @@ message SettingsSyncAction {
 	optional bool shouldPlaySoundForCallNotification = 31;
 	optional string chatThemeID = 32;
 	optional string colorSchemeID = 33;
+	optional string stockWallpaperImageID = 34;
 }
 
 message InteractiveMessageAction {
@@ -292,6 +315,7 @@ message BizAISettingsNudgeAction {
 		EXAMPLE_RESPONSES = 3;
 		KNOWLEDGE = 4;
 		LEAD_GEN = 5;
+		HANDOFF_REMOVAL_TIMING = 6;
 	}
 
 	optional BizAISettingsCategory category = 1;
@@ -390,8 +414,8 @@ message StatusPrivacyAction {
 
 	optional StatusDistributionMode mode = 1;
 	repeated string userJID = 2;
-	optional bool shareToFB = 3;
-	optional bool shareToIG = 4;
+	optional bool shareToFb = 3;
+	optional bool shareToIg = 4;
 	repeated CustomList customLists = 5;
 	repeated StatusDistributionMode modes = 6;
 }
@@ -437,6 +461,8 @@ message LabelEditAction {
 		LOCKED = 13;
 		INVITES = 14;
 		THIRD_PARTY = 15;
+		LEAD = 16;
+		MENTIONS_AND_REPLIES = 17;
 	}
 
 	optional string name = 1;
@@ -562,6 +588,11 @@ enum MutationName {
 	THREAD_PIN_ACTION = thread_pin;
 	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = setting_autoOrganizeBusinessChat;
 	BIZ_AI_SETTINGS_NUDGE_ACTION = biz_ai_settings_nudge;
+	COEX_V2_VERSION_ACTION = coexV2Version;
+	WASA_ROOT_SECRET_ACTION = wasa_root_secret;
+	BUBBLE_LOCK_MESSAGE_ACTION = lock_message;
+	LABEL_SUBLIST_ACTION = label_sublist;
+	DEVICE_CAPABILITIES_V2 = device_capabilities_v2;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -667,6 +698,15 @@ message SyncActionValue {
 	optional ThreadPinAction threadPinAction = 85;
 	optional AutoOrganizeBusinessChatSetting autoOrganizeBusinessChatSetting = 86;
 	optional BizAISettingsNudgeAction bizAiSettingsNudgeAction = 87;
+	optional CoexV2VersionAction coexV2VersionAction = 88;
+	optional WASARootSecretAction wasaRootSecretAction = 89;
+	optional BubbleLockMessageAction bubbleLockMessageAction = 90;
+	optional LabelSublistAction labelSublistAction = 91;
+	optional WAWebProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilitiesV2 = 92;
+}
+
+message CoexV2VersionAction {
+	optional uint64 version = 1;
 }
 
 message SubscriptionsSyncV2Action {
@@ -757,6 +797,7 @@ message BusinessBroadcastListAction {
 	optional string listName = 3;
 	repeated string labelIDs = 4;
 	optional string audienceExpression = 5;
+	optional string customAudienceFbid = 6;
 }
 
 message BusinessBroadcastAssociationAction {
@@ -796,6 +837,10 @@ message PrivacySettingDisableLinkPreviewsAction {
 
 message WamoUserIdentifierAction {
 	optional string identifier = 1;
+}
+
+message BubbleLockMessageAction {
+	optional bool locked = 1;
 }
 
 message LockChatAction {
@@ -981,6 +1026,10 @@ message ArchiveChatAction {
 
 message RecentEmojiWeightsAction {
 	repeated RecentEmojiWeight weights = 1;
+}
+
+message LabelSublistAction {
+	optional int32 subListID = 1;
 }
 
 message LabelAssociationAction {

@@ -25,6 +25,14 @@ message DeviceCapabilities {
 		optional SupportLevel supportLevel = 1;
 	}
 
+	message BizAiSettingsSync {
+		optional bool handoffRemovalTimingEnabled = 1;
+	}
+
+	message AiFbidMigration {
+		optional uint64 chatDbMigrationTimestamp = 1;
+	}
+
 	message UserHasAvatar {
 		optional bool userHasAvatar = 1;
 	}
@@ -47,4 +55,6 @@ message DeviceCapabilities {
 	optional UserHasAvatar userHasAvatar = 4;
 	optional MemberNameTagPrimarySupport memberNameTagPrimarySupport = 5;
 	optional AiThread aiThread = 6;
+	optional AiFbidMigration aiFbidMigration = 7;
+	optional BizAiSettingsSync bizAiSettingsSync = 8;
 }

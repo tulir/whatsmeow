@@ -7,6 +7,7 @@ message HandshakeMessage {
 		HANDSHAKE_PQ_MODE_UNKNOWN = 0;
 		XXKEM = 1;
 		XXKEM_FS = 2;
+		XXKEM_EPH = 9;
 		WA_CLASSICAL = 3;
 		WA_PQ = 4;
 		IKKEM = 5;
@@ -213,6 +214,7 @@ message ClientPayload {
 			SMART_GLASSES = 35;
 			BLUE_VR = 36;
 			AR_WRIST = 37;
+			WAIL = 38;
 		}
 
 		message AppVersion {

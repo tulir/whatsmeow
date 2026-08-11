@@ -28,6 +28,7 @@ const (
 	HandshakeMessage_HANDSHAKE_PQ_MODE_UNKNOWN HandshakeMessage_HandshakePqMode = 0
 	HandshakeMessage_XXKEM                     HandshakeMessage_HandshakePqMode = 1
 	HandshakeMessage_XXKEM_FS                  HandshakeMessage_HandshakePqMode = 2
+	HandshakeMessage_XXKEM_EPH                 HandshakeMessage_HandshakePqMode = 9
 	HandshakeMessage_WA_CLASSICAL              HandshakeMessage_HandshakePqMode = 3
 	HandshakeMessage_WA_PQ                     HandshakeMessage_HandshakePqMode = 4
 	HandshakeMessage_IKKEM                     HandshakeMessage_HandshakePqMode = 5
@@ -42,6 +43,7 @@ var (
 		0: "HANDSHAKE_PQ_MODE_UNKNOWN",
 		1: "XXKEM",
 		2: "XXKEM_FS",
+		9: "XXKEM_EPH",
 		3: "WA_CLASSICAL",
 		4: "WA_PQ",
 		5: "IKKEM",
@@ -53,6 +55,7 @@ var (
 		"HANDSHAKE_PQ_MODE_UNKNOWN": 0,
 		"XXKEM":                     1,
 		"XXKEM_FS":                  2,
+		"XXKEM_EPH":                 9,
 		"WA_CLASSICAL":              3,
 		"WA_PQ":                     4,
 		"IKKEM":                     5,
@@ -873,6 +876,7 @@ const (
 	ClientPayload_UserAgent_SMART_GLASSES  ClientPayload_UserAgent_Platform = 35
 	ClientPayload_UserAgent_BLUE_VR        ClientPayload_UserAgent_Platform = 36
 	ClientPayload_UserAgent_AR_WRIST       ClientPayload_UserAgent_Platform = 37
+	ClientPayload_UserAgent_WAIL           ClientPayload_UserAgent_Platform = 38
 )
 
 // Enum value maps for ClientPayload_UserAgent_Platform.
@@ -916,6 +920,7 @@ var (
 		35: "SMART_GLASSES",
 		36: "BLUE_VR",
 		37: "AR_WRIST",
+		38: "WAIL",
 	}
 	ClientPayload_UserAgent_Platform_value = map[string]int32{
 		"ANDROID":        0,
@@ -956,6 +961,7 @@ var (
 		"SMART_GLASSES":  35,
 		"BLUE_VR":        36,
 		"AR_WRIST":       37,
+		"WAIL":           38,
 	}
 )
 
@@ -2328,7 +2334,8 @@ var File_waWa6_WAWebProtobufsWa6_proto protoreflect.FileDescriptor
 
 const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\xfe\t\n" +
+	"\x1dwaWa6/WAWebProtobufsWa6.proto\x12\x11WAWebProtobufsWa6\"\x8d\n" +
+	"\n" +
 	"\x10HandshakeMessage\x12Q\n" +
 	"\vclientHello\x18\x02 \x01(\v2/.WAWebProtobufsWa6.HandshakeMessage.ClientHelloR\vclientHello\x12Q\n" +
 	"\vserverHello\x18\x03 \x01(\v2/.WAWebProtobufsWa6.HandshakeMessage.ServerHelloR\vserverHello\x12T\n" +
@@ -2357,17 +2364,18 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x0fsimulateXxkemFs\x18\b \x01(\bR\x0fsimulateXxkemFs\x12K\n" +
 	"\x06pqMode\x18\t \x01(\x0e23.WAWebProtobufsWa6.HandshakeMessage.HandshakePqModeR\x06pqMode\x12,\n" +
 	"\x11extendedEphemeral\x18\n" +
-	" \x01(\fR\x11extendedEphemeral\"\x99\x01\n" +
+	" \x01(\fR\x11extendedEphemeral\"\xa8\x01\n" +
 	"\x0fHandshakePqMode\x12\x1d\n" +
 	"\x19HANDSHAKE_PQ_MODE_UNKNOWN\x10\x00\x12\t\n" +
 	"\x05XXKEM\x10\x01\x12\f\n" +
-	"\bXXKEM_FS\x10\x02\x12\x10\n" +
+	"\bXXKEM_FS\x10\x02\x12\r\n" +
+	"\tXXKEM_EPH\x10\t\x12\x10\n" +
 	"\fWA_CLASSICAL\x10\x03\x12\t\n" +
 	"\x05WA_PQ\x10\x04\x12\t\n" +
 	"\x05IKKEM\x10\x05\x12\f\n" +
 	"\bIKKEM_FS\x10\x06\x12\v\n" +
 	"\aXXKEM_2\x10\a\x12\v\n" +
-	"\aIKKEM_2\x10\b\"\xe7-\n" +
+	"\aIKKEM_2\x10\b\"\xf1-\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2450,7 +2458,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x06DARWIN\x10\x03\x12\t\n" +
 	"\x05WIN32\x10\x04\x12\x0e\n" +
 	"\n" +
-	"WIN_HYBRID\x10\x05\x1a\x9f\x0e\n" +
+	"WIN_HYBRID\x10\x05\x1a\xa9\x0e\n" +
 	"\tUserAgent\x12O\n" +
 	"\bplatform\x18\x01 \x01(\x0e23.WAWebProtobufsWa6.ClientPayload.UserAgent.PlatformR\bplatform\x12U\n" +
 	"\n" +
@@ -2501,7 +2509,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\aRELEASE\x10\x00\x12\b\n" +
 	"\x04BETA\x10\x01\x12\t\n" +
 	"\x05ALPHA\x10\x02\x12\t\n" +
-	"\x05DEBUG\x10\x03\"\xa5\x04\n" +
+	"\x05DEBUG\x10\x03\"\xaf\x04\n" +
 	"\bPlatform\x12\v\n" +
 	"\aANDROID\x10\x00\x12\a\n" +
 	"\x03IOS\x10\x01\x12\x11\n" +
@@ -2546,7 +2554,8 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x04TEST\x10\"\x12\x11\n" +
 	"\rSMART_GLASSES\x10#\x12\v\n" +
 	"\aBLUE_VR\x10$\x12\f\n" +
-	"\bAR_WRIST\x10%\x1aq\n" +
+	"\bAR_WRIST\x10%\x12\b\n" +
+	"\x04WAIL\x10&\x1aq\n" +
 	"\vInteropData\x12\x1c\n" +
 	"\taccountID\x18\x01 \x01(\x04R\taccountID\x12\x14\n" +
 	"\x05token\x18\x02 \x01(\fR\x05token\x12.\n" +

@@ -82,7 +82,7 @@ func (cli *Client) queryMediaConn(ctx context.Context) (*MediaConn, error) {
 	}
 	for _, child := range respMC.GetChildren() {
 		if child.Tag != "host" {
-			cli.Log.Warnf("Unexpected child in media_conn element: %s", child.XMLString())
+			cli.Log.Warnf("Unexpected child in media_conn element: %s", &child)
 			continue
 		}
 		cag := child.AttrGetter()

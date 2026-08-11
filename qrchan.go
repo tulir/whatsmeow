@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	"context"
+	"fmt"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -27,10 +28,15 @@ type QRChannelItem struct {
 	Code string
 	// The timeout after which the next code will be sent down the channel.
 	Timeout time.Duration
+
+	PasskeyRequest      *events.PairPasskeyRequest
+	PasskeyConfirmation *events.PairPasskeyConfirmation
 }
 
 const QRChannelEventCode = "code"
 const QRChannelEventError = "error"
+const QRChannelEventPasskeyRequest = "passkey-request"
+const QRChannelEventPasskeyResponse = "passkey-confirmation"
 
 // Possible final items in the QR channel. In addition to these, an `error` event may be emitted,
 // in which case the Error field will have the error that occurred during pairing.
@@ -131,6 +137,35 @@ func (qrc *qrChannel) handleEvent(rawEvt any) {
 	case *events.QRScannedWithoutMultidevice:
 		qrc.log.Debugf("QR code scanned without multidevice enabled")
 		qrc.output <- QRChannelScannedWithoutMultidevice
+		return
+	case *events.PairPasskeyRequest:
+		qrc.output <- QRChannelItem{
+			Event:          QRChannelEventPasskeyRequest,
+			PasskeyRequest: evt,
+		}
+		return
+	case *events.PairPasskeyConfirmation:
+		if evt.SkipHandoffUX {
+			qrc.log.Debugf("Sending automatic passkey confirmation")
+			err := qrc.cli.SendPasskeyConfirmation(qrc.ctx)
+			if err != nil {
+				qrc.output <- QRChannelItem{
+					Event: QRChannelEventError,
+					Error: fmt.Errorf("failed to send passkey confirmation automatically: %w", err),
+				}
+			}
+		} else {
+			qrc.output <- QRChannelItem{
+				Event:               QRChannelEventPasskeyResponse,
+				PasskeyConfirmation: evt,
+			}
+		}
+		return
+	case *events.PairPasskeyError:
+		qrc.output <- QRChannelItem{
+			Event: QRChannelEventError,
+			Error: evt.Error,
+		}
 		return
 	case *events.ClientOutdated:
 		outputType = QRChannelClientOutdated

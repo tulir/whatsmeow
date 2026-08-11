@@ -109,13 +109,14 @@ func (cli *Client) RejectCall(ctx context.Context, callFrom types.JID, callID st
 		return ErrNotLoggedIn
 	}
 	ownID, callFrom = ownID.ToNonAD(), callFrom.ToNonAD()
+	rejectNode := waBinary.Node{
+		Tag:     "reject",
+		Attrs:   waBinary.Attrs{"call-id": callID, "call-creator": callFrom, "count": "0"},
+		Content: nil,
+	}
 	return cli.sendNode(ctx, waBinary.Node{
-		Tag:   "call",
-		Attrs: waBinary.Attrs{"id": cli.GenerateMessageID(), "from": ownID, "to": callFrom},
-		Content: []waBinary.Node{{
-			Tag:     "reject",
-			Attrs:   waBinary.Attrs{"call-id": callID, "call-creator": callFrom, "count": "0"},
-			Content: nil,
-		}},
+		Tag:     "call",
+		Attrs:   waBinary.Attrs{"id": cli.GenerateMessageID(), "from": ownID, "to": callFrom},
+		Content: []waBinary.Node{rejectNode},
 	})
 }

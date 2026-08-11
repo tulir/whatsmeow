@@ -355,10 +355,9 @@ func (cli *Client) doMediaDownloadRequest(ctx context.Context, url string) (*htt
 	}
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
-	if cli.MessengerConfig != nil {
-		req.Header.Set("User-Agent", cli.MessengerConfig.UserAgent)
+	if userAgent := cli.getUserAgent(); userAgent != "" {
+		req.Header.Set("User-Agent", cli.getUserAgent())
 	}
-	// TODO user agent for whatsapp downloads?
 	resp, err := cli.mediaHTTP.Do(req)
 	if err != nil {
 		return nil, err
