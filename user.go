@@ -977,7 +977,6 @@ func (cli *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action ev
 	itemAttrs := waBinary.Attrs{
 		"jid":    lidJID,
 		"action": string(action),
-		"dhash":  strconv.FormatInt(time.Now().UnixMilli(), 10),
 	}
 	if action == events.BlocklistChangeActionBlock && !pnJID.IsEmpty() {
 		itemAttrs["pn_jid"] = pnJID
