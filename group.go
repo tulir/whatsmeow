@@ -11,7 +11,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/store"
@@ -36,10 +35,6 @@ type ReqCreateGroup struct {
 	Name string
 	// You don't need to include your own JID in the participants array, the WhatsApp servers will add it implicitly.
 	Participants []types.JID
-	// A create key can be provided to deduplicate the group create notification that will be triggered
-	// when the group is created. If provided, the JoinedGroup event will contain the same key.
-	// Deprecated: It seems like WhatsApp no longer sends this.
-	CreateKey types.MessageID
 
 	types.GroupEphemeral
 	types.GroupAnnounce
@@ -141,9 +136,6 @@ func (cli *Client) CreateGroup(ctx context.Context, req ReqCreateGroup) (*types.
 	createAttrs := waBinary.Attrs{}
 	if req.Name != "" {
 		createAttrs["subject"] = req.Name
-	}
-	if req.CreateKey != "" {
-		createAttrs["create_key"] = strings.TrimPrefix(req.CreateKey, "3EB0")
 	}
 	resp, err := cli.sendGroupIQ(ctx, iqSet, types.GroupServerJID, waBinary.Node{
 		Tag:     "create",
