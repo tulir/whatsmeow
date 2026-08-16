@@ -50,6 +50,7 @@ message DeviceOutput {
 	required bytes encryptionVersionSignature = 7;
 	required int32 clientVersion = 8;
 	required bytes ocmfClientState = 9;
+	required bytes epochStoragePrivateKey = 10;
 }
 
 message EncryptedSecretValuesOutput {
@@ -123,11 +124,10 @@ message RotateEpochMemberInput {
 
 message RotateEpochInput {
 	required bytes currentEpochRootKey = 1;
-	required uint64 currentEpochAnonID = 2;
+	required bytes currentEpochAnonID = 2;
 	required uint64 currentEpochFbid = 3;
-	required uint64 newEpochFbid = 4;
-	required bytes epochStoragePrivateKey = 5;
-	repeated RotateEpochMemberInput members = 6;
+	required bytes epochStoragePrivateKey = 4;
+	repeated RotateEpochMemberInput members = 5;
 }
 
 message RotateEpochMemberEdge {
@@ -136,11 +136,18 @@ message RotateEpochMemberEdge {
 	optional bytes deviceEpochHmac = 3;
 }
 
+message BackwardEdge {
+	optional bytes encryptedPrevEpochAnonID = 1;
+	optional bytes encryptedPrevEpochRootKey = 2;
+	optional bytes prevEpochRootKeyFingerprint = 3;
+}
+
 message RotateEpochOutput {
 	optional bytes newEpochRootKey = 1;
 	optional uint64 newEpochAnonID = 2;
+	optional uint64 newEpochFbid = 8;
 	optional bytes epochAnonID = 3;
-	optional bytes epochData = 4;
+	optional BackwardEdge backwardEdge = 4;
 	repeated RotateEpochMemberEdge memberEdges = 5;
 	optional bytes epochRootKeyFingerprint = 6;
 	optional string error = 7;

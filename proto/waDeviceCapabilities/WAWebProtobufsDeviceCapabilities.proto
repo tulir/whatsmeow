@@ -25,6 +25,10 @@ message DeviceCapabilities {
 		optional SupportLevel supportLevel = 1;
 	}
 
+	message ContactRefresh {
+		optional bool refreshSupported = 1;
+	}
+
 	message BizAiSettingsSync {
 		optional bool handoffRemovalTimingEnabled = 1;
 	}
@@ -57,4 +61,5 @@ message DeviceCapabilities {
 	optional AiThread aiThread = 6;
 	optional AiFbidMigration aiFbidMigration = 7;
 	optional BizAiSettingsSync bizAiSettingsSync = 8;
+	optional ContactRefresh contactRefresh = 9;
 }

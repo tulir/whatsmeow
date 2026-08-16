@@ -105,6 +105,7 @@ const (
 	IndexBroadcast                                       = "broadcast"
 	IndexSubscriptionsSync                               = "subscriptions_sync_v2"
 	IndexLabelSublist                                    = "label_sublist"
+	IndexCTWAMessageReceived                             = "ctwa_message_received"
 )
 
 // Constants for the regular_high app state indexes.
