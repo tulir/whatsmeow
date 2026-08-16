@@ -1,0 +1,162 @@
+{
+  "schema": "whatsmeow.group-participant-invite-corpus.v1",
+  "authority": "meowcaller immutable WhatsApp capture corpus v2 (2026-07-23)",
+  "capability_cases": [
+    {
+      "name": "outgoing_peer_preaccept",
+      "source": {
+        "path": "diag/captures/group-call-add-people-v2-20260723-112208.jsonl",
+        "sha256": "d565e26f2ca48483525c5bf4dcc2c1bf5ae616299190d128f5f35f74ac50d6c6",
+        "line": 1346,
+        "sequence": 11373
+      },
+      "device": "200002@lid",
+      "capability_version": 1,
+      "capability_hex": "0105ff09e0fa1b"
+    },
+    {
+      "name": "incoming_peer_offer",
+      "source": {
+        "path": "diag/captures/group-call-add-people-v2-20260723-112208.jsonl",
+        "sha256": "d565e26f2ca48483525c5bf4dcc2c1bf5ae616299190d128f5f35f74ac50d6c6",
+        "line": 822,
+        "sequence": 10993
+      },
+      "device": "100001:14@lid",
+      "capability_version": 1,
+      "capability_hex": "0105f709e0bb53"
+    }
+  ],
+  "roster_cases": [
+    {
+      "name": "first_invite_uses_connected_direct_pair",
+      "call_id": "0063F48A8B4CA7D1DAF665F1CC8EB545",
+      "creator": "100001:14@lid",
+      "connected": true,
+      "self_lid": "100001:14@lid",
+      "peer_lid": "200002@lid",
+      "self_device": {
+        "jid": "100001:14@lid",
+        "capability_version": 1,
+        "capability_hex": "0105f709e0bb53"
+      },
+      "peer_device": {
+        "jid": "200002@lid",
+        "capability_version": 1,
+        "capability_hex": "0105ff09e0fa1b"
+      },
+      "want_participants": [
+        {
+          "jid": "100001@lid",
+          "state": "connected",
+          "devices": [
+            {
+              "jid": "100001:14@lid",
+              "capability_version": 1,
+              "capability_hex": "0105f709e0bb53"
+            }
+          ]
+        },
+        {
+          "jid": "200002@lid",
+          "state": "connected",
+          "devices": [
+            {
+              "jid": "200002@lid",
+              "capability_version": 1,
+              "capability_hex": "0105ff09e0fa1b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "accepted_group_snapshot_replaces_direct_seed",
+      "call_id": "0063F48A8B4CA7D1DAF665F1CC8EB545",
+      "creator": "100001:14@lid",
+      "connected": true,
+      "self_lid": "100001:14@lid",
+      "peer_lid": "200002@lid",
+      "self_device": {
+        "jid": "100001:14@lid",
+        "capability_version": 1,
+        "capability_hex": "0105f709e0bb53"
+      },
+      "peer_device": {
+        "jid": "200002@lid",
+        "capability_version": 1,
+        "capability_hex": "0105ff09e0fa1b"
+      },
+      "group_participants": [
+        {
+          "jid": "200003@lid",
+          "state": "receipt",
+          "devices": [
+            {
+              "jid": "200003:44@lid",
+              "capability_version": 1,
+              "capability_hex": "0105f709e0bb13"
+            }
+          ]
+        },
+        {
+          "jid": "100001@lid",
+          "state": "connected",
+          "devices": [
+            {
+              "jid": "100001:14@lid",
+              "capability_version": 1,
+              "capability_hex": "0105f709e0bb53"
+            }
+          ]
+        },
+        {
+          "jid": "200002@lid",
+          "state": "connected",
+          "devices": [
+            {
+              "jid": "200002@lid",
+              "capability_version": 1,
+              "capability_hex": "0105ff09e0fa1b"
+            }
+          ]
+        }
+      ],
+      "want_participants": [
+        {
+          "jid": "200003@lid",
+          "state": "receipt",
+          "devices": [
+            {
+              "jid": "200003:44@lid",
+              "capability_version": 1,
+              "capability_hex": "0105f709e0bb13"
+            }
+          ]
+        },
+        {
+          "jid": "100001@lid",
+          "state": "connected",
+          "devices": [
+            {
+              "jid": "100001:14@lid",
+              "capability_version": 1,
+              "capability_hex": "0105f709e0bb53"
+            }
+          ]
+        },
+        {
+          "jid": "200002@lid",
+          "state": "connected",
+          "devices": [
+            {
+              "jid": "200002@lid",
+              "capability_version": 1,
+              "capability_hex": "0105ff09e0fa1b"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

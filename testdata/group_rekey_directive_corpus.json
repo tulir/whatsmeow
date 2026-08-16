@@ -1,0 +1,17 @@
+{
+  "schema": "whatsmeow.group-rekey-directive-corpus.v1",
+  "cases": [
+    {
+      "name": "non-nominated-endpoint",
+      "transaction_id": 14,
+      "rekey": "",
+      "want_rekey_requested": false
+    },
+    {
+      "name": "nominated-endpoint",
+      "transaction_id": 14,
+      "rekey": "1",
+      "want_rekey_requested": true
+    }
+  ]
+}

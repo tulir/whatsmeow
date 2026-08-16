@@ -1,0 +1,65 @@
+{
+  "schema": "whatsmeow.group-invite-accept-corpus.v1",
+  "cases": [
+    {
+      "name": "ordinary-one-to-one-offer",
+      "call_id": "ONE-TO-ONE-CALL",
+      "call_creator": "100001:1@lid",
+      "joinable": false,
+      "group_info": null,
+      "want_snapshot": false
+    },
+    {
+      "name": "active-ad-hoc-group-offer",
+      "call_id": "ACTIVE-AD-HOC-CALL",
+      "call_creator": "100001:1@lid",
+      "joinable": true,
+      "group_info": {
+        "transaction_id": 7,
+        "media": "audio",
+        "connected_limit": 32,
+        "participants": [
+          {
+            "jid": "100001@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "100001:1@lid",
+                "platform": "web"
+              }
+            ]
+          },
+          {
+            "jid": "200002@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "200002@lid",
+                "platform": "iphone"
+              }
+            ]
+          },
+          {
+            "jid": "300003@lid",
+            "state": "outgoing",
+            "devices": [
+              {
+                "jid": "300003:14@lid",
+                "platform": ""
+              },
+              {
+                "jid": "300003:7@lid",
+                "platform": ""
+              },
+              {
+                "jid": "300003@lid",
+                "platform": ""
+              }
+            ]
+          }
+        ]
+      },
+      "want_snapshot": true
+    }
+  ]
+}

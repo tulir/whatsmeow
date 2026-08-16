@@ -1,0 +1,197 @@
+{
+  "schema": "whatsmeow.group-call-state-corpus.v1",
+  "authority": "meowcaller immutable WhatsApp capture corpus v2 (2026-07-23)",
+  "cases": [
+    {
+      "name": "single-selector-call-remains-direct",
+      "registered": true,
+      "call_id": "00F904B35E2C6FEC999CCC871CFD7F92",
+      "direct_target": "200001@lid",
+      "updates": [],
+      "want_accepted": [],
+      "want_snapshot": -1,
+      "want_target": "200001@lid"
+    },
+    {
+      "name": "group-chat-snapshot-advances-across-transaction-gaps",
+      "registered": true,
+      "call_id": "00789FDA2E6B8842B8EFE01ABD5F5B3A",
+      "direct_target": "200002@lid",
+      "updates": [
+        {
+          "transaction_id": 16,
+          "group_jid": "120363000000000001@g.us",
+          "media": "audio",
+          "participants": [
+            {"jid": "100001@lid", "state": "connected", "pid": 0},
+            {"jid": "200002@lid", "state": "connected", "pid": 1}
+          ],
+          "relay_transaction": 2,
+          "relay_self_pid": 0,
+          "has_relay_self_pid": true
+        },
+        {
+          "transaction_id": 20,
+          "group_jid": "120363000000000001@g.us",
+          "media": "audio",
+          "participants": [
+            {"jid": "100001@lid", "state": "connected", "pid": 0},
+            {"jid": "200002@lid", "state": "connected", "pid": 1},
+            {"jid": "200003@lid", "state": "receipt", "pid": null}
+          ],
+          "relay_transaction": 3,
+          "relay_self_pid": 0,
+          "has_relay_self_pid": true
+        },
+        {
+          "transaction_id": 22,
+          "group_jid": "120363000000000001@g.us",
+          "media": "video",
+          "participants": [
+            {"jid": "200003@lid", "state": "connected", "pid": 2},
+            {"jid": "200002@lid", "state": "connected", "pid": 1},
+            {"jid": "100001@lid", "state": "connected", "pid": 0}
+          ],
+          "relay_transaction": 3,
+          "relay_self_pid": 0,
+          "has_relay_self_pid": true
+        }
+      ],
+      "want_accepted": [true, true, true],
+      "want_snapshot": 2,
+      "want_target": "00789FDA2E6B8842B8EFE01ABD5F5B3A@call"
+    },
+    {
+      "name": "direct-call-upgrades-to-ad-hoc-group-without-group-jid",
+      "registered": true,
+      "call_id": "0063F48A8B4CA7D1DAF665F1CC8EB545",
+      "direct_target": "200004@lid",
+      "updates": [
+        {
+          "transaction_id": 16,
+          "group_jid": "",
+          "media": "audio",
+          "participants": [
+            {"jid": "200004@lid", "state": "connected", "pid": 0},
+            {"jid": "100001@lid", "state": "connected", "pid": 1},
+            {"jid": "200005@lid", "state": "receipt", "pid": null}
+          ],
+          "relay_transaction": 1,
+          "relay_self_pid": 1,
+          "has_relay_self_pid": true
+        },
+        {
+          "transaction_id": 18,
+          "group_jid": "",
+          "media": "audio",
+          "participants": [
+            {"jid": "200004@lid", "state": "connected", "pid": 0},
+            {"jid": "100001@lid", "state": "connected", "pid": 1},
+            {"jid": "200005@lid", "state": "connected", "pid": 2}
+          ],
+          "relay_transaction": 2,
+          "relay_self_pid": 1,
+          "has_relay_self_pid": true
+        }
+      ],
+      "want_accepted": [true, true],
+      "want_snapshot": 1,
+      "want_target": "0063F48A8B4CA7D1DAF665F1CC8EB545@call"
+    },
+    {
+      "name": "pending-participant-without-pid-remains-in-snapshot",
+      "registered": true,
+      "call_id": "0013AE8E463F60BFE6A1AF5247556691",
+      "direct_target": "200006@lid",
+      "updates": [
+        {
+          "transaction_id": 23,
+          "group_jid": "",
+          "media": "audio",
+          "participants": [
+            {"jid": "200006@lid", "state": "connected", "pid": 0},
+            {"jid": "100001@lid", "state": "connected", "pid": 1},
+            {"jid": "200007@lid", "state": "connected", "pid": 2},
+            {"jid": "200008@lid", "state": "receipt", "pid": null}
+          ],
+          "relay_transaction": 4,
+          "relay_self_pid": 1,
+          "has_relay_self_pid": true
+        }
+      ],
+      "want_accepted": [true],
+      "want_snapshot": 0,
+      "want_target": "0013AE8E463F60BFE6A1AF5247556691@call"
+    },
+    {
+      "name": "duplicate-and-older-transactions-do-not-replace-current-snapshot",
+      "registered": true,
+      "call_id": "00DD63A26643DC3496FCBD161E6E2AB1",
+      "direct_target": "200009@lid",
+      "updates": [
+        {
+          "transaction_id": 21,
+          "group_jid": "",
+          "media": "audio",
+          "participants": [
+            {"jid": "100001@lid", "state": "connected", "pid": 1},
+            {"jid": "200009@lid", "state": "connected", "pid": 0},
+            {"jid": "200010@lid", "state": "receipt", "pid": null},
+            {"jid": "200011@lid", "state": "receipt", "pid": null}
+          ],
+          "relay_transaction": 2,
+          "relay_self_pid": 1,
+          "has_relay_self_pid": true
+        },
+        {
+          "transaction_id": 21,
+          "group_jid": "",
+          "media": "video",
+          "participants": [
+            {"jid": "999999@lid", "state": "connected", "pid": 9}
+          ],
+          "relay_transaction": 9,
+          "relay_self_pid": 9,
+          "has_relay_self_pid": true
+        },
+        {
+          "transaction_id": 20,
+          "group_jid": "",
+          "media": "video",
+          "participants": [
+            {"jid": "888888@lid", "state": "connected", "pid": 8}
+          ],
+          "relay_transaction": 8,
+          "relay_self_pid": 8,
+          "has_relay_self_pid": true
+        }
+      ],
+      "want_accepted": [true, false, false],
+      "want_snapshot": 0,
+      "want_target": "00DD63A26643DC3496FCBD161E6E2AB1@call"
+    },
+    {
+      "name": "late-post-terminate-update-does-not-recreate-call",
+      "registered": false,
+      "call_id": "00DD63A26643DC3496FCBD161E6E2AB1",
+      "direct_target": "200009@lid",
+      "updates": [
+        {
+          "transaction_id": 34,
+          "group_jid": "",
+          "media": "audio",
+          "participants": [
+            {"jid": "100001@lid", "state": "connected", "pid": 1},
+            {"jid": "200011@lid", "state": "connected", "pid": 3}
+          ],
+          "relay_transaction": 5,
+          "relay_self_pid": 1,
+          "has_relay_self_pid": true
+        }
+      ],
+      "want_accepted": [false],
+      "want_snapshot": -1,
+      "want_target": ""
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schema": "whatsmeow.group-invite-offer-corpus.v1",
+  "authority": "meowcaller immutable WhatsApp capture corpus v2 (2026-07-23)",
+  "cases": [
+    {
+      "name": "single_add_connected_states",
+      "source": {
+        "path": "diag/captures/group-call-add-people-v2-20260723-112208.jsonl",
+        "sha256": "d565e26f2ca48483525c5bf4dcc2c1bf5ae616299190d128f5f35f74ac50d6c6",
+        "line": 3203,
+        "sequence": 12260
+      },
+      "call_id": "0063F48A8B4CA7D1DAF665F1CC8EB545",
+      "to": "200003@lid",
+      "call_creator": "100001:14@lid",
+      "target_devices": [
+        "200003@lid",
+        "200003:44@lid",
+        "200003:45@lid",
+        "200003:43@lid"
+      ],
+      "participants": [
+        {
+          "jid": "100001@lid",
+          "state": "connected",
+          "devices": [
+            {
+              "jid": "100001:14@lid",
+              "capability_version": 1,
+              "capability_hex": "0105f709e0bb53"
+            }
+          ]
+        },
+        {
+          "jid": "200002@lid",
+          "state": "connected",
+          "devices": [
+            {
+              "jid": "200002@lid",
+              "capability_version": 1,
+              "capability_hex": "0105ff09e0fa1b"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "multi_add_second_offer_omits_states",
+      "source": {
+        "path": "diag/captures/group-call-multi-add-v2-20260723-135301.jsonl",
+        "sha256": "a91028746497b58d962f14fe5ed4d8036f3ca1c7f2091af5caa52f8430947def",
+        "line": 2127,
+        "sequence": 20416
+      },
+      "call_id": "0013AE8E463F60BFE6A1AF5247556691",
+      "to": "200004@lid",
+      "call_creator": "100001:14@lid",
+      "target_devices": [
+        "200004@lid",
+        "200004:64@lid",
+        "200004:63@lid"
+      ],
+      "participants": [
+        {
+          "jid": "100001@lid",
+          "devices": [
+            {
+              "jid": "100001:14@lid",
+              "capability_version": 1,
+              "capability_hex": "0105f709e0bb53"
+            }
+          ]
+        },
+        {
+          "jid": "200002@lid",
+          "devices": [
+            {
+              "jid": "200002@lid",
+              "capability_version": 1,
+              "capability_hex": "0105ff09e0fa1b"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

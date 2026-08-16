@@ -11,20 +11,21 @@ import (
 	"go.mau.fi/whatsmeow/types"
 )
 
-// CallOffer is emitted when the user receives a call on WhatsApp.
 type CallOffer struct {
 	types.BasicCallMeta
 	types.CallRemoteMeta
 
-	Data *waBinary.Node // The call offer data
+	Data  *waBinary.Node
+	Video bool
+	Group *types.GroupCallUpdate
 }
 
-// CallAccept is emitted when a call is accepted on WhatsApp.
 type CallAccept struct {
 	types.BasicCallMeta
 	types.CallRemoteMeta
 
-	Data *waBinary.Node
+	Data    *waBinary.Node
+	PeerLID types.JID
 }
 
 type CallPreAccept struct {
@@ -41,37 +42,114 @@ type CallTransport struct {
 	Data *waBinary.Node
 }
 
-// CallOfferNotice is emitted when the user receives a notice of a call on WhatsApp.
-// This seems to be primarily for group calls (whereas CallOffer is for 1:1 calls).
 type CallOfferNotice struct {
 	types.BasicCallMeta
 
-	Media string // "audio" or "video" depending on call type
-	Type  string // "group" when it's a group call
+	Media string
+	Type  string
 
 	Data *waBinary.Node
 }
 
-// CallRelayLatency is emitted slightly after the user receives a call on WhatsApp.
 type CallRelayLatency struct {
 	types.BasicCallMeta
 	Data *waBinary.Node
 }
 
-// CallTerminate is emitted when the other party terminates a call on WhatsApp.
+// CallGroupUpdate is one parsed group-call roster and transport snapshot.
+type CallGroupUpdate struct {
+	types.BasicCallMeta
+	Update types.GroupCallUpdate
+	Data   *waBinary.Node
+}
+
+// CallWaitingRoomUpdate is one authoritative call-link waiting-room snapshot.
+type CallWaitingRoomUpdate struct {
+	types.BasicCallMeta
+	WaitingRoom types.CallLinkWaitingRoom
+	Data        *waBinary.Node
+}
+
+// CallEncRekey is one shared raw media-key epoch for a group call.
+type CallEncRekey struct {
+	types.BasicCallMeta
+	Rekey  types.GroupCallEncRekey
+	RawKey []byte
+	Data   *waBinary.Node
+	Local  bool
+}
+
 type CallTerminate struct {
 	types.BasicCallMeta
 	Reason string
 	Data   *waBinary.Node
 }
 
-// CallReject is sent when the other party rejects the call on WhatsApp.
 type CallReject struct {
 	types.BasicCallMeta
 	Data *waBinary.Node
 }
 
-// UnknownCallEvent is emitted when a call element with unknown content is received.
 type UnknownCallEvent struct {
 	Node *waBinary.Node
+}
+
+type CallMediaReady struct {
+	types.BasicCallMeta
+
+	SelfLID types.JID
+	PeerLID types.JID
+
+	CallKey   []byte
+	Relay     types.RelayEndpoint
+	Codec     types.CallCodec
+	Direction types.CallDirection
+	Video     bool
+}
+
+type CallMediaStop struct {
+	types.BasicCallMeta
+
+	Reason string
+}
+
+type CallMute struct {
+	types.BasicCallMeta
+
+	Muted bool
+}
+
+type CallAck struct {
+	types.BasicCallMeta
+
+	Data *waBinary.Node
+}
+
+// CallVideo describes one independent remote video-flow transition.
+type CallVideo struct {
+	types.BasicCallMeta
+
+	State          types.CallVideoState
+	Orientation    int
+	HasOrientation bool
+	Data           *waBinary.Node
+}
+
+// CallHandRaise describes one persistent participant hand-state transition.
+type CallHandRaise struct {
+	types.BasicCallMeta
+
+	Participant types.JID
+	Raised      bool
+	Data        *waBinary.Node
+}
+
+// CallScreenShare describes one participant's independent screen-share transition.
+type CallScreenShare struct {
+	types.BasicCallMeta
+	types.CallScreenShare
+
+	Participant types.JID
+	Data        *waBinary.Node
+	Synthetic   bool
 }

@@ -1,0 +1,249 @@
+{
+  "schema": "whatsmeow.group-update-corpus.v1",
+  "cases": [
+    {
+      "name": "group_chat_backed_all_connected",
+      "source": {
+        "path": "diag/captures/group-call-outgoing-v2-20260723-100703.jsonl",
+        "sha256": "47e4966e1847b686b3a31c4983df8025617d200ec27a71c5884598488af65b90",
+        "line": 3488,
+        "sequence": 1264
+      },
+      "outer": {
+        "from": "00789FDA2E6B8842B8EFE01ABD5F5B3A@call",
+        "call_id": "00789FDA2E6B8842B8EFE01ABD5F5B3A",
+        "call_creator": "156535032389744:14@lid"
+      },
+      "group_info": {
+        "group_jid": "120363411251996986@g.us",
+        "transaction_id": 20,
+        "media": "audio",
+        "connected_limit": 32,
+        "participants": [
+          {
+            "jid": "74170125783269@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "74170125783269@lid",
+                "pid": 2,
+                "platform": "android"
+              }
+            ]
+          },
+          {
+            "jid": "242653052539031@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "242653052539031@lid",
+                "pid": 1,
+                "platform": "iphone"
+              }
+            ]
+          },
+          {
+            "jid": "156535032389744@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "156535032389744:14@lid",
+                "pid": 0,
+                "platform": "web"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ad_hoc_single_add_all_connected",
+      "source": {
+        "path": "diag/captures/group-call-add-people-v2-20260723-112208.jsonl",
+        "sha256": "d565e26f2ca48483525c5bf4dcc2c1bf5ae616299190d128f5f35f74ac50d6c6",
+        "line": 3995,
+        "sequence": 12667
+      },
+      "outer": {
+        "from": "0063F48A8B4CA7D1DAF665F1CC8EB545@call",
+        "call_id": "0063F48A8B4CA7D1DAF665F1CC8EB545",
+        "call_creator": "156535032389744:14@lid"
+      },
+      "group_info": {
+        "transaction_id": 16,
+        "media": "audio",
+        "connected_limit": 32,
+        "participants": [
+          {
+            "jid": "74170125783269@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "74170125783269@lid",
+                "pid": 2,
+                "platform": "android"
+              }
+            ]
+          },
+          {
+            "jid": "242653052539031@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "242653052539031@lid",
+                "pid": 0,
+                "platform": "iphone"
+              }
+            ]
+          },
+          {
+            "jid": "156535032389744@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "156535032389744:14@lid",
+                "pid": 1,
+                "platform": "web"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ad_hoc_multi_add_mixed_receipt_and_connected",
+      "source": {
+        "path": "diag/captures/group-call-multi-add-v2-20260723-135301.jsonl",
+        "sha256": "a91028746497b58d962f14fe5ed4d8036f3ca1c7f2091af5caa52f8430947def",
+        "line": 2796,
+        "sequence": 20787
+      },
+      "outer": {
+        "from": "0013AE8E463F60BFE6A1AF5247556691@call",
+        "call_id": "0013AE8E463F60BFE6A1AF5247556691",
+        "call_creator": "156535032389744:14@lid"
+      },
+      "group_info": {
+        "transaction_id": 23,
+        "media": "audio",
+        "connected_limit": 32,
+        "participants": [
+          {
+            "jid": "9908623781998@lid",
+            "state": "receipt",
+            "devices": [
+              {
+                "jid": "9908623781998:64@lid",
+                "platform": "web"
+              },
+              {
+                "jid": "9908623781998:63@lid"
+              },
+              {
+                "jid": "9908623781998@lid"
+              }
+            ]
+          },
+          {
+            "jid": "74170125783269@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "74170125783269@lid",
+                "pid": 2,
+                "platform": "android"
+              }
+            ]
+          },
+          {
+            "jid": "242653052539031@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "242653052539031@lid",
+                "pid": 0,
+                "platform": "iphone"
+              }
+            ]
+          },
+          {
+            "jid": "156535032389744@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "156535032389744:14@lid",
+                "pid": 1,
+                "platform": "web"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ad_hoc_preselected_all_connected",
+      "source": {
+        "path": "diag/captures/group-call-preselected-participants-v2-20260723-140338.jsonl",
+        "sha256": "1851cf76118bc8ef116df4ea51db73968cef3d415996cdf34013bdee9ac27fc7",
+        "line": 3046,
+        "sequence": 26476
+      },
+      "outer": {
+        "from": "00DD63A26643DC3496FCBD161E6E2AB1@call",
+        "call_id": "00DD63A26643DC3496FCBD161E6E2AB1",
+        "call_creator": "156535032389744:14@lid"
+      },
+      "group_info": {
+        "transaction_id": 28,
+        "media": "audio",
+        "connected_limit": 32,
+        "participants": [
+          {
+            "jid": "9908623781998@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "9908623781998@lid",
+                "pid": 2,
+                "platform": "android"
+              }
+            ]
+          },
+          {
+            "jid": "74170125783269@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "74170125783269@lid",
+                "pid": 3,
+                "platform": "android"
+              }
+            ]
+          },
+          {
+            "jid": "242653052539031@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "242653052539031@lid",
+                "pid": 1,
+                "platform": "iphone"
+              }
+            ]
+          },
+          {
+            "jid": "156535032389744@lid",
+            "state": "connected",
+            "devices": [
+              {
+                "jid": "156535032389744:14@lid",
+                "pid": 0,
+                "platform": "web"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

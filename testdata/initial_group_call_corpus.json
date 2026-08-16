@@ -1,0 +1,262 @@
+{
+  "schema": "whatsmeow.initial-group-call-corpus.v1",
+  "offer": {
+    "call_id": "00DD63A26643DC3496FCBD161E6E2AB1",
+    "call_creator": "156535032389744:14@lid",
+    "group_bound_jid": "120363411251996986@g.us",
+    "participants": [
+      {
+        "jid": "156535032389744@lid",
+        "state": "",
+        "devices": [
+          {
+            "jid": "156535032389744:14@lid",
+            "capability_version": 1,
+            "capability_hex": "0105f709e0bb53"
+          }
+        ]
+      },
+      {
+        "jid": "242653052539031@lid",
+        "state": "",
+        "devices": [
+          {
+            "jid": "242653052539031@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          },
+          {
+            "jid": "242653052539031:1@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          }
+        ]
+      },
+      {
+        "jid": "74170125783269@lid",
+        "state": "",
+        "devices": [
+          {
+            "jid": "74170125783269@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          },
+          {
+            "jid": "74170125783269:44@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          },
+          {
+            "jid": "74170125783269:45@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          },
+          {
+            "jid": "74170125783269:43@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          }
+        ]
+      },
+      {
+        "jid": "9908623781998@lid",
+        "state": "",
+        "devices": [
+          {
+            "jid": "9908623781998@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          },
+          {
+            "jid": "9908623781998:64@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          },
+          {
+            "jid": "9908623781998:63@lid",
+            "capability_version": 0,
+            "capability_hex": ""
+          }
+        ]
+      }
+    ]
+  },
+  "ack": {
+    "transaction_id": 11,
+    "media": "audio",
+    "connected_limit": 32,
+    "joinable": true,
+    "participants": [
+      {
+        "jid": "9908623781998@lid",
+        "state": "outgoing",
+        "devices": [
+          {"jid": "9908623781998:64@lid", "pid": null},
+          {"jid": "9908623781998:63@lid", "pid": null},
+          {"jid": "9908623781998@lid", "pid": null}
+        ]
+      },
+      {
+        "jid": "74170125783269@lid",
+        "state": "outgoing",
+        "devices": [
+          {"jid": "74170125783269:45@lid", "pid": null},
+          {"jid": "74170125783269:44@lid", "pid": null},
+          {"jid": "74170125783269:43@lid", "pid": null},
+          {"jid": "74170125783269@lid", "pid": null}
+        ]
+      },
+      {
+        "jid": "242653052539031@lid",
+        "state": "outgoing",
+        "devices": [
+          {"jid": "242653052539031:1@lid", "pid": null},
+          {"jid": "242653052539031@lid", "pid": null}
+        ]
+      },
+      {
+        "jid": "156535032389744@lid",
+        "state": "connected",
+        "devices": [
+          {"jid": "156535032389744:14@lid", "pid": null}
+        ]
+      }
+    ],
+    "relay": {
+      "transaction_id": 0,
+      "self_pid": 0,
+      "key_length": 24,
+      "key_fill": 65,
+      "token_lengths": [167],
+      "token_fills": [81],
+      "auth_token_lengths": [70],
+      "auth_token_fills": [97],
+      "endpoints": [
+        {
+          "relay_id": 0,
+          "token_id": 0,
+          "auth_token_id": 0,
+          "relay_name": "sin2c02",
+          "rtt": 0,
+          "is_fna": false,
+          "address_hex": "3990a1390d96"
+        },
+        {
+          "relay_id": 0,
+          "token_id": 0,
+          "auth_token_id": 0,
+          "relay_name": "sin2c02",
+          "rtt": 0,
+          "is_fna": false,
+          "address_hex": "2a032880f3500139faceb00c000067490d96"
+        }
+      ]
+    }
+  },
+  "ready": {
+    "transaction_id": 21,
+    "media": "audio",
+    "connected_limit": 32,
+    "participants": [
+      {
+        "jid": "9908623781998@lid",
+        "state": "receipt",
+        "devices": [
+          {"jid": "9908623781998:64@lid", "pid": null},
+          {"jid": "9908623781998:63@lid", "pid": null},
+          {"jid": "9908623781998@lid", "pid": null}
+        ]
+      },
+      {
+        "jid": "74170125783269@lid",
+        "state": "receipt",
+        "devices": [
+          {"jid": "74170125783269:45@lid", "pid": null},
+          {"jid": "74170125783269:44@lid", "pid": null},
+          {"jid": "74170125783269:43@lid", "pid": null},
+          {"jid": "74170125783269@lid", "pid": null}
+        ]
+      },
+      {
+        "jid": "242653052539031@lid",
+        "state": "connected",
+        "devices": [
+          {"jid": "242653052539031@lid", "pid": 1}
+        ]
+      },
+      {
+        "jid": "156535032389744@lid",
+        "state": "connected",
+        "devices": [
+          {"jid": "156535032389744:14@lid", "pid": 0}
+        ]
+      }
+    ],
+    "relay": {
+      "transaction_id": 1,
+      "self_pid": 0,
+      "key_length": 24,
+      "key_fill": 66,
+      "token_lengths": [193, 193, 193],
+      "token_fills": [82, 83, 84],
+      "auth_token_lengths": [70],
+      "auth_token_fills": [98],
+      "endpoints": [
+        {
+          "relay_id": 0,
+          "token_id": 0,
+          "auth_token_id": 0,
+          "relay_name": "zrh1c01",
+          "rtt": 18,
+          "is_fna": false,
+          "address_hex": "9df011850d96"
+        },
+        {
+          "relay_id": 0,
+          "token_id": 0,
+          "auth_token_id": 0,
+          "relay_name": "zrh1c01",
+          "rtt": 18,
+          "is_fna": false,
+          "address_hex": "2a032880f25b00dbfaceb00c000067490d96"
+        },
+        {
+          "relay_id": 1,
+          "token_id": 2,
+          "auth_token_id": 0,
+          "relay_name": "mxp2c01",
+          "rtt": 22,
+          "is_fna": false,
+          "address_hex": "9df0cb850d96"
+        },
+        {
+          "relay_id": 1,
+          "token_id": 2,
+          "auth_token_id": 0,
+          "relay_name": "mxp2c01",
+          "rtt": 22,
+          "is_fna": false,
+          "address_hex": "2a032880f26d00dbfaceb00c000067490d96"
+        },
+        {
+          "relay_id": 2,
+          "token_id": 1,
+          "auth_token_id": 0,
+          "relay_name": "fra3c01",
+          "rtt": 27,
+          "is_fna": false,
+          "address_hex": "3990f9390d96"
+        },
+        {
+          "relay_id": 2,
+          "token_id": 1,
+          "auth_token_id": 0,
+          "relay_name": "fra3c01",
+          "rtt": 27,
+          "is_fna": false,
+          "address_hex": "2a032880f37c0139faceb00c000067490d96"
+        }
+      ]
+    }
+  }
+}

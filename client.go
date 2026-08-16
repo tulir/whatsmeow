@@ -121,6 +121,9 @@ type Client struct {
 	eventHandlers     []wrappedEventHandler
 	eventHandlersLock sync.RWMutex
 
+	calls     map[string]*callState
+	callsLock sync.Mutex
+
 	messageRetries     map[string]int
 	messageRetriesLock sync.Mutex
 	retrySema          *semaphore.Weighted
@@ -277,6 +280,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		tcTokenSenderTS:  make(map[types.JID]time.Time),
 		groupCache:       make(map[types.JID]*groupMetaCache),
 		userDevicesCache: make(map[types.JID]deviceCache),
+		calls:            make(map[string]*callState),
 
 		recentMessagesMap:      make(map[recentMessageKey]RecentMessage, recentMessagesSize),
 		sessionRecreateHistory: make(map[types.JID]time.Time),
@@ -300,6 +304,7 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		"appdata":      cli.handleEncryptedMessage,
 		"receipt":      cli.handleReceipt,
 		"call":         cli.handleCallEvent,
+		"ack":          cli.handleCallAck,
 		"chatstate":    cli.handleChatState,
 		"presence":     cli.handlePresence,
 		"notification": cli.handleNotification,
@@ -853,6 +858,8 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		// TODO should we do something else?
 	} else if cli.receiveResponse(ctx, node) {
 		// handled
+	} else if node.Tag == "ack" && !ackShouldEnqueue(node) {
+		// drop non-call acks silently
 	} else if _, ok := cli.nodeHandlers[node.Tag]; ok {
 		select {
 		case cli.handlerQueue <- node:
@@ -869,6 +876,10 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 	} else if node.Tag != "ack" {
 		cli.Log.Debugf("Didn't handle WhatsApp node %s", node.Tag)
 	}
+}
+
+func ackShouldEnqueue(node *waBinary.Node) bool {
+	return node.AttrGetter().String("class") == "call"
 }
 
 func (cli *Client) handlerQueueLoop(evtCtx, connCtx context.Context) {
@@ -924,8 +935,25 @@ func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) (
 		return nil, fmt.Errorf("failed to marshal node: %w", err)
 	}
 
-	cli.sendLog.Debugf("%s", &node)
+	safeNode := sanitizeNodeForLog(node)
+	cli.sendLog.Debugf("%s", &safeNode)
 	return payload, sock.SendFrame(ctx, payload)
+}
+
+func sanitizeNodeForLog(node waBinary.Node) waBinary.Node {
+	// Source of truth: https://github.com/purpshell/meowcaller/blob/d9df3eb9d96ea5260ffcd4036b6669499a1c1bc2/datasheets/voip-group-key-epoch-fanout.md#L145-L162
+	sanitized := node
+	switch content := node.Content.(type) {
+	case []byte:
+		sanitized.Content = fmt.Sprintf("<!-- %d bytes redacted -->", len(content))
+	case []waBinary.Node:
+		children := make([]waBinary.Node, len(content))
+		for i := range content {
+			children[i] = sanitizeNodeForLog(content[i])
+		}
+		sanitized.Content = children
+	}
+	return sanitized
 }
 
 func (cli *Client) sendNode(ctx context.Context, node waBinary.Node) error {
