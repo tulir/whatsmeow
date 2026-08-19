@@ -73,6 +73,7 @@ type JID struct {
 	Server     string
 }
 
+// ActualAgent returns the domain type (WhatsAppDomain, LIDDomain, HostedDomain or HostedLIDDomain) for the JID's server.
 func (jid JID) ActualAgent() uint8 {
 	switch jid.Server {
 	case DefaultUserServer:
@@ -124,6 +125,7 @@ func (jid JID) IsBroadcastList() bool {
 
 var botUserRegex = regexp.MustCompile(`^1313555\d{4}$|^131655500\d{2}$`)
 
+// IsBot returns true if the JID belongs to a WhatsApp/Meta AI bot.
 func (jid JID) IsBot() bool {
 	return (jid.Server == DefaultUserServer && botUserRegex.MatchString(jid.User) && jid.Device == 0) || jid.Server == BotServer
 }
@@ -207,6 +209,7 @@ func NewJID(user, server string) JID {
 	}
 }
 
+// ADString converts the JID to an AD-JID string representation, always including the agent and device parts.
 func (jid JID) ADString() string {
 	return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.RawAgent, jid.Device, jid.Server)
 }
@@ -247,6 +250,7 @@ func (jid JID) IsEmpty() bool {
 	return len(jid.Server) == 0
 }
 
+// IsZero returns true if the JID has no server (alias for IsEmpty).
 func (jid JID) IsZero() bool {
 	return jid.IsEmpty()
 }
