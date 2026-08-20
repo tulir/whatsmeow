@@ -3,6 +3,7 @@ package appstate
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -204,6 +205,37 @@ func BuildLabelEdit(labelID string, labelName string, labelColor int32, deleted 
 		Type: WAPatchRegular,
 		Mutations: []MutationInfo{
 			newLabelEditMutation(labelID, labelName, labelColor, deleted),
+		},
+	}
+}
+
+func newFavoriteStickerMutation(fileSHA256 []byte, sticker *waSyncAction.StickerAction, favorite bool) MutationInfo {
+	sticker.IsFavorite = proto.Bool(favorite)
+	return MutationInfo{
+		Index:   []string{IndexFavoriteSticker, base64.StdEncoding.EncodeToString(fileSHA256)},
+		Version: 3,
+		Value: &waSyncAction.SyncActionValue{
+			StickerAction: sticker,
+		},
+	}
+}
+
+// BuildFavoriteSticker builds an app state patch for saving a sticker to
+// favorites, or removing it.
+//
+// fileSHA256 is the sticker's PLAINTEXT file hash (StickerMessage.FileSHA256),
+// not the encrypted one: the index is keyed by the plaintext hash, base64
+// standard-encoded. sticker carries the media descriptor the other devices
+// need in order to fetch it — URL, DirectPath, FileEncSHA256, MediaKey,
+// Mimetype, Height, Width and FileLength are all read by the receiving side.
+//
+// IsFavorite is set from the favorite argument, so the caller does not have to
+// keep the flag and the intent in step.
+func BuildFavoriteSticker(fileSHA256 []byte, sticker *waSyncAction.StickerAction, favorite bool) PatchInfo {
+	return PatchInfo{
+		Type: WAPatchRegularLow,
+		Mutations: []MutationInfo{
+			newFavoriteStickerMutation(fileSHA256, sticker, favorite),
 		},
 	}
 }
