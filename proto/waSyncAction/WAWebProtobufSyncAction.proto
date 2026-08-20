@@ -103,6 +103,9 @@ enum MutationProps {
 	LABEL_SUBLIST_ACTION = 91;
 	DEVICE_CAPABILITIES_V2 = 92;
 	CTWA_MESSAGE_RECEIVED_ACTION = 93;
+	SHARED_DEVICE_ALLOWLIST_ACTION = 94;
+	CONTACT_MANAGER_METADATA_ACTION = 95;
+	BUSINESS_FOLDER_ACTIVATION_ACTION = 96;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -595,6 +598,9 @@ enum MutationName {
 	LABEL_SUBLIST_ACTION = label_sublist;
 	DEVICE_CAPABILITIES_V2 = device_capabilities_v2;
 	CTWA_MESSAGE_RECEIVED_ACTION = ctwa_message_received;
+	SHARED_DEVICE_ALLOWLIST_ACTION = shared_device_allowlist;
+	CONTACT_MANAGER_METADATA_ACTION = contact_manager_metadata;
+	BUSINESS_FOLDER_ACTIVATION_ACTION = business_folder_activation;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -706,6 +712,13 @@ message SyncActionValue {
 	optional LabelSublistAction labelSublistAction = 91;
 	optional WAWebProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilitiesV2 = 92;
 	optional CtwaMessageReceivedAction ctwaMessageReceivedAction = 93;
+	optional SharedDeviceAllowlistAction sharedDeviceAllowlistAction = 94;
+	optional ContactManagerMetadataAction contactManagerMetadataAction = 95;
+	optional BusinessFolderActivationAction businessFolderActivationAction = 96;
+}
+
+message BusinessFolderActivationAction {
+	optional bool activated = 1;
 }
 
 message CtwaMessageReceivedAction {
@@ -737,6 +750,10 @@ message SubscriptionsSyncV2Action {
 
 	repeated SubscriptionInfo subscriptions = 1;
 	repeated PaidFeature paidFeature = 2;
+}
+
+message ContactManagerMetadataAction {
+	optional bool isHidden = 1;
 }
 
 message CustomerDataAction {
@@ -1070,6 +1087,10 @@ message MuteAction {
 	optional int64 muteEndTimestamp = 2;
 	optional bool autoMuted = 3;
 	optional int64 muteEveryoneMentionEndTimestamp = 4;
+}
+
+message SharedDeviceAllowlistAction {
+	optional bool allowed = 1;
 }
 
 message ContactAction {
