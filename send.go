@@ -997,12 +997,8 @@ func getButtonTypeFromMessage(msg *waE2E.Message) string {
 		return getButtonTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.ButtonsMessage != nil:
 		return "buttons"
-	case msg.ButtonsResponseMessage != nil:
-		return "buttons_response"
 	case msg.ListMessage != nil:
 		return "list"
-	case msg.ListResponseMessage != nil:
-		return "list_response"
 	case msg.InteractiveResponseMessage != nil:
 		return "interactive_response"
 	default:
