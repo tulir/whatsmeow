@@ -66,7 +66,7 @@ type qrChannel struct {
 }
 
 func (qrc *qrChannel) close() bool {
-	return qrc.closed.Swap(true) == false
+	return !qrc.closed.Swap(true)
 }
 
 func (qrc *qrChannel) emitQRs(codes []string) {

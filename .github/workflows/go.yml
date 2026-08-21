@@ -28,9 +28,10 @@ jobs:
     - name: Test
       run: go test -v ./...
 
-    - name: Install goimports
+    - name: Install dependencies
       run: |
         go install golang.org/x/tools/cmd/goimports@latest
+        go install honnef.co/go/tools/cmd/staticcheck@latest
         export PATH="$HOME/go/bin:$PATH"
 
     - name: Run pre-commit
