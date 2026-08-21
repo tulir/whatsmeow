@@ -123,6 +123,10 @@ func (int *DangerousInternalClient) GetOwnLID() types.JID {
 	return int.c.getOwnLID()
 }
 
+func (int *DangerousInternalClient) GetUserAgent() string {
+	return int.c.getUserAgent()
+}
+
 func (int *DangerousInternalClient) Connect(ctx context.Context) error {
 	return int.c.connect(ctx)
 }
@@ -155,12 +159,16 @@ func (int *DangerousInternalClient) UnlockedDisconnect() {
 	int.c.unlockedDisconnect()
 }
 
-func (int *DangerousInternalClient) HandleFrame(ctx context.Context, data []byte) {
-	int.c.handleFrame(ctx, data)
+func (int *DangerousInternalClient) MakeFrameHandler(queue chan *waBinary.Node) func(context.Context, []byte) {
+	return int.c.makeFrameHandler(queue)
 }
 
-func (int *DangerousInternalClient) HandlerQueueLoop(evtCtx, connCtx context.Context) {
-	int.c.handlerQueueLoop(evtCtx, connCtx)
+func (int *DangerousInternalClient) HandleFrame(ctx context.Context, data []byte, queue chan *waBinary.Node) {
+	int.c.handleFrame(ctx, data, queue)
+}
+
+func (int *DangerousInternalClient) HandlerQueueLoop(evtCtx, connCtx context.Context, queue chan *waBinary.Node) {
+	int.c.handlerQueueLoop(evtCtx, connCtx, queue)
 }
 
 func (int *DangerousInternalClient) SendNodeAndGetData(ctx context.Context, node waBinary.Node) ([]byte, error) {
@@ -283,7 +291,7 @@ func (int *DangerousInternalClient) ParseGroupNotification(node *waBinary.Node) 
 	return int.c.parseGroupNotification(node)
 }
 
-func (int *DangerousInternalClient) DoHandshake(ctx context.Context, fs *socket.FrameSocket, ephemeralKP keys.KeyPair) error {
+func (int *DangerousInternalClient) DoHandshake(ctx context.Context, fs *socket.FrameSocket, ephemeralKP keys.KeyPair) (chan *waBinary.Node, error) {
 	return int.c.doHandshake(ctx, fs, ephemeralKP)
 }
 
@@ -397,6 +405,10 @@ func (int *DangerousInternalClient) StoreLIDSyncMessage(ctx context.Context, msg
 
 func (int *DangerousInternalClient) StoreGlobalSettings(ctx context.Context, settings *waHistorySync.GlobalSettings) {
 	int.c.storeGlobalSettings(ctx, settings)
+}
+
+func (int *DangerousInternalClient) StoreCompanionMetaNonce(ctx context.Context, nonce string) {
+	int.c.storeCompanionMetaNonce(ctx, nonce)
 }
 
 func (int *DangerousInternalClient) StoreHistoricalPNLIDMappings(ctx context.Context, mappings []*waHistorySync.PhoneNumberToLIDMapping) {

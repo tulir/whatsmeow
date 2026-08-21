@@ -15,6 +15,7 @@ import (
 	"go.mau.fi/libsignal/ecc"
 	"google.golang.org/protobuf/proto"
 
+	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waCert"
 	"go.mau.fi/whatsmeow/proto/waWa6"
 	"go.mau.fi/whatsmeow/socket"
@@ -27,7 +28,7 @@ const WACertIssuerSerial = 0
 var WACertPubKey = [...]byte{0x14, 0x23, 0x75, 0x57, 0x4d, 0xa, 0x58, 0x71, 0x66, 0xaa, 0xe7, 0x1e, 0xbe, 0x51, 0x64, 0x37, 0xc4, 0xa2, 0x8b, 0x73, 0xe3, 0x69, 0x5c, 0x6c, 0xe1, 0xf7, 0xf9, 0x54, 0x5d, 0xa8, 0xee, 0x6b}
 
 // doHandshake implements the Noise_XX_25519_AESGCM_SHA256 handshake for the WhatsApp web API.
-func (cli *Client) doHandshake(ctx context.Context, fs *socket.FrameSocket, ephemeralKP keys.KeyPair) error {
+func (cli *Client) doHandshake(ctx context.Context, fs *socket.FrameSocket, ephemeralKP keys.KeyPair) (chan *waBinary.Node, error) {
 	nh := socket.NewNoiseHandshake()
 	nh.Start(socket.NoiseStartPattern, fs.Header)
 	nh.Authenticate(ephemeralKP.Pub[:])
@@ -37,59 +38,59 @@ func (cli *Client) doHandshake(ctx context.Context, fs *socket.FrameSocket, ephe
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to marshal handshake message: %w", err)
+		return nil, fmt.Errorf("failed to marshal handshake message: %w", err)
 	}
 	err = fs.SendFrame(data)
 	if err != nil {
-		return fmt.Errorf("failed to send handshake message: %w", err)
+		return nil, fmt.Errorf("failed to send handshake message: %w", err)
 	}
 	var resp []byte
 	select {
 	case resp = <-fs.Frames:
 	case <-time.After(NoiseHandshakeResponseTimeout):
-		return fmt.Errorf("timed out waiting for handshake response")
+		return nil, fmt.Errorf("timed out waiting for handshake response")
 	}
 	var handshakeResponse waWa6.HandshakeMessage
 	err = proto.Unmarshal(resp, &handshakeResponse)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal handshake response: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal handshake response: %w", err)
 	}
 	serverEphemeral := handshakeResponse.GetServerHello().GetEphemeral()
 	serverStaticCiphertext := handshakeResponse.GetServerHello().GetStatic()
 	certificateCiphertext := handshakeResponse.GetServerHello().GetPayload()
 	if len(serverEphemeral) != 32 || serverStaticCiphertext == nil || certificateCiphertext == nil {
-		return fmt.Errorf("missing parts of handshake response")
+		return nil, fmt.Errorf("missing parts of handshake response")
 	}
 	serverEphemeralArr := *(*[32]byte)(serverEphemeral)
 
 	nh.Authenticate(serverEphemeral)
 	err = nh.MixSharedSecretIntoKey(*ephemeralKP.Priv, serverEphemeralArr)
 	if err != nil {
-		return fmt.Errorf("failed to mix server ephemeral key in: %w", err)
+		return nil, fmt.Errorf("failed to mix server ephemeral key in: %w", err)
 	}
 
 	staticDecrypted, err := nh.Decrypt(serverStaticCiphertext)
 	if err != nil {
-		return fmt.Errorf("failed to decrypt server static ciphertext: %w", err)
+		return nil, fmt.Errorf("failed to decrypt server static ciphertext: %w", err)
 	} else if len(staticDecrypted) != 32 {
-		return fmt.Errorf("unexpected length of server static plaintext %d (expected 32)", len(staticDecrypted))
+		return nil, fmt.Errorf("unexpected length of server static plaintext %d (expected 32)", len(staticDecrypted))
 	}
 	err = nh.MixSharedSecretIntoKey(*ephemeralKP.Priv, *(*[32]byte)(staticDecrypted))
 	if err != nil {
-		return fmt.Errorf("failed to mix server static key in: %w", err)
+		return nil, fmt.Errorf("failed to mix server static key in: %w", err)
 	}
 
 	certDecrypted, err := nh.Decrypt(certificateCiphertext)
 	if err != nil {
-		return fmt.Errorf("failed to decrypt noise certificate ciphertext: %w", err)
+		return nil, fmt.Errorf("failed to decrypt noise certificate ciphertext: %w", err)
 	} else if err = verifyServerCert(certDecrypted, staticDecrypted); err != nil {
-		return fmt.Errorf("failed to verify server cert: %w", err)
+		return nil, fmt.Errorf("failed to verify server cert: %w", err)
 	}
 
 	encryptedPubkey := nh.Encrypt(cli.Store.NoiseKey.Pub[:])
 	err = nh.MixSharedSecretIntoKey(*cli.Store.NoiseKey.Priv, serverEphemeralArr)
 	if err != nil {
-		return fmt.Errorf("failed to mix noise private key in: %w", err)
+		return nil, fmt.Errorf("failed to mix noise private key in: %w", err)
 	}
 
 	var clientPayload *waWa6.ClientPayload
@@ -101,7 +102,7 @@ func (cli *Client) doHandshake(ctx context.Context, fs *socket.FrameSocket, ephe
 
 	clientFinishPayloadBytes, err := proto.Marshal(clientPayload)
 	if err != nil {
-		return fmt.Errorf("failed to marshal client finish payload: %w", err)
+		return nil, fmt.Errorf("failed to marshal client finish payload: %w", err)
 	}
 	encryptedClientFinishPayload := nh.Encrypt(clientFinishPayloadBytes)
 	data, err = proto.Marshal(&waWa6.HandshakeMessage{
@@ -111,21 +112,22 @@ func (cli *Client) doHandshake(ctx context.Context, fs *socket.FrameSocket, ephe
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to marshal handshake finish message: %w", err)
+		return nil, fmt.Errorf("failed to marshal handshake finish message: %w", err)
 	}
 	err = fs.SendFrame(data)
 	if err != nil {
-		return fmt.Errorf("failed to send handshake finish message: %w", err)
+		return nil, fmt.Errorf("failed to send handshake finish message: %w", err)
 	}
 
-	ns, err := nh.Finish(ctx, fs, cli.handleFrame, cli.onDisconnect)
+	queue := make(chan *waBinary.Node, handlerQueueSize)
+	ns, err := nh.Finish(ctx, fs, cli.makeFrameHandler(queue), cli.onDisconnect)
 	if err != nil {
-		return fmt.Errorf("failed to create noise socket: %w", err)
+		return nil, fmt.Errorf("failed to create noise socket: %w", err)
 	}
 
 	cli.socket = ns
 
-	return nil
+	return queue, nil
 }
 
 func checkCertValidity(cert *waCert.CertChain_NoiseCertificate_Details) error {

@@ -265,7 +265,6 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		responseWaiters:    make(map[string]chan<- *waBinary.Node),
 		eventHandlers:      make([]wrappedEventHandler, 0, 1),
 		messageRetries:     make(map[string]int),
-		handlerQueue:       make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:       appstate.NewProcessor(deviceStore, log.Sub("AppState")),
 		socketWait:         make(chan struct{}),
 		expectedDisconnect: exsync.NewEvent(),
@@ -568,16 +567,17 @@ func (cli *Client) unlockedConnect(ctx context.Context) error {
 		fs.URL = cli.MessengerConfig.WebsocketURL
 		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
 	}
+	var queue chan *waBinary.Node
 	maps.Copy(fs.HTTPHeaders, cli.WebSocketHeaders)
 	if err := fs.Connect(ctx); err != nil {
 		fs.Close(0)
 		return err
-	} else if err = cli.doHandshake(ctx, fs, *keys.NewKeyPair()); err != nil {
+	} else if queue, err = cli.doHandshake(ctx, fs, *keys.NewKeyPair()); err != nil {
 		fs.Close(0)
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
 	go cli.keepAliveLoop(ctx, fs.Context())
-	go cli.handlerQueueLoop(ctx, fs.Context())
+	go cli.handlerQueueLoop(ctx, fs.Context(), queue)
 	return nil
 }
 
@@ -832,7 +832,13 @@ func (cli *Client) RemoveEventHandlers() {
 	cli.eventHandlersLock.Unlock()
 }
 
-func (cli *Client) handleFrame(ctx context.Context, data []byte) {
+func (cli *Client) makeFrameHandler(queue chan *waBinary.Node) func(ctx context.Context, data []byte) {
+	return func(ctx context.Context, data []byte) {
+		cli.handleFrame(ctx, data, queue)
+	}
+}
+
+func (cli *Client) handleFrame(ctx context.Context, data []byte, queue chan *waBinary.Node) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
 		cli.Log.Warnf("Failed to decompress frame: %v", err)
@@ -855,13 +861,13 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		// handled
 	} else if _, ok := cli.nodeHandlers[node.Tag]; ok {
 		select {
-		case cli.handlerQueue <- node:
+		case queue <- node:
 		case <-ctx.Done():
 		default:
 			cli.Log.Warnf("Handler queue is full, message ordering is no longer guaranteed")
 			go func() {
 				select {
-				case cli.handlerQueue <- node:
+				case queue <- node:
 				case <-ctx.Done():
 				}
 			}()
@@ -871,14 +877,14 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 	}
 }
 
-func (cli *Client) handlerQueueLoop(evtCtx, connCtx context.Context) {
+func (cli *Client) handlerQueueLoop(evtCtx, connCtx context.Context, queue chan *waBinary.Node) {
 	ticker := time.NewTicker(30 * time.Second)
 	ticker.Stop()
 	cli.Log.Debugf("Starting handler queue loop")
 Loop:
 	for {
 		select {
-		case node := <-cli.handlerQueue:
+		case node := <-queue:
 			doneChan := make(chan struct{})
 			start := time.Now()
 			go func() {
