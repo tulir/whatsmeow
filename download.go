@@ -216,8 +216,14 @@ func (cli *Client) Download(ctx context.Context, msg DownloadableMessage) ([]byt
 	if len(msg.GetDirectPath()) == 0 {
 		return nil, ErrNoURLPresent
 	}
+	encSHA256 := msg.GetFileEncSHA256()
+	mediaKey := msg.GetMediaKey()
+	// TODO more proper check for unencrypted media? (also DownloadToFile)
+	if encSHA256 == nil && mediaKey != nil {
+		mediaKey = nil
+	}
 	return cli.DownloadMediaWithPath(
-		ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(),
+		ctx, msg.GetDirectPath(), encSHA256, msg.GetFileSHA256(), mediaKey,
 		mediaType, mediaTypeToMMSType[mediaType], false,
 	)
 }
