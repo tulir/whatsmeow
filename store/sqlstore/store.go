@@ -143,6 +143,17 @@ const (
 		WHERE our_jid=$1 AND sender_id LIKE $2 || ':%'
 		ON CONFLICT (our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
 	`
+	// Existence check for PN-addressed rows, using an explicit prefix range
+	// ($2/$3 are e.g. "12345:" and "12345;") so it can use the primary key
+	// instead of the LIKE scans the migration itself does.
+	//
+	// Sender keys are not checked: a sender key cannot exist without an identity
+	// key or session for the same address, because the sender key distribution
+	// message arrives encrypted in a pairwise session.
+	hasPNRowsToMigrateQuery = `
+		SELECT EXISTS(SELECT 1 FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id>=$2 AND their_id<$3)
+			OR EXISTS(SELECT 1 FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id>=$2 AND their_id<$3)
+	`
 )
 
 func (s *SQLStore) GetSession(ctx context.Context, address string) (session []byte, err error) {
@@ -250,9 +261,22 @@ func (s *SQLStore) MigratePNToLID(ctx context.Context, pn, lid types.JID) error 
 	if !s.migratedPNSessionsCache.Add(pnSignal) {
 		return nil
 	}
+	// migratedPNSessionsCache only lives in memory, so after a restart the first
+	// send to each recipient gets here even when the store was fully migrated
+	// long ago. Running the transaction unconditionally is one write transaction
+	// per recipient, which is very noticeable when sending to a lot of them.
+	// Check first and skip the transaction when there is nothing to migrate.
+	var hasPNRows bool
+	err := s.db.QueryRow(ctx, hasPNRowsToMigrateQuery, s.JID, pnSignal+":", pnSignal+";").Scan(&hasPNRows)
+	if err != nil {
+		s.log.Warnf("Failed to check for PN rows to migrate from %s: %v", pnSignal, err)
+	} else if !hasPNRows {
+		s.log.Debugf("No sessions or sender keys found to migrate from %s to %s (pre-check)", pnSignal, lid.SignalAddressUser())
+		return nil
+	}
 	var sessionsUpdated, identityKeysUpdated, senderKeysUpdated int64
 	lidSignal := lid.SignalAddressUser()
-	err := s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
+	err = s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		res, err := s.db.Exec(ctx, migratePNToLIDSessionsQuery, s.JID, pnSignal, lidSignal)
 		if err != nil {
 			return fmt.Errorf("failed to migrate sessions: %w", err)
