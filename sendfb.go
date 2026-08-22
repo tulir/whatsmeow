@@ -185,6 +185,10 @@ func (cli *Client) SendFBMessage(
 	resp.DebugTimings.Resp = time.Since(start)
 	if isDisconnectNode(respNode) {
 		start = time.Now()
+		if req.NoRetry {
+			err = &DisconnectedError{Action: "message send", Node: respNode}
+			return
+		}
 		respNode, err = cli.retryFrame(ctx, "message send", req.ID, data, respNode, 0)
 		resp.DebugTimings.Retry = time.Since(start)
 		if err != nil {
