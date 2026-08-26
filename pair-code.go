@@ -166,7 +166,11 @@ func (cli *Client) handleCodePairNotification(ctx context.Context, parentNode *w
 	if string(linkCodePairingRef) != linkCache.pairingRef {
 		return fmt.Errorf("pairing ref mismatch in code pair notification")
 	}
-	wrappedPrimaryEphemeralPub, ok := node.GetChildByTag("link_code_pairing_wrapped_primary_ephemeral_pub").Content.([]byte)
+	wrappedPrimaryEphemeralPubNode, ok := node.GetOptionalChildByTag("link_code_pairing_wrapped_primary_ephemeral_pub")
+	if !ok {
+		return nil
+	}
+	wrappedPrimaryEphemeralPub, ok := wrappedPrimaryEphemeralPubNode.Content.([]byte)
 	if !ok {
 		return &ElementMissingError{
 			Tag: "link_code_pairing_wrapped_primary_ephemeral_pub",
