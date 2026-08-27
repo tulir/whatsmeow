@@ -1005,6 +1005,10 @@ func getButtonTypeFromMessage(msg *waE2E.Message) string {
 		return "list_response"
 	case msg.InteractiveResponseMessage != nil:
 		return "interactive_response"
+	case msg.InteractiveMessage != nil:
+		// Native-flow (InteractiveMessage) buttons need a <biz> node too, or the
+		// server accepts the message but no client renders it (silent non-delivery).
+		return "interactive"
 	default:
 		return ""
 	}
@@ -1025,6 +1029,10 @@ func getButtonAttributes(msg *waE2E.Message) waBinary.Attrs {
 			"v":    "2",
 			"type": strings.ToLower(waE2E.ListMessage_ListType_name[int32(msg.ListMessage.GetListType())]),
 		}
+	case msg.InteractiveMessage != nil:
+		// "native_flow"/"1" are the fixed values the server expects for the
+		// <interactive> child of <biz>; there is no per-message variant to derive.
+		return waBinary.Attrs{"type": "native_flow", "v": "1"}
 	default:
 		return waBinary.Attrs{}
 	}
@@ -1148,16 +1156,76 @@ func (cli *Client) getMessageContent(
 		content = append(content, *extraParams.additionalNodes...)
 	}
 
-	if buttonType := getButtonTypeFromMessage(message); buttonType != "" {
-		content = append(content, waBinary.Node{
-			Tag: "biz",
-			Content: []waBinary.Node{{
-				Tag:   buttonType,
-				Attrs: getButtonAttributes(message),
-			}},
-		})
+	if bizNode := getBizNode(message); bizNode != nil {
+		content = append(content, *bizNode)
 	}
 	return content
+}
+
+// getBizNode builds the <biz> node that accompanies button/interactive
+// messages. Native-flow (InteractiveMessage) buttons need the full shape
+// observed from official clients — a bare <interactive> child is silently
+// accepted by the server but not delivered to any client. Every other
+// button type keeps the original bare <biz><TYPE .../></biz> shape.
+func getBizNode(msg *waE2E.Message) *waBinary.Node {
+	buttonType := getButtonTypeFromMessage(msg)
+	if buttonType == "" {
+		return nil
+	}
+	if interactiveMsg := unwrapInteractiveMessage(msg); interactiveMsg != nil {
+		decisionID := hex.EncodeToString(random.Bytes(20))
+		return &waBinary.Node{
+			Tag: "biz",
+			Attrs: waBinary.Attrs{
+				"actual_actors":   "2",
+				"host_storage":    "2",
+				"privacy_mode_ts": strconv.FormatInt(time.Now().Unix(), 10),
+			},
+			Content: []waBinary.Node{
+				{
+					Tag:   "interactive",
+					Attrs: getButtonAttributes(msg),
+					Content: []waBinary.Node{{
+						Tag:   "native_flow",
+						Attrs: waBinary.Attrs{"v": "9", "name": "mixed"},
+					}},
+				},
+				{
+					Tag:   "quality_control",
+					Attrs: waBinary.Attrs{"decision_id": decisionID, "source_type": "third_party"},
+					Content: []waBinary.Node{{
+						Tag:   "decision_source",
+						Attrs: waBinary.Attrs{"value": "df"},
+					}},
+				},
+			},
+		}
+	}
+	return &waBinary.Node{
+		Tag: "biz",
+		Content: []waBinary.Node{{
+			Tag:   buttonType,
+			Attrs: getButtonAttributes(msg),
+		}},
+	}
+}
+
+// unwrapInteractiveMessage returns the InteractiveMessage carried by msg,
+// looking through the same view-once/ephemeral wrappers as
+// getButtonTypeFromMessage, or nil if msg does not carry one.
+func unwrapInteractiveMessage(msg *waE2E.Message) *waE2E.InteractiveMessage {
+	switch {
+	case msg.ViewOnceMessage != nil:
+		return unwrapInteractiveMessage(msg.ViewOnceMessage.Message)
+	case msg.ViewOnceMessageV2 != nil:
+		return unwrapInteractiveMessage(msg.ViewOnceMessageV2.Message)
+	case msg.EphemeralMessage != nil:
+		return unwrapInteractiveMessage(msg.EphemeralMessage.Message)
+	case msg.InteractiveMessage != nil:
+		return msg.InteractiveMessage
+	default:
+		return nil
+	}
 }
 
 func (cli *Client) prepareMessageNode(
