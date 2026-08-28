@@ -159,12 +159,12 @@ func (int *DangerousInternalClient) UnlockedDisconnect() {
 	int.c.unlockedDisconnect()
 }
 
-func (int *DangerousInternalClient) MakeFrameHandler(queue chan *waBinary.Node) func(context.Context, []byte) {
-	return int.c.makeFrameHandler(queue)
+func (int *DangerousInternalClient) MakeFrameHandler(connCtx context.Context, queue chan *waBinary.Node) func(context.Context, []byte) {
+	return int.c.makeFrameHandler(connCtx, queue)
 }
 
-func (int *DangerousInternalClient) HandleFrame(ctx context.Context, data []byte, queue chan *waBinary.Node) {
-	int.c.handleFrame(ctx, data, queue)
+func (int *DangerousInternalClient) HandleFrame(ctx, connCtx context.Context, data []byte, queue chan *waBinary.Node) {
+	int.c.handleFrame(ctx, connCtx, data, queue)
 }
 
 func (int *DangerousInternalClient) HandlerQueueLoop(evtCtx, connCtx context.Context, queue chan *waBinary.Node) {

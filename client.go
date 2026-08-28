@@ -831,13 +831,13 @@ func (cli *Client) RemoveEventHandlers() {
 	cli.eventHandlersLock.Unlock()
 }
 
-func (cli *Client) makeFrameHandler(queue chan *waBinary.Node) func(ctx context.Context, data []byte) {
+func (cli *Client) makeFrameHandler(connCtx context.Context, queue chan *waBinary.Node) func(ctx context.Context, data []byte) {
 	return func(ctx context.Context, data []byte) {
-		cli.handleFrame(ctx, data, queue)
+		cli.handleFrame(ctx, connCtx, data, queue)
 	}
 }
 
-func (cli *Client) handleFrame(ctx context.Context, data []byte, queue chan *waBinary.Node) {
+func (cli *Client) handleFrame(ctx, connCtx context.Context, data []byte, queue chan *waBinary.Node) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
 		cli.Log.Warnf("Failed to decompress frame: %v", err)
@@ -868,6 +868,11 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte, queue chan *waB
 				select {
 				case queue <- node:
 				case <-ctx.Done():
+				case <-connCtx.Done():
+					// The queue's consumer exits with the connection, so once the
+					// connection is gone nothing will ever drain the queue. Without
+					// this escape the sender would block forever, leaking one
+					// goroutine (and its node) per overflowed frame.
 				}
 			}()
 		}
