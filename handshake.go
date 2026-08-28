@@ -7,7 +7,6 @@
 package whatsmeow
 
 import (
-	"context"
 	"crypto/hmac"
 	"fmt"
 	"time"
@@ -28,7 +27,7 @@ const WACertIssuerSerial = 0
 var WACertPubKey = [...]byte{0x14, 0x23, 0x75, 0x57, 0x4d, 0xa, 0x58, 0x71, 0x66, 0xaa, 0xe7, 0x1e, 0xbe, 0x51, 0x64, 0x37, 0xc4, 0xa2, 0x8b, 0x73, 0xe3, 0x69, 0x5c, 0x6c, 0xe1, 0xf7, 0xf9, 0x54, 0x5d, 0xa8, 0xee, 0x6b}
 
 // doHandshake implements the Noise_XX_25519_AESGCM_SHA256 handshake for the WhatsApp web API.
-func (cli *Client) doHandshake(ctx context.Context, fs *socket.FrameSocket, ephemeralKP keys.KeyPair) (chan *waBinary.Node, error) {
+func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair) (chan *waBinary.Node, error) {
 	nh := socket.NewNoiseHandshake()
 	nh.Start(socket.NoiseStartPattern, fs.Header)
 	nh.Authenticate(ephemeralKP.Pub[:])
@@ -120,7 +119,7 @@ func (cli *Client) doHandshake(ctx context.Context, fs *socket.FrameSocket, ephe
 	}
 
 	queue := make(chan *waBinary.Node, handlerQueueSize)
-	ns, err := nh.Finish(ctx, fs, cli.makeFrameHandler(queue), cli.onDisconnect)
+	ns, err := nh.Finish(fs, cli.makeFrameHandler(queue), cli.onDisconnect)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create noise socket: %w", err)
 	}

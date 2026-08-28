@@ -291,8 +291,8 @@ func (int *DangerousInternalClient) ParseGroupNotification(node *waBinary.Node) 
 	return int.c.parseGroupNotification(node)
 }
 
-func (int *DangerousInternalClient) DoHandshake(ctx context.Context, fs *socket.FrameSocket, ephemeralKP keys.KeyPair) (chan *waBinary.Node, error) {
-	return int.c.doHandshake(ctx, fs, ephemeralKP)
+func (int *DangerousInternalClient) DoHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair) (chan *waBinary.Node, error) {
+	return int.c.doHandshake(fs, ephemeralKP)
 }
 
 func (int *DangerousInternalClient) KeepAliveLoop(ctx, connCtx context.Context) {
