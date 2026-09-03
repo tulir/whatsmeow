@@ -156,8 +156,14 @@ func (cli *Client) DownloadThumbnail(ctx context.Context, msg DownloadableThumbn
 	if !ok {
 		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
 	} else if len(msg.GetThumbnailDirectPath()) > 0 {
+		encSHA256 := msg.GetThumbnailEncSHA256()
+		mediaKey := msg.GetMediaKey()
+		// TODO more proper check for unencrypted media? (also Download and DownloadToFile)
+		if encSHA256 == nil && mediaKey != nil {
+			mediaKey = nil
+		}
 		return cli.DownloadMediaWithPath(
-			ctx, msg.GetThumbnailDirectPath(), msg.GetThumbnailEncSHA256(), msg.GetThumbnailSHA256(), msg.GetMediaKey(),
+			ctx, msg.GetThumbnailDirectPath(), encSHA256, msg.GetThumbnailSHA256(), mediaKey,
 			mediaType, mediaTypeToMMSType[mediaType], false,
 		)
 	} else {
