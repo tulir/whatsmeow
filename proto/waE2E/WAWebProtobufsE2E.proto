@@ -1061,6 +1061,7 @@ message VideoMessage {
 	optional uint64 motionPhotoPresentationOffsetMS = 29;
 	optional string metadataURL = 30;
 	optional VideoSourceType videoSourceType = 31;
+	optional string dashManifestURL = 33;
 }
 
 message MusicMessage {
@@ -1555,6 +1556,7 @@ message ContextInfo {
 	optional string posterStatusID = 79;
 	optional InstagramThreadLink instagramThreadLink = 80;
 	optional WAWebProtobufsAICommon.AIProvenance aiProvenance = 81;
+	repeated uint32 experienceIDs = 82 [packed=true];
 }
 
 message MessageAssociation {
@@ -1623,6 +1625,7 @@ message MessageContextInfo {
 	optional bytes teeBotMetadata = 17;
 	optional WAWebProtobufsAea.NonE2EEAttestation accountEncryptionAttestation = 18;
 	optional bytes associatedPrimaryIdentityKey = 19;
+	optional string teeContextAnchorMessageID = 20;
 }
 
 message InteractiveAnnotation {
@@ -1856,6 +1859,7 @@ message Message {
 	optional MusicMessage musicMessage = 129;
 	optional StatusLinkPreviewMetadata statusLinkPreviewMetadata = 130;
 	optional FutureProofMessage botPlatformRegistrationSuccessMessage = 131;
+	optional FutureProofMessage newsletterScheduledMessage = 132;
 }
 
 message AlbumMessage {
@@ -2608,6 +2612,7 @@ message AIRichResponseMessage {
 	repeated WAAICommonDeprecated.AIRichResponseSubMessage submessages = 2;
 	optional WAWebProtobufsAICommon.AIRichResponseUnifiedResponse unifiedResponse = 3;
 	optional ContextInfo contextInfo = 4;
+	optional WAWebProtobufsAICommon.AIRichResponseUnifiedResponse originalRecipientMetadata = 5;
 }
 
 message AIQueryFanout {

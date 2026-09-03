@@ -35,6 +35,7 @@ message DeviceCapabilities {
 
 	message AiFbidMigration {
 		optional uint64 chatDbMigrationTimestamp = 1;
+		optional uint32 supportVersion = 2;
 	}
 
 	message UserHasAvatar {
@@ -47,6 +48,7 @@ message DeviceCapabilities {
 		optional bool campaignSyncEnabled = 3;
 		optional bool insightsSyncEnabled = 4;
 		optional int32 recipientLimit = 5;
+		optional bool proCompanionSupportEnabled = 6;
 	}
 
 	message LIDMigration {

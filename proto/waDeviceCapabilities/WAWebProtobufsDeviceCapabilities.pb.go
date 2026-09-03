@@ -442,6 +442,7 @@ func (x *DeviceCapabilities_BizAiSettingsSync) GetHandoffRemovalTimingEnabled() 
 type DeviceCapabilities_AiFbidMigration struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	ChatDbMigrationTimestamp *uint64                `protobuf:"varint,1,opt,name=chatDbMigrationTimestamp" json:"chatDbMigrationTimestamp,omitempty"`
+	SupportVersion           *uint32                `protobuf:"varint,2,opt,name=supportVersion" json:"supportVersion,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -479,6 +480,13 @@ func (*DeviceCapabilities_AiFbidMigration) Descriptor() ([]byte, []int) {
 func (x *DeviceCapabilities_AiFbidMigration) GetChatDbMigrationTimestamp() uint64 {
 	if x != nil && x.ChatDbMigrationTimestamp != nil {
 		return *x.ChatDbMigrationTimestamp
+	}
+	return 0
+}
+
+func (x *DeviceCapabilities_AiFbidMigration) GetSupportVersion() uint32 {
+	if x != nil && x.SupportVersion != nil {
+		return *x.SupportVersion
 	}
 	return 0
 }
@@ -528,14 +536,15 @@ func (x *DeviceCapabilities_UserHasAvatar) GetUserHasAvatar() bool {
 }
 
 type DeviceCapabilities_BusinessBroadcast struct {
-	state                   protoimpl.MessageState `protogen:"open.v1"`
-	ImportListEnabled       *bool                  `protobuf:"varint,1,opt,name=importListEnabled" json:"importListEnabled,omitempty"`
-	CompanionSupportEnabled *bool                  `protobuf:"varint,2,opt,name=companionSupportEnabled" json:"companionSupportEnabled,omitempty"`
-	CampaignSyncEnabled     *bool                  `protobuf:"varint,3,opt,name=campaignSyncEnabled" json:"campaignSyncEnabled,omitempty"`
-	InsightsSyncEnabled     *bool                  `protobuf:"varint,4,opt,name=insightsSyncEnabled" json:"insightsSyncEnabled,omitempty"`
-	RecipientLimit          *int32                 `protobuf:"varint,5,opt,name=recipientLimit" json:"recipientLimit,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"open.v1"`
+	ImportListEnabled          *bool                  `protobuf:"varint,1,opt,name=importListEnabled" json:"importListEnabled,omitempty"`
+	CompanionSupportEnabled    *bool                  `protobuf:"varint,2,opt,name=companionSupportEnabled" json:"companionSupportEnabled,omitempty"`
+	CampaignSyncEnabled        *bool                  `protobuf:"varint,3,opt,name=campaignSyncEnabled" json:"campaignSyncEnabled,omitempty"`
+	InsightsSyncEnabled        *bool                  `protobuf:"varint,4,opt,name=insightsSyncEnabled" json:"insightsSyncEnabled,omitempty"`
+	RecipientLimit             *int32                 `protobuf:"varint,5,opt,name=recipientLimit" json:"recipientLimit,omitempty"`
+	ProCompanionSupportEnabled *bool                  `protobuf:"varint,6,opt,name=proCompanionSupportEnabled" json:"proCompanionSupportEnabled,omitempty"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *DeviceCapabilities_BusinessBroadcast) Reset() {
@@ -603,6 +612,13 @@ func (x *DeviceCapabilities_BusinessBroadcast) GetRecipientLimit() int32 {
 	return 0
 }
 
+func (x *DeviceCapabilities_BusinessBroadcast) GetProCompanionSupportEnabled() bool {
+	if x != nil && x.ProCompanionSupportEnabled != nil {
+		return *x.ProCompanionSupportEnabled
+	}
+	return false
+}
+
 type DeviceCapabilities_LIDMigration struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	ChatDbMigrationTimestamp *uint64                `protobuf:"varint,1,opt,name=chatDbMigrationTimestamp" json:"chatDbMigrationTimestamp,omitempty"`
@@ -651,7 +667,7 @@ var File_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto protoreflec
 
 const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc = "" +
 	"\n" +
-	";waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto\x12 WAWebProtobufsDeviceCapabilities\"\xca\x0f\n" +
+	";waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto\x12 WAWebProtobufsDeviceCapabilities\"\xb2\x10\n" +
 	"\x12DeviceCapabilities\x12}\n" +
 	"\x14chatLockSupportLevel\x18\x01 \x01(\x0e2I.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevelR\x14chatLockSupportLevel\x12e\n" +
 	"\flidMigration\x18\x02 \x01(\v2A.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigrationR\flidMigration\x12t\n" +
@@ -671,17 +687,19 @@ const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc =
 	"\x0eContactRefresh\x12*\n" +
 	"\x10refreshSupported\x18\x01 \x01(\bR\x10refreshSupported\x1aU\n" +
 	"\x11BizAiSettingsSync\x12@\n" +
-	"\x1bhandoffRemovalTimingEnabled\x18\x01 \x01(\bR\x1bhandoffRemovalTimingEnabled\x1aM\n" +
+	"\x1bhandoffRemovalTimingEnabled\x18\x01 \x01(\bR\x1bhandoffRemovalTimingEnabled\x1au\n" +
 	"\x0fAiFbidMigration\x12:\n" +
-	"\x18chatDbMigrationTimestamp\x18\x01 \x01(\x04R\x18chatDbMigrationTimestamp\x1a5\n" +
+	"\x18chatDbMigrationTimestamp\x18\x01 \x01(\x04R\x18chatDbMigrationTimestamp\x12&\n" +
+	"\x0esupportVersion\x18\x02 \x01(\rR\x0esupportVersion\x1a5\n" +
 	"\rUserHasAvatar\x12$\n" +
-	"\ruserHasAvatar\x18\x01 \x01(\bR\ruserHasAvatar\x1a\x87\x02\n" +
+	"\ruserHasAvatar\x18\x01 \x01(\bR\ruserHasAvatar\x1a\xc7\x02\n" +
 	"\x11BusinessBroadcast\x12,\n" +
 	"\x11importListEnabled\x18\x01 \x01(\bR\x11importListEnabled\x128\n" +
 	"\x17companionSupportEnabled\x18\x02 \x01(\bR\x17companionSupportEnabled\x120\n" +
 	"\x13campaignSyncEnabled\x18\x03 \x01(\bR\x13campaignSyncEnabled\x120\n" +
 	"\x13insightsSyncEnabled\x18\x04 \x01(\bR\x13insightsSyncEnabled\x12&\n" +
-	"\x0erecipientLimit\x18\x05 \x01(\x05R\x0erecipientLimit\x1aJ\n" +
+	"\x0erecipientLimit\x18\x05 \x01(\x05R\x0erecipientLimit\x12>\n" +
+	"\x1aproCompanionSupportEnabled\x18\x06 \x01(\bR\x1aproCompanionSupportEnabled\x1aJ\n" +
 	"\fLIDMigration\x12:\n" +
 	"\x18chatDbMigrationTimestamp\x18\x01 \x01(\x04R\x18chatDbMigrationTimestamp\"U\n" +
 	"\x1bMemberNameTagPrimarySupport\x12\f\n" +
