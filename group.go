@@ -908,7 +908,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 		case "unlocked":
 			evt.Locked = &types.GroupLocked{IsLocked: false}
 		case "delete":
-			evt.Delete = &types.GroupDelete{Deleted: true, DeleteReason: cag.String("reason")}
+			evt.Delete = &types.GroupDelete{Deleted: true, DeleteReason: cag.OptionalString("reason")}
 		case "subject":
 			evt.Name = &types.GroupName{
 				Name:        cag.String("subject"),
