@@ -986,7 +986,11 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		if webMsg.GetOriginalSelfAuthorUserJIDString() != "" {
 			info.Sender, err = types.ParseJID(webMsg.GetOriginalSelfAuthorUserJIDString())
 		} else {
-			info.Sender = cli.getOwnID().ToNonAD()
+			if info.Chat.Server == types.HiddenUserServer {
+				info.Sender = cli.getOwnLID().ToNonAD()
+			} else {
+				info.Sender = cli.getOwnID().ToNonAD()
+			}
 			if info.Sender.IsEmpty() {
 				return nil, ErrNotLoggedIn
 			}
