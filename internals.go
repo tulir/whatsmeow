@@ -167,8 +167,8 @@ func (int *DangerousInternalClient) HandleFrame(ctx context.Context, data []byte
 	int.c.handleFrame(ctx, data, queue)
 }
 
-func (int *DangerousInternalClient) HandlerQueueLoop(evtCtx, connCtx context.Context, queue chan *waBinary.Node) {
-	int.c.handlerQueueLoop(evtCtx, connCtx, queue)
+func (int *DangerousInternalClient) HandlerQueueLoop(evtCtx, connCtx context.Context, queue chan *waBinary.Node, closeWait chan struct{}) {
+	int.c.handlerQueueLoop(evtCtx, connCtx, queue, closeWait)
 }
 
 func (int *DangerousInternalClient) SendNodeAndGetData(ctx context.Context, node waBinary.Node) ([]byte, error) {
