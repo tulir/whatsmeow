@@ -59,6 +59,12 @@ type deviceCache struct {
 	dhash   string
 }
 
+type clientSocket interface {
+	SendFrame(context.Context, []byte) error
+	IsConnected() bool
+	Stop(disconnect, allowOnDisconnect bool)
+}
+
 // Client contains everything necessary to connect to and interact with the WhatsApp web API.
 type Client struct {
 	Store   *store.Device
@@ -66,7 +72,7 @@ type Client struct {
 	recvLog waLog.Logger
 	sendLog waLog.Logger
 
-	socket     *socket.NoiseSocket
+	socket     clientSocket
 	socketLock sync.RWMutex
 	socketWait chan struct{}
 
