@@ -9,13 +9,19 @@ import (
 	"go.mau.fi/whatsmeow/types"
 )
 
+// maxDecodeDepth caps how many nested values the decoder descends into. The
+// wire format lets a frame nest a value inside itself for as many bytes as it
+// has, and a stack overflow is a fatal error that recover can't catch.
+const maxDecodeDepth = 256
+
 type binaryDecoder struct {
 	data  []byte
 	index int
+	depth int
 }
 
 func newDecoder(data []byte) *binaryDecoder {
-	return &binaryDecoder{data, 0}
+	return &binaryDecoder{data: data}
 }
 
 func (r *binaryDecoder) checkEOS(length int) error {
@@ -166,6 +172,16 @@ func (r *binaryDecoder) readListSize(tag int) (int, error) {
 }
 
 func (r *binaryDecoder) read(string bool) (any, error) {
+	if r.depth >= maxDecodeDepth {
+		return nil, fmt.Errorf("%w at position %d", ErrNodeTooDeep, r.index)
+	}
+	r.depth++
+	val, err := r.readValue(string)
+	r.depth--
+	return val, err
+}
+
+func (r *binaryDecoder) readValue(string bool) (any, error) {
 	tagByte, err := r.readByte()
 	if err != nil {
 		return nil, err

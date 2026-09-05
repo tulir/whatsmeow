@@ -7,6 +7,8 @@
 package binary_test
 
 import (
+	"bytes"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -137,5 +139,60 @@ func TestUnmarshalTruncatedInputDoesNotPanic(t *testing.T) {
 				t.Error("expected an error for truncated input, got nil")
 			}
 		})
+	}
+}
+
+// TestUnmarshalDeeplyNestedInputDoesNotOverflowStack feeds the decoder frames
+// that nest a value inside itself for the whole length of the frame. Both stay
+// well under socket.FrameMaxSize, but before the depth limit they drove the
+// decoder millions of levels deep and killed the process with a stack overflow,
+// which is a fatal error that the recover in the read loop cannot catch.
+func TestUnmarshalDeeplyNestedInputDoesNotOverflowStack(t *testing.T) {
+	tests := []struct {
+		name  string
+		input []byte
+	}{
+		// List8 node of size 2, tag token 1, content = List8 of size 1 -> next node
+		{"nested nodes", bytes.Repeat([]byte{248, 2, 1, 248, 1}, 2_500_000)},
+		// List8 node of size 2, tag token 1, content = JIDPair whose user is
+		// another JIDPair, and so on
+		{"nested jidpairs", append([]byte{248, 2, 1}, bytes.Repeat([]byte{250}, 2_500_000)...)},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("Unmarshal panicked on deeply nested input: %v", r)
+				}
+			}()
+			_, err := binary.Unmarshal(tc.input)
+			if !errors.Is(err, binary.ErrNodeTooDeep) {
+				t.Errorf("expected ErrNodeTooDeep, got %v", err)
+			}
+		})
+	}
+}
+
+// TestUnmarshalNestingWithinLimit ensures the depth limit doesn't reject nodes
+// that are nested far deeper than any real stanza but still within the cap.
+func TestUnmarshalNestingWithinLimit(t *testing.T) {
+	node := binary.Node{Tag: "leaf", Content: []byte("hi")}
+	for i := 0; i < 200; i++ {
+		node = binary.Node{Tag: "iq", Content: []binary.Node{node}}
+	}
+	marshaled, err := binary.Marshal(node)
+	if err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+	unpacked, err := binary.Unpack(marshaled)
+	if err != nil {
+		t.Fatalf("Unpack failed: %v", err)
+	}
+	decoded, err := binary.Unmarshal(unpacked)
+	if err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+	if !reflect.DeepEqual(*decoded, node) {
+		t.Error("deeply nested node did not round trip")
 	}
 }

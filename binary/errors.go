@@ -9,4 +9,5 @@ var (
 	ErrInvalidNode    = errors.New("invalid node")
 	ErrInvalidToken   = errors.New("invalid token with tag")
 	ErrNonStringKey   = errors.New("non-string key")
+	ErrNodeTooDeep    = errors.New("too many nested nodes")
 )
