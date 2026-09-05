@@ -480,7 +480,7 @@ const (
 	getAppStateVersionQuery                 = `SELECT version, hash FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
 	deleteAppStateVersionQuery              = `DELETE FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
 	putAppStateMutationMACsQuery            = `INSERT INTO whatsmeow_app_state_mutation_macs (jid, name, version, index_mac, value_mac) VALUES `
-	putAppStateMutationMACsUpsert           = ` ON CONFLICT (jid, name, index_mac) DO UPDATE SET version=excluded.version, value_mac=excluded.value_mac`
+	putAppStateMutationMACsUpsert           = ` ON CONFLICT (jid, name, index_mac) DO UPDATE SET version=excluded.version, value_mac=excluded.value_mac WHERE whatsmeow_app_state_mutation_macs.version <= excluded.version`
 	deleteAppStateMutationMACsQueryPostgres = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=ANY($3::bytea[])`
 	deleteAppStateMutationMACsQueryGeneric  = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac IN `
 	getAppStateMutationMACQuery             = `SELECT value_mac FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=$3`
