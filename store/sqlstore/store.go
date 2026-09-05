@@ -166,6 +166,14 @@ type addressSessionTuple struct {
 	Session []byte
 }
 
+func (ast addressSessionTuple) GetMassInsertValues() [2]any {
+	return [...]any{ast.Address, ast.Session}
+}
+
+var putSessionsMassInsertBuilder = dbutil.NewMassInsertBuilder[addressSessionTuple, [1]any](
+	putSessionQuery, "($1, $%d, $%d)",
+)
+
 var sessionScanner = dbutil.ConvertRowFn[addressSessionTuple](func(row dbutil.Scannable) (out addressSessionTuple, err error) {
 	err = row.Scan(&out.Address, &out.Session)
 	return
@@ -204,10 +212,20 @@ func (s *SQLStore) GetManySessions(ctx context.Context, addresses []string) (map
 	return result, nil
 }
 
+const sessionBatchSize = 400
+
 func (s *SQLStore) PutManySessions(ctx context.Context, sessions map[string][]byte) error {
+	if len(sessions) == 0 {
+		return nil
+	}
+	tuples := make([]addressSessionTuple, 0, len(sessions))
+	for addr, sess := range sessions {
+		tuples = append(tuples, addressSessionTuple{Address: addr, Session: sess})
+	}
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
-		for addr, sess := range sessions {
-			err := s.PutSession(ctx, addr, sess)
+		for slice := range slices.Chunk(tuples, sessionBatchSize) {
+			query, vars := putSessionsMassInsertBuilder.Build([1]any{s.JID}, slice)
+			_, err := s.db.Exec(ctx, query, vars...)
 			if err != nil {
 				return err
 			}
@@ -890,13 +908,20 @@ const (
 	`
 )
 
-func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.MessageSecretInsert) (err error) {
+var putMsgSecretsMassInsertBuilder = dbutil.NewMassInsertBuilder[store.MessageSecretInsert, [1]any](
+	putMsgSecret, "($1, $%d, $%d, $%d, $%d)",
+)
+
+const msgSecretBatchSize = 200
+
+func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.MessageSecretInsert) error {
 	if len(inserts) == 0 {
 		return nil
 	}
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
-		for _, insert := range inserts {
-			_, err = s.db.Exec(ctx, putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
+		for slice := range slices.Chunk(inserts, msgSecretBatchSize) {
+			query, vars := putMsgSecretsMassInsertBuilder.Build([1]any{s.JID}, slice)
+			_, err := s.db.Exec(ctx, query, vars...)
 			if err != nil {
 				return err
 			}

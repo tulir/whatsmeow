@@ -130,6 +130,10 @@ type MessageSecretInsert struct {
 	Secret []byte
 }
 
+func (msi MessageSecretInsert) GetMassInsertValues() [4]any {
+	return [...]any{msi.Chat.ToNonAD(), msi.Sender.ToNonAD(), msi.ID, msi.Secret}
+}
+
 type MsgSecretStore interface {
 	PutMessageSecrets(ctx context.Context, inserts []MessageSecretInsert) error
 	PutMessageSecret(ctx context.Context, chat, sender types.JID, id types.MessageID, secret []byte) error
