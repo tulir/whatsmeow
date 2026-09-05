@@ -558,7 +558,7 @@ func (cli *Client) encryptMessageForDevicesV3(
 		unlockSessions = func() {}
 		bundles = cli.fetchPreKeysNoError(baseCtx, retryDevices)
 		unlockSessions = cli.Store.LockSessions(sessionAddresses)
-		existingSessions, ctx, err = cli.Store.WithCachedSessions(baseCtx, sessionAddresses)
+		_, ctx, err = cli.Store.WithCachedSessions(baseCtx, sessionAddresses)
 		if err != nil {
 			return nil, fmt.Errorf("failed to prefetch sessions: %w", err)
 		}
