@@ -90,7 +90,7 @@ func (s *SQLStore) DeleteAllIdentities(ctx context.Context, phone string) error 
 }
 
 func (s *SQLStore) DeleteIdentity(ctx context.Context, address string) error {
-	_, err := s.db.Exec(ctx, deleteAllIdentitiesQuery, s.JID, address)
+	_, err := s.db.Exec(ctx, deleteIdentityQuery, s.JID, address)
 	return err
 }
 
