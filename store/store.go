@@ -103,6 +103,7 @@ type ContactStore interface {
 	PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error)
 	PutBusinessName(ctx context.Context, user types.JID, businessName string) (bool, string, error)
 	PutContactName(ctx context.Context, user types.JID, fullName, firstName string) error
+	DeleteContactName(ctx context.Context, user types.JID) error
 	PutAllContactNames(ctx context.Context, contacts []ContactEntry) error
 	PutManyRedactedPhones(ctx context.Context, entries []RedactedPhoneEntry) error
 	GetContact(ctx context.Context, user types.JID) (types.ContactInfo, error)

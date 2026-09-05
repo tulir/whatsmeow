@@ -33,6 +33,9 @@ type PatchInfo struct {
 	Timestamp time.Time
 	// Type is the app state type being mutated.
 	Type WAPatchName
+	// Operation is the type of mutation to apply. The zero value (SET) adds or updates the data,
+	// while REMOVE deletes it.
+	Operation waServerSync.SyncdMutation_SyncdOperation
 	// Mutations contains the individual mutations to apply to the app state in this patch.
 	Mutations []MutationInfo
 }
@@ -62,6 +65,30 @@ func BuildMuteAbs(target types.JID, mute bool, muteEndTimestamp *int64) PatchInf
 				MuteAction: &waSyncAction.MuteAction{
 					Muted:            proto.Bool(mute),
 					MuteEndTimestamp: muteEndTimestamp,
+				},
+			},
+		}},
+	}
+}
+
+// BuildContact builds an app state patch for adding a contact to the address book or removing one from it.
+//
+// The full name is only used when adding a contact.
+func BuildContact(target types.JID, fullName string, add bool) PatchInfo {
+	operation := waServerSync.SyncdMutation_SET
+	if !add {
+		operation = waServerSync.SyncdMutation_REMOVE
+	}
+	return PatchInfo{
+		Type:      WAPatchCriticalUnblockLow,
+		Operation: operation,
+		Mutations: []MutationInfo{{
+			Index:   []string{IndexContact, target.String()},
+			Version: 2,
+			Value: &waSyncAction.SyncActionValue{
+				ContactAction: &waSyncAction.ContactAction{
+					FullName:                 proto.String(fullName),
+					SaveOnPrimaryAddressbook: proto.Bool(add),
 				},
 			},
 		}},
@@ -296,11 +323,11 @@ func (proc *Processor) EncodePatch(ctx context.Context, keyID []byte, state Hash
 			return nil, fmt.Errorf("failed to encrypt mutation: %w", err)
 		}
 
-		valueMac := generateContentMAC(waServerSync.SyncdMutation_SET, encryptedContent, keyID, keys.ValueMAC)
+		valueMac := generateContentMAC(patchInfo.Operation, encryptedContent, keyID, keys.ValueMAC)
 		indexMac := concatAndHMAC(sha256.New, keys.Index, indexBytes)
 
 		mutations = append(mutations, &waServerSync.SyncdMutation{
-			Operation: waServerSync.SyncdMutation_SET.Enum(),
+			Operation: patchInfo.Operation.Enum(),
 			Record: &waServerSync.SyncdRecord{
 				Index: &waServerSync.SyncdIndex{Blob: indexMac},
 				Value: &waServerSync.SyncdValue{Blob: append(encryptedContent, valueMac...)},
