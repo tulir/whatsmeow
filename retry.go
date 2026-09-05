@@ -346,9 +346,9 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 				encryptionIdentity = lidForPN
 			}
 		}
-		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, encAttrs, nil)
+		encrypted, includeDeviceIdentity, err = cli.encryptMessageForDeviceLocked(ctx, plaintext, encryptionIdentity, bundle, encAttrs, nil)
 	} else {
-		encrypted, err = cli.encryptMessageForDeviceV3(ctx, &waMsgTransport.MessageTransport_Payload{
+		encrypted, err = cli.encryptMessageForDeviceV3Locked(ctx, &waMsgTransport.MessageTransport_Payload{
 			ApplicationPayload: &waCommon.SubProtocol{
 				Payload: plaintext,
 				Version: proto.Int32(FBMessageApplicationVersion),

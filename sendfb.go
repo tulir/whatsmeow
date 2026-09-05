@@ -537,6 +537,10 @@ func (cli *Client) encryptMessageForDevicesV3(
 		sessionAddresses = append(sessionAddresses, addr)
 		sessionAddressToJID[addr] = jid
 	}
+	// See encryptMessageForDevices for the locking rationale.
+	unlockSessions := cli.Store.LockSessions(sessionAddresses)
+	defer func() { unlockSessions() }()
+	baseCtx := ctx
 	existingSessions, ctx, err := cli.Store.WithCachedSessions(ctx, sessionAddresses)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prefetch sessions: %w", err)
@@ -547,7 +551,18 @@ func (cli *Client) encryptMessageForDevicesV3(
 			retryDevices = append(retryDevices, sessionAddressToJID[addr])
 		}
 	}
-	bundles := cli.fetchPreKeysNoError(ctx, retryDevices)
+	var bundles map[types.JID]*prekey.Bundle
+	if len(retryDevices) > 0 {
+		// See encryptMessageForDevices.
+		unlockSessions()
+		unlockSessions = func() {}
+		bundles = cli.fetchPreKeysNoError(baseCtx, retryDevices)
+		unlockSessions = cli.Store.LockSessions(sessionAddresses)
+		existingSessions, ctx, err = cli.Store.WithCachedSessions(baseCtx, sessionAddresses)
+		if err != nil {
+			return nil, fmt.Errorf("failed to prefetch sessions: %w", err)
+		}
+	}
 
 	for _, jid := range allDevices {
 		if jid == ownID {
@@ -593,6 +608,22 @@ func (cli *Client) encryptMessageForDeviceAndWrapV3(
 		Attrs:   waBinary.Attrs{"jid": to},
 		Content: []waBinary.Node{*node},
 	}, nil
+}
+
+// encryptMessageForDeviceV3Locked is encryptMessageForDeviceV3 for callers
+// that aren't already holding the session lock for the target address.
+func (cli *Client) encryptMessageForDeviceV3Locked(
+	ctx context.Context,
+	payload *waMsgTransport.MessageTransport_Payload,
+	skdm *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage,
+	dsm *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage,
+	to types.JID,
+	bundle *prekey.Bundle,
+	extraAttrs waBinary.Attrs,
+) (*waBinary.Node, error) {
+	unlockSession := cli.Store.LockSession(to.SignalAddress().String())
+	defer unlockSession()
+	return cli.encryptMessageForDeviceV3(ctx, payload, skdm, dsm, to, bundle, extraAttrs)
 }
 
 func (cli *Client) encryptMessageForDeviceV3(
