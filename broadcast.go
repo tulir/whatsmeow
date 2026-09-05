@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
@@ -26,22 +27,22 @@ func (cli *Client) getBroadcastListParticipants(ctx context.Context, jid types.J
 	if err != nil {
 		return nil, err
 	}
+	return cli.ensureSelfInBroadcastList(list)
+}
+
+// ensureSelfInBroadcastList adds the user's own JID to the given recipient list if it's not there yet,
+// so that the user's other devices also receive the sender key and can decrypt the message.
+func (cli *Client) ensureSelfInBroadcastList(list []types.JID) ([]types.JID, error) {
 	ownID := cli.getOwnID().ToNonAD()
 	if ownID.IsEmpty() {
 		return nil, ErrNotLoggedIn
 	}
-
-	selfIndex := -1
-	for i, participant := range list {
+	for _, participant := range list {
 		if participant.User == ownID.User {
-			selfIndex = i
-			break
+			return list, nil
 		}
 	}
-	if selfIndex < 0 {
-		list = append(list, ownID)
-	}
-	return list, nil
+	return append(slices.Clone(list), ownID), nil
 }
 
 func (cli *Client) getStatusBroadcastRecipients(ctx context.Context) ([]types.JID, error) {

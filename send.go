@@ -156,6 +156,11 @@ type SendRequestExtra struct {
 	Meta *types.MsgMetaInfo
 	// use this only if you know what you are doing
 	AdditionalNodes *[]waBinary.Node
+	// The recipients to send to when sending to a broadcast server JID (e.g. a status message).
+	// If this is empty, the recipients of status messages are resolved from the status privacy
+	// settings, and other broadcast lists are not supported. Your own JID is always included in
+	// the recipients even if it's not in this list.
+	Participants []types.JID
 }
 
 // SendMessage sends the given message.
@@ -311,6 +316,11 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 				ownID = cli.getOwnLID()
 				// Why is this set to PN?
 				extraParams.addressingMode = types.AddressingModePN
+			}
+		} else if len(req.Participants) > 0 {
+			groupParticipants, err = cli.ensureSelfInBroadcastList(req.Participants)
+			if err != nil {
+				return
 			}
 		} else {
 			groupParticipants, err = cli.getBroadcastListParticipants(ctx, to)
