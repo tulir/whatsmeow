@@ -621,7 +621,8 @@ func (cli *Client) BuildEdit(chat types.JID, id types.MessageID, newContent *waE
 //
 // quotedMsg is embedded as a stripped copy (principal content only, no nested quote chain), matching
 // what official WhatsApp clients do. Plain Conversation reply content is promoted to ExtendedTextMessage,
-// and any ContextInfo already set on replyContent (mentions, forwarding flags) is preserved.
+// and any ContextInfo already set on replyContent (mentions, forwarding flags) is preserved, except for
+// the quote fields themselves, which always point at quotedInfo/quotedMsg.
 //
 // The returned message is a copy: neither quotedMsg nor replyContent is modified.
 //
@@ -709,21 +710,30 @@ func stripQuotedMessage(msg *waE2E.Message) *waE2E.Message {
 // stripUnknownQuotedMessage gives message types that stripQuotedMessage doesn't know about the same
 // treatment as the enumerated ones: the top-level MessageContextInfo (which carries the original
 // message secret) is dropped and the nested quote of whichever submessage holds a ContextInfo is cleared.
+// FutureProofMessage wrappers (view once, ephemeral, document with caption, ...) are unwrapped, so the
+// message they carry is stripped too.
 func stripUnknownQuotedMessage(msg *waE2E.Message) *waE2E.Message {
 	stripped := proto.Clone(msg).(*waE2E.Message)
-	stripped.MessageContextInfo = nil
-	stripped.ProtoReflect().Range(func(fd protoreflect.FieldDescriptor, val protoreflect.Value) bool {
+	stripQuoteChain(stripped)
+	return stripped
+}
+
+func stripQuoteChain(msg *waE2E.Message) {
+	msg.MessageContextInfo = nil
+	msg.ProtoReflect().Range(func(fd protoreflect.FieldDescriptor, val protoreflect.Value) bool {
 		if fd.Kind() != protoreflect.MessageKind || fd.IsList() || fd.IsMap() {
 			return true
 		}
-		if sub, ok := val.Message().Interface().(interface {
-			GetContextInfo() *waE2E.ContextInfo
-		}); ok {
+		switch sub := val.Message().Interface().(type) {
+		case *waE2E.FutureProofMessage:
+			if sub.Message != nil {
+				stripQuoteChain(sub.Message)
+			}
+		case interface{ GetContextInfo() *waE2E.ContextInfo }:
 			clearNestedQuote(sub)
 		}
 		return true
 	})
-	return stripped
 }
 
 func clearNestedQuote[T interface{ GetContextInfo() *waE2E.ContextInfo }](sub T) T {
@@ -745,12 +755,26 @@ func extendedTextOnlyHasText(et *waE2E.ExtendedTextMessage) bool {
 
 func attachQuotedContext(msg *waE2E.Message, ci *waE2E.ContextInfo) error {
 	switch {
+	case msg.ViewOnceMessage.GetMessage() != nil:
+		return attachQuotedContext(msg.ViewOnceMessage.Message, ci)
+	case msg.ViewOnceMessageV2.GetMessage() != nil:
+		return attachQuotedContext(msg.ViewOnceMessageV2.Message, ci)
+	case msg.ViewOnceMessageV2Extension.GetMessage() != nil:
+		return attachQuotedContext(msg.ViewOnceMessageV2Extension.Message, ci)
+	case msg.LottieStickerMessage.GetMessage() != nil:
+		return attachQuotedContext(msg.LottieStickerMessage.Message, ci)
+	case msg.EphemeralMessage.GetMessage() != nil:
+		return attachQuotedContext(msg.EphemeralMessage.Message, ci)
+	case msg.DocumentWithCaptionMessage.GetMessage() != nil:
+		return attachQuotedContext(msg.DocumentWithCaptionMessage.Message, ci)
 	case msg.ExtendedTextMessage != nil:
 		msg.ExtendedTextMessage.ContextInfo = mergeQuotedCtx(msg.ExtendedTextMessage.ContextInfo, ci)
 	case msg.ImageMessage != nil:
 		msg.ImageMessage.ContextInfo = mergeQuotedCtx(msg.ImageMessage.ContextInfo, ci)
 	case msg.VideoMessage != nil:
 		msg.VideoMessage.ContextInfo = mergeQuotedCtx(msg.VideoMessage.ContextInfo, ci)
+	case msg.PtvMessage != nil:
+		msg.PtvMessage.ContextInfo = mergeQuotedCtx(msg.PtvMessage.ContextInfo, ci)
 	case msg.AudioMessage != nil:
 		msg.AudioMessage.ContextInfo = mergeQuotedCtx(msg.AudioMessage.ContextInfo, ci)
 	case msg.DocumentMessage != nil:
@@ -767,6 +791,12 @@ func attachQuotedContext(msg *waE2E.Message, ci *waE2E.ContextInfo) error {
 		msg.ContactsArrayMessage.ContextInfo = mergeQuotedCtx(msg.ContactsArrayMessage.ContextInfo, ci)
 	case msg.PollCreationMessage != nil:
 		msg.PollCreationMessage.ContextInfo = mergeQuotedCtx(msg.PollCreationMessage.ContextInfo, ci)
+	case msg.PollCreationMessageV2 != nil:
+		msg.PollCreationMessageV2.ContextInfo = mergeQuotedCtx(msg.PollCreationMessageV2.ContextInfo, ci)
+	case msg.PollCreationMessageV3 != nil:
+		msg.PollCreationMessageV3.ContextInfo = mergeQuotedCtx(msg.PollCreationMessageV3.ContextInfo, ci)
+	case msg.EventMessage != nil:
+		msg.EventMessage.ContextInfo = mergeQuotedCtx(msg.EventMessage.ContextInfo, ci)
 	case msg.ButtonsMessage != nil:
 		msg.ButtonsMessage.ContextInfo = mergeQuotedCtx(msg.ButtonsMessage.ContextInfo, ci)
 	case msg.ListMessage != nil:
@@ -783,18 +813,18 @@ func attachQuotedContext(msg *waE2E.Message, ci *waE2E.ContextInfo) error {
 	return nil
 }
 
+// mergeQuotedCtx keeps the unrelated parts of an existing ContextInfo (mentions, forwarding flags,
+// disappearing message settings, ...) but always replaces the quote itself, so building a reply out of
+// content that already quoted something points the new quote at the message actually being replied to.
 func mergeQuotedCtx(existing, incoming *waE2E.ContextInfo) *waE2E.ContextInfo {
 	if existing == nil {
 		return incoming
 	}
-	if existing.StanzaID == nil {
-		existing.StanzaID = incoming.StanzaID
-	}
-	if existing.Participant == nil {
-		existing.Participant = incoming.Participant
-	}
-	if existing.QuotedMessage == nil {
-		existing.QuotedMessage = incoming.QuotedMessage
+	existing.StanzaID = incoming.StanzaID
+	existing.Participant = incoming.Participant
+	existing.QuotedMessage = incoming.QuotedMessage
+	if incoming.RemoteJID != nil {
+		existing.RemoteJID = incoming.RemoteJID
 	}
 	return existing
 }
