@@ -194,6 +194,8 @@ func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (
 	return result, err
 }
 
+const lidMappingBatchSize = 300
+
 func (s *CachedLIDMap) GetManyPNsForLIDs(ctx context.Context, lids []types.JID) (map[types.JID]types.JID, error) {
 	if len(lids) == 0 {
 		return nil, nil
@@ -224,33 +226,39 @@ func (s *CachedLIDMap) GetManyPNsForLIDs(ctx context.Context, lids []types.JID) 
 	s.lidCacheLock.Lock()
 	defer s.lidCacheLock.Unlock()
 
-	var res dbutil.RowIter[store.LIDMapping]
-	if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
-		res = convertLIDRow.NewRowIter(s.db.Query(
-			ctx,
-			`SELECT lid, pn FROM whatsmeow_lid_map WHERE lid = ANY($1)`,
-			PostgresArrayWrapper(missingLIDs),
-		))
-	} else {
-		placeholders := make([]string, len(missingLIDs))
-		for i := range missingLIDs {
-			placeholders[i] = fmt.Sprintf("$%d", i+1)
-		}
-		res = convertLIDRow.NewRowIter(s.db.Query(
-			ctx,
-			fmt.Sprintf(`SELECT lid, pn FROM whatsmeow_lid_map WHERE lid IN (%s)`, strings.Join(placeholders, ",")),
-			exslices.CastToAny(missingLIDs)...,
-		))
-	}
-	err := s.scanManyLids(res, func(lid, pn string) {
+	addToResult := func(lid, pn string) {
 		for _, dev := range missingLIDDevices[lid] {
 			pnDev := dev
 			pnDev.Server = types.DefaultUserServer
 			pnDev.User = pn
 			result[dev] = pnDev
 		}
-	})
-	return result, err
+	}
+	for chunk := range slices.Chunk(missingLIDs, lidMappingBatchSize) {
+		var res dbutil.RowIter[store.LIDMapping]
+		if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
+			res = convertLIDRow.NewRowIter(s.db.Query(
+				ctx,
+				`SELECT lid, pn FROM whatsmeow_lid_map WHERE lid = ANY($1)`,
+				PostgresArrayWrapper(chunk),
+			))
+		} else {
+			placeholders := make([]string, len(chunk))
+			for i := range chunk {
+				placeholders[i] = fmt.Sprintf("$%d", i+1)
+			}
+			res = convertLIDRow.NewRowIter(s.db.Query(
+				ctx,
+				fmt.Sprintf(`SELECT lid, pn FROM whatsmeow_lid_map WHERE lid IN (%s)`, strings.Join(placeholders, ",")),
+				exslices.CastToAny(chunk)...,
+			))
+		}
+		err := s.scanManyLids(res, addToResult)
+		if err != nil {
+			return result, err
+		}
+	}
+	return result, nil
 }
 
 func (s *CachedLIDMap) PutLIDMapping(ctx context.Context, lid, pn types.JID) error {
