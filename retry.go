@@ -20,6 +20,7 @@ import (
 	"go.mau.fi/libsignal/groups"
 	"go.mau.fi/libsignal/keys/prekey"
 	"go.mau.fi/libsignal/protocol"
+	"go.mau.fi/libsignal/signalerror"
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -464,8 +465,53 @@ func (cli *Client) clearDelayedMessageRequests() {
 	}
 }
 
+// Retry reasons are sent to the server in the error attribute of retry receipts
+// to tell it why the message couldn't be decrypted.
+const (
+	RetryReasonUnknownError = iota
+	RetryReasonSignalErrorNoSession
+	RetryReasonSignalErrorInvalidKey
+	RetryReasonSignalErrorInvalidKeyID
+	RetryReasonSignalErrorInvalidMessage
+	RetryReasonSignalErrorInvalidSignature
+	RetryReasonSignalErrorFutureMessage
+	RetryReasonSignalErrorBadMac
+	RetryReasonSignalErrorInvalidSession
+	RetryReasonSignalErrorInvalidMsgKey
+	RetryReasonBadBroadcastEphemeralSetting
+	RetryReasonUnknownCompanionNoPrekey
+	RetryReasonAdvFailure
+	RetryReasonStatusRevokeDelay
+)
+
+func getRetryReasonFromError(err error) int {
+	switch {
+	case errors.Is(err, signalerror.ErrBadMAC):
+		return RetryReasonSignalErrorBadMac
+	case errors.Is(err, signalerror.ErrNoSessionForUser),
+		errors.Is(err, signalerror.ErrNoSenderKeyForUser):
+		return RetryReasonSignalErrorNoSession
+	case errors.Is(err, signalerror.ErrWrongMessageVersion),
+		errors.Is(err, signalerror.ErrOldMessageVersion),
+		errors.Is(err, signalerror.ErrUnknownMessageVersion),
+		errors.Is(err, signalerror.ErrIncompleteMessage):
+		return RetryReasonSignalErrorInvalidMessage
+	case errors.Is(err, signalerror.ErrInvalidSignature),
+		errors.Is(err, signalerror.ErrSenderKeyStateVerificationFailed):
+		return RetryReasonSignalErrorInvalidSignature
+	case errors.Is(err, signalerror.ErrNoSignedPreKey):
+		return RetryReasonSignalErrorInvalidKey
+	case errors.Is(err, signalerror.ErrNoSenderKeyStateForID):
+		return RetryReasonSignalErrorInvalidKeyID
+	case errors.Is(err, signalerror.ErrTooFarIntoFuture):
+		return RetryReasonSignalErrorFutureMessage
+	default:
+		return RetryReasonUnknownError
+	}
+}
+
 // sendRetryReceipt sends a retry receipt for an incoming message.
-func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool) {
+func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, info *types.MessageInfo, forceIncludeIdentity bool, errorCode int) {
 	id, _ := node.Attrs["id"].(string)
 	children := node.GetChildren()
 	var retryCountInMsg int
@@ -501,16 +547,23 @@ func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, in
 	if info.Type == "peer_msg" && info.IsFromMe {
 		attrs["category"] = "peer"
 	}
+
+	retryAttrs := waBinary.Attrs{
+		"count": retryCount,
+		"id":    id,
+		"t":     node.Attrs["t"],
+		"v":     1,
+	}
+
+	if errorCode != 0 {
+		retryAttrs["error"] = errorCode
+	}
+
 	payload := waBinary.Node{
 		Tag:   "receipt",
 		Attrs: attrs,
 		Content: []waBinary.Node{
-			{Tag: "retry", Attrs: waBinary.Attrs{
-				"count": retryCount,
-				"id":    id,
-				"t":     node.Attrs["t"],
-				"v":     1,
-			}},
+			{Tag: "retry", Attrs: retryAttrs},
 			{Tag: "registration", Content: registrationIDBytes[:]},
 		},
 	}
