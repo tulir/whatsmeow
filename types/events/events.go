@@ -515,10 +515,15 @@ type GroupInfo struct {
 	Join  []types.JID // Users who joined or were added the group
 	Leave []types.JID // Users who left or were removed from the group
 
-	Promote        []types.JID // Users who were promoted to admins
-	Demote         []types.JID // Users who were demoted to normal users
-	Suspended      bool        // whether the group is suspended
-	Unsuspended    bool        // whether the group is unsuspended
+	Promote     []types.JID // Users who were promoted to admins
+	Demote      []types.JID // Users who were demoted to normal users
+	Suspended   bool        // whether the group is suspended
+	Unsuspended bool        // whether the group is unsuspended
+
+	MembershipRequestsCreated []types.JID // Users who created a membership request
+	MembershipRequestsRevoked []types.JID // Users whose membership request was revoked
+	MembershipRequestMethod   string      // How the membership request was created (invite_link, non_admin_add, etc.)
+
 	UnknownChanges []*waBinary.Node
 }
 

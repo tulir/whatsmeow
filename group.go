@@ -823,7 +823,7 @@ func parseParticipantList(node *waBinary.Node) (participants []types.JID, lidPai
 	participants = make([]types.JID, 0, len(children))
 	for _, child := range children {
 		jid, ok := child.Attrs["jid"].(types.JID)
-		if child.Tag != "participant" || !ok {
+		if (child.Tag != "participant" && child.Tag != "membership_approval_request") || !ok {
 			continue
 		}
 		participants = append(participants, jid)
@@ -844,6 +844,20 @@ func parseParticipantList(node *waBinary.Node) (participants []types.JID, lidPai
 				})
 			}
 		}
+	}
+	return
+}
+
+// membershipRequestFallback returns the notification sender as the single membership requester.
+// Membership request notifications about a single user don't always repeat that user in a child
+// node, they only have it in the notification's own participant attribute.
+func membershipRequestFallback(sender, senderPN *types.JID) (participants []types.JID, lidPairs []store.LIDMapping) {
+	if sender == nil || sender.IsEmpty() {
+		return
+	}
+	participants = []types.JID{*sender}
+	if sender.Server == types.HiddenUserServer && senderPN != nil && !senderPN.IsEmpty() {
+		lidPairs = []store.LIDMapping{{LID: *sender, PN: *senderPN}}
 	}
 	return
 }
@@ -994,6 +1008,23 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 			evt.Suspended = true
 		case "unsuspended":
 			evt.Unsuspended = true
+		case "created_membership_requests":
+			if method := cag.OptionalString("request_method"); method != "" {
+				evt.MembershipRequestMethod = method
+			}
+			requesters, requestPairs := parseParticipantList(&child)
+			if len(requesters) == 0 {
+				requesters, requestPairs = membershipRequestFallback(evt.Sender, evt.SenderPN)
+			}
+			evt.MembershipRequestsCreated = append(evt.MembershipRequestsCreated, requesters...)
+			lidPairs = append(lidPairs, requestPairs...)
+		case "deleted_membership_requests", "revoked_membership_requests":
+			requesters, requestPairs := parseParticipantList(&child)
+			if len(requesters) == 0 {
+				requesters, requestPairs = membershipRequestFallback(evt.Sender, evt.SenderPN)
+			}
+			evt.MembershipRequestsRevoked = append(evt.MembershipRequestsRevoked, requesters...)
+			lidPairs = append(lidPairs, requestPairs...)
 		default:
 			evt.UnknownChanges = append(evt.UnknownChanges, &child)
 		}
