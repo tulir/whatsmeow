@@ -194,7 +194,7 @@ func (s *CachedLIDMap) GetManyLIDsForPNs(ctx context.Context, pns []types.JID) (
 	return result, err
 }
 
-const lidMappingBatchSize = 300
+const lidLookupBatchSize = 300
 
 func (s *CachedLIDMap) GetManyPNsForLIDs(ctx context.Context, lids []types.JID) (map[types.JID]types.JID, error) {
 	if len(lids) == 0 {
@@ -234,7 +234,7 @@ func (s *CachedLIDMap) GetManyPNsForLIDs(ctx context.Context, lids []types.JID) 
 			result[dev] = pnDev
 		}
 	}
-	for chunk := range slices.Chunk(missingLIDs, lidMappingBatchSize) {
+	for chunk := range slices.Chunk(missingLIDs, lidLookupBatchSize) {
 		var res dbutil.RowIter[store.LIDMapping]
 		if s.db.Dialect == dbutil.Postgres && PostgresArrayWrapper != nil {
 			res = convertLIDRow.NewRowIter(s.db.Query(
