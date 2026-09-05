@@ -109,7 +109,7 @@ func (r *binaryDecoder) readPacked8(tag int) (string, error) {
 	}
 
 	ret := build.String()
-	if startByte>>7 != 0 {
+	if startByte>>7 != 0 && len(ret) > 0 {
 		ret = ret[:len(ret)-1]
 	}
 	return ret, nil
@@ -232,10 +232,19 @@ func (r *binaryDecoder) readJIDPair() (any, error) {
 		return nil, err
 	} else if server == nil {
 		return nil, ErrInvalidJIDType
-	} else if user == nil {
-		return types.NewJID("", server.(string)), nil
 	}
-	return types.NewJID(user.(string), server.(string)), nil
+	serverStr, ok := server.(string)
+	if !ok {
+		return nil, ErrInvalidJIDType
+	}
+	if user == nil {
+		return types.NewJID("", serverStr), nil
+	}
+	userStr, ok := user.(string)
+	if !ok {
+		return nil, ErrInvalidJIDType
+	}
+	return types.NewJID(userStr, serverStr), nil
 }
 
 func (r *binaryDecoder) readInteropJID() (any, error) {
@@ -257,8 +266,12 @@ func (r *binaryDecoder) readInteropJID() (any, error) {
 	} else if server != types.InteropServer {
 		return nil, fmt.Errorf("%w: expected %q, got %q", ErrInvalidJIDType, types.InteropServer, server)
 	}
+	userStr, ok := user.(string)
+	if !ok {
+		return nil, ErrInvalidJIDType
+	}
 	return types.JID{
-		User:       user.(string),
+		User:       userStr,
 		Device:     uint16(device),
 		Integrator: uint16(integrator),
 		Server:     types.InteropServer,
@@ -280,10 +293,14 @@ func (r *binaryDecoder) readFBJID() (any, error) {
 	} else if server != types.MessengerServer {
 		return nil, fmt.Errorf("%w: expected %q, got %q", ErrInvalidJIDType, types.MessengerServer, server)
 	}
+	userStr, ok := user.(string)
+	if !ok {
+		return nil, ErrInvalidJIDType
+	}
 	return types.JID{
-		User:   user.(string),
+		User:   userStr,
 		Device: uint16(device),
-		Server: server.(string),
+		Server: types.MessengerServer,
 	}, nil
 }
 
@@ -300,7 +317,11 @@ func (r *binaryDecoder) readADJID() (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return types.NewADJID(user.(string), agent, device), nil
+	userStr, ok := user.(string)
+	if !ok {
+		return nil, ErrInvalidJIDType
+	}
+	return types.NewADJID(userStr, agent, device), nil
 }
 
 func (r *binaryDecoder) readAttributes(n int) (Attrs, error) {
@@ -365,7 +386,11 @@ func (r *binaryDecoder) readNode() (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret.Tag = rawDesc.(string)
+	tag, ok := rawDesc.(string)
+	if !ok {
+		return nil, ErrInvalidNode
+	}
+	ret.Tag = tag
 	if listSize == 0 || ret.Tag == "" {
 		return nil, ErrInvalidNode
 	}
