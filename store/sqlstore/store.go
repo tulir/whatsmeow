@@ -143,6 +143,17 @@ const (
 		WHERE our_jid=$1 AND sender_id LIKE $2 || ':%'
 		ON CONFLICT (our_jid, chat_id, sender_id) DO UPDATE SET sender_key=excluded.sender_key
 	`
+	// Existence check for the rows the PN->LID migration would touch, using the
+	// same LIKE prefix predicates as the migration itself. An explicit >=/< range
+	// over $2||':' and $2||';' would let the primary key index do the work, but it
+	// only matches the same rows under a binary collation: locale collations
+	// (ICU, glibc) ignore ':' at the primary weight, so 'pn:0' sorts after 'pn;'
+	// and the range matches nothing at all.
+	hasPNRowsToMigrateQuery = `
+		SELECT EXISTS(SELECT 1 FROM whatsmeow_sessions WHERE our_jid=$1 AND their_id LIKE $2 || ':%')
+			OR EXISTS(SELECT 1 FROM whatsmeow_identity_keys WHERE our_jid=$1 AND their_id LIKE $2 || ':%')
+			OR EXISTS(SELECT 1 FROM whatsmeow_sender_keys WHERE our_jid=$1 AND sender_id LIKE $2 || ':%')
+	`
 )
 
 func (s *SQLStore) GetSession(ctx context.Context, address string) (session []byte, err error) {
@@ -250,9 +261,21 @@ func (s *SQLStore) MigratePNToLID(ctx context.Context, pn, lid types.JID) error 
 	if !s.migratedPNSessionsCache.Add(pnSignal) {
 		return nil
 	}
-	var sessionsUpdated, identityKeysUpdated, senderKeysUpdated int64
 	lidSignal := lid.SignalAddressUser()
-	err := s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
+	// migratedPNSessionsCache only lives in memory, so after a restart the first
+	// send to each recipient gets here even when the store was migrated long ago.
+	// Opening the transaction unconditionally costs one write transaction per
+	// recipient, which is very noticeable when sending to a lot of them.
+	var hasPNRows bool
+	err := s.db.QueryRow(ctx, hasPNRowsToMigrateQuery, s.JID, pnSignal).Scan(&hasPNRows)
+	if err != nil {
+		s.log.Warnf("Failed to check for rows to migrate from %s: %v", pnSignal, err)
+	} else if !hasPNRows {
+		s.log.Debugf("Nothing to migrate from %s to %s", pnSignal, lidSignal)
+		return nil
+	}
+	var sessionsUpdated, identityKeysUpdated, senderKeysUpdated int64
+	err = s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		res, err := s.db.Exec(ctx, migratePNToLIDSessionsQuery, s.JID, pnSignal, lidSignal)
 		if err != nil {
 			return fmt.Errorf("failed to migrate sessions: %w", err)
