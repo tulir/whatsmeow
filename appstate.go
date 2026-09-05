@@ -39,7 +39,10 @@ func isAppStateHashMismatch(err error) bool {
 // cached state will be removed and all app state patches will be re-fetched from the server.
 //
 // If an incremental sync fails because of a hash mismatch, it is retried once as a full sync,
-// as the stored version would otherwise keep failing to sync forever.
+// as the stored version would otherwise keep failing to sync forever. Events from that fallback
+// full sync follow the usual full sync rules, i.e. they're only dispatched if
+// EmitAppStateEventsOnFullSync is set, which means the call may return nil without dispatching
+// anything even though an incremental sync would have produced events.
 func (cli *Client) FetchAppState(ctx context.Context, name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) error {
 	eventsToDispatch, err := cli.fetchAppState(ctx, name, fullSync, onlyIfNotSynced)
 	if err != nil && !fullSync && isAppStateHashMismatch(err) {
