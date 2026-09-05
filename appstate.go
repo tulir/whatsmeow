@@ -26,10 +26,26 @@ import (
 	"go.mau.fi/whatsmeow/types/events"
 )
 
+// isAppStateHashMismatch checks whether the error means the locally computed app state hash
+// disagrees with the one the server sent, which means the local state can only be recovered
+// by throwing it away and doing a full resync.
+func isAppStateHashMismatch(err error) bool {
+	return errors.Is(err, appstate.ErrMismatchingLTHash) ||
+		errors.Is(err, appstate.ErrMismatchingPatchMAC) ||
+		errors.Is(err, appstate.ErrMismatchingContentMAC)
+}
+
 // FetchAppState fetches updates to the given type of app state. If fullSync is true, the current
 // cached state will be removed and all app state patches will be re-fetched from the server.
+//
+// If an incremental sync fails because of a hash mismatch, it is retried once as a full sync,
+// as the stored version would otherwise keep failing to sync forever.
 func (cli *Client) FetchAppState(ctx context.Context, name appstate.WAPatchName, fullSync, onlyIfNotSynced bool) error {
 	eventsToDispatch, err := cli.fetchAppState(ctx, name, fullSync, onlyIfNotSynced)
+	if err != nil && !fullSync && isAppStateHashMismatch(err) {
+		cli.Log.Warnf("Incremental sync of app state %s failed (%v), retrying with a full sync", name, err)
+		eventsToDispatch, err = cli.fetchAppState(ctx, name, true, false)
+	}
 	if err != nil {
 		return err
 	}
