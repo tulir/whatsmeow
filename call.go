@@ -30,6 +30,7 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 		CallCreator: cag.JID("call-creator"),
 		CallID:      cag.String("call-id"),
 		GroupJID:    cag.OptionalJIDOrEmpty("group-jid"),
+		StanzaID:    ag.String("id"),
 	}
 	if basicMeta.CallCreator.Server == types.HiddenUserServer {
 		basicMeta.CallCreatorAlt = cag.OptionalJIDOrEmpty("caller_pn")

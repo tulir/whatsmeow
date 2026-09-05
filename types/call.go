@@ -15,6 +15,9 @@ type BasicCallMeta struct {
 	CallCreatorAlt JID
 	CallID         string
 	GroupJID       JID
+	// StanzaID is the ID attribute of the <call> stanza itself, which is
+	// different from CallID (the ID of the call the stanza is about).
+	StanzaID string
 }
 
 type CallRemoteMeta struct {
