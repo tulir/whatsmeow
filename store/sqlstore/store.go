@@ -585,6 +585,9 @@ const (
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, first_name, full_name) VALUES ($1, $2, $3, $4)
 		ON CONFLICT (our_jid, their_jid) DO UPDATE SET first_name=excluded.first_name, full_name=excluded.full_name
 	`
+	deleteContactNameQuery = `
+		UPDATE whatsmeow_contacts SET first_name=NULL, full_name=NULL WHERE our_jid=$1 AND their_jid=$2
+	`
 	putRedactedPhoneQuery = `
 		INSERT INTO whatsmeow_contacts (our_jid, their_jid, redacted_phone)
 		VALUES ($1, $2, $3)
@@ -673,6 +676,26 @@ func (s *SQLStore) PutContactName(ctx context.Context, user types.JID, firstName
 		cached.FullName = fullName
 		cached.Found = true
 	}
+	return nil
+}
+
+func (s *SQLStore) DeleteContactName(ctx context.Context, user types.JID) error {
+	s.contactCacheLock.Lock()
+	defer s.contactCacheLock.Unlock()
+
+	cached, err := s.getContact(ctx, user)
+	if err != nil {
+		return err
+	}
+	if cached.FirstName == "" && cached.FullName == "" {
+		return nil
+	}
+	_, err = s.db.Exec(ctx, deleteContactNameQuery, s.JID, user)
+	if err != nil {
+		return err
+	}
+	cached.FirstName = ""
+	cached.FullName = ""
 	return nil
 }
 

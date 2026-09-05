@@ -20,6 +20,7 @@ type Contact struct {
 	Timestamp time.Time // The time when the modification happened.'
 
 	Action       *waSyncAction.ContactAction // The new contact info.
+	Removed      bool                        // Whether the contact was removed from the address book.
 	FromFullSync bool                        // Whether the action is emitted because of a fullSync
 }
 

@@ -201,7 +201,8 @@ func (cli *Client) filterContacts(mutations []appstate.Mutation) ([]appstate.Mut
 	filteredMutations := mutations[:0]
 	contacts := make([]store.ContactEntry, 0, len(mutations))
 	for _, mutation := range mutations {
-		if mutation.Index[0] == "contact" && len(mutation.Index) > 1 {
+		if mutation.Index[0] == appstate.IndexContact && len(mutation.Index) > 1 &&
+			mutation.Operation == waServerSync.SyncdMutation_SET {
 			jid, _ := types.ParseJID(mutation.Index[1])
 			act := mutation.Action.GetContactAction()
 			contacts = append(contacts, store.ContactEntry{
@@ -248,7 +249,9 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 		return
 	}
 
-	if mutation.Operation != waServerSync.SyncdMutation_SET {
+	isContactRemove := mutation.Operation == waServerSync.SyncdMutation_REMOVE &&
+		len(mutation.Index) > 1 && mutation.Index[0] == appstate.IndexContact
+	if mutation.Operation != waServerSync.SyncdMutation_SET && !isContactRemove {
 		return
 	}
 
@@ -288,9 +291,13 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 		}
 	case appstate.IndexContact:
 		act := mutation.Action.GetContactAction()
-		eventToDispatch = &events.Contact{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
+		eventToDispatch = &events.Contact{JID: jid, Timestamp: ts, Action: act, Removed: isContactRemove, FromFullSync: fullSync}
 		if cli.Store.Contacts != nil {
-			storeUpdateError = cli.Store.Contacts.PutContactName(ctx, jid, act.GetFirstName(), act.GetFullName())
+			if isContactRemove {
+				storeUpdateError = cli.Store.Contacts.DeleteContactName(ctx, jid)
+			} else {
+				storeUpdateError = cli.Store.Contacts.PutContactName(ctx, jid, act.GetFirstName(), act.GetFullName())
+			}
 		}
 	case appstate.IndexClearChat:
 		act := mutation.Action.GetClearChatAction()

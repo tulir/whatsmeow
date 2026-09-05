@@ -177,6 +177,10 @@ func (n *NoopStore) PutContactName(ctx context.Context, user types.JID, fullName
 	return n.Error
 }
 
+func (n *NoopStore) DeleteContactName(ctx context.Context, user types.JID) error {
+	return n.Error
+}
+
 func (n *NoopStore) PutAllContactNames(ctx context.Context, contacts []ContactEntry) error {
 	return n.Error
 }
