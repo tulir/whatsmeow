@@ -11,8 +11,8 @@ import (
 	"sync"
 )
 
-// Mutexes are never evicted; the map grows with the number of distinct
-// addresses, which is negligible next to the session data itself.
+// Mutexes are never evicted: the map keeps one entry per distinct signal
+// address the process has locked, for the lifetime of the process.
 func (device *Device) sessionLock(address string) *sync.Mutex {
 	val, _ := device.sessionLocks.LoadOrStore(address, &sync.Mutex{})
 	return val.(*sync.Mutex)
@@ -31,6 +31,11 @@ func (device *Device) LockSession(address string) func() {
 // LockSessions acquires the session locks for all given addresses,
 // deduplicated and in sorted order to prevent deadlocks between concurrent
 // multi-address lockers. The returned function releases all locks.
+//
+// Sorting only makes concurrent calls safe against each other, so no caller
+// may hold a session lock while acquiring more: every path that locks several
+// addresses (including the PN->LID session migration) must acquire them in one
+// call and release before locking anything else.
 func (device *Device) LockSessions(addresses []string) func() {
 	if len(addresses) == 0 {
 		return func() {}

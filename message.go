@@ -307,6 +307,13 @@ func (cli *Client) handlePlaintextMessage(ctx context.Context, info *types.Messa
 }
 
 func (cli *Client) migrateSessionStore(ctx context.Context, pn, lid types.JID) {
+	// Rewriting the session rows is another read-modify-write of the records
+	// that encrypting and decrypting take these locks for.
+	unlockSessions := cli.Store.LockSessions([]string{
+		pn.SignalAddress().String(),
+		lid.SignalAddress().String(),
+	})
+	defer unlockSessions()
 	err := cli.Store.Sessions.MigratePNToLID(ctx, pn, lid)
 	if err != nil {
 		cli.Log.Errorf("Failed to migrate signal store from %s to %s: %v", pn, lid, err)

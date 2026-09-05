@@ -1341,6 +1341,7 @@ func (cli *Client) encryptMessageForDevices(
 		if err != nil {
 			return nil, false, fmt.Errorf("failed to prefetch sessions: %w", err)
 		}
+		dropBundlesForExistingSessions(bundles, existingSessions, sessionAddressToJID)
 	}
 
 	for _, jid := range allDevices {
@@ -1373,6 +1374,22 @@ func (cli *Client) encryptMessageForDevices(
 		return nil, false, fmt.Errorf("failed to save cached sessions: %w", err)
 	}
 	return participantNodes, includeIdentity, nil
+}
+
+// dropBundlesForExistingSessions removes the prekey bundles fetched for
+// addresses that gained a session while the session locks were released.
+// Processing a bundle creates a fresh session, which would throw away the
+// ratchet state the other side just established.
+func dropBundlesForExistingSessions(
+	bundles map[types.JID]*prekey.Bundle,
+	existingSessions map[string]bool,
+	sessionAddressToJID map[string]types.JID,
+) {
+	for addr, exists := range existingSessions {
+		if exists {
+			delete(bundles, sessionAddressToJID[addr])
+		}
+	}
 }
 
 func (cli *Client) encryptMessageForDeviceAndWrap(

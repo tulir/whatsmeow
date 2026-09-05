@@ -86,6 +86,37 @@ func TestLockSessionIsExclusive(t *testing.T) {
 	}
 }
 
+func TestLockSessionAndLockSessionsShareTheSameMutex(t *testing.T) {
+	// The session migration locks a pair of addresses with LockSessions while
+	// decrypting locks a single one with LockSession; they must exclude each
+	// other for the address they have in common.
+	var device Device
+	counter := 0
+	mustNotBlock(t, "mixed LockSession and LockSessions", func() {
+		var wg sync.WaitGroup
+		for i := range 8 {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for range 100 {
+					var unlock func()
+					if i%2 == 0 {
+						unlock = device.LockSession("a.0")
+					} else {
+						unlock = device.LockSessions([]string{"a.0", "b.0"})
+					}
+					counter++
+					unlock()
+				}
+			}()
+		}
+		wg.Wait()
+	})
+	if counter != 800 {
+		t.Errorf("expected 800 increments, got %d", counter)
+	}
+}
+
 func TestLockSessionsIsExclusive(t *testing.T) {
 	var device Device
 	counters := map[string]int{"a.0": 0, "b.0": 0}
