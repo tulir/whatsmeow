@@ -102,6 +102,10 @@ enum MutationProps {
 	BUBBLE_LOCK_MESSAGE_ACTION = 90;
 	LABEL_SUBLIST_ACTION = 91;
 	DEVICE_CAPABILITIES_V2 = 92;
+	CTWA_MESSAGE_RECEIVED_ACTION = 93;
+	SHARED_DEVICE_ALLOWLIST_ACTION = 94;
+	CONTACT_MANAGER_METADATA_ACTION = 95;
+	BUSINESS_FOLDER_ACTIVATION_ACTION = 96;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -230,6 +234,7 @@ message SettingsSyncAction {
 		SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION = 31;
 		CHAT_THEME_ID = 32;
 		COLOR_SCHEME_ID = 33;
+		STOCK_WALLPAPER_IMAGE_ID = 34;
 	}
 
 	enum SettingPlatform {
@@ -273,6 +278,7 @@ message SettingsSyncAction {
 	optional bool shouldPlaySoundForCallNotification = 31;
 	optional string chatThemeID = 32;
 	optional string colorSchemeID = 33;
+	optional string stockWallpaperImageID = 34;
 }
 
 message InteractiveMessageAction {
@@ -460,6 +466,7 @@ message LabelEditAction {
 		INVITES = 14;
 		THIRD_PARTY = 15;
 		LEAD = 16;
+		MENTIONS_AND_REPLIES = 17;
 	}
 
 	optional string name = 1;
@@ -590,6 +597,10 @@ enum MutationName {
 	BUBBLE_LOCK_MESSAGE_ACTION = lock_message;
 	LABEL_SUBLIST_ACTION = label_sublist;
 	DEVICE_CAPABILITIES_V2 = device_capabilities_v2;
+	CTWA_MESSAGE_RECEIVED_ACTION = ctwa_message_received;
+	SHARED_DEVICE_ALLOWLIST_ACTION = shared_device_allowlist;
+	CONTACT_MANAGER_METADATA_ACTION = contact_manager_metadata;
+	BUSINESS_FOLDER_ACTIVATION_ACTION = business_folder_activation;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -700,6 +711,18 @@ message SyncActionValue {
 	optional BubbleLockMessageAction bubbleLockMessageAction = 90;
 	optional LabelSublistAction labelSublistAction = 91;
 	optional WAWebProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilitiesV2 = 92;
+	optional CtwaMessageReceivedAction ctwaMessageReceivedAction = 93;
+	optional SharedDeviceAllowlistAction sharedDeviceAllowlistAction = 94;
+	optional ContactManagerMetadataAction contactManagerMetadataAction = 95;
+	optional BusinessFolderActivationAction businessFolderActivationAction = 96;
+}
+
+message BusinessFolderActivationAction {
+	optional bool activated = 1;
+}
+
+message CtwaMessageReceivedAction {
+	optional bool isCtwaMessageReceived = 1;
 }
 
 message CoexV2VersionAction {
@@ -727,6 +750,10 @@ message SubscriptionsSyncV2Action {
 
 	repeated SubscriptionInfo subscriptions = 1;
 	repeated PaidFeature paidFeature = 2;
+}
+
+message ContactManagerMetadataAction {
+	optional bool isHidden = 1;
 }
 
 message CustomerDataAction {
@@ -1060,6 +1087,10 @@ message MuteAction {
 	optional int64 muteEndTimestamp = 2;
 	optional bool autoMuted = 3;
 	optional int64 muteEveryoneMentionEndTimestamp = 4;
+}
+
+message SharedDeviceAllowlistAction {
+	optional bool allowed = 1;
 }
 
 message ContactAction {

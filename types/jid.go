@@ -142,9 +142,10 @@ func NewADJID(user string, agent, device uint8) JID {
 	case HostedLIDDomain:
 		server = HostedLIDServer
 		agent = 0
-	default:
 	case WhatsAppDomain:
-		server = DefaultUserServer // will just default to the normal server
+		fallthrough
+	default:
+		server = DefaultUserServer
 	}
 	return JID{
 		User:     user,

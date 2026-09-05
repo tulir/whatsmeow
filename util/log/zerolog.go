@@ -24,10 +24,10 @@ func Zerolog(log zerolog.Logger) Logger {
 	return &zeroLogger{Logger: log}
 }
 
-func (z *zeroLogger) Warnf(msg string, args ...any)  { z.Warn().Msgf(msg, args...) }
-func (z *zeroLogger) Errorf(msg string, args ...any) { z.Error().Msgf(msg, args...) }
-func (z *zeroLogger) Infof(msg string, args ...any)  { z.Info().Msgf(msg, args...) }
-func (z *zeroLogger) Debugf(msg string, args ...any) { z.Debug().Msgf(msg, args...) }
+func (z *zeroLogger) Warnf(msg string, args ...any)  { z.Warn().Msgf(msg, args...) }  // zerolog-allow-msgf
+func (z *zeroLogger) Errorf(msg string, args ...any) { z.Error().Msgf(msg, args...) } // zerolog-allow-msgf
+func (z *zeroLogger) Infof(msg string, args ...any)  { z.Info().Msgf(msg, args...) }  // zerolog-allow-msgf
+func (z *zeroLogger) Debugf(msg string, args ...any) { z.Debug().Msgf(msg, args...) } // zerolog-allow-msgf
 func (z *zeroLogger) Sub(module string) Logger {
 	if z.mod != "" {
 		module = fmt.Sprintf("%s/%s", z.mod, module)

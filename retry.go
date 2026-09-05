@@ -454,7 +454,6 @@ func (cli *Client) immediateRequestMessageFromPhone(ctx context.Context, info *t
 	} else {
 		cli.Log.Debugf("Requested message %s from phone", info.ID)
 	}
-	return
 }
 
 func (cli *Client) clearDelayedMessageRequests() {

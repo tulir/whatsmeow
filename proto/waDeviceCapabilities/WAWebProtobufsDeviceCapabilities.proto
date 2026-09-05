@@ -25,8 +25,17 @@ message DeviceCapabilities {
 		optional SupportLevel supportLevel = 1;
 	}
 
+	message ContactRefresh {
+		optional bool refreshSupported = 1;
+	}
+
+	message BizAiSettingsSync {
+		optional bool handoffRemovalTimingEnabled = 1;
+	}
+
 	message AiFbidMigration {
 		optional uint64 chatDbMigrationTimestamp = 1;
+		optional uint32 supportVersion = 2;
 	}
 
 	message UserHasAvatar {
@@ -39,6 +48,7 @@ message DeviceCapabilities {
 		optional bool campaignSyncEnabled = 3;
 		optional bool insightsSyncEnabled = 4;
 		optional int32 recipientLimit = 5;
+		optional bool proCompanionSupportEnabled = 6;
 	}
 
 	message LIDMigration {
@@ -52,4 +62,6 @@ message DeviceCapabilities {
 	optional MemberNameTagPrimarySupport memberNameTagPrimarySupport = 5;
 	optional AiThread aiThread = 6;
 	optional AiFbidMigration aiFbidMigration = 7;
+	optional BizAiSettingsSync bizAiSettingsSync = 8;
+	optional ContactRefresh contactRefresh = 9;
 }

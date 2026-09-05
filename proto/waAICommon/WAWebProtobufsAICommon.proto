@@ -54,6 +54,7 @@ enum BotMetricsEntryPoint {
 	CHATLIST_SEARCH = 55;
 	NEW_CHAT_LIST = 56;
 	CONTACTS_TAB = 57;
+	NEW_3P_AGENT_CREATION = 58;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -129,12 +130,20 @@ message BotSignatureVerificationUseCaseProof {
 		WA_BOT_MSG = 1;
 		WA_TEE_BOT_MSG = 2;
 		P2P_PILLS = 3;
+		WA_WAFFLE = 4;
+		WA_FEATURE_PKI = 5;
+	}
+
+	message CertificateSKI {
+		optional BotSignatureUseCase useCase = 1;
+		optional bytes ski = 2;
 	}
 
 	optional int32 version = 1;
 	optional BotSignatureUseCase useCase = 2;
 	optional bytes signature = 3;
 	repeated bytes certificateChain = 4;
+	repeated CertificateSKI certificateChainSki = 5;
 }
 
 message BotPromotionMessageMetadata {
@@ -333,6 +342,7 @@ message BotCapabilityMetadata {
 		AI_RICH_RESPONSE_ARTIFACTS_ENABLED = 67;
 		AI_RICH_RESPONSE_EMAIL_CALENDAR_ENABLED = 68;
 		AI_RICH_RESPONSE_REMINDERS_ENABLED = 69;
+		AI_STOP_GENERATION_ENABLED = 70;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -584,6 +594,28 @@ message BotInfrastructureDiagnostics {
 	optional bool isThinking = 3;
 }
 
+message BizAIMetadataSync {
+	message ServerEvent {
+		enum ProtocolEvent {
+			UNSPECIFIED = 0;
+			AGENT_CHAT_READY = 1;
+		}
+
+		message AgentOnboardingStarted {
+			optional int64 composerBlockDurationSecs = 1;
+		}
+
+		oneof event {
+			ProtocolEvent protocolEvent = 1;
+			AgentOnboardingStarted agentOnboardingStarted = 2;
+		}
+	}
+
+	oneof operation {
+		ServerEvent serverEvent = 1;
+	}
+}
+
 message BotSuggestedPromptMetadata {
 	repeated string suggestedPrompts = 1;
 	optional uint32 selectedPromptIndex = 2;
@@ -722,6 +754,7 @@ message HatchMetadataSync {
 
 message AIMetadataOperation {
 	optional HatchMetadataSync hatchMetadataSync = 1;
+	optional BizAIMetadataSync bizAiMetadataSync = 2;
 }
 
 message BotCommandMetadata {
@@ -782,6 +815,7 @@ message BotMetadata {
 	optional AISubscriptionUpsellMetadata subscriptionUpsellMetadata = 41;
 	optional BotPttPromptMetadata pttPromptMetadata = 42;
 	optional BotHistoryShareMetadata botHistoryShareMetadata = 43;
+	optional bool responseStoppedByUser = 44;
 	optional bytes internalMetadata = 999;
 }
 
