@@ -126,6 +126,9 @@ type SendResponse struct {
 	// The identity the message was sent with (LID or PN)
 	// This is currently not reliable in all cases.
 	Sender types.JID
+
+	// The chat JID the message was actually sent to.
+	Chat types.JID
 }
 
 // SendRequestExtra contains the optional parameters for SendMessage.
@@ -370,6 +373,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	resp.Sender = ownID
+	resp.Chat = to
 
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely
