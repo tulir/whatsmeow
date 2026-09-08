@@ -111,6 +111,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 			source.IsFromMe = true
 		}
 		if from.Server == types.BroadcastServer {
+			source.SenderAlt = ag.OptionalJIDOrEmpty("participant_pn")
 			source.BroadcastListOwner = ag.OptionalJIDOrEmpty("recipient")
 			participants, ok := node.GetOptionalChildByTag("participants")
 			if ok && source.IsFromMe {
