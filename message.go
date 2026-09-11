@@ -58,6 +58,13 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 	if len(info.PushName) > 0 && info.PushName != "-" && (cli.MessengerConfig == nil || info.PushName != "username") {
 		go cli.updatePushName(ctx, info.Sender, info.SenderAlt, info, info.PushName)
 	}
+	if cli.SkipStatusBroadcasts && info.Chat == types.StatusBroadcastJID {
+		// Ack so the server stops resending, then drop it. Decrypting a status
+		// broadcast is the expensive path and this client does not want them.
+		cli.Log.Debugf("Skipping status broadcast %s from %s", info.ID, info.Sender)
+		cli.sendAck(ctx, node, 0)
+		return
+	}
 	if info.Sender.Server == types.NewsletterServer {
 		var cancelled bool
 		defer cli.maybeDeferredAck(ctx, node)(&cancelled)
