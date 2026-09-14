@@ -378,11 +378,9 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 					targetSenderJID = cli.getOwnID()
 				}
 			}
-			var decryptMessageID string
-			if info.MsgBotInfo.EditType == types.EditTypeInner || info.MsgBotInfo.EditType == types.EditTypeLast {
+			decryptMessageID := info.ID
+			if (info.MsgBotInfo.EditType == types.EditTypeInner || info.MsgBotInfo.EditType == types.EditTypeLast) && info.MsgBotInfo.EditTargetID != "" {
 				decryptMessageID = info.MsgBotInfo.EditTargetID
-			} else {
-				decryptMessageID = info.ID
 			}
 			var msMsg waE2E.MessageSecretMessage
 			var messageSecret []byte
@@ -394,6 +392,12 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 				err = fmt.Errorf("failed to unmarshal MessageSecretMessage protobuf: %v", err)
 			} else {
 				decrypted, err = cli.decryptBotMessage(ctx, messageSecret, &msMsg, decryptMessageID, targetSenderJID, info)
+				if err != nil && decryptMessageID != info.ID {
+					decrypted, err = cli.decryptBotMessage(ctx, messageSecret, &msMsg, info.ID, targetSenderJID, info)
+					if err == nil {
+						cli.Log.Debugf("Decrypted bot message %s using own ID instead of edit target ID %s", info.ID, decryptMessageID)
+					}
+				}
 			}
 		} else {
 			cli.Log.Warnf("Unhandled encrypted message (type %s) from %s", encType, info.SourceString())
