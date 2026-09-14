@@ -913,6 +913,18 @@ message PeerDataOperationRequestMessage {
 	optional BizBroadcastInsightsRefreshRequest bizBroadcastInsightsRefreshRequest = 12;
 }
 
+message SharedDeviceContactHashKey {
+	enum Kind {
+		UNKNOWN = 0;
+		LID = 1;
+		PHONE_NUMBER = 2;
+	}
+
+	optional uint32 epoch = 1;
+	optional Kind kind = 2;
+	optional bytes keyData = 3;
+}
+
 message RequestWelcomeMessageMetadata {
 	enum WelcomeTrigger {
 		CHAT_OPEN = 0;
@@ -964,6 +976,8 @@ message ProtocolMessage {
 		MARK_AS_VERIFIED_ACTION = 36;
 		COEX_STATE_SYNC = 37;
 		ACP2_SETTING = 39;
+		SHARED_DEVICE_CONTACT_HASH_KEY_SHARE = 40;
+		SHARED_DEVICE_CONTACT_HASH_KEY_REQUEST = 41;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -997,6 +1011,8 @@ message ProtocolMessage {
 	optional MarkAsVerifiedAction markAsVerifiedAction = 32;
 	optional WAWebProtobufsServerSync.CoexStateSync coexStateSync = 33;
 	optional WACommon.ACP2Setting acp2Setting = 35;
+	optional SharedDeviceContactHashKeyShare sharedDeviceContactHashKeyShare = 36;
+	optional SharedDeviceContactHashKeyRequest sharedDeviceContactHashKeyRequest = 37;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1448,6 +1464,7 @@ message ContextInfo {
 		optional int32 agmTitleStrategy = 30;
 		optional int32 agmSubtitleStrategy = 31;
 		optional int32 agmHeaderInteractionStrategy = 32;
+		optional bool containsCtwaFlowsAutoLabel = 33;
 	}
 
 	message AdReplyInfo {
@@ -1864,6 +1881,7 @@ message Message {
 	optional FutureProofMessage botPlatformRegistrationSuccessMessage = 131;
 	optional FutureProofMessage newsletterScheduledMessage = 132;
 	optional FutureProofMessage acp2SettingMessage = 133;
+	optional FutureProofMessage audioStickerMessage = 134;
 }
 
 message AlbumMessage {
@@ -2157,6 +2175,10 @@ message TemplateMessage {
 }
 
 message StickerMessage {
+	oneof audio {
+		AudioMessage audioMessage = 26;
+	}
+
 	optional string URL = 1;
 	optional bytes fileSHA256 = 2;
 	optional bytes fileEncSHA256 = 3;
@@ -2260,6 +2282,14 @@ message AppStateFatalExceptionNotification {
 	optional int64 timestamp = 2;
 }
 
+message SharedDeviceContactHashKeyRequest {
+	optional uint32 knownEpoch = 1;
+}
+
+message SharedDeviceContactHashKeyShare {
+	repeated SharedDeviceContactHashKey keys = 1;
+}
+
 message AppStateSyncKeyRequest {
 	repeated AppStateSyncKeyId keyIDs = 1;
 }
@@ -2311,6 +2341,11 @@ message HistorySyncMessageAccessStatus {
 	optional bool completeAccessGranted = 1;
 }
 
+message ChatAnimatedWallpaper {
+	optional string animatedWallpaperID = 1;
+	optional float dimLevel = 2;
+}
+
 message ChatStockImageWallpaper {
 	optional string stockImageID = 1;
 	optional float dimLevel = 2;
@@ -2340,6 +2375,7 @@ message ChatThemeSetting {
 		ChatSolidColorWallpaper solidColor = 11;
 		ChatStockImageWallpaper stockImage = 12;
 		ChatCustomImageWallpaper customImage = 13;
+		ChatAnimatedWallpaper animatedWallpaper = 14;
 	}
 
 	optional int64 settingTimestampMS = 1;

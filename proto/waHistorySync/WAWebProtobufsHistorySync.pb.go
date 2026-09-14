@@ -773,6 +773,7 @@ type Conversation struct {
 	AuthAgentParentCompanyName   *string                                `protobuf:"bytes,61,opt,name=authAgentParentCompanyName" json:"authAgentParentCompanyName,omitempty"`
 	AuthAgentObaPhoneNumber      *string                                `protobuf:"bytes,62,opt,name=authAgentObaPhoneNumber" json:"authAgentObaPhoneNumber,omitempty"`
 	IdentityVerification         *IdentityVerificationState             `protobuf:"bytes,63,opt,name=identityVerification" json:"identityVerification,omitempty"`
+	Acp2Setting                  *waCommon.ACP2Setting                  `protobuf:"bytes,64,opt,name=acp2Setting" json:"acp2Setting,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -1244,6 +1245,13 @@ func (x *Conversation) GetAuthAgentObaPhoneNumber() string {
 func (x *Conversation) GetIdentityVerification() *IdentityVerificationState {
 	if x != nil {
 		return x.IdentityVerification
+	}
+	return nil
+}
+
+func (x *Conversation) GetAcp2Setting() *waCommon.ACP2Setting {
+	if x != nil {
+		return x.Acp2Setting
 	}
 	return nil
 }
@@ -2420,7 +2428,7 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x06RECENT\x10\x03\x12\r\n" +
 	"\tPUSH_NAME\x10\x04\x12\x15\n" +
 	"\x11NON_BLOCKING_DATA\x10\x05\x12\r\n" +
-	"\tON_DEMAND\x10\x06\"\x9c\x1a\n" +
+	"\tON_DEMAND\x10\x06\"\xd5\x1a\n" +
 	"\fConversation\x12\x0e\n" +
 	"\x02ID\x18\x01 \x02(\tR\x02ID\x12E\n" +
 	"\bmessages\x18\x02 \x03(\v2).WAWebProtobufsHistorySync.HistorySyncMsgR\bmessages\x12\x16\n" +
@@ -2491,7 +2499,8 @@ const file_waHistorySync_WAWebProtobufsHistorySync_proto_rawDesc = "" +
 	"\x10appealUpdateTime\x18< \x01(\x04R\x10appealUpdateTime\x12>\n" +
 	"\x1aauthAgentParentCompanyName\x18= \x01(\tR\x1aauthAgentParentCompanyName\x128\n" +
 	"\x17authAgentObaPhoneNumber\x18> \x01(\tR\x17authAgentObaPhoneNumber\x12h\n" +
-	"\x14identityVerification\x18? \x01(\v24.WAWebProtobufsHistorySync.IdentityVerificationStateR\x14identityVerification\"b\n" +
+	"\x14identityVerification\x18? \x01(\v24.WAWebProtobufsHistorySync.IdentityVerificationStateR\x14identityVerification\x127\n" +
+	"\vacp2Setting\x18@ \x01(\v2\x15.WACommon.ACP2SettingR\vacp2Setting\"b\n" +
 	"\x11GroupAppealStatus\x12\r\n" +
 	"\tNO_APPEAL\x10\x00\x12\x14\n" +
 	"\x10APPEAL_IN_REVIEW\x10\x01\x12\x13\n" +
@@ -2663,8 +2672,9 @@ var file_waHistorySync_WAWebProtobufsHistorySync_proto_goTypes = []any{
 	(*waSyncAction.CallLogRecord)(nil),          // 26: WAWebProtobufSyncAction.CallLogRecord
 	(*waE2E.DisappearingMode)(nil),              // 27: WAWebProtobufsE2E.DisappearingMode
 	(waCommon.LimitSharing_Trigger)(0),          // 28: WACommon.LimitSharing.Trigger
-	(*waE2E.MemberLabel)(nil),                   // 29: WAWebProtobufsE2E.MemberLabel
-	(*waChatLockSettings.ChatLockSettings)(nil), // 30: WAWebProtobufsChatLockSettings.ChatLockSettings
+	(*waCommon.ACP2Setting)(nil),                // 29: WACommon.ACP2Setting
+	(*waE2E.MemberLabel)(nil),                   // 30: WAWebProtobufsE2E.MemberLabel
+	(*waChatLockSettings.ChatLockSettings)(nil), // 31: WAWebProtobufsChatLockSettings.ChatLockSettings
 }
 var file_waHistorySync_WAWebProtobufsHistorySync_proto_depIdxs = []int32{
 	3,  // 0: WAWebProtobufsHistorySync.HistorySync.syncType:type_name -> WAWebProtobufsHistorySync.HistorySync.HistorySyncType
@@ -2689,26 +2699,27 @@ var file_waHistorySync_WAWebProtobufsHistorySync_proto_depIdxs = []int32{
 	28, // 19: WAWebProtobufsHistorySync.Conversation.limitSharingTrigger:type_name -> WACommon.LimitSharing.Trigger
 	4,  // 20: WAWebProtobufsHistorySync.Conversation.appealStatus:type_name -> WAWebProtobufsHistorySync.Conversation.GroupAppealStatus
 	12, // 21: WAWebProtobufsHistorySync.Conversation.identityVerification:type_name -> WAWebProtobufsHistorySync.IdentityVerificationState
-	6,  // 22: WAWebProtobufsHistorySync.GroupParticipant.rank:type_name -> WAWebProtobufsHistorySync.GroupParticipant.Rank
-	29, // 23: WAWebProtobufsHistorySync.GroupParticipant.memberLabel:type_name -> WAWebProtobufsE2E.MemberLabel
-	7,  // 24: WAWebProtobufsHistorySync.PastParticipant.leaveReason:type_name -> WAWebProtobufsHistorySync.PastParticipant.LeaveReason
-	25, // 25: WAWebProtobufsHistorySync.HistorySyncMsg.message:type_name -> WAWebProtobufsWeb.WebMessageInfo
-	18, // 26: WAWebProtobufsHistorySync.GlobalSettings.lightThemeWallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
-	0,  // 27: WAWebProtobufsHistorySync.GlobalSettings.mediaVisibility:type_name -> WAWebProtobufsHistorySync.MediaVisibility
-	18, // 28: WAWebProtobufsHistorySync.GlobalSettings.darkThemeWallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
-	20, // 29: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadWiFi:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
-	20, // 30: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadCellular:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
-	20, // 31: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadRoaming:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
-	23, // 32: WAWebProtobufsHistorySync.GlobalSettings.avatarUserSettings:type_name -> WAWebProtobufsHistorySync.AvatarUserSettings
-	24, // 33: WAWebProtobufsHistorySync.GlobalSettings.individualNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
-	24, // 34: WAWebProtobufsHistorySync.GlobalSettings.groupNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
-	30, // 35: WAWebProtobufsHistorySync.GlobalSettings.chatLockSettings:type_name -> WAWebProtobufsChatLockSettings.ChatLockSettings
-	11, // 36: WAWebProtobufsHistorySync.PastParticipants.pastParticipants:type_name -> WAWebProtobufsHistorySync.PastParticipant
-	37, // [37:37] is the sub-list for method output_type
-	37, // [37:37] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	29, // 22: WAWebProtobufsHistorySync.Conversation.acp2Setting:type_name -> WACommon.ACP2Setting
+	6,  // 23: WAWebProtobufsHistorySync.GroupParticipant.rank:type_name -> WAWebProtobufsHistorySync.GroupParticipant.Rank
+	30, // 24: WAWebProtobufsHistorySync.GroupParticipant.memberLabel:type_name -> WAWebProtobufsE2E.MemberLabel
+	7,  // 25: WAWebProtobufsHistorySync.PastParticipant.leaveReason:type_name -> WAWebProtobufsHistorySync.PastParticipant.LeaveReason
+	25, // 26: WAWebProtobufsHistorySync.HistorySyncMsg.message:type_name -> WAWebProtobufsWeb.WebMessageInfo
+	18, // 27: WAWebProtobufsHistorySync.GlobalSettings.lightThemeWallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
+	0,  // 28: WAWebProtobufsHistorySync.GlobalSettings.mediaVisibility:type_name -> WAWebProtobufsHistorySync.MediaVisibility
+	18, // 29: WAWebProtobufsHistorySync.GlobalSettings.darkThemeWallpaper:type_name -> WAWebProtobufsHistorySync.WallpaperSettings
+	20, // 30: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadWiFi:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
+	20, // 31: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadCellular:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
+	20, // 32: WAWebProtobufsHistorySync.GlobalSettings.autoDownloadRoaming:type_name -> WAWebProtobufsHistorySync.AutoDownloadSettings
+	23, // 33: WAWebProtobufsHistorySync.GlobalSettings.avatarUserSettings:type_name -> WAWebProtobufsHistorySync.AvatarUserSettings
+	24, // 34: WAWebProtobufsHistorySync.GlobalSettings.individualNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
+	24, // 35: WAWebProtobufsHistorySync.GlobalSettings.groupNotificationSettings:type_name -> WAWebProtobufsHistorySync.NotificationSettings
+	31, // 36: WAWebProtobufsHistorySync.GlobalSettings.chatLockSettings:type_name -> WAWebProtobufsChatLockSettings.ChatLockSettings
+	11, // 37: WAWebProtobufsHistorySync.PastParticipants.pastParticipants:type_name -> WAWebProtobufsHistorySync.PastParticipant
+	38, // [38:38] is the sub-list for method output_type
+	38, // [38:38] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_waHistorySync_WAWebProtobufsHistorySync_proto_init() }
