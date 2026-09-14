@@ -194,11 +194,12 @@ func (cli *Client) parseMsgBotInfo(node waBinary.Node) (botInfo types.MsgBotInfo
 	botNode := node.GetChildByTag("bot")
 
 	ag := botNode.AttrGetter()
-	botInfo.EditType = types.BotEditType(ag.String("edit"))
-	if botInfo.EditType == types.EditTypeInner || botInfo.EditType == types.EditTypeLast {
-		botInfo.EditTargetID = types.MessageID(ag.String("edit_target_id"))
+	botInfo.EditType = types.BotEditType(ag.OptionalString("edit"))
+	if botInfo.EditType == types.EditTypeInner || botInfo.EditType == types.EditTypeLast || botInfo.EditType == types.EditTypeFull {
+		botInfo.EditTargetID = types.MessageID(ag.OptionalString("edit_target_id"))
 		botInfo.EditSenderTimestampMS = ag.UnixMilli("sender_timestamp_ms")
 	}
+	botInfo.ClientThreadID = ag.OptionalString("client_thread_id")
 	err = ag.Error()
 	return
 }
