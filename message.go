@@ -102,9 +102,8 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 		} else {
 			source.Sender = ag.OptionalJIDOrEmpty("participant")
 		}
-		if source.AddressingMode == types.AddressingModeLID {
-			source.SenderAlt = ag.OptionalJIDOrEmpty("participant_pn")
-		} else {
+		source.SenderAlt = ag.OptionalJIDOrEmpty("participant_pn")
+		if source.SenderAlt.IsEmpty() && source.AddressingMode != types.AddressingModeLID {
 			source.SenderAlt = ag.OptionalJIDOrEmpty("participant_lid")
 		}
 		if source.Sender.User == clientID.User || source.Sender.User == clientLID.User {
