@@ -115,6 +115,7 @@ type Client struct {
 	mediaConnLock  sync.Mutex
 
 	responseWaiters     map[string]chan<- *waBinary.Node
+	ackResponseWaiters  map[ackResponseKey]chan *waBinary.Node
 	responseWaitersLock sync.Mutex
 
 	nodeHandlers      map[string]nodeHandler
