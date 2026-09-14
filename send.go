@@ -247,6 +247,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	if isBotMode {
+		// TODO Muse/Hatch messages need to be wrapped
+		//      They probably also don't have the same persona ID as Meta AI
+
 		if message.MessageContextInfo.BotMetadata == nil {
 			message.MessageContextInfo.BotMetadata = &waAICommon.BotMetadata{
 				PersonaID: proto.String("867051314767696$760019659443059"),

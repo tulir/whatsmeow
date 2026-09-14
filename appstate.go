@@ -21,6 +21,7 @@ import (
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/proto/waServerSync"
+	"go.mau.fi/whatsmeow/proto/waSyncAction"
 	"go.mau.fi/whatsmeow/store"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/types/events"
@@ -417,6 +418,21 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 			Action:       act,
 			FromFullSync: fullSync,
 		}
+	case appstate.IndexWasaRootSecretAction:
+		if len(mutation.Index) < 2 {
+			return
+		}
+		botJID, _ := types.ParseJID(mutation.Index[1])
+		ownLID := cli.getOwnLID()
+		inputSecrets := mutation.Action.GetWasaRootSecretAction().GetSecrets()
+		storeUpdateError = cli.Store.MsgSecrets.PutMessageSecrets(ctx, exslices.CastFunc(inputSecrets, func(secret *waSyncAction.WASARootSecretAction_RootSecretEntry) store.MessageSecretInsert {
+			return store.MessageSecretInsert{
+				Chat:   botJID,
+				Sender: ownLID,
+				ID:     secret.GetID(),
+				Secret: secret.GetRootSecret(),
+			}
+		}))
 	}
 	if storeUpdateError != nil {
 		cli.Log.Errorf("Failed to update device store after app state mutation: %v", storeUpdateError)
