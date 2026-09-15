@@ -150,6 +150,7 @@ func (qrc *qrChannel) handleEvent(rawEvt any) {
 		default:
 			qrc.log.Warnf("Rotate ADV channel didn't accept event")
 		}
+		return
 	case *events.QRScannedWithoutMultidevice:
 		qrc.log.Debugf("QR code scanned without multidevice enabled")
 		qrc.output <- QRChannelScannedWithoutMultidevice
