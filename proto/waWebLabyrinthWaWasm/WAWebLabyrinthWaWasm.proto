@@ -40,6 +40,19 @@ message DeriveMessageKeyInput {
 	required string threadID = 3;
 }
 
+message DeriveVirtualDeviceIdInput {
+	required string recoveryCode = 1;
+	required uint64 userID = 2;
+}
+
+message PrepareAddDeviceInput {
+	required string recoveryCode = 1;
+	required uint64 userID = 2;
+	required string encryptedSecretValuesJSON = 3;
+	required uint64 virtualDeviceBaseEpochID = 4;
+	required uint64 activeEpochID = 5;
+}
+
 message DeviceOutput {
 	required bytes publicKey = 1;
 	required bytes epochAuthPublicKey = 2;
@@ -116,6 +129,40 @@ message DeriveMessageKeyOutput {
 	optional string error = 2;
 }
 
+message DeriveVirtualDeviceIdOutput {
+	optional bytes virtualDeviceID = 1;
+	optional string error = 2;
+}
+
+message AddDeviceKeysOutput {
+	required bytes devicePublicKey = 1;
+	required bytes epochAuthPublicKey = 2;
+	required bytes epochAuthPublicKeySig = 3;
+	required bytes epochStoragePublicKey = 4;
+	required bytes epochStoragePublicKeySig = 5;
+	required bytes epochStoragePrivateKey = 6;
+	required bytes orfClientState = 7;
+}
+
+message AddDeviceEpochOutput {
+	required uint64 serverEpochID = 1;
+	required bytes epochAnonID = 2;
+	required bytes epochRootKey = 3;
+}
+
+message PrepareAddDeviceOutput {
+	optional AddDeviceKeysOutput deviceKeys = 1;
+	optional AddDeviceEpochOutput currentEpoch = 2;
+	optional bytes mailboxRootSalt = 3;
+	optional bytes orfRotationToken = 4;
+	optional bytes deviceEpochHmac = 5;
+	optional bytes epochRootKeyFingerprint = 6;
+	repeated int32 supportedEncryptionVersions = 7;
+	optional bytes encryptionVersionSignature = 8;
+	optional int32 clientVersion = 9;
+	optional string error = 10;
+}
+
 message RotateEpochMemberInput {
 	required uint64 deviceID = 1;
 	required bytes epochStoragePublicKey = 2;
@@ -161,5 +208,7 @@ message LabyrinthWaCommand {
 		OrfThreadIdInput orfThreadIDInput = 4;
 		DeriveMessageKeyInput deriveMessageKeyInput = 5;
 		RotateEpochInput rotateEpochInput = 6;
+		DeriveVirtualDeviceIdInput deriveVirtualDeviceIDInput = 7;
+		PrepareAddDeviceInput prepareAddDeviceInput = 8;
 	}
 }

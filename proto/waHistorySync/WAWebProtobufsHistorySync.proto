@@ -136,6 +136,7 @@ message Conversation {
 	optional string authAgentParentCompanyName = 61;
 	optional string authAgentObaPhoneNumber = 62;
 	optional IdentityVerificationState identityVerification = 63;
+	optional WACommon.ACP2Setting acp2Setting = 64;
 }
 
 message GroupParticipant {

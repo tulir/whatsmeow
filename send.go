@@ -126,6 +126,9 @@ type SendResponse struct {
 	// The identity the message was sent with (LID or PN)
 	// This is currently not reliable in all cases.
 	Sender types.JID
+
+	// The chat JID the message was actually sent to.
+	Chat types.JID
 }
 
 // SendRequestExtra contains the optional parameters for SendMessage.
@@ -244,6 +247,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	if isBotMode {
+		// TODO Muse/Hatch messages need to be wrapped
+		//      They probably also don't have the same persona ID as Meta AI
+
 		if message.MessageContextInfo.BotMetadata == nil {
 			message.MessageContextInfo.BotMetadata = &waAICommon.BotMetadata{
 				PersonaID: proto.String("867051314767696$760019659443059"),
@@ -370,6 +376,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	resp.Sender = ownID
+	resp.Chat = to
 
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely

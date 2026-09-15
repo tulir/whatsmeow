@@ -111,6 +111,19 @@ enum MutationProps {
 	AI_THREAD_DELETE_ACTION = 10003;
 }
 
+enum BusinessBroadcastCampaignBBProStatus {
+	BB_PRO_ACTIVE = 1;
+	BB_PRO_COMPLETED = 2;
+	BB_PRO_IN_DRAFT = 3;
+	BB_PRO_IN_REVIEW = 4;
+	BB_PRO_NOT_SENDING = 5;
+	BB_PRO_OFF = 6;
+	BB_PRO_REJECTED = 7;
+	BB_PRO_SCHEDULED = 8;
+	BB_PRO_SENDING_LIMITED = 9;
+	BB_PRO_PROCESSING = 10;
+}
+
 enum BusinessBroadcastCampaignStatus {
 	DRAFT = 1;
 	SCHEDULED = 2;
@@ -467,6 +480,7 @@ message LabelEditAction {
 		THIRD_PARTY = 15;
 		LEAD = 16;
 		MENTIONS_AND_REPLIES = 17;
+		REQUESTS = 18;
 	}
 
 	optional string name = 1;
@@ -813,6 +827,8 @@ message BusinessBroadcastCampaignAction {
 	optional int64 scheduledTimestamp = 7;
 	optional int64 createTimestamp = 8;
 	optional BusinessBroadcastCampaignStatus status = 9;
+	optional BusinessBroadcastCampaignBBProStatus bbProStatus = 10;
+	optional string customAudienceFbid = 11;
 }
 
 message BusinessBroadcastListAction {

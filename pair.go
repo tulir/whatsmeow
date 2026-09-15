@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"go.mau.fi/libsignal/ecc"
+	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -78,6 +79,15 @@ func (cli *Client) handlePairDevice(ctx context.Context, node *waBinary.Node) {
 	}
 
 	cli.dispatchEvent(evt)
+}
+
+func (cli *Client) rotateADVSecret(ctx context.Context) {
+	oldSecret := cli.Store.AdvSecretKey
+	cli.Store.AdvSecretKey = random.Bytes(32)
+	cli.dispatchEvent(&events.RotateADVSecret{
+		OldSecret: base64.StdEncoding.EncodeToString(oldSecret),
+		NewSecret: base64.StdEncoding.EncodeToString(cli.Store.AdvSecretKey),
+	})
 }
 
 func (cli *Client) getQRClientType() PairClientType {

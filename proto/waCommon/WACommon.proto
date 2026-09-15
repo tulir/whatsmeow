@@ -65,3 +65,10 @@ message LimitSharing {
 	optional int64 limitSharingSettingTimestamp = 3;
 	optional bool initiatedByMe = 4;
 }
+
+message ACP2Setting {
+	optional bool enabled = 1;
+	optional LimitSharing.Trigger trigger = 2;
+	optional int64 settingTimestamp = 3;
+	optional bool initiatedByMe = 4;
+}

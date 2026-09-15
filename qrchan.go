@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -63,6 +64,7 @@ type qrChannel struct {
 	closed    atomic.Bool
 	output    chan<- QRChannelItem
 	stopQRs   chan struct{}
+	rotateAdv chan *events.RotateADVSecret
 }
 
 func (qrc *qrChannel) close() bool {
@@ -112,6 +114,14 @@ func (qrc *qrChannel) emitQRs(codes []string) {
 		case <-qrc.cli.expectedDisconnect.GetChan():
 			qrc.log.Debugf("Client is expected to disconnect, stopping QR emitter")
 			return
+		case rot := <-qrc.rotateAdv:
+			qrc.log.Debugf("Rotating ADV secrets in remaining QR codes")
+			newCodes := make([]string, len(codes)+1)
+			newCodes[0] = strings.Replace(nextCode, rot.OldSecret, rot.NewSecret, 1)
+			for i, code := range codes {
+				newCodes[i+1] = strings.Replace(code, rot.OldSecret, rot.NewSecret, 1)
+			}
+			codes = newCodes
 		case <-qrc.ctx.Done():
 			qrc.log.Debugf("Context is done, stopping QR emitter")
 			if qrc.close() {
@@ -133,6 +143,13 @@ func (qrc *qrChannel) handleEvent(rawEvt any) {
 	case *events.QR:
 		qrc.log.Debugf("Received QR code event, starting to emit codes to channel")
 		go qrc.emitQRs(slices.Clone(evt.Codes))
+		return
+	case *events.RotateADVSecret:
+		select {
+		case qrc.rotateAdv <- evt:
+		default:
+			qrc.log.Warnf("Rotate ADV channel didn't accept event")
+		}
 		return
 	case *events.QRScannedWithoutMultidevice:
 		qrc.log.Debugf("QR code scanned without multidevice enabled")
@@ -211,11 +228,12 @@ func (cli *Client) GetQRChannel(ctx context.Context) (<-chan QRChannelItem, erro
 	}
 	ch := make(chan QRChannelItem, 8)
 	qrc := qrChannel{
-		output:  ch,
-		stopQRs: make(chan struct{}),
-		cli:     cli,
-		log:     cli.Log.Sub("QRChannel"),
-		ctx:     ctx,
+		output:    ch,
+		stopQRs:   make(chan struct{}),
+		rotateAdv: make(chan *events.RotateADVSecret, 4),
+		cli:       cli,
+		log:       cli.Log.Sub("QRChannel"),
+		ctx:       ctx,
 	}
 	qrc.handlerID = cli.AddEventHandler(qrc.handleEvent)
 	return ch, nil

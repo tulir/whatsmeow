@@ -1156,18 +1156,7 @@ func (cli *Client) SetGroupMemberAddMode(ctx context.Context, jid types.JID, mod
 	return err
 }
 
-// SetGroupDescription updates the group description.
+// Deprecated: duplicate of SetGroupTopic
 func (cli *Client) SetGroupDescription(ctx context.Context, jid types.JID, description string) error {
-	content := waBinary.Node{
-		Tag: "description",
-		Content: []waBinary.Node{
-			{
-				Tag:     "body",
-				Content: []byte(description),
-			},
-		},
-	}
-
-	_, err := cli.sendGroupIQ(ctx, iqSet, jid, content)
-	return err
+	return cli.SetGroupTopic(ctx, jid, "", "", description)
 }

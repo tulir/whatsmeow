@@ -423,6 +423,86 @@ func (MutationProps) EnumDescriptor() ([]byte, []int) {
 	return file_waSyncAction_WAWebProtobufSyncAction_proto_rawDescGZIP(), []int{1}
 }
 
+type BusinessBroadcastCampaignBBProStatus int32
+
+const (
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_ACTIVE          BusinessBroadcastCampaignBBProStatus = 1
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_COMPLETED       BusinessBroadcastCampaignBBProStatus = 2
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_IN_DRAFT        BusinessBroadcastCampaignBBProStatus = 3
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_IN_REVIEW       BusinessBroadcastCampaignBBProStatus = 4
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_NOT_SENDING     BusinessBroadcastCampaignBBProStatus = 5
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_OFF             BusinessBroadcastCampaignBBProStatus = 6
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_REJECTED        BusinessBroadcastCampaignBBProStatus = 7
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_SCHEDULED       BusinessBroadcastCampaignBBProStatus = 8
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_SENDING_LIMITED BusinessBroadcastCampaignBBProStatus = 9
+	BusinessBroadcastCampaignBBProStatus_BB_PRO_PROCESSING      BusinessBroadcastCampaignBBProStatus = 10
+)
+
+// Enum value maps for BusinessBroadcastCampaignBBProStatus.
+var (
+	BusinessBroadcastCampaignBBProStatus_name = map[int32]string{
+		1:  "BB_PRO_ACTIVE",
+		2:  "BB_PRO_COMPLETED",
+		3:  "BB_PRO_IN_DRAFT",
+		4:  "BB_PRO_IN_REVIEW",
+		5:  "BB_PRO_NOT_SENDING",
+		6:  "BB_PRO_OFF",
+		7:  "BB_PRO_REJECTED",
+		8:  "BB_PRO_SCHEDULED",
+		9:  "BB_PRO_SENDING_LIMITED",
+		10: "BB_PRO_PROCESSING",
+	}
+	BusinessBroadcastCampaignBBProStatus_value = map[string]int32{
+		"BB_PRO_ACTIVE":          1,
+		"BB_PRO_COMPLETED":       2,
+		"BB_PRO_IN_DRAFT":        3,
+		"BB_PRO_IN_REVIEW":       4,
+		"BB_PRO_NOT_SENDING":     5,
+		"BB_PRO_OFF":             6,
+		"BB_PRO_REJECTED":        7,
+		"BB_PRO_SCHEDULED":       8,
+		"BB_PRO_SENDING_LIMITED": 9,
+		"BB_PRO_PROCESSING":      10,
+	}
+)
+
+func (x BusinessBroadcastCampaignBBProStatus) Enum() *BusinessBroadcastCampaignBBProStatus {
+	p := new(BusinessBroadcastCampaignBBProStatus)
+	*p = x
+	return p
+}
+
+func (x BusinessBroadcastCampaignBBProStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (BusinessBroadcastCampaignBBProStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[2].Descriptor()
+}
+
+func (BusinessBroadcastCampaignBBProStatus) Type() protoreflect.EnumType {
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[2]
+}
+
+func (x BusinessBroadcastCampaignBBProStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Do not use.
+func (x *BusinessBroadcastCampaignBBProStatus) UnmarshalJSON(b []byte) error {
+	num, err := protoimpl.X.UnmarshalJSONEnum(x.Descriptor(), b)
+	if err != nil {
+		return err
+	}
+	*x = BusinessBroadcastCampaignBBProStatus(num)
+	return nil
+}
+
+// Deprecated: Use BusinessBroadcastCampaignBBProStatus.Descriptor instead.
+func (BusinessBroadcastCampaignBBProStatus) EnumDescriptor() ([]byte, []int) {
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_rawDescGZIP(), []int{2}
+}
+
 type BusinessBroadcastCampaignStatus int32
 
 const (
@@ -462,11 +542,11 @@ func (x BusinessBroadcastCampaignStatus) String() string {
 }
 
 func (BusinessBroadcastCampaignStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[2].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[3].Descriptor()
 }
 
 func (BusinessBroadcastCampaignStatus) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[2]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[3]
 }
 
 func (x BusinessBroadcastCampaignStatus) Number() protoreflect.EnumNumber {
@@ -485,7 +565,7 @@ func (x *BusinessBroadcastCampaignStatus) UnmarshalJSON(b []byte) error {
 
 // Deprecated: Use BusinessBroadcastCampaignStatus.Descriptor instead.
 func (BusinessBroadcastCampaignStatus) EnumDescriptor() ([]byte, []int) {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_rawDescGZIP(), []int{2}
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_rawDescGZIP(), []int{3}
 }
 
 type CallLogRecord_CallType int32
@@ -521,11 +601,11 @@ func (x CallLogRecord_CallType) String() string {
 }
 
 func (CallLogRecord_CallType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[3].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[4].Descriptor()
 }
 
 func (CallLogRecord_CallType) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[3]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[4]
 }
 
 func (x CallLogRecord_CallType) Number() protoreflect.EnumNumber {
@@ -583,11 +663,11 @@ func (x CallLogRecord_SilenceReason) String() string {
 }
 
 func (CallLogRecord_SilenceReason) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[4].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[5].Descriptor()
 }
 
 func (CallLogRecord_SilenceReason) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[4]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[5]
 }
 
 func (x CallLogRecord_SilenceReason) Number() protoreflect.EnumNumber {
@@ -666,11 +746,11 @@ func (x CallLogRecord_CallResult) String() string {
 }
 
 func (CallLogRecord_CallResult) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[5].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[6].Descriptor()
 }
 
 func (CallLogRecord_CallResult) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[5]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[6]
 }
 
 func (x CallLogRecord_CallResult) Number() protoreflect.EnumNumber {
@@ -722,11 +802,11 @@ func (x WASARootSecretAction_RootSecretEntry_Status) String() string {
 }
 
 func (WASARootSecretAction_RootSecretEntry_Status) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[6].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[7].Descriptor()
 }
 
 func (WASARootSecretAction_RootSecretEntry_Status) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[6]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[7]
 }
 
 func (x WASARootSecretAction_RootSecretEntry_Status) Number() protoreflect.EnumNumber {
@@ -781,11 +861,11 @@ func (x SettingsSyncAction_MediaQualitySetting) String() string {
 }
 
 func (SettingsSyncAction_MediaQualitySetting) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[7].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[8].Descriptor()
 }
 
 func (SettingsSyncAction_MediaQualitySetting) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[7]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[8]
 }
 
 func (x SettingsSyncAction_MediaQualitySetting) Number() protoreflect.EnumNumber {
@@ -843,11 +923,11 @@ func (x SettingsSyncAction_DisplayMode) String() string {
 }
 
 func (SettingsSyncAction_DisplayMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[8].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[9].Descriptor()
 }
 
 func (SettingsSyncAction_DisplayMode) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[8]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[9]
 }
 
 func (x SettingsSyncAction_DisplayMode) Number() protoreflect.EnumNumber {
@@ -998,11 +1078,11 @@ func (x SettingsSyncAction_SettingKey) String() string {
 }
 
 func (SettingsSyncAction_SettingKey) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[9].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[10].Descriptor()
 }
 
 func (SettingsSyncAction_SettingKey) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[9]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[10]
 }
 
 func (x SettingsSyncAction_SettingKey) Number() protoreflect.EnumNumber {
@@ -1063,11 +1143,11 @@ func (x SettingsSyncAction_SettingPlatform) String() string {
 }
 
 func (SettingsSyncAction_SettingPlatform) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[10].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[11].Descriptor()
 }
 
 func (SettingsSyncAction_SettingPlatform) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[10]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[11]
 }
 
 func (x SettingsSyncAction_SettingPlatform) Number() protoreflect.EnumNumber {
@@ -1116,11 +1196,11 @@ func (x InteractiveMessageAction_InteractiveMessageActionMode) String() string {
 }
 
 func (InteractiveMessageAction_InteractiveMessageActionMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[11].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[12].Descriptor()
 }
 
 func (InteractiveMessageAction_InteractiveMessageActionMode) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[11]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[12]
 }
 
 func (x InteractiveMessageAction_InteractiveMessageActionMode) Number() protoreflect.EnumNumber {
@@ -1175,11 +1255,11 @@ func (x PrivateProcessingSettingAction_PrivateProcessingStatus) String() string 
 }
 
 func (PrivateProcessingSettingAction_PrivateProcessingStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[12].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[13].Descriptor()
 }
 
 func (PrivateProcessingSettingAction_PrivateProcessingStatus) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[12]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[13]
 }
 
 func (x PrivateProcessingSettingAction_PrivateProcessingStatus) Number() protoreflect.EnumNumber {
@@ -1234,11 +1314,11 @@ func (x AvatarUpdatedAction_AvatarEventType) String() string {
 }
 
 func (AvatarUpdatedAction_AvatarEventType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[13].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[14].Descriptor()
 }
 
 func (AvatarUpdatedAction_AvatarEventType) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[13]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[14]
 }
 
 func (x AvatarUpdatedAction_AvatarEventType) Number() protoreflect.EnumNumber {
@@ -1305,11 +1385,11 @@ func (x BizAISettingsNudgeAction_BizAISettingsCategory) String() string {
 }
 
 func (BizAISettingsNudgeAction_BizAISettingsCategory) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[14].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[15].Descriptor()
 }
 
 func (BizAISettingsNudgeAction_BizAISettingsCategory) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[14]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[15]
 }
 
 func (x BizAISettingsNudgeAction_BizAISettingsCategory) Number() protoreflect.EnumNumber {
@@ -1364,11 +1444,11 @@ func (x MaibaAIFeaturesControlAction_MaibaAIReplyMode) String() string {
 }
 
 func (MaibaAIFeaturesControlAction_MaibaAIReplyMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[15].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[16].Descriptor()
 }
 
 func (MaibaAIFeaturesControlAction_MaibaAIReplyMode) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[15]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[16]
 }
 
 func (x MaibaAIFeaturesControlAction_MaibaAIReplyMode) Number() protoreflect.EnumNumber {
@@ -1423,11 +1503,11 @@ func (x MaibaAIFeaturesControlAction_MaibaAIFeatureStatus) String() string {
 }
 
 func (MaibaAIFeaturesControlAction_MaibaAIFeatureStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[16].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[17].Descriptor()
 }
 
 func (MaibaAIFeaturesControlAction_MaibaAIFeatureStatus) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[16]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[17]
 }
 
 func (x MaibaAIFeaturesControlAction_MaibaAIFeatureStatus) Number() protoreflect.EnumNumber {
@@ -1476,11 +1556,11 @@ func (x PaymentTosAction_PaymentNotice) String() string {
 }
 
 func (PaymentTosAction_PaymentNotice) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[17].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[18].Descriptor()
 }
 
 func (PaymentTosAction_PaymentNotice) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[17]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[18]
 }
 
 func (x PaymentTosAction_PaymentNotice) Number() protoreflect.EnumNumber {
@@ -1538,11 +1618,11 @@ func (x NotificationActivitySettingAction_NotificationActivitySetting) String() 
 }
 
 func (NotificationActivitySettingAction_NotificationActivitySetting) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[18].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[19].Descriptor()
 }
 
 func (NotificationActivitySettingAction_NotificationActivitySetting) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[18]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[19]
 }
 
 func (x NotificationActivitySettingAction_NotificationActivitySetting) Number() protoreflect.EnumNumber {
@@ -1597,11 +1677,11 @@ func (x WaffleAccountLinkStateAction_AccountLinkState) String() string {
 }
 
 func (WaffleAccountLinkStateAction_AccountLinkState) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[19].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[20].Descriptor()
 }
 
 func (WaffleAccountLinkStateAction_AccountLinkState) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[19]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[20]
 }
 
 func (x WaffleAccountLinkStateAction_AccountLinkState) Number() protoreflect.EnumNumber {
@@ -1653,11 +1733,11 @@ func (x MerchantPaymentPartnerAction_Status) String() string {
 }
 
 func (MerchantPaymentPartnerAction_Status) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[20].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[21].Descriptor()
 }
 
 func (MerchantPaymentPartnerAction_Status) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[20]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[21]
 }
 
 func (x MerchantPaymentPartnerAction_Status) Number() protoreflect.EnumNumber {
@@ -1709,11 +1789,11 @@ func (x NoteEditAction_NoteType) String() string {
 }
 
 func (NoteEditAction_NoteType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[21].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[22].Descriptor()
 }
 
 func (NoteEditAction_NoteType) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[21]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[22]
 }
 
 func (x NoteEditAction_NoteType) Number() protoreflect.EnumNumber {
@@ -1774,11 +1854,11 @@ func (x StatusPrivacyAction_StatusDistributionMode) String() string {
 }
 
 func (StatusPrivacyAction_StatusDistributionMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[22].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[23].Descriptor()
 }
 
 func (StatusPrivacyAction_StatusDistributionMode) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[22]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[23]
 }
 
 func (x StatusPrivacyAction_StatusDistributionMode) Number() protoreflect.EnumNumber {
@@ -1827,11 +1907,11 @@ func (x MarketingMessageAction_MarketingMessagePrototypeType) String() string {
 }
 
 func (MarketingMessageAction_MarketingMessagePrototypeType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[23].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[24].Descriptor()
 }
 
 func (MarketingMessageAction_MarketingMessagePrototypeType) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[23]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[24]
 }
 
 func (x MarketingMessageAction_MarketingMessagePrototypeType) Number() protoreflect.EnumNumber {
@@ -1883,11 +1963,11 @@ func (x UsernameChatStartModeAction_ChatStartMode) String() string {
 }
 
 func (UsernameChatStartModeAction_ChatStartMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[24].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[25].Descriptor()
 }
 
 func (UsernameChatStartModeAction_ChatStartMode) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[24]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[25]
 }
 
 func (x UsernameChatStartModeAction_ChatStartMode) Number() protoreflect.EnumNumber {
@@ -1930,6 +2010,7 @@ const (
 	LabelEditAction_THIRD_PARTY          LabelEditAction_ListType = 15
 	LabelEditAction_LEAD                 LabelEditAction_ListType = 16
 	LabelEditAction_MENTIONS_AND_REPLIES LabelEditAction_ListType = 17
+	LabelEditAction_REQUESTS             LabelEditAction_ListType = 18
 )
 
 // Enum value maps for LabelEditAction_ListType.
@@ -1953,6 +2034,7 @@ var (
 		15: "THIRD_PARTY",
 		16: "LEAD",
 		17: "MENTIONS_AND_REPLIES",
+		18: "REQUESTS",
 	}
 	LabelEditAction_ListType_value = map[string]int32{
 		"NONE":                 0,
@@ -1973,6 +2055,7 @@ var (
 		"THIRD_PARTY":          15,
 		"LEAD":                 16,
 		"MENTIONS_AND_REPLIES": 17,
+		"REQUESTS":             18,
 	}
 )
 
@@ -1987,11 +2070,11 @@ func (x LabelEditAction_ListType) String() string {
 }
 
 func (LabelEditAction_ListType) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[25].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[26].Descriptor()
 }
 
 func (LabelEditAction_ListType) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[25]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[26]
 }
 
 func (x LabelEditAction_ListType) Number() protoreflect.EnumNumber {
@@ -2073,11 +2156,11 @@ func (x PatchDebugData_Platform) String() string {
 }
 
 func (PatchDebugData_Platform) Descriptor() protoreflect.EnumDescriptor {
-	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[26].Descriptor()
+	return file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[27].Descriptor()
 }
 
 func (PatchDebugData_Platform) Type() protoreflect.EnumType {
-	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[26]
+	return &file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes[27]
 }
 
 func (x PatchDebugData_Platform) Number() protoreflect.EnumNumber {
@@ -5088,16 +5171,18 @@ func (x *BroadcastListParticipant) GetPnJID() string {
 }
 
 type BusinessBroadcastCampaignAction struct {
-	state              protoimpl.MessageState           `protogen:"open.v1"`
-	DeviceID           *int32                           `protobuf:"varint,1,opt,name=deviceID" json:"deviceID,omitempty"`
-	AdID               *string                          `protobuf:"bytes,2,opt,name=adID" json:"adID,omitempty"`
-	Name               *string                          `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
-	MsgID              *string                          `protobuf:"bytes,4,opt,name=msgID" json:"msgID,omitempty"`
-	BroadcastJID       *string                          `protobuf:"bytes,5,opt,name=broadcastJID" json:"broadcastJID,omitempty"`
-	ReservedQuota      *int32                           `protobuf:"varint,6,opt,name=reservedQuota" json:"reservedQuota,omitempty"`
-	ScheduledTimestamp *int64                           `protobuf:"varint,7,opt,name=scheduledTimestamp" json:"scheduledTimestamp,omitempty"`
-	CreateTimestamp    *int64                           `protobuf:"varint,8,opt,name=createTimestamp" json:"createTimestamp,omitempty"`
-	Status             *BusinessBroadcastCampaignStatus `protobuf:"varint,9,opt,name=status,enum=WAWebProtobufSyncAction.BusinessBroadcastCampaignStatus" json:"status,omitempty"`
+	state              protoimpl.MessageState                `protogen:"open.v1"`
+	DeviceID           *int32                                `protobuf:"varint,1,opt,name=deviceID" json:"deviceID,omitempty"`
+	AdID               *string                               `protobuf:"bytes,2,opt,name=adID" json:"adID,omitempty"`
+	Name               *string                               `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
+	MsgID              *string                               `protobuf:"bytes,4,opt,name=msgID" json:"msgID,omitempty"`
+	BroadcastJID       *string                               `protobuf:"bytes,5,opt,name=broadcastJID" json:"broadcastJID,omitempty"`
+	ReservedQuota      *int32                                `protobuf:"varint,6,opt,name=reservedQuota" json:"reservedQuota,omitempty"`
+	ScheduledTimestamp *int64                                `protobuf:"varint,7,opt,name=scheduledTimestamp" json:"scheduledTimestamp,omitempty"`
+	CreateTimestamp    *int64                                `protobuf:"varint,8,opt,name=createTimestamp" json:"createTimestamp,omitempty"`
+	Status             *BusinessBroadcastCampaignStatus      `protobuf:"varint,9,opt,name=status,enum=WAWebProtobufSyncAction.BusinessBroadcastCampaignStatus" json:"status,omitempty"`
+	BbProStatus        *BusinessBroadcastCampaignBBProStatus `protobuf:"varint,10,opt,name=bbProStatus,enum=WAWebProtobufSyncAction.BusinessBroadcastCampaignBBProStatus" json:"bbProStatus,omitempty"`
+	CustomAudienceFbid *string                               `protobuf:"bytes,11,opt,name=customAudienceFbid" json:"customAudienceFbid,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -5193,6 +5278,20 @@ func (x *BusinessBroadcastCampaignAction) GetStatus() BusinessBroadcastCampaignS
 		return *x.Status
 	}
 	return BusinessBroadcastCampaignStatus_DRAFT
+}
+
+func (x *BusinessBroadcastCampaignAction) GetBbProStatus() BusinessBroadcastCampaignBBProStatus {
+	if x != nil && x.BbProStatus != nil {
+		return *x.BbProStatus
+	}
+	return BusinessBroadcastCampaignBBProStatus_BB_PRO_ACTIVE
+}
+
+func (x *BusinessBroadcastCampaignAction) GetCustomAudienceFbid() string {
+	if x != nil && x.CustomAudienceFbid != nil {
+		return *x.CustomAudienceFbid
+	}
+	return ""
 }
 
 type BusinessBroadcastListAction struct {
@@ -8942,7 +9041,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\rchatStartMode\x18\x01 \x01(\x0e2B.WAWebProtobufSyncAction.UsernameChatStartModeAction.ChatStartModeR\rchatStartMode\" \n" +
 	"\rChatStartMode\x12\a\n" +
 	"\x03LID\x10\x01\x12\x06\n" +
-	"\x02PN\x10\x02\"\xdc\x04\n" +
+	"\x02PN\x10\x02\"\xea\x04\n" +
 	"\x0fLabelEditAction\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05color\x18\x02 \x01(\x05R\x05color\x12\"\n" +
@@ -8954,7 +9053,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\bisActive\x18\x06 \x01(\bR\bisActive\x12E\n" +
 	"\x04type\x18\a \x01(\x0e21.WAWebProtobufSyncAction.LabelEditAction.ListTypeR\x04type\x12 \n" +
 	"\visImmutable\x18\b \x01(\bR\visImmutable\x12$\n" +
-	"\rmuteEndTimeMS\x18\t \x01(\x03R\rmuteEndTimeMS\"\x95\x02\n" +
+	"\rmuteEndTimeMS\x18\t \x01(\x03R\rmuteEndTimeMS\"\xa3\x02\n" +
 	"\bListType\x12\b\n" +
 	"\x04NONE\x10\x00\x12\n" +
 	"\n" +
@@ -8980,7 +9079,8 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\aINVITES\x10\x0e\x12\x0f\n" +
 	"\vTHIRD_PARTY\x10\x0f\x12\b\n" +
 	"\x04LEAD\x10\x10\x12\x18\n" +
-	"\x14MENTIONS_AND_REPLIES\x10\x11\"\xa3\x05\n" +
+	"\x14MENTIONS_AND_REPLIES\x10\x11\x12\f\n" +
+	"\bREQUESTS\x10\x12\"\xa3\x05\n" +
 	"\x0ePatchDebugData\x12$\n" +
 	"\rcurrentLthash\x18\x01 \x01(\fR\rcurrentLthash\x12\x1c\n" +
 	"\tnewLthash\x18\x02 \x01(\fR\tnewLthash\x12\"\n" +
@@ -9164,7 +9264,7 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\"H\n" +
 	"\x18BroadcastListParticipant\x12\x16\n" +
 	"\x06lidJID\x18\x01 \x02(\tR\x06lidJID\x12\x14\n" +
-	"\x05pnJID\x18\x02 \x01(\tR\x05pnJID\"\xf1\x02\n" +
+	"\x05pnJID\x18\x02 \x01(\tR\x05pnJID\"\x82\x04\n" +
 	"\x1fBusinessBroadcastCampaignAction\x12\x1a\n" +
 	"\bdeviceID\x18\x01 \x01(\x05R\bdeviceID\x12\x12\n" +
 	"\x04adID\x18\x02 \x01(\tR\x04adID\x12\x12\n" +
@@ -9174,7 +9274,10 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\rreservedQuota\x18\x06 \x01(\x05R\rreservedQuota\x12.\n" +
 	"\x12scheduledTimestamp\x18\a \x01(\x03R\x12scheduledTimestamp\x12(\n" +
 	"\x0fcreateTimestamp\x18\b \x01(\x03R\x0fcreateTimestamp\x12P\n" +
-	"\x06status\x18\t \x01(\x0e28.WAWebProtobufSyncAction.BusinessBroadcastCampaignStatusR\x06status\"\xa6\x02\n" +
+	"\x06status\x18\t \x01(\x0e28.WAWebProtobufSyncAction.BusinessBroadcastCampaignStatusR\x06status\x12_\n" +
+	"\vbbProStatus\x18\n" +
+	" \x01(\x0e2=.WAWebProtobufSyncAction.BusinessBroadcastCampaignBBProStatusR\vbbProStatus\x12.\n" +
+	"\x12customAudienceFbid\x18\v \x01(\tR\x12customAudienceFbid\"\xa6\x02\n" +
 	"\x1bBusinessBroadcastListAction\x12\x18\n" +
 	"\adeleted\x18\x01 \x01(\bR\adeleted\x12U\n" +
 	"\fparticipants\x18\x02 \x03(\v21.WAWebProtobufSyncAction.BroadcastListParticipantR\fparticipants\x12\x1a\n" +
@@ -9468,7 +9571,20 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"!BUSINESS_FOLDER_ACTIVATION_ACTION\x10`\x12\x11\n" +
 	"\fSHARE_OWN_PN\x10\x91N\x12\x1e\n" +
 	"\x19BUSINESS_BROADCAST_ACTION\x10\x92N\x12\x1c\n" +
-	"\x17AI_THREAD_DELETE_ACTION\x10\x93N*a\n" +
+	"\x17AI_THREAD_DELETE_ACTION\x10\x93N*\x80\x02\n" +
+	"$BusinessBroadcastCampaignBBProStatus\x12\x11\n" +
+	"\rBB_PRO_ACTIVE\x10\x01\x12\x14\n" +
+	"\x10BB_PRO_COMPLETED\x10\x02\x12\x13\n" +
+	"\x0fBB_PRO_IN_DRAFT\x10\x03\x12\x14\n" +
+	"\x10BB_PRO_IN_REVIEW\x10\x04\x12\x16\n" +
+	"\x12BB_PRO_NOT_SENDING\x10\x05\x12\x0e\n" +
+	"\n" +
+	"BB_PRO_OFF\x10\x06\x12\x13\n" +
+	"\x0fBB_PRO_REJECTED\x10\a\x12\x14\n" +
+	"\x10BB_PRO_SCHEDULED\x10\b\x12\x1a\n" +
+	"\x16BB_PRO_SENDING_LIMITED\x10\t\x12\x15\n" +
+	"\x11BB_PRO_PROCESSING\x10\n" +
+	"*a\n" +
 	"\x1fBusinessBroadcastCampaignStatus\x12\t\n" +
 	"\x05DRAFT\x10\x01\x12\r\n" +
 	"\tSCHEDULED\x10\x02\x12\x0e\n" +
@@ -9490,277 +9606,279 @@ func file_waSyncAction_WAWebProtobufSyncAction_proto_rawDescGZIP() []byte {
 	return file_waSyncAction_WAWebProtobufSyncAction_proto_rawDescData
 }
 
-var file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes = make([]protoimpl.EnumInfo, 27)
+var file_waSyncAction_WAWebProtobufSyncAction_proto_enumTypes = make([]protoimpl.EnumInfo, 28)
 var file_waSyncAction_WAWebProtobufSyncAction_proto_msgTypes = make([]protoimpl.MessageInfo, 100)
 var file_waSyncAction_WAWebProtobufSyncAction_proto_goTypes = []any{
 	(CollectionName)(0),                                                // 0: WAWebProtobufSyncAction.CollectionName
 	(MutationProps)(0),                                                 // 1: WAWebProtobufSyncAction.MutationProps
-	(BusinessBroadcastCampaignStatus)(0),                               // 2: WAWebProtobufSyncAction.BusinessBroadcastCampaignStatus
-	(CallLogRecord_CallType)(0),                                        // 3: WAWebProtobufSyncAction.CallLogRecord.CallType
-	(CallLogRecord_SilenceReason)(0),                                   // 4: WAWebProtobufSyncAction.CallLogRecord.SilenceReason
-	(CallLogRecord_CallResult)(0),                                      // 5: WAWebProtobufSyncAction.CallLogRecord.CallResult
-	(WASARootSecretAction_RootSecretEntry_Status)(0),                   // 6: WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry.Status
-	(SettingsSyncAction_MediaQualitySetting)(0),                        // 7: WAWebProtobufSyncAction.SettingsSyncAction.MediaQualitySetting
-	(SettingsSyncAction_DisplayMode)(0),                                // 8: WAWebProtobufSyncAction.SettingsSyncAction.DisplayMode
-	(SettingsSyncAction_SettingKey)(0),                                 // 9: WAWebProtobufSyncAction.SettingsSyncAction.SettingKey
-	(SettingsSyncAction_SettingPlatform)(0),                            // 10: WAWebProtobufSyncAction.SettingsSyncAction.SettingPlatform
-	(InteractiveMessageAction_InteractiveMessageActionMode)(0),         // 11: WAWebProtobufSyncAction.InteractiveMessageAction.InteractiveMessageActionMode
-	(PrivateProcessingSettingAction_PrivateProcessingStatus)(0),        // 12: WAWebProtobufSyncAction.PrivateProcessingSettingAction.PrivateProcessingStatus
-	(AvatarUpdatedAction_AvatarEventType)(0),                           // 13: WAWebProtobufSyncAction.AvatarUpdatedAction.AvatarEventType
-	(BizAISettingsNudgeAction_BizAISettingsCategory)(0),                // 14: WAWebProtobufSyncAction.BizAISettingsNudgeAction.BizAISettingsCategory
-	(MaibaAIFeaturesControlAction_MaibaAIReplyMode)(0),                 // 15: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIReplyMode
-	(MaibaAIFeaturesControlAction_MaibaAIFeatureStatus)(0),             // 16: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIFeatureStatus
-	(PaymentTosAction_PaymentNotice)(0),                                // 17: WAWebProtobufSyncAction.PaymentTosAction.PaymentNotice
-	(NotificationActivitySettingAction_NotificationActivitySetting)(0), // 18: WAWebProtobufSyncAction.NotificationActivitySettingAction.NotificationActivitySetting
-	(WaffleAccountLinkStateAction_AccountLinkState)(0),                 // 19: WAWebProtobufSyncAction.WaffleAccountLinkStateAction.AccountLinkState
-	(MerchantPaymentPartnerAction_Status)(0),                           // 20: WAWebProtobufSyncAction.MerchantPaymentPartnerAction.Status
-	(NoteEditAction_NoteType)(0),                                       // 21: WAWebProtobufSyncAction.NoteEditAction.NoteType
-	(StatusPrivacyAction_StatusDistributionMode)(0),                    // 22: WAWebProtobufSyncAction.StatusPrivacyAction.StatusDistributionMode
-	(MarketingMessageAction_MarketingMessagePrototypeType)(0),          // 23: WAWebProtobufSyncAction.MarketingMessageAction.MarketingMessagePrototypeType
-	(UsernameChatStartModeAction_ChatStartMode)(0),                     // 24: WAWebProtobufSyncAction.UsernameChatStartModeAction.ChatStartMode
-	(LabelEditAction_ListType)(0),                                      // 25: WAWebProtobufSyncAction.LabelEditAction.ListType
-	(PatchDebugData_Platform)(0),                                       // 26: WAWebProtobufSyncAction.PatchDebugData.Platform
-	(*CallLogRecord)(nil),                                              // 27: WAWebProtobufSyncAction.CallLogRecord
-	(*WASARootSecretAction)(nil),                                       // 28: WAWebProtobufSyncAction.WASARootSecretAction
-	(*SettingsSyncAction)(nil),                                         // 29: WAWebProtobufSyncAction.SettingsSyncAction
-	(*InteractiveMessageAction)(nil),                                   // 30: WAWebProtobufSyncAction.InteractiveMessageAction
-	(*PrivateProcessingSettingAction)(nil),                             // 31: WAWebProtobufSyncAction.PrivateProcessingSettingAction
-	(*AvatarUpdatedAction)(nil),                                        // 32: WAWebProtobufSyncAction.AvatarUpdatedAction
-	(*BizAISettingsNudgeAction)(nil),                                   // 33: WAWebProtobufSyncAction.BizAISettingsNudgeAction
-	(*MaibaAIFeaturesControlAction)(nil),                               // 34: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction
-	(*PaymentTosAction)(nil),                                           // 35: WAWebProtobufSyncAction.PaymentTosAction
-	(*NotificationActivitySettingAction)(nil),                          // 36: WAWebProtobufSyncAction.NotificationActivitySettingAction
-	(*WaffleAccountLinkStateAction)(nil),                               // 37: WAWebProtobufSyncAction.WaffleAccountLinkStateAction
-	(*MerchantPaymentPartnerAction)(nil),                               // 38: WAWebProtobufSyncAction.MerchantPaymentPartnerAction
-	(*NoteEditAction)(nil),                                             // 39: WAWebProtobufSyncAction.NoteEditAction
-	(*StatusPrivacyAction)(nil),                                        // 40: WAWebProtobufSyncAction.StatusPrivacyAction
-	(*MarketingMessageAction)(nil),                                     // 41: WAWebProtobufSyncAction.MarketingMessageAction
-	(*UsernameChatStartModeAction)(nil),                                // 42: WAWebProtobufSyncAction.UsernameChatStartModeAction
-	(*LabelEditAction)(nil),                                            // 43: WAWebProtobufSyncAction.LabelEditAction
-	(*PatchDebugData)(nil),                                             // 44: WAWebProtobufSyncAction.PatchDebugData
-	(*RecentEmojiWeight)(nil),                                          // 45: WAWebProtobufSyncAction.RecentEmojiWeight
-	(*SyncActionValue)(nil),                                            // 46: WAWebProtobufSyncAction.SyncActionValue
-	(*BusinessFolderActivationAction)(nil),                             // 47: WAWebProtobufSyncAction.BusinessFolderActivationAction
-	(*CtwaMessageReceivedAction)(nil),                                  // 48: WAWebProtobufSyncAction.CtwaMessageReceivedAction
-	(*CoexV2VersionAction)(nil),                                        // 49: WAWebProtobufSyncAction.CoexV2VersionAction
-	(*SubscriptionsSyncV2Action)(nil),                                  // 50: WAWebProtobufSyncAction.SubscriptionsSyncV2Action
-	(*ContactManagerMetadataAction)(nil),                               // 51: WAWebProtobufSyncAction.ContactManagerMetadataAction
-	(*CustomerDataAction)(nil),                                         // 52: WAWebProtobufSyncAction.CustomerDataAction
-	(*BusinessBroadcastInsightsAction)(nil),                            // 53: WAWebProtobufSyncAction.BusinessBroadcastInsightsAction
-	(*AutoOrganizeBusinessChatSetting)(nil),                            // 54: WAWebProtobufSyncAction.AutoOrganizeBusinessChatSetting
-	(*NctSaltSyncAction)(nil),                                          // 55: WAWebProtobufSyncAction.NctSaltSyncAction
-	(*ThreadPinAction)(nil),                                            // 56: WAWebProtobufSyncAction.ThreadPinAction
-	(*AiThreadRenameAction)(nil),                                       // 57: WAWebProtobufSyncAction.AiThreadRenameAction
-	(*StatusPostOptInNotificationPreferencesAction)(nil),               // 58: WAWebProtobufSyncAction.StatusPostOptInNotificationPreferencesAction
-	(*BroadcastListParticipant)(nil),                                   // 59: WAWebProtobufSyncAction.BroadcastListParticipant
-	(*BusinessBroadcastCampaignAction)(nil),                            // 60: WAWebProtobufSyncAction.BusinessBroadcastCampaignAction
-	(*BusinessBroadcastListAction)(nil),                                // 61: WAWebProtobufSyncAction.BusinessBroadcastListAction
-	(*BusinessBroadcastAssociationAction)(nil),                         // 62: WAWebProtobufSyncAction.BusinessBroadcastAssociationAction
-	(*CtwaPerCustomerDataSharingAction)(nil),                           // 63: WAWebProtobufSyncAction.CtwaPerCustomerDataSharingAction
-	(*OutContactAction)(nil),                                           // 64: WAWebProtobufSyncAction.OutContactAction
-	(*LidContactAction)(nil),                                           // 65: WAWebProtobufSyncAction.LidContactAction
-	(*FavoritesAction)(nil),                                            // 66: WAWebProtobufSyncAction.FavoritesAction
-	(*PrivacySettingChannelsPersonalisedRecommendationAction)(nil),     // 67: WAWebProtobufSyncAction.PrivacySettingChannelsPersonalisedRecommendationAction
-	(*PrivacySettingDisableLinkPreviewsAction)(nil),                    // 68: WAWebProtobufSyncAction.PrivacySettingDisableLinkPreviewsAction
-	(*WamoUserIdentifierAction)(nil),                                   // 69: WAWebProtobufSyncAction.WamoUserIdentifierAction
-	(*BubbleLockMessageAction)(nil),                                    // 70: WAWebProtobufSyncAction.BubbleLockMessageAction
-	(*LockChatAction)(nil),                                             // 71: WAWebProtobufSyncAction.LockChatAction
-	(*CustomPaymentMethodsAction)(nil),                                 // 72: WAWebProtobufSyncAction.CustomPaymentMethodsAction
-	(*CustomPaymentMethod)(nil),                                        // 73: WAWebProtobufSyncAction.CustomPaymentMethod
-	(*CustomPaymentMethodMetadata)(nil),                                // 74: WAWebProtobufSyncAction.CustomPaymentMethodMetadata
-	(*PaymentInfoAction)(nil),                                          // 75: WAWebProtobufSyncAction.PaymentInfoAction
-	(*LabelReorderingAction)(nil),                                      // 76: WAWebProtobufSyncAction.LabelReorderingAction
-	(*DeleteIndividualCallLogAction)(nil),                              // 77: WAWebProtobufSyncAction.DeleteIndividualCallLogAction
-	(*BotWelcomeRequestAction)(nil),                                    // 78: WAWebProtobufSyncAction.BotWelcomeRequestAction
-	(*NewsletterSavedInterestsAction)(nil),                             // 79: WAWebProtobufSyncAction.NewsletterSavedInterestsAction
-	(*MusicUserIdAction)(nil),                                          // 80: WAWebProtobufSyncAction.MusicUserIdAction
-	(*UGCBot)(nil),                                                     // 81: WAWebProtobufSyncAction.UGCBot
-	(*CallLogAction)(nil),                                              // 82: WAWebProtobufSyncAction.CallLogAction
-	(*PrivacySettingRelayAllCalls)(nil),                                // 83: WAWebProtobufSyncAction.PrivacySettingRelayAllCalls
-	(*DetectedOutcomesStatusAction)(nil),                               // 84: WAWebProtobufSyncAction.DetectedOutcomesStatusAction
-	(*ExternalWebBetaAction)(nil),                                      // 85: WAWebProtobufSyncAction.ExternalWebBetaAction
-	(*MarketingMessageBroadcastAction)(nil),                            // 86: WAWebProtobufSyncAction.MarketingMessageBroadcastAction
-	(*PnForLidChatAction)(nil),                                         // 87: WAWebProtobufSyncAction.PnForLidChatAction
-	(*ChatAssignmentOpenedStatusAction)(nil),                           // 88: WAWebProtobufSyncAction.ChatAssignmentOpenedStatusAction
-	(*ChatAssignmentAction)(nil),                                       // 89: WAWebProtobufSyncAction.ChatAssignmentAction
-	(*StickerAction)(nil),                                              // 90: WAWebProtobufSyncAction.StickerAction
-	(*RemoveRecentStickerAction)(nil),                                  // 91: WAWebProtobufSyncAction.RemoveRecentStickerAction
-	(*PrimaryVersionAction)(nil),                                       // 92: WAWebProtobufSyncAction.PrimaryVersionAction
-	(*NuxAction)(nil),                                                  // 93: WAWebProtobufSyncAction.NuxAction
-	(*TimeFormatAction)(nil),                                           // 94: WAWebProtobufSyncAction.TimeFormatAction
-	(*UserStatusMuteAction)(nil),                                       // 95: WAWebProtobufSyncAction.UserStatusMuteAction
-	(*SubscriptionAction)(nil),                                         // 96: WAWebProtobufSyncAction.SubscriptionAction
-	(*AgentAction)(nil),                                                // 97: WAWebProtobufSyncAction.AgentAction
-	(*AndroidUnsupportedActions)(nil),                                  // 98: WAWebProtobufSyncAction.AndroidUnsupportedActions
-	(*PrimaryFeature)(nil),                                             // 99: WAWebProtobufSyncAction.PrimaryFeature
-	(*KeyExpiration)(nil),                                              // 100: WAWebProtobufSyncAction.KeyExpiration
-	(*SyncActionMessage)(nil),                                          // 101: WAWebProtobufSyncAction.SyncActionMessage
-	(*SyncActionMessageRange)(nil),                                     // 102: WAWebProtobufSyncAction.SyncActionMessageRange
-	(*UnarchiveChatsSetting)(nil),                                      // 103: WAWebProtobufSyncAction.UnarchiveChatsSetting
-	(*DeleteChatAction)(nil),                                           // 104: WAWebProtobufSyncAction.DeleteChatAction
-	(*ClearChatAction)(nil),                                            // 105: WAWebProtobufSyncAction.ClearChatAction
-	(*MarkChatAsReadAction)(nil),                                       // 106: WAWebProtobufSyncAction.MarkChatAsReadAction
-	(*DeleteMessageForMeAction)(nil),                                   // 107: WAWebProtobufSyncAction.DeleteMessageForMeAction
-	(*ArchiveChatAction)(nil),                                          // 108: WAWebProtobufSyncAction.ArchiveChatAction
-	(*RecentEmojiWeightsAction)(nil),                                   // 109: WAWebProtobufSyncAction.RecentEmojiWeightsAction
-	(*LabelSublistAction)(nil),                                         // 110: WAWebProtobufSyncAction.LabelSublistAction
-	(*LabelAssociationAction)(nil),                                     // 111: WAWebProtobufSyncAction.LabelAssociationAction
-	(*QuickReplyAction)(nil),                                           // 112: WAWebProtobufSyncAction.QuickReplyAction
-	(*LocaleSetting)(nil),                                              // 113: WAWebProtobufSyncAction.LocaleSetting
-	(*PushNameSetting)(nil),                                            // 114: WAWebProtobufSyncAction.PushNameSetting
-	(*PinAction)(nil),                                                  // 115: WAWebProtobufSyncAction.PinAction
-	(*MuteAction)(nil),                                                 // 116: WAWebProtobufSyncAction.MuteAction
-	(*SharedDeviceAllowlistAction)(nil),                                // 117: WAWebProtobufSyncAction.SharedDeviceAllowlistAction
-	(*ContactAction)(nil),                                              // 118: WAWebProtobufSyncAction.ContactAction
-	(*StarAction)(nil),                                                 // 119: WAWebProtobufSyncAction.StarAction
-	(*SyncActionData)(nil),                                             // 120: WAWebProtobufSyncAction.SyncActionData
-	(*CallLogRecord_ParticipantInfo)(nil),                              // 121: WAWebProtobufSyncAction.CallLogRecord.ParticipantInfo
-	(*WASARootSecretAction_RootSecretEntry)(nil),                       // 122: WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry
-	(*StatusPrivacyAction_CustomList)(nil),                             // 123: WAWebProtobufSyncAction.StatusPrivacyAction.CustomList
-	(*SubscriptionsSyncV2Action_PaidFeature)(nil),                      // 124: WAWebProtobufSyncAction.SubscriptionsSyncV2Action.PaidFeature
-	(*SubscriptionsSyncV2Action_SubscriptionInfo)(nil),                 // 125: WAWebProtobufSyncAction.SubscriptionsSyncV2Action.SubscriptionInfo
-	(*FavoritesAction_Favorite)(nil),                                   // 126: WAWebProtobufSyncAction.FavoritesAction.Favorite
-	(*waChatLockSettings.ChatLockSettings)(nil),                        // 127: WAWebProtobufsChatLockSettings.ChatLockSettings
-	(*waDeviceCapabilities.DeviceCapabilities)(nil),                    // 128: WAWebProtobufsDeviceCapabilities.DeviceCapabilities
-	(*waCommon.MessageKey)(nil),                                        // 129: WACommon.MessageKey
+	(BusinessBroadcastCampaignBBProStatus)(0),                          // 2: WAWebProtobufSyncAction.BusinessBroadcastCampaignBBProStatus
+	(BusinessBroadcastCampaignStatus)(0),                               // 3: WAWebProtobufSyncAction.BusinessBroadcastCampaignStatus
+	(CallLogRecord_CallType)(0),                                        // 4: WAWebProtobufSyncAction.CallLogRecord.CallType
+	(CallLogRecord_SilenceReason)(0),                                   // 5: WAWebProtobufSyncAction.CallLogRecord.SilenceReason
+	(CallLogRecord_CallResult)(0),                                      // 6: WAWebProtobufSyncAction.CallLogRecord.CallResult
+	(WASARootSecretAction_RootSecretEntry_Status)(0),                   // 7: WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry.Status
+	(SettingsSyncAction_MediaQualitySetting)(0),                        // 8: WAWebProtobufSyncAction.SettingsSyncAction.MediaQualitySetting
+	(SettingsSyncAction_DisplayMode)(0),                                // 9: WAWebProtobufSyncAction.SettingsSyncAction.DisplayMode
+	(SettingsSyncAction_SettingKey)(0),                                 // 10: WAWebProtobufSyncAction.SettingsSyncAction.SettingKey
+	(SettingsSyncAction_SettingPlatform)(0),                            // 11: WAWebProtobufSyncAction.SettingsSyncAction.SettingPlatform
+	(InteractiveMessageAction_InteractiveMessageActionMode)(0),         // 12: WAWebProtobufSyncAction.InteractiveMessageAction.InteractiveMessageActionMode
+	(PrivateProcessingSettingAction_PrivateProcessingStatus)(0),        // 13: WAWebProtobufSyncAction.PrivateProcessingSettingAction.PrivateProcessingStatus
+	(AvatarUpdatedAction_AvatarEventType)(0),                           // 14: WAWebProtobufSyncAction.AvatarUpdatedAction.AvatarEventType
+	(BizAISettingsNudgeAction_BizAISettingsCategory)(0),                // 15: WAWebProtobufSyncAction.BizAISettingsNudgeAction.BizAISettingsCategory
+	(MaibaAIFeaturesControlAction_MaibaAIReplyMode)(0),                 // 16: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIReplyMode
+	(MaibaAIFeaturesControlAction_MaibaAIFeatureStatus)(0),             // 17: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIFeatureStatus
+	(PaymentTosAction_PaymentNotice)(0),                                // 18: WAWebProtobufSyncAction.PaymentTosAction.PaymentNotice
+	(NotificationActivitySettingAction_NotificationActivitySetting)(0), // 19: WAWebProtobufSyncAction.NotificationActivitySettingAction.NotificationActivitySetting
+	(WaffleAccountLinkStateAction_AccountLinkState)(0),                 // 20: WAWebProtobufSyncAction.WaffleAccountLinkStateAction.AccountLinkState
+	(MerchantPaymentPartnerAction_Status)(0),                           // 21: WAWebProtobufSyncAction.MerchantPaymentPartnerAction.Status
+	(NoteEditAction_NoteType)(0),                                       // 22: WAWebProtobufSyncAction.NoteEditAction.NoteType
+	(StatusPrivacyAction_StatusDistributionMode)(0),                    // 23: WAWebProtobufSyncAction.StatusPrivacyAction.StatusDistributionMode
+	(MarketingMessageAction_MarketingMessagePrototypeType)(0),          // 24: WAWebProtobufSyncAction.MarketingMessageAction.MarketingMessagePrototypeType
+	(UsernameChatStartModeAction_ChatStartMode)(0),                     // 25: WAWebProtobufSyncAction.UsernameChatStartModeAction.ChatStartMode
+	(LabelEditAction_ListType)(0),                                      // 26: WAWebProtobufSyncAction.LabelEditAction.ListType
+	(PatchDebugData_Platform)(0),                                       // 27: WAWebProtobufSyncAction.PatchDebugData.Platform
+	(*CallLogRecord)(nil),                                              // 28: WAWebProtobufSyncAction.CallLogRecord
+	(*WASARootSecretAction)(nil),                                       // 29: WAWebProtobufSyncAction.WASARootSecretAction
+	(*SettingsSyncAction)(nil),                                         // 30: WAWebProtobufSyncAction.SettingsSyncAction
+	(*InteractiveMessageAction)(nil),                                   // 31: WAWebProtobufSyncAction.InteractiveMessageAction
+	(*PrivateProcessingSettingAction)(nil),                             // 32: WAWebProtobufSyncAction.PrivateProcessingSettingAction
+	(*AvatarUpdatedAction)(nil),                                        // 33: WAWebProtobufSyncAction.AvatarUpdatedAction
+	(*BizAISettingsNudgeAction)(nil),                                   // 34: WAWebProtobufSyncAction.BizAISettingsNudgeAction
+	(*MaibaAIFeaturesControlAction)(nil),                               // 35: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction
+	(*PaymentTosAction)(nil),                                           // 36: WAWebProtobufSyncAction.PaymentTosAction
+	(*NotificationActivitySettingAction)(nil),                          // 37: WAWebProtobufSyncAction.NotificationActivitySettingAction
+	(*WaffleAccountLinkStateAction)(nil),                               // 38: WAWebProtobufSyncAction.WaffleAccountLinkStateAction
+	(*MerchantPaymentPartnerAction)(nil),                               // 39: WAWebProtobufSyncAction.MerchantPaymentPartnerAction
+	(*NoteEditAction)(nil),                                             // 40: WAWebProtobufSyncAction.NoteEditAction
+	(*StatusPrivacyAction)(nil),                                        // 41: WAWebProtobufSyncAction.StatusPrivacyAction
+	(*MarketingMessageAction)(nil),                                     // 42: WAWebProtobufSyncAction.MarketingMessageAction
+	(*UsernameChatStartModeAction)(nil),                                // 43: WAWebProtobufSyncAction.UsernameChatStartModeAction
+	(*LabelEditAction)(nil),                                            // 44: WAWebProtobufSyncAction.LabelEditAction
+	(*PatchDebugData)(nil),                                             // 45: WAWebProtobufSyncAction.PatchDebugData
+	(*RecentEmojiWeight)(nil),                                          // 46: WAWebProtobufSyncAction.RecentEmojiWeight
+	(*SyncActionValue)(nil),                                            // 47: WAWebProtobufSyncAction.SyncActionValue
+	(*BusinessFolderActivationAction)(nil),                             // 48: WAWebProtobufSyncAction.BusinessFolderActivationAction
+	(*CtwaMessageReceivedAction)(nil),                                  // 49: WAWebProtobufSyncAction.CtwaMessageReceivedAction
+	(*CoexV2VersionAction)(nil),                                        // 50: WAWebProtobufSyncAction.CoexV2VersionAction
+	(*SubscriptionsSyncV2Action)(nil),                                  // 51: WAWebProtobufSyncAction.SubscriptionsSyncV2Action
+	(*ContactManagerMetadataAction)(nil),                               // 52: WAWebProtobufSyncAction.ContactManagerMetadataAction
+	(*CustomerDataAction)(nil),                                         // 53: WAWebProtobufSyncAction.CustomerDataAction
+	(*BusinessBroadcastInsightsAction)(nil),                            // 54: WAWebProtobufSyncAction.BusinessBroadcastInsightsAction
+	(*AutoOrganizeBusinessChatSetting)(nil),                            // 55: WAWebProtobufSyncAction.AutoOrganizeBusinessChatSetting
+	(*NctSaltSyncAction)(nil),                                          // 56: WAWebProtobufSyncAction.NctSaltSyncAction
+	(*ThreadPinAction)(nil),                                            // 57: WAWebProtobufSyncAction.ThreadPinAction
+	(*AiThreadRenameAction)(nil),                                       // 58: WAWebProtobufSyncAction.AiThreadRenameAction
+	(*StatusPostOptInNotificationPreferencesAction)(nil),               // 59: WAWebProtobufSyncAction.StatusPostOptInNotificationPreferencesAction
+	(*BroadcastListParticipant)(nil),                                   // 60: WAWebProtobufSyncAction.BroadcastListParticipant
+	(*BusinessBroadcastCampaignAction)(nil),                            // 61: WAWebProtobufSyncAction.BusinessBroadcastCampaignAction
+	(*BusinessBroadcastListAction)(nil),                                // 62: WAWebProtobufSyncAction.BusinessBroadcastListAction
+	(*BusinessBroadcastAssociationAction)(nil),                         // 63: WAWebProtobufSyncAction.BusinessBroadcastAssociationAction
+	(*CtwaPerCustomerDataSharingAction)(nil),                           // 64: WAWebProtobufSyncAction.CtwaPerCustomerDataSharingAction
+	(*OutContactAction)(nil),                                           // 65: WAWebProtobufSyncAction.OutContactAction
+	(*LidContactAction)(nil),                                           // 66: WAWebProtobufSyncAction.LidContactAction
+	(*FavoritesAction)(nil),                                            // 67: WAWebProtobufSyncAction.FavoritesAction
+	(*PrivacySettingChannelsPersonalisedRecommendationAction)(nil),     // 68: WAWebProtobufSyncAction.PrivacySettingChannelsPersonalisedRecommendationAction
+	(*PrivacySettingDisableLinkPreviewsAction)(nil),                    // 69: WAWebProtobufSyncAction.PrivacySettingDisableLinkPreviewsAction
+	(*WamoUserIdentifierAction)(nil),                                   // 70: WAWebProtobufSyncAction.WamoUserIdentifierAction
+	(*BubbleLockMessageAction)(nil),                                    // 71: WAWebProtobufSyncAction.BubbleLockMessageAction
+	(*LockChatAction)(nil),                                             // 72: WAWebProtobufSyncAction.LockChatAction
+	(*CustomPaymentMethodsAction)(nil),                                 // 73: WAWebProtobufSyncAction.CustomPaymentMethodsAction
+	(*CustomPaymentMethod)(nil),                                        // 74: WAWebProtobufSyncAction.CustomPaymentMethod
+	(*CustomPaymentMethodMetadata)(nil),                                // 75: WAWebProtobufSyncAction.CustomPaymentMethodMetadata
+	(*PaymentInfoAction)(nil),                                          // 76: WAWebProtobufSyncAction.PaymentInfoAction
+	(*LabelReorderingAction)(nil),                                      // 77: WAWebProtobufSyncAction.LabelReorderingAction
+	(*DeleteIndividualCallLogAction)(nil),                              // 78: WAWebProtobufSyncAction.DeleteIndividualCallLogAction
+	(*BotWelcomeRequestAction)(nil),                                    // 79: WAWebProtobufSyncAction.BotWelcomeRequestAction
+	(*NewsletterSavedInterestsAction)(nil),                             // 80: WAWebProtobufSyncAction.NewsletterSavedInterestsAction
+	(*MusicUserIdAction)(nil),                                          // 81: WAWebProtobufSyncAction.MusicUserIdAction
+	(*UGCBot)(nil),                                                     // 82: WAWebProtobufSyncAction.UGCBot
+	(*CallLogAction)(nil),                                              // 83: WAWebProtobufSyncAction.CallLogAction
+	(*PrivacySettingRelayAllCalls)(nil),                                // 84: WAWebProtobufSyncAction.PrivacySettingRelayAllCalls
+	(*DetectedOutcomesStatusAction)(nil),                               // 85: WAWebProtobufSyncAction.DetectedOutcomesStatusAction
+	(*ExternalWebBetaAction)(nil),                                      // 86: WAWebProtobufSyncAction.ExternalWebBetaAction
+	(*MarketingMessageBroadcastAction)(nil),                            // 87: WAWebProtobufSyncAction.MarketingMessageBroadcastAction
+	(*PnForLidChatAction)(nil),                                         // 88: WAWebProtobufSyncAction.PnForLidChatAction
+	(*ChatAssignmentOpenedStatusAction)(nil),                           // 89: WAWebProtobufSyncAction.ChatAssignmentOpenedStatusAction
+	(*ChatAssignmentAction)(nil),                                       // 90: WAWebProtobufSyncAction.ChatAssignmentAction
+	(*StickerAction)(nil),                                              // 91: WAWebProtobufSyncAction.StickerAction
+	(*RemoveRecentStickerAction)(nil),                                  // 92: WAWebProtobufSyncAction.RemoveRecentStickerAction
+	(*PrimaryVersionAction)(nil),                                       // 93: WAWebProtobufSyncAction.PrimaryVersionAction
+	(*NuxAction)(nil),                                                  // 94: WAWebProtobufSyncAction.NuxAction
+	(*TimeFormatAction)(nil),                                           // 95: WAWebProtobufSyncAction.TimeFormatAction
+	(*UserStatusMuteAction)(nil),                                       // 96: WAWebProtobufSyncAction.UserStatusMuteAction
+	(*SubscriptionAction)(nil),                                         // 97: WAWebProtobufSyncAction.SubscriptionAction
+	(*AgentAction)(nil),                                                // 98: WAWebProtobufSyncAction.AgentAction
+	(*AndroidUnsupportedActions)(nil),                                  // 99: WAWebProtobufSyncAction.AndroidUnsupportedActions
+	(*PrimaryFeature)(nil),                                             // 100: WAWebProtobufSyncAction.PrimaryFeature
+	(*KeyExpiration)(nil),                                              // 101: WAWebProtobufSyncAction.KeyExpiration
+	(*SyncActionMessage)(nil),                                          // 102: WAWebProtobufSyncAction.SyncActionMessage
+	(*SyncActionMessageRange)(nil),                                     // 103: WAWebProtobufSyncAction.SyncActionMessageRange
+	(*UnarchiveChatsSetting)(nil),                                      // 104: WAWebProtobufSyncAction.UnarchiveChatsSetting
+	(*DeleteChatAction)(nil),                                           // 105: WAWebProtobufSyncAction.DeleteChatAction
+	(*ClearChatAction)(nil),                                            // 106: WAWebProtobufSyncAction.ClearChatAction
+	(*MarkChatAsReadAction)(nil),                                       // 107: WAWebProtobufSyncAction.MarkChatAsReadAction
+	(*DeleteMessageForMeAction)(nil),                                   // 108: WAWebProtobufSyncAction.DeleteMessageForMeAction
+	(*ArchiveChatAction)(nil),                                          // 109: WAWebProtobufSyncAction.ArchiveChatAction
+	(*RecentEmojiWeightsAction)(nil),                                   // 110: WAWebProtobufSyncAction.RecentEmojiWeightsAction
+	(*LabelSublistAction)(nil),                                         // 111: WAWebProtobufSyncAction.LabelSublistAction
+	(*LabelAssociationAction)(nil),                                     // 112: WAWebProtobufSyncAction.LabelAssociationAction
+	(*QuickReplyAction)(nil),                                           // 113: WAWebProtobufSyncAction.QuickReplyAction
+	(*LocaleSetting)(nil),                                              // 114: WAWebProtobufSyncAction.LocaleSetting
+	(*PushNameSetting)(nil),                                            // 115: WAWebProtobufSyncAction.PushNameSetting
+	(*PinAction)(nil),                                                  // 116: WAWebProtobufSyncAction.PinAction
+	(*MuteAction)(nil),                                                 // 117: WAWebProtobufSyncAction.MuteAction
+	(*SharedDeviceAllowlistAction)(nil),                                // 118: WAWebProtobufSyncAction.SharedDeviceAllowlistAction
+	(*ContactAction)(nil),                                              // 119: WAWebProtobufSyncAction.ContactAction
+	(*StarAction)(nil),                                                 // 120: WAWebProtobufSyncAction.StarAction
+	(*SyncActionData)(nil),                                             // 121: WAWebProtobufSyncAction.SyncActionData
+	(*CallLogRecord_ParticipantInfo)(nil),                              // 122: WAWebProtobufSyncAction.CallLogRecord.ParticipantInfo
+	(*WASARootSecretAction_RootSecretEntry)(nil),                       // 123: WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry
+	(*StatusPrivacyAction_CustomList)(nil),                             // 124: WAWebProtobufSyncAction.StatusPrivacyAction.CustomList
+	(*SubscriptionsSyncV2Action_PaidFeature)(nil),                      // 125: WAWebProtobufSyncAction.SubscriptionsSyncV2Action.PaidFeature
+	(*SubscriptionsSyncV2Action_SubscriptionInfo)(nil),                 // 126: WAWebProtobufSyncAction.SubscriptionsSyncV2Action.SubscriptionInfo
+	(*FavoritesAction_Favorite)(nil),                                   // 127: WAWebProtobufSyncAction.FavoritesAction.Favorite
+	(*waChatLockSettings.ChatLockSettings)(nil),                        // 128: WAWebProtobufsChatLockSettings.ChatLockSettings
+	(*waDeviceCapabilities.DeviceCapabilities)(nil),                    // 129: WAWebProtobufsDeviceCapabilities.DeviceCapabilities
+	(*waCommon.MessageKey)(nil),                                        // 130: WACommon.MessageKey
 }
 var file_waSyncAction_WAWebProtobufSyncAction_proto_depIdxs = []int32{
-	5,   // 0: WAWebProtobufSyncAction.CallLogRecord.callResult:type_name -> WAWebProtobufSyncAction.CallLogRecord.CallResult
-	4,   // 1: WAWebProtobufSyncAction.CallLogRecord.silenceReason:type_name -> WAWebProtobufSyncAction.CallLogRecord.SilenceReason
-	121, // 2: WAWebProtobufSyncAction.CallLogRecord.participants:type_name -> WAWebProtobufSyncAction.CallLogRecord.ParticipantInfo
-	3,   // 3: WAWebProtobufSyncAction.CallLogRecord.callType:type_name -> WAWebProtobufSyncAction.CallLogRecord.CallType
-	122, // 4: WAWebProtobufSyncAction.WASARootSecretAction.secrets:type_name -> WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry
-	8,   // 5: WAWebProtobufSyncAction.SettingsSyncAction.bannerNotificationDisplayMode:type_name -> WAWebProtobufSyncAction.SettingsSyncAction.DisplayMode
-	8,   // 6: WAWebProtobufSyncAction.SettingsSyncAction.unreadCounterBadgeDisplayMode:type_name -> WAWebProtobufSyncAction.SettingsSyncAction.DisplayMode
-	7,   // 7: WAWebProtobufSyncAction.SettingsSyncAction.mediaUploadQuality:type_name -> WAWebProtobufSyncAction.SettingsSyncAction.MediaQualitySetting
-	11,  // 8: WAWebProtobufSyncAction.InteractiveMessageAction.type:type_name -> WAWebProtobufSyncAction.InteractiveMessageAction.InteractiveMessageActionMode
-	12,  // 9: WAWebProtobufSyncAction.PrivateProcessingSettingAction.privateProcessingStatus:type_name -> WAWebProtobufSyncAction.PrivateProcessingSettingAction.PrivateProcessingStatus
-	13,  // 10: WAWebProtobufSyncAction.AvatarUpdatedAction.eventType:type_name -> WAWebProtobufSyncAction.AvatarUpdatedAction.AvatarEventType
-	90,  // 11: WAWebProtobufSyncAction.AvatarUpdatedAction.recentAvatarStickers:type_name -> WAWebProtobufSyncAction.StickerAction
-	14,  // 12: WAWebProtobufSyncAction.BizAISettingsNudgeAction.category:type_name -> WAWebProtobufSyncAction.BizAISettingsNudgeAction.BizAISettingsCategory
-	16,  // 13: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.aiFeatureStatus:type_name -> WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIFeatureStatus
-	15,  // 14: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.aiReplyMode:type_name -> WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIReplyMode
-	17,  // 15: WAWebProtobufSyncAction.PaymentTosAction.paymentNotice:type_name -> WAWebProtobufSyncAction.PaymentTosAction.PaymentNotice
-	18,  // 16: WAWebProtobufSyncAction.NotificationActivitySettingAction.notificationActivitySetting:type_name -> WAWebProtobufSyncAction.NotificationActivitySettingAction.NotificationActivitySetting
-	19,  // 17: WAWebProtobufSyncAction.WaffleAccountLinkStateAction.linkState:type_name -> WAWebProtobufSyncAction.WaffleAccountLinkStateAction.AccountLinkState
-	20,  // 18: WAWebProtobufSyncAction.MerchantPaymentPartnerAction.status:type_name -> WAWebProtobufSyncAction.MerchantPaymentPartnerAction.Status
-	21,  // 19: WAWebProtobufSyncAction.NoteEditAction.type:type_name -> WAWebProtobufSyncAction.NoteEditAction.NoteType
-	22,  // 20: WAWebProtobufSyncAction.StatusPrivacyAction.mode:type_name -> WAWebProtobufSyncAction.StatusPrivacyAction.StatusDistributionMode
-	123, // 21: WAWebProtobufSyncAction.StatusPrivacyAction.customLists:type_name -> WAWebProtobufSyncAction.StatusPrivacyAction.CustomList
-	22,  // 22: WAWebProtobufSyncAction.StatusPrivacyAction.modes:type_name -> WAWebProtobufSyncAction.StatusPrivacyAction.StatusDistributionMode
-	23,  // 23: WAWebProtobufSyncAction.MarketingMessageAction.type:type_name -> WAWebProtobufSyncAction.MarketingMessageAction.MarketingMessagePrototypeType
-	24,  // 24: WAWebProtobufSyncAction.UsernameChatStartModeAction.chatStartMode:type_name -> WAWebProtobufSyncAction.UsernameChatStartModeAction.ChatStartMode
-	25,  // 25: WAWebProtobufSyncAction.LabelEditAction.type:type_name -> WAWebProtobufSyncAction.LabelEditAction.ListType
-	26,  // 26: WAWebProtobufSyncAction.PatchDebugData.senderPlatform:type_name -> WAWebProtobufSyncAction.PatchDebugData.Platform
-	119, // 27: WAWebProtobufSyncAction.SyncActionValue.starAction:type_name -> WAWebProtobufSyncAction.StarAction
-	118, // 28: WAWebProtobufSyncAction.SyncActionValue.contactAction:type_name -> WAWebProtobufSyncAction.ContactAction
-	116, // 29: WAWebProtobufSyncAction.SyncActionValue.muteAction:type_name -> WAWebProtobufSyncAction.MuteAction
-	115, // 30: WAWebProtobufSyncAction.SyncActionValue.pinAction:type_name -> WAWebProtobufSyncAction.PinAction
-	114, // 31: WAWebProtobufSyncAction.SyncActionValue.pushNameSetting:type_name -> WAWebProtobufSyncAction.PushNameSetting
-	112, // 32: WAWebProtobufSyncAction.SyncActionValue.quickReplyAction:type_name -> WAWebProtobufSyncAction.QuickReplyAction
-	109, // 33: WAWebProtobufSyncAction.SyncActionValue.recentEmojiWeightsAction:type_name -> WAWebProtobufSyncAction.RecentEmojiWeightsAction
-	43,  // 34: WAWebProtobufSyncAction.SyncActionValue.labelEditAction:type_name -> WAWebProtobufSyncAction.LabelEditAction
-	111, // 35: WAWebProtobufSyncAction.SyncActionValue.labelAssociationAction:type_name -> WAWebProtobufSyncAction.LabelAssociationAction
-	113, // 36: WAWebProtobufSyncAction.SyncActionValue.localeSetting:type_name -> WAWebProtobufSyncAction.LocaleSetting
-	108, // 37: WAWebProtobufSyncAction.SyncActionValue.archiveChatAction:type_name -> WAWebProtobufSyncAction.ArchiveChatAction
-	107, // 38: WAWebProtobufSyncAction.SyncActionValue.deleteMessageForMeAction:type_name -> WAWebProtobufSyncAction.DeleteMessageForMeAction
-	100, // 39: WAWebProtobufSyncAction.SyncActionValue.keyExpiration:type_name -> WAWebProtobufSyncAction.KeyExpiration
-	106, // 40: WAWebProtobufSyncAction.SyncActionValue.markChatAsReadAction:type_name -> WAWebProtobufSyncAction.MarkChatAsReadAction
-	105, // 41: WAWebProtobufSyncAction.SyncActionValue.clearChatAction:type_name -> WAWebProtobufSyncAction.ClearChatAction
-	104, // 42: WAWebProtobufSyncAction.SyncActionValue.deleteChatAction:type_name -> WAWebProtobufSyncAction.DeleteChatAction
-	103, // 43: WAWebProtobufSyncAction.SyncActionValue.unarchiveChatsSetting:type_name -> WAWebProtobufSyncAction.UnarchiveChatsSetting
-	99,  // 44: WAWebProtobufSyncAction.SyncActionValue.primaryFeature:type_name -> WAWebProtobufSyncAction.PrimaryFeature
-	98,  // 45: WAWebProtobufSyncAction.SyncActionValue.androidUnsupportedActions:type_name -> WAWebProtobufSyncAction.AndroidUnsupportedActions
-	97,  // 46: WAWebProtobufSyncAction.SyncActionValue.agentAction:type_name -> WAWebProtobufSyncAction.AgentAction
-	96,  // 47: WAWebProtobufSyncAction.SyncActionValue.subscriptionAction:type_name -> WAWebProtobufSyncAction.SubscriptionAction
-	95,  // 48: WAWebProtobufSyncAction.SyncActionValue.userStatusMuteAction:type_name -> WAWebProtobufSyncAction.UserStatusMuteAction
-	94,  // 49: WAWebProtobufSyncAction.SyncActionValue.timeFormatAction:type_name -> WAWebProtobufSyncAction.TimeFormatAction
-	93,  // 50: WAWebProtobufSyncAction.SyncActionValue.nuxAction:type_name -> WAWebProtobufSyncAction.NuxAction
-	92,  // 51: WAWebProtobufSyncAction.SyncActionValue.primaryVersionAction:type_name -> WAWebProtobufSyncAction.PrimaryVersionAction
-	90,  // 52: WAWebProtobufSyncAction.SyncActionValue.stickerAction:type_name -> WAWebProtobufSyncAction.StickerAction
-	91,  // 53: WAWebProtobufSyncAction.SyncActionValue.removeRecentStickerAction:type_name -> WAWebProtobufSyncAction.RemoveRecentStickerAction
-	89,  // 54: WAWebProtobufSyncAction.SyncActionValue.chatAssignment:type_name -> WAWebProtobufSyncAction.ChatAssignmentAction
-	88,  // 55: WAWebProtobufSyncAction.SyncActionValue.chatAssignmentOpenedStatus:type_name -> WAWebProtobufSyncAction.ChatAssignmentOpenedStatusAction
-	87,  // 56: WAWebProtobufSyncAction.SyncActionValue.pnForLidChatAction:type_name -> WAWebProtobufSyncAction.PnForLidChatAction
-	41,  // 57: WAWebProtobufSyncAction.SyncActionValue.marketingMessageAction:type_name -> WAWebProtobufSyncAction.MarketingMessageAction
-	86,  // 58: WAWebProtobufSyncAction.SyncActionValue.marketingMessageBroadcastAction:type_name -> WAWebProtobufSyncAction.MarketingMessageBroadcastAction
-	85,  // 59: WAWebProtobufSyncAction.SyncActionValue.externalWebBetaAction:type_name -> WAWebProtobufSyncAction.ExternalWebBetaAction
-	83,  // 60: WAWebProtobufSyncAction.SyncActionValue.privacySettingRelayAllCalls:type_name -> WAWebProtobufSyncAction.PrivacySettingRelayAllCalls
-	82,  // 61: WAWebProtobufSyncAction.SyncActionValue.callLogAction:type_name -> WAWebProtobufSyncAction.CallLogAction
-	81,  // 62: WAWebProtobufSyncAction.SyncActionValue.ugcBot:type_name -> WAWebProtobufSyncAction.UGCBot
-	40,  // 63: WAWebProtobufSyncAction.SyncActionValue.statusPrivacy:type_name -> WAWebProtobufSyncAction.StatusPrivacyAction
-	78,  // 64: WAWebProtobufSyncAction.SyncActionValue.botWelcomeRequestAction:type_name -> WAWebProtobufSyncAction.BotWelcomeRequestAction
-	77,  // 65: WAWebProtobufSyncAction.SyncActionValue.deleteIndividualCallLog:type_name -> WAWebProtobufSyncAction.DeleteIndividualCallLogAction
-	76,  // 66: WAWebProtobufSyncAction.SyncActionValue.labelReorderingAction:type_name -> WAWebProtobufSyncAction.LabelReorderingAction
-	75,  // 67: WAWebProtobufSyncAction.SyncActionValue.paymentInfoAction:type_name -> WAWebProtobufSyncAction.PaymentInfoAction
-	72,  // 68: WAWebProtobufSyncAction.SyncActionValue.customPaymentMethodsAction:type_name -> WAWebProtobufSyncAction.CustomPaymentMethodsAction
-	71,  // 69: WAWebProtobufSyncAction.SyncActionValue.lockChatAction:type_name -> WAWebProtobufSyncAction.LockChatAction
-	127, // 70: WAWebProtobufSyncAction.SyncActionValue.chatLockSettings:type_name -> WAWebProtobufsChatLockSettings.ChatLockSettings
-	69,  // 71: WAWebProtobufSyncAction.SyncActionValue.wamoUserIdentifierAction:type_name -> WAWebProtobufSyncAction.WamoUserIdentifierAction
-	68,  // 72: WAWebProtobufSyncAction.SyncActionValue.privacySettingDisableLinkPreviewsAction:type_name -> WAWebProtobufSyncAction.PrivacySettingDisableLinkPreviewsAction
-	128, // 73: WAWebProtobufSyncAction.SyncActionValue.deviceCapabilities:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities
-	39,  // 74: WAWebProtobufSyncAction.SyncActionValue.noteEditAction:type_name -> WAWebProtobufSyncAction.NoteEditAction
-	66,  // 75: WAWebProtobufSyncAction.SyncActionValue.favoritesAction:type_name -> WAWebProtobufSyncAction.FavoritesAction
-	38,  // 76: WAWebProtobufSyncAction.SyncActionValue.merchantPaymentPartnerAction:type_name -> WAWebProtobufSyncAction.MerchantPaymentPartnerAction
-	37,  // 77: WAWebProtobufSyncAction.SyncActionValue.waffleAccountLinkStateAction:type_name -> WAWebProtobufSyncAction.WaffleAccountLinkStateAction
-	42,  // 78: WAWebProtobufSyncAction.SyncActionValue.usernameChatStartMode:type_name -> WAWebProtobufSyncAction.UsernameChatStartModeAction
-	36,  // 79: WAWebProtobufSyncAction.SyncActionValue.notificationActivitySettingAction:type_name -> WAWebProtobufSyncAction.NotificationActivitySettingAction
-	65,  // 80: WAWebProtobufSyncAction.SyncActionValue.lidContactAction:type_name -> WAWebProtobufSyncAction.LidContactAction
-	63,  // 81: WAWebProtobufSyncAction.SyncActionValue.ctwaPerCustomerDataSharingAction:type_name -> WAWebProtobufSyncAction.CtwaPerCustomerDataSharingAction
-	35,  // 82: WAWebProtobufSyncAction.SyncActionValue.paymentTosAction:type_name -> WAWebProtobufSyncAction.PaymentTosAction
-	67,  // 83: WAWebProtobufSyncAction.SyncActionValue.privacySettingChannelsPersonalisedRecommendationAction:type_name -> WAWebProtobufSyncAction.PrivacySettingChannelsPersonalisedRecommendationAction
-	84,  // 84: WAWebProtobufSyncAction.SyncActionValue.detectedOutcomesStatusAction:type_name -> WAWebProtobufSyncAction.DetectedOutcomesStatusAction
-	34,  // 85: WAWebProtobufSyncAction.SyncActionValue.maibaAiFeaturesControlAction:type_name -> WAWebProtobufSyncAction.MaibaAIFeaturesControlAction
-	61,  // 86: WAWebProtobufSyncAction.SyncActionValue.businessBroadcastListAction:type_name -> WAWebProtobufSyncAction.BusinessBroadcastListAction
-	80,  // 87: WAWebProtobufSyncAction.SyncActionValue.musicUserIDAction:type_name -> WAWebProtobufSyncAction.MusicUserIdAction
-	58,  // 88: WAWebProtobufSyncAction.SyncActionValue.statusPostOptInNotificationPreferencesAction:type_name -> WAWebProtobufSyncAction.StatusPostOptInNotificationPreferencesAction
-	32,  // 89: WAWebProtobufSyncAction.SyncActionValue.avatarUpdatedAction:type_name -> WAWebProtobufSyncAction.AvatarUpdatedAction
-	31,  // 90: WAWebProtobufSyncAction.SyncActionValue.privateProcessingSettingAction:type_name -> WAWebProtobufSyncAction.PrivateProcessingSettingAction
-	79,  // 91: WAWebProtobufSyncAction.SyncActionValue.newsletterSavedInterestsAction:type_name -> WAWebProtobufSyncAction.NewsletterSavedInterestsAction
-	57,  // 92: WAWebProtobufSyncAction.SyncActionValue.aiThreadRenameAction:type_name -> WAWebProtobufSyncAction.AiThreadRenameAction
-	30,  // 93: WAWebProtobufSyncAction.SyncActionValue.interactiveMessageAction:type_name -> WAWebProtobufSyncAction.InteractiveMessageAction
-	29,  // 94: WAWebProtobufSyncAction.SyncActionValue.settingsSyncAction:type_name -> WAWebProtobufSyncAction.SettingsSyncAction
-	64,  // 95: WAWebProtobufSyncAction.SyncActionValue.outContactAction:type_name -> WAWebProtobufSyncAction.OutContactAction
-	55,  // 96: WAWebProtobufSyncAction.SyncActionValue.nctSaltSyncAction:type_name -> WAWebProtobufSyncAction.NctSaltSyncAction
-	60,  // 97: WAWebProtobufSyncAction.SyncActionValue.businessBroadcastCampaignAction:type_name -> WAWebProtobufSyncAction.BusinessBroadcastCampaignAction
-	53,  // 98: WAWebProtobufSyncAction.SyncActionValue.businessBroadcastInsightsAction:type_name -> WAWebProtobufSyncAction.BusinessBroadcastInsightsAction
-	52,  // 99: WAWebProtobufSyncAction.SyncActionValue.customerDataAction:type_name -> WAWebProtobufSyncAction.CustomerDataAction
-	50,  // 100: WAWebProtobufSyncAction.SyncActionValue.subscriptionsSyncV2Action:type_name -> WAWebProtobufSyncAction.SubscriptionsSyncV2Action
-	56,  // 101: WAWebProtobufSyncAction.SyncActionValue.threadPinAction:type_name -> WAWebProtobufSyncAction.ThreadPinAction
-	54,  // 102: WAWebProtobufSyncAction.SyncActionValue.autoOrganizeBusinessChatSetting:type_name -> WAWebProtobufSyncAction.AutoOrganizeBusinessChatSetting
-	33,  // 103: WAWebProtobufSyncAction.SyncActionValue.bizAiSettingsNudgeAction:type_name -> WAWebProtobufSyncAction.BizAISettingsNudgeAction
-	49,  // 104: WAWebProtobufSyncAction.SyncActionValue.coexV2VersionAction:type_name -> WAWebProtobufSyncAction.CoexV2VersionAction
-	28,  // 105: WAWebProtobufSyncAction.SyncActionValue.wasaRootSecretAction:type_name -> WAWebProtobufSyncAction.WASARootSecretAction
-	70,  // 106: WAWebProtobufSyncAction.SyncActionValue.bubbleLockMessageAction:type_name -> WAWebProtobufSyncAction.BubbleLockMessageAction
-	110, // 107: WAWebProtobufSyncAction.SyncActionValue.labelSublistAction:type_name -> WAWebProtobufSyncAction.LabelSublistAction
-	128, // 108: WAWebProtobufSyncAction.SyncActionValue.deviceCapabilitiesV2:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities
-	48,  // 109: WAWebProtobufSyncAction.SyncActionValue.ctwaMessageReceivedAction:type_name -> WAWebProtobufSyncAction.CtwaMessageReceivedAction
-	117, // 110: WAWebProtobufSyncAction.SyncActionValue.sharedDeviceAllowlistAction:type_name -> WAWebProtobufSyncAction.SharedDeviceAllowlistAction
-	51,  // 111: WAWebProtobufSyncAction.SyncActionValue.contactManagerMetadataAction:type_name -> WAWebProtobufSyncAction.ContactManagerMetadataAction
-	47,  // 112: WAWebProtobufSyncAction.SyncActionValue.businessFolderActivationAction:type_name -> WAWebProtobufSyncAction.BusinessFolderActivationAction
-	125, // 113: WAWebProtobufSyncAction.SubscriptionsSyncV2Action.subscriptions:type_name -> WAWebProtobufSyncAction.SubscriptionsSyncV2Action.SubscriptionInfo
-	124, // 114: WAWebProtobufSyncAction.SubscriptionsSyncV2Action.paidFeature:type_name -> WAWebProtobufSyncAction.SubscriptionsSyncV2Action.PaidFeature
-	2,   // 115: WAWebProtobufSyncAction.BusinessBroadcastCampaignAction.status:type_name -> WAWebProtobufSyncAction.BusinessBroadcastCampaignStatus
-	59,  // 116: WAWebProtobufSyncAction.BusinessBroadcastListAction.participants:type_name -> WAWebProtobufSyncAction.BroadcastListParticipant
-	126, // 117: WAWebProtobufSyncAction.FavoritesAction.favorites:type_name -> WAWebProtobufSyncAction.FavoritesAction.Favorite
-	73,  // 118: WAWebProtobufSyncAction.CustomPaymentMethodsAction.customPaymentMethods:type_name -> WAWebProtobufSyncAction.CustomPaymentMethod
-	74,  // 119: WAWebProtobufSyncAction.CustomPaymentMethod.metadata:type_name -> WAWebProtobufSyncAction.CustomPaymentMethodMetadata
-	27,  // 120: WAWebProtobufSyncAction.CallLogAction.callLogRecord:type_name -> WAWebProtobufSyncAction.CallLogRecord
-	129, // 121: WAWebProtobufSyncAction.SyncActionMessage.key:type_name -> WACommon.MessageKey
-	101, // 122: WAWebProtobufSyncAction.SyncActionMessageRange.messages:type_name -> WAWebProtobufSyncAction.SyncActionMessage
-	102, // 123: WAWebProtobufSyncAction.DeleteChatAction.messageRange:type_name -> WAWebProtobufSyncAction.SyncActionMessageRange
-	102, // 124: WAWebProtobufSyncAction.ClearChatAction.messageRange:type_name -> WAWebProtobufSyncAction.SyncActionMessageRange
-	102, // 125: WAWebProtobufSyncAction.MarkChatAsReadAction.messageRange:type_name -> WAWebProtobufSyncAction.SyncActionMessageRange
-	102, // 126: WAWebProtobufSyncAction.ArchiveChatAction.messageRange:type_name -> WAWebProtobufSyncAction.SyncActionMessageRange
-	45,  // 127: WAWebProtobufSyncAction.RecentEmojiWeightsAction.weights:type_name -> WAWebProtobufSyncAction.RecentEmojiWeight
-	46,  // 128: WAWebProtobufSyncAction.SyncActionData.value:type_name -> WAWebProtobufSyncAction.SyncActionValue
-	5,   // 129: WAWebProtobufSyncAction.CallLogRecord.ParticipantInfo.callResult:type_name -> WAWebProtobufSyncAction.CallLogRecord.CallResult
-	6,   // 130: WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry.status:type_name -> WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry.Status
-	131, // [131:131] is the sub-list for method output_type
-	131, // [131:131] is the sub-list for method input_type
-	131, // [131:131] is the sub-list for extension type_name
-	131, // [131:131] is the sub-list for extension extendee
-	0,   // [0:131] is the sub-list for field type_name
+	6,   // 0: WAWebProtobufSyncAction.CallLogRecord.callResult:type_name -> WAWebProtobufSyncAction.CallLogRecord.CallResult
+	5,   // 1: WAWebProtobufSyncAction.CallLogRecord.silenceReason:type_name -> WAWebProtobufSyncAction.CallLogRecord.SilenceReason
+	122, // 2: WAWebProtobufSyncAction.CallLogRecord.participants:type_name -> WAWebProtobufSyncAction.CallLogRecord.ParticipantInfo
+	4,   // 3: WAWebProtobufSyncAction.CallLogRecord.callType:type_name -> WAWebProtobufSyncAction.CallLogRecord.CallType
+	123, // 4: WAWebProtobufSyncAction.WASARootSecretAction.secrets:type_name -> WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry
+	9,   // 5: WAWebProtobufSyncAction.SettingsSyncAction.bannerNotificationDisplayMode:type_name -> WAWebProtobufSyncAction.SettingsSyncAction.DisplayMode
+	9,   // 6: WAWebProtobufSyncAction.SettingsSyncAction.unreadCounterBadgeDisplayMode:type_name -> WAWebProtobufSyncAction.SettingsSyncAction.DisplayMode
+	8,   // 7: WAWebProtobufSyncAction.SettingsSyncAction.mediaUploadQuality:type_name -> WAWebProtobufSyncAction.SettingsSyncAction.MediaQualitySetting
+	12,  // 8: WAWebProtobufSyncAction.InteractiveMessageAction.type:type_name -> WAWebProtobufSyncAction.InteractiveMessageAction.InteractiveMessageActionMode
+	13,  // 9: WAWebProtobufSyncAction.PrivateProcessingSettingAction.privateProcessingStatus:type_name -> WAWebProtobufSyncAction.PrivateProcessingSettingAction.PrivateProcessingStatus
+	14,  // 10: WAWebProtobufSyncAction.AvatarUpdatedAction.eventType:type_name -> WAWebProtobufSyncAction.AvatarUpdatedAction.AvatarEventType
+	91,  // 11: WAWebProtobufSyncAction.AvatarUpdatedAction.recentAvatarStickers:type_name -> WAWebProtobufSyncAction.StickerAction
+	15,  // 12: WAWebProtobufSyncAction.BizAISettingsNudgeAction.category:type_name -> WAWebProtobufSyncAction.BizAISettingsNudgeAction.BizAISettingsCategory
+	17,  // 13: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.aiFeatureStatus:type_name -> WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIFeatureStatus
+	16,  // 14: WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.aiReplyMode:type_name -> WAWebProtobufSyncAction.MaibaAIFeaturesControlAction.MaibaAIReplyMode
+	18,  // 15: WAWebProtobufSyncAction.PaymentTosAction.paymentNotice:type_name -> WAWebProtobufSyncAction.PaymentTosAction.PaymentNotice
+	19,  // 16: WAWebProtobufSyncAction.NotificationActivitySettingAction.notificationActivitySetting:type_name -> WAWebProtobufSyncAction.NotificationActivitySettingAction.NotificationActivitySetting
+	20,  // 17: WAWebProtobufSyncAction.WaffleAccountLinkStateAction.linkState:type_name -> WAWebProtobufSyncAction.WaffleAccountLinkStateAction.AccountLinkState
+	21,  // 18: WAWebProtobufSyncAction.MerchantPaymentPartnerAction.status:type_name -> WAWebProtobufSyncAction.MerchantPaymentPartnerAction.Status
+	22,  // 19: WAWebProtobufSyncAction.NoteEditAction.type:type_name -> WAWebProtobufSyncAction.NoteEditAction.NoteType
+	23,  // 20: WAWebProtobufSyncAction.StatusPrivacyAction.mode:type_name -> WAWebProtobufSyncAction.StatusPrivacyAction.StatusDistributionMode
+	124, // 21: WAWebProtobufSyncAction.StatusPrivacyAction.customLists:type_name -> WAWebProtobufSyncAction.StatusPrivacyAction.CustomList
+	23,  // 22: WAWebProtobufSyncAction.StatusPrivacyAction.modes:type_name -> WAWebProtobufSyncAction.StatusPrivacyAction.StatusDistributionMode
+	24,  // 23: WAWebProtobufSyncAction.MarketingMessageAction.type:type_name -> WAWebProtobufSyncAction.MarketingMessageAction.MarketingMessagePrototypeType
+	25,  // 24: WAWebProtobufSyncAction.UsernameChatStartModeAction.chatStartMode:type_name -> WAWebProtobufSyncAction.UsernameChatStartModeAction.ChatStartMode
+	26,  // 25: WAWebProtobufSyncAction.LabelEditAction.type:type_name -> WAWebProtobufSyncAction.LabelEditAction.ListType
+	27,  // 26: WAWebProtobufSyncAction.PatchDebugData.senderPlatform:type_name -> WAWebProtobufSyncAction.PatchDebugData.Platform
+	120, // 27: WAWebProtobufSyncAction.SyncActionValue.starAction:type_name -> WAWebProtobufSyncAction.StarAction
+	119, // 28: WAWebProtobufSyncAction.SyncActionValue.contactAction:type_name -> WAWebProtobufSyncAction.ContactAction
+	117, // 29: WAWebProtobufSyncAction.SyncActionValue.muteAction:type_name -> WAWebProtobufSyncAction.MuteAction
+	116, // 30: WAWebProtobufSyncAction.SyncActionValue.pinAction:type_name -> WAWebProtobufSyncAction.PinAction
+	115, // 31: WAWebProtobufSyncAction.SyncActionValue.pushNameSetting:type_name -> WAWebProtobufSyncAction.PushNameSetting
+	113, // 32: WAWebProtobufSyncAction.SyncActionValue.quickReplyAction:type_name -> WAWebProtobufSyncAction.QuickReplyAction
+	110, // 33: WAWebProtobufSyncAction.SyncActionValue.recentEmojiWeightsAction:type_name -> WAWebProtobufSyncAction.RecentEmojiWeightsAction
+	44,  // 34: WAWebProtobufSyncAction.SyncActionValue.labelEditAction:type_name -> WAWebProtobufSyncAction.LabelEditAction
+	112, // 35: WAWebProtobufSyncAction.SyncActionValue.labelAssociationAction:type_name -> WAWebProtobufSyncAction.LabelAssociationAction
+	114, // 36: WAWebProtobufSyncAction.SyncActionValue.localeSetting:type_name -> WAWebProtobufSyncAction.LocaleSetting
+	109, // 37: WAWebProtobufSyncAction.SyncActionValue.archiveChatAction:type_name -> WAWebProtobufSyncAction.ArchiveChatAction
+	108, // 38: WAWebProtobufSyncAction.SyncActionValue.deleteMessageForMeAction:type_name -> WAWebProtobufSyncAction.DeleteMessageForMeAction
+	101, // 39: WAWebProtobufSyncAction.SyncActionValue.keyExpiration:type_name -> WAWebProtobufSyncAction.KeyExpiration
+	107, // 40: WAWebProtobufSyncAction.SyncActionValue.markChatAsReadAction:type_name -> WAWebProtobufSyncAction.MarkChatAsReadAction
+	106, // 41: WAWebProtobufSyncAction.SyncActionValue.clearChatAction:type_name -> WAWebProtobufSyncAction.ClearChatAction
+	105, // 42: WAWebProtobufSyncAction.SyncActionValue.deleteChatAction:type_name -> WAWebProtobufSyncAction.DeleteChatAction
+	104, // 43: WAWebProtobufSyncAction.SyncActionValue.unarchiveChatsSetting:type_name -> WAWebProtobufSyncAction.UnarchiveChatsSetting
+	100, // 44: WAWebProtobufSyncAction.SyncActionValue.primaryFeature:type_name -> WAWebProtobufSyncAction.PrimaryFeature
+	99,  // 45: WAWebProtobufSyncAction.SyncActionValue.androidUnsupportedActions:type_name -> WAWebProtobufSyncAction.AndroidUnsupportedActions
+	98,  // 46: WAWebProtobufSyncAction.SyncActionValue.agentAction:type_name -> WAWebProtobufSyncAction.AgentAction
+	97,  // 47: WAWebProtobufSyncAction.SyncActionValue.subscriptionAction:type_name -> WAWebProtobufSyncAction.SubscriptionAction
+	96,  // 48: WAWebProtobufSyncAction.SyncActionValue.userStatusMuteAction:type_name -> WAWebProtobufSyncAction.UserStatusMuteAction
+	95,  // 49: WAWebProtobufSyncAction.SyncActionValue.timeFormatAction:type_name -> WAWebProtobufSyncAction.TimeFormatAction
+	94,  // 50: WAWebProtobufSyncAction.SyncActionValue.nuxAction:type_name -> WAWebProtobufSyncAction.NuxAction
+	93,  // 51: WAWebProtobufSyncAction.SyncActionValue.primaryVersionAction:type_name -> WAWebProtobufSyncAction.PrimaryVersionAction
+	91,  // 52: WAWebProtobufSyncAction.SyncActionValue.stickerAction:type_name -> WAWebProtobufSyncAction.StickerAction
+	92,  // 53: WAWebProtobufSyncAction.SyncActionValue.removeRecentStickerAction:type_name -> WAWebProtobufSyncAction.RemoveRecentStickerAction
+	90,  // 54: WAWebProtobufSyncAction.SyncActionValue.chatAssignment:type_name -> WAWebProtobufSyncAction.ChatAssignmentAction
+	89,  // 55: WAWebProtobufSyncAction.SyncActionValue.chatAssignmentOpenedStatus:type_name -> WAWebProtobufSyncAction.ChatAssignmentOpenedStatusAction
+	88,  // 56: WAWebProtobufSyncAction.SyncActionValue.pnForLidChatAction:type_name -> WAWebProtobufSyncAction.PnForLidChatAction
+	42,  // 57: WAWebProtobufSyncAction.SyncActionValue.marketingMessageAction:type_name -> WAWebProtobufSyncAction.MarketingMessageAction
+	87,  // 58: WAWebProtobufSyncAction.SyncActionValue.marketingMessageBroadcastAction:type_name -> WAWebProtobufSyncAction.MarketingMessageBroadcastAction
+	86,  // 59: WAWebProtobufSyncAction.SyncActionValue.externalWebBetaAction:type_name -> WAWebProtobufSyncAction.ExternalWebBetaAction
+	84,  // 60: WAWebProtobufSyncAction.SyncActionValue.privacySettingRelayAllCalls:type_name -> WAWebProtobufSyncAction.PrivacySettingRelayAllCalls
+	83,  // 61: WAWebProtobufSyncAction.SyncActionValue.callLogAction:type_name -> WAWebProtobufSyncAction.CallLogAction
+	82,  // 62: WAWebProtobufSyncAction.SyncActionValue.ugcBot:type_name -> WAWebProtobufSyncAction.UGCBot
+	41,  // 63: WAWebProtobufSyncAction.SyncActionValue.statusPrivacy:type_name -> WAWebProtobufSyncAction.StatusPrivacyAction
+	79,  // 64: WAWebProtobufSyncAction.SyncActionValue.botWelcomeRequestAction:type_name -> WAWebProtobufSyncAction.BotWelcomeRequestAction
+	78,  // 65: WAWebProtobufSyncAction.SyncActionValue.deleteIndividualCallLog:type_name -> WAWebProtobufSyncAction.DeleteIndividualCallLogAction
+	77,  // 66: WAWebProtobufSyncAction.SyncActionValue.labelReorderingAction:type_name -> WAWebProtobufSyncAction.LabelReorderingAction
+	76,  // 67: WAWebProtobufSyncAction.SyncActionValue.paymentInfoAction:type_name -> WAWebProtobufSyncAction.PaymentInfoAction
+	73,  // 68: WAWebProtobufSyncAction.SyncActionValue.customPaymentMethodsAction:type_name -> WAWebProtobufSyncAction.CustomPaymentMethodsAction
+	72,  // 69: WAWebProtobufSyncAction.SyncActionValue.lockChatAction:type_name -> WAWebProtobufSyncAction.LockChatAction
+	128, // 70: WAWebProtobufSyncAction.SyncActionValue.chatLockSettings:type_name -> WAWebProtobufsChatLockSettings.ChatLockSettings
+	70,  // 71: WAWebProtobufSyncAction.SyncActionValue.wamoUserIdentifierAction:type_name -> WAWebProtobufSyncAction.WamoUserIdentifierAction
+	69,  // 72: WAWebProtobufSyncAction.SyncActionValue.privacySettingDisableLinkPreviewsAction:type_name -> WAWebProtobufSyncAction.PrivacySettingDisableLinkPreviewsAction
+	129, // 73: WAWebProtobufSyncAction.SyncActionValue.deviceCapabilities:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities
+	40,  // 74: WAWebProtobufSyncAction.SyncActionValue.noteEditAction:type_name -> WAWebProtobufSyncAction.NoteEditAction
+	67,  // 75: WAWebProtobufSyncAction.SyncActionValue.favoritesAction:type_name -> WAWebProtobufSyncAction.FavoritesAction
+	39,  // 76: WAWebProtobufSyncAction.SyncActionValue.merchantPaymentPartnerAction:type_name -> WAWebProtobufSyncAction.MerchantPaymentPartnerAction
+	38,  // 77: WAWebProtobufSyncAction.SyncActionValue.waffleAccountLinkStateAction:type_name -> WAWebProtobufSyncAction.WaffleAccountLinkStateAction
+	43,  // 78: WAWebProtobufSyncAction.SyncActionValue.usernameChatStartMode:type_name -> WAWebProtobufSyncAction.UsernameChatStartModeAction
+	37,  // 79: WAWebProtobufSyncAction.SyncActionValue.notificationActivitySettingAction:type_name -> WAWebProtobufSyncAction.NotificationActivitySettingAction
+	66,  // 80: WAWebProtobufSyncAction.SyncActionValue.lidContactAction:type_name -> WAWebProtobufSyncAction.LidContactAction
+	64,  // 81: WAWebProtobufSyncAction.SyncActionValue.ctwaPerCustomerDataSharingAction:type_name -> WAWebProtobufSyncAction.CtwaPerCustomerDataSharingAction
+	36,  // 82: WAWebProtobufSyncAction.SyncActionValue.paymentTosAction:type_name -> WAWebProtobufSyncAction.PaymentTosAction
+	68,  // 83: WAWebProtobufSyncAction.SyncActionValue.privacySettingChannelsPersonalisedRecommendationAction:type_name -> WAWebProtobufSyncAction.PrivacySettingChannelsPersonalisedRecommendationAction
+	85,  // 84: WAWebProtobufSyncAction.SyncActionValue.detectedOutcomesStatusAction:type_name -> WAWebProtobufSyncAction.DetectedOutcomesStatusAction
+	35,  // 85: WAWebProtobufSyncAction.SyncActionValue.maibaAiFeaturesControlAction:type_name -> WAWebProtobufSyncAction.MaibaAIFeaturesControlAction
+	62,  // 86: WAWebProtobufSyncAction.SyncActionValue.businessBroadcastListAction:type_name -> WAWebProtobufSyncAction.BusinessBroadcastListAction
+	81,  // 87: WAWebProtobufSyncAction.SyncActionValue.musicUserIDAction:type_name -> WAWebProtobufSyncAction.MusicUserIdAction
+	59,  // 88: WAWebProtobufSyncAction.SyncActionValue.statusPostOptInNotificationPreferencesAction:type_name -> WAWebProtobufSyncAction.StatusPostOptInNotificationPreferencesAction
+	33,  // 89: WAWebProtobufSyncAction.SyncActionValue.avatarUpdatedAction:type_name -> WAWebProtobufSyncAction.AvatarUpdatedAction
+	32,  // 90: WAWebProtobufSyncAction.SyncActionValue.privateProcessingSettingAction:type_name -> WAWebProtobufSyncAction.PrivateProcessingSettingAction
+	80,  // 91: WAWebProtobufSyncAction.SyncActionValue.newsletterSavedInterestsAction:type_name -> WAWebProtobufSyncAction.NewsletterSavedInterestsAction
+	58,  // 92: WAWebProtobufSyncAction.SyncActionValue.aiThreadRenameAction:type_name -> WAWebProtobufSyncAction.AiThreadRenameAction
+	31,  // 93: WAWebProtobufSyncAction.SyncActionValue.interactiveMessageAction:type_name -> WAWebProtobufSyncAction.InteractiveMessageAction
+	30,  // 94: WAWebProtobufSyncAction.SyncActionValue.settingsSyncAction:type_name -> WAWebProtobufSyncAction.SettingsSyncAction
+	65,  // 95: WAWebProtobufSyncAction.SyncActionValue.outContactAction:type_name -> WAWebProtobufSyncAction.OutContactAction
+	56,  // 96: WAWebProtobufSyncAction.SyncActionValue.nctSaltSyncAction:type_name -> WAWebProtobufSyncAction.NctSaltSyncAction
+	61,  // 97: WAWebProtobufSyncAction.SyncActionValue.businessBroadcastCampaignAction:type_name -> WAWebProtobufSyncAction.BusinessBroadcastCampaignAction
+	54,  // 98: WAWebProtobufSyncAction.SyncActionValue.businessBroadcastInsightsAction:type_name -> WAWebProtobufSyncAction.BusinessBroadcastInsightsAction
+	53,  // 99: WAWebProtobufSyncAction.SyncActionValue.customerDataAction:type_name -> WAWebProtobufSyncAction.CustomerDataAction
+	51,  // 100: WAWebProtobufSyncAction.SyncActionValue.subscriptionsSyncV2Action:type_name -> WAWebProtobufSyncAction.SubscriptionsSyncV2Action
+	57,  // 101: WAWebProtobufSyncAction.SyncActionValue.threadPinAction:type_name -> WAWebProtobufSyncAction.ThreadPinAction
+	55,  // 102: WAWebProtobufSyncAction.SyncActionValue.autoOrganizeBusinessChatSetting:type_name -> WAWebProtobufSyncAction.AutoOrganizeBusinessChatSetting
+	34,  // 103: WAWebProtobufSyncAction.SyncActionValue.bizAiSettingsNudgeAction:type_name -> WAWebProtobufSyncAction.BizAISettingsNudgeAction
+	50,  // 104: WAWebProtobufSyncAction.SyncActionValue.coexV2VersionAction:type_name -> WAWebProtobufSyncAction.CoexV2VersionAction
+	29,  // 105: WAWebProtobufSyncAction.SyncActionValue.wasaRootSecretAction:type_name -> WAWebProtobufSyncAction.WASARootSecretAction
+	71,  // 106: WAWebProtobufSyncAction.SyncActionValue.bubbleLockMessageAction:type_name -> WAWebProtobufSyncAction.BubbleLockMessageAction
+	111, // 107: WAWebProtobufSyncAction.SyncActionValue.labelSublistAction:type_name -> WAWebProtobufSyncAction.LabelSublistAction
+	129, // 108: WAWebProtobufSyncAction.SyncActionValue.deviceCapabilitiesV2:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities
+	49,  // 109: WAWebProtobufSyncAction.SyncActionValue.ctwaMessageReceivedAction:type_name -> WAWebProtobufSyncAction.CtwaMessageReceivedAction
+	118, // 110: WAWebProtobufSyncAction.SyncActionValue.sharedDeviceAllowlistAction:type_name -> WAWebProtobufSyncAction.SharedDeviceAllowlistAction
+	52,  // 111: WAWebProtobufSyncAction.SyncActionValue.contactManagerMetadataAction:type_name -> WAWebProtobufSyncAction.ContactManagerMetadataAction
+	48,  // 112: WAWebProtobufSyncAction.SyncActionValue.businessFolderActivationAction:type_name -> WAWebProtobufSyncAction.BusinessFolderActivationAction
+	126, // 113: WAWebProtobufSyncAction.SubscriptionsSyncV2Action.subscriptions:type_name -> WAWebProtobufSyncAction.SubscriptionsSyncV2Action.SubscriptionInfo
+	125, // 114: WAWebProtobufSyncAction.SubscriptionsSyncV2Action.paidFeature:type_name -> WAWebProtobufSyncAction.SubscriptionsSyncV2Action.PaidFeature
+	3,   // 115: WAWebProtobufSyncAction.BusinessBroadcastCampaignAction.status:type_name -> WAWebProtobufSyncAction.BusinessBroadcastCampaignStatus
+	2,   // 116: WAWebProtobufSyncAction.BusinessBroadcastCampaignAction.bbProStatus:type_name -> WAWebProtobufSyncAction.BusinessBroadcastCampaignBBProStatus
+	60,  // 117: WAWebProtobufSyncAction.BusinessBroadcastListAction.participants:type_name -> WAWebProtobufSyncAction.BroadcastListParticipant
+	127, // 118: WAWebProtobufSyncAction.FavoritesAction.favorites:type_name -> WAWebProtobufSyncAction.FavoritesAction.Favorite
+	74,  // 119: WAWebProtobufSyncAction.CustomPaymentMethodsAction.customPaymentMethods:type_name -> WAWebProtobufSyncAction.CustomPaymentMethod
+	75,  // 120: WAWebProtobufSyncAction.CustomPaymentMethod.metadata:type_name -> WAWebProtobufSyncAction.CustomPaymentMethodMetadata
+	28,  // 121: WAWebProtobufSyncAction.CallLogAction.callLogRecord:type_name -> WAWebProtobufSyncAction.CallLogRecord
+	130, // 122: WAWebProtobufSyncAction.SyncActionMessage.key:type_name -> WACommon.MessageKey
+	102, // 123: WAWebProtobufSyncAction.SyncActionMessageRange.messages:type_name -> WAWebProtobufSyncAction.SyncActionMessage
+	103, // 124: WAWebProtobufSyncAction.DeleteChatAction.messageRange:type_name -> WAWebProtobufSyncAction.SyncActionMessageRange
+	103, // 125: WAWebProtobufSyncAction.ClearChatAction.messageRange:type_name -> WAWebProtobufSyncAction.SyncActionMessageRange
+	103, // 126: WAWebProtobufSyncAction.MarkChatAsReadAction.messageRange:type_name -> WAWebProtobufSyncAction.SyncActionMessageRange
+	103, // 127: WAWebProtobufSyncAction.ArchiveChatAction.messageRange:type_name -> WAWebProtobufSyncAction.SyncActionMessageRange
+	46,  // 128: WAWebProtobufSyncAction.RecentEmojiWeightsAction.weights:type_name -> WAWebProtobufSyncAction.RecentEmojiWeight
+	47,  // 129: WAWebProtobufSyncAction.SyncActionData.value:type_name -> WAWebProtobufSyncAction.SyncActionValue
+	6,   // 130: WAWebProtobufSyncAction.CallLogRecord.ParticipantInfo.callResult:type_name -> WAWebProtobufSyncAction.CallLogRecord.CallResult
+	7,   // 131: WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry.status:type_name -> WAWebProtobufSyncAction.WASARootSecretAction.RootSecretEntry.Status
+	132, // [132:132] is the sub-list for method output_type
+	132, // [132:132] is the sub-list for method input_type
+	132, // [132:132] is the sub-list for extension type_name
+	132, // [132:132] is the sub-list for extension extendee
+	0,   // [0:132] is the sub-list for field type_name
 }
 
 func init() { file_waSyncAction_WAWebProtobufSyncAction_proto_init() }
@@ -9773,7 +9891,7 @@ func file_waSyncAction_WAWebProtobufSyncAction_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc), len(file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc)),
-			NumEnums:      27,
+			NumEnums:      28,
 			NumMessages:   100,
 			NumExtensions: 0,
 			NumServices:   0,
