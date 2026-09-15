@@ -425,7 +425,9 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 		botJID, _ := types.ParseJID(mutation.Index[1])
 		ownLID := cli.getOwnLID()
 		inputSecrets := mutation.Action.GetWasaRootSecretAction().GetSecrets()
+		ids := make([]string, 0, len(inputSecrets))
 		storeUpdateError = cli.Store.MsgSecrets.PutMessageSecrets(ctx, exslices.CastFunc(inputSecrets, func(secret *waSyncAction.WASARootSecretAction_RootSecretEntry) store.MessageSecretInsert {
+			ids = append(ids, secret.GetID())
 			return store.MessageSecretInsert{
 				Chat:   botJID,
 				Sender: ownLID,
@@ -433,6 +435,12 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 				Secret: secret.GetRootSecret(),
 			}
 		}))
+		if storeUpdateError == nil {
+			zerolog.Ctx(ctx).Debug().
+				Strs("ids", ids).
+				Stringer("bot_jid", botJID).
+				Msg("Stored WASA root secrets from app state")
+		}
 	}
 	if storeUpdateError != nil {
 		cli.Log.Errorf("Failed to update device store after app state mutation: %v", storeUpdateError)
