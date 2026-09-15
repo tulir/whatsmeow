@@ -361,6 +361,9 @@ func (cli *Client) downloadPossiblyEncryptedMediaWithRetries(ctx context.Context
 }
 
 func (cli *Client) doMediaDownloadRequest(ctx context.Context, url string) (*http.Response, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare request: %w", err)
