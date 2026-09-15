@@ -930,6 +930,8 @@ func getTypeFromMessage(msg *waE2E.Message) string {
 		return "reaction"
 	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
 		return "poll"
+	case msg.EventMessage != nil:
+		return "event"
 	case getMediaTypeFromMessage(msg) != "":
 		return "media"
 	case msg.Conversation != nil, msg.ExtendedTextMessage != nil, msg.ProtocolMessage != nil:
@@ -1141,6 +1143,14 @@ func (cli *Client) getMessageContent(
 			Tag: "meta",
 			Attrs: waBinary.Attrs{
 				"polltype": pollType,
+			},
+		})
+	}
+	if msgAttrs["type"] == "event" {
+		content = append(content, waBinary.Node{
+			Tag: "meta",
+			Attrs: waBinary.Attrs{
+				"event_type": "creation",
 			},
 		})
 	}
