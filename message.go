@@ -24,6 +24,7 @@ import (
 	"go.mau.fi/libsignal/protocol"
 	"go.mau.fi/libsignal/session"
 	"go.mau.fi/libsignal/signalerror"
+	"go.mau.fi/libsignal/state/record"
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
@@ -574,6 +575,14 @@ func (cli *Client) bufferedDecrypt(
 	return
 }
 
+type sessionlessSignalStore struct {
+	*store.Device
+}
+
+func (sessionlessSignalStore) StoreSession(_ context.Context, _ *protocol.SignalAddress, _ *record.Session) error {
+	return nil
+}
+
 func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from types.JID, isPreKey bool, serverTS time.Time) ([]byte, *[32]byte, error) {
 	content, ok := child.Content.([]byte)
 	if !ok {
@@ -581,6 +590,10 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 	}
 
 	builder := session.NewBuilderFromSignal(cli.Store, from.SignalAddress(), pbSerializer)
+	if isPreKey && child.AttrGetter().OptionalString("state") == "false" {
+		cli.Log.Debugf("Not storing session from stateless prekey message from %s", from)
+		builder = session.NewBuilderFromSignal(sessionlessSignalStore{cli.Store}, from.SignalAddress(), pbSerializer)
+	}
 	cipher := session.NewCipher(builder, from.SignalAddress())
 	var plaintext []byte
 	var ciphertextHash [32]byte
