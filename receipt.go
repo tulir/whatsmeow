@@ -33,7 +33,9 @@ func (cli *Client) handleReceipt(ctx context.Context, node *waBinary.Node) {
 	} else {
 		if receipt.Type == types.ReceiptTypeRetry {
 			// Ack happens inside the retry receipt handler
-			go cli.tryHandleRetryReceipt(ctx, receipt, node)
+			cli.backgroundIfAsyncAck(func() {
+				cli.tryHandleRetryReceipt(ctx, receipt, node)
+			})
 		} else {
 			defer cli.maybeDeferredAck(ctx, node)(&cancelled)
 		}
