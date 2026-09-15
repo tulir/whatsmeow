@@ -950,11 +950,24 @@ func (cli *Client) processProtocolParts(ctx context.Context, info *types.Message
 
 func (cli *Client) storeMessageSecret(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message) {
 	if msgSecret := msg.GetMessageContextInfo().GetMessageSecret(); len(msgSecret) > 0 {
-		err := cli.Store.MsgSecrets.PutMessageSecret(ctx, info.Chat, info.Sender, info.ID, msgSecret)
+		targetChat := info.Chat
+		dsm := msg
+		if msg.GetDeviceSentMessage().GetMessage() != nil {
+			dsm = msg.GetDeviceSentMessage().GetMessage()
+		}
+		if targetChatJID := dsm.GetRootSecretDistributeMessage().GetChatJID(); targetChatJID != "" && info.IsFromMe {
+			var err error
+			targetChat, err = types.ParseJID(targetChatJID)
+			if err != nil {
+				cli.Log.Warnf("Failed to parse chat JID %s from root secret distribute message: %v", targetChatJID, err)
+				return
+			}
+		}
+		err := cli.Store.MsgSecrets.PutMessageSecret(ctx, targetChat, info.Sender, info.ID, msgSecret)
 		if err != nil {
 			cli.Log.Errorf("Failed to store message secret key for %s: %v", info.ID, err)
 		} else {
-			cli.Log.Debugf("Stored message secret key for %s", info.ID)
+			cli.Log.Debugf("Stored message secret key for %s/%s/%s", info.Chat, info.Sender, info.ID)
 		}
 	}
 }
