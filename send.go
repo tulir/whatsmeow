@@ -1099,8 +1099,19 @@ func (cli *Client) preparePeerMessageNode(
 			return nil, fmt.Errorf("failed to get LID for PN %s: %w", to, err)
 		}
 	}
+	// A peer message can be the first thing ever sent to the device, and then there is no
+	// session to encrypt it with: an app state key request from a client whose store was
+	// restored from somewhere else is exactly that. Fetch the prekeys first, the way
+	// encryptMessageForDevices does for any device it has no session with.
+	var bundle *prekey.Bundle
+	hasSession, err := cli.Store.ContainsSession(ctx, encryptionIdentity.SignalAddress())
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if there is a session with %s: %w", encryptionIdentity, err)
+	} else if !hasSession {
+		bundle = cli.fetchPreKeysNoError(ctx, []types.JID{to})[to]
+	}
 	start = time.Now()
-	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, nil, nil, nil)
+	encrypted, isPreKey, err := cli.encryptMessageForDevice(ctx, plaintext, encryptionIdentity, bundle, nil, nil)
 	timings.PeerEncrypt = time.Since(start)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt peer message for %s: %v", to, err)
