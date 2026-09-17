@@ -50,6 +50,10 @@ func (cli *Client) clearResponseWaiters(node *waBinary.Node) {
 		}
 	}
 	cli.responseWaiters = make(map[string]chan<- *waBinary.Node)
+	for _, waiter := range cli.ackResponseWaiters {
+		waiter <- node
+	}
+	clear(cli.ackResponseWaiters)
 	cli.responseWaitersLock.Unlock()
 }
 
@@ -74,6 +78,20 @@ func (cli *Client) receiveResponse(ctx context.Context, data *waBinary.Node) boo
 		return false
 	}
 	cli.responseWaitersLock.Lock()
+	if data.Tag == "ack" {
+		class, _ := data.Attrs["class"].(string)
+		receiptType, _ := data.Attrs["type"].(string)
+		key := ackResponseKey{id, class, receiptType}
+		if waiter, found := cli.ackResponseWaiters[key]; found {
+			delete(cli.ackResponseWaiters, key)
+			cli.responseWaitersLock.Unlock()
+			select {
+			case waiter <- data:
+			case <-ctx.Done():
+			}
+			return true
+		}
+	}
 	waiter, ok := cli.responseWaiters[id]
 	if !ok {
 		cli.responseWaitersLock.Unlock()
