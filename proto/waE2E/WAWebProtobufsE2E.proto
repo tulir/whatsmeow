@@ -1080,6 +1080,7 @@ message VideoMessage {
 	optional string metadataURL = 30;
 	optional VideoSourceType videoSourceType = 31;
 	optional string dashManifestURL = 33;
+	optional int64 smartThumbnailTS = 34;
 }
 
 message MusicMessage {
@@ -1576,6 +1577,7 @@ message ContextInfo {
 	optional InstagramThreadLink instagramThreadLink = 80;
 	optional WAWebProtobufsAICommon.AIProvenance aiProvenance = 81;
 	repeated uint32 experienceIDs = 82 [packed=true];
+	optional string partnerDeepLinkToken = 83;
 }
 
 message MessageAssociation {
@@ -1896,6 +1898,7 @@ message MessageHistoryMetadata {
 	optional int64 messageCount = 3;
 	repeated string nonHistoryReceivers = 4;
 	optional int64 oldestMessageTimestampInBundle = 5;
+	optional bool includesChatTheme = 6;
 }
 
 message HistoryShareMessageEntry {

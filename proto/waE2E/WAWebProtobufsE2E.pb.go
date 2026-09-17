@@ -8202,6 +8202,7 @@ type VideoMessage struct {
 	MetadataURL                             *string                       `protobuf:"bytes,30,opt,name=metadataURL" json:"metadataURL,omitempty"`
 	VideoSourceType                         *VideoMessage_VideoSourceType `protobuf:"varint,31,opt,name=videoSourceType,enum=WAWebProtobufsE2E.VideoMessage_VideoSourceType" json:"videoSourceType,omitempty"`
 	DashManifestURL                         *string                       `protobuf:"bytes,33,opt,name=dashManifestURL" json:"dashManifestURL,omitempty"`
+	SmartThumbnailTS                        *int64                        `protobuf:"varint,34,opt,name=smartThumbnailTS" json:"smartThumbnailTS,omitempty"`
 	unknownFields                           protoimpl.UnknownFields
 	sizeCache                               protoimpl.SizeCache
 }
@@ -8451,6 +8452,13 @@ func (x *VideoMessage) GetDashManifestURL() string {
 		return *x.DashManifestURL
 	}
 	return ""
+}
+
+func (x *VideoMessage) GetSmartThumbnailTS() int64 {
+	if x != nil && x.SmartThumbnailTS != nil {
+		return *x.SmartThumbnailTS
+	}
+	return 0
 }
 
 type MusicMessage struct {
@@ -9508,6 +9516,7 @@ type ContextInfo struct {
 	InstagramThreadLink                *ContextInfo_InstagramThreadLink            `protobuf:"bytes,80,opt,name=instagramThreadLink" json:"instagramThreadLink,omitempty"`
 	AiProvenance                       *waAICommon.AIProvenance                    `protobuf:"bytes,81,opt,name=aiProvenance" json:"aiProvenance,omitempty"`
 	ExperienceIDs                      []uint32                                    `protobuf:"varint,82,rep,packed,name=experienceIDs" json:"experienceIDs,omitempty"`
+	PartnerDeepLinkToken               *string                                     `protobuf:"bytes,83,opt,name=partnerDeepLinkToken" json:"partnerDeepLinkToken,omitempty"`
 	unknownFields                      protoimpl.UnknownFields
 	sizeCache                          protoimpl.SizeCache
 }
@@ -9995,6 +10004,13 @@ func (x *ContextInfo) GetExperienceIDs() []uint32 {
 		return x.ExperienceIDs
 	}
 	return nil
+}
+
+func (x *ContextInfo) GetPartnerDeepLinkToken() string {
+	if x != nil && x.PartnerDeepLinkToken != nil {
+		return *x.PartnerDeepLinkToken
+	}
+	return ""
 }
 
 type MessageAssociation struct {
@@ -11856,6 +11872,7 @@ type MessageHistoryMetadata struct {
 	MessageCount                   *int64                 `protobuf:"varint,3,opt,name=messageCount" json:"messageCount,omitempty"`
 	NonHistoryReceivers            []string               `protobuf:"bytes,4,rep,name=nonHistoryReceivers" json:"nonHistoryReceivers,omitempty"`
 	OldestMessageTimestampInBundle *int64                 `protobuf:"varint,5,opt,name=oldestMessageTimestampInBundle" json:"oldestMessageTimestampInBundle,omitempty"`
+	IncludesChatTheme              *bool                  `protobuf:"varint,6,opt,name=includesChatTheme" json:"includesChatTheme,omitempty"`
 	unknownFields                  protoimpl.UnknownFields
 	sizeCache                      protoimpl.SizeCache
 }
@@ -11923,6 +11940,13 @@ func (x *MessageHistoryMetadata) GetOldestMessageTimestampInBundle() int64 {
 		return *x.OldestMessageTimestampInBundle
 	}
 	return 0
+}
+
+func (x *MessageHistoryMetadata) GetIncludesChatTheme() bool {
+	if x != nil && x.IncludesChatTheme != nil {
+		return *x.IncludesChatTheme
+	}
+	return false
 }
 
 type HistoryShareMessageEntry struct {
@@ -25488,7 +25512,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\x12\n" +
 	"\x0eCONTROL_PASSED\x10\x01\x12\x11\n" +
 	"\rCONTROL_TAKEN\x10\x02\x12\b\n" +
-	"\x04INFO\x10\x03\"\xa4\f\n" +
+	"\x04INFO\x10\x03\"\xd0\f\n" +
 	"\fVideoMessage\x12\x10\n" +
 	"\x03URL\x18\x01 \x01(\tR\x03URL\x12\x1a\n" +
 	"\bmimetype\x18\x02 \x01(\tR\bmimetype\x12\x1e\n" +
@@ -25527,7 +25551,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x1fmotionPhotoPresentationOffsetMS\x18\x1d \x01(\x04R\x1fmotionPhotoPresentationOffsetMS\x12 \n" +
 	"\vmetadataURL\x18\x1e \x01(\tR\vmetadataURL\x12Y\n" +
 	"\x0fvideoSourceType\x18\x1f \x01(\x0e2/.WAWebProtobufsE2E.VideoMessage.VideoSourceTypeR\x0fvideoSourceType\x12(\n" +
-	"\x0fdashManifestURL\x18! \x01(\tR\x0fdashManifestURL\"3\n" +
+	"\x0fdashManifestURL\x18! \x01(\tR\x0fdashManifestURL\x12*\n" +
+	"\x10smartThumbnailTS\x18\" \x01(\x03R\x10smartThumbnailTS\"3\n" +
 	"\x0fVideoSourceType\x12\x0e\n" +
 	"\n" +
 	"USER_VIDEO\x10\x00\x12\x10\n" +
@@ -25713,7 +25738,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"USER_IMAGE\x10\x00\x12\x10\n" +
 	"\fAI_GENERATED\x10\x01\x12\x0f\n" +
 	"\vAI_MODIFIED\x10\x02\x12\x1a\n" +
-	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\x9eO\n" +
+	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xd2O\n" +
 	"\vContextInfo\x12\x1a\n" +
 	"\bstanzaID\x18\x01 \x01(\tR\bstanzaID\x12 \n" +
 	"\vparticipant\x18\x02 \x01(\tR\vparticipant\x12@\n" +
@@ -25787,7 +25812,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x0eposterStatusID\x18O \x01(\tR\x0eposterStatusID\x12d\n" +
 	"\x13instagramThreadLink\x18P \x01(\v22.WAWebProtobufsE2E.ContextInfo.InstagramThreadLinkR\x13instagramThreadLink\x12H\n" +
 	"\faiProvenance\x18Q \x01(\v2$.WAWebProtobufsAICommon.AIProvenanceR\faiProvenance\x12(\n" +
-	"\rexperienceIDs\x18R \x03(\rB\x02\x10\x01R\rexperienceIDs\x1a\xd5\n" +
+	"\rexperienceIDs\x18R \x03(\rB\x02\x10\x01R\rexperienceIDs\x122\n" +
+	"\x14partnerDeepLinkToken\x18S \x01(\tR\x14partnerDeepLinkToken\x1a\xd5\n" +
 	"\n" +
 	"\x18BusinessInteractionPills\x12 \n" +
 	"\vbusinessJID\x18\x01 \x01(\tR\vbusinessJID\x12R\n" +
@@ -26274,13 +26300,14 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\fAlbumMessage\x12.\n" +
 	"\x12expectedImageCount\x18\x02 \x01(\rR\x12expectedImageCount\x12.\n" +
 	"\x12expectedVideoCount\x18\x03 \x01(\rR\x12expectedVideoCount\x12@\n" +
-	"\vcontextInfo\x18\x11 \x01(\v2\x1e.WAWebProtobufsE2E.ContextInfoR\vcontextInfo\"\xaa\x02\n" +
+	"\vcontextInfo\x18\x11 \x01(\v2\x1e.WAWebProtobufsE2E.ContextInfoR\vcontextInfo\"\xd8\x02\n" +
 	"\x16MessageHistoryMetadata\x12*\n" +
 	"\x10historyReceivers\x18\x01 \x03(\tR\x10historyReceivers\x12F\n" +
 	"\x1eoldestMessageTimestampInWindow\x18\x02 \x01(\x03R\x1eoldestMessageTimestampInWindow\x12\"\n" +
 	"\fmessageCount\x18\x03 \x01(\x03R\fmessageCount\x120\n" +
 	"\x13nonHistoryReceivers\x18\x04 \x03(\tR\x13nonHistoryReceivers\x12F\n" +
-	"\x1eoldestMessageTimestampInBundle\x18\x05 \x01(\x03R\x1eoldestMessageTimestampInBundle\"f\n" +
+	"\x1eoldestMessageTimestampInBundle\x18\x05 \x01(\x03R\x1eoldestMessageTimestampInBundle\x12,\n" +
+	"\x11includesChatTheme\x18\x06 \x01(\bR\x11includesChatTheme\"f\n" +
 	"\x18HistoryShareMessageEntry\x12\x1a\n" +
 	"\bstanzaID\x18\x01 \x01(\tR\bstanzaID\x12.\n" +
 	"\x12messageSecretProof\x18\x02 \x01(\fR\x12messageSecretProof\"\xd8\x01\n" +
