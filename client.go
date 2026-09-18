@@ -180,6 +180,20 @@ type Client struct {
 	// If false, decrypting a message from untrusted devices will fail.
 	AutoTrustIdentity bool
 
+	// SkipStatusBroadcasts makes the client ack and discard incoming status
+	// broadcasts (JID status@broadcast) without attempting to decrypt them.
+	//
+	// Status broadcasts are frequently undecryptable on a companion device,
+	// which is not a problem in itself, but the decryption attempt and the
+	// retry receipt that follows are the slowest part of handling such a node.
+	// Because nodes are handled in order, a client that does not care about
+	// other people's statuses still pays that cost for every one of them, and
+	// real messages queue up behind it.
+	//
+	// Set this if the client never reads status broadcasts. Outgoing statuses
+	// sent by this account are unaffected, as are status nodes from newsletters.
+	SkipStatusBroadcasts bool
+
 	// Should SubscribePresence return an error if no privacy token is stored for the user?
 	ErrorOnSubscribePresenceWithoutToken bool
 
