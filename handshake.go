@@ -98,6 +98,9 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	} else {
 		clientPayload = cli.Store.GetClientPayload()
 	}
+	if clientPayload == nil {
+		return nil, fmt.Errorf("got nil client payload")
+	}
 
 	clientFinishPayloadBytes, err := proto.Marshal(clientPayload)
 	if err != nil {
