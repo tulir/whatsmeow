@@ -156,8 +156,14 @@ func (cli *Client) DownloadThumbnail(ctx context.Context, msg DownloadableThumbn
 	if !ok {
 		return nil, fmt.Errorf("%w '%s'", ErrUnknownMediaType, string(msg.ProtoReflect().Descriptor().Name()))
 	} else if len(msg.GetThumbnailDirectPath()) > 0 {
+		encSHA256 := msg.GetThumbnailEncSHA256()
+		mediaKey := msg.GetMediaKey()
+		// TODO more proper check for unencrypted media? (also Download and DownloadToFile)
+		if encSHA256 == nil && mediaKey != nil {
+			mediaKey = nil
+		}
 		return cli.DownloadMediaWithPath(
-			ctx, msg.GetThumbnailDirectPath(), msg.GetThumbnailEncSHA256(), msg.GetThumbnailSHA256(), msg.GetMediaKey(),
+			ctx, msg.GetThumbnailDirectPath(), encSHA256, msg.GetThumbnailSHA256(), mediaKey,
 			mediaType, mediaTypeToMMSType[mediaType], false,
 		)
 	} else {
@@ -216,8 +222,14 @@ func (cli *Client) Download(ctx context.Context, msg DownloadableMessage) ([]byt
 	if len(msg.GetDirectPath()) == 0 {
 		return nil, ErrNoURLPresent
 	}
+	encSHA256 := msg.GetFileEncSHA256()
+	mediaKey := msg.GetMediaKey()
+	// TODO more proper check for unencrypted media? (also DownloadToFile)
+	if encSHA256 == nil && mediaKey != nil {
+		mediaKey = nil
+	}
 	return cli.DownloadMediaWithPath(
-		ctx, msg.GetDirectPath(), msg.GetFileEncSHA256(), msg.GetFileSHA256(), msg.GetMediaKey(),
+		ctx, msg.GetDirectPath(), encSHA256, msg.GetFileSHA256(), mediaKey,
 		mediaType, mediaTypeToMMSType[mediaType], false,
 	)
 }
@@ -349,16 +361,18 @@ func (cli *Client) downloadPossiblyEncryptedMediaWithRetries(ctx context.Context
 }
 
 func (cli *Client) doMediaDownloadRequest(ctx context.Context, url string) (*http.Response, error) {
+	if cli == nil {
+		return nil, ErrClientIsNil
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare request: %w", err)
 	}
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
-	if cli.MessengerConfig != nil {
-		req.Header.Set("User-Agent", cli.MessengerConfig.UserAgent)
+	if userAgent := cli.getUserAgent(); userAgent != "" {
+		req.Header.Set("User-Agent", cli.getUserAgent())
 	}
-	// TODO user agent for whatsapp downloads?
 	resp, err := cli.mediaHTTP.Do(req)
 	if err != nil {
 		return nil, err

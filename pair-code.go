@@ -133,12 +133,12 @@ func (cli *Client) PairPhone(ctx context.Context, phone string, showPushNotifica
 	if !ok {
 		return "", fmt.Errorf("unexpected type %T in content of link_code_pairing_ref tag", pairingRefNode.Content)
 	}
-	cli.phoneLinkingCache = &phoneLinkingCache{
+	cli.phoneLinkingCache.Store(&phoneLinkingCache{
 		jid:         jid,
 		keyPair:     ephemeralKeyPair,
 		linkingCode: encodedLinkingCode,
 		pairingRef:  string(pairingRef),
-	}
+	})
 	return encodedLinkingCode[0:4] + "-" + encodedLinkingCode[4:], nil
 }
 
@@ -157,10 +157,11 @@ func (cli *Client) handleCodePairNotification(ctx context.Context, parentNode *w
 			In:  "notification",
 		}
 	}
-	linkCache := cli.phoneLinkingCache
+	linkCache := cli.phoneLinkingCache.Load()
 	if linkCache == nil {
 		return fmt.Errorf("received code pair notification without a pending pairing")
 	}
+	cli.paired.Store(false)
 	linkCodePairingRef, _ := node.GetChildByTag("link_code_pairing_ref").Content.([]byte)
 	if string(linkCodePairingRef) != linkCache.pairingRef {
 		return fmt.Errorf("pairing ref mismatch in code pair notification")

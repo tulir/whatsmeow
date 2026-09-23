@@ -896,6 +896,9 @@ func (s *SQLStore) PutMessageSecrets(ctx context.Context, inserts []store.Messag
 	}
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		for _, insert := range inserts {
+			if insert.Chat.IsEmpty() || insert.Sender.IsEmpty() || insert.ID == "" || len(insert.Secret) == 0 {
+				continue
+			}
 			_, err = s.db.Exec(ctx, putMsgSecret, s.JID, insert.Chat.ToNonAD(), insert.Sender.ToNonAD(), insert.ID, insert.Secret)
 			if err != nil {
 				return err

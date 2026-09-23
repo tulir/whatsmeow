@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"maps"
 	"time"
 
 	"github.com/beeper/argo-go/codec"
@@ -224,7 +225,7 @@ func (cli *Client) sendMexIQ(ctx context.Context, queryID string, variables any)
 		if err != nil {
 			log.Fatalf("argo to map error: %v", err)
 		}
-		b, err := json.Marshal(data)
+		b, err := json.Marshal(maps.Collect(data.AllFromFront()))
 		if err != nil {
 			return nil, err
 		}

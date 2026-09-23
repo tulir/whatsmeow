@@ -399,12 +399,17 @@ type newsletterEvent struct {
 	// _on_admin_metadata_update -> id, thread_metadata, messages
 	// _on_metadata_update
 	// _on_state_change -> id, is_requestor, state
+	NotifyAccountReachoutTimelock *events.NotifyAccountReachoutTimelock `json:"xwa2_notify_account_reachout_timelock"`
 }
 
 func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Node) {
 	for _, child := range node.GetChildren() {
 		if child.Tag != "update" {
 			continue
+		}
+		mnd := events.MexNotificationData{
+			Timestamp: node.AttrGetter().OptionalUnixTime("t"),
+			OpName:    child.AttrGetter().OptionalString("op_name"),
 		}
 		childData, ok := child.Content.([]byte)
 		if !ok {
@@ -417,11 +422,17 @@ func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Nod
 			continue
 		}
 		if wrapper.Data.Join != nil {
+			wrapper.Data.Join.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.Join)
 		} else if wrapper.Data.Leave != nil {
+			wrapper.Data.Leave.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.Leave)
 		} else if wrapper.Data.MuteChange != nil {
+			wrapper.Data.MuteChange.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.MuteChange)
+		} else if wrapper.Data.NotifyAccountReachoutTimelock != nil {
+			wrapper.Data.NotifyAccountReachoutTimelock.Mex = mnd
+			cli.dispatchEvent(wrapper.Data.NotifyAccountReachoutTimelock)
 		}
 	}
 }
@@ -493,6 +504,18 @@ func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) 
 		cli.handleMexNotification(ctx, node)
 	case "status":
 		cli.handleStatusNotification(ctx, node)
+	case "passkey_prologue_request":
+		cli.handlePasskeyNotification(ctx, node)
+	case "crsc_continuation":
+		go cli.tryHandlePasskeyContinuationNotification(ctx, node)
+	case "companion_reg_refresh":
+		_, refresh := node.GetOptionalChildByTag("companion_reg_refresh")
+		_, rotateQR := node.GetOptionalChildByTag("pair-device-rotate-qr")
+		if refresh || rotateQR {
+			cli.rotateADVSecret(ctx)
+		} else {
+			cli.Log.Debugf("Unrecognized companion reg refresh notification: %s", node)
+		}
 	// Other types: business, disappearing_mode, server, status, pay, psa
 	default:
 		cli.Log.Debugf("Unhandled notification with type %s", notifType)

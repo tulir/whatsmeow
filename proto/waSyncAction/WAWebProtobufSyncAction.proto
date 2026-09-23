@@ -97,9 +97,31 @@ enum MutationProps {
 	THREAD_PIN_ACTION = 85;
 	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = 86;
 	BIZ_AI_SETTINGS_NUDGE_ACTION = 87;
+	COEX_V2_VERSION_ACTION = 88;
+	WASA_ROOT_SECRET_ACTION = 89;
+	BUBBLE_LOCK_MESSAGE_ACTION = 90;
+	LABEL_SUBLIST_ACTION = 91;
+	DEVICE_CAPABILITIES_V2 = 92;
+	CTWA_MESSAGE_RECEIVED_ACTION = 93;
+	SHARED_DEVICE_ALLOWLIST_ACTION = 94;
+	CONTACT_MANAGER_METADATA_ACTION = 95;
+	BUSINESS_FOLDER_ACTIVATION_ACTION = 96;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
+}
+
+enum BusinessBroadcastCampaignBBProStatus {
+	BB_PRO_ACTIVE = 1;
+	BB_PRO_COMPLETED = 2;
+	BB_PRO_IN_DRAFT = 3;
+	BB_PRO_IN_REVIEW = 4;
+	BB_PRO_NOT_SENDING = 5;
+	BB_PRO_OFF = 6;
+	BB_PRO_REJECTED = 7;
+	BB_PRO_SCHEDULED = 8;
+	BB_PRO_SENDING_LIMITED = 9;
+	BB_PRO_PROCESSING = 10;
 }
 
 enum BusinessBroadcastCampaignStatus {
@@ -160,6 +182,22 @@ message CallLogRecord {
 	optional CallType callType = 15;
 }
 
+message WASARootSecretAction {
+	message RootSecretEntry {
+		enum Status {
+			INACTIVE = 0;
+			ACTIVE = 1;
+		}
+
+		optional string ID = 1;
+		optional bytes rootSecret = 2;
+		optional int64 epoch = 3;
+		optional Status status = 4;
+	}
+
+	repeated RootSecretEntry secrets = 1;
+}
+
 message SettingsSyncAction {
 	enum MediaQualitySetting {
 		MEDIA_QUALITY_UNKNOWN = 0;
@@ -209,6 +247,7 @@ message SettingsSyncAction {
 		SHOULD_PLAY_SOUND_FOR_CALL_NOTIFICATION = 31;
 		CHAT_THEME_ID = 32;
 		COLOR_SCHEME_ID = 33;
+		STOCK_WALLPAPER_IMAGE_ID = 34;
 	}
 
 	enum SettingPlatform {
@@ -252,6 +291,7 @@ message SettingsSyncAction {
 	optional bool shouldPlaySoundForCallNotification = 31;
 	optional string chatThemeID = 32;
 	optional string colorSchemeID = 33;
+	optional string stockWallpaperImageID = 34;
 }
 
 message InteractiveMessageAction {
@@ -292,6 +332,7 @@ message BizAISettingsNudgeAction {
 		EXAMPLE_RESPONSES = 3;
 		KNOWLEDGE = 4;
 		LEAD_GEN = 5;
+		HANDOFF_REMOVAL_TIMING = 6;
 	}
 
 	optional BizAISettingsCategory category = 1;
@@ -390,8 +431,8 @@ message StatusPrivacyAction {
 
 	optional StatusDistributionMode mode = 1;
 	repeated string userJID = 2;
-	optional bool shareToFB = 3;
-	optional bool shareToIG = 4;
+	optional bool shareToFb = 3;
+	optional bool shareToIg = 4;
 	repeated CustomList customLists = 5;
 	repeated StatusDistributionMode modes = 6;
 }
@@ -437,6 +478,10 @@ message LabelEditAction {
 		LOCKED = 13;
 		INVITES = 14;
 		THIRD_PARTY = 15;
+		LEAD = 16;
+		MENTIONS_AND_REPLIES = 17;
+		REQUESTS = 18;
+		BUSINESS = 19;
 	}
 
 	optional string name = 1;
@@ -562,6 +607,15 @@ enum MutationName {
 	THREAD_PIN_ACTION = thread_pin;
 	AUTO_ORGANIZE_BUSINESS_CHAT_SETTING = setting_autoOrganizeBusinessChat;
 	BIZ_AI_SETTINGS_NUDGE_ACTION = biz_ai_settings_nudge;
+	COEX_V2_VERSION_ACTION = coexV2Version;
+	WASA_ROOT_SECRET_ACTION = wasa_root_secret;
+	BUBBLE_LOCK_MESSAGE_ACTION = lock_message;
+	LABEL_SUBLIST_ACTION = label_sublist;
+	DEVICE_CAPABILITIES_V2 = device_capabilities_v2;
+	CTWA_MESSAGE_RECEIVED_ACTION = ctwa_message_received;
+	SHARED_DEVICE_ALLOWLIST_ACTION = shared_device_allowlist;
+	CONTACT_MANAGER_METADATA_ACTION = contact_manager_metadata;
+	BUSINESS_FOLDER_ACTIVATION_ACTION = business_folder_activation;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -667,6 +721,27 @@ message SyncActionValue {
 	optional ThreadPinAction threadPinAction = 85;
 	optional AutoOrganizeBusinessChatSetting autoOrganizeBusinessChatSetting = 86;
 	optional BizAISettingsNudgeAction bizAiSettingsNudgeAction = 87;
+	optional CoexV2VersionAction coexV2VersionAction = 88;
+	optional WASARootSecretAction wasaRootSecretAction = 89;
+	optional BubbleLockMessageAction bubbleLockMessageAction = 90;
+	optional LabelSublistAction labelSublistAction = 91;
+	optional WAWebProtobufsDeviceCapabilities.DeviceCapabilities deviceCapabilitiesV2 = 92;
+	optional CtwaMessageReceivedAction ctwaMessageReceivedAction = 93;
+	optional SharedDeviceAllowlistAction sharedDeviceAllowlistAction = 94;
+	optional ContactManagerMetadataAction contactManagerMetadataAction = 95;
+	optional BusinessFolderActivationAction businessFolderActivationAction = 96;
+}
+
+message BusinessFolderActivationAction {
+	optional bool activated = 1;
+}
+
+message CtwaMessageReceivedAction {
+	optional bool isCtwaMessageReceived = 1;
+}
+
+message CoexV2VersionAction {
+	optional uint64 version = 1;
 }
 
 message SubscriptionsSyncV2Action {
@@ -690,6 +765,10 @@ message SubscriptionsSyncV2Action {
 
 	repeated SubscriptionInfo subscriptions = 1;
 	repeated PaidFeature paidFeature = 2;
+}
+
+message ContactManagerMetadataAction {
+	optional bool isHidden = 1;
 }
 
 message CustomerDataAction {
@@ -749,6 +828,8 @@ message BusinessBroadcastCampaignAction {
 	optional int64 scheduledTimestamp = 7;
 	optional int64 createTimestamp = 8;
 	optional BusinessBroadcastCampaignStatus status = 9;
+	optional BusinessBroadcastCampaignBBProStatus bbProStatus = 10;
+	optional string customAudienceFbid = 11;
 }
 
 message BusinessBroadcastListAction {
@@ -757,6 +838,7 @@ message BusinessBroadcastListAction {
 	optional string listName = 3;
 	repeated string labelIDs = 4;
 	optional string audienceExpression = 5;
+	optional string customAudienceFbid = 6;
 }
 
 message BusinessBroadcastAssociationAction {
@@ -796,6 +878,10 @@ message PrivacySettingDisableLinkPreviewsAction {
 
 message WamoUserIdentifierAction {
 	optional string identifier = 1;
+}
+
+message BubbleLockMessageAction {
+	optional bool locked = 1;
 }
 
 message LockChatAction {
@@ -983,6 +1069,10 @@ message RecentEmojiWeightsAction {
 	repeated RecentEmojiWeight weights = 1;
 }
 
+message LabelSublistAction {
+	optional int32 subListID = 1;
+}
+
 message LabelAssociationAction {
 	optional bool labeled = 1;
 	optional string modelMetaData = 2;
@@ -1014,6 +1104,10 @@ message MuteAction {
 	optional int64 muteEndTimestamp = 2;
 	optional bool autoMuted = 3;
 	optional int64 muteEveryoneMentionEndTimestamp = 4;
+}
+
+message SharedDeviceAllowlistAction {
+	optional bool allowed = 1;
 }
 
 message ContactAction {

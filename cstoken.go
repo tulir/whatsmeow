@@ -26,9 +26,6 @@ func (cli *Client) generateCsToken(ctx context.Context, jid types.JID) []byte {
 	if !shouldSendCsToken(jid) {
 		return nil
 	}
-	if cli.Store == nil || cli.Store.NCTSalt == nil {
-		return nil
-	}
 	salt, err := cli.Store.NCTSalt.GetNCTSalt(ctx)
 	if err != nil {
 		cli.Log.Debugf("Failed to load NCT salt for cstoken: %v", err)
@@ -42,9 +39,6 @@ func (cli *Client) generateCsToken(ctx context.Context, jid types.JID) []byte {
 	case types.HiddenUserServer:
 		recipientLID = jid.ToNonAD()
 	case types.DefaultUserServer:
-		if cli.Store == nil || cli.Store.LIDs == nil {
-			return nil
-		}
 		pn := jid.ToNonAD()
 		lid, err := cli.Store.LIDs.GetLIDForPN(ctx, pn)
 		if err != nil {
@@ -69,18 +63,18 @@ func (cli *Client) generateCsToken(ctx context.Context, jid types.JID) []byte {
 }
 
 func (cli *Client) storeNCTSalt(ctx context.Context, salt []byte) error {
-	if cli.Store == nil || cli.Store.NCTSalt == nil {
-		return nil
-	}
 	if len(salt) == 0 {
 		return nil
 	}
-	return cli.Store.NCTSalt.PutNCTSalt(ctx, salt)
+	err := cli.Store.NCTSalt.PutNCTSalt(ctx, salt)
+	if err != nil {
+		return err
+	}
+	cli.Log.Debugf("Stored new NCT salt")
+	return nil
 }
 
 func (cli *Client) clearNCTSalt(ctx context.Context) error {
-	if cli.Store == nil || cli.Store.NCTSalt == nil {
-		return nil
-	}
+	cli.Log.Debugf("Clearing NCT salt")
 	return cli.Store.NCTSalt.DeleteNCTSalt(ctx)
 }

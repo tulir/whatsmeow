@@ -70,13 +70,16 @@ const (
 	EditTypeFirst BotEditType = "first"
 	EditTypeInner BotEditType = "inner"
 	EditTypeLast  BotEditType = "last"
+	EditTypeFull  BotEditType = "full"
 )
 
-// MsgBotInfo targets <bot>
 type MsgBotInfo struct {
 	EditType              BotEditType
 	EditTargetID          MessageID
 	EditSenderTimestampMS time.Time
+
+	// For messages sent to bots
+	ClientThreadID string
 }
 
 // MsgMetaInfo targets <meta>
@@ -107,6 +110,8 @@ type MessageInfo struct {
 
 	MsgBotInfo  MsgBotInfo
 	MsgMetaInfo MsgMetaInfo
+
+	IsNewsletterStatus bool
 
 	VerifiedName   *VerifiedName
 	DeviceSentMeta *DeviceSentMeta // Metadata for direct messages sent from another one of the user's own devices.

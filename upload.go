@@ -178,6 +178,10 @@ func (cli *Client) UploadNewsletterReader(ctx context.Context, data io.ReadSeeke
 	hasher := sha256.New()
 	var fileLength int64
 	fileLength, err = io.Copy(hasher, data)
+	if err != nil {
+		err = fmt.Errorf("failed to hash data: %w", err)
+		return
+	}
 	resp.FileLength = uint64(fileLength)
 	resp.FileSHA256 = hasher.Sum(nil)
 	_, err = data.Seek(0, io.SeekStart)
@@ -255,6 +259,9 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, upload
 //
 // This is only used for things like history syncs, which should be deleted after processing.
 func (cli *Client) DeleteMedia(ctx context.Context, appInfo MediaType, directPath string, encFileHash []byte, encHandle string) error {
+	if directPath == "" {
+		return nil
+	}
 	mediaConn, err := cli.refreshMediaConn(ctx, false)
 	if err != nil {
 		return fmt.Errorf("failed to refresh media connections: %w", err)
@@ -288,8 +295,9 @@ func (cli *Client) DeleteMedia(ctx context.Context, appInfo MediaType, directPat
 
 	req.Header.Set("Origin", socket.Origin)
 	req.Header.Set("Referer", socket.Origin+"/")
-	// TODO non-on-demand backfills may require this? it's in the initial bootstrap payload and may need to be persisted
-	//req.Header.Set("Companion_User_Secret", companionMetaNonce)
+	if cmn := cli.Store.CompanionMetaNonce; cmn != "" && encHandle != "" {
+		req.Header.Set("Companion_User_Secret", cli.Store.CompanionMetaNonce)
+	}
 
 	httpResp, err := cli.mediaHTTP.Do(req)
 	if err != nil {

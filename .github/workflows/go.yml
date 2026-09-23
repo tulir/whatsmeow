@@ -11,14 +11,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ["1.25", "1.26"]
-    name: Build ${{ matrix.go-version == '1.26' && '(latest)' || '(old)' }}
+        go-version: ["1.26", "1.27"]
+    name: Build ${{ matrix.go-version == '1.27' && '(latest)' || '(old)' }}
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
 
     - name: Set up Go
-      uses: actions/setup-go@v6
+      uses: actions/setup-go@v7
       with:
         go-version: ${{ matrix.go-version }}
 
@@ -28,10 +28,14 @@ jobs:
     - name: Test
       run: go test -v ./...
 
-    - name: Install goimports
+    - name: Install dependencies
       run: |
         go install golang.org/x/tools/cmd/goimports@latest
+        go install honnef.co/go/tools/cmd/staticcheck@latest
         export PATH="$HOME/go/bin:$PATH"
 
     - name: Run pre-commit
       uses: pre-commit/action@v3.0.1
+      env:
+        # go 1.26's formatter doesn't agree with 1.27 on some things
+        SKIP: ${{ matrix.go-version == '1.26' && 'go-imports-repo' || '' }}

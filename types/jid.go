@@ -45,6 +45,7 @@ var (
 	OfficialBusinessJID = NewJID("16505361212", LegacyUserServer)
 	MetaAIJID           = NewJID("13135550002", DefaultUserServer)
 	NewMetaAIJID        = NewJID("867051314767696", BotServer)
+	MuseJID             = NewJID("1807055946647697", BotServer) // Also known as "hatch"
 )
 
 var (
@@ -142,9 +143,10 @@ func NewADJID(user string, agent, device uint8) JID {
 	case HostedLIDDomain:
 		server = HostedLIDServer
 		agent = 0
-	default:
 	case WhatsAppDomain:
-		server = DefaultUserServer // will just default to the normal server
+		fallthrough
+	default:
+		server = DefaultUserServer
 	}
 	return JID{
 		User:     user,
@@ -214,7 +216,9 @@ func (jid JID) ADString() string {
 // String converts the JID to a string representation.
 // The output string can be parsed with ParseJID.
 func (jid JID) String() string {
-	if jid.RawAgent > 0 {
+	if jid.Server == "" {
+		return ""
+	} else if jid.RawAgent > 0 {
 		return fmt.Sprintf("%s.%d:%d@%s", jid.User, jid.RawAgent, jid.Device, jid.Server)
 	} else if jid.Device > 0 {
 		return fmt.Sprintf("%s:%d@%s", jid.User, jid.Device, jid.Server)
@@ -243,6 +247,10 @@ func (jid *JID) UnmarshalText(val []byte) error {
 // IsEmpty returns true if the JID has no server (which is required for all JIDs).
 func (jid JID) IsEmpty() bool {
 	return len(jid.Server) == 0
+}
+
+func (jid JID) IsZero() bool {
+	return jid.IsEmpty()
 }
 
 var _ sql.Scanner = (*JID)(nil)

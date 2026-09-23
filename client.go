@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"maps"
 	"net"
 	"net/http"
 	"net/url"
@@ -65,11 +66,13 @@ type Client struct {
 	recvLog waLog.Logger
 	sendLog waLog.Logger
 
-	socket     *socket.NoiseSocket
-	socketLock sync.RWMutex
-	socketWait chan struct{}
+	socket           *socket.NoiseSocket
+	socketLock       sync.RWMutex
+	socketWait       chan struct{}
+	handlerQueueWait chan struct{}
 
 	isLoggedIn            atomic.Bool
+	paired                atomic.Bool
 	expectedDisconnect    *exsync.Event
 	forceAutoReconnect    atomic.Bool
 	EnableAutoReconnect   bool
@@ -115,7 +118,6 @@ type Client struct {
 	responseWaitersLock sync.Mutex
 
 	nodeHandlers      map[string]nodeHandler
-	handlerQueue      chan *waBinary.Node
 	eventHandlers     []wrappedEventHandler
 	eventHandlersLock sync.RWMutex
 
@@ -185,7 +187,10 @@ type Client struct {
 
 	BackgroundEventCtx context.Context
 
-	phoneLinkingCache *phoneLinkingCache
+	phoneLinkingCache    atomic.Pointer[phoneLinkingCache]
+	passkeyLinkingCache  atomic.Pointer[passkeyLinkingCache]
+	passkeyHandoffKey    atomic.Pointer[passkeyHandoffKey]
+	passkeySkipHandoffUX atomic.Bool
 
 	uniqueID  string
 	idCounter atomic.Uint64
@@ -203,6 +208,9 @@ type Client struct {
 	// The library is currently embedded in mautrix-meta (https://github.com/mautrix/meta), but may be separated later.
 	MessengerConfig *MessengerConfig
 	RefreshCAT      func(context.Context) error
+	// The user agent to use (for non-Messenger connections).
+	UserAgent        string
+	WebSocketHeaders http.Header
 }
 
 type groupMetaCache struct {
@@ -257,7 +265,6 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		responseWaiters:    make(map[string]chan<- *waBinary.Node),
 		eventHandlers:      make([]wrappedEventHandler, 0, 1),
 		messageRetries:     make(map[string]int),
-		handlerQueue:       make(chan *waBinary.Node, handlerQueueSize),
 		appStateProc:       appstate.NewProcessor(deviceStore, log.Sub("AppState")),
 		socketWait:         make(chan struct{}),
 		expectedDisconnect: exsync.NewEvent(),
@@ -281,9 +288,14 @@ func NewClient(deviceStore *store.Device, log waLog.Logger) *Client {
 		AutoTrustIdentity:   true,
 
 		BackgroundEventCtx: context.Background(),
+
+		UserAgent:        "",
+		WebSocketHeaders: http.Header{},
 	}
+	cli.paired.Store(deviceStore.ID != nil)
 	cli.nodeHandlers = map[string]nodeHandler{
 		"message":      cli.handleEncryptedMessage,
+		"status":       cli.handleUnencryptedMessage,
 		"appdata":      cli.handleEncryptedMessage,
 		"receipt":      cli.handleReceipt,
 		"call":         cli.handleCallEvent,
@@ -452,6 +464,13 @@ func (cli *Client) getOwnLID() types.JID {
 	return cli.Store.GetLID()
 }
 
+func (cli *Client) getUserAgent() string {
+	if cli.MessengerConfig != nil {
+		return cli.MessengerConfig.UserAgent
+	}
+	return cli.UserAgent
+}
+
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	if cli == nil {
 		return false
@@ -541,25 +560,26 @@ func (cli *Client) unlockedConnect(ctx context.Context) error {
 		client = cli.preLoginHTTP
 	}
 	fs := socket.NewFrameSocket(cli.Log.Sub("Socket"), client)
+	if userAgent := cli.getUserAgent(); userAgent != "" {
+		fs.HTTPHeaders.Set("User-Agent", userAgent)
+	}
 	if cli.MessengerConfig != nil {
 		fs.URL = cli.MessengerConfig.WebsocketURL
 		fs.HTTPHeaders.Set("Origin", cli.MessengerConfig.BaseURL)
-		fs.HTTPHeaders.Set("User-Agent", cli.MessengerConfig.UserAgent)
-		fs.HTTPHeaders.Set("Cache-Control", "no-cache")
-		fs.HTTPHeaders.Set("Pragma", "no-cache")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Dest", "empty")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Mode", "websocket")
-		//fs.HTTPHeaders.Set("Sec-Fetch-Site", "cross-site")
 	}
+	var queue chan *waBinary.Node
+	maps.Copy(fs.HTTPHeaders, cli.WebSocketHeaders)
 	if err := fs.Connect(ctx); err != nil {
 		fs.Close(0)
 		return err
-	} else if err = cli.doHandshake(ctx, fs, *keys.NewKeyPair()); err != nil {
+	} else if queue, err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
 		fs.Close(0)
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
+	closeWait := make(chan struct{})
+	cli.handlerQueueWait = closeWait
 	go cli.keepAliveLoop(ctx, fs.Context())
-	go cli.handlerQueueLoop(ctx, fs.Context())
+	go cli.handlerQueueLoop(ctx, fs.Context(), queue, closeWait)
 	return nil
 }
 
@@ -607,6 +627,7 @@ func (cli *Client) autoReconnect(ctx context.Context) {
 	if !cli.EnableAutoReconnect || cli.Store.ID == nil {
 		return
 	}
+	// TODO wait for handler queue to close here?
 	for {
 		autoReconnectDelay := time.Duration(cli.AutoReconnectErrors) * 2 * time.Second
 		cli.Log.Debugf("Automatically reconnecting after %v", autoReconnectDelay)
@@ -686,6 +707,14 @@ func (cli *Client) unlockedDisconnect() {
 		cli.socket.Stop(true, false)
 		cli.socket = nil
 		cli.clearResponseWaiters(xmlStreamEndNode)
+	}
+	if cli.handlerQueueWait != nil {
+		select {
+		case <-cli.handlerQueueWait:
+			cli.handlerQueueWait = nil
+		case <-time.After(5 * time.Second):
+			cli.Log.Warnf("Handler queue wait channel not closed after 5 seconds")
+		}
 	}
 }
 
@@ -814,7 +843,13 @@ func (cli *Client) RemoveEventHandlers() {
 	cli.eventHandlersLock.Unlock()
 }
 
-func (cli *Client) handleFrame(ctx context.Context, data []byte) {
+func (cli *Client) makeFrameHandler(queue chan *waBinary.Node) func(ctx context.Context, data []byte) {
+	return func(ctx context.Context, data []byte) {
+		cli.handleFrame(ctx, data, queue)
+	}
+}
+
+func (cli *Client) handleFrame(ctx context.Context, data []byte, queue chan *waBinary.Node) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
 		cli.Log.Warnf("Failed to decompress frame: %v", err)
@@ -837,13 +872,13 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 		// handled
 	} else if _, ok := cli.nodeHandlers[node.Tag]; ok {
 		select {
-		case cli.handlerQueue <- node:
+		case queue <- node:
 		case <-ctx.Done():
 		default:
 			cli.Log.Warnf("Handler queue is full, message ordering is no longer guaranteed")
 			go func() {
 				select {
-				case cli.handlerQueue <- node:
+				case queue <- node:
 				case <-ctx.Done():
 				}
 			}()
@@ -853,14 +888,35 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte) {
 	}
 }
 
-func (cli *Client) handlerQueueLoop(evtCtx, connCtx context.Context) {
+func (cli *Client) handlerQueueLoop(evtCtx, connCtx context.Context, queue chan *waBinary.Node, closeWait chan struct{}) {
 	ticker := time.NewTicker(30 * time.Second)
 	ticker.Stop()
 	cli.Log.Debugf("Starting handler queue loop")
+	defer func() {
+	Loop:
+		for {
+			select {
+			case node := <-queue:
+				// Make sure stream errors are handled even after disconnection so the appropriate auto-reconnect is done.
+				// Everything else
+				if node.Tag == "stream:error" {
+					cli.Log.Debugf("Handling stream:error node in handler queue loop after context cancellation")
+					cli.handleStreamError(evtCtx, node)
+				}
+			default:
+				break Loop
+			}
+		}
+		close(closeWait)
+	}()
 Loop:
 	for {
 		select {
-		case node := <-cli.handlerQueue:
+		case node := <-queue:
+			if connCtx.Err() != nil {
+				cli.Log.Debugf("Closing handler queue loop before node handling")
+				return
+			}
 			doneChan := make(chan struct{})
 			start := time.Now()
 			go func() {
@@ -872,11 +928,15 @@ Loop:
 				}
 			}()
 			ticker.Reset(30 * time.Second)
-			for i := 0; i < 10; i++ {
+			for range 10 {
 				select {
 				case <-doneChan:
 					ticker.Stop()
 					continue Loop
+				case <-connCtx.Done():
+					ticker.Stop()
+					cli.Log.Warnf("Closing handler queue loop in the middle of handling %s", node)
+					return
 				case <-ticker.C:
 					cli.Log.Warnf("Node handling is taking long for %s (started %s ago)", node, time.Since(start))
 				}
@@ -963,7 +1023,11 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 		if webMsg.GetOriginalSelfAuthorUserJIDString() != "" {
 			info.Sender, err = types.ParseJID(webMsg.GetOriginalSelfAuthorUserJIDString())
 		} else {
-			info.Sender = cli.getOwnID().ToNonAD()
+			if info.Chat.Server == types.HiddenUserServer {
+				info.Sender = cli.getOwnLID().ToNonAD()
+			} else {
+				info.Sender = cli.getOwnID().ToNonAD()
+			}
 			if info.Sender.IsEmpty() {
 				return nil, ErrNotLoggedIn
 			}

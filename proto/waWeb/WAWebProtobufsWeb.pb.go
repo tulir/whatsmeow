@@ -316,6 +316,18 @@ const (
 	WebMessageInfo_GROUP_TEE_BOT_ADDED                                      WebMessageInfo_StubType = 223
 	WebMessageInfo_CONTACT_INFO                                             WebMessageInfo_StubType = 224
 	WebMessageInfo_SCHEDULED_MESSAGE_CREATED                                WebMessageInfo_StubType = 225
+	WebMessageInfo_IDENTITY_TRUST_MARKED                                    WebMessageInfo_StubType = 226
+	WebMessageInfo_IDENTITY_TRUST_UNMARKED                                  WebMessageInfo_StubType = 227
+	WebMessageInfo_IDENTITY_TRUST_REVOKED                                   WebMessageInfo_StubType = 228
+	WebMessageInfo_CTWA_CONSUMER_DISCLOSURE                                 WebMessageInfo_StubType = 230
+	WebMessageInfo_CHANGE_ACP2_SETTING                                      WebMessageInfo_StubType = 240
+	WebMessageInfo_BIZ_CALLBACK_ENABLED                                     WebMessageInfo_StubType = 247
+	WebMessageInfo_EPHEMERAL_CHANGED_FOR_COEX                               WebMessageInfo_StubType = 248
+	WebMessageInfo_UGC_BOT_PROFILE_UPDATED                                  WebMessageInfo_StubType = 249
+	WebMessageInfo_ORDER_EPHEMERAL_EXEMPTION                                WebMessageInfo_StubType = 250
+	WebMessageInfo_CAMEO_CHAT_CREATED                                       WebMessageInfo_StubType = 254
+	WebMessageInfo_CAMEO_TRANSITIONED                                       WebMessageInfo_StubType = 256
+	WebMessageInfo_SENDER_SIDE_CONTACT_INFO                                 WebMessageInfo_StubType = 255
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -547,6 +559,18 @@ var (
 		223: "GROUP_TEE_BOT_ADDED",
 		224: "CONTACT_INFO",
 		225: "SCHEDULED_MESSAGE_CREATED",
+		226: "IDENTITY_TRUST_MARKED",
+		227: "IDENTITY_TRUST_UNMARKED",
+		228: "IDENTITY_TRUST_REVOKED",
+		230: "CTWA_CONSUMER_DISCLOSURE",
+		240: "CHANGE_ACP2_SETTING",
+		247: "BIZ_CALLBACK_ENABLED",
+		248: "EPHEMERAL_CHANGED_FOR_COEX",
+		249: "UGC_BOT_PROFILE_UPDATED",
+		250: "ORDER_EPHEMERAL_EXEMPTION",
+		254: "CAMEO_CHAT_CREATED",
+		256: "CAMEO_TRANSITIONED",
+		255: "SENDER_SIDE_CONTACT_INFO",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -775,6 +799,18 @@ var (
 		"GROUP_TEE_BOT_ADDED":                                      223,
 		"CONTACT_INFO":                                             224,
 		"SCHEDULED_MESSAGE_CREATED":                                225,
+		"IDENTITY_TRUST_MARKED":                                    226,
+		"IDENTITY_TRUST_UNMARKED":                                  227,
+		"IDENTITY_TRUST_REVOKED":                                   228,
+		"CTWA_CONSUMER_DISCLOSURE":                                 230,
+		"CHANGE_ACP2_SETTING":                                      240,
+		"BIZ_CALLBACK_ENABLED":                                     247,
+		"EPHEMERAL_CHANGED_FOR_COEX":                               248,
+		"UGC_BOT_PROFILE_UPDATED":                                  249,
+		"ORDER_EPHEMERAL_EXEMPTION":                                250,
+		"CAMEO_CHAT_CREATED":                                       254,
+		"CAMEO_TRANSITIONED":                                       256,
+		"SENDER_SIDE_CONTACT_INFO":                                 255,
 	}
 )
 
@@ -2990,10 +3026,11 @@ func (x *NotificationMessageInfo) GetParticipant() string {
 }
 
 type ReportingTokenInfo struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ReportingTag  []byte                 `protobuf:"bytes,1,opt,name=reportingTag" json:"reportingTag,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	ReportingTag          []byte                 `protobuf:"bytes,1,opt,name=reportingTag" json:"reportingTag,omitempty"`
+	ReportingTagTimestamp *uint64                `protobuf:"varint,2,opt,name=reportingTagTimestamp" json:"reportingTagTimestamp,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *ReportingTokenInfo) Reset() {
@@ -3031,6 +3068,13 @@ func (x *ReportingTokenInfo) GetReportingTag() []byte {
 		return x.ReportingTag
 	}
 	return nil
+}
+
+func (x *ReportingTokenInfo) GetReportingTagTimestamp() uint64 {
+	if x != nil && x.ReportingTagTimestamp != nil {
+		return *x.ReportingTagTimestamp
+	}
+	return 0
 }
 
 type MediaData struct {
@@ -4205,7 +4249,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xac^\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\x87a\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4290,7 +4334,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\x83<\n" +
+	"BSP_AND_FB\x10\x03\"\xde>\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4521,7 +4565,19 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x14GROUP_OPEN_BOT_ADDED\x10\xde\x01\x12\x18\n" +
 	"\x13GROUP_TEE_BOT_ADDED\x10\xdf\x01\x12\x11\n" +
 	"\fCONTACT_INFO\x10\xe0\x01\x12\x1e\n" +
-	"\x19SCHEDULED_MESSAGE_CREATED\x10\xe1\x01\"X\n" +
+	"\x19SCHEDULED_MESSAGE_CREATED\x10\xe1\x01\x12\x1a\n" +
+	"\x15IDENTITY_TRUST_MARKED\x10\xe2\x01\x12\x1c\n" +
+	"\x17IDENTITY_TRUST_UNMARKED\x10\xe3\x01\x12\x1b\n" +
+	"\x16IDENTITY_TRUST_REVOKED\x10\xe4\x01\x12\x1d\n" +
+	"\x18CTWA_CONSUMER_DISCLOSURE\x10\xe6\x01\x12\x18\n" +
+	"\x13CHANGE_ACP2_SETTING\x10\xf0\x01\x12\x19\n" +
+	"\x14BIZ_CALLBACK_ENABLED\x10\xf7\x01\x12\x1f\n" +
+	"\x1aEPHEMERAL_CHANGED_FOR_COEX\x10\xf8\x01\x12\x1c\n" +
+	"\x17UGC_BOT_PROFILE_UPDATED\x10\xf9\x01\x12\x1e\n" +
+	"\x19ORDER_EPHEMERAL_EXEMPTION\x10\xfa\x01\x12\x17\n" +
+	"\x12CAMEO_CHAT_CREATED\x10\xfe\x01\x12\x17\n" +
+	"\x12CAMEO_TRANSITIONED\x10\x80\x02\x12\x1d\n" +
+	"\x18SENDER_SIDE_CONTACT_INFO\x10\xff\x01\"X\n" +
 	"\x06Status\x12\t\n" +
 	"\x05ERROR\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0e\n" +
@@ -4709,9 +4765,10 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
 	"\x10messageTimestamp\x18\x03 \x01(\x04R\x10messageTimestamp\x12 \n" +
-	"\vparticipant\x18\x04 \x01(\tR\vparticipant\"8\n" +
+	"\vparticipant\x18\x04 \x01(\tR\vparticipant\"n\n" +
 	"\x12ReportingTokenInfo\x12\"\n" +
-	"\freportingTag\x18\x01 \x01(\fR\freportingTag\")\n" +
+	"\freportingTag\x18\x01 \x01(\fR\freportingTag\x124\n" +
+	"\x15reportingTagTimestamp\x18\x02 \x01(\x04R\x15reportingTagTimestamp\")\n" +
 	"\tMediaData\x12\x1c\n" +
 	"\tlocalPath\x18\x01 \x01(\tR\tlocalPath\"e\n" +
 	"\vPhotoChange\x12\x1a\n" +

@@ -92,7 +92,6 @@ func (cli *Client) uploadPreKeys(ctx context.Context, initialUpload bool) {
 		return
 	}
 	cli.lastPreKeyUpload = time.Now()
-	return
 }
 
 func (cli *Client) fetchPreKeysNoError(ctx context.Context, retryDevices []types.JID) map[types.JID]*prekey.Bundle {
