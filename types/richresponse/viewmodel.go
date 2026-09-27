@@ -22,11 +22,20 @@ type RichResponse struct {
 }
 
 type ViewModelContainer struct {
-	Model ViewModel
+	Model ViewModel `json:"view_model"`
+}
+
+type viewModelWrapper struct {
+	Model json.RawMessage `json:"view_model"`
 }
 
 func (vmc *ViewModelContainer) UnmarshalJSON(data []byte) error {
-	val, err := unmarshalWithTypeName[UnknownViewModel](data, viewModelTypes)
+	var wrapper viewModelWrapper
+	err := json.Unmarshal(data, &wrapper)
+	if err != nil {
+		return err
+	}
+	val, err := unmarshalWithTypeName[UnknownViewModel](wrapper.Model, viewModelTypes)
 	if err == nil {
 		vmc.Model = val.(ViewModel)
 	}
