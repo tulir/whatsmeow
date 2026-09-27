@@ -66,6 +66,7 @@ func (*MultiLayoutViewModel) isViewModel()       {}
 func (UnknownViewModel) isViewModel()            {}
 
 type GenAISingleLayoutViewModel struct {
+	TypeName  string             `json:"__typename"`
 	Primitive PrimitiveContainer `json:"primitive"`
 }
 
@@ -78,6 +79,7 @@ func (vm *GenAISingleLayoutViewModel) GetPrimitives() []Primitive {
 }
 
 type MultiLayoutViewModel struct {
+	TypeName   string               `json:"__typename"`
 	Primitives []PrimitiveContainer `json:"primitives"`
 }
 

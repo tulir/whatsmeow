@@ -115,6 +115,7 @@ func (cb CodeBlock) GetContent() string {
 }
 
 type GenAICodeUXPrimitive struct {
+	TypeName   string      `json:"__typename"`
 	Language   string      `json:"language"`
 	CodeBlocks []CodeBlock `json:"code_blocks"`
 }
@@ -124,6 +125,7 @@ func (p *GenAICodeUXPrimitive) String() string {
 }
 
 type GenAIMarkdownTextUXPrimitive struct {
+	TypeName       string       `json:"__typename"`
 	Text           string       `json:"text"`
 	InlineEntities []TextEntity `json:"inline_entities,omitempty"`
 }
@@ -159,6 +161,7 @@ func (p *GenATableUXPrimitive) String() string {
 type GenAIBotProgressStatusPrimitive = GenAIBotThinkingStatusPrimitive
 
 type GenAILatexUXPrimitive struct {
+	TypeName        string `json:"__typename"`
 	LatexExpression string `json:"latex_expression,omitzero"`
 	Item            struct {
 		LatexExpression string `json:"latex_expression,omitzero"`
@@ -193,6 +196,7 @@ func (p *GenAIMetadataTextPrimitive) String() string {
 }
 
 type GenAIBotThinkingStatusPrimitive struct {
+	TypeName     string `json:"__typename"`
 	Title        string `json:"title"`
 	IsInProgress bool   `json:"is_in_progress"`
 	// icon
@@ -206,7 +210,8 @@ func (p *GenAIBotThinkingStatusPrimitive) String() string {
 }
 
 type GenAIProductItemCardPrimitive struct {
-	Title string `json:"title"`
+	TypeName string `json:"__typename"`
+	Title    string `json:"title"`
 }
 
 func (p *GenAIProductItemCardPrimitive) String() string {
@@ -222,6 +227,7 @@ type MediaItem struct {
 }
 
 type GenAIImagePrimitive struct {
+	TypeName     string     `json:"__typename"`
 	FullImage    *MediaItem `json:"full_image"`
 	PreviewImage *MediaItem `json:"preview_image"`
 }
@@ -231,6 +237,7 @@ func (p *GenAIImagePrimitive) String() string {
 }
 
 type GenAITaskPrimitive struct {
+	TypeName string `json:"__typename"`
 	TaskID   string `json:"task_id"`
 	Title    string `json:"title"`
 	Subtitle string `json:"subtitle"`
@@ -242,6 +249,7 @@ func (p *GenAITaskPrimitive) String() string {
 }
 
 type GenAIReelPrimitive struct {
+	TypeName string `json:"__typename"`
 	// reels_url, thumbnail_url, avatar_url, creator, reels_title
 }
 
@@ -250,6 +258,7 @@ func (p *GenAIReelPrimitive) String() string {
 }
 
 type GenAIPostPrimitive struct {
+	TypeName string `json:"__typename"`
 	// post_url, post_deeplink, post_caption, post_type, orientation, source_app,
 	// title, subtitle, username, is_verified, is_carousel, profile_picture_url,
 	// thumbnail_url, footer_icon, footer_label, likes_count, comments_count,
@@ -277,6 +286,7 @@ const (
 )
 
 type GenAIImaginePrimitive struct {
+	TypeName    string      `json:"__typename"`
 	ImagineType ImagineType `json:"imagine_type"`
 	Media       *MediaItem  `json:"media"`
 	Status      struct {
@@ -297,9 +307,10 @@ func (p *GenAISearchResultPrimitive) String() string {
 }
 
 type FOABloksPrimitive struct {
-	Type string `json:"type"`
-	Data string `json:"data"`
-	UUID string `json:"uuid"`
+	TypeName string `json:"__typename"`
+	Type     string `json:"type"`
+	Data     string `json:"data"`
+	UUID     string `json:"uuid"`
 	// initial_response
 	// versioning_id
 }
@@ -316,7 +327,8 @@ const (
 )
 
 type GenAIDividerPrimitive struct {
-	Type DividerType `json:"type"`
+	TypeName string      `json:"__typename"`
+	Type     DividerType `json:"type"`
 }
 
 func (p *GenAIDividerPrimitive) String() string {
@@ -324,7 +336,8 @@ func (p *GenAIDividerPrimitive) String() string {
 }
 
 type GenAISpacerPrimitive struct {
-	Spacing int `json:"spacing"`
+	TypeName string `json:"__typename"`
+	Spacing  int    `json:"spacing"`
 }
 
 func (p *GenAISpacerPrimitive) String() string {
