@@ -7,7 +7,6 @@
 package richresponse
 
 import (
-	"bytes"
 	"encoding/json"
 	"reflect"
 )
@@ -17,25 +16,27 @@ type TextEntity struct {
 	Metadata TextEntityMetadata `json:"metadata"`
 }
 
-type textEntityMetaType struct {
-	TextEntity
-	Metadata TypeNameContainer `json:"metadata"`
+type textEntityWrapper struct {
+	Key      string          `json:"key"`
+	Metadata json.RawMessage `json:"metadata"`
 }
 
 func (te *TextEntity) UnmarshalJSON(data []byte) error {
-	var metaType textEntityMetaType
-	if err := json.Unmarshal(data, &metaType); err != nil {
+	var wrapper textEntityWrapper
+	if err := json.Unmarshal(data, &wrapper); err != nil {
 		return err
 	}
-
-	typ, ok := textEntityMetadataTypes[metaType.Metadata.TypeName]
-	if !ok {
-		*te = metaType.TextEntity
-		te.Metadata = UnknownTextEntityMetadata(bytes.Clone(data))
+	te.Key = wrapper.Key
+	te.Metadata = nil
+	if len(wrapper.Metadata) == 0 || string(wrapper.Metadata) == "null" {
 		return nil
 	}
-	te.Metadata = reflect.New(typ).Interface().(TextEntityMetadata)
-	return json.Unmarshal(data, &te)
+	val, err := unmarshalWithTypeName[UnknownTextEntityMetadata](wrapper.Metadata, textEntityMetadataTypes)
+	if err != nil {
+		return err
+	}
+	te.Metadata = val.(TextEntityMetadata)
+	return nil
 }
 
 type TextEntityMetadata interface {
@@ -56,19 +57,23 @@ func (*GenAILatexItem) isTextEntityMetadata()           {}
 func (UnknownTextEntityMetadata) isTextEntityMetadata() {}
 
 type GenAISearchCitationItem struct {
+	TypeName string `json:"__typename"`
 }
 
 type GenAIInlineLinkItem struct {
+	TypeName    string `json:"__typename"`
 	URL         string `json:"url"`
 	DisplayName string `json:"display_name"`
 }
 
 type GenAIDeepLinkItem struct {
+	TypeName    string `json:"__typename"`
 	DeepLinkURL string `json:"deeplink_url"`
 	Text        string `json:"text"`
 }
 
 type GenAILatexItem struct {
+	TypeName        string `json:"__typename"`
 	LatexExpression string `json:"latex_expression"`
 }
 
