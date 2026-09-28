@@ -1106,6 +1106,7 @@ type ClientPayload struct {
 	ProcessingQueueSize    *int32                                       `protobuf:"varint,46,opt,name=processingQueueSize" json:"processingQueueSize,omitempty"`
 	PairedPeripherals      []string                                     `protobuf:"bytes,47,rep,name=pairedPeripherals" json:"pairedPeripherals,omitempty"`
 	TestIsolationID        []byte                                       `protobuf:"bytes,48,opt,name=testIsolationID" json:"testIsolationID,omitempty"`
+	MessageSts             *int64                                       `protobuf:"varint,49,opt,name=messageSts" json:"messageSts,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -1390,6 +1391,13 @@ func (x *ClientPayload) GetTestIsolationID() []byte {
 		return x.TestIsolationID
 	}
 	return nil
+}
+
+func (x *ClientPayload) GetMessageSts() int64 {
+	if x != nil && x.MessageSts != nil {
+		return *x.MessageSts
+	}
+	return 0
 }
 
 type HandshakeMessage_ClientFinish struct {
@@ -2381,7 +2389,7 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\x05IKKEM\x10\x05\x12\f\n" +
 	"\bIKKEM_FS\x10\x06\x12\v\n" +
 	"\aXXKEM_2\x10\a\x12\v\n" +
-	"\aIKKEM_2\x10\b\"\x91.\n" +
+	"\aIKKEM_2\x10\b\"\xb1.\n" +
 	"\rClientPayload\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\x04R\busername\x12\x18\n" +
 	"\apassive\x18\x03 \x01(\bR\apassive\x12H\n" +
@@ -2421,7 +2429,10 @@ const file_waWa6_WAWebProtobufsWa6_proto_rawDesc = "" +
 	"\fpreacksCount\x18- \x01(\x05R\fpreacksCount\x120\n" +
 	"\x13processingQueueSize\x18. \x01(\x05R\x13processingQueueSize\x12,\n" +
 	"\x11pairedPeripherals\x18/ \x03(\tR\x11pairedPeripherals\x12(\n" +
-	"\x0ftestIsolationID\x180 \x01(\fR\x0ftestIsolationID\x1a\x8f\x02\n" +
+	"\x0ftestIsolationID\x180 \x01(\fR\x0ftestIsolationID\x12\x1e\n" +
+	"\n" +
+	"messageSts\x181 \x01(\x03R\n" +
+	"messageSts\x1a\x8f\x02\n" +
 	"\tDNSSource\x12\\\n" +
 	"\tdnsMethod\x18\x0f \x01(\x0e2>.WAWebProtobufsWa6.ClientPayload.DNSSource.DNSResolutionMethodR\tdnsMethod\x12\x1c\n" +
 	"\tappCached\x18\x10 \x01(\bR\tappCached\"\x85\x01\n" +

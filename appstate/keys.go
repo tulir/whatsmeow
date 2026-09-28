@@ -71,6 +71,7 @@ const (
 	IndexLockMessage                     = "lock_message"
 	IndexContactManagerMetadata          = "contact_manager_metadata"
 	IndexBusinessFolderActivation        = "business_folder_activation"
+	IndexGroupHistoryToggle              = "group_history_toggle"
 )
 
 // Constants for the regular app state indexes.

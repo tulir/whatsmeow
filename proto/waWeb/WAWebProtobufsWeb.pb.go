@@ -321,6 +321,7 @@ const (
 	WebMessageInfo_IDENTITY_TRUST_REVOKED                                   WebMessageInfo_StubType = 228
 	WebMessageInfo_CTWA_CONSUMER_DISCLOSURE                                 WebMessageInfo_StubType = 230
 	WebMessageInfo_CHANGE_ACP2_SETTING                                      WebMessageInfo_StubType = 240
+	WebMessageInfo_BIZ_CALLBACK_DISABLED                                    WebMessageInfo_StubType = 244
 	WebMessageInfo_BIZ_CALLBACK_ENABLED                                     WebMessageInfo_StubType = 247
 	WebMessageInfo_EPHEMERAL_CHANGED_FOR_COEX                               WebMessageInfo_StubType = 248
 	WebMessageInfo_UGC_BOT_PROFILE_UPDATED                                  WebMessageInfo_StubType = 249
@@ -564,6 +565,7 @@ var (
 		228: "IDENTITY_TRUST_REVOKED",
 		230: "CTWA_CONSUMER_DISCLOSURE",
 		240: "CHANGE_ACP2_SETTING",
+		244: "BIZ_CALLBACK_DISABLED",
 		247: "BIZ_CALLBACK_ENABLED",
 		248: "EPHEMERAL_CHANGED_FOR_COEX",
 		249: "UGC_BOT_PROFILE_UPDATED",
@@ -804,6 +806,7 @@ var (
 		"IDENTITY_TRUST_REVOKED":                                   228,
 		"CTWA_CONSUMER_DISCLOSURE":                                 230,
 		"CHANGE_ACP2_SETTING":                                      240,
+		"BIZ_CALLBACK_DISABLED":                                    244,
 		"BIZ_CALLBACK_ENABLED":                                     247,
 		"EPHEMERAL_CHANGED_FOR_COEX":                               248,
 		"UGC_BOT_PROFILE_UPDATED":                                  249,
@@ -4249,7 +4252,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\x87a\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xa3a\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4334,7 +4337,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\xde>\n" +
+	"BSP_AND_FB\x10\x03\"\xfa>\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4570,7 +4573,8 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x17IDENTITY_TRUST_UNMARKED\x10\xe3\x01\x12\x1b\n" +
 	"\x16IDENTITY_TRUST_REVOKED\x10\xe4\x01\x12\x1d\n" +
 	"\x18CTWA_CONSUMER_DISCLOSURE\x10\xe6\x01\x12\x18\n" +
-	"\x13CHANGE_ACP2_SETTING\x10\xf0\x01\x12\x19\n" +
+	"\x13CHANGE_ACP2_SETTING\x10\xf0\x01\x12\x1a\n" +
+	"\x15BIZ_CALLBACK_DISABLED\x10\xf4\x01\x12\x19\n" +
 	"\x14BIZ_CALLBACK_ENABLED\x10\xf7\x01\x12\x1f\n" +
 	"\x1aEPHEMERAL_CHANGED_FOR_COEX\x10\xf8\x01\x12\x1c\n" +
 	"\x17UGC_BOT_PROFILE_UPDATED\x10\xf9\x01\x12\x1e\n" +

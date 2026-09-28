@@ -106,6 +106,7 @@ enum MutationProps {
 	SHARED_DEVICE_ALLOWLIST_ACTION = 94;
 	CONTACT_MANAGER_METADATA_ACTION = 95;
 	BUSINESS_FOLDER_ACTIVATION_ACTION = 96;
+	GROUP_HISTORY_TOGGLE_ACTION = 97;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -180,6 +181,16 @@ message CallLogRecord {
 	optional string groupJID = 13;
 	repeated ParticipantInfo participants = 14;
 	optional CallType callType = 15;
+}
+
+message GroupHistoryToggleAction {
+	enum GroupHistoryToggleMode {
+		GROUP_HISTORY_TOGGLE_MODE_UNKNOWN = 0;
+		GROUP_HISTORY_TOGGLE_MODE_ON = 1;
+		GROUP_HISTORY_TOGGLE_MODE_OFF = 2;
+	}
+
+	optional GroupHistoryToggleMode groupHistoryToggleMode = 1;
 }
 
 message WASARootSecretAction {
@@ -616,6 +627,7 @@ enum MutationName {
 	SHARED_DEVICE_ALLOWLIST_ACTION = shared_device_allowlist;
 	CONTACT_MANAGER_METADATA_ACTION = contact_manager_metadata;
 	BUSINESS_FOLDER_ACTIVATION_ACTION = business_folder_activation;
+	GROUP_HISTORY_TOGGLE_ACTION = group_history_toggle;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -730,6 +742,7 @@ message SyncActionValue {
 	optional SharedDeviceAllowlistAction sharedDeviceAllowlistAction = 94;
 	optional ContactManagerMetadataAction contactManagerMetadataAction = 95;
 	optional BusinessFolderActivationAction businessFolderActivationAction = 96;
+	optional GroupHistoryToggleAction groupHistoryToggleAction = 97;
 }
 
 message BusinessFolderActivationAction {

@@ -1466,6 +1466,7 @@ message ContextInfo {
 		optional int32 agmSubtitleStrategy = 31;
 		optional int32 agmHeaderInteractionStrategy = 32;
 		optional bool containsCtwaFlowsAutoLabel = 33;
+		optional string productID = 34;
 	}
 
 	message AdReplyInfo {

@@ -22710,6 +22710,7 @@ type ContextInfo_ExternalAdReplyInfo struct {
 	AgmSubtitleStrategy             *int32                                     `protobuf:"varint,31,opt,name=agmSubtitleStrategy" json:"agmSubtitleStrategy,omitempty"`
 	AgmHeaderInteractionStrategy    *int32                                     `protobuf:"varint,32,opt,name=agmHeaderInteractionStrategy" json:"agmHeaderInteractionStrategy,omitempty"`
 	ContainsCtwaFlowsAutoLabel      *bool                                      `protobuf:"varint,33,opt,name=containsCtwaFlowsAutoLabel" json:"containsCtwaFlowsAutoLabel,omitempty"`
+	ProductID                       *string                                    `protobuf:"bytes,34,opt,name=productID" json:"productID,omitempty"`
 	unknownFields                   protoimpl.UnknownFields
 	sizeCache                       protoimpl.SizeCache
 }
@@ -22973,6 +22974,13 @@ func (x *ContextInfo_ExternalAdReplyInfo) GetContainsCtwaFlowsAutoLabel() bool {
 		return *x.ContainsCtwaFlowsAutoLabel
 	}
 	return false
+}
+
+func (x *ContextInfo_ExternalAdReplyInfo) GetProductID() string {
+	if x != nil && x.ProductID != nil {
+		return *x.ProductID
+	}
+	return ""
 }
 
 type ContextInfo_AdReplyInfo struct {
@@ -25738,7 +25746,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"USER_IMAGE\x10\x00\x12\x10\n" +
 	"\fAI_GENERATED\x10\x01\x12\x0f\n" +
 	"\vAI_MODIFIED\x10\x02\x12\x1a\n" +
-	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xd2O\n" +
+	"\x16RASTERIZED_TEXT_STATUS\x10\x03\"\xf0O\n" +
 	"\vContextInfo\x12\x1a\n" +
 	"\bstanzaID\x18\x01 \x01(\tR\bstanzaID\x12 \n" +
 	"\vparticipant\x18\x02 \x01(\tR\vparticipant\x12@\n" +
@@ -25897,7 +25905,7 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\n" +
 	"\x06UPDATE\x10\x01\x12\x0f\n" +
 	"\vUPDATE_CARD\x10\x02\x12\r\n" +
-	"\tLINK_CARD\x10\x03\x1a\xb7\f\n" +
+	"\tLINK_CARD\x10\x03\x1a\xd5\f\n" +
 	"\x13ExternalAdReplyInfo\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x12\n" +
 	"\x04body\x18\x02 \x01(\tR\x04body\x12Z\n" +
@@ -25936,7 +25944,8 @@ const file_waE2E_WAWebProtobufsE2E_proto_rawDesc = "" +
 	"\x10agmTitleStrategy\x18\x1e \x01(\x05R\x10agmTitleStrategy\x120\n" +
 	"\x13agmSubtitleStrategy\x18\x1f \x01(\x05R\x13agmSubtitleStrategy\x12B\n" +
 	"\x1cagmHeaderInteractionStrategy\x18  \x01(\x05R\x1cagmHeaderInteractionStrategy\x12>\n" +
-	"\x1acontainsCtwaFlowsAutoLabel\x18! \x01(\bR\x1acontainsCtwaFlowsAutoLabel\"\x1c\n" +
+	"\x1acontainsCtwaFlowsAutoLabel\x18! \x01(\bR\x1acontainsCtwaFlowsAutoLabel\x12\x1c\n" +
+	"\tproductID\x18\" \x01(\tR\tproductID\"\x1c\n" +
 	"\x06AdType\x12\b\n" +
 	"\x04CTWA\x10\x00\x12\b\n" +
 	"\x04CAWC\x10\x01\"+\n" +

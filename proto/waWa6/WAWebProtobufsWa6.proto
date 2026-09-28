@@ -299,4 +299,5 @@ message ClientPayload {
 	optional int32 processingQueueSize = 46;
 	repeated string pairedPeripherals = 47;
 	optional bytes testIsolationID = 48;
+	optional int64 messageSts = 49;
 }
