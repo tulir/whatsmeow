@@ -17,6 +17,7 @@ import (
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
+	"go.mau.fi/whatsmeow/proto/waAICommon"
 	"go.mau.fi/whatsmeow/proto/waCommon"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/types"
@@ -42,6 +43,65 @@ const (
 
 func applyBotMessageHKDF(messageSecret []byte) []byte {
 	return hkdfutil.SHA256(messageSecret, nil, []byte(EncSecretBotMsg), 32)
+}
+
+func (cli *Client) encryptWASAMessage(ctx context.Context, bot types.JID, id types.MessageID, msg *waE2E.Message) ([]byte, error) {
+	if msg.GetProtocolMessage().GetType() == waE2E.ProtocolMessage_REQUEST_WELCOME_MESSAGE {
+		return proto.Marshal(msg)
+	}
+	if cli.Store.ChatSettings == nil {
+		return nil, fmt.Errorf("chat settings store is required for WASA messages")
+	}
+	rootID, err := cli.Store.ChatSettings.GetWASARootSecretID(ctx, bot)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get WASA root secret ID: %w", err)
+	}
+	if rootID == "" {
+		return nil, fmt.Errorf("no active WASA root secret for %s", bot)
+	}
+	ownLID := cli.getOwnLID().ToNonAD()
+	if ownLID.IsEmpty() {
+		return nil, fmt.Errorf("own LID not available for WASA message")
+	}
+	secret, _, err := cli.Store.MsgSecrets.GetMessageSecret(ctx, bot, ownLID, rootID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get WASA root secret: %w", err)
+	}
+	if len(secret) != 32 {
+		return nil, fmt.Errorf("invalid WASA root secret for %s", bot)
+	}
+	msg = proto.Clone(msg).(*waE2E.Message)
+	if document := msg.GetDocumentWithCaptionMessage().GetMessage().GetDocumentMessage(); document != nil {
+		msg.DocumentMessage = document
+		msg.DocumentWithCaptionMessage = nil
+	}
+	if msg.MessageContextInfo == nil {
+		msg.MessageContextInfo = &waE2E.MessageContextInfo{}
+	}
+	if msg.MessageContextInfo.BotMetadata == nil {
+		msg.MessageContextInfo.BotMetadata = &waAICommon.BotMetadata{}
+	}
+	msg.MessageContextInfo.BotMetadata.CapabilityMetadata = &waAICommon.BotCapabilityMetadata{}
+	plaintext, err := proto.Marshal(msg)
+	if err != nil {
+		return nil, err
+	}
+	key := hkdfutil.SHA256(applyBotMessageHKDF(secret), nil, []byte(string(id)+ownLID.String()+bot.String()), 32)
+	iv := random.Bytes(12)
+	additionalData := append(append([]byte(id), 0), []byte(ownLID.String())...)
+	ciphertext, err := gcmutil.Encrypt(key, iv, plaintext, additionalData)
+	if err != nil {
+		return nil, err
+	}
+	return proto.Marshal(&waE2E.Message{SecretEncryptedMessage: &waE2E.SecretEncryptedMessage{
+		TargetMessageKey: &waCommon.MessageKey{
+			RemoteJID: proto.String(bot.String()),
+			FromMe:    proto.Bool(true),
+			ID:        proto.String(rootID),
+		},
+		EncPayload: ciphertext,
+		EncIV:      iv,
+	}})
 }
 
 func generateMsgSecretKey(

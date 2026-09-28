@@ -29,6 +29,7 @@ import (
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
+	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waAICommon"
 	"go.mau.fi/whatsmeow/proto/waCommon"
@@ -247,12 +248,13 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	if isBotMode {
-		// TODO Muse/Hatch messages need to be wrapped
-		//      They probably also don't have the same persona ID as Meta AI
-
 		if message.MessageContextInfo.BotMetadata == nil {
+			personaID := "867051314767696$760019659443059"
+			if to == types.MuseJID {
+				personaID = "1807055946647697$1"
+			}
 			message.MessageContextInfo.BotMetadata = &waAICommon.BotMetadata{
-				PersonaID: proto.String("867051314767696$760019659443059"),
+				PersonaID: proto.String(personaID),
 			}
 		}
 
@@ -377,6 +379,22 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 
 	resp.Sender = ownID
 	resp.Chat = to
+
+	if to == types.MuseJID && message.GetProtocolMessage().GetType() != waE2E.ProtocolMessage_REQUEST_WELCOME_MESSAGE && cli.Store.ChatSettings != nil {
+		var rootID types.MessageID
+		rootID, err = cli.Store.ChatSettings.GetWASARootSecretID(ctx, to)
+		if err != nil {
+			err = fmt.Errorf("failed to get WASA root secret ID: %w", err)
+			return
+		}
+		if rootID == "" {
+			err = cli.FetchAppState(ctx, appstate.WAPatchRegularHigh, true, false)
+			if err != nil {
+				err = fmt.Errorf("failed to sync WASA root secret: %w", err)
+				return
+			}
+		}
+	}
 
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely
@@ -868,9 +886,16 @@ func (cli *Client) sendDM(
 		return "", nil, err
 	}
 
+	recipientPlaintext := messagePlaintext
+	if to == types.MuseJID {
+		recipientPlaintext, err = cli.encryptWASAMessage(ctx, to, id, message)
+		if err != nil {
+			return "", nil, err
+		}
+	}
 	node, allDevices, err := cli.prepareMessageNode(
 		ctx, to, id, message, []types.JID{to, ownID.ToNonAD()},
-		messagePlaintext, deviceSentMessagePlaintext, timings, extraParams,
+		recipientPlaintext, deviceSentMessagePlaintext, timings, extraParams,
 	)
 	if err != nil {
 		return "", nil, err
