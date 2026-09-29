@@ -115,6 +115,8 @@ type ChatSettingsStore interface {
 	PutMutedUntil(ctx context.Context, chat types.JID, mutedUntil time.Time) error
 	PutPinned(ctx context.Context, chat types.JID, pinned bool) error
 	PutArchived(ctx context.Context, chat types.JID, archived bool) error
+	PutWASARootSecretID(ctx context.Context, chat types.JID, id types.MessageID) error
+	GetWASARootSecretID(ctx context.Context, chat types.JID) (types.MessageID, error)
 	GetChatSettings(ctx context.Context, chat types.JID) (types.LocalChatSettings, error)
 }
 

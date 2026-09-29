@@ -286,9 +286,13 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 
 	var plaintext, frankingTag []byte
 	if msg.wa != nil {
-		plaintext, err = proto.Marshal(msg.wa)
+		if receipt.Sender.ToNonAD() == types.MuseJID {
+			plaintext, err = cli.encryptWASAMessage(ctx, types.MuseJID, messageID, msg.wa)
+		} else {
+			plaintext, err = proto.Marshal(msg.wa)
+		}
 		if err != nil {
-			return fmt.Errorf("failed to marshal message: %w", err)
+			return fmt.Errorf("failed to prepare message for retry: %w", err)
 		}
 	} else {
 		plaintext, err = proto.Marshal(msg.fb)

@@ -435,6 +435,15 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 				Secret: secret.GetRootSecret(),
 			}
 		}))
+		if storeUpdateError == nil && cli.Store.ChatSettings != nil {
+			var active *waSyncAction.WASARootSecretAction_RootSecretEntry
+			for _, secret := range inputSecrets {
+				if secret.GetStatus() == waSyncAction.WASARootSecretAction_RootSecretEntry_ACTIVE && (active == nil || secret.GetEpoch() > active.GetEpoch()) {
+					active = secret
+				}
+			}
+			storeUpdateError = cli.Store.ChatSettings.PutWASARootSecretID(ctx, botJID, types.MessageID(active.GetID()))
+		}
 		if storeUpdateError == nil {
 			zerolog.Ctx(ctx).Debug().
 				Strs("ids", ids).
