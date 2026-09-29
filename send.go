@@ -29,7 +29,6 @@ import (
 	"go.mau.fi/util/random"
 	"google.golang.org/protobuf/proto"
 
-	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waAICommon"
 	"go.mau.fi/whatsmeow/proto/waCommon"
@@ -379,22 +378,6 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 
 	resp.Sender = ownID
 	resp.Chat = to
-
-	if to == types.MuseJID && message.GetProtocolMessage().GetType() != waE2E.ProtocolMessage_REQUEST_WELCOME_MESSAGE && cli.Store.ChatSettings != nil {
-		var rootID types.MessageID
-		rootID, err = cli.Store.ChatSettings.GetWASARootSecretID(ctx, to)
-		if err != nil {
-			err = fmt.Errorf("failed to get WASA root secret ID: %w", err)
-			return
-		}
-		if rootID == "" {
-			err = cli.FetchAppState(ctx, appstate.WAPatchRegularHigh, true, false)
-			if err != nil {
-				err = fmt.Errorf("failed to sync WASA root secret: %w", err)
-				return
-			}
-		}
-	}
 
 	start := time.Now()
 	// Sending multiple messages at a time can cause weird issues and makes it harder to retry safely
