@@ -95,7 +95,7 @@ CREATE TABLE whatsmeow_app_state_mutation_macs (
 	index_mac bytea          CHECK ( length(index_mac) = 32 ),
 	value_mac bytea NOT NULL CHECK ( length(value_mac) = 32 ),
 
-	PRIMARY KEY (jid, name, version, index_mac),
+	PRIMARY KEY (jid, name, index_mac),
 	FOREIGN KEY (jid, name) REFERENCES whatsmeow_app_state_version(jid, name) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
