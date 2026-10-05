@@ -107,6 +107,7 @@ enum MutationProps {
 	CONTACT_MANAGER_METADATA_ACTION = 95;
 	BUSINESS_FOLDER_ACTIVATION_ACTION = 96;
 	GROUP_HISTORY_TOGGLE_ACTION = 97;
+	BB_PRO_PENDING_CUSTOMER_BASE_ACTION = 98;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -164,6 +165,11 @@ message CallLogRecord {
 	message ParticipantInfo {
 		optional string userJID = 1;
 		optional CallResult callResult = 2;
+		optional GuestInfo guestInfo = 3;
+	}
+
+	message GuestInfo {
+		optional string pushName = 1;
 	}
 
 	optional CallResult callResult = 1;
@@ -628,6 +634,7 @@ enum MutationName {
 	CONTACT_MANAGER_METADATA_ACTION = contact_manager_metadata;
 	BUSINESS_FOLDER_ACTIVATION_ACTION = business_folder_activation;
 	GROUP_HISTORY_TOGGLE_ACTION = group_history_toggle;
+	BB_PRO_PENDING_CUSTOMER_BASE_ACTION = bb_pro_pending_customer_base_action;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -743,6 +750,11 @@ message SyncActionValue {
 	optional ContactManagerMetadataAction contactManagerMetadataAction = 95;
 	optional BusinessFolderActivationAction businessFolderActivationAction = 96;
 	optional GroupHistoryToggleAction groupHistoryToggleAction = 97;
+	optional BBProPendingCustomerBaseAction bbProPendingCustomerBaseAction = 98;
+}
+
+message BBProPendingCustomerBaseAction {
+	optional bool pending = 1;
 }
 
 message BusinessFolderActivationAction {

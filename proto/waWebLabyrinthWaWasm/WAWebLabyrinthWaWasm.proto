@@ -65,6 +65,7 @@ message DeviceOutput {
 	required bytes ocmfClientState = 9;
 	required bytes epochStoragePrivateKey = 10;
 	required bytes epochAuthPrivateKey = 11;
+	required bytes deviceEpochHmac = 12;
 }
 
 message EncryptedSecretValuesOutput {
@@ -168,6 +169,8 @@ message RotateEpochMemberInput {
 	required uint64 deviceID = 1;
 	required bytes epochStoragePublicKey = 2;
 	required bytes devicePublicKey = 3;
+	required bytes prevDeviceEpochHmac = 4;
+	required bytes epochStoragePublicKeySig = 5;
 }
 
 message RotateEpochInput {

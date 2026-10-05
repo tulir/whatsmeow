@@ -1885,6 +1885,7 @@ message Message {
 	optional FutureProofMessage newsletterScheduledMessage = 132;
 	optional FutureProofMessage acp2SettingMessage = 133;
 	optional FutureProofMessage audioStickerMessage = 134;
+	optional FutureProofMessage botGroupParticipantMessage = 137;
 }
 
 message AlbumMessage {

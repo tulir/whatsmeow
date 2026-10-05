@@ -527,6 +527,7 @@ type DeviceOutput struct {
 	OcmfClientState             []byte                 `protobuf:"bytes,9,req,name=ocmfClientState" json:"ocmfClientState,omitempty"`
 	EpochStoragePrivateKey      []byte                 `protobuf:"bytes,10,req,name=epochStoragePrivateKey" json:"epochStoragePrivateKey,omitempty"`
 	EpochAuthPrivateKey         []byte                 `protobuf:"bytes,11,req,name=epochAuthPrivateKey" json:"epochAuthPrivateKey,omitempty"`
+	DeviceEpochHmac             []byte                 `protobuf:"bytes,12,req,name=deviceEpochHmac" json:"deviceEpochHmac,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -634,6 +635,13 @@ func (x *DeviceOutput) GetEpochStoragePrivateKey() []byte {
 func (x *DeviceOutput) GetEpochAuthPrivateKey() []byte {
 	if x != nil {
 		return x.EpochAuthPrivateKey
+	}
+	return nil
+}
+
+func (x *DeviceOutput) GetDeviceEpochHmac() []byte {
+	if x != nil {
+		return x.DeviceEpochHmac
 	}
 	return nil
 }
@@ -1559,12 +1567,14 @@ func (x *PrepareAddDeviceOutput) GetError() string {
 }
 
 type RotateEpochMemberInput struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	DeviceID              *uint64                `protobuf:"varint,1,req,name=deviceID" json:"deviceID,omitempty"`
-	EpochStoragePublicKey []byte                 `protobuf:"bytes,2,req,name=epochStoragePublicKey" json:"epochStoragePublicKey,omitempty"`
-	DevicePublicKey       []byte                 `protobuf:"bytes,3,req,name=devicePublicKey" json:"devicePublicKey,omitempty"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"open.v1"`
+	DeviceID                 *uint64                `protobuf:"varint,1,req,name=deviceID" json:"deviceID,omitempty"`
+	EpochStoragePublicKey    []byte                 `protobuf:"bytes,2,req,name=epochStoragePublicKey" json:"epochStoragePublicKey,omitempty"`
+	DevicePublicKey          []byte                 `protobuf:"bytes,3,req,name=devicePublicKey" json:"devicePublicKey,omitempty"`
+	PrevDeviceEpochHmac      []byte                 `protobuf:"bytes,4,req,name=prevDeviceEpochHmac" json:"prevDeviceEpochHmac,omitempty"`
+	EpochStoragePublicKeySig []byte                 `protobuf:"bytes,5,req,name=epochStoragePublicKeySig" json:"epochStoragePublicKeySig,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *RotateEpochMemberInput) Reset() {
@@ -1614,6 +1624,20 @@ func (x *RotateEpochMemberInput) GetEpochStoragePublicKey() []byte {
 func (x *RotateEpochMemberInput) GetDevicePublicKey() []byte {
 	if x != nil {
 		return x.DevicePublicKey
+	}
+	return nil
+}
+
+func (x *RotateEpochMemberInput) GetPrevDeviceEpochHmac() []byte {
+	if x != nil {
+		return x.PrevDeviceEpochHmac
+	}
+	return nil
+}
+
+func (x *RotateEpochMemberInput) GetEpochStoragePublicKeySig() []byte {
+	if x != nil {
+		return x.EpochStoragePublicKeySig
 	}
 	return nil
 }
@@ -2128,7 +2152,7 @@ const file_waWebLabyrinthWaWasm_WAWebLabyrinthWaWasm_proto_rawDesc = "" +
 	"\x06userID\x18\x02 \x02(\x04R\x06userID\x12<\n" +
 	"\x19encryptedSecretValuesJSON\x18\x03 \x02(\tR\x19encryptedSecretValuesJSON\x12:\n" +
 	"\x18virtualDeviceBaseEpochID\x18\x04 \x02(\x04R\x18virtualDeviceBaseEpochID\x12$\n" +
-	"\ractiveEpochID\x18\x05 \x02(\x04R\ractiveEpochID\"\xc0\x04\n" +
+	"\ractiveEpochID\x18\x05 \x02(\x04R\ractiveEpochID\"\xea\x04\n" +
 	"\fDeviceOutput\x12\x1c\n" +
 	"\tpublicKey\x18\x01 \x02(\fR\tpublicKey\x12.\n" +
 	"\x12epochAuthPublicKey\x18\x02 \x02(\fR\x12epochAuthPublicKey\x124\n" +
@@ -2141,7 +2165,8 @@ const file_waWebLabyrinthWaWasm_WAWebLabyrinthWaWasm_proto_rawDesc = "" +
 	"\x0focmfClientState\x18\t \x02(\fR\x0focmfClientState\x126\n" +
 	"\x16epochStoragePrivateKey\x18\n" +
 	" \x02(\fR\x16epochStoragePrivateKey\x120\n" +
-	"\x13epochAuthPrivateKey\x18\v \x02(\fR\x13epochAuthPrivateKey\"\xa1\x04\n" +
+	"\x13epochAuthPrivateKey\x18\v \x02(\fR\x13epochAuthPrivateKey\x12(\n" +
+	"\x0fdeviceEpochHmac\x18\f \x02(\fR\x0fdeviceEpochHmac\"\xa1\x04\n" +
 	"\x1bEncryptedSecretValuesOutput\x12<\n" +
 	"\x19encryptedDevicePrivateKey\x18\x01 \x02(\fR\x19encryptedDevicePrivateKey\x12T\n" +
 	"%encryptedObliviousValidationTokenBlob\x18\x02 \x02(\fR%encryptedObliviousValidationTokenBlob\x12H\n" +
@@ -2219,11 +2244,13 @@ const file_waWebLabyrinthWaWasm_WAWebLabyrinthWaWasm_proto_rawDesc = "" +
 	"\x1aencryptionVersionSignature\x18\b \x01(\fR\x1aencryptionVersionSignature\x12$\n" +
 	"\rclientVersion\x18\t \x01(\x05R\rclientVersion\x12\x14\n" +
 	"\x05error\x18\n" +
-	" \x01(\tR\x05error\"\x94\x01\n" +
+	" \x01(\tR\x05error\"\x82\x02\n" +
 	"\x16RotateEpochMemberInput\x12\x1a\n" +
 	"\bdeviceID\x18\x01 \x02(\x04R\bdeviceID\x124\n" +
 	"\x15epochStoragePublicKey\x18\x02 \x02(\fR\x15epochStoragePublicKey\x12(\n" +
-	"\x0fdevicePublicKey\x18\x03 \x02(\fR\x0fdevicePublicKey\"\xa8\x02\n" +
+	"\x0fdevicePublicKey\x18\x03 \x02(\fR\x0fdevicePublicKey\x120\n" +
+	"\x13prevDeviceEpochHmac\x18\x04 \x02(\fR\x13prevDeviceEpochHmac\x12:\n" +
+	"\x18epochStoragePublicKeySig\x18\x05 \x02(\fR\x18epochStoragePublicKeySig\"\xa8\x02\n" +
 	"\x10RotateEpochInput\x120\n" +
 	"\x13currentEpochRootKey\x18\x01 \x02(\fR\x13currentEpochRootKey\x12.\n" +
 	"\x12currentEpochAnonID\x18\x02 \x02(\fR\x12currentEpochAnonID\x12*\n" +
