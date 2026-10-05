@@ -973,17 +973,30 @@ func (cli *Client) parseBlocklist(node *waBinary.Node) *types.Blocklist {
 }
 
 // GetBlocklist gets the list of users that this user has blocked.
-func (cli *Client) GetBlocklist(ctx context.Context) (*types.Blocklist, error) {
+func (cli *Client) GetBlocklist(ctx context.Context, dhash string) (*types.Blocklist, error) {
+	var content []waBinary.Node
+	if dhash != "" {
+		content = []waBinary.Node{{
+			Tag: "list",
+			Attrs: waBinary.Attrs{
+				"dhash": dhash,
+			},
+		}}
+	}
 	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "blocklist",
 		Type:      iqGet,
 		To:        types.ServerJID,
+		Content:   content,
 	})
 	if err != nil {
 		return nil, err
 	}
 	list, ok := resp.GetOptionalChildByTag("list")
 	if !ok {
+		if dhash != "" {
+			return nil, nil
+		}
 		return nil, &ElementMissingError{Tag: "list", In: "response to blocklist query"}
 	}
 	return cli.parseBlocklist(&list), nil
