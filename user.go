@@ -1062,6 +1062,9 @@ func (cli *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action ev
 	if action == events.BlocklistChangeActionBlock && !pnJID.IsEmpty() {
 		itemAttrs["pn_jid"] = pnJID
 	}
+	if dhash != "" {
+		itemAttrs["dhash"] = dhash
+	}
 
 	resp, err := cli.sendIQ(ctx, infoQuery{
 		Namespace: "blocklist",
