@@ -955,10 +955,12 @@ func (cli *Client) usync(ctx context.Context, jids []types.JID, mode, context st
 	}
 }
 
-func (cli *Client) parseBlocklist(node *waBinary.Node) *types.Blocklist {
+func (cli *Client) parseBlocklist(node *waBinary.Node) (*types.Blocklist, []store.LIDMapping) {
 	output := &types.Blocklist{
-		DHash: node.AttrGetter().String("dhash"),
+		DHash:          node.AttrGetter().String("dhash"),
+		AddressingMode: types.AddressingMode(node.AttrGetter().String("addressing_mode")),
 	}
+	var lidMappings []store.LIDMapping
 	for _, child := range node.GetChildren() {
 		ag := child.AttrGetter()
 		blockedJID := ag.JID("jid")
@@ -967,17 +969,27 @@ func (cli *Client) parseBlocklist(node *waBinary.Node) *types.Blocklist {
 			continue
 		}
 
-		output.JIDs = append(output.JIDs, blockedJID)
+		item := types.BlocklistItem{
+			LID:    blockedJID,
+			PN:     ag.OptionalJIDOrEmpty("pn_jid"),
+			Active: ag.OptionalBool("active"),
+		}
+		output.Items = append(output.Items, item)
+		if item.Active && item.LID.Server == types.HiddenUserServer && item.PN.Server == types.DefaultUserServer {
+			lidMappings = append(lidMappings, store.LIDMapping{PN: item.PN, LID: item.LID})
+		}
 	}
-	return output
+	return output, lidMappings
 }
 
 // GetBlocklist gets the list of users that this user has blocked.
+//
+// If a dhash is provided, and it matches the server value, then no blocklist will be returned.
 func (cli *Client) GetBlocklist(ctx context.Context, dhash string) (*types.Blocklist, error) {
 	var content []waBinary.Node
 	if dhash != "" {
 		content = []waBinary.Node{{
-			Tag: "list",
+			Tag: "item",
 			Attrs: waBinary.Attrs{
 				"dhash": dhash,
 			},
@@ -999,11 +1011,20 @@ func (cli *Client) GetBlocklist(ctx context.Context, dhash string) (*types.Block
 		}
 		return nil, &ElementMissingError{Tag: "list", In: "response to blocklist query"}
 	}
-	return cli.parseBlocklist(&list), nil
+	blocklist, mappings := cli.parseBlocklist(&list)
+	if len(mappings) > 0 {
+		err = cli.Store.LIDs.PutManyLIDMappings(ctx, mappings)
+		if err != nil {
+			cli.Log.Errorf("Failed to store LID mappings from blocklist query: %v", err)
+		}
+	}
+	return blocklist, nil
 }
 
 // UpdateBlocklist updates the user's block list and returns the updated list.
-func (cli *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action events.BlocklistChangeAction) (*types.Blocklist, error) {
+//
+// If a dhash is provided, and it matches the server value, then an updated blocklist will not be returned.
+func (cli *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action events.BlocklistChangeAction, dhash string) (*types.Blocklist, error) {
 	var lidJID, pnJID types.JID
 
 	if jid.Server == types.DefaultUserServer {
@@ -1058,5 +1079,9 @@ func (cli *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action ev
 	if !ok {
 		return nil, &ElementMissingError{Tag: "list", In: "response to blocklist update"}
 	}
-	return cli.parseBlocklist(&list), err
+	if dhash != "" && list.AttrGetter().Bool("matched") {
+		return nil, nil
+	}
+	blocklist, _ := cli.parseBlocklist(&list)
+	return blocklist, err
 }

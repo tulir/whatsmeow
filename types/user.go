@@ -9,6 +9,7 @@ package types
 import (
 	"time"
 
+	"go.mau.fi/util/exslices"
 	"go.mau.fi/util/jsontime"
 
 	"go.mau.fi/whatsmeow/proto/waVnameCert"
@@ -197,10 +198,33 @@ type SetStatusInput struct {
 	Duration jsontime.Seconds `json:"ephemeral_duration_sec"`
 }
 
+type BlocklistItem struct {
+	LID    JID
+	PN     JID
+	Active bool
+}
+
 // Blocklist contains the user's current list of blocked users.
 type Blocklist struct {
+	AddressingMode AddressingMode
+
 	DHash string // TODO is this just a timestamp?
-	JIDs  []JID
+	Items []BlocklistItem
+}
+
+func (bl *Blocklist) LIDs() []JID {
+	return exslices.CastFunc[JID](bl.Items, func(item BlocklistItem) JID {
+		return item.LID
+	})
+}
+
+func (bl *Blocklist) IsBlocked(jid JID) bool {
+	for _, item := range bl.Items {
+		if item.LID == jid || item.PN == jid {
+			return true
+		}
+	}
+	return false
 }
 
 // BusinessHoursConfig contains business operating hours of a WhatsApp business.

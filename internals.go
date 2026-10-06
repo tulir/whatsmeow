@@ -419,6 +419,10 @@ func (int *DangerousInternalClient) HandleDecryptedMessage(ctx context.Context, 
 	return int.c.handleDecryptedMessage(ctx, info, msg, retryCount)
 }
 
+func (int *DangerousInternalClient) EncryptWASAMessage(ctx context.Context, bot types.JID, id types.MessageID, msg *waE2E.Message) ([]byte, error) {
+	return int.c.encryptWASAMessage(ctx, bot, id, msg)
+}
+
 func (int *DangerousInternalClient) DecryptMsgSecret(ctx context.Context, msg *events.Message, useCase MsgSecretType, encrypted messageEncryptedSecret, origMsgKey *waCommon.MessageKey) ([]byte, error) {
 	return int.c.decryptMsgSecret(ctx, msg, useCase, encrypted, origMsgKey)
 }
@@ -509,6 +513,10 @@ func (int *DangerousInternalClient) HandleIQ(ctx context.Context, node *waBinary
 
 func (int *DangerousInternalClient) HandlePairDevice(ctx context.Context, node *waBinary.Node) {
 	int.c.handlePairDevice(ctx, node)
+}
+
+func (int *DangerousInternalClient) RotateADVSecret(ctx context.Context) {
+	int.c.rotateADVSecret(ctx)
 }
 
 func (int *DangerousInternalClient) GetQRClientType() PairClientType {
@@ -835,6 +843,6 @@ func (int *DangerousInternalClient) Usync(ctx context.Context, jids []types.JID,
 	return int.c.usync(ctx, jids, mode, context, query, extra...)
 }
 
-func (int *DangerousInternalClient) ParseBlocklist(node *waBinary.Node) *types.Blocklist {
+func (int *DangerousInternalClient) ParseBlocklist(node *waBinary.Node) (*types.Blocklist, []store.LIDMapping) {
 	return int.c.parseBlocklist(node)
 }
