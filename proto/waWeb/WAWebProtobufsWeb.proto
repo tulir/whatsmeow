@@ -250,9 +250,25 @@ message WebMessageInfo {
 		EPHEMERAL_CHANGED_FOR_COEX = 248;
 		UGC_BOT_PROFILE_UPDATED = 249;
 		ORDER_EPHEMERAL_EXEMPTION = 250;
+		GROUP_DEFAULT_SUB_GROUP_DEMOTE = 251;
+		BIZ_BUSINESS_BROADCAST_ENTRY_POINT = 252;
+		BOT_INLINE_TOS_CHAT = 253;
 		CAMEO_CHAT_CREATED = 254;
-		CAMEO_TRANSITIONED = 256;
 		SENDER_SIDE_CONTACT_INFO = 255;
+		CAMEO_TRANSITIONED = 256;
+		CAMEO_REGISTERED_WITH_NEW_CHAT = 257;
+		PRIVACY_SYSTEM_MESSAGE = 258;
+		BIZ_AI_LEARNING_ENABLED_DISCLOSURE = 259;
+		BIZ_AI_LEARNING_DISABLED_DISCLOSURE = 260;
+		BIZ_AI_REPLIES_MUTED_HISTORICAL_CHAT = 261;
+		INVITE_FROM_IG = 262;
+		GROUP_ADMIN_FIRST_JOIN_VIA_LINK = 263;
+		GROUP_ADMIN_FLOOD_JOIN_VIA_LINK = 264;
+		BIZ_AI_REPLIES_MUTED_IRRELEVANT_HISTORICAL_CHAT = 265;
+		PENDING_INVITE_CREATED = 266;
+		CAMEO_CHAT_EXPIRED = 267;
+		GROUP_PUSHNAME_SHARED = 270;
+		BIZ_POST_SEND_OPT_OUT = 271;
 	}
 
 	enum Status {
@@ -336,6 +352,7 @@ message WebMessageInfo {
 	optional ScheduledMessageMetadata scheduledMessageMetadata = 81;
 	optional string decisionID = 82;
 	repeated string decisionSources = 83;
+	optional EventInviteAdditionalMetadata eventInviteAdditionalMetadata = 84;
 }
 
 message PaymentInfo {
@@ -584,6 +601,7 @@ message PollAdditionalMetadata {
 
 	optional bool pollInvalidated = 1;
 	repeated PollNameHashHistoryEntry pollNameHashHistory = 2;
+	repeated WAWebProtobufsE2E.PollCreationMessage.Option originalOptions = 3;
 }
 
 message InteractiveMessageAdditionalMetadata {
@@ -592,6 +610,10 @@ message InteractiveMessageAdditionalMetadata {
 
 message EventAdditionalMetadata {
 	optional bool isStale = 1;
+}
+
+message EventInviteAdditionalMetadata {
+	optional bool isUpdated = 1;
 }
 
 message KeepInChat {

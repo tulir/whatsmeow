@@ -5695,6 +5695,7 @@ type LidContactAction struct {
 	FullName      *string                `protobuf:"bytes,1,opt,name=fullName" json:"fullName,omitempty"`
 	FirstName     *string                `protobuf:"bytes,2,opt,name=firstName" json:"firstName,omitempty"`
 	Username      *string                `protobuf:"bytes,3,opt,name=username" json:"username,omitempty"`
+	Birthday      *string                `protobuf:"bytes,4,opt,name=birthday" json:"birthday,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -5746,6 +5747,13 @@ func (x *LidContactAction) GetFirstName() string {
 func (x *LidContactAction) GetUsername() string {
 	if x != nil && x.Username != nil {
 		return *x.Username
+	}
+	return ""
+}
+
+func (x *LidContactAction) GetBirthday() string {
+	if x != nil && x.Birthday != nil {
+		return *x.Birthday
 	}
 	return ""
 }
@@ -8334,6 +8342,7 @@ type ContactAction struct {
 	SaveOnPrimaryAddressbook *bool                  `protobuf:"varint,4,opt,name=saveOnPrimaryAddressbook" json:"saveOnPrimaryAddressbook,omitempty"`
 	PnJID                    *string                `protobuf:"bytes,5,opt,name=pnJID" json:"pnJID,omitempty"`
 	Username                 *string                `protobuf:"bytes,6,opt,name=username" json:"username,omitempty"`
+	Birthday                 *string                `protobuf:"bytes,7,opt,name=birthday" json:"birthday,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -8406,6 +8415,13 @@ func (x *ContactAction) GetPnJID() string {
 func (x *ContactAction) GetUsername() string {
 	if x != nil && x.Username != nil {
 		return *x.Username
+	}
+	return ""
+}
+
+func (x *ContactAction) GetBirthday() string {
+	if x != nil && x.Birthday != nil {
+		return *x.Birthday
 	}
 	return ""
 }
@@ -9529,11 +9545,12 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"#isCtwaPerCustomerDataSharingEnabled\x18\x01 \x01(\bR#isCtwaPerCustomerDataSharingEnabled\"L\n" +
 	"\x10OutContactAction\x12\x1a\n" +
 	"\bfullName\x18\x01 \x01(\tR\bfullName\x12\x1c\n" +
-	"\tfirstName\x18\x02 \x01(\tR\tfirstName\"h\n" +
+	"\tfirstName\x18\x02 \x01(\tR\tfirstName\"\x84\x01\n" +
 	"\x10LidContactAction\x12\x1a\n" +
 	"\bfullName\x18\x01 \x01(\tR\bfullName\x12\x1c\n" +
 	"\tfirstName\x18\x02 \x01(\tR\tfirstName\x12\x1a\n" +
-	"\busername\x18\x03 \x01(\tR\busername\"~\n" +
+	"\busername\x18\x03 \x01(\tR\busername\x12\x1a\n" +
+	"\bbirthday\x18\x04 \x01(\tR\bbirthday\"~\n" +
 	"\x0fFavoritesAction\x12O\n" +
 	"\tfavorites\x18\x01 \x03(\v21.WAWebProtobufSyncAction.FavoritesAction.FavoriteR\tfavorites\x1a\x1a\n" +
 	"\bFavorite\x12\x0e\n" +
@@ -9691,14 +9708,15 @@ const file_waSyncAction_WAWebProtobufSyncAction_proto_rawDesc = "" +
 	"\tautoMuted\x18\x03 \x01(\bR\tautoMuted\x12H\n" +
 	"\x1fmuteEveryoneMentionEndTimestamp\x18\x04 \x01(\x03R\x1fmuteEveryoneMentionEndTimestamp\"7\n" +
 	"\x1bSharedDeviceAllowlistAction\x12\x18\n" +
-	"\aallowed\x18\x01 \x01(\bR\aallowed\"\xcf\x01\n" +
+	"\aallowed\x18\x01 \x01(\bR\aallowed\"\xeb\x01\n" +
 	"\rContactAction\x12\x1a\n" +
 	"\bfullName\x18\x01 \x01(\tR\bfullName\x12\x1c\n" +
 	"\tfirstName\x18\x02 \x01(\tR\tfirstName\x12\x16\n" +
 	"\x06lidJID\x18\x03 \x01(\tR\x06lidJID\x12:\n" +
 	"\x18saveOnPrimaryAddressbook\x18\x04 \x01(\bR\x18saveOnPrimaryAddressbook\x12\x14\n" +
 	"\x05pnJID\x18\x05 \x01(\tR\x05pnJID\x12\x1a\n" +
-	"\busername\x18\x06 \x01(\tR\busername\"&\n" +
+	"\busername\x18\x06 \x01(\tR\busername\x12\x1a\n" +
+	"\bbirthday\x18\a \x01(\tR\bbirthday\"&\n" +
 	"\n" +
 	"StarAction\x12\x18\n" +
 	"\astarred\x18\x01 \x01(\bR\astarred\"\x9a\x01\n" +

@@ -883,6 +883,7 @@ message LidContactAction {
 	optional string fullName = 1;
 	optional string firstName = 2;
 	optional string username = 3;
+	optional string birthday = 4;
 }
 
 message FavoritesAction {
@@ -1142,6 +1143,7 @@ message ContactAction {
 	optional bool saveOnPrimaryAddressbook = 4;
 	optional string pnJID = 5;
 	optional string username = 6;
+	optional string birthday = 7;
 }
 
 message StarAction {

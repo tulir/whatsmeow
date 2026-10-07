@@ -56,6 +56,9 @@ message HistorySync {
 	optional bytes nctSalt = 19;
 	repeated InlineContact inlineContacts = 20;
 	optional bool inlineContactsProvided = 21;
+	repeated StickerMetadata favoriteStickers = 22;
+	repeated RecoverableHistoryConversation omittedConversations = 23;
+	optional bool omittedConversationsProvided = 24;
 }
 
 message Conversation {
@@ -137,6 +140,7 @@ message Conversation {
 	optional string authAgentObaPhoneNumber = 62;
 	optional IdentityVerificationState identityVerification = 63;
 	optional WACommon.ACP2Setting acp2Setting = 64;
+	optional bool acp2HistoryWithheld = 65;
 }
 
 message GroupParticipant {
@@ -160,6 +164,11 @@ message PastParticipant {
 	optional string userJID = 1;
 	optional LeaveReason leaveReason = 2;
 	optional uint64 leaveTS = 3;
+}
+
+message RecoverableHistoryConversation {
+	optional string historyChatID = 1;
+	optional string accountLid = 2;
 }
 
 message IdentityVerificationState {

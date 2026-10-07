@@ -15,6 +15,15 @@ message DeviceCapabilities {
 		FULL = 2;
 	}
 
+	message ReverseHistorySync {
+		enum Product {
+			PRODUCT_UNSPECIFIED = 0;
+			HATCH = 1;
+		}
+
+		repeated Product enabledProducts = 1;
+	}
+
 	message AiThread {
 		enum SupportLevel {
 			NONE = 0;
@@ -23,6 +32,12 @@ message DeviceCapabilities {
 		}
 
 		optional SupportLevel supportLevel = 1;
+	}
+
+	message NewsletterChatsMigration {
+		optional bool effectiveMigrated = 1;
+		optional int64 countdownEndsAt = 2;
+		optional bool rolledBack = 3;
 	}
 
 	message ContactRefresh {
@@ -64,4 +79,6 @@ message DeviceCapabilities {
 	optional AiFbidMigration aiFbidMigration = 7;
 	optional BizAiSettingsSync bizAiSettingsSync = 8;
 	optional ContactRefresh contactRefresh = 9;
+	optional ReverseHistorySync reverseHistorySync = 10;
+	optional NewsletterChatsMigration newsletterChatsMigration = 11;
 }

@@ -331,6 +331,32 @@ message SecretEncryptedMessage {
 	optional string remoteKeyID = 5;
 }
 
+message EventInviteMessage {
+	enum EventStatus {
+		UNKNOWN = 0;
+		ACTIVE = 1;
+		CANCELED = 2;
+		SUSPENDED = 3;
+		DELETED = 4;
+		LEFT_EVENT = 5;
+		REMOVED_FROM_INVITE_LIST = 6;
+	}
+
+	optional ContextInfo contextInfo = 1;
+	optional string eventID = 2;
+	optional string eventTitle = 3;
+	optional bytes JPEGThumbnail = 4;
+	optional int64 startTime = 5;
+	optional string caption = 6;
+	optional bool isCanceled = 7;
+	optional int64 endTime = 8;
+	optional string callLink = 9;
+	optional string coverImageHandle = 10;
+	optional string locationName = 11;
+	optional int64 lastUpdatedTSUsec = 12;
+	optional EventStatus status = 13;
+}
+
 message GroupInviteMessage {
 	enum GroupType {
 		DEFAULT = 0;
@@ -1013,6 +1039,7 @@ message ProtocolMessage {
 	optional WACommon.ACP2Setting acp2Setting = 35;
 	optional SharedDeviceContactHashKeyShare sharedDeviceContactHashKeyShare = 36;
 	optional SharedDeviceContactHashKeyRequest sharedDeviceContactHashKeyRequest = 37;
+	repeated string additionalPromptIDs = 38;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1314,6 +1341,8 @@ message ContextInfo {
 		MOTION_PHOTO_CHILD = 6;
 		HEVC_VIDEO_PARENT = 7;
 		HEVC_VIDEO_CHILD = 8;
+		AV1_VIDEO_PARENT = 9;
+		AV1_VIDEO_CHILD = 10;
 	}
 
 	enum StatusAttributionType {
@@ -1467,6 +1496,13 @@ message ContextInfo {
 		optional int32 agmHeaderInteractionStrategy = 32;
 		optional bool containsCtwaFlowsAutoLabel = 33;
 		optional string productID = 34;
+		optional bool containsCtwaPromo = 35;
+		optional string ctwaPromoResponseID = 36;
+		optional string ctwaPromoOfferID = 37;
+		optional string ctwaPromoAdEntryID = 38;
+		optional uint64 ctwaPromoResponseExpiresAtSeconds = 39;
+		optional uint32 ctwaPromoSchemaVersion = 40;
+		optional string ctwaPromoAdgroupID = 41;
 	}
 
 	message AdReplyInfo {
@@ -1604,6 +1640,7 @@ message MessageAssociation {
 		STATUS_REACTION = 18;
 		HEVC_VIDEO_DUAL_UPLOAD = 19;
 		POLL_ADD_OPTION = 20;
+		AV1_VIDEO_DUAL_UPLOAD = 21;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1885,6 +1922,8 @@ message Message {
 	optional FutureProofMessage newsletterScheduledMessage = 132;
 	optional FutureProofMessage acp2SettingMessage = 133;
 	optional FutureProofMessage audioStickerMessage = 134;
+	optional ImageMessage instantImageMessage = 135;
+	optional RequestLocationMessage requestLocationMessage = 136;
 	optional FutureProofMessage botGroupParticipantMessage = 137;
 }
 
@@ -2066,20 +2105,12 @@ message DeviceSentMessage {
 	optional string phash = 3;
 }
 
-message RequestPhoneNumberMessage {
+message RequestLocationMessage {
 	optional ContextInfo contextInfo = 1;
 }
 
-message EventInviteMessage {
+message RequestPhoneNumberMessage {
 	optional ContextInfo contextInfo = 1;
-	optional string eventID = 2;
-	optional string eventTitle = 3;
-	optional bytes JPEGThumbnail = 4;
-	optional int64 startTime = 5;
-	optional string caption = 6;
-	optional bool isCanceled = 7;
-	optional int64 endTime = 8;
-	optional string callLink = 9;
 }
 
 message NewsletterFollowerInviteMessage {
@@ -2280,6 +2311,12 @@ message FullHistorySyncOnDemandRequestMetadata {
 	optional string requestID = 1;
 	optional string businessProduct = 2;
 	optional bytes opaqueClientData = 3;
+	optional CoexConnectionDescriptor connection = 4;
+}
+
+message CoexConnectionDescriptor {
+	optional int64 providerID = 1;
+	optional string product = 2;
 }
 
 message AppStateFatalExceptionNotification {
@@ -2357,9 +2394,11 @@ message ChatStockImageWallpaper {
 }
 
 message ChatSolidColorWallpaper {
-	optional string colorLight = 1;
-	optional string colorDark = 2;
+	optional fixed32 backgroundLightArgb = 1;
+	optional fixed32 backgroundDarkArgb = 2;
 	optional bool isDoodleEnabled = 3;
+	optional fixed32 doodleLightArgb = 4;
+	optional fixed32 doodleDarkArgb = 5;
 }
 
 message ChatDefaultWallpaper {

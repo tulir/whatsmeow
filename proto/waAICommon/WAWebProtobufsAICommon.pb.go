@@ -1348,7 +1348,14 @@ const (
 	BotCapabilityMetadata_AI_STOP_GENERATION_ENABLED                 BotCapabilityMetadata_BotCapabilityType = 70
 	BotCapabilityMetadata_AI_RICH_RESPONSE_3P_LINKING_CARD_ENABLED   BotCapabilityMetadata_BotCapabilityType = 71
 	BotCapabilityMetadata_HATCH_NOTIFICATION_METADATA_EVENT_ENABLED  BotCapabilityMetadata_BotCapabilityType = 72
+	BotCapabilityMetadata_AI_SUGGESTED_REPLIES_ENABLED               BotCapabilityMetadata_BotCapabilityType = 73
+	BotCapabilityMetadata_RICH_RESPONSE_IN_APP_SURVEY_BLOKS          BotCapabilityMetadata_BotCapabilityType = 74
+	BotCapabilityMetadata_RICH_RESPONSE_IMAGE_SOURCE_ATTRIBUTION     BotCapabilityMetadata_BotCapabilityType = 75
 	BotCapabilityMetadata_HATCH_CONNECTOR_ACTION_CARD_ENABLED        BotCapabilityMetadata_BotCapabilityType = 76
+	BotCapabilityMetadata_HATCH_SECURE_CREDENTIAL_CARD_ENABLED       BotCapabilityMetadata_BotCapabilityType = 77
+	BotCapabilityMetadata_HATCH_BROWSER_TASK_CARD_ENABLED            BotCapabilityMetadata_BotCapabilityType = 78
+	BotCapabilityMetadata_HATCH_ARTIFACT_CARD_ENABLED                BotCapabilityMetadata_BotCapabilityType = 79
+	BotCapabilityMetadata_AI_STUDY_CENTER_ENABLED                    BotCapabilityMetadata_BotCapabilityType = 80
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -1427,7 +1434,14 @@ var (
 		70: "AI_STOP_GENERATION_ENABLED",
 		71: "AI_RICH_RESPONSE_3P_LINKING_CARD_ENABLED",
 		72: "HATCH_NOTIFICATION_METADATA_EVENT_ENABLED",
+		73: "AI_SUGGESTED_REPLIES_ENABLED",
+		74: "RICH_RESPONSE_IN_APP_SURVEY_BLOKS",
+		75: "RICH_RESPONSE_IMAGE_SOURCE_ATTRIBUTION",
 		76: "HATCH_CONNECTOR_ACTION_CARD_ENABLED",
+		77: "HATCH_SECURE_CREDENTIAL_CARD_ENABLED",
+		78: "HATCH_BROWSER_TASK_CARD_ENABLED",
+		79: "HATCH_ARTIFACT_CARD_ENABLED",
+		80: "AI_STUDY_CENTER_ENABLED",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
 		"UNKNOWN":                                    0,
@@ -1503,7 +1517,14 @@ var (
 		"AI_STOP_GENERATION_ENABLED":                 70,
 		"AI_RICH_RESPONSE_3P_LINKING_CARD_ENABLED":   71,
 		"HATCH_NOTIFICATION_METADATA_EVENT_ENABLED":  72,
+		"AI_SUGGESTED_REPLIES_ENABLED":               73,
+		"RICH_RESPONSE_IN_APP_SURVEY_BLOKS":          74,
+		"RICH_RESPONSE_IMAGE_SOURCE_ATTRIBUTION":     75,
 		"HATCH_CONNECTOR_ACTION_CARD_ENABLED":        76,
+		"HATCH_SECURE_CREDENTIAL_CARD_ENABLED":       77,
+		"HATCH_BROWSER_TASK_CARD_ENABLED":            78,
+		"HATCH_ARTIFACT_CARD_ENABLED":                79,
+		"AI_STUDY_CENTER_ENABLED":                    80,
 	}
 )
 
@@ -1898,10 +1919,11 @@ func (BotMessageOrigin_BotMessageOriginType) EnumDescriptor() ([]byte, []int) {
 type AIThreadInfo_AIThreadClientInfo_AIThreadType int32
 
 const (
-	AIThreadInfo_AIThreadClientInfo_UNKNOWN   AIThreadInfo_AIThreadClientInfo_AIThreadType = 0
-	AIThreadInfo_AIThreadClientInfo_DEFAULT   AIThreadInfo_AIThreadClientInfo_AIThreadType = 1
-	AIThreadInfo_AIThreadClientInfo_INCOGNITO AIThreadInfo_AIThreadClientInfo_AIThreadType = 2
-	AIThreadInfo_AIThreadClientInfo_SIDE_CHAT AIThreadInfo_AIThreadClientInfo_AIThreadType = 3
+	AIThreadInfo_AIThreadClientInfo_UNKNOWN             AIThreadInfo_AIThreadClientInfo_AIThreadType = 0
+	AIThreadInfo_AIThreadClientInfo_DEFAULT             AIThreadInfo_AIThreadClientInfo_AIThreadType = 1
+	AIThreadInfo_AIThreadClientInfo_INCOGNITO           AIThreadInfo_AIThreadClientInfo_AIThreadType = 2
+	AIThreadInfo_AIThreadClientInfo_SIDE_CHAT           AIThreadInfo_AIThreadClientInfo_AIThreadType = 3
+	AIThreadInfo_AIThreadClientInfo_PRIVATE_SEARCH_CHAT AIThreadInfo_AIThreadClientInfo_AIThreadType = 4
 )
 
 // Enum value maps for AIThreadInfo_AIThreadClientInfo_AIThreadType.
@@ -1911,12 +1933,14 @@ var (
 		1: "DEFAULT",
 		2: "INCOGNITO",
 		3: "SIDE_CHAT",
+		4: "PRIVATE_SEARCH_CHAT",
 	}
 	AIThreadInfo_AIThreadClientInfo_AIThreadType_value = map[string]int32{
-		"UNKNOWN":   0,
-		"DEFAULT":   1,
-		"INCOGNITO": 2,
-		"SIDE_CHAT": 3,
+		"UNKNOWN":             0,
+		"DEFAULT":             1,
+		"INCOGNITO":           2,
+		"SIDE_CHAT":           3,
+		"PRIVATE_SEARCH_CHAT": 4,
 	}
 )
 
@@ -7914,9 +7938,9 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPLANNED\x10\x01\x12\r\n" +
 	"\tEXECUTING\x10\x02\x12\f\n" +
-	"\bFINISHED\x10\x03\"\xf1\x14\n" +
+	"\bFINISHED\x10\x03\"\xf3\x16\n" +
 	"\x15BotCapabilityMetadata\x12c\n" +
-	"\fcapabilities\x18\x01 \x03(\x0e2?.WAWebProtobufsAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xf2\x13\n" +
+	"\fcapabilities\x18\x01 \x03(\x0e2?.WAWebProtobufsAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xf4\x15\n" +
 	"\x11BotCapabilityType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x16\n" +
 	"\x12PROGRESS_INDICATOR\x10\x01\x12\x19\n" +
@@ -7992,8 +8016,15 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\"AI_RICH_RESPONSE_REMINDERS_ENABLED\x10E\x12\x1e\n" +
 	"\x1aAI_STOP_GENERATION_ENABLED\x10F\x12,\n" +
 	"(AI_RICH_RESPONSE_3P_LINKING_CARD_ENABLED\x10G\x12-\n" +
-	")HATCH_NOTIFICATION_METADATA_EVENT_ENABLED\x10H\x12'\n" +
-	"#HATCH_CONNECTOR_ACTION_CARD_ENABLED\x10L\"\xd8\x01\n" +
+	")HATCH_NOTIFICATION_METADATA_EVENT_ENABLED\x10H\x12 \n" +
+	"\x1cAI_SUGGESTED_REPLIES_ENABLED\x10I\x12%\n" +
+	"!RICH_RESPONSE_IN_APP_SURVEY_BLOKS\x10J\x12*\n" +
+	"&RICH_RESPONSE_IMAGE_SOURCE_ATTRIBUTION\x10K\x12'\n" +
+	"#HATCH_CONNECTOR_ACTION_CARD_ENABLED\x10L\x12(\n" +
+	"$HATCH_SECURE_CREDENTIAL_CARD_ENABLED\x10M\x12#\n" +
+	"\x1fHATCH_BROWSER_TASK_CARD_ENABLED\x10N\x12\x1f\n" +
+	"\x1bHATCH_ARTIFACT_CARD_ENABLED\x10O\x12\x1b\n" +
+	"\x17AI_STUDY_CENTER_ENABLED\x10P\"\xd8\x01\n" +
 	"\x18BotModeSelectionMetadata\x12Y\n" +
 	"\x04mode\x18\x01 \x03(\x0e2E.WAWebProtobufsAICommon.BotModeSelectionMetadata.BotUserSelectionModeR\x04mode\x12\"\n" +
 	"\foverrideMode\x18\x02 \x03(\rR\foverrideMode\"=\n" +
@@ -8047,22 +8078,23 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\x10BotMessageOrigin\x12Q\n" +
 	"\x04type\x18\x01 \x01(\x0e2=.WAWebProtobufsAICommon.BotMessageOrigin.BotMessageOriginTypeR\x04type\"@\n" +
 	"\x14BotMessageOriginType\x12(\n" +
-	"$BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED\x10\x00\"\xcb\x03\n" +
+	"$BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED\x10\x00\"\xe4\x03\n" +
 	"\fAIThreadInfo\x12W\n" +
 	"\n" +
 	"serverInfo\x18\x01 \x01(\v27.WAWebProtobufsAICommon.AIThreadInfo.AIThreadServerInfoR\n" +
 	"serverInfo\x12W\n" +
 	"\n" +
 	"clientInfo\x18\x02 \x01(\v27.WAWebProtobufsAICommon.AIThreadInfo.AIThreadClientInfoR\n" +
-	"clientInfo\x1a\xdc\x01\n" +
+	"clientInfo\x1a\xf5\x01\n" +
 	"\x12AIThreadClientInfo\x12X\n" +
 	"\x04type\x18\x01 \x01(\x0e2D.WAWebProtobufsAICommon.AIThreadInfo.AIThreadClientInfo.AIThreadTypeR\x04type\x12$\n" +
-	"\rsourceChatJID\x18\x02 \x01(\tR\rsourceChatJID\"F\n" +
+	"\rsourceChatJID\x18\x02 \x01(\tR\rsourceChatJID\"_\n" +
 	"\fAIThreadType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aDEFAULT\x10\x01\x12\r\n" +
 	"\tINCOGNITO\x10\x02\x12\r\n" +
-	"\tSIDE_CHAT\x10\x03\x1a*\n" +
+	"\tSIDE_CHAT\x10\x03\x12\x17\n" +
+	"\x13PRIVATE_SEARCH_CHAT\x10\x04\x1a*\n" +
 	"\x12AIThreadServerInfo\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\"\xe1\x1f\n" +
 	"\x12BotFeedbackMessage\x124\n" +
