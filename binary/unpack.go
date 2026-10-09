@@ -19,6 +19,9 @@ import (
 // (without the first byte). There's currently no corresponding Pack function because Marshal
 // already returns the data with a leading zero (i.e. not compressed).
 func Unpack(data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return nil, io.ErrUnexpectedEOF
+	}
 	dataType, data := data[0], data[1:]
 	if 2&dataType > 0 {
 		if decompressor, err := zlib.NewReader(bytes.NewReader(data)); err != nil {
