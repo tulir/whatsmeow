@@ -139,7 +139,7 @@ func (cli *Client) handleConnectFailure(ctx context.Context, node *waBinary.Node
 	} else if reason == events.ConnectFailureClientOutdated {
 		cli.Log.Errorf("Client outdated (405) connect failure (client version: %s)", store.GetWAVersion().String())
 		go cli.dispatchEvent(&events.ClientOutdated{})
-	} else if reason == events.ConnectFailureCATInvalid || reason == events.ConnectFailureCATExpired {
+	} else if cli.RefreshCAT != nil && (reason == events.ConnectFailureCATInvalid || reason == events.ConnectFailureCATExpired) {
 		cli.Log.Infof("Got %d/%s connect failure, refreshing CAT before reconnecting...", int(reason), message)
 		err := cli.RefreshCAT(ctx)
 		if err != nil {
