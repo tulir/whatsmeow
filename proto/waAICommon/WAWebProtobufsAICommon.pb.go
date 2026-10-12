@@ -1356,6 +1356,7 @@ const (
 	BotCapabilityMetadata_HATCH_BROWSER_TASK_CARD_ENABLED            BotCapabilityMetadata_BotCapabilityType = 78
 	BotCapabilityMetadata_HATCH_ARTIFACT_CARD_ENABLED                BotCapabilityMetadata_BotCapabilityType = 79
 	BotCapabilityMetadata_AI_STUDY_CENTER_ENABLED                    BotCapabilityMetadata_BotCapabilityType = 80
+	BotCapabilityMetadata_AI_MUSE_JARVIS_SCHEMA_ENABLED              BotCapabilityMetadata_BotCapabilityType = 81
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -1442,6 +1443,7 @@ var (
 		78: "HATCH_BROWSER_TASK_CARD_ENABLED",
 		79: "HATCH_ARTIFACT_CARD_ENABLED",
 		80: "AI_STUDY_CENTER_ENABLED",
+		81: "AI_MUSE_JARVIS_SCHEMA_ENABLED",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
 		"UNKNOWN":                                    0,
@@ -1525,6 +1527,7 @@ var (
 		"HATCH_BROWSER_TASK_CARD_ENABLED":            78,
 		"HATCH_ARTIFACT_CARD_ENABLED":                79,
 		"AI_STUDY_CENTER_ENABLED":                    80,
+		"AI_MUSE_JARVIS_SCHEMA_ENABLED":              81,
 	}
 )
 
@@ -7938,9 +7941,9 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPLANNED\x10\x01\x12\r\n" +
 	"\tEXECUTING\x10\x02\x12\f\n" +
-	"\bFINISHED\x10\x03\"\xf3\x16\n" +
+	"\bFINISHED\x10\x03\"\x96\x17\n" +
 	"\x15BotCapabilityMetadata\x12c\n" +
-	"\fcapabilities\x18\x01 \x03(\x0e2?.WAWebProtobufsAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xf4\x15\n" +
+	"\fcapabilities\x18\x01 \x03(\x0e2?.WAWebProtobufsAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\x97\x16\n" +
 	"\x11BotCapabilityType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x16\n" +
 	"\x12PROGRESS_INDICATOR\x10\x01\x12\x19\n" +
@@ -8024,7 +8027,8 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"$HATCH_SECURE_CREDENTIAL_CARD_ENABLED\x10M\x12#\n" +
 	"\x1fHATCH_BROWSER_TASK_CARD_ENABLED\x10N\x12\x1f\n" +
 	"\x1bHATCH_ARTIFACT_CARD_ENABLED\x10O\x12\x1b\n" +
-	"\x17AI_STUDY_CENTER_ENABLED\x10P\"\xd8\x01\n" +
+	"\x17AI_STUDY_CENTER_ENABLED\x10P\x12!\n" +
+	"\x1dAI_MUSE_JARVIS_SCHEMA_ENABLED\x10Q\"\xd8\x01\n" +
 	"\x18BotModeSelectionMetadata\x12Y\n" +
 	"\x04mode\x18\x01 \x03(\x0e2E.WAWebProtobufsAICommon.BotModeSelectionMetadata.BotUserSelectionModeR\x04mode\x12\"\n" +
 	"\foverrideMode\x18\x02 \x03(\rR\foverrideMode\"=\n" +

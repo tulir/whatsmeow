@@ -331,6 +331,17 @@ message SecretEncryptedMessage {
 	optional string remoteKeyID = 5;
 }
 
+message RequestLocationUpdateMessage {
+	enum UpdateType {
+		UNKNOWN = 0;
+		CANCEL = 1;
+	}
+
+	optional WACommon.MessageKey key = 1;
+	optional UpdateType updateType = 2;
+	optional int64 senderTimestampMS = 3;
+}
+
 message EventInviteMessage {
 	enum EventStatus {
 		UNKNOWN = 0;
@@ -1114,6 +1125,8 @@ message MusicMessage {
 	enum MusicMessageStyle {
 		UNKNOWN = 0;
 		VINYL = 1;
+		MESSAGE_BUBBLE = 2;
+		LYRICS = 3;
 	}
 
 	optional EmbeddedMusic embeddedMusic = 1;
@@ -1343,6 +1356,8 @@ message ContextInfo {
 		HEVC_VIDEO_CHILD = 8;
 		AV1_VIDEO_PARENT = 9;
 		AV1_VIDEO_CHILD = 10;
+		STREAMED_VIDEO_PARENT = 11;
+		STREAMED_VIDEO_CHILD = 12;
 	}
 
 	enum StatusAttributionType {
@@ -1641,6 +1656,7 @@ message MessageAssociation {
 		HEVC_VIDEO_DUAL_UPLOAD = 19;
 		POLL_ADD_OPTION = 20;
 		AV1_VIDEO_DUAL_UPLOAD = 21;
+		STREAMED_HD_VIDEO_DUAL_UPLOAD = 22;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1925,6 +1941,7 @@ message Message {
 	optional ImageMessage instantImageMessage = 135;
 	optional RequestLocationMessage requestLocationMessage = 136;
 	optional FutureProofMessage botGroupParticipantMessage = 137;
+	optional RequestLocationUpdateMessage requestLocationUpdateMessage = 138;
 }
 
 message AlbumMessage {

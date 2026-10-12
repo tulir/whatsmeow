@@ -108,6 +108,7 @@ enum MutationProps {
 	BUSINESS_FOLDER_ACTIVATION_ACTION = 96;
 	GROUP_HISTORY_TOGGLE_ACTION = 97;
 	BB_PRO_PENDING_CUSTOMER_BASE_ACTION = 98;
+	COMMUNITY_NESTING_STATE_ACTION = 99;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -187,6 +188,16 @@ message CallLogRecord {
 	optional string groupJID = 13;
 	repeated ParticipantInfo participants = 14;
 	optional CallType callType = 15;
+}
+
+message CommunityNestingStateAction {
+	enum NestingState {
+		NESTING_STATE_UNKNOWN = 0;
+		NESTING_STATE_NESTED = 1;
+		NESTING_STATE_UNNESTED = 2;
+	}
+
+	optional NestingState nestingState = 1;
 }
 
 message GroupHistoryToggleAction {
@@ -499,6 +510,7 @@ message LabelEditAction {
 		MENTIONS_AND_REPLIES = 17;
 		REQUESTS = 18;
 		BUSINESS = 19;
+		ONE_ON_ONE = 20;
 	}
 
 	optional string name = 1;
@@ -635,6 +647,7 @@ enum MutationName {
 	BUSINESS_FOLDER_ACTIVATION_ACTION = business_folder_activation;
 	GROUP_HISTORY_TOGGLE_ACTION = group_history_toggle;
 	BB_PRO_PENDING_CUSTOMER_BASE_ACTION = bb_pro_pending_customer_base_action;
+	COMMUNITY_NESTING_STATE_ACTION = community_nesting_state;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -751,6 +764,7 @@ message SyncActionValue {
 	optional BusinessFolderActivationAction businessFolderActivationAction = 96;
 	optional GroupHistoryToggleAction groupHistoryToggleAction = 97;
 	optional BBProPendingCustomerBaseAction bbProPendingCustomerBaseAction = 98;
+	optional CommunityNestingStateAction communityNestingStateAction = 99;
 }
 
 message BBProPendingCustomerBaseAction {

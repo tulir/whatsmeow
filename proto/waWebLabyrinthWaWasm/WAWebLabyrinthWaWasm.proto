@@ -45,12 +45,21 @@ message DeriveVirtualDeviceIdInput {
 	required uint64 userID = 2;
 }
 
+message AddDeviceSyncEpochInput {
+	required uint64 epochID = 1;
+	required bytes epochAnonID = 2;
+	optional bytes encryptedEpochKey = 3;
+	required bytes senderAuthPubKey = 4;
+	optional uint64 nextEpochID = 5;
+}
+
 message PrepareAddDeviceInput {
 	required string recoveryCode = 1;
 	required uint64 userID = 2;
 	required string encryptedSecretValuesJSON = 3;
 	required uint64 virtualDeviceBaseEpochID = 4;
 	required uint64 activeEpochID = 5;
+	repeated AddDeviceSyncEpochInput syncEpochs = 6;
 }
 
 message DeviceOutput {
@@ -92,9 +101,6 @@ message VirtualDeviceOutput {
 message Epoch0Output {
 	required uint64 epochFbid = 1;
 	required bytes epochAnonID = 2;
-	required bytes epochData = 3;
-	required bytes wrappedRootKeyForSelf = 4;
-	required bytes epochSignature = 5;
 	required bytes epochRootKeyFingerprint = 6;
 	optional bytes epochRootKey = 7;
 }
@@ -146,7 +152,7 @@ message AddDeviceKeysOutput {
 	required bytes orfClientState = 7;
 }
 
-message AddDeviceEpochOutput {
+message EpochKey {
 	required uint64 serverEpochID = 1;
 	required bytes epochAnonID = 2;
 	required bytes epochRootKey = 3;
@@ -154,7 +160,7 @@ message AddDeviceEpochOutput {
 
 message PrepareAddDeviceOutput {
 	optional AddDeviceKeysOutput deviceKeys = 1;
-	optional AddDeviceEpochOutput currentEpoch = 2;
+	optional EpochKey currentEpoch = 2;
 	optional bytes mailboxRootSalt = 3;
 	optional bytes orfRotationToken = 4;
 	optional bytes deviceEpochHmac = 5;
@@ -203,6 +209,68 @@ message RotateEpochOutput {
 	optional string error = 7;
 }
 
+message ComputeClientSealTokenInput {
+	required bytes orfClientState = 1;
+	required uint64 backupID = 2;
+}
+
+message ComputeClientSealTokenOutput {
+	optional bytes clientSealToken = 1;
+	optional string error = 2;
+}
+
+message SealThreadIdInput {
+	required bytes epochRootKey = 1;
+	required bytes epochAnonID = 2;
+	required uint64 backupID = 3;
+	required string threadID = 4;
+}
+
+message SealThreadIdOutput {
+	optional bytes sealedThreadID = 1;
+	optional string error = 2;
+}
+
+message OpenSealedThreadIdInput {
+	required uint64 backupID = 1;
+	required bytes sealedThreadID = 2;
+	repeated EpochKey epochs = 3;
+}
+
+message OpenSealedThreadIdOutput {
+	optional string threadID = 1;
+	optional uint32 sealEpochAnonID = 2;
+	optional string error = 3;
+}
+
+message EpochIds {
+	required uint64 serverEpochID = 1;
+	required bytes epochAnonID = 2;
+}
+
+message ForwardEdgeInput {
+	required bytes encryptedEntropy = 1;
+	required bytes authPublicKey = 2;
+}
+
+message EpochDerivationEdge {
+	required EpochIds fromEpoch = 1;
+	required EpochIds toEpoch = 2;
+	optional ForwardEdgeInput forwardEdge = 3;
+	optional bytes backwardEdge = 4;
+}
+
+message DeriveEpochsInput {
+	required bytes epochStoragePrivateKey = 1;
+	repeated EpochKey epochs = 2;
+	repeated EpochDerivationEdge edges = 3;
+}
+
+message DeriveEpochsOutput {
+	repeated EpochKey epochs = 1;
+	optional string error = 2;
+}
+
 message LabyrinthWaCommand {
 	oneof commandInput {
 		CreateBackupInput createBackupInput = 1;
@@ -213,5 +281,9 @@ message LabyrinthWaCommand {
 		RotateEpochInput rotateEpochInput = 6;
 		DeriveVirtualDeviceIdInput deriveVirtualDeviceIDInput = 7;
 		PrepareAddDeviceInput prepareAddDeviceInput = 8;
+		ComputeClientSealTokenInput computeClientSealTokenInput = 9;
+		OpenSealedThreadIdInput openSealedThreadIDInput = 10;
+		DeriveEpochsInput deriveEpochsInput = 11;
+		SealThreadIdInput sealThreadIDInput = 12;
 	}
 }

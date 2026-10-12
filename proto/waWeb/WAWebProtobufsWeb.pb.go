@@ -345,6 +345,10 @@ const (
 	WebMessageInfo_CAMEO_CHAT_EXPIRED                                       WebMessageInfo_StubType = 267
 	WebMessageInfo_GROUP_PUSHNAME_SHARED                                    WebMessageInfo_StubType = 270
 	WebMessageInfo_BIZ_POST_SEND_OPT_OUT                                    WebMessageInfo_StubType = 271
+	WebMessageInfo_CHAT_WITH_BUSINESS_IN_DIRECTORY                          WebMessageInfo_StubType = 283
+	WebMessageInfo_META_AI_THREAD_CREATED                                   WebMessageInfo_StubType = 284
+	WebMessageInfo_META_AI_CONNECTOR_LINKED                                 WebMessageInfo_StubType = 285
+	WebMessageInfo_SPLIT_PAYMENT_MARKED_AS_PAID                             WebMessageInfo_StubType = 289
 )
 
 // Enum value maps for WebMessageInfo_StubType.
@@ -605,6 +609,10 @@ var (
 		267: "CAMEO_CHAT_EXPIRED",
 		270: "GROUP_PUSHNAME_SHARED",
 		271: "BIZ_POST_SEND_OPT_OUT",
+		283: "CHAT_WITH_BUSINESS_IN_DIRECTORY",
+		284: "META_AI_THREAD_CREATED",
+		285: "META_AI_CONNECTOR_LINKED",
+		289: "SPLIT_PAYMENT_MARKED_AS_PAID",
 	}
 	WebMessageInfo_StubType_value = map[string]int32{
 		"UNKNOWN":                                                  0,
@@ -862,6 +870,10 @@ var (
 		"CAMEO_CHAT_EXPIRED":                                       267,
 		"GROUP_PUSHNAME_SHARED":                                    270,
 		"BIZ_POST_SEND_OPT_OUT":                                    271,
+		"CHAT_WITH_BUSINESS_IN_DIRECTORY":                          283,
+		"META_AI_THREAD_CREATED":                                   284,
+		"META_AI_CONNECTOR_LINKED":                                 285,
+		"SPLIT_PAYMENT_MARKED_AS_PAID":                             289,
 	}
 )
 
@@ -1382,11 +1394,12 @@ func (PinInChat_Type) EnumDescriptor() ([]byte, []int) {
 type MessageAddOn_MessageAddOnType int32
 
 const (
-	MessageAddOn_UNDEFINED      MessageAddOn_MessageAddOnType = 0
-	MessageAddOn_REACTION       MessageAddOn_MessageAddOnType = 1
-	MessageAddOn_EVENT_RESPONSE MessageAddOn_MessageAddOnType = 2
-	MessageAddOn_POLL_UPDATE    MessageAddOn_MessageAddOnType = 3
-	MessageAddOn_PIN_IN_CHAT    MessageAddOn_MessageAddOnType = 4
+	MessageAddOn_UNDEFINED               MessageAddOn_MessageAddOnType = 0
+	MessageAddOn_REACTION                MessageAddOn_MessageAddOnType = 1
+	MessageAddOn_EVENT_RESPONSE          MessageAddOn_MessageAddOnType = 2
+	MessageAddOn_POLL_UPDATE             MessageAddOn_MessageAddOnType = 3
+	MessageAddOn_PIN_IN_CHAT             MessageAddOn_MessageAddOnType = 4
+	MessageAddOn_REQUEST_LOCATION_UPDATE MessageAddOn_MessageAddOnType = 5
 )
 
 // Enum value maps for MessageAddOn_MessageAddOnType.
@@ -1397,13 +1410,15 @@ var (
 		2: "EVENT_RESPONSE",
 		3: "POLL_UPDATE",
 		4: "PIN_IN_CHAT",
+		5: "REQUEST_LOCATION_UPDATE",
 	}
 	MessageAddOn_MessageAddOnType_value = map[string]int32{
-		"UNDEFINED":      0,
-		"REACTION":       1,
-		"EVENT_RESPONSE": 2,
-		"POLL_UPDATE":    3,
-		"PIN_IN_CHAT":    4,
+		"UNDEFINED":               0,
+		"REACTION":                1,
+		"EVENT_RESPONSE":          2,
+		"POLL_UPDATE":             3,
+		"PIN_IN_CHAT":             4,
+		"REQUEST_LOCATION_UPDATE": 5,
 	}
 )
 
@@ -4360,7 +4375,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xc8f\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xcdg\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4446,7 +4461,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\xa7C\n" +
+	"BSP_AND_FB\x10\x03\"\xacD\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4706,7 +4721,11 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x16PENDING_INVITE_CREATED\x10\x8a\x02\x12\x17\n" +
 	"\x12CAMEO_CHAT_EXPIRED\x10\x8b\x02\x12\x1a\n" +
 	"\x15GROUP_PUSHNAME_SHARED\x10\x8e\x02\x12\x1a\n" +
-	"\x15BIZ_POST_SEND_OPT_OUT\x10\x8f\x02\"X\n" +
+	"\x15BIZ_POST_SEND_OPT_OUT\x10\x8f\x02\x12$\n" +
+	"\x1fCHAT_WITH_BUSINESS_IN_DIRECTORY\x10\x9b\x02\x12\x1b\n" +
+	"\x16META_AI_THREAD_CREATED\x10\x9c\x02\x12\x1d\n" +
+	"\x18META_AI_CONNECTOR_LINKED\x10\x9d\x02\x12!\n" +
+	"\x1cSPLIT_PAYMENT_MARKED_AS_PAID\x10\xa1\x02\"X\n" +
 	"\x06Status\x12\t\n" +
 	"\x05ERROR\x10\x00\x12\v\n" +
 	"\aPENDING\x10\x01\x12\x0e\n" +
@@ -4854,7 +4873,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x04Type\x12\x10\n" +
 	"\fUNKNOWN_TYPE\x10\x00\x12\x0f\n" +
 	"\vPIN_FOR_ALL\x10\x01\x12\x11\n" +
-	"\rUNPIN_FOR_ALL\x10\x02\"\x91\x05\n" +
+	"\rUNPIN_FOR_ALL\x10\x02\"\xaf\x05\n" +
 	"\fMessageAddOn\x12\\\n" +
 	"\x10messageAddOnType\x18\x01 \x01(\x0e20.WAWebProtobufsWeb.MessageAddOn.MessageAddOnTypeR\x10messageAddOnType\x12>\n" +
 	"\fmessageAddOn\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\fmessageAddOn\x12,\n" +
@@ -4863,13 +4882,14 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x06status\x18\x05 \x01(\x0e2(.WAWebProtobufsWeb.WebMessageInfo.StatusR\x06status\x12V\n" +
 	"\x10addOnContextInfo\x18\x06 \x01(\v2*.WAWebProtobufsWeb.MessageAddOnContextInfoR\x10addOnContextInfo\x12>\n" +
 	"\x0fmessageAddOnKey\x18\a \x01(\v2\x14.WACommon.MessageKeyR\x0fmessageAddOnKey\x12F\n" +
-	"\rlegacyMessage\x18\b \x01(\v2 .WAWebProtobufsWeb.LegacyMessageR\rlegacyMessage\"e\n" +
+	"\rlegacyMessage\x18\b \x01(\v2 .WAWebProtobufsWeb.LegacyMessageR\rlegacyMessage\"\x82\x01\n" +
 	"\x10MessageAddOnType\x12\r\n" +
 	"\tUNDEFINED\x10\x00\x12\f\n" +
 	"\bREACTION\x10\x01\x12\x12\n" +
 	"\x0eEVENT_RESPONSE\x10\x02\x12\x0f\n" +
 	"\vPOLL_UPDATE\x10\x03\x12\x0f\n" +
-	"\vPIN_IN_CHAT\x10\x04\"\xee\x02\n" +
+	"\vPIN_IN_CHAT\x10\x04\x12\x1b\n" +
+	"\x17REQUEST_LOCATION_UPDATE\x10\x05\"\xee\x02\n" +
 	"\x16GroupHistoryBundleInfo\x12o\n" +
 	"\x1edeprecatedMessageHistoryBundle\x18\x01 \x01(\v2'.WAWebProtobufsE2E.MessageHistoryBundleR\x1edeprecatedMessageHistoryBundle\x12Z\n" +
 	"\fprocessState\x18\x02 \x01(\x0e26.WAWebProtobufsWeb.GroupHistoryBundleInfo.ProcessStateR\fprocessState\"\x86\x01\n" +
