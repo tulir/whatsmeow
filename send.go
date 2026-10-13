@@ -159,6 +159,8 @@ type SendRequestExtra struct {
 	Meta *types.MsgMetaInfo
 	// use this only if you know what you are doing
 	AdditionalNodes *[]waBinary.Node
+
+	CheckPermissions bool
 }
 
 // SendMessage sends the given message.
@@ -300,10 +302,10 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	}
 
 	var groupParticipants []types.JID
+	var cachedData *groupMetaCache
 	if to.Server == types.GroupServer || to.Server == types.BroadcastServer {
 		start := time.Now()
 		if to.Server == types.GroupServer {
-			var cachedData *groupMetaCache
 			cachedData, err = cli.getCachedGroupData(ctx, to)
 			if err != nil {
 				err = fmt.Errorf("failed to get group members: %w", err)
@@ -402,6 +404,10 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		} else {
 			cli.Log.Debugf("Stored message secret key for outgoing message %s", req.ID)
 		}
+	}
+
+	if req.CheckPermissions && !cachedData.CanSend(ownID, message) {
+		return resp, ErrNoPermissionInGroup
 	}
 
 	respChan := cli.waitResponse(req.ID)

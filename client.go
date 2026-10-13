@@ -17,6 +17,7 @@ import (
 	"net/http"
 	"net/url"
 	"runtime/debug"
+	"slices"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -217,7 +218,22 @@ type Client struct {
 type groupMetaCache struct {
 	AddressingMode             types.AddressingMode
 	CommunityAnnouncementGroup bool
+	ReadOnly                   bool
 	Members                    []types.JID
+	Admins                     []types.JID
+}
+
+func (gmc *groupMetaCache) CanSend(sender types.JID, message *waE2E.Message) bool {
+	return gmc == nil ||
+		!gmc.ReadOnly ||
+		message.PollUpdateMessage != nil ||
+		message.ReactionMessage != nil ||
+		message.EncReactionMessage != nil ||
+		message.EncEventResponseMessage != nil ||
+		message.QuestionResponseMessage != nil ||
+		message.CommentMessage != nil ||
+		message.EncCommentMessage != nil ||
+		slices.Contains(gmc.Admins, sender)
 }
 
 type MessengerConfig struct {

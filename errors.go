@@ -111,6 +111,7 @@ var (
 	ErrRecipientADJID           = errors.New("message recipient must be a user JID with no device part")
 	ErrServerReturnedError      = errors.New("server returned error")
 	ErrInvalidInlineBotID       = errors.New("invalid inline bot ID")
+	ErrNoPermissionInGroup      = errors.New("no permission to send that message in the group")
 )
 
 type DownloadHTTPError struct {
