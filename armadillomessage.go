@@ -72,6 +72,10 @@ func decodeFBArmadillo(transport *waMsgTransport.MessageTransport) (dec events.F
 	if err != nil {
 		return dec, fmt.Errorf("failed to unmarshal application: %w", err)
 	}
+	return DecodeFBApplication(application)
+}
+
+func DecodeFBApplication(application *waMsgApplication.MessageApplication) (dec events.FBMessage, err error) {
 	dec.FBApplication = application
 	if application.GetPayload() == nil {
 		return
