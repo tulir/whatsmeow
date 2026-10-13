@@ -32,7 +32,7 @@ var getReportingFields = sync.OnceValue(func() (output []reportingField) {
 
 type reportingField struct {
 	FieldNumber int              `json:"f"`
-	IsMessage   bool             `json:"m,omitempty"`
+	IsMessage   bool             `json:"m,omitzero"`
 	Subfields   []reportingField `json:"s,omitempty"`
 }
 

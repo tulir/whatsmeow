@@ -43,7 +43,7 @@ type PatchInfo struct {
 func BuildMute(target types.JID, mute bool, muteDuration time.Duration) PatchInfo {
 	var muteEndTimestamp *int64
 	if muteDuration > 0 {
-		muteEndTimestamp = proto.Int64(time.Now().Add(muteDuration).UnixMilli())
+		muteEndTimestamp = new(time.Now().Add(muteDuration).UnixMilli())
 	}
 	return BuildMuteAbs(target, mute, muteEndTimestamp)
 }
@@ -60,7 +60,7 @@ func BuildMuteAbs(target types.JID, mute bool, muteEndTimestamp *int64) PatchInf
 			Version: 2,
 			Value: &waSyncAction.SyncActionValue{
 				MuteAction: &waSyncAction.MuteAction{
-					Muted:            proto.Bool(mute),
+					Muted:            new(mute),
 					MuteEndTimestamp: muteEndTimestamp,
 				},
 			},
@@ -124,7 +124,7 @@ func BuildArchive(target types.JID, archive bool, lastMessageTimestamp time.Time
 // BuildMarkChatAsRead builds an app state patch for marking a chat as read or unread.
 func BuildMarkChatAsRead(target types.JID, read bool, lastMessageTimestamp time.Time, lastMessageKey *waCommon.MessageKey) PatchInfo {
 	action := &waSyncAction.MarkChatAsReadAction{
-		Read:         proto.Bool(read),
+		Read:         new(read),
 		MessageRange: newMessageRange(lastMessageTimestamp, lastMessageKey),
 	}
 
@@ -272,7 +272,7 @@ func (proc *Processor) EncodePatch(ctx context.Context, keyID []byte, state Hash
 
 	mutations := make([]*waServerSync.SyncdMutation, 0, len(patchInfo.Mutations))
 	for _, mutationInfo := range patchInfo.Mutations {
-		mutationInfo.Value.Timestamp = proto.Int64(patchInfo.Timestamp.UnixMilli())
+		mutationInfo.Value.Timestamp = new(patchInfo.Timestamp.UnixMilli())
 
 		indexBytes, err := json.Marshal(mutationInfo.Index)
 		if err != nil {
@@ -363,12 +363,12 @@ func newMessageRange(lastMessageTimestamp time.Time, lastMessageKey *waCommon.Me
 		lastMessageTimestamp = time.Now()
 	}
 	messageRange := &waSyncAction.SyncActionMessageRange{
-		LastMessageTimestamp: proto.Int64(lastMessageTimestamp.Unix()),
+		LastMessageTimestamp: new(lastMessageTimestamp.Unix()),
 	}
 	if lastMessageKey != nil {
 		messageRange.Messages = []*waSyncAction.SyncActionMessage{{
 			Key:       lastMessageKey,
-			Timestamp: proto.Int64(lastMessageTimestamp.Unix()),
+			Timestamp: new(lastMessageTimestamp.Unix()),
 		}}
 	}
 	return messageRange

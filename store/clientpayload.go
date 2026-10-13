@@ -104,15 +104,15 @@ var BaseClientPayload = &waWa6.ClientPayload{
 		Platform:       waWa6.ClientPayload_UserAgent_WEB.Enum(),
 		ReleaseChannel: waWa6.ClientPayload_UserAgent_RELEASE.Enum(),
 		AppVersion:     waVersion.ProtoAppVersion(),
-		Mcc:            proto.String("000"),
-		Mnc:            proto.String("000"),
-		OsVersion:      proto.String("0.1"),
-		Manufacturer:   proto.String(""),
-		Device:         proto.String("Desktop"),
-		OsBuildNumber:  proto.String("0.1"),
+		Mcc:            new("000"),
+		Mnc:            new("000"),
+		OsVersion:      new("0.1"),
+		Manufacturer:   new(""),
+		Device:         new("Desktop"),
+		OsBuildNumber:  new("0.1"),
 
-		LocaleLanguageIso6391:       proto.String("en"),
-		LocaleCountryIso31661Alpha2: proto.String("US"),
+		LocaleLanguageIso6391:       new("en"),
+		LocaleCountryIso31661Alpha2: new("US"),
 	},
 	WebInfo: &waWa6.ClientPayload_WebInfo{
 		WebSubPlatform: waWa6.ClientPayload_WebInfo_WEB_BROWSER.Enum(),
@@ -122,7 +122,7 @@ var BaseClientPayload = &waWa6.ClientPayload{
 }
 
 var DeviceProps = &waCompanionReg.DeviceProps{
-	Os: proto.String("whatsmeow"),
+	Os: new("whatsmeow"),
 	Version: &waCompanionReg.DeviceProps_AppVersion{
 		Primary:   proto.Uint32(0),
 		Secondary: proto.Uint32(1),
@@ -132,28 +132,28 @@ var DeviceProps = &waCompanionReg.DeviceProps{
 		FullSyncDaysLimit:                        nil,
 		FullSyncSizeMbLimit:                      nil,
 		StorageQuotaMb:                           proto.Uint32(10240),
-		InlineInitialPayloadInE2EeMsg:            proto.Bool(true),
+		InlineInitialPayloadInE2EeMsg:            new(true),
 		RecentSyncDaysLimit:                      nil,
-		SupportCallLogHistory:                    proto.Bool(true),
-		SupportBotUserAgentChatHistory:           proto.Bool(true),
-		SupportCagReactionsAndPolls:              proto.Bool(true),
-		SupportBizHostedMsg:                      proto.Bool(true),
-		SupportRecentSyncChunkMessageCountTuning: proto.Bool(true),
-		SupportHostedGroupMsg:                    proto.Bool(true),
-		SupportFbidBotChatHistory:                proto.Bool(true),
+		SupportCallLogHistory:                    new(true),
+		SupportBotUserAgentChatHistory:           new(true),
+		SupportCagReactionsAndPolls:              new(true),
+		SupportBizHostedMsg:                      new(true),
+		SupportRecentSyncChunkMessageCountTuning: new(true),
+		SupportHostedGroupMsg:                    new(true),
+		SupportFbidBotChatHistory:                new(true),
 		SupportAddOnHistorySyncMigration:         nil,
-		SupportMessageAssociation:                proto.Bool(true),
-		SupportGroupHistory:                      proto.Bool(true),
+		SupportMessageAssociation:                new(true),
+		SupportGroupHistory:                      new(true),
 		OnDemandReady:                            nil,
 		SupportGuestChat:                         nil,
 		CompleteOnDemandReady:                    nil,
 		ThumbnailSyncDaysLimit:                   proto.Uint32(60),
 		InitialSyncMaxMessagesPerChat:            nil,
-		SupportManusHistory:                      proto.Bool(true),
-		SupportHatchHistory:                      proto.Bool(true),
+		SupportManusHistory:                      new(true),
+		SupportHatchHistory:                      new(true),
 	},
 	PlatformType:    waCompanionReg.DeviceProps_UNKNOWN.Enum(),
-	RequireFullSync: proto.Bool(false),
+	RequireFullSync: new(false),
 }
 
 func SetOSInfo(name string, version [3]uint32) {
@@ -161,7 +161,7 @@ func SetOSInfo(name string, version [3]uint32) {
 	DeviceProps.Version.Primary = &version[0]
 	DeviceProps.Version.Secondary = &version[1]
 	DeviceProps.Version.Tertiary = &version[2]
-	BaseClientPayload.UserAgent.OsVersion = proto.String(fmt.Sprintf("%d.%d.%d", version[0], version[1], version[2]))
+	BaseClientPayload.UserAgent.OsVersion = new(fmt.Sprintf("%d.%d.%d", version[0], version[1], version[2]))
 	BaseClientPayload.UserAgent.OsBuildNumber = BaseClientPayload.UserAgent.OsVersion
 }
 
@@ -182,18 +182,18 @@ func (device *Device) getRegistrationPayload() *waWa6.ClientPayload {
 		BuildHash:   waVersionHash[:],
 		DeviceProps: deviceProps,
 	}
-	payload.Passive = proto.Bool(false)
-	payload.Pull = proto.Bool(false)
+	payload.Passive = new(false)
+	payload.Pull = new(false)
 	return payload
 }
 
 func (device *Device) getLoginPayload() *waWa6.ClientPayload {
 	payload := proto.Clone(BaseClientPayload).(*waWa6.ClientPayload)
-	payload.Username = proto.Uint64(device.ID.UserInt())
-	payload.Device = proto.Uint32(uint32(device.ID.Device))
-	payload.Passive = proto.Bool(true)
-	payload.Pull = proto.Bool(true)
-	payload.LidDbMigrated = proto.Bool(true)
+	payload.Username = new(device.ID.UserInt())
+	payload.Device = new(uint32(device.ID.Device))
+	payload.Passive = new(true)
+	payload.Pull = new(true)
+	payload.LidDbMigrated = new(true)
 	if payload.Lc == nil {
 		payload.Lc = proto.Int32(1)
 	}

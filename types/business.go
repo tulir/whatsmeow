@@ -24,7 +24,7 @@ type OrderProduct struct {
 	Currency    string      `json:"currency"`
 	Name        string      `json:"name"`
 	Quantity    int         `json:"quantity"`
-	VariantInfo VariantInfo `json:"variant_info,omitempty"`
+	VariantInfo VariantInfo `json:"variant_info"`
 }
 
 type VariantInfo struct {

@@ -15,7 +15,6 @@ import (
 
 	"github.com/rs/zerolog"
 	"go.mau.fi/util/exslices"
-	"go.mau.fi/util/ptr"
 
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
@@ -665,7 +664,7 @@ func BuildFatalAppStateExceptionNotification(collections ...appstate.WAPatchName
 			Type: waE2E.ProtocolMessage_APP_STATE_FATAL_EXCEPTION_NOTIFICATION.Enum(),
 			AppStateFatalExceptionNotification: &waE2E.AppStateFatalExceptionNotification{
 				CollectionNames: exslices.CastToString[string](collections),
-				Timestamp:       ptr.Ptr(time.Now().UnixMilli()),
+				Timestamp:       new(time.Now().UnixMilli()),
 			},
 		},
 	}
@@ -684,7 +683,7 @@ func BuildAppStateRecoveryRequest(collection appstate.WAPatchName) *waE2E.Messag
 				PeerDataOperationRequestType: waE2E.PeerDataOperationRequestType_COMPANION_SYNCD_SNAPSHOT_FATAL_RECOVERY.Enum(),
 				SyncdCollectionFatalRecoveryRequest: &waE2E.PeerDataOperationRequestMessage_SyncDCollectionFatalRecoveryRequest{
 					CollectionName: (*string)(&collection),
-					Timestamp:      ptr.Ptr(time.Now().Unix()),
+					Timestamp:      new(time.Now().Unix()),
 				},
 			},
 		},

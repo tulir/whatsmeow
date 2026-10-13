@@ -665,6 +665,6 @@ type NewsletterLiveUpdate struct {
 type NotifyAccountReachoutTimelock struct {
 	Mex                 MexNotificationData `json:"-"`
 	EnforcementType     string              `json:"enforcement_type,omitempty"`
-	IsActive            bool                `json:"is_active,omitempty"`
+	IsActive            bool                `json:"is_active,omitzero"`
 	TimeEnforcementEnds jsontime.UnixString `json:"time_enforcement_ends,omitzero"`
 }

@@ -254,12 +254,12 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 			cli.Log.Warnf("Failed to create sender key distribution message to include in retry of %s in %s to %s: %v", messageID, receipt.Chat, receipt.Sender, err)
 		} else if msg.wa != nil {
 			msg.wa.SenderKeyDistributionMessage = &waE2E.SenderKeyDistributionMessage{
-				GroupID:                             proto.String(receipt.Chat.String()),
+				GroupID:                             new(receipt.Chat.String()),
 				AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),
 			}
 		} else {
 			fbSKDM = &waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage{
-				GroupID:                             proto.String(receipt.Chat.String()),
+				GroupID:                             new(receipt.Chat.String()),
 				AxolotlSenderKeyDistributionMessage: signalSKDMessage.Serialize(),
 			}
 		}
@@ -267,13 +267,13 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 		if msg.wa != nil {
 			msg.wa = &waE2E.Message{
 				DeviceSentMessage: &waE2E.DeviceSentMessage{
-					DestinationJID: proto.String(receipt.Chat.String()),
+					DestinationJID: new(receipt.Chat.String()),
 					Message:        msg.wa,
 				},
 			}
 		} else {
 			fbDSM = &waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage{
-				DestinationJID: proto.String(receipt.Chat.String()),
+				DestinationJID: new(receipt.Chat.String()),
 			}
 		}
 	}

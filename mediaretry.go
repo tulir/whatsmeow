@@ -27,7 +27,7 @@ func getMediaRetryKey(mediaKey []byte) (cipherKey []byte) {
 
 func encryptMediaRetryReceipt(messageID types.MessageID, mediaKey []byte) (ciphertext, iv []byte, err error) {
 	receipt := &waMmsRetry.ServerErrorReceipt{
-		StanzaID: proto.String(messageID),
+		StanzaID: new(messageID),
 	}
 	var plaintext []byte
 	plaintext, err = proto.Marshal(receipt)
