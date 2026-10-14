@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+
 	waLog "go.mau.fi/whatsmeow/util/log"
 )
 
