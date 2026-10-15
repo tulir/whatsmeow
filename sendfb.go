@@ -209,7 +209,6 @@ func (cli *Client) SendFBMessage(
 		case types.DefaultUserServer, types.MessengerServer:
 			cli.userDevicesCacheLock.Lock()
 			delete(cli.userDevicesCache, to)
-			delete(cli.userDevicesCache, ownID.ToNonAD())
 			cli.userDevicesCacheLock.Unlock()
 		}
 	}
