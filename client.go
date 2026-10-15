@@ -233,7 +233,7 @@ func (gmc *groupMetaCache) CanSend(sender types.JID, message *waE2E.Message) boo
 		message.QuestionResponseMessage != nil ||
 		message.CommentMessage != nil ||
 		message.EncCommentMessage != nil ||
-		slices.Contains(gmc.Admins, sender)
+		slices.Contains(gmc.Admins, sender.ToNonAD())
 }
 
 type MessengerConfig struct {
