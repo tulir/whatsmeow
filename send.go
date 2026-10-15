@@ -406,7 +406,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		}
 	}
 
-	if req.CheckPermissions && !cachedData.CanSend(ownID, message) {
+	if req.CheckPermissions && !cachedData.CanSend(ownID.ToNonAD(), message) {
 		return resp, ErrNoPermissionInGroup
 	}
 
