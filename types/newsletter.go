@@ -153,6 +153,7 @@ type NewsletterMessage struct {
 	Type            string
 	Timestamp       time.Time
 	ViewsCount      int
+	ForwardsCount   int
 	ReactionCounts  map[string]int
 
 	// This is only present when fetching messages, not in live updates
