@@ -289,6 +289,9 @@ func (cli *Client) dispatchAppState(ctx context.Context, name appstate.WAPatchNa
 		if cli.Store.ChatSettings != nil {
 			storeUpdateError = cli.Store.ChatSettings.PutArchived(ctx, jid, act.GetArchived())
 		}
+	case appstate.IndexLock:
+		act := mutation.Action.GetLockChatAction()
+		eventToDispatch = &events.Lock{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
 	case appstate.IndexContact:
 		act := mutation.Action.GetContactAction()
 		eventToDispatch = &events.Contact{JID: jid, Timestamp: ts, Action: act, FromFullSync: fullSync}
