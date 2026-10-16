@@ -77,6 +77,7 @@ const (
 	BotMetricsEntryPoint_NEW_CHAT_LIST                       BotMetricsEntryPoint = 56
 	BotMetricsEntryPoint_CONTACTS_TAB                        BotMetricsEntryPoint = 57
 	BotMetricsEntryPoint_NEW_3P_AGENT_CREATION               BotMetricsEntryPoint = 58
+	BotMetricsEntryPoint_SHARE                               BotMetricsEntryPoint = 59
 )
 
 // Enum value maps for BotMetricsEntryPoint.
@@ -132,6 +133,7 @@ var (
 		56: "NEW_CHAT_LIST",
 		57: "CONTACTS_TAB",
 		58: "NEW_3P_AGENT_CREATION",
+		59: "SHARE",
 	}
 	BotMetricsEntryPoint_value = map[string]int32{
 		"UNDEFINED_ENTRY_POINT":               0,
@@ -184,6 +186,7 @@ var (
 		"NEW_CHAT_LIST":                       56,
 		"CONTACTS_TAB":                        57,
 		"NEW_3P_AGENT_CREATION":               58,
+		"SHARE":                               59,
 	}
 )
 
@@ -1357,6 +1360,7 @@ const (
 	BotCapabilityMetadata_HATCH_ARTIFACT_CARD_ENABLED                BotCapabilityMetadata_BotCapabilityType = 79
 	BotCapabilityMetadata_AI_STUDY_CENTER_ENABLED                    BotCapabilityMetadata_BotCapabilityType = 80
 	BotCapabilityMetadata_AI_MUSE_JARVIS_SCHEMA_ENABLED              BotCapabilityMetadata_BotCapabilityType = 81
+	BotCapabilityMetadata_AI_STUDY_QUIZ_ENABLED                      BotCapabilityMetadata_BotCapabilityType = 82
 )
 
 // Enum value maps for BotCapabilityMetadata_BotCapabilityType.
@@ -1444,6 +1448,7 @@ var (
 		79: "HATCH_ARTIFACT_CARD_ENABLED",
 		80: "AI_STUDY_CENTER_ENABLED",
 		81: "AI_MUSE_JARVIS_SCHEMA_ENABLED",
+		82: "AI_STUDY_QUIZ_ENABLED",
 	}
 	BotCapabilityMetadata_BotCapabilityType_value = map[string]int32{
 		"UNKNOWN":                                    0,
@@ -1528,6 +1533,7 @@ var (
 		"HATCH_ARTIFACT_CARD_ENABLED":                79,
 		"AI_STUDY_CENTER_ENABLED":                    80,
 		"AI_MUSE_JARVIS_SCHEMA_ENABLED":              81,
+		"AI_STUDY_QUIZ_ENABLED":                      82,
 	}
 )
 
@@ -1869,16 +1875,19 @@ func (BotSourcesMetadata_BotSourceItem_SourceProvider) EnumDescriptor() ([]byte,
 type BotMessageOrigin_BotMessageOriginType int32
 
 const (
-	BotMessageOrigin_BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED BotMessageOrigin_BotMessageOriginType = 0
+	BotMessageOrigin_BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED           BotMessageOrigin_BotMessageOriginType = 0
+	BotMessageOrigin_BOT_MESSAGE_ORIGIN_TYPE_META_AI_THREAD_WELCOME BotMessageOrigin_BotMessageOriginType = 1
 )
 
 // Enum value maps for BotMessageOrigin_BotMessageOriginType.
 var (
 	BotMessageOrigin_BotMessageOriginType_name = map[int32]string{
 		0: "BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED",
+		1: "BOT_MESSAGE_ORIGIN_TYPE_META_AI_THREAD_WELCOME",
 	}
 	BotMessageOrigin_BotMessageOriginType_value = map[string]int32{
-		"BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED": 0,
+		"BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED":           0,
+		"BOT_MESSAGE_ORIGIN_TYPE_META_AI_THREAD_WELCOME": 1,
 	}
 )
 
@@ -7941,9 +7950,9 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\aUNKNOWN\x10\x00\x12\v\n" +
 	"\aPLANNED\x10\x01\x12\r\n" +
 	"\tEXECUTING\x10\x02\x12\f\n" +
-	"\bFINISHED\x10\x03\"\x96\x17\n" +
+	"\bFINISHED\x10\x03\"\xb1\x17\n" +
 	"\x15BotCapabilityMetadata\x12c\n" +
-	"\fcapabilities\x18\x01 \x03(\x0e2?.WAWebProtobufsAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\x97\x16\n" +
+	"\fcapabilities\x18\x01 \x03(\x0e2?.WAWebProtobufsAICommon.BotCapabilityMetadata.BotCapabilityTypeR\fcapabilities\"\xb2\x16\n" +
 	"\x11BotCapabilityType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\x16\n" +
 	"\x12PROGRESS_INDICATOR\x10\x01\x12\x19\n" +
@@ -8028,7 +8037,8 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\x1fHATCH_BROWSER_TASK_CARD_ENABLED\x10N\x12\x1f\n" +
 	"\x1bHATCH_ARTIFACT_CARD_ENABLED\x10O\x12\x1b\n" +
 	"\x17AI_STUDY_CENTER_ENABLED\x10P\x12!\n" +
-	"\x1dAI_MUSE_JARVIS_SCHEMA_ENABLED\x10Q\"\xd8\x01\n" +
+	"\x1dAI_MUSE_JARVIS_SCHEMA_ENABLED\x10Q\x12\x19\n" +
+	"\x15AI_STUDY_QUIZ_ENABLED\x10R\"\xd8\x01\n" +
 	"\x18BotModeSelectionMetadata\x12Y\n" +
 	"\x04mode\x18\x01 \x03(\x0e2E.WAWebProtobufsAICommon.BotModeSelectionMetadata.BotUserSelectionModeR\x04mode\x12\"\n" +
 	"\foverrideMode\x18\x02 \x03(\rR\foverrideMode\"=\n" +
@@ -8078,11 +8088,12 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\n" +
 	"\x06GOOGLE\x10\x02\x12\v\n" +
 	"\aSUPPORT\x10\x03\x12\t\n" +
-	"\x05OTHER\x10\x04\"\xa7\x01\n" +
+	"\x05OTHER\x10\x04\"\xdb\x01\n" +
 	"\x10BotMessageOrigin\x12Q\n" +
-	"\x04type\x18\x01 \x01(\x0e2=.WAWebProtobufsAICommon.BotMessageOrigin.BotMessageOriginTypeR\x04type\"@\n" +
+	"\x04type\x18\x01 \x01(\x0e2=.WAWebProtobufsAICommon.BotMessageOrigin.BotMessageOriginTypeR\x04type\"t\n" +
 	"\x14BotMessageOriginType\x12(\n" +
-	"$BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED\x10\x00\"\xe4\x03\n" +
+	"$BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED\x10\x00\x122\n" +
+	".BOT_MESSAGE_ORIGIN_TYPE_META_AI_THREAD_WELCOME\x10\x01\"\xe4\x03\n" +
 	"\fAIThreadInfo\x12W\n" +
 	"\n" +
 	"serverInfo\x18\x01 \x01(\v27.WAWebProtobufsAICommon.AIThreadInfo.AIThreadServerInfoR\n" +
@@ -8445,7 +8456,7 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\fiptcMetadata\x18\x02 \x01(\v2-.WAWebProtobufsAICommon.AIProvenance.MetadataR\fiptcMetadata\x1a`\n" +
 	"\bMetadata\x12*\n" +
 	"\x10createdWithGenAi\x18\x01 \x01(\bR\x10createdWithGenAi\x12(\n" +
-	"\x0feditedWithGenAi\x18\x02 \x01(\bR\x0feditedWithGenAi*\xbb\n" +
+	"\x0feditedWithGenAi\x18\x02 \x01(\bR\x0feditedWithGenAi*\xc6\n" +
 	"\n" +
 	"\x14BotMetricsEntryPoint\x12\x19\n" +
 	"\x15UNDEFINED_ENTRY_POINT\x10\x00\x12\v\n" +
@@ -8499,7 +8510,8 @@ const file_waAICommon_WAWebProtobufsAICommon_proto_rawDesc = "" +
 	"\x0fCHATLIST_SEARCH\x107\x12\x11\n" +
 	"\rNEW_CHAT_LIST\x108\x12\x10\n" +
 	"\fCONTACTS_TAB\x109\x12\x19\n" +
-	"\x15NEW_3P_AGENT_CREATION\x10:*\xa2\x01\n" +
+	"\x15NEW_3P_AGENT_CREATION\x10:\x12\t\n" +
+	"\x05SHARE\x10;*\xa2\x01\n" +
 	"\x1aBotMetricsThreadEntryPoint\x12\x11\n" +
 	"\rAI_TAB_THREAD\x10\x01\x12\x12\n" +
 	"\x0eAI_HOME_THREAD\x10\x02\x12 \n" +

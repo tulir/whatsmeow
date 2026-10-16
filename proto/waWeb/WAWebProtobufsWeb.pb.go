@@ -345,6 +345,12 @@ const (
 	WebMessageInfo_CAMEO_CHAT_EXPIRED                                       WebMessageInfo_StubType = 267
 	WebMessageInfo_GROUP_PUSHNAME_SHARED                                    WebMessageInfo_StubType = 270
 	WebMessageInfo_BIZ_POST_SEND_OPT_OUT                                    WebMessageInfo_StubType = 271
+	WebMessageInfo_BB_PRO_BROADCAST_CHAT_CARD                               WebMessageInfo_StubType = 272
+	WebMessageInfo_BOT_PROACTIVE_MESSAGE_ENABLED                            WebMessageInfo_StubType = 273
+	WebMessageInfo_BOT_PROACTIVE_MESSAGE_DISABLED                           WebMessageInfo_StubType = 274
+	WebMessageInfo_BOT_PROACTIVE_MESSAGE_FIRST_TIME                         WebMessageInfo_StubType = 275
+	WebMessageInfo_DYNAMIC_AUDIENCE_LIST_CREATE                             WebMessageInfo_StubType = 276
+	WebMessageInfo_DYNAMIC_AUDIENCE_LIST_UPDATE_LINK                        WebMessageInfo_StubType = 277
 	WebMessageInfo_CHAT_WITH_BUSINESS_IN_DIRECTORY                          WebMessageInfo_StubType = 283
 	WebMessageInfo_META_AI_THREAD_CREATED                                   WebMessageInfo_StubType = 284
 	WebMessageInfo_META_AI_CONNECTOR_LINKED                                 WebMessageInfo_StubType = 285
@@ -609,6 +615,12 @@ var (
 		267: "CAMEO_CHAT_EXPIRED",
 		270: "GROUP_PUSHNAME_SHARED",
 		271: "BIZ_POST_SEND_OPT_OUT",
+		272: "BB_PRO_BROADCAST_CHAT_CARD",
+		273: "BOT_PROACTIVE_MESSAGE_ENABLED",
+		274: "BOT_PROACTIVE_MESSAGE_DISABLED",
+		275: "BOT_PROACTIVE_MESSAGE_FIRST_TIME",
+		276: "DYNAMIC_AUDIENCE_LIST_CREATE",
+		277: "DYNAMIC_AUDIENCE_LIST_UPDATE_LINK",
 		283: "CHAT_WITH_BUSINESS_IN_DIRECTORY",
 		284: "META_AI_THREAD_CREATED",
 		285: "META_AI_CONNECTOR_LINKED",
@@ -870,6 +882,12 @@ var (
 		"CAMEO_CHAT_EXPIRED":                                       267,
 		"GROUP_PUSHNAME_SHARED":                                    270,
 		"BIZ_POST_SEND_OPT_OUT":                                    271,
+		"BB_PRO_BROADCAST_CHAT_CARD":                               272,
+		"BOT_PROACTIVE_MESSAGE_ENABLED":                            273,
+		"BOT_PROACTIVE_MESSAGE_DISABLED":                           274,
+		"BOT_PROACTIVE_MESSAGE_FIRST_TIME":                         275,
+		"DYNAMIC_AUDIENCE_LIST_CREATE":                             276,
+		"DYNAMIC_AUDIENCE_LIST_UPDATE_LINK":                        277,
 		"CHAT_WITH_BUSINESS_IN_DIRECTORY":                          283,
 		"META_AI_THREAD_CREATED":                                   284,
 		"META_AI_CONNECTOR_LINKED":                                 285,
@@ -4375,7 +4393,7 @@ var File_waWeb_WAWebProtobufsWeb_proto protoreflect.FileDescriptor
 
 const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\n" +
-	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xcdg\n" +
+	"\x1dwaWeb/WAWebProtobufsWeb.proto\x12\x11WAWebProtobufsWeb\x1a\x1dwaE2E/WAWebProtobufsE2E.proto\x1a\x17waCommon/WACommon.proto\"\xa9i\n" +
 	"\x0eWebMessageInfo\x12&\n" +
 	"\x03key\x18\x01 \x02(\v2\x14.WACommon.MessageKeyR\x03key\x124\n" +
 	"\amessage\x18\x02 \x01(\v2\x1a.WAWebProtobufsE2E.MessageR\amessage\x12*\n" +
@@ -4461,7 +4479,7 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x02FB\x10\x02\x12\a\n" +
 	"\x03BSP\x10\x01\x12\x0e\n" +
 	"\n" +
-	"BSP_AND_FB\x10\x03\"\xacD\n" +
+	"BSP_AND_FB\x10\x03\"\x88F\n" +
 	"\bStubType\x12\v\n" +
 	"\aUNKNOWN\x10\x00\x12\n" +
 	"\n" +
@@ -4721,7 +4739,13 @@ const file_waWeb_WAWebProtobufsWeb_proto_rawDesc = "" +
 	"\x16PENDING_INVITE_CREATED\x10\x8a\x02\x12\x17\n" +
 	"\x12CAMEO_CHAT_EXPIRED\x10\x8b\x02\x12\x1a\n" +
 	"\x15GROUP_PUSHNAME_SHARED\x10\x8e\x02\x12\x1a\n" +
-	"\x15BIZ_POST_SEND_OPT_OUT\x10\x8f\x02\x12$\n" +
+	"\x15BIZ_POST_SEND_OPT_OUT\x10\x8f\x02\x12\x1f\n" +
+	"\x1aBB_PRO_BROADCAST_CHAT_CARD\x10\x90\x02\x12\"\n" +
+	"\x1dBOT_PROACTIVE_MESSAGE_ENABLED\x10\x91\x02\x12#\n" +
+	"\x1eBOT_PROACTIVE_MESSAGE_DISABLED\x10\x92\x02\x12%\n" +
+	" BOT_PROACTIVE_MESSAGE_FIRST_TIME\x10\x93\x02\x12!\n" +
+	"\x1cDYNAMIC_AUDIENCE_LIST_CREATE\x10\x94\x02\x12&\n" +
+	"!DYNAMIC_AUDIENCE_LIST_UPDATE_LINK\x10\x95\x02\x12$\n" +
 	"\x1fCHAT_WITH_BUSINESS_IN_DIRECTORY\x10\x9b\x02\x12\x1b\n" +
 	"\x16META_AI_THREAD_CREATED\x10\x9c\x02\x12\x1d\n" +
 	"\x18META_AI_CONNECTOR_LINKED\x10\x9d\x02\x12!\n" +

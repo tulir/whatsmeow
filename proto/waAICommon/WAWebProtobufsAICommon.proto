@@ -55,6 +55,7 @@ enum BotMetricsEntryPoint {
 	NEW_CHAT_LIST = 56;
 	CONTACTS_TAB = 57;
 	NEW_3P_AGENT_CREATION = 58;
+	SHARE = 59;
 }
 
 enum BotMetricsThreadEntryPoint {
@@ -354,6 +355,7 @@ message BotCapabilityMetadata {
 		HATCH_ARTIFACT_CARD_ENABLED = 79;
 		AI_STUDY_CENTER_ENABLED = 80;
 		AI_MUSE_JARVIS_SCHEMA_ENABLED = 81;
+		AI_STUDY_QUIZ_ENABLED = 82;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -433,6 +435,7 @@ message BotSourcesMetadata {
 message BotMessageOrigin {
 	enum BotMessageOriginType {
 		BOT_MESSAGE_ORIGIN_TYPE_AI_INITIATED = 0;
+		BOT_MESSAGE_ORIGIN_TYPE_META_AI_THREAD_WELCOME = 1;
 	}
 
 	optional BotMessageOriginType type = 1;

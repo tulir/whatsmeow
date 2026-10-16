@@ -34,6 +34,10 @@ message DeviceCapabilities {
 		optional SupportLevel supportLevel = 1;
 	}
 
+	message HostWriteMutationSupport {
+		repeated string mutationNames = 1;
+	}
+
 	message NewsletterChatsMigration {
 		optional bool effectiveMigrated = 1;
 		optional int64 countdownEndsAt = 2;
@@ -81,4 +85,5 @@ message DeviceCapabilities {
 	optional ContactRefresh contactRefresh = 9;
 	optional ReverseHistorySync reverseHistorySync = 10;
 	optional NewsletterChatsMigration newsletterChatsMigration = 11;
+	optional HostWriteMutationSupport hostWriteMutationSupport = 12;
 }
