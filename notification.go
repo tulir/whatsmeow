@@ -365,6 +365,8 @@ func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.Newslet
 				}
 			case "views_count":
 				msg.ViewsCount = subchild.AttrGetter().Int("count")
+			case "forwards_count":
+				msg.ForwardsCount = subchild.AttrGetter().Int("count")
 			case "reactions":
 				msg.ReactionCounts = make(map[string]int)
 				for _, reaction := range subchild.GetChildren() {
@@ -381,10 +383,14 @@ func (cli *Client) parseNewsletterMessages(node *waBinary.Node) []*types.Newslet
 func (cli *Client) handleNewsletterNotification(ctx context.Context, node *waBinary.Node) {
 	ag := node.AttrGetter()
 	liveUpdates := node.GetChildByTag("live_updates")
+	messages, ok := liveUpdates.GetOptionalChildByTag("messages")
+	if !ok {
+		messages = liveUpdates
+	}
 	cli.dispatchEvent(&events.NewsletterLiveUpdate{
 		JID:      ag.JID("from"),
 		Time:     ag.UnixTime("t"),
-		Messages: cli.parseNewsletterMessages(&liveUpdates),
+		Messages: cli.parseNewsletterMessages(&messages),
 	})
 }
 
@@ -396,6 +402,7 @@ type newsletterEvent struct {
 	Join       *events.NewsletterJoin       `json:"xwa2_notify_newsletter_on_join"`
 	Leave      *events.NewsletterLeave      `json:"xwa2_notify_newsletter_on_leave"`
 	MuteChange *events.NewsletterMuteChange `json:"xwa2_notify_newsletter_on_mute_change"`
+	Milestone  *events.NewsletterMilestone  `json:"xwa2_notify_newsletter_milestone"`
 	// _on_admin_metadata_update -> id, thread_metadata, messages
 	// _on_metadata_update
 	// _on_state_change -> id, is_requestor, state
@@ -430,6 +437,9 @@ func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Nod
 		} else if wrapper.Data.MuteChange != nil {
 			wrapper.Data.MuteChange.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.MuteChange)
+		} else if wrapper.Data.Milestone != nil {
+			wrapper.Data.Milestone.Mex = mnd
+			cli.dispatchEvent(wrapper.Data.Milestone)
 		} else if wrapper.Data.NotifyAccountReachoutTimelock != nil {
 			wrapper.Data.NotifyAccountReachoutTimelock.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.NotifyAccountReachoutTimelock)
