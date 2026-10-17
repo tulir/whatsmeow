@@ -309,9 +309,11 @@ func (proc *Processor) EncodePatch(ctx context.Context, keyID []byte, state Hash
 		})
 	}
 
-	warn, err := state.updateHash(mutations, func(indexMAC []byte, _ int) ([]byte, error) {
-		return proc.Store.AppState.GetAppStateMutationMAC(ctx, string(patchInfo.Type), indexMAC)
-	})
+	plans, err := proc.planMutations(ctx, patchInfo.Type, mutations, true)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find previous mutations: %w", err)
+	}
+	warn, err := state.updateHash(mutations, plans.previousValueMACs)
 	if len(warn) > 0 {
 		proc.Log.Warnf("Warnings while updating hash for %s (sending new app state): %+v", patchInfo.Type, warn)
 	}

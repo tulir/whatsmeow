@@ -68,6 +68,12 @@ type AppStateSyncKeyStore interface {
 type AppStateMutationMAC struct {
 	IndexMAC []byte
 	ValueMAC []byte
+	// IndexHash is the SHA-256 of the mutation's plaintext index. The index MAC
+	// is keyed by the app state key, so the same logical index rewritten under
+	// a rotated key gets a new index MAC; the hash is what lets that rewrite
+	// find and replace the records it supersedes. Nil for rows stored before
+	// the column existed.
+	IndexHash []byte
 }
 
 type AppStateStore interface {
@@ -78,6 +84,10 @@ type AppStateStore interface {
 	PutAppStateMutationMACs(ctx context.Context, name string, version uint64, mutations []AppStateMutationMAC) error
 	DeleteAppStateMutationMACs(ctx context.Context, name string, indexMACs [][]byte) error
 	GetAppStateMutationMAC(ctx context.Context, name string, indexMAC []byte) (valueMAC []byte, err error)
+	// GetAppStateMutationMACsByIndexHash returns the stored records of one logical
+	// index, at most one per index MAC (the newest version). It may be empty for
+	// records stored before index hashes were kept.
+	GetAppStateMutationMACsByIndexHash(ctx context.Context, name string, indexHash []byte) ([]AppStateMutationMAC, error)
 }
 
 type ContactEntry struct {
