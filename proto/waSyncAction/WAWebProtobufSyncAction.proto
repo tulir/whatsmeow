@@ -109,6 +109,7 @@ enum MutationProps {
 	GROUP_HISTORY_TOGGLE_ACTION = 97;
 	BB_PRO_PENDING_CUSTOMER_BASE_ACTION = 98;
 	COMMUNITY_NESTING_STATE_ACTION = 99;
+	SHARED_DEVICE_SECRET_ACTION = 100;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -648,6 +649,7 @@ enum MutationName {
 	GROUP_HISTORY_TOGGLE_ACTION = group_history_toggle;
 	BB_PRO_PENDING_CUSTOMER_BASE_ACTION = bb_pro_pending_customer_base_action;
 	COMMUNITY_NESTING_STATE_ACTION = community_nesting_state;
+	SHARED_DEVICE_SECRET_ACTION = shared_device_secret;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -765,6 +767,7 @@ message SyncActionValue {
 	optional GroupHistoryToggleAction groupHistoryToggleAction = 97;
 	optional BBProPendingCustomerBaseAction bbProPendingCustomerBaseAction = 98;
 	optional CommunityNestingStateAction communityNestingStateAction = 99;
+	optional SharedDeviceSecretAction sharedDeviceSecretAction = 100;
 }
 
 message BBProPendingCustomerBaseAction {
@@ -1144,6 +1147,11 @@ message MuteAction {
 	optional int64 muteEndTimestamp = 2;
 	optional bool autoMuted = 3;
 	optional int64 muteEveryoneMentionEndTimestamp = 4;
+}
+
+message SharedDeviceSecretAction {
+	optional bytes secret = 1;
+	optional int64 ttlMS = 2;
 }
 
 message SharedDeviceAllowlistAction {

@@ -134,6 +134,7 @@ const (
 	IndexBizAISettingsNudgeAction                     = "biz_ai_settings_nudge"
 	IndexWasaRootSecretAction                         = "wasa_root_secret"
 	IndexSharedDeviceAllowlist                        = "shared_device_allowlist"
+	IndexSharedDeviceSecret                           = "shared_device_secret"
 )
 
 // Constants for the critical_unblock_low app state indexes.
