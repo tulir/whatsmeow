@@ -365,7 +365,7 @@ func (r *binaryDecoder) readNode() (*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret.Tag = rawDesc.(string)
+	ret.Tag, _ = rawDesc.(string)
 	if listSize == 0 || ret.Tag == "" {
 		return nil, ErrInvalidNode
 	}
