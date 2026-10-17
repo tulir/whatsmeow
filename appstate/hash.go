@@ -36,7 +36,7 @@ type HashState struct {
 	Hash    [128]byte
 }
 
-func (hs *HashState) updateHash(mutations []*waServerSync.SyncdMutation, getPrevSetValueMAC func(indexMAC []byte, maxIndex int) ([]byte, error)) ([]error, error) {
+func (hs *HashState) updateHash(mutations []*waServerSync.SyncdMutation, getPrevSetValueMACs func(indexMAC []byte, maxIndex int) ([][]byte, error)) ([]error, error) {
 	var added, removed [][]byte
 	var warnings []error
 
@@ -46,11 +46,11 @@ func (hs *HashState) updateHash(mutations []*waServerSync.SyncdMutation, getPrev
 			added = append(added, value[len(value)-32:])
 		}
 		indexMAC := mutation.GetRecord().GetIndex().GetBlob()
-		removal, err := getPrevSetValueMAC(indexMAC, i)
+		removal, err := getPrevSetValueMACs(indexMAC, i)
 		if err != nil {
 			return warnings, fmt.Errorf("failed to get value MAC of previous SET operation: %w", err)
-		} else if removal != nil {
-			removed = append(removed, removal)
+		} else if len(removal) > 0 {
+			removed = append(removed, removal...)
 		} else if mutation.GetOperation() == waServerSync.SyncdMutation_REMOVE {
 			// TODO figure out if there are certain cases that are safe to ignore and others that aren't
 			// At least removing contact access from WhatsApp seems to create a REMOVE op for your own JID

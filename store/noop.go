@@ -165,6 +165,10 @@ func (n *NoopStore) GetAppStateMutationMAC(ctx context.Context, name string, ind
 	return nil, n.Error
 }
 
+func (n *NoopStore) GetAppStateMutationMACsByIndexHash(ctx context.Context, name string, indexHash []byte) ([]AppStateMutationMAC, error) {
+	return nil, n.Error
+}
+
 func (n *NoopStore) PutPushName(ctx context.Context, user types.JID, pushName string) (bool, string, error) {
 	return false, "", n.Error
 }
