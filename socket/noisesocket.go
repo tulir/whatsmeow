@@ -10,6 +10,7 @@ import (
 	"context"
 	"crypto/cipher"
 	"encoding/binary"
+	"errors"
 	"sync"
 	"sync/atomic"
 
@@ -17,15 +18,16 @@ import (
 )
 
 type NoiseSocket struct {
-	fs           *FrameSocket
-	onFrame      FrameHandler
-	writeKey     cipher.AEAD
-	readKey      cipher.AEAD
-	writeCounter uint32
-	readCounter  uint32
-	writeLock    sync.Mutex
-	destroyed    atomic.Bool
-	stopConsumer chan struct{}
+	fs            *FrameSocket
+	onFrame       FrameHandler
+	writeKey      cipher.AEAD
+	readKey       cipher.AEAD
+	writeCounter  uint32
+	readCounter   uint32
+	writeGate     chan struct{}
+	writeGateOnce sync.Once
+	destroyed     atomic.Bool
+	stopConsumer  chan struct{}
 }
 
 type DisconnectHandler func(ctx context.Context, socket *NoiseSocket, remote bool)
@@ -87,25 +89,40 @@ func (ns *NoiseSocket) Stop(disconnect, allowOnDisconnect bool) {
 	}
 }
 
-func (ns *NoiseSocket) SendFrame(ctx context.Context, plaintext []byte) error {
-	ns.writeLock.Lock()
-	defer ns.writeLock.Unlock()
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
-	// Don't reuse plaintext slice for storage as it may be needed for retries
-	ciphertext := ns.writeKey.Seal(nil, generateIV(ns.writeCounter), plaintext, nil)
-	ns.writeCounter++
-	doneChan := make(chan error, 1)
-	go func() {
-		doneChan <- ns.fs.SendFrame(ciphertext)
-	}()
+var errNoiseWritePanic = errors.New("noise frame writer failed")
+
+// SendFrame keeps writer admission until the actual websocket write returns.
+func (ns *NoiseSocket) SendFrame(ctx context.Context, plaintext []byte) (err error) {
+	ns.writeGateOnce.Do(func() { ns.writeGate = make(chan struct{}, 1) })
 	select {
+	case ns.writeGate <- struct{}{}:
 	case <-ctx.Done():
 		return ctx.Err()
-	case retErr := <-doneChan:
-		return retErr
 	}
+	defer func() { <-ns.writeGate }()
+	defer func() {
+		if recover() != nil {
+			err = errNoiseWritePanic
+			ns.destroyed.Store(true)
+			ns.fs.Close(0)
+		}
+	}()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if ns.destroyed.Load() {
+		return ErrSocketClosed
+	}
+	// Encryption counters must never be reused after an uncertain or cancelled write.
+	ciphertext := ns.writeKey.Seal(nil, generateIV(ns.writeCounter), plaintext, nil)
+	ns.writeCounter++
+	err = ns.fs.SendFrameContext(ctx, ciphertext)
+	if err != nil {
+		ns.destroyed.Store(true)
+		// No close control frame is attempted after an ambiguous encrypted write.
+		ns.fs.Close(0)
+	}
+	return err
 }
 
 func (ns *NoiseSocket) receiveEncryptedFrame(ctx context.Context, ciphertext []byte) {
