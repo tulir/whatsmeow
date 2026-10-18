@@ -927,6 +927,10 @@ func (cli *Client) sendDM(
 	return phash, data, nil
 }
 
+func isEventEdit(msg *waE2E.Message) bool {
+	return msg.GetSecretEncryptedMessage().GetSecretEncType() == waE2E.SecretEncryptedMessage_EVENT_EDIT
+}
+
 func getTypeFromMessage(msg *waE2E.Message) string {
 	switch {
 	case msg.ViewOnceMessage != nil:
@@ -941,6 +945,8 @@ func getTypeFromMessage(msg *waE2E.Message) string {
 		return getTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.DocumentWithCaptionMessage != nil:
 		return getTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
+	case isEventEdit(msg):
+		return "event"
 	case msg.ReactionMessage != nil, msg.EncReactionMessage != nil:
 		return "reaction"
 	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
@@ -1077,6 +1083,8 @@ func getEditAttribute(msg *waE2E.Message) types.EditAttribute {
 		return types.EditAttributeSenderRevoke
 	case msg.PinInChatMessage != nil:
 		return types.EditAttributePinInChat
+	case isEventEdit(msg):
+		return types.EditAttributeMessageEdit
 	}
 	return types.EditAttributeEmpty
 }
@@ -1157,6 +1165,13 @@ func (cli *Client) getMessageContent(
 			Attrs: waBinary.Attrs{
 				"polltype": pollType,
 			},
+		})
+	}
+
+	if isEventEdit(message) {
+		content = append(content, waBinary.Node{
+			Tag:   "meta",
+			Attrs: waBinary.Attrs{"event_type": "edit"},
 		})
 	}
 
