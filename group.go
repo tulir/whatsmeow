@@ -717,6 +717,7 @@ func parseParticipant(childAG *waBinary.AttrUtility, child *waBinary.Node) types
 		IsSuperAdmin: pcpType == "superadmin",
 		JID:          childAG.JID("jid"),
 		DisplayName:  childAG.OptionalString("display_name"),
+		Username:     childAG.OptionalString("username"),
 	}
 	if participant.JID.Server == types.HiddenUserServer {
 		participant.LID = participant.JID
@@ -870,6 +871,7 @@ func (cli *Client) parseGroupCreate(parentNode, node *waBinary.Node) (*events.Jo
 	evt.Type = ag.OptionalString("type")
 	evt.Sender = pag.OptionalJID("participant")
 	evt.SenderPN = pag.OptionalJID("participant_pn")
+	evt.SenderUsername = pag.OptionalString("participant_username")
 	evt.Notify = pag.OptionalString("notify")
 	info, err := cli.parseGroupNode(&groupNode)
 	if err != nil {
@@ -890,6 +892,7 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 	evt.Notify = ag.OptionalString("notify")
 	evt.Sender = ag.OptionalJID("participant")
 	evt.SenderPN = ag.OptionalJID("participant_pn")
+	evt.SenderUsername = ag.OptionalString("participant_username")
 	evt.Timestamp = ag.UnixTime("t")
 	if !ag.OK() {
 		return nil, nil, fmt.Errorf("group change doesn't contain required attributes: %w", ag.Error())
@@ -898,20 +901,38 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 	var lidPairs []store.LIDMapping
 	for _, child := range node.GetChildren() {
 		cag := child.AttrGetter()
-		if child.Tag == "add" || child.Tag == "remove" || child.Tag == "promote" || child.Tag == "demote" {
+		switch child.Tag {
+		case "add", "remove", "promote", "demote", "modify":
 			evt.PrevParticipantVersionID = cag.OptionalString("prev_v_id")
 			evt.ParticipantVersionID = cag.OptionalString("v_id")
-		}
-		switch child.Tag {
-		case "add":
-			evt.JoinReason = cag.OptionalString("reason")
-			evt.Join, lidPairs = parseParticipantList(&child)
-		case "remove":
-			evt.Leave, lidPairs = parseParticipantList(&child)
-		case "promote":
-			evt.Promote, lidPairs = parseParticipantList(&child)
-		case "demote":
-			evt.Demote, lidPairs = parseParticipantList(&child)
+			participants, childLIDPairs := parseParticipantList(&child)
+			lidPairs = append(lidPairs, childLIDPairs...)
+			switch child.Tag {
+			case "add":
+				evt.JoinReason = cag.OptionalString("reason")
+				evt.Join = participants
+			case "remove":
+				evt.Leave = participants
+			case "promote":
+				evt.Promote = participants
+			case "demote":
+				evt.Demote = participants
+			case "modify":
+				evt.Modify = participants
+			}
+			for _, participant := range child.GetChildren() {
+				jid, ok := participant.Attrs["jid"].(types.JID)
+				if participant.Tag != "participant" || !ok || jid.IsEmpty() || jid.User == "" {
+					continue
+				}
+				username, _ := participant.Attrs["username"].(string)
+				if username != "" {
+					if evt.ParticipantUsernames == nil {
+						evt.ParticipantUsernames = make(map[types.JID]string)
+					}
+					evt.ParticipantUsernames[jid] = username
+				}
+			}
 		case "locked":
 			evt.Locked = &types.GroupLocked{IsLocked: true}
 		case "unlocked":
