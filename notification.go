@@ -407,6 +407,7 @@ type newsletterEvent struct {
 	// _on_metadata_update
 	// _on_state_change -> id, is_requestor, state
 	NotifyAccountReachoutTimelock *events.NotifyAccountReachoutTimelock `json:"xwa2_notify_account_reachout_timelock"`
+	UsernameChange                *events.UsernameChange                `json:"xwa2_notify_username_on_change"`
 }
 
 func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Node) {
@@ -443,6 +444,9 @@ func (cli *Client) handleMexNotification(ctx context.Context, node *waBinary.Nod
 		} else if wrapper.Data.NotifyAccountReachoutTimelock != nil {
 			wrapper.Data.NotifyAccountReachoutTimelock.Mex = mnd
 			cli.dispatchEvent(wrapper.Data.NotifyAccountReachoutTimelock)
+		} else if evt := wrapper.Data.UsernameChange; evt != nil && evt.LID.Server == types.HiddenUserServer && evt.LID.User != "" {
+			evt.Mex = mnd
+			cli.dispatchEvent(evt)
 		}
 	}
 }
