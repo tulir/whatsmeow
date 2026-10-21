@@ -724,6 +724,10 @@ func (cli *Client) sendNewsletter(
 	if message.EditedMessage != nil {
 		attrs["edit"] = string(types.EditAttributeAdminEdit)
 		message = message.GetEditedMessage().GetMessage().GetProtocolMessage().GetEditedMessage()
+		// Recompute the type from the unwrapped content: the wrapper maps to
+		// "text", and a media caption edit sent as type="text" is rejected
+		// by the server with error 479.
+		attrs["type"] = getTypeFromMessage(message)
 	} else if message.ProtocolMessage != nil && message.ProtocolMessage.GetType() == waE2E.ProtocolMessage_REVOKE {
 		attrs["edit"] = string(types.EditAttributeAdminRevoke)
 		message = nil
