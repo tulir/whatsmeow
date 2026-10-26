@@ -162,17 +162,19 @@ func makeStreamingSidecar(iv, macKey []byte, encrypted io.Reader) ([]byte, error
 	var sidecar []byte
 	for {
 		n, err := io.ReadFull(encrypted, buf[filled:])
-		filled += n
 		if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, io.ErrUnexpectedEOF) {
 			return nil, fmt.Errorf("failed to read encrypted file for sidecar: %w", err)
+		} else if n == 0 && len(sidecar) > 0 {
+			return sidecar, nil
 		}
+		filled += n
 		mac.Reset()
 		mac.Write(buf[:filled])
 		sidecar = append(sidecar, mac.Sum(nil)[:10]...)
-		if err != nil && filled <= streamingSidecarChunkSize {
+		if err != nil {
 			return sidecar, nil
 		}
-		filled = copy(buf, buf[streamingSidecarChunkSize:filled])
+		filled = copy(buf, buf[streamingSidecarChunkSize:])
 	}
 }
 
