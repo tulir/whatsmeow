@@ -336,6 +336,8 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		if err != nil {
 			cli.Log.Warnf("Failed to get peer recipient PN for %s: %v", to, err)
 		}
+	} else if to.Server == types.BotServer {
+		ownID = cli.getOwnLID()
 	} else if to.Server == types.DefaultUserServer && !req.Peer {
 		start := time.Now()
 		var toLID types.JID
