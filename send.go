@@ -353,7 +353,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 				err = fmt.Errorf("failed to get user info for %s to fill LID cache: %w", to, err)
 				return
 			} else if toLID = info[to].LID; toLID.IsEmpty() {
-				err = fmt.Errorf("no LID found for %s from server", to)
+				err = fmt.Errorf("%w: no LID found for %s from server", ErrRecipientNotOnWhatsApp, to)
 				return
 			}
 		}
