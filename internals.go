@@ -187,8 +187,8 @@ func (int *DangerousInternalClient) GetUnifiedSessionID() string {
 	return int.c.getUnifiedSessionID()
 }
 
-func (int *DangerousInternalClient) SendUnifiedSession() {
-	int.c.sendUnifiedSession()
+func (int *DangerousInternalClient) SendUnifiedSession(checkLastSend bool) {
+	int.c.sendUnifiedSession(checkLastSend)
 }
 
 func (int *DangerousInternalClient) HandleStreamError(ctx context.Context, node *waBinary.Node) {
