@@ -1040,7 +1040,7 @@ func (cli *Client) UpdateBlocklist(ctx context.Context, jid types.JID, action ev
 			}
 			lid = info[jid].LID
 			if lid.IsEmpty() {
-				return nil, fmt.Errorf("no LID found for %s from server", jid)
+				return nil, fmt.Errorf("%w: no LID found for %s from server", ErrRecipientNotOnWhatsApp, jid)
 			}
 		}
 		lidJID = lid

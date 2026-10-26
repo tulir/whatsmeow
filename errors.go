@@ -112,6 +112,7 @@ var (
 	ErrServerReturnedError      = errors.New("server returned error")
 	ErrInvalidInlineBotID       = errors.New("invalid inline bot ID")
 	ErrNoPermissionInGroup      = errors.New("no permission to send that message in the group")
+	ErrRecipientNotOnWhatsApp   = errors.New("recipient is not on WhatsApp")
 )
 
 type DownloadHTTPError struct {
