@@ -9,10 +9,12 @@ package whatsmeow
 import (
 	"bytes"
 	"context"
+	"crypto/aes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -37,6 +39,8 @@ type UploadResponse struct {
 	FileEncSHA256 []byte `json:"-"`
 	FileSHA256    []byte `json:"-"`
 	FileLength    uint64 `json:"-"`
+
+	StreamingSidecar []byte `json:"-"`
 }
 
 // Upload uploads the given attachment to WhatsApp servers.
@@ -90,6 +94,13 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 	dataHash := sha256.Sum256(dataToUpload)
 	resp.FileEncSHA256 = dataHash[:]
 
+	if appInfo == MediaVideo {
+		resp.StreamingSidecar, err = makeStreamingSidecar(iv, macKey, bytes.NewReader(dataToUpload))
+		if err != nil {
+			return
+		}
+	}
+
 	err = cli.rawUpload(ctx, bytes.NewReader(dataToUpload), uint64(len(dataToUpload)), resp.FileEncSHA256, appInfo, false, &resp)
 	return
 }
@@ -127,8 +138,44 @@ func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFi
 		err = fmt.Errorf("failed to seek to start of temporary file: %w", err)
 		return
 	}
+	if appInfo == MediaVideo {
+		resp.StreamingSidecar, err = makeStreamingSidecar(iv, macKey, tempFile)
+		if err != nil {
+			return
+		}
+		_, err = tempFile.Seek(0, io.SeekStart)
+		if err != nil {
+			err = fmt.Errorf("failed to seek to start of temporary file: %w", err)
+			return
+		}
+	}
 	err = cli.rawUpload(ctx, tempFile, uploadSize, resp.FileEncSHA256, appInfo, false, &resp)
 	return
+}
+
+const streamingSidecarChunkSize = 64 * 1024
+
+func makeStreamingSidecar(iv, macKey []byte, encrypted io.Reader) ([]byte, error) {
+	buf := make([]byte, streamingSidecarChunkSize+aes.BlockSize)
+	filled := copy(buf, iv)
+	mac := hmac.New(sha256.New, macKey)
+	var sidecar []byte
+	for {
+		n, err := io.ReadFull(encrypted, buf[filled:])
+		if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, io.ErrUnexpectedEOF) {
+			return nil, fmt.Errorf("failed to read encrypted file for sidecar: %w", err)
+		} else if n == 0 && len(sidecar) > 0 {
+			return sidecar, nil
+		}
+		filled += n
+		mac.Reset()
+		mac.Write(buf[:filled])
+		sidecar = append(sidecar, mac.Sum(nil)[:10]...)
+		if err != nil {
+			return sidecar, nil
+		}
+		filled = copy(buf, buf[streamingSidecarChunkSize:])
+	}
 }
 
 // UploadNewsletter uploads the given attachment to WhatsApp servers without encrypting it first.
