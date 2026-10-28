@@ -303,8 +303,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 		frankingHash.Write(plaintext)
 		frankingTag = frankingHash.Sum(nil)
 	}
-	// parseMessageSource maps hosted senders to the normal servers, but sessions with hosted devices
-	// are stored under the hosted address, which is also what normal sends and prekey responses use.
+	// receipt.Sender has the hosted server replaced, but sessions with hosted devices use the hosted address
 	sender := receipt.Sender
 	if from := node.AttrGetter().OptionalJIDOrEmpty("from"); from.Server == types.HostedServer || from.Server == types.HostedLIDServer {
 		sender = from
