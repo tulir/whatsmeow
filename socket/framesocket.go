@@ -123,9 +123,18 @@ func (fs *FrameSocket) Context() context.Context {
 }
 
 func (fs *FrameSocket) SendFrame(data []byte) error {
+	return fs.SendFrameContext(fs.cancelCtx, data)
+}
+
+// SendFrameContext writes synchronously using the caller's bounded context.
+// The connection context is reserved for connection lifecycle, not request writes.
+func (fs *FrameSocket) SendFrameContext(ctx context.Context, data []byte) error {
 	conn := fs.conn.Load()
 	if conn == nil {
 		return ErrSocketClosed
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	dataLength := len(data)
 	if dataLength >= FrameMaxSize {
@@ -151,7 +160,7 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 	// Copy actual frame data
 	copy(wholeFrame[headerLength+FrameLengthSize:], data)
 
-	return conn.Write(fs.cancelCtx, websocket.MessageBinary, wholeFrame)
+	return conn.Write(ctx, websocket.MessageBinary, wholeFrame)
 }
 
 func (fs *FrameSocket) frameComplete() {
