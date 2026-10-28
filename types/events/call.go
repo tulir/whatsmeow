@@ -19,6 +19,12 @@ type CallOffer struct {
 	Data *waBinary.Node // The call offer data
 }
 
+// CallGroupUpdate is emitted when the participants in a group call change.
+type CallGroupUpdate struct {
+	types.BasicCallMeta
+	Data *waBinary.Node
+}
+
 // CallAccept is emitted when a call is accepted on WhatsApp.
 type CallAccept struct {
 	types.BasicCallMeta
