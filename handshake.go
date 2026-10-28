@@ -46,6 +46,8 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	var resp []byte
 	select {
 	case resp = <-fs.Frames:
+	case <-fs.Context().Done():
+		return nil, fmt.Errorf("socket closed while waiting for handshake response: %w", fs.Context().Err())
 	case <-time.After(NoiseHandshakeResponseTimeout):
 		return nil, fmt.Errorf("timed out waiting for handshake response")
 	}
