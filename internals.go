@@ -79,8 +79,8 @@ func (int *DangerousInternalClient) RequestMissingAppStateKeys(ctx context.Conte
 	int.c.requestMissingAppStateKeys(ctx, patches)
 }
 
-func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) {
-	int.c.requestAppStateKeys(ctx, rawKeyIDs)
+func (int *DangerousInternalClient) RequestAppStateKeys(ctx context.Context, rawKeyIDs [][]byte) error {
+	return int.c.requestAppStateKeys(ctx, rawKeyIDs)
 }
 
 func (int *DangerousInternalClient) SendAppState(ctx context.Context, patch appstate.PatchInfo, allowRetry bool) error {
