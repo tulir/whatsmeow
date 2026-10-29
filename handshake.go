@@ -8,6 +8,7 @@ package whatsmeow
 
 import (
 	"crypto/hmac"
+	"errors"
 	"fmt"
 	"time"
 
@@ -23,6 +24,8 @@ import (
 
 const NoiseHandshakeResponseTimeout = 20 * time.Second
 const WACertIssuerSerial = 0
+
+var ErrHandshakeTimeout = errors.New("timed out waiting for handshake response")
 
 var WACertPubKey = [...]byte{0x14, 0x23, 0x75, 0x57, 0x4d, 0xa, 0x58, 0x71, 0x66, 0xaa, 0xe7, 0x1e, 0xbe, 0x51, 0x64, 0x37, 0xc4, 0xa2, 0x8b, 0x73, 0xe3, 0x69, 0x5c, 0x6c, 0xe1, 0xf7, 0xf9, 0x54, 0x5d, 0xa8, 0xee, 0x6b}
 
@@ -47,9 +50,9 @@ func (cli *Client) doHandshake(fs *socket.FrameSocket, ephemeralKP keys.KeyPair)
 	select {
 	case resp = <-fs.Frames:
 	case <-fs.Context().Done():
-		return nil, fmt.Errorf("socket closed while waiting for handshake response: %w", fs.Context().Err())
+		return nil, fmt.Errorf("%w while waiting for handshake response", socket.ErrSocketClosed)
 	case <-time.After(NoiseHandshakeResponseTimeout):
-		return nil, fmt.Errorf("timed out waiting for handshake response")
+		return nil, ErrHandshakeTimeout
 	}
 	var handshakeResponse waWa6.HandshakeMessage
 	err = proto.Unmarshal(resp, &handshakeResponse)
