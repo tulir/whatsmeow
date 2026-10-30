@@ -683,6 +683,8 @@ func (s *SQLStore) PutAllContactNames(ctx context.Context, contacts []store.Cont
 		return nil
 	}
 	origLen := len(contacts)
+	// Deduplication keeps the first entry, but the last one is the newest
+	slices.Reverse(contacts)
 	contacts = exslices.DeduplicateUnsortedOverwriteFunc(contacts, func(t store.ContactEntry) types.JID {
 		return t.JID
 	})
