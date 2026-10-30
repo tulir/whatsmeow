@@ -9,6 +9,7 @@ package binary
 import (
 	"encoding/hex"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"unicode"
@@ -20,6 +21,18 @@ var (
 	IndentXML            = false
 	MaxBytesToPrintAsHex = 128
 )
+
+// Credentials that Node.String doesn't print: attributes by element tag, and child element content by parent tag.
+var (
+	redactedAttrs = map[string][]string{
+		"media_conn": {"auth", "ip_token"},
+	}
+	redactedChildren = map[string][]string{
+		"relay": {"token", "auth_token", "key", "hbh_key"},
+	}
+)
+
+const redacted = "[redacted]"
 
 // String converts the Node to its XML representation
 func (n Node) String() string {
@@ -41,6 +54,9 @@ func (n *Node) attributeString() string {
 	stringAttrs := make([]string, len(n.Attrs)+1)
 	i := 1
 	for key, value := range n.Attrs {
+		if slices.Contains(redactedAttrs[n.Tag], key) {
+			value = redacted
+		}
 		stringAttrs[i] = fmt.Sprintf(`%s="%v"`, key, value)
 		i++
 	}
@@ -66,6 +82,9 @@ func (n *Node) contentString() []string {
 	switch content := n.Content.(type) {
 	case []Node:
 		for _, item := range content {
+			if slices.Contains(redactedChildren[n.Tag], item.Tag) {
+				item.Content = redacted
+			}
 			split = append(split, strings.Split(item.String(), "\n")...)
 		}
 	case []byte:
