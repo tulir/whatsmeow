@@ -1,0 +1,55 @@
+syntax = "proto2";
+package WAWebHatchAttestationTransparencyProofProto;
+option go_package = "go.mau.fi/whatsmeow/proto/waWebHatchAttestationTransparencyProofProto";
+
+message Epoch {
+	required uint64 inner = 1;
+}
+
+message SignatureMessage {
+	required uint32 version = 1;
+	required string namespace = 2;
+	required uint64 timestamp = 3;
+	required Epoch epoch = 4;
+	required bytes digest = 5;
+}
+
+message SignatureResponse {
+	required SignatureMessage message = 1;
+	required bytes signature = 2;
+	optional uint32 keyID = 3;
+	optional bytes serializedMessage = 4;
+}
+
+message CloudflareSignatureResponse {
+	optional bytes signature = 1;
+	optional uint32 keyID = 2;
+	optional bytes serializedMessage = 3;
+}
+
+message ReferenceValue {
+	oneof refVal {
+		CloudflareSignatureResponse cloudflareProof = 1;
+		MetaBtProof metaBtProof = 2;
+	}
+}
+
+message TransparentArtifact {
+	optional string artifactType = 1;
+	optional bytes digest = 2;
+	repeated ReferenceValue refVal = 3;
+}
+
+message MetaBtProof {
+	optional bytes checkpoint = 1;
+	optional uint64 leafIndex = 2;
+	optional uint64 treeSize = 3;
+	repeated bytes auditPath = 4;
+	optional string namespace = 5;
+	optional bytes digest = 6;
+	optional bytes aad = 7;
+}
+
+message AAD {
+	optional uint64 timestamp = 1;
+}

@@ -34,6 +34,10 @@ message DeviceCapabilities {
 		optional SupportLevel supportLevel = 1;
 	}
 
+	message BizAiWebOnboarding {
+		optional uint32 version = 1;
+	}
+
 	message HostWriteMutationSupport {
 		repeated string mutationNames = 1;
 	}
@@ -86,4 +90,5 @@ message DeviceCapabilities {
 	optional ReverseHistorySync reverseHistorySync = 10;
 	optional NewsletterChatsMigration newsletterChatsMigration = 11;
 	optional HostWriteMutationSupport hostWriteMutationSupport = 12;
+	optional BizAiWebOnboarding bizAiWebOnboarding = 13;
 }

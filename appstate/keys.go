@@ -135,6 +135,7 @@ const (
 	IndexWasaRootSecretAction                         = "wasa_root_secret"
 	IndexSharedDeviceAllowlist                        = "shared_device_allowlist"
 	IndexSharedDeviceSecret                           = "shared_device_secret"
+	IndexHatchCVMSecret                               = "hatch_cvm_secret"
 )
 
 // Constants for the critical_unblock_low app state indexes.

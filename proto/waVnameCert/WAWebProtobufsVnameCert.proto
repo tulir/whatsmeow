@@ -17,6 +17,7 @@ message BizAccountLinkInfo {
 	optional uint64 issueTime = 3;
 	optional HostStorageType hostStorage = 4;
 	optional AccountType accountType = 5;
+	optional string whatsappAcctEmail = 6;
 }
 
 message BizIdentityInfo {

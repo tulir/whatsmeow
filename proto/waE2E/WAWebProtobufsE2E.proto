@@ -47,6 +47,7 @@ enum PeerDataOperationRequestType {
 	BUSINESS_BROADCAST_INSIGHTS_DELIVERED_TO = 12;
 	BUSINESS_BROADCAST_INSIGHTS_REFRESH = 13;
 	CONTACT_REFRESH_REQUEST = 14;
+	RECENT_CONVERSATIONS_ON_DEMAND_REQUEST = 15;
 }
 
 enum HistorySyncType {
@@ -59,6 +60,7 @@ enum HistorySyncType {
 	ON_DEMAND = 6;
 	NO_HISTORY = 7;
 	MESSAGE_ACCESS_STATUS = 8;
+	RECENT_CONVERSATIONS_ON_DEMAND = 9;
 }
 
 enum MediaKeyDomain {
@@ -883,6 +885,27 @@ message PeerDataOperationRequestMessage {
 		optional string agmID = 5;
 	}
 
+	message HistorySyncOnDemandRequest {
+		enum Mode {
+			MODE_UNSPECIFIED = 0;
+			INITIAL_REVERSE_HISTORY = 1;
+		}
+
+		optional string chatJID = 1;
+		optional string oldestMsgID = 2;
+		optional bool oldestMsgFromMe = 3;
+		optional int32 onDemandMsgCount = 4;
+		optional int64 oldestMsgTimestampMS = 5;
+		optional string accountLid = 6;
+		optional bool supportInlineResponse = 7;
+		optional Mode mode = 8;
+	}
+
+	message RecentConversationsOnDemandRequest {
+		optional uint32 conversationCount = 1;
+		optional uint32 messagesPerConversation = 2;
+	}
+
 	message BizBroadcastInsightsRefreshRequest {
 		optional string campaignID = 1;
 	}
@@ -917,16 +940,6 @@ message PeerDataOperationRequestMessage {
 		optional FullHistorySyncOnDemandConfig fullHistorySyncOnDemandConfig = 3;
 	}
 
-	message HistorySyncOnDemandRequest {
-		optional string chatJID = 1;
-		optional string oldestMsgID = 2;
-		optional bool oldestMsgFromMe = 3;
-		optional int32 onDemandMsgCount = 4;
-		optional int64 oldestMsgTimestampMS = 5;
-		optional string accountLid = 6;
-		optional bool supportInlineResponse = 7;
-	}
-
 	message RequestUrlPreview {
 		optional string URL = 1;
 		optional bool includeHqThumbnail = 2;
@@ -948,6 +961,7 @@ message PeerDataOperationRequestMessage {
 	optional CompanionCanonicalUserNonceFetchRequest companionCanonicalUserNonceFetchRequest = 10;
 	optional BizBroadcastInsightsContactListRequest bizBroadcastInsightsContactListRequest = 11;
 	optional BizBroadcastInsightsRefreshRequest bizBroadcastInsightsRefreshRequest = 12;
+	optional RecentConversationsOnDemandRequest recentConversationsOnDemandRequest = 13;
 }
 
 message SharedDeviceContactHashKey {
@@ -1129,11 +1143,30 @@ message MusicMessage {
 		LYRICS = 3;
 	}
 
+	message Lyrics {
+		message Line {
+			message WordOffset {
+				optional int32 startIndex = 1;
+				optional int32 endIndex = 2;
+				optional int64 startOffsetMS = 3;
+				optional int64 endOffsetMS = 4;
+			}
+
+			optional int64 startTimeInMS = 1;
+			optional int64 endTimeInMS = 2;
+			optional string text = 3;
+			repeated WordOffset wordOffsets = 4;
+		}
+
+		repeated Line lines = 1;
+	}
+
 	optional EmbeddedMusic embeddedMusic = 1;
 	optional string songUri = 2;
 	optional string artworkUri = 3;
 	optional int32 style = 4;
 	optional ContextInfo contextInfo = 5;
+	optional Lyrics lyrics = 6;
 }
 
 message ExtendedTextMessage {
@@ -1423,11 +1456,14 @@ message ContextInfo {
 		enum AudienceType {
 			UNKNOWN = 0;
 			CLOSE_FRIENDS = 1;
+			CUSTOM_LIST = 2;
+			ORG = 3;
 		}
 
 		optional AudienceType audienceType = 1;
 		optional string listName = 2;
 		optional string listEmoji = 3;
+		optional string orgID = 4;
 	}
 
 	message DataSharingContext {
@@ -1630,6 +1666,8 @@ message ContextInfo {
 	optional WAWebProtobufsAICommon.AIProvenance aiProvenance = 81;
 	repeated uint32 experienceIDs = 82 [packed=true];
 	optional string partnerDeepLinkToken = 83;
+	optional uint32 sourceExperienceID = 84;
+	repeated uint32 sourceExperienceIDs = 85 [packed=true];
 }
 
 message MessageAssociation {
@@ -1702,6 +1740,7 @@ message MessageContextInfo {
 	optional bytes associatedPrimaryIdentityKey = 19;
 	optional string teeContextAnchorMessageID = 20;
 	optional WACommon.ACP2Setting acp2Setting = 21;
+	optional bool lightE2Ee = 22;
 }
 
 message InteractiveAnnotation {

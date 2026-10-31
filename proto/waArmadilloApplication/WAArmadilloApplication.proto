@@ -208,6 +208,31 @@ message Armadillo {
 			repeated WACommon.SubProtocol images = 1;
 		}
 
+		message HomebaseSharingControl {
+			enum HomebaseSharingControlReason {
+				REASON_UNSPECIFIED = 0;
+				AUTHORIZE_NEWLY_ENABLED = 1;
+				AUTHORIZE_REAUTHORIZED = 2;
+				REVOKE_USER_REQUESTED = 3;
+				REVOKE_STATE_LOST = 4;
+				REVOKE_DISAPPEARING_MESSAGES_ENABLED = 5;
+				REVOKE_MESSAGE_SHARING_PERMISSIONS_DISABLED = 6;
+				REVOKE_FEATURE_TURNED_OFF = 7;
+			}
+
+			enum HomebaseSharingControlOperation {
+				OPERATION_UNSPECIFIED = 0;
+				AUTHORIZE = 1;
+				REVOKE = 2;
+			}
+
+			optional uint32 protocolVersion = 1;
+			optional HomebaseSharingControlOperation operation = 2;
+			optional HomebaseSharingControlReason reason = 3;
+			optional string authorizationEpochID = 4;
+			optional uint32 messageLimit = 5;
+		}
+
 		message ScreenshotAction {
 			enum ScreenshotType {
 				SCREENSHOT_IMAGE = 1;
@@ -275,6 +300,7 @@ message Armadillo {
 			NoteReplyMessage noteReplyMessage = 13;
 			RavenMessage ravenMessageMsgr = 14;
 			NetworkVerificationMessage networkVerificationMessage = 15;
+			HomebaseSharingControl homebaseSharingControl = 18;
 		}
 	}
 

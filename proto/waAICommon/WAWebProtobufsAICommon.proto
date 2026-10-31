@@ -356,6 +356,8 @@ message BotCapabilityMetadata {
 		AI_STUDY_CENTER_ENABLED = 80;
 		AI_MUSE_JARVIS_SCHEMA_ENABLED = 81;
 		AI_STUDY_QUIZ_ENABLED = 82;
+		HATCH_CVM_ENABLED = 83;
+		RICH_RESPONSE_SOCIAL_ENTITY_PREFETCH_SCHEDULER_ENABLED = 84;
 	}
 
 	repeated BotCapabilityType capabilities = 1;
@@ -439,6 +441,7 @@ message BotMessageOrigin {
 	}
 
 	optional BotMessageOriginType type = 1;
+	optional string proactiveMessageCampaignID = 2;
 }
 
 message AIThreadInfo {
@@ -787,6 +790,11 @@ message BotPttPromptMetadata {
 	optional string transcript = 1;
 }
 
+message BotInterjectionMetadata {
+	optional string targetPromptMessageID = 1;
+	repeated string foldedPromptMessageIDs = 2;
+}
+
 message BotMetadata {
 	optional string personaID = 2;
 	optional BotPluginMetadata pluginMetadata = 3;
@@ -831,6 +839,7 @@ message BotMetadata {
 	optional BotPttPromptMetadata pttPromptMetadata = 42;
 	optional BotHistoryShareMetadata botHistoryShareMetadata = 43;
 	optional bool responseStoppedByUser = 44;
+	optional BotInterjectionMetadata interjectionMetadata = 45;
 	optional bytes internalMetadata = 999;
 }
 

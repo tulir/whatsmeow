@@ -65,14 +65,37 @@ message MiTransportAdminMessage {
 		optional Action action = 2;
 	}
 
+	message XmatMessengerChatFontChange {
+		optional int64 actorID = 1;
+	}
+
+	message XmatHomebaseActionSummary {
+		optional string text = 1;
+		optional string fullText = 2;
+		optional string ctaText = 3;
+		optional int64 householdID = 4;
+		optional string destinationViewID = 5;
+		optional string destinationViewName = 6;
+		optional string destinationWidgetType = 7;
+		optional string sourceMessageID = 8;
+		optional string actionContentBlob = 9;
+	}
+
+	message XmatPetInteraction {
+		optional string petName = 1;
+		optional string actionKey = 2;
+	}
+
 	message XmatMessengerMessageReminderTriggered {
 		optional int64 offlineThreadingID = 1;
-		optional int64 scheduledTime = 2;
+		optional string scheduledTime = 2;
+		optional int64 scheduledTimeMS = 3;
 	}
 
 	message XmatMessengerMessageReminderSet {
 		optional int64 offlineThreadingID = 1;
-		optional int64 scheduledTime = 2;
+		optional string scheduledTime = 2;
+		optional int64 scheduledTimeMS = 3;
 	}
 
 	message XmatSetParticipantUpdateMode {
@@ -103,6 +126,11 @@ message MiTransportAdminMessage {
 	message XmatAddParticipants {
 		repeated int64 participantsAdded = 1 [packed=true];
 		optional bool addedThroughJoinRequests = 2;
+	}
+
+	message XmatGenAIRateLimitUpsell {
+		optional string adminText = 1;
+		optional int64 rateLimitUntilSec = 2;
 	}
 
 	message XmatGenAITaskAdd {
@@ -324,6 +352,10 @@ message MiTransportAdminMessage {
 		XmatSetParticipantUpdateMode xmatSetParticipantUpdateMode = 42;
 		XmatMessengerMessageReminderSet xmatMessengerMessageReminderSet = 43;
 		XmatMessengerMessageReminderTriggered xmatMessengerMessageReminderTriggered = 44;
+		XmatGenAIRateLimitUpsell xmatGenaiRateLimitUpsell = 45;
+		XmatPetInteraction xmatPetInteraction = 46;
+		XmatHomebaseActionSummary xmatHomebaseActionSummary = 47;
+		XmatMessengerChatFontChange xmatMessengerChatFontChange = 48;
 	}
 
 	optional bool skipBumpThread = 34;

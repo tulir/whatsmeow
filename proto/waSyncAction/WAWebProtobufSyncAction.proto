@@ -110,6 +110,7 @@ enum MutationProps {
 	BB_PRO_PENDING_CUSTOMER_BASE_ACTION = 98;
 	COMMUNITY_NESTING_STATE_ACTION = 99;
 	SHARED_DEVICE_SECRET_ACTION = 100;
+	HATCH_CVM_SECRET_ACTION = 101;
 	SHARE_OWN_PN = 10001;
 	BUSINESS_BROADCAST_ACTION = 10002;
 	AI_THREAD_DELETE_ACTION = 10003;
@@ -193,9 +194,9 @@ message CallLogRecord {
 
 message CommunityNestingStateAction {
 	enum NestingState {
-		NESTING_STATE_UNKNOWN = 0;
-		NESTING_STATE_NESTED = 1;
-		NESTING_STATE_UNNESTED = 2;
+		PLATFORM_DEFAULT = 0;
+		NESTED = 1;
+		UNNESTED = 2;
 	}
 
 	optional NestingState nestingState = 1;
@@ -228,6 +229,13 @@ message WASARootSecretAction {
 }
 
 message SettingsSyncAction {
+	enum MediaAutoDownloadQualitySetting {
+		MEDIA_AUTO_DOWNLOAD_QUALITY_UNKNOWN = 0;
+		MEDIA_AUTO_DOWNLOAD_QUALITY_STANDARD = 1;
+		MEDIA_AUTO_DOWNLOAD_QUALITY_HD = 2;
+		MEDIA_AUTO_DOWNLOAD_QUALITY_AUTO = 3;
+	}
+
 	enum MediaQualitySetting {
 		MEDIA_QUALITY_UNKNOWN = 0;
 		STANDARD = 1;
@@ -277,6 +285,7 @@ message SettingsSyncAction {
 		CHAT_THEME_ID = 32;
 		COLOR_SCHEME_ID = 33;
 		STOCK_WALLPAPER_IMAGE_ID = 34;
+		MEDIA_AUTO_DOWNLOAD_QUALITY = 35;
 	}
 
 	enum SettingPlatform {
@@ -321,6 +330,7 @@ message SettingsSyncAction {
 	optional string chatThemeID = 32;
 	optional string colorSchemeID = 33;
 	optional string stockWallpaperImageID = 34;
+	optional MediaAutoDownloadQualitySetting mediaAutoDownloadQuality = 35;
 }
 
 message InteractiveMessageAction {
@@ -650,6 +660,7 @@ enum MutationName {
 	BB_PRO_PENDING_CUSTOMER_BASE_ACTION = bb_pro_pending_customer_base_action;
 	COMMUNITY_NESTING_STATE_ACTION = community_nesting_state;
 	SHARED_DEVICE_SECRET_ACTION = shared_device_secret;
+	HATCH_CVM_SECRET_ACTION = hatch_cvm_secret;
 	SHARE_OWN_PN = shareOwnPn;
 	BUSINESS_BROADCAST_ACTION = broadcast;
 	AI_THREAD_DELETE_ACTION = ai_thread_delete;
@@ -768,6 +779,7 @@ message SyncActionValue {
 	optional BBProPendingCustomerBaseAction bbProPendingCustomerBaseAction = 98;
 	optional CommunityNestingStateAction communityNestingStateAction = 99;
 	optional SharedDeviceSecretAction sharedDeviceSecretAction = 100;
+	optional HatchCVMSecretAction hatchCvmSecretAction = 101;
 }
 
 message BBProPendingCustomerBaseAction {
@@ -780,6 +792,11 @@ message BusinessFolderActivationAction {
 
 message CtwaMessageReceivedAction {
 	optional bool isCtwaMessageReceived = 1;
+}
+
+message HatchCVMSecretAction {
+	optional bytes secret = 1;
+	optional int64 generation = 2;
 }
 
 message CoexV2VersionAction {

@@ -34,6 +34,7 @@ message HistorySync {
 		PUSH_NAME = 4;
 		NON_BLOCKING_DATA = 5;
 		ON_DEMAND = 6;
+		RECENT_CONVERSATIONS_ON_DEMAND = 9;
 	}
 
 	required HistorySyncType syncType = 1;
@@ -57,8 +58,8 @@ message HistorySync {
 	repeated InlineContact inlineContacts = 20;
 	optional bool inlineContactsProvided = 21;
 	repeated StickerMetadata favoriteStickers = 22;
-	repeated RecoverableHistoryConversation omittedConversations = 23;
-	optional bool omittedConversationsProvided = 24;
+	optional OmittedConversationMetadata omittedConversationMetadata = 25;
+	optional string omittedConversationMetadataSnapshotID = 26;
 }
 
 message Conversation {
@@ -166,9 +167,13 @@ message PastParticipant {
 	optional uint64 leaveTS = 3;
 }
 
-message RecoverableHistoryConversation {
-	optional string historyChatID = 1;
-	optional string accountLid = 2;
+message OmittedConversationMetadata {
+	optional string snapshotID = 1;
+	optional uint64 snapshotTimestampMS = 2;
+	optional uint32 batchIndex = 3;
+	optional uint32 batchCount = 4;
+	optional bool complete = 5;
+	repeated Conversation conversations = 6;
 }
 
 message IdentityVerificationState {
