@@ -795,7 +795,9 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 		case "incognito":
 			group.IsIncognito = true
 		case "membership_approval_mode":
-			group.IsJoinApprovalRequired = true
+			if joinNode, ok := child.GetOptionalChildByTag("group_join"); ok {
+				group.IsJoinApprovalRequired = joinNode.AttrGetter().OptionalString("state") == "on"
+			}
 		case "suspended":
 			group.Suspended = true
 		default:
@@ -996,8 +998,10 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 				return nil, nil, fmt.Errorf("failed to parse group unlink node in group change: %w", err)
 			}
 		case "membership_approval_mode":
-			evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
-				IsJoinApprovalRequired: true,
+			if joinNode, ok := child.GetOptionalChildByTag("group_join"); ok {
+				evt.MembershipApprovalMode = &types.GroupMembershipApprovalMode{
+					IsJoinApprovalRequired: joinNode.AttrGetter().OptionalString("state") == "on",
+				}
 			}
 		case "suspended":
 			evt.Suspended = true
