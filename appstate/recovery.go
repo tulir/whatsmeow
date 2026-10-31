@@ -67,8 +67,9 @@ func (proc *Processor) ProcessRecovery(ctx context.Context, recovery *waSyncdSna
 			return nil, fmt.Errorf("failed to unmarshal index for mutation #%d: %w", i+1, err)
 		}
 		macs[i] = store.AppStateMutationMAC{
-			IndexMAC: concatAndHMAC(sha256.New, keys.Index, mutation.GetValue().GetIndex()),
-			ValueMAC: mutation.GetMac(),
+			IndexMAC:  concatAndHMAC(sha256.New, keys.Index, mutation.GetValue().GetIndex()),
+			ValueMAC:  mutation.GetMac(),
+			IndexHash: indexHash(mutation.GetValue().GetIndex()),
 		}
 		mutations[i] = Mutation{
 			KeyID:        mutation.GetKeyID(),

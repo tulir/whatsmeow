@@ -1,4 +1,4 @@
--- v0 -> v16 (compatible with v8+): Latest schema
+-- v0 -> v17 (compatible with v8+): Latest schema
 CREATE TABLE whatsmeow_device (
 	jid TEXT PRIMARY KEY,
 	lid TEXT,
@@ -94,10 +94,12 @@ CREATE TABLE whatsmeow_app_state_mutation_macs (
 	version   BIGINT,
 	index_mac bytea          CHECK ( length(index_mac) = 32 ),
 	value_mac bytea NOT NULL CHECK ( length(value_mac) = 32 ),
+	index_hash bytea,
 
 	PRIMARY KEY (jid, name, version, index_mac),
 	FOREIGN KEY (jid, name) REFERENCES whatsmeow_app_state_version(jid, name) ON DELETE CASCADE ON UPDATE CASCADE
 );
+CREATE INDEX whatsmeow_app_state_mutation_macs_index_hash_idx ON whatsmeow_app_state_mutation_macs (jid, name, index_hash);
 
 CREATE TABLE whatsmeow_contacts (
 	our_jid        TEXT,
