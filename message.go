@@ -615,6 +615,9 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 			return pt, innerErr
 		}, "prekey", from.String())
 		if err != nil {
+			if errors.Is(err, signalerror.ErrNoValidSessions) {
+				cli.logPreKeyDecryptFailure(ctx, from, preKeyMsg)
+			}
 			return nil, nil, fmt.Errorf("failed to decrypt prekey message: %w", err)
 		}
 	} else {
@@ -635,6 +638,27 @@ func (cli *Client) decryptDM(ctx context.Context, child *waBinary.Node, from typ
 		return nil, nil, fmt.Errorf("failed to unpad message: %w", err)
 	}
 	return plaintext, &ciphertextHash, nil
+}
+
+func (cli *Client) logPreKeyDecryptFailure(ctx context.Context, from types.JID, msg *protocol.PreKeySignalMessage) {
+	preKeyID := "none"
+	hasPreKey := false
+	if !msg.PreKeyID().IsEmpty {
+		preKeyID = strconv.FormatUint(uint64(msg.PreKeyID().Value), 10)
+		preKey, err := cli.Store.PreKeys.GetPreKey(ctx, msg.PreKeyID().Value)
+		hasPreKey = err == nil && preKey != nil
+	}
+	hasBaseKeySession := false
+	sess, err := cli.Store.LoadSession(ctx, from.SignalAddress())
+	if err == nil && sess != nil {
+		hasBaseKeySession = sess.HasSessionState(msg.MessageVersion(), msg.BaseKey().Serialize())
+	}
+	baseKey := msg.BaseKey().Serialize()
+	cli.Log.Warnf(
+		"Prekey message from %s failed MAC on every state: prekey_id=%s has_prekey=%t signed_prekey_id=%d our_signed_prekey_id=%d registration_id=%d base_key=%x has_base_key_session=%t identity=%x",
+		from, preKeyID, hasPreKey, msg.SignedPreKeyID(), cli.Store.SignedPreKey.KeyID, msg.RegistrationID(),
+		baseKey[:min(8, len(baseKey))], hasBaseKeySession, msg.IdentityKey().Fingerprint()[:min(8, len(msg.IdentityKey().Fingerprint()))],
+	)
 }
 
 func (cli *Client) decryptGroupMsg(ctx context.Context, child *waBinary.Node, from types.JID, chat types.JID, serverTS time.Time) ([]byte, *[32]byte, error) {
