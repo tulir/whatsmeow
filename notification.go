@@ -81,6 +81,8 @@ func (cli *Client) handleAppStateNotification(ctx context.Context, node *waBinar
 			// There are some app state changes right before a remote logout, so stop syncing if we're disconnected.
 			cli.Log.Debugf("Failed to sync app state after notification: %v, not trying to sync other states", err)
 			return false
+		} else if errors.Is(err, ErrAppStateRateLimited) {
+			cli.Log.Debugf("Not syncing app state after notification: %v", err)
 		} else if err != nil {
 			cli.Log.Errorf("Failed to sync app state after notification: %v", err)
 		}
