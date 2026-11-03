@@ -525,15 +525,19 @@ func (cli *Client) sendRetryReceipt(ctx context.Context, node *waBinary.Node, in
 			cli.Log.Errorf("Failed to marshal account info: %v", err)
 			return
 		} else {
+			keysContent := []waBinary.Node{
+				{Tag: "type", Content: []byte{ecc.DjbType}},
+				{Tag: "identity", Content: cli.Store.IdentityKey.Pub[:]},
+				preKeyToNode(key),
+				preKeyToNode(cli.Store.SignedPreKey),
+			}
+			if pqNode := cli.kyberLastResortKeyNode(ctx); pqNode != nil {
+				keysContent = append(keysContent, *pqNode)
+			}
+			keysContent = append(keysContent, waBinary.Node{Tag: "device-identity", Content: deviceIdentity})
 			payload.Content = append(payload.GetChildren(), waBinary.Node{
-				Tag: "keys",
-				Content: []waBinary.Node{
-					{Tag: "type", Content: []byte{ecc.DjbType}},
-					{Tag: "identity", Content: cli.Store.IdentityKey.Pub[:]},
-					preKeyToNode(key),
-					preKeyToNode(cli.Store.SignedPreKey),
-					{Tag: "device-identity", Content: deviceIdentity},
-				},
+				Tag:     "keys",
+				Content: keysContent,
 			})
 		}
 	}

@@ -197,6 +197,15 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 				cli.Log.Debugf("Prekey count after upload: %d", sc)
 			}
 		}
+		if cli.EnablePQPreKeys {
+			if pqCount, err := cli.getServerKyberPreKeyCount(ctx); err != nil {
+				cli.Log.Warnf("Failed to get number of kyber prekeys on server: %v", err)
+			} else if pqCount < MinKyberPreKeyCount {
+				if err = cli.uploadKyberPreKeys(ctx); err != nil {
+					cli.Log.Errorf("Failed to upload kyber prekeys: %v", err)
+				}
+			}
+		}
 		err := cli.SetPassive(ctx, false)
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)

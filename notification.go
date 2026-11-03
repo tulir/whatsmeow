@@ -26,6 +26,16 @@ import (
 func (cli *Client) handleEncryptNotification(ctx context.Context, node *waBinary.Node) {
 	from := node.AttrGetter().JID("from")
 	if from == types.ServerJID {
+		if pqCount, ok := node.GetOptionalChildByTag("pq_count"); ok {
+			if pqCount.AttrGetter().Int("value") < MinKyberPreKeyCount {
+				if err := cli.uploadKyberPreKeys(ctx); err != nil {
+					cli.Log.Errorf("Failed to upload kyber prekeys: %v", err)
+				}
+			}
+			if _, ok = node.GetOptionalChildByTag("count"); !ok {
+				return
+			}
+		}
 		count := node.GetChildByTag("count")
 		ag := count.AttrGetter()
 		otksLeft := ag.Int("value")
