@@ -18,6 +18,8 @@ import (
 	"sync"
 	"time"
 
+	"go.mau.fi/libsignal/keys/identity"
+	"go.mau.fi/libsignal/state/record"
 	"go.mau.fi/util/dbutil"
 	"go.mau.fi/util/exslices"
 	"go.mau.fi/util/exsync"
@@ -68,6 +70,7 @@ func NewSQLStore(c *Container, jid types.JID) *SQLStore {
 }
 
 var _ store.AllSessionSpecificStores = (*SQLStore)(nil)
+var _ store.KyberPreKeyStore = (*SQLStore)(nil)
 
 const (
 	putIdentityQuery = `
@@ -1124,5 +1127,81 @@ func (s *SQLStore) AddOutgoingEvent(ctx context.Context, chatJID types.JID, id t
 
 func (s *SQLStore) DeleteOldOutgoingEvents(ctx context.Context) error {
 	_, err := s.db.Exec(ctx, deleteOldOutgoingEventsQuery, s.JID, time.Now().Add(-7*24*time.Hour).UnixMilli())
+	return err
+}
+
+const (
+	getLastKyberPreKeyIDQuery       = `SELECT MAX(key_id) FROM whatsmeow_kyber_pre_keys WHERE jid=$1`
+	insertKyberPreKeyQuery          = `INSERT INTO whatsmeow_kyber_pre_keys (jid, key_id, seed, signature, timestamp, last_resort, uploaded) VALUES ($1, $2, $3, $4, $5, $6, false)`
+	getUnuploadedKyberPreKeysQuery  = `SELECT key_id, seed, signature, timestamp, last_resort FROM whatsmeow_kyber_pre_keys WHERE jid=$1 AND uploaded=false AND last_resort=false ORDER BY key_id LIMIT $2`
+	getKyberLastResortKeyQuery      = `SELECT key_id, seed, signature, timestamp, last_resort FROM whatsmeow_kyber_pre_keys WHERE jid=$1 AND last_resort=true ORDER BY key_id DESC LIMIT 1`
+	getKyberPreKeyQuery             = `SELECT key_id, seed, signature, timestamp, last_resort FROM whatsmeow_kyber_pre_keys WHERE jid=$1 AND key_id=$2`
+	deleteKyberPreKeyQuery          = `DELETE FROM whatsmeow_kyber_pre_keys WHERE jid=$1 AND key_id=$2 AND last_resort=false`
+	markKyberPreKeysAsUploadedQuery = `UPDATE whatsmeow_kyber_pre_keys SET uploaded=true WHERE jid=$1 AND key_id<=$2`
+)
+
+var scanKyberPreKey = dbutil.ConvertRowFn[*record.KyberPreKey](func(row dbutil.Scannable) (*record.KyberPreKey, error) {
+	var key record.KyberPreKey
+	err := row.Scan(&key.ID, &key.Seed, &key.Signature, &key.Timestamp, &key.LastResort)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return &key, nil
+})
+
+func (s *SQLStore) genKyberPreKey(ctx context.Context, identity *identity.KeyPair, lastResort bool) (*record.KyberPreKey, error) {
+	var lastKeyID sql.NullInt32
+	err := s.db.QueryRow(ctx, getLastKyberPreKeyIDQuery, s.JID).Scan(&lastKeyID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query next kyber prekey ID: %w", err)
+	}
+	key, err := record.GenerateKyberPreKey(uint32(lastKeyID.Int32)+1, identity, time.Now().UnixMilli(), lastResort)
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.db.Exec(ctx, insertKyberPreKeyQuery, s.JID, key.ID, key.Seed, key.Signature, key.Timestamp, key.LastResort)
+	return key, err
+}
+
+func (s *SQLStore) GetOrGenKyberPreKeys(ctx context.Context, count uint32, identity *identity.KeyPair) ([]*record.KyberPreKey, error) {
+	s.preKeyLock.Lock()
+	defer s.preKeyLock.Unlock()
+	existing, err := scanKyberPreKey.NewRowIter(s.db.Query(ctx, getUnuploadedKyberPreKeysQuery, s.JID, count)).AsList()
+	if err != nil {
+		return nil, fmt.Errorf("failed to query existing kyber prekeys: %w", err)
+	}
+	for uint32(len(existing)) < count {
+		key, err := s.genKyberPreKey(ctx, identity, false)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate kyber prekey: %w", err)
+		}
+		existing = append(existing, key)
+	}
+	return existing, nil
+}
+
+func (s *SQLStore) GetOrGenKyberLastResortKey(ctx context.Context, identity *identity.KeyPair) (*record.KyberPreKey, error) {
+	s.preKeyLock.Lock()
+	defer s.preKeyLock.Unlock()
+	key, err := scanKyberPreKey(s.db.QueryRow(ctx, getKyberLastResortKeyQuery, s.JID))
+	if err != nil || key != nil {
+		return key, err
+	}
+	return s.genKyberPreKey(ctx, identity, true)
+}
+
+func (s *SQLStore) GetKyberPreKey(ctx context.Context, id uint32) (*record.KyberPreKey, error) {
+	return scanKyberPreKey(s.db.QueryRow(ctx, getKyberPreKeyQuery, s.JID, id))
+}
+
+func (s *SQLStore) RemoveKyberPreKey(ctx context.Context, id uint32) error {
+	_, err := s.db.Exec(ctx, deleteKyberPreKeyQuery, s.JID, id)
+	return err
+}
+
+func (s *SQLStore) MarkKyberPreKeysAsUploaded(ctx context.Context, upToID uint32) error {
+	_, err := s.db.Exec(ctx, markKyberPreKeysAsUploadedQuery, s.JID, upToID)
 	return err
 }
