@@ -107,6 +107,8 @@ type Client struct {
 	appStateSyncLock sync.Mutex
 	appStateBackoff  map[appstate.WAPatchName]time.Time
 
+	ownBundleChecked atomic.Bool
+
 	historySyncNotifications        chan *waE2E.HistorySyncNotification
 	historySyncHandlerStarted       atomic.Bool
 	ManualHistorySyncDownload       bool

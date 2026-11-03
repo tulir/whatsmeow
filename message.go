@@ -659,6 +659,31 @@ func (cli *Client) logPreKeyDecryptFailure(ctx context.Context, from types.JID, 
 		from, preKeyID, hasPreKey, msg.SignedPreKeyID(), cli.Store.SignedPreKey.KeyID, msg.RegistrationID(),
 		baseKey[:min(8, len(baseKey))], hasBaseKeySession, msg.IdentityKey().Fingerprint()[:min(8, len(msg.IdentityKey().Fingerprint()))],
 	)
+	if !cli.ownBundleChecked.Swap(true) {
+		go cli.logOwnServerBundle(context.WithoutCancel(ctx))
+	}
+}
+
+func (cli *Client) logOwnServerBundle(ctx context.Context) {
+	ownID := cli.getOwnID()
+	resp, err := cli.fetchPreKeys(ctx, []types.JID{ownID})
+	if err != nil {
+		cli.Log.Warnf("Failed to fetch own prekey bundle for comparison: %v", err)
+		return
+	}
+	bundle := resp[ownID].bundle
+	if bundle == nil {
+		cli.Log.Warnf("Server returned no prekey bundle for own device %s: %v", ownID, resp[ownID].err)
+		return
+	}
+	serverIdentity := bundle.IdentityKey().PublicKey().PublicKey()
+	serverSPK := bundle.SignedPreKey().PublicKey()
+	cli.Log.Warnf(
+		"Own prekey bundle on server for %s: identity_matches=%t signed_prekey_id=%d (ours %d) signed_prekey_matches=%t registration_id=%d (ours %d) server_identity=%x local_identity=%x",
+		ownID, serverIdentity == *cli.Store.IdentityKey.Pub, bundle.SignedPreKeyID(), cli.Store.SignedPreKey.KeyID,
+		serverSPK == *cli.Store.SignedPreKey.Pub, bundle.RegistrationID(), cli.Store.RegistrationID,
+		serverIdentity[:8], cli.Store.IdentityKey.Pub[:8],
+	)
 }
 
 func (cli *Client) decryptGroupMsg(ctx context.Context, child *waBinary.Node, from types.JID, chat types.JID, serverTS time.Time) ([]byte, *[32]byte, error) {
