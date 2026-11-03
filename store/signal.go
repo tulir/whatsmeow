@@ -22,6 +22,7 @@ import (
 var SignalProtobufSerializer = serialize.NewProtoBufSerializer()
 
 var _ store.SignalProtocol = (*Device)(nil)
+var _ store.KyberPreKey = (*Device)(nil)
 
 func (device *Device) GetIdentityKeyPair() *identity.KeyPair {
 	return identity.NewKeyPair(
@@ -187,4 +188,26 @@ func (device *Device) LoadSenderKey(ctx context.Context, senderKeyName *protocol
 		return nil, fmt.Errorf("failed to deserialize sender key from %s for %s: %w", senderString, groupID, err)
 	}
 	return key, nil
+}
+
+func (device *Device) LoadKyberPreKey(ctx context.Context, id uint32) (*record.KyberPreKey, error) {
+	if device.KyberPreKeys == nil {
+		return nil, nil
+	}
+	key, err := device.KyberPreKeys.GetKyberPreKey(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load kyber prekey %d: %w", id, err)
+	}
+	return key, nil
+}
+
+func (device *Device) MarkKyberPreKeyUsed(ctx context.Context, id uint32) error {
+	if device.KyberPreKeys == nil {
+		return nil
+	}
+	err := device.KyberPreKeys.RemoveKyberPreKey(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to remove kyber prekey %d: %w", id, err)
+	}
+	return nil
 }

@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.mau.fi/libsignal/keys/identity"
+	"go.mau.fi/libsignal/state/record"
 
 	"go.mau.fi/whatsmeow/proto/waAdv"
 	"go.mau.fi/whatsmeow/types"
@@ -36,6 +38,14 @@ type SessionStore interface {
 	DeleteAllSessions(ctx context.Context, phone string) error
 	DeleteSession(ctx context.Context, address string) error
 	MigratePNToLID(ctx context.Context, pn, lid types.JID) error
+}
+
+type KyberPreKeyStore interface {
+	GetOrGenKyberPreKeys(ctx context.Context, count uint32, identity *identity.KeyPair) ([]*record.KyberPreKey, error)
+	GetOrGenKyberLastResortKey(ctx context.Context, identity *identity.KeyPair) (*record.KyberPreKey, error)
+	GetKyberPreKey(ctx context.Context, id uint32) (*record.KyberPreKey, error)
+	RemoveKyberPreKey(ctx context.Context, id uint32) error
+	MarkKyberPreKeysAsUploaded(ctx context.Context, upToID uint32) error
 }
 
 type PreKeyStore interface {
@@ -242,6 +252,7 @@ type Device struct {
 	Deleted       bool
 	Identities    IdentityStore
 	Sessions      SessionStore
+	KyberPreKeys  KyberPreKeyStore
 	PreKeys       PreKeyStore
 	SenderKeys    SenderKeyStore
 	AppStateKeys  AppStateSyncKeyStore
@@ -302,6 +313,7 @@ func (device *Device) SetAllStores(store AllSessionSpecificStores) {
 	device.Identities = store
 	device.Sessions = store
 	device.PreKeys = store
+	device.KyberPreKeys, _ = store.(KyberPreKeyStore)
 	device.SenderKeys = store
 	device.AppStateKeys = store
 	device.AppState = store
