@@ -839,6 +839,15 @@ func (cli *Client) handleAppStateSyncKeyShare(ctx context.Context, keys *waE2E.A
 		if isReRequest {
 			onlyResyncIfNotSynced = false
 		}
+		existing, err := cli.Store.AppStateKeys.GetAppStateSyncKey(ctx, key.GetKeyID().GetKeyID())
+		if err != nil {
+			cli.Log.Warnf("Failed to check for existing app state sync key %X: %v", key.GetKeyID().GetKeyID(), err)
+		} else if existing != nil && !bytes.Equal(existing.Data, key.GetKeyData().GetKeyData()) {
+			cli.Log.Warnf(
+				"Received app state sync key %X with different data than the stored key (stored ts: %d, new ts: %d, requested: %t)",
+				key.GetKeyID().GetKeyID(), existing.Timestamp, key.GetKeyData().GetTimestamp(), isReRequest,
+			)
+		}
 		err = cli.Store.AppStateKeys.PutAppStateSyncKey(ctx, key.GetKeyID().GetKeyID(), store.AppStateSyncKey{
 			Data:        key.GetKeyData().GetKeyData(),
 			Fingerprint: marshaledFingerprint,
@@ -848,7 +857,7 @@ func (cli *Client) handleAppStateSyncKeyShare(ctx context.Context, keys *waE2E.A
 			cli.Log.Errorf("Failed to store app state sync key %X: %v", key.GetKeyID().GetKeyID(), err)
 			continue
 		}
-		cli.Log.Debugf("Received app state sync key %X (ts: %d)", key.GetKeyID().GetKeyID(), key.GetKeyData().GetTimestamp())
+		cli.Log.Debugf("Received app state sync key %X (ts: %d, requested: %t)", key.GetKeyID().GetKeyID(), key.GetKeyData().GetTimestamp(), isReRequest)
 	}
 	cli.appStateKeyRequestsLock.RUnlock()
 
