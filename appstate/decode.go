@@ -347,6 +347,11 @@ func (proc *Processor) validatePatch(
 		if err != nil && !ltHashMismatch {
 			return
 		}
+		// Like WhatsApp Web, only ignore the mismatch if local state isn't obviously missing.
+		// A skipped version or an empty hash means a full sync is needed.
+		if ltHashMismatch && (version != currentState.Version+1 || (currentState.Hash == [128]byte{} && version != 1)) {
+			return
+		}
 		err = nil
 		patchMAC := generatePatchMAC(patch, patchName, keys.PatchMAC, patch.GetVersion().GetVersion())
 		if !hmac.Equal(patchMAC, patch.GetPatchMAC()) {
