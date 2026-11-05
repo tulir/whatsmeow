@@ -152,7 +152,7 @@ func (proc *Processor) decodeMutation(
 	if validateMACs {
 		expectedValueMAC := generateContentMAC(mutation.GetOperation(), content, keyID, keys.ValueMAC)
 		if !hmac.Equal(expectedValueMAC, valueMAC) {
-			err = fmt.Errorf("failed to verify mutation #%d: %w", i+1, ErrMismatchingContentMAC)
+			err = fmt.Errorf("failed to verify mutation #%d with key %X: %w", i+1, keyID, ErrMismatchingContentMAC)
 			return
 		}
 	}
@@ -172,7 +172,7 @@ func (proc *Processor) decodeMutation(
 	if validateMACs {
 		expectedIndexMAC := concatAndHMAC(sha256.New, keys.Index, syncAction.Index)
 		if !hmac.Equal(expectedIndexMAC, indexMAC) {
-			err = fmt.Errorf("failed to verify mutation #%d: %w", i+1, ErrMismatchingIndexMAC)
+			err = fmt.Errorf("failed to verify mutation #%d with key %X: %w", i+1, keyID, ErrMismatchingIndexMAC)
 			return
 		}
 	}
