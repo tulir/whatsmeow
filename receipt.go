@@ -45,7 +45,15 @@ func (cli *Client) handleReceipt(ctx context.Context, node *waBinary.Node) {
 
 func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participants *waBinary.Node) (cancelled bool) {
 	pag := participants.AttrGetter()
-	partialReceipt.MessageIDs = []types.MessageID{pag.String("key")}
+	messageID := pag.OptionalString("key")
+	if messageID == "" {
+		messageID = pag.OptionalString("message_id")
+	}
+	if messageID == "" {
+		cli.Log.Warnf("Grouped receipt participants node has no message ID: %s", participants)
+		return
+	}
+	partialReceipt.MessageIDs = []types.MessageID{messageID}
 	for _, child := range participants.GetChildren() {
 		if child.Tag != "user" {
 			cli.Log.Warnf("Unexpected node in grouped receipt participants: %s", &child)
