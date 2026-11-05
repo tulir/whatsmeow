@@ -12,6 +12,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -342,13 +343,23 @@ func (proc *Processor) validatePatch(
 	if validateMACs {
 		var keys ExpandedAppStateKeys
 		keys, err = proc.validateSnapshotMAC(ctx, patchName, newState, patch.GetKeyID().GetID(), patch.GetSnapshotMAC())
-		if err != nil {
+		ltHashMismatch := errors.Is(err, ErrMismatchingLTHash)
+		if err != nil && !ltHashMismatch {
 			return
 		}
+		// Like WhatsApp Web, only ignore the mismatch if local state isn't obviously missing.
+		// A skipped version or an empty hash means a full sync is needed.
+		if ltHashMismatch && (version != currentState.Version+1 || (currentState.Hash == [128]byte{} && version != 1)) {
+			return
+		}
+		err = nil
 		patchMAC := generatePatchMAC(patch, patchName, keys.PatchMAC, patch.GetVersion().GetVersion())
 		if !hmac.Equal(patchMAC, patch.GetPatchMAC()) {
 			err = fmt.Errorf("failed to verify patch v%d: %w", version, ErrMismatchingPatchMAC)
 			return
+		}
+		if ltHashMismatch {
+			proc.Log.Warnf("Ignoring mismatching LTHash in %s v%d as patch MAC is valid (warnings: %+v)", patchName, version, warn)
 		}
 	}
 	return
