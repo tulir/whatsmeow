@@ -905,13 +905,21 @@ func (cli *Client) parseGroupChange(node *waBinary.Node) (*events.GroupInfo, []s
 		switch child.Tag {
 		case "add":
 			evt.JoinReason = cag.OptionalString("reason")
-			evt.Join, lidPairs = parseParticipantList(&child)
+			var pairs []store.LIDMapping
+			evt.Join, pairs = parseParticipantList(&child)
+			lidPairs = append(lidPairs, pairs...)
 		case "remove":
-			evt.Leave, lidPairs = parseParticipantList(&child)
+			var pairs []store.LIDMapping
+			evt.Leave, pairs = parseParticipantList(&child)
+			lidPairs = append(lidPairs, pairs...)
 		case "promote":
-			evt.Promote, lidPairs = parseParticipantList(&child)
+			var pairs []store.LIDMapping
+			evt.Promote, pairs = parseParticipantList(&child)
+			lidPairs = append(lidPairs, pairs...)
 		case "demote":
-			evt.Demote, lidPairs = parseParticipantList(&child)
+			var pairs []store.LIDMapping
+			evt.Demote, pairs = parseParticipantList(&child)
+			lidPairs = append(lidPairs, pairs...)
 		case "locked":
 			evt.Locked = &types.GroupLocked{IsLocked: true}
 		case "unlocked":
