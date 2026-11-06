@@ -213,7 +213,11 @@ func (cli *Client) MarkRead(ctx context.Context, ids []types.MessageID, timestam
 			"t":    timestamp.Unix(),
 		},
 	}
-	if chat.Server == types.NewsletterServer || cli.GetPrivacySettings(ctx).ReadReceipts == types.PrivacySettingNone {
+	privacySettings, err := cli.GetPrivacySettings(ctx)
+	if err != nil {
+		cli.Log.Errorf("Failed to fetch privacy settings: %v", err)
+	}
+	if chat.Server == types.NewsletterServer || privacySettings.ReadReceipts == types.PrivacySettingNone {
 		switch receiptType {
 		case types.ReceiptTypeRead:
 			node.Attrs["type"] = string(types.ReceiptTypeReadSelf)

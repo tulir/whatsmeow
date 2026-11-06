@@ -597,11 +597,18 @@ func (cli *Client) GetProfilePictureInfo(ctx context.Context, jid types.JID, par
 		}
 
 		var pictureContent []waBinary.Node
-		if token, _ := cli.ensureTCToken(ctx, jid); token != nil {
-			pictureContent = []waBinary.Node{{
-				Tag:     "tctoken",
-				Content: token,
-			}}
+		// Only include tctoken for user JIDs (not groups/newsletters) and never
+		// for our own profile pic. Including tctoken for our own JID causes the
+		// server to never respond.
+		if jid.Server == types.DefaultUserServer || jid.Server == types.HiddenUserServer {
+			if jid.ToNonAD() != cli.getOwnID().ToNonAD() {
+				if token, _ := cli.ensureTCToken(ctx, jid); token != nil {
+					pictureContent = []waBinary.Node{{
+						Tag:     "tctoken",
+						Content: token,
+					}}
+				}
+			}
 		}
 
 		content = []waBinary.Node{{
@@ -647,6 +654,9 @@ func (cli *Client) GetProfilePictureInfo(ctx context.Context, jid types.JID, par
 	}
 	info.ID = ag.String("id")
 	info.URL = ag.String("url")
+	if info.URL == "" {
+		return nil, ErrProfilePictureNotSet
+	}
 	info.Type = ag.String("type")
 	info.DirectPath = ag.String("direct_path")
 	info.Hash, _ = base64.StdEncoding.DecodeString(ag.OptionalString("hash"))

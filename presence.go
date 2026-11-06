@@ -68,7 +68,7 @@ func (cli *Client) SendPresence(ctx context.Context, state types.Presence) error
 		return ErrNoPushName
 	}
 	if state == types.PresenceAvailable {
-		go cli.sendUnifiedSession(false)
+		cli.sendUnifiedSession(false)
 		cli.sendActiveReceipts.CompareAndSwap(0, 1)
 	} else {
 		cli.sendActiveReceipts.CompareAndSwap(1, 0)
@@ -113,6 +113,7 @@ func (cli *Client) SubscribePresence(ctx context.Context, jid types.JID) error {
 		Attrs: waBinary.Attrs{
 			"type": "subscribe",
 			"to":   jid,
+			"id":   cli.generateRequestID(),
 		},
 	}
 	if privacyToken != nil {

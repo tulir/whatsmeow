@@ -42,19 +42,17 @@ func (cli *Client) TryFetchPrivacySettings(ctx context.Context, ignoreCache bool
 	return &settings, nil
 }
 
-// GetPrivacySettings will get the user's privacy settings. If an error occurs while fetching them, the error will be
-// logged, but the method will just return an empty struct.
-func (cli *Client) GetPrivacySettings(ctx context.Context) (settings types.PrivacySettings) {
+// GetPrivacySettings will get the user's privacy settings.
+// If an error occurs while fetching them, the error is returned.
+func (cli *Client) GetPrivacySettings(ctx context.Context) (types.PrivacySettings, error) {
 	if cli == nil || cli.MessengerConfig != nil {
-		return
+		return types.PrivacySettings{}, nil
 	}
 	settingsPtr, err := cli.TryFetchPrivacySettings(ctx, false)
 	if err != nil {
-		cli.Log.Errorf("Failed to fetch privacy settings: %v", err)
-	} else {
-		settings = *settingsPtr
+		return types.PrivacySettings{}, err
 	}
-	return
+	return *settingsPtr, nil
 }
 
 // SetPrivacySetting will set the given privacy setting to the given value.
