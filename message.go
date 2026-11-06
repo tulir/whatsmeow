@@ -429,10 +429,15 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 				go cli.sendRetryReceipt(context.WithoutCancel(ctx), node, info, isUnavailable)
 				go cli.sendAck(ctx, node, 0)
 			}
+			decryptFail := ag.OptionalString("decrypt-fail")
+			if decryptFail == "" {
+				metaNode := node.GetChildByTag("meta")
+				decryptFail = metaNode.AttrGetter().OptionalString("decrypt-fail")
+			}
 			cli.dispatchEvent(&events.UndecryptableMessage{
 				Info:            *info,
 				IsUnavailable:   isUnavailable,
-				DecryptFailMode: events.DecryptFailMode(ag.OptionalString("decrypt-fail")),
+				DecryptFailMode: events.DecryptFailMode(decryptFail),
 			})
 			return
 		}
