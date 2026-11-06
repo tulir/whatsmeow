@@ -19,7 +19,7 @@ type Contact struct {
 	JID       types.JID // The contact who was modified.
 	Timestamp time.Time // The time when the modification happened.'
 
-	Action       *waSyncAction.ContactAction // The new contact info.
+	Action       *waSyncAction.ContactAction // The new contact info, or nil if the contact was removed.
 	FromFullSync bool                        // Whether the action is emitted because of a fullSync
 }
 
