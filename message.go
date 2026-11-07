@@ -48,6 +48,10 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 		cli.sendAck(ctx, node, NackParsingError)
 		return
 	}
+	cli.handleParsedEncryptedMessage(ctx, info, node)
+}
+
+func (cli *Client) handleParsedEncryptedMessage(ctx context.Context, info *types.MessageInfo, node *waBinary.Node) {
 	if !info.SenderAlt.IsEmpty() {
 		cli.StoreLIDPNMapping(ctx, info.SenderAlt, info.Sender)
 	} else if !info.RecipientAlt.IsEmpty() {
@@ -76,7 +80,11 @@ func (cli *Client) handleUnencryptedMessage(ctx context.Context, node *waBinary.
 		return
 	}
 	if info.Sender.Server != types.NewsletterServer {
-		cli.sendAck(ctx, node, 0)
+		if len(node.GetChildrenByTag("enc")) > 0 {
+			cli.handleParsedEncryptedMessage(ctx, info, node)
+		} else {
+			cli.sendAck(ctx, node, 0)
+		}
 		return
 	}
 	info.IsNewsletterStatus = true
