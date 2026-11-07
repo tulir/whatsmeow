@@ -31,12 +31,11 @@ type FrameSocket struct {
 	HTTPHeaders http.Header
 	HTTPClient  *http.Client
 
-	Frames       chan []byte
-	OnDisconnect func(ctx context.Context, remote bool)
-
+	Frames chan []byte
 	Header []byte
 
-	closed atomic.Bool
+	onDisconnect atomic.Pointer[func(ctx context.Context, remote bool)]
+	closed       atomic.Bool
 
 	incomingLength int
 	receivedLength int
@@ -87,8 +86,8 @@ func (fs *FrameSocket) Close(code websocket.StatusCode) {
 	}
 	fs.cancel()
 	fs.cancel = nil
-	if fs.OnDisconnect != nil {
-		go fs.OnDisconnect(fs.parentCtx, code == 0)
+	if onDisconnect := fs.onDisconnect.Swap(nil); onDisconnect != nil {
+		go (*onDisconnect)(fs.parentCtx, code == 0)
 	}
 }
 
