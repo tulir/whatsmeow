@@ -698,17 +698,30 @@ func padMessage(plaintext []byte) []byte {
 	return plaintext
 }
 
-func (cli *Client) handleSenderKeyDistributionMessage(ctx context.Context, chat, from types.JID, axolotlSKDM []byte) {
+func (cli *Client) handleSenderKeyDistributionMessage(ctx context.Context, chat, from types.JID, rawGroupID string, axolotlSKDM []byte) {
 	builder := groups.NewGroupSessionBuilder(cli.Store, pbSerializer)
-	senderKeyName := protocol.NewSenderKeyName(chat.String(), from.SignalAddress())
+	// The protobuf carries the group the sender key belongs to. It is
+	// authoritative: WhatsApp also delivers sender key distribution messages
+	// as direct messages when retrying a status or group message, so the
+	// stanza chat is not always the group that owns the key.
+	groupID := chat
+	if rawGroupID != "" {
+		if parsed, err := types.ParseJID(rawGroupID); err != nil {
+			cli.Log.Errorf("Failed to parse group ID %q in sender key distribution message from %s: %v", rawGroupID, from, err)
+			return
+		} else {
+			groupID = parsed
+		}
+	}
+	senderKeyName := protocol.NewSenderKeyName(groupID.String(), from.SignalAddress())
 	sdkMsg, err := protocol.NewSenderKeyDistributionMessageFromBytes(axolotlSKDM, pbSerializer.SenderKeyDistributionMessage)
 	if err != nil {
-		cli.Log.Errorf("Failed to parse sender key distribution message from %s for %s: %v", from, chat, err)
+		cli.Log.Errorf("Failed to parse sender key distribution message from %s for %s: %v", from, groupID, err)
 		return
 	}
 	err = builder.Process(ctx, senderKeyName, sdkMsg)
 	if err != nil {
-		cli.Log.Errorf("Failed to process sender key distribution message from %s for %s: %v", from, chat, err)
+		cli.Log.Errorf("Failed to process sender key distribution message from %s for %s: %v", from, groupID, err)
 		return
 	}
 	cli.Log.Debugf("Processed sender key distribution message from %s in %s", senderKeyName.Sender().String(), senderKeyName.GroupID())
@@ -956,16 +969,12 @@ func (cli *Client) processProtocolParts(ctx context.Context, info *types.Message
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
 	}
-	if msg.GetSenderKeyDistributionMessage() != nil {
-		if !info.IsGroup {
-			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
-		} else {
-			encryptionIdentity := info.Sender
-			if encryptionIdentity.Server == types.DefaultUserServer && info.SenderAlt.Server == types.HiddenUserServer {
-				encryptionIdentity = info.SenderAlt
-			}
-			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, encryptionIdentity, msg.SenderKeyDistributionMessage.AxolotlSenderKeyDistributionMessage)
+	if skdm := msg.GetSenderKeyDistributionMessage(); skdm != nil {
+		encryptionIdentity := info.Sender
+		if encryptionIdentity.Server == types.DefaultUserServer && info.SenderAlt.Server == types.HiddenUserServer {
+			encryptionIdentity = info.SenderAlt
 		}
+		cli.handleSenderKeyDistributionMessage(ctx, info.Chat, encryptionIdentity, skdm.GetGroupID(), skdm.GetAxolotlSenderKeyDistributionMessage())
 	}
 	// N.B. Edits are protocol messages, but they're also wrapped inside EditedMessage,
 	// which is only unwrapped after processProtocolParts, so this won't trigger for edits.
