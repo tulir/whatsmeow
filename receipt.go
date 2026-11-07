@@ -7,6 +7,7 @@
 package whatsmeow
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"time"
@@ -45,7 +46,8 @@ func (cli *Client) handleReceipt(ctx context.Context, node *waBinary.Node) {
 
 func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participants *waBinary.Node) (cancelled bool) {
 	pag := participants.AttrGetter()
-	partialReceipt.MessageIDs = []types.MessageID{pag.String("key")}
+	messageID := cmp.Or(pag.OptionalString("key"), pag.OptionalString("message_id"))
+	partialReceipt.MessageIDs = []types.MessageID{messageID}
 	for _, child := range participants.GetChildren() {
 		if child.Tag != "user" {
 			cli.Log.Warnf("Unexpected node in grouped receipt participants: %s", &child)
@@ -53,6 +55,9 @@ func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participa
 		}
 		ag := child.AttrGetter()
 		receipt := partialReceipt
+		if perReceiptType := ag.OptionalString("type"); perReceiptType != "" && perReceiptType != "delivery" {
+			receipt.Type = types.ReceiptType(perReceiptType)
+		}
 		receipt.Timestamp = ag.UnixTime("t")
 		receipt.MessageSource.Sender = ag.JID("jid")
 		if !ag.OK() {
