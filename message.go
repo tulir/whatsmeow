@@ -337,7 +337,10 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 	cli.Log.Debugf("Decrypting message from %s", info.SourceString())
 	containsDirectMsg := false
 	senderEncryptionJID := info.Sender
-	if info.Sender.Server == types.DefaultUserServer && !info.Sender.IsBot() {
+	// info.Sender has the hosted server replaced, but sessions with hosted devices use the hosted address
+	if from := node.AttrGetter().OptionalJIDOrEmpty("from"); from.Server == types.HostedServer || from.Server == types.HostedLIDServer {
+		senderEncryptionJID = from
+	} else if info.Sender.Server == types.DefaultUserServer && !info.Sender.IsBot() {
 		if info.SenderAlt.Server == types.HiddenUserServer {
 			senderEncryptionJID = info.SenderAlt
 			cli.migrateSessionStore(ctx, info.Sender, info.SenderAlt)
