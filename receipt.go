@@ -55,6 +55,7 @@ func (cli *Client) handleGroupedReceipt(partialReceipt events.Receipt, participa
 		receipt := partialReceipt
 		receipt.Timestamp = ag.UnixTime("t")
 		receipt.MessageSource.Sender = ag.JID("jid")
+		receipt.SenderUsername = ag.OptionalString("username")
 		if !ag.OK() {
 			cli.Log.Warnf("Failed to parse user node %s in grouped receipt: %v", &child, ag.Error())
 			continue

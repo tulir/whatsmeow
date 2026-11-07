@@ -94,6 +94,7 @@ func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bo
 	}
 	ag := node.AttrGetter()
 	from := ag.JID("from")
+	source.SenderUsername = ag.OptionalString("username")
 	source.AddressingMode = types.AddressingMode(ag.OptionalString("addressing_mode"))
 	if from.Server == types.GroupServer || from.Server == types.BroadcastServer {
 		source.IsGroup = true

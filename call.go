@@ -38,6 +38,17 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 		basicMeta.CallCreatorAlt = cag.OptionalJIDOrEmpty("caller_lid")
 	}
 	switch child.Tag {
+	case "offer", "group_update":
+		groupInfo := child.GetChildByTag("group_info")
+		if basicMeta.GroupJID.IsEmpty() {
+			basicMeta.GroupJID = groupInfo.AttrGetter().OptionalJIDOrEmpty("group-jid")
+		}
+		basicMeta.Participants = parseCallParticipants(&groupInfo)
+	case "terminate":
+		summary := child.GetChildByTag("call_summary")
+		basicMeta.Participants = parseCallParticipants(&summary)
+	}
+	switch child.Tag {
 	case "offer":
 		cli.dispatchEvent(&events.CallOffer{
 			BasicCallMeta: basicMeta,
@@ -46,6 +57,11 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 				RemoteVersion:  ag.String("version"),
 			},
 			Data: &child,
+		})
+	case "group_update":
+		cli.dispatchEvent(&events.CallGroupUpdate{
+			BasicCallMeta: basicMeta,
+			Data:          &child,
 		})
 	case "offer_notice":
 		cli.dispatchEvent(&events.CallOfferNotice{
@@ -100,6 +116,23 @@ func (cli *Client) handleCallEvent(ctx context.Context, node *waBinary.Node) {
 	default:
 		cli.dispatchEvent(&events.UnknownCallEvent{Node: node})
 	}
+}
+
+func parseCallParticipants(node *waBinary.Node) (participants []types.CallParticipant) {
+	for _, user := range node.GetChildrenByTag("user") {
+		ag := user.AttrGetter()
+		jid := ag.JID("jid")
+		if jid.IsEmpty() || jid.User == "" {
+			continue
+		}
+		participants = append(participants, types.CallParticipant{
+			JID:         jid,
+			PhoneNumber: ag.OptionalJIDOrEmpty("user_pn"),
+			Username:    ag.OptionalString("username"),
+			State:       ag.OptionalString("state"),
+		})
+	}
+	return
 }
 
 // RejectCall reject an incoming call.

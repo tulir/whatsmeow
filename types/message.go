@@ -30,6 +30,9 @@ type MessageSource struct {
 	IsFromMe bool // Whether the message was sent by the current user instead of someone else.
 	IsGroup  bool // Whether the chat is a group chat or broadcast list.
 
+	// The sender's public WhatsApp username, if included in the stanza.
+	SenderUsername string
+
 	AddressingMode AddressingMode // The addressing mode of the message (phone number or LID)
 	SenderAlt      JID            // The alternative address of the user who sent the message
 	RecipientAlt   JID            // The alternative address of the recipient of the message for DMs.
