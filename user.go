@@ -164,10 +164,33 @@ const mutationUpdateTextStatus = "9152604461510864"
 // This is different from the ephemeral status broadcast messages. Use SendMessage to types.StatusBroadcastJID to send
 // such messages.
 func (cli *Client) SetStatusMessage(ctx context.Context, status types.SetStatusInput) error {
-	_, err := cli.sendMexIQ(ctx, mutationUpdateTextStatus, map[string]any{
-		"input": &status,
+	// The MEX mutation adds the optional emoji and ephemeral duration that
+	// newer clients show above the About text. It is account-gated, so only
+	// call it when the caller actually uses those fields. WhatsApp Web calls
+	// it before the legacy IQ.
+	if status.Emoji != nil || !status.Duration.IsZero() {
+		if _, err := cli.sendMexIQ(ctx, mutationUpdateTextStatus, map[string]any{
+			"input": &status,
+		}); err != nil {
+			return err
+		}
+	}
+	// The legacy status IQ is what updates the About text that contacts see.
+	// Sending only the MEX mutation leaves the old text in place on accounts
+	// where the mutation is unavailable.
+	text := ""
+	if status.Text != nil {
+		text = *status.Text
+	}
+	_, err := cli.sendIQ(ctx, infoQuery{
+		Namespace: "status",
+		Type:      iqSet,
+		To:        types.ServerJID,
+		Content: []waBinary.Node{{
+			Tag:     "status",
+			Content: text,
+		}},
 	})
-	// TODO check output result?
 	return err
 }
 
