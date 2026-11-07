@@ -325,11 +325,15 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 	if ok && len(node.GetChildrenByTag("enc")) == 0 {
 		uType := events.UnavailableType(unavailableNode.AttrGetter().String("type"))
 		cli.Log.Warnf("Unavailable message %s from %s (type: %q)", info.ID, info.SourceString(), uType)
+		handlerFailed := cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true, UnavailableType: uType})
+		if handlerFailed {
+			cli.Log.Warnf("Handler for unavailable message %s failed", info.ID)
+			return
+		}
 		cli.backgroundIfAsyncAck(func() {
 			cli.immediateRequestMessageFromPhone(ctx, info)
 			cli.sendAck(ctx, node, 0)
 		})
-		cli.dispatchEvent(&events.UndecryptableMessage{Info: *info, IsUnavailable: true, UnavailableType: uType})
 		return
 	}
 
@@ -413,10 +417,25 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			continue
 		} else if err != nil {
 			cli.Log.Warnf("Error decrypting message %s from %s: %v", info.ID, info.SourceString(), err)
-			if ctx.Err() != nil || errors.Is(err, context.Canceled) {
+			if ctx.Err() != nil || errors.Is(err, context.Canceled) || errors.Is(err, ErrEventBufferDB) {
 				return
 			}
 			isUnavailable := encType == "skmsg" && !containsDirectMsg && errors.Is(err, signalerror.ErrNoSenderKeyForUser)
+			decryptFail := ag.OptionalString("decrypt-fail")
+			if decryptFail == "" {
+				metaNode := node.GetChildByTag("meta")
+				decryptFail = metaNode.AttrGetter().OptionalString("decrypt-fail")
+			}
+			evt := &events.UndecryptableMessage{
+				Info:            *info,
+				IsUnavailable:   isUnavailable,
+				DecryptFailMode: events.DecryptFailMode(decryptFail),
+			}
+			handlerFailed := cli.dispatchEvent(evt)
+			if handlerFailed {
+				cli.Log.Warnf("Handler for undecryptable message %s failed", info.ID)
+				return
+			}
 			if encType == "msmsg" {
 				cli.backgroundIfAsyncAck(func() {
 					cli.sendAck(ctx, node, NackMissingMessageSecret)
@@ -429,16 +448,6 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 				go cli.sendRetryReceipt(context.WithoutCancel(ctx), node, info, isUnavailable)
 				go cli.sendAck(ctx, node, 0)
 			}
-			decryptFail := ag.OptionalString("decrypt-fail")
-			if decryptFail == "" {
-				metaNode := node.GetChildByTag("meta")
-				decryptFail = metaNode.AttrGetter().OptionalString("decrypt-fail")
-			}
-			cli.dispatchEvent(&events.UndecryptableMessage{
-				Info:            *info,
-				IsUnavailable:   isUnavailable,
-				DecryptFailMode: events.DecryptFailMode(decryptFail),
-			})
 			return
 		}
 		retryCount := ag.OptionalInt("count")
@@ -516,9 +525,7 @@ func (cli *Client) clearUntrustedIdentity(ctx context.Context, target types.JID)
 }
 
 var ErrEventAlreadyProcessed = errors.New("event was already processed")
-
-// Deprecated: use ErrEventAlreadyProcessed
-var EventAlreadyProcessed = ErrEventAlreadyProcessed
+var ErrEventBufferDB = errors.New("event buffer database error")
 
 func (cli *Client) bufferedDecrypt(
 	ctx context.Context,
@@ -542,7 +549,7 @@ func (cli *Client) bufferedDecrypt(
 	var buf *store.BufferedEvent
 	buf, err = cli.Store.EventBuffer.GetBufferedEvent(ctx, ciphertextHash)
 	if err != nil {
-		err = fmt.Errorf("failed to get buffered event: %w", err)
+		err = fmt.Errorf("%w: failed to get buffered event: %w", ErrEventBufferDB, err)
 		return
 	} else if buf != nil {
 		if buf.Plaintext == nil {
@@ -568,7 +575,7 @@ func (cli *Client) bufferedDecrypt(
 		}
 		innerErr = cli.Store.EventBuffer.PutBufferedEvent(ctx, ciphertextHash, plaintext, serverTimestamp)
 		if innerErr != nil {
-			innerErr = fmt.Errorf("failed to save decrypted event to buffer: %w", innerErr)
+			innerErr = fmt.Errorf("%w: failed to save decrypted event to buffer: %w", ErrEventBufferDB, innerErr)
 		}
 		return
 	})
