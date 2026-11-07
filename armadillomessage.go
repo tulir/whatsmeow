@@ -31,13 +31,8 @@ func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.Mes
 	}
 	dec.Info = *info
 	dec.RetryCount = retryCount
-	if dec.Transport.GetProtocol().GetAncillary().GetSkdm() != nil {
-		if !info.IsGroup {
-			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
-		} else {
-			skdm := dec.Transport.GetProtocol().GetAncillary().GetSkdm()
-			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, info.Sender, skdm.AxolotlSenderKeyDistributionMessage)
-		}
+	if skdm := dec.Transport.GetProtocol().GetAncillary().GetSkdm(); skdm != nil {
+		cli.handleSenderKeyDistributionMessage(ctx, info.Chat, info.Sender, skdm.GetGroupID(), skdm.GetAxolotlSenderKeyDistributionMessage())
 	}
 	if dec.Message != nil || dec.FBApplication != nil {
 		handlerFailed = cli.dispatchEvent(&dec)

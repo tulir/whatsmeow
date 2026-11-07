@@ -368,7 +368,7 @@ func (int *DangerousInternalClient) DecryptGroupMsg(ctx context.Context, child *
 }
 
 func (int *DangerousInternalClient) HandleSenderKeyDistributionMessage(ctx context.Context, chat, from types.JID, axolotlSKDM []byte) {
-	int.c.handleSenderKeyDistributionMessage(ctx, chat, from, axolotlSKDM)
+	int.c.handleSenderKeyDistributionMessage(ctx, chat, from, "", axolotlSKDM)
 }
 
 func (int *DangerousInternalClient) HandleHistorySyncNotificationLoop() {
