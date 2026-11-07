@@ -963,15 +963,15 @@ func (cli *Client) processProtocolParts(ctx context.Context, info *types.Message
 	if msg.GetDeviceSentMessage().GetMessage() != nil {
 		msg = msg.GetDeviceSentMessage().GetMessage()
 	}
-	if msg.GetSenderKeyDistributionMessage() != nil {
+	if skdm := msg.GetSenderKeyDistributionMessage(); skdm != nil {
 		if !info.IsGroup {
-			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
+			cli.Log.Warnf("Got sender key distribution message in non-group chat %s from %s (skdm group ID %s)", info.Chat, info.Sender, skdm.GetGroupID())
 		} else {
 			encryptionIdentity := info.Sender
 			if encryptionIdentity.Server == types.DefaultUserServer && info.SenderAlt.Server == types.HiddenUserServer {
 				encryptionIdentity = info.SenderAlt
 			}
-			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, encryptionIdentity, msg.SenderKeyDistributionMessage.AxolotlSenderKeyDistributionMessage)
+			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, encryptionIdentity, skdm.AxolotlSenderKeyDistributionMessage)
 		}
 	}
 	// N.B. Edits are protocol messages, but they're also wrapped inside EditedMessage,
