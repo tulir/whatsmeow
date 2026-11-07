@@ -31,11 +31,10 @@ func (cli *Client) handleDecryptedArmadillo(ctx context.Context, info *types.Mes
 	}
 	dec.Info = *info
 	dec.RetryCount = retryCount
-	if dec.Transport.GetProtocol().GetAncillary().GetSkdm() != nil {
+	if skdm := dec.Transport.GetProtocol().GetAncillary().GetSkdm(); skdm != nil {
 		if !info.IsGroup {
-			cli.Log.Warnf("Got sender key distribution message in non-group chat from %s", info.Sender)
+			cli.Log.Warnf("Got sender key distribution message in non-group chat %s from %s (skdm group ID %s)", info.Chat, info.Sender, skdm.GetGroupID())
 		} else {
-			skdm := dec.Transport.GetProtocol().GetAncillary().GetSkdm()
 			cli.handleSenderKeyDistributionMessage(ctx, info.Chat, info.Sender, skdm.AxolotlSenderKeyDistributionMessage)
 		}
 	}
