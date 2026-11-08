@@ -159,7 +159,12 @@ func (fs *FrameSocket) frameComplete() {
 	fs.partialHeader = nil
 	fs.incomingLength = 0
 	fs.receivedLength = 0
-	fs.Frames <- data
+	// The frame consumer stops when the socket is closed, so an unconditional send here would block the read pump
+	// forever if a frame arrives after that.
+	select {
+	case fs.Frames <- data:
+	case <-fs.cancelCtx.Done():
+	}
 }
 
 func (fs *FrameSocket) processData(msg []byte) {
