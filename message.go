@@ -854,11 +854,12 @@ func (cli *Client) handleAppStateSyncKeyShare(ctx context.Context, keys *waE2E.A
 		existing, err := cli.Store.AppStateKeys.GetAppStateSyncKey(ctx, key.GetKeyID().GetKeyID())
 		if err != nil {
 			cli.Log.Warnf("Failed to check for existing app state sync key %X: %v", key.GetKeyID().GetKeyID(), err)
-		} else if existing != nil && !bytes.Equal(existing.Data, key.GetKeyData().GetKeyData()) {
+		} else if existing != nil && len(existing.Data) > 0 && !bytes.Equal(existing.Data, key.GetKeyData().GetKeyData()) {
 			cli.Log.Warnf(
-				"Received app state sync key %X with different data than the stored key (stored ts: %d, new ts: %d, requested: %t)",
+				"Ignoring app state sync key %X with different data than the stored key (stored ts: %d, new ts: %d, requested: %t)",
 				key.GetKeyID().GetKeyID(), existing.Timestamp, key.GetKeyData().GetTimestamp(), isReRequest,
 			)
+			continue
 		}
 		err = cli.Store.AppStateKeys.PutAppStateSyncKey(ctx, key.GetKeyID().GetKeyID(), store.AppStateSyncKey{
 			Data:        key.GetKeyData().GetKeyData(),
