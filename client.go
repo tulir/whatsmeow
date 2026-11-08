@@ -1055,7 +1055,7 @@ func (cli *Client) ParseWebMessage(chatJID types.JID, webMsg *waWeb.WebMessageIn
 				return nil, ErrNotLoggedIn
 			}
 		}
-	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer || chatJID.Server == types.NewsletterServer {
+	} else if chatJID.Server == types.DefaultUserServer || chatJID.Server == types.HiddenUserServer || chatJID.Server == types.NewsletterServer || chatJID.Server == types.BotServer {
 		info.Sender = chatJID
 	} else if webMsg.GetParticipant() != "" {
 		info.Sender, err = types.ParseJID(webMsg.GetParticipant())
