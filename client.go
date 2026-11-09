@@ -200,6 +200,8 @@ type Client struct {
 	uniqueID  string
 	idCounter atomic.Uint64
 
+	lastKeepAliveID atomic.Pointer[string]
+
 	serverTimeOffset atomic.Int64
 
 	mediaHTTP     *http.Client
@@ -885,7 +887,9 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte, queue chan *waB
 		cli.Log.Debugf("Errored frame hex: %s", hex.EncodeToString(decompressed))
 		return
 	}
-	cli.recvLog.Debugf("%s", node)
+	if !cli.isKeepAliveNode(node) {
+		cli.recvLog.Debugf("%s", node)
+	}
 	if node.Tag == "xmlstreamend" {
 		if !cli.isExpectedDisconnect() {
 			cli.Log.Warnf("Received stream end frame")
@@ -989,7 +993,9 @@ func (cli *Client) sendNodeAndGetData(ctx context.Context, node waBinary.Node) (
 		return nil, fmt.Errorf("failed to marshal node: %w", err)
 	}
 
-	cli.sendLog.Debugf("%s", &node)
+	if !cli.isKeepAliveNode(&node) {
+		cli.sendLog.Debugf("%s", &node)
+	}
 	return payload, sock.SendFrame(ctx, payload)
 }
 
