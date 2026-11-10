@@ -159,7 +159,10 @@ func (fs *FrameSocket) frameComplete() {
 	fs.partialHeader = nil
 	fs.incomingLength = 0
 	fs.receivedLength = 0
-	fs.Frames <- data
+	select {
+	case fs.Frames <- data:
+	case <-fs.cancelCtx.Done():
+	}
 }
 
 func (fs *FrameSocket) processData(msg []byte) {
