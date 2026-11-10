@@ -278,6 +278,8 @@ func (cli *Client) DownloadMediaWithPath(
 		data, err = cli.downloadAndDecrypt(ctx, mediaURL, mediaKey, mediaType, encFileHash, fileHash)
 		if err == nil ||
 			errors.Is(err, ErrInvalidMediaSHA256) ||
+			errors.Is(err, ErrInvalidMediaEncSHA256) ||
+			errors.Is(err, ErrInvalidMediaHMAC) ||
 			errors.Is(err, ErrMediaDownloadFailedWith403) ||
 			errors.Is(err, ErrMediaDownloadFailedWith404) ||
 			errors.Is(err, ErrMediaDownloadFailedWith410) ||
