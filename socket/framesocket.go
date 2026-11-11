@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/coder/websocket"
 
@@ -42,6 +43,18 @@ type FrameSocket struct {
 	incoming       []byte
 	partialHeader  []byte
 }
+
+// WriteTimeout is the maximum time a websocket frame write may block.
+// If a write exceeds this duration (for example because the TCP send
+// buffer is stuck in retransmission), the write fails and
+// github.com/coder/websocket closes the connection, which lets the
+// client reconnect instead of blocking. The zero value disables the
+// timeout and restores the previous behaviour.
+//
+// WhatsApp websocket frames are typically small (message and IQ
+// stanzas; media uses a separate HTTP upload). Increase this if a
+// deployment routinely sends large frames over a very slow link.
+var WriteTimeout = 30 * time.Second
 
 func NewFrameSocket(log waLog.Logger, client *http.Client) *FrameSocket {
 	return &FrameSocket{
@@ -150,7 +163,22 @@ func (fs *FrameSocket) SendFrame(data []byte) error {
 	// Copy actual frame data
 	copy(wholeFrame[headerLength+FrameLengthSize:], data)
 
-	return conn.Write(fs.cancelCtx, websocket.MessageBinary, wholeFrame)
+	ctx := fs.cancelCtx
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if WriteTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, WriteTimeout)
+		defer cancel()
+	}
+
+	err := conn.Write(ctx, websocket.MessageBinary, wholeFrame)
+	if err != nil && WriteTimeout > 0 && errors.Is(err, context.DeadlineExceeded) {
+		fs.log.Warnf("Websocket write timed out after %v: %v", WriteTimeout, err)
+		return fmt.Errorf("%w: %w", ErrWriteTimeout, err)
+	}
+	return err
 }
 
 func (fs *FrameSocket) frameComplete() {
