@@ -78,6 +78,7 @@ type UnknownCallEvent struct {
 	Node *waBinary.Node
 }
 
+// FBCallEvent is emitted when a Messenger call in an end-to-end encrypted chat starts, ends or is missed.
 type FBCallEvent struct {
 	ID             string
 	From           types.JID
@@ -89,4 +90,6 @@ type FBCallEvent struct {
 	Duration       time.Duration
 	ParentID       string
 	ServerInfoData string
+
+	Data *waBinary.Node
 }
