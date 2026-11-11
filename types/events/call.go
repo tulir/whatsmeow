@@ -7,6 +7,8 @@
 package events
 
 import (
+	"time"
+
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/types"
 )
@@ -74,4 +76,17 @@ type CallReject struct {
 // UnknownCallEvent is emitted when a call element with unknown content is received.
 type UnknownCallEvent struct {
 	Node *waBinary.Node
+}
+
+type FBCallEvent struct {
+	ID             string
+	From           types.JID
+	Chat           types.JID
+	Actor          types.JID
+	Timestamp      time.Time
+	CallType       string
+	EventType      string
+	Duration       time.Duration
+	ParentID       string
+	ServerInfoData string
 }
