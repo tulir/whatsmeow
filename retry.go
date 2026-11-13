@@ -303,25 +303,30 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 		frankingHash.Write(plaintext)
 		frankingTag = frankingHash.Sum(nil)
 	}
+	// receipt.Sender has the hosted server replaced, but sessions with hosted devices use the hosted address
+	sender := receipt.Sender
+	if from := node.AttrGetter().OptionalJIDOrEmpty("from"); from.Server == types.HostedServer || from.Server == types.HostedLIDServer {
+		sender = from
+	}
 	_, hasKeys := node.GetOptionalChildByTag("keys")
 	var bundle *prekey.Bundle
 	if hasKeys {
-		bundle, err = nodeToPreKeyBundle(uint32(receipt.Sender.Device), *node)
+		bundle, err = nodeToPreKeyBundle(uint32(sender.Device), *node)
 		if err != nil {
 			return fmt.Errorf("failed to read prekey bundle in retry receipt: %w", err)
 		}
-	} else if reason, recreate := cli.shouldRecreateSession(ctx, retryCount, receipt.Sender); recreate {
-		cli.Log.Debugf("Fetching prekeys for %s for handling retry receipt with no prekey bundle because %s", receipt.Sender, reason)
+	} else if reason, recreate := cli.shouldRecreateSession(ctx, retryCount, sender); recreate {
+		cli.Log.Debugf("Fetching prekeys for %s for handling retry receipt with no prekey bundle because %s", sender, reason)
 		var keys map[types.JID]preKeyResp
-		keys, err = cli.fetchPreKeys(ctx, []types.JID{receipt.Sender})
+		keys, err = cli.fetchPreKeys(ctx, []types.JID{sender})
 		if err != nil {
 			return err
 		}
-		bundle, err = keys[receipt.Sender].bundle, keys[receipt.Sender].err
+		bundle, err = keys[sender].bundle, keys[sender].err
 		if err != nil {
 			return fmt.Errorf("failed to fetch prekeys: %w", err)
 		} else if bundle == nil {
-			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", receipt.Sender, len(keys))
+			return fmt.Errorf("didn't get prekey bundle for %s (response size: %d)", sender, len(keys))
 		}
 	}
 	encAttrs := waBinary.Attrs{}
@@ -340,13 +345,13 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 	var encrypted *waBinary.Node
 	var includeDeviceIdentity bool
 	if msg.wa != nil {
-		encryptionIdentity := receipt.Sender
-		if receipt.Sender.Server == types.DefaultUserServer {
-			lidForPN, err := cli.Store.LIDs.GetLIDForPN(ctx, receipt.Sender)
+		encryptionIdentity := sender
+		if sender.Server == types.DefaultUserServer {
+			lidForPN, err := cli.Store.LIDs.GetLIDForPN(ctx, sender)
 			if err != nil {
-				cli.Log.Warnf("Failed to get LID for %s: %v", receipt.Sender, err)
+				cli.Log.Warnf("Failed to get LID for %s: %v", sender, err)
 			} else if !lidForPN.IsEmpty() {
-				cli.migrateSessionStore(ctx, receipt.Sender, lidForPN)
+				cli.migrateSessionStore(ctx, sender, lidForPN)
 				encryptionIdentity = lidForPN
 			}
 		}
@@ -358,7 +363,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 				Version: proto.Int32(FBMessageApplicationVersion),
 			},
 			FutureProof: waCommon.FutureProofBehavior_PLACEHOLDER.Enum(),
-		}, fbSKDM, fbDSM, receipt.Sender, bundle, encAttrs)
+		}, fbSKDM, fbDSM, sender, bundle, encAttrs)
 	}
 	if err != nil {
 		return fmt.Errorf("failed to encrypt message for retry: %w", err)
