@@ -331,7 +331,7 @@ func (cli *Client) DecryptSecretEncryptedMessage(ctx context.Context, evt *event
 	case waE2E.SecretEncryptedMessage_POLL_EDIT:
 		secretType = EncSecretPollEdit
 	case waE2E.SecretEncryptedMessage_POLL_ADD_OPTION:
-		secretType = EncSecretPollEdit
+		secretType = EncSecretPollAddOption
 	case waE2E.SecretEncryptedMessage_MESSAGE_EDIT:
 		secretType = EncSecretMessageEdit
 	default:
