@@ -124,6 +124,7 @@ const (
 	mutationCreateNewsletter       = "6234210096708695"
 	mutationUnfollowNewsletter     = "6392786840836363"
 	mutationFollowNewsletter       = "9926858900719341"
+	mutationAcceptNewsletterAdminInvite = "6179636105471882"
 
 	// desktop & mobile
 	queryFetchNewsletterDesktop        = "9779843322044422"
@@ -370,6 +371,14 @@ func (cli *Client) FollowNewsletter(ctx context.Context, jid types.JID) error {
 // UnfollowNewsletter makes the user unfollow (leave) a WhatsApp channel.
 func (cli *Client) UnfollowNewsletter(ctx context.Context, jid types.JID) error {
 	_, err := cli.sendMexIQ(ctx, mutationUnfollowNewsletter, map[string]any{
+		"newsletter_id": jid.String(),
+	})
+	return err
+}
+
+// AcceptNewsletterAdminInvite accepts an admin invitation for a WhatsApp channel.
+func (cli *Client) AcceptNewsletterAdminInvite(ctx context.Context, jid types.JID) error {
+	_, err := cli.sendMexIQ(ctx, mutationAcceptNewsletterAdminInvite, map[string]any{
 		"newsletter_id": jid.String(),
 	})
 	return err
