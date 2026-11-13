@@ -292,7 +292,8 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, upload
 	if err != nil {
 		err = fmt.Errorf("failed to execute request: %w", err)
 	} else if httpResp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("upload failed with status code %d", httpResp.StatusCode)
+		body, _ := io.ReadAll(io.LimitReader(httpResp.Body, 1024))
+		err = fmt.Errorf("upload failed with status code %d (host %s): %s", httpResp.StatusCode, host, body)
 	} else if err = json.NewDecoder(httpResp.Body).Decode(&resp); err != nil {
 		err = fmt.Errorf("failed to parse upload response: %w", err)
 	}
