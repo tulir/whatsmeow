@@ -47,6 +47,11 @@ func newNoiseSocket(
 	fs.onDisconnect.Store(new(func(ctx context.Context, remote bool) {
 		disconnectHandler(ctx, ns, remote)
 	}))
+	if !fs.IsConnected() {
+		// The read pump may have closed the socket before the handler was set, in which case it was never called
+		fs.onDisconnect.Store(nil)
+		return nil, ErrSocketClosed
+	}
 	go ns.consumeFrames(fs.Context(), fs.Frames)
 	return ns, nil
 }
