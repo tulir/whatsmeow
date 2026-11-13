@@ -701,13 +701,25 @@ func (cli *Client) getCachedGroupData(ctx context.Context, jid types.JID) (*grou
 	cli.groupCacheLock.Lock()
 	defer cli.groupCacheLock.Unlock()
 	if val, ok := cli.groupCache[jid]; ok {
-		return val, nil
+		return val.clone(), nil
 	}
 	_, err := cli.getGroupInfo(ctx, jid, false)
 	if err != nil {
 		return nil, err
 	}
-	return cli.groupCache[jid], nil
+	return cli.groupCache[jid].clone(), nil
+}
+
+// clone must be called while holding groupCacheLock. Callers use the result
+// after releasing the lock, while notifications may update the cached metadata.
+func (gmc *groupMetaCache) clone() *groupMetaCache {
+	if gmc == nil {
+		return nil
+	}
+	cloned := *gmc
+	cloned.Members = slices.Clone(gmc.Members)
+	cloned.Admins = slices.Clone(gmc.Admins)
+	return &cloned
 }
 
 func parseParticipant(childAG *waBinary.AttrUtility, child *waBinary.Node) types.GroupParticipant {
