@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"strings"
 	"time"
 
 	"google.golang.org/protobuf/proto"
@@ -497,6 +498,82 @@ func (cli *Client) handleStatusNotification(ctx context.Context, node *waBinary.
 	})
 }
 
+func parseContactNumberChanged(node *waBinary.Node) (*events.ContactNumberChanged, string) {
+	if node.Tag != "notification" || node.Attrs["type"] != "contacts" {
+		return nil, "invalid envelope"
+	}
+	switch from := node.Attrs["from"].(type) {
+	case types.JID:
+		if from != types.ServerJID {
+			return nil, "invalid sender"
+		}
+	case string:
+		if from != types.ServerJID.String() {
+			return nil, "invalid sender"
+		}
+	default:
+		return nil, "invalid sender"
+	}
+	id, ok := node.Attrs["id"].(string)
+	if !ok || id == "" {
+		return nil, "invalid stanza ID"
+	}
+	children := node.GetChildren()
+	if len(children) != 1 || children[0].Tag != "modify" || children[0].Content != nil {
+		return nil, "unsupported action"
+	}
+	attrs := children[0].Attrs
+	oldPN, ok := parseContactChangeJID(attrs["old"], types.DefaultUserServer)
+	if !ok {
+		return nil, "invalid old PN"
+	}
+	newPN, ok := parseContactChangeJID(attrs["new"], types.DefaultUserServer)
+	if !ok {
+		return nil, "invalid new PN"
+	}
+	evt := &events.ContactNumberChanged{StanzaID: id, OldPN: oldPN, NewPN: newPN}
+	if value, present := attrs["old_lid"]; present {
+		lid, valid := parseContactChangeJID(value, types.HiddenUserServer)
+		if !valid {
+			return nil, "invalid old LID"
+		}
+		evt.OldLID = &lid
+	}
+	if value, present := attrs["new_lid"]; present {
+		lid, valid := parseContactChangeJID(value, types.HiddenUserServer)
+		if !valid {
+			return nil, "invalid new LID"
+		}
+		evt.NewLID = &lid
+	}
+	return evt, ""
+}
+
+func parseContactChangeJID(value any, server string) (types.JID, bool) {
+	var jid types.JID
+	switch value := value.(type) {
+	case types.JID:
+		jid = value
+	case string:
+		user, domain, found := strings.Cut(value, "@")
+		if !found {
+			return types.EmptyJID, false
+		}
+		jid = types.NewJID(user, domain)
+	default:
+		return types.EmptyJID, false
+	}
+	if jid.Server != server || jid.User == "" || jid.Device != 0 || jid.RawAgent != 0 || jid.Integrator != 0 {
+		return types.EmptyJID, false
+	}
+	for _, digit := range jid.User {
+		if digit < '0' || digit > '9' {
+			return types.EmptyJID, false
+		}
+	}
+	return jid, true
+}
+
 func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) {
 	var cancelled bool
 	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
@@ -536,6 +613,12 @@ func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) 
 				cli.Log.Warnf("Failed to store redacted phones from group notification: %v", err)
 			}
 			cancelled = cli.dispatchEvent(evt)
+		}
+	case "contacts":
+		if evt, reason := parseContactNumberChanged(node); evt != nil {
+			cli.dispatchEvent(evt)
+		} else {
+			cli.Log.Debugf("Ignoring contacts notification: %s", reason)
 		}
 	case "picture":
 		cli.handlePictureNotification(ctx, node)
