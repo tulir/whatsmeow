@@ -144,6 +144,9 @@ type SendResponse struct {
 //
 // Trying to add multiple extra parameters will return an error.
 type SendRequestExtra struct {
+	// StatusJidList overrides status contact discovery. A non-nil empty list is invalid.
+	StatusJidList []types.JID
+
 	// The message ID to use when sending. If this is not provided, a random message ID will be generated
 	ID types.MessageID
 	// JID of the bot to be invoked (optional)
@@ -302,6 +305,9 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 		}
 	}
 
+	if req.StatusJidList != nil && to != types.StatusBroadcastJID {
+		return resp, fmt.Errorf("StatusJidList requires status@broadcast")
+	}
 	var groupParticipants []types.JID
 	var cachedData *groupMetaCache
 	if to.Server == types.GroupServer || to.Server == types.BroadcastServer {
@@ -323,7 +329,11 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 				extraParams.addressingMode = types.AddressingModePN
 			}
 		} else {
-			groupParticipants, err = cli.getBroadcastListParticipants(ctx, to)
+			if req.StatusJidList != nil {
+				groupParticipants, err = cli.getExplicitStatusBroadcastRecipients(ctx, req.StatusJidList)
+			} else {
+				groupParticipants, err = cli.getBroadcastListParticipants(ctx, to)
+			}
 			if err != nil {
 				err = fmt.Errorf("failed to get broadcast list members: %w", err)
 				return
