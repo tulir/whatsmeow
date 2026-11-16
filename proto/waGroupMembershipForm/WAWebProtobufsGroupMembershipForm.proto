@@ -1,0 +1,13 @@
+syntax = "proto2";
+package WAWebProtobufsGroupMembershipForm;
+option go_package = "go.mau.fi/whatsmeow/proto/waGroupMembershipForm";
+
+message GroupMembershipForm {
+	repeated GroupMembershipFormQuestion questions = 1;
+	optional string memberTagPrompt = 2;
+	optional uint32 schemaVersion = 3;
+}
+
+message GroupMembershipFormQuestion {
+	optional string text = 1;
+}

@@ -161,6 +161,7 @@ message ClientPayload {
 			VR = 4;
 			SMART_DISPLAY = 5;
 			SMART_SPEAKER = 6;
+			AGENT = 7;
 		}
 
 		enum DistributionChannel {
@@ -249,6 +250,11 @@ message ClientPayload {
 		optional DistributionChannel distributionChannel = 17;
 	}
 
+	message IntegrationAttestation {
+		optional string staticUnbound = 1;
+		optional string onlineSigned = 3;
+	}
+
 	message InteropData {
 		optional uint64 accountID = 1;
 		optional bytes token = 2;
@@ -303,4 +309,5 @@ message ClientPayload {
 	repeated string pairedPeripherals = 47;
 	optional bytes testIsolationID = 48;
 	optional int64 messageSts = 49;
+	optional IntegrationAttestation integrationAttestation = 50;
 }
