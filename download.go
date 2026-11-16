@@ -28,7 +28,6 @@ import (
 	"go.mau.fi/whatsmeow/proto/waHistorySync"
 	"go.mau.fi/whatsmeow/proto/waMediaTransport"
 	"go.mau.fi/whatsmeow/proto/waServerSync"
-	"go.mau.fi/whatsmeow/socket"
 	"go.mau.fi/whatsmeow/types"
 	"go.mau.fi/whatsmeow/util/cbcutil"
 	"go.mau.fi/whatsmeow/util/hkdfutil"
@@ -367,8 +366,8 @@ func (cli *Client) doMediaDownloadRequest(ctx context.Context, url string) (*htt
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare request: %w", err)
 	}
-	req.Header.Set("Origin", socket.Origin)
-	req.Header.Set("Referer", socket.Origin+"/")
+	req.Header.Set("Origin", cli.getMediaOrigin())
+	req.Header.Set("Referer", cli.getMediaOrigin()+"/")
 	if userAgent := cli.getUserAgent(); userAgent != "" {
 		req.Header.Set("User-Agent", cli.getUserAgent())
 	}
