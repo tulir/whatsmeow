@@ -496,6 +496,13 @@ func (cli *Client) getUserAgent() string {
 	return cli.UserAgent
 }
 
+func (cli *Client) getMediaOrigin() string {
+	if cli.MessengerConfig != nil {
+		return cli.MessengerConfig.BaseURL
+	}
+	return socket.Origin
+}
+
 func (cli *Client) WaitForConnection(timeout time.Duration) bool {
 	if cli == nil {
 		return false
