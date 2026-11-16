@@ -955,6 +955,10 @@ Loop:
 		select {
 		case node := <-queue:
 			if connCtx.Err() != nil {
+				if node.Tag == "stream:error" {
+					cli.Log.Debugf("Handling stream:error node in handler queue loop after context cancellation")
+					cli.handleStreamError(evtCtx, node)
+				}
 				cli.Log.Debugf("Closing handler queue loop before node handling")
 				return
 			}
