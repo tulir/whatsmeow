@@ -3,6 +3,7 @@ package WAWebProtobufsHistorySync;
 option go_package = "go.mau.fi/whatsmeow/proto/waHistorySync";
 
 import "waSyncAction/WAWebProtobufSyncAction.proto";
+import "waAea/WAWebProtobufsAea.proto";
 import "waChatLockSettings/WAWebProtobufsChatLockSettings.proto";
 import "waE2E/WAWebProtobufsE2E.proto";
 import "waCommon/WACommon.proto";
@@ -142,6 +143,24 @@ message Conversation {
 	optional IdentityVerificationState identityVerification = 63;
 	optional WACommon.ACP2Setting acp2Setting = 64;
 	optional bool acp2HistoryWithheld = 65;
+	repeated GroupRootKey groupRootKeys = 66;
+	optional bool isWorkGroup = 67;
+	optional int32 nonE2EeType = 68;
+	optional WAWebProtobufsAea.NonE2EEAttestation.AccountType contactAccountEncryptionAttestationType = 69;
+}
+
+message Account {
+	enum PnLearnState {
+		UNSET = 0;
+		SHARED = 1;
+		HIDDEN = 2;
+	}
+
+	optional string lid = 1;
+	optional string username = 2;
+	optional string countryCode = 3;
+	optional bool isUsernameDeleted = 4;
+	optional PnLearnState pnLearnState = 6;
 }
 
 message GroupParticipant {
@@ -181,6 +200,12 @@ message IdentityVerificationState {
 	optional uint64 actionSeq = 2;
 }
 
+message GroupRootKey {
+	optional string keyID = 1;
+	optional bytes rootKey = 2;
+	optional bool isCurrent = 3;
+}
+
 message PhoneNumberToLIDMapping {
 	optional string pnJID = 1;
 	optional string lidJID = 2;
@@ -192,13 +217,6 @@ message InlineContact {
 	optional string fullName = 3;
 	optional string firstName = 4;
 	optional string username = 5;
-}
-
-message Account {
-	optional string lid = 1;
-	optional string username = 2;
-	optional string countryCode = 3;
-	optional bool isUsernameDeleted = 4;
 }
 
 message HistorySyncMsg {

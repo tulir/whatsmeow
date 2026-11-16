@@ -11,7 +11,7 @@ message EncryptMessageInput {
 	required bytes epochRootKey = 1;
 	required bytes mailboxRootKey = 2;
 	required bytes orfClientState = 3;
-	required bytes epochAnonID = 4;
+	required int32 epochAnonID = 4;
 	required uint64 epochID = 5;
 	required string threadID = 6;
 	required uint64 waCanonicalUserFbid = 7;
@@ -23,7 +23,7 @@ message EncryptMessageInput {
 
 message DecryptMessageInput {
 	required bytes epochRootKey = 1;
-	required bytes epochAnonID = 2;
+	required int32 epochAnonID = 2;
 	required string threadID = 3;
 	required int32 encryptionVersion = 4;
 	required bytes ciphertext = 5;
@@ -36,7 +36,7 @@ message OrfThreadIdInput {
 
 message DeriveMessageKeyInput {
 	required bytes epochRootKey = 1;
-	required bytes epochAnonID = 2;
+	required int32 epochAnonID = 2;
 	required string threadID = 3;
 }
 
@@ -47,7 +47,7 @@ message DeriveVirtualDeviceIdInput {
 
 message AddDeviceSyncEpochInput {
 	required uint64 epochID = 1;
-	required bytes epochAnonID = 2;
+	required int32 epochAnonID = 2;
 	optional bytes encryptedEpochKey = 3;
 	required bytes senderAuthPubKey = 4;
 	optional uint64 nextEpochID = 5;
@@ -98,8 +98,7 @@ message VirtualDeviceOutput {
 }
 
 message Epoch0Output {
-	required uint64 epochFbid = 1;
-	required bytes epochAnonID = 2;
+	required int32 epochAnonID = 2;
 	required bytes epochRootKeyFingerprint = 6;
 	required bytes epochRootKey = 7;
 }
@@ -189,7 +188,7 @@ message AddDeviceKeysOutput {
 
 message EpochKey {
 	required uint64 serverEpochID = 1;
-	required bytes epochAnonID = 2;
+	required int32 epochAnonID = 2;
 	required bytes epochRootKey = 3;
 }
 
@@ -222,7 +221,7 @@ message RotateEpochMemberInput {
 
 message RotateEpochInput {
 	required bytes currentEpochRootKey = 1;
-	required bytes currentEpochAnonID = 2;
+	required int32 currentEpochAnonID = 2;
 	required uint64 currentEpochFbid = 3;
 	required bytes epochStorageAuthPrivateKey = 4;
 	repeated RotateEpochMemberInput members = 5;
@@ -249,8 +248,7 @@ message RotateEpochOutput {
 
 message RotateEpochSuccess {
 	required bytes newEpochRootKey = 1;
-	required uint64 newEpochAnonID = 2;
-	required bytes epochAnonID = 3;
+	required int32 newEpochAnonID = 2;
 	required BackwardEdge backwardEdge = 4;
 	repeated RotateEpochMemberEdge memberEdges = 5;
 	required bytes epochRootKeyFingerprint = 6;
@@ -274,7 +272,7 @@ message ComputeClientSealTokenSuccess {
 
 message SealThreadIdInput {
 	required bytes epochRootKey = 1;
-	required bytes epochAnonID = 2;
+	required int32 epochAnonID = 2;
 	required uint64 backupID = 3;
 	required string threadID = 4;
 }
@@ -305,12 +303,12 @@ message OpenSealedThreadIdOutput {
 
 message OpenSealedThreadIdSuccess {
 	required string threadID = 1;
-	required uint32 sealEpochAnonID = 2;
+	required int32 sealEpochAnonID = 2;
 }
 
 message EpochIds {
 	required uint64 serverEpochID = 1;
-	required bytes epochAnonID = 2;
+	required int32 epochAnonID = 2;
 }
 
 message ForwardEdgeInput {
@@ -364,6 +362,35 @@ message PrepareAddPeerDeviceSuccess {
 	required bytes companionDeviceBinding = 3;
 }
 
+message CompanionTestMessageThreadIdInput {
+}
+
+message CompanionTestMessageThreadIdOutput {
+	oneof result {
+		CompanionTestMessageThreadIdSuccess success = 1;
+		string error = 2;
+	}
+}
+
+message CompanionTestMessageThreadIdSuccess {
+	required string threadID = 1;
+}
+
+message ParseCompanionTestMessageInput {
+	required bytes plaintext = 1;
+}
+
+message ParseCompanionTestMessageOutput {
+	oneof result {
+		ParseCompanionTestMessageSuccess success = 1;
+		string error = 2;
+	}
+}
+
+message ParseCompanionTestMessageSuccess {
+	required uint64 createdAtMS = 1;
+}
+
 message LabyrinthWaCommand {
 	oneof commandInput {
 		CreateBackupInput createBackupInput = 1;
@@ -379,5 +406,7 @@ message LabyrinthWaCommand {
 		DeriveEpochsInput deriveEpochsInput = 11;
 		SealThreadIdInput sealThreadIDInput = 12;
 		PrepareAddPeerDeviceInput prepareAddPeerDeviceInput = 13;
+		CompanionTestMessageThreadIdInput companionTestMessageThreadIDInput = 14;
+		ParseCompanionTestMessageInput parseCompanionTestMessageInput = 15;
 	}
 }

@@ -69,6 +69,13 @@ message MiTransportAdminMessage {
 		optional int64 actorID = 1;
 	}
 
+	message XmatHomebaseStatusChanged {
+		optional string statusType = 1;
+		optional int64 actorID = 2;
+		optional string actorName = 3;
+		optional int64 pauseDurationSeconds = 4;
+	}
+
 	message XmatHomebaseActionSummary {
 		optional string text = 1;
 		optional string fullText = 2;
@@ -356,6 +363,7 @@ message MiTransportAdminMessage {
 		XmatPetInteraction xmatPetInteraction = 46;
 		XmatHomebaseActionSummary xmatHomebaseActionSummary = 47;
 		XmatMessengerChatFontChange xmatMessengerChatFontChange = 48;
+		XmatHomebaseStatusChanged xmatHomebaseStatusChanged = 49;
 	}
 
 	optional bool skipBumpThread = 34;

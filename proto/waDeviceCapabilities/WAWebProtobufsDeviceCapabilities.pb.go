@@ -269,6 +269,8 @@ type DeviceCapabilities struct {
 	ReverseHistorySync          *DeviceCapabilities_ReverseHistorySync          `protobuf:"bytes,10,opt,name=reverseHistorySync" json:"reverseHistorySync,omitempty"`
 	NewsletterChatsMigration    *DeviceCapabilities_NewsletterChatsMigration    `protobuf:"bytes,11,opt,name=newsletterChatsMigration" json:"newsletterChatsMigration,omitempty"`
 	HostWriteMutationSupport    *DeviceCapabilities_HostWriteMutationSupport    `protobuf:"bytes,12,opt,name=hostWriteMutationSupport" json:"hostWriteMutationSupport,omitempty"`
+	BizAiWebOnboarding          *DeviceCapabilities_BizAiWebOnboarding          `protobuf:"bytes,13,opt,name=bizAiWebOnboarding" json:"bizAiWebOnboarding,omitempty"`
+	PhoneNumberSharing          *DeviceCapabilities_PhoneNumberSharing          `protobuf:"bytes,14,opt,name=phoneNumberSharing" json:"phoneNumberSharing,omitempty"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -387,6 +389,20 @@ func (x *DeviceCapabilities) GetHostWriteMutationSupport() *DeviceCapabilities_H
 	return nil
 }
 
+func (x *DeviceCapabilities) GetBizAiWebOnboarding() *DeviceCapabilities_BizAiWebOnboarding {
+	if x != nil {
+		return x.BizAiWebOnboarding
+	}
+	return nil
+}
+
+func (x *DeviceCapabilities) GetPhoneNumberSharing() *DeviceCapabilities_PhoneNumberSharing {
+	if x != nil {
+		return x.PhoneNumberSharing
+	}
+	return nil
+}
+
 type DeviceCapabilities_ReverseHistorySync struct {
 	state           protoimpl.MessageState                          `protogen:"open.v1"`
 	EnabledProducts []DeviceCapabilities_ReverseHistorySync_Product `protobuf:"varint,1,rep,name=enabledProducts,enum=WAWebProtobufsDeviceCapabilities.DeviceCapabilities_ReverseHistorySync_Product" json:"enabledProducts,omitempty"`
@@ -475,6 +491,94 @@ func (x *DeviceCapabilities_AiThread) GetSupportLevel() DeviceCapabilities_AiThr
 	return DeviceCapabilities_AiThread_NONE
 }
 
+type DeviceCapabilities_PhoneNumberSharing struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	PhoneSharingSupported *bool                  `protobuf:"varint,1,opt,name=phoneSharingSupported" json:"phoneSharingSupported,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *DeviceCapabilities_PhoneNumberSharing) Reset() {
+	*x = DeviceCapabilities_PhoneNumberSharing{}
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeviceCapabilities_PhoneNumberSharing) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeviceCapabilities_PhoneNumberSharing) ProtoMessage() {}
+
+func (x *DeviceCapabilities_PhoneNumberSharing) ProtoReflect() protoreflect.Message {
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeviceCapabilities_PhoneNumberSharing.ProtoReflect.Descriptor instead.
+func (*DeviceCapabilities_PhoneNumberSharing) Descriptor() ([]byte, []int) {
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 2}
+}
+
+func (x *DeviceCapabilities_PhoneNumberSharing) GetPhoneSharingSupported() bool {
+	if x != nil && x.PhoneSharingSupported != nil {
+		return *x.PhoneSharingSupported
+	}
+	return false
+}
+
+type DeviceCapabilities_BizAiWebOnboarding struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Version       *uint32                `protobuf:"varint,1,opt,name=version" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeviceCapabilities_BizAiWebOnboarding) Reset() {
+	*x = DeviceCapabilities_BizAiWebOnboarding{}
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeviceCapabilities_BizAiWebOnboarding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeviceCapabilities_BizAiWebOnboarding) ProtoMessage() {}
+
+func (x *DeviceCapabilities_BizAiWebOnboarding) ProtoReflect() protoreflect.Message {
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeviceCapabilities_BizAiWebOnboarding.ProtoReflect.Descriptor instead.
+func (*DeviceCapabilities_BizAiWebOnboarding) Descriptor() ([]byte, []int) {
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 3}
+}
+
+func (x *DeviceCapabilities_BizAiWebOnboarding) GetVersion() uint32 {
+	if x != nil && x.Version != nil {
+		return *x.Version
+	}
+	return 0
+}
+
 type DeviceCapabilities_HostWriteMutationSupport struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	MutationNames []string               `protobuf:"bytes,1,rep,name=mutationNames" json:"mutationNames,omitempty"`
@@ -484,7 +588,7 @@ type DeviceCapabilities_HostWriteMutationSupport struct {
 
 func (x *DeviceCapabilities_HostWriteMutationSupport) Reset() {
 	*x = DeviceCapabilities_HostWriteMutationSupport{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[3]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -496,7 +600,7 @@ func (x *DeviceCapabilities_HostWriteMutationSupport) String() string {
 func (*DeviceCapabilities_HostWriteMutationSupport) ProtoMessage() {}
 
 func (x *DeviceCapabilities_HostWriteMutationSupport) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[3]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -509,7 +613,7 @@ func (x *DeviceCapabilities_HostWriteMutationSupport) ProtoReflect() protoreflec
 
 // Deprecated: Use DeviceCapabilities_HostWriteMutationSupport.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_HostWriteMutationSupport) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 2}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 4}
 }
 
 func (x *DeviceCapabilities_HostWriteMutationSupport) GetMutationNames() []string {
@@ -530,7 +634,7 @@ type DeviceCapabilities_NewsletterChatsMigration struct {
 
 func (x *DeviceCapabilities_NewsletterChatsMigration) Reset() {
 	*x = DeviceCapabilities_NewsletterChatsMigration{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[4]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -542,7 +646,7 @@ func (x *DeviceCapabilities_NewsletterChatsMigration) String() string {
 func (*DeviceCapabilities_NewsletterChatsMigration) ProtoMessage() {}
 
 func (x *DeviceCapabilities_NewsletterChatsMigration) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[4]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -555,7 +659,7 @@ func (x *DeviceCapabilities_NewsletterChatsMigration) ProtoReflect() protoreflec
 
 // Deprecated: Use DeviceCapabilities_NewsletterChatsMigration.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_NewsletterChatsMigration) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 3}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 5}
 }
 
 func (x *DeviceCapabilities_NewsletterChatsMigration) GetEffectiveMigrated() bool {
@@ -588,7 +692,7 @@ type DeviceCapabilities_ContactRefresh struct {
 
 func (x *DeviceCapabilities_ContactRefresh) Reset() {
 	*x = DeviceCapabilities_ContactRefresh{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[5]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -600,7 +704,7 @@ func (x *DeviceCapabilities_ContactRefresh) String() string {
 func (*DeviceCapabilities_ContactRefresh) ProtoMessage() {}
 
 func (x *DeviceCapabilities_ContactRefresh) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[5]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -613,7 +717,7 @@ func (x *DeviceCapabilities_ContactRefresh) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use DeviceCapabilities_ContactRefresh.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_ContactRefresh) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 4}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 6}
 }
 
 func (x *DeviceCapabilities_ContactRefresh) GetRefreshSupported() bool {
@@ -632,7 +736,7 @@ type DeviceCapabilities_BizAiSettingsSync struct {
 
 func (x *DeviceCapabilities_BizAiSettingsSync) Reset() {
 	*x = DeviceCapabilities_BizAiSettingsSync{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[6]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -644,7 +748,7 @@ func (x *DeviceCapabilities_BizAiSettingsSync) String() string {
 func (*DeviceCapabilities_BizAiSettingsSync) ProtoMessage() {}
 
 func (x *DeviceCapabilities_BizAiSettingsSync) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[6]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -657,7 +761,7 @@ func (x *DeviceCapabilities_BizAiSettingsSync) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use DeviceCapabilities_BizAiSettingsSync.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_BizAiSettingsSync) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 5}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 7}
 }
 
 func (x *DeviceCapabilities_BizAiSettingsSync) GetHandoffRemovalTimingEnabled() bool {
@@ -677,7 +781,7 @@ type DeviceCapabilities_AiFbidMigration struct {
 
 func (x *DeviceCapabilities_AiFbidMigration) Reset() {
 	*x = DeviceCapabilities_AiFbidMigration{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[7]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -689,7 +793,7 @@ func (x *DeviceCapabilities_AiFbidMigration) String() string {
 func (*DeviceCapabilities_AiFbidMigration) ProtoMessage() {}
 
 func (x *DeviceCapabilities_AiFbidMigration) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[7]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -702,7 +806,7 @@ func (x *DeviceCapabilities_AiFbidMigration) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use DeviceCapabilities_AiFbidMigration.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_AiFbidMigration) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 6}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 8}
 }
 
 func (x *DeviceCapabilities_AiFbidMigration) GetChatDbMigrationTimestamp() uint64 {
@@ -728,7 +832,7 @@ type DeviceCapabilities_UserHasAvatar struct {
 
 func (x *DeviceCapabilities_UserHasAvatar) Reset() {
 	*x = DeviceCapabilities_UserHasAvatar{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[8]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -740,7 +844,7 @@ func (x *DeviceCapabilities_UserHasAvatar) String() string {
 func (*DeviceCapabilities_UserHasAvatar) ProtoMessage() {}
 
 func (x *DeviceCapabilities_UserHasAvatar) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[8]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -753,7 +857,7 @@ func (x *DeviceCapabilities_UserHasAvatar) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeviceCapabilities_UserHasAvatar.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_UserHasAvatar) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 7}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 9}
 }
 
 func (x *DeviceCapabilities_UserHasAvatar) GetUserHasAvatar() bool {
@@ -777,7 +881,7 @@ type DeviceCapabilities_BusinessBroadcast struct {
 
 func (x *DeviceCapabilities_BusinessBroadcast) Reset() {
 	*x = DeviceCapabilities_BusinessBroadcast{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[9]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -789,7 +893,7 @@ func (x *DeviceCapabilities_BusinessBroadcast) String() string {
 func (*DeviceCapabilities_BusinessBroadcast) ProtoMessage() {}
 
 func (x *DeviceCapabilities_BusinessBroadcast) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[9]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -802,7 +906,7 @@ func (x *DeviceCapabilities_BusinessBroadcast) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use DeviceCapabilities_BusinessBroadcast.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_BusinessBroadcast) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 8}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 10}
 }
 
 func (x *DeviceCapabilities_BusinessBroadcast) GetImportListEnabled() bool {
@@ -856,7 +960,7 @@ type DeviceCapabilities_LIDMigration struct {
 
 func (x *DeviceCapabilities_LIDMigration) Reset() {
 	*x = DeviceCapabilities_LIDMigration{}
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[10]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -868,7 +972,7 @@ func (x *DeviceCapabilities_LIDMigration) String() string {
 func (*DeviceCapabilities_LIDMigration) ProtoMessage() {}
 
 func (x *DeviceCapabilities_LIDMigration) ProtoReflect() protoreflect.Message {
-	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[10]
+	mi := &file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -881,7 +985,7 @@ func (x *DeviceCapabilities_LIDMigration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeviceCapabilities_LIDMigration.ProtoReflect.Descriptor instead.
 func (*DeviceCapabilities_LIDMigration) Descriptor() ([]byte, []int) {
-	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 9}
+	return file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZIP(), []int{0, 11}
 }
 
 func (x *DeviceCapabilities_LIDMigration) GetChatDbMigrationTimestamp() uint64 {
@@ -895,7 +999,7 @@ var File_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto protoreflec
 
 const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc = "" +
 	"\n" +
-	";waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto\x12 WAWebProtobufsDeviceCapabilities\"\xdb\x16\n" +
+	";waDeviceCapabilities/WAWebProtobufsDeviceCapabilities.proto\x12 WAWebProtobufsDeviceCapabilities\"\xc9\x19\n" +
 	"\x12DeviceCapabilities\x12}\n" +
 	"\x14chatLockSupportLevel\x18\x01 \x01(\x0e2I.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevelR\x14chatLockSupportLevel\x12e\n" +
 	"\flidMigration\x18\x02 \x01(\v2A.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigrationR\flidMigration\x12t\n" +
@@ -909,7 +1013,9 @@ const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc =
 	"\x12reverseHistorySync\x18\n" +
 	" \x01(\v2G.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ReverseHistorySyncR\x12reverseHistorySync\x12\x89\x01\n" +
 	"\x18newsletterChatsMigration\x18\v \x01(\v2M.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.NewsletterChatsMigrationR\x18newsletterChatsMigration\x12\x89\x01\n" +
-	"\x18hostWriteMutationSupport\x18\f \x01(\v2M.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.HostWriteMutationSupportR\x18hostWriteMutationSupport\x1a\xbe\x01\n" +
+	"\x18hostWriteMutationSupport\x18\f \x01(\v2M.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.HostWriteMutationSupportR\x18hostWriteMutationSupport\x12w\n" +
+	"\x12bizAiWebOnboarding\x18\r \x01(\v2G.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiWebOnboardingR\x12bizAiWebOnboarding\x12w\n" +
+	"\x12phoneNumberSharing\x18\x0e \x01(\v2G.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.PhoneNumberSharingR\x12phoneNumberSharing\x1a\xbe\x01\n" +
 	"\x12ReverseHistorySync\x12y\n" +
 	"\x0fenabledProducts\x18\x01 \x03(\x0e2O.WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ReverseHistorySync.ProductR\x0fenabledProducts\"-\n" +
 	"\aProduct\x12\x17\n" +
@@ -920,7 +1026,11 @@ const file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc =
 	"\fSupportLevel\x12\b\n" +
 	"\x04NONE\x10\x00\x12\t\n" +
 	"\x05INFRA\x10\x01\x12\b\n" +
-	"\x04FULL\x10\x02\x1a@\n" +
+	"\x04FULL\x10\x02\x1aJ\n" +
+	"\x12PhoneNumberSharing\x124\n" +
+	"\x15phoneSharingSupported\x18\x01 \x01(\bR\x15phoneSharingSupported\x1a.\n" +
+	"\x12BizAiWebOnboarding\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\rR\aversion\x1a@\n" +
 	"\x18HostWriteMutationSupport\x12$\n" +
 	"\rmutationNames\x18\x01 \x03(\tR\rmutationNames\x1a\x92\x01\n" +
 	"\x18NewsletterChatsMigration\x12,\n" +
@@ -969,7 +1079,7 @@ func file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDescGZI
 }
 
 var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_goTypes = []any{
 	(DeviceCapabilities_MemberNameTagPrimarySupport)(0), // 0: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.MemberNameTagPrimarySupport
 	(DeviceCapabilities_ChatLockSupportLevel)(0),        // 1: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
@@ -978,35 +1088,39 @@ var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_goTypes = [
 	(*DeviceCapabilities)(nil),                          // 4: WAWebProtobufsDeviceCapabilities.DeviceCapabilities
 	(*DeviceCapabilities_ReverseHistorySync)(nil),       // 5: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ReverseHistorySync
 	(*DeviceCapabilities_AiThread)(nil),                 // 6: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread
-	(*DeviceCapabilities_HostWriteMutationSupport)(nil), // 7: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.HostWriteMutationSupport
-	(*DeviceCapabilities_NewsletterChatsMigration)(nil), // 8: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.NewsletterChatsMigration
-	(*DeviceCapabilities_ContactRefresh)(nil),           // 9: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ContactRefresh
-	(*DeviceCapabilities_BizAiSettingsSync)(nil),        // 10: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiSettingsSync
-	(*DeviceCapabilities_AiFbidMigration)(nil),          // 11: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigration
-	(*DeviceCapabilities_UserHasAvatar)(nil),            // 12: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
-	(*DeviceCapabilities_BusinessBroadcast)(nil),        // 13: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
-	(*DeviceCapabilities_LIDMigration)(nil),             // 14: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
+	(*DeviceCapabilities_PhoneNumberSharing)(nil),       // 7: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.PhoneNumberSharing
+	(*DeviceCapabilities_BizAiWebOnboarding)(nil),       // 8: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiWebOnboarding
+	(*DeviceCapabilities_HostWriteMutationSupport)(nil), // 9: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.HostWriteMutationSupport
+	(*DeviceCapabilities_NewsletterChatsMigration)(nil), // 10: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.NewsletterChatsMigration
+	(*DeviceCapabilities_ContactRefresh)(nil),           // 11: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ContactRefresh
+	(*DeviceCapabilities_BizAiSettingsSync)(nil),        // 12: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiSettingsSync
+	(*DeviceCapabilities_AiFbidMigration)(nil),          // 13: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigration
+	(*DeviceCapabilities_UserHasAvatar)(nil),            // 14: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
+	(*DeviceCapabilities_BusinessBroadcast)(nil),        // 15: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
+	(*DeviceCapabilities_LIDMigration)(nil),             // 16: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
 }
 var file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_depIdxs = []int32{
 	1,  // 0: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.chatLockSupportLevel:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ChatLockSupportLevel
-	14, // 1: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.lidMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
-	13, // 2: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.businessBroadcast:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
-	12, // 3: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.userHasAvatar:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
+	16, // 1: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.lidMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.LIDMigration
+	15, // 2: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.businessBroadcast:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BusinessBroadcast
+	14, // 3: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.userHasAvatar:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.UserHasAvatar
 	0,  // 4: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.memberNameTagPrimarySupport:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.MemberNameTagPrimarySupport
 	6,  // 5: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.aiThread:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread
-	11, // 6: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.aiFbidMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigration
-	10, // 7: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.bizAiSettingsSync:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiSettingsSync
-	9,  // 8: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.contactRefresh:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ContactRefresh
+	13, // 6: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.aiFbidMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiFbidMigration
+	12, // 7: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.bizAiSettingsSync:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiSettingsSync
+	11, // 8: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.contactRefresh:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ContactRefresh
 	5,  // 9: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.reverseHistorySync:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ReverseHistorySync
-	8,  // 10: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.newsletterChatsMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.NewsletterChatsMigration
-	7,  // 11: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.hostWriteMutationSupport:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.HostWriteMutationSupport
-	2,  // 12: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ReverseHistorySync.enabledProducts:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ReverseHistorySync.Product
-	3,  // 13: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.supportLevel:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.SupportLevel
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	10, // 10: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.newsletterChatsMigration:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.NewsletterChatsMigration
+	9,  // 11: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.hostWriteMutationSupport:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.HostWriteMutationSupport
+	8,  // 12: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.bizAiWebOnboarding:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.BizAiWebOnboarding
+	7,  // 13: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.phoneNumberSharing:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.PhoneNumberSharing
+	2,  // 14: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ReverseHistorySync.enabledProducts:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.ReverseHistorySync.Product
+	3,  // 15: WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.supportLevel:type_name -> WAWebProtobufsDeviceCapabilities.DeviceCapabilities.AiThread.SupportLevel
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_init() }
@@ -1020,7 +1134,7 @@ func file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc), len(file_waDeviceCapabilities_WAWebProtobufsDeviceCapabilities_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

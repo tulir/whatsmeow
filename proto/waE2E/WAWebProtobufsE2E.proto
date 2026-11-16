@@ -333,6 +333,21 @@ message SecretEncryptedMessage {
 	optional string remoteKeyID = 5;
 }
 
+message VpcRequestMessage {
+	enum ScopeHint {
+		UNKNOWN = 0;
+		WA_ONLY = 1;
+		WAFFLE = 2;
+		WA_META_AI = 3;
+		META_AI_ONLY = 4;
+		FOA_ONLY = 5;
+	}
+
+	optional uint32 payloadSchemaVersion = 1;
+	optional string requestID = 2;
+	optional ScopeHint scopeHint = 3;
+}
+
 message RequestLocationUpdateMessage {
 	enum UpdateType {
 		UNKNOWN = 0;
@@ -607,6 +622,27 @@ message StatusQuotedMessage {
 	optional string text = 2;
 	optional bytes thumbnail = 3;
 	optional WACommon.MessageKey originalStatusID = 4;
+}
+
+message PaymentDetailsMessage {
+	enum Status {
+		STATUS_UNKNOWN = 0;
+		SUCCESS = 1;
+	}
+
+	enum ServiceType {
+		UNKNOWN = 0;
+		UPI = 1;
+	}
+
+	optional ServiceType serviceType = 1;
+	optional Money amount = 2;
+	optional string payeeName = 3;
+	optional string payerName = 4;
+	optional int64 transactionTimestampMS = 5;
+	optional string transactionID = 6;
+	optional Status status = 7;
+	optional ContextInfo contextInfo = 17;
 }
 
 message SplitPaymentParticipant {
@@ -1029,6 +1065,9 @@ message ProtocolMessage {
 		ACP2_SETTING = 39;
 		SHARED_DEVICE_CONTACT_HASH_KEY_SHARE = 40;
 		SHARED_DEVICE_CONTACT_HASH_KEY_REQUEST = 41;
+		GROUP_ROOT_KEY_REQUEST = 42;
+		MEMBERSHIP_FORM_KEY_FINGERPRINT_VERIFICATION = 43;
+		GROUP_ROOT_KEY_SHARE = 44;
 	}
 
 	optional WACommon.MessageKey key = 1;
@@ -1065,6 +1104,9 @@ message ProtocolMessage {
 	optional SharedDeviceContactHashKeyShare sharedDeviceContactHashKeyShare = 36;
 	optional SharedDeviceContactHashKeyRequest sharedDeviceContactHashKeyRequest = 37;
 	repeated string additionalPromptIDs = 38;
+	optional GroupRootKeyRequest groupRootKeyRequest = 39;
+	optional MembershipFormKeyFingerprintVerification membershipFormKeyFingerprintVerification = 40;
+	optional GroupRootKeyShare groupRootKeyShare = 41;
 }
 
 message CloudAPIThreadControlNotification {
@@ -1250,6 +1292,7 @@ message LinkPreviewMetadata {
 	optional string videoContentURL = 7;
 	optional EmbeddedMusic musicMetadata = 8;
 	optional string videoContentCaption = 9;
+	optional string videoID = 10;
 }
 
 message PaymentLinkMetadata {
@@ -1391,6 +1434,8 @@ message ContextInfo {
 		AV1_VIDEO_CHILD = 10;
 		STREAMED_VIDEO_PARENT = 11;
 		STREAMED_VIDEO_CHILD = 12;
+		ORIGINAL_VIDEO_CHILD = 13;
+		ORIGINAL_IMAGE_CHILD = 14;
 	}
 
 	enum StatusAttributionType {
@@ -1668,6 +1713,8 @@ message ContextInfo {
 	optional string partnerDeepLinkToken = 83;
 	optional uint32 sourceExperienceID = 84;
 	repeated uint32 sourceExperienceIDs = 85 [packed=true];
+	optional bytes foaMutualsSignature = 86;
+	optional fixed32 forwardReachScore = 87;
 }
 
 message MessageAssociation {
@@ -1695,6 +1742,8 @@ message MessageAssociation {
 		POLL_ADD_OPTION = 20;
 		AV1_VIDEO_DUAL_UPLOAD = 21;
 		STREAMED_HD_VIDEO_DUAL_UPLOAD = 22;
+		ORIGINAL_VIDEO_DUAL_UPLOAD = 23;
+		ORIGINAL_IMAGE_DUAL_UPLOAD = 24;
 	}
 
 	optional AssociationType associationType = 1;
@@ -1981,6 +2030,9 @@ message Message {
 	optional RequestLocationMessage requestLocationMessage = 136;
 	optional FutureProofMessage botGroupParticipantMessage = 137;
 	optional RequestLocationUpdateMessage requestLocationUpdateMessage = 138;
+	optional VpcRequestMessage vpcRequestMessage = 139;
+	optional VideoMessage instantVideoMessage = 140;
+	optional PaymentDetailsMessage paymentDetailsMessage = 141;
 }
 
 message AlbumMessage {
@@ -2551,6 +2603,7 @@ message DocumentMessage {
 	optional uint32 thumbnailWidth = 19;
 	optional string caption = 20;
 	optional string accessibilityLabel = 21;
+	optional string qrURL = 23;
 }
 
 message URLMetadata {
@@ -2745,6 +2798,7 @@ message UrlTrackingMap {
 message MemberLabel {
 	optional string label = 1;
 	optional int64 labelTimestamp = 2;
+	optional bool showAdminBadge = 3;
 }
 
 message AIRichResponseMessage {
@@ -2770,4 +2824,14 @@ message GroupRootKeyShareEntry {
 	optional string keyID = 2;
 	optional int64 expiryTimestampMS = 3;
 	optional int64 createdTimestampMS = 4;
+}
+
+message MembershipFormKeyFingerprintVerification {
+	optional string requestID = 1;
+	optional string keyID = 2;
+	optional bytes keyFingerprint = 3;
+}
+
+message GroupRootKeyRequest {
+	optional string keyID = 1;
 }
