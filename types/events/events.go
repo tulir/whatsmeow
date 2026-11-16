@@ -482,20 +482,22 @@ type JoinedGroup struct {
 	Type      string          // "new" if it's a newly created group.
 	CreateKey types.MessageID // If you created the group, this is the same message ID you passed to CreateGroup.
 	// For type new, the user who created the group and added you to it
-	Sender   *types.JID
-	SenderPN *types.JID
-	Notify   string
+	Sender         *types.JID
+	SenderPN       *types.JID
+	SenderUsername string // The username of the user who created the group or added you, if provided.
+	Notify         string
 
 	types.GroupInfo
 }
 
 // GroupInfo is emitted when the metadata of a group changes.
 type GroupInfo struct {
-	JID       types.JID  // The group ID in question
-	Notify    string     // Seems like a top-level type for the invite
-	Sender    *types.JID // The user who made the change. Doesn't seem to be present when notify=invite
-	SenderPN  *types.JID // The phone number of the user who made the change, if Sender is a LID.
-	Timestamp time.Time  // The time when the change occurred
+	JID            types.JID  // The group ID in question
+	Notify         string     // Seems like a top-level type for the invite
+	Sender         *types.JID // The user who made the change. Doesn't seem to be present when notify=invite
+	SenderPN       *types.JID // The phone number of the user who made the change, if Sender is a LID.
+	SenderUsername string     // The username of the user who made the change, if provided.
+	Timestamp      time.Time  // The time when the change occurred
 
 	Name      *types.GroupName      // Group name change
 	Topic     *types.GroupTopic     // Group topic (description) change
@@ -517,8 +519,12 @@ type GroupInfo struct {
 
 	JoinReason string // This will be "invite" if the user joined via invite link
 
-	Join  []types.JID // Users who joined or were added the group
-	Leave []types.JID // Users who left or were removed from the group
+	Join   []types.JID // Users who joined or were added the group
+	Leave  []types.JID // Users who left or were removed from the group
+	Modify []types.JID // Participant JIDs included in a group <modify> (number change) notification.
+
+	// Usernames provided for participants in Join, Leave, Promote, Demote or Modify, keyed by their JID.
+	ParticipantUsernames map[types.JID]string
 
 	Promote        []types.JID // Users who were promoted to admins
 	Demote         []types.JID // Users who were demoted to normal users

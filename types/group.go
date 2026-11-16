@@ -106,6 +106,7 @@ type GroupParticipant struct {
 	JID         JID
 	PhoneNumber JID
 	LID         JID
+	Username    string // The participant's username, if provided by WhatsApp.
 
 	IsAdmin      bool
 	IsSuperAdmin bool

@@ -15,6 +15,15 @@ type BasicCallMeta struct {
 	CallCreatorAlt JID
 	CallID         string
 	GroupJID       JID
+	Participants   []CallParticipant
+}
+
+// CallParticipant describes a participant reported in a group call event.
+type CallParticipant struct {
+	JID         JID
+	PhoneNumber JID // The server supplied alternative phone number, when available.
+	Username    string
+	State       string
 }
 
 type CallRemoteMeta struct {
