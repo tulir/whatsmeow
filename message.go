@@ -59,6 +59,7 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 	if len(info.PushName) > 0 && info.PushName != "-" && (cli.MessengerConfig == nil || info.PushName != "username") {
 		go cli.updatePushName(ctx, info.Sender, info.SenderAlt, info, info.PushName)
 	}
+	info.StanzaTag = node.Tag
 	if info.Sender.Server == types.NewsletterServer {
 		var cancelled bool
 		defer cli.maybeDeferredAck(ctx, node)(&cancelled)
@@ -66,23 +67,6 @@ func (cli *Client) handleEncryptedMessage(ctx context.Context, node *waBinary.No
 	} else {
 		cli.decryptMessages(ctx, info, node)
 	}
-}
-
-func (cli *Client) handleUnencryptedMessage(ctx context.Context, node *waBinary.Node) {
-	info, err := cli.parseMessageInfo(node)
-	if err != nil {
-		cli.Log.Warnf("Failed to parse message: %v", err)
-		cli.sendAck(ctx, node, NackParsingError)
-		return
-	}
-	if info.Sender.Server != types.NewsletterServer {
-		cli.sendAck(ctx, node, 0)
-		return
-	}
-	info.IsNewsletterStatus = true
-	var cancelled bool
-	defer cli.maybeDeferredAck(ctx, node)(&cancelled)
-	cancelled = cli.handlePlaintextMessage(ctx, info, node)
 }
 
 func (cli *Client) parseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
@@ -854,11 +838,12 @@ func (cli *Client) handleAppStateSyncKeyShare(ctx context.Context, keys *waE2E.A
 		existing, err := cli.Store.AppStateKeys.GetAppStateSyncKey(ctx, key.GetKeyID().GetKeyID())
 		if err != nil {
 			cli.Log.Warnf("Failed to check for existing app state sync key %X: %v", key.GetKeyID().GetKeyID(), err)
-		} else if existing != nil && !bytes.Equal(existing.Data, key.GetKeyData().GetKeyData()) {
+		} else if existing != nil && len(existing.Data) > 0 && !bytes.Equal(existing.Data, key.GetKeyData().GetKeyData()) {
 			cli.Log.Warnf(
-				"Received app state sync key %X with different data than the stored key (stored ts: %d, new ts: %d, requested: %t)",
+				"Ignoring app state sync key %X with different data than the stored key (stored ts: %d, new ts: %d, requested: %t)",
 				key.GetKeyID().GetKeyID(), existing.Timestamp, key.GetKeyData().GetTimestamp(), isReRequest,
 			)
+			continue
 		}
 		err = cli.Store.AppStateKeys.PutAppStateSyncKey(ctx, key.GetKeyID().GetKeyID(), store.AppStateSyncKey{
 			Data:        key.GetKeyData().GetKeyData(),

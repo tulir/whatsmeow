@@ -303,6 +303,10 @@ func (int *DangerousInternalClient) SendKeepAlive(ctx context.Context) (isSucces
 	return int.c.sendKeepAlive(ctx)
 }
 
+func (int *DangerousInternalClient) IsKeepAliveNode(node *waBinary.Node) bool {
+	return int.c.isKeepAliveNode(node)
+}
+
 func (int *DangerousInternalClient) RefreshMediaConn(ctx context.Context, force bool) (*MediaConn, error) {
 	return int.c.refreshMediaConn(ctx, force)
 }
@@ -317,10 +321,6 @@ func (int *DangerousInternalClient) HandleMediaRetryNotification(ctx context.Con
 
 func (int *DangerousInternalClient) HandleEncryptedMessage(ctx context.Context, node *waBinary.Node) {
 	int.c.handleEncryptedMessage(ctx, node)
-}
-
-func (int *DangerousInternalClient) HandleUnencryptedMessage(ctx context.Context, node *waBinary.Node) {
-	int.c.handleUnencryptedMessage(ctx, node)
 }
 
 func (int *DangerousInternalClient) ParseMessageSource(node *waBinary.Node, requireParticipant bool) (source types.MessageSource, err error) {
@@ -447,8 +447,8 @@ func (int *DangerousInternalClient) HandleEncryptNotification(ctx context.Contex
 	int.c.handleEncryptNotification(ctx, node)
 }
 
-func (int *DangerousInternalClient) HandleAppStateNotification(ctx context.Context, node *waBinary.Node) {
-	int.c.handleAppStateNotification(ctx, node)
+func (int *DangerousInternalClient) HandleAppStateNotification(ctx context.Context, node *waBinary.Node) bool {
+	return int.c.handleAppStateNotification(ctx, node)
 }
 
 func (int *DangerousInternalClient) HandlePictureNotification(ctx context.Context, node *waBinary.Node) {
@@ -457,6 +457,10 @@ func (int *DangerousInternalClient) HandlePictureNotification(ctx context.Contex
 
 func (int *DangerousInternalClient) HandleDeviceNotification(ctx context.Context, node *waBinary.Node) {
 	int.c.handleDeviceNotification(ctx, node)
+}
+
+func (int *DangerousInternalClient) HandleFBCallNotification(ctx context.Context, node *waBinary.Node) bool {
+	return int.c.handleFBCallNotification(ctx, node)
 }
 
 func (int *DangerousInternalClient) HandleFBDeviceNotification(ctx context.Context, node *waBinary.Node) {

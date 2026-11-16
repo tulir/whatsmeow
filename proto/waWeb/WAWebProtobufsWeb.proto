@@ -281,6 +281,7 @@ message WebMessageInfo {
 		SPLIT_PAYMENT_MARKED_AS_PAID = 289;
 		POLL_OPTIONS_REMOVED = 290;
 		POLL_ADDED_OPTION_REMOVED = 291;
+		GROUP_CUSTOM_REACTIONS = 293;
 	}
 
 	enum Status {
@@ -365,6 +366,7 @@ message WebMessageInfo {
 	optional string decisionID = 82;
 	repeated string decisionSources = 83;
 	optional EventInviteAdditionalMetadata eventInviteAdditionalMetadata = 84;
+	optional uint64 groupHistoryLastCountedMessageTimestamp = 85;
 }
 
 message PaymentInfo {
@@ -493,6 +495,71 @@ message WebFeatures {
 	optional Flag noDeleteMessageTimeLimit = 49;
 }
 
+message PollAdditionalMetadata {
+	message PollOptionReplayEntry {
+		enum Type {
+			UNKNOWN = 0;
+			EDIT = 1;
+			ADD = 2;
+			REVOKE = 3;
+		}
+
+		optional Type type = 1;
+		optional WACommon.MessageKey messageKey = 2;
+		optional int64 serverTimestampMS = 3;
+		optional int64 editTimestampMS = 4;
+		repeated bytes optionHashes = 5;
+		optional WACommon.MessageKey revokedMessageKey = 6;
+	}
+
+	message PollOptionReplayBase {
+		message Option {
+			optional bytes optionHash = 1;
+			optional int64 enteredTimestampMS = 2;
+			optional WACommon.MessageKey addMessageKey = 3;
+		}
+
+		optional int64 boundaryTimestampMS = 1;
+		optional int64 editTimestampMS = 2;
+		repeated Option options = 3;
+	}
+
+	message PollNameHashHistoryEntry {
+		optional string editStanzaID = 1;
+		optional bytes pollNameHash = 2;
+	}
+
+	optional bool pollInvalidated = 1;
+	repeated PollNameHashHistoryEntry pollNameHashHistory = 2;
+	repeated WAWebProtobufsE2E.PollCreationMessage.Option originalOptions = 3;
+	repeated PollOptionReplayEntry pollOptionReplayEntries = 4;
+	optional PollOptionReplayBase pollOptionReplayBase = 5;
+}
+
+message EventInviteAdditionalMetadata {
+	enum RsvpStatus {
+		RSVP_STATUS_UNKNOWN = 0;
+		GOING = 1;
+		NOT_GOING = 2;
+		MAYBE = 3;
+		NO_RESPONSE = 4;
+	}
+
+	enum AccessStatus {
+		ACCESS_STATUS_UNKNOWN = 0;
+		HAS_ACCESS = 1;
+		LEFT_EVENT = 2;
+		REMOVED_FROM_INVITE_LIST = 3;
+		UNAVAILABLE = 4;
+	}
+
+	optional bool isUpdated = 1;
+	optional AccessStatus selfAccessStatus = 2;
+	optional RsvpStatus selfRsvpStatus = 3;
+	optional uint32 selfAdditionalGuestCount = 4;
+	optional int64 selfInviteeLastUpdatedTSUsec = 5;
+}
+
 message PinInChat {
 	enum Type {
 		UNKNOWN_TYPE = 0;
@@ -606,27 +673,12 @@ message PollUpdate {
 	optional WAWebProtobufsE2E.PollUpdateMessageMetadata metadata = 6;
 }
 
-message PollAdditionalMetadata {
-	message PollNameHashHistoryEntry {
-		optional string editStanzaID = 1;
-		optional bytes pollNameHash = 2;
-	}
-
-	optional bool pollInvalidated = 1;
-	repeated PollNameHashHistoryEntry pollNameHashHistory = 2;
-	repeated WAWebProtobufsE2E.PollCreationMessage.Option originalOptions = 3;
-}
-
 message InteractiveMessageAdditionalMetadata {
 	optional bool isGalaxyFlowCompleted = 1;
 }
 
 message EventAdditionalMetadata {
 	optional bool isStale = 1;
-}
-
-message EventInviteAdditionalMetadata {
-	optional bool isUpdated = 1;
 }
 
 message KeepInChat {

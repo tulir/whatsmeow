@@ -189,6 +189,34 @@ func (cli *Client) handleDeviceNotification(ctx context.Context, node *waBinary.
 	}
 }
 
+func (cli *Client) handleFBCallNotification(ctx context.Context, node *waBinary.Node) bool {
+	callEvent, ok := node.GetOptionalChildByTag("call_event")
+	if !ok {
+		cli.Log.Debugf("Got fb:call notification without call_event: %s", node)
+		return false
+	}
+	nag := node.AttrGetter()
+	ag := callEvent.AttrGetter()
+	evt := &events.FBCallEvent{
+		ID:             nag.String("id"),
+		From:           nag.JID("from"),
+		Chat:           ag.JID("jid"),
+		Actor:          ag.JID("event_actor_id"),
+		Timestamp:      ag.UnixMilli("event_time"),
+		CallType:       ag.String("call_type"),
+		EventType:      ag.String("event_type"),
+		Duration:       time.Duration(ag.OptionalInt("duration")) * time.Second,
+		ParentID:       ag.OptionalString("parent_id"),
+		ServerInfoData: ag.OptionalString("server_info_data"),
+		Data:           &callEvent,
+	}
+	if !nag.OK() || !ag.OK() {
+		cli.Log.Warnf("Failed to parse fb:call notification: %v %v", nag.Error(), ag.Error())
+		return false
+	}
+	return cli.dispatchEvent(evt)
+}
+
 func (cli *Client) handleFBDeviceNotification(ctx context.Context, node *waBinary.Node) {
 	cli.userDevicesCacheLock.Lock()
 	defer cli.userDevicesCacheLock.Unlock()
@@ -492,6 +520,8 @@ func (cli *Client) handleNotification(ctx context.Context, node *waBinary.Node) 
 		cli.handleDeviceNotification(ctx, node)
 	case "fbid:devices":
 		cli.handleFBDeviceNotification(ctx, node)
+	case "fb:call":
+		cancelled = cli.handleFBCallNotification(ctx, node)
 	case "w:gp2":
 		evt, lidPairs, redactedPhones, err := cli.parseGroupNotification(node)
 		if err != nil {

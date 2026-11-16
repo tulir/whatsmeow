@@ -111,7 +111,7 @@ type MessageInfo struct {
 	MsgBotInfo  MsgBotInfo
 	MsgMetaInfo MsgMetaInfo
 
-	IsNewsletterStatus bool
+	StanzaTag string // message for normal messages, status for newsletters and status broadcasts, appdata for some other things
 
 	VerifiedName   *VerifiedName
 	DeviceSentMeta *DeviceSentMeta // Metadata for direct messages sent from another one of the user's own devices.

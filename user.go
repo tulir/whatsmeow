@@ -267,6 +267,7 @@ func (cli *Client) GetUserInfo(ctx context.Context, jids []types.JID) (map[types
 		}
 
 		if verifiedName != nil {
+			info.VerifiedName = verifiedName
 			cli.updateBusinessName(ctx, jid, info.LID, nil, verifiedName.Details.GetVerifiedName())
 		}
 		respData[jid] = info

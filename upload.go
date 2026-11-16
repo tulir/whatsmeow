@@ -285,8 +285,11 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, upload
 	}
 
 	req.ContentLength = int64(uploadSize)
-	req.Header.Set("Origin", socket.Origin)
-	req.Header.Set("Referer", socket.Origin+"/")
+	req.Header.Set("Origin", cli.getMediaOrigin())
+	req.Header.Set("Referer", cli.getMediaOrigin()+"/")
+	if userAgent := cli.getUserAgent(); userAgent != "" {
+		req.Header.Set("User-Agent", userAgent)
+	}
 
 	httpResp, err := cli.mediaHTTP.Do(req)
 	if err != nil {
