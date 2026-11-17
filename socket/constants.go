@@ -41,6 +41,7 @@ var (
 	ErrSocketClosed      = errors.New("frame socket is closed")
 	ErrSocketAlreadyOpen = errors.New("frame socket is already open")
 	ErrDialFailed        = errors.New("failed to dial whatsapp web websocket")
+	ErrWriteTimeout      = errors.New("websocket write timed out")
 )
 
 type ErrWithStatusCode struct {
