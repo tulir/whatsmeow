@@ -17,6 +17,14 @@ const (
 	GroupMemberAddModeAllMember GroupMemberAddMode = "all_member_add"
 )
 
+// GroupSuspensionAppealResult is the server's response to a group suspension appeal.
+type GroupSuspensionAppealResult struct {
+	ResponseCode string
+	ErrorMessage string
+	// AppealCreationTime is zero if the server did not supply a creation time.
+	AppealCreationTime time.Time
+}
+
 // GroupInfo contains basic information about a group chat on WhatsApp.
 type GroupInfo struct {
 	JID      JID
