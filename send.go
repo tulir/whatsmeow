@@ -323,6 +323,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 				extraParams.addressingMode = types.AddressingModePN
 			}
 		} else {
+			ownID = cli.getOwnLID()
 			groupParticipants, err = cli.getBroadcastListParticipants(ctx, to)
 			if err != nil {
 				err = fmt.Errorf("failed to get broadcast list members: %w", err)
