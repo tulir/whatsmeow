@@ -538,6 +538,17 @@ type Picture struct {
 	PictureID string    // The new picture ID if it was not removed.
 }
 
+// ContactNumberChanged is emitted when the server reports a contact's phone number change.
+// The event belongs to the client that received it and does not update stored LID mappings.
+// Repeated notifications may produce repeated events with the same StanzaID.
+type ContactNumberChanged struct {
+	StanzaID string
+	OldPN    types.JID
+	NewPN    types.JID
+	OldLID   *types.JID
+	NewLID   *types.JID
+}
+
 // UserAbout is emitted when a user's about status is changed.
 type UserAbout struct {
 	JID       types.JID // The user whose status was changed
