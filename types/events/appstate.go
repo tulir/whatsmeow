@@ -91,6 +91,15 @@ type Archive struct {
 	FromFullSync bool                            // Whether the action is emitted because of a fullSync
 }
 
+// Lock is emitted when a chat is locked or unlocked (WhatsApp's "Lock chat" feature) from another device.
+type Lock struct {
+	JID       types.JID // The chat which was locked or unlocked.
+	Timestamp time.Time // The time when the (un)locking happened.
+
+	Action       *waSyncAction.LockChatAction // The current lock status of the chat.
+	FromFullSync bool                         // Whether the action is emitted because of a fullSync
+}
+
 // MarkChatAsRead is emitted when a whole chat is marked as read or unread from another device.
 type MarkChatAsRead struct {
 	JID       types.JID // The chat which was marked as read or unread.
