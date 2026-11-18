@@ -144,6 +144,12 @@ type SendResponse struct {
 //
 // Trying to add multiple extra parameters will return an error.
 type SendRequestExtra struct {
+	// PerDeviceMessage overrides the recipient plaintext for an individual DM device.
+	// nil return keeps the base message. Own devices always receive the base DSM.
+	// Only ordinary PN/LID DMs are supported; no groups, peer, bots or newsletters.
+	// The callback must be pure, immutable and safe for later in-memory retries.
+	PerDeviceMessage func(types.JID) *waE2E.Message
+
 	// The message ID to use when sending. If this is not provided, a random message ID will be generated
 	ID types.MessageID
 	// JID of the bot to be invoked (optional)
@@ -200,6 +206,10 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	} else if len(extra) == 1 {
 		req = extra[0]
 	}
+	if req.PerDeviceMessage != nil && (req.Peer || !req.InlineBotJID.IsEmpty() || to.IsBot() ||
+		(to.Server != types.DefaultUserServer && to.Server != types.HiddenUserServer)) {
+		return resp, fmt.Errorf("PerDeviceMessage only supports ordinary PN/LID DMs")
+	}
 	if to.Device > 0 && !req.Peer {
 		err = ErrRecipientADJID
 		return
@@ -239,6 +249,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 	isBotMode := isInlineBotMode || to.IsBot()
 	needsMessageSecret := isBotMode || cli.shouldIncludeReportingToken(message)
 	var extraParams nodeExtraParams
+	extraParams.perDeviceMessage = req.PerDeviceMessage
 
 	if needsMessageSecret {
 		if message.MessageContextInfo == nil {
@@ -394,7 +405,7 @@ func (cli *Client) SendMessage(ctx context.Context, to types.JID, message *waE2E
 
 	// Peer message retries aren't implemented yet
 	if !req.Peer {
-		err = cli.addRecentMessage(ctx, to, req.ID, message, nil)
+		err = cli.addRecentMessage(ctx, to, req.ID, message, nil, req.PerDeviceMessage)
 		if err != nil {
 			return
 		}
@@ -761,11 +772,12 @@ func (cli *Client) sendNewsletter(
 }
 
 type nodeExtraParams struct {
-	botNode         *waBinary.Node
-	metaNode        *waBinary.Node
-	additionalNodes *[]waBinary.Node
-	addressingMode  types.AddressingMode
-	peerRecipientPN types.JID
+	perDeviceMessage func(types.JID) *waE2E.Message
+	botNode          *waBinary.Node
+	metaNode         *waBinary.Node
+	additionalNodes  *[]waBinary.Node
+	addressingMode   types.AddressingMode
+	peerRecipientPN  types.JID
 }
 
 func (cli *Client) sendGroup(
@@ -894,7 +906,8 @@ func (cli *Client) sendDM(
 	}
 	phash := participantListHashV2(allDevices)
 
-	if cli.shouldIncludeReportingToken(message) && message.GetMessageContextInfo().GetMessageSecret() != nil {
+	// Reporting tokens hash one plaintext and cannot describe per-device variants.
+	if extraParams.perDeviceMessage == nil && cli.shouldIncludeReportingToken(message) && message.GetMessageContextInfo().GetMessageSecret() != nil {
 		node.Content = append(node.GetChildren(), cli.getMessageReportingToken(messagePlaintext, message, ownID, to, id))
 	}
 
@@ -1233,9 +1246,14 @@ func (cli *Client) prepareMessageNode(
 		encAttrs["decrypt-fail"] = string(events.DecryptFailHide)
 	}
 
+	// Marshal all variants before touching Signal sessions. Stanza nodes remain shared.
+	perDevicePlaintexts, err := marshalPerDeviceMessages(to, allDevices, cli.getOwnID(), cli.getOwnLID(), extraParams.perDeviceMessage)
+	if err != nil {
+		return nil, nil, err
+	}
 	start = time.Now()
 	participantNodes, includeIdentity, err := cli.encryptMessageForDevices(
-		ctx, allDevices, id, plaintext, dsmPlaintext, encAttrs,
+		ctx, allDevices, id, plaintext, dsmPlaintext, encAttrs, perDevicePlaintexts,
 	)
 	timings.PeerEncrypt = time.Since(start)
 	if err != nil {
@@ -1298,6 +1316,7 @@ func (cli *Client) encryptMessageForDevices(
 	id string,
 	msgPlaintext, dsmPlaintext []byte,
 	encAttrs waBinary.Attrs,
+	perDevicePlaintexts ...map[types.JID][]byte,
 ) ([]waBinary.Node, bool, error) {
 	ownJID := cli.getOwnID()
 	ownLID := cli.getOwnLID()
@@ -1353,9 +1372,7 @@ func (cli *Client) encryptMessageForDevices(
 		if jid == ownJID || jid == ownLID {
 			continue
 		}
-		if (jid.User == ownJID.User || jid.User == ownLID.User) && dsmPlaintext != nil {
-			plaintext = dsmPlaintext
-		}
+		plaintext = selectDevicePlaintext(jid, ownJID, ownLID, msgPlaintext, dsmPlaintext, perDevicePlaintexts...)
 		encrypted, isPreKey, err := cli.encryptMessageForDeviceAndWrap(
 			ctx, plaintext, jid, encryptionIdentities[jid], bundles[jid], encAttrs, existingSessions,
 		)

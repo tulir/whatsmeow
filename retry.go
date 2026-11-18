@@ -41,16 +41,18 @@ type recentMessageKey struct {
 }
 
 type RecentMessage struct {
-	wa *waE2E.Message
-	fb *waMsgApplication.MessageApplication
+	perDeviceMessage func(types.JID) *waE2E.Message
+	wa               *waE2E.Message
+	fb               *waMsgApplication.MessageApplication
 }
 
 func (rm RecentMessage) IsEmpty() bool {
 	return rm.wa == nil && rm.fb == nil
 }
 
-func (cli *Client) addRecentMessage(ctx context.Context, to types.JID, id types.MessageID, wa *waE2E.Message, fb *waMsgApplication.MessageApplication) error {
-	if cli.UseRetryMessageStore {
+func (cli *Client) addRecentMessage(ctx context.Context, to types.JID, id types.MessageID, wa *waE2E.Message, fb *waMsgApplication.MessageApplication, perDeviceMessage ...func(types.JID) *waE2E.Message) error {
+	// Callbacks cannot be persisted: never store the base variant for these sends.
+	if cli.UseRetryMessageStore && (len(perDeviceMessage) == 0 || perDeviceMessage[0] == nil) {
 		var buf []byte
 		var format string
 		var err error
@@ -83,6 +85,11 @@ func (cli *Client) addRecentMessage(ctx context.Context, to types.JID, id types.
 		delete(cli.recentMessagesMap, cli.recentMessagesList[cli.recentMessagesPtr])
 	}
 	cli.recentMessagesMap[key] = RecentMessage{wa: wa, fb: fb}
+	if len(perDeviceMessage) > 0 {
+		msg := cli.recentMessagesMap[key]
+		msg.perDeviceMessage = perDeviceMessage[0]
+		cli.recentMessagesMap[key] = msg
+	}
 	cli.recentMessagesList[cli.recentMessagesPtr] = key
 	cli.recentMessagesPtr++
 	if cli.recentMessagesPtr >= len(cli.recentMessagesList) {
@@ -244,6 +251,7 @@ func (cli *Client) handleRetryReceipt(ctx context.Context, receipt *events.Recei
 		return nil
 	}
 
+	msg = msg.forDeviceRetry(receipt.Sender, cli.getOwnID(), cli.getOwnLID(), receipt.IsGroup || receipt.IsFromMe)
 	var fbSKDM *waMsgTransport.MessageTransport_Protocol_Ancillary_SenderKeyDistributionMessage
 	var fbDSM *waMsgTransport.MessageTransport_Protocol_Integral_DeviceSentMessage
 	if receipt.IsGroup {
