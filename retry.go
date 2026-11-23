@@ -452,6 +452,9 @@ func (cli *Client) delayedRequestMessageFromPhone(info *types.MessageInfo) {
 }
 
 func (cli *Client) immediateRequestMessageFromPhone(ctx context.Context, info *types.MessageInfo) {
+	if !cli.AutomaticMessageRerequestFromPhone || cli.MessengerConfig != nil {
+		return
+	}
 	_, err := cli.SendPeerMessage(ctx, cli.BuildUnavailableMessageRequest(info.Chat, info.Sender, info.ID))
 	if err != nil {
 		cli.Log.Warnf("Failed to send request for unavailable message %s to phone: %v", info.ID, err)
