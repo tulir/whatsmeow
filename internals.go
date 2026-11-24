@@ -815,8 +815,8 @@ func (int *DangerousInternalClient) IssuePrivacyToken(ctx context.Context, jid t
 	return int.c.issuePrivacyToken(ctx, jid, timestamp)
 }
 
-func (int *DangerousInternalClient) RawUpload(ctx context.Context, dataToUpload io.Reader, uploadSize uint64, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {
-	return int.c.rawUpload(ctx, dataToUpload, uploadSize, fileHash, appInfo, newsletter, resp)
+func (int *DangerousInternalClient) RawUpload(ctx context.Context, dataToUpload io.Reader, uploadSize uint64, fileHash []byte, mmsType string, newsletter bool, resp *UploadResponse) error {
+	return int.c.rawUpload(ctx, dataToUpload, uploadSize, fileHash, mmsType, newsletter, resp)
 }
 
 func (int *DangerousInternalClient) ParseBusinessProfile(node *waBinary.Node) (*types.BusinessProfile, error) {

@@ -71,6 +71,14 @@ type UploadResponse struct {
 //
 // The same applies to the other message types like DocumentMessage, just replace the struct type and Message field name.
 func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaType) (resp UploadResponse, err error) {
+	return cli.upload(ctx, plaintext, appInfo, mediaTypeToMMSType[appInfo])
+}
+
+func (cli *Client) UploadSticker(ctx context.Context, plaintext []byte) (UploadResponse, error) {
+	return cli.upload(ctx, plaintext, MediaImage, "sticker")
+}
+
+func (cli *Client) upload(ctx context.Context, plaintext []byte, appInfo MediaType, mmsType string) (resp UploadResponse, err error) {
 	resp.FileLength = uint64(len(plaintext))
 	resp.MediaKey = random.Bytes(32)
 
@@ -101,7 +109,7 @@ func (cli *Client) Upload(ctx context.Context, plaintext []byte, appInfo MediaTy
 		}
 	}
 
-	err = cli.rawUpload(ctx, bytes.NewReader(dataToUpload), uint64(len(dataToUpload)), resp.FileEncSHA256, appInfo, false, &resp)
+	err = cli.rawUpload(ctx, bytes.NewReader(dataToUpload), uint64(len(dataToUpload)), resp.FileEncSHA256, mmsType, false, &resp)
 	return
 }
 
@@ -149,7 +157,7 @@ func (cli *Client) UploadReader(ctx context.Context, plaintext io.Reader, tempFi
 			return
 		}
 	}
-	err = cli.rawUpload(ctx, tempFile, uploadSize, resp.FileEncSHA256, appInfo, false, &resp)
+	err = cli.rawUpload(ctx, tempFile, uploadSize, resp.FileEncSHA256, mediaTypeToMMSType[appInfo], false, &resp)
 	return
 }
 
@@ -212,7 +220,7 @@ func (cli *Client) UploadNewsletter(ctx context.Context, data []byte, appInfo Me
 	resp.FileLength = uint64(len(data))
 	hash := sha256.Sum256(data)
 	resp.FileSHA256 = hash[:]
-	err = cli.rawUpload(ctx, bytes.NewReader(data), resp.FileLength, resp.FileSHA256, appInfo, true, &resp)
+	err = cli.rawUpload(ctx, bytes.NewReader(data), resp.FileLength, resp.FileSHA256, mediaTypeToMMSType[appInfo], true, &resp)
 	return
 }
 
@@ -236,11 +244,11 @@ func (cli *Client) UploadNewsletterReader(ctx context.Context, data io.ReadSeeke
 		err = fmt.Errorf("failed to seek to start of data: %w", err)
 		return
 	}
-	err = cli.rawUpload(ctx, data, resp.FileLength, resp.FileSHA256, appInfo, true, &resp)
+	err = cli.rawUpload(ctx, data, resp.FileLength, resp.FileSHA256, mediaTypeToMMSType[appInfo], true, &resp)
 	return
 }
 
-func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, uploadSize uint64, fileHash []byte, appInfo MediaType, newsletter bool, resp *UploadResponse) error {
+func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, uploadSize uint64, fileHash []byte, mmsType string, newsletter bool, resp *UploadResponse) error {
 	mediaConn, err := cli.refreshMediaConn(ctx, false)
 	if err != nil {
 		return fmt.Errorf("failed to refresh media connections: %w", err)
@@ -251,7 +259,6 @@ func (cli *Client) rawUpload(ctx context.Context, dataToUpload io.Reader, upload
 		"auth":  []string{mediaConn.Auth},
 		"token": []string{token},
 	}
-	mmsType := mediaTypeToMMSType[appInfo]
 	uploadPrefix := "mms"
 	if cli.MessengerConfig != nil {
 		uploadPrefix = "wa-msgr/mms"
