@@ -15,10 +15,11 @@ import (
 )
 
 type RichResponse struct {
-	ResponseID      string               `json:"response_id"`
-	Sections        []ViewModelContainer `json:"sections"`
-	FooterSections  []ViewModelContainer `json:"footer_sections,omitempty"`
-	EmbeddedScreens []json.RawMessage    `json:"embedded_screens,omitempty"`
+	ResponseID string               `json:"response_id"`
+	Sections   []ViewModelContainer `json:"sections"`
+	// TODO the format of these has changed
+	//FooterSections  []ViewModelContainer `json:"footer_sections,omitempty"`
+	//EmbeddedScreens []json.RawMessage    `json:"embedded_screens,omitempty"`
 }
 
 type ViewModelContainer struct {
