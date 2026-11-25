@@ -333,6 +333,7 @@ type Message struct {
 	IsGroupMentioned      bool // True if the message was unwrapped from a GroupMentionedMessage
 	IsBotInvoke           bool // True if the message was unwrapped from a BotInvokeMessage
 	IsEdit                bool // True if the message was unwrapped from an EditedMessage
+	IsSpoiler             bool // True if the message was unwrapped from a SpoilerMessage
 
 	// If this event was parsed from a WebMessageInfo (i.e. from a history sync or unavailable message request), the source data is here.
 	SourceWebMsg *waWeb.WebMessageInfo
@@ -411,6 +412,10 @@ func (evt *Message) UnwrapRaw() *Message {
 		evt.IsViewOnce = true
 		evt.IsViewOnceV2 = true
 		evt.IsViewOnceV2Extension = true
+	}
+	if evt.Message.GetSpoilerMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetSpoilerMessage().GetMessage()
+		evt.IsSpoiler = true
 	}
 	if evt.Message.GetGroupMentionedMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetGroupMentionedMessage().GetMessage()
