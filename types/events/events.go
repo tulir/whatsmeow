@@ -375,6 +375,10 @@ func (evt *FBMessage) GetArmadillo() *waArmadilloApplication.Armadillo {
 	return nil
 }
 
+func UnwrapMessage(evt *waE2E.Message) *waE2E.Message {
+	return (&Message{RawMessage: evt}).UnwrapRaw().Message
+}
+
 // UnwrapRaw fills the Message, IsEphemeral and IsViewOnce fields based on the raw message in the RawMessage field.
 func (evt *Message) UnwrapRaw() *Message {
 	evt.Message = evt.RawMessage
