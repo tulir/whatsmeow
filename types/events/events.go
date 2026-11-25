@@ -406,6 +406,9 @@ func (evt *Message) UnwrapRaw() *Message {
 		evt.IsViewOnceV2 = true
 		evt.IsViewOnceV2Extension = true
 	}
+	if evt.Message.GetAudioStickerMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetAudioStickerMessage().GetMessage()
+	}
 	if evt.Message.GetLottieStickerMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetLottieStickerMessage().GetMessage()
 		evt.IsLottieSticker = true
