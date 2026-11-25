@@ -329,6 +329,8 @@ type Message struct {
 	IsViewOnceV2Extension bool // True if the message was unwrapped from a ViewOnceMessageV2Extension
 	IsDocumentWithCaption bool // True if the message was unwrapped from a DocumentWithCaptionMessage
 	IsLottieSticker       bool // True if the message was unwrapped from a LottieStickerMessage
+	IsAudioSticker        bool // True if the message was unwrapped from an AudioStickerMessage
+	IsGroupMentioned      bool // True if the message was unwrapped from a GroupMentionedMessage
 	IsBotInvoke           bool // True if the message was unwrapped from a BotInvokeMessage
 	IsEdit                bool // True if the message was unwrapped from an EditedMessage
 
@@ -405,6 +407,14 @@ func (evt *Message) UnwrapRaw() *Message {
 		evt.IsViewOnce = true
 		evt.IsViewOnceV2 = true
 		evt.IsViewOnceV2Extension = true
+	}
+	if evt.Message.GetGroupMentionedMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetGroupMentionedMessage().GetMessage()
+		evt.IsGroupMentioned = true
+	}
+	if evt.Message.GetAudioStickerMessage().GetMessage() != nil {
+		evt.Message = evt.Message.GetAudioStickerMessage().GetMessage()
+		evt.IsAudioSticker = true
 	}
 	if evt.Message.GetLottieStickerMessage().GetMessage() != nil {
 		evt.Message = evt.Message.GetLottieStickerMessage().GetMessage()
