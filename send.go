@@ -930,21 +930,12 @@ func (cli *Client) sendDM(
 }
 
 func getTypeFromMessage(msg *waE2E.Message) string {
+	msg = events.UnwrapMessage(msg)
 	switch {
-	case msg.ViewOnceMessage != nil:
-		return getTypeFromMessage(msg.ViewOnceMessage.Message)
-	case msg.ViewOnceMessageV2 != nil:
-		return getTypeFromMessage(msg.ViewOnceMessageV2.Message)
-	case msg.ViewOnceMessageV2Extension != nil:
-		return getTypeFromMessage(msg.ViewOnceMessageV2Extension.Message)
-	case msg.LottieStickerMessage != nil:
-		return getTypeFromMessage(msg.LottieStickerMessage.Message)
-	case msg.EphemeralMessage != nil:
-		return getTypeFromMessage(msg.EphemeralMessage.Message)
-	case msg.DocumentWithCaptionMessage != nil:
-		return getTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
 	case msg.ReactionMessage != nil, msg.EncReactionMessage != nil:
 		return "reaction"
+	case msg.EventMessage != nil, msg.GetSecretEncryptedMessage().GetSecretEncType() == waE2E.SecretEncryptedMessage_EVENT_EDIT:
+		return "event"
 	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
 		return "poll"
 	case getMediaTypeFromMessage(msg) != "":
@@ -957,19 +948,8 @@ func getTypeFromMessage(msg *waE2E.Message) string {
 }
 
 func getMediaTypeFromMessage(msg *waE2E.Message) string {
+	msg = events.UnwrapMessage(msg)
 	switch {
-	case msg.ViewOnceMessage != nil:
-		return getMediaTypeFromMessage(msg.ViewOnceMessage.Message)
-	case msg.ViewOnceMessageV2 != nil:
-		return getMediaTypeFromMessage(msg.ViewOnceMessageV2.Message)
-	case msg.ViewOnceMessageV2Extension != nil:
-		return getMediaTypeFromMessage(msg.ViewOnceMessageV2Extension.Message)
-	case msg.LottieStickerMessage != nil:
-		return getMediaTypeFromMessage(msg.LottieStickerMessage.Message)
-	case msg.EphemeralMessage != nil:
-		return getMediaTypeFromMessage(msg.EphemeralMessage.Message)
-	case msg.DocumentWithCaptionMessage != nil:
-		return getMediaTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
 	case msg.ExtendedTextMessage != nil && msg.ExtendedTextMessage.Title != nil:
 		return "url"
 	case msg.ImageMessage != nil:
@@ -1012,36 +992,20 @@ func getMediaTypeFromMessage(msg *waE2E.Message) string {
 }
 
 func getButtonTypeFromMessage(msg *waE2E.Message) string {
+	msg = events.UnwrapMessage(msg)
 	switch {
-	case msg.ViewOnceMessage != nil:
-		return getButtonTypeFromMessage(msg.ViewOnceMessage.Message)
-	case msg.ViewOnceMessageV2 != nil:
-		return getButtonTypeFromMessage(msg.ViewOnceMessageV2.Message)
-	case msg.EphemeralMessage != nil:
-		return getButtonTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.ButtonsMessage != nil:
 		return "buttons"
-	case msg.ButtonsResponseMessage != nil:
-		return "buttons_response"
 	case msg.ListMessage != nil:
 		return "list"
-	case msg.ListResponseMessage != nil:
-		return "list_response"
-	case msg.InteractiveResponseMessage != nil:
-		return "interactive_response"
 	default:
 		return ""
 	}
 }
 
 func getButtonAttributes(msg *waE2E.Message) waBinary.Attrs {
+	msg = events.UnwrapMessage(msg)
 	switch {
-	case msg.ViewOnceMessage != nil:
-		return getButtonAttributes(msg.ViewOnceMessage.Message)
-	case msg.ViewOnceMessageV2 != nil:
-		return getButtonAttributes(msg.ViewOnceMessageV2.Message)
-	case msg.EphemeralMessage != nil:
-		return getButtonAttributes(msg.EphemeralMessage.Message)
 	case msg.TemplateMessage != nil:
 		return waBinary.Attrs{}
 	case msg.ListMessage != nil:
@@ -1079,6 +1043,8 @@ func getEditAttribute(msg *waE2E.Message) types.EditAttribute {
 		return types.EditAttributeSenderRevoke
 	case msg.PinInChatMessage != nil:
 		return types.EditAttributePinInChat
+	case msg.GetSecretEncryptedMessage().GetSecretEncType() == waE2E.SecretEncryptedMessage_EVENT_EDIT:
+		return types.EditAttributeMessageEdit
 	}
 	return types.EditAttributeEmpty
 }
@@ -1149,7 +1115,8 @@ func (cli *Client) getMessageContent(
 	if includeIdentity {
 		content = append(content, cli.makeDeviceIdentityNode())
 	}
-	if msgAttrs["type"] == "poll" {
+	switch msgAttrs["type"] {
+	case "poll":
 		pollType := "creation"
 		if message.PollUpdateMessage != nil {
 			pollType = "vote"
@@ -1158,6 +1125,17 @@ func (cli *Client) getMessageContent(
 			Tag: "meta",
 			Attrs: waBinary.Attrs{
 				"polltype": pollType,
+			},
+		})
+	case "event":
+		eventType := "creation"
+		if message.GetSecretEncryptedMessage().GetSecretEncType() == waE2E.SecretEncryptedMessage_EVENT_EDIT {
+			eventType = "edit"
+		}
+		content = append(content, waBinary.Node{
+			Tag: "meta",
+			Attrs: waBinary.Attrs{
+				"event_type": eventType,
 			},
 		})
 	}
