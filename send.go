@@ -930,19 +930,8 @@ func (cli *Client) sendDM(
 }
 
 func getTypeFromMessage(msg *waE2E.Message) string {
+	msg = events.UnwrapMessage(msg)
 	switch {
-	case msg.ViewOnceMessage != nil:
-		return getTypeFromMessage(msg.ViewOnceMessage.Message)
-	case msg.ViewOnceMessageV2 != nil:
-		return getTypeFromMessage(msg.ViewOnceMessageV2.Message)
-	case msg.ViewOnceMessageV2Extension != nil:
-		return getTypeFromMessage(msg.ViewOnceMessageV2Extension.Message)
-	case msg.LottieStickerMessage != nil:
-		return getTypeFromMessage(msg.LottieStickerMessage.Message)
-	case msg.EphemeralMessage != nil:
-		return getTypeFromMessage(msg.EphemeralMessage.Message)
-	case msg.DocumentWithCaptionMessage != nil:
-		return getTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
 	case msg.ReactionMessage != nil, msg.EncReactionMessage != nil:
 		return "reaction"
 	case msg.PollCreationMessage != nil, msg.PollUpdateMessage != nil:
@@ -957,19 +946,8 @@ func getTypeFromMessage(msg *waE2E.Message) string {
 }
 
 func getMediaTypeFromMessage(msg *waE2E.Message) string {
+	msg = events.UnwrapMessage(msg)
 	switch {
-	case msg.ViewOnceMessage != nil:
-		return getMediaTypeFromMessage(msg.ViewOnceMessage.Message)
-	case msg.ViewOnceMessageV2 != nil:
-		return getMediaTypeFromMessage(msg.ViewOnceMessageV2.Message)
-	case msg.ViewOnceMessageV2Extension != nil:
-		return getMediaTypeFromMessage(msg.ViewOnceMessageV2Extension.Message)
-	case msg.LottieStickerMessage != nil:
-		return getMediaTypeFromMessage(msg.LottieStickerMessage.Message)
-	case msg.EphemeralMessage != nil:
-		return getMediaTypeFromMessage(msg.EphemeralMessage.Message)
-	case msg.DocumentWithCaptionMessage != nil:
-		return getMediaTypeFromMessage(msg.DocumentWithCaptionMessage.Message)
 	case msg.ExtendedTextMessage != nil && msg.ExtendedTextMessage.Title != nil:
 		return "url"
 	case msg.ImageMessage != nil:
@@ -1012,13 +990,8 @@ func getMediaTypeFromMessage(msg *waE2E.Message) string {
 }
 
 func getButtonTypeFromMessage(msg *waE2E.Message) string {
+	msg = events.UnwrapMessage(msg)
 	switch {
-	case msg.ViewOnceMessage != nil:
-		return getButtonTypeFromMessage(msg.ViewOnceMessage.Message)
-	case msg.ViewOnceMessageV2 != nil:
-		return getButtonTypeFromMessage(msg.ViewOnceMessageV2.Message)
-	case msg.EphemeralMessage != nil:
-		return getButtonTypeFromMessage(msg.EphemeralMessage.Message)
 	case msg.ButtonsMessage != nil:
 		return "buttons"
 	case msg.ButtonsResponseMessage != nil:
@@ -1035,13 +1008,8 @@ func getButtonTypeFromMessage(msg *waE2E.Message) string {
 }
 
 func getButtonAttributes(msg *waE2E.Message) waBinary.Attrs {
+	msg = events.UnwrapMessage(msg)
 	switch {
-	case msg.ViewOnceMessage != nil:
-		return getButtonAttributes(msg.ViewOnceMessage.Message)
-	case msg.ViewOnceMessageV2 != nil:
-		return getButtonAttributes(msg.ViewOnceMessageV2.Message)
-	case msg.EphemeralMessage != nil:
-		return getButtonAttributes(msg.EphemeralMessage.Message)
 	case msg.TemplateMessage != nil:
 		return waBinary.Attrs{}
 	case msg.ListMessage != nil:
