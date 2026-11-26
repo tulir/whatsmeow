@@ -315,7 +315,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 			return
 		}
 		cli.backgroundIfAsyncAck(func() {
-			if uType != events.UnavailableTypeViewOnce {
+			if uType != events.UnavailableTypeViewOnce && uType != events.UnavailableTypeSenderDrop {
 				cli.immediateRequestMessageFromPhone(ctx, info)
 			}
 			cli.sendAck(ctx, node, 0)

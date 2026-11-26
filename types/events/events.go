@@ -288,8 +288,9 @@ const (
 type UnavailableType string
 
 const (
-	UnavailableTypeUnknown  UnavailableType = ""
-	UnavailableTypeViewOnce UnavailableType = "view_once"
+	UnavailableTypeUnknown    UnavailableType = ""
+	UnavailableTypeViewOnce   UnavailableType = "view_once"
+	UnavailableTypeSenderDrop UnavailableType = "sender_drop"
 )
 
 // UndecryptableMessage is emitted when receiving a new message that failed to decrypt.
