@@ -26,7 +26,7 @@ func (cli *Client) getBroadcastListParticipants(ctx context.Context, jid types.J
 	if err != nil {
 		return nil, err
 	}
-	ownID := cli.getOwnID().ToNonAD()
+	ownID := cli.getOwnLID().ToNonAD()
 	if ownID.IsEmpty() {
 		return nil, ErrNotLoggedIn
 	}
@@ -50,36 +50,81 @@ func (cli *Client) getStatusBroadcastRecipients(ctx context.Context) ([]types.JI
 		return nil, fmt.Errorf("failed to get status privacy: %w", err)
 	}
 	statusPrivacy := statusPrivacyOptions[0]
+
+	var candidates []types.JID
 	if statusPrivacy.Type == types.StatusPrivacyTypeWhitelist {
-		// Whitelist mode, just return the list
-		return statusPrivacy.List, nil
+		candidates = statusPrivacy.List
+	} else {
+		// Blacklist or all contacts mode. Find all contacts from database, then filter them appropriately.
+		contacts, err := cli.Store.Contacts.GetAllContacts(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get contact list from db: %w", err)
+		}
+		for jid, contact := range contacts {
+			// TODO should there be a better way to separate contacts and found push names in the db?
+			if len(contact.FullName) > 0 {
+				candidates = append(candidates, jid)
+			}
+		}
 	}
 
-	// Blacklist or all contacts mode. Find all contacts from database, then filter them appropriately.
-	contacts, err := cli.Store.Contacts.GetAllContacts(ctx)
+	// Collect all PNs from candidates and blacklist to query their LIDs in one batch
+	var pnList []types.JID
+	for _, jid := range candidates {
+		if jid.Server == types.DefaultUserServer {
+			pnList = append(pnList, jid.ToNonAD())
+		}
+	}
+	if statusPrivacy.Type == types.StatusPrivacyTypeBlacklist {
+		for _, jid := range statusPrivacy.List {
+			if jid.Server == types.DefaultUserServer {
+				pnList = append(pnList, jid.ToNonAD())
+			}
+		}
+	}
+
+	lidMap, err := cli.Store.LIDs.GetManyLIDsForPNs(ctx, pnList)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get contact list from db: %w", err)
+		return nil, fmt.Errorf("failed to query LID mappings: %w", err)
 	}
 
+	// Populate blacklist matching both PN and LID
 	blacklist := make(map[types.JID]struct{})
 	if statusPrivacy.Type == types.StatusPrivacyTypeBlacklist {
 		for _, jid := range statusPrivacy.List {
-			blacklist[jid] = struct{}{}
+			baseJID := jid.ToNonAD()
+			blacklist[baseJID] = struct{}{}
+			if baseJID.Server == types.DefaultUserServer {
+				if lid, ok := lidMap[baseJID]; ok && !lid.IsEmpty() {
+					blacklist[lid.ToNonAD()] = struct{}{}
+				}
+			} else if baseJID.Server == types.HiddenUserServer {
+				if pn, err := cli.Store.LIDs.GetPNForLID(ctx, baseJID); err == nil && !pn.IsEmpty() {
+					blacklist[pn.ToNonAD()] = struct{}{}
+				}
+			}
 		}
 	}
 
-	var contactsArray []types.JID
-	for jid, contact := range contacts {
-		_, isBlacklisted := blacklist[jid]
-		if isBlacklisted {
+	recipients := make([]types.JID, 0, len(candidates))
+	for _, jid := range candidates {
+		baseJID := jid.ToNonAD()
+		target := baseJID
+		if baseJID.Server == types.DefaultUserServer {
+			target = lidMap[baseJID].ToNonAD()
+		}
+		if target.IsEmpty() || target.Server != types.HiddenUserServer {
 			continue
 		}
-		// TODO should there be a better way to separate contacts and found push names in the db?
-		if len(contact.FullName) > 0 {
-			contactsArray = append(contactsArray, jid)
+		if _, isBlacklisted := blacklist[baseJID]; isBlacklisted {
+			continue
 		}
+		if _, isBlacklisted := blacklist[target]; isBlacklisted {
+			continue
+		}
+		recipients = append(recipients, target)
 	}
-	return contactsArray, nil
+	return recipients, nil
 }
 
 var DefaultStatusPrivacy = []types.StatusPrivacy{{
