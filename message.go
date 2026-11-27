@@ -401,6 +401,12 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		} else if errors.Is(err, signalerror.ErrOldCounter) {
 			cli.Log.Warnf("Ignoring message %s from %s: %v", info.ID, info.SourceString(), err)
 			continue
+		} else if err != nil && encType == "msmsg" && info.Chat == types.MetaAISideChatJID {
+			cli.Log.Debugf("Ignoring undecryptable message %s in Meta AI side chat: %v", info.ID, err)
+			cli.backgroundIfAsyncAck(func() {
+				cli.sendAck(ctx, node, NackMissingMessageSecret)
+			})
+			return
 		} else if err != nil {
 			cli.Log.Warnf("Error decrypting message %s from %s: %v", info.ID, info.SourceString(), err)
 			if ctx.Err() != nil || errors.Is(err, context.Canceled) || errors.Is(err, ErrEventBufferDB) {
