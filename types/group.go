@@ -33,6 +33,7 @@ type GroupInfo struct {
 	GroupParent
 	GroupLinkedParent
 	GroupIsDefaultSub
+	GroupIsHiddenSub
 	GroupMembershipApprovalMode
 
 	AddressingMode     AddressingMode
@@ -64,6 +65,12 @@ type GroupLinkedParent struct {
 
 type GroupIsDefaultSub struct {
 	IsDefaultSubGroup bool
+}
+
+// GroupIsHiddenSub specifies whether a community subgroup is hidden,
+// i.e. not visible to community members who aren't in the group.
+type GroupIsHiddenSub struct {
+	IsHiddenSubGroup bool
 }
 
 // GroupName contains the name of a group along with metadata of who set it and when.
@@ -154,6 +161,7 @@ type GroupLinkTarget struct {
 	JID JID
 	GroupName
 	GroupIsDefaultSub
+	GroupIsHiddenSub
 }
 
 type GroupLinkChange struct {

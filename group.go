@@ -789,6 +789,8 @@ func (cli *Client) parseGroupNode(groupNode *waBinary.Node) (*types.GroupInfo, e
 			group.LinkedParentJID = childAG.JID("jid")
 		case "default_sub_group":
 			group.IsDefaultSubGroup = true
+		case "hidden_group":
+			group.IsHiddenSubGroup = true
 		case "parent":
 			group.IsParent = true
 			group.DefaultMembershipApprovalMode = childAG.OptionalString("default_membership_approval_mode")
@@ -824,6 +826,9 @@ func parseGroupLinkTargetNode(groupNode *waBinary.Node) (types.GroupLinkTarget, 
 		},
 		GroupIsDefaultSub: types.GroupIsDefaultSub{
 			IsDefaultSubGroup: groupNode.GetChildByTag("default_sub_group").Tag == "default_sub_group",
+		},
+		GroupIsHiddenSub: types.GroupIsHiddenSub{
+			IsHiddenSubGroup: groupNode.GetChildByTag("hidden_group").Tag == "hidden_group",
 		},
 	}, ag.Error()
 }
