@@ -605,7 +605,7 @@ func (cli *Client) unlockedConnect(ctx context.Context) error {
 	if err := fs.Connect(ctx); err != nil {
 		fs.Close(0)
 		return err
-	} else if queue, err = cli.doHandshake(fs, *keys.NewKeyPair()); err != nil {
+	} else if queue, err = cli.doHandshake(ctx, fs, *keys.NewKeyPair()); err != nil {
 		fs.Close(0)
 		return fmt.Errorf("noise handshake failed: %w", err)
 	}
@@ -890,13 +890,13 @@ func (cli *Client) RemoveEventHandlers() {
 	cli.eventHandlersLock.Unlock()
 }
 
-func (cli *Client) makeFrameHandler(queue chan *waBinary.Node) func(ctx context.Context, data []byte) {
+func (cli *Client) makeFrameHandler(evtCtx context.Context, queue chan *waBinary.Node) func(ctx context.Context, data []byte) {
 	return func(ctx context.Context, data []byte) {
-		cli.handleFrame(ctx, data, queue)
+		cli.handleFrame(ctx, evtCtx, data, queue)
 	}
 }
 
-func (cli *Client) handleFrame(ctx context.Context, data []byte, queue chan *waBinary.Node) {
+func (cli *Client) handleFrame(ctx, evtCtx context.Context, data []byte, queue chan *waBinary.Node) {
 	decompressed, err := waBinary.Unpack(data)
 	if err != nil {
 		cli.Log.Warnf("Failed to decompress frame: %v", err)
@@ -920,6 +920,17 @@ func (cli *Client) handleFrame(ctx context.Context, data []byte, queue chan *waB
 	} else if cli.receiveResponse(ctx, node) {
 		// handled
 	} else if _, ok := cli.nodeHandlers[node.Tag]; ok {
+		if node.Tag == "stream:error" {
+			if ctx.Err() != nil {
+				go cli.handleStreamError(evtCtx, node)
+				return
+			}
+			select {
+			case queue <- node:
+				return
+			default:
+			}
+		}
 		select {
 		case queue <- node:
 		case <-ctx.Done():
