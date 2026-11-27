@@ -46,6 +46,7 @@ var (
 	MetaAIJID           = NewJID("13135550002", DefaultUserServer)
 	NewMetaAIJID        = NewJID("867051314767696", BotServer)
 	MuseJID             = NewJID("1807055946647697", BotServer) // Also known as "hatch"
+	MetaAISideChatJID   = NewJID("2942131436135992", BotServer)
 )
 
 var (
