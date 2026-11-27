@@ -480,9 +480,10 @@ const (
 	getAppStateVersionQuery                 = `SELECT version, hash FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
 	deleteAppStateVersionQuery              = `DELETE FROM whatsmeow_app_state_version WHERE jid=$1 AND name=$2`
 	putAppStateMutationMACsQuery            = `INSERT INTO whatsmeow_app_state_mutation_macs (jid, name, version, index_mac, value_mac) VALUES `
+	putAppStateMutationMACsUpsert           = ` ON CONFLICT (jid, name, index_mac) DO UPDATE SET version=excluded.version, value_mac=excluded.value_mac`
 	deleteAppStateMutationMACsQueryPostgres = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=ANY($3::bytea[])`
 	deleteAppStateMutationMACsQueryGeneric  = `DELETE FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac IN `
-	getAppStateMutationMACQuery             = `SELECT value_mac FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=$3 ORDER BY version DESC LIMIT 1`
+	getAppStateMutationMACQuery             = `SELECT value_mac FROM whatsmeow_app_state_mutation_macs WHERE jid=$1 AND name=$2 AND index_mac=$3`
 )
 
 func (s *SQLStore) PutAppStateVersion(ctx context.Context, name string, version uint64, hash [128]byte) error {
@@ -531,16 +532,39 @@ func (s *SQLStore) putAppStateMutationMACs(ctx context.Context, name string, ver
 		values[baseIndex+1] = mutation.ValueMAC
 		queryParts[i] = fmt.Sprintf(placeholderSyntax, baseIndex+1, baseIndex+2)
 	}
-	_, err := s.db.Exec(ctx, putAppStateMutationMACsQuery+strings.Join(queryParts, ","), values...)
+	_, err := s.db.Exec(ctx, putAppStateMutationMACsQuery+strings.Join(queryParts, ",")+putAppStateMutationMACsUpsert, values...)
 	return err
 }
 
 const mutationBatchSize = 400
 
+// dedupeMutationMACs keeps only the last MAC for each index. A single patch can set the same
+// index twice, and the upsert in putAppStateMutationMACs can't touch the same row twice in one
+// statement (Postgres rejects it outright).
+func dedupeMutationMACs(mutations []store.AppStateMutationMAC) []store.AppStateMutationMAC {
+	indices := make(map[[32]byte]int, len(mutations))
+	out := make([]store.AppStateMutationMAC, 0, len(mutations))
+	for _, mutation := range mutations {
+		if len(mutation.IndexMAC) != 32 {
+			out = append(out, mutation)
+			continue
+		}
+		key := *(*[32]byte)(mutation.IndexMAC)
+		if i, ok := indices[key]; ok {
+			out[i] = mutation
+			continue
+		}
+		indices[key] = len(out)
+		out = append(out, mutation)
+	}
+	return out
+}
+
 func (s *SQLStore) PutAppStateMutationMACs(ctx context.Context, name string, version uint64, mutations []store.AppStateMutationMAC) error {
 	if len(mutations) == 0 {
 		return nil
 	}
+	mutations = dedupeMutationMACs(mutations)
 	return s.db.DoTxn(ctx, nil, func(ctx context.Context) error {
 		for slice := range slices.Chunk(mutations, mutationBatchSize) {
 			err := s.putAppStateMutationMACs(ctx, name, version, slice)
